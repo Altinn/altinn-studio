@@ -44,9 +44,6 @@ export function ReadyForPrint({ type }: { type: ReadyType }) {
   }, [assetsLoaded]);
 
   if (!assetsLoaded || hasLoaders || isFetching || isPending || (type === 'print' && hasErrors)) {
-    // if (is) {
-    //   debugger;
-    // }
     return null;
   }
 

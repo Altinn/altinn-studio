@@ -2,7 +2,7 @@ import { isAfter, isBefore } from 'date-fns';
 
 import { getDateConstraint, getDateFormat, strictParseISO } from 'src/app-components/Datepicker/utils/dateHelpers';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';

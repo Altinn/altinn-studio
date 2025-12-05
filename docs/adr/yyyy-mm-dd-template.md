@@ -37,9 +37,9 @@ List the pros and cons with the alternatives. This should be in regards to the d
 
 - Good, because this alternative adheres to B1.
   - Optional explanation as to how.
-- Bad, because it does not fullfill the B2 decision driver.
+- Bad, because it does not fulfill the B2 decision driver.
 
 ### A2
 
 - Good, because this alternative adheres to B2.
-- Bad, because it does not fullfill the B1 decision driver.
+- Bad, because it does not fulfill the B1 decision driver.

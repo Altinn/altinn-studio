@@ -6,7 +6,7 @@ import { screen } from '@testing-library/react';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getSharedTests } from 'src/features/expressions/shared';
-import { fetchApplicationMetadata } from 'src/queries/queries';
+import { fetchApplicationMetadata } from 'src/http-client/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { splitDashedKey } from 'src/utils/splitDashedKey';

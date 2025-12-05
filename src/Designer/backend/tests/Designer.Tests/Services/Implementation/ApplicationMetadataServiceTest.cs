@@ -34,7 +34,7 @@ public class ApplicationMetadataServiceTest
         };
 
         fixture
-            .MockGiteaApiWrapper.Setup(x =>
+            .MockGiteaClient.Setup(x =>
                 x.GetFileAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -84,7 +84,7 @@ public class ApplicationMetadataServiceTest
         ApplicationMetadataService ApplicationMetadataService,
         Mock<IAltinnStorageAppMetadataClient> MockStorageAppMetadataClient,
         Mock<IAltinnGitRepositoryFactory> MockAltinnGitRepositoryFactory,
-        Mock<IGitea> MockGiteaApiWrapper
+        Mock<IGitea> MockGiteaClient
     )
     {
         public ApplicationMetadataService Service => ApplicationMetadataService;
@@ -93,21 +93,21 @@ public class ApplicationMetadataServiceTest
         {
             var mockStorageAppMetadataClient = new Mock<IAltinnStorageAppMetadataClient>();
             var mockAltinnGitRepositoryFactory = new Mock<IAltinnGitRepositoryFactory>();
-            var mockGiteaApiWrapper = new Mock<IGitea>();
+            var mockGiteaClient = new Mock<IGitea>();
 
             var service = new ApplicationMetadataService(
                 NullLogger<ApplicationMetadataService>.Instance,
                 mockStorageAppMetadataClient.Object,
                 mockAltinnGitRepositoryFactory.Object,
                 Mock.Of<IHttpContextAccessor>(),
-                mockGiteaApiWrapper.Object
+                mockGiteaClient.Object
             );
 
             return new Fixture(
                 service,
                 mockStorageAppMetadataClient,
                 mockAltinnGitRepositoryFactory,
-                mockGiteaApiWrapper
+                mockGiteaClient
             );
         }
     }

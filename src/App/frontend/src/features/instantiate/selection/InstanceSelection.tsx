@@ -11,18 +11,12 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import {
-  ApplicationMetadataProvider,
-  useApplicationMetadata,
-} from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
-import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { useActiveInstancesQuery } from 'src/features/instantiate/selection/ActiveInstancesProvider';
 import classes from 'src/features/instantiate/selection/InstanceSelection.module.css';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
@@ -44,19 +38,11 @@ function getDateDisplayString(timeStamp: string) {
 }
 
 export const InstanceSelectionWrapper = () => (
-  <NavigationEffectProvider>
-    <OrgsProvider>
-      <LayoutSetsProvider>
-        <ApplicationMetadataProvider>
-          <DataModelsProvider>
-            <PresentationComponent>
-              <InstanceSelection />
-            </PresentationComponent>
-          </DataModelsProvider>
-        </ApplicationMetadataProvider>
-      </LayoutSetsProvider>
-    </OrgsProvider>
-  </NavigationEffectProvider>
+  <OrgsProvider>
+    <PresentationComponent>
+      <InstanceSelection />
+    </PresentationComponent>
+  </OrgsProvider>
 );
 
 export function InstanceSelection() {
@@ -64,8 +50,8 @@ export function InstanceSelection() {
 
   const _instances = data ?? [];
 
-  const applicationMetadata = useApplicationMetadata();
-  const instanceSelectionOptions = applicationMetadata?.onEntry.instanceSelection;
+  const applicationMetadata = getApplicationMetadata();
+  const instanceSelectionOptions = applicationMetadata?.onEntry?.instanceSelection;
   const selectedIndex = instanceSelectionOptions?.defaultSelectedOption;
   const { langAsString } = useLanguage();
   const mobileView = useIsMobileOrTablet();

@@ -1,13 +1,13 @@
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useInstanceDataElements } from 'src/domain/Instance/useInstanceQuery';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { Validation } from 'src/features/validation/validationContext';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import type { ComponentValidation, SubformValidation } from 'src/features/validation';
 
 export function useValidateSubform(baseComponentId: string): ComponentValidation[] {
-  const applicationMetadata = useApplicationMetadata();
+  const applicationMetadata = getApplicationMetadata();
   const layoutSets = useLayoutSets();
   const component = useExternalItem(baseComponentId, 'Subform');
   const layoutSetName = component?.layoutSet;

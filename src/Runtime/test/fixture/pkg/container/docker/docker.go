@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os/exec"
@@ -30,7 +31,11 @@ func (d *Cli) Push(image string) error {
 
 func (d *Cli) Run(args ...string) error {
 	cmd := exec.Command(d.Name(), args...)
-	return cmd.Run()
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("docker run failed: %w\nOutput: %s", err, string(output))
+	}
+	return nil
 }
 
 func (d *Cli) Inspect(target, format string) (string, error) {
@@ -59,19 +64,33 @@ func (d *Cli) ImageInspect(image, format string) (string, error) {
 func (d *Cli) Exec(container string, args ...string) error {
 	execArgs := append([]string{"exec", container}, args...)
 	cmd := exec.Command(d.Name(), execArgs...)
-	return cmd.Run()
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("docker exec failed: %w\nOutput: %s", err, string(output))
+	}
+	return nil
 }
 
 func (d *Cli) ExecWithStdin(container string, stdin io.Reader, args ...string) error {
 	execArgs := append([]string{"exec", "-i", container}, args...)
 	cmd := exec.Command(d.Name(), execArgs...)
 	cmd.Stdin = stdin
-	return cmd.Run()
+	var output bytes.Buffer
+	cmd.Stdout = &output
+	cmd.Stderr = &output
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("docker exec failed: %w\nOutput: %s", err, output.String())
+	}
+	return nil
 }
 
 func (d *Cli) NetworkConnect(network, container string) error {
 	cmd := exec.Command(d.Name(), "network", "connect", network, container)
-	return cmd.Run()
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("docker network connect failed: %w\nOutput: %s", err, string(output))
+	}
+	return nil
 }
 
 func (d *Cli) RunInteractive(stdin io.Reader, stdout, stderr io.Writer, args ...string) error {

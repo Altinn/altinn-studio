@@ -6,7 +6,7 @@ import { isValid, parseISO } from 'date-fns';
 import classes from 'src/app-components/Date/Date.module.css';
 import { DisplayDate } from 'src/app-components/Date/DisplayDate';
 import { getLabelId } from 'src/components/label/Label';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { formatDateLocale } from 'src/utils/dateUtils';

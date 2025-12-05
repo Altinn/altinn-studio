@@ -14,7 +14,14 @@ import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
-import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
+import type { ILayouts } from 'src/layout/layout';
+import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
+
+export interface LayoutContextValue {
+  layouts: ILayouts;
+  hiddenLayoutsExpressions: IHiddenLayoutsExternal;
+  expandedWidthLayouts: IExpandedWidthLayouts;
+}
 
 export const LayoutInspector = () => {
   const selectedComponent = useDevToolsStore((state) => state.layoutInspector.selectedComponentId);

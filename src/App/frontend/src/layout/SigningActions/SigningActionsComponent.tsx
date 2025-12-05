@@ -4,10 +4,10 @@ import { useParams } from 'react-router-dom';
 import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { Panel } from 'src/app-components/Panel/Panel';
+import { getUserProfile } from 'src/domain/User/getUserProfile';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useProfile } from 'src/features/profile/ProfileProvider';
 import { useSigneeList } from 'src/layout/SigneeList/api';
 import { useSignaturesValidation, useUserSigneeParties } from 'src/layout/SigningActions/api';
 import { AwaitingCurrentUserSignaturePanel } from 'src/layout/SigningActions/PanelAwaitingCurrentUserSignature';
@@ -27,7 +27,7 @@ export function SigningActionsComponent({ baseComponentId }: PropsFromGenericCom
     error: signeeListError,
   } = useSigneeList(instanceOwnerPartyId, instanceGuid, taskId);
 
-  const currentUserPartyId = useProfile()?.partyId;
+  const currentUserPartyId = getUserProfile()?.partyId;
   const { langAsString } = useLanguage();
 
   const isAuthorized = useIsAuthorized();

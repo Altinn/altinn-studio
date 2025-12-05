@@ -88,7 +88,7 @@ export function StudioCodeListEditorRow({
     <StudioInputTable.Row>
       <TypedInputCell
         autoComplete='off'
-        error={error && texts.valueErrors[error]}
+        error={error ? texts.valueErrors[error] : undefined}
         label={texts.itemValue(number)}
         onChange={handleValueChange}
         onUpdateValue={handleUpdateValue}
@@ -174,17 +174,17 @@ function TypedInputCell({ value, error, ...rest }: TypedInputCellProps<CodeListI
   }
 }
 
-const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<number | undefined>>(
+const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<number | null>>(
   ({ label, onChange, onUpdateValue, ...rest }, ref) => {
     const handleNumberChange = useCallback(
-      (numberValue: number | undefined): void => {
+      (numberValue: number | null): void => {
         onChange(numberValue);
       },
       [onChange],
     );
 
     const handleNumberBlur = useCallback(
-      (numberValue: number | undefined): void => {
+      (numberValue: number | null): void => {
         onUpdateValue(numberValue);
       },
       [onUpdateValue],
@@ -230,7 +230,7 @@ const CheckboxCell = forwardRef<HTMLInputElement, TypedInputCellProps<boolean>>(
 
 CheckboxCell.displayName = 'CheckboxCell';
 
-const TextfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<string>>(
+const TextfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<string | undefined>>(
   ({ label, onChange, onUpdateValue, ...rest }, ref) => {
     const handleTextChange = useCallback(
       (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -262,7 +262,7 @@ const TextfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<string>>(
 TextfieldCell.displayName = 'TextfieldCell';
 
 type TextResourceIdCellProps = {
-  currentId: string;
+  currentId?: string;
   dispatch: Dispatch<ReducerAction>;
   label: string;
   number: number;

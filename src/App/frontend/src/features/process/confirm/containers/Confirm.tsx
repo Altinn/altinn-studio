@@ -2,8 +2,8 @@ import React from 'react';
 
 import { AltinnContentLoader } from 'src/app-components/loading/AltinnContentLoader/AltinnContentLoader';
 import { useAppName } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
+import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useInstanceDataQuery } from 'src/domain/Instance/useInstanceQuery';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { ConfirmPage } from 'src/features/process/confirm/containers/ConfirmPage';
 
@@ -11,7 +11,7 @@ export const Confirm = () => {
   const instance = useInstanceDataQuery().data;
   const instanceOwnerParty = useInstanceOwnerParty();
 
-  const applicationMetadata = useApplicationMetadata();
+  const applicationMetadata = getApplicationMetadata();
 
   const missingRequirement = !instance ? 'instance' : undefined;
 

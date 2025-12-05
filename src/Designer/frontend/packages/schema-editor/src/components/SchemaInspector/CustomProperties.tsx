@@ -12,8 +12,7 @@ import { TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './CustomProperties.module.css';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioTextfield } from '@studio/components-legacy';
-import { StudioButton, StudioHelpText } from '@studio/components';
+import { StudioButton, StudioHelpText, StudioTextfield } from '@studio/components';
 
 export interface CustomPropertiesProps {
   path: string;
@@ -111,12 +110,20 @@ export interface InputProps<T> {
 
 export const StringInput = ({ id, value, onChange }: InputProps<string>) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value);
-  return <StudioTextfield id={id} value={value} onChange={handleChange} />;
+  return <StudioTextfield id={id} value={value} onChange={handleChange} label='' />;
 };
 
 export const NumberInput = ({ id, value, onChange }: InputProps<number>) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(Number(e.target.value));
-  return <StudioTextfield id={id} type='number' value={value.toString()} onChange={handleChange} />;
+  return (
+    <StudioTextfield
+      id={id}
+      type='number'
+      value={value.toString()}
+      onChange={handleChange}
+      label=''
+    />
+  );
 };
 
 export const BooleanInput = ({ id, value, onChange }: InputProps<boolean>) => {

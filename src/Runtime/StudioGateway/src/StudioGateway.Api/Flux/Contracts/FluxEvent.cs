@@ -4,7 +4,7 @@ namespace StudioGateway.Api.Flux.Contracts;
 /// FluxEvent represents a notification event from Flux CD.
 /// Based on https://github.com/fluxcd/pkg/blob/main/apis/event/v1beta1/event.go
 /// </summary>
-public record FluxEvent
+internal sealed record FluxEvent
 {
     /// <summary>
     /// The object that this event is about.

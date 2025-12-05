@@ -7,8 +7,13 @@ import { StudioLabelAsParagraph } from '../StudioLabelAsParagraph';
 import cn from 'classnames';
 
 export type StudioIconTextfieldProps = Override<
-  { icon?: React.ReactNode; label: string },
-  StudioTextfieldProps
+  {
+    icon?: React.ReactNode;
+    label: string;
+    onChange?: React.ChangeEventHandler<HTMLInputElement>;
+    onBlur?: React.FocusEventHandler<HTMLInputElement>;
+  },
+  Omit<StudioTextfieldProps, 'onChange' | 'onBlur'>
 >;
 
 export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfieldProps>(
@@ -40,8 +45,8 @@ export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfiel
           className={classes.textfield}
           aria-labelledby={labelId}
           value={value}
-          onChange={onChange as React.ChangeEventHandler<HTMLInputElement>}
-          onBlur={onBlur as React.FocusEventHandler<HTMLInputElement>}
+          onChange={onChange}
+          onBlur={onBlur}
           error={error}
           description={description}
         />

@@ -1,7 +1,3 @@
-import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-
-const appFrontend = new AppFrontend();
-
 describe('Footer', () => {
   it('Renders footer when app has it implemented', () => {
     cy.goto('message');

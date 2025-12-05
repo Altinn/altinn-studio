@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { StudioTextfield } from '@studio/components-legacy';
 import {
   StudioButton,
   StudioParagraph,
   StudioCard,
   StudioSpinner,
   StudioTabs,
+  StudioTextfield,
   StudioSelect,
 } from '@studio/components';
 import { useTranslation } from 'react-i18next';

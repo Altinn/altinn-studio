@@ -4,7 +4,7 @@ import { jest } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 
 import { AltinnAttachments } from 'src/components/atoms/AltinnAttachments';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import type { IDisplayAttachment } from 'src/types/shared';
 
 // Mock data with only the properties used in the component and tests
@@ -33,7 +33,7 @@ const mockAttachments = [
 ] as unknown as IDisplayAttachment[];
 
 // Mock the hooks and utilities
-jest.mock('src/features/language/LanguageProvider', () => ({
+jest.mock('src/features/language/useAppLanguages', () => ({
   useCurrentLanguage: jest.fn(() => 'nb'),
 }));
 

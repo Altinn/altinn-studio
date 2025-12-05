@@ -19,8 +19,13 @@ import {
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
-import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState, fetchUserProfile } from 'src/queries/queries';
-import { AppQueries } from 'src/queries/types';
+import {
+  fetchApplicationMetadata,
+  fetchInstanceData,
+  fetchProcessState,
+  fetchUserProfile,
+} from 'src/http-client/queries';
+import { AppQueries } from 'src/http-client/types';
 import {
   renderWithInstanceAndLayout,
   renderWithoutInstanceAndLayout,
@@ -277,13 +282,13 @@ describe('Expressions shared function tests', () => {
       if (profileSettings?.language) {
         profile.profileSettingPreference.language = profileSettings.language;
         // Also add it to appLanguages so resolveCurrentLanguage() accepts it
-        window.AltinnAppData.appLanguages = [{ language: profileSettings.language }];
+        window.AltinnAppGlobalData.availableLanguages = [{ language: profileSettings.language }];
         // Update the profile in window.AltinnAppData since useProfile() reads from there
-        window.AltinnAppData.userProfile = profile;
+        window.AltinnAppGlobalData.userProfile = profile;
       } else {
         // Reset to defaults when no custom profile settings
-        window.AltinnAppData.appLanguages = [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }];
-        window.AltinnAppData.userProfile = profile;
+        window.AltinnAppGlobalData.availableLanguages = [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }];
+        window.AltinnAppGlobalData.userProfile = profile;
       }
 
       async function fetchFormData(url: string) {

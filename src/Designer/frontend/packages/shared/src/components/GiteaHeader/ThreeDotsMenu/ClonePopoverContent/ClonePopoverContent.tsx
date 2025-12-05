@@ -6,8 +6,7 @@ import { Link, Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { useDataModelsXsdQuery } from 'app-shared/hooks/queries';
 import { InformationSquareFillIcon } from '@studio/icons';
-import { StudioTextfield } from '@studio/components-legacy';
-import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
+import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useGiteaHeaderContext } from '../../context/GiteaHeaderContext';
 

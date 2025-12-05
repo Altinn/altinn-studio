@@ -3,8 +3,8 @@ import React from 'react';
 import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
+import { fetchProcessState } from 'src/http-client/queries';
 import { CustomButtonComponent } from 'src/layout/CustomButton/CustomButtonComponent';
-import { fetchProcessState } from 'src/queries/queries';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { CustomAction } from 'src/layout/CustomButton/config.generated';
 import type { IUserAction } from 'src/types/shared';

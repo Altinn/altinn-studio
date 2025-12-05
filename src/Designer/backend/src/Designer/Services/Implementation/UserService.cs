@@ -11,11 +11,11 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class UserService : IUserService
 {
-    private readonly IGitea _giteaApi;
+    private readonly IGitea _giteaClient;
 
-    public UserService(IGitea giteaApi)
+    public UserService(IGitea giteaClient)
     {
-        _giteaApi = giteaApi;
+        _giteaClient = giteaClient;
     }
 
     public async Task<UserOrgPermission> GetUserOrgPermission(AltinnOrgEditingContext altinnOrgEditingContext)
@@ -31,7 +31,7 @@ public class UserService : IUserService
 
     private async Task<bool> HasPermissionToCreateOrgRepo(AltinnOrgEditingContext altinnOrgEditingContext)
     {
-        List<Team> teams = await _giteaApi.GetTeams();
+        List<Team> teams = await _giteaClient.GetTeams();
         return IsUserSelfOrg(altinnOrgEditingContext.Developer, altinnOrgEditingContext.Org) ||
                teams.Any(team => CheckPermissionToCreateOrgRepo(team, altinnOrgEditingContext.Org));
     }

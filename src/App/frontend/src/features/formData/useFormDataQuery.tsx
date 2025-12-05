@@ -6,7 +6,7 @@ import type { AxiosRequestConfig } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { type QueryDefinition } from 'src/core/queries/usePrefetchQuery';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { isAxiosError } from 'src/utils/isAxiosError';
@@ -16,7 +16,7 @@ export function useFormDataQueryDef(url: string | undefined): QueryDefinition<un
   const { fetchFormData } = useAppQueries();
   const queryKey = useFormDataQueryKey(url);
   const options = useFormDataQueryOptions();
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStatelessApp();
 
   const queryFn = url ? () => fetchFormData(url, options) : skipToken;
 
@@ -56,7 +56,7 @@ export async function invalidateFormDataQueries(queryClient: QueryClient) {
 
 export function useFormDataQueryOptions() {
   const selectedPartyId = useSelectedParty()?.partyId;
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStatelessApp();
   const options: AxiosRequestConfig = {};
   if (isStateless && selectedPartyId !== undefined) {
     options.headers = {

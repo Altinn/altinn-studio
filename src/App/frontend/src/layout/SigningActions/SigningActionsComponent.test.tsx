@@ -6,10 +6,10 @@ import { screen } from '@testing-library/dom';
 import { render } from '@testing-library/react';
 import { randomUUID } from 'crypto';
 
+import { getUserProfile } from 'src/domain/User/getUserProfile';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useProfile } from 'src/features/profile/ProfileProvider';
 import { NotificationStatus, SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
 import { useSignaturesValidation, useUserSigneeParties } from 'src/layout/SigningActions/api';
 import { AwaitingCurrentUserSignaturePanel } from 'src/layout/SigningActions/PanelAwaitingCurrentUserSignature';
@@ -87,7 +87,7 @@ describe('SigningActionsComponent', () => {
     } as unknown as ReturnType<typeof useLanguage>);
     jest.mocked(Lang).mockImplementation(({ id }: { id: string }) => id);
 
-    jest.mocked(useProfile).mockReturnValue({ partyId: 123 } as unknown as ReturnType<typeof useProfile>);
+    jest.mocked(getUserProfile).mockReturnValue({ partyId: 123 } as unknown as ReturnType<typeof getUserProfile>);
 
     mockedUseSigneeList.mockReturnValue({
       data: [],

@@ -9,17 +9,17 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { NavigateToStartUrl } from 'src/components/wrappers/ProcessWrapper';
 import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
 import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
 import { useExpandedWidthLayouts, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
-import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
-import { useQueryKey } from 'src/hooks/navigation';
+import { useNavigationParam, useQueryKey } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useCurrentView, useNavigatePage } from 'src/hooks/useNavigatePage';
 import { getComponentCapabilities } from 'src/layout';
@@ -37,16 +37,11 @@ interface FormState {
 }
 
 export function Form() {
-  const currentPageId = useCurrentView();
+  const currentPageId = useNavigationParam('pageKey');
 
-  return <FormPage currentPageId={currentPageId} />;
-}
-
-export function FormPage({ currentPageId }: { currentPageId: string | undefined }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const shouldValidateFormPage = searchParams.get(SearchParams.Validate);
   const onFormSubmitValidation = useOnFormSubmitValidation();
-
   useEffect(() => {
     if (shouldValidateFormPage) {
       onFormSubmitValidation();
@@ -150,7 +145,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
 function useRedirectToStoredPage() {
   const pageKey = useCurrentView();
   const { isValidPageId, navigateToPage } = useNavigatePage();
-  const applicationMetadataId = useApplicationMetadata()?.id;
+  const applicationMetadataId = getApplicationMetadata()?.id;
 
   const instanceId = useLaxInstanceId();
   const currentViewCacheKey = instanceId ?? applicationMetadataId;

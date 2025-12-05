@@ -27,8 +27,8 @@ import type {
   fetchInstanceData,
   fetchProcessState,
   fetchUserProfile,
-} from 'src/queries/queries';
-import type { AppQueries } from 'src/queries/types';
+} from 'src/http-client/queries';
+import type { AppQueries } from 'src/http-client/types';
 import type { IProcess } from 'src/types/shared';
 
 import 'src/index.css';
@@ -90,22 +90,30 @@ document.getAnimations = () => [];
 // Use IDs that match the test router expectations (see renderWithProviders.tsx)
 const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
 const examplePartyId = 512345;
-window.AltinnAppData = {
+window.AltinnAppInstanceData = {
   instance: getInstanceDataMock((instance) => {
     instance.id = `${examplePartyId}/${exampleGuid}`;
     instance.data[0].instanceGuid = exampleGuid;
   }, examplePartyId),
   processState: getProcessDataMock(),
-  userProfile: getProfileMock(),
   layoutSets: getLayoutSetsMock(),
   applicationMetadata: getIncomingApplicationMetadataMock(),
   footerLayout: null,
-  appLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
+  availableLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
+  frontendSettings: {},
+  layout: {},
+};
+
+window.AltinnAppGlobalData = {
+  userProfile: getProfileMock(),
+  applicationMetadata: getIncomingApplicationMetadataMock(),
+  footerLayout: null,
+  availableLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
+  frontendSettings: {},
   textResources: {
     language: 'nb',
     resources: getTextResourcesMock(),
   },
-  frontendSettings: {},
 };
 
 jest.setTimeout(env.parsed?.JEST_TIMEOUT ? parseInt(env.parsed.JEST_TIMEOUT, 10) : 20000);
@@ -138,8 +146,8 @@ testingLibraryConfigure({
   asyncUtilTimeout: env.parsed?.WAITFOR_TIMEOUT ? parseInt(env.parsed.WAITFOR_TIMEOUT, 10) : 15000,
 });
 
-jest.mock('src/queries/queries', () => ({
-  ...jest.requireActual<AppQueries>('src/queries/queries'),
+jest.mock('src/http-client/queries', () => ({
+  ...jest.requireActual<AppQueries>('src/http-client/queries'),
   fetchApplicationMetadata: jest
     .fn<typeof fetchApplicationMetadata>()
     .mockImplementation(async () => getIncomingApplicationMetadataMock()),

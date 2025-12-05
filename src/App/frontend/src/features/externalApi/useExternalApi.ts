@@ -1,8 +1,8 @@
 import { skipToken, useQueries, useQuery } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
-import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { fetchExternalApi } from 'src/queries/queries';
+import { useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
+import { fetchExternalApi } from 'src/http-client/queries';
 
 export type ExternalApisResult = { data: Record<string, unknown>; errors: Record<string, Error> };
 

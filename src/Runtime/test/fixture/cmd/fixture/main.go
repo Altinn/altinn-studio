@@ -78,7 +78,7 @@ func run(action, variant, cacheDir string, verbose bool) error {
 	}
 
 	// Create the container runtime
-	runtime, err := kind.New(runtimeVariant, cacheDir)
+	runtime, err := kind.New(runtimeVariant, cacheDir, kind.DefaultOptions())
 	if err != nil {
 		return fmt.Errorf("failed to create container runtime: %w", err)
 	}

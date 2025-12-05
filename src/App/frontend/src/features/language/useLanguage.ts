@@ -1,28 +1,41 @@
-import { Children, isValidElement, useCallback, useMemo } from 'react';
+import { Children, isValidElement, useCallback, useEffect, useMemo } from 'react';
 import type { JSX, ReactNode } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { useInstanceDataSources } from 'src/domain/Instance/useInstanceQuery';
+import { useTextResources } from 'src/domain/Textresource/textResourceQuery';
+import { useLaxApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { DataModelReaders } from 'src/features/formData/FormDataReaders';
 import { FD } from 'src/features/formData/FormDataWrite';
+import { useDataModelReaders } from 'src/features/formData/SpecificDataModelFetcher';
 import { Lang } from 'src/features/language/Lang';
-import { useLangToolsDataSources } from 'src/features/language/LangToolsStore';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
+import { useStateDeepEqual } from 'src/hooks/useStateDeepEqual';
+// import { useLangToolsDataSources } from 'src/features/language/LangDataSourcesProvider';
 import { type FixedLanguageList, getLanguageFromCode } from 'src/language/languages';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
-import type { DataModelReader, useDataModelReaders } from 'src/features/formData/FormDataReaders';
-import type {
-  LangDataSources,
-  LimitedTextResourceVariablesDataSources,
-} from 'src/features/language/LangDataSourcesProvider';
+import type { DataModelReader } from 'src/features/formData/FormDataReaders';
 import type { TextResourceMap } from 'src/features/language/textResources';
 import type { FormDataSelector } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { LooseAutocomplete } from 'src/types';
 import type { IApplicationSettings, IInstanceDataSources, IVariable } from 'src/types/shared';
+
+export type LimitedTextResourceVariablesDataSources = Omit<
+  TextResourceVariablesDataSources,
+  'node' | 'defaultDataType' | 'formDataTypes' | 'formDataSelector' | 'transposeSelector'
+>;
+
+export interface LangDataSources extends LimitedTextResourceVariablesDataSources {
+  textResources?: TextResourceMap;
+  selectedLanguage: string;
+  language: FixedLanguageList;
+}
 
 type SimpleLangParam = string | number | undefined;
 export type ValidLangParam = SimpleLangParam | ReactNode | TextReference;
@@ -92,6 +105,60 @@ export function useLanguage() {
   return useLanguageWithForcedPath(path);
 }
 
+export const useLangToolsDataSources = () => {
+  const textResources = useTextResources();
+  const selectedAppLanguage = useCurrentLanguage();
+  const dataModels = useDataModelReaders();
+  const applicationSettings = useLaxApplicationSettings();
+  const instanceDataSources = useInstanceDataSources();
+  const [dataSources, setDataSources] = useStateDeepEqual<LangDataSources | undefined>({
+    textResources,
+    language: getLanguageFromCode(selectedAppLanguage),
+    selectedLanguage: selectedAppLanguage,
+    dataModels,
+    applicationSettings,
+    instanceDataSources,
+    customTextParameters: null,
+  });
+
+  // This LangDataSourcesProvider is re-rendered very often, and will always 'move' around in the DOM tree wherever
+  // RenderStart is rendered. This means that we cannot rely on the memoization of the data sources, as the hooks
+  // will all run as if they were new hooks. That's why we take extra care to only update the data sources if
+  // something has changed.
+  useEffect(() => {
+    setDataSources((prev) => {
+      if (
+        prev?.selectedLanguage === selectedAppLanguage &&
+        prev?.textResources === textResources &&
+        prev?.dataModels === dataModels &&
+        prev?.applicationSettings === applicationSettings &&
+        prev?.instanceDataSources === instanceDataSources
+      ) {
+        return prev;
+      }
+
+      return {
+        textResources,
+        language: getLanguageFromCode(selectedAppLanguage),
+        selectedLanguage: selectedAppLanguage,
+        dataModels,
+        applicationSettings,
+        instanceDataSources,
+        customTextParameters: null,
+      };
+    });
+  }, [
+    textResources,
+    selectedAppLanguage,
+    dataModels,
+    applicationSettings,
+    instanceDataSources,
+    setDataSources,
+    dataSources,
+  ]);
+  return dataSources;
+};
+
 export function useLanguageWithForcedPath(dataModelPath: IDataModelReference | undefined) {
   const sources = useLangToolsDataSources();
   const defaultDataType = DataModels.useLaxDefaultDataType();
@@ -101,6 +168,7 @@ export function useLanguageWithForcedPath(dataModelPath: IDataModelReference | u
   return useMemo(() => {
     const { textResources, language, selectedLanguage, ...dataSources } = sources || {};
     if (!textResources || !language || !selectedLanguage) {
+      // debugger;
       throw new Error('useLanguage must be used inside a LangToolsStoreProvider');
     }
 

@@ -5,6 +5,4 @@ namespace StudioGateway.Api;
 
 [JsonSerializable(typeof(FluxEvent))]
 [JsonSerializable(typeof(ObjectReference))]
-public partial class AppJsonSerializerContext : JsonSerializerContext
-{
-}
+internal sealed partial class AppJsonSerializerContext : JsonSerializerContext { }

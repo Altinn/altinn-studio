@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useParentCard } from 'src/layout/Cards/CardContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';

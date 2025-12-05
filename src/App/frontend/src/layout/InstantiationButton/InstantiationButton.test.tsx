@@ -8,8 +8,8 @@ import { userEvent } from '@testing-library/user-event';
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { FormProvider } from 'src/features/form/FormContext';
+import { fetchApplicationMetadata } from 'src/http-client/queries';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
-import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 
 const render = async () => {

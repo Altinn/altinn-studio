@@ -12,6 +12,20 @@ type KindClient struct {
 	kindBin string
 }
 
+// stripPodmanProviderMessage removes the "enabling experimental podman provider"
+// message that kind outputs when using podman as the container runtime
+func stripPodmanProviderMessage(output string) string {
+	const podmanMsg = "enabling experimental podman provider"
+	lines := strings.Split(output, "\n")
+	var filtered []string
+	for _, line := range lines {
+		if strings.TrimSpace(line) != podmanMsg {
+			filtered = append(filtered, line)
+		}
+	}
+	return strings.Join(filtered, "\n")
+}
+
 // New creates a new KindClient with the given kind binary path
 func New(kindBinPath string) (*KindClient, error) {
 	if _, err := os.Stat(kindBinPath); err != nil {
@@ -27,13 +41,14 @@ func (c *KindClient) GetClusters() ([]string, error) {
 	cmd := exec.Command(c.kindBin, "get", "clusters")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("kind get clusters failed: %s: %w", string(output), err)
+		return nil, fmt.Errorf("kind get clusters failed: %s: %w", stripPodmanProviderMessage(string(output)), err)
 	}
-	if strings.Contains(string(output), "No kind clusters found") {
+	filtered := stripPodmanProviderMessage(string(output))
+	if strings.Contains(filtered, "No kind clusters found") {
 		return []string{}, nil
 	}
 
-	clusters := strings.Split(strings.TrimSpace(string(output)), "\n")
+	clusters := strings.Split(strings.TrimSpace(filtered), "\n")
 	var result []string
 	for _, cluster := range clusters {
 		cluster = strings.TrimSpace(cluster)
@@ -51,8 +66,9 @@ func (c *KindClient) CreateCluster(configPath string) error {
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		// Print output only on failure
-		if len(output) > 0 {
-			fmt.Printf("Command output:\n%s\n", string(output))
+		filtered := stripPodmanProviderMessage(string(output))
+		if len(filtered) > 0 {
+			fmt.Printf("Command output:\n%s\n", filtered)
 		}
 		return fmt.Errorf("failed to create cluster: %w", err)
 	}
@@ -64,7 +80,7 @@ func (c *KindClient) DeleteCluster(name string) error {
 	cmd := exec.Command(c.kindBin, "delete", "cluster", "--name", name)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to delete cluster: %w\nOutput: %s", err, string(output))
+		return fmt.Errorf("failed to delete cluster: %w\nOutput: %s", err, stripPodmanProviderMessage(string(output)))
 	}
 	return nil
 }
@@ -77,7 +93,8 @@ func (c *KindClient) GetNodes(clusterName string) ([]string, error) {
 		return nil, fmt.Errorf("failed to get kind nodes: %w", err)
 	}
 
-	nodes := strings.Split(strings.TrimSpace(string(output)), "\n")
+	filtered := stripPodmanProviderMessage(string(output))
+	nodes := strings.Split(strings.TrimSpace(filtered), "\n")
 	var result []string
 	for _, node := range nodes {
 		node = strings.TrimSpace(node)

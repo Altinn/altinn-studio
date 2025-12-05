@@ -141,8 +141,8 @@ describe('PartySelection', () => {
       'should be possible to click on ($partyName)',
       async ({ parties, expectedPartyId, partyName, expandSubunit }) => {
         // Clear initial party so useSelectedPartyIsValid returns false
-        if (window.AltinnAppData?.userProfile) {
-          window.AltinnAppData.userProfile.party = undefined;
+        if (window.AltinnAppGlobalData?.userProfile) {
+          window.AltinnAppGlobalData.userProfile.party = undefined;
         }
 
         const user = userEvent.setup({ delay: null });
@@ -168,8 +168,8 @@ describe('PartySelection', () => {
           (p) => p.partyId === expectedPartyId || p.childParties?.some((c) => c.partyId === expectedPartyId),
         );
         act(() => {
-          if (window.AltinnAppData?.userProfile) {
-            window.AltinnAppData.userProfile.party =
+          if (window.AltinnAppGlobalData?.userProfile) {
+            window.AltinnAppGlobalData.userProfile.party =
               selectedParty?.partyId === expectedPartyId
                 ? selectedParty
                 : selectedParty?.childParties?.find((c) => c.partyId === expectedPartyId);

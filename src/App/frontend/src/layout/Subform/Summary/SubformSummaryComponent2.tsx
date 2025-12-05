@@ -7,10 +7,10 @@ import { Label, LabelInner } from 'src/components/label/Label';
 import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useInstanceDataElements } from 'src/domain/Instance/useInstanceQuery';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useDataTypeFromLayoutSet, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Subform/Summary/SubformSummaryComponent2.module.css';
 import { SubformSummaryTable } from 'src/layout/Subform/Summary/SubformSummaryTable';
@@ -172,7 +172,7 @@ export function SubformSummaryComponent2({ targetBaseComponentId }: Summary2Prop
   const { layoutSet } = useItemWhenType(targetBaseComponentId, 'Subform');
   const dataType = useDataTypeFromLayoutSet(layoutSet);
   const dataElements = useInstanceDataElements(dataType);
-  const minCount = useApplicationMetadata().dataTypes.find((dt) => dt.id === dataType)?.minCount;
+  const minCount = getApplicationMetadata().dataTypes.find((dt) => dt.id === dataType)?.minCount;
   const hasElements = !!(dataType && dataElements.length > 0);
   const required =
     useItemWhenType(targetBaseComponentId, 'Subform').required || (minCount !== undefined && minCount > 0);

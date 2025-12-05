@@ -24,7 +24,11 @@ export const useGetResourceListQuery = (
   return useQuery<ResourceListItem[]>({
     queryKey: [QueryKey.ResourceList, org],
     queryFn: () =>
-      getResourceList(org, shouldDisplayFeature(FeatureFlag.HideGiteaFieldsInResourceList)),
+      getResourceList(
+        org,
+        shouldDisplayFeature(FeatureFlag.HideGiteaFieldsInResourceList),
+        shouldDisplayFeature(FeatureFlag.SkipJsonParseJsonInResourceList),
+      ),
     select: (resourceListItems: ResourceListItem[]) =>
       resourceListItems && setLastChangedAndSortResourceListByDate(resourceListItems),
     enabled: !disabled,

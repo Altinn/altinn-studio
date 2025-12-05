@@ -35,15 +35,15 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@c3d42c5d08633d8b33635fbd94b000a0e2585b3c # v3
+        uses: github/codeql-action/init@d3ced5c96c16c4332e2a61eb6f3649d6f1b20bb8 # v3
         with:
           languages: csharp
           queries: +security-and-quality
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@c3d42c5d08633d8b33635fbd94b000a0e2585b3c # v3
+        uses: github/codeql-action/autobuild@d3ced5c96c16c4332e2a61eb6f3649d6f1b20bb8 # v3
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@c3d42c5d08633d8b33635fbd94b000a0e2585b3c # v3
+        uses: github/codeql-action/analyze@d3ced5c96c16c4332e2a61eb6f3649d6f1b20bb8 # v3
         with:
           category: "/language:csharp"

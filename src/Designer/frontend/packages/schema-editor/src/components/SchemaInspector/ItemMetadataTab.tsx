@@ -1,9 +1,9 @@
-import { StudioTextfield } from '@studio/components-legacy';
 import {
   StudioSpinner,
   StudioFieldset,
   StudioSwitch,
   StudioValidationMessage,
+  StudioTextfield,
 } from '@studio/components';
 import { useDataTypeQuery } from 'app-shared/hooks/queries/useDataTypeQuery';
 import React from 'react';

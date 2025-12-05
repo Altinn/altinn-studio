@@ -1,4 +1,4 @@
-.PHONY: help format lint build-local test test-loop logs loadtest run stop
+.PHONY: help format lint build-local test test-loop logs loadtest run run-monitoring stop
 .DEFAULT_GOAL := help
 
 CACHE_DIR := .cache
@@ -62,6 +62,12 @@ ifndef v
 	$(error v parameter is required. Usage: make run v=minimal|standard)
 endif
 	@go run ./cmd/tester start $(v)
+
+run-monitoring: ## Start the runtime with Prometheus/Grafana monitoring
+ifndef v
+	$(error v parameter is required. Usage: make run-monitoring v=minimal|standard)
+endif
+	@go run ./cmd/tester start $(v) --monitoring
 
 stop: ## Stop the runtime fixture/cluster
 	@go run ./cmd/tester stop

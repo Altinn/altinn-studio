@@ -1,4 +1,4 @@
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 from mcp.types import (
     ToolAnnotations,
 )
@@ -112,7 +112,6 @@ def initialize_mcp(port: int = 8069):
         instructions=ALTINITY_INSTRUCTIONS,
         host="0.0.0.0",
         port=port,
-        timeout=60,
         version="1.0.5"
     )
     return mcp

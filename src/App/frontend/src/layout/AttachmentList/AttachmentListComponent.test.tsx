@@ -3,7 +3,7 @@ import React from 'react';
 import { jest } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 
-import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
+import { useInstanceDataElements } from 'src/domain/Instance/useInstanceQuery';
 import { AttachmentListComponent } from 'src/layout/AttachmentList/AttachmentListComponent';
 import { CompInternal } from 'src/layout/layout';
 import { DataTypeReference } from 'src/utils/attachmentsUtils';
@@ -54,7 +54,7 @@ const mockInstanceData = [
 // Mock the hooks and utilities
 jest.mock('src/utils/layout/useNodeItem');
 
-jest.mock('src/features/instance/InstanceContext', () => ({
+jest.mock('src/domain/instance/useInstanceQuery', () => ({
   useInstanceDataElements: jest.fn(() => mockInstanceData),
 }));
 
@@ -68,8 +68,8 @@ jest.mock('src/features/instance/useProcessQuery', () => ({
   })),
 }));
 
-jest.mock('src/features/applicationMetadata/ApplicationMetadataProvider', () => ({
-  useApplicationMetadata: jest.fn(() => ({
+jest.mock('src/features/applicationMetadata/getApplicationMetadata', () => ({
+  getApplicationMetadata: jest.fn(() => ({
     dataTypes: mockDataTypes,
   })),
 }));

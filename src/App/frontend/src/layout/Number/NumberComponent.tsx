@@ -5,7 +5,7 @@ import cn from 'classnames';
 import { DisplayNumber } from 'src/app-components/Number/DisplayNumber';
 import classes from 'src/app-components/Number/Number.module.css';
 import { getLabelId } from 'src/components/label/Label';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';

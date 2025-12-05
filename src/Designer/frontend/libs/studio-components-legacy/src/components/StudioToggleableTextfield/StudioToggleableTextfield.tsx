@@ -32,7 +32,7 @@ export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggle
     ref,
   ): React.ReactElement => {
     const [isViewMode, setIsViewMode] = useState<boolean>(true);
-    const [errorMessage, setErrorMessage] = useState<string | undefined>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     useEffect(() => {
       if (onIsViewMode) onIsViewMode(isViewMode);
@@ -43,7 +43,7 @@ export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggle
     };
 
     const runCustomValidation = (event: React.ChangeEvent<HTMLInputElement>): boolean => {
-      const errorValidationMessage = customValidation(event.target.value);
+      const errorValidationMessage = customValidation?.(event.target.value);
 
       if (errorValidationMessage) {
         setErrorMessage(errorValidationMessage);
