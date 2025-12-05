@@ -11,7 +11,7 @@ spec:
   interval: 5m
   rules:
     - uid: failed-process-next-requests
-      title: Failed process/next requests
+      title: Feilende process/next
       condition: C
       data:
         - refId: A
@@ -29,7 +29,7 @@ spec:
                     | where success == false
                     | where client_Type != 'Browser'
                     | where toint(resultCode) >= 500
-                    | where name has 'PUT Process/NextElement'
+                    | where operation_Name == 'PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]'
                     | summarize Count = sum(itemCount) by cloud_RoleName, DateTimeOffset = bin(timestamp, $__interval)
                     | order by DateTimeOffset asc
                 resources:
@@ -105,8 +105,8 @@ spec:
         RuleId: failed-process-next-requests
         Type: Altinn
       isPaused: false
-    - uid: processes-started
-      title: Processes started
+    - uid: failed-instances-post-requests
+      title: Feilende instansieringer
       condition: C
       data:
         - refId: A
@@ -119,11 +119,14 @@ spec:
             azureLogAnalytics:
                 dashboardTime: true
                 query: |-
-                    customMetrics
+                    requests
                     | where $__timeFilter(timestamp)
-                    | where name == "altinn_app_lib_processes_started"
-                    | summarize Value = sum(valueCount) by cloud_RoleName, bin(timestamp, $__interval)
-                    | order by timestamp asc;
+                    | where success == false
+                    | where client_Type != 'Browser'
+                    | where toint(resultCode) >= 500
+                    | where operation_Name == 'POST Instances/Post [app/org]'
+                    | summarize Count = sum(itemCount) by cloud_RoleName, DateTimeOffset = bin(timestamp, $__interval)
+                    | order by DateTimeOffset asc
                 resources:
                     - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
                 resultFormat: time_series
@@ -192,74 +195,47 @@ spec:
       execErrState: Error
       annotations:
         __dashboardUid__: AltinnApps
-        __panelId__: "18"
+        __panelId__: "14"
       labels:
+        RuleId: failed-instances-post-requests
         Type: Altinn
       isPaused: false
-    - uid: 5xx-failed-requests
-      title: 5xx failed requests
+    - uid: failed-health-requests
+      title: Feilende helsesjekker
       condition: C
       data:
         - refId: A
-          queryType: Azure Monitor
+          queryType: Azure Log Analytics
           relativeTimeRange:
             from: 300
             to: 0
           datasourceUid: azure-monitor-oob
           model:
-            azureMonitor:
-                aggregation: Count
-                alias: '{{cloud/rolename}}'
-                allowedTimeGrainsMs:
-                    - 60000
-                    - 300000
-                    - 900000
-                    - 1.8e+06
-                    - 3.6e+06
-                    - 2.16e+07
-                    - 4.32e+07
-                    - 8.64e+07
-                customNamespace: ""
-                dimensionFilters:
-                    - dimension: cloud/roleName
-                      filters: []
-                      operator: eq
-                    - dimension: request/resultCode
-                      filters:
-                        - "500"
-                        - "501"
-                        - "502"
-                        - "503"
-                        - "504"
-                        - "505"
-                        - "506"
-                        - "507"
-                        - "508"
-                        - "510"
-                        - "511"
-                      operator: eq
-                metricName: requests/failed
-                metricNamespace: microsoft.insights/components
-                region: norwayeast
+            azureLogAnalytics:
+                dashboardTime: true
+                query: |-
+                    requests
+                    | where $__timeFilter(timestamp)
+                    | where success == false
+                    | where client_Type != 'Browser'
+                    | where toint(resultCode) >= 500
+                    | where operation_Name == 'GET /health'
+                    | summarize Count = sum(itemCount) by cloud_RoleName, DateTimeOffset = bin(timestamp, $__interval)
+                    | order by DateTimeOffset asc
                 resources:
-                    - metricNamespace: Microsoft.Insights/components
-                      region: norwayeast
-                      resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
-                      resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
-                      subscription: ${AZURE_SUBSCRIPTION_ID}
-                timeGrain: auto
-                top: "10"
+                    - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
+                resultFormat: time_series
+                timeColumn: timestamp
+                workspace: ""
             datasource:
-                apiVersion: "2018-01-01"
                 type: grafana-azure-monitor-datasource
                 uid: azure-monitor-oob
             instant: false
             intervalMs: 1000
             maxDataPoints: 43200
-            queryType: Azure Monitor
+            queryType: Azure Log Analytics
             range: true
             refId: A
-            subscription: ${AZURE_SUBSCRIPTION_ID}
         - refId: B
           datasourceUid: __expr__
           model:
@@ -274,7 +250,7 @@ spec:
                         - B
                   reducer:
                     params: []
-                    type: max
+                    type: count
                   type: query
             datasource:
                 type: __expr__
@@ -282,7 +258,7 @@ spec:
             expression: A
             intervalMs: 1000
             maxDataPoints: 43200
-            reducer: max
+            reducer: count
             refId: B
             type: reduce
         - refId: C
@@ -314,633 +290,8 @@ spec:
       execErrState: Error
       annotations:
         __dashboardUid__: AltinnApps
-        __panelId__: "3"
-        summary: '`{{ index $labels "cloud/rolename" }}` had 5xx failed requests in the last 5m'
+        __panelId__: "14"
       labels:
+        RuleId: failed-health-requests
         Type: Altinn
-      isPaused: true
-    - uid: server-exceptions
-      title: Server exceptions
-      condition: C
-      data:
-        - refId: A
-          queryType: Azure Monitor
-          relativeTimeRange:
-            from: 300
-            to: 0
-          datasourceUid: azure-monitor-oob
-          model:
-            azureMonitor:
-                aggregation: Count
-                alias: '{{cloud/rolename}}'
-                allowedTimeGrainsMs:
-                    - 60000
-                    - 300000
-                    - 900000
-                    - 1.8e+06
-                    - 3.6e+06
-                    - 2.16e+07
-                    - 4.32e+07
-                    - 8.64e+07
-                customNamespace: ""
-                dimensionFilters:
-                    - dimension: cloud/roleName
-                      filters: []
-                      operator: eq
-                metricName: exceptions/server
-                metricNamespace: microsoft.insights/components
-                region: norwayeast
-                resources:
-                    - metricNamespace: Microsoft.Insights/components
-                      region: norwayeast
-                      resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
-                      resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
-                      subscription: ${AZURE_SUBSCRIPTION_ID}
-                timeGrain: auto
-                top: "10"
-            datasource:
-                apiVersion: "2018-01-01"
-                type: grafana-azure-monitor-datasource
-                uid: azure-monitor-oob
-            instant: false
-            intervalMs: 1000
-            maxDataPoints: 43200
-            queryType: Azure Monitor
-            range: true
-            refId: A
-            subscription: ${AZURE_SUBSCRIPTION_ID}
-        - refId: B
-          datasourceUid: __expr__
-          model:
-            conditions:
-                - evaluator:
-                    params: []
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                        - B
-                  reducer:
-                    params: []
-                    type: max
-                  type: query
-            datasource:
-                type: __expr__
-                uid: __expr__
-            expression: A
-            intervalMs: 1000
-            maxDataPoints: 43200
-            reducer: max
-            refId: B
-            type: reduce
-        - refId: C
-          datasourceUid: __expr__
-          model:
-            conditions:
-                - evaluator:
-                    params:
-                        - 0
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                        - C
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-            datasource:
-                type: __expr__
-                uid: __expr__
-            expression: B
-            intervalMs: 1000
-            maxDataPoints: 43200
-            refId: C
-            type: threshold
-      noDataState: OK
-      execErrState: Error
-      annotations:
-        __dashboardUid__: AltinnApps
-        __panelId__: "4"
-        summary: '`{{ index $labels "cloud/rolename" }}` had exceptions in the last 5m'
-      labels:
-        Type: Altinn
-      isPaused: true
-    - uid: server-response-time
-      title: Server response time
-      condition: C
-      data:
-        - refId: A
-          queryType: Azure Monitor
-          relativeTimeRange:
-            from: 300
-            to: 0
-          datasourceUid: azure-monitor-oob
-          model:
-            azureMonitor:
-                aggregation: Average
-                alias: '{{cloud/rolename}}'
-                allowedTimeGrainsMs:
-                    - 60000
-                    - 300000
-                    - 900000
-                    - 1.8e+06
-                    - 3.6e+06
-                    - 2.16e+07
-                    - 4.32e+07
-                    - 8.64e+07
-                customNamespace: ""
-                dimensionFilters:
-                    - dimension: cloud/roleName
-                      filters: []
-                      operator: eq
-                metricName: requests/duration
-                metricNamespace: microsoft.insights/components
-                region: norwayeast
-                resources:
-                    - metricNamespace: Microsoft.Insights/components
-                      region: norwayeast
-                      resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
-                      resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
-                      subscription: ${AZURE_SUBSCRIPTION_ID}
-                timeGrain: auto
-                top: "10"
-            datasource:
-                apiVersion: "2018-01-01"
-                type: grafana-azure-monitor-datasource
-                uid: azure-monitor-oob
-            instant: false
-            intervalMs: 1000
-            maxDataPoints: 43200
-            queryType: Azure Monitor
-            range: true
-            refId: A
-            subscription: ${AZURE_SUBSCRIPTION_ID}
-        - refId: B
-          datasourceUid: __expr__
-          model:
-            conditions:
-                - evaluator:
-                    params: []
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                        - B
-                  reducer:
-                    params: []
-                    type: max
-                  type: query
-            datasource:
-                type: __expr__
-                uid: __expr__
-            expression: A
-            intervalMs: 1000
-            maxDataPoints: 43200
-            reducer: max
-            refId: B
-            type: reduce
-        - refId: C
-          datasourceUid: __expr__
-          model:
-            conditions:
-                - evaluator:
-                    params:
-                        - 1000
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                        - C
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-            datasource:
-                type: __expr__
-                uid: __expr__
-            expression: B
-            intervalMs: 1000
-            maxDataPoints: 43200
-            refId: C
-            type: threshold
-      noDataState: OK
-      execErrState: Error
-      annotations:
-        __dashboardUid__: AltinnApps
-        __panelId__: "2"
-        summary: '`{{ index $labels "cloud/rolename" }}` had slow requests in the last 5m'
-      labels:
-        Type: Altinn
-      isPaused: true
-    - uid: server-requests
-      title: Server requests
-      condition: C
-      data:
-        - refId: A
-          queryType: Azure Monitor
-          relativeTimeRange:
-            from: 300
-            to: 0
-          datasourceUid: azure-monitor-oob
-          model:
-            azureMonitor:
-                aggregation: Count
-                alias: '{{cloud/rolename}}'
-                allowedTimeGrainsMs:
-                    - 60000
-                    - 300000
-                    - 900000
-                    - 1.8e+06
-                    - 3.6e+06
-                    - 2.16e+07
-                    - 4.32e+07
-                    - 8.64e+07
-                customNamespace: ""
-                dimensionFilters:
-                    - dimension: cloud/roleName
-                      filters: []
-                      operator: eq
-                metricName: requests/count
-                metricNamespace: microsoft.insights/components
-                region: norwayeast
-                resources:
-                    - metricNamespace: Microsoft.Insights/components
-                      region: norwayeast
-                      resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
-                      resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
-                      subscription: ${AZURE_SUBSCRIPTION_ID}
-                timeGrain: auto
-                top: "10"
-            datasource:
-                apiVersion: "2018-01-01"
-                type: grafana-azure-monitor-datasource
-                uid: azure-monitor-oob
-            instant: false
-            intervalMs: 1000
-            maxDataPoints: 43200
-            queryType: Azure Monitor
-            range: true
-            refId: A
-            subscription: ${AZURE_SUBSCRIPTION_ID}
-        - refId: B
-          datasourceUid: __expr__
-          model:
-            conditions:
-                - evaluator:
-                    params: []
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                        - B
-                  reducer:
-                    params: []
-                    type: max
-                  type: query
-            datasource:
-                type: __expr__
-                uid: __expr__
-            expression: A
-            intervalMs: 1000
-            maxDataPoints: 43200
-            reducer: max
-            refId: B
-            type: reduce
-        - refId: C
-          datasourceUid: __expr__
-          model:
-            conditions:
-                - evaluator:
-                    params:
-                        - 1000
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                        - C
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-            datasource:
-                type: __expr__
-                uid: __expr__
-            expression: B
-            intervalMs: 1000
-            maxDataPoints: 43200
-            refId: C
-            type: threshold
-      noDataState: OK
-      execErrState: Error
-      annotations:
-        __dashboardUid__: AltinnApps
-        __panelId__: "10"
-        summary: '`{{ index $labels "cloud/rolename" }}` had a surge in requests in the last 5m'
-      labels:
-        Type: Altinn
-      isPaused: true
-    - uid: memory-usage
-      title: Memory usage
-      condition: C
-      data:
-        - refId: A
-          relativeTimeRange:
-            from: 300
-            to: 0
-          datasourceUid: ${SERVICEOWNER_ID}-${ENVIRONMENT}-amw
-          model:
-            adhocFilters: []
-            datasource:
-                type: prometheus
-                uid: ${SERVICEOWNER_ID}-${ENVIRONMENT}-amw
-            editorMode: code
-            expr: |-
-                sum(
-                            container_memory_working_set_bytes{namespace="default", container!="", image!=""}
-                            * on(namespace,pod)
-                            group_left(workload, workload_type)
-                            namespace_workload_pod:kube_pod_owner:relabel{
-                                namespace="default",
-                                workload_type="deployment",
-                                workload=~"^${SERVICEOWNER_ID}-(.*)-deployment-v2$"
-                            }
-                        ) by (workload)
-                        /
-                        sum(
-                            kube_pod_container_resource_requests{namespace="default", container!="", resource="memory"}
-                            * on(namespace,pod)
-                            group_left(workload, workload_type)
-                            namespace_workload_pod:kube_pod_owner:relabel{
-                                namespace="default",
-                                workload_type="deployment",
-                                workload=~"^${SERVICEOWNER_ID}-(.*)-deployment-v2$"
-                            }
-                        ) by (workload)
-                        * 100
-            instant: false
-            interval: ""
-            intervalMs: 30000
-            legendFormat: __auto
-            maxDataPoints: 43200
-            range: true
-            refId: A
-        - refId: B
-          datasourceUid: __expr__
-          model:
-            conditions:
-                - evaluator:
-                    params: []
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                        - B
-                  reducer:
-                    params: []
-                    type: max
-                  type: query
-            datasource:
-                type: __expr__
-                uid: __expr__
-            expression: A
-            intervalMs: 1000
-            maxDataPoints: 43200
-            reducer: max
-            refId: B
-            type: reduce
-        - refId: C
-          datasourceUid: __expr__
-          model:
-            conditions:
-                - evaluator:
-                    params:
-                        - 80
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                        - C
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-            datasource:
-                type: __expr__
-                uid: __expr__
-            expression: B
-            intervalMs: 1000
-            maxDataPoints: 43200
-            refId: C
-            type: threshold
-      noDataState: OK
-      execErrState: Error
-      annotations:
-        __dashboardUid__: AltinnApps
-        __panelId__: "5"
-        summary: '`{{ $labels.workload }}` had memory pressure in the last 5m'
-      labels:
-        Type: Altinn
-      isPaused: true
-    - uid: cpu-usage
-      title: CPU usage
-      condition: C
-      data:
-        - refId: A
-          relativeTimeRange:
-            from: 300
-            to: 0
-          datasourceUid: ${SERVICEOWNER_ID}-${ENVIRONMENT}-amw
-          model:
-            adhocFilters: []
-            datasource:
-                type: prometheus
-                uid: ${SERVICEOWNER_ID}-${ENVIRONMENT}-amw
-            editorMode: code
-            expr: |-
-                sum(
-                                sum by (namespace, pod, container) (
-                                    rate(container_cpu_usage_seconds_total{namespace="default", container!=""}[5m])
-                                )
-                                * on(namespace,pod)
-                                group_left(workload, workload_type)
-                                namespace_workload_pod:kube_pod_owner:relabel{
-                                    namespace="default",
-                                    workload_type="deployment",
-                                    workload=~"^${SERVICEOWNER_ID}-(.*)-deployment-v2$"
-                                }
-                            ) by (workload)
-                            /
-                            sum(
-                                kube_pod_container_resource_requests{namespace="default", container!="", resource="cpu"}
-                                * on(namespace,pod)
-                                group_left(workload, workload_type)
-                                namespace_workload_pod:kube_pod_owner:relabel{
-                                    namespace="default",
-                                    workload_type="deployment",
-                                    workload=~"^${SERVICEOWNER_ID}-(.*)-deployment-v2$"
-                                }
-                            ) by (workload)
-                            * 100
-            instant: false
-            interval: ""
-            intervalMs: 30000
-            legendFormat: __auto
-            maxDataPoints: 43200
-            range: true
-            refId: A
-        - refId: B
-          datasourceUid: __expr__
-          model:
-            conditions:
-                - evaluator:
-                    params: []
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                        - B
-                  reducer:
-                    params: []
-                    type: max
-                  type: query
-            datasource:
-                type: __expr__
-                uid: __expr__
-            expression: A
-            intervalMs: 1000
-            maxDataPoints: 43200
-            reducer: max
-            refId: B
-            type: reduce
-        - refId: C
-          datasourceUid: __expr__
-          model:
-            conditions:
-                - evaluator:
-                    params:
-                        - 80
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                        - C
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-            datasource:
-                type: __expr__
-                uid: __expr__
-            expression: B
-            intervalMs: 1000
-            maxDataPoints: 43200
-            refId: C
-            type: threshold
-      noDataState: OK
-      execErrState: Error
-      annotations:
-        __dashboardUid__: AltinnApps
-        __panelId__: "6"
-        summary: '`{{ $labels.workload }}` had cpu pressure in the last 5m'
-      labels:
-        Type: Altinn
-      isPaused: true
-    - uid: availability
-      title: Availability
-      condition: C
-      data:
-        - refId: A
-          relativeTimeRange:
-            from: 300
-            to: 0
-          datasourceUid: ${SERVICEOWNER_ID}-${ENVIRONMENT}-amw
-          model:
-            adhocFilters: []
-            datasource:
-                type: prometheus
-                uid: ${SERVICEOWNER_ID}-${ENVIRONMENT}-amw
-            editorMode: code
-            expr: |-
-                (
-                    kube_deployment_status_replicas_available{namespace="default"}
-                    >= bool kube_deployment_spec_replicas{namespace="default"}
-                )
-                OR on(namespace, deployment)
-                (absent(kube_deployment_spec_replicas{namespace="default"}) * 0)
-            instant: false
-            interval: ""
-            intervalMs: 30000
-            legendFormat: __auto
-            maxDataPoints: 43200
-            range: true
-            refId: A
-        - refId: B
-          datasourceUid: __expr__
-          model:
-            conditions:
-                - evaluator:
-                    params: []
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                        - B
-                  reducer:
-                    params: []
-                    type: max
-                  type: query
-            datasource:
-                type: __expr__
-                uid: __expr__
-            expression: A
-            intervalMs: 1000
-            maxDataPoints: 43200
-            reducer: max
-            refId: B
-            type: reduce
-        - refId: C
-          datasourceUid: __expr__
-          model:
-            conditions:
-                - evaluator:
-                    params:
-                        - 100
-                    type: lt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                        - C
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-            datasource:
-                type: __expr__
-                uid: __expr__
-            expression: B
-            intervalMs: 1000
-            maxDataPoints: 43200
-            refId: C
-            type: threshold
-      noDataState: OK
-      execErrState: Error
-      annotations:
-        __dashboardUid__: AltinnApps
-        __panelId__: "7"
-        summary: '`{{ $labels.deployment }}` was down in the last 5m'
-      labels:
-        Type: Altinn
-      isPaused: true
+      isPaused: false
