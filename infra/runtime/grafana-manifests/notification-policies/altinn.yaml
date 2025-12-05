@@ -18,9 +18,3 @@ spec:
             - =
             - Altinn
         repeat_interval: 5m
-      - receiver: altinn-slack
-        object_matchers:
-          - - Type
-            - =
-            - Altinn
-        repeat_interval: 5m
