@@ -1,4 +1,4 @@
-.PHONY: help format lint build-local test test-loop logs loadtest run run-monitoring stop
+.PHONY: help format lint build-local test test-loop logs loadtest start start-minimal start-standard start-minimal-monitoring start-standard-monitoring stop
 .DEFAULT_GOAL := help
 
 CACHE_DIR := .cache
@@ -57,17 +57,19 @@ ifndef n
 endif
 	@go run ./cmd/tester test --n $(n)
 
-run: ## Start the runtime fixture/cluster
-ifndef v
-	$(error v parameter is required. Usage: make run v=minimal|standard)
-endif
-	@go run ./cmd/tester start $(v)
+start: start-minimal ## Start the Kind cluster (alias for start-minimal)
 
-run-monitoring: ## Start the runtime with Prometheus/Grafana monitoring
-ifndef v
-	$(error v parameter is required. Usage: make run-monitoring v=minimal|standard)
-endif
-	@go run ./cmd/tester start $(v) --monitoring
+start-minimal: ## Start with minimal variant
+	@go run ./cmd/tester start minimal
+
+start-standard: ## Start with standard variant
+	@go run ./cmd/tester start standard
+
+start-minimal-monitoring: ## Start minimal with Prometheus/Grafana
+	@go run ./cmd/tester start minimal --monitoring
+
+start-standard-monitoring: ## Start standard with Prometheus/Grafana
+	@go run ./cmd/tester start standard --monitoring
 
 stop: ## Stop the runtime fixture/cluster
 	@go run ./cmd/tester stop

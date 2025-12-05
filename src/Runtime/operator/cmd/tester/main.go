@@ -49,6 +49,10 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  test             Run unit tests (with docker-compose and envtest)")
 	fmt.Fprintln(os.Stderr, "  test-e2e         Run e2e tests (with Kind cluster)")
 	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintln(os.Stderr, "start arguments:")
+	fmt.Fprintln(os.Stderr, "  minimal          Use minimal variant (fewer resources)")
+	fmt.Fprintln(os.Stderr, "  standard         Use standard variant (more nodes)")
+	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "test flags:")
 	fmt.Fprintln(os.Stderr, "  --envtest-k8s-version  Kubernetes version for envtest (required)")
 	fmt.Fprintln(os.Stderr, "")
@@ -160,7 +164,7 @@ func runUnitTest() {
 	fmt.Println("\n=== Unit Tests PASSED ===")
 }
 
-func setupRuntime() (*kind.KindContainerRuntime, error) {
+func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainerRuntime, error) {
 	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
 		return nil, fmt.Errorf("failed to find project root: %w", err)
@@ -168,7 +172,7 @@ func setupRuntime() (*kind.KindContainerRuntime, error) {
 
 	cfg := harness.Config{
 		ProjectRoot:    projectRoot,
-		Variant:        kind.KindContainerRuntimeVariantMinimal,
+		Variant:        variant,
 		ClusterOptions: kind.DefaultOptions(),
 		Images: []harness.Image{
 			{Name: "controller", Dockerfile: "Dockerfile", Tag: "localhost:5001/runtime-operator-controller:latest"},
@@ -228,17 +232,17 @@ func runStart() {
 	fmt.Println("=== Operator Runtime Start ===")
 
 	if len(os.Args) < 3 {
-		fmt.Fprintf(os.Stderr, "Not enough arguments. Must specify 'minimal' for the start command\n")
-		os.Exit(1)
-	}
-	arg := os.Args[2]
-
-	if arg != "minimal" {
-		fmt.Fprintf(os.Stderr, "Invalid arg '%s'. Must specify 'minimal' for the start command\n", arg)
+		fmt.Fprintf(os.Stderr, "Must specify 'minimal' or 'standard'\n")
 		os.Exit(1)
 	}
 
-	_, err := setupRuntime()
+	variant, err := parseVariant(os.Args[2])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+
+	_, err = setupRuntime(variant)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start runtime: %v\n", err)
 		os.Exit(1)
@@ -247,6 +251,17 @@ func runStart() {
 	fmt.Println("")
 	fmt.Println("=== Runtime is Running ===")
 	fmt.Println("Use 'tester stop' to stop the cluster")
+}
+
+func parseVariant(s string) (kind.KindContainerRuntimeVariant, error) {
+	switch s {
+	case "minimal":
+		return kind.KindContainerRuntimeVariantMinimal, nil
+	case "standard":
+		return kind.KindContainerRuntimeVariantStandard, nil
+	default:
+		return 0, fmt.Errorf("invalid variant '%s' (use 'minimal' or 'standard')", s)
+	}
 }
 
 func runStop() {
@@ -325,7 +340,7 @@ func runE2ETest() {
 			os.Exit(1)
 		}
 	} else {
-		runtime, err = setupRuntime()
+		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
 			os.Exit(1)

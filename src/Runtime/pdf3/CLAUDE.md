@@ -22,8 +22,9 @@ All orchestration commands use the Makefile, which internally calls `go run ./cm
 
 ```bash
 # Setup and cluster management
-make run v=minimal        # Start Kind cluster with minimal deployment (default)
-make run v=standard       # Start Kind cluster with standard deployment (used for loadtests locally)
+make start                # Start Kind cluster with minimal deployment (default)
+make start-minimal        # Start with minimal variant (same as make start)
+make start-standard       # Start with standard variant (used for loadtests locally)
 make stop                 # Stop and delete the cluster
 
 # Development workflow
@@ -157,7 +158,7 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 
 ```bash
 # Recommended workflow
-make run v=minimal     # Start cluster (if not running)
+make start             # Start cluster (if not running)
 make test              # Run all tests
 
 # Or run specific test suites
