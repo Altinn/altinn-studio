@@ -171,5 +171,11 @@ namespace Designer.Tests.Mocks
         public Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName) => throw new NotImplementedException();
 
         public RepoStatus DiscardLocalChanges(string org, string repository) => throw new NotImplementedException();
+
+        public Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
+
+        LibGit2Sharp.RebaseResult ISourceControl.RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
+
+        public Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
     }
 }

@@ -29,7 +29,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IAltinnStorageAppMetadataClient _storageAppMetadataClient;
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IGitea _giteaApiWrapper;
+        private readonly IGitea _giteaClient;
 
         /// <summary>
         /// Constructor
@@ -37,20 +37,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="logger">ILogger of type ApplicationMetadataService</param>
         /// <param name="storageAppMetadataClient">IAltinnStorageAppMetadataClient</param>
         /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-        /// <param name="httpContextAccessor">The http context accessor.</param>
-        /// <param name="giteaApiWrapper"></param>
+        /// <param name="httpContextAccessor">The http context accessor</param>
+        /// <param name="giteaClient">The gitea client</param>
         public ApplicationMetadataService(
             ILogger<ApplicationMetadataService> logger,
             IAltinnStorageAppMetadataClient storageAppMetadataClient,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             IHttpContextAccessor httpContextAccessor,
-            IGitea giteaApiWrapper)
+            IGitea giteaClient)
         {
             _logger = logger;
             _storageAppMetadataClient = storageAppMetadataClient;
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _httpContextAccessor = httpContextAccessor;
-            _giteaApiWrapper = giteaApiWrapper;
+            _giteaClient = giteaClient;
         }
 
         /// <inheritdoc/>
@@ -246,7 +246,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The application metadata for an application.</returns>
         private async Task<string> GetApplicationMetadataJsonFromSpecificReference(string org, string app, string referenceId)
         {
-            var file = await _giteaApiWrapper.GetFileAsync(org, app, "App/config/applicationmetadata.json", referenceId);
+            var file = await _giteaClient.GetFileAsync(org, app, "App/config/applicationmetadata.json", referenceId);
             if (string.IsNullOrEmpty(file.Content))
             {
                 throw new NotFoundHttpRequestException("There is no ApplicationMetadata file in repo.");

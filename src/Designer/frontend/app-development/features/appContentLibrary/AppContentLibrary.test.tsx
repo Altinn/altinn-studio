@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import { AppContentLibrary } from './AppContentLibrary';
+import AppContentLibrary from './AppContentLibrary';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../test/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -10,7 +10,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import type {
-  CodeListData,
+  CodeListDataWithTextResources,
   CodeListWithMetadata,
   ContentLibraryConfig,
   PagesConfig,
@@ -79,7 +79,7 @@ describe('AppContentLibrary', () => {
     renderAppContentLibraryWithData();
     const codeListDataList =
       retrievePagesConfig().codeListsWithTextResources.props.codeListDataList;
-    const expectedData: CodeListData[] = optionListDataList;
+    const expectedData: CodeListDataWithTextResources[] = optionListDataList;
     expect(codeListDataList).toEqual(expectedData);
   });
 

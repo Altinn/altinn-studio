@@ -33,7 +33,9 @@
       },
       {
         "id": "sendInButton",
-        "type": "Button",
+        "type": "ActionButton",
+        "action": "confirm",
+        "buttonStyle": "primary",
         "textResourceBindings": {
           "title": "confirm.button_text"
         }

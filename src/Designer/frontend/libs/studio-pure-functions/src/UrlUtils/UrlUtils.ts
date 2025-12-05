@@ -25,6 +25,20 @@ export class UrlUtils {
   static extractThirdRouterParam = (pathname: string): string => {
     return extractParamFromStart(pathname, 3);
   };
+
+  /**
+   * Returns all parameters from the url pathname starting from the third parameter.
+   * @param pathname The url pathname to extract the parameters from.
+   * @returns All parameters from the url pathname starting from the third parameter, joined by '/'.
+   */
+  static extractAllParamsFromThird = (pathname: string): string => {
+    return extractParamsFromStart(pathname, 3).join('/');
+  };
+}
+
+function extractParamsFromStart(pathname: string, positionFromStart: number): string[] {
+  const params = extractParams(pathname);
+  return params.slice(positionFromStart);
 }
 
 function extractParamFromStart(pathname: string, positionFromStart: number): string {

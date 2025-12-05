@@ -10,6 +10,11 @@ metadata:
   name: traefik
 ---
 apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+apiVersion: v1
 kind: Secret
 metadata:
   name: linkerd-identity-issuer
@@ -67,6 +72,15 @@ metadata:
 spec:
   interval: 1h
   url: https://charts.altinn.studio
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: prometheus-community
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://prometheus-community.github.io/helm-charts
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -127,6 +141,22 @@ spec:
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
+  name: prometheus-operator-crds
+  namespace: monitoring
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: prometheus-operator-crds
+      version: 24.0.1
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: flux-system
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
   name: linkerd-control-plane
   namespace: linkerd
 spec:
@@ -138,6 +168,8 @@ spec:
   dependsOn:
     - name: linkerd-crds
       namespace: linkerd
+    - name: prometheus-operator-crds
+      namespace: monitoring
   chart:
     spec:
       chart: linkerd-control-plane
@@ -159,6 +191,8 @@ spec:
     debugContainer:
       image:
         name: ghcr.io/linkerd/debug
+    podMonitor:
+      enabled: true
   valuesFrom:
     - kind: Secret
       name: linkerd-identity-issuer
@@ -228,5 +262,8 @@ spec:
         nodePort: 30002
         expose:
           default: true
+        # Enable forwarded headers so tests can verify X-Forwarded-For processing
+        forwardedHeaders:
+          insecure: true
     service:
       type: NodePort

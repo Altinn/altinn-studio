@@ -8,10 +8,11 @@ import {
   StudioError,
   StudioTabs,
 } from '@studio/components';
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import type { TFunction } from 'i18next';
+import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 
 type AppsTableProps = {
   org: string;
@@ -44,12 +45,13 @@ function getEnvironmentName(env: string, t: TFunction) {
 
 const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
   const { t } = useTranslation();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useQueryParamState<string>('search', '');
+  const [tab, setTab] = useQueryParamState<string>('tab', undefined);
 
   const availableEnvironments = Object.keys(runningApps);
 
   return (
-    <StudioTabs defaultValue={availableEnvironments.at(0)}>
+    <StudioTabs value={tab ?? availableEnvironments.at(0)} onChange={setTab}>
       <StudioTabs.List>
         {availableEnvironments.map((env) => (
           <StudioTabs.Tab key={env} value={env}>
@@ -61,7 +63,7 @@ const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
         <StudioTabs.Panel key={env} value={env}>
           <StudioSearch
             className={classes.appSearch}
-            value={search}
+            value={search ?? ''}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
             label={t('Søk i apper')}
           />

@@ -45,17 +45,17 @@ export class DataModelPage extends BasePage {
 
   public async clickOnObjectAddPropertyButton(): Promise<void> {
     await this.page
-      .getByTitle(this.textMock('schema_editor.add_node_of_type_in_child_node_title'))
+      .getByRole('button', { name: this.textMock('schema_editor.add_node_of_type'), exact: true })
       .click();
   }
 
-  public async clickOnAddObjectPropertyMenuItem(): Promise<void> {
-    await this.page.getByRole('menuitem', { name: this.textMock('schema_editor.field') }).click();
+  public async clickOnAddObjectPropertyButton(): Promise<void> {
+    await this.page.getByRole('button', { name: this.textMock('schema_editor.field') }).click();
   }
 
-  public async clickOnCombinationPropertyMenuItem(): Promise<void> {
+  public async clickOnCombinationPropertyButton(): Promise<void> {
     await this.page
-      .getByRole('menuitem', { name: this.textMock('schema_editor.combination') })
+      .getByRole('button', { name: this.textMock('schema_editor.combination') })
       .click();
   }
 
@@ -94,8 +94,9 @@ export class DataModelPage extends BasePage {
 
   public async clickOnAddPropertyToObjectButton(property: 'string' | 'number'): Promise<void> {
     await this.page
-      .getByRole('menuitem', {
-        name: this.textMock(`schema_editor.add_${property}`),
+      .getByRole('button', {
+        name: this.textMock(`schema_editor.${property}`),
+        exact: true,
       })
       .click();
   }
@@ -197,7 +198,10 @@ export class DataModelPage extends BasePage {
   }
 
   private getAddTypeButton(): Locator {
-    return this.page.getByRole('button', { name: this.textMock('schema_editor.add_type') });
+    return this.page.getByRole('button', {
+      name: this.textMock('schema_editor.add_type'),
+      exact: true,
+    });
   }
 
   public async verifyThatTypeIsVisible(typeName: string): Promise<void> {

@@ -6,6 +6,8 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Validator.Json;
+using Altinn.Studio.Designer.Clients.Implementations;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Evaluators;
@@ -45,6 +47,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IRepository, RepositorySI>();
             services.AddTransient<ISchemaModelService, SchemaModelService>();
             services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
+            services.AddTransient<IBlobContainerClientFactory, AzureBlobContainerClientFactory>();
 
             services.AddTransient<ISourceControl, SourceControlSI>();
             services.Decorate<ISourceControl, SourceControlLoggingDecorator>();
@@ -100,6 +103,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IGiteaContentLibraryService, GiteaContentLibraryService>();
             services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();
             services.AddTransient<IGitOpsManifestsRenderer, ScribanGitOpsManifestsRenderer>();
+            services.AddTransient<ISharedContentClient, AzureSharedContentClient>();
+            services.AddTransient<IOrgLibraryService, OrgLibraryService>();
 
             return services;
         }

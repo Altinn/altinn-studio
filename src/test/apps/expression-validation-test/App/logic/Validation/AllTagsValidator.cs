@@ -24,7 +24,7 @@ public class AllTagsValidator(IAppOptionsService appOptionsService) : IValidator
         var formData = await dataAccessor.GetFormData<skjema>(dataElement);
         List<ValidationIssue> validationIssues = new List<ValidationIssue>();
 
-        if (formData.root.SF_validatetags != true)
+        if (formData?.root is not { SF_validatetags: true })
         {
             return validationIssues;
         }

@@ -28,6 +28,7 @@ export const DesignViewNavigation = () => {
   return (
     <div data-testid='design-view-navigation'>
       <StudioSectionHeader
+        className={classes.sectionHeader}
         heading={{
           text: t('ux_editor.page_layout_header'),
           level: 2,

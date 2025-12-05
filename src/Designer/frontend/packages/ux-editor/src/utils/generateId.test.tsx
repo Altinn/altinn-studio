@@ -68,7 +68,21 @@ describe('generateComponentId', () => {
 
 describe('generateTextResourceId', () => {
   it('should generate expected text resource ID from provided input', () => {
-    const generatedId = generateTextResourceId('page1', 'test-component', 'title');
+    const generatedId = generateTextResourceId({
+      layoutId: 'page1',
+      componentId: 'test-component',
+      textKey: 'title',
+    });
     expect(generatedId).toEqual('page1.test-component.title');
+  });
+
+  it('should generate expected text resource ID with suffix when provided', () => {
+    const generatedId = generateTextResourceId({
+      layoutId: 'page1',
+      componentId: 'test-component',
+      textKey: 'title',
+      suffix: '1234',
+    });
+    expect(generatedId).toEqual('page1.test-component.title.1234');
   });
 });

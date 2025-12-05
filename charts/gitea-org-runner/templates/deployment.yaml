@@ -1,47 +1,50 @@
+{{- range .Values.runners }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "gitea-org-runner.fullname" . }}
+  name: {{ include "gitea-org-runner.fullname" $ }}-{{ .name }}
   labels:
-    {{- include "gitea-org-runner.labels" . | nindent 4 }}
+    {{- include "gitea-org-runner.labels" $ | nindent 4 }}
+    runner: {{ .name }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
+  replicas: {{ .replicas | default 1 }}
   selector:
     matchLabels:
-      {{- include "gitea-org-runner.selectorLabels" . | nindent 6 }}
+      {{- include "gitea-org-runner.selectorLabels" $ | nindent 6 }}
+      runner: {{ .name }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
+      {{- with $.Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "gitea-org-runner.labels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
+        {{- include "gitea-org-runner.labels" $ | nindent 8 }}
+        runner: {{ .name }}
+        {{- with $.Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with $.Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.podSecurityContext }}
+      {{- with $.Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ .Chart.Name }}
-          {{- with .Values.securityContext }}
+        - name: {{ $.Chart.Name }}
+          {{- with $.Values.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
           env:
-            {{- if .Values.environmentVariables }}
-            {{- range $variable := .Values.environmentVariables}}
+            {{- if .environmentVariables }}
+            {{- range $variable := .environmentVariables}}
             - name: {{ $variable.name }}
               {{- if $variable.value }}
               value: {{ $variable.value | quote }}
@@ -55,27 +58,28 @@ spec:
             {{- end }}
             {{- end }}
 
-          {{- with .Values.resources }}
+          {{- with $.Values.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.volumeMounts }}
+          {{- with $.Values.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- with .Values.volumes }}
+      {{- with $.Values.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.nodeSelector }}
+      {{- with $.Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with $.Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with $.Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- end }}
