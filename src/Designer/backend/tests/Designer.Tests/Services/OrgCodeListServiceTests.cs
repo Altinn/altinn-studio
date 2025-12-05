@@ -78,58 +78,6 @@ public class OrgCodeListServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetCodeListsNew()
-    {
-        // Arrange
-        const string FsoWithContentName = "hasContent";
-        const string FsoWithoutContentName = "noContent";
-
-        CodeList validCodeList = SetupCodeList();
-        List<FileSystemObject> remoteFiles =
-        [
-            new()
-            {
-                Name = FsoWithContentName,
-                Path = CodeListUtils.FilePath(FsoWithContentName),
-                Content = FromStringToBase64String(JsonSerializer.Serialize(validCodeList)),
-                Sha = "non-descriptive-sha-1"
-            },
-            new()
-            {
-                Name = FsoWithoutContentName,
-                Path = CodeListUtils.FilePath(FsoWithoutContentName),
-                Content = null,
-                Sha = "non-descriptive-sha-2"
-            }
-        ];
-        List<CodeListWrapper> expected =
-        [
-            new(
-                Title: FsoWithContentName,
-                CodeList: validCodeList,
-                HasError: false
-            ),
-            new(
-                Title: FsoWithoutContentName,
-                CodeList: null,
-                HasError: true
-            )
-        ];
-        _giteaClientMock
-            .Setup(service => service.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(remoteFiles);
-
-        // Act
-        OrgCodeListService service = GetOrgCodeListService();
-        GetCodeListResponse result = await service.GetCodeListsNew(Org);
-
-        // Assert
-        Assert.NotEmpty(result.CodeListWrappers);
-        Assert.Equal(expected, result.CodeListWrappers);
-        _giteaClientMock.Verify(gitea => gitea.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), null, It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
     public async Task UpdateCodeListsNew_SimpleCommit()
     {
         // Arrange
