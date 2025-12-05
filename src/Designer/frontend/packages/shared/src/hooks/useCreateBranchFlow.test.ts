@@ -81,7 +81,7 @@ describe('useCreateBranchFlow', () => {
         },
       );
 
-      expect(result.current.createButtonText).toBe('[mockedText(create_branch.create)]');
+      expect(result.current.createButtonText).toBe(textMock('create_branch.create'));
     });
   });
 
