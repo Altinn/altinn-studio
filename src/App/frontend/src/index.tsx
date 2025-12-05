@@ -5,7 +5,6 @@ import 'core-js';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom';
-import { Slide, ToastContainer } from 'react-toastify';
 
 import '@digdir/designsystemet-css';
 import '@digdir/designsystemet-theme';
@@ -14,7 +13,7 @@ import 'src/features/logging';
 import 'src/features/styleInjection';
 import 'src/features/toggles';
 
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { ErrorPageContent } from 'src/components/ErrorPageContent';
@@ -22,20 +21,16 @@ import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { ComponentRouting } from 'src/components/wrappers/ProcessWrapper';
-import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
-import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
 import { createDynamicsLoader } from 'src/features/form/dynamics/dynamicsLoader';
-import { FormProvider } from 'src/features/form/FormContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { createInstanceLoader } from 'src/features/instance/instanceLoader';
+import { PartySelectionWrapper } from 'src/features/instantiate/containers/PartySelection';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
-import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
-import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
-import * as queries from 'src/http-client/queries';
 import { createGlobalDataLoader } from 'src/language/globalStateLoader';
+import { NextForm } from 'src/NextForm';
 
 import 'leaflet/dist/leaflet.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -60,10 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('root');
   const root = container && createRoot(container);
   root?.render(
-    <AppQueriesProvider
-      {...queries}
-      queryClient={defaultQueryClient}
-    >
+    <QueryClientProvider client={defaultQueryClient}>
       <ErrorBoundary>
         <ViewportWrapper>
           <UiConfigProvider>
@@ -75,40 +67,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     loader: createGlobalDataLoader({
                       queryClient: defaultQueryClient,
                     }),
-                    element: (
-                      <ErrorBoundary>
-                        <VersionErrorOrChildren>
-                          <OrgsProvider>
-                            {/*<KeepAliveProvider>*/}
-                            {/*  <ProcessingProvider>*/}
-                            <Outlet />
-                            {/*</ProcessingProvider>*/}
-                            <ToastContainer
-                              position='top-center'
-                              theme='colored'
-                              transition={Slide}
-                              draggable={false}
-                            />
-                            {/*  </KeepAliveProvider>*/}
-                          </OrgsProvider>
-                        </VersionErrorOrChildren>
-                      </ErrorBoundary>
-                    ),
+                    element: <Outlet />,
                     children: [
                       {
                         path: 'instance-selection',
                         element: <InstanceSelectionWrapper />,
                       },
-                      // {
-                      //   path: 'party-selection',
-                      //   element: <PartySelectionWrapper />,
-                      //   children: [
-                      //     {
-                      //       path: ':errorCode',
-                      //       element: <PartySelectionWrapper />,
-                      //     },
-                      //   ],
-                      // },
+                      {
+                        path: 'party-selection',
+                        element: <PartySelectionWrapper />,
+                        children: [
+                          {
+                            path: ':errorCode',
+                            element: <PartySelectionWrapper />,
+                          },
+                        ],
+                      },
                       {
                         path: 'error',
                         element: <ErrorPageContent />,
@@ -143,16 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 children: [
                                   {
                                     index: true,
-                                    // element: <NextForm />,
-                                    element: (
-                                      <PdfWrapper>
-                                        <PresentationComponent>
-                                          <FormProvider>
-                                            <Form />
-                                          </FormProvider>
-                                        </PresentationComponent>
-                                      </PdfWrapper>
-                                    ),
+                                    element: <NextForm />,
                                   },
                                   {
                                     path: ':componentId',
@@ -182,6 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
           </UiConfigProvider>
         </ViewportWrapper>
       </ErrorBoundary>
-    </AppQueriesProvider>,
+    </QueryClientProvider>,
   );
 });
