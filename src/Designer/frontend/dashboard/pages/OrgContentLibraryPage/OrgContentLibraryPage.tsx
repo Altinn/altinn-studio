@@ -27,6 +27,7 @@ import type { AxiosError } from 'axios';
 import { useDeleteOrgCodeListMutation } from 'app-shared/hooks/mutations/useDeleteOrgCodeListMutation';
 import {
   backendCodeListsToLibraryCodeLists,
+  libraryCodeListDataToBackendCodeListData,
   libraryCodeListsToUpdatePayload,
   textResourcesWithLanguageToLibraryTextResources,
   textResourceWithLanguageToMutationArgs,
@@ -49,6 +50,8 @@ import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import { useSharedCodeListsQuery } from 'app-shared/hooks/queries/useSharedCodeListsQuery';
 import { useUpdateSharedResourcesMutation } from 'app-shared/hooks/mutations/useUpdateSharedResourcesMutation';
 import type { GetSharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
+import { usePublishCodeListMutation } from 'app-shared/hooks/mutations/usePublishCodeListMutation';
+import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -203,6 +206,7 @@ function usePagesFromFeatureFlags(orgName: string): Partial<PagesConfig> {
 function useCodeListsProps(orgName: string): PagesConfig['codeLists']['props'] {
   const { data } = useSharedCodeListsQuery(orgName);
   const { mutate } = useUpdateSharedResourcesMutation(orgName);
+  const { mutate: publish } = usePublishCodeListMutation(orgName);
   const { t } = useTranslation();
 
   const libraryCodeLists = backendCodeListsToLibraryCodeLists(data);
@@ -219,7 +223,15 @@ function useCodeListsProps(orgName: string): PagesConfig['codeLists']['props'] {
     [data, mutate, t],
   );
 
-  return { codeLists: libraryCodeLists, onSave: handleSave };
+  const handlePublish = useCallback(
+    (cld: CodeListData): void => {
+      const payload: PublishCodeListPayload = libraryCodeListDataToBackendCodeListData(cld);
+      publish(payload);
+    },
+    [publish],
+  );
+
+  return { codeLists: libraryCodeLists, onPublish: handlePublish, onSave: handleSave };
 }
 
 function ContextWithoutLibraryAccess(): ReactElement {

@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       default-rings: >-
-        [{"ring": "at_ring1", "environment": "runtime_at_ring1"}]
+        [{"ring": "at_ring1", "environment": "runtime_at_ring1"},{"ring": "at_ring2", "environment": "runtime_at_ring2"},{"ring": "tt_ring1", "environment": "runtime_tt_ring1"},{"ring": "tt_ring2", "environment": "runtime_tt_ring2"},{"ring": "prod_ring1", "environment": "runtime_prod_ring1"},{"ring": "prod_ring2", "environment": "runtime_prod_ring2"}]
     outputs:
       ringsjson: ${{ steps.construct-rings.outputs.ringsjson }}
     steps:

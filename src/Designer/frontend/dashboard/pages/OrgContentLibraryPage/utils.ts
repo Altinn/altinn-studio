@@ -11,6 +11,7 @@ import type {
   UpdateSharedResourcesRequest,
   FileMetadata,
 } from 'app-shared/types/api/UpdateSharedResourcesRequest';
+import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
 
 export function textResourceWithLanguageToMutationArgs({
   language,
@@ -116,5 +117,15 @@ export function libraryCodeListsToUpdatePayload(
     files: [...files, ...deletedFiles],
     baseCommitSha: currentData.commitSha,
     commitMessage,
+  };
+}
+
+export function libraryCodeListDataToBackendCodeListData({
+  name,
+  codes,
+}: LibraryCodeListData): Required<Pick<CodeListDataNew, 'title' | 'codeList'>> {
+  return {
+    title: name,
+    codeList: { codes },
   };
 }

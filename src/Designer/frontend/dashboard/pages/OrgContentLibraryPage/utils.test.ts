@@ -1,5 +1,6 @@
 import {
   backendCodeListsToLibraryCodeLists,
+  libraryCodeListDataToBackendCodeListData,
   libraryCodeListsToUpdatePayload,
   textResourcesWithLanguageToLibraryTextResources,
   textResourceWithLanguageToMutationArgs,
@@ -19,6 +20,7 @@ import {
 } from './test-data/sharedResourcesResponse';
 import { codeLists } from './test-data/codeLists';
 import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
+import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
 
 describe('utils', () => {
   describe('textResourceWithLanguageToMutationArgs', () => {
@@ -168,6 +170,21 @@ describe('utils', () => {
       expect(() =>
         libraryCodeListsToUpdatePayload(undefined, updatedCodeLists, commitMessage),
       ).toThrow('Current data is required to create update payload');
+    });
+  });
+
+  describe('libraryCodeListDataToBackendCodeListData', () => {
+    it('Converts library code list data to backend code list data', () => {
+      const libraryCodeListData: CodeListData = {
+        name: 'animals',
+        codes: codeLists.animals,
+      };
+      const result = libraryCodeListDataToBackendCodeListData(libraryCodeListData);
+      const expectedResult: CodeListDataNew = {
+        title: 'animals',
+        codeList: { codes: codeLists.animals },
+      };
+      expect(result).toEqual(expectedResult);
     });
   });
 });

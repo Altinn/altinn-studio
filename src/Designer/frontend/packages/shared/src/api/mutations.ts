@@ -60,6 +60,7 @@ import {
   taskNavigationGroupPath,
   orgCodeListUpdateIdPath,
   orgLibraryUpdatePath,
+  orgCodeListPublishPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -94,6 +95,7 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import type { ImportCodeListResponse } from 'app-shared/types/api/ImportCodeListResponse';
 import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
+import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 
 const headers = {
   Accept: 'application/json',
@@ -128,6 +130,7 @@ export const deleteFormLayout = (org: string, app: string, layoutName: string, l
 export const deleteLanguageCode = (org: string, app: string, language: string) => del(textResourcesPath(org, app, language));
 export const generateModels = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(dataModelPath(org, app, modelPath, false), payload);
 export const logout = () => post(userLogoutPath());
+export const publishCodeList = (org: string, payload: PublishCodeListPayload) => post<void, PublishCodeListPayload>(orgCodeListPublishPath(org), payload);
 export const pushRepoChanges = (org: string, app: string) => post(repoPushPath(org, app));
 export const resetRepoChanges = (org: string, app: string) => get(repoResetPath(org, app)); //Technically a mutation, but currently only implemented as a GET
 export const saveDataModel = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(dataModelPath(org, app, modelPath, true), payload);
