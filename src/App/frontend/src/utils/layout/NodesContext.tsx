@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import type { PropsWithChildren, RefObject } from 'react';
 
 import deepEqual from 'fast-deep-equal';
@@ -11,7 +11,6 @@ import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
 import { AttachmentsStorePlugin } from 'src/features/attachments/AttachmentsStorePlugin';
 import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
-import { HiddenComponentsProvider } from 'src/features/form/dynamics/HiddenComponentsProvider';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
 import {
@@ -267,12 +266,9 @@ export const NodesProvider = ({ children, ...props }: NodesProviderProps) => {
           </GeneratorData.Provider>
         </GeneratorValidationProvider>
         {window.Cypress && <UpdateAttachmentsForCypress />}
-        <HiddenComponentsProvider />
-        <BlockUntilRulesRan>
-          <ProvideWaitForValidation />
-          <ExpressionValidation />
-          <LoadingBlockerWaitForValidation>{children}</LoadingBlockerWaitForValidation>
-        </BlockUntilRulesRan>
+        <ProvideWaitForValidation />
+        <ExpressionValidation />
+        <LoadingBlockerWaitForValidation>{children}</LoadingBlockerWaitForValidation>
       </ProvideGlobalContext>
     </Store.Provider>
   );
@@ -362,23 +358,6 @@ function AutoCommit({ registry }: { registry: RefObject<Registry> }) {
   }, [addNodes, removeNodes, setNodeProps, registry, renderCount]);
 
   return null;
-}
-
-function BlockUntilRulesRan({ children }: PropsWithChildren) {
-  const hasBeenReady = useRef(false);
-  const ready = Store.useSelector((state) => {
-    if (state.hiddenViaRulesRan) {
-      hasBeenReady.current = true;
-      return true;
-    }
-    return hasBeenReady.current;
-  });
-
-  if (!ready) {
-    return <NodesLoader />;
-  }
-
-  return children;
 }
 
 function NodesLoader() {
