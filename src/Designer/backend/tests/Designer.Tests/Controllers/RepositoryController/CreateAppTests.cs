@@ -26,7 +26,7 @@ namespace Designer.Tests.Controllers.RepositoryController
         {
             services.Configure<ServiceRepositorySettings>(c =>
                 c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGitea, IGiteaMock>();
+            services.AddSingleton<IGiteaClient, IGiteaClientMock>();
             services.AddSingleton(_ => _repositoryMock.Object);
         }
 

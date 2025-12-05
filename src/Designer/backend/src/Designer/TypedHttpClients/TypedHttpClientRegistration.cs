@@ -93,7 +93,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
 
         private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services,
             IConfiguration config)
-            => services.AddHttpClient<IGitea, GiteaClient>((_, httpClient) =>
+            => services.AddHttpClient<IGiteaClient, GiteaClient>((_, httpClient) =>
                 {
                     ServiceRepositorySettings serviceRepoSettings =
                         config.GetSection(nameof(ServiceRepositorySettings)).Get<ServiceRepositorySettings>();
@@ -112,7 +112,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             IConfiguration config)
         {
             // Register the named HTTP client (for direct IHttpClientFactory usage)
-            var builder = services.AddHttpClient<IGitea, GiteaClient>("bot-auth", (_, httpClient) =>
+            var builder = services.AddHttpClient<IGiteaClient, GiteaClient>("bot-auth", (_, httpClient) =>
                 {
                     ServiceRepositorySettings serviceRepoSettings =
                         config.GetSection(nameof(ServiceRepositorySettings)).Get<ServiceRepositorySettings>();
@@ -128,7 +128,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 .AddHttpMessageHandler<GitOpsBotTokenDelegatingHandler>();
 
             // Register keyed service by delegating to the named HTTP client registration
-            services.AddKeyedTransient<IGitea>("bot-auth", (sp, _) =>
+            services.AddKeyedTransient<IGiteaClient>("bot-auth", (sp, _) =>
             {
                 // Leverage the existing typed HTTP client factory instead of manual construction
                 var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();

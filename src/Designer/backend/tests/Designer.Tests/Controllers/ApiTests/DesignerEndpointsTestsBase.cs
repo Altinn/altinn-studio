@@ -37,7 +37,7 @@ namespace Designer.Tests.Controllers.ApiTests
         {
             services.Configure<ServiceRepositorySettings>(c =>
                 c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGitea, IGiteaMock>();
+            services.AddSingleton<IGiteaClient, IGiteaClientMock>();
             services.AddSingleton<IDistributedLockProvider>(_ =>
             {
                 var directoryInfo = TestLockPathProvider.Instance.LockFileDirectory;

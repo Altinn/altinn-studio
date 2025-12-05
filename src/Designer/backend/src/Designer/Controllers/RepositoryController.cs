@@ -34,7 +34,7 @@ namespace Altinn.Studio.Designer.Controllers
     [Route("designer/api/repos")]
     public class RepositoryController : ControllerBase
     {
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClientClient;
         private readonly ISourceControl _sourceControl;
         private readonly IRepository _repository;
         private readonly IHubContext<SyncHub, ISyncClient> _syncHub;
@@ -45,13 +45,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <remarks>
         /// Initializes a new instance of the <see cref="RepositoryController"/> class.
         /// </remarks>
-        /// <param name="giteaClient">the gitea client</param>
+        /// <param name="giteaClientClient">the gitea client</param>
         /// <param name="sourceControl">the source control</param>
         /// <param name="repository">the repository control</param>
         /// <param name="syncHub">websocket syncHub</param>
-        public RepositoryController(IGitea giteaClient, ISourceControl sourceControl, IRepository repository, IHubContext<SyncHub, ISyncClient> syncHub)
+        public RepositoryController(IGiteaClient giteaClientClient, ISourceControl sourceControl, IRepository repository, IHubContext<SyncHub, ISyncClient> syncHub)
         {
-            _giteaClient = giteaClient;
+            _giteaClientClient = giteaClientClient;
             _sourceControl = sourceControl;
             _repository = repository;
             _syncHub = syncHub;
@@ -69,7 +69,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<SearchResults> Search([FromQuery] string keyword, [FromQuery] int uId, [FromQuery] string sortBy, [FromQuery] string order, [FromQuery] int page, [FromQuery] int limit)
         {
             SearchOptions searchOptions = new SearchOptions { Keyword = keyword, UId = uId, SortBy = sortBy, Order = order, Page = page, Limit = limit };
-            SearchResults repositories = await _giteaClient.SearchRepo(searchOptions);
+            SearchResults repositories = await _giteaClientClient.SearchRepo(searchOptions);
             return repositories;
         }
 
@@ -144,7 +144,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             string repoToCheck = targetOrg ?? org;
 
-            var existingRepo = await _giteaClient.GetRepository(repoToCheck, targetRepository);
+            var existingRepo = await _giteaClientClient.GetRepository(repoToCheck, targetRepository);
 
             if (existingRepo != null)
             {
@@ -162,7 +162,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("org/{org}")]
         public Task<IList<RepositoryModel>> OrgRepos(string org)
         {
-            return _giteaClient.GetOrgRepos(org);
+            return _giteaClientClient.GetOrgRepos(org);
         }
 
         /// <summary>
@@ -207,7 +207,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/metadata")]
         public async Task<RepositoryModel> GetRepository(string org, string repository)
         {
-            RepositoryModel returnRepository = await _giteaClient.GetRepository(org, repository);
+            RepositoryModel returnRepository = await _giteaClientClient.GetRepository(org, repository);
             return returnRepository;
         }
 
@@ -373,7 +373,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches/branch")]
         public async Task<Branch> Branch(string org, string repository, [FromQuery] string branch)
-            => await _giteaClient.GetBranch(org, repository, branch);
+            => await _giteaClientClient.GetBranch(org, repository, branch);
 
 
         /// <summary>
@@ -388,7 +388,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
-                List<Branch> branches = await _giteaClient.GetBranches(org, repository);
+                List<Branch> branches = await _giteaClientClient.GetBranches(org, repository);
                 if (branches == null || branches.Count == 0)
                 {
                     return NoContent();

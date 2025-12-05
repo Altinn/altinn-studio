@@ -23,22 +23,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class TextResourceService : ITextResourceService
     {
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClientClient;
         private readonly ILogger<TextResourceService> _logger;
         private readonly IAltinnStorageTextResourceClient _storageTextResourceClient;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="giteaClient">IGitea</param>
+        /// <param name="giteaClientClient">IGitea</param>
         /// <param name="logger">ILogger of type TextResourceService</param>
         /// <param name="storageTextResourceClient">IAltinnStorageTextResourceClient</param>
         public TextResourceService(
-            IGitea giteaClient,
+            IGiteaClient giteaClientClient,
             ILogger<TextResourceService> logger,
             IAltinnStorageTextResourceClient storageTextResourceClient)
         {
-            _giteaClient = giteaClient;
+            _giteaClientClient = giteaClientClient;
             _logger = logger;
             _storageTextResourceClient = storageTextResourceClient;
         }
@@ -52,7 +52,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             List<FileSystemObject> folder = [];
             try
             {
-                folder = await _giteaClient.GetDirectoryAsync(org, app, textResourcesPath, shortCommitId);
+                folder = await _giteaClientClient.GetDirectoryAsync(org, app, textResourcesPath, shortCommitId);
             }
             catch (DirectoryNotFoundException ex)
             {
@@ -73,7 +73,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 c.ThrowIfCancellationRequested();
                 FileSystemObject populatedFile =
-                    await _giteaClient.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
+                    await _giteaClientClient.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
                 byte[] data = Convert.FromBase64String(populatedFile.Content);
 
                 try

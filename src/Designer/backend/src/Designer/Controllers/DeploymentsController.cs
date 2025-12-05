@@ -30,19 +30,19 @@ namespace Altinn.Studio.Designer.Controllers
     public class DeploymentsController : ControllerBase
     {
         private readonly IDeploymentService _deploymentService;
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClientClient;
         private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="deploymentService">IDeploymentService</param>
-        /// <param name="giteaClient">IGitea</param>
+        /// <param name="giteaClientClient">IGitea</param>
         /// <param name="kubernetesDeploymentsService">IKubernetesDeploymentsService</param>
-        public DeploymentsController(IDeploymentService deploymentService, IGitea giteaClient, IKubernetesDeploymentsService kubernetesDeploymentsService)
+        public DeploymentsController(IDeploymentService deploymentService, IGiteaClient giteaClientClient, IKubernetesDeploymentsService kubernetesDeploymentsService)
         {
             _deploymentService = deploymentService;
-            _giteaClient = giteaClient;
+            _giteaClientClient = giteaClientClient;
             _kubernetesDeploymentsService = kubernetesDeploymentsService;
         }
 
@@ -79,7 +79,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             // Add Owners to permitted environments so that users in Owners team can see deploy page with
             // all environments even though they are not in Deploy-<env> team and cannot deploy to the environment.
-            List<Team> teams = await _giteaClient.GetTeams();
+            List<Team> teams = await _giteaClientClient.GetTeams();
             List<string> permittedEnvironments = teams.Where(t =>
                         t.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase)
                         && (t.Name.StartsWith("Deploy-", StringComparison.OrdinalIgnoreCase) || t.Name.Equals("Owners")))

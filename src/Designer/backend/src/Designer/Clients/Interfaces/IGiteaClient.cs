@@ -9,9 +9,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Designer.Clients.Interfaces;
 
 /// <summary>
-/// Gitea wrapper
+/// A client for the Gitea API
 /// </summary>
-public interface IGitea
+public interface IGiteaClient
 {
     /// <summary>
     /// Get the current user

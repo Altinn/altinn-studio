@@ -21,7 +21,7 @@ namespace Designer.Tests.Controllers.OrgLibraryController;
 
 public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : DesignerEndpointsTestsBase<GetSharedResourcesTests>(factory), IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<IGitea> _giteaClientMock = new();
+    private readonly Mock<IGiteaClient> _giteaClientMock = new();
     private readonly Mock<IUserOrganizationService> _userOrganizationServiceMock = new();
 
     private const string Org = "ttd";

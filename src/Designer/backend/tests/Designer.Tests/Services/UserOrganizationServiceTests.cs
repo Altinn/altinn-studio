@@ -13,7 +13,7 @@ public class UserOrganizationServiceTests
     [Fact]
     public async Task UserIsMemberOfAnyOrganization_ShouldReturnTrue_WhenOrganizationsExist()
     {
-        var giteaMock = new Mock<IGitea>();
+        var giteaMock = new Mock<IGiteaClient>();
         giteaMock.Setup(g => g.GetUserOrganizations())
             .ReturnsAsync(new List<Organization> { new Organization { FullName = "Org1" } });
 
@@ -27,7 +27,7 @@ public class UserOrganizationServiceTests
     [Fact]
     public async Task UserIsMemberOfAnyOrganization_ShouldReturnFalse_WhenNoOrganizationsExist()
     {
-        var giteaMock = new Mock<IGitea>();
+        var giteaMock = new Mock<IGiteaClient>();
         giteaMock.Setup(g => g.GetUserOrganizations())
             .ReturnsAsync(new List<Organization>());
 
@@ -41,7 +41,7 @@ public class UserOrganizationServiceTests
     [Fact]
     public async Task UserIsMemberOfOrganization_ShouldReturnTrue_WhenMember()
     {
-        var giteaMock = new Mock<IGitea>();
+        var giteaMock = new Mock<IGiteaClient>();
         giteaMock.Setup(g => g.GetUserOrganizations())
             .ReturnsAsync(new List<Organization> { new Organization { Username = "ttd" } });
 
@@ -55,7 +55,7 @@ public class UserOrganizationServiceTests
     [Fact]
     public async Task UserIsMemberOfOrganization_ShouldReturnFalse_WhenNotMember()
     {
-        var giteaMock = new Mock<IGitea>();
+        var giteaMock = new Mock<IGiteaClient>();
         giteaMock.Setup(g => g.GetUserOrganizations())
             .ReturnsAsync(new List<Organization> { new Organization { Username = "ttd" } });
 
@@ -69,7 +69,7 @@ public class UserOrganizationServiceTests
     [Fact]
     public async Task UserIsMemberOfOrganization_ShouldReturnFalse_WhenNoOrganizationsExist()
     {
-        var giteaMock = new Mock<IGitea>();
+        var giteaMock = new Mock<IGiteaClient>();
         giteaMock.Setup(g => g.GetUserOrganizations())
             .ReturnsAsync(new List<Organization>());
 

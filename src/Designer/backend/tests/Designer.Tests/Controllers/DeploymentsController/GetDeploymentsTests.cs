@@ -34,7 +34,7 @@ public class GetDeployments : DbDesignerEndpointsTestsBase<GetDeployments>, ICla
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
-        services.AddSingleton<IGitea, IGiteaMock>();
+        services.AddSingleton<IGiteaClient, IGiteaClientMock>();
         services.AddSingleton(_ => _kubernetesDeploymentsMock.Object);
     }
 

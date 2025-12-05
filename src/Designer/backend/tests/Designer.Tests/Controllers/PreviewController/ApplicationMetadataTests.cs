@@ -32,7 +32,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             services.Configure<ServiceRepositorySettings>(c =>
                 c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGitea, IGiteaMock>();
+            services.AddSingleton<IGiteaClient, IGiteaClientMock>();
             services.AddSingleton(_appDevelopmentServiceMock.Object);
         }
 

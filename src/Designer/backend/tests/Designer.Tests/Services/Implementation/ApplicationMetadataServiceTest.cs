@@ -85,7 +85,7 @@ public class ApplicationMetadataServiceTest
         ApplicationMetadataService ApplicationMetadataService,
         Mock<IAltinnStorageAppMetadataClient> MockStorageAppMetadataClient,
         Mock<IAltinnGitRepositoryFactory> MockAltinnGitRepositoryFactory,
-        Mock<IGitea> MockGiteaClient
+        Mock<IGiteaClient> MockGiteaClient
     )
     {
         public ApplicationMetadataService Service => ApplicationMetadataService;
@@ -94,7 +94,7 @@ public class ApplicationMetadataServiceTest
         {
             var mockStorageAppMetadataClient = new Mock<IAltinnStorageAppMetadataClient>();
             var mockAltinnGitRepositoryFactory = new Mock<IAltinnGitRepositoryFactory>();
-            var mockGiteaClient = new Mock<IGitea>();
+            var mockGiteaClient = new Mock<IGiteaClient>();
 
             var service = new ApplicationMetadataService(
                 NullLogger<ApplicationMetadataService>.Instance,

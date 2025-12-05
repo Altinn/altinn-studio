@@ -19,20 +19,20 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
     /// </summary>
     public class GiteaDeployPermissionHandler : AuthorizationHandler<GiteaDeployPermissionRequirement>
     {
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClientClient;
         private readonly HttpContext _httpContext;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="giteaClient">IGitea</param>
+        /// <param name="giteaClientClient">IGitea</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         public GiteaDeployPermissionHandler(
-            IGitea giteaClient,
+            IGiteaClient giteaClientClient,
             IHttpContextAccessor httpContextAccessor)
         {
             _httpContext = httpContextAccessor.HttpContext;
-            _giteaClient = giteaClient;
+            _giteaClientClient = giteaClientClient;
         }
 
         /// <inheritdoc/>
@@ -94,7 +94,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             }
 
             string matchTeam = $"Deploy-{environment}";
-            List<Team> teams = await _giteaClient.GetTeams();
+            List<Team> teams = await _giteaClientClient.GetTeams();
 
             bool any = teams.Any(t => t.Organization.Username.Equals(
                 org, System.StringComparison.OrdinalIgnoreCase)

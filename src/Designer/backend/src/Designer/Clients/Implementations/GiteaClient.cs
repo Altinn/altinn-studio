@@ -28,7 +28,7 @@ using Polly.Wrap;
 namespace Altinn.Studio.Designer.Clients.Implementations;
 
 /// <summary>
-/// Implementation of the <see cref="IGitea"/> interface.
+/// Implementation of the <see cref="IGiteaClient"/> interface.
 /// Connects to Gitea API to perform operations related to repositories.
 /// </summary>
 /// <param name="repositorySettings">the repository settings</param>
@@ -41,7 +41,7 @@ public class GiteaClient(
     IHttpContextAccessor httpContextAccessor,
     IMemoryCache memoryCache,
     ILogger<GiteaClient> logger,
-    HttpClient httpClient) : IGitea
+    HttpClient httpClient) : IGiteaClient
 {
     private const string CodeListFolderName = "CodeLists";
 

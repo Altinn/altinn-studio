@@ -39,7 +39,7 @@ namespace Designer.Tests.Controllers.ReleasesController
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
-            services.AddSingleton<IGitea, IGiteaMock>();
+            services.AddSingleton<IGiteaClient, IGiteaClientMock>();
             services.AddSingleton(_releaseServiceMock.Object);
         }
 

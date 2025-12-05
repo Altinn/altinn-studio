@@ -13,9 +13,9 @@ using Organization = Altinn.Studio.Designer.RepositoryClient.Model.Organization;
 
 namespace Designer.Tests.Mocks
 {
-    public class IGiteaMock : IGitea
+    public class IGiteaClientMock : IGiteaClient
     {
-        private string _unitTestFolder = Path.GetDirectoryName(new Uri(typeof(IGiteaMock).Assembly.Location).LocalPath);
+        private string _unitTestFolder = Path.GetDirectoryName(new Uri(typeof(IGiteaClientMock).Assembly.Location).LocalPath);
 
         public Task<Repository> CreateRepository(string org, CreateRepoOption options)
         {

@@ -30,7 +30,7 @@ public class DeleteDatamodelTests : DesignerEndpointsTestsBase<DeleteDatamodelTe
     {
         services.Configure<ServiceRepositorySettings>(c =>
             c.RepositoryLocation = TestRepositoriesLocation);
-        services.AddSingleton<IGitea, IGiteaMock>();
+        services.AddSingleton<IGiteaClient, IGiteaClientMock>();
         services.AddSingleton(_repositoryMock.Object);
     }
 

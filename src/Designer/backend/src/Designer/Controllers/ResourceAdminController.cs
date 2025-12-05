@@ -30,7 +30,7 @@ namespace Altinn.Studio.Designer.Controllers
     //[AutoValidateAntiforgeryToken]
     public class ResourceAdminController : ControllerBase
     {
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClientClient;
         private readonly IRepository _repository;
         private readonly IResourceRegistryOptions _resourceRegistryOptions;
         private readonly IMemoryCache _memoryCache;
@@ -38,9 +38,9 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IOrgService _orgService;
         private readonly IResourceRegistry _resourceRegistry;
 
-        public ResourceAdminController(IGitea giteaClient, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOrgService orgService, IResourceRegistry resourceRegistry, IEnvironmentsService environmentsService)
+        public ResourceAdminController(IGiteaClient giteaClientClient, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOrgService orgService, IResourceRegistry resourceRegistry, IEnvironmentsService environmentsService)
         {
-            _giteaClient = giteaClient;
+            _giteaClientClient = giteaClientClient;
             _repository = repository;
             _resourceRegistryOptions = resourceRegistryOptions;
             _memoryCache = memoryCache;
@@ -171,7 +171,7 @@ namespace Altinn.Studio.Designer.Controllers
 
         private async Task<bool> HasPublishResourcePermissionInAnyEnv(string org)
         {
-            List<Team> teams = await _giteaClient.GetTeams();
+            List<Team> teams = await _giteaClientClient.GetTeams();
             List<string> envs = GetEnvironmentsForOrg(org);
 
             bool isTeamMember = teams.Any(team =>
@@ -209,7 +209,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources")]
         public async Task<ActionResult<RepositoryModel>> GetRepository(string org)
         {
-            IList<RepositoryModel> repositories = await _giteaClient.GetOrgRepos(org);
+            IList<RepositoryModel> repositories = await _giteaClientClient.GetOrgRepos(org);
 
             foreach (RepositoryModel repo in repositories)
             {
@@ -265,7 +265,7 @@ namespace Altinn.Studio.Designer.Controllers
                     await semaphore.WaitAsync(cancellationToken);
                     try
                     {
-                        return await _giteaClient.MapServiceResourceToListViewResource(org, repository, resource, cancellationToken);
+                        return await _giteaClientClient.MapServiceResourceToListViewResource(org, repository, resource, cancellationToken);
                     }
                     finally
                     {

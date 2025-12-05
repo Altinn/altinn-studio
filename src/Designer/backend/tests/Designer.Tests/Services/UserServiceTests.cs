@@ -12,11 +12,11 @@ namespace Designer.Tests.Services
 {
     public class UserServiceTests
     {
-        private readonly Mock<IGitea> _giteaClientMock;
+        private readonly Mock<IGiteaClient> _giteaClientMock;
 
         public UserServiceTests()
         {
-            _giteaClientMock = new Mock<IGitea>();
+            _giteaClientMock = new Mock<IGiteaClient>();
         }
 
         [Theory]

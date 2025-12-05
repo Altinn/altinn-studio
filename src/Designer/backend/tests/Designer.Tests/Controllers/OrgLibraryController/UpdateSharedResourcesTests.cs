@@ -26,7 +26,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
-        services.AddSingleton<IGitea, IGiteaMock>();
+        services.AddSingleton<IGiteaClient, IGiteaClientMock>();
         services.AddSingleton(_ => _orgLibraryServiceMock.Object);
         services.AddSingleton(_ => _userOrganizationServiceMock.Object);
     }

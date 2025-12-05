@@ -49,7 +49,7 @@ namespace Designer.Tests.Services
             storageClientMock ??= new Mock<IAltinnStorageTextResourceClient>();
 
             TextResourceService service = new TextResourceService(
-               new IGiteaMock(),
+               new IGiteaClientMock(),
                new Mock<ILogger<TextResourceService>>().Object,
                storageClientMock.Object);
 
