@@ -1,0 +1,164 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingRules;
+
+/// <summary>
+/// Parses unified diff format into structured objects
+/// </summary>
+internal class DiffParser
+{
+    /// <summary>
+    /// Parse unified diff output into DiffFile structure
+    /// </summary>
+    public DiffFile ParseUnifiedDiff(string diffOutput, string filePath)
+    {
+        var diffFile = new DiffFile { FilePath = filePath, Hunks = new List<DiffHunk>() };
+        var lines = diffOutput.Split('\n');
+        DiffHunk? currentHunk = null;
+
+        foreach (var line in lines)
+        {
+            // Skip file headers
+            if (
+                line.StartsWith("diff --git")
+                || line.StartsWith("index ")
+                || line.StartsWith("---")
+                || line.StartsWith("+++")
+            )
+            {
+                continue;
+            }
+
+            // Hunk header
+            if (line.StartsWith("@@"))
+            {
+                // Save previous hunk
+                if (currentHunk != null)
+                {
+                    diffFile.Hunks.Add(currentHunk);
+                }
+
+                // Parse new hunk header
+                var header = ParseHunkHeader(line);
+                currentHunk = new DiffHunk
+                {
+                    Header = header,
+                    Lines = new List<DiffLine>(),
+                    StartLineInOriginal = header.OldStart,
+                };
+                continue;
+            }
+
+            if (currentHunk == null)
+            {
+                continue;
+            }
+
+            // Parse diff line
+            if (line.Length == 0)
+            {
+                // Empty line (context)
+                currentHunk.Lines.Add(new DiffLine { Type = DiffLineType.Context, Content = "" });
+            }
+            else if (line.StartsWith("+"))
+            {
+                currentHunk.Lines.Add(new DiffLine { Type = DiffLineType.Added, Content = line.Substring(1) });
+            }
+            else if (line.StartsWith("-"))
+            {
+                currentHunk.Lines.Add(new DiffLine { Type = DiffLineType.Removed, Content = line.Substring(1) });
+            }
+            else if (line.StartsWith(" "))
+            {
+                currentHunk.Lines.Add(new DiffLine { Type = DiffLineType.Context, Content = line.Substring(1) });
+            }
+            else if (line.StartsWith("\\"))
+            {
+                // "\ No newline at end of file" - skip
+                continue;
+            }
+        }
+
+        // Add the last hunk
+        if (currentHunk != null)
+        {
+            diffFile.Hunks.Add(currentHunk);
+        }
+
+        return diffFile;
+    }
+
+    /// <summary>
+    /// Parse hunk header like "@@ -10,5 +10,7 @@"
+    /// </summary>
+    private HunkHeader ParseHunkHeader(string headerLine)
+    {
+        // Format: @@ -oldStart,oldCount +newStart,newCount @@
+        var parts = headerLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        var oldPart = parts[1].Substring(1); // Remove '-'
+        var newPart = parts[2].Substring(1); // Remove '+'
+
+        var oldParts = oldPart.Split(',');
+        var newParts = newPart.Split(',');
+
+        return new HunkHeader
+        {
+            OldStart = int.Parse(oldParts[0]),
+            OldCount = oldParts.Length > 1 ? int.Parse(oldParts[1]) : 1,
+            NewStart = int.Parse(newParts[0]),
+            NewCount = newParts.Length > 1 ? int.Parse(newParts[1]) : 1,
+        };
+    }
+}
+
+/// <summary>
+/// Represents a parsed diff file
+/// </summary>
+internal class DiffFile
+{
+    public string FilePath { get; set; } = string.Empty;
+    public List<DiffHunk> Hunks { get; set; } = new List<DiffHunk>();
+}
+
+/// <summary>
+/// Represents a hunk in a diff
+/// </summary>
+internal class DiffHunk
+{
+    public HunkHeader Header { get; set; } = new HunkHeader();
+    public List<DiffLine> Lines { get; set; } = new List<DiffLine>();
+    public int StartLineInOriginal { get; set; }
+}
+
+/// <summary>
+/// Represents a hunk header with line numbers
+/// </summary>
+internal class HunkHeader
+{
+    public int OldStart { get; set; }
+    public int OldCount { get; set; }
+    public int NewStart { get; set; }
+    public int NewCount { get; set; }
+}
+
+/// <summary>
+/// Represents a single line in a diff
+/// </summary>
+internal class DiffLine
+{
+    public DiffLineType Type { get; set; }
+    public string Content { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Type of diff line
+/// </summary>
+internal enum DiffLineType
+{
+    Context,
+    Added,
+    Removed,
+}

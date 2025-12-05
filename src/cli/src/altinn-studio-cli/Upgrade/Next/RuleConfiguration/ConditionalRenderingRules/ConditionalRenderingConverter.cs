@@ -186,6 +186,36 @@ internal class ConditionalRenderingConverter
 
             // Post-process to inject invalid JSON for failed conversions
             PostProcessFailedConversions(layoutsPath);
+
+            // Restore whitespace-only changes to preserve original formatting
+            try
+            {
+                var whitespaceRestorer = new WhitespaceRestorationProcessor(layoutsPath);
+                var restorationResult = whitespaceRestorer.RestoreWhitespaceOnlyChanges();
+
+                if (restorationResult.Success && restorationResult.HunksReverted > 0)
+                {
+                    Console.WriteLine(
+                        $"Restored original formatting for {restorationResult.HunksReverted} "
+                            + $"whitespace-only changes across {restorationResult.TotalFilesProcessed} files"
+                    );
+                }
+
+                foreach (var warning in restorationResult.Warnings)
+                {
+                    Console.WriteLine($"Warning: {warning}");
+                }
+
+                foreach (var error in restorationResult.Errors)
+                {
+                    Console.Error.WriteLine($"Error: {error}");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Non-fatal: Log warning but continue
+                Console.Error.WriteLine($"Warning: Could not restore whitespace formatting: {ex.Message}");
+            }
         }
         catch (Exception ex)
         {
