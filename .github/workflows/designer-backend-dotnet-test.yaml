@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/Designer/backend/**'
       - 'src/Designer/testdata/**'
+      - 'src/App/template/**'
       - '.github/workflows/designer-backend-dotnet-test.yaml'
   workflow_dispatch:
 

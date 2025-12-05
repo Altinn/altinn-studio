@@ -1,4 +1,4 @@
-package controller
+package maskinporten
 
 import (
 	"context"
@@ -28,7 +28,7 @@ func (k requestKind) String() string {
 	if s, ok := requestKindToString[k]; ok {
 		return s
 	}
-	return UnknownStr
+	return "Unknown"
 }
 
 type maskinportenClientRequest struct {

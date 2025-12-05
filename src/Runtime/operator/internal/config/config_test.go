@@ -82,6 +82,121 @@ func TestSafeLogValueRedactsSecrets(t *testing.T) {
 	Expect(configValue.MaskinportenApi.Jwk).NotTo(BeEmpty())
 }
 
+func TestConfigReloadOnRefresh(t *testing.T) {
+	RegisterTestingT(t)
+
+	// Create initial config file
+	file, err := os.CreateTemp(os.TempDir(), "config-reload-*.env")
+	Expect(err).NotTo(HaveOccurred())
+	defer func() {
+		_ = os.Remove(file.Name())
+	}()
+
+	initialConfig := `maskinporten_api.client_id=test-client
+maskinporten_api.authority_url=http://localhost:8050
+maskinporten_api.self_service_url=http://localhost:8050
+maskinporten_api.jwk={"kty":"RSA","n":"test","e":"AQAB"}
+maskinporten_api.scope=test:scope
+maskinporten_controller.requeue_after=5m
+maskinporten_controller.jwk_rotation_threshold=1m
+maskinporten_controller.jwk_expiry=2m
+keyvault_sync_controller.poll_interval=5m
+org_registry.url=http://localhost:8052/orgs/altinn-orgs.json`
+
+	_, err = file.WriteString(initialConfig)
+	Expect(err).NotTo(HaveOccurred())
+	err = file.Close()
+	Expect(err).NotTo(HaveOccurred())
+
+	// Load initial config
+	ctx := context.Background()
+	monitor, err := GetConfig(ctx, operatorcontext.EnvironmentLocal, file.Name())
+	Expect(err).NotTo(HaveOccurred())
+	Expect(monitor).NotTo(BeNil())
+
+	// Verify initial value
+	Expect(monitor.Get().MaskinportenController.RequeueAfter).To(Equal(5 * time.Minute))
+
+	// Modify config file with new requeue_after value
+	updatedConfig := `maskinporten_api.client_id=test-client
+maskinporten_api.authority_url=http://localhost:8050
+maskinporten_api.self_service_url=http://localhost:8050
+maskinporten_api.jwk={"kty":"RSA","n":"test","e":"AQAB"}
+maskinporten_api.scope=test:scope
+maskinporten_controller.requeue_after=10m
+maskinporten_controller.jwk_rotation_threshold=1m
+maskinporten_controller.jwk_expiry=2m
+keyvault_sync_controller.poll_interval=5m
+org_registry.url=http://localhost:8052/orgs/altinn-orgs.json`
+
+	err = os.WriteFile(file.Name(), []byte(updatedConfig), 0644)
+	Expect(err).NotTo(HaveOccurred())
+
+	// Trigger refresh (simulates SIGHUP)
+	err = monitor.refresh(ctx)
+	Expect(err).NotTo(HaveOccurred())
+
+	// Verify config was reloaded
+	Expect(monitor.Get().MaskinportenController.RequeueAfter).To(Equal(10 * time.Minute))
+}
+
+func TestConfigReloadFailsOnInvalidConfig(t *testing.T) {
+	RegisterTestingT(t)
+
+	// Create initial valid config file
+	file, err := os.CreateTemp(os.TempDir(), "config-reload-invalid-*.env")
+	Expect(err).NotTo(HaveOccurred())
+	defer func() {
+		_ = os.Remove(file.Name())
+	}()
+
+	initialConfig := `maskinporten_api.client_id=test-client
+maskinporten_api.authority_url=http://localhost:8050
+maskinporten_api.self_service_url=http://localhost:8050
+maskinporten_api.jwk={"kty":"RSA","n":"test","e":"AQAB"}
+maskinporten_api.scope=test:scope
+maskinporten_controller.requeue_after=5m
+maskinporten_controller.jwk_rotation_threshold=1m
+maskinporten_controller.jwk_expiry=2m
+keyvault_sync_controller.poll_interval=5m
+org_registry.url=http://localhost:8052/orgs/altinn-orgs.json`
+
+	_, err = file.WriteString(initialConfig)
+	Expect(err).NotTo(HaveOccurred())
+	err = file.Close()
+	Expect(err).NotTo(HaveOccurred())
+
+	// Load initial config
+	ctx := context.Background()
+	monitor, err := GetConfig(ctx, operatorcontext.EnvironmentLocal, file.Name())
+	Expect(err).NotTo(HaveOccurred())
+	Expect(monitor).NotTo(BeNil())
+
+	originalRequeueAfter := monitor.Get().MaskinportenController.RequeueAfter
+
+	// Modify config file with invalid value (missing required field)
+	invalidConfig := `maskinporten_api.client_id=test-client
+maskinporten_api.authority_url=http://localhost:8050
+maskinporten_api.self_service_url=http://localhost:8050
+maskinporten_api.jwk={"kty":"RSA","n":"test","e":"AQAB"}
+maskinporten_api.scope=test:scope
+maskinporten_controller.requeue_after=5m
+maskinporten_controller.jwk_rotation_threshold=1m
+maskinporten_controller.jwk_expiry=2m
+keyvault_sync_controller.poll_interval=5m`
+
+	err = os.WriteFile(file.Name(), []byte(invalidConfig), 0644)
+	Expect(err).NotTo(HaveOccurred())
+
+	// Trigger refresh - should fail
+	err = monitor.refresh(ctx)
+	Expect(err).To(HaveOccurred())
+	Expect(err.Error()).To(ContainSubstring("validation failed"))
+
+	// Verify original config is still in use
+	Expect(monitor.Get().MaskinportenController.RequeueAfter).To(Equal(originalRequeueAfter))
+}
+
 func TestParseDuration(t *testing.T) {
 	tests := []struct {
 		input    string
