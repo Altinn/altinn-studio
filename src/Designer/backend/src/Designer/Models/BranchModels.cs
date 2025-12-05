@@ -72,7 +72,7 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// Gets or sets the list of uncommitted files
         /// </summary>
-        public System.Collections.Generic.List<UncommittedFile> UncommittedFiles { get; set; }
+        public List<UncommittedFile> UncommittedFiles { get; set; }
 
         /// <summary>
         /// Gets or sets the current branch name
