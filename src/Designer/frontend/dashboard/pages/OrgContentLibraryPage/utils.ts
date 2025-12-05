@@ -33,35 +33,23 @@ export function backendCodeListsToLibraryCodeLists(
 ): LibraryCodeListData[] {
   if (!response) return [];
 
-  return response.files.flatMap((file) => {
+  return response.files.map((file) => {
     const fileName = file.path.split('/').pop()?.replace('.json', '') || 'unknown';
 
     if (file.problem || !file.content) {
       // TODO: We should show the user that a codelist is corrupted
-      return [
-        {
-          name: fileName,
-          codes: [],
-        },
-      ];
+      return { name: fileName, codes: [] };
     }
 
     try {
       const codeList = JSON.parse(atobUTF8(file.content));
-      return [
-        {
-          name: fileName,
-          codes: Array.isArray(codeList.codes) ? codeList.codes : [],
-        },
-      ];
+      return {
+        name: fileName,
+        codes: Array.isArray(codeList.codes) ? codeList.codes : [],
+      };
     } catch {
       // TODO: We should show the user that a codelist is corrupted
-      return [
-        {
-          name: fileName,
-          codes: [],
-        },
-      ];
+      return { name: fileName, codes: [] };
     }
   });
 }
