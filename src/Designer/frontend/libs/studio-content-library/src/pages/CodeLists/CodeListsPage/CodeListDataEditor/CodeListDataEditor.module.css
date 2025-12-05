@@ -2,9 +2,9 @@
   display: grid;
   gap: var(--ds-size-6);
   grid-template-areas:
-    'name-field delete-button'
-    'codes codes';
-  grid-template-columns: 1fr auto;
+    'name-field delete-button publish-button'
+    'codes codes codes';
+  grid-template-columns: 1fr auto auto;
 }
 
 .nameField {
@@ -15,6 +15,11 @@
   align-self: end;
   grid-area: delete-button;
   justify-self: end;
+}
+
+.publishButton {
+  align-self: end;
+  grid-area: publish-button;
 }
 
 .codes {
