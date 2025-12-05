@@ -73,6 +73,7 @@ import {
   orgTextLanguagesPath,
   canUseFeaturePath,
   orgCodeListsNewPath,
+  publishedResourcesPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -209,3 +210,4 @@ export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeLi
 export const getOrgCodeListsNew = (org: string) => get<CodeListsNewResponse>(orgCodeListsNewPath(org));
 export const getOrgTextLanguages = (org: string): Promise<string[] | null> => get<string[] | null>(orgTextLanguagesPath(org));
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
+export const getPublishedResources = (org: string, path?: string): Promise<string[]> => get<string[]>(publishedResourcesPath(org, path));
