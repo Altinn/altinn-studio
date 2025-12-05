@@ -10,7 +10,7 @@ spec:
       dashboards: external-grafana
   settings:
     httpMethod: POST
-    url: "http://localhost:5062/api/v1/alerts"
+    url: "${GATEWAY_URL}"
   valuesFrom:
     - targetPath: token
       valueFrom:
