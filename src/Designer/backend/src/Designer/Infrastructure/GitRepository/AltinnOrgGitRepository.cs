@@ -204,29 +204,6 @@ public partial class AltinnOrgGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Updates a code list with the provided id.
-    /// </summary>
-    /// <param name="codeListId">The name of the code list to update.</param>
-    /// <param name="codeList">The code list contents.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public async Task UpdateCodeListNew(string codeListId, CodeList? codeList, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        string codeListFilePath = CodeListFilePath(codeListId);
-
-        if (codeList is null)
-        {
-            DeleteFileIfExists(codeListFilePath);
-        }
-        else
-        {
-            string codeListString = JsonSerializer.Serialize(codeList, s_jsonOptions);
-            await WriteTextByRelativePathAsync(codeListFilePath, codeListString, true, cancellationToken);
-        }
-    }
-
-    /// <summary>
     /// Renames a code list with the provided id.
     /// </summary>
     /// <param name="codeListId">The name of the code list to be renamed.</param>

@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.CodeList;
-using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
@@ -63,39 +62,6 @@ public class OrgCodeListController : ControllerBase
         {
             return NoContent();
         }
-    }
-
-    /// <summary>
-    /// Creates or overwrites the code lists.
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation.</param>
-    /// <param name="requestBody">The body of the request <see cref="UpdateCodeListRequest"/></param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    [HttpPut]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [Route("new")]
-    public async Task<ActionResult> UpdateCodeListsNew(string org, [FromBody] UpdateCodeListRequest requestBody, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
-        try
-        {
-            await _orgCodeListService.UpdateCodeListsNew(org, developer, requestBody, cancellationToken);
-            return Ok();
-        }
-        catch (Exception ex) when (ex is IllegalCodeListTitleException or IllegalCommitMessageException or ArgumentException)
-        {
-            _logger.LogError(ex, "Invalid request to update codelists for org {Org}.", org);
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid request",
-                Status = StatusCodes.Status400BadRequest
-            });
-        }
-
     }
 
     /// <summary>
