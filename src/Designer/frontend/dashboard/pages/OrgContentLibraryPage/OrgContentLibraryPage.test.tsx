@@ -358,10 +358,14 @@ describe('OrgContentLibraryPage', () => {
       featureFlags: [FeatureFlag.NewCodeLists],
       queries: { publishCodeList },
     });
-    const codeListToPublish = codeListsNewResponse.codeListWrappers[0];
     const libraryCodeListData: LibraryCodeListData = {
-      name: codeListToPublish.title,
-      codes: codeListToPublish.codeList.codes,
+      name: 'animals',
+      codes: [
+        {
+          value: 'cat',
+          label: { nb: 'Katt', nn: 'Katt', en: 'Cat' },
+        },
+      ],
     };
 
     retrievePagesConfig().codeLists.props.onPublish(libraryCodeListData);
@@ -370,7 +374,7 @@ describe('OrgContentLibraryPage', () => {
     expect(publishCodeList).toHaveBeenCalledTimes(1);
     expect(publishCodeList).toHaveBeenCalledWith(
       orgName,
-      expect.objectContaining({ title: codeListToPublish.title }),
+      expect.objectContaining({ title: 'animals' }),
     );
   });
 });
