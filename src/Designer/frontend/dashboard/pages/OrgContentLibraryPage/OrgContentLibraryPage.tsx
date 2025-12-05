@@ -47,9 +47,9 @@ import { useUpdateOrgCodeListIdMutation } from 'app-shared/hooks/mutations/useUp
 import { FeedbackForm } from './FeedbackForm';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
-import { useOrgCodeListsNewQuery } from 'app-shared/hooks/queries/useOrgCodeListsNewQuery';
-import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
-import { useOrgCodeListsMutation } from 'app-shared/hooks/mutations/useOrgCodeListsMutation';
+import { useSharedCodeListsQuery } from 'app-shared/hooks/queries/useSharedCodeListsQuery';
+import { useUpdateSharedResourcesMutation } from 'app-shared/hooks/mutations/useUpdateSharedResourcesMutation';
+import type { GetSharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
 import { usePublishCodeListMutation } from 'app-shared/hooks/mutations/usePublishCodeListMutation';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 
@@ -93,13 +93,12 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
     orgName,
     DEFAULT_LANGUAGE,
   );
-  const { data: codeListDataListNew, status: codeListDataListNewStatus } =
-    useOrgCodeListsNewQuery(orgName);
+  const { data: sharedCodeList, status: sharedCodeListStatus } = useSharedCodeListsQuery(orgName);
 
   const status = mergeQueryStatuses(
     codeListDataListStatus,
     textResourcesStatus,
-    codeListDataListNewStatus,
+    sharedCodeListStatus,
   );
 
   switch (status) {
@@ -111,7 +110,7 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
       return (
         <OrgContentLibraryWithContextAndData
           codeListDataList={codeListDataList}
-          codeListDataListNew={codeListDataListNew}
+          sharedResourceResponse={sharedCodeList}
           orgName={orgName}
           textResources={textResources}
         />
@@ -121,7 +120,7 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
 
 type OrgContentLibraryWithContextAndDataProps = {
   codeListDataList: CodeListsResponse;
-  codeListDataListNew: CodeListsNewResponse;
+  sharedResourceResponse: GetSharedResourcesResponse;
   orgName: string;
   textResources: ITextResourcesWithLanguage;
 };
@@ -205,8 +204,8 @@ function usePagesFromFeatureFlags(orgName: string): Partial<PagesConfig> {
 }
 
 function useCodeListsProps(orgName: string): PagesConfig['codeLists']['props'] {
-  const { data } = useOrgCodeListsNewQuery(orgName);
-  const { mutate } = useOrgCodeListsMutation(orgName);
+  const { data } = useSharedCodeListsQuery(orgName);
+  const { mutate } = useUpdateSharedResourcesMutation(orgName);
   const { mutate: publish } = usePublishCodeListMutation(orgName);
   const { t } = useTranslation();
 
