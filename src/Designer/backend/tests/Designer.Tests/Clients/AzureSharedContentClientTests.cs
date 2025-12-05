@@ -784,7 +784,12 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = AzureClientWithContainerClient(containerClientMock);
 
         // Act and assert
-        await Assert.ThrowsAsync<SharedContentRequestException>(async () => await client.GetPublishedResourcesForOrg(orgName));
+        SharedContentRequestException exception = await Assert.ThrowsAsync<SharedContentRequestException>(
+            async () => await client.GetPublishedResourcesForOrg(orgName)
+        );
+        Assert.NotNull(exception.InnerException);
+        Assert.IsType<RequestFailedException>(exception.InnerException);
+        Assert.Contains(orgName, exception.Message);
     }
 
     private static CodeList SetupCodeList()
