@@ -16,7 +16,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class AuthorizationPolicyService : IAuthorizationPolicyService
     {
-        private readonly IGiteaClient _giteaClientClient;
+        private readonly IGiteaClient _giteaClient;
         private readonly IAltinnAuthorizationPolicyClient _authorizationPolicyClient;
         private readonly ServiceRepositorySettings _serviceRepositorySettings;
 
@@ -24,14 +24,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// Constructor
         /// </summary>
         /// <param name="repositorySettings">ServiceRepositorySettings</param>
-        /// <param name="giteaClientClient">IGitea</param>
+        /// <param name="giteaClient">IGiteaClient</param>
         /// <param name="authorizationPolicyClient">IAltinnAuthorizationPolicyClient</param>
         public AuthorizationPolicyService(
             ServiceRepositorySettings repositorySettings,
-            IGiteaClient giteaClientClient,
+            IGiteaClient giteaClient,
             IAltinnAuthorizationPolicyClient authorizationPolicyClient)
         {
-            _giteaClientClient = giteaClientClient;
+            _giteaClient = giteaClient;
             _authorizationPolicyClient = authorizationPolicyClient;
             _serviceRepositorySettings = repositorySettings;
         }
@@ -55,7 +55,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async Task<FileSystemObject> GetAuthorizationPolicyFileFromGitea(string org, string app, string shortCommitId)
         {
             string policyFilePath = GetAuthorizationPolicyFilePath();
-            return await _giteaClientClient.GetFileAsync(org, app, policyFilePath, shortCommitId);
+            return await _giteaClient.GetFileAsync(org, app, policyFilePath, shortCommitId);
         }
 
         private string GetAuthorizationPolicyFilePath()

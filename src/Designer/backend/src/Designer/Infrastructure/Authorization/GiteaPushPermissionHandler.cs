@@ -13,20 +13,20 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
     /// </summary>
     public class GiteaPushPermissionHandler : AuthorizationHandler<GiteaPushPermissionRequirement>
     {
-        private readonly IGiteaClient _giteaClientClient;
+        private readonly IGiteaClient _giteaClient;
         private readonly HttpContext _httpContext;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="giteaClientClient">IGitea</param>
+        /// <param name="giteaClient">IGiteaClient</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         public GiteaPushPermissionHandler(
-            IGiteaClient giteaClientClient,
+            IGiteaClient giteaClient,
             IHttpContextAccessor httpContextAccessor)
         {
             _httpContext = httpContextAccessor.HttpContext;
-            _giteaClientClient = giteaClientClient;
+            _giteaClient = giteaClient;
         }
 
         /// <inheritdoc/>
@@ -49,7 +49,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                 return;
             }
 
-            RepositoryClient.Model.Repository repository = await _giteaClientClient.GetRepository(org, app);
+            RepositoryClient.Model.Repository repository = await _giteaClient.GetRepository(org, app);
             if (repository?.Permissions?.Push == true ||
                 repository?.Permissions?.Admin == true)
             {

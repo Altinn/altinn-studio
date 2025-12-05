@@ -7,16 +7,16 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class UserOrganizationService : IUserOrganizationService
 {
-    private readonly IGiteaClient _giteaClientClient;
+    private readonly IGiteaClient _giteaClient;
 
-    public UserOrganizationService(IGiteaClient giteaClientClient)
+    public UserOrganizationService(IGiteaClient giteaClient)
     {
-        _giteaClientClient = giteaClientClient;
+        _giteaClient = giteaClient;
     }
 
     public async Task<bool> UserIsMemberOfAnyOrganization()
     {
-        var organizations = await _giteaClientClient.GetUserOrganizations();
+        var organizations = await _giteaClient.GetUserOrganizations();
         if (organizations == null)
         {
             return false;
@@ -26,7 +26,7 @@ public class UserOrganizationService : IUserOrganizationService
 
     public async Task<bool> UserIsMemberOfOrganization(string org)
     {
-        var organizations = await _giteaClientClient.GetUserOrganizations();
+        var organizations = await _giteaClient.GetUserOrganizations();
         if (organizations == null)
         {
             return false;

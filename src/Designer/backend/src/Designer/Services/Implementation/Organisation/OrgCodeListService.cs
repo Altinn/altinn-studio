@@ -26,7 +26,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 public class OrgCodeListService : IOrgCodeListService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
-    private readonly IGiteaClient _giteaClientClient;
+    private readonly IGiteaClient _giteaClient;
     private readonly ISourceControl _sourceControl;
     private readonly ISharedContentClient _sharedContentClient;
 
@@ -46,13 +46,13 @@ public class OrgCodeListService : IOrgCodeListService
     /// Constructor
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-    /// <param name="giteaClientClient">IGitea</param>
+    /// <param name="giteaClient">IGiteaClient</param>
     /// <param name="sourceControl">the source control</param>
     /// <param name="sharedContentClient">the shared content client</param>
-    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGiteaClient giteaClientClient, ISourceControl sourceControl, ISharedContentClient sharedContentClient)
+    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGiteaClient giteaClient, ISourceControl sourceControl, ISharedContentClient sharedContentClient)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
-        _giteaClientClient = giteaClientClient;
+        _giteaClient = giteaClient;
         _sourceControl = sourceControl;
         _sharedContentClient = sharedContentClient;
     }
@@ -98,8 +98,8 @@ public class OrgCodeListService : IOrgCodeListService
         Guard.AssertValidateOrganization(org);
 
         string repository = GetStaticContentRepo(org);
-        List<FileSystemObject> files = await _giteaClientClient.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
-        string latestCommitSha = await _giteaClientClient.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
+        List<FileSystemObject> files = await _giteaClient.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
+        string latestCommitSha = await _giteaClient.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
 
         List<CodeListWrapper> codeListWrappers = [];
         foreach (FileSystemObject file in files)
@@ -154,7 +154,7 @@ public class OrgCodeListService : IOrgCodeListService
         await _sourceControl.CloneIfNotExists(org, repositoryName);
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repositoryName, developer);
 
-        string latestCommitSha = await _giteaClientClient.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
+        string latestCommitSha = await _giteaClient.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
         if (latestCommitSha == request.BaseCommitSha)
         {
             await HandleCommit(editingContext, request, cancellationToken);

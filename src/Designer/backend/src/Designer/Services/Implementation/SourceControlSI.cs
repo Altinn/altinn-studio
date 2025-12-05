@@ -25,7 +25,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IGiteaClient _giteaClientClient;
+        private readonly IGiteaClient _giteaClient;
         private readonly ILogger _logger;
         private const string DefaultBranch = General.DefaultBranch;
 
@@ -34,17 +34,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="repositorySettings">The settings for the service repository.</param>
         /// <param name="httpContextAccessor">the http context accessor.</param>
-        /// <param name="giteaClientClient">The gitea client.</param>
+        /// <param name="giteaClient">The gitea client.</param>
         /// <param name="logger">the log handler.</param>
         public SourceControlSI(
             ServiceRepositorySettings repositorySettings,
             IHttpContextAccessor httpContextAccessor,
-            IGiteaClient giteaClientClient,
+            IGiteaClient giteaClient,
             ILogger<SourceControlSI> logger)
         {
             _settings = repositorySettings;
             _httpContextAccessor = httpContextAccessor;
-            _giteaClientClient = giteaClientClient;
+            _giteaClient = giteaClient;
             _logger = logger;
         }
 
@@ -705,7 +705,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<RepositoryClient.Model.Branch> CreateBranch(string org, string repository, string branchName)
         {
-            return await _giteaClientClient.CreateBranch(org, repository, branchName);
+            return await _giteaClient.CreateBranch(org, repository, branchName);
         }
 
         /// <inheritdoc/>
@@ -718,7 +718,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Title = title
             };
 
-            return await _giteaClientClient.CreatePullRequest(org, repository, option);
+            return await _giteaClient.CreatePullRequest(org, repository, option);
         }
 
         /// <inheritdoc/>
@@ -731,7 +731,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 DirectoryHelper.DeleteFilesAndDirectory(localServiceRepoFolder);
             }
 
-            await _giteaClientClient.DeleteRepository(org, repository);
+            await _giteaClient.DeleteRepository(org, repository);
         }
 
         private LibGit2Sharp.Signature GetDeveloperSignature()

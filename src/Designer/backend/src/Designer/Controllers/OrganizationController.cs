@@ -17,15 +17,15 @@ namespace Altinn.Studio.Designer.Controllers
     [Route("designer/api/orgs")]
     public class OrganizationController : ControllerBase
     {
-        private readonly IGiteaClient _giteaClientClient;
+        private readonly IGiteaClient _giteaClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OrganizationController"/> class.
         /// </summary>
-        /// <param name="giteaClientClient">the gitea client</param>
-        public OrganizationController(IGiteaClient giteaClientClient)
+        /// <param name="giteaClient">the gitea client</param>
+        public OrganizationController(IGiteaClient giteaClient)
         {
-            _giteaClientClient = giteaClientClient;
+            _giteaClient = giteaClient;
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         public async Task<List<Organization>> Organizations()
         {
-            List<Organization> orglist = await _giteaClientClient.GetUserOrganizations();
+            List<Organization> orglist = await _giteaClient.GetUserOrganizations();
             return orglist ?? new List<Organization>();
         }
     }

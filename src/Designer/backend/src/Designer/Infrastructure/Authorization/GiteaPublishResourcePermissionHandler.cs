@@ -16,20 +16,20 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
     /// </summary>
     public class GiteaPublishResourcePermissionHandler : AuthorizationHandler<GiteaPublishResourcePermissionRequirement>
     {
-        private readonly IGiteaClient _giteaClientClient;
+        private readonly IGiteaClient _giteaClient;
         private readonly HttpContext _httpContext;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="giteaClientClient">IGitea</param>
+        /// <param name="giteaClient">IGiteaClient</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         public GiteaPublishResourcePermissionHandler(
-            IGiteaClient giteaClientClient,
+            IGiteaClient giteaClient,
             IHttpContextAccessor httpContextAccessor)
         {
             _httpContext = httpContextAccessor.HttpContext;
-            _giteaClientClient = giteaClientClient;
+            _giteaClient = giteaClient;
         }
 
         /// <inheritdoc/>
@@ -51,7 +51,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             }
 
             string matchTeam = $"Resources-Publish-{environment}";
-            List<Team> teams = await _giteaClientClient.GetTeams();
+            List<Team> teams = await _giteaClient.GetTeams();
 
             bool isTeamMember = teams.Any(t =>
                 t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase) &&

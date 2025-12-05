@@ -12,11 +12,11 @@ namespace Altinn.Studio.Designer.Controllers
     [ApiController]
     public class ContactController : ControllerBase
     {
-        private readonly IGiteaClient _giteaClientClient;
+        private readonly IGiteaClient _giteaClient;
 
-        public ContactController(IGiteaClient giteaClientClient)
+        public ContactController(IGiteaClient giteaClient)
         {
-            _giteaClientClient = giteaClientClient;
+            _giteaClient = giteaClient;
         }
 
         [AllowAnonymous]
@@ -31,7 +31,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             try
             {
-                var organizations = await _giteaClientClient.GetUserOrganizations();
+                var organizations = await _giteaClient.GetUserOrganizations();
                 return Ok(new BelongsToOrgDto { BelongsToOrg = organizations.Count > 0 });
             }
             catch (Exception)

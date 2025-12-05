@@ -46,7 +46,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddTransient<PlatformBearerTokenHandler>();
             services.AddAzureDevOpsTypedHttpClient(config);
             // Order is important here. The GiteaBot client must be registered before the regular Gitea client
-            // to ensure that the regular Gitea client is injected when IGitea is requested.
+            // to ensure that the regular Gitea client is injected when IGiteaClient is requested.
             services.AddGiteaBotTypedHttpClient(config);
             services.AddGiteaTypedHttpClient(config);
             services.AddAltinnAuthenticationTypedHttpClient(config);
