@@ -6,10 +6,7 @@ import type {
 import type { UpdateOrgTextResourcesMutationArgs } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import type {
-  GetSharedResourcesResponse,
-  LibraryFile,
-} from 'app-shared/types/api/GetSharedResourcesResponse';
+import type { GetSharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
 import type {
   UpdateSharedResourcesRequest,
   FileMetadata,
@@ -86,13 +83,6 @@ export function btoaUTF8(data: string) {
     binary += String.fromCharCode(utf8data[i]);
   }
   return btoa(binary);
-}
-
-export function getFilesWithProblems(
-  response: GetSharedResourcesResponse | undefined,
-): LibraryFile[] {
-  if (!response) return [];
-  return response.files.filter((file) => file.problem);
 }
 
 export function libraryCodeListsToUpdatePayload(
