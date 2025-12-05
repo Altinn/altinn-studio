@@ -34,3 +34,8 @@ spec:
     kind: OCIRepository
     name: grafana-manifests-repo
     namespace: runtime-grafana
+  postBuild:
+    substitute:
+      AZURE_SUBSCRIPTION_ID: ${AZURE_SUBSCRIPTION_ID}
+      ENVIRONMENT: ${ENVIRONMENT}
+      SERVICEOWNER_ID: ${SERVICEOWNER_ID}
