@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -11,9 +12,9 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class UserService : IUserService
 {
-    private readonly IGitea _giteaClient;
+    private readonly IGiteaClient _giteaClient;
 
-    public UserService(IGitea giteaClient)
+    public UserService(IGiteaClient giteaClient)
     {
         _giteaClient = giteaClient;
     }

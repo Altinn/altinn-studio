@@ -721,6 +721,7 @@ public class AzureSharedContentClientTests
         string orgName = "ttd";
         string blobName1 = "blob1";
         string blobName2 = "blob2";
+        string blobsPrefix = $"{orgName}/";
 
         List<BlobItem> blobItemsMock = [
             BlobsModelFactory.BlobItem($"{orgName}/{blobName1}"),
@@ -729,7 +730,7 @@ public class AzureSharedContentClientTests
 
         Mock<BlobContainerClient> containerClientMock = new();
         containerClientMock
-            .SetupGetBlobsAsync($"{orgName}/")
+            .SetupGetBlobsAsync(blobsPrefix)
             .ReturnsPageableFrom(blobItemsMock);
         AzureSharedContentClient client = AzureClientWithContainerClient(containerClientMock);
 
@@ -737,8 +738,9 @@ public class AzureSharedContentClientTests
         List<string> publishedResources = await client.GetPublishedResourcesForOrg(orgName);
 
         // Assert
-        Assert.Equal([blobName1, blobName2], publishedResources);
         containerClientMock.VerifyGetBlobsAsyncWasCalledOnce();
+        containerClientMock.VerifyGetBlobsAsyncWasCalledWithExpectedParameters(blobsPrefix);
+        Assert.Equal([blobName1, blobName2], publishedResources);
     }
 
     [Fact]
@@ -749,7 +751,7 @@ public class AzureSharedContentClientTests
         string path = "some/path";
         string blobName1 = "blob1";
         string blobName2 = "blob2";
-
+        string blobsPrefix = $"{orgName}/{path}";
 
         List<BlobItem> blobItemsMock = [
             BlobsModelFactory.BlobItem($"{orgName}/{path}/{blobName1}"),
@@ -758,7 +760,7 @@ public class AzureSharedContentClientTests
 
         Mock<BlobContainerClient> containerClientMock = new();
         containerClientMock
-            .SetupGetBlobsAsync($"{orgName}/{path}")
+            .SetupGetBlobsAsync(blobsPrefix)
             .ReturnsPageableFrom(blobItemsMock);
         AzureSharedContentClient client = AzureClientWithContainerClient(containerClientMock);
 
@@ -766,8 +768,9 @@ public class AzureSharedContentClientTests
         List<string> publishedResources = await client.GetPublishedResourcesForOrg(orgName, path);
 
         // Assert
-        Assert.Equal([blobName1, blobName2], publishedResources);
         containerClientMock.VerifyGetBlobsAsyncWasCalledOnce();
+        containerClientMock.VerifyGetBlobsAsyncWasCalledWithExpectedParameters(blobsPrefix);
+        Assert.Equal([blobName1, blobName2], publishedResources);
     }
 
     [Fact]
@@ -879,6 +882,21 @@ internal static class ContainerClientMockExtensions
                 It.IsAny<CancellationToken>()
             ),
             Times.Once
+        );
+    }
+
+    public static void VerifyGetBlobsAsyncWasCalledWithExpectedParameters(
+        this Mock<BlobContainerClient> containerClientMock,
+        string expectedPrefix
+    )
+    {
+        containerClientMock.Verify(
+            c => c.GetBlobsAsync(
+                BlobTraits.None,
+                BlobStates.None,
+                expectedPrefix,
+                default
+            )
         );
     }
 }

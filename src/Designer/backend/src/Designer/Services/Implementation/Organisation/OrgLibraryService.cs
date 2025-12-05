@@ -20,7 +20,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 
-public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ISharedContentClient sharedContentClient) : IOrgLibraryService
+public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ISharedContentClient sharedContentClient) : IOrgLibraryService
 {
     private const string DefaultCommitMessage = "Update shared resources.";
     private const string JsonExtension = ".json";
@@ -43,7 +43,7 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
                 switch (fileExtension)
                 {
                     case JsonExtension:
-                        (FileSystemObject? file, ProblemDetails? problem) = await gitea.GetFileAndErrorAsync(org, repository, fileMetadata.Path, reference, token);
+                        (FileSystemObject? file, ProblemDetails? problem) = await giteaClient.GetFileAndErrorAsync(org, repository, fileMetadata.Path, reference, token);
                         LibraryFile jsonFileResult = PrepareJsonFileOrProblem(fileMetadata, file, problem);
                         libraryFiles.Add(jsonFileResult);
                         break;
@@ -55,7 +55,7 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
             }
         );
 
-        string baseCommitSha = await gitea.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
+        string baseCommitSha = await giteaClient.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
 
         return new GetSharedResourcesResponse(Files: [.. libraryFiles], CommitSha: baseCommitSha);
     }
@@ -71,7 +71,7 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
         await sourceControl.CloneIfNotExists(org, repositoryName);
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repositoryName, developer);
 
-        string latestCommitSha = await gitea.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
+        string latestCommitSha = await giteaClient.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
         if (latestCommitSha == request.BaseCommitSha)
         {
             await HandleCommit(editingContext, request, cancellationToken);
@@ -137,7 +137,7 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
         List<FileSystemObject> files = [];
         string repository = GetStaticContentRepo(org);
 
-        List<FileSystemObject> directoryContent = await gitea.GetDirectoryAsync(org, repository, path, reference, cancellationToken);
+        List<FileSystemObject> directoryContent = await giteaClient.GetDirectoryAsync(org, repository, path, reference, cancellationToken);
 
         foreach (FileSystemObject element in directoryContent)
         {
