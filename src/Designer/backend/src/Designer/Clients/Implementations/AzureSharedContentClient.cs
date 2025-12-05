@@ -312,7 +312,7 @@ public class AzureSharedContentClient : ISharedContentClient
 
     public async Task<List<string>> GetPublishedResourcesForOrg(string orgName, string path = "", CancellationToken cancellationToken = default)
     {
-        string prefix = orgName + "/" + path;
+        string prefix = $"{orgName}/{path}";
         return await GetPublishedResourcesWithPrefix(prefix, cancellationToken);
     }
 
