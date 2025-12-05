@@ -8,6 +8,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets v1.4.0
 	github.com/cenkalti/backoff/v4 v4.3.0
+	github.com/fluxcd/pkg/apis/meta v1.10.0
 	github.com/gkampitakis/go-snaps v0.5.18
 	github.com/go-jose/go-jose/v4 v4.1.3
 	github.com/go-logr/logr v1.4.3

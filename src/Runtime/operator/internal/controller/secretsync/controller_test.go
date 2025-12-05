@@ -2,6 +2,7 @@ package secretsync
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"altinn.studio/operator/internal"
@@ -462,4 +463,132 @@ func TestReconciler_Predicate_FiltersCorrectly(t *testing.T) {
 		},
 	}
 	g.Expect(pred.Create(event.CreateEvent{Object: otherObj})).To(BeFalse())
+}
+
+func TestReconciler_TransformsWithBuildOutput(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := SecretSyncMapping{
+		SourceName:      "source-secret",
+		SourceNamespace: "source-ns",
+		DestName:        "dest-secret",
+		DestNamespace:   "dest-ns",
+		DestKey:         "secrets.json",
+		BuildOutput: func(data map[string][]byte) ([]byte, error) {
+			return []byte(`{"Grafana":{"Token":"` + string(data["token"]) + `"}}`), nil
+		},
+	}
+
+	sourceSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      mapping.SourceName,
+			Namespace: mapping.SourceNamespace,
+		},
+		Data: map[string][]byte{
+			"token": []byte("abc123"),
+		},
+	}
+
+	h := newTestHarness(t, []SecretSyncMapping{mapping}, sourceSecret)
+	h.reconcile(t, mapping.SourceName, mapping.SourceNamespace)
+
+	dest, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(dest.Data).To(HaveKey("secrets.json"))
+	g.Expect(string(dest.Data["secrets.json"])).To(Equal(`{"Grafana":{"Token":"abc123"}}`))
+}
+
+func TestReconciler_TransformUsesAllSourceKeys(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := SecretSyncMapping{
+		SourceName:      "source-secret",
+		SourceNamespace: "source-ns",
+		DestName:        "dest-secret",
+		DestNamespace:   "dest-ns",
+		DestKey:         "config.json",
+		BuildOutput: func(data map[string][]byte) ([]byte, error) {
+			return []byte(`{"user":"` + string(data["username"]) + `","pass":"` + string(data["password"]) + `"}`), nil
+		},
+	}
+
+	sourceSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      mapping.SourceName,
+			Namespace: mapping.SourceNamespace,
+		},
+		Data: map[string][]byte{
+			"username": []byte("admin"),
+			"password": []byte("secret"),
+		},
+	}
+
+	h := newTestHarness(t, []SecretSyncMapping{mapping}, sourceSecret)
+	h.reconcile(t, mapping.SourceName, mapping.SourceNamespace)
+
+	dest, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(string(dest.Data["config.json"])).To(Equal(`{"user":"admin","pass":"secret"}`))
+}
+
+func TestReconciler_FallsBackToRawCopyWhenNoTransform(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := SecretSyncMapping{
+		SourceName:      "source-secret",
+		SourceNamespace: "source-ns",
+		DestName:        "dest-secret",
+		DestNamespace:   "dest-ns",
+		// No DestKey or BuildOutput - should use raw copy
+	}
+
+	sourceSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      mapping.SourceName,
+			Namespace: mapping.SourceNamespace,
+		},
+		Data: map[string][]byte{
+			"key1": []byte("value1"),
+			"key2": []byte("value2"),
+		},
+	}
+
+	h := newTestHarness(t, []SecretSyncMapping{mapping}, sourceSecret)
+	h.reconcile(t, mapping.SourceName, mapping.SourceNamespace)
+
+	dest, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(dest.Data["key1"]).To(Equal(sourceSecret.Data["key1"]))
+	g.Expect(dest.Data["key2"]).To(Equal(sourceSecret.Data["key2"]))
+}
+
+func TestReconciler_TransformErrorPropagates(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := SecretSyncMapping{
+		SourceName:      "source-secret",
+		SourceNamespace: "source-ns",
+		DestName:        "dest-secret",
+		DestNamespace:   "dest-ns",
+		DestKey:         "out.json",
+		BuildOutput: func(data map[string][]byte) ([]byte, error) {
+			return nil, errors.New("transform failed")
+		},
+	}
+
+	sourceSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      mapping.SourceName,
+			Namespace: mapping.SourceNamespace,
+		},
+		Data: map[string][]byte{"key": []byte("value")},
+	}
+
+	h := newTestHarness(t, []SecretSyncMapping{mapping}, sourceSecret)
+
+	_, err := h.reconciler.Reconcile(h.ctx, reconcile.Request{
+		NamespacedName: client.ObjectKey{Name: mapping.SourceName, Namespace: mapping.SourceNamespace},
+	})
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(err.Error()).To(ContainSubstring("transform failed"))
 }
