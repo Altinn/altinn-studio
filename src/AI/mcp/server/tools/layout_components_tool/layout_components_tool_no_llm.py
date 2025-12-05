@@ -20,19 +20,53 @@ from server.config import COMPONENT_SELECTION_CONFIG
     description="""
 Retrieves ALL available Altinn Studio layout component examples from the component library.
 
-Use this tool to get the complete list of UI components (Header, Input, DatePicker, Dropdown, Checkboxes, etc.) with their example configurations.
+## Purpose
+Get the complete catalog of UI components with working example configurations.
 
-Returns a list of components, each containing:
-- `component_type`: The type of component (e.g., "Input", "Header", "Datepicker")
-- `component_id`: The example component's ID
-- `file_name`: Source file name
-- `content`: Full component configuration JSON
+## No Parameters Required
+This tool returns ALL components - no filtering needed. You select relevant ones from the results.
 
-You should filter and select the relevant components from the returned list based on your task context.
+## Returns
+- `status`: "success" | "error" | "api_no_components"
+- `message`: Summary of results
+- `components`: List of all components, each with:
+  - `component_type`: Type name (e.g., "Input", "Checkboxes", "Datepicker")
+  - `component_id`: Example component ID
+  - `file_name`: Source file
+  - `content`: Complete component JSON configuration
 
-After selecting components:
-- Use `datamodel_tool` to create or adjust data model bindings.
-- Use `resource_tool` to create or update text resources.
+## Available Component Types
+Common types include: Input, TextArea, Checkboxes, RadioButtons, Dropdown, Datepicker, 
+Header, Paragraph, Button, FileUpload, Image, Panel, Group, RepeatingGroup, and more.
+
+## When to Use
+✅ To discover available component types and their example configurations
+✅ Call ONCE at the start of layout development
+✅ Before `layout_properties_tool` to identify which component types you need
+
+## When NOT to Use
+❌ Multiple times in same session - returns identical data, wastes resources
+❌ To get property details for a component (use `layout_properties_tool` instead)
+❌ To validate existing JSON (use `schema_validator_tool` instead)
+
+## ⚠️ IMPORTANT: This is Step 1 of 4
+```
+1. layout_components_tool()                          ← Call ONCE to see all components
+2. layout_properties_tool(component_type) × N        ← Call for EACH component type you will use
+3. [Create your layout JSON using the schemas]
+4. schema_validator_tool(json)                       ← Validate before finishing
+```
+
+## ❌ WRONG: Calling Multiple Times
+This tool returns ALL components in one call. Do NOT call it repeatedly.
+```
+layout_components_tool()  ← First call - OK
+layout_components_tool()  ← Second call - WRONG, wastes resources, identical results
+```
+
+## After Using This Tool
+- Use `datamodel_tool` to create data bindings for form components
+- Use `resource_tool` to create text resources for labels
 """,
     title="Layout Components Tool",
     annotations=ToolAnnotations(
@@ -87,15 +121,25 @@ def run_component_pipeline_no_llm(headers: Optional[dict] = None) -> Dict[str, A
             if not all_components:
                 return {
                     "status": "api_no_components",
-                    "message": "No component files found in the repository."
+                    "error_code": "EMPTY_REPOSITORY",
+                    "message": "NO_COMPONENTS: No component files found in the component library repository. "
+                               "This may indicate a configuration issue or the repository is empty.",
+                    "hint": "This is likely a server configuration issue, not a usage error. Contact support if this persists.",
+                    "retry_allowed": False
                 }
                 
             print(f"Fetched {len(all_components)} component files from repository")
         except Exception as e:
             # Use exception type name as status and full message as message
-            status = type(e).__name__.lower()
-            message = "Error accessing Altinn Studio API: " + str(e)
-            return {"status": status, "message": message}
+            error_type = type(e).__name__
+            return {
+                "status": "error",
+                "error_code": f"API_ERROR_{error_type.upper()}",
+                "message": f"API_ACCESS_ERROR: Failed to access Altinn Studio component library. Error: {str(e)}",
+                "hint": "This may be a temporary network issue or authentication problem. "
+                        "If using authenticated mode, verify your credentials are valid.",
+                "retry_allowed": True  # Network errors may be transient
+            }
         
         # Parse and extract all components from all files
         parsed_components = []
