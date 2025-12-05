@@ -214,7 +214,7 @@ func runTest() {
 	// Setup runtime
 	var runtime *kind.KindContainerRuntime
 	if localharness.IsCI {
-		// For CI, we run `make run v=...` in a separate step, so just expect everything to be up
+		// For CI, we run `make start-minimal` in a separate step, so just expect everything to be up
 		// it also runs `setupRuntime` like below
 		runtime, err = kind.LoadCurrent(filepath.Join(projectRoot, ".cache"))
 		if err != nil {
@@ -547,7 +547,7 @@ func runLoadtestLocal() {
 	// Setup runtime
 	var runtime *kind.KindContainerRuntime
 	if localharness.IsCI {
-		// For CI, we run `make run v=...` in a separate step, so just expect everything to be up
+		// For CI, we run `make start-minimal` in a separate step, so just expect everything to be up
 		// it also runs `setupRuntime` like below
 		runtime, err = kind.LoadCurrent(filepath.Join(projectRoot, ".cache"))
 		if err != nil {
