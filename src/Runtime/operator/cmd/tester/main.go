@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"altinn.studio/operator/internal/config"
-	"altinn.studio/operator/test/harness"
 	"altinn.studio/runtime-fixture/pkg/container"
+	"altinn.studio/runtime-fixture/pkg/harness"
 	"altinn.studio/runtime-fixture/pkg/kubernetes"
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
@@ -48,6 +48,10 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  stop             Stop the runtime fixture/cluster")
 	fmt.Fprintln(os.Stderr, "  test             Run unit tests (with docker-compose and envtest)")
 	fmt.Fprintln(os.Stderr, "  test-e2e         Run e2e tests (with Kind cluster)")
+	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintln(os.Stderr, "start arguments:")
+	fmt.Fprintln(os.Stderr, "  minimal          Use minimal variant (fewer resources)")
+	fmt.Fprintln(os.Stderr, "  standard         Use standard variant (more nodes)")
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "test flags:")
 	fmt.Fprintln(os.Stderr, "  --envtest-k8s-version  Kubernetes version for envtest (required)")
@@ -160,165 +164,85 @@ func runUnitTest() {
 	fmt.Println("\n=== Unit Tests PASSED ===")
 }
 
-// Result is a generic type for passing results through channels
-type Result[T any] struct {
-	Value T
-	Err   error
-}
-
-func NewResult[T any](value T, err error) Result[T] {
-	return Result[T]{
-		Value: value,
-		Err:   err,
-	}
-}
-
-func (r Result[T]) Unwrap() (T, error) {
-	return r.Value, r.Err
-}
-
-func setupRuntime() (*kind.KindContainerRuntime, error) {
-	fmt.Println("=== Setting Up Runtime ===")
-
-	// Step 1: Setup cluster (async)
-	registryStartedEvent := make(chan error, 1)
-	ingressReadyEvent := make(chan error, 1)
-	runtimeResult := make(chan Result[*kind.KindContainerRuntime], 1)
-
-	go func() {
-		runtime, err := harness.SetupCluster(
-			kind.KindContainerRuntimeVariantMinimal,
-			registryStartedEvent,
-			ingressReadyEvent,
-		)
-		runtimeResult <- NewResult(runtime, err)
-	}()
-
-	// Wait for registry, then parallelize build/push
-	var runtimeResultValue *Result[*kind.KindContainerRuntime]
-	select {
-	case <-registryStartedEvent:
-		// Normal path - registry started
-	case result := <-runtimeResult:
-		// Early failure path
-		runtimeResultValue = &result
-		if _, err := result.Unwrap(); err != nil {
-			return nil, fmt.Errorf("failed to setup cluster: %w", err)
-		}
-		return nil, fmt.Errorf("got runtime result but no registry event, invalid state")
-	case <-time.After(5 * time.Minute):
-		return nil, fmt.Errorf("timeout waiting for registry to start")
-	}
-
-	// Step 2: Build and push in parallel
-	buildResult := make(chan Result[bool], 1)
-	buildFakesResult := make(chan Result[bool], 1)
-	pushResult := make(chan Result[bool], 1)
-	chartResult := make(chan Result[bool], 1)
-	localtestappResult := make(chan Result[bool], 1)
-
-	go func() {
-		imagesChanged, err := harness.BuildAndPushImage()
-		buildResult <- NewResult(imagesChanged, err)
-	}()
-
-	go func() {
-		fakesChanged, err := harness.BuildAndPushFakesImage()
-		buildFakesResult <- NewResult(fakesChanged, err)
-	}()
-
-	go func() {
-		kustomizeChanged, err := harness.PushKustomizeArtifact()
-		pushResult <- NewResult(kustomizeChanged, err)
-	}()
-
-	go func() {
-		chartChanged, err := harness.DownloadAndPushDeploymentChart()
-		chartResult <- NewResult(chartChanged, err)
-	}()
-
-	go func() {
-		imageChanged, err := harness.BuildAndPushLocaltestappImage()
-		localtestappResult <- NewResult(imageChanged, err)
-	}()
-
-	// Step 3: Wait for runtime
-	var runtime *kind.KindContainerRuntime
-	var err error
-	if runtimeResultValue != nil {
-		runtime, err = runtimeResultValue.Unwrap()
-	} else {
-		runtime, err = (<-runtimeResult).Unwrap()
-	}
+func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainerRuntime, error) {
+	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
-		return nil, fmt.Errorf("failed to setup cluster: %w", err)
+		return nil, fmt.Errorf("failed to find project root: %w", err)
 	}
 
-	imagesChanged, err := (<-buildResult).Unwrap()
+	cfg := harness.Config{
+		ProjectRoot:    projectRoot,
+		Variant:        variant,
+		ClusterOptions: kind.DefaultOptions(),
+		Images: []harness.Image{
+			{Name: "controller", Dockerfile: "Dockerfile", Tag: "localhost:5001/runtime-operator-controller:latest"},
+			{Name: "fakes", Dockerfile: "Dockerfile.fakes", Tag: "localhost:5001/runtime-operator-fakes:latest"},
+			{
+				Name:       "localtestapp",
+				Context:    "test/app",
+				Dockerfile: "test/app/Dockerfile",
+				Tag:        "localhost:5001/runtime-operator-localtestapp:latest",
+			},
+		},
+		Artifacts: []harness.Artifact{
+			{Name: "kustomize", URL: "oci://localhost:5001/runtime-operator-repo:local", Path: "config"},
+		},
+		HelmCharts: []harness.HelmChart{
+			{
+				Name:       "deployment",
+				RepoURL:    "https://github.com/Altinn/altinn-studio-charts.git",
+				RepoBranch: "main",
+				ChartPath:  "charts/deployment",
+				OCIRef:     "oci://localhost:5001",
+			},
+		},
+		Deployments: []harness.Deployment{
+			{
+				Name: "operator",
+				Kustomize: &harness.KustomizeDeploy{
+					SyncRootDir:       "config/local-syncroot-minimal",
+					KustomizationName: "operator-app",
+					Namespace:         "runtime-operator",
+					Rollouts:          []harness.Rollout{{Deployment: "operator-controller-manager", Namespace: "runtime-operator"}},
+				},
+			},
+			{
+				Name: "localtestapp",
+				Helm: &harness.HelmDeploy{
+					ManifestPath:            "config/local-minimal/localtestapp.yaml",
+					HelmRepositoryName:      "altinn-deployment-chart",
+					HelmRepositoryNamespace: "default",
+					HelmReleaseName:         "ttd-localtestapp",
+					HelmReleaseNamespace:    "default",
+					Rollouts:                []harness.Rollout{{Deployment: "ttd-localtestapp-deployment-v2", Namespace: "default"}},
+				},
+			},
+		},
+	}
+
+	result, err := harness.RunAsync(cfg, harness.AsyncOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to build and push image: %w", err)
+		return nil, err
 	}
 
-	_, err = (<-buildFakesResult).Unwrap()
-	if err != nil {
-		return nil, fmt.Errorf("failed to build and push fakes image: %w", err)
-	}
-
-	kustomizeChanged, err := (<-pushResult).Unwrap()
-	if err != nil {
-		return nil, fmt.Errorf("failed to push kustomize artifact: %w", err)
-	}
-
-	chartChanged, err := (<-chartResult).Unwrap()
-	if err != nil {
-		return nil, fmt.Errorf("failed to download and push deployment chart: %w", err)
-	}
-
-	localtestappImageChanged, err := (<-localtestappResult).Unwrap()
-	if err != nil {
-		return nil, fmt.Errorf("failed to build and push localtestapp image: %w", err)
-	}
-
-	// Step 4: Deploy via Flux
-	err = harness.DeployOperatorViaFlux(imagesChanged, kustomizeChanged)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deploy operator: %w", err)
-	}
-
-	// Step 4b: Deploy localtestapp via Flux
-	err = harness.DeployLocaltestappViaFlux(localtestappImageChanged, chartChanged)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deploy localtestapp: %w", err)
-	}
-
-	// Step 5: Wait for ingress
-	fmt.Printf("Waiting for ingress...\n")
-	start := time.Now()
-	err = <-ingressReadyEvent
-	harness.LogDuration("Waited for ingress", start)
-	if err != nil {
-		return nil, fmt.Errorf("failed to wait for ingress: %w", err)
-	}
-
-	fmt.Println("✓ Runtime setup complete")
-	return runtime, nil
+	return result.Runtime, nil
 }
 
 func runStart() {
 	fmt.Println("=== Operator Runtime Start ===")
 
 	if len(os.Args) < 3 {
-		fmt.Fprintf(os.Stderr, "Not enough arguments. Must specify 'minimal' for the start command\n")
-		os.Exit(1)
-	}
-	arg := os.Args[2]
-
-	if arg != "minimal" {
-		fmt.Fprintf(os.Stderr, "Invalid arg '%s'. Must specify 'minimal' for the start command\n", arg)
+		fmt.Fprintf(os.Stderr, "Must specify 'minimal' or 'standard'\n")
 		os.Exit(1)
 	}
 
-	_, err := setupRuntime()
+	variant, err := parseVariant(os.Args[2])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+
+	_, err = setupRuntime(variant)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start runtime: %v\n", err)
 		os.Exit(1)
@@ -327,6 +251,17 @@ func runStart() {
 	fmt.Println("")
 	fmt.Println("=== Runtime is Running ===")
 	fmt.Println("Use 'tester stop' to stop the cluster")
+}
+
+func parseVariant(s string) (kind.KindContainerRuntimeVariant, error) {
+	switch s {
+	case "minimal":
+		return kind.KindContainerRuntimeVariantMinimal, nil
+	case "standard":
+		return kind.KindContainerRuntimeVariantStandard, nil
+	default:
+		return 0, fmt.Errorf("invalid variant '%s' (use 'minimal' or 'standard')", s)
+	}
 }
 
 func runStop() {
@@ -396,7 +331,8 @@ func runE2ETest() {
 
 	// Setup runtime
 	var runtime *kind.KindContainerRuntime
-	if harness.IsCI {
+	isCI := os.Getenv("CI") == "true"
+	if isCI {
 		// For CI, load existing runtime
 		runtime, err = kind.LoadCurrent(filepath.Join(projectRoot, ".cache"))
 		if err != nil {
@@ -404,7 +340,7 @@ func runE2ETest() {
 			os.Exit(1)
 		}
 	} else {
-		runtime, err = setupRuntime()
+		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
 			os.Exit(1)
