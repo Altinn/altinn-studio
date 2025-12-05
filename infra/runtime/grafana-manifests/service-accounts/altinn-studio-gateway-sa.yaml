@@ -8,4 +8,4 @@ spec:
   role: Editor
   tokens:
     - name: studio-gateway
-      secretName: external-grafana-altinn-studio-gateway-sa-token
+      secretName: external-grafana-altinn-studio-gateway-token
