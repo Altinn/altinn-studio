@@ -4,7 +4,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingM
 
 /// <summary>
 /// Matches conditional (ternary) expressions: condition ? consequent : alternate
-/// Converts them to ["if", condition, consequent, alternate] format
+/// Converts them to ["if", condition, consequent, "else", alternate] format
 /// </summary>
 public class ConditionalExpressionMatcher : IExpressionMatcher
 {
@@ -50,7 +50,7 @@ public class ConditionalExpressionMatcher : IExpressionMatcher
 
         debugInfo.Add("✅ Successfully converted conditional expression");
 
-        return new object?[] { "if", test, consequentValue, alternateValue };
+        return new object?[] { "if", test, consequentValue, "else", alternateValue };
     }
 
     /// <summary>
