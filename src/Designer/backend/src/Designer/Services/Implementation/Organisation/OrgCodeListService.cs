@@ -91,30 +91,7 @@ public class OrgCodeListService : IOrgCodeListService
 
         return codeLists;
     }
-    /// <inheritdoc />
-    public async Task<GetCodeListResponse> GetCodeListsNew(string org, string? reference = null, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        Guard.AssertValidateOrganization(org);
 
-        string repository = GetStaticContentRepo(org);
-        List<FileSystemObject> files = await _giteaClient.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
-        string latestCommitSha = await _giteaClient.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
-
-        List<CodeListWrapper> codeListWrappers = [];
-        foreach (FileSystemObject file in files)
-        {
-            string title = Path.GetFileNameWithoutExtension(file.Name);
-            if (TryParseFile(file.Content, out CodeList? codeList))
-            {
-                codeListWrappers.Add(WrapCodeList(codeList, title, hasError: false));
-                continue;
-            }
-            codeListWrappers.Add(WrapCodeList(codeList, title, hasError: true));
-        }
-        GetCodeListResponse response = new(codeListWrappers, latestCommitSha);
-        return response;
-    }
     /// <inheritdoc />
     public async Task<List<OptionListData>> CreateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
     {
