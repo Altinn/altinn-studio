@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -37,7 +38,7 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
         string orgName = "ttd";
         string path = "some/path";
         List<string> names = ["blob1", "blob2"];
-        string url = $"/designer/api/{orgName}/shared-resources/published?path={path}";
+        string url = ApiUrl(orgName, path);
 
         SetupOrg(orgName);
 
@@ -50,7 +51,7 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
 
         // Assert
         response.EnsureSuccessStatusCode();
-        List<string> result = await response.Content.ReadFromJsonAsync<List<string>>();
+        List<string>? result = await response.Content.ReadFromJsonAsync<List<string>>();
         Assert.Equal(names, result);
     }
 
@@ -60,7 +61,7 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
         // Arrange
         string orgName = "ttd";
         List<string> names = ["blob1", "blob2"];
-        string url = $"/designer/api/{orgName}/shared-resources/published";
+        string url = ApiUrl(orgName);
 
         SetupOrg(orgName);
 
@@ -73,7 +74,7 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
 
         // Assert
         response.EnsureSuccessStatusCode();
-        List<string> result = await response.Content.ReadFromJsonAsync<List<string>>();
+        List<string>? result = await response.Content.ReadFromJsonAsync<List<string>>();
         Assert.Equal(names, result);
     }
 
@@ -82,7 +83,7 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
     {
         // Arrange
         string orgName = "ttd";
-        string url = $"/designer/api/{orgName}/shared-resources/published";
+        string url = ApiUrl(orgName);
         string errorMessage = "Lorem ipsum dolor sit amet";
 
         SetupOrg(orgName);
@@ -96,8 +97,8 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
 
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
-        ProblemDetails result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
-        Assert.Equal(errorMessage, result.Detail);
+        ProblemDetails? result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.Equal(errorMessage, result?.Detail);
     }
 
     private void SetupOrg(string orgName)
@@ -107,4 +108,8 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
             .ReturnsAsync(true)
             .Verifiable();
     }
+
+    private static string ApiUrl(string orgName, string path) => $"{ApiUrl(orgName)}?path={path}";
+
+    private static string ApiUrl(string orgName) => $"/designer/api/{orgName}/shared-resources/published";
 }

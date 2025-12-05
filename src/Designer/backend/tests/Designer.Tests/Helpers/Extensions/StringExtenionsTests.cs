@@ -16,9 +16,8 @@ public class StringExtensionsTests
     [Fact]
     public void WithoutPrefix_WhenStringDoesNotStartWithGivenPrefix_ReturnsOriginalString()
     {
-        string original = "Lorem ipsum";
-        string result = original.WithoutPrefix("ipsum");
-        Assert.Equal(original, result);
+        string result = "Lorem ipsum".WithoutPrefix("ipsum");
+        Assert.Equal("Lorem ipsum", result);
     }
 
     [Fact]
