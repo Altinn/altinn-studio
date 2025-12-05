@@ -333,7 +333,12 @@ public class AzureSharedContentClient : ISharedContentClient
         }
         catch (Exception ex) when (ex is RequestFailedException or AggregateException)
         {
-            _logger.LogError(ex, "Error fetching blobs with prefix {Prefix} in {Class}", prefix, nameof(AzureSharedContentClient));
+            _logger.LogError(
+                ex,
+                "Error fetching blobs with prefix {Prefix} in {Class}",
+                prefix.WithoutLineBreaks(),
+                nameof(AzureSharedContentClient)
+            );
             throw new SharedContentRequestException($"Error fetching blobs with prefix {prefix}", ex);
         }
     }

@@ -26,4 +26,11 @@ public class StringExtensionsTests
         string result = "/some/path/".WithoutLeadingSlash();
         Assert.Equal("some/path/", result);
     }
+
+    [Fact]
+    public void WithoutLineBreaks_RemovesAllLineBreaks()
+    {
+        string result = "Line1\r\nLine2\nLine3\rLine4".WithoutLineBreaks();
+        Assert.Equal("Line1Line2Line3Line4", result);
+    }
 }

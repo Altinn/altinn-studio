@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Exceptions.SharedContent;
 using Altinn.Studio.Designer.Exceptions.SourceControl;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
@@ -147,7 +148,11 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
         }
         catch (Exception ex) when (ex is SharedContentRequestException)
         {
-            logger.LogWarning(ex, "A request error occured in the shared content client when fetching resources for {Org}.", org);
+            logger.LogWarning(
+                ex,
+                "A request error occured in the shared content client when fetching resources for {Org}.",
+                org.WithoutLineBreaks()
+            );
             return BadRequest(
                 new ProblemDetails
                 {
@@ -159,7 +164,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error fetching published resources for {Org}.", org);
+            logger.LogError(ex, "Unexpected error fetching published resources for {Org}.", org.WithoutLineBreaks());
             throw;
         }
     }

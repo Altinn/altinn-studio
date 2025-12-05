@@ -71,5 +71,10 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
                 ? input.Substring(prefix.Length)
                 : input;
         }
+
+        public static string WithoutLineBreaks(this string input)
+        {
+            return input.Replace("\r", "").Replace("\n", "");
+        }
     }
 }
