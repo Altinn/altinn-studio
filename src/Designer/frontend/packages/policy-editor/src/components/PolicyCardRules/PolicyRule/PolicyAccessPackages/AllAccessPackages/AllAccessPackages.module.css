@@ -1,10 +1,10 @@
 .accordionIcon {
-  font-size: var(--fds-spacing-7);
+  font-size: var(--ds-font-size-7);
   color: var(--fds-semantic-text-neutral-default);
 }
 
 .iconContainer {
-  background-color: var(--fds-colors-blue-100);
+  background-color: var(--ds-color-surface-tinted);
   border-radius: var(--fds-border_radius-small);
   padding: var(--fds-sizing-2);
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { DeployPage } from './DeployPage';
+import DeployPage from './DeployPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithProviders } from 'app-development/test/mocks';

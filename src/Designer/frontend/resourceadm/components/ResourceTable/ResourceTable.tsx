@@ -8,7 +8,7 @@ import {
   StudioTableLocalPagination,
 } from '@studio/components';
 
-import type { Columns } from '@studio/components-legacy';
+import type { Columns } from '@studio/components';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
 import { LOCAL_RESOURCE_CHANGED_TIME } from '../../utils/resourceListUtils';

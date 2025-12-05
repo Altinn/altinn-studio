@@ -2,7 +2,6 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaServiceAccount
 metadata:
   name: external-grafana-altinn-studio-gateway-sa
-  namespace: grafana
 spec:
   instanceName: external-grafana
   name: altinn-studio-gateway-sa

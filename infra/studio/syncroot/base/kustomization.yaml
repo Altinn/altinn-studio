@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - altinn-designer.yaml
+  - altinn-repositories.yaml
+  - altinn-loadbalancer.yaml
+  - kuberneteswrapper.yaml
+  - gitea-runners.yaml
+  - altinn-mcp-server.yaml

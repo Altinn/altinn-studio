@@ -54,7 +54,7 @@ jobs:
       run:
         working-directory: ./infra/runtime
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0 # Shallow clone
 
@@ -69,7 +69,7 @@ jobs:
         run: az acr login --name altinncr
 
       - name: flux install
-        uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
+        uses: fluxcd/flux2/action@06ed49dcd3f3ce2fc8d1988848245873a91550bc # v2.7.4
 
       - name: push artifact
         run: |
@@ -92,7 +92,7 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.construct-rings-array.outputs.ringsjson) }}
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0 # Shallow clone
 
@@ -107,7 +107,7 @@ jobs:
         run: az acr login --name altinncr
 
       - name: flux install
-        uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
+        uses: fluxcd/flux2/action@06ed49dcd3f3ce2fc8d1988848245873a91550bc # v2.7.4
 
       - name: tag artifact
         run: |

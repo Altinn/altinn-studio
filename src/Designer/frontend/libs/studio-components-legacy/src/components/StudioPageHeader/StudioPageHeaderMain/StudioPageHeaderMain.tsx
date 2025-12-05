@@ -4,10 +4,10 @@ import cn from 'classnames';
 import { useStudioPageHeaderContext } from '../context';
 
 export type StudioPageHeaderMainProps = {
-  children: ReactNode;
+  children?: ReactNode;
 };
 
 export const StudioPageHeaderMain = ({ children }: StudioPageHeaderMainProps): ReactElement => {
   const { variant } = useStudioPageHeaderContext();
-  return <div className={cn(classes.main, classes[variant])}>{children}</div>;
+  return <div className={cn(classes.main, variant && classes[variant])}>{children}</div>;
 };
