@@ -366,48 +366,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
         // Create a scope to obtain a reference to a scoped service provider
         return services.CreateScope().ServiceProvider;
     }
-
-     public RepoStatus RepositoryStatus(string org, string repository)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void StageChange(string org, string repository, string fileName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<RepositoryContent> Status(string org, string repository)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void StoreAppTokenForUser(string token)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task CloneIfNotExists(string org, string repository)
-        {
-            throw new NotImplementedException();
-        }
-
-        public CurrentBranchInfo GetCurrentBranch(string org, string repository)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public RepoStatus DiscardLocalChanges(string org, string repository)
-        {
-            throw new NotImplementedException();
-        }
 }
-        
 
 public class SourceControlStub : ISourceControl
 {
@@ -564,5 +523,8 @@ public class SourceControlStub : ISourceControl
     LibGit2Sharp.RebaseResult ISourceControl.RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
     public Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
+    public CurrentBranchInfo GetCurrentBranch(string org, string repository) => throw new NotImplementedException();
+    public Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName) => throw new NotImplementedException();
+    public RepoStatus DiscardLocalChanges(string org, string repository) => throw new NotImplementedException();
 }
 
