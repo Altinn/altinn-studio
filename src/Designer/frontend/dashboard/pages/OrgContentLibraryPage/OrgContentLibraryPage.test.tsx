@@ -313,7 +313,7 @@ describe('OrgContentLibraryPage', () => {
     expect(codeLists).toHaveLength(sharedResourcesResponse.files.length);
   });
 
-  it('Calls updateOrgCodeLists with correct data when code list saving is triggered on the new code list page', async () => {
+  it('Calls updateSharedResources with correct data when code list saving is triggered on the new code list page', async () => {
     const updateSharedResources = jest.fn();
     renderOrgContentLibraryWithData({
       featureFlags: [FeatureFlag.NewCodeLists],
