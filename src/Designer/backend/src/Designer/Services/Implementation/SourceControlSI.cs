@@ -303,7 +303,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     repoStatus.BehindBy = branch.TrackingDetails.BehindBy;
                 }
 
-                // Add current branch name
                 repoStatus.CurrentBranch = repo.Head.FriendlyName;
             }
 
