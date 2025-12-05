@@ -20,7 +20,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 
-public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory) : IOrgLibraryService
+public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ISharedContentClient sharedContentClient) : IOrgLibraryService
 {
     private const string DefaultCommitMessage = "Update shared resources.";
     private const string JsonExtension = ".json";
@@ -258,5 +258,10 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
     private static string GetStaticContentRepo(string org)
     {
         return $"{org}-content";
+    }
+
+    public Task<List<string>> GetPublishedResourcesForOrg(string org, string path, CancellationToken cancellationToken = default)
+    {
+        return sharedContentClient.GetPublishedResourcesForOrg(org, path, cancellationToken);
     }
 }

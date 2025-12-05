@@ -10,11 +10,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Exceptions.SharedContent;
 using Altinn.Studio.Designer.Factories;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.SharedContent;
 using Azure;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Clients.Implementations;
@@ -305,5 +308,62 @@ public class AzureSharedContentClient : ISharedContentClient
 
         int version = versions.Max();
         CurrentVersion = (version + 1).ToString();
+    }
+
+    public async Task<List<string>> GetPublishedResourcesForOrg(string orgName, string path = "", CancellationToken cancellationToken = default)
+    {
+        string prefix = $"{orgName}/{path}";
+        return await GetPublishedResourcesWithPrefix(prefix, cancellationToken);
+    }
+
+    private async Task<List<string>> GetPublishedResourcesWithPrefix(string prefix, CancellationToken cancellationToken)
+    {
+        List<BlobItem> blobs = await GetBlobsWithPrefix(prefix, cancellationToken);
+        return blobs
+            .Select(b => RemovePrefixAndLeadingSlash(b.Name, prefix))
+            .ToList();
+    }
+
+    private async Task<List<BlobItem>> GetBlobsWithPrefix(string prefix, CancellationToken cancellationToken)
+    {
+        try
+        {
+            AsyncPageable<BlobItem> blobs = GetPageableBlobsWithPrefix(prefix, cancellationToken);
+            return await EnumerateBlobs(blobs, cancellationToken);
+        }
+        catch (Exception ex) when (ex is RequestFailedException or AggregateException)
+        {
+            _logger.LogError(
+                ex,
+                "Error fetching blobs with prefix {Prefix} in {Class}",
+                prefix.WithoutLineBreaks(),
+                nameof(AzureSharedContentClient)
+            );
+            throw new SharedContentRequestException($"Error fetching blobs with prefix {prefix}", ex);
+        }
+    }
+
+    private AsyncPageable<BlobItem> GetPageableBlobsWithPrefix(string prefix, CancellationToken cancellationToken)
+    {
+        BlobContainerClient containerClient = _blobContainerClientFactory.GetContainerClient();
+        return containerClient.GetBlobsAsync(BlobTraits.None, BlobStates.None, prefix, cancellationToken);
+    }
+
+    private static async Task<List<BlobItem>> EnumerateBlobs(
+        AsyncPageable<BlobItem> enumerableBlobs,
+        CancellationToken cancellationToken
+    )
+    {
+        List<BlobItem> blobItemList = [];
+        await foreach (BlobItem b in enumerableBlobs.WithCancellation(cancellationToken))
+        {
+            blobItemList.Add(b);
+        }
+        return blobItemList;
+    }
+
+    private static string RemovePrefixAndLeadingSlash(string str, string prefix)
+    {
+        return str.WithoutPrefix(prefix).WithoutLeadingSlash();
     }
 }
