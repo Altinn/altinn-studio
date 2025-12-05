@@ -28,15 +28,6 @@ public interface IOrgCodeListService
     public Task<List<OptionListData>> GetCodeLists(string org, string developer, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all code lists from the org repository.
-    /// </summary>
-    /// <param name="org">Organisation</param>
-    /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>The code list with origin commit SHA.</returns>
-    public Task<GetCodeListResponse> GetCodeListsNew(string org, string? reference = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Creates a new code list in the org repository.
     /// If the file already exists, it will be overwritten.
     /// </summary>
