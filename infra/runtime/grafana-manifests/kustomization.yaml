@@ -5,5 +5,4 @@ resources:
   - contact-points
   - dashboards
   - notification-policies
-  - notification-templates
   - service-accounts
