@@ -844,6 +844,11 @@ def parse_json_response(response: str, context: str) -> Dict[str, Any]:
         end = clean.rfind("}")
         if start != -1 and end != -1 and start < end:
             clean = clean[start:end + 1]
+        else:
+            # No JSON found in response - LLM returned text instead of JSON
+            log.error("No JSON found in %s response. LLM returned text instead of JSON.", context)
+            log.error("Response snippet: %s", response[:500])
+            raise Exception(f"{context} failed: LLM returned text instead of JSON. Response started with: {response[:100]!r}")
 
     try:
         parsed = json.loads(clean)

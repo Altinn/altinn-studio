@@ -205,10 +205,10 @@ RULES:
 - Each change must modify exactly one file
 
 ═══════════════════════════════════════════════════════════════════════════════════
-🚨 MANDATORY PRE-FLIGHT CHECKLIST - VALIDATE YOUR APPROACH BEFORE GENERATING PATCH 🚨
+🚨 MANDATORY PRE-FLIGHT CHECKLIST - INTERNAL VALIDATION ONLY 🚨
 ═══════════════════════════════════════════════════════════════════════════════════
 
-BEFORE generating the patch JSON, mentally answer these questions:
+BEFORE generating the patch JSON, INTERNALLY validate these points (DO NOT output your reasoning - output ONLY the JSON):
 
 ✓ COMPONENT STRUCTURE CHECK:
 Q: Am I creating multiple individual components for options (field-X-option1, field-X-option2)?
@@ -245,4 +245,14 @@ If NO → STOP! You MUST use the schema information to configure components corr
 If YES → Continue - use the schema to set correct defaults and required properties
 
 If you passed all checks above, proceed with generating the patch JSON.
-If you failed any check, DO NOT generate a patch - fix your approach first.
+If you failed any check, fix your approach and then generate the corrected patch.
+
+🚨 CRITICAL OUTPUT REQUIREMENT 🚨
+Your response MUST be ONLY valid JSON. Do NOT include:
+
+- Explanations or reasoning
+- Checklist outputs
+- Markdown formatting
+- Any text before or after the JSON
+
+Start your response with {{ and end with }}

@@ -13,9 +13,10 @@ Your ONLY task is to produce a JSON patch using EXACTLY these operations:
 - `insert_text_at_pattern`
 - `replace_text`
 
-DO NOT call any tools, DO NOT mention tools, and DO NOT include any explanations.
+DO NOT call any tools, DO NOT mention tools, and DO NOT include any explanations or reasoning.
 
-Output ONLY valid JSON containing 'files' and 'changes' keys.
+Your response MUST be ONLY valid JSON containing 'files' and 'changes' keys.
+Start your response with { and end with }. No text before or after the JSON.
 
 ## Language Requirements
 
