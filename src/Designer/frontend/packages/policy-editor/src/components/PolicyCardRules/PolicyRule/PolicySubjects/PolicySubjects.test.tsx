@@ -65,13 +65,14 @@ const revisorRoleSubject = {
     code: 'sys-ccr',
   },
 };
-const privRoleSubject = {
-  id: '1c6eeec1-fe70-4fc5-8b45-df4a2255dea6',
-  name: 'Privatperson',
-  description: 'Denne rollen er hentet fra Folkeregisteret og gir rettighet til flere tjenester.',
-  urn: 'urn:altinn:role:privatperson',
-  legacyRoleCode: 'PRIV',
-  legacyUrn: 'urn:altinn:rolecode:PRIV',
+const utinnRoleSubject = {
+  id: 'dbaae9f8-107a-4222-9afd-d9f95cd5319c',
+  name: 'Utfyller/Innsender',
+  description:
+    'Denne rollen gir rettighet til et bredt utvalg skjema og tjenester som ikke har så strenge krav til autorisasjon. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som rollen gir.',
+  urn: 'urn:altinn:rolecode:UTINN',
+  legacyRoleCode: 'UTINN',
+  legacyUrn: 'urn:altinn:rolecode:UTINN',
   provider: {
     id: '0195ea92-2080-777d-8626-69c91ea2a05d',
     name: 'Altinn 2',
@@ -93,7 +94,7 @@ const agentRoleSubject = {
 };
 const subjects = [
   revisorRoleSubject,
-  privRoleSubject,
+  utinnRoleSubject,
   agentRoleSubject,
   mockSubject1,
   mockSubject2,
@@ -198,7 +199,7 @@ describe('PolicySubjects', () => {
     await user.click(altinnRolesTab);
 
     expect(
-      screen.getByText(`${privRoleSubject.name} (${privRoleSubject.legacyRoleCode})`),
+      screen.getByText(`${utinnRoleSubject.name} (${utinnRoleSubject.legacyRoleCode})`),
     ).toBeInTheDocument();
     expect(screen.getByText(agentRoleSubject.name)).toBeInTheDocument();
   });
