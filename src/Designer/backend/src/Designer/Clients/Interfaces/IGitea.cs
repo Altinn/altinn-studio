@@ -6,7 +6,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Altinn.Studio.Designer.Services.Interfaces
+namespace Altinn.Studio.Designer.Clients.Interfaces
 {
     /// <summary>
     /// Gitea wrapper

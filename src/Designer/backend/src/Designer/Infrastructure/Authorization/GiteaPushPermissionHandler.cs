@@ -1,7 +1,7 @@
 #nullable disable
 using System.Net;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
