@@ -26,11 +26,12 @@ public class ChangenameDataProcessor : IDataWriteProcessor
         }
 
         var wrapper = change.CurrentFormDataWrapper;
+        var data = change.CurrentFormData as Skjema;
 
-        await Rule_b9dcddd0deb411e99cfd6f791e4f04e5(wrapper);
+        await Rule_b9dcddd0deb411e99cfd6f791e4f04e5(wrapper, data);
     }
 
-    private async Task Rule_b9dcddd0deb411e99cfd6f791e4f04e5(IFormDataWrapper wrapper)
+    private async Task Rule_b9dcddd0deb411e99cfd6f791e4f04e5(IFormDataWrapper wrapper, Skjema? data)
     {
         // Rule configuration:
         //   SelectedFunction: nyttNavn
@@ -56,7 +57,14 @@ public class ChangenameDataProcessor : IDataWriteProcessor
         fornavn = !string.IsNullOrEmpty(fornavn) ? fornavn + " " : "";
         mellomnavn = !string.IsNullOrEmpty(mellomnavn) ? mellomnavn + " " : "";
         etternavn = !string.IsNullOrEmpty(etternavn) ? etternavn : "";
-        wrapper.Set("Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value", fornavn + mellomnavn + etternavn);
+
+        data?.Innledninggrp9309 ??= new Innledninggrp9309();
+        data?.Innledninggrp9309?.NavneendringenGjelderForgrp9310 ??= new NavneendringenGjelderForgrp9310();
+        data?.Innledninggrp9309?.NavneendringenGjelderForgrp9310?.SubjektFornavnFolkeregistrertdatadef34730 = new SubjektFornavnFolkeregistrertdatadef34730
+        {
+            value = fornavn + mellomnavn + etternavn
+        };
+
         await Task.CompletedTask;
     }
 
