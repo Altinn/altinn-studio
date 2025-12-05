@@ -73,7 +73,7 @@ internal static class BackendUpgrade
             description: "Skip appsettings file upgrade",
             getDefaultValue: () => false
         );
-        var upgradeCommand = new Command("backend", "Upgrade an app from app-lib-dotnet v7 to v8")
+        var upgradeCommand = new Command("backend-v7-to-v8", "Upgrade an app from app-lib-dotnet v7 to v8")
         {
             projectFolderOption,
             projectFileOption,
