@@ -22,21 +22,20 @@ import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { ComponentRouting } from 'src/components/wrappers/ProcessWrapper';
-import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
-import { ProcessingProvider } from 'src/core/contexts/processingContext';
 import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
 import { createDynamicsLoader } from 'src/features/form/dynamics/dynamicsLoader';
+import { FormProvider } from 'src/features/form/FormContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { createInstanceLoader } from 'src/features/instance/instanceLoader';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
+import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
 import * as queries from 'src/http-client/queries';
 import { createGlobalDataLoader } from 'src/language/globalStateLoader';
-import { NextForm } from 'src/NextForm';
 
 import 'leaflet/dist/leaflet.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -80,17 +79,17 @@ document.addEventListener('DOMContentLoaded', () => {
                       <ErrorBoundary>
                         <VersionErrorOrChildren>
                           <OrgsProvider>
-                            <KeepAliveProvider>
-                              <ProcessingProvider>
-                                <Outlet />
-                              </ProcessingProvider>
-                              <ToastContainer
-                                position='top-center'
-                                theme='colored'
-                                transition={Slide}
-                                draggable={false}
-                              />
-                            </KeepAliveProvider>
+                            {/*<KeepAliveProvider>*/}
+                            {/*  <ProcessingProvider>*/}
+                            <Outlet />
+                            {/*</ProcessingProvider>*/}
+                            <ToastContainer
+                              position='top-center'
+                              theme='colored'
+                              transition={Slide}
+                              draggable={false}
+                            />
+                            {/*  </KeepAliveProvider>*/}
                           </OrgsProvider>
                         </VersionErrorOrChildren>
                       </ErrorBoundary>
@@ -144,12 +143,16 @@ document.addEventListener('DOMContentLoaded', () => {
                                 children: [
                                   {
                                     index: true,
-                                    element: <NextForm />,
-                                    // <PdfWrapper>
-                                    //   <PresentationComponent>
-                                    //     <Form />
-                                    //   </PresentationComponent>
-                                    // </PdfWrapper>
+                                    // element: <NextForm />,
+                                    element: (
+                                      <PdfWrapper>
+                                        <PresentationComponent>
+                                          <FormProvider>
+                                            <Form />
+                                          </FormProvider>
+                                        </PresentationComponent>
+                                      </PdfWrapper>
+                                    ),
                                   },
                                   {
                                     path: ':componentId',

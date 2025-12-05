@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
@@ -14,6 +15,7 @@ using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Enums;
 using Altinn.Platform.Register.Enums;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
@@ -84,16 +86,19 @@ internal sealed class BootstrapInstanceService : IBootstrapInstanceService
     {
         var response = new BootstrapInstanceResponse();
         var tasks = new List<Task>();
-
         // Get instance data if applicable
+        Instance? instance = null;
+
         if (!string.IsNullOrEmpty(instanceId))
         {
-            var instanceTask = GetInstance(org, app, instanceId, response);
-            tasks.Add(instanceTask);
+            var instanceGuid = ParseInstanceGuid(instanceId);
+            var instanceOwnerPartyId = ParseInstanceOwnerPartyId(instanceId);
+            instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId.Value, instanceGuid.Value);
+            response.Instance = instance;
         }
 
         // Get layout sets and initial layout
-        var layoutTask = GetLayoutData(org, app, response);
+        var layoutTask = GetLayoutData(org, app, response, instance?.Process?.CurrentTask?.ElementId);
         tasks.Add(layoutTask);
 
         // Get footer layout
@@ -169,7 +174,7 @@ internal sealed class BootstrapInstanceService : IBootstrapInstanceService
         }
     }
 
-    private Task GetLayoutData(string org, string app, BootstrapInstanceResponse response)
+    private Task GetLayoutData(string org, string app, BootstrapInstanceResponse response, string? taskId)
     {
         try
         {
@@ -191,15 +196,36 @@ internal sealed class BootstrapInstanceService : IBootstrapInstanceService
             }
 
             // Get initial layout if available
-            var initialLayoutSetId = response.LayoutSets?.Sets?.FirstOrDefault()?.Id;
-            if (!string.IsNullOrEmpty(initialLayoutSetId))
+            // var initialLayoutSetId = (
+            //     !string.IsNullOrEmpty(taskId)
+            //         ? response.LayoutSets?.Sets?.FirstOrDefault(s => s.Id == taskId)
+            //         : response.LayoutSets?.Sets?.FirstOrDefault()
+            // )?.Id;
+            //
+            //
+
+            if (!string.IsNullOrEmpty(taskId))
             {
-                var layoutJson = _appResources.GetLayoutsForSet(initialLayoutSetId);
-                if (!string.IsNullOrEmpty(layoutJson))
+                var currentLayoutSet = _appResources.GetLayoutSetForTask(taskId);
+                if (currentLayoutSet != null)
                 {
-                    response.Layout = JsonSerializer.Deserialize<object>(layoutJson, _jsonSerializerOptions);
+                    var layoutJson = _appResources.GetLayoutsForSet(currentLayoutSet.Id);
+                    if (!string.IsNullOrEmpty(layoutJson))
+                    {
+                        response.Layout = JsonSerializer.Deserialize<object>(layoutJson, _jsonSerializerOptions);
+                    }
                 }
             }
+
+            // Debugger.Break();
+            // if (!string.IsNullOrEmpty(initialLayoutSetId))
+            // {
+            //     var layoutJson = _appResources.GetLayoutsForSet(initialLayoutSetId);
+            //     if (!string.IsNullOrEmpty(layoutJson))
+            //     {
+            //         response.Layout = JsonSerializer.Deserialize<object>(layoutJson, _jsonSerializerOptions);
+            //     }
+            // }
         }
         catch
         {

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -548,6 +549,8 @@ public class HomeController : Controller
                 partyId,
                 language
             );
+
+            Debugger.Break();
 
             var html = GenerateHtml(org, app, initialGlobalData, initialInstanceData);
             return Content(html, "text/html; charset=utf-8");
