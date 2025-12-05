@@ -8,7 +8,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories;
@@ -17,7 +17,6 @@ using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
-
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
@@ -395,13 +394,13 @@ namespace Designer.Tests.Services
 
             AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings(), new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object);
 
-            IGitea giteaMock = new IGiteaMock();
-            ApplicationMetadataService applicationInformationService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, httpContextAccessorMock.Object, giteaMock);
+            IGiteaClient giteaClientMock = new IGiteaClientMock();
+            ApplicationMetadataService applicationInformationService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, httpContextAccessorMock.Object, giteaClientMock);
 
             ISchemaModelService schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
             AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
             Mock<ILogger<GiteaContentLibraryService>> loggerMock = new();
-            IOptionsService optionsService = new OptionsService(altinnGitRepositoryFactory, new GiteaContentLibraryService(giteaMock, loggerMock.Object));
+            IOptionsService optionsService = new OptionsService(altinnGitRepositoryFactory, new GiteaContentLibraryService(giteaClientMock, loggerMock.Object));
 
             TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService, optionsService);
 
@@ -411,7 +410,7 @@ namespace Designer.Tests.Services
                 repoSettings,
                 generalSettings,
                 httpContextAccessorMock.Object,
-                new IGiteaMock(),
+                new IGiteaClientMock(),
                 sourceControlMock,
                 new Mock<ILogger<RepositorySI>>().Object,
                 altinnGitRepositoryFactory,

@@ -4,8 +4,8 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Medallion.Threading;
@@ -37,7 +37,7 @@ namespace Designer.Tests.Controllers.ApiTests
         {
             services.Configure<ServiceRepositorySettings>(c =>
                 c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGitea, IGiteaMock>();
+            services.AddSingleton<IGiteaClient, IGiteaClientMock>();
             services.AddSingleton<IDistributedLockProvider>(_ =>
             {
                 var directoryInfo = TestLockPathProvider.Instance.LockFileDirectory;

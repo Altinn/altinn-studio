@@ -14,6 +14,7 @@ using System.Xml;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.DataModeling.Metamodel;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
@@ -44,7 +45,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClient;
         private readonly ISourceControl _sourceControl;
         private readonly ILogger _logger;
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
@@ -72,7 +73,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
             IHttpContextAccessor httpContextAccessor,
-            IGitea giteaClient,
+            IGiteaClient giteaClient,
             ISourceControl sourceControl,
             ILogger<RepositorySI> logger,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
