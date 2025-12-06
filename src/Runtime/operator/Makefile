@@ -69,6 +69,10 @@ start: ## Start the Kind cluster and runtime fixture.
 stop: ## Stop the Kind cluster and runtime fixture.
 	go run ./cmd/tester stop
 
+.PHONY: sample
+sample: ## Apply the sample MaskinportenClient resource to the cluster.
+	kubectl apply -f config/samples/resources_v1alpha1_maskinportenclient.yaml
+
 .PHONY: bench
 bench: ## Run benchmarks. Usage: make bench filter=<regex> [packages=./internal/crypto] [benchtime=1s]
 	@if [ -z "$(filter)" ]; then \

@@ -30,6 +30,7 @@ import (
 	"altinn.studio/operator/internal/controller/maskinporten"
 	"altinn.studio/operator/internal/controller/secretsync"
 	"altinn.studio/operator/internal/telemetry"
+	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -40,8 +41,8 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
 	utilruntime.Must(resourcesv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(grafanav1beta1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
