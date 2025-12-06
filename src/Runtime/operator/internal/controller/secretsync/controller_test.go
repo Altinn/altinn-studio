@@ -7,6 +7,7 @@ import (
 
 	"altinn.studio/operator/internal"
 	"altinn.studio/operator/internal/operatorcontext"
+	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -21,6 +22,7 @@ import (
 func newFakeK8sClient(initObjs ...client.Object) client.Client {
 	scheme := k8sruntime.NewScheme()
 	_ = corev1.AddToScheme(scheme)
+	_ = grafanav1beta1.AddToScheme(scheme)
 	return fake.NewClientBuilder().
 		WithScheme(scheme).
 		WithObjects(initObjs...).
@@ -474,7 +476,7 @@ func TestReconciler_TransformsWithBuildOutput(t *testing.T) {
 		DestName:        "dest-secret",
 		DestNamespace:   "dest-ns",
 		DestKey:         "secrets.json",
-		BuildOutput: func(data map[string][]byte) ([]byte, error) {
+		BuildOutput: func(_ context.Context, _ client.Client, data map[string][]byte) ([]byte, error) {
 			return []byte(`{"Grafana":{"Token":"` + string(data["token"]) + `"}}`), nil
 		},
 	}
@@ -507,7 +509,7 @@ func TestReconciler_TransformUsesAllSourceKeys(t *testing.T) {
 		DestName:        "dest-secret",
 		DestNamespace:   "dest-ns",
 		DestKey:         "config.json",
-		BuildOutput: func(data map[string][]byte) ([]byte, error) {
+		BuildOutput: func(_ context.Context, _ client.Client, data map[string][]byte) ([]byte, error) {
 			return []byte(`{"user":"` + string(data["username"]) + `","pass":"` + string(data["password"]) + `"}`), nil
 		},
 	}
@@ -571,7 +573,7 @@ func TestReconciler_TransformErrorPropagates(t *testing.T) {
 		DestName:        "dest-secret",
 		DestNamespace:   "dest-ns",
 		DestKey:         "out.json",
-		BuildOutput: func(data map[string][]byte) ([]byte, error) {
+		BuildOutput: func(_ context.Context, _ client.Client, _ map[string][]byte) ([]byte, error) {
 			return nil, errors.New("transform failed")
 		},
 	}
@@ -591,4 +593,102 @@ func TestReconciler_TransformErrorPropagates(t *testing.T) {
 	})
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(err.Error()).To(ContainSubstring("transform failed"))
+}
+
+func TestReconciler_DefaultMapping_GrafanaURLEnrichment(t *testing.T) {
+	g := NewWithT(t)
+
+	mappings := DefaultMappings()
+	g.Expect(mappings).To(HaveLen(1))
+	mapping := mappings[0]
+
+	grafanaCR := &grafanav1beta1.Grafana{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "external-grafana",
+			Namespace: "grafana",
+		},
+		Spec: grafanav1beta1.GrafanaSpec{
+			External: &grafanav1beta1.External{
+				URL: "https://grafana.example.com",
+			},
+		},
+	}
+
+	sourceSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      mapping.SourceName,
+			Namespace: mapping.SourceNamespace,
+		},
+		Data: map[string][]byte{
+			"token": []byte("test-token-123"),
+		},
+	}
+
+	h := newTestHarness(t, mappings, sourceSecret, grafanaCR)
+	h.reconcile(t, mapping.SourceName, mapping.SourceNamespace)
+
+	dest, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(dest.Data).To(HaveKey("secrets.json"))
+	g.Expect(string(dest.Data["secrets.json"])).To(Equal(`{"Grafana":{"Token":"test-token-123","Url":"https://grafana.example.com"}}`))
+}
+
+func TestReconciler_DefaultMapping_GrafanaCRMissing(t *testing.T) {
+	g := NewWithT(t)
+
+	mappings := DefaultMappings()
+	mapping := mappings[0]
+
+	sourceSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      mapping.SourceName,
+			Namespace: mapping.SourceNamespace,
+		},
+		Data: map[string][]byte{
+			"token": []byte("test-token"),
+		},
+	}
+
+	h := newTestHarness(t, mappings, sourceSecret)
+
+	_, err := h.reconciler.Reconcile(h.ctx, reconcile.Request{
+		NamespacedName: client.ObjectKey{Name: mapping.SourceName, Namespace: mapping.SourceNamespace},
+	})
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(err.Error()).To(ContainSubstring("get Grafana CR"))
+}
+
+func TestReconciler_DefaultMapping_GrafanaCRNoExternalSpec(t *testing.T) {
+	g := NewWithT(t)
+
+	mappings := DefaultMappings()
+	mapping := mappings[0]
+
+	grafanaCR := &grafanav1beta1.Grafana{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "external-grafana",
+			Namespace: "grafana",
+		},
+		Spec: grafanav1beta1.GrafanaSpec{
+			// No External field
+		},
+	}
+
+	sourceSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      mapping.SourceName,
+			Namespace: mapping.SourceNamespace,
+		},
+		Data: map[string][]byte{
+			"token": []byte("test-token"),
+		},
+	}
+
+	h := newTestHarness(t, mappings, sourceSecret, grafanaCR)
+
+	_, err := h.reconciler.Reconcile(h.ctx, reconcile.Request{
+		NamespacedName: client.ObjectKey{Name: mapping.SourceName, Namespace: mapping.SourceNamespace},
+	})
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(err.Error()).To(ContainSubstring("grafana CR has no external spec"))
 }

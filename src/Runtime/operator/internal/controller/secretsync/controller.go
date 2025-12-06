@@ -22,6 +22,7 @@ import (
 )
 
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;delete
+// +kubebuilder:rbac:groups=grafana.integreatly.org,resources=grafanas,verbs=get;list;watch
 
 // SecretSyncReconciler watches secrets and syncs them across namespaces.
 type SecretSyncReconciler struct {
@@ -133,7 +134,7 @@ func (r *SecretSyncReconciler) syncToDest(
 	destKey client.ObjectKey,
 	mapping SecretSyncMapping,
 ) (ctrl.Result, error) {
-	destData, err := r.buildDestData(source.Data, mapping)
+	destData, err := r.buildDestData(ctx, source.Data, mapping)
 	if err != nil {
 		span.RecordError(err)
 		return ctrl.Result{}, fmt.Errorf("failed to build destination data: %w", err)
@@ -188,6 +189,7 @@ func (r *SecretSyncReconciler) syncToDest(
 }
 
 func (r *SecretSyncReconciler) buildDestData(
+	ctx context.Context,
 	sourceData map[string][]byte,
 	mapping SecretSyncMapping,
 ) (map[string][]byte, error) {
@@ -195,7 +197,7 @@ func (r *SecretSyncReconciler) buildDestData(
 		return copyData(sourceData), nil
 	}
 
-	transformed, err := mapping.BuildOutput(sourceData)
+	transformed, err := mapping.BuildOutput(ctx, r.k8sClient, sourceData)
 	if err != nil {
 		return nil, err
 	}
