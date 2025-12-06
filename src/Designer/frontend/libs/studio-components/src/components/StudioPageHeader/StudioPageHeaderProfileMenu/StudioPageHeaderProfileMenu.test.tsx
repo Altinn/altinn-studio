@@ -7,6 +7,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import { type StudioProfileMenuItem } from './types/StudioProfileMenuItem';
 import { type StudioProfileMenuGroup } from './types/StudioProfileMenuGroup';
+import { StudioPageHeaderContextProvider } from '../context/StudioPageHeaderContext';
 
 const mockImageAlt: string = 'Alt';
 const defaultProfileImage = <img src='profile.jpg' alt={mockImageAlt} />;
@@ -111,7 +112,7 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
-    const link = screen.getByRole('link', { name: menuItem2 });
+    const link = screen.getByRole('menuitem', { name: menuItem2 });
     expect(link).toHaveAttribute('href', menuItem2Link);
     expect(link).not.toHaveAttribute('target', '_blank');
     expect(link).not.toHaveAttribute('rel', 'noopener noreferrer');
@@ -124,7 +125,7 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
-    const link = screen.getByRole('link', { name: menuItem3 });
+    const link = screen.getByRole('menuitem', { name: menuItem3 });
     expect(link).toHaveAttribute('href', menuItem3Link);
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
@@ -179,7 +180,7 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
-    const link = screen.getByRole('link', { name: menuItem3 });
+    const link = screen.getByRole('menuitem', { name: menuItem3 });
     await user.click(link);
 
     expect(screen.getByRole('menuitemradio', { name: menuItem1 })).toBeInTheDocument();
@@ -193,7 +194,7 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
-    const link = screen.getByRole('link', { name: menuItem2 });
+    const link = screen.getByRole('menuitem', { name: menuItem2 });
     expect(link).toHaveAttribute('href', menuItem2Link);
     expect(link).not.toHaveAttribute('target', '_blank');
     expect(link).not.toHaveAttribute('rel', 'noopener noreferrer');
@@ -214,5 +215,9 @@ describe('StudioProfileMenu', () => {
 const renderStudioProfileMenu = (
   props?: Partial<StudioPageHeaderProfileMenuProps>,
 ): ReturnType<typeof render> => {
-  return render(<StudioPageHeaderProfileMenu {...defaultProps} {...props} />);
+  return render(
+    <StudioPageHeaderContextProvider variant='regular'>
+      <StudioPageHeaderProfileMenu {...defaultProps} {...props} />
+    </StudioPageHeaderContextProvider>,
+  );
 };

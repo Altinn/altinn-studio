@@ -2,7 +2,7 @@ import React, { type ReactElement } from 'react';
 import type { HeaderMenuItem } from '../../../../types/HeaderMenuItem';
 import { StringUtils, UrlUtils } from '@studio/pure-functions';
 import { useSelectedContext } from '../../../../hooks/useSelectedContext';
-import { StudioPageHeader } from '@studio/components-legacy';
+import { StudioPageHeader } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
 import classes from './LargeNavigationMenu.module.css';
@@ -36,8 +36,6 @@ function NavigationMenuItem({ menuItem }: NavigationMenuItemProps): ReactElement
   return (
     <li key={menuItem.name}>
       <StudioPageHeader.HeaderLink
-        color='dark'
-        variant='regular'
         isBeta={menuItem.isBeta}
         renderLink={(props) => (
           <NavLink to={path} {...props}>

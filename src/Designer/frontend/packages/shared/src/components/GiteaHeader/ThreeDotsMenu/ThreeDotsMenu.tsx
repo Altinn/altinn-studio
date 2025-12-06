@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './ThreeDotsMenu.module.css';
 import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
@@ -15,9 +15,6 @@ export type ThreeDotsMenuProps = {
 export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) => {
   const { owner, repoName } = useGiteaHeaderContext();
   const { t } = useTranslation();
-  const [clonePopoverOpen, setClonePopoverOpen] = useState(false);
-
-  const toggleClonePopoverOpen = () => setClonePopoverOpen((oldValue) => !oldValue);
 
   return (
     <StudioPopover.TriggerContext>
@@ -26,25 +23,18 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
         title={t('sync_header.gitea_menu')}
         variant='tertiary'
       />
-      <StudioPopover
-        data-color-scheme='light'
-        className={classes.popover}
-        onClose={() => setClonePopoverOpen(false)}
-      >
+      <StudioPopover data-color-scheme='light' className={classes.popover}>
         <StudioList.Root className={classes.menuItems}>
           {isClonePossible && (
             <StudioPopover.TriggerContext>
               <StudioPopover.Trigger
-                onClick={toggleClonePopoverOpen}
                 variant='tertiary'
                 className={classes.menuButton}
                 icon={<TabsIcon />}
               >
                 {t('sync_header.clone')}
               </StudioPopover.Trigger>
-              <StudioPopover open={clonePopoverOpen} onClose={() => setClonePopoverOpen(false)}>
-                {clonePopoverOpen && <ClonePopoverContent />}
-              </StudioPopover>
+              <StudioPopover>{<ClonePopoverContent />}</StudioPopover>
             </StudioPopover.TriggerContext>
           )}
           <StudioLinkButton

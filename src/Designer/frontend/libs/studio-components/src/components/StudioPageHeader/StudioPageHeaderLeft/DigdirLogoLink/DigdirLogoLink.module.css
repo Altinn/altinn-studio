@@ -8,8 +8,12 @@
 }
 
 .titleText {
-  color: var(--ds-color-background-default);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding-left: var(--ds-size-3);
+}
+
+.titleText.preview {
+  color: var(--ds-color-neutral-background-default) !important;
 }
