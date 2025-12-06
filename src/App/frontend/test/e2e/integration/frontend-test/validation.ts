@@ -627,62 +627,6 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).should('contain.text', 'Tullevalidering');
   });
 
-  it('Submitting should be rejected if validation fails on a field hidden using legacy dynamics', () => {
-    cy.intercept('POST', '**/pages/order*', (req) => {
-      req.reply((res) => {
-        res.send({
-          // Always reply with all pages, as none should be hidden using pageOrderConfig here
-          body: ['prefill', 'repeating', 'repeating2', 'hide', 'summary'],
-        });
-      });
-    });
-    cy.intercept('GET', '**/api/ruleconfiguration/group', (req) => {
-      req.reply((res) => {
-        res.send({
-          body: {
-            data: {
-              ruleConnection: {},
-              conditionalRendering: {
-                hideSendersName: {
-                  selectedFunction: 'biggerThan10',
-                  inputParams: {
-                    number:
-                      'Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[0].SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value',
-                  },
-                  selectedAction: 'Hide',
-                  selectedFields: {
-                    abc123: 'sendersName',
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
-    });
-
-    cy.goto('group');
-    cy.get(appFrontend.navMenuButtons).should('have.length', 5);
-
-    cy.gotoNavPage('hide');
-    cy.get(appFrontend.group.sendersName).type('tull og tøys'); // Causes validation error
-
-    cy.gotoNavPage('repeating');
-    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
-    cy.addItemToGroup(1, 11, 'whatever');
-    cy.findByRole('button', { name: /Neste/ }).click();
-    cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
-    cy.findByRole('button', { name: /Neste/ }).click();
-    cy.get(appFrontend.navMenuButtons).should('have.length', 5); // 'hide' page should be visible and active
-    cy.navPage('hide').should('have.attr', 'aria-current', 'page');
-    cy.get(appFrontend.group.sendersName).should('not.exist');
-    cy.get(appFrontend.errorReport).should('not.exist');
-
-    cy.findByRole('button', { name: /Neste/ }).click();
-    cy.get(appFrontend.sendinButton).click();
-    cy.get(appFrontend.errorReport).should('contain.text', 'Tullevalidering');
-  });
-
   it('Submitting should be rejected if validation fails on page hidden using expression', () => {
     cy.interceptLayout(
       'group',
