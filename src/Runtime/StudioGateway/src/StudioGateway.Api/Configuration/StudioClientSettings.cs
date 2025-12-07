@@ -13,5 +13,4 @@ namespace StudioGateway.Api.Configuration;
 internal sealed class StudioClientSettings
 {
     public required string BaseUrl { get; set; }
-    public required string Token { get; set; }
 }

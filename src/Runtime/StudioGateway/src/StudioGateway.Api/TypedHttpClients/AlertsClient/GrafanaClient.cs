@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using StudioGateway.Api.Configuration;
@@ -20,18 +19,13 @@ internal sealed class GrafanaClient(HttpClient httpClient, IOptions<AlertsClient
     /// <inheritdoc />
     public async Task<IEnumerable<Alert>> GetFiringAlertsAsync(CancellationToken cancellationToken)
     {
-        string apiToken = _alertsClientSettings.Token;
-        string baseUrl = _alertsClientSettings.BaseUrl;
-        string url = $"{baseUrl}/api/alertmanager/grafana/api/v2/alerts?active=true&silenced=false&inhibited=false";
-
-        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
-
+        string url = "/api/alertmanager/grafana/api/v2/alerts?active=true&silenced=false&inhibited=false";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
 
         HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
         var alerts = await response.Content.ReadFromJsonAsync<List<GrafanaAlert>>(
             options,
             cancellationToken: cancellationToken
@@ -46,8 +40,8 @@ internal sealed class GrafanaClient(HttpClient httpClient, IOptions<AlertsClient
                         ? ruleId
                         : alert.Labels["__alert_rule_uid__"],
                     Name = alert.Labels["alertname"],
-                    App = alert.Labels.TryGetValue("__name__", out string? appName) ? appName : string.Empty,
-                    Url = new Uri(BuildAlertLink(baseUrl, alert)),
+                    App = alert.Labels.TryGetValue("cloud_RoleName", out string? appName) ? appName : string.Empty,
+                    Url = new Uri(BuildAlertLink(_alertsClientSettings.BaseUrl, alert)),
                 };
             }) ?? [];
     }

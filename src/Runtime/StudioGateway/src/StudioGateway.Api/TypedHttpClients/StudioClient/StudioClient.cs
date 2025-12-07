@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Net.Http.Headers;
 using Microsoft.Extensions.Options;
 using StudioGateway.Api.Configuration;
 
@@ -10,32 +9,19 @@ namespace StudioGateway.Api.TypedHttpClients.StudioClient;
     "CA1812:AvoidUninstantiatedInternalClasses",
     Justification = "Class is instantiated via dependency injection"
 )]
-internal sealed class StudioClient(
-    HttpClient httpClient,
-    IConfiguration configuration,
-    IOptions<StudioClientSettings> studioSettings
-) : IStudioClient
+internal sealed class StudioClient(HttpClient httpClient, IOptions<GeneralSettings> generalSettings) : IStudioClient
 {
-    private readonly StudioClientSettings _studioSettings = studioSettings.Value;
+    private readonly GeneralSettings _generalSettings = generalSettings.Value;
 
     /// <inheritdoc />
     public async Task UpsertFiringAlertsAsync(CancellationToken cancellationToken)
     {
-        string apiToken = _studioSettings.Token;
+        string org = _generalSettings.ServiceOwner;
+        string env = _generalSettings.Environment;
 
-        string org =
-            configuration["GATEWAY_SERVICEOWNER"]
-            ?? throw new InvalidOperationException("Configuration value 'GATEWAY_SERVICEOWNER' is missing.");
-        string env =
-            configuration["GATEWAY_ENVIRONMENT"]
-            ?? throw new InvalidOperationException("Configuration value 'GATEWAY_ENVIRONMENT' is missing.");
-
-        string baseUrl = _studioSettings.BaseUrl;
-        string url = $"{baseUrl}/admin/alerts/{org}/{env}";
+        string url = $"/admin/alerts/{org}/{env}";
 
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
-
         HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
     }

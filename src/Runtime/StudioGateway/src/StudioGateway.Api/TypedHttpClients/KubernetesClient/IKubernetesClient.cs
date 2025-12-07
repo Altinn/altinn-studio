@@ -10,5 +10,5 @@ namespace StudioGateway.Api.TypedHttpClients.KubernetesClient;
 )]
 public interface IKubernetesClient
 {
-    public Task<HealthMetric> GetReadinessAsync(string app, CancellationToken cancellationToken);
+    public Task<HealthMetric> GetReadyPodsMetricAsync(string app, CancellationToken cancellationToken);
 }

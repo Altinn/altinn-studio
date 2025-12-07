@@ -6,7 +6,7 @@ using StudioGateway.Api.Services.Metrics;
 namespace StudioGateway.Api.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("/runtime/gateway/api/v1/[controller]")]
 [SuppressMessage(
     "Microsoft.Performance",
     "CA1515:AvoidUninstantiatedPublicTypes",

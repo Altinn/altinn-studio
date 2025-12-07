@@ -64,7 +64,7 @@ internal sealed class AzureMonitorClient(
                 AppMetrics
                 | where AppRoleName == '{app.Replace("'", "''")}'
                 | where Name in ('{names.Aggregate((a, b) => a + "','" + b)}')
-                | summarize Value = sum(Sum) by AppRoleName, Name, DateTimeOffset = bin(TimeGenerated, {roundTo})
+                | summarize Value = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {roundTo})
                 | order by DateTimeOffset desc";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
@@ -114,8 +114,9 @@ internal sealed class AzureMonitorClient(
 
         IDictionary<string, string> names = new Dictionary<string, string>
         {
-            { "POST Instances/Post [app/org]", "failed_processes_started_requests" },
             { "PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]", "failed_process_next_requests" },
+            { "POST Instances/Post [app/org]", "failed_processes_started_requests" },
+            { "GET /health", "failed_health_requests" },
         };
 
         var query =
@@ -125,9 +126,9 @@ internal sealed class AzureMonitorClient(
                 | where ClientType != 'Browser'
                 | where toint(ResultCode) >= 500
                 | where AppRoleName == '{app.Replace("'", "''")}'
-                | where Name in ('{names.Keys.Aggregate((a, b) => a + "','" + b)}')
-                | summarize Value = sum(ItemCount) by AppRoleName, Name, DateTimeOffset = bin(TimeGenerated, {roundTo})
-                | order by DateTimeOffset asc";
+                | where OperationName in ('{names.Keys.Aggregate((a, b) => a + "','" + b)}')
+                | summarize Value = sum(ItemCount) by OperationName, DateTimeOffset = bin(TimeGenerated, {roundTo})
+                | order by DateTimeOffset desc";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
             logAnalyticsWorkspaceId,
@@ -141,7 +142,7 @@ internal sealed class AzureMonitorClient(
             {
                 return new
                 {
-                    Name = names[row.GetString("Name")],
+                    Name = names[row.GetString("OperationName")],
                     DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
                     Value = row.GetDouble("Value") ?? 0,
                 };
@@ -161,7 +162,8 @@ internal sealed class AzureMonitorClient(
             });
 
         return names.Select(name =>
-            metrics.FirstOrDefault(metric => metric.Name == name.Value) ?? new Metric { Name = name.Value, DataPoints = [] }
+            metrics.FirstOrDefault(metric => metric.Name == name.Value)
+            ?? new Metric { Name = name.Value, DataPoints = [] }
         );
     }
 }
