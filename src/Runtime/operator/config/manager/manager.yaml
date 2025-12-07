@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller-manager
+  namespace: system
+  labels:
+    control-plane: controller-manager
+    app.kubernetes.io/name: altinn-studio-operator
+    app.kubernetes.io/managed-by: kustomize
+  annotations:
+    altinn.studio/image: runtime-operator:latest
+    altinn.studio/image-tag: latest
+spec:
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        control-plane: controller-manager
+        azure.workload.identity/use: 'true'
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - command:
+        - /manager
+        args:
+          - --leader-elect
+          - --health-probe-bind-address=:8081
+        image: controller:latest
+        name: manager
+        env:
+          - name: OPERATOR_UPGRADE_CHANNEL
+            valueFrom:
+              configMapKeyRef:
+                name: runtime-environment
+                key: upgrade_channel
+          - name: OPERATOR_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                name: runtime-environment
+                key: environment
+          - name: OPERATOR_SERVICEOWNER
+            valueFrom:
+              configMapKeyRef:
+                name: runtime-environment
+                key: serviceowner
+          - name: OPERATOR_CONFIG_FILE
+            value: /etc/operator-config/config.env
+        volumeMounts:
+          - name: config
+            mountPath: /etc/operator-config
+            readOnly: true
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - "ALL"
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+      serviceAccountName: controller-manager
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: operator-config

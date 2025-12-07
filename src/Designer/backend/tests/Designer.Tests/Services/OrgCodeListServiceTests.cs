@@ -30,7 +30,7 @@ public class OrgCodeListServiceTests : IDisposable
     private const string Org = "ttd";
     private const string Repo = "org-content";
     private const string Developer = "testUser";
-    private readonly Mock<IGitea> _giteaClientMock = new();
+    private readonly Mock<IGiteaClient> _giteaClientMock = new();
     private readonly Mock<ISourceControl> _sourceControlMock = new();
 
     [Fact]

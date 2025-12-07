@@ -8,7 +8,7 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
-import { StudioSelect, StudioTextfield } from '@studio/components';
+import { StudioDecimalInput, StudioSelect, StudioTextfield } from '@studio/components';
 import { ItemWrapper } from '../ItemWrapper';
 import {
   isDateOrTimeFormat,
@@ -19,6 +19,8 @@ import {
   updateLatest,
   updateEarliestInclusivity,
   updateLatestInclusivity,
+  updateFormat,
+  removeRestriction,
 } from './utils';
 import type { DateTimeFormatState } from './utils';
 
@@ -30,11 +32,7 @@ export function StringRestrictions({
 }: RestrictionItemProps) {
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
-  const restrictionMinLength = restrictions[StrRestrictionKey.minLength] || '';
-  const restrictionMaxLength = restrictions[StrRestrictionKey.maxLength] || '';
   const [regexTestValue, setRegexTestValue] = useState<string>('');
-  const [minLength, setMinLength] = useState<string>(restrictionMinLength);
-  const [maxLength, setMaxLength] = useState<string>(restrictionMaxLength);
   const pattern = restrictions[StrRestrictionKey.pattern] || '';
   const regexTestValueSplitByMatches = splitStringByMatches(pattern, regexTestValue);
   const regexTestValueMatchesRegex = regexTestValueSplitByMatches.some(({ match }) => match);
@@ -52,12 +50,36 @@ export function StringRestrictions({
     [onChangeRestrictions, path],
   );
 
-  const setRestriction = useCallback(
-    (key: StrRestrictionKey, value: string): void => {
-      const updatedRestrictions = updateRestriction(restrictions, key, value);
+  const handleFormatChange: ChangeEventHandler<HTMLSelectElement> = useCallback(
+    (event): void => {
+      const format = (event.target.value as StringFormat) || null;
+      const updatedRestrictions = updateFormat(restrictions, format);
       changeCallback(updatedRestrictions);
     },
     [restrictions, changeCallback],
+  );
+
+  const updateNumberRestriction = useCallback(
+    (key: StrRestrictionKey, value: number | null): void => {
+      const updatedRestrictions =
+        value === null
+          ? removeRestriction(restrictions, key)
+          : updateRestriction(restrictions, key, value);
+      changeCallback(updatedRestrictions);
+    },
+    [restrictions, changeCallback],
+  );
+
+  const handleMinLengthChange = useCallback(
+    (minLength: number | null): void =>
+      updateNumberRestriction(StrRestrictionKey.minLength, minLength),
+    [updateNumberRestriction],
+  );
+
+  const handleMaxLengthChange = useCallback(
+    (maxLength: number | null): void =>
+      updateNumberRestriction(StrRestrictionKey.maxLength, maxLength),
+    [updateNumberRestriction],
   );
 
   const handleUpdateDateTimeRestrictions = useCallback(
@@ -84,7 +106,7 @@ export function StringRestrictions({
       <StudioSelect
         id='format-select-input'
         label={t('format')}
-        onChange={(event) => setRestriction(StrRestrictionKey.format, event.target.value)}
+        onChange={handleFormatChange}
         value={restrictions[StrRestrictionKey.format] || ''}
       >
         <StudioSelect.Option value=''>{t('format_none')}</StudioSelect.Option>
@@ -102,25 +124,19 @@ export function StringRestrictions({
       )}
       <div className={classes.lengthFields}>
         <div className={classes.lengthField}>
-          <StudioTextfield
+          <StudioDecimalInput
             type='number'
             label={t(StrRestrictionKey.minLength)}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setMinLength(e.target.value)}
-            onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
-              setRestriction(StrRestrictionKey.minLength, e.target.value)
-            }
-            value={minLength}
+            onChangeNumber={handleMinLengthChange}
+            value={restrictions[StrRestrictionKey.minLength] || ''}
           />
         </div>
         <div className={classes.lengthField}>
-          <StudioTextfield
+          <StudioDecimalInput
             type='number'
             label={t(StrRestrictionKey.maxLength)}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setMaxLength(e.target.value)}
-            onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
-              setRestriction(StrRestrictionKey.maxLength, e.target.value)
-            }
-            value={maxLength}
+            onChangeNumber={handleMaxLengthChange}
+            value={restrictions[StrRestrictionKey.maxLength] || ''}
           />
         </div>
       </div>

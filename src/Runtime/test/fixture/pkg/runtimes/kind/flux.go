@@ -37,12 +37,13 @@ func (r *KindContainerRuntime) installFluxToCluster() error {
 		return nil
 	}
 
-	fmt.Println("Installing Flux with source-controller, helm-controller, and kustomize-controller...")
+	fmt.Println("Installing Flux controllers...")
 
 	components := []string{
 		"source-controller",
 		"helm-controller",
 		"kustomize-controller",
+		"notification-controller",
 	}
 
 	if err := r.FluxClient.Install(components); err != nil {
@@ -60,6 +61,7 @@ func (r *KindContainerRuntime) waitForFluxControllers() error {
 		"source-controller",
 		"helm-controller",
 		"kustomize-controller",
+		"notification-controller",
 	}
 
 	timeout := 1 * time.Minute

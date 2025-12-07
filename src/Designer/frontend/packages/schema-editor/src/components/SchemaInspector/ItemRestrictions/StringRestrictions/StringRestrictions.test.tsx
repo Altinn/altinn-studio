@@ -94,7 +94,7 @@ describe('StringRestrictions', () => {
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
-      expect.objectContaining({ [StrRestrictionKey.format]: '' }),
+      expect.not.objectContaining({ [StrRestrictionKey.format]: expect.anything() }),
     );
   });
 
@@ -266,14 +266,22 @@ describe('StringRestrictions', () => {
   });
 
   test('onChangeRestrictions is called with correct input when minimum length is changed', async () => {
-    renderStringRestrictions({ restrictions: { minLength: '1' } });
-    const minLengthField = screen.getByLabelText(textMock('schema_editor.minLength'));
-    await user.type(minLengthField, '2');
-    await user.tab();
+    renderStringRestrictions({ restrictions: { minLength: 1 } });
+    await user.type(screen.getByLabelText(textMock('schema_editor.minLength')), '2');
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
-      expect.objectContaining({ [StrRestrictionKey.minLength]: '12' }),
+      expect.objectContaining({ [StrRestrictionKey.minLength]: 12 }),
+    );
+  });
+
+  test('onChangeRestrictions is called with correct input when minimum length is removed', async () => {
+    renderStringRestrictions({ restrictions: { minLength: 1 } });
+    await user.clear(screen.getByLabelText(textMock('schema_editor.minLength')));
+    expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
+    expect(onChangeRestrictions).toHaveBeenCalledWith(
+      path,
+      expect.not.objectContaining({ [StrRestrictionKey.minLength]: expect.anything() }),
     );
   });
 
@@ -285,14 +293,22 @@ describe('StringRestrictions', () => {
   });
 
   test('onChangeRestrictions is called with correct input when maximum length is changed', async () => {
-    renderStringRestrictions({ restrictions: { maxLength: '14' } });
-    const maxLengthField = screen.getByLabelText(textMock('schema_editor.maxLength'));
-    await user.type(maxLengthField, '4');
-    await user.tab();
+    renderStringRestrictions({ restrictions: { maxLength: 14 } });
+    await user.type(screen.getByLabelText(textMock('schema_editor.maxLength')), '4');
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
-      expect.objectContaining({ [StrRestrictionKey.maxLength]: '144' }),
+      expect.objectContaining({ [StrRestrictionKey.maxLength]: 144 }),
+    );
+  });
+
+  test('onChangeRestrictions is called with correct input when maximum length is removed', async () => {
+    renderStringRestrictions({ restrictions: { maxLength: 14 } });
+    await user.clear(screen.getByLabelText(textMock('schema_editor.maxLength')));
+    expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
+    expect(onChangeRestrictions).toHaveBeenCalledWith(
+      path,
+      expect.not.objectContaining({ [StrRestrictionKey.maxLength]: expect.anything() }),
     );
   });
 
