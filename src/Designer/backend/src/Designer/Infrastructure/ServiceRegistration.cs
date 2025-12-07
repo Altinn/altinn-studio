@@ -47,6 +47,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IRepository, RepositorySI>();
             services.AddTransient<ISchemaModelService, SchemaModelService>();
             services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
+            services.AddTransient<IBlobContainerClientFactory, AzureBlobContainerClientFactory>();
 
             services.AddTransient<ISourceControl, SourceControlSI>();
             services.Decorate<ISourceControl, SourceControlLoggingDecorator>();
@@ -105,6 +106,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();
             services.AddTransient<IGitOpsManifestsRenderer, ScribanGitOpsManifestsRenderer>();
             services.AddTransient<ISharedContentClient, AzureSharedContentClient>();
+            services.AddTransient<IOrgLibraryService, OrgLibraryService>();
 
             return services;
         }

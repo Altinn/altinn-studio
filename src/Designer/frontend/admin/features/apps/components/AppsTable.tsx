@@ -21,11 +21,6 @@ export type AppsTableProps = {
   org: string;
 };
 
-type AppsTableState = {
-  search: string;
-  tab: string | undefined;
-};
-
 export const AppsTable = ({ org }: AppsTableProps) => {
   const { data: runningApps, status: runningAppsStatus } = useRunningAppsQuery(org);
   const { t } = useTranslation();
@@ -54,18 +49,13 @@ function getEnvironmentName(env: string, t: TFunction) {
 
 const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
   const { t } = useTranslation();
-  const [{ search, tab }, setState] = useQueryParamState<AppsTableState>({
-    search: '',
-    tab: undefined,
-  });
+  const [search, setSearch] = useQueryParamState<string>('search', '');
+  const [tab, setTab] = useQueryParamState<string>('tab', undefined);
 
   const availableEnvironments = Object.keys(runningApps);
 
   return (
-    <StudioTabs
-      value={tab ?? availableEnvironments.at(0)}
-      onChange={(value) => setState({ tab: value })}
-    >
+    <StudioTabs value={tab ?? availableEnvironments.at(0)} onChange={setTab}>
       <StudioTabs.List>
         {availableEnvironments.map((env) => (
           <StudioTabs.Tab key={env} value={env}>
@@ -80,7 +70,7 @@ const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
             org={org}
             env={env}
             search={search}
-            setState={setState}
+            setSearch={setSearch}
             runningApps={runningApps}
           />
         </StudioTabs.Panel>
@@ -91,15 +81,15 @@ const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
 
 type AppsTableWithDataByEnvProps = AppsTableWithDataProps & {
   env: string;
-  search: string;
-  setState: (newState: Partial<AppsTableState>) => void;
+  search?: string;
+  setSearch: (newState: string) => void;
 };
 
 const AppsTableWithDataByEnv = ({
   org,
   env,
   search,
-  setState,
+  setSearch,
   runningApps,
 }: AppsTableWithDataByEnvProps) => {
   const { t } = useTranslation();
@@ -124,8 +114,8 @@ const AppsTableWithDataByEnv = ({
       )}
       <StudioSearch
         className={classes.appSearch}
-        value={search}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setState({ search: e.target.value })}
+        value={search ?? ''}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
         label={t('Søk i apper')}
       />
       <StudioTable>

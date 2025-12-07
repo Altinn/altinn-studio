@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- manager.yaml
+replacements:
+- source:
+    kind: Deployment
+    name: controller-manager
+    fieldPath: metadata.annotations.[altinn.studio/image]
+  targets:
+  - select:
+      kind: Deployment
+      name: controller-manager
+    fieldPaths:
+      - spec.template.spec.containers.[name=manager].image

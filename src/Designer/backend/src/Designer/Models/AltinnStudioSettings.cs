@@ -17,6 +17,11 @@ public class AltinnStudioSettings
     public AltinnRepositoryType RepoType { get; set; }
     [JsonPropertyName("imports")]
     public ImportedResources Imports { get; set; }
+    /// <summary>
+    /// Toggle nullable for reference types.
+    /// </summary>
+    [JsonPropertyName("useNullableReferenceTypes")]
+    public bool UseNullableReferenceTypes { get; set; }
 }
 
 public class ImportedResources

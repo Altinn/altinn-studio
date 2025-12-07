@@ -93,6 +93,7 @@
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n[^\\s]+\\s+(?<currentValue>\\S+)"
       ],
+      "extractVersionTemplate": "^(?<version>v.*)$",
       "versioningTemplate": "semver"
     }
   ],

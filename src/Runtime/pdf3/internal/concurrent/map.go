@@ -66,7 +66,7 @@ func (cm *Map[K, V]) Update(k K, fn func(*V)) bool {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
 	v, ok := cm.m[k]
-	assert.AssertWithMessage(ok, "Item with key not found")
+	assert.That(ok, "Item with key not found")
 	fn(&v)
 	cm.m[k] = v
 	return true

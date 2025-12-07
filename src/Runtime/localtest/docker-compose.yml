@@ -32,7 +32,7 @@ services:
 
   altinn_pdf3:
     container_name: localtest-pdf3
-    image: ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:18d798ea03
+    image: ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:55a277005d
     restart: always
     networks:
       - altinntestlocal_network

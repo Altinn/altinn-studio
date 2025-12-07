@@ -60,6 +60,19 @@ jobs:
         with:
           fetch-depth: 0 # Shallow clone
 
+      - name: Set up Docker
+        uses: docker/setup-docker-action@efe9e3891a4f7307e689f2100b33a155b900a608 # v4.5.0
+        with:
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
+
       - name: set vars
         id: vars
         run: |
@@ -88,14 +101,14 @@ jobs:
         run: az acr login --name ${{ steps.vars.outputs.registry-name }}
 
       - name: flux install
-        uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
+        uses: fluxcd/flux2/action@06ed49dcd3f3ce2fc8d1988848245873a91550bc # v2.7.4
 
       - name: docker build
         run: |
           set -e
-          docker build -t ${{ steps.vars.outputs.ghcr-image-proxy-repo }} -f Dockerfile.proxy . &
+          docker build --platform linux/amd64,linux/arm64 -t ${{ steps.vars.outputs.ghcr-image-proxy-repo }} -f Dockerfile.proxy . &
           PROXY_PID=$!
-          docker build -t ${{ steps.vars.outputs.ghcr-image-worker-repo }} -f Dockerfile.worker . &
+          docker build --platform linux/amd64,linux/arm64 -t ${{ steps.vars.outputs.ghcr-image-worker-repo }} -f Dockerfile.worker . &
           WORKER_PID=$!
           wait $PROXY_PID
           wait $WORKER_PID
@@ -178,7 +191,7 @@ jobs:
         run: az acr login --name altinncr
 
       - name: flux install
-        uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
+        uses: fluxcd/flux2/action@06ed49dcd3f3ce2fc8d1988848245873a91550bc # v2.7.4
 
       - name: tag artifact
         run: |
