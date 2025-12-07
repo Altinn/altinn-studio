@@ -128,20 +128,28 @@ type AppMetricProps = {
 export const AppMetric = ({ time, metric }: AppMetricProps) => {
   const { t } = useTranslation();
   const options = getChartOptions(time);
-  const isAppMetric = metric.name.startsWith('altinn_');
   const value = metric.dataPoints.reduce((sum, item) => sum + item.value, 0);
-  const isError = metric.name === 'failed_process_next_requests' && value > 0;
+  const isErrorMetric = metric.name.startsWith('failed_');
+  const isError = isErrorMetric && value > 0;
 
   const color = getRandomColor();
   const metricsChartData = getChartData(
     metric.dataPoints,
-    isAppMetric
-      ? color
-      : {
+    isErrorMetric
+      ? {
           borderColor: isError ? 'rgba(206, 77, 77)' : 'rgb(16, 140, 34)',
           backgroundColor: isError ? 'rgba(206, 77, 77, 0.7)' : 'rgba(16, 140, 34, 0.7)',
-        },
+        }
+      : color,
   );
+
+  var customStyle = isErrorMetric
+    ? {}
+    : {
+        backgroundColor: color.backgroundColor,
+        color: color.color,
+        opacity: 1,
+      };
 
   return (
     <div key={metric.name}>
@@ -152,11 +160,7 @@ export const AppMetric = ({ time, metric }: AppMetricProps) => {
             [classes.error]: isError,
             [classes.success]: !isError,
           })}
-          style={{
-            backgroundColor: isAppMetric && color.backgroundColor,
-            color: isAppMetric && color.color,
-            opacity: isAppMetric && 1,
-          }}
+          style={customStyle}
         >
           {value}
         </div>

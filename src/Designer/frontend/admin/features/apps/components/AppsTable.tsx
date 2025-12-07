@@ -165,7 +165,7 @@ const AppsTableWithDataByEnv = ({
                           className={classes.alert}
                         >
                           <span className={classes.alertText}>
-                            {t(`admin.alerts.${alert.ruleId}`, alert.name)}
+                            {t(`admin.alerts.${alert.ruleId}-alert`, alert.name)}
                           </span>
                           <StudioLink
                             href={alert.url}

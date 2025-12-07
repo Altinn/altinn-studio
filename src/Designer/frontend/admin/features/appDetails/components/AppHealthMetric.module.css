@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: row;
   gap: var(--ds-size-8);
-  margin-bottom: 5px;
+  margin-bottom: 10px;
 }
 
 .name {
@@ -13,8 +13,8 @@
 }
 
 .chart {
-  height: 225px;
-  width: 225px;
+  height: 100px;
+  width: 125px;
 }
 
 .marker {

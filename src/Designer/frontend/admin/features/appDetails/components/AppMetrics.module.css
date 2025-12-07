@@ -1,17 +1,44 @@
-.heading {
-  display: flex;
-  align-items: center;
-  gap: var(--ds-size-4);
+.card {
+  flex: 0.75;
+}
+
+.header {
   margin-bottom: var(--ds-size-8);
-  height: 45px;
+}
+
+.heading {
+  margin-bottom: var(--ds-size-8);
+}
+
+.subheading {
+  margin-bottom: var(--ds-size-6);
 }
 
 .select {
+  float: right;
+  flex-direction: row;
+  gap: var(--ds-size-4);
+  white-space: nowrap;
+  align-items: center;
+}
+
+.select * {
+  margin: 0;
+}
+
+.content {
+  font-size: 0.9rem;
   display: flex;
   flex-direction: row;
-  font-size: 0.9rem;
-  margin: 0 !important;
-  width: 70px !important;
+  gap: var(--ds-size-30);
+  white-space: nowrap;
+}
+
+.subcontent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-12);
+  white-space: nowrap;
 }
 
 .metrics {

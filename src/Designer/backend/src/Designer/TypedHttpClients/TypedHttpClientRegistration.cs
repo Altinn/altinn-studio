@@ -10,7 +10,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.StudioGateway;
+using Altinn.Studio.Designer.TypedHttpClients.Gateway;
 using Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
@@ -210,7 +210,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 Scope = configuration["MaskinportenClientForRuntime:Test:Scope"]
             };
 
-            services.AddMaskinportenHttpClient<SettingsJwkClientDefinition, IStudioGatewayClient, StudioGatewayClient>(maskinportenClientForRuntimeTestSettings)
+            services.AddMaskinportenHttpClient<SettingsJwkClientDefinition, IGatewayClient, GatewayClient>(maskinportenClientForRuntimeTestSettings)
                 .AddHttpMessageHandler<EnsureSuccessHandler>();
         }
     }

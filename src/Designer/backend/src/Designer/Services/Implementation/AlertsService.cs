@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Hubs.AlertsUpdate;
 using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.StudioGateway;
+using Altinn.Studio.Designer.TypedHttpClients.Gateway;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 internal sealed class AlertsService(
-    IStudioGatewayClient studioGatewayClient,
+    IGatewayClient gatewayClient,
     IHubContext<AlertsUpdatedHub, IAlertsUpdateClient> alertsUpdatedHubContext
     ) : IAlertsService
 {
@@ -22,7 +22,7 @@ internal sealed class AlertsService(
         CancellationToken cancellationToken
     )
     {
-        IEnumerable<StudioGatewayAlert> alerts = await studioGatewayClient.GetFiringAlertsAsync(org, env, cancellationToken);
+        IEnumerable<StudioGatewayAlert> alerts = await gatewayClient.GetFiringAlertsAsync(org, env, cancellationToken);
 
         return alerts.Select(alert => new Alert
         {

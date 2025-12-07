@@ -3,12 +3,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Metrics;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.StudioGateway;
+using Altinn.Studio.Designer.TypedHttpClients.Gateway;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 internal sealed class MetricsService(
-    IStudioGatewayClient studioGatewayClient
+    IGatewayClient gatewayClient
     ) : IMetricsService
 {
     /// <inheritdoc />
@@ -20,7 +20,7 @@ internal sealed class MetricsService(
         CancellationToken cancellationToken
     )
     {
-        return await studioGatewayClient.GetMetricsAsync(org, env, app, time, cancellationToken);
+        return await gatewayClient.GetMetricsAsync(org, env, app, time, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -31,6 +31,6 @@ internal sealed class MetricsService(
         CancellationToken cancellationToken
     )
     {
-        return await studioGatewayClient.GetHealthMetricsAsync(org, env, app, cancellationToken);
+        return await gatewayClient.GetHealthMetricsAsync(org, env, app, cancellationToken);
     }
 }

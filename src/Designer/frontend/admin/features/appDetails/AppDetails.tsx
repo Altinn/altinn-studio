@@ -28,7 +28,6 @@ export const AppsDetails = () => {
         {env} / {app}
       </h1>
       <div className={classes.metrics}>
-        <AppHealthMetrics />
         <AppMetrics />
       </div>
       <p>

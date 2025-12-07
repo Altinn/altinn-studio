@@ -10,12 +10,12 @@ using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Models.Metrics;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.Studio.Designer.TypedHttpClients.StudioGateway;
+namespace Altinn.Studio.Designer.TypedHttpClients.Gateway;
 
-internal sealed class StudioGatewayClient(
+internal sealed class GatewayClient(
     HttpClient httpClient,
     IOptions<StudioGatewaySettings> studioGatewaySettings
-    ) : IStudioGatewayClient
+    ) : IGatewayClient
 {
     private readonly StudioGatewaySettings _studioGatewaySettings = studioGatewaySettings.Value;
 
@@ -30,7 +30,7 @@ internal sealed class StudioGatewayClient(
 
         string apiToken = studioGatewaySettings.Token;
         string baseUri = studioGatewaySettings.GetBaseUri(org);
-        string url = $"{baseUri}/api/v1/alerts";
+        string url = $"{baseUri}/alerts";
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
 
@@ -56,7 +56,7 @@ internal sealed class StudioGatewayClient(
 
         string apiToken = studioGatewaySettings.Token;
         string baseUri = studioGatewaySettings.GetBaseUri(org);
-        string url = $"{baseUri}/api/v1/metrics?app={app}&time={time}";
+        string url = $"{baseUri}/metrics?app={app}&time={time}";
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
 
@@ -81,7 +81,7 @@ internal sealed class StudioGatewayClient(
 
         string apiToken = studioGatewaySettings.Token;
         string baseUri = studioGatewaySettings.GetBaseUri(org);
-        string url = $"{baseUri}/api/v1/metrics/health?app={app}";
+        string url = $"{baseUri}/metrics/health?app={app}";
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
 

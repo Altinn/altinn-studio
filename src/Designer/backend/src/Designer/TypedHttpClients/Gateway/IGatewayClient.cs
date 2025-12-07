@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Models.Metrics;
 
-namespace Altinn.Studio.Designer.TypedHttpClients.StudioGateway;
+namespace Altinn.Studio.Designer.TypedHttpClients.Gateway;
 
-public interface IStudioGatewayClient
+public interface IGatewayClient
 {
     public Task<IEnumerable<StudioGatewayAlert>> GetFiringAlertsAsync(
         string org,
