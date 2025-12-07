@@ -29,7 +29,7 @@ internal sealed class GatewayClient(
         StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
 
         string apiToken = studioGatewaySettings.Token;
-        string baseUri = studioGatewaySettings.GetBaseUri(org);
+        string baseUri = studioGatewaySettings.GetBaseUrl(org);
         string url = $"{baseUri}/alerts";
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
@@ -55,7 +55,7 @@ internal sealed class GatewayClient(
         StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
 
         string apiToken = studioGatewaySettings.Token;
-        string baseUri = studioGatewaySettings.GetBaseUri(org);
+        string baseUri = studioGatewaySettings.GetBaseUrl(org);
         string url = $"{baseUri}/metrics?app={app}&time={time}";
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
@@ -80,7 +80,7 @@ internal sealed class GatewayClient(
         StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
 
         string apiToken = studioGatewaySettings.Token;
-        string baseUri = studioGatewaySettings.GetBaseUri(org);
+        string baseUri = studioGatewaySettings.GetBaseUrl(org);
         string url = $"{baseUri}/metrics/health?app={app}";
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };

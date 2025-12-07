@@ -28,13 +28,13 @@ public class AlertsController(IAlertsService alertsService) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult> UpsertFiringAlerts(
+    public async Task<ActionResult> NotifyAlertsUpdated(
         string org,
         string env,
         CancellationToken cancellationToken
     )
     {
-        await _alertsService.UpsertFiringAlertsAsync(org, env, cancellationToken);
+        await _alertsService.NotifyAlertsUpdatedAsync(org, env, cancellationToken);
         return Ok();
     }
 }

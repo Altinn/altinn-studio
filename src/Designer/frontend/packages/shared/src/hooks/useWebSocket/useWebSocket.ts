@@ -14,7 +14,7 @@ export const useWebSocket = <T>({
   webSocketConnector,
   onWSMessageReceived,
 }: UseWebsocket<T>): void => {
-  const wsConnectionRef = useRef(null);
+  const wsConnectionRef = useRef<WSConnector | null>(null);
   useEffect(() => {
     wsConnectionRef.current = webSocketConnector.getInstance(webSocketUrls, clientsName);
     wsConnectionRef.current?.onMessageReceived(onWSMessageReceived);

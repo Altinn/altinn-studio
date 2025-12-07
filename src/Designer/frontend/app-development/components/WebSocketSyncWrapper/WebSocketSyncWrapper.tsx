@@ -52,7 +52,7 @@ export const WebSocketSyncWrapper = ({
       SyncEntityClientName.EntityUpdated,
     ],
     webSocketConnector: WSConnector,
-    onWSMessageReceived: (message: SyncError | SyncSuccess | EntityUpdated): ReactElement => {
+    onWSMessageReceived: (message: SyncError | SyncSuccess | EntityUpdated): void => {
       if ('resourceName' in message) {
         entityUpdateInvalidator.invalidateQueriesByResourceName(message.resourceName as string);
         return;

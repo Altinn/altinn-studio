@@ -13,7 +13,7 @@ public interface IAlertsService
         CancellationToken cancellationToken
     );
 
-    public Task UpsertFiringAlertsAsync(
+    public Task NotifyAlertsUpdatedAsync(
         string org,
         string env,
         CancellationToken cancellationToken

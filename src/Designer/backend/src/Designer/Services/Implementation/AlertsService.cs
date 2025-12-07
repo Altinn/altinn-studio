@@ -35,7 +35,7 @@ internal sealed class AlertsService(
     }
 
     /// <inheritdoc />
-    public async Task UpsertFiringAlertsAsync(
+    public async Task NotifyAlertsUpdatedAsync(
         string org,
         string env,
         CancellationToken cancellationToken
