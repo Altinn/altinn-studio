@@ -21,6 +21,12 @@ type SecretSyncMapping struct {
 	// BuildOutput transforms source secret data to destination format.
 	// If nil, copies raw bytes (requires DestKey to be empty).
 	BuildOutput func(ctx context.Context, k8sClient client.Client, data map[string][]byte) ([]byte, error)
+	// CanDeleteDest allows deletion of destination when source is deleted.
+	// Set to false when destination may be mounted to pods.
+	CanDeleteDest bool
+	// ClearOutput returns the data to use when source is deleted and CanDeleteDest is false.
+	// If nil, Data is set to nil. Only used with DestKey (single-key destination).
+	ClearOutput func() []byte
 }
 
 // DefaultMappings returns the default secret sync mappings.
@@ -32,6 +38,8 @@ func DefaultMappings() []SecretSyncMapping {
 			DestNamespace:   "runtime-gateway",
 			DestName:        "external-grafana-altinn-studio-gateway-token",
 			DestKey:         "secrets.json",
+			CanDeleteDest:   false,
+			ClearOutput:     func() []byte { return []byte("{}") },
 			BuildOutput: func(ctx context.Context, k8sClient client.Client, data map[string][]byte) ([]byte, error) {
 				grafana := &grafanav1beta1.Grafana{}
 				// Grafana operator is used in tt02 and prod
