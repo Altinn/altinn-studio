@@ -9,5 +9,5 @@ namespace StudioGateway.Api.TypedHttpClients.StudioClient;
 )]
 public interface IStudioClient
 {
-    public Task UpsertFiringAlertsAsync(CancellationToken cancellationToken);
+    public Task NotifyAlertsUpdatedAsync(CancellationToken cancellationToken);
 }

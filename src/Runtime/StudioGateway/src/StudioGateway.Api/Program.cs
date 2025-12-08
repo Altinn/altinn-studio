@@ -48,12 +48,15 @@ builder.Services.AddHttpClient<IStudioClient, StudioClient>(
         var studioClientSettings = serviceProvider.GetRequiredService<IOptions<StudioClientSettings>>().Value;
 
         httpClient.BaseAddress = new Uri(studioClientSettings.BaseUrl);
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", generalSettings.StudioClientToken);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            generalSettings.StudioClientToken
+        );
     }
 );
 builder.Services.AddSingleton(sp =>
 {
-    return new Kubernetes(KubernetesClientConfiguration.BuildDefaultConfig());
+    return new Kubernetes(KubernetesClientConfiguration.InClusterConfig());
 });
 builder.Services.AddTransient<IKubernetesClient, KubernetesClient>();
 builder.Services.AddKeyedTransient<IAlertsClient>(

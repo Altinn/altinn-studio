@@ -14,7 +14,7 @@ internal sealed class StudioClient(HttpClient httpClient, IOptions<GeneralSettin
     private readonly GeneralSettings _generalSettings = generalSettings.Value;
 
     /// <inheritdoc />
-    public async Task UpsertFiringAlertsAsync(CancellationToken cancellationToken)
+    public async Task NotifyAlertsUpdatedAsync(CancellationToken cancellationToken)
     {
         string org = _generalSettings.ServiceOwner;
         string env = _generalSettings.Environment;

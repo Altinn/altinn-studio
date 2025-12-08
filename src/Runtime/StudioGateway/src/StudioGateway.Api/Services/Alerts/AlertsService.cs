@@ -31,8 +31,8 @@ internal sealed class AlertsService(
     }
 
     /// <inheritdoc />
-    public async Task UpsertFiringAlertsAsync(CancellationToken cancellationToken)
+    public async Task NotifyAlertsUpdatedAsync(CancellationToken cancellationToken)
     {
-        await studioClient.UpsertFiringAlertsAsync(cancellationToken);
+        await studioClient.NotifyAlertsUpdatedAsync(cancellationToken);
     }
 }

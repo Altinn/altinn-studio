@@ -12,5 +12,5 @@ public interface IAlertsService
 {
     public Task<IEnumerable<Alert>> GetFiringAlertsAsync(CancellationToken cancellationToken);
 
-    public Task UpsertFiringAlertsAsync(CancellationToken cancellationToken);
+    public Task NotifyAlertsUpdatedAsync(CancellationToken cancellationToken);
 }
