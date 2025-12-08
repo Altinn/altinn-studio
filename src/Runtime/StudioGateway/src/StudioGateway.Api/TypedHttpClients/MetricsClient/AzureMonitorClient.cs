@@ -116,7 +116,6 @@ internal sealed class AzureMonitorClient(
         {
             { "PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]", "failed_process_next_requests" },
             { "POST Instances/Post [app/org]", "failed_processes_started_requests" },
-            { "GET /health", "failed_health_requests" },
         };
 
         var query =
