@@ -13,7 +13,7 @@ import type {
 } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
 import { CODE_LIST_FOLDER } from 'app-shared/constants';
-import { FileNameUtils } from '@studio/pure-functions';
+import { FileNameUtils, Guard } from '@studio/pure-functions';
 import type { LibraryFile } from 'app-shared/types/LibraryFile';
 import { isCodeListValid } from './validators/isCodelistValid';
 
@@ -40,13 +40,8 @@ export function backendCodeListsToLibraryCodeLists(
 
 function backendCodeListToLibraryCodeList(file: LibraryFile): LibraryCodeListData {
   const fileWithExtension = FileNameUtils.extractFileName(file.path);
-
-  if (!FileNameUtils.isJsonFile(fileWithExtension)) {
-    // TODO: We should show the user that a codelist is corrupted
-    return { name: fileWithExtension, codes: [] };
-  }
+  Guard.AgainstNonJsonTypes(fileWithExtension);
   const fileName = FileNameUtils.removeExtension(fileWithExtension);
-
   return tryConvertFile(file, fileName);
 }
 
