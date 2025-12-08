@@ -44,9 +44,8 @@ export const options: Options = {
   },
 };
 
+// Custom metrics
 const add250RepeatingGroupRowsMetric = new Trend('add_250_repeating_group_rows', true);
-
-// Responsiveness metrics
 const speciesSelectOpenTimeMetric = new Trend('species_select_open_time', true);
 const speciesSelectTotalTimeMetric = new Trend('species_select_total_time', true);
 const manualRowAdditionTimeMetric = new Trend('manual_row_addition_time', true);
@@ -70,17 +69,17 @@ export default async function () {
     await goToCorrectPage(page);
 
     // Round 1
-    await generateMorePets(page, /hent mine husdyr \(250!\)/i);
+    await generate250MorePets(page, /hent mine husdyr \(250!\)/i);
     await editLastPet(page);
     await addPetManually(page, 'Fido');
 
     // Round 2
-    await generateMorePets(page, /generer enda en gård/i);
+    await generate250MorePets(page, /generer enda en gård/i);
     await editLastPet(page);
     await addPetManually(page, 'Lady');
 
     // Round 3
-    await generateMorePets(page, /generer enda en gård/i);
+    await generate250MorePets(page, /generer enda en gård/i);
     await editLastPet(page);
     await addPetManually(page, 'Herman');
   } catch (error) {
@@ -106,7 +105,7 @@ async function localtestLogin(page: Page) {
 
     await page.getByRole('button', { name: /select/i }).click();
 
-    await page.waitForSelector('select[name="UserSelect"]');
+    await page.locator('select[name="UserSelect"]').waitFor({ state: 'visible' });
 
     const userSelect = page.getByRole('combobox', { name: /select test users/i });
     const authSelect = page.getByRole('combobox', { name: /select your authentication level/i });
@@ -155,7 +154,7 @@ async function goToCorrectPage(page: Page) {
   }
 }
 
-async function generateMorePets(screen: Page, buttonName: RegExp) {
+async function generate250MorePets(screen: Page, buttonName: RegExp) {
   try {
     const startTime = Date.now();
     await screen.getByRole('button', { name: buttonName }).click();
@@ -173,7 +172,7 @@ async function generateMorePets(screen: Page, buttonName: RegExp) {
     add250RepeatingGroupRowsMetric.add(endTime - startTime);
   } catch (error) {
     console.log(`Generating more pets failed: ${error.message}`);
-    throw error; // Re-throw to fail the test
+    throw error;
   }
 }
 
@@ -190,7 +189,7 @@ async function editLastPet(page: Page) {
     await lastRowSpeciesSelect.click();
 
     // // Wait for select to be open
-    await page.waitForSelector('table tr:last-child u-combobox u-datalist');
+    await page.locator('table tr:last-child u-combobox u-datalist').waitFor({ state: 'attached' });
 
     check(page, {
       isOpen: async () => page.getByRole('row').last().getByRole('combobox', { expanded: true }) !== null,
@@ -230,7 +229,7 @@ async function editLastPet(page: Page) {
     });
   } catch (error) {
     console.log(`Edit last pet test failed: ${error.message}`);
-    throw error; // Re-throw to fail the test
+    throw error;
   }
 }
 
@@ -282,6 +281,6 @@ async function addPetManually(page: Page, petName: string) {
     manualRowAdditionTimeMetric.add(endTime - startTime);
   } catch (error) {
     console.log(`Adding pet manually failed: ${error.message}`);
-    throw error; // Re-throw to fail the test
+    throw error;
   }
 }
