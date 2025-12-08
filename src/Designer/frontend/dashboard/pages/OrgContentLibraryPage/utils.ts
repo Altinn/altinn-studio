@@ -31,10 +31,8 @@ export function textResourcesWithLanguageToLibraryTextResources({
 }
 
 export function backendCodeListsToLibraryCodeLists(
-  response: SharedResourcesResponse | undefined,
+  response: SharedResourcesResponse,
 ): LibraryCodeListData[] {
-  if (!response) return [];
-
   return response.files.map((file) => {
     const fileName = FileNameUtils.extractFileName(FileNameUtils.removeExtension(file.path));
 
