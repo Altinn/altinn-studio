@@ -1513,7 +1513,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "clamp_max(\n  100 *\n  sum by (namespace, deployment) (\n    kube_deployment_status_replicas_available{namespace=\"default\", deployment=~\"^$org-.*-deployment-v2$\"}\n  )\n  /\n  clamp_min(\n    sum by (namespace, deployment) (\n      kube_deployment_spec_replicas{namespace=\"default\", deployment=~\"^$org-$app-deployment-v2$\"}\n    ), 1\n  ),\n  100\n)",
+              "expr": "clamp_max(\n  100 *\n  sum by (namespace, deployment) (\n    kube_deployment_status_replicas_available{namespace=\"default\", deployment=~\"^$org-$app-deployment-v2$\"}\n  )\n  /\n  clamp_min(\n    sum by (namespace, deployment) (\n      kube_deployment_spec_replicas{namespace=\"default\", deployment=~\"^$org-$app-deployment-v2$\"}\n    ), 1\n  ),\n  100\n)",
               "instant": false,
               "legendFormat": "__auto",
               "range": true,
