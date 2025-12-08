@@ -30,8 +30,7 @@ spec:
                     | where client_Type != 'Browser'
                     | where toint(resultCode) >= 500
                     | where operation_Name == 'PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]'
-                    | summarize Count = sum(itemCount) by cloud_RoleName, DateTimeOffset = bin(timestamp, $__interval)
-                    | order by DateTimeOffset asc
+                    | summarize occurred = iff(count() > 0, 1, 0) by cloud_RoleName
                 resources:
                     - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
                 resultFormat: time_series
@@ -126,8 +125,7 @@ spec:
                     | where client_Type != 'Browser'
                     | where toint(resultCode) >= 500
                     | where operation_Name == 'POST Instances/Post [app/org]'
-                    | summarize Count = sum(itemCount) by cloud_RoleName, DateTimeOffset = bin(timestamp, $__interval)
-                    | order by DateTimeOffset asc
+                    | summarize occurred = iff(count() > 0, 1, 0) by cloud_RoleName
                 resources:
                     - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
                 resultFormat: time_series
@@ -200,101 +198,5 @@ spec:
         summary: '`{{ index $labels "cloud/rolename" }}` har hatt feilende instansieringer siste 5 minutter'
       labels:
         RuleId: failed-instances-post-requests
-        Type: Altinn
-      isPaused: false
-    - uid: failed-health-requests
-      title: Feilende helsesjekker
-      condition: C
-      data:
-        - refId: A
-          queryType: Azure Log Analytics
-          relativeTimeRange:
-            from: 300
-            to: 0
-          datasourceUid: azure-monitor-oob
-          model:
-            azureLogAnalytics:
-                dashboardTime: true
-                query: |-
-                    requests
-                    | where $__timeFilter(timestamp)
-                    | where success == false
-                    | where client_Type != 'Browser'
-                    | where toint(resultCode) >= 500
-                    | where operation_Name == 'GET /health'
-                    | summarize Count = sum(itemCount) by cloud_RoleName, DateTimeOffset = bin(timestamp, $__interval)
-                    | order by DateTimeOffset asc
-                resources:
-                    - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
-                resultFormat: time_series
-                timeColumn: timestamp
-                workspace: ""
-            datasource:
-                type: grafana-azure-monitor-datasource
-                uid: azure-monitor-oob
-            instant: false
-            intervalMs: 1000
-            maxDataPoints: 43200
-            queryType: Azure Log Analytics
-            range: true
-            refId: A
-        - refId: B
-          datasourceUid: __expr__
-          model:
-            conditions:
-                - evaluator:
-                    params: []
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                        - B
-                  reducer:
-                    params: []
-                    type: count
-                  type: query
-            datasource:
-                type: __expr__
-                uid: __expr__
-            expression: A
-            intervalMs: 1000
-            maxDataPoints: 43200
-            reducer: count
-            refId: B
-            type: reduce
-        - refId: C
-          datasourceUid: __expr__
-          model:
-            conditions:
-                - evaluator:
-                    params:
-                        - 0
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                        - C
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-            datasource:
-                type: __expr__
-                uid: __expr__
-            expression: B
-            intervalMs: 1000
-            maxDataPoints: 43200
-            refId: C
-            type: threshold
-      noDataState: OK
-      execErrState: Error
-      annotations:
-        __dashboardUid__: AltinnApps
-        __panelId__: "14"
-        summary: '`{{ index $labels "cloud/rolename" }}` har hatt feilende helsesjekker siste 5 minutter'
-      labels:
-        RuleId: failed-health-requests
         Type: Altinn
       isPaused: false

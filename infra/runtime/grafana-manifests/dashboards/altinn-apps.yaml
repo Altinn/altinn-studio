@@ -439,6 +439,110 @@ spec:
             "h": 8,
             "w": 12,
             "x": 12,
+            "y": 19
+          },
+          "id": 20,
+          "options": {
+            "legend": {
+              "calcs": [
+                "sum"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "11.6.3",
+          "targets": [
+            {
+              "azureLogAnalytics": {
+                "dashboardTime": true,
+                "query": "requests\n| where $__timeFilter(timestamp)\n| where success == false\n| where client_Type != 'Browser'\n| where toint(resultCode) >= 500\n| where cloud_RoleName in ($app)\n| where operation_Name == 'POST Instances/Post [app/org]'\n| summarize Value = sum(itemCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
+                "resources": [
+                  "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
+                ],
+                "resultFormat": "time_series",
+                "timeColumn": "timestamp"
+              },
+              "datasource": {
+                "type": "grafana-azure-monitor-datasource",
+                "uid": "azure-monitor-oob"
+              },
+              "queryType": "Azure Log Analytics",
+              "refId": "A"
+            }
+          ],
+          "title": "Failed instance requests",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": true,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
             "y": 11
           },
           "id": 19,
@@ -562,7 +666,7 @@ spec:
             {
               "azureLogAnalytics": {
                 "dashboardTime": true,
-                "query": "requests\n| where $__timeFilter(timestamp)\n| where success == false\n| where client_Type != 'Browser'\n| where toint(resultCode) >= 500\n| where cloud_RoleName in ($app)\n| where name has 'PUT Process/NextElement'\n| summarize Value = sum(itemCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
+                "query": "requests\n| where $__timeFilter(timestamp)\n| where success == false\n| where client_Type != 'Browser'\n| where toint(resultCode) >= 500\n| where cloud_RoleName in ($app)\n| where operation_Name == 'PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]'\n| summarize Value = sum(itemCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
