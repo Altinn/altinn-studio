@@ -288,6 +288,7 @@ export const queriesMock: ServicesContextProps = {
   updateOrgCodeListId: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOrgTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateSharedResources: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   uploadOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -325,7 +326,4 @@ export const queriesMock: ServicesContextProps = {
   // Mutations - ProcessEditor
   updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),
   updateProcessDataTypes: jest.fn().mockImplementation(() => Promise.resolve()),
-
-  // Mutations - Shared Resources
-  updateSharedResources: jest.fn().mockImplementation(() => Promise.resolve()),
 };
