@@ -4,6 +4,7 @@ using StudioGateway.Api.Endpoints.Internal;
 using StudioGateway.Api.Endpoints.Local;
 using StudioGateway.Api.Endpoints.Public;
 using StudioGateway.Api.Hosting;
+using StudioGateway.Api.Settings;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -12,6 +13,8 @@ builder.Configuration.AddJsonFile(
     optional: true,
     reloadOnChange: true
 );
+builder.Configuration.AddJsonFile("/app/secrets/grafana-token.json", optional: true, reloadOnChange: true);
+builder.Services.Configure<GrafanaSettings>(builder.Configuration.GetSection("Grafana"));
 
 builder.ConfigureKestrelPorts();
 builder.AddHostingConfiguration();
