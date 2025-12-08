@@ -158,6 +158,7 @@ func TestReconciler_DeletesDestinationOnSourceDelete(t *testing.T) {
 		SourceNamespace: "source-ns",
 		DestName:        "dest-secret",
 		DestNamespace:   "dest-ns",
+		CanDeleteDest:   true,
 	}
 
 	destSecret := &corev1.Secret{
@@ -175,6 +176,68 @@ func TestReconciler_DeletesDestinationOnSourceDelete(t *testing.T) {
 
 	_, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
 	g.Expect(err).To(HaveOccurred())
+}
+
+func TestReconciler_ClearsDestinationWhenCanDeleteDestFalse(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := SecretSyncMapping{
+		SourceName:      "source-secret",
+		SourceNamespace: "source-ns",
+		DestName:        "dest-secret",
+		DestNamespace:   "dest-ns",
+		CanDeleteDest:   false,
+	}
+
+	destSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      mapping.DestName,
+			Namespace: mapping.DestNamespace,
+		},
+		Data: map[string][]byte{
+			"key1": []byte("value1"),
+		},
+	}
+
+	h := newTestHarness(t, []SecretSyncMapping{mapping}, destSecret)
+	h.reconcile(t, mapping.SourceName, mapping.SourceNamespace)
+
+	// Dest should still exist but data should be cleared
+	dest, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(dest.Data).To(BeNil())
+}
+
+func TestReconciler_ClearsDestinationWithCustomClearOutput(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := SecretSyncMapping{
+		SourceName:      "source-secret",
+		SourceNamespace: "source-ns",
+		DestName:        "dest-secret",
+		DestNamespace:   "dest-ns",
+		DestKey:         "config.json",
+		CanDeleteDest:   false,
+		ClearOutput:     func() []byte { return []byte("{}") },
+	}
+
+	destSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      mapping.DestName,
+			Namespace: mapping.DestNamespace,
+		},
+		Data: map[string][]byte{
+			"config.json": []byte(`{"key":"value"}`),
+		},
+	}
+
+	h := newTestHarness(t, []SecretSyncMapping{mapping}, destSecret)
+	h.reconcile(t, mapping.SourceName, mapping.SourceNamespace)
+
+	// Dest should still exist with cleared data from ClearOutput
+	dest, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(string(dest.Data["config.json"])).To(Equal("{}"))
 }
 
 func TestReconciler_CorrectsDriftOnDestinationChange(t *testing.T) {
