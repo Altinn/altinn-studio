@@ -165,14 +165,6 @@ describe('utils', () => {
       };
       expect(result).toEqual(expectedResult);
     });
-
-    it('Throws error when current data is undefined', () => {
-      const updatedCodeLists: CodeListData[] = [{ name: 'animals', codes: codeLists.animals }];
-      const commitMessage = 'Lorem ipsum';
-      expect(() =>
-        libraryCodeListsToUpdatePayload(undefined, updatedCodeLists, commitMessage),
-      ).toThrow('Current data is required to create update payload');
-    });
   });
 
   describe('libraryCodeListDataToBackendCodeListData', () => {

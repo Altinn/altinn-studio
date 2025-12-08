@@ -2,8 +2,8 @@ import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourc
 import { codeLists } from './codeLists';
 import { btoaUTF8 } from '../utils';
 
-const animalsFileContent = btoaUTF8(JSON.stringify({ codes: codeLists.animals }));
-const vehiclesFileContent = btoaUTF8(JSON.stringify({ codes: codeLists.vehicles }));
+const animalsFileContent = btoaUTF8(JSON.stringify(codeLists.animals));
+const vehiclesFileContent = btoaUTF8(JSON.stringify(codeLists.vehicles));
 
 export const sharedResourcesResponse: SharedResourcesResponse = {
   files: [

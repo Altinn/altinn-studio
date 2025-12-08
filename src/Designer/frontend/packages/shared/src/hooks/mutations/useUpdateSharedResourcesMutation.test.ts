@@ -31,18 +31,16 @@ describe('useUpdateSharedResourcesMutation', () => {
     expect(updateSharedResources).toHaveBeenCalledWith(orgName, payload);
   });
 
-  it('Invalidates the shared resources cache for the given organisation', async () => {
+  it('Sets the shared resources cache for the given organisation', async () => {
     const queryClient = createQueryClientMock();
-    const invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries');
+    const setQueryData = jest.spyOn(queryClient, 'setQueryData');
     const { result } = renderHookWithProviders(() => useUpdateSharedResourcesMutation(orgName), {
       queryClient,
     });
 
     await result.current.mutateAsync(payload);
 
-    expect(invalidateQueries).toHaveBeenCalledTimes(1);
-    expect(invalidateQueries).toHaveBeenCalledWith({
-      queryKey: [QueryKey.SharedResources, orgName],
-    });
+    expect(setQueryData).toHaveBeenCalledTimes(1);
+    expect(setQueryData).toHaveBeenCalledWith([QueryKey.SharedResources, orgName], payload);
   });
 });
