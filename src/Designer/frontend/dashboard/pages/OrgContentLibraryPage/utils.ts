@@ -14,6 +14,9 @@ import type {
 import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
 import { CODE_LIST_FOLDER } from 'app-shared/constants';
 import { FileNameUtils } from '@studio/pure-functions';
+import type { LibraryFile } from 'app-shared/types/LibraryFile';
+import type { SharedResources } from './types/SharedResources';
+import { isCodeListValid } from './validators/isCodelistValid';
 
 export function textResourceWithLanguageToMutationArgs({
   language,
@@ -34,28 +37,45 @@ export function backendCodeListsToLibraryCodeLists(
   response: SharedResourcesResponse,
 ): LibraryCodeListData[] {
   return response.files.map((file) => {
-    const fileName = FileNameUtils.extractFileName(FileNameUtils.removeExtension(file.path));
+    const fileWithExtension = FileNameUtils.extractFileName(file.path);
 
-    if (FileNameUtils.extractExtension(file.path) != 'json') {
-      return { name: fileName, codes: [] };
-    }
-
-    if (file.problem || !file.content) {
+    if (!FileNameUtils.isJsonFile(fileWithExtension)) {
       // TODO: We should show the user that a codelist is corrupted
-      return { name: fileName, codes: [] };
+      return { name: fileWithExtension, codes: [] };
     }
+    const fileName = FileNameUtils.removeExtension(fileWithExtension);
 
-    try {
-      const codeList = JSON.parse(atobUTF8(file.content));
-      return {
-        name: fileName,
-        codes: Array.isArray(codeList.codes) ? codeList.codes : [],
-      };
-    } catch {
-      // TODO: We should show the user that a codelist is corrupted
-      return { name: fileName, codes: [] };
+    switch (file.kind) {
+      case 'content':
+        return handleFile(file, fileName);
+      case 'problem':
+        return handleProblem(fileName);
+      case 'url':
+        return handleUrl();
     }
   });
+}
+
+function handleUrl(): LibraryCodeListData {
+  throw Error('Code list files should be json files.');
+}
+
+function handleProblem(fileName: string): LibraryCodeListData {
+  // TODO: We should show the user that a codelist is corrupted
+  return { name: fileName, codes: [] };
+}
+
+function handleFile(file: LibraryFile<'content'>, fileName: string): LibraryCodeListData {
+  try {
+    const codeList = JSON.parse(atobUTF8(file.content));
+    return {
+      name: fileName,
+      codes: isCodeListValid(codeList.codes) ? codeList.codes : [],
+    };
+  } catch {
+    // TODO: We should show the user that a codelist is corrupted
+    return { name: fileName, codes: [] };
+  }
 }
 
 function atobUTF8(data: string): string {
@@ -76,14 +96,10 @@ export function btoaUTF8(data: string): string {
 }
 
 export function libraryCodeListsToUpdatePayload(
-  currentData: SharedResourcesResponse | undefined,
+  currentData: SharedResources,
   updatedCodeLists: LibraryCodeListData[],
   commitMessage: string,
 ): UpdateSharedResourcesRequest {
-  if (!currentData) {
-    throw new Error('Current data is required to create update payload');
-  }
-
   const files: FileMetadata[] = mapFiles(updatedCodeLists);
   const updatedNames = new Set(updatedCodeLists.map((cl) => cl.name));
   const deletedFiles = filterFilesToDelete(currentData, updatedNames);
@@ -102,10 +118,9 @@ function mapFiles(updatedCodeLists: LibraryCodeListData[]): FileMetadata[] {
   }));
 }
 
-function filterFilesToDelete(currentData: SharedResourcesResponse, updatedNames: Set<string>) {
+function filterFilesToDelete(currentData: SharedResources, updatedNames: Set<string>) {
   // Add files with empty content for deleted code lists
   return currentData.files
-    .filter((file) => !file.problem)
     .filter((file) => {
       const fileName = FileNameUtils.extractFileName(FileNameUtils.removeExtension(file.path));
       return fileName && !updatedNames.has(fileName);
