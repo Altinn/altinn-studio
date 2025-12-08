@@ -17,5 +17,5 @@ type LibraryFileBase<Kind extends FileKind> = {
 export type LibraryFile<Kind extends FileKind = FileKind> = {
   content: LibraryFileBase<'content'> & { content: string };
   url: LibraryFileBase<'url'> & { url: string };
-  problem: LibraryFileBase<'problem'> & { problemDetails: ProblemDetails };
+  problem: LibraryFileBase<'problem'> & { problem: ProblemDetails };
 }[Kind];

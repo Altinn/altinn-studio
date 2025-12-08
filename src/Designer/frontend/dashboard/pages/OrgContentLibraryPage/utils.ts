@@ -36,7 +36,12 @@ export function textResourcesWithLanguageToLibraryTextResources({
 export function backendCodeListsToLibraryCodeLists(
   response: SharedResourcesResponse,
 ): LibraryCodeListData[] {
-  return response.files.map((file) => {
+  return response.files.map(backendCodeListToLibraryCodeList);
+}
+
+function backendCodeListToLibraryCodeList(
+  file: LibraryFile
+): LibraryCodeListData {
     const fileWithExtension = FileNameUtils.extractFileName(file.path);
 
     if (!FileNameUtils.isJsonFile(fileWithExtension)) {
@@ -53,7 +58,6 @@ export function backendCodeListsToLibraryCodeLists(
       case 'url':
         return handleUrl();
     }
-  });
 }
 
 function handleUrl(): LibraryCodeListData {
@@ -70,7 +74,7 @@ function handleFile(file: LibraryFile<'content'>, fileName: string): LibraryCode
     const codeList = JSON.parse(atobUTF8(file.content));
     return {
       name: fileName,
-      codes: isCodeListValid(codeList.codes) ? codeList.codes : [],
+      codes: isCodeListValid(codeList) ? codeList : [],
     };
   } catch {
     // TODO: We should show the user that a codelist is corrupted
@@ -96,7 +100,7 @@ export function btoaUTF8(data: string): string {
 }
 
 export function libraryCodeListsToUpdatePayload(
-  currentData: SharedResources,
+  currentData: SharedResourcesResponse,
   updatedCodeLists: LibraryCodeListData[],
   commitMessage: string,
 ): UpdateSharedResourcesRequest {
@@ -118,9 +122,10 @@ function mapFiles(updatedCodeLists: LibraryCodeListData[]): FileMetadata[] {
   }));
 }
 
-function filterFilesToDelete(currentData: SharedResources, updatedNames: Set<string>) {
+function filterFilesToDelete(currentData: SharedResourcesResponse, updatedNames: Set<string>) {
   // Add files with empty content for deleted code lists
   return currentData.files
+    .filter(file => file.kind !== "problem")
     .filter((file) => {
       const fileName = FileNameUtils.extractFileName(FileNameUtils.removeExtension(file.path));
       return fileName && !updatedNames.has(fileName);
