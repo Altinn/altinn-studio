@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -25,7 +26,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
-        services.AddSingleton<IGitea, IGiteaMock>();
+        services.AddSingleton<IGiteaClient, IGiteaClientMock>();
         services.AddSingleton(_ => _orgLibraryServiceMock.Object);
         services.AddSingleton(_ => _userOrganizationServiceMock.Object);
     }

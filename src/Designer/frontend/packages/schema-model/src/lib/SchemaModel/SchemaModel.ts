@@ -35,6 +35,7 @@ import {
 import { convertPropToType } from '../mutations/convert-node';
 import { SchemaModelBase } from './SchemaModelBase';
 import { CircularReferenceDetector } from './CircularReferenceDetector';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export class SchemaModel extends SchemaModelBase {
   constructor(nodes: NodeMap) {
@@ -498,6 +499,12 @@ export class SchemaModel extends SchemaModelBase {
   ): boolean {
     const detector = new CircularReferenceDetector(this.nodeMap);
     return detector.willResultInCircularReferences(childSchemaPointer, parentSchemaPointer);
+  }
+
+  public setRestrictions(path: string, restrictions: KeyValuePairs): SchemaModel {
+    const node = this.getNodeBySchemaPointer(path);
+    const newNode: UiSchemaNode = { ...node, restrictions };
+    return this.updateNode(path, newNode);
   }
 }
 

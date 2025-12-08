@@ -1,3 +1,15 @@
+.wrapper :global(button[data-color='neutral']) {
+  color: var(--ds-color-text-default);
+}
+
+.preview :global(button[data-color='neutral']) {
+  color: var(--ds-color-neutral-background-default) !important;
+}
+
+.wrapper :global(button[data-color='neutral']:hover) {
+  background-color: var(--studio-designer-header-background-secondary);
+}
+
 .dropDownMenuGroup:not(:last-child) {
   border-bottom: 1px solid var(--ds-color-border-subtle);
   padding-bottom: var(--ds-size-2);

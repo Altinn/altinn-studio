@@ -1,106 +1,267 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PolicySubjects } from './PolicySubjects';
+import { PolicyEditorContext } from '@altinn/policy-editor/contexts/PolicyEditorContext';
+import { PolicyRuleContext } from '@altinn/policy-editor/contexts/PolicyRuleContext';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import {
-  mockSubjectTitle1,
-  mockSubjectTitle2,
-  mockSubjectTitle3,
-} from '../../../../../test/mocks/policySubjectMocks';
-import { PolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
-import { PolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
-import { mockPolicyEditorContextValue } from '../../../../../test/mocks/policyEditorContextMock';
 import { mockPolicyRuleContextValue } from '../../../../../test/mocks/policyRuleContextMock';
+import { mockPolicyEditorContextValue } from '../../../../../test/mocks/policyEditorContextMock';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import type {
+  PolicyAccessPackage,
+  PolicyAccessPackageArea,
+  PolicyAccessPackageAreaGroup,
+} from 'app-shared/types/PolicyAccessPackages';
+import { PolicySubjects } from './PolicySubjects';
+import { policySubjectOrg } from '@altinn/policy-editor/utils';
+import {
+  mockSubject1,
+  mockSubject2,
+  mockSubject3,
+} from '../../../../../test/mocks/policySubjectMocks';
+
+const sjofartPackage: PolicyAccessPackage = {
+  id: 'urn:altinn:accesspackage:sjofart',
+  urn: 'urn:altinn:accesspackage:sjofart',
+  name: 'Sjøfart',
+  description: '',
+  isDelegable: true,
+};
+const lufttransportPackage: PolicyAccessPackage = {
+  id: 'urn:altinn:accesspackage:lufttransport',
+  urn: 'urn:altinn:accesspackage:lufttransport',
+  name: 'Lufttransport',
+  description: '',
+  isDelegable: true,
+};
+const accessPackageAreaTransport: PolicyAccessPackageArea = {
+  id: 'transport-area',
+  urn: 'accesspackage:area:transport',
+  name: 'Lagring og transport',
+  description: '',
+  iconUrl: 'TruckIcon',
+  packages: [sjofartPackage, lufttransportPackage],
+};
+const accessPackageAreaGroupVanlig: PolicyAccessPackageAreaGroup = {
+  id: 'vanlig',
+  name: 'Vanlig',
+  description: 'Mest vanlige pakkenegruppene',
+  type: 'Organisasjon',
+  areas: [accessPackageAreaTransport],
+};
+
+const revisorRoleSubject = {
+  id: 'f76b997a-9bd8-4f7b-899f-fcd85d35669f',
+  name: 'Revisor',
+  description: 'Revisor',
+  urn: 'urn:altinn:external-role:ccr:revisor',
+  legacyRoleCode: 'REVI',
+  legacyUrn: 'urn:altinn:rolecode:REVI',
+  provider: {
+    id: '0195ea92-2080-758b-89db-7735c4f68320',
+    name: 'Enhetsregisteret',
+    code: 'sys-ccr',
+  },
+};
+const utinnRoleSubject = {
+  id: 'dbaae9f8-107a-4222-9afd-d9f95cd5319c',
+  name: 'Utfyller/Innsender',
+  description:
+    'Denne rollen gir rettighet til et bredt utvalg skjema og tjenester som ikke har så strenge krav til autorisasjon. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som rollen gir.',
+  urn: 'urn:altinn:rolecode:UTINN',
+  legacyRoleCode: 'UTINN',
+  legacyUrn: 'urn:altinn:rolecode:UTINN',
+  provider: {
+    id: '0195ea92-2080-777d-8626-69c91ea2a05d',
+    name: 'Altinn 2',
+    code: 'sys-altinn2',
+  },
+};
+const agentRoleSubject = {
+  id: 'ff4c33f5-03f7-4445-85ed-1e60b8aafb30',
+  name: 'Agent',
+  description: 'Gir mulighet til å motta delegerte fullmakter for virksomheten',
+  urn: 'urn:altinn:role:agent',
+  legacyRoleCode: null,
+  legacyUrn: null,
+  provider: {
+    id: '0195ea92-2080-7e7c-bbe3-bb0521c1e51a',
+    name: 'Altinn 3',
+    code: 'sys-altinn3',
+  },
+};
+const subjects = [
+  revisorRoleSubject,
+  utinnRoleSubject,
+  agentRoleSubject,
+  mockSubject1,
+  mockSubject2,
+  mockSubject3,
+  policySubjectOrg,
+];
 
 describe('PolicySubjects', () => {
   afterEach(jest.clearAllMocks);
 
-  it('calls "setPolicyRules" when subjects are edited', async () => {
+  it('should show subject checkbox checked when subject is added with urn', async () => {
     const user = userEvent.setup();
     renderPolicySubjects();
 
-    const selectedSubject1 = screen.getByLabelText(
-      `${textMock('general.delete')} ${mockSubjectTitle1}`,
+    const altinnRolesTab = screen.getByText(
+      textMock('policy_editor.rule_card_subjects_altinn_roles'),
     );
-    const selectedSubject2 = screen.queryByLabelText(
-      `${textMock('general.delete')} ${mockSubjectTitle2}`,
+    await user.click(altinnRolesTab);
+
+    const checkbox = screen.getByLabelText(agentRoleSubject.name);
+    await user.click(checkbox);
+
+    expect(checkbox).toBeChecked();
+  });
+
+  it('should show subject checkbox checked when subject is added with legacyUrn', async () => {
+    const user = userEvent.setup();
+    renderPolicySubjects();
+
+    const checkbox = screen.getByLabelText(
+      `${revisorRoleSubject.name} (${revisorRoleSubject.legacyRoleCode})`,
     );
-    const selectedSubject3 = screen.getByLabelText(
-      `${textMock('general.delete')} ${mockSubjectTitle3}`,
-    );
-    expect(selectedSubject1).toBeInTheDocument();
-    expect(selectedSubject2).not.toBeInTheDocument();
-    expect(selectedSubject3).toBeInTheDocument();
+    await user.click(checkbox);
 
-    const [subjectSelect] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_subjects_title'),
-    );
-    await user.click(subjectSelect);
+    expect(checkbox).toBeChecked();
+  });
 
-    const optionSubject1 = screen.queryByRole('option', { name: mockSubjectTitle1 });
-    const optionSubject2 = screen.getByRole('option', { name: mockSubjectTitle2 });
-    const optionSubject3 = screen.queryByRole('option', { name: mockSubjectTitle3 });
+  it('should remove subject from selected list when subject checkbox is clicked', async () => {
+    const user = userEvent.setup();
+    renderPolicySubjects();
 
-    expect(optionSubject1).not.toBeInTheDocument();
-    expect(optionSubject2).toBeInTheDocument();
-    expect(optionSubject3).not.toBeInTheDocument();
+    const label = `${mockSubject1.name} (${mockSubject1.legacyRoleCode})`;
+    const selectedSubjectCheckbox = screen.getByLabelText(label);
+    await user.click(selectedSubjectCheckbox);
 
-    await user.selectOptions(subjectSelect, mockSubjectTitle2);
+    expect(screen.queryByText(label)).not.toBeInTheDocument();
+  });
 
-    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
+  it('should remove access package from selected list when selected access package checkbox is clicked', async () => {
+    const user = userEvent.setup();
+    renderPolicySubjects();
+
+    const selectedAccessPackageCheckbox = screen.getByLabelText(lufttransportPackage.name);
+    await user.click(selectedAccessPackageCheckbox);
+
+    expect(screen.queryByText(lufttransportPackage.name)).not.toBeInTheDocument();
+  });
+
+  it('should show unknown access package if rule contains unknown access package', () => {
+    renderPolicySubjects();
 
     expect(
-      screen.queryByLabelText(`${textMock('general.delete')} ${mockSubjectTitle2}`),
-    ).not.toBeInTheDocument();
-
-    const [inputAllSelected] = screen.getAllByText(
-      textMock('policy_editor.rule_card_subjects_select_all_selected'),
-    );
-    expect(inputAllSelected).toBeInTheDocument();
+      screen.getByText(textMock('policy_editor.access_package_unknown_heading')),
+    ).toBeInTheDocument();
   });
 
-  it('should append subject to selectable subject options list when selected subject is removed', async () => {
+  it('should show error if no subject is selected', () => {
+    renderPolicySubjects();
+
+    expect(
+      screen.getByText(textMock('policy_editor.rule_card_subjects_error')),
+    ).toBeInTheDocument();
+  });
+
+  it('should show ccr subjects in first tab', () => {
+    renderPolicySubjects();
+
+    expect(
+      screen.getByText(`${revisorRoleSubject.name} (${revisorRoleSubject.legacyRoleCode})`),
+    ).toBeInTheDocument();
+  });
+
+  it('should show access packages in second tab', async () => {
     const user = userEvent.setup();
     renderPolicySubjects();
 
-    const [subjectSelect] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_subjects_title'),
+    const accessPackagesTab = screen.getByText(
+      textMock('policy_editor.rule_card_subjects_access_packages'),
     );
-    await user.click(subjectSelect);
+    await user.click(accessPackagesTab);
 
-    expect(screen.queryByRole('option', { name: mockSubjectTitle1 })).toBeNull();
-
-    const selectedSubject = screen.getByLabelText(
-      `${textMock('general.delete')} ${mockSubjectTitle1}`,
-    );
-    await user.click(selectedSubject);
-
-    await user.click(subjectSelect);
-    expect(screen.getByRole('option', { name: mockSubjectTitle1 })).toBeInTheDocument();
+    expect(screen.getByText(accessPackageAreaTransport.name)).toBeInTheDocument();
   });
 
-  it('calls the "setPolicyRules", "savePolicy", and "setPolicyError" function when the chip is clicked', async () => {
+  it('should show altinn 2 and altinn 3 roles in third tab', async () => {
     const user = userEvent.setup();
     renderPolicySubjects();
 
-    await user.selectOptions(
-      screen.getByLabelText(textMock('policy_editor.rule_card_subjects_title')),
-      mockSubjectTitle2,
+    const altinnRolesTab = screen.getByText(
+      textMock('policy_editor.rule_card_subjects_altinn_roles'),
     );
+    await user.click(altinnRolesTab);
 
-    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
-    expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
-    expect(mockPolicyRuleContextValue.setPolicyError).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText(`${utinnRoleSubject.name} (${utinnRoleSubject.legacyRoleCode})`),
+    ).toBeInTheDocument();
+    expect(screen.getByText(agentRoleSubject.name)).toBeInTheDocument();
+  });
+
+  it('should show org subject in fourth tab', async () => {
+    const user = userEvent.setup();
+    renderPolicySubjects();
+
+    const otherRolesTab = screen.getByText(
+      textMock('policy_editor.rule_card_subjects_other_roles'),
+    );
+    await user.click(otherRolesTab);
+
+    expect(
+      screen.getByText(`${policySubjectOrg.name} (${policySubjectOrg.legacyRoleCode})`),
+    ).toBeInTheDocument();
   });
 });
 
 const renderPolicySubjects = () => {
+  const queryClient = createQueryClientMock();
+
   return render(
-    <PolicyEditorContext.Provider value={mockPolicyEditorContextValue}>
-      <PolicyRuleContext.Provider value={mockPolicyRuleContextValue}>
+    <ServicesContextProvider {...queriesMock} client={queryClient}>
+      <ContextWrapper />
+    </ServicesContextProvider>,
+  );
+};
+
+const ContextWrapper = () => {
+  // Add local state for policyRule
+  const [policyRules, setPolicyRules] = useState([
+    {
+      ...mockPolicyRuleContextValue.policyRule,
+      accessPackages: [lufttransportPackage.urn, 'urn:altinn:accesspackage:unknown'],
+    },
+  ]);
+
+  return (
+    <PolicyEditorContext.Provider
+      value={{
+        ...mockPolicyEditorContextValue,
+        accessPackages: [accessPackageAreaGroupVanlig],
+        subjects: subjects,
+        policyRules: policyRules,
+        setPolicyRules,
+      }}
+    >
+      <PolicyRuleContext.Provider
+        value={{
+          ...mockPolicyRuleContextValue,
+          policyError: {
+            resourceError: false,
+            actionsError: false,
+            subjectsError: true,
+          },
+          showAllErrors: true,
+          policyRule: { ...policyRules[0] },
+        }}
+      >
         <PolicySubjects />
       </PolicyRuleContext.Provider>
-    </PolicyEditorContext.Provider>,
+    </PolicyEditorContext.Provider>
   );
 };

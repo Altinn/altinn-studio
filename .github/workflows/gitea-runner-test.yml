@@ -1,0 +1,30 @@
+name: Gitea Runner - Test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/gitea-runner/**'
+      - '.github/workflows/gitea-runner-test.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Build Docker image
+        run: docker build -t gitea-runner-test .
+        working-directory: src/gitea-runner
+
+      - name: Test renovate command is available
+        run: |
+          output=$(docker run --rm --entrypoint "" gitea-runner-test renovate --version 2>&1)
+          echo "Output: $output"
+          # Fail if output is not exactly a version number (e.g., 37.20.2)
+          if ! echo "$output" | grep -qxE '[0-9]+\.[0-9]+\.[0-9]+'; then
+            echo "ERROR: Expected only version number, got unexpected output"
+            exit 1
+          fi
+          echo "renovate is working correctly"

@@ -15,7 +15,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 
-export const TextEditor = () => {
+export default function TextEditor() {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const [searchParams, setSearchParams] = useSearchParams({ lang: '', search: '' });
@@ -67,4 +67,4 @@ export const TextEditor = () => {
       upsertTextResource={upsertTextResource}
     />
   );
-};
+}

@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Extensions;
 using Altinn.Studio.Designer.Models;
@@ -22,22 +23,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class TextResourceService : ITextResourceService
     {
-        private readonly IGitea _giteaApiWrapper;
+        private readonly IGiteaClient _giteaClient;
         private readonly ILogger<TextResourceService> _logger;
         private readonly IAltinnStorageTextResourceClient _storageTextResourceClient;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="giteaApiWrapper">IGitea</param>
+        /// <param name="giteaClient">IGiteaClient</param>
         /// <param name="logger">ILogger of type TextResourceService</param>
         /// <param name="storageTextResourceClient">IAltinnStorageTextResourceClient</param>
         public TextResourceService(
-            IGitea giteaApiWrapper,
+            IGiteaClient giteaClient,
             ILogger<TextResourceService> logger,
             IAltinnStorageTextResourceClient storageTextResourceClient)
         {
-            _giteaApiWrapper = giteaApiWrapper;
+            _giteaClient = giteaClient;
             _logger = logger;
             _storageTextResourceClient = storageTextResourceClient;
         }
@@ -51,7 +52,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             List<FileSystemObject> folder = [];
             try
             {
-                folder = await _giteaApiWrapper.GetDirectoryAsync(org, app, textResourcesPath, shortCommitId);
+                folder = await _giteaClient.GetDirectoryAsync(org, app, textResourcesPath, shortCommitId);
             }
             catch (DirectoryNotFoundException ex)
             {
@@ -72,7 +73,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 c.ThrowIfCancellationRequested();
                 FileSystemObject populatedFile =
-                    await _giteaApiWrapper.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
+                    await _giteaClient.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
                 byte[] data = Convert.FromBase64String(populatedFile.Content);
 
                 try

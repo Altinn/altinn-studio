@@ -9,7 +9,7 @@ import {
 } from '@studio/assistant';
 import { useTranslation } from 'react-i18next';
 
-export function AiAssistant(): ReactElement {
+export default function AiAssistant(): ReactElement {
   const { t } = useTranslation();
 
   // TODO: Fetch data from backend
