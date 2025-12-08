@@ -54,6 +54,7 @@
     "@types/jest": "30.0.0",
     "@types/js-levenshtein": "1.1.3",
     "@types/json-schema": "7.0.15",
+    "@types/k6": "^1.4.0",
     "@types/leaflet": "1",
     "@types/marked": "6.0.0",
     "@types/mime": "4.0.0",
