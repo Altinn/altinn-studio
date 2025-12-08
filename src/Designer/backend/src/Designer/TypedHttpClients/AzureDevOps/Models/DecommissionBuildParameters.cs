@@ -25,5 +25,17 @@ public class DecommissionBuildParameters
     /// </summary>
     [JsonPropertyName("APP_ENVIRONMENT")]
     public string AppEnvironment { get; set; }
+
+    /// <summary>
+    /// Whether or not to push the sync root gitops image
+    /// </summary>
+    [JsonPropertyName("PUSH_SYNCROOT_GITOPS_IMAGE")]
+    public string PushSyncRootGitopsImage { get; set; } = "true";
+
+    /// <summary>
+    /// Whether or not to push the apps OCI image
+    /// </summary>
+    [JsonPropertyName("PUSH_APPS_OCI_IMAGE")]
+    public string PushAppsOciImage { get; set; } = "false";
 }
 

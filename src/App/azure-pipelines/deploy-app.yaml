@@ -23,6 +23,7 @@ variables:
   # HOSTNAME: ''
   # TAGNAME: ''
   # PUSH_SYNCROOT_GITOPS_IMAGE: 'false' # Set to 'true' to enable pushing sync-root artifact
+  # PUSH_APPS_OCI_IMAGE: 'true' # Set to 'false' to skip pushing app OCI image
 
   # Variables for generating yaml files. Paths are relative to the root of the apps repository
   FLUX_ARTIFACT_DIR: 'flux-artifact'
@@ -47,8 +48,71 @@ steps:
   - checkout: none
 
   - task: Bash@3
+    displayName: 'Validate required variables'
+    inputs:
+      targetType: inline
+      script: |
+        ERRORS=()
+
+        # Always required variables
+        [ -z "$APP_OWNER" ] && ERRORS+=("APP_OWNER is required")
+        [ -z "$APP_REPO" ] && ERRORS+=("APP_REPO is required")
+        [ -z "$APP_ENVIRONMENT" ] && ERRORS+=("APP_ENVIRONMENT is required")
+        [ -z "$ALTINN_STUDIO_HOSTNAME" ] && ERRORS+=("ALTINN_STUDIO_HOSTNAME is required")
+
+        # Variables required when pushing app OCI image (default behavior)
+        if [ "$PUSH_APPS_OCI_IMAGE" != "false" ]; then
+          [ -z "$APP_DEPLOY_TOKEN" ] && ERRORS+=("APP_DEPLOY_TOKEN is required when PUSH_APPS_OCI_IMAGE is not 'false'")
+          [ -z "$GITEA_ENVIRONMENT" ] && ERRORS+=("GITEA_ENVIRONMENT is required when PUSH_APPS_OCI_IMAGE is not 'false'")
+          [ -z "$APP_COMMIT_ID" ] && ERRORS+=("APP_COMMIT_ID is required when PUSH_APPS_OCI_IMAGE is not 'false'")
+          [ -z "$TAGNAME" ] && ERRORS+=("TAGNAME is required when PUSH_APPS_OCI_IMAGE is not 'false'")
+        fi
+
+        # Variables required when pushing sync-root GitOps image
+        if [ "$PUSH_SYNCROOT_GITOPS_IMAGE" == "true" ]; then
+          [ -z "$APP_DEPLOY_TOKEN" ] && ERRORS+=("APP_DEPLOY_TOKEN is required when PUSH_SYNCROOT_GITOPS_IMAGE is 'true'")
+          [ -z "$GITEA_ENVIRONMENT" ] && ERRORS+=("GITEA_ENVIRONMENT is required when PUSH_SYNCROOT_GITOPS_IMAGE is 'true'")
+        fi
+
+        # Print all errors and exit if any
+        if [ ${#ERRORS[@]} -gt 0 ]; then
+          echo "##[error]Variable validation failed:"
+          for error in "${ERRORS[@]}"; do
+            echo "##[error]  - $error"
+          done
+          exit 1
+        fi
+
+        echo "All required variables are set"
+      failOnStderr: true
+
+  - task: Bash@3
+    displayName: 'Set STUDIO_ENVIRONMENT based on ALTINN_STUDIO_HOSTNAME'
+    inputs:
+      targetType: inline
+      script: |
+        case "$ALTINN_STUDIO_HOSTNAME" in
+          "dev.altinn.studio")
+            STUDIO_ENV="dev"
+            ;;
+          "staging.altinn.studio")
+            STUDIO_ENV="staging"
+            ;;
+          "altinn.studio")
+            STUDIO_ENV="prod"
+            ;;
+          *)
+            echo "Unknown ALTINN_STUDIO_HOSTNAME: $ALTINN_STUDIO_HOSTNAME"
+            exit 1
+            ;;
+        esac
+        echo "##vso[task.setvariable variable=STUDIO_ENVIRONMENT;]$STUDIO_ENV"
+      failOnStderr: true
+
+  - task: Bash@3
     name: RELEASE_NAME
     displayName: 'Create lowercase release name '
+    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
     inputs:
       targetType: inline
       script: |
@@ -65,6 +129,7 @@ steps:
 
   - task: CmdLine@2
     displayName: Pull Repo
+    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
     inputs:
       script: |
         # Should use oauth token when authenticating to private repo
@@ -93,7 +158,8 @@ steps:
         git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
 
   - task: Bash@3
-    displayName: Set environment variables (ALTINN_HOST, RG_NAME, STUDIO_ENVIRONMENT) based on APP_ENVIRONMENT
+    displayName: Set environment variables (ALTINN_HOST, RG_NAME) based on APP_ENVIRONMENT
+    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
     inputs:
       targetType: inline
       script: |
@@ -114,28 +180,11 @@ steps:
         if [ "$APP_ENVIRONMENT" == "production" ]; then
             echo "##vso[task.setvariable variable=RG_NAME;]altinnapps-$APP_OWNER-prod-rg"
         fi
-
-        # Set STUDIO_ENVIRONMENT based on ALTINN_STUDIO_HOSTNAME
-        case "$ALTINN_STUDIO_HOSTNAME" in
-          "dev.altinn.studio")
-            STUDIO_ENV="dev"
-            ;;
-          "staging.altinn.studio")
-            STUDIO_ENV="staging"
-            ;;
-          "altinn.studio")
-            STUDIO_ENV="prod"
-            ;;
-          *)
-            echo "Unknown ALTINN_STUDIO_HOSTNAME: $ALTINN_STUDIO_HOSTNAME"
-            exit 1
-            ;;
-        esac
-        echo "##vso[task.setvariable variable=STUDIO_ENVIRONMENT;]$STUDIO_ENV"
       failOnStderr: true
 
   - task: Bash@3
     displayName: Generate PowerShell script for Application Insights
+    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
     inputs:
       targetType: inline
       script: |
@@ -181,7 +230,7 @@ steps:
 
   - task: AzurePowerShell@4
     displayName: Get application Insights instrumentation key (Production)
-    condition: eq(variables['APP_ENVIRONMENT'], 'production')
+    condition: and(ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'production'))
     inputs:
       ConnectedServiceNameARM: $(AI_SERVICE_CONNECTION_ID_PROD)
       ScriptType: FilePath
@@ -192,7 +241,7 @@ steps:
 
   - task: AzurePowerShell@4
     displayName: Get application Insights instrumentation key (Non-Production)
-    condition: ne(variables['APP_ENVIRONMENT'], 'production')
+    condition: and(ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_ENVIRONMENT'], 'production'))
     inputs:
       ConnectedServiceNameARM: $(AI_SERVICE_CONNECTION_ID_TEST)
       ScriptType: FilePath
@@ -203,7 +252,7 @@ steps:
 
   - task: AzurePowerShell@4
     displayName: Ensure API management subscription key - Test
-    condition: "and(succeeded(), ne(variables['APP_ENVIRONMENT'], 'production'), ne(variables['APP_ENVIRONMENT'], 'tt02')) "
+    condition: "and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_ENVIRONMENT'], 'production'), ne(variables['APP_ENVIRONMENT'], 'tt02'))"
     inputs:
       ConnectedServiceNameARM: fa66913f-0df2-411a-89b7-9248e463423d
       ScriptType: InlineScript
@@ -264,7 +313,7 @@ steps:
 
   - task: AzurePowerShell@4
     displayName: Ensure API management subscription key - Staging
-    condition: "and(succeeded(), eq(variables['APP_ENVIRONMENT'], 'tt02')) "
+    condition: "and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'tt02'))"
     inputs:
       ConnectedServiceNameARM: a00b78e7-d6bd-414a-abec-aaae2be043bc
       ScriptType: InlineScript
@@ -326,7 +375,7 @@ steps:
 
   - task: AzurePowerShell@4
     displayName: Ensure API management subscription key - Production
-    condition: "and(succeeded(), eq(variables['APP_ENVIRONMENT'], 'production')) "
+    condition: "and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'production'))"
     inputs:
       ConnectedServiceNameARM: 09d70185-733d-4973-8dfa-c4be37a8ac3a
       ScriptType: InlineScript
@@ -364,6 +413,7 @@ steps:
 
   - task: Bash@3
     displayName: Create flux artifact directory
+    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
     inputs:
       targetType: inline
       script: |
@@ -371,6 +421,7 @@ steps:
 
   - task: Bash@3
     displayName: 'Generate helmrelease template file without values'
+    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
     inputs:
       workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
@@ -412,6 +463,7 @@ steps:
 
   - task: Bash@3
     displayName: Generate overrides file.
+    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
     inputs:
       workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
@@ -509,6 +561,7 @@ steps:
 
   - task: Bash@3
     displayName: 'Generate final helmrelease with merged values from values and overrides file'
+    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
     inputs:
       workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
@@ -545,6 +598,7 @@ steps:
 
   - task: AzureCLI@2
     displayName: 'Push OCI artifact to ACR'
+    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
     inputs:
       azureSubscription: 'altinn-studio-apps-deploy'
       scriptType: bash
