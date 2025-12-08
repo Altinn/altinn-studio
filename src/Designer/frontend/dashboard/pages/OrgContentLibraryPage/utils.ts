@@ -86,29 +86,36 @@ export function libraryCodeListsToUpdatePayload(
     throw new Error('Current data is required to create update payload');
   }
 
-  const files: FileMetadata[] = updatedCodeLists.map((codeList) => ({
-    path: `${CODE_LIST_FOLDER}/${codeList.name}.json`,
-    content: JSON.stringify({ codes: codeList.codes }, null, 2),
-  }));
-
-  // Add files with empty content for deleted code lists
+  const files: FileMetadata[] = mapFiles(updatedCodeLists);
   const updatedNames = new Set(updatedCodeLists.map((cl) => cl.name));
-  const deletedFiles = currentData.files
-    .filter((file) => !file.problem)
-    .filter((file) => {
-      const fileName = file.path.split('/').pop()?.replace('.json', '');
-      return fileName && !updatedNames.has(fileName);
-    })
-    .map((file) => ({
-      path: file.path,
-      content: '',
-    }));
+  const deletedFiles = filterFilesToDelete(currentData, updatedNames);
 
   return {
     files: [...files, ...deletedFiles],
     baseCommitSha: currentData.commitSha,
     commitMessage,
   };
+}
+
+function mapFiles(updatedCodeLists: LibraryCodeListData[]): FileMetadata[] {
+  return updatedCodeLists.map((codeList) => ({
+    path: `${CODE_LIST_FOLDER}/${codeList.name}.json`,
+    content: JSON.stringify({ codes: codeList.codes }, null, 2),
+  }));
+}
+
+function filterFilesToDelete(currentData: SharedResourcesResponse, updatedNames: Set<string>) {
+  // Add files with empty content for deleted code lists
+  return currentData.files
+    .filter((file) => !file.problem)
+    .filter((file) => {
+      const fileName = FileNameUtils.extractFileName(FileNameUtils.removeExtension(file.path));
+      return fileName && !updatedNames.has(fileName);
+    })
+    .map((file) => ({
+      path: file.path,
+      content: '',
+    }));
 }
 
 export function libraryCodeListDataToBackendCodeListData({
