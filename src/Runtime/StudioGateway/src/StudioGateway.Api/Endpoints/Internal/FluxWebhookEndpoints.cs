@@ -137,10 +137,7 @@ internal static class FluxWebhookEndpoints
             );
         }
 
-        logger.LogInformation(
-            "HelmRelease {Name} not found, attempting to parse values from name",
-            helmReleaseName
-        );
+        logger.LogInformation("HelmRelease {Name} not found, attempting to parse values from name", helmReleaseName);
 
         if (!HelmReleaseNameParser.TryParse(helmReleaseName, out var org, out var app, out var env))
         {

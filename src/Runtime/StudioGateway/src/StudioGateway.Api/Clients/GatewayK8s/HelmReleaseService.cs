@@ -11,11 +11,7 @@ internal sealed class HelmReleaseService(IKubernetes kubernetes) : IHelmReleaseS
     private const string HelmReleaseVersion = "v2";
     private const string HelmReleasePlural = "helmreleases";
 
-    public async Task<bool> ExistsAsync(
-        string name,
-        string @namespace,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<bool> ExistsAsync(string name, string @namespace, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -51,7 +47,11 @@ internal sealed class HelmReleaseService(IKubernetes kubernetes) : IHelmReleaseS
             cancellationToken
         );
 
-        if (helmRelease is not System.Text.Json.JsonElement element || !element.TryGetProperty("metadata", out var metadata) || !metadata.TryGetProperty("labels", out var labels))
+        if (
+            helmRelease is not System.Text.Json.JsonElement element
+            || !element.TryGetProperty("metadata", out var metadata)
+            || !metadata.TryGetProperty("labels", out var labels)
+        )
             return [];
 
         var result = new Dictionary<string, string>();
