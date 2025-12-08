@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-
 namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingRules;
 
 /// <summary>
@@ -12,13 +6,19 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingR
 internal class WhitespaceRestorationProcessor
 {
     private readonly string _repositoryRoot;
-    private readonly string _layoutsPath;
     private readonly string _layoutsPathRelativeToRepo;
+    private readonly IGitRepositoryService _gitService;
+    private readonly DirectFileRestorer _fileRestorer;
 
     public WhitespaceRestorationProcessor(string layoutsPath)
+        : this(layoutsPath, new LibGit2SharpGitRepositoryService()) { }
+
+    // Constructor for dependency injection (testability)
+    internal WhitespaceRestorationProcessor(string layoutsPath, IGitRepositoryService gitService)
     {
-        _layoutsPath = layoutsPath;
-        _repositoryRoot = FindGitRepositoryRoot(layoutsPath);
+        _gitService = gitService;
+        _fileRestorer = new DirectFileRestorer(gitService);
+        _repositoryRoot = _gitService.FindRepositoryRoot(layoutsPath);
 
         // Convert layouts path to be relative to repository root
         var fullLayoutsPath = Path.GetFullPath(layoutsPath);
@@ -34,8 +34,8 @@ internal class WhitespaceRestorationProcessor
 
         try
         {
-            // Get modified layout files
-            var modifiedFiles = GetModifiedLayoutFiles();
+            // Get modified layout files using LibGit2Sharp
+            var modifiedFiles = _gitService.GetModifiedFiles(_repositoryRoot, _layoutsPathRelativeToRepo).ToList();
             result.TotalFilesProcessed = modifiedFiles.Count;
 
             if (modifiedFiles.Count == 0)
@@ -53,7 +53,7 @@ internal class WhitespaceRestorationProcessor
             {
                 try
                 {
-                    var diffOutput = GenerateUnifiedDiff(filePath);
+                    var diffOutput = _gitService.GetUnifiedDiff(_repositoryRoot, filePath);
                     if (string.IsNullOrWhiteSpace(diffOutput))
                     {
                         continue;
@@ -81,34 +81,30 @@ internal class WhitespaceRestorationProcessor
                 }
             }
 
-            // Generate and apply reverse patch
+            // Restore whitespace-only changes by directly manipulating files
             if (result.WhitespaceOnlyHunksFound > 0)
             {
                 try
                 {
-                    var patchGenerator = new ReversePatchGenerator();
-                    var patchContent = patchGenerator.GenerateReversePatch(allDiffFiles, allClassifications);
-
-                    if (!string.IsNullOrWhiteSpace(patchContent))
+                    foreach (var diffFile in allDiffFiles)
                     {
-                        var patchApplier = new GitPatchApplier(_repositoryRoot);
-                        var patchResult = patchApplier.ApplyPatch(patchContent);
+                        var whitespaceOnlyHunks = diffFile
+                            .Hunks.Where(h =>
+                                allClassifications.ContainsKey(h) && allClassifications[h].IsWhitespaceOnly
+                            )
+                            .ToList();
 
-                        if (patchResult.Success)
+                        if (whitespaceOnlyHunks.Count > 0)
                         {
-                            result.HunksReverted = result.WhitespaceOnlyHunksFound;
-                        }
-                        else
-                        {
-                            result.Success = false;
-                            result.Errors.Add($"Failed to apply patch: {patchResult.ErrorOutput}");
+                            _fileRestorer.RestoreWhitespaceOnlyChanges(diffFile, allClassifications, _repositoryRoot);
+                            result.HunksReverted += whitespaceOnlyHunks.Count;
                         }
                     }
                 }
                 catch (Exception ex)
                 {
                     result.Success = false;
-                    result.Errors.Add($"Failed to generate or apply patch: {ex.Message}");
+                    result.Errors.Add($"Failed to restore whitespace changes: {ex.Message}");
                 }
             }
         }
@@ -119,112 +115,5 @@ internal class WhitespaceRestorationProcessor
         }
 
         return result;
-    }
-
-    /// <summary>
-    /// Find the git repository root by walking up the directory tree
-    /// </summary>
-    private string FindGitRepositoryRoot(string startPath)
-    {
-        var currentPath = Path.GetFullPath(startPath);
-
-        while (!string.IsNullOrEmpty(currentPath))
-        {
-            var gitPath = Path.Combine(currentPath, ".git");
-            if (Directory.Exists(gitPath) || File.Exists(gitPath))
-            {
-                return currentPath;
-            }
-
-            var parentPath = Directory.GetParent(currentPath)?.FullName;
-            if (parentPath == currentPath)
-            {
-                break;
-            }
-            currentPath = parentPath ?? string.Empty;
-        }
-
-        throw new InvalidOperationException($"Could not find git repository root starting from {startPath}");
-    }
-
-    /// <summary>
-    /// Get list of modified JSON files in the layouts directory
-    /// </summary>
-    private List<string> GetModifiedLayoutFiles()
-    {
-        var result = ExecuteGitCommand($"diff --name-only --diff-filter=M -- \"{_layoutsPathRelativeToRepo}\"/*.json");
-
-        if (result.ExitCode != 0)
-        {
-            return new List<string>();
-        }
-
-        return result
-            .StandardOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries)
-            .Select(f => f.Trim())
-            .Where(f => !string.IsNullOrWhiteSpace(f))
-            .ToList();
-    }
-
-    /// <summary>
-    /// Generate unified diff for a specific file
-    /// </summary>
-    private string GenerateUnifiedDiff(string filePath)
-    {
-        var result = ExecuteGitCommand($"diff --no-ext-diff --unified=3 -- {filePath}");
-
-        if (result.ExitCode != 0)
-        {
-            throw new InvalidOperationException($"Failed to generate diff for {filePath}: {result.StandardError}");
-        }
-
-        return result.StandardOutput;
-    }
-
-    /// <summary>
-    /// Execute git command and capture output
-    /// </summary>
-    private ProcessResult ExecuteGitCommand(string arguments)
-    {
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = "git",
-            Arguments = arguments,
-            WorkingDirectory = _repositoryRoot,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
-
-        try
-        {
-            using var process = Process.Start(startInfo);
-
-            if (process == null)
-            {
-                throw new InvalidOperationException("Failed to start git process");
-            }
-
-            string output = process.StandardOutput.ReadToEnd();
-            string error = process.StandardError.ReadToEnd();
-            process.WaitForExit();
-
-            return new ProcessResult
-            {
-                ExitCode = process.ExitCode,
-                StandardOutput = output,
-                StandardError = error,
-            };
-        }
-        catch (Exception ex)
-        {
-            return new ProcessResult
-            {
-                ExitCode = -1,
-                StandardOutput = string.Empty,
-                StandardError = $"Failed to execute git command: {ex.Message}",
-            };
-        }
     }
 }

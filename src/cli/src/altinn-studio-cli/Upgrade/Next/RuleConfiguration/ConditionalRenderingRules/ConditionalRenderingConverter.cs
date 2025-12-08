@@ -193,14 +193,6 @@ internal class ConditionalRenderingConverter
                 var whitespaceRestorer = new WhitespaceRestorationProcessor(layoutsPath);
                 var restorationResult = whitespaceRestorer.RestoreWhitespaceOnlyChanges();
 
-                if (restorationResult.Success && restorationResult.HunksReverted > 0)
-                {
-                    Console.WriteLine(
-                        $"Restored original formatting for {restorationResult.HunksReverted} "
-                            + $"whitespace-only changes across {restorationResult.TotalFilesProcessed} files"
-                    );
-                }
-
                 foreach (var warning in restorationResult.Warnings)
                 {
                     Console.WriteLine($"Warning: {warning}");
