@@ -80,10 +80,10 @@ const InstancesTableWithData = ({
     <StudioTable zebra>
       <StudioTable.Head>
         <StudioTable.Row>
-          <StudioTable.Cell>{t('Id')}</StudioTable.Cell>
-          <StudioTable.Cell>{t('Opprettet')}</StudioTable.Cell>
-          <StudioTable.Cell>{t('Prosessteg')}</StudioTable.Cell>
-          <StudioTable.Cell>{t('Status')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.id')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.created')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.process_task')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.status')}</StudioTable.Cell>
         </StudioTable.Row>
       </StudioTable.Head>
       <StudioTable.Body>
@@ -93,7 +93,9 @@ const InstancesTableWithData = ({
               {/* <Link to={`${instance.id}`}>{instance.id}</Link> */}
               {instance.id}
             </StudioTable.Cell>
-            <StudioTable.Cell>{formatDateAndTime(instance.createdAt)}</StudioTable.Cell>
+            <StudioTable.Cell>
+              {instance.createdAt ? formatDateAndTime(instance.createdAt) : '-'}
+            </StudioTable.Cell>
             <StudioTable.Cell>
               {instance.currentTaskName ?? instance.currentTaskId ?? '-'}
             </StudioTable.Cell>
@@ -109,7 +111,7 @@ const InstancesTableWithData = ({
             <StudioTable.Cell className={classes.footerCell} colSpan={4}>
               <StudioButton disabled={isFetchingMoreResults} onClick={() => doFetchMoreResults()}>
                 {isFetchingMoreResults && <StudioSpinner aria-label={t('general.loading')} />}
-                {t('Last inn 10 flere rader')}
+                {t('admin.instances.fetch_more')}
               </StudioButton>
             </StudioTable.Cell>
           </StudioTable.Row>

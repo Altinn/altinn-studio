@@ -11,7 +11,6 @@ import {
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import type { TFunction } from 'i18next';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 
 type AppsTableProps = {
@@ -36,26 +35,27 @@ type AppsTableWithDataProps = {
   runningApps: Record<string, PublishedApplication[]>;
 };
 
-function getEnvironmentName(env: string, t: TFunction) {
-  if (env === 'production') {
-    return t('Produksjon');
-  }
-  return env.toUpperCase();
-}
+const environmentOrder = ['production', 'tt02', 'at22', 'at23', 'at24', 'yt01'];
+
+const sortEnvironments = (a: string, b: string) => {
+  const indexA = environmentOrder.indexOf(a);
+  const indexB = environmentOrder.indexOf(b);
+  return indexA - indexB;
+};
 
 const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
   const { t } = useTranslation();
-  const [search, setSearch] = useQueryParamState<string>('search', '');
-  const [tab, setTab] = useQueryParamState<string>('tab', undefined);
+  const [search, setSearch] = useQueryParamState<string>('appSearch', '');
+  const [tab, setTab] = useQueryParamState<string>('environment', undefined);
 
-  const availableEnvironments = Object.keys(runningApps);
+  const availableEnvironments = Object.keys(runningApps).toSorted(sortEnvironments);
 
   return (
     <StudioTabs value={tab ?? availableEnvironments.at(0)} onChange={setTab}>
       <StudioTabs.List>
         {availableEnvironments.map((env) => (
           <StudioTabs.Tab key={env} value={env}>
-            {getEnvironmentName(env, t)}
+            {t(`admin.environment.${env}`)} ({runningApps[env].length})
           </StudioTabs.Tab>
         ))}
       </StudioTabs.List>
@@ -65,13 +65,13 @@ const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
             className={classes.appSearch}
             value={search ?? ''}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-            label={t('Søk i apper')}
+            label={t('admin.apps.search')}
           />
           <StudioTable>
             <StudioTable.Head>
               <StudioTable.Row>
-                <StudioTable.Cell>{t('Navn')}</StudioTable.Cell>
-                <StudioTable.Cell>{t('Versjon')}</StudioTable.Cell>
+                <StudioTable.Cell>{t('admin.apps.name')}</StudioTable.Cell>
+                <StudioTable.Cell>{t('admin.apps.version')}</StudioTable.Cell>
               </StudioTable.Row>
             </StudioTable.Head>
             <StudioTable.Body>
