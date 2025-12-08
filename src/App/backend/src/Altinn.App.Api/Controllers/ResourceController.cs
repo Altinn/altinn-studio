@@ -1,4 +1,3 @@
-using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Microsoft.AspNetCore.Mvc;
 
