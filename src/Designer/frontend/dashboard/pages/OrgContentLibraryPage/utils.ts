@@ -64,19 +64,16 @@ function atobUTF8(data: string): string {
   const decodedData = atob(data);
   const utf8data = new Uint8Array(decodedData.length);
   const decoder = new TextDecoder('utf-8');
-  for (let i = 0; i < decodedData.length; i++) {
-    utf8data[i] = decodedData.charCodeAt(i);
-  }
+  [...decodedData].forEach((char, i) => (utf8data[i] = char.charCodeAt(0)));
+
   return decoder.decode(utf8data);
 }
 
 export function btoaUTF8(data: string): string {
   const encoder = new TextEncoder();
   const utf8data = encoder.encode(data);
-  let binary = '';
-  for (let i = 0; i < utf8data.length; i++) {
-    binary += String.fromCharCode(utf8data[i]);
-  }
+  const binary = utf8data.reduce((acc, byte) => acc + String.fromCharCode(byte), '');
+
   return btoa(binary);
 }
 
