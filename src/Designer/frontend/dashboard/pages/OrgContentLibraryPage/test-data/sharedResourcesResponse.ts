@@ -8,11 +8,13 @@ const vehiclesFileContent = btoaUTF8(JSON.stringify({ codes: codeLists.vehicles 
 export const sharedResourcesResponse: SharedResourcesResponse = {
   files: [
     {
+      kind: 'content',
       path: 'CodeLists/animals.json',
       contentType: 'application/json',
       content: animalsFileContent,
     },
     {
+      kind: 'content',
       path: 'CodeLists/vehicles.json',
       contentType: 'application/json',
       content: vehiclesFileContent,
@@ -24,11 +26,13 @@ export const sharedResourcesResponse: SharedResourcesResponse = {
 export const sharedResourcesResponseWithProblem: SharedResourcesResponse = {
   files: [
     {
+      kind: 'content',
       path: 'CodeLists/animals.json',
       contentType: 'application/json',
       content: animalsFileContent,
     },
     {
+      kind: 'problem',
       path: 'CodeLists/vehicles.json',
       contentType: 'application/json',
       problem: {
@@ -44,14 +48,28 @@ export const sharedResourcesResponseWithProblem: SharedResourcesResponse = {
 export const sharedResourcesResponseWithInvalidFormat: SharedResourcesResponse = {
   files: [
     {
+      kind: 'content',
       path: 'CodeLists/animals.json',
       contentType: 'application/json',
       content: animalsFileContent,
     },
     {
+      kind: 'content',
       path: 'CodeLists/invalid.json',
       contentType: 'application/json',
       content: btoa(JSON.stringify({ notCodes: 'invalid' })),
+    },
+  ],
+  commitSha: 'abc123def456ghi789jkl012mno345pqr678stu9',
+};
+
+export const sharedResourcesResponseWithNonJson: SharedResourcesResponse = {
+  files: [
+    {
+      kind: 'content',
+      path: 'CodeLists/animals.txt',
+      contentType: 'application/text',
+      content: animalsFileContent,
     },
   ],
   commitSha: 'abc123def456ghi789jkl012mno345pqr678stu9',
