@@ -22,6 +22,7 @@ import (
 )
 
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;delete
+// +kubebuilder:rbac:groups=grafana.integreatly.org,resources=grafanas,verbs=get;list;watch
 
 // SecretSyncReconciler watches secrets and syncs them across namespaces.
 type SecretSyncReconciler struct {
@@ -101,7 +102,7 @@ func (r *SecretSyncReconciler) reconcileFromSource(
 		return ctrl.Result{}, fmt.Errorf("failed to get source secret: %w", err)
 	}
 
-	return r.syncToDest(ctx, span, source, destKey)
+	return r.syncToDest(ctx, span, source, destKey, mapping)
 }
 
 // reconcileFromDest re-syncs from source when dest drifts.
@@ -123,7 +124,7 @@ func (r *SecretSyncReconciler) reconcileFromDest(
 		return ctrl.Result{}, fmt.Errorf("failed to get source secret: %w", err)
 	}
 
-	return r.syncToDest(ctx, span, source, destKey)
+	return r.syncToDest(ctx, span, source, destKey, mapping)
 }
 
 func (r *SecretSyncReconciler) syncToDest(
@@ -131,9 +132,16 @@ func (r *SecretSyncReconciler) syncToDest(
 	span trace.Span,
 	source *corev1.Secret,
 	destKey client.ObjectKey,
+	mapping SecretSyncMapping,
 ) (ctrl.Result, error) {
+	destData, err := r.buildDestData(ctx, source.Data, mapping)
+	if err != nil {
+		span.RecordError(err)
+		return ctrl.Result{}, fmt.Errorf("failed to build destination data: %w", err)
+	}
+
 	dest := &corev1.Secret{}
-	err := r.k8sClient.Get(ctx, destKey, dest)
+	err = r.k8sClient.Get(ctx, destKey, dest)
 
 	if apierrors.IsNotFound(err) {
 		dest = &corev1.Secret{
@@ -144,7 +152,7 @@ func (r *SecretSyncReconciler) syncToDest(
 				Annotations: copyAnnotations(source.Annotations),
 			},
 			Type: source.Type,
-			Data: copyData(source.Data),
+			Data: destData,
 		}
 		dest.Labels["app.kubernetes.io/managed-by"] = "altinn-studio-operator"
 
@@ -167,7 +175,7 @@ func (r *SecretSyncReconciler) syncToDest(
 	dest.Labels["app.kubernetes.io/managed-by"] = "altinn-studio-operator"
 	dest.Annotations = copyAnnotations(source.Annotations)
 	dest.Type = source.Type
-	dest.Data = copyData(source.Data)
+	dest.Data = destData
 
 	if err := r.k8sClient.Update(ctx, dest); err != nil {
 		span.RecordError(err)
@@ -178,6 +186,25 @@ func (r *SecretSyncReconciler) syncToDest(
 		"namespace", destKey.Namespace,
 	)
 	return ctrl.Result{}, nil
+}
+
+func (r *SecretSyncReconciler) buildDestData(
+	ctx context.Context,
+	sourceData map[string][]byte,
+	mapping SecretSyncMapping,
+) (map[string][]byte, error) {
+	if mapping.BuildOutput == nil {
+		return copyData(sourceData), nil
+	}
+
+	transformed, err := mapping.BuildOutput(ctx, r.k8sClient, sourceData)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string][]byte{
+		mapping.DestKey: transformed,
+	}, nil
 }
 
 func (r *SecretSyncReconciler) deleteDestination(
