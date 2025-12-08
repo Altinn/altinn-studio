@@ -15,7 +15,6 @@ import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
 import { CODE_LIST_FOLDER } from 'app-shared/constants';
 import { FileNameUtils } from '@studio/pure-functions';
 import type { LibraryFile } from 'app-shared/types/LibraryFile';
-import type { SharedResources } from './types/SharedResources';
 import { isCodeListValid } from './validators/isCodelistValid';
 
 export function textResourceWithLanguageToMutationArgs({
@@ -39,37 +38,42 @@ export function backendCodeListsToLibraryCodeLists(
   return response.files.map(backendCodeListToLibraryCodeList);
 }
 
-function backendCodeListToLibraryCodeList(
-  file: LibraryFile
-): LibraryCodeListData {
-    const fileWithExtension = FileNameUtils.extractFileName(file.path);
+function backendCodeListToLibraryCodeList(file: LibraryFile): LibraryCodeListData {
+  const fileWithExtension = FileNameUtils.extractFileName(file.path);
 
-    if (!FileNameUtils.isJsonFile(fileWithExtension)) {
-      // TODO: We should show the user that a codelist is corrupted
-      return { name: fileWithExtension, codes: [] };
-    }
-    const fileName = FileNameUtils.removeExtension(fileWithExtension);
+  if (!FileNameUtils.isJsonFile(fileWithExtension)) {
+    // TODO: We should show the user that a codelist is corrupted
+    return { name: fileWithExtension, codes: [] };
+  }
+  const fileName = FileNameUtils.removeExtension(fileWithExtension);
 
-    switch (file.kind) {
-      case 'content':
-        return handleFile(file, fileName);
-      case 'problem':
-        return handleProblem(fileName);
-      case 'url':
-        return handleUrl();
-    }
+  return tryConvertFile(file, fileName);
 }
 
-function handleUrl(): LibraryCodeListData {
+function tryConvertFile(file: LibraryFile, fileName: string) {
+  switch (file.kind) {
+    case 'content':
+      return convertToLibraryCodeListData(file, fileName);
+    case 'problem':
+      return displayProblem(fileName);
+    case 'url':
+      return throwForUrl();
+  }
+}
+
+function throwForUrl(): LibraryCodeListData {
   throw Error('Code list files should be json files.');
 }
 
-function handleProblem(fileName: string): LibraryCodeListData {
+function displayProblem(fileName: string): LibraryCodeListData {
   // TODO: We should show the user that a codelist is corrupted
   return { name: fileName, codes: [] };
 }
 
-function handleFile(file: LibraryFile<'content'>, fileName: string): LibraryCodeListData {
+function convertToLibraryCodeListData(
+  file: LibraryFile<'content'>,
+  fileName: string,
+): LibraryCodeListData {
   try {
     const codeList = JSON.parse(atobUTF8(file.content));
     return {
@@ -125,7 +129,7 @@ function mapFiles(updatedCodeLists: LibraryCodeListData[]): FileMetadata[] {
 function filterFilesToDelete(currentData: SharedResourcesResponse, updatedNames: Set<string>) {
   // Add files with empty content for deleted code lists
   return currentData.files
-    .filter(file => file.kind !== "problem")
+    .filter((file) => file.kind !== 'problem')
     .filter((file) => {
       const fileName = FileNameUtils.extractFileName(FileNameUtils.removeExtension(file.path));
       return fileName && !updatedNames.has(fileName);
