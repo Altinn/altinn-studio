@@ -12,6 +12,7 @@ import type {
   FileMetadata,
 } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
+import { CODE_LIST_FOLDER } from '@studio/content-library';
 
 export function textResourceWithLanguageToMutationArgs({
   language,
@@ -84,7 +85,7 @@ export function libraryCodeListsToUpdatePayload(
   }
 
   const files: FileMetadata[] = updatedCodeLists.map((codeList) => ({
-    path: `CodeLists/${codeList.name}.json`,
+    path: `${CODE_LIST_FOLDER}/${codeList.name}.json`,
     content: JSON.stringify({ codes: codeList.codes }, null, 2),
   }));
 

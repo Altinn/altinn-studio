@@ -12,3 +12,4 @@ export type { PagesConfig } from './types/PagesProps';
 export { CodeListUsageTaskType } from './types/CodeListUsageTaskType';
 export type { CodeListDataWithTextResources } from './types/CodeListDataWithTextResources';
 export type { CodeListData } from './types/CodeListData';
+export { CODE_LIST_FOLDER } from './constants';
