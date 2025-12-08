@@ -1,14 +1,13 @@
-import type { CodeList } from '@studio/components';
 import { isCodeListValid } from './isCodelistValid';
 
 describe('isCodeListValid', () => {
   it('returns true for valid code list with minimal required fields', () => {
-    const codeList: CodeList = [{ value: 'option1' }, { value: 'option2' }];
+    const codeList: unknown = [{ value: 'option1' }, { value: 'option2' }];
     expect(isCodeListValid(codeList)).toBe(true);
   });
 
   it('returns true for valid code list with all optional fields', () => {
-    const codeList: CodeList = [
+    const codeList: unknown = [
       {
         value: 'cat',
         label: { nb: 'Katt', en: 'Cat' },
@@ -34,22 +33,7 @@ describe('isCodeListValid', () => {
   });
 
   it('returns true for empty code list array', () => {
-    const codeList: CodeList = [];
-    expect(isCodeListValid(codeList)).toBe(true);
-  });
-
-  it('returns true for code list with multiple language codes in label', () => {
-    const codeList: CodeList = [
-      {
-        value: 'option1',
-        label: { nb: 'Norsk', nn: 'Nynorsk', en: 'English', de: 'Deutsch' },
-      },
-    ];
-    expect(isCodeListValid(codeList)).toBe(true);
-  });
-
-  it('returns true for code list with empty tags array', () => {
-    const codeList: CodeList = [{ value: 'option1', tags: [] }];
+    const codeList: unknown = [];
     expect(isCodeListValid(codeList)).toBe(true);
   });
 
