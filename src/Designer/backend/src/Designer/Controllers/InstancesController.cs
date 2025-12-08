@@ -3,10 +3,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Rest.TransientFaultHandling;
@@ -38,10 +40,24 @@ public class InstancesController : ControllerBase
         string app,
         [FromQuery] string? continuationToken,
         [FromQuery] string? currentTask,
-        [FromQuery] bool? processIsComplete,
+        [FromQuery] bool? isArchived,
+        [FromQuery] string? archiveReference,
+        [FromQuery] bool? confirmed,
+        [FromQuery] bool? isSoftDeleted,
+        [FromQuery] bool? isHardDeleted,
         CancellationToken ct
     )
     {
+        // The query in storage can be quite slow, so we should limit to reasonable searches only
+        if (
+            !string.IsNullOrEmpty(archiveReference)
+            && !AltinnRegexes.AltinnInstanceIdRegex().IsMatch(archiveReference)
+            && !AltinnRegexes.AltinnArchiveReferenceRegex().IsMatch(archiveReference)
+        )
+        {
+            return StatusCode(StatusCodes.Status400BadRequest);
+        }
+
         try
         {
             var queryResponse = await _instancesClient.GetInstances(
@@ -50,7 +66,11 @@ public class InstancesController : ControllerBase
                 app,
                 continuationToken,
                 currentTask,
-                processIsComplete,
+                isArchived,
+                archiveReference,
+                confirmed,
+                isSoftDeleted,
+                isHardDeleted,
                 ct
             );
             return new InstancesResponse()
@@ -61,11 +81,11 @@ public class InstancesController : ControllerBase
         }
         catch (HttpRequestWithStatusException ex)
         {
-            return StatusCode((int?)ex.StatusCode ?? 500);
+            return StatusCode((int)ex.StatusCode);
         }
         catch (OperationCanceledException)
         {
-            return StatusCode(499);
+            return StatusCode(StatusCodes.Status499ClientClosedRequest);
         }
     }
 }

@@ -1,26 +1,26 @@
 using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Xml;
-
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Extensions.Options;
-
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
-
 using LocalTest.Configuration;
 using LocalTest.Models;
-using LocalTest.Services.Authentication.Interface;
-using LocalTest.Services.Profile.Interface;
-using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.AppRegistry;
-
-using Microsoft.AspNetCore.Authentication.Cookies;
+using LocalTest.Services.Authentication.Interface;
+using LocalTest.Services.LocalApp.Interface;
+using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.TestData;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Options;
 
 namespace LocalTest.Controllers
 {
@@ -49,7 +49,8 @@ namespace LocalTest.Controllers
             ILocalApp localApp,
             TestDataService testDataService,
             ILogger<HomeController> logger,
-            AppRegistryService appRegistryService)
+            AppRegistryService appRegistryService
+        )
         {
             _generalSettings = generalSettings.Value;
             _localPlatformSettings = localPlatformSettings.Value;
@@ -79,7 +80,9 @@ namespace LocalTest.Controllers
             {
                 AppMode = appMode,
                 StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath,
-                LocalFrontendUrl = HttpContext.Request.Cookies[FrontendVersionController.FRONTEND_URL_COOKIE_NAME],
+                LocalFrontendUrl = HttpContext.Request.Cookies[
+                    FrontendVersionController.FRONTEND_URL_COOKIE_NAME
+                ],
                 HasRegisteredApps = _appRegistryService.GetAll().Any(),
             };
 
@@ -88,7 +91,10 @@ namespace LocalTest.Controllers
                 model.TestApps = await GetAppsList();
                 model.TestUsers = await GetTestUsersAndPartiesSelectList();
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
-                var firstAppId = model.AppMode == AppMode.Http && model.TestApps.Count() == 1 ? model.TestApps.First().Value : null;
+                var firstAppId =
+                    model.AppMode == AppMode.Http && model.TestApps.Count() == 1
+                        ? model.TestApps.First().Value
+                        : null;
                 var defaultAuthLevel = await GetAppAuthLevel(firstAppId);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
@@ -96,7 +102,6 @@ namespace LocalTest.Controllers
             {
                 model.HttpException = e;
             }
-
 
             // In http mode, apps can register themselves, so empty list is OK
             // Only show invalid path error in file mode
@@ -137,14 +142,32 @@ namespace LocalTest.Controllers
                 return BadRequest("Invalid port number");
             }
 
-            var sourceIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-            if (string.IsNullOrWhiteSpace(sourceIp))
+            var sourceIp = HttpContext.Connection.RemoteIpAddress;
+            if (sourceIp == null)
             {
                 return BadRequest("Could not determine source IP address");
             }
 
-            _appRegistryService.Register(request.AppId, request.Port, sourceIp);
-            return Ok(new { message = "App registered successfully", appId = request.AppId, port = request.Port, hostname = sourceIp });
+            var hostname = sourceIp.ToString();
+            var parsedSourceIp = sourceIp.IsIPv4MappedToIPv6 ? sourceIp.MapToIPv4() : sourceIp;
+
+            // Reach the host machine when apps are running outside of container runtime
+            if (ShouldUseDockerHostInternal(parsedSourceIp))
+            {
+                // TODO: This does not work with all container runtimes. Make sure it does.
+                hostname = "host.docker.internal";
+            }
+
+            _appRegistryService.Register(request.AppId, request.Port, hostname);
+            return Ok(
+                new
+                {
+                    message = "App registered successfully",
+                    appId = request.AppId,
+                    port = request.Port,
+                    hostname
+                }
+            );
         }
 
         /// <summary>
@@ -181,7 +204,12 @@ namespace LocalTest.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(
+                new ErrorViewModel
+                {
+                    RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+                }
+            );
         }
 
         /// <summary>
@@ -203,8 +231,15 @@ namespace LocalTest.Controllers
 
                 int authenticationLevel = Convert.ToInt32(startAppModel.AuthenticationLevel);
 
-                string token = await _authenticationService.GenerateTokenForProfile(profile, authenticationLevel);
-                CreateJwtCookieAndAppendToResponse(token, startAppModel.PartyId, startAppModel.UserSelect);
+                string token = await _authenticationService.GenerateTokenForProfile(
+                    profile,
+                    authenticationLevel
+                );
+                CreateJwtCookieAndAppendToResponse(
+                    token,
+                    startAppModel.PartyId,
+                    startAppModel.UserSelect
+                );
             }
 
             if (action.Equals("reauthenticate"))
@@ -217,7 +252,9 @@ namespace LocalTest.Controllers
                 return Redirect($"/accessmanagement/ui/given-api-delegations/overview");
             }
 
-            Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
+            Application app = await _localApp.GetApplicationMetadata(
+                startAppModel.AppPathSelection
+            );
 
             if (_localPlatformSettings.LocalAppMode == "http")
             {
@@ -229,22 +266,24 @@ namespace LocalTest.Controllers
                     {
                         AppId = app.Id,
                         Org = app.Org,
-                        InstanceOwner = new()
-                        {
-                            PartyId = startAppModel.PartyId.ToString(),
-                        },
-                        DataValues = new()
-                        {
-                            { "PrefillFilename", prefill.FileName }
-                        },
+                        InstanceOwner = new() { PartyId = startAppModel.PartyId.ToString(), },
+                        DataValues = new() { { "PrefillFilename", prefill.FileName } },
                     };
 
                     var xmlDataId = app.DataTypes.First(dt => dt.AppLogic?.ClassRef is not null).Id;
 
                     using var reader = new StreamReader(prefill.OpenReadStream());
                     var content = await reader.ReadToEndAsync();
-                    var token = await _authenticationService.GenerateTokenForOrg(app.Id.Split("/")[0]);
-                    var newInstance = await _localApp.Instantiate(app.Id, instance, content, xmlDataId, token);
+                    var token = await _authenticationService.GenerateTokenForOrg(
+                        app.Id.Split("/")[0]
+                    );
+                    var newInstance = await _localApp.Instantiate(
+                        app.Id,
+                        instance,
+                        content,
+                        xmlDataId,
+                        token
+                    );
 
                     return Redirect($"/{app.Id}/#/instance/{newInstance.Id}");
                 }
@@ -261,12 +300,14 @@ namespace LocalTest.Controllers
                 AuthenticationLevels = GetAuthenticationLevels(2),
                 TestUsers = await GetUsersSelectList(),
                 TestSystemUsers = await GetSystemUsersSelectList(),
-                DefaultOrg = _localPlatformSettings.LocalAppMode == "http" ? (await GetAppsList()).First().Value?.Split("/").FirstOrDefault() : null,
+                DefaultOrg =
+                    _localPlatformSettings.LocalAppMode == "http"
+                        ? (await GetAppsList()).First().Value?.Split("/").FirstOrDefault()
+                        : null,
             };
 
             return View(model);
         }
-
 
         /// <summary>
         /// Returns a user token with the given userId as claim
@@ -275,7 +316,10 @@ namespace LocalTest.Controllers
         /// <param name="authenticationLevel">Authentication level of the token</param>
         /// <returns></returns>
         [HttpGet("/Home/GetTestUserToken/{userId?}")]
-        public async Task<ActionResult> GetTestUserToken(int userId, [FromQuery] int authenticationLevel = 2)
+        public async Task<ActionResult> GetTestUserToken(
+            int userId,
+            [FromQuery] int authenticationLevel = 2
+        )
         {
             UserProfile profile = await _userProfileService.GetUser(userId);
 
@@ -285,7 +329,10 @@ namespace LocalTest.Controllers
             }
 
             // Create a test token with long duration
-            string token = await _authenticationService.GenerateTokenForProfile(profile, authenticationLevel);
+            string token = await _authenticationService.GenerateTokenForProfile(
+                profile,
+                authenticationLevel
+            );
             return Ok(token);
         }
 
@@ -297,10 +344,20 @@ namespace LocalTest.Controllers
         /// <param name="authenticationLevel">Authentication level of the token</param>
         /// <returns></returns>
         [HttpGet("/Home/GetTestOrgToken/{org?}")]
-        public async Task<ActionResult> GetTestOrgToken(string org, [FromQuery] string orgNumber = null, [FromQuery] string scopes = null, [FromQuery] int? authenticationLevel = 3)
+        public async Task<ActionResult> GetTestOrgToken(
+            string org,
+            [FromQuery] string orgNumber = null,
+            [FromQuery] string scopes = null,
+            [FromQuery] int? authenticationLevel = 3
+        )
         {
             // Create a test token with long duration
-            string token = await _authenticationService.GenerateTokenForOrg(org, orgNumber, scopes, authenticationLevel);
+            string token = await _authenticationService.GenerateTokenForOrg(
+                org,
+                orgNumber,
+                scopes,
+                authenticationLevel
+            );
 
             return Ok(token);
         }
@@ -368,27 +425,28 @@ namespace LocalTest.Controllers
                 {
                     // Don't add singe party users to a group
                     var party = userParties.First();
-                    userItems.Add(new()
-                    {
-                        Value = properProfile.UserId + "." + party.PartyId,
-                        Text = party.Name,
-                    });
+                    userItems.Add(
+                        new()
+                        {
+                            Value = properProfile.UserId + "." + party.PartyId,
+                            Text = party.Name,
+                        }
+                    );
                 }
                 else
                 {
                     // When a user represents multiple parties, add it to a group, so that it stands out visually
-                    var group = new SelectListGroup()
-                    {
-                        Name = properProfile.Party.Name,
-                    };
+                    var group = new SelectListGroup() { Name = properProfile.Party.Name, };
                     foreach (var party in userParties)
                     {
-                        userItems.Add(new()
-                        {
-                            Value = properProfile.UserId + "." + party.PartyId,
-                            Text = $"{party.Name} ({party.PartyTypeName})",
-                            Group = group,
-                        });
+                        userItems.Add(
+                            new()
+                            {
+                                Value = properProfile.UserId + "." + party.PartyId,
+                                Text = $"{party.Name} ({party.PartyTypeName})",
+                                Group = group,
+                            }
+                        );
                     }
                 }
             }
@@ -403,11 +461,9 @@ namespace LocalTest.Controllers
             foreach (UserProfile profile in data.Profile.User.Values)
             {
                 var properProfile = await _userProfileService.GetUser(profile.UserId);
-                testUsers.Add(new()
-                {
-                    Text = properProfile?.Party.Name,
-                    Value = profile.UserId.ToString(),
-                });
+                testUsers.Add(
+                    new() { Text = properProfile?.Party.Name, Value = profile.UserId.ToString(), }
+                );
             }
 
             return testUsers;
@@ -421,11 +477,9 @@ namespace LocalTest.Controllers
             foreach (var systemUser in data.Authorization.SystemUsers.Values)
             {
                 var org = orgs[systemUser.OrgNumber];
-                testUsers.Add(new()
-                {
-                    Text = $"{systemUser.OrgNumber} - {org.Name}",
-                    Value = systemUser.Id,
-                });
+                testUsers.Add(
+                    new() { Text = $"{systemUser.OrgNumber} - {org.Name}", Value = systemUser.Id, }
+                );
             }
 
             return testUsers;
@@ -445,7 +499,10 @@ namespace LocalTest.Controllers
                 document.LoadXml(policyString);
                 var nsMngr = new XmlNamespaceManager(document.NameTable);
                 nsMngr.AddNamespace("xacml", "urn:oasis:names:tc:xacml:3.0:core:schema:wd-17");
-                var authLevelNode = document.SelectSingleNode("/xacml:Policy/xacml:ObligationExpressions/xacml:ObligationExpression[@ObligationId='urn:altinn:obligation:authenticationLevel1']/xacml:AttributeAssignmentExpression[@Category='urn:altinn:minimum-authenticationlevel']/xacml:AttributeValue", nsMngr);
+                var authLevelNode = document.SelectSingleNode(
+                    "/xacml:Policy/xacml:ObligationExpressions/xacml:ObligationExpression[@ObligationId='urn:altinn:obligation:authenticationLevel1']/xacml:AttributeAssignmentExpression[@Category='urn:altinn:minimum-authenticationlevel']/xacml:AttributeValue",
+                    nsMngr
+                );
                 return int.Parse(authLevelNode.InnerText);
             }
             catch (Exception)
@@ -532,7 +589,11 @@ namespace LocalTest.Controllers
         /// Creates a session cookie meant to be used to hold the generated JSON Web Token and appends it to the response.
         /// </summary>
         /// <param name="cookieValue">The cookie value.</param>
-        private void CreateJwtCookieAndAppendToResponse(string identityCookie, int altinnPartyId, string userSelect)
+        private void CreateJwtCookieAndAppendToResponse(
+            string identityCookie,
+            int altinnPartyId,
+            string userSelect
+        )
         {
             ICookieManager cookieManager = new ChunkingCookieManager();
 
@@ -552,7 +613,8 @@ namespace LocalTest.Controllers
                 HttpContext,
                 cookieBuilder.Name,
                 identityCookie,
-                cookieOptions);
+                cookieOptions
+            );
 
             // Add cookie about users prefered party (for creating new instances)
             CookieBuilder partyCookieBuilder = new RequestPathBaseCookieBuilder
@@ -570,7 +632,8 @@ namespace LocalTest.Controllers
                 HttpContext,
                 partyCookieBuilder.Name,
                 altinnPartyId.ToString(),
-                partyCookieOptions);
+                partyCookieOptions
+            );
 
             // Add cookie about users selection (for preselecting in the dropdown)
             CookieBuilder userSelectCookieBuilder = new RequestPathBaseCookieBuilder
@@ -588,7 +651,96 @@ namespace LocalTest.Controllers
                 HttpContext,
                 userSelectCookieBuilder.Name,
                 userSelect,
-                userSelectCookieOptions);
+                userSelectCookieOptions
+            );
+        }
+
+        /// <summary>
+        /// Determines whether to use host.docker.internal based on the source IP address.
+        /// Returns true if host.docker.internal should be used, false if the actual IP should be used.
+        /// </summary>
+        private bool ShouldUseDockerHostInternal(IPAddress? address)
+        {
+            if (address == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                var interfaces = NetworkInterface
+                    .GetAllNetworkInterfaces()
+                    .Where(n => n.OperationalStatus == OperationalStatus.Up)
+                    .Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Loopback);
+
+                var myIp = interfaces
+                    .SelectMany(n => n.GetIPProperties().UnicastAddresses)
+                    .Select(a => a.Address)
+                    .FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork);
+
+                var defaultGateway = interfaces
+                    .SelectMany(n => n.GetIPProperties().GatewayAddresses)
+                    .Select(g => g.Address)
+                    .FirstOrDefault(a => a?.AddressFamily == AddressFamily.InterNetwork);
+
+                // Request comes from default gateway (typically using docker)
+                if (Equals(address, defaultGateway))
+                {
+                    return true;
+                }
+
+                // Request comes from the containers own IP (typical quick in podman on linux)
+                if (Equals(address, myIp))
+                {
+                    return true;
+                }
+
+                // Request comes from same subnet as container's assigned interface (typically goes to test-apps container)
+                var myUnicastAddress = interfaces
+                    .SelectMany(n => n.GetIPProperties().UnicastAddresses)
+                    .FirstOrDefault(a => a.Address.AddressFamily == AddressFamily.InterNetwork);
+
+                if (myUnicastAddress != null)
+                {
+                    var subnetMask = myUnicastAddress.IPv4Mask;
+                    if (subnetMask != null)
+                    {
+                        // Check if addresses are in the same subnet
+                        var ip1Bytes = address.GetAddressBytes();
+                        var ip2Bytes = myUnicastAddress.Address.GetAddressBytes();
+                        var maskBytes = subnetMask.GetAddressBytes();
+
+                        if (
+                            ip1Bytes.Length == ip2Bytes.Length
+                            && ip1Bytes.Length == maskBytes.Length
+                        )
+                        {
+                            bool sameSubnet = true;
+                            for (int i = 0; i < ip1Bytes.Length; i++)
+                            {
+                                if ((ip1Bytes[i] & maskBytes[i]) != (ip2Bytes[i] & maskBytes[i]))
+                                {
+                                    sameSubnet = false;
+                                    break;
+                                }
+                            }
+
+                            if (sameSubnet)
+                            {
+                                return false; // Use the actual IP we received
+                            }
+                        }
+                    }
+                }
+
+                // Otherwise, the request came from outside our inner network, so we assume it came from the container
+                // host. This makes it impossible to run an app on an entirely different machine, but that's OK.
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

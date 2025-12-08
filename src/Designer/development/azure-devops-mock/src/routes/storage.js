@@ -1,5 +1,8 @@
 import { v4 as uuid } from 'uuid';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ARCHIVE_REF_REGEX = /^[0-9a-f]{12}$/i;
+
 export const storageApplicationMetadataRoute = async (req, res) => {
   res.json({});
 };
@@ -7,52 +10,156 @@ export const storageTextsRoute = async (req, res) => {
   res.json({});
 };
 
+class NoResultsError extends Error {}
+
 const taskNames = { Task_1: 'Utfylling' };
 
-function makeInstance(org, app, currentTask, isComplete) {
-  if (currentTask == null && isComplete == null) {
+function makeInstance(
+  org,
+  app,
+  currentTask,
+  isArchived,
+  isConfirmed,
+  isSoftDeleted,
+  isHardDeleted,
+  archiveReference = null,
+) {
+  // Check illogical filters
+
+  if (
+    archiveReference &&
+    !UUID_REGEX.test(archiveReference) &&
+    !ARCHIVE_REF_REGEX.test(archiveReference)
+  ) {
+    throw new NoResultsError();
+  }
+
+  if (isArchived === true && currentTask != null) {
+    throw new NoResultsError();
+  }
+
+  if (isConfirmed === true && (isArchived === false || currentTask != null)) {
+    throw new NoResultsError();
+  }
+
+  if (isHardDeleted === true && isSoftDeleted === false) {
+    throw new NoResultsError();
+  }
+
+  // Perform logical constraints
+
+  if (isHardDeleted === true) {
+    isSoftDeleted = true;
+  }
+
+  if (isConfirmed === true) {
+    isArchived = true;
+  }
+
+  if (isArchived === false) {
+    currentTask ??= 'Task_1';
+  }
+
+  if (currentTask == null && isArchived == null) {
     if (Math.random() < 0.5) {
       currentTask = 'Task_1';
     } else {
-      isComplete = true;
+      isArchived = true;
     }
   }
 
-  if (currentTask) {
-    return {
-      id: uuid(),
-      org,
-      app,
-      isRead: true,
-      currentTaskName: taskNames[currentTask],
-      currentTaskId: currentTask,
-      createdAt: new Date(),
-      lastChangedAt: new Date(),
-    };
-  }
+  const id = archiveReference
+    ? UUID_REGEX.test(archiveReference)
+      ? archiveReference
+      : uuid().slice(0, 24) + archiveReference.toLowerCase()
+    : uuid();
 
-  if (isComplete) {
-    return {
-      id: uuid(),
-      org,
-      app,
-      isRead: true,
-      archivedAt: new Date(),
-      createdAt: new Date(),
-      lastChangedAt: new Date(),
-    };
+  const isRead = isArchived || Math.random() < 0.8;
+  isConfirmed = isConfirmed == null ? isArchived && Math.random() < 0.5 : isConfirmed;
+  isSoftDeleted = isSoftDeleted == null ? Math.random() < 0.5 : isSoftDeleted;
+  isHardDeleted = isHardDeleted == null ? isSoftDeleted && Math.random() < 0.5 : isHardDeleted;
+
+  return {
+    id,
+    org,
+    app,
+    isRead,
+    currentTaskId: currentTask,
+    currentTaskName: currentTask ? taskNames[currentTask] : null,
+    archivedAt: isArchived ? new Date() : null,
+    completedAt: isArchived ? new Date() : null,
+    confirmedAt: isConfirmed ? new Date() : null,
+    softDeletedAt: isSoftDeleted ? new Date() : null,
+    hardDeletedAt: isHardDeleted ? new Date() : null,
+    createdAt: new Date(),
+    lastChangedAt: new Date(),
+  };
+}
+
+function parseBoolParam(param) {
+  if (param === 'true') {
+    return true;
   }
+  if (param === 'false') {
+    return false;
+  }
+  return null;
 }
 
 export const storageInstancesRoute = (req, res) => {
   const { org, app } = req.params;
   const currentTask = req.query?.['process.currentTask'];
-  const isComplete = req.query?.['process.isComplete'];
+  const isArchived = parseBoolParam(req.query?.['status.isArchived']);
+  const isConfirmed = parseBoolParam(req.query?.['confirmed']);
+  const isSoftDeleted = parseBoolParam(req.query?.['status.isSoftDeleted']);
+  const isHardDeleted = parseBoolParam(req.query?.['status.isHardDeleted']);
+  const archiveReference = req.query?.['archiveReference'];
   const size = req.query?.['size'] ?? 10;
 
-  res.json({
-    count: size,
-    next: 'next',
-    instances: Array.from({ length: size }, () => makeInstance(org, app, currentTask, isComplete)),
-  });
+  try {
+    if (archiveReference) {
+      res.json({
+        count: 1,
+        next: null,
+        instances: [
+          makeInstance(
+            org,
+            app,
+            currentTask,
+            isArchived,
+            isConfirmed,
+            isSoftDeleted,
+            isHardDeleted,
+            archiveReference,
+          ),
+        ],
+      });
+    } else {
+      res.json({
+        count: size,
+        next: 'next',
+        instances: Array.from({ length: size }, () =>
+          makeInstance(
+            org,
+            app,
+            currentTask,
+            isArchived,
+            isConfirmed,
+            isSoftDeleted,
+            isHardDeleted,
+          ),
+        ),
+      });
+    }
+  } catch (error) {
+    if (error instanceof NoResultsError) {
+      res.json({
+        count: 0,
+        next: null,
+        instances: [],
+      });
+    } else {
+      throw error;
+    }
+  }
 };

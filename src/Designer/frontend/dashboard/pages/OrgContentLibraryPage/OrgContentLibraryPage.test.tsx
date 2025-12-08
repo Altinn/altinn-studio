@@ -335,6 +335,28 @@ describe('OrgContentLibraryPage', () => {
     expect(updateOrgCodeLists).toHaveBeenCalledTimes(1);
     expect(updateOrgCodeLists).toHaveBeenCalledWith(orgName, expectedPayload);
   });
+
+  it('Publishes a code list when publish is triggered on the new code list page', async () => {
+    const publishCodeList = jest.fn();
+    renderOrgContentLibraryWithData({
+      featureFlags: [FeatureFlag.NewCodeLists],
+      queries: { publishCodeList },
+    });
+    const codeListToPublish = codeListsNewResponse.codeListWrappers[0];
+    const libraryCodeListData: LibraryCodeListData = {
+      name: codeListToPublish.title,
+      codes: codeListToPublish.codeList.codes,
+    };
+
+    retrievePagesConfig().codeLists.props.onPublish(libraryCodeListData);
+
+    await waitFor(expect(publishCodeList).toHaveBeenCalled);
+    expect(publishCodeList).toHaveBeenCalledTimes(1);
+    expect(publishCodeList).toHaveBeenCalledWith(
+      orgName,
+      expect.objectContaining({ title: codeListToPublish.title }),
+    );
+  });
 });
 
 function renderOrgContentLibraryWithData(providerData: ProviderData = {}): void {

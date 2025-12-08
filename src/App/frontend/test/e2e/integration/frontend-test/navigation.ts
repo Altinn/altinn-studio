@@ -10,7 +10,7 @@ describe('Navigation', () => {
      * @see updateQueryCache
      */
 
-    cy.intercept('PATCH', '**/data/**').as('saveFormData');
+    cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
     cy.goto('changename');
 
     cy.findByRole('textbox', { name: /nytt fornavn/i }).should('exist');

@@ -14,6 +14,7 @@ using Altinn.Studio.Designer.Hubs;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.Infrastructure.Maskinporten;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Extensions;
 using Altinn.Studio.Designer.Scheduling;
@@ -183,7 +184,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureResourceRegistryIntegrationSettings(configuration.GetSection("ResourceRegistryIntegrationSettings"));
     services.ConfigureMaskinportenIntegrationSettings(configuration.GetSection("MaskinportenClientSettings"));
 
-    services.Configure<SharedContentClientSettings>(configuration.GetSection("SharedContentClientSettings"));
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));
@@ -228,6 +228,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.RegisterTypedHttpClients(configuration);
     services.AddAnsattPortenAuthenticationAndAuthorization(configuration);
+    services.AddMaskinportenAuthentication(configuration);
     services.ConfigureAuthentication(configuration, env);
 
     services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));

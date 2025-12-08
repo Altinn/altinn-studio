@@ -10,15 +10,41 @@ export const useAppInstancesQuery = (
   env: string,
   app: string,
   currentTask?: string,
-  processIsComplete?: boolean,
+  isArchived?: boolean,
+  archiveReference?: string,
+  confirmed?: boolean,
+  isSoftDeleted?: boolean,
+  isHardDeleted?: boolean,
 ): UseInfiniteQueryResult<SimpleInstance[]> => {
   return useInfiniteQuery({
     initialPageParam: undefined,
-    queryKey: [QueryKey.AppInstances, org, env, app, currentTask, processIsComplete],
-    queryFn: async ({ signal, pageParam = null }) =>
+    queryKey: [
+      QueryKey.AppInstances,
+      org,
+      env,
+      app,
+      currentTask,
+      isArchived,
+      archiveReference,
+      confirmed,
+      isSoftDeleted,
+      isHardDeleted,
+    ],
+    queryFn: async ({ signal, pageParam = undefined }) =>
       (
         await axios.get<InstancesResponse>(
-          instancesListPath(org, env, app, pageParam, currentTask, processIsComplete),
+          instancesListPath(
+            org,
+            env,
+            app,
+            pageParam,
+            currentTask,
+            isArchived,
+            archiveReference,
+            confirmed,
+            isSoftDeleted,
+            isHardDeleted,
+          ),
           { signal },
         )
       ).data,
