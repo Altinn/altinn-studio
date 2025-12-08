@@ -95,6 +95,9 @@ func (r *SecretSyncReconciler) reconcileFromSource(
 	source := &corev1.Secret{}
 	err := r.k8sClient.Get(ctx, sourceKey, source)
 	if apierrors.IsNotFound(err) {
+		if !mapping.CanDeleteDest {
+			return ctrl.Result{}, nil
+		}
 		return r.deleteDestination(ctx, span, destKey)
 	}
 	if err != nil {
@@ -117,6 +120,9 @@ func (r *SecretSyncReconciler) reconcileFromDest(
 	source := &corev1.Secret{}
 	err := r.k8sClient.Get(ctx, sourceKey, source)
 	if apierrors.IsNotFound(err) {
+		if !mapping.CanDeleteDest {
+			return ctrl.Result{}, nil
+		}
 		return r.deleteDestination(ctx, span, destKey)
 	}
 	if err != nil {
