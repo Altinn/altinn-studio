@@ -62,7 +62,7 @@ public class ChangenameDataProcessor : IDataWriteProcessor
         {
             data.Innledninggrp9309 ??= new Innledninggrp9309();
             data.Innledninggrp9309.NavneendringenGjelderForgrp9310 ??= new NavneendringenGjelderForgrp9310();
-            data.Innledninggrp9309.NavneendringenGjelderForgrp9310?.SubjektFornavnFolkeregistrertdatadef34730 = new SubjektFornavnFolkeregistrertdatadef34730
+            data.Innledninggrp9309.NavneendringenGjelderForgrp9310.SubjektFornavnFolkeregistrertdatadef34730 = new SubjektFornavnFolkeregistrertdatadef34730
             {
                 value = fornavn + mellomnavn + etternavn
             };
