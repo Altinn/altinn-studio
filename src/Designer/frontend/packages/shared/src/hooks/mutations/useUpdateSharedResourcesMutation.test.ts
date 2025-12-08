@@ -1,8 +1,8 @@
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { useUpdateSharedResourcesMutation } from './useUpdateSharedResourcesMutation';
 import type { UpdateSharedResourcesRequest } from '../../types/api/UpdateSharedResourcesRequest';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import { createQueryClientMock } from '../../mocks/queryClientMock';
+import { QueryKey } from '../../types/QueryKey';
 
 // Test data:
 const orgName = 'test-org';
