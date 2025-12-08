@@ -83,7 +83,7 @@ export default async function () {
     await editLastPet(page);
     await addPetManually(page, 'Herman');
   } catch (error) {
-    fail(`Browser iteration failed: ${error.message}`);
+    fail(`Browser iteration failed: ${error instanceof Error ? error.message : String(error)}`);
   } finally {
     await page.close();
   }
@@ -91,19 +91,15 @@ export default async function () {
 
 async function localtestLogin(page: Page) {
   try {
-    const pickFeVersionBtn = page.getByRole('link', { name: /pick frontend version/i });
-    await pickFeVersionBtn.click();
-
-    const feVersionSelect = page.getByRole('combobox');
-    await feVersionSelect.selectOption(TEST_DATA.FRONTEND_VERSION);
-
-    const feVersionSelectText = await feVersionSelect.getByRole('option', { selected: true }).textContent();
-
-    check(page, {
-      'selected frontend version is localtest': () => feVersionSelectText?.includes(MESSAGES.DEV_SERVER_TEXT) === true,
-    });
-
-    await page.getByRole('button', { name: /select/i }).click();
+    // Set the frontend version through cookie
+    await page.context().addCookies([
+      {
+        name: 'frontendVersion',
+        value: TEST_DATA.FRONTEND_VERSION,
+        url: BASE_URL,
+        httpOnly: true,
+      },
+    ]);
 
     await page.locator('select[name="UserSelect"]').waitFor({ state: 'visible' });
 
@@ -129,7 +125,7 @@ async function localtestLogin(page: Page) {
       await page.getByRole('button', { name: /start på nytt/i }).click();
     }
   } catch (error) {
-    console.log(`Localtest login failed: ${error.message}`);
+    console.log(`Localtest login failed: ${error instanceof Error ? error.message : String(error)}`);
     throw error; // Re-throw to fail the test
   }
 }
@@ -149,7 +145,7 @@ async function goToCorrectPage(page: Page) {
 
     await page.getByRole('button', { name: /3\. kjæledyr/i }).click();
   } catch (error) {
-    console.log(`Going to correct page failed: ${error.message}`);
+    console.log(`Going to correct page failed: ${error instanceof Error ? error.message : String(error)}`);
     throw error; // Re-throw to fail the test
   }
 }
@@ -171,7 +167,7 @@ async function generate250MorePets(screen: Page, buttonName: RegExp) {
 
     add250RepeatingGroupRowsMetric.add(endTime - startTime);
   } catch (error) {
-    console.log(`Generating more pets failed: ${error.message}`);
+    console.log(`Generating more pets failed: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
 }
@@ -188,12 +184,8 @@ async function editLastPet(page: Page) {
 
     await lastRowSpeciesSelect.click();
 
-    // // Wait for select to be open
+    // Wait for select to be open
     await page.locator('table tr:last-child u-combobox u-datalist').waitFor({ state: 'attached' });
-
-    check(page, {
-      isOpen: async () => page.getByRole('row').last().getByRole('combobox', { expanded: true }) !== null,
-    });
 
     const openEndTime = Date.now();
 
@@ -228,7 +220,7 @@ async function editLastPet(page: Page) {
       },
     });
   } catch (error) {
-    console.log(`Edit last pet test failed: ${error.message}`);
+    console.log(`Edit last pet test failed: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
 }
@@ -280,7 +272,7 @@ async function addPetManually(page: Page, petName: string) {
 
     manualRowAdditionTimeMetric.add(endTime - startTime);
   } catch (error) {
-    console.log(`Adding pet manually failed: ${error.message}`);
+    console.log(`Adding pet manually failed: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
 }
