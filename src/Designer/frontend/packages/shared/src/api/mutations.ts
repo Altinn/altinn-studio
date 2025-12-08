@@ -60,6 +60,7 @@ import {
   taskNavigationGroupPath,
   orgCodeListUpdateIdPath,
   orgCodeListsNewPath,
+  orgCodeListPublishPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -94,6 +95,7 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import type { ImportCodeListResponse } from 'app-shared/types/api/ImportCodeListResponse';
 import type { UpdateOrgCodeListsPayload } from 'app-shared/types/api/UpdateOrgCodeListsPayload';
+import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 
 const headers = {
   Accept: 'application/json',
@@ -128,6 +130,7 @@ export const deleteFormLayout = (org: string, app: string, layoutName: string, l
 export const deleteLanguageCode = (org: string, app: string, language: string) => del(textResourcesPath(org, app, language));
 export const generateModels = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(dataModelPath(org, app, modelPath, false), payload);
 export const logout = () => post(userLogoutPath());
+export const publishCodeList = (org: string, payload: PublishCodeListPayload) => post<void, PublishCodeListPayload>(orgCodeListPublishPath(org), payload);
 export const pushRepoChanges = (org: string, app: string) => post(repoPushPath(org, app));
 export const resetRepoChanges = (org: string, app: string) => get(repoResetPath(org, app)); //Technically a mutation, but currently only implemented as a GET
 export const saveDataModel = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(dataModelPath(org, app, modelPath, true), payload);
@@ -182,7 +185,7 @@ export const createPreviewInstance = (org: string, app: string, partyId: number,
 
 // ProcessEditor
 
-export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: string, taskId: string, allowedContributers?: Array<string>) => post(processEditorDataTypePath(org, app, dataTypeId, taskId), allowedContributers);
+export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: string, taskId: string, allowedContributors?: Array<string>) => post(processEditorDataTypePath(org, app, dataTypeId, taskId), allowedContributors);
 export const deleteDataTypeFromAppMetadata = (org: string, app: string, dataTypeId: string) => del(processEditorDataTypePath(org, app, dataTypeId));
 
 export const updateBpmnXml = (org: string, app: string, form: any) =>

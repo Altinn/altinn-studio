@@ -6,7 +6,7 @@ import { StudioHeading } from '@studio/components';
 import { TabsContent } from './components/TabsContent';
 import { ContentMenu } from './components/ContentMenu';
 
-export function AppSettings(): ReactElement {
+export default function AppSettings(): ReactElement {
   const { t } = useTranslation();
 
   return (

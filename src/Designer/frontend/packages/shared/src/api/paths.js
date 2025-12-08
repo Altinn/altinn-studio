@@ -96,6 +96,7 @@ export const getImageFileNamesPath = (org, app) => `${apiBasePath}/${org}/${app}
 export const orgCodeListsPath = (org) => `${apiBasePath}/${org}/code-lists`; // Get
 export const orgCodeListsNewPath = (org) => `${apiBasePath}/${org}/code-lists/new`; // Get, Put
 export const orgCodeListPath = (org, codeListId) => `${apiBasePath}/${org}/code-lists/${codeListId}`; // Post, Put, Delete
+export const orgCodeListPublishPath = (org) => `${apiBasePath}/${org}/code-lists/new/publish`; // Post
 export const orgCodeListUpdateIdPath = (org, codeListId) => `${apiBasePath}/${org}/code-lists/change-name/${codeListId}`;
 export const orgCodeListUploadPath = (org) => `${apiBasePath}/${org}/code-lists/upload`; // Post
 export const orgTextResourcesPath = (org, language) => `${apiBasePath}/${org}/text/language/${language}`; // Get, patch, post
@@ -163,7 +164,7 @@ export const resourceSubjectsPath = (org, repo) => `${apiBasePath}/${org}/${repo
 export const resourceAccessPackagesPath = (org, repo) => `${apiBasePath}/${org}/${repo}/policy/accesspackageoptions`; // Get
 export const resourceAccessPackageServicesPath = (accessPackageUrn, env) => `${apiBasePath}/accesspackageservices/${accessPackageUrn}/${env}`; // Get
 export const resourcePublishStatusPath = (org, repo, id) => `${apiBasePath}/${org}/resources/publishstatus/${repo}/${id}`; // Get
-export const resourceListPath = (org, skipGiteaFields) => `${apiBasePath}/${org}/resources/resourcelist?includeEnvResources=true&skipGiteaFields=${skipGiteaFields}`; // Get
+export const resourceListPath = (org, skipGiteaFields, skipParseJson) => `${apiBasePath}/${org}/resources/resourcelist?includeEnvResources=true&skipGiteaFields=${skipGiteaFields}&skipParseJson=${skipParseJson}`; // Get
 export const resourceCreatePath = (org) => `${apiBasePath}/${org}/resources/addresource`; // Post
 export const resourceSinglePath = (org, repo, id) => `${apiBasePath}/${org}/resources/${repo}/${id}`; // Get
 export const resourceEditPath = (org, id) => `${apiBasePath}/${org}/resources/updateresource/${id}`; // Put

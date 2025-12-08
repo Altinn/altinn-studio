@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioCombobox } from '@studio/components-legacy';
+import { StudioSuggestion } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { IDataModelBindingsKeyValueExplicit } from '../../../../../types/global';
 
@@ -26,30 +26,46 @@ export const DataModelBindingsCombobox = ({
     onDataModelBindingChange(value);
   };
 
+  const selectedItems = dataModelBindingKey
+    ? [{ value: dataModelBindingKey, label: dataModelBindingKey }]
+    : [];
+
+  const getOptionLabel = (key: string) => {
+    return key === 'simpleBinding'
+      ? t(`ux_editor.component_title.${componentType}`)
+      : t(`ux_editor.modal_properties_data_model_label.${key}`);
+  };
+
+  const handleSelectedChange = (items: { value: string }[]) => {
+    onValueChange(items[0]?.value || '');
+  };
+
   return (
-    <StudioCombobox
+    <StudioSuggestion
       label={t(
         'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
       )}
       description={t(
         'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_description',
       )}
-      size='sm'
-      value={[dataModelBindingKey]}
-      onValueChange={(values) => onValueChange(values[0])}
+      emptyText={''}
+      filter={() => true}
+      selected={selectedItems}
+      onSelectedChange={handleSelectedChange}
     >
       {Object.keys(dataModelBindings).map((key) => {
         const binding = dataModelBindings?.[key];
         return (
           binding && (
-            <StudioCombobox.Option key={key} value={key} description={binding.field}>
-              {key === 'simpleBinding'
-                ? t(`ux_editor.component_title.${componentType}`)
-                : t(`ux_editor.modal_properties_data_model_label.${key}`)}
-            </StudioCombobox.Option>
+            <StudioSuggestion.Option key={key} value={key}>
+              <div>
+                <div>{getOptionLabel(key)}</div>
+                <div>{binding.field}</div>
+              </div>
+            </StudioSuggestion.Option>
           )
         );
       })}
-    </StudioCombobox>
+    </StudioSuggestion>
   );
 };

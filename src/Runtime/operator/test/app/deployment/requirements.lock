@@ -1,0 +1,6 @@
+dependencies:
+- name: deployment
+  repository: file://../altinn-studio-charts/charts/deployment
+  version: 3.0.1
+digest: sha256:5cc5cc0b50be528bf031face69c7f6d8548377a97282b92a8d40fb8f18a1e89f
+generated: "2024-06-11T15:39:37.46041011+02:00"
