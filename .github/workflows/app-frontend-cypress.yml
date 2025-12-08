@@ -8,6 +8,7 @@ on:
       - 'src/App/codelists/**'
       - 'src/App/fileanalyzers/**'
       - 'src/Runtime/localtest/**'
+      - 'src/Runtime/pdf3/**'
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/yarn.lock'
