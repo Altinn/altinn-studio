@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-using StudioGateway.Api.Authentication;
 using StudioGateway.Api.Clients.Designer.Contracts;
 using StudioGateway.Api.Clients.GatewayK8s;
 using StudioGateway.Api.Endpoints.Internal.Contracts;
@@ -7,13 +5,9 @@ using StudioGateway.Api.Hosting;
 
 namespace StudioGateway.Api.Endpoints.Internal;
 
-internal static partial class FluxWebhookEndpoints
+internal static class FluxWebhookEndpoints
 {
-    // HelmRelease name format: {org}-{app}-{studio-env}
-    // All parts are lowercase (Kubernetes requirement). org has no hyphens, app can have hyphens
-    // Example: ttd-my-app-prod, digdir-some-app-dev
-    [GeneratedRegex(@"^(?<org>[a-z0-9]+)-(?<app>[a-z0-9-]+)-(?<env>dev|staging|prod)$")]
-    private static partial Regex HelmReleaseNamePattern();
+    private sealed record HelmReleaseInfo(string Org, string App, string SourceEnvironment, string? BuildId);
 
     public static WebApplication MapFluxWebhookEndpoint(this WebApplication app)
     {
@@ -44,7 +38,6 @@ internal static partial class FluxWebhookEndpoints
             fluxEvent.InvolvedObject.Namespace
         );
 
-        // Only process HelmRelease events
         if (fluxEvent.InvolvedObject.Kind != "HelmRelease")
         {
             logger.LogDebug("Ignoring non-HelmRelease event");
@@ -60,17 +53,65 @@ internal static partial class FluxWebhookEndpoints
             return Results.Ok();
         }
 
-        // Try to fetch labels from HelmRelease
-        var labels = await helmReleaseService.GetLabelsAsync(helmReleaseName, helmReleaseNamespace, cancellationToken);
+        var info = await TryResolveHelmReleaseInfoAsync(
+            helmReleaseService,
+            helmReleaseName,
+            helmReleaseNamespace,
+            logger,
+            cancellationToken
+        );
 
-        string? org;
-        string? app;
-        string? sourceEnvironment;
-        string? buildId;
+        if (info is null)
+            return Results.Ok();
 
-        if (labels is not null)
+        var targetEnvironment = hostEnvironment.EnvironmentName;
+
+        var deployEvent = new DeployEventRequest
         {
-            // HelmRelease exists, extract values from labels
+            BuildId = info.BuildId,
+            Message = fluxEvent.Message,
+            Timestamp = fluxEvent.Timestamp,
+            EventType = fluxEvent.Reason,
+            Environment = targetEnvironment,
+        };
+
+        try
+        {
+            var httpClient = httpClientFactory.CreateClient(info.SourceEnvironment);
+            var response = await httpClient.PostAsJsonAsync(
+                $"designer/api/{info.Org}/{info.App}/deployments/events",
+                deployEvent,
+                AppJsonSerializerContext.Default.DeployEventRequest,
+                cancellationToken
+            );
+            response.EnsureSuccessStatusCode();
+            logger.LogInformation("Successfully sent deploy event to Designer for {Org}/{App}", info.Org, info.App);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send deploy event for {Name}", helmReleaseName);
+        }
+
+        return Results.Ok();
+    }
+
+    private static async Task<HelmReleaseInfo?> TryResolveHelmReleaseInfoAsync(
+        IHelmReleaseService helmReleaseService,
+        string helmReleaseName,
+        string helmReleaseNamespace,
+        ILogger logger,
+        CancellationToken cancellationToken
+    )
+    {
+        var exists = await helmReleaseService.ExistsAsync(helmReleaseName, helmReleaseNamespace, cancellationToken);
+        if (exists)
+        {
+            var labels = await helmReleaseService.GetLabelsAsync(
+                helmReleaseName,
+                helmReleaseNamespace,
+                cancellationToken
+            );
+
             string[] requiredLabels =
             [
                 StudioLabels.BuildId,
@@ -78,96 +119,46 @@ internal static partial class FluxWebhookEndpoints
                 StudioLabels.Org,
                 StudioLabels.App,
             ];
+
             foreach (var label in requiredLabels)
             {
                 if (!labels.ContainsKey(label))
                 {
                     logger.LogWarning("HelmRelease {Name} does not have label {Label}", helmReleaseName, label);
-                    return Results.Ok();
+                    return null;
                 }
             }
 
-            org = labels[StudioLabels.Org];
-            app = labels[StudioLabels.App];
-            sourceEnvironment = labels[StudioLabels.SourceEnvironment];
-            buildId = labels[StudioLabels.BuildId];
+            return new HelmReleaseInfo(
+                labels[StudioLabels.Org],
+                labels[StudioLabels.App],
+                labels[StudioLabels.SourceEnvironment],
+                labels[StudioLabels.BuildId]
+            );
         }
-        else
+
+        logger.LogInformation(
+            "HelmRelease {Name} not found, attempting to parse values from name",
+            helmReleaseName
+        );
+
+        if (!HelmReleaseNameParser.TryParse(helmReleaseName, out var org, out var app, out var env))
         {
-            // HelmRelease doesn't exist (likely deleted), try to parse values from name
-            // Name format: {org}-{app}-{studio-env}
-            logger.LogInformation(
-                "HelmRelease {Name} not found, attempting to parse values from name",
+            logger.LogWarning(
+                "Could not parse HelmRelease name: {Name}. Expected format: {{org}}-{{app}}-{{env}}",
                 helmReleaseName
             );
-
-            var parsed = TryParseHelmReleaseName(helmReleaseName);
-            if (parsed is null)
-            {
-                logger.LogWarning(
-                    "Could not parse HelmRelease name: {Name}. Expected format: {{org}}-{{app}}-{{env}}",
-                    helmReleaseName
-                );
-                return Results.Ok();
-            }
-
-            (org, app, sourceEnvironment) = parsed.Value;
-            buildId = null; // BuildId is not available when HelmRelease is deleted
-
-            logger.LogInformation(
-                "Parsed HelmRelease name {Name} -> Org: {Org}, App: {App}, Env: {Env}",
-                helmReleaseName,
-                org,
-                app,
-                sourceEnvironment
-            );
-        }
-
-        // Target environment is the environment where the gateway is running (e.g., at22, tt02, production)
-        var targetEnvironment = hostEnvironment.EnvironmentName;
-
-        var deployEvent = new DeployEventRequest
-        {
-            BuildId = buildId,
-            Message = fluxEvent.Message,
-            Timestamp = fluxEvent.Timestamp,
-            EventType = fluxEvent.Reason,
-            Environment = targetEnvironment,
-        };
-
-        // Send the event to Designer
-        try
-        {
-            var httpClient = httpClientFactory.CreateClient(sourceEnvironment);
-            var response = await httpClient.PostAsJsonAsync(
-                $"designer/api/{org}/{app}/deployments/events",
-                deployEvent,
-                AppJsonSerializerContext.Default.DeployEventRequest,
-                cancellationToken
-            );
-            response.EnsureSuccessStatusCode();
-            logger.LogInformation("Successfully sent deploy event to Designer for {Org}/{App}", org, app);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to send deploy event to Designer for {Org}/{App}", org, app);
-        }
-
-        return Results.Ok();
-    }
-
-    /// <summary>
-    /// Tries to parse org, app, and environment from a HelmRelease name.
-    /// Expected format: {org}-{app}-{env} where env is one of: dev, staging, prod
-    /// </summary>
-    private static (string Org, string App, string Env)? TryParseHelmReleaseName(string name)
-    {
-        var match = HelmReleaseNamePattern().Match(name);
-        if (!match.Success)
-        {
             return null;
         }
 
-        return (match.Groups["org"].Value, match.Groups["app"].Value, match.Groups["env"].Value);
+        logger.LogInformation(
+            "Parsed HelmRelease name {Name} -> Org: {Org}, App: {App}, Env: {Env}",
+            helmReleaseName,
+            org,
+            app,
+            env
+        );
+
+        return new HelmReleaseInfo(org, app, env, null);
     }
 }
