@@ -1,4 +1,4 @@
-import { useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { useServicesContext } from '../../contexts/ServicesContext';
 import { QueryKey } from '../../types/QueryKey';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
