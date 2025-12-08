@@ -1,8 +1,8 @@
 #nullable disable
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.RepositoryClient.Model;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,13 +17,13 @@ namespace Altinn.Studio.Designer.Controllers
     [Route("designer/api/orgs")]
     public class OrganizationController : ControllerBase
     {
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OrganizationController"/> class.
         /// </summary>
         /// <param name="giteaClient">the gitea client</param>
-        public OrganizationController(IGitea giteaClient)
+        public OrganizationController(IGiteaClient giteaClient)
         {
             _giteaClient = giteaClient;
         }

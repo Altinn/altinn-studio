@@ -5,11 +5,11 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
@@ -22,7 +22,7 @@ namespace Designer.Tests.Services;
 
 public class GiteaContentLibraryServiceTests
 {
-    private readonly Mock<IGitea> _giteaClientMock;
+    private readonly Mock<IGiteaClient> _giteaClientMock;
     private readonly GiteaContentLibraryService _giteaContentLibraryService;
     private const string Developer = "testUser";
     private const string OrgName = "ttd";
@@ -41,7 +41,7 @@ public class GiteaContentLibraryServiceTests
 
     public GiteaContentLibraryServiceTests()
     {
-        _giteaClientMock = new Mock<IGitea>();
+        _giteaClientMock = new Mock<IGiteaClient>();
         Mock<ILogger<GiteaContentLibraryService>> loggerMock = new();
         _giteaContentLibraryService = new GiteaContentLibraryService(_giteaClientMock.Object, loggerMock.Object);
     }

@@ -1,6 +1,7 @@
 #nullable disable
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -20,7 +21,7 @@ namespace Altinn.Studio.Designer.Controllers
     [Route("designer/api/user")]
     public class UserController : ControllerBase
     {
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClient;
         private readonly IAntiforgery _antiforgery;
         private readonly IUserService _userService;
 
@@ -30,7 +31,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="giteaClient">the gitea client</param>
         /// <param name="antiforgery">Access to the antiforgery system in .NET Core</param>
         /// <param name="userService">User service</param>
-        public UserController(IGitea giteaClient, IAntiforgery antiforgery, IUserService userService)
+        public UserController(IGiteaClient giteaClient, IAntiforgery antiforgery, IUserService userService)
         {
             _giteaClient = giteaClient;
             _antiforgery = antiforgery;

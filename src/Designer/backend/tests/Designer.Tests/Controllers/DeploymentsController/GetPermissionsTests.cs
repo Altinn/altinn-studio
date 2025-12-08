@@ -3,8 +3,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.RepositoryClient.Model;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,11 +16,11 @@ namespace Designer.Tests.Controllers.DeploymentsController;
 public class GetPermissions : DesignerEndpointsTestsBase<GetPermissions>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
-    private readonly Mock<IGitea> _giteaMock;
+    private readonly Mock<IGiteaClient> _giteaMock;
 
     public GetPermissions(WebApplicationFactory<Program> factory) : base(factory)
     {
-        _giteaMock = new Mock<IGitea>();
+        _giteaMock = new Mock<IGiteaClient>();
     }
 
     protected override void ConfigureTestServices(IServiceCollection services)

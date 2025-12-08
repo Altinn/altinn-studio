@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -18,7 +19,7 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class GiteaContentLibraryService : IGiteaContentLibraryService
 {
-    private readonly IGitea _giteaClient;
+    private readonly IGiteaClient _giteaClient;
     private readonly ILogger<GiteaContentLibraryService> _logger;
     private const string CodeListFolderPath = "CodeListsWithTextResources/";
     private const string TextResourceFolderPath = "Texts/";
@@ -29,7 +30,7 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
         PropertyNameCaseInsensitive = true
     };
 
-    public GiteaContentLibraryService(IGitea giteaClient, ILogger<GiteaContentLibraryService> logger)
+    public GiteaContentLibraryService(IGiteaClient giteaClient, ILogger<GiteaContentLibraryService> logger)
     {
         _giteaClient = giteaClient;
         _logger = logger;
