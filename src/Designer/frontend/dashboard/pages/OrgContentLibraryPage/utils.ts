@@ -12,7 +12,7 @@ import type {
   FileMetadata,
 } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
-import { CODE_LIST_FOLDER } from '@studio/content-library';
+import { CODE_LIST_FOLDER } from 'app-shared/constants';
 import { FileNameUtils } from '@studio/pure-functions';
 
 export function textResourceWithLanguageToMutationArgs({
