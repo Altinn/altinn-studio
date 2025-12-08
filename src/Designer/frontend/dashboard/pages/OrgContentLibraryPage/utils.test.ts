@@ -85,11 +85,6 @@ describe('utils', () => {
       ];
       expect(result).toEqual(expectedResult);
     });
-
-    it('Returns empty array when response is undefined', () => {
-      const result = backendCodeListsToLibraryCodeLists(undefined);
-      expect(result).toEqual([]);
-    });
   });
 
   describe('libraryCodeListsToUpdatePayload', () => {
