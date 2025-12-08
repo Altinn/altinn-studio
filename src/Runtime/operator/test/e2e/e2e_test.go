@@ -5,15 +5,20 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"sync"
 	"time"
 
+	fluxmeta "github.com/fluxcd/pkg/apis/meta"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/watch"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/config"
@@ -257,6 +262,151 @@ var _ = Describe("controller", Ordered, func() {
 			By("triggering pod secret volume sync")
 			err = TriggerPodSecretSync(k8sClient, clientNamespace, "ttd-localtestapp-deployment")
 			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should preserve secret during flux HelmRelease reconciliation", func() {
+			k8sClient := Client
+			Expect(k8sClient).NotTo(BeNil())
+
+			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+			defer cancel()
+
+			const helmReleaseName = "ttd-localtestapp"
+
+			By("setting up watch on secret")
+			watcher, err := k8sClient.Core.Get().
+				Resource("secrets").
+				Namespace(clientNamespace).
+				Name(secretName).
+				Watch(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			type SecretEvent struct {
+				Type        watch.EventType
+				DataLength  int
+				HasSettings bool
+			}
+			events := make([]SecretEvent, 0)
+			var eventsMu sync.Mutex
+			watchDone := make(chan struct{})
+
+			go func() {
+				defer close(watchDone)
+				for event := range watcher.ResultChan() {
+					if secret, ok := event.Object.(*corev1.Secret); ok {
+						eventsMu.Lock()
+						_, hasSettings := secret.Data["maskinporten-settings.json"]
+						events = append(events, SecretEvent{
+							Type:        event.Type,
+							DataLength:  len(secret.Data),
+							HasSettings: hasSettings,
+						})
+						eventsMu.Unlock()
+					}
+				}
+			}()
+
+			By("fetching current HelmRelease")
+			hr := &unstructured.Unstructured{}
+			hr.SetGroupVersionKind(schema.GroupVersionKind{
+				Group:   "helm.toolkit.fluxcd.io",
+				Version: "v2",
+				Kind:    "HelmRelease",
+			})
+			err = k8sClient.Flux.Get().
+				Resource("helmreleases").
+				Namespace(clientNamespace).
+				Name(helmReleaseName).
+				Do(ctx).
+				Into(hr)
+			Expect(err).NotTo(HaveOccurred())
+
+			status, _, _ := unstructured.NestedMap(hr.Object, "status")
+			initialHandled, _, _ := unstructured.NestedString(status, "lastHandledReconcileAt")
+
+			By("triggering flux reconcile via annotation")
+			annotations := hr.GetAnnotations()
+			if annotations == nil {
+				annotations = make(map[string]string)
+			}
+			requestedAt := time.Now().Format(time.RFC3339Nano)
+			annotations[fluxmeta.ReconcileRequestAnnotation] = requestedAt
+			hr.SetAnnotations(annotations)
+
+			err = k8sClient.Flux.Put().
+				Resource("helmreleases").
+				Namespace(clientNamespace).
+				Name(helmReleaseName).
+				Body(hr).
+				Do(ctx).
+				Error()
+			Expect(err).NotTo(HaveOccurred())
+
+			By("waiting for reconciliation to complete")
+			Eventually(func() bool {
+				hr := &unstructured.Unstructured{}
+				hr.SetGroupVersionKind(schema.GroupVersionKind{
+					Group:   "helm.toolkit.fluxcd.io",
+					Version: "v2",
+					Kind:    "HelmRelease",
+				})
+				err := k8sClient.Flux.Get().
+					Resource("helmreleases").
+					Namespace(clientNamespace).
+					Name(helmReleaseName).
+					Do(ctx).
+					Into(hr)
+				if err != nil {
+					return false
+				}
+				status, _, _ := unstructured.NestedMap(hr.Object, "status")
+				handled, _, _ := unstructured.NestedString(status, "lastHandledReconcileAt")
+				return handled != initialHandled
+			}, 30*time.Second, time.Second).Should(BeTrue())
+
+			By("stopping watch and collecting events")
+			watcher.Stop()
+			<-watchDone
+
+			eventsMu.Lock()
+			collectedEvents := events
+			eventsMu.Unlock()
+
+			// NOTE: app deployed through helmrelease right now
+			// doesn't actually clear/delete the secret during reconciliaton
+			// Note quite sure why, maybe 3-way-merge behavior of fluxcd helm controller?
+			// but we keep the test here to make sure this stays true in the future
+			By("verifying secret was never emptied")
+			for i, ev := range collectedEvents {
+				_, _ = fmt.Fprintf(GinkgoWriter, "Event %d: type=%s, dataLen=%d, hasSettings=%v\n",
+					i, ev.Type, ev.DataLength, ev.HasSettings)
+
+				if ev.Type == watch.Deleted {
+					Fail(fmt.Sprintf("Secret was deleted at event %d", i))
+				}
+				Expect(ev.DataLength).To(BeNumerically(">", 0),
+					fmt.Sprintf("Secret data empty at event %d", i))
+				Expect(ev.HasSettings).To(BeTrue(),
+					fmt.Sprintf("maskinporten-settings.json missing at event %d", i))
+			}
+
+			By("verifying lastHandledReconcileAt matches our request")
+			hr = &unstructured.Unstructured{}
+			hr.SetGroupVersionKind(schema.GroupVersionKind{
+				Group:   "helm.toolkit.fluxcd.io",
+				Version: "v2",
+				Kind:    "HelmRelease",
+			})
+			err = k8sClient.Flux.Get().
+				Resource("helmreleases").
+				Namespace(clientNamespace).
+				Name(helmReleaseName).
+				Do(ctx).
+				Into(hr)
+			Expect(err).NotTo(HaveOccurred())
+			status, _, _ = unstructured.NestedMap(hr.Object, "status")
+			handled, _, _ := unstructured.NestedString(status, "lastHandledReconcileAt")
+			Expect(handled).To(Equal(requestedAt))
 		})
 
 		It("should generate token using reconciled credentials", func() {
