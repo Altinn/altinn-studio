@@ -1,5 +1,6 @@
 import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -23,7 +24,7 @@ export const appLanguagesKeys = {
 
 export async function fetchAppLanguages(): Promise<AppLanguagesResponse> {
   const url = '/api/v1/applicationlanguages';
-  const response = await axios.get<AppLanguagesResponse>(url);
+  const response = await apiClient.get<AppLanguagesResponse>(url);
   return response.data;
 }
 

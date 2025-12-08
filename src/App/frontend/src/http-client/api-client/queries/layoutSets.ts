@@ -1,5 +1,7 @@
 import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from 'src/http-client/api-client/client';
+import type { ILayoutCollection } from 'src/layout/layout';
 
 // ============================================================
 // Types
@@ -25,9 +27,9 @@ export const layoutSetsKeys = {
 // Pure HTTP Layer
 // ============================================================
 
-export async function fetchLayoutSets(): Promise<LayoutSetsResponse> {
+export async function fetchLayoutSets(): Promise<ILayoutCollection> {
   const url = '/api/layoutsets';
-  const response = await axios.get<LayoutSetsResponse>(url);
+  const response = await apiClient.get<ILayoutCollection>(url);
   return response.data;
 }
 

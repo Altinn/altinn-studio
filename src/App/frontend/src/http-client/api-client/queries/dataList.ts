@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -40,7 +41,7 @@ export const dataListKeys = {
 
 export async function fetchDataList(params: DataListParams): Promise<DataListResponse> {
   const { url } = params;
-  const response = await axios.get<DataListResponse>(url);
+  const response = await apiClient.get<DataListResponse>(url);
   return response.data;
 }
 

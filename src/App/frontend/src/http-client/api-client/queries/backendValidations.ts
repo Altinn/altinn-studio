@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -41,7 +42,7 @@ export async function fetchBackendValidations(params: BackendValidationsParams):
   const incrementalQuery =
     onlyIncrementalValidators !== undefined ? `&onlyIncrementalValidators=${onlyIncrementalValidators}` : '';
   const url = `/api/v1/instances/${instanceId}/validate?language=${language}${incrementalQuery}`;
-  const response = await axios.get<BackendValidationsResponse>(url);
+  const response = await apiClient.get<BackendValidationsResponse>(url);
   return response.data;
 }
 

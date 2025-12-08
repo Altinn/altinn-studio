@@ -30,7 +30,7 @@ import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { createGlobalDataLoader } from 'src/language/globalStateLoader';
-import { NextForm } from 'src/NextForm';
+import { NextForm } from 'src/next/NextForm';
 
 import 'leaflet/dist/leaflet.css';
 import 'react-toastify/dist/ReactToastify.css';

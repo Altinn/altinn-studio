@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -76,7 +77,7 @@ export const instanceDataKeys = {
 export async function fetchInstanceData(params: InstanceDataParams): Promise<InstanceDataResponse> {
   const { instanceOwnerPartyId, instanceGuid } = params;
   const url = `/instances/${instanceOwnerPartyId}/${instanceGuid}`;
-  const response = await axios.get<InstanceDataResponse>(url);
+  const response = await apiClient.get<InstanceDataResponse>(url);
   return response.data;
 }
 

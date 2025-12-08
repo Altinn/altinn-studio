@@ -1,5 +1,6 @@
 import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -21,7 +22,7 @@ export const applicationSettingsKeys = {
 
 export async function fetchApplicationSettings(): Promise<ApplicationSettingsResponse> {
   const url = '/api/v1/applicationsettings';
-  const response = await axios.get<ApplicationSettingsResponse>(url);
+  const response = await apiClient.get<ApplicationSettingsResponse>(url);
   return response.data;
 }
 

@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -37,7 +38,7 @@ export const optionsKeys = {
 export async function fetchOptions(params: OptionsParams): Promise<OptionsResponse | null> {
   const { url } = params;
   try {
-    const response = await axios.get<OptionsItem[]>(url);
+    const response = await apiClient.get<OptionsItem[]>(url);
     return {
       data: response.data,
       headers: response.headers as Record<string, string>,

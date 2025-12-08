@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -85,7 +86,7 @@ export async function doInstantiateWithPrefill(
   const { data, language } = params;
   const languageQuery = language ? `?language=${language}` : '';
   const url = `/api/v1/instances${languageQuery}`;
-  const response = await axios.post<InstantiateWithPrefillResponse>(url, data);
+  const response = await apiClient.post<InstantiateWithPrefillResponse>(url, data);
   return response.data;
 }
 

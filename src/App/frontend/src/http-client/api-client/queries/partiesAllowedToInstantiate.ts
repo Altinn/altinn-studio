@@ -1,5 +1,6 @@
 import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -31,7 +32,7 @@ export const partiesAllowedToInstantiateKeys = {
 
 export async function fetchPartiesAllowedToInstantiate(): Promise<PartiesAllowedToInstantiateResponse> {
   const url = '/api/v1/parties?allowedToInstantiateFilter=true';
-  const response = await axios.get<PartiesAllowedToInstantiateResponse>(url);
+  const response = await apiClient.get<PartiesAllowedToInstantiateResponse>(url);
   return response.data;
 }
 

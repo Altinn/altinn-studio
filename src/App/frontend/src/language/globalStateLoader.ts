@@ -4,6 +4,7 @@ import type { QueryClient } from '@tanstack/react-query';
 
 import { convertResult } from 'src/domain/Textresource/textResourceQuery';
 import { getLanguageFromUrl } from 'src/features/language/useAppLanguages';
+import { textResourcesKeys } from 'src/http-client/api-client/queries/textResources';
 import { fetchTextResources } from 'src/http-client/queries';
 import type { TextResourceMap } from 'src/features/language/textResources';
 
@@ -109,7 +110,7 @@ export async function globalStateLoader({ context, params }: LanguageLoaderProps
 
   if (currentLangString && currentLangString !== bootstrapLang) {
     await queryClient.ensureQueryData<TextResourceMap>({
-      queryKey: ['fetchTextResources', currentLangString],
+      queryKey: textResourcesKeys.byLanguage({ language: currentLangString }),
       queryFn: async () => convertResult(await fetchTextResources(currentLangString)),
     });
   }

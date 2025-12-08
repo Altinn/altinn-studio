@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -27,7 +28,7 @@ export const returnUrlKeys = {
 export async function fetchReturnUrl(params: ReturnUrlParams): Promise<ReturnUrlResponse> {
   const { queryParameterReturnUrl } = params;
   const url = `/api/v1/redirect?url=${encodeURIComponent(queryParameterReturnUrl)}`;
-  const response = await axios.get<ReturnUrlResponse>(url);
+  const response = await apiClient.get<ReturnUrlResponse>(url);
   return response.data;
 }
 

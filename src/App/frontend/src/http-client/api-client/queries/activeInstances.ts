@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from 'src/http-client/api-client/client';
 
 // ============================================================
 // Types
@@ -30,8 +31,8 @@ export const activeInstancesKeys = {
 
 export async function fetchActiveInstances(params: ActiveInstancesParams): Promise<ActiveInstancesResponse> {
   const { partyId } = params;
-  const url = `/api/v1/parties/${partyId}/instances`;
-  const response = await axios.get<ActiveInstancesResponse>(url);
+  const url = `/instances/${partyId}/active`;
+  const response = await apiClient.get<ActiveInstancesResponse>(url);
   return response.data;
 }
 

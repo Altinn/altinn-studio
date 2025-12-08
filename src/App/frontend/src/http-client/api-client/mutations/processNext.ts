@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 import { processStateKeys } from 'src/http-client/api-client/queries/processState';
 
@@ -46,7 +47,7 @@ export async function doProcessNext(params: ProcessNextParams): Promise<ProcessN
   const suffix = queryString ? `?${queryString}` : '';
   const url = `/instances/${instanceId}/process/next${suffix}`;
 
-  const response = await axios.put<ProcessNextResponse>(url, action ? { action } : null);
+  const response = await apiClient.put<ProcessNextResponse>(url, action ? { action } : null);
   return response.data;
 }
 

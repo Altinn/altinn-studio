@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -33,7 +34,7 @@ export async function doUpdateAttachmentTags(
 ): Promise<UpdateAttachmentTagsResponse> {
   const { instanceId, dataElementId, tags } = params;
   const url = `/api/v1/instances/${instanceId}/data/${dataElementId}/tags`;
-  const response = await axios.put<UpdateAttachmentTagsResponse>(
+  const response = await apiClient.put<UpdateAttachmentTagsResponse>(
     url,
     { tags },
     {

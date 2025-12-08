@@ -1,5 +1,7 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from 'src/http-client/api-client/client';
+import type { ILayoutCollection } from 'src/layout/layout';
 
 // ============================================================
 // Types
@@ -9,7 +11,7 @@ export type LayoutsParams = {
   layoutSetId: string;
 };
 
-export type LayoutsResponse = Record<string, unknown>;
+// export type LayoutsResponse = Record<string, unknown>;
 
 // ============================================================
 // Query Key
@@ -24,10 +26,10 @@ export const layoutsKeys = {
 // Pure HTTP Layer
 // ============================================================
 
-export async function fetchLayouts(params: LayoutsParams): Promise<LayoutsResponse> {
+export async function fetchLayouts(params: LayoutsParams): Promise<ILayoutCollection> {
   const { layoutSetId } = params;
   const url = `/api/layouts/${layoutSetId}`;
-  const response = await axios.get<LayoutsResponse>(url);
+  const response = await apiClient.get<ILayoutCollection>(url);
   return response.data;
 }
 

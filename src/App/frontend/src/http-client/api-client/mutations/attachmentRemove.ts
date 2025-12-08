@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -21,7 +22,7 @@ export async function doAttachmentRemove(params: AttachmentRemoveParams): Promis
   const { instanceId, dataElementId, language } = params;
   const url = `/instances/${instanceId}/data/${dataElementId}?language=${language}`;
 
-  const response = await axios.delete(url);
+  const response = await apiClient.delete(url);
 
   if (response.status < 200 || response.status >= 300) {
     throw new Error('Failed to remove attachment');

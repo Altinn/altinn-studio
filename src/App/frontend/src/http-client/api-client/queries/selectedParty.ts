@@ -1,5 +1,6 @@
 import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -68,7 +69,7 @@ export const selectedPartyKeys = {
 
 export async function fetchSelectedParty(): Promise<SelectedPartyResponse> {
   const url = '/api/v1/parties/current';
-  const response = await axios.get<SelectedPartyResponse>(url);
+  const response = await apiClient.get<SelectedPartyResponse>(url);
   return response.data;
 }
 

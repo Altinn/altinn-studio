@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -31,7 +32,7 @@ export const pdfFormatKeys = {
 export async function fetchPdfFormat(params: PdfFormatParams): Promise<PdfFormatResponse> {
   const { instanceId, dataElementId } = params;
   const url = `/api/v1/instances/${instanceId}/data/${dataElementId}/pdf/format`;
-  const response = await axios.get<PdfFormatResponse>(url);
+  const response = await apiClient.get<PdfFormatResponse>(url);
   return response.data;
 }
 

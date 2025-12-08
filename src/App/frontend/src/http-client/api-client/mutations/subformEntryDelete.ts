@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -19,7 +20,7 @@ export type SubformEntryDeleteResponse = void;
 export async function doSubformEntryDelete(params: SubformEntryDeleteParams): Promise<SubformEntryDeleteResponse> {
   const { instanceId, dataElementId } = params;
   const url = `/api/v1/instances/${instanceId}/data/${dataElementId}`;
-  const response = await axios.delete(url);
+  const response = await apiClient.delete(url);
 
   if (response.status < 200 || response.status >= 300) {
     throw new Error('Failed to delete sub form');

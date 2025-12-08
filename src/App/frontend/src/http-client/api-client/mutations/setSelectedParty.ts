@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 import { selectedPartyKeys } from 'src/http-client/api-client/queries/selectedParty';
 
@@ -20,7 +21,7 @@ export type SetSelectedPartyResponse = string | null;
 export async function doSetSelectedParty(params: SetSelectedPartyParams): Promise<SetSelectedPartyResponse> {
   const { partyId } = params;
   const url = `/api/v1/parties/${partyId}`;
-  const response = await axios.put<SetSelectedPartyResponse>(url);
+  const response = await apiClient.put<SetSelectedPartyResponse>(url);
   return response.data;
 }
 

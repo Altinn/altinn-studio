@@ -1,5 +1,6 @@
 import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -46,7 +47,7 @@ export const applicationMetadataKeys = {
 
 export async function fetchApplicationMetadata(): Promise<ApplicationMetadataResponse> {
   const url = '/api/v1/applicationmetadata';
-  const response = await axios.get<ApplicationMetadataResponse>(url);
+  const response = await apiClient.get<ApplicationMetadataResponse>(url);
   return response.data;
 }
 

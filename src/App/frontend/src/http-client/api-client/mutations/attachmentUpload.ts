@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -43,7 +44,7 @@ export async function doAttachmentUpload(params: AttachmentUploadParams): Promis
   const { instanceId, dataTypeId, language, file, contentType } = params;
   const url = `/instances/${instanceId}/data?dataType=${dataTypeId}&language=${language}`;
 
-  const response = await axios.post<AttachmentUploadResponse>(url, file, {
+  const response = await apiClient.post<AttachmentUploadResponse>(url, file, {
     headers: {
       'Content-Type': contentType,
       'Content-Disposition': `attachment; filename="${encodeURIComponent(file.name)}"`,

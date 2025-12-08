@@ -1,5 +1,6 @@
 import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -21,7 +22,7 @@ export const refreshJwtTokenKeys = {
 
 export async function fetchRefreshJwtToken(): Promise<RefreshJwtTokenResponse> {
   const url = '/api/authentication/refresh';
-  const response = await axios.get<RefreshJwtTokenResponse>(url);
+  const response = await apiClient.get<RefreshJwtTokenResponse>(url);
   return response.data;
 }
 

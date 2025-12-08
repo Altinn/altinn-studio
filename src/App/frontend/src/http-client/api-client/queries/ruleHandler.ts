@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -28,7 +29,7 @@ export async function fetchRuleHandler(params: RuleHandlerParams): Promise<RuleH
   const { layoutSetId } = params;
   const url = `/api/v1/layoutsets/${layoutSetId}/rule-handler`;
   try {
-    const response = await axios.get<string>(url);
+    const response = await apiClient.get<string>(url);
     return response.data;
   } catch {
     return null;

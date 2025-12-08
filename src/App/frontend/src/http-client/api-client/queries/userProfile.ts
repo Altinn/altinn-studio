@@ -1,5 +1,6 @@
 import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -40,7 +41,7 @@ export const userProfileKeys = {
 
 export async function fetchUserProfile(): Promise<UserProfileResponse> {
   const url = '/api/v1/profile/user';
-  const response = await axios.get<UserProfileResponse>(url);
+  const response = await apiClient.get<UserProfileResponse>(url);
   return response.data;
 }
 

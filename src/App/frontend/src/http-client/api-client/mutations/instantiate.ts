@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from 'src/http-client/api-client/client';
 
 // ============================================================
 // Types
@@ -73,8 +74,9 @@ export type InstantiateResponse = {
 export async function doInstantiate(params: InstantiateParams): Promise<InstantiateResponse> {
   const { partyId, language } = params;
   const languageQuery = language ? `&language=${language}` : '';
-  const url = `/api/v1/instances?instanceOwnerPartyId=${partyId}${languageQuery}`;
-  const response = await axios.post<InstantiateResponse>(url);
+  const url = `/instances?instanceOwnerPartyId=${partyId}${languageQuery}`;
+
+  const response = await apiClient.post<InstantiateResponse>(url);
   return response.data;
 }
 

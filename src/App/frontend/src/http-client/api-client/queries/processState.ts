@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -44,7 +45,7 @@ export const processStateKeys = {
 export async function fetchProcessState(params: ProcessStateParams): Promise<ProcessStateResponse> {
   const { instanceId } = params;
   const url = `/instances/${instanceId}/process`;
-  const response = await axios.get<ProcessStateResponse>(url);
+  const response = await apiClient.get<ProcessStateResponse>(url);
   return response.data;
 }
 

@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -36,7 +37,7 @@ export const layoutSettingsKeys = {
 export async function fetchLayoutSettings(params: LayoutSettingsParams): Promise<LayoutSettingsResponse> {
   const { layoutSetId } = params;
   const url = `/api/layoutsettings/${layoutSetId}`;
-  const response = await axios.get<LayoutSettingsResponse>(url);
+  const response = await apiClient.get<LayoutSettingsResponse>(url);
   return response.data;
 }
 

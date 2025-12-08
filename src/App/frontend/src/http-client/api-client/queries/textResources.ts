@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -37,7 +38,7 @@ export const textResourcesKeys = {
 export async function fetchTextResources(params: TextResourcesParams): Promise<TextResourcesResponse> {
   const { language } = params;
   const url = `/api/v1/texts/${language}`;
-  const response = await axios.get<TextResourcesResponse>(url);
+  const response = await apiClient.get<TextResourcesResponse>(url);
   return response.data;
 }
 

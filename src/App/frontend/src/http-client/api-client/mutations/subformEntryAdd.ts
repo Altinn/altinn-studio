@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -40,7 +41,7 @@ export type SubformEntryAddResponse = {
 export async function doSubformEntryAdd(params: SubformEntryAddParams): Promise<SubformEntryAddResponse> {
   const { instanceId, dataType, data } = params;
   const url = `/api/v1/instances/${instanceId}/data?dataType=${dataType}`;
-  const response = await axios.post<SubformEntryAddResponse>(url, data);
+  const response = await apiClient.post<SubformEntryAddResponse>(url, data);
 
   if (response.status >= 300) {
     throw new Error('Failed to add sub form');

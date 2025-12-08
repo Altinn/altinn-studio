@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -27,7 +28,7 @@ export const dataModelSchemaKeys = {
 export async function fetchDataModelSchema(params: DataModelSchemaParams): Promise<DataModelSchemaResponse> {
   const { dataTypeName } = params;
   const url = `/api/jsonschema/${dataTypeName}`;
-  const response = await axios.get<DataModelSchemaResponse>(url);
+  const response = await apiClient.get<DataModelSchemaResponse>(url);
   return response.data;
 }
 

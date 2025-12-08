@@ -1,6 +1,7 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -28,7 +29,7 @@ export const formDataKeys = {
 
 export async function fetchFormData(params: FormDataParams): Promise<FormDataResponse> {
   const { url, options } = params;
-  const response = await axios.get<FormDataResponse>(url, options);
+  const response = await apiClient.get<FormDataResponse>(url, options);
   return response.data;
 }
 

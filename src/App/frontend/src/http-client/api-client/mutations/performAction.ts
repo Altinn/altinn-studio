@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -59,7 +60,7 @@ export async function doPerformAction(params: PerformActionParams): Promise<Perf
     onBehalfOf,
   };
 
-  const response = await axios.post<PerformActionResponse>(url, requestBody);
+  const response = await apiClient.post<PerformActionResponse>(url, requestBody);
 
   if (response.status < 200 || response.status >= 300) {
     throw new Error('Failed to perform action');

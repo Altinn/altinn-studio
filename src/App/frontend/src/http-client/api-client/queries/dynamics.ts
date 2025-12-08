@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -36,7 +37,7 @@ export async function fetchDynamics(params: DynamicsParams): Promise<DynamicsRes
   const { layoutSetId } = params;
   const url = `/api/v1/layoutsets/${layoutSetId}/rule-handler/model`;
   try {
-    const response = await axios.get<DynamicsData>(url);
+    const response = await apiClient.get<DynamicsData>(url);
     return { data: response.data };
   } catch {
     return null;

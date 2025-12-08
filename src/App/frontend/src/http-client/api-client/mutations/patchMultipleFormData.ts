@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -46,7 +47,7 @@ export async function doPatchMultipleFormData(
   params: PatchMultipleFormDataParams,
 ): Promise<PatchMultipleFormDataResponse> {
   const { url, data } = params;
-  const response = await axios.patch<PatchMultipleFormDataResponse>(url, data);
+  const response = await apiClient.patch<PatchMultipleFormDataResponse>(url, data);
   return response.data;
 }
 

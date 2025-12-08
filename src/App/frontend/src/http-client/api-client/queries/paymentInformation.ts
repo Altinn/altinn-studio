@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -106,7 +107,7 @@ export async function fetchPaymentInformation(params: PaymentInformationParams):
   const { instanceId, language } = params;
   const languageQuery = language ? `?language=${language}` : '';
   const url = `/api/v1/instances/${instanceId}/payment${languageQuery}`;
-  const response = await axios.get<PaymentInformationResponse>(url);
+  const response = await apiClient.get<PaymentInformationResponse>(url);
   return response.data;
 }
 

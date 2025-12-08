@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -33,7 +34,7 @@ export async function fetchCustomValidationConfig(
   const { dataTypeId } = params;
   const url = `/api/v1/customvalidationconfig/${dataTypeId}`;
   try {
-    const response = await axios.get<CustomValidationConfigResponse>(url);
+    const response = await apiClient.get<CustomValidationConfigResponse>(url);
     return response.data;
   } catch {
     return null;

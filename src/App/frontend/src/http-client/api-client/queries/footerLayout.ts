@@ -1,5 +1,6 @@
 import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -28,7 +29,7 @@ export const footerLayoutKeys = {
 
 export async function fetchFooterLayout(): Promise<FooterLayoutResponse> {
   const url = '/api/v1/footer';
-  const response = await axios.get<FooterLayoutResponse>(url);
+  const response = await apiClient.get<FooterLayoutResponse>(url);
   return response.data;
 }
 

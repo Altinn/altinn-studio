@@ -2,8 +2,8 @@ import type { LoaderFunctionArgs } from 'react-router-dom';
 
 import type { QueryClient } from '@tanstack/react-query';
 
-import { instanceDataQueryKey } from 'src/domain/Instance/useInstanceQuery';
-import { getLayoutQueryKey, processLayouts } from 'src/domain/Layout/layoutQuery';
+import { instanceDataKeys } from 'src/http-client/api-client/queries/instanceData';
+import { layoutsKeys } from 'src/http-client/api-client/queries/layouts';
 import type { IInstance } from 'src/types/shared';
 
 interface InstanceLoaderProps extends LoaderFunctionArgs {
@@ -27,7 +27,7 @@ export async function instanceLoader({ context, params }: InstanceLoaderProps): 
     throw new Error('instance is required');
   }
   queryClient.setQueryData(
-    instanceDataQueryKey({
+    instanceDataKeys.detail({
       instanceOwnerPartyId: instance.instanceOwner.partyId,
       instanceGuid: instance.id.split('/')[1],
     }),
@@ -38,8 +38,12 @@ export async function instanceLoader({ context, params }: InstanceLoaderProps): 
       layoutSet.tasks?.includes(taskId),
     );
     if (currentLayoutSet) {
-      const processedLayouts = processLayouts(window.AltinnAppInstanceData?.layout, pageKey, currentLayoutSet.dataType);
-      queryClient.setQueryData(getLayoutQueryKey(currentLayoutSet.id), processedLayouts);
+      // const processedLayouts = processLayouts(window.AltinnAppInstanceData?.layout, pageKey, currentLayoutSet.dataType);
+      // queryClient.setQueryData(getLayoutQueryKey(currentLayoutSet.id), processedLayouts);
+      queryClient.setQueryData(
+        layoutsKeys.byLayoutSet({ layoutSetId: currentLayoutSet.id }),
+        window.AltinnAppInstanceData?.layout,
+      );
     }
   }
 

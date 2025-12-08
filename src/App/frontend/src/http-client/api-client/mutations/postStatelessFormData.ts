@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -22,7 +23,7 @@ export async function doPostStatelessFormData(
   params: PostStatelessFormDataParams,
 ): Promise<PostStatelessFormDataResponse> {
   const { url, data, options } = params;
-  const response = await axios.post<PostStatelessFormDataResponse>(url, data, options);
+  const response = await apiClient.post<PostStatelessFormDataResponse>(url, data, options);
   return response.data;
 }
 

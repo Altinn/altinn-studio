@@ -1,5 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+
+import { apiClient } from '../client';
 
 // ============================================================
 // Types
@@ -28,7 +29,7 @@ export const externalApiKeys = {
 export async function fetchExternalApi(params: ExternalApiParams): Promise<ExternalApiResponse> {
   const { instanceId, externalApiId } = params;
   const url = `/api/v1/instances/${instanceId}/api/external/${externalApiId}`;
-  const response = await axios.get<ExternalApiResponse>(url);
+  const response = await apiClient.get<ExternalApiResponse>(url);
   return response.data;
 }
 
