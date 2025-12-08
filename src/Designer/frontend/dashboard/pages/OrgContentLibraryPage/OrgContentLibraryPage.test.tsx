@@ -42,11 +42,7 @@ const repositoryName = `${orgName}-content`;
 const repoStatusQueryKey: string[] = [QueryKey.RepoStatus, orgName, repositoryName];
 const orgCodeListsQueryKey: string[] = [QueryKey.OrgCodeLists, orgName];
 const orgTextResourcesQueryKey: string[] = [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE];
-const sharedResourcesByPathQueryKey: string[] = [
-  QueryKey.GetSharedResourcesByPath,
-  orgName,
-  'CodeLists',
-];
+const sharedResourcesByPathQueryKey: string[] = [QueryKey.SharedResources, orgName, 'CodeLists'];
 
 // Mocks:
 jest.mock('@studio/content-library', () => ({

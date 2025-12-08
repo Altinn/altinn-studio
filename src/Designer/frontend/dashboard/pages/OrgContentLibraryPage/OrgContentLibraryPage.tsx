@@ -49,7 +49,7 @@ import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import { useSharedCodeListsQuery } from 'app-shared/hooks/queries/useSharedCodeListsQuery';
 import { useUpdateSharedResourcesMutation } from 'app-shared/hooks/mutations/useUpdateSharedResourcesMutation';
-import type { GetSharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
+import type { SharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
 import { usePublishCodeListMutation } from 'app-shared/hooks/mutations/usePublishCodeListMutation';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 
@@ -120,7 +120,7 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
 
 type OrgContentLibraryWithContextAndDataProps = {
   codeListDataList: CodeListsResponse;
-  sharedResourceResponse: GetSharedResourcesResponse;
+  sharedResourceResponse: SharedResourcesResponse;
   orgName: string;
   textResources: ITextResourcesWithLanguage;
 };

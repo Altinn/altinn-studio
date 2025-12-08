@@ -14,7 +14,7 @@ export interface LibraryFile {
   problem?: ProblemDetails;
 }
 
-export interface GetSharedResourcesResponse {
+export interface SharedResourcesResponse {
   files: LibraryFile[];
   commitSha: string;
 }

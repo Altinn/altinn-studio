@@ -79,7 +79,7 @@ import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
-import type { GetSharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
+import type { SharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -134,14 +134,8 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() =>
       Promise.resolve<ITextResourcesWithLanguage>(textResourcesWithLanguage),
     ),
-  getSharedResourcesByPath: jest.fn().mockImplementation(() =>
-    Promise.resolve<GetSharedResourcesResponse>({
-      files: [],
-      commitSha: '',
-    }),
-  ),
-  getSharedResourcesByPathAndReference: jest.fn().mockImplementation(() =>
-    Promise.resolve<GetSharedResourcesResponse>({
+  getSharedResources: jest.fn().mockImplementation(() =>
+    Promise.resolve<SharedResourcesResponse>({
       files: [],
       commitSha: '',
     }),

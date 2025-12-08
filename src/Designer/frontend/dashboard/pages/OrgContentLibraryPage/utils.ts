@@ -6,7 +6,7 @@ import type {
 import type { UpdateOrgTextResourcesMutationArgs } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import type { GetSharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
+import type { SharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
 import type {
   UpdateSharedResourcesRequest,
   FileMetadata,
@@ -30,7 +30,7 @@ export function textResourcesWithLanguageToLibraryTextResources({
 }
 
 export function backendCodeListsToLibraryCodeLists(
-  response: GetSharedResourcesResponse | undefined,
+  response: SharedResourcesResponse | undefined,
 ): LibraryCodeListData[] {
   if (!response) return [];
 
@@ -76,7 +76,7 @@ export function btoaUTF8(data: string) {
 }
 
 export function libraryCodeListsToUpdatePayload(
-  currentData: GetSharedResourcesResponse | undefined,
+  currentData: SharedResourcesResponse | undefined,
   updatedCodeLists: LibraryCodeListData[],
   commitMessage: string,
 ): UpdateSharedResourcesRequest {

@@ -1,11 +1,11 @@
-import type { GetSharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
+import type { SharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
 import { codeLists } from './codeLists';
 import { btoaUTF8 } from '../utils';
 
 const animalsFileContent = btoaUTF8(JSON.stringify({ codes: codeLists.animals }));
 const vehiclesFileContent = btoaUTF8(JSON.stringify({ codes: codeLists.vehicles }));
 
-export const sharedResourcesResponse: GetSharedResourcesResponse = {
+export const sharedResourcesResponse: SharedResourcesResponse = {
   files: [
     {
       path: 'CodeLists/animals.json',
@@ -21,7 +21,7 @@ export const sharedResourcesResponse: GetSharedResourcesResponse = {
   commitSha: 'abc123def456ghi789jkl012mno345pqr678stu9',
 };
 
-export const sharedResourcesResponseWithProblem: GetSharedResourcesResponse = {
+export const sharedResourcesResponseWithProblem: SharedResourcesResponse = {
   files: [
     {
       path: 'CodeLists/animals.json',
@@ -41,7 +41,7 @@ export const sharedResourcesResponseWithProblem: GetSharedResourcesResponse = {
   commitSha: 'abc123def456ghi789jkl012mno345pqr678stu9',
 };
 
-export const sharedResourcesResponseWithInvalidFormat: GetSharedResourcesResponse = {
+export const sharedResourcesResponseWithInvalidFormat: SharedResourcesResponse = {
   files: [
     {
       path: 'CodeLists/animals.json',
