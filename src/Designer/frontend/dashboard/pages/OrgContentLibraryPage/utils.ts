@@ -6,7 +6,7 @@ import type {
 import type { UpdateOrgTextResourcesMutationArgs } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import type { SharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
+import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
 import type {
   UpdateSharedResourcesRequest,
   FileMetadata,

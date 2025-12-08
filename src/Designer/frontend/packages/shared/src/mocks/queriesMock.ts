@@ -79,7 +79,7 @@ import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
-import type { SharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
+import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries

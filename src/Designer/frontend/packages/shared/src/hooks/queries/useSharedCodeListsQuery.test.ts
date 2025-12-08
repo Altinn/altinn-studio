@@ -2,7 +2,7 @@ import { waitFor } from '@testing-library/react';
 import type { RenderHookResult } from '@testing-library/react';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { useSharedCodeListsQuery } from './useSharedCodeListsQuery';
-import type { SharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
+import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient, UseQueryResult } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';

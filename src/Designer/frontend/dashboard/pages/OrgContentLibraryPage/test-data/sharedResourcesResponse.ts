@@ -1,4 +1,4 @@
-import type { SharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
+import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
 import { codeLists } from './codeLists';
 import { btoaUTF8 } from '../utils';
 
