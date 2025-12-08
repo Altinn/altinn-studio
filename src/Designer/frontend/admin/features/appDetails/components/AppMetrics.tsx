@@ -121,19 +121,17 @@ export const AppMetrics = () => {
           </StudioHeading>
           {showHealthMetrics()}
         </div>
-        <div className={classes.subcontent}>
-          <div>
-            <StudioHeading className={classes.subheading}>
-              {t('admin.metrics.feil.heading')}
-            </StudioHeading>
-            {showErrorMetrics()}
-          </div>
-          <div>
-            <StudioHeading className={classes.subheading}>
-              {t('admin.metrics.app.heading')}
-            </StudioHeading>
-            {showAppMetrics()}
-          </div>
+        <div>
+          <StudioHeading className={classes.subheading}>
+            {t('admin.metrics.feil.heading')}
+          </StudioHeading>
+          {showErrorMetrics()}
+        </div>
+        <div>
+          <StudioHeading className={classes.subheading}>
+            {t('admin.metrics.app.heading')}
+          </StudioHeading>
+          {showAppMetrics()}
         </div>
       </div>
     </StudioCard>

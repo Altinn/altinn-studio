@@ -6,7 +6,6 @@
   "admin.alerts.error": "Kunne ikke hente varslene fra {{env}}. Prøv igjen senere.",
   "admin.metrics.altinn_app_lib_processes_started": "Antall aktive instanser",
   "admin.metrics.altinn_app_lib_processes_completed": "Antall fullførte instanser",
-  "admin.metrics.failed_health_requests": "Antall feilende helsesjekker",
   "admin.metrics.failed_process_next_requests": "Antall feilende process/next",
   "admin.metrics.failed_processes_started_requests": "Antall feilende instansieringer",
   "admin.metrics.time_window": "Tidsvindu",

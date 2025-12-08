@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.RepositoryClient.Model;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Altinn.Studio.Designer.Hubs.AlertsUpdate;
 
 [Authorize]
-public class AlertsUpdatedHub(IGitea giteaService) : Hub<IAlertsUpdateClient>
+public class AlertsUpdatedHub(IGiteaClient giteaService) : Hub<IAlertsUpdateClient>
 {
     public override async Task OnConnectedAsync()
     {

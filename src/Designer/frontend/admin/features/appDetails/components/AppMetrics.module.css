@@ -34,13 +34,6 @@
   white-space: nowrap;
 }
 
-.subcontent {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-size-12);
-  white-space: nowrap;
-}
-
 .metrics {
   display: flex;
   gap: var(--ds-size-12);
