@@ -39,6 +39,17 @@ export class FileNameUtils {
     return indexOfLastSlash < 0 ? path : path.substring(indexOfLastSlash + 1);
   };
 
+  /**
+   * Extract the extension of a file, given the extension itself does not contain a dot.
+   * This will not work for .schema.json.
+   * @param path
+   * @returns extension or the path itself if no extension is found.
+   */
+  static extractExtension = (path: string): string => {
+    const indexOfLastDot = path.lastIndexOf('.');
+    return path.substring(indexOfLastDot + 1);
+  };
+
   static removeFileNameFromPath = (path: string, excludeLastSlash: boolean = false): string => {
     const fileName = this.extractFileName(path);
     const indexOfLastSlash = path.lastIndexOf('/');

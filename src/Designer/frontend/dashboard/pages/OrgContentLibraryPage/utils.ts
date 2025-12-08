@@ -13,6 +13,7 @@ import type {
 } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
 import { CODE_LIST_FOLDER } from '@studio/content-library';
+import { FileNameUtils } from '@studio/pure-functions';
 
 export function textResourceWithLanguageToMutationArgs({
   language,
@@ -35,7 +36,11 @@ export function backendCodeListsToLibraryCodeLists(
   if (!response) return [];
 
   return response.files.map((file) => {
-    const fileName = file.path.split('/').pop()?.replace('.json', '') || 'unknown';
+    const fileName = FileNameUtils.extractFileName(FileNameUtils.removeExtension(file.path));
+
+    if (FileNameUtils.extractExtension(file.path) != 'json') {
+      return { name: fileName, codes: [] };
+    }
 
     if (file.problem || !file.content) {
       // TODO: We should show the user that a codelist is corrupted
