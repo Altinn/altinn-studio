@@ -17,6 +17,7 @@ import {
   sharedResourcesResponse,
   sharedResourcesResponseWithProblem,
   sharedResourcesResponseWithInvalidFormat,
+  sharedResourcesResponseWithNonJson,
 } from './test-data/sharedResourcesResponse';
 import { codeLists } from './test-data/codeLists';
 import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
@@ -84,6 +85,12 @@ describe('utils', () => {
         { name: 'invalid', codes: [] },
       ];
       expect(result).toEqual(expectedResult);
+    });
+
+    it('Throws when file is not json', () => {
+      expect(() =>
+        backendCodeListsToLibraryCodeLists(sharedResourcesResponseWithNonJson),
+      ).toThrow();
     });
   });
 
