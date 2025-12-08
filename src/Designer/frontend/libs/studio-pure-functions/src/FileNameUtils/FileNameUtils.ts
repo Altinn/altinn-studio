@@ -27,12 +27,8 @@ export class FileNameUtils {
   static removeSchemaExtension = (filename: string): string =>
     StringUtils.removeEnd(filename, '.schema.json', '.xsd');
 
-  /**
-   * Remove json.schema or .xsd extension from filename.
-   * @param filename
-   * @returns filename without extension if the extension is ".schema.json" or ".xsd", otherwise the filename is returned unchanged.
-   */
   static isXsdFile = (filename: string): boolean => filename.toLowerCase().endsWith('.xsd');
+  static isJsonFile = (filename: string): boolean => filename.toLowerCase().endsWith('.json');
 
   static extractFileName = (path: string): string => {
     const indexOfLastSlash = path.lastIndexOf('/');
