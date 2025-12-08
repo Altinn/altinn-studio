@@ -40,7 +40,7 @@ export function backendCodeListsToLibraryCodeLists(
 
 function backendCodeListToLibraryCodeList(file: LibraryFile): LibraryCodeListData {
   const fileWithExtension = FileNameUtils.extractFileName(file.path);
-  Guard.AgainstNonJsonTypes(fileWithExtension);
+  Guard.againstNonJsonTypes(fileWithExtension);
   const fileName = FileNameUtils.removeExtension(fileWithExtension);
   return tryConvertFile(file, fileName);
 }
