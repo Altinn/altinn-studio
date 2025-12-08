@@ -1,6 +1,6 @@
 using k8s;
 
-namespace StudioGateway.Api.Clients.GatewayK8s;
+namespace StudioGateway.Api.Clients.K8s;
 
 internal static class KubernetesServiceRegistration
 {

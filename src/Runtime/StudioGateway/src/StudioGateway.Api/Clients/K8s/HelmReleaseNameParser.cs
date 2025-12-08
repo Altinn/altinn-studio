@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace StudioGateway.Api.Clients.GatewayK8s;
+namespace StudioGateway.Api.Clients.K8s;
 
 /// <summary>
 /// Helper for parsing HelmRelease names.

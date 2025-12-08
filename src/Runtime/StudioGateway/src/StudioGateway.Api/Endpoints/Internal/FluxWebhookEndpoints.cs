@@ -1,7 +1,8 @@
 using StudioGateway.Api.Clients.Designer.Contracts;
-using StudioGateway.Api.Clients.GatewayK8s;
+using StudioGateway.Api.Clients.K8s;
 using StudioGateway.Api.Endpoints.Internal.Contracts;
 using StudioGateway.Api.Hosting;
+using HelmReleaseNameParser = StudioGateway.Api.Clients.K8s.HelmReleaseNameParser;
 
 namespace StudioGateway.Api.Endpoints.Internal;
 

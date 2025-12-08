@@ -1,7 +1,7 @@
 using StudioGateway.Api;
 using StudioGateway.Api.Authentication;
 using StudioGateway.Api.Clients.Designer;
-using StudioGateway.Api.Clients.GatewayK8s;
+using StudioGateway.Api.Clients.K8s;
 using StudioGateway.Api.Endpoints.Internal;
 using StudioGateway.Api.Endpoints.Local;
 using StudioGateway.Api.Endpoints.Public;
