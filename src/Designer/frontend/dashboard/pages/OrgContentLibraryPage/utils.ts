@@ -60,7 +60,7 @@ export function backendCodeListsToLibraryCodeLists(
   });
 }
 
-function atobUTF8(data: string) {
+function atobUTF8(data: string): string {
   const decodedData = atob(data);
   const utf8data = new Uint8Array(decodedData.length);
   const decoder = new TextDecoder('utf-8');
@@ -70,7 +70,7 @@ function atobUTF8(data: string) {
   return decoder.decode(utf8data);
 }
 
-export function btoaUTF8(data: string) {
+export function btoaUTF8(data: string): string {
   const encoder = new TextEncoder();
   const utf8data = encoder.encode(data);
   let binary = '';
