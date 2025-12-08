@@ -6,9 +6,10 @@ namespace StudioGateway.Api.Clients.Designer.Contracts;
 internal sealed record DeployEventRequest
 {
     /// <summary>
-    /// The build ID from Azure DevOps pipeline that triggered the deployment
+    /// The build ID from Azure DevOps pipeline that triggered the deployment.
+    /// Can be null for uninstall events when the HelmRelease has been deleted and labels are not available.
     /// </summary>
-    public required string BuildId { get; init; }
+    public string? BuildId { get; init; }
 
     /// <summary>
     /// A human-readable description of the event
@@ -24,4 +25,9 @@ internal sealed record DeployEventRequest
     /// A machine-readable event type (e.g., "InstallSucceeded", "InstallFailed", "UpgradeSucceeded", "UpgradeFailed")
     /// </summary>
     public required string EventType { get; init; }
+
+    /// <summary>
+    /// The target environment for the deployment (e.g., "at22", "tt02", "production").
+    /// </summary>
+    public required string Environment { get; init; }
 }

@@ -152,10 +152,36 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest($"Invalid event type: {request.EventType}");
             }
 
-            var deployment = await _deploymentRepository.Get(org, request.BuildId);
-            if (deployment == null)
+            DeploymentEntity deployment;
+            string buildId;
+
+            bool isUninstallEvent = eventType is DeployEventType.UninstallSucceeded or DeployEventType.UninstallFailed;
+
+            if (isUninstallEvent)
             {
-                return NotFound($"Deployment with build ID {request.BuildId} not found");
+                // Uninstall events come from decommission deployments
+                // When HelmRelease is deleted, BuildId may not be available, so we look up by environment
+                deployment = await _deploymentRepository.GetPendingDecommission(org, app, request.Environment);
+                if (deployment == null)
+                {
+                    return NotFound($"No pending decommission deployment found for {org}/{app} in {request.Environment}");
+                }
+                buildId = deployment.Build.Id;
+            }
+            else
+            {
+                // Install/Upgrade events require BuildId
+                if (request.BuildId is null)
+                {
+                    return BadRequest("BuildId is required for non-uninstall events");
+                }
+
+                deployment = await _deploymentRepository.Get(org, request.BuildId);
+                if (deployment == null)
+                {
+                    return NotFound($"Deployment with build ID {request.BuildId} not found");
+                }
+                buildId = request.BuildId;
             }
 
             if (deployment.HasFinalEvent)
@@ -170,7 +196,7 @@ namespace Altinn.Studio.Designer.Controllers
                 Timestamp = request.Timestamp
             };
 
-            await _deployEventRepository.AddAsync(org, request.BuildId, deployEvent, cancellationToken);
+            await _deployEventRepository.AddAsync(org, buildId, deployEvent, cancellationToken);
 
             await _entityUpdatedHubContext.Clients.Group(deployment.CreatedBy)
                 .EntityUpdated(new EntityUpdated(EntityConstants.Deployment));

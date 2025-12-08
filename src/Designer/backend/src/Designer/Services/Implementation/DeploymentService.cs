@@ -186,6 +186,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             deploymentEntity.PopulateBaseProperties(editingContext, _timeProvider);
 
             await _deploymentRepository.Create(deploymentEntity);
+
+            await _deployEventRepository.AddAsync(editingContext.Org, deploymentEntity.Build.Id, new DeployEvent
+            {
+                EventType = DeployEventType.PipelineScheduled,
+                Message = $"Undeploy pipeline {build.Id} scheduled",
+                Timestamp = _timeProvider.GetUtcNow()
+            }, cancellationToken);
+
             await PublishDeploymentPipelineQueued(editingContext, build, PipelineType.Undeploy, env, CancellationToken.None);
         }
 

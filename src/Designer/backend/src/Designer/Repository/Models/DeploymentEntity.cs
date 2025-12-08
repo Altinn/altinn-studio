@@ -42,7 +42,9 @@ namespace Altinn.Studio.Designer.Repository.Models
             DeployEventType.InstallSucceeded,
             DeployEventType.InstallFailed,
             DeployEventType.UpgradeSucceeded,
-            DeployEventType.UpgradeFailed
+            DeployEventType.UpgradeFailed,
+            DeployEventType.UninstallSucceeded,
+            DeployEventType.UninstallFailed
         ];
 
         /// <summary>
@@ -90,6 +92,8 @@ namespace Altinn.Studio.Designer.Repository.Models
         InstallSucceeded,
         InstallFailed,
         UpgradeSucceeded,
-        UpgradeFailed
+        UpgradeFailed,
+        UninstallSucceeded,
+        UninstallFailed
     }
 }

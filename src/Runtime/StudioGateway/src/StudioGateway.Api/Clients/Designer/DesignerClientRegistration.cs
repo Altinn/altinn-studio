@@ -10,7 +10,8 @@ internal static class DesignerClientRegistration
 
         foreach (var (name, config) in environments)
         {
-            services.AddHttpClient(
+            services
+                .AddHttpClient(
                     name,
                     client =>
                     {

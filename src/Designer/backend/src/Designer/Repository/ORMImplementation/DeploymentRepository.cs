@@ -91,4 +91,26 @@ public class DeploymentRepository : IDeploymentRepository
         _dbContext.Entry(mappedDbObject.Build).State = EntityState.Modified;
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task<DeploymentEntity> GetPendingDecommission(string org, string app, string environment)
+    {
+        string[] finalEventTypes = [
+            nameof(DeployEventType.UninstallSucceeded),
+            nameof(DeployEventType.UninstallFailed)
+        ];
+
+        var dbObject = await _dbContext.Deployments
+            .Include(d => d.Build)
+            .Include(d => d.Events)
+            .AsNoTracking()
+            .Where(d => d.Org == org
+                && d.App == app
+                && d.EnvName == environment
+                && d.DeploymentType == Models.DeploymentType.Decommission
+                && !d.Events.Any(e => finalEventTypes.Contains(e.EventType)))
+            .OrderByDescending(d => d.Created)
+            .FirstOrDefaultAsync();
+
+        return dbObject != null ? DeploymentMapper.MapToModel(dbObject) : null;
+    }
 }
