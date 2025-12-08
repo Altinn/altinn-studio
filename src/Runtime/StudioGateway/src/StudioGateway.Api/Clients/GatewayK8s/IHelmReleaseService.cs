@@ -1,4 +1,4 @@
-namespace StudioGateway.Api.GatewayK8s;
+namespace StudioGateway.Api.Clients.GatewayK8s;
 
 /// <summary>
 /// Service for interacting with HelmRelease resources in Kubernetes

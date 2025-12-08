@@ -1,4 +1,4 @@
-namespace StudioGateway.Api.Designer;
+namespace StudioGateway.Api.Clients.Designer;
 
 internal sealed class StudioEnvironments : Dictionary<string, StudioEnvironmentConfig>;
 

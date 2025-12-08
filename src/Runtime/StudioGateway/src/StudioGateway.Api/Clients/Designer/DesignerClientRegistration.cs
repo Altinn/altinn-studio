@@ -1,4 +1,6 @@
-namespace StudioGateway.Api.Designer;
+using StudioGateway.Api.Authentication;
+
+namespace StudioGateway.Api.Clients.Designer;
 
 internal static class DesignerClientRegistration
 {
@@ -9,12 +11,13 @@ internal static class DesignerClientRegistration
         foreach (var (name, config) in environments)
         {
             services.AddHttpClient(
-                name,
-                client =>
-                {
-                    client.BaseAddress = new Uri(config.Url);
-                }
-            );
+                    name,
+                    client =>
+                    {
+                        client.BaseAddress = new Uri(config.Url);
+                    }
+                )
+                .UseMaskinportenAuth();
         }
 
         return services;

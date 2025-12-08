@@ -1,4 +1,4 @@
-namespace StudioGateway.Api.Designer.Contracts;
+namespace StudioGateway.Api.Clients.Designer.Contracts;
 
 /// <summary>
 /// Request model for deploy event to be sent to Designer

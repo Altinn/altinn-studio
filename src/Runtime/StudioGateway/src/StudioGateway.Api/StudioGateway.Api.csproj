@@ -15,4 +15,8 @@
     <PackageReference Include="KubernetesClient.Aot" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Clients\" />
+  </ItemGroup>
+
 </Project>

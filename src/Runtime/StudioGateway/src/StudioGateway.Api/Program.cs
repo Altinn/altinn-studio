@@ -1,10 +1,10 @@
 using StudioGateway.Api;
 using StudioGateway.Api.Authentication;
-using StudioGateway.Api.Designer;
+using StudioGateway.Api.Clients.Designer;
+using StudioGateway.Api.Clients.GatewayK8s;
 using StudioGateway.Api.Endpoints.Internal;
 using StudioGateway.Api.Endpoints.Local;
 using StudioGateway.Api.Endpoints.Public;
-using StudioGateway.Api.GatewayK8s;
 using StudioGateway.Api.Hosting;
 using StudioGateway.Api.Hosting;
 using StudioGateway.Api.Settings;

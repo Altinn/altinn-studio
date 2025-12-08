@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using StudioGateway.Api.Designer.Contracts;
+using StudioGateway.Api.Clients.Designer.Contracts;
 using StudioGateway.Api.Endpoints.Internal.Contracts;
 using StudioGateway.Api.Endpoints.Local;
 using StudioGateway.Api.Endpoints.Public;
