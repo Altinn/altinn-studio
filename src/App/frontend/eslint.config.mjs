@@ -52,6 +52,7 @@ export default tseslint.config(
       'webpack*.js', // FIXME: should this be included?
       '.yarn/*',
       'snapshots.js',
+      'test/e2e/k6-browser/**/*',
     ],
   },
   {
