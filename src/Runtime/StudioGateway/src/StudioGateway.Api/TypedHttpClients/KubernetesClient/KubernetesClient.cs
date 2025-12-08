@@ -44,6 +44,6 @@ internal sealed class KubernetesClient(Kubernetes client, IOptions<GeneralSettin
             )
         );
 
-        return new HealthMetric() { Name = "ready_pods", Value = readyPodsCount / items.Count * 100 };
+        return new HealthMetric() { Name = "ready_pods", Value = Math.Round((double)readyPodsCount / items.Count * 100) };
     }
 }
