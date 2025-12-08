@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Altinn.ApiClients.Maskinporten.Extensions;
 using Altinn.Common.AccessToken.Configuration;
+using Altinn.Studio.Designer.Clients.Implementations;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Configuration.Marker;
@@ -271,6 +273,12 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
             options.KnownNetworks.Clear();
             options.KnownProxies.Clear();
         });
+
+        services.AddTransient<ISharedContentClient, AzureSharedContentClient>();
+    }
+    else
+    {
+        services.AddTransient<ISharedContentClient, LocalFileSharedContentClient>();
     }
 
     services.AddQuartzJobScheduling(configuration);
