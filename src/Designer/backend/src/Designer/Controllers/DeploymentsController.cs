@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
@@ -29,16 +30,16 @@ namespace Altinn.Studio.Designer.Controllers
     public class DeploymentsController : ControllerBase
     {
         private readonly IDeploymentService _deploymentService;
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClient;
         private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="deploymentService">IDeploymentService</param>
-        /// <param name="giteaClient">IGitea</param>
+        /// <param name="giteaClient">IGiteaClient</param>
         /// <param name="kubernetesDeploymentsService">IKubernetesDeploymentsService</param>
-        public DeploymentsController(IDeploymentService deploymentService, IGitea giteaClient, IKubernetesDeploymentsService kubernetesDeploymentsService)
+        public DeploymentsController(IDeploymentService deploymentService, IGiteaClient giteaClient, IKubernetesDeploymentsService kubernetesDeploymentsService)
         {
             _deploymentService = deploymentService;
             _giteaClient = giteaClient;

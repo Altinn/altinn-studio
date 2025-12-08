@@ -1,6 +1,6 @@
 module altinn.studio/runtime-health
 
-go 1.25.3
+go 1.25.5
 
 require (
 	github.com/fluxcd/helm-controller/api v1.4.4

@@ -43,7 +43,7 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
         ScribanGitOpsManifestsRenderer = new ScribanGitOpsManifestsRenderer();
         MockLogger = new Mock<ILogger<GitRepoGitOpsConfigurationManager>>();
         GitOpsConfigurationManager = new GitRepoGitOpsConfigurationManager(
-            new IGiteaMock(),
+            new IGiteaClientMock(),
             ScribanGitOpsManifestsRenderer,
             new ISourceControlMock(),
             AltinnGitRepositoryFactory,

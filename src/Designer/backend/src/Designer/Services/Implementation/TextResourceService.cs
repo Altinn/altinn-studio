@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Extensions;
 using Altinn.Studio.Designer.Models;
@@ -22,18 +23,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class TextResourceService : ITextResourceService
     {
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClient;
         private readonly ILogger<TextResourceService> _logger;
         private readonly IAltinnStorageTextResourceClient _storageTextResourceClient;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="giteaClient">IGitea</param>
+        /// <param name="giteaClient">IGiteaClient</param>
         /// <param name="logger">ILogger of type TextResourceService</param>
         /// <param name="storageTextResourceClient">IAltinnStorageTextResourceClient</param>
         public TextResourceService(
-            IGitea giteaClient,
+            IGiteaClient giteaClient,
             ILogger<TextResourceService> logger,
             IAltinnStorageTextResourceClient storageTextResourceClient)
         {

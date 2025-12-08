@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
@@ -21,7 +21,7 @@ namespace Designer.Tests.Services
     {
 
         private Mock<IHttpContextAccessor> _httpContextAccessorMock;
-        private Mock<IGitea> _giteaClientMock;
+        private Mock<IGiteaClient> _giteaClientMock;
         private Mock<ILogger<SourceControlSI>> _loggerMock;
         private ServiceRepositorySettings _settings;
         private Mock<HttpContext> _httpContextMock;
@@ -34,7 +34,7 @@ namespace Designer.Tests.Services
         {
             // Setup mocks
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _giteaClientMock = new Mock<IGitea>();
+            _giteaClientMock = new Mock<IGiteaClient>();
             _loggerMock = new Mock<ILogger<SourceControlSI>>();
             _httpContextMock = new Mock<HttpContext>();
             _httpContextMock.Setup(x => x.User).Returns(new ClaimsPrincipal(new ClaimsIdentity(
@@ -253,7 +253,7 @@ namespace Designer.Tests.Services
 
             await TestDataHelper.CopyRepositoryForTest(org, origApp, developer, app);
 
-            Mock<IGitea> mock = new();
+            Mock<IGiteaClient> mock = new();
             mock.Setup(m => m.DeleteRepository(org, app))
                 .ReturnsAsync(true);
 
@@ -275,7 +275,7 @@ namespace Designer.Tests.Services
             string target = "master";
             string source = "branch";
 
-            Mock<IGitea> mock = new();
+            Mock<IGiteaClient> mock = new();
             mock.Setup(m => m.CreatePullRequest(
                 "ttd",
                 "apps-test",
@@ -305,14 +305,14 @@ namespace Designer.Tests.Services
             return c;
         }
 
-        private static SourceControlSI GetServiceForTest(string developer, Mock<IGitea> giteaMock = null)
+        private static SourceControlSI GetServiceForTest(string developer, Mock<IGiteaClient> giteaMock = null)
         {
             HttpContext ctx = GetHttpContextForTestUser(developer);
 
             Mock<IHttpContextAccessor> httpContextAccessorMock = new();
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(ctx);
 
-            giteaMock ??= new Mock<IGitea>();
+            giteaMock ??= new Mock<IGiteaClient>();
 
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
             var repoSettings = new ServiceRepositorySettings()

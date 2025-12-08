@@ -26,7 +26,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 public class OrgCodeListService : IOrgCodeListService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
-    private readonly IGitea _giteaClient;
+    private readonly IGiteaClient _giteaClient;
     private readonly ISourceControl _sourceControl;
     private readonly ISharedContentClient _sharedContentClient;
 
@@ -46,10 +46,10 @@ public class OrgCodeListService : IOrgCodeListService
     /// Constructor
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-    /// <param name="giteaClient">IGitea</param>
+    /// <param name="giteaClient">IGiteaClient</param>
     /// <param name="sourceControl">the source control</param>
     /// <param name="sharedContentClient">the shared content client</param>
-    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGitea giteaClient, ISourceControl sourceControl, ISharedContentClient sharedContentClient)
+    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGiteaClient giteaClient, ISourceControl sourceControl, ISharedContentClient sharedContentClient)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _giteaClient = giteaClient;

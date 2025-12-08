@@ -74,11 +74,8 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
             >();
 
             return deployments.Where(deployment =>
-                !string.Equals(
-                    deployment.Release,
-                    "kuberneteswrapper",
-                    StringComparison.OrdinalIgnoreCase
-                )
+                !string.IsNullOrEmpty(deployment.Release)
+                && deployment.Release.StartsWith($"{org}-")
             );
         }
         catch (OperationCanceledException)

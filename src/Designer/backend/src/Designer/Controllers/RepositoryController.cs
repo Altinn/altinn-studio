@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
@@ -33,7 +34,7 @@ namespace Altinn.Studio.Designer.Controllers
     [Route("designer/api/repos")]
     public class RepositoryController : ControllerBase
     {
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClient;
         private readonly ISourceControl _sourceControl;
         private readonly IRepository _repository;
         private readonly IHubContext<SyncHub, ISyncClient> _syncHub;
@@ -48,7 +49,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="sourceControl">the source control</param>
         /// <param name="repository">the repository control</param>
         /// <param name="syncHub">websocket syncHub</param>
-        public RepositoryController(IGitea giteaClient, ISourceControl sourceControl, IRepository repository, IHubContext<SyncHub, ISyncClient> syncHub)
+        public RepositoryController(IGiteaClient giteaClient, ISourceControl sourceControl, IRepository repository, IHubContext<SyncHub, ISyncClient> syncHub)
         {
             _giteaClient = giteaClient;
             _sourceControl = sourceControl;

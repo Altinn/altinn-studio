@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.SourceControl;
@@ -24,7 +25,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClient;
         private readonly ILogger _logger;
         private const string DefaultBranch = General.DefaultBranch;
 
@@ -38,7 +39,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public SourceControlSI(
             ServiceRepositorySettings repositorySettings,
             IHttpContextAccessor httpContextAccessor,
-            IGitea giteaClient,
+            IGiteaClient giteaClient,
             ILogger<SourceControlSI> logger)
         {
             _settings = repositorySettings;

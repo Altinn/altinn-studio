@@ -3,6 +3,7 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -15,7 +16,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class AuthorizationPolicyService : IAuthorizationPolicyService
     {
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClient;
         private readonly IAltinnAuthorizationPolicyClient _authorizationPolicyClient;
         private readonly ServiceRepositorySettings _serviceRepositorySettings;
 
@@ -23,11 +24,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// Constructor
         /// </summary>
         /// <param name="repositorySettings">ServiceRepositorySettings</param>
-        /// <param name="giteaClient">IGitea</param>
+        /// <param name="giteaClient">IGiteaClient</param>
         /// <param name="authorizationPolicyClient">IAltinnAuthorizationPolicyClient</param>
         public AuthorizationPolicyService(
             ServiceRepositorySettings repositorySettings,
-            IGitea giteaClient,
+            IGiteaClient giteaClient,
             IAltinnAuthorizationPolicyClient authorizationPolicyClient)
         {
             _giteaClient = giteaClient;
