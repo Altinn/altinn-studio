@@ -6,6 +6,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.DbIntegrationTests;
@@ -16,7 +17,8 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
 
-public class UndeployTests : DbDesignerEndpointsTestsBase<UndeployTests>, IClassFixture<WebApplicationFactory<Program>>, IClassFixture<MockServerFixture>
+[Collection(nameof(DeploymentControllerCollection))]
+public class UndeployTests : DbDesignerEndpointsTestsBase<UndeployTests>
 {
     private readonly MockServerFixture _mockServerFixture;
     private const int DecommissionDefinitionId = 297;
@@ -28,6 +30,9 @@ public class UndeployTests : DbDesignerEndpointsTestsBase<UndeployTests>, IClass
         JsonConfigOverrides.Add(
             $$"""
               {
+                 "FeatureManagement": {
+                      "{{StudioFeatureFlags.GitOpsDeploy}}": false
+                 },
                  "Integrations": {
                       "AzureDevOpsSettings": {
                           "BaseUri": "{{mockServerFixture.MockApi.Url}}/",
