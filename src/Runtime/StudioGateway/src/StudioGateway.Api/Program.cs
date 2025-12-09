@@ -6,7 +6,6 @@ using StudioGateway.Api.Endpoints.Internal;
 using StudioGateway.Api.Endpoints.Local;
 using StudioGateway.Api.Endpoints.Public;
 using StudioGateway.Api.Hosting;
-using StudioGateway.Api.Hosting;
 using StudioGateway.Api.Settings;
 
 var builder = WebApplication.CreateSlimBuilder(args);
