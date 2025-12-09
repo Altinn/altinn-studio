@@ -296,5 +296,23 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         await sourceStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length), cancellationToken);
     }
 
-    public Task<List<string>> GetPublishedResourcesForOrg(string orgName, string path = "", CancellationToken cancellationToken = default) => throw new NotImplementedException();
+    public async Task<List<string>> GetPublishedResourcesForOrg(string orgName, string path = "", CancellationToken cancellationToken = default)
+    {
+        await Task.Delay(0, cancellationToken); // Added to satisfy async method.
+
+        cancellationToken.ThrowIfCancellationRequested();
+        string prefix = Path.Join(_basePath, orgName, path);
+
+        try
+        {
+            IEnumerable<string> directoryFiles = Directory.GetFiles(prefix, "*", SearchOption.AllDirectories);
+            return directoryFiles
+                .Select(file => file.Replace(prefix, string.Empty).Replace("\\", "/"))
+                .ToList();
+        }
+        catch (Exception ex) when (ex is DirectoryNotFoundException)
+        {
+            return [];
+        }
+    }
 }
