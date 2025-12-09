@@ -7,11 +7,14 @@ import {
   StudioSearch,
   StudioError,
   StudioTabs,
+  StudioAlert,
+  StudioLink,
 } from '@studio/components';
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
+import { useMetricsQuery } from 'admin/hooks/queries/useMetricsQuery';
 
 type AppsTableProps = {
   org: string;
@@ -27,12 +30,13 @@ export const AppsTable = ({ org }: AppsTableProps) => {
     case 'error':
       return <StudioError>{t('general.page_error_title')}</StudioError>;
     case 'success':
-      return <AppsTableWithData runningApps={data} />;
+      return <AppsTableWithData org={org} runningApps={data} />;
   }
 };
 
 type AppsTableWithDataProps = {
   runningApps: Record<string, PublishedApplication[]>;
+  org: string;
 };
 
 const environmentOrder = ['production', 'tt02', 'at22', 'at23', 'at24', 'yt01'];
@@ -43,7 +47,7 @@ const sortEnvironments = (a: string, b: string) => {
   return indexA - indexB;
 };
 
-const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
+const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
   const { t } = useTranslation();
   const [search, setSearch] = useQueryParamState<string>('appSearch', '');
   const [tab, setTab] = useQueryParamState<string>('environment', undefined);
@@ -61,34 +65,110 @@ const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
       </StudioTabs.List>
       {availableEnvironments.map((env) => (
         <StudioTabs.Panel key={env} value={env}>
-          <StudioSearch
-            className={classes.appSearch}
-            value={search ?? ''}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-            label={t('admin.apps.search')}
+          <AppsTableContent
+            key={env}
+            org={org}
+            env={env}
+            search={search}
+            setSearch={setSearch}
+            runningApps={runningApps}
           />
-          <StudioTable>
-            <StudioTable.Head>
-              <StudioTable.Row>
-                <StudioTable.Cell>{t('admin.apps.name')}</StudioTable.Cell>
-                <StudioTable.Cell>{t('admin.apps.version')}</StudioTable.Cell>
-              </StudioTable.Row>
-            </StudioTable.Head>
-            <StudioTable.Body>
-              {runningApps[env]
-                .filter((app) => !search || app.app.toLowerCase().includes(search.toLowerCase()))
-                .map((app) => (
-                  <StudioTable.Row key={app.app}>
-                    <StudioTable.Cell>
-                      <Link to={`${env}/${app.app}`}>{app.app}</Link>
-                    </StudioTable.Cell>
-                    <StudioTable.Cell>{app.version}</StudioTable.Cell>
-                  </StudioTable.Row>
-                ))}
-            </StudioTable.Body>
-          </StudioTable>
         </StudioTabs.Panel>
       ))}
     </StudioTabs>
+  );
+};
+
+type AppsTableContentProps = AppsTableWithDataProps & {
+  env: string;
+  search?: string;
+  setSearch: (newState: string) => void;
+};
+
+const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTableContentProps) => {
+  const { t } = useTranslation();
+  const time = 2280;
+  const {
+    data: metrics,
+    isPending: metricsIsPending,
+    isError: metricsIsError,
+  } = useMetricsQuery(org, env, time, {
+    hideDefaultError: true,
+  });
+
+  if (metricsIsPending) {
+    return <StudioSpinner aria-label={t('general.loading')} />;
+  }
+  return (
+    <>
+      {metricsIsError && (
+        <StudioAlert data-color={'danger'} className={classes.metricsError}>
+          <Trans i18nKey={'admin.alerts.error'} values={{ env }} />
+        </StudioAlert>
+      )}
+      <StudioSearch
+        className={classes.appSearch}
+        value={search ?? ''}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+        label={t('admin.apps.search')}
+      />
+      <StudioTable>
+        <StudioTable.Head>
+          <StudioTable.Row>
+            <StudioTable.Cell>{t('admin.apps.name')}</StudioTable.Cell>
+            <StudioTable.Cell>{t('admin.apps.version')}</StudioTable.Cell>
+          </StudioTable.Row>
+        </StudioTable.Head>
+        <StudioTable.Body>
+          {runningApps[env]
+            .filter((app) => !search || app.app.toLowerCase().includes(search.toLowerCase()))
+            .map((app) => {
+              const appMetrics = metrics?.filter((metric) => metric.appName === app.app);
+              return {
+                ...app,
+                metrics: appMetrics,
+                hasMetrics: appMetrics?.length ?? 0 > 0,
+              };
+            })
+            .sort(
+              (a, b) => Number(b.hasMetrics) - Number(a.hasMetrics) || a.app.localeCompare(b.app),
+            )
+            .map((app) => (
+              <StudioTable.Row key={app.app}>
+                <StudioTable.Cell>
+                  <Link to={`${env}/${app.app}`}>{app.app}</Link>
+                </StudioTable.Cell>
+                <StudioTable.Cell>{app.version}</StudioTable.Cell>
+                <StudioTable.Cell>
+                  <div className={classes.metricCell}>
+                    {app.metrics?.map((metric) => {
+                      return (
+                        <StudioAlert
+                          key={metric.name}
+                          data-color='danger'
+                          data-size='xs'
+                          className={classes.metric}
+                        >
+                          <span className={classes.metricText}>
+                            {t(`admin.alerts.${metric.name}`, { count: metric.count })}
+                          </span>
+                          <StudioLink
+                            href={'metric.url'}
+                            rel='noopener noreferrer'
+                            target='_blank'
+                            className={classes.metricLink}
+                          >
+                            {t('admin.alerts.link')}
+                          </StudioLink>
+                        </StudioAlert>
+                      );
+                    })}
+                  </div>
+                </StudioTable.Cell>
+              </StudioTable.Row>
+            ))}
+        </StudioTable.Body>
+      </StudioTable>
+    </>
   );
 };
