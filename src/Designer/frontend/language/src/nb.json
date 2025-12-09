@@ -1528,6 +1528,7 @@
   "ux_editor.component_properties.enum_confirm": "Bekreft",
   "ux_editor.component_properties.enum_current": "Nåværende",
   "ux_editor.component_properties.enum_currentAndPrevious": "Nåværende og forrige",
+  "ux_editor.component_properties.enum_danger": "Farlig",
   "ux_editor.component_properties.enum_day": "Dag",
   "ux_editor.component_properties.enum_degree": "Grader",
   "ux_editor.component_properties.enum_desc": "Omvendt alfabetisk",
