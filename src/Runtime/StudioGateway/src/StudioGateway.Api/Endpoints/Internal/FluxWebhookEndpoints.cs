@@ -45,6 +45,15 @@ internal static class FluxWebhookEndpoints
             return Results.Ok();
         }
 
+        if (!IsRelevantEventReason(fluxEvent.Reason))
+        {
+            logger.LogDebug(
+                "Ignoring event with reason {Reason}, only processing install/upgrade/uninstall events",
+                fluxEvent.Reason
+            );
+            return Results.Ok();
+        }
+
         var helmReleaseName = fluxEvent.InvolvedObject.Name;
         var helmReleaseNamespace = fluxEvent.InvolvedObject.Namespace;
 
@@ -158,5 +167,16 @@ internal static class FluxWebhookEndpoints
         );
 
         return new HelmReleaseInfo(org, app, env, null);
+    }
+
+    private static bool IsRelevantEventReason(string? reason)
+    {
+        return reason
+            is "InstallSucceeded"
+                or "InstallFailed"
+                or "UpgradeSucceeded"
+                or "UpgradeFailed"
+                or "UninstallSucceeded"
+                or "UninstallFailed";
     }
 }

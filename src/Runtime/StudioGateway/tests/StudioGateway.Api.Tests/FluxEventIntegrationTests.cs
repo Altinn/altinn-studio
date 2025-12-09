@@ -1,4 +1,7 @@
+using System.Text.Json.Serialization.Metadata;
 using k8s;
+using k8s.Models;
+using StudioGateway.Api.Tests.Models;
 
 namespace StudioGateway.Api.Tests;
 
@@ -17,6 +20,14 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
 
     public FluxEventIntegrationTests()
     {
+        // Register our custom types with the k8s JSON serializer for AOT compatibility
+        KubernetesJson.AddJsonOptions(options =>
+        {
+#pragma warning disable NX0003 // TypeInfoResolver is guaranteed to be non-null after KubernetesJson initializes options
+            options.TypeInfoResolver = JsonTypeInfoResolver.Combine(TestJsonContext.Default, options.TypeInfoResolver!);
+#pragma warning restore NX0003
+        });
+
         var config = KubernetesClientConfiguration.BuildConfigFromConfigFile(currentContext: KindContextName);
         _client = new Kubernetes(config);
     }
@@ -50,30 +61,44 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
     public async Task FluxWebhook_WhenHelmReleaseCreated_ReceivesEvent()
     {
         var ct = TestContext.Current.CancellationToken;
-        var helmReleaseName = $"test-hr-{Guid.NewGuid():N}"[..40];
+        var org = "ttd";
+        var appName = "app-" + Guid.NewGuid().ToString("N")[..5];
+        var helmReleaseName = $"ttd-hr-{appName}-staging";
         _helmReleasesToCleanup.Add(helmReleaseName);
 
-        // Create a HelmRelease with the required label to trigger Alert
-        var helmRelease = new
+        // Create a HelmRelease using real metrics-server chart from flux-system HelmRepository
+        var helmRelease = new HelmRelease
         {
-            apiVersion = "helm.toolkit.fluxcd.io/v2",
-            kind = "HelmRelease",
-            metadata = new
+            Metadata = new V1ObjectMeta
             {
-                name = helmReleaseName,
-                @namespace = TestNamespace,
-                labels = new Dictionary<string, string> { ["altinn.studio/managed-by"] = "altinn-studio" },
-            },
-            spec = new
-            {
-                interval = "5m",
-                chart = new
+                Name = helmReleaseName,
+                NamespaceProperty = TestNamespace,
+                Labels = new Dictionary<string, string>
                 {
-                    spec = new
+                    ["altinn.studio/managed-by"] = "altinn-studio",
+                    ["altinn.studio/build-id"] = "12345",
+                    ["altinn.studio/source-environment"] = "staging",
+                    ["altinn.studio/org"] = org,
+                    ["altinn.studio/app"] = appName,
+                },
+            },
+            Spec = new HelmReleaseSpec
+            {
+                Interval = "5m",
+                Timeout = "10s",
+                Install = new HelmReleaseInstall { Timeout = "10s" },
+                Chart = new HelmChartTemplate
+                {
+                    Spec = new HelmChartTemplateSpec
                     {
-                        chart = "nonexistent-chart",
-                        version = "0.0.1",
-                        sourceRef = new { kind = "HelmRepository", name = "nonexistent-repo" },
+                        Chart = "metrics-server",
+                        Version = "3.x",
+                        SourceRef = new CrossNamespaceObjectReference
+                        {
+                            Kind = "HelmRepository",
+                            Name = "metrics-server", // this is something that already exists in flux-system. It will produce a valid Fail event
+                            Namespace = "flux-system",
+                        },
                     },
                 },
             },
@@ -88,8 +113,8 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
             cancellationToken: ct
         );
 
-        // Wait a bit for the notification-controller to process the event
-        await Task.Delay(TimeSpan.FromSeconds(5), ct);
+        // Wait for the HelmRelease install to timeout (10s) plus buffer for notification
+        await Task.Delay(TimeSpan.FromSeconds(15), ct);
 
         // Verify the HelmRelease was created and has a status
         var result = await _client.CustomObjects.GetNamespacedCustomObjectAsync(
@@ -125,8 +150,8 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
         using var reader = new StreamReader(logStream);
         var logs = await reader.ReadToEndAsync(ct);
 
-        // The webhook should have logged the received event
-        Assert.Contains("Received Flux event", logs, StringComparison.Ordinal);
+        // The webhook should have logged the InstallFailed event (install times out after 10s)
+        Assert.Contains($"Received Flux event: InstallFailed for HelmRelease/{helmReleaseName}", logs, StringComparison.Ordinal);
     }
 
     [Fact]
