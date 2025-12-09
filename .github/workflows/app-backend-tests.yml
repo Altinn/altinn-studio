@@ -21,6 +21,7 @@ jobs:
             workingDir: src\App\backend\
     name: Build and test
     runs-on: ${{ matrix.os.id }}
+    timeout-minutes: 15
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:

@@ -95,6 +95,9 @@ func (r *SecretSyncReconciler) reconcileFromSource(
 	source := &corev1.Secret{}
 	err := r.k8sClient.Get(ctx, sourceKey, source)
 	if apierrors.IsNotFound(err) {
+		if !mapping.CanDeleteDest {
+			return r.clearDestination(ctx, span, destKey, mapping)
+		}
 		return r.deleteDestination(ctx, span, destKey)
 	}
 	if err != nil {
@@ -117,6 +120,9 @@ func (r *SecretSyncReconciler) reconcileFromDest(
 	source := &corev1.Secret{}
 	err := r.k8sClient.Get(ctx, sourceKey, source)
 	if apierrors.IsNotFound(err) {
+		if !mapping.CanDeleteDest {
+			return r.clearDestination(ctx, span, destKey, mapping)
+		}
 		return r.deleteDestination(ctx, span, destKey)
 	}
 	if err != nil {
@@ -228,6 +234,39 @@ func (r *SecretSyncReconciler) deleteDestination(
 		return ctrl.Result{}, fmt.Errorf("failed to delete destination secret: %w", err)
 	}
 	r.logger.Info("deleted destination secret (source was deleted)",
+		"name", destKey.Name,
+		"namespace", destKey.Namespace,
+	)
+	return ctrl.Result{}, nil
+}
+
+func (r *SecretSyncReconciler) clearDestination(
+	ctx context.Context,
+	span trace.Span,
+	destKey client.ObjectKey,
+	mapping SecretSyncMapping,
+) (ctrl.Result, error) {
+	dest := &corev1.Secret{}
+	err := r.k8sClient.Get(ctx, destKey, dest)
+	if apierrors.IsNotFound(err) {
+		return ctrl.Result{}, nil
+	}
+	if err != nil {
+		span.RecordError(err)
+		return ctrl.Result{}, fmt.Errorf("failed to get destination secret for clearing: %w", err)
+	}
+
+	if mapping.ClearOutput != nil {
+		dest.Data = map[string][]byte{mapping.DestKey: mapping.ClearOutput()}
+	} else {
+		dest.Data = nil
+	}
+
+	if err := r.k8sClient.Update(ctx, dest); err != nil {
+		span.RecordError(err)
+		return ctrl.Result{}, fmt.Errorf("failed to clear destination secret: %w", err)
+	}
+	r.logger.Info("cleared destination secret (source was deleted)",
 		"name", destKey.Name,
 		"namespace", destKey.Namespace,
 	)
