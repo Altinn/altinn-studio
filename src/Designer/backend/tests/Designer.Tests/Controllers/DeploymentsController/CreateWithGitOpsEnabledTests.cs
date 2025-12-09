@@ -20,22 +20,21 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
 
-[Collection(nameof(DeploymentControllerCollection))]
-public class CreateWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<CreateWithGitOpsEnabledTests>
+public class CreateWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<CreateWithGitOpsEnabledTests>,
+    IClassFixture<WebApplicationFactory<Program>>,
+    IClassFixture<DesignerDbFixture>,
+    IClassFixture<MockServerFixture>
 {
     private readonly MockServerFixture _mockServerFixture;
-    private readonly ITestOutputHelper _output;
 
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
 
-    public CreateWithGitOpsEnabledTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture, MockServerFixture mockServerFixture, ITestOutputHelper output) : base(factory, designerDbFixture)
+    public CreateWithGitOpsEnabledTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture, MockServerFixture mockServerFixture) : base(factory, designerDbFixture)
     {
         _mockServerFixture = mockServerFixture;
-        _output = output;
 
         // Configure settings to point to mock server with GitOpsDeploy enabled
         JsonConfigOverrides.Add(
@@ -95,11 +94,6 @@ public class CreateWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<CreateW
         // Act
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
-
-        // Output response for debugging
-        _output.WriteLine($"Status: {response.StatusCode}");
-        _output.WriteLine($"Response: {responseBody}");
-
         var deploymentEntity = JsonSerializer.Deserialize<DeploymentEntity>(responseBody, JsonSerializerOptions);
 
         // Assert

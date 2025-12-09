@@ -21,8 +21,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
 
-[Collection(nameof(DeploymentControllerCollection))]
-public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<UndeployWithGitOpsEnabledTests>
+public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<UndeployWithGitOpsEnabledTests>,
+    IClassFixture<WebApplicationFactory<Program>>,
+    IClassFixture<DesignerDbFixture>,
+    IClassFixture<MockServerFixture>
 {
     private readonly MockServerFixture _mockServerFixture;
     private readonly Mock<IGitOpsConfigurationManager> _gitOpsConfigurationManagerMock;

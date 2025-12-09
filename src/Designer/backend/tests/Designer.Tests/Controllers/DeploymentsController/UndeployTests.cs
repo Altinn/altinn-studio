@@ -17,8 +17,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
 
-[Collection(nameof(DeploymentControllerCollection))]
-public class UndeployTests : DbDesignerEndpointsTestsBase<UndeployTests>
+public class UndeployTests : DbDesignerEndpointsTestsBase<UndeployTests>,
+    IClassFixture<WebApplicationFactory<Program>>,
+    IClassFixture<DesignerDbFixture>,
+    IClassFixture<MockServerFixture>
 {
     private readonly MockServerFixture _mockServerFixture;
     private const int DecommissionDefinitionId = 297;
