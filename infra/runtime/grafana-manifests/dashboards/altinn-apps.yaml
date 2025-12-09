@@ -462,7 +462,7 @@ spec:
             {
               "azureLogAnalytics": {
                 "dashboardTime": true,
-                "query": "requests\n| where $__timeFilter(timestamp)\n| where success == false\n| where client_Type != 'Browser'\n| where toint(resultCode) >= 500\n| where cloud_RoleName in ($app)\n| where operation_Name == 'POST Instances/Post [app/org]'\n| summarize Value = sum(itemCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
+                "query": "requests\n| where $__timeFilter(timestamp)\n| where success == false\n| where client_Type != 'Browser'\n| where toint(resultCode) >= 500\n| where cloud_RoleName in ($app)\n| where operation_Name == 'POST Instances/Post [app/org]'\n    or operation_Name == 'POST Instances/PostSimplified [app/org]'\n    or operation_Name == 'POST {org}/{app}/instances'\n    or operation_Name == 'POST {org}/{app}/instances/create'\n| summarize Value = sum(itemCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
@@ -666,7 +666,7 @@ spec:
             {
               "azureLogAnalytics": {
                 "dashboardTime": true,
-                "query": "requests\n| where $__timeFilter(timestamp)\n| where success == false\n| where client_Type != 'Browser'\n| where toint(resultCode) >= 500\n| where cloud_RoleName in ($app)\n| where operation_Name == 'PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]'\n| summarize Value = sum(itemCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
+                "query": "requests\n| where $__timeFilter(timestamp)\n| where success == false\n| where client_Type != 'Browser'\n| where toint(resultCode) >= 500\n| where cloud_RoleName in ($app)\n| where operation_Name == 'PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]'\n    or operation_Name == 'PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next'\n| summarize Value = sum(itemCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
