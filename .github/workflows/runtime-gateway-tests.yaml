@@ -45,7 +45,7 @@ jobs:
         run: make build
 
       - name: Run fixture
-        run: make run v=minimal
+        run: make start-minimal
 
       - name: Test
         run: make test
