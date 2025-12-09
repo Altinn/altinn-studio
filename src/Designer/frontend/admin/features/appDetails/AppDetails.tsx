@@ -1,6 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
 import { StudioBreadcrumbs } from '@studio/components';
-import { AppHealthMetrics } from './components/AppHealthMetrics';
 import { AppMetrics } from './components/AppMetrics';
 import classes from './AppDetails.module.css';
 

@@ -17,12 +17,19 @@ public interface IGatewayClient
     public Task<IEnumerable<Metric>> GetMetricsAsync(
         string org,
         string env,
+        int time,
+        CancellationToken cancellationToken
+    );
+
+    public Task<IEnumerable<AppMetric>> GetAppMetricsAsync(
+        string org,
+        string env,
         string app,
         int time,
         CancellationToken cancellationToken
     );
 
-    public Task<IEnumerable<HealthMetric>> GetHealthMetricsAsync(
+    public Task<IEnumerable<AppHealthMetric>> GetAppHealthMetricsAsync(
         string org,
         string env,
         string app,

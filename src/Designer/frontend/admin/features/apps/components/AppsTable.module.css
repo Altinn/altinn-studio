@@ -2,16 +2,16 @@
   max-width: 400px;
 }
 
-.alertsError {
+.metricsError {
   margin: var(--ds-size-6) 0;
 }
 
-.alertsHeaderCell {
+.metricsHeaderCell {
   text-align: right;
   width: 40%;
 }
 
-.alertCell {
+.metricCell {
   display: flex;
   flex-wrap: wrap;
   gap: var(--ds-size-2);
@@ -19,17 +19,17 @@
   justify-content: end;
 }
 
-.alert {
+.metric {
   border: none;
   padding: var(--ds-size-2) var(--ds-size-2) var(--ds-size-2) var(--ds-size-11);
   white-space: nowrap;
 }
 
-.alertText {
+.metricText {
   white-space: nowrap;
 }
 
-.alertLink {
+.metricLink {
   background-color: #f3d2d2;
   margin-left: var(--ds-size-2);
   padding: var(--ds-size-1) var(--ds-size-2);

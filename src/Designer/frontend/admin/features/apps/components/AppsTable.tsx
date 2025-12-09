@@ -15,7 +15,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import type { TFunction } from 'i18next';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
-import { useAlertsQuery } from 'admin/hooks/queries/useAlertsQuery';
+import { useMetricsQuery } from 'admin/hooks/queries/useMetricsQuery';
 
 export type AppsTableProps = {
   org: string;
@@ -93,22 +93,23 @@ const AppsTableWithDataByEnv = ({
   runningApps,
 }: AppsTableWithDataByEnvProps) => {
   const { t } = useTranslation();
+  const time = 2280;
   const {
-    data: alerts,
-    isPending: alertsIsPending,
-    isError: alertsIsError,
-  } = useAlertsQuery(org, env, {
+    data: metrics,
+    isPending: metricsIsPending,
+    isError: metricsIsError,
+  } = useMetricsQuery(org, env, time, {
     hideDefaultError: true,
   });
 
-  if (alertsIsPending) {
+  if (metricsIsPending) {
     return <StudioSpinner aria-label={t('general.loading')} />;
   }
 
   return (
     <>
-      {alertsIsError && (
-        <StudioAlert data-color={'danger'} className={classes.alertsError}>
+      {metricsIsError && (
+        <StudioAlert data-color={'danger'} className={classes.metricsError}>
           <Trans i18nKey={'admin.alerts.error'} values={{ env }} />
         </StudioAlert>
       )}
@@ -123,21 +124,25 @@ const AppsTableWithDataByEnv = ({
           <StudioTable.Row>
             <StudioTable.Cell>{t('Navn')}</StudioTable.Cell>
             <StudioTable.Cell>{t('Versjon')}</StudioTable.Cell>
-            <StudioTable.Cell className={classes.alertsHeaderCell}>{t('Varsler')}</StudioTable.Cell>
+            <StudioTable.Cell className={classes.metricsHeaderCell}>
+              {t('Varsler')}
+            </StudioTable.Cell>
           </StudioTable.Row>
         </StudioTable.Head>
         <StudioTable.Body>
           {runningApps[env]
             .filter((app) => !search || app.app.toLowerCase().includes(search.toLowerCase()))
             .map((app) => {
-              const appAlerts = alerts?.filter((alert) => alert.app === app.app);
+              const appMetrics = metrics?.filter((metric) => metric.appName === app.app);
               return {
                 ...app,
-                alerts: appAlerts,
-                hasAlerts: appAlerts?.length ?? 0 > 0,
+                metrics: appMetrics,
+                hasMetrics: appMetrics?.length ?? 0 > 0,
               };
             })
-            .sort((a, b) => Number(b.hasAlerts) - Number(a.hasAlerts) || a.app.localeCompare(b.app))
+            .sort(
+              (a, b) => Number(b.hasMetrics) - Number(a.hasMetrics) || a.app.localeCompare(b.app),
+            )
             .map((app) => (
               <StudioTable.Row key={app.app}>
                 <StudioTable.Cell>
@@ -145,23 +150,23 @@ const AppsTableWithDataByEnv = ({
                 </StudioTable.Cell>
                 <StudioTable.Cell>{app.version}</StudioTable.Cell>
                 <StudioTable.Cell>
-                  <div className={classes.alertCell}>
-                    {app.alerts?.map((alert) => {
+                  <div className={classes.metricCell}>
+                    {app.metrics?.map((metric) => {
                       return (
                         <StudioAlert
-                          key={alert.id}
+                          key={metric.name}
                           data-color='danger'
                           data-size='xs'
-                          className={classes.alert}
+                          className={classes.metric}
                         >
-                          <span className={classes.alertText}>
-                            {t(`admin.alerts.${alert.ruleId}-alert`, alert.name)}
+                          <span className={classes.metricText}>
+                            {t(`admin.alerts.${metric.name}`, { count: metric.count })}
                           </span>
                           <StudioLink
-                            href={alert.url}
+                            href={'metric.url'}
                             rel='noopener noreferrer'
                             target='_blank'
-                            className={classes.alertLink}
+                            className={classes.metricLink}
                           >
                             {t('admin.alerts.link')}
                           </StudioLink>

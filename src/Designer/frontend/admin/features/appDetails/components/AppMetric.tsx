@@ -1,8 +1,8 @@
 import React from 'react';
 import classes from './AppMetric.module.css';
 import { useTranslation } from 'react-i18next';
-import type { MetricDataPoint } from 'admin/types/metrics/MetricDataPoint';
-import type { Metric } from 'admin/types/metrics/Metric';
+import type { AppMetricDataPoint } from 'admin/types/metrics/AppMetricDataPoint';
+import type { AppMetric as Metric } from 'admin/types/metrics/AppMetric';
 import 'chartjs-adapter-date-fns';
 import {
   Chart as ChartJS,
@@ -77,7 +77,7 @@ const getChartOptions = (time: number) => ({
     },
   },
 });
-const getChartData = (dataPoints: MetricDataPoint[], options) => {
+const getChartData = (dataPoints: AppMetricDataPoint[], options) => {
   return {
     labels: dataPoints?.map((dataPoint) => dataPoint.dateTimeOffset),
     datasets: [
@@ -90,7 +90,7 @@ const getChartData = (dataPoints: MetricDataPoint[], options) => {
         },
         */
         fill: true,
-        data: dataPoints?.map((dataPoint) => dataPoint.value),
+        data: dataPoints?.map((dataPoint) => dataPoint.count),
         // tension: 0.4,
         borderWidth: 2,
         pointRadius: 0,
@@ -128,9 +128,9 @@ type AppMetricProps = {
 export const AppMetric = ({ time, metric }: AppMetricProps) => {
   const { t } = useTranslation();
   const options = getChartOptions(time);
-  const value = metric.dataPoints.reduce((sum, item) => sum + item.value, 0);
+  const count = metric.dataPoints.reduce((sum, item) => sum + item.count, 0);
   const isErrorMetric = metric.name.startsWith('failed_');
-  const isError = isErrorMetric && value > 0;
+  const isError = isErrorMetric && count > 0;
 
   const color = getRandomColor();
   const metricsChartData = getChartData(
@@ -162,7 +162,7 @@ export const AppMetric = ({ time, metric }: AppMetricProps) => {
           })}
           style={customStyle}
         >
-          {value}
+          {count}
         </div>
       </div>
       <div className={classes.chart}>

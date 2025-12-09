@@ -1,7 +1,7 @@
 namespace Altinn.Studio.Designer.Models.Metrics;
 
-public class HealthMetric
+public class AppHealthMetric
 {
     public required string Name { get; set; }
-    public required double Value { get; set; }
+    public required double Count { get; set; }
 }

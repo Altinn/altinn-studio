@@ -8,14 +8,13 @@ import axios from 'axios';
 export const useMetricsQuery = (
   org: string,
   env: string,
-  app: string,
   time: number,
   meta?: QueryMeta,
 ): UseQueryResult<Metric[]> => {
   return useQuery<Metric[]>({
-    queryKey: [QueryKey.Metrics, org, env, app, time],
+    queryKey: [QueryKey.Metrics, org, env, time],
     queryFn: async ({ signal }) =>
-      (await axios.get<Metric[]>(metricsPath(org, env, app, time), { signal })).data,
+      (await axios.get<Metric[]>(metricsPath(org, env, time), { signal })).data,
     meta,
   });
 };

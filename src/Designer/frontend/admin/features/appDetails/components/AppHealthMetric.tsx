@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './AppHealthMetric.module.css';
 import { useTranslation } from 'react-i18next';
-import type { HealthMetric } from 'admin/types/metrics/HealthMetric';
+import type { AppHealthMetric as HealthMetric } from 'admin/types/metrics/AppHealthMetric';
 import 'chartjs-adapter-date-fns';
 import cn from 'classnames';
 
@@ -11,7 +11,7 @@ type AppHealthMetricProps = {
 
 export const AppHealthMetric = ({ metric }: AppHealthMetricProps) => {
   const { t } = useTranslation();
-  const isError = metric.value == 0;
+  const isError = metric.count == 0;
 
   return (
     <div key={metric.name}>
@@ -25,7 +25,7 @@ export const AppHealthMetric = ({ metric }: AppHealthMetricProps) => {
             [classes.success]: !isError,
           })}
         >
-          {metric.name === 'health' ? (isError ? 'Down' : 'Up') : `${metric.value}%`}
+          {metric.name === 'health' ? (isError ? 'Down' : 'Up') : `${metric.count}%`}
         </div>
       </div>
     </div>

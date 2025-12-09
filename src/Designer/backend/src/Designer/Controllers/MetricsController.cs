@@ -17,7 +17,20 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
 
     [HttpGet]
     [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
-    public async Task<ActionResult<IEnumerable<Metric>>> GetMetrics(
+    public async Task<ActionResult<IEnumerable<AppMetric>>> GetMetrics(
+        string org,
+        string env,
+        int time,
+        CancellationToken cancellationToken
+    )
+    {
+        IEnumerable<Metric> metrics = await _metricsService.GetMetricsAsync(org, env, time, cancellationToken);
+        return Ok(metrics);
+    }
+
+    [HttpGet("app")]
+    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
+    public async Task<ActionResult<IEnumerable<AppMetric>>> GetAppMetrics(
         string org,
         string env,
         string app,
@@ -25,20 +38,20 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        IEnumerable<Metric> metrics = await _metricsService.GetMetricsAsync(org, env, app, time, cancellationToken);
+        IEnumerable<AppMetric> metrics = await _metricsService.GetAppMetricsAsync(org, env, app, time, cancellationToken);
         return Ok(metrics);
     }
 
-    [HttpGet("health")]
+    [HttpGet("app/health")]
     [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
-    public async Task<ActionResult<IEnumerable<HealthMetric>>> GetHealthMetrics(
+    public async Task<ActionResult<IEnumerable<AppHealthMetric>>> GetAppHealthMetrics(
         string org,
         string env,
         string app,
         CancellationToken cancellationToken
     )
     {
-        IEnumerable<HealthMetric> healthMetrics = await _metricsService.GetHealthMetricsAsync(org, env, app, cancellationToken);
+        IEnumerable<AppHealthMetric> healthMetrics = await _metricsService.GetAppHealthMetricsAsync(org, env, app, cancellationToken);
         return Ok(healthMetrics);
     }
 }

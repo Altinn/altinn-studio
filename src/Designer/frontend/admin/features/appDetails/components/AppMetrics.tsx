@@ -8,11 +8,11 @@ import {
   StudioSelect,
   StudioSpinner,
 } from '@studio/components';
-import { useMetricsQuery } from 'admin/hooks/queries/useMetricsQuery';
+import { useAppMetricsQuery } from 'admin/hooks/queries/useAppMetricsQuery';
 import { useTranslation } from 'react-i18next';
 
 import { AppMetric } from './AppMetric';
-import { useHealthMetricsQuery } from 'admin/hooks/queries/useHealthMetricsQuery';
+import { useAppHealthMetricsQuery } from 'admin/hooks/queries/useAppHealthMetricsQuery';
 import { AppHealthMetric } from './AppHealthMetric';
 
 export const AppMetrics = () => {
@@ -21,18 +21,18 @@ export const AppMetrics = () => {
   const { t } = useTranslation();
 
   const {
-    data: healthMetrics,
-    isPending: healthMetricsIsPending,
-    isError: healthMetricsIsError,
-  } = useHealthMetricsQuery(org, env, app, {
+    data: appHealthMetrics,
+    isPending: appHealthMetricsIsPending,
+    isError: appHealthMetricsIsError,
+  } = useAppHealthMetricsQuery(org, env, app, {
     hideDefaultError: true,
   });
 
   const {
-    data: metrics,
-    isPending: metricsIsPending,
-    isError: metricsIsError,
-  } = useMetricsQuery(org, env, app, time, {
+    data: appMetrics,
+    isPending: appMetricsIsPending,
+    isError: appMetricsIsError,
+  } = useAppMetricsQuery(org, env, app, time, {
     hideDefaultError: true,
   });
 
@@ -40,54 +40,54 @@ export const AppMetrics = () => {
     setTime(value);
   };
 
-  const showHealthMetrics = () => {
-    if (healthMetricsIsPending) {
+  const renderAppHealthMetrics = () => {
+    if (appHealthMetricsIsPending) {
       return <StudioSpinner aria-label={t('general.loading')} />;
     }
 
-    if (healthMetricsIsError) {
+    if (appHealthMetricsIsError) {
       return <StudioError>{t('general.page_error_title')}</StudioError>;
     }
 
-    return healthMetrics?.map((metric) => <AppHealthMetric key={metric.name} metric={metric} />);
+    return appHealthMetrics?.map((metric) => <AppHealthMetric key={metric.name} metric={metric} />);
   };
 
-  const showErrorMetrics = () => {
-    if (metricsIsPending) {
+  const renderAppErrorMetrics = () => {
+    if (appMetricsIsPending) {
       return <StudioSpinner aria-label={t('general.loading')} />;
     }
 
-    if (metricsIsError) {
+    if (appMetricsIsError) {
       return <StudioError>{t('general.page_error_title')}</StudioError>;
     }
-
-    var errorMetrics = metrics?.filter((metric) => metric.name.startsWith('failed_'));
 
     return (
       <div className={classes.metrics}>
-        {errorMetrics?.map((metric) => (
-          <AppMetric key={metric.name} time={time} metric={metric} />
-        ))}
+        {appMetrics
+          ?.filter((metric) => metric.name.startsWith('failed_'))
+          ?.map((metric) => (
+            <AppMetric key={metric.name} time={time} metric={metric} />
+          ))}
       </div>
     );
   };
 
-  const showAppMetrics = () => {
-    if (metricsIsPending) {
+  const renderAppMetrics = () => {
+    if (appMetricsIsPending) {
       return <StudioSpinner aria-label={t('general.loading')} />;
     }
 
-    if (metricsIsError) {
+    if (appMetricsIsError) {
       return <StudioError>{t('general.page_error_title')}</StudioError>;
     }
 
-    var appMetrics = metrics?.filter((metric) => !metric.name.startsWith('failed_'));
-
     return (
       <div className={classes.metrics}>
-        {appMetrics?.map((metric) => (
-          <AppMetric key={metric.name} time={time} metric={metric} />
-        ))}
+        {appMetrics
+          ?.filter((metric) => !metric.name.startsWith('failed_'))
+          ?.map((metric) => (
+            <AppMetric key={metric.name} time={time} metric={metric} />
+          ))}
       </div>
     );
   };
@@ -119,19 +119,19 @@ export const AppMetrics = () => {
           <StudioHeading className={classes.subheading}>
             {t('admin.metrics.health.heading')}
           </StudioHeading>
-          {showHealthMetrics()}
+          {renderAppHealthMetrics()}
         </div>
         <div>
           <StudioHeading className={classes.subheading}>
             {t('admin.metrics.feil.heading')}
           </StudioHeading>
-          {showErrorMetrics()}
+          {renderAppErrorMetrics()}
         </div>
         <div>
           <StudioHeading className={classes.subheading}>
             {t('admin.metrics.app.heading')}
           </StudioHeading>
-          {showAppMetrics()}
+          {renderAppMetrics()}
         </div>
       </div>
     </StudioCard>
