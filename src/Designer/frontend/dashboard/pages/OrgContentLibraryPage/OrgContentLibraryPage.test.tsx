@@ -31,6 +31,7 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
 import { FeatureFlag } from '@studio/feature-flags';
 import { sharedResourcesResponse } from './test-data/sharedResourcesResponse';
+import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 
 // Test data:
 const orgName: string = 'org';
