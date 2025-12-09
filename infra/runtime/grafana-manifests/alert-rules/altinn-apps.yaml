@@ -27,9 +27,9 @@ spec:
                     requests
                     | where $__timeFilter(timestamp)
                     | where success == false
-                    | where client_Type != 'Browser'
                     | where toint(resultCode) >= 500
                     | where operation_Name == 'PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]'
+                        or operation_Name == 'PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next'
                     | summarize occurred = iff(count() > 0, 1, 0) by cloud_RoleName
                 resources:
                     - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
@@ -122,9 +122,11 @@ spec:
                     requests
                     | where $__timeFilter(timestamp)
                     | where success == false
-                    | where client_Type != 'Browser'
                     | where toint(resultCode) >= 500
                     | where operation_Name == 'POST Instances/Post [app/org]'
+                        or operation_Name == 'POST Instances/PostSimplified [app/org]'
+                        or operation_Name == 'POST {org}/{app}/instances'
+                        or operation_Name == 'POST {org}/{app}/instances/create'
                     | summarize occurred = iff(count() > 0, 1, 0) by cloud_RoleName
                 resources:
                     - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
