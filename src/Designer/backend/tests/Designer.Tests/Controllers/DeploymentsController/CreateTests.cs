@@ -20,7 +20,8 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
 
-public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixture<WebApplicationFactory<Program>>, IClassFixture<MockServerFixture>
+[Collection(nameof(DeploymentControllerCollection))]
+public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>
 {
     private readonly MockServerFixture _mockServerFixture;
 
