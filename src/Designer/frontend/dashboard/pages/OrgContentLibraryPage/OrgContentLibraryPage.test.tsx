@@ -25,7 +25,7 @@ import {
   textResources,
   textResourcesWithLanguage,
 } from './test-data/textResources';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { CODE_LIST_FOLDER, DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
@@ -42,7 +42,11 @@ const repositoryName = `${orgName}-content`;
 const repoStatusQueryKey: string[] = [QueryKey.RepoStatus, orgName, repositoryName];
 const orgCodeListsQueryKey: string[] = [QueryKey.OrgCodeLists, orgName];
 const orgTextResourcesQueryKey: string[] = [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE];
-const sharedResourcesByPathQueryKey: string[] = [QueryKey.SharedResources, orgName, 'CodeLists'];
+const sharedResourcesByPathQueryKey: string[] = [
+  QueryKey.SharedResources,
+  orgName,
+  CODE_LIST_FOLDER,
+];
 
 // Mocks:
 jest.mock('@studio/content-library', () => ({
