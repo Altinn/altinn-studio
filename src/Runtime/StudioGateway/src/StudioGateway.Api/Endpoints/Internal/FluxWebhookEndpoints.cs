@@ -169,6 +169,11 @@ internal static class FluxWebhookEndpoints
         return new HelmReleaseInfo(org, app, env, null);
     }
 
+    /// <summary>
+    /// Filters for relevant Flux event reasons.
+    /// We'll might want to extend this in the future.
+    /// https://pkg.go.dev/github.com/fluxcd/helm-controller/api/v2beta1#pkg-constants
+    /// </summary>
     private static bool IsRelevantEventReason(string? reason)
     {
         return reason
