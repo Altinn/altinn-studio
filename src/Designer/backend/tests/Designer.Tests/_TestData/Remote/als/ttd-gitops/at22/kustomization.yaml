@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - ../base
   - ../apps/deploy-test-at22
-  - ../apps/deploy-gitops-test
 
 patches:
   - target:
