@@ -33,6 +33,9 @@ export async function instanceLoader({ context, params }: InstanceLoaderProps): 
     }),
     instance,
   );
+
+  console.log(instance.data);
+
   if (window.AltinnAppInstanceData?.layout && taskId && pageKey) {
     const currentLayoutSet = window.AltinnAppInstanceData?.layoutSets.sets.find((layoutSet) =>
       layoutSet.tasks?.includes(taskId),
