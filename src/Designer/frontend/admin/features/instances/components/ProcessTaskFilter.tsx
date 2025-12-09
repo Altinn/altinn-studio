@@ -39,11 +39,11 @@ const ProcessTaskFilterWithData = ({
   setValue,
 }: ProcessTaskPickerWithDataProps) => (
   <StatusFilter
-    label='Prosessteg'
+    label='admin.instances.process_task'
     value={value}
     setValue={setValue}
     options={[
-      { label: 'Alle', value: undefined },
+      { label: 'admin.instances.filter.all', value: undefined },
       ...processTasks.map((task) => ({ label: task.name ?? task.id, value: task.id })),
     ]}
   />

@@ -14,6 +14,7 @@ using System.Xml;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.DataModeling.Metamodel;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
@@ -44,7 +45,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClient;
         private readonly ISourceControl _sourceControl;
         private readonly ILogger _logger;
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
@@ -72,7 +73,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
             IHttpContextAccessor httpContextAccessor,
-            IGitea giteaClient,
+            IGiteaClient giteaClient,
             ISourceControl sourceControl,
             ILogger<RepositorySI> logger,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
@@ -248,7 +249,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 CreateServiceMetadata(metadata);
                 await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
-                await CreateRepositorySettings(org, serviceConfig.RepositoryName, developer);
+                await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer);
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
@@ -258,10 +259,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return repository;
         }
 
-        private async Task CreateRepositorySettings(string org, string repository, string developer)
+        private async Task CreateAltinnStudioSettings(string org, string repository, string developer)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
-            var settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App };
+            var settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, UseNullableReferenceTypes = true };
             await altinnGitRepository.SaveAltinnStudioSettings(settings);
         }
 

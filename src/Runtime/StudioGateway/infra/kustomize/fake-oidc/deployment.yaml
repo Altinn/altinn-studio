@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fake-oidc
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app: fake-oidc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fake-oidc
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fake-oidc
+  template:
+    metadata:
+      labels:
+        app: fake-oidc
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/nginx/html/.well-known/oauth-authorization-server
+              subPath: openid-configuration.json
+            - name: config
+              mountPath: /usr/share/nginx/html/jwk
+              subPath: jwks.json
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              memory: 32Mi
+      volumes:
+        - name: config
+          configMap:
+            name: fake-oidc-config
+        - name: nginx-conf
+          configMap:
+            name: fake-oidc-nginx-conf
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fake-oidc-nginx-conf
+  namespace: default
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name _;
+        
+        location /.well-known/oauth-authorization-server {
+            alias /usr/share/nginx/html/.well-known/oauth-authorization-server;
+            default_type application/json;
+        }
+        
+        location /jwk {
+            alias /usr/share/nginx/html/jwk;
+            default_type application/json;
+        }
+        
+        # Fake token endpoint for local testing - returns static token response
+        location = /token {
+            limit_except POST {
+                deny all;
+            }
+            default_type application/json;
+            return 200 '{"access_token":"fake-local-token-for-testing","token_type":"Bearer","expires_in":120,"scope":"altinn:studio/designer"}';
+        }
+        
+        location /health {
+            return 200 'ok';
+            add_header Content-Type text/plain;
+        }
+    }

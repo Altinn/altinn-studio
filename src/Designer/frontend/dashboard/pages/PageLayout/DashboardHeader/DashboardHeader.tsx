@@ -1,8 +1,8 @@
 import React, { type ReactElement } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
-import { StudioAvatar } from '@studio/components';
+import { useMediaQuery } from '@studio/components-legacy';
+import { StudioAvatar, StudioPageHeader } from '@studio/components';
 import { useSelectedContext } from '../../../hooks/useSelectedContext';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useHeaderContext } from '../../../context/HeaderContext';
@@ -70,9 +70,6 @@ function RightContent(): ReactElement {
   return (
     <StudioPageHeader.ProfileMenu
       triggerButtonText={!isSmallScreen ? triggerButtonText : undefined}
-      ariaLabelTriggerButton={triggerButtonText}
-      color='dark'
-      variant='regular'
       profileImage={
         <StudioAvatar
           src={user?.avatar_url ? user.avatar_url : undefined}

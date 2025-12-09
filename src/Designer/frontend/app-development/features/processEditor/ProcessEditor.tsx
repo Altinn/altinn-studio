@@ -23,7 +23,7 @@ import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessT
 import { OnProcessTaskAddHandler } from './handlers/OnProcessTaskAddHandler';
 import { OnProcessTaskRemoveHandler } from './handlers/OnProcessTaskRemoveHandler';
 
-export const ProcessEditor = (): React.ReactElement => {
+export default function ProcessEditor(): React.ReactElement {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
@@ -133,4 +133,4 @@ export const ProcessEditor = (): React.ReactElement => {
       onProcessTaskRemove={onProcessTaskRemove}
     />
   );
-};
+}

@@ -11,14 +11,17 @@ import type { JSONSchema7 } from 'json-schema';
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, statelessDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
-import { DynamicsProvider } from 'src/features/form/dynamics/DynamicsContext';
+import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
+import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FD, FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { fetchApplicationMetadata } from 'src/http-client/queries';
+import { fetchApplicationMetadata } from 'src/queries/queries';
 import {
   makeFormDataMethodProxies,
   renderWithInstanceAndLayout,
@@ -131,15 +134,21 @@ async function statelessRender(props: RenderProps) {
         </MemoryRouter>
       ),
       renderer: () => (
-        <DataModelsProvider>
-          <LayoutSettingsProvider>
-            <DynamicsProvider>
-              <FormDataWriteProxyProvider value={formDataProxies}>
-                <FormDataWriteProvider>{props.renderer}</FormDataWriteProvider>
-              </FormDataWriteProxyProvider>
-            </DynamicsProvider>
-          </LayoutSettingsProvider>
-        </DataModelsProvider>
+        <ApplicationMetadataProvider>
+          <GlobalFormDataReadersProvider>
+            <LayoutSetsProvider>
+              <LayoutsProvider>
+                <DataModelsProvider>
+                  <LayoutSettingsProvider>
+                    <FormDataWriteProxyProvider value={formDataProxies}>
+                      <FormDataWriteProvider>{props.renderer}</FormDataWriteProvider>
+                    </FormDataWriteProxyProvider>
+                  </LayoutSettingsProvider>
+                </DataModelsProvider>
+              </LayoutsProvider>
+            </LayoutSetsProvider>
+          </GlobalFormDataReadersProvider>
+        </ApplicationMetadataProvider>
       ),
       queries: {
         fetchDataModelSchema: async () => mockSchema,

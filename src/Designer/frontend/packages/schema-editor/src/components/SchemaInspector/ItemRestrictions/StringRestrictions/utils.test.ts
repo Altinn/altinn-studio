@@ -1,9 +1,70 @@
-import { retrieveDateTimeFormatState, updateDateTimeRestrictions } from './utils';
+import { retrieveDateTimeFormatState, updateDateTimeRestrictions, updateFormat } from './utils';
 import type { DateTimeFormatState } from './utils';
-import { StrRestrictionKey } from '@altinn/schema-model/types';
+import { StringFormat, StrRestrictionKey } from '@altinn/schema-model/types';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 describe('StringRestrictions utils', () => {
+  describe('updateFormat', () => {
+    it('Removes formatMaximum and formatMinimum restrictions when changing to a different format', () => {
+      const initialRestrictions: KeyValuePairs = {
+        [StrRestrictionKey.format]: StringFormat.DateTime,
+        [StrRestrictionKey.formatMinimum]: '2020-01-01T00:00:00Z',
+        [StrRestrictionKey.formatMaximum]: '2022-01-01T00:00:00Z',
+        [StrRestrictionKey.pattern]: '^.+$',
+      };
+      const newFormat = StringFormat.Email;
+      const expectedResult: KeyValuePairs = {
+        [StrRestrictionKey.format]: newFormat,
+        [StrRestrictionKey.pattern]: '^.+$',
+      };
+      const result = updateFormat(initialRestrictions, newFormat);
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('Removes formatExclusiveMaximum and formatExclusiveMinimum restrictions when changing to a different format', () => {
+      const initialRestrictions: KeyValuePairs = {
+        [StrRestrictionKey.format]: StringFormat.DateTime,
+        [StrRestrictionKey.formatExclusiveMinimum]: '2020-01-01T00:00:00Z',
+        [StrRestrictionKey.formatExclusiveMaximum]: '2022-01-01T00:00:00Z',
+        [StrRestrictionKey.pattern]: '^.+$',
+      };
+      const newFormat = StringFormat.Email;
+      const expectedResult: KeyValuePairs = {
+        [StrRestrictionKey.format]: newFormat,
+        [StrRestrictionKey.pattern]: '^.+$',
+      };
+      const result = updateFormat(initialRestrictions, newFormat);
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('Does not change anything when format is not changed', () => {
+      const format = StringFormat.DateTime;
+      const initialRestrictions: KeyValuePairs = {
+        [StrRestrictionKey.format]: format,
+        [StrRestrictionKey.formatMinimum]: '2020-01-01T00:00:00Z',
+        [StrRestrictionKey.formatMaximum]: '2022-01-01T00:00:00Z',
+        [StrRestrictionKey.pattern]: '^.+$',
+      };
+      const initialRestrictionsCopy = { ...initialRestrictions };
+      const result = updateFormat(initialRestrictions, format);
+      expect(result).toEqual(initialRestrictionsCopy);
+    });
+
+    it('Removes all format-specific restrictions including "format" when format is set to null', () => {
+      const initialRestrictions: KeyValuePairs = {
+        [StrRestrictionKey.format]: StringFormat.DateTime,
+        [StrRestrictionKey.formatMinimum]: '2020-01-01T00:00:00Z',
+        [StrRestrictionKey.formatMaximum]: '2022-01-01T00:00:00Z',
+        [StrRestrictionKey.pattern]: '^.+$',
+      };
+      const expectedResult: KeyValuePairs = {
+        [StrRestrictionKey.pattern]: '^.+$',
+      };
+      const result = updateFormat(initialRestrictions, null);
+      expect(result).toEqual(expectedResult);
+    });
+  });
+
   describe('retrieveDateTimeFormatState', () => {
     it('Returns correct state when minimum and maximum are set and they are inclusive', () => {
       const restrictions: KeyValuePairs = {

@@ -35,8 +35,6 @@ namespace Altinn.App.Core.Configuration
         public bool RegisterEventsWithEventsComponent { get; set; }
         public bool RemoveHiddenData { get; set; }
         public bool RequiredValidation { get; set; }
-        public string RuleConfigurationJSONFileName { get; set; }
-        public string RuleHandlerFileName { get; set; }
         public string RuntimeAppFileName { get; set; }
         public string RuntimeCookieName { get; set; }
         public string RuntimeCssFileName { get; set; }
@@ -2384,8 +2382,6 @@ namespace Altinn.App.Core.Implementation
         public string GetLayoutsForSet(string layoutSetId) { }
         public string GetModelJsonSchema(string modelId) { }
         public string? GetPrefillJson(string dataModelName = "ServiceModel") { }
-        public byte[] GetRuleConfigurationForSet(string id) { }
-        public byte[] GetRuleHandlerForSet(string id) { }
         public byte[] GetText(string org, string app, string textResource) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.TextResource?> GetTexts(string org, string app, string language) { }
         public string? GetValidationConfiguration(string dataTypeId) { }
@@ -2649,8 +2645,6 @@ namespace Altinn.App.Core.Interface
         [System.Obsolete("GetModelMetaDataJSON is no longer used by app frontend. Use GetModelJsonSchema.")]
         string GetModelMetaDataJSON(string org, string app);
         string? GetPrefillJson(string dataModelName = "ServiceModel");
-        byte[] GetRuleConfigurationForSet(string id);
-        byte[] GetRuleHandlerForSet(string id);
         byte[]? GetRuntimeResource(string resource);
         byte[] GetText(string org, string app, string textResource);
         System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.TextResource?> GetTexts(string org, string app, string language);
@@ -2959,8 +2953,6 @@ namespace Altinn.App.Core.Internal.App
         string GetLayoutsForSet(string layoutSetId);
         string GetModelJsonSchema(string modelId);
         string? GetPrefillJson(string dataModelName = "ServiceModel");
-        byte[] GetRuleConfigurationForSet(string id);
-        byte[] GetRuleHandlerForSet(string id);
         byte[] GetText(string org, string app, string textResource);
         System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.TextResource?> GetTexts(string org, string app, string language);
         string? GetValidationConfiguration(string dataTypeId);

@@ -2,10 +2,9 @@ import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
-import { LoadingRegistryProvider } from 'src/core/loading/LoadingRegistry';
-// import { BlockUntilAllLoaded } from 'src/core/loading/LoadingRegistry';
+import { BlockUntilAllLoaded, LoadingRegistryProvider } from 'src/core/loading/LoadingRegistry';
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
-import { DynamicsProvider } from 'src/features/form/dynamics/DynamicsContext';
+import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
@@ -15,7 +14,7 @@ import { PaymentInformationProvider } from 'src/features/payment/PaymentInformat
 import { PaymentProvider } from 'src/features/payment/PaymentProvider';
 import { ValidationProvider } from 'src/features/validation/validationContext';
 import { useNavigationParam } from 'src/hooks/navigation';
-// import { FormPrefetcher } from 'src/queries/formPrefetcher';
+import { FormPrefetcher } from 'src/queries/formPrefetcher';
 import { NodesProvider } from 'src/utils/layout/NodesContext';
 
 export interface FormContext {
@@ -44,13 +43,15 @@ export function FormProvider({ children, readOnly = false }: React.PropsWithChil
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
   const hasProcess = !!(instanceOwnerPartyId && instanceGuid);
+
   return (
     <LoadingRegistryProvider>
-      <CodeListsProvider>
-        <DataModelsProvider>
-          <LayoutSettingsProvider>
-            <PageNavigationProvider>
-              <DynamicsProvider>
+      <FormPrefetcher />
+      <LayoutsProvider>
+        <CodeListsProvider>
+          <DataModelsProvider>
+            <LayoutSettingsProvider>
+              <PageNavigationProvider>
                 <FormDataWriteProvider>
                   <ValidationProvider>
                     <NodesProvider
@@ -60,18 +61,20 @@ export function FormProvider({ children, readOnly = false }: React.PropsWithChil
                       <PaymentInformationProvider>
                         <OrderDetailsProvider>
                           <MaybePaymentProvider hasProcess={hasProcess}>
-                            <Provider value={{ readOnly }}>{children}</Provider>
+                            <Provider value={{ readOnly }}>
+                              <BlockUntilAllLoaded>{children}</BlockUntilAllLoaded>
+                            </Provider>
                           </MaybePaymentProvider>
                         </OrderDetailsProvider>
                       </PaymentInformationProvider>
                     </NodesProvider>
                   </ValidationProvider>
                 </FormDataWriteProvider>
-              </DynamicsProvider>
-            </PageNavigationProvider>
-          </LayoutSettingsProvider>
-        </DataModelsProvider>
-      </CodeListsProvider>
+              </PageNavigationProvider>
+            </LayoutSettingsProvider>
+          </DataModelsProvider>
+        </CodeListsProvider>
+      </LayoutsProvider>
     </LoadingRegistryProvider>
   );
 }

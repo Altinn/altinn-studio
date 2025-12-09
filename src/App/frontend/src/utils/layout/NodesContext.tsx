@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import type { PropsWithChildren, RefObject } from 'react';
 
 import deepEqual from 'fast-deep-equal';
@@ -11,7 +11,6 @@ import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
 import { AttachmentsStorePlugin } from 'src/features/attachments/AttachmentsStorePlugin';
 import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
-import { HiddenComponentsProvider } from 'src/features/form/dynamics/HiddenComponentsProvider';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
 import {
@@ -20,7 +19,6 @@ import {
   Validation,
 } from 'src/features/validation/validationContext';
 import { ValidationStorePlugin } from 'src/features/validation/ValidationStorePlugin';
-import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { GeneratorGlobalProvider, GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { useRegistry } from 'src/utils/layout/generator/GeneratorStages';
@@ -86,14 +84,11 @@ export type NodesContext = {
   hasErrors: boolean;
   pagesData: PagesData;
   nodeData: { [key: string]: NodeData };
-  hiddenViaRules: { [key: string]: true | undefined };
-  hiddenViaRulesRan: boolean;
   layouts: ILayouts | undefined; // Used to detect if the layouts have changed
   addNodes: (requests: AddNodeRequest[]) => void;
   removeNodes: (requests: RemoveNodeRequest[]) => void;
   setNodeProps: (requests: SetNodePropRequest[]) => void;
   addError: (error: string, id: string, type: 'node' | 'page') => void;
-  markHiddenViaRule: (hiddenFields: { [nodeId: string]: true }) => void;
 
   addPage: (pageKey: string) => void;
 
@@ -122,9 +117,6 @@ export function createNodesDataStore({ validationsProcessedLast, ...props }: Cre
       pages: {},
     },
     nodeData: {},
-    hiddenViaRules: {},
-    // If there are no conditional rules, mark as already run to avoid blocking render
-    hiddenViaRulesRan: !window.conditionalRuleHandlerObject,
     validationsProcessedLast,
   };
 
@@ -133,15 +125,6 @@ export function createNodesDataStore({ validationsProcessedLast, ...props }: Cre
     ...props,
 
     layouts: undefined,
-
-    markHiddenViaRule: (newState) =>
-      set((state) => {
-        if (deepEqual(state.hiddenViaRules, newState)) {
-          return { hiddenViaRulesRan: true };
-        }
-
-        return { hiddenViaRules: newState, hiddenViaRulesRan: true };
-      }),
 
     addNodes: (requests) =>
       set((state) => {
@@ -230,23 +213,7 @@ export function createNodesDataStore({ validationsProcessedLast, ...props }: Cre
       ),
 
     reset: (layouts, validationsProcessedLast: ValidationsProcessedLast) =>
-      set(() => {
-        const newState = { ...structuredClone(defaultState), layouts, validationsProcessedLast };
-
-        // Pre-populate all pages from layouts to avoid race condition where WhenParentAdded
-        // checks for page existence before AddPage component's useLayoutEffect runs
-        if (layouts) {
-          for (const pageKey of Object.keys(layouts)) {
-            newState.pagesData.pages[pageKey] = {
-              type: 'page',
-              pageKey,
-              errors: undefined,
-            };
-          }
-        }
-
-        return newState;
-      }),
+      set(() => ({ ...structuredClone(defaultState), layouts, validationsProcessedLast })),
 
     ...(Object.values(StorePlugins)
       .map((plugin) => plugin.extraFunctions(set))
@@ -284,12 +251,9 @@ export const NodesProvider = ({ children, ...props }: NodesProviderProps) => {
           </GeneratorData.Provider>
         </GeneratorValidationProvider>
         {window.Cypress && <UpdateAttachmentsForCypress />}
-        <HiddenComponentsProvider />
-        <BlockUntilRulesRan>
-          <ProvideWaitForValidation />
-          <ExpressionValidation />
-          <LoadingBlockerWaitForValidation>{children}</LoadingBlockerWaitForValidation>
-        </BlockUntilRulesRan>
+        <ProvideWaitForValidation />
+        <ExpressionValidation />
+        <LoadingBlockerWaitForValidation>{children}</LoadingBlockerWaitForValidation>
       </ProvideGlobalContext>
     </Store.Provider>
   );
@@ -381,41 +345,8 @@ function AutoCommit({ registry }: { registry: RefObject<Registry> }) {
   return null;
 }
 
-function BlockUntilRulesRan({ children }: PropsWithChildren) {
-  const hasBeenReady = useRef(false);
-  const ready = Store.useSelector((state) => {
-    if (state.hiddenViaRulesRan) {
-      hasBeenReady.current = true;
-      return true;
-    }
-    return hasBeenReady.current;
-  });
-
-  if (!ready) {
-    return <NodesLoader />;
-  }
-
-  return children;
-}
-
 function NodesLoader() {
   return <Loader reason='nodes' />;
-}
-
-export function useIsHiddenByRules(nodeId: string) {
-  return Store.useSelector((s) => s.hiddenViaRules[nodeId] ?? false);
-}
-
-export function useIsHiddenByRulesMulti(baseIds: string[]) {
-  const idMutator = useComponentIdMutator();
-  return Store.useShallowSelector((s) => {
-    const hidden: { [baseId: string]: boolean | undefined } = {};
-    for (const baseId of baseIds) {
-      const nodeId = idMutator(baseId);
-      hidden[baseId] = s.hiddenViaRules[nodeId] ?? false;
-    }
-    return hidden;
-  });
 }
 
 /**
@@ -518,7 +449,6 @@ export const NodesInternal = {
   useStore: () => Store.useStore(),
   useAddPage: () => Store.useStaticSelector((s) => s.addPage),
   useAddError: () => Store.useStaticSelector((s) => s.addError),
-  useMarkHiddenViaRule: () => Store.useStaticSelector((s) => s.markHiddenViaRule),
 
   ...(Object.values(StorePlugins)
     .map((plugin) => plugin.extraHooks(Store))

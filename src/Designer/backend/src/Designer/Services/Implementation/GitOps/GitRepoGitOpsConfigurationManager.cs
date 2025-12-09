@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -20,7 +21,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.GitOps;
 /// GitOps configuration manager that uses git repositories to manage the configuration.
 /// </summary>
 public class GitRepoGitOpsConfigurationManager(
-    [FromKeyedServices("bot-auth")] IGitea giteaClient,
+    [FromKeyedServices("bot-auth")] IGiteaClient giteaClient,
     IGitOpsManifestsRenderer gitOpsManifestsRenderer,
     ISourceControl sourceControl,
     IAltinnGitRepositoryFactory gitRepositoryFactory,

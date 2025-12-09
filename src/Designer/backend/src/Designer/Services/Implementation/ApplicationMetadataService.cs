@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -29,7 +30,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IAltinnStorageAppMetadataClient _storageAppMetadataClient;
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClient;
 
         /// <summary>
         /// Constructor
@@ -44,7 +45,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IAltinnStorageAppMetadataClient storageAppMetadataClient,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             IHttpContextAccessor httpContextAccessor,
-            IGitea giteaClient)
+            IGiteaClient giteaClient)
         {
             _logger = logger;
             _storageAppMetadataClient = storageAppMetadataClient;

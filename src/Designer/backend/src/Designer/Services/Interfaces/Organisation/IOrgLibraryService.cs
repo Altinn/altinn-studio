@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
@@ -24,4 +25,6 @@ public interface IOrgLibraryService
     /// <param name="request">The request.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     Task UpdateSharedResourcesByPath(string org, string developer, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default);
+
+    Task<List<string>> GetPublishedResourcesForOrg(string org, string path, CancellationToken cancellationToken = default);
 }

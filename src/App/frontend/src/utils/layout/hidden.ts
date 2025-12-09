@@ -10,8 +10,6 @@ import { useHiddenLayoutsExpressions, useLayoutLookups, useLayouts } from 'src/f
 import { useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { getComponentDef, implementsIsChildHidden } from 'src/layout';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useIsHiddenByRules, useIsHiddenByRulesMulti } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { EvalExprOptions } from 'src/features/expressions';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
@@ -56,12 +54,10 @@ export function useIsHidden<Reason extends boolean = false>(
   const hiddenPages = useHiddenLayoutsExpressions();
   const hiddenSources = findHiddenSources(baseComponentId, layoutLookups, hiddenPages).reverse();
   const dataSources = useExpressionDataSources(hiddenSources);
-  const hiddenByRules = useIsHiddenByRules(useIndexedId(baseComponentId) ?? '');
   const forcedVisible = useIsForcedVisibleByDevTools();
   const pageOrder = useRawPageOrder();
 
   const reason = isHidden({
-    hiddenByRules,
     hiddenSources,
     dataSources,
     pageOrder,
@@ -103,7 +99,6 @@ export function useIsHiddenMulti(
     [baseComponentIds, hiddenPages, layoutLookups],
   );
   const dataSources = useExpressionDataSources(hiddenSources);
-  const hiddenByRules = useIsHiddenByRulesMulti(baseComponentIds);
   const forcedVisible = useIsForcedVisibleByDevTools();
   const pageOrder = useRawPageOrder();
 
@@ -111,7 +106,6 @@ export function useIsHiddenMulti(
     const out: { [baseId: string]: boolean | undefined } = {};
     for (const [idx, baseComponentId] of baseComponentIds.entries()) {
       const reason = isHidden({
-        hiddenByRules: hiddenByRules[baseComponentId] ?? false,
         hiddenSources: hiddenSources[idx],
         dataSources,
         pageOrder,
@@ -129,7 +123,6 @@ export function useIsHiddenMulti(
     baseComponentIds,
     dataSources,
     forcedVisible,
-    hiddenByRules,
     hiddenSources,
     layoutLookups.componentToPage,
     options.respectDevTools,
@@ -183,7 +176,6 @@ export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> =
 interface IsHiddenProps extends Pick<IsHiddenOptions<boolean>, 'respectPageOrder'> {
   hiddenSources: HiddenSource[];
   dataSources: ExpressionDataSources;
-  hiddenByRules: boolean;
   pageOrder: string[];
   pageKey: string | undefined;
 }
@@ -195,20 +187,16 @@ export type HiddenWithReason =
     }
   | {
       hidden: true;
-      reason: HiddenSource['type'] | 'rules' | 'pageOrder';
+      reason: HiddenSource['type'] | 'pageOrder';
     };
 
 function isHidden({
   hiddenSources,
   dataSources,
-  hiddenByRules,
   respectPageOrder = false,
   pageOrder,
   pageKey,
 }: IsHiddenProps): HiddenWithReason {
-  if (hiddenByRules) {
-    return { reason: 'rules', hidden: true };
-  }
   if (respectPageOrder && pageKey !== undefined && !pageOrder.includes(pageKey)) {
     return { reason: 'pageOrder', hidden: true };
   }

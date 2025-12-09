@@ -21,7 +21,6 @@ import {
   getDataElementIdUrl,
   getDataElementUrl,
   getDataModelTypeUrl,
-  getFetchFormDynamicsUrl,
   getFileUploadUrl,
   getFooterLayoutUrl,
   getInstantiateUrl,
@@ -35,7 +34,6 @@ import {
   getProcessNextUrl,
   getProcessStateUrl,
   getRedirectUrl,
-  getRulehandlerUrl,
   getSetSelectedPartyUrl,
   getUpdateFileTagsUrl,
   getValidationUrl,
@@ -51,7 +49,6 @@ import type { ApplicationMetadata } from 'src/features/applicationMetadata/types
 import type { DataPostResponse } from 'src/features/attachments';
 import type { IDataList } from 'src/features/dataLists';
 import type { IFooterLayout } from 'src/features/footer/types';
-import type { IFormDynamics } from 'src/features/form/dynamics';
 import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import type { Instantiation } from 'src/features/instantiate/useInstantiation';
 import type { ITextResourceResult } from 'src/features/language/textResources';
@@ -271,12 +268,6 @@ export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promis
 
 export const fetchPdfFormat = (instanceId: string, dataElementId: string): Promise<IPdfFormat> =>
   httpGet(getPdfFormatUrl(instanceId, dataElementId));
-
-export const fetchDynamics = (layoutSetId: string): Promise<{ data: IFormDynamics } | null> =>
-  httpGet(getFetchFormDynamicsUrl(layoutSetId));
-
-export const fetchRuleHandler = (layoutSetId: string): Promise<string | null> =>
-  httpGet(getRulehandlerUrl(layoutSetId));
 
 export const fetchTextResources = (selectedLanguage: string): Promise<ITextResourceResult> =>
   httpGet(textResourcesUrl(selectedLanguage));

@@ -1,7 +1,6 @@
 using Altinn.App.Actions;
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
-using Altinn.App.Api.Infrastructure.Middleware;
 using Altinn.App.Core.Features;
 using Altinn.App.logic.DataProcessing;
 using Altinn.App.logic.Pdf;
@@ -18,7 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Altinn.Codelists.Extensions;
-using Microsoft.Extensions.Hosting;
+using Altinn.App.Logic.ConvertedLegacyRules;
 
 void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
 {
@@ -42,6 +41,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IUserAction, SortPetsAction>();
     services.AddTransient<IUserAction, GeneratePetsAction>();
     services.AddMimeTypeValidation();
+    services.AddTransient<IDataWriteProcessor, ChangenameDataProcessor>();
 }
 
 // ###########################################################################
@@ -79,14 +79,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
         c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn App Api", Version = "v1" });
         StartupHelper.IncludeXmlComments(c.IncludeXmlComments);
     });
-
-    // Register MockDataHelper for development/test environments
-    if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Test"))
-    {
-        services.AddScoped<Altinn.App.Core.Features.Testing.IMockDataHelper, Altinn.App.Core.Features.Testing.MockDataHelper>();
-    }
-
-
 }
 
 void ConfigureWebHostBuilder(IWebHostBuilder builder)
@@ -97,13 +89,6 @@ void ConfigureWebHostBuilder(IWebHostBuilder builder)
 void Configure()
     {
     string applicationId = StartupHelper.GetApplicationId();
-
-    // Add MockData middleware early in the pipeline (development/test only)
-    if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
-    {
-        app.UseMiddleware<MockDataMiddleware>();
-    }
-
     if (!string.IsNullOrEmpty(applicationId))
     {
         app.UseSwagger(o => o.RouteTemplate = applicationId + "/swagger/{documentName}/swagger.json");
@@ -115,5 +100,4 @@ void Configure()
         });
     }
     app.UseAltinnAppCommonConfiguration();
-
 }

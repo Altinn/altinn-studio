@@ -29,7 +29,11 @@
     "tsc:watch": "yarn gen && tsc --watch",
     "tsc:watch:cypress": "yarn gen && tsc --watch --project test/tsconfig.json",
     "lint": "yarn gen && eslint .",
-    "bench": "tsx --expose_gc --tsconfig benchmarks/tsconfig.json benchmarks/${0}"
+    "bench": "tsx --expose_gc --tsconfig benchmarks/tsconfig.json benchmarks/${0}",
+    "lhci": "lhci autorun",
+    "k6:check": "tsx test/e2e/k6-browser/check-k6-setup.ts",
+    "k6:browser:headful": "yarn k6:check && K6_BROWSER_HEADLESS=false k6 run test/e2e/k6-browser/browser-script.ts",
+    "k6:browser:headless": "yarn k6:check && K6_BROWSER_HEADLESS=true k6 run test/e2e/k6-browser/browser-script.ts"
   },
   "devDependencies": {
     "@babel/core": "7.28.5",
@@ -53,6 +57,7 @@
     "@types/jest": "30.0.0",
     "@types/js-levenshtein": "1.1.3",
     "@types/json-schema": "7.0.15",
+    "@types/k6": "^1.4.0",
     "@types/leaflet": "1",
     "@types/marked": "6.0.0",
     "@types/mime": "4.0.0",

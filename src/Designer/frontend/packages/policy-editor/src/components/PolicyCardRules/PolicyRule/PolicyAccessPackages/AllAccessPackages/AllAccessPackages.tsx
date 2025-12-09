@@ -41,6 +41,11 @@ export const AllAccessPackages = ({
 type PolicyAccordionIconProps = { icon: string };
 const PolicyAccordionIcon = ({ icon }: PolicyAccordionIconProps): ReactElement => {
   return (
-    <img src={icon} className={cn(classes.accordionIcon, classes.iconContainer)} aria-hidden />
+    <img
+      src={icon}
+      data-color='accent'
+      className={cn(classes.accordionIcon, classes.iconContainer)}
+      aria-hidden
+    />
   );
 };

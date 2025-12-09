@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.ResourceRegistry.Core.Models;
 using Altinn.ResourceRegistry.Core.Models.Altinn2;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
@@ -29,7 +30,7 @@ namespace Altinn.Studio.Designer.Controllers
     //[AutoValidateAntiforgeryToken]
     public class ResourceAdminController : ControllerBase
     {
-        private readonly IGitea _giteaClient;
+        private readonly IGiteaClient _giteaClient;
         private readonly IRepository _repository;
         private readonly IResourceRegistryOptions _resourceRegistryOptions;
         private readonly IMemoryCache _memoryCache;
@@ -37,7 +38,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IOrgService _orgService;
         private readonly IResourceRegistry _resourceRegistry;
 
-        public ResourceAdminController(IGitea giteaClient, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOrgService orgService, IResourceRegistry resourceRegistry, IEnvironmentsService environmentsService)
+        public ResourceAdminController(IGiteaClient giteaClient, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOrgService orgService, IResourceRegistry resourceRegistry, IEnvironmentsService environmentsService)
         {
             _giteaClient = giteaClient;
             _repository = repository;

@@ -1,14 +1,15 @@
 #nullable disable
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class UserOrganizationService : IUserOrganizationService
 {
-    private readonly IGitea _giteaClient;
+    private readonly IGiteaClient _giteaClient;
 
-    public UserOrganizationService(IGitea giteaClient)
+    public UserOrganizationService(IGiteaClient giteaClient)
     {
         _giteaClient = giteaClient;
     }
