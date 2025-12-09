@@ -7,7 +7,7 @@ namespace StudioGateway.Api.Tests.Models;
 /// <summary>
 /// Represents a Flux HelmRelease custom resource.
 /// </summary>
-public sealed class HelmRelease : IKubernetesObject<V1ObjectMeta>
+internal sealed class HelmRelease : IKubernetesObject<V1ObjectMeta>
 {
     [JsonPropertyName("apiVersion")]
     public string ApiVersion { get; set; } = "helm.toolkit.fluxcd.io/v2";
@@ -22,7 +22,7 @@ public sealed class HelmRelease : IKubernetesObject<V1ObjectMeta>
     public HelmReleaseSpec Spec { get; set; } = new();
 }
 
-public sealed class HelmReleaseSpec
+internal sealed class HelmReleaseSpec
 {
     [JsonPropertyName("interval")]
     public string Interval { get; set; } = "5m";
@@ -37,19 +37,19 @@ public sealed class HelmReleaseSpec
     public HelmReleaseInstall? Install { get; set; }
 }
 
-public sealed class HelmReleaseInstall
+internal sealed class HelmReleaseInstall
 {
     [JsonPropertyName("timeout")]
     public string? Timeout { get; set; }
 }
 
-public sealed class HelmChartTemplate
+internal sealed class HelmChartTemplate
 {
     [JsonPropertyName("spec")]
     public HelmChartTemplateSpec Spec { get; set; } = new();
 }
 
-public sealed class HelmChartTemplateSpec
+internal sealed class HelmChartTemplateSpec
 {
     [JsonPropertyName("chart")]
     public string Chart { get; set; } = string.Empty;
@@ -61,7 +61,7 @@ public sealed class HelmChartTemplateSpec
     public CrossNamespaceObjectReference SourceRef { get; set; } = new();
 }
 
-public sealed class CrossNamespaceObjectReference
+internal sealed class CrossNamespaceObjectReference
 {
     [JsonPropertyName("kind")]
     public string Kind { get; set; } = "HelmRepository";

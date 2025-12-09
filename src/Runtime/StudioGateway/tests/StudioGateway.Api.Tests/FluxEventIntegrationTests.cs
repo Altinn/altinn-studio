@@ -151,7 +151,11 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
         var logs = await reader.ReadToEndAsync(ct);
 
         // The webhook should have logged the InstallFailed event (install times out after 10s)
-        Assert.Contains($"Received Flux event: InstallFailed for HelmRelease/{helmReleaseName}", logs, StringComparison.Ordinal);
+        Assert.Contains(
+            $"Received Flux event: InstallFailed for HelmRelease/{helmReleaseName}",
+            logs,
+            StringComparison.Ordinal
+        );
     }
 
     [Fact]
