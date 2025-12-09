@@ -1,4 +1,4 @@
-{
+﻿{
   "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "layout": [
@@ -158,7 +158,32 @@
           }
         ],
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "hidden": [
+          "not",
+          [
+            "and",
+            [
+              "notEquals",
+              [
+                "dataModel",
+                "Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value"
+              ],
+              null
+            ],
+            [
+              "greaterThan",
+              [
+                "stringLength",
+                [
+                  "dataModel",
+                  "Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value"
+                ]
+              ],
+              0
+            ]
+          ]
+        ]
       },
       {
         "id": "test-alert5",
@@ -193,7 +218,29 @@
         "optionsId": "reasons",
         "required": true,
         "readOnly": false,
-        "preselectedOptionIndex": 0
+        "preselectedOptionIndex": 0,
+        "hidden": [
+          "not",
+          [
+            "and",
+            [
+              "notEquals",
+              [
+                "dataModel",
+                "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
+              ],
+              null
+            ],
+            [
+              "equals",
+              [
+                "dataModel",
+                "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
+              ],
+              "Ja"
+            ]
+          ]
+        ]
       },
       {
         "id": "begrunnelsefrivillig",
@@ -231,7 +278,40 @@
           "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForste-datadef-34896.value"
         },
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "hidden": [
+          "or",
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
+            ],
+            "Ja"
+          ],
+          [
+            "not",
+            [
+              "and",
+              [
+                "notEquals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                null
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "1"
+              ]
+            ]
+          ]
+        ]
       },
       {
         "id": "reasonParents",
@@ -243,7 +323,40 @@
           "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForsteTilknytningBeskrivelse-datadef-34898.value"
         },
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "hidden": [
+          "or",
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
+            ],
+            "Ja"
+          ],
+          [
+            "not",
+            [
+              "and",
+              [
+                "notEquals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                null
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "3"
+              ]
+            ]
+          ]
+        ]
       },
       {
         "id": "reasonSSN",
@@ -255,7 +368,40 @@
           "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForsteTilknyttetPersonsFodselsnummer-datadef-34899.value"
         },
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "hidden": [
+          "or",
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
+            ],
+            "Ja"
+          ],
+          [
+            "not",
+            [
+              "and",
+              [
+                "notEquals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                null
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "3"
+              ]
+            ]
+          ]
+        ]
       },
       {
         "id": "reasonCohabitant1",
@@ -267,7 +413,40 @@
           "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForsteTilknytningBeskrivelse-datadef-34898.value"
         },
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "hidden": [
+          "or",
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
+            ],
+            "Ja"
+          ],
+          [
+            "not",
+            [
+              "and",
+              [
+                "notEquals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                null
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "5"
+              ]
+            ]
+          ]
+        ]
       },
       {
         "id": "reasonCohabitant2",
@@ -279,7 +458,40 @@
           "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForsteTilknyttetPersonsFodselsnummer-datadef-34899.value"
         },
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "hidden": [
+          "or",
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
+            ],
+            "Ja"
+          ],
+          [
+            "not",
+            [
+              "and",
+              [
+                "notEquals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                null
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "5"
+              ]
+            ]
+          ]
+        ]
       },
       {
         "id": "reasonFarm1",
@@ -291,7 +503,40 @@
           "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForsteTilknyttetGardNavn-datadef-34901.value"
         },
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "hidden": [
+          "or",
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
+            ],
+            "Ja"
+          ],
+          [
+            "not",
+            [
+              "and",
+              [
+                "notEquals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                null
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "7"
+              ]
+            ]
+          ]
+        ]
       },
       {
         "id": "reasonFarm2",
@@ -303,7 +548,29 @@
           "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForsteTilknyttetGardKommunenummer-datadef-34902.value"
         },
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "hidden": [
+          "not",
+          [
+            "and",
+            [
+              "notEquals",
+              [
+                "dataModel",
+                "Radioknapp"
+              ],
+              null
+            ],
+            [
+              "equals",
+              [
+                "dataModel",
+                "Radioknapp"
+              ],
+              "7"
+            ]
+          ]
+        ]
       },
       {
         "id": "reasonFarm3",
@@ -315,7 +582,29 @@
           "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningMellomnavn2-grp-9353.PersonMellomnavnAndreTilknyttetGardGardsnummer-datadef-34933.value"
         },
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "hidden": [
+          "not",
+          [
+            "and",
+            [
+              "notEquals",
+              [
+                "dataModel",
+                "Radioknapp"
+              ],
+              null
+            ],
+            [
+              "equals",
+              [
+                "dataModel",
+                "Radioknapp"
+              ],
+              "7"
+            ]
+          ]
+        ]
       },
       {
         "id": "reasonFarm4",
@@ -327,7 +616,29 @@
           "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn2-grp-9351.PersonEtternavnAndreTilknyttetGardBruksnummer-datadef-34914.value"
         },
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "hidden": [
+          "not",
+          [
+            "and",
+            [
+              "notEquals",
+              [
+                "dataModel",
+                "Radioknapp"
+              ],
+              null
+            ],
+            [
+              "equals",
+              [
+                "dataModel",
+                "Radioknapp"
+              ],
+              "7"
+            ]
+          ]
+        ]
       },
       {
         "id": "reasonFarm5",
@@ -339,7 +650,40 @@
           "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForsteTilknyttetGardFesteavgift-datadef-34905.value"
         },
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "hidden": [
+          "or",
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
+            ],
+            "Ja"
+          ],
+          [
+            "not",
+            [
+              "and",
+              [
+                "notEquals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                null
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "7"
+              ]
+            ]
+          ]
+        ]
       },
       {
         "id": "reasonNewName",
@@ -352,7 +696,40 @@
         },
         "required": true,
         "readOnly": false,
-        "maxLength": 250
+        "maxLength": 250,
+        "hidden": [
+          "or",
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
+            ],
+            "Ja"
+          ],
+          [
+            "not",
+            [
+              "and",
+              [
+                "notEquals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                null
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "8"
+              ]
+            ]
+          ]
+        ]
       },
       {
         "id": "reasonOthers",
@@ -364,7 +741,40 @@
           "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn2-grp-9351.PersonEtternavnAndre-datadef-34906.value"
         },
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "hidden": [
+          "or",
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
+            ],
+            "Ja"
+          ],
+          [
+            "not",
+            [
+              "and",
+              [
+                "notEquals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                null
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "9"
+              ]
+            ]
+          ]
+        ]
       },
       {
         "id": "dateOfEffect",
@@ -831,9 +1241,101 @@
         },
         "validateOnNext": {
           "page": "current",
-          "show": ["All"]
-        }
+          "show": [
+            "All"
+          ]
+        },
+        "hidden": [
+          "not",
+          [
+            "and",
+            [
+              "notEquals",
+              [
+                "dataModel",
+                "Radioknapp"
+              ],
+              null
+            ],
+            [
+              "or",
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "1"
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "2"
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "3"
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "4"
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "5"
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "6"
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "7"
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "8"
+              ],
+              [
+                "equals",
+                [
+                  "dataModel",
+                  "Radioknapp"
+                ],
+                "9"
+              ]
+            ]
+          ]
+        ]
       }
     ]
   }
 }
+

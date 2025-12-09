@@ -1,13 +1,5 @@
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type RuleFunc<T extends Record<string, any>> = (argObject: T) => T;
-
-export interface IRuleObject {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [id: string]: RuleFunc<any>;
-}
-
 export interface ISimpleInstance {
   id: string;
   lastChanged: string;
