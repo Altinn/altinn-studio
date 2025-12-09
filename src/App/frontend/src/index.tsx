@@ -14,6 +14,7 @@ import 'src/features/styleInjection';
 import 'src/features/toggles';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { ErrorPageContent } from 'src/components/ErrorPageContent';
@@ -21,7 +22,6 @@ import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { ComponentRouting } from 'src/components/wrappers/ProcessWrapper';
-import { createDynamicsLoader } from 'src/features/form/dynamics/dynamicsLoader';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { createInstanceLoader } from 'src/features/instance/instanceLoader';
 import { PartySelectionWrapper } from 'src/features/instantiate/containers/PartySelection';
@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const root = container && createRoot(container);
   root?.render(
     <QueryClientProvider client={defaultQueryClient}>
+      <ReactQueryDevtools />
       <ErrorBoundary>
         <ViewportWrapper>
           <UiConfigProvider>
@@ -99,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         path: 'instance/:instanceOwnerPartyId/:instanceGuid',
                         loader: createInstanceLoader({
                           queryClient: defaultQueryClient,
-                          instance: window.AltinnAppInstanceData?.instance,
                         }),
                         element: <Outlet />,
                         children: [
@@ -109,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
                           },
                           {
                             path: ':taskId',
-                            loader: createDynamicsLoader(),
                             element: <Outlet />,
                             children: [
                               {
