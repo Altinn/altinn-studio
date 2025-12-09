@@ -24,10 +24,8 @@ public static class DeploymentMapper
             {
                 static typeInfo =>
                 {
-                    if (typeInfo.Type != typeof(DeploymentEntity)) return;
-                    var eventsProperty = typeInfo.Properties.FirstOrDefault(p => p.Name.Equals(nameof(DeploymentEntity.Events), StringComparison.OrdinalIgnoreCase));
-                    if (eventsProperty != null) eventsProperty.ShouldSerialize = (_, _) => false;
-                }
+                    if (typeInfo.Type != typeof(DeploymentEntity)) { return; } var eventsProperty = typeInfo.Properties.FirstOrDefault(p => p.Name.Equals(nameof(DeploymentEntity.Events), StringComparison.OrdinalIgnoreCase));
+                    if (eventsProperty != null) { eventsProperty.ShouldSerialize = (_, _) => false; } }
             }
         }
     };
