@@ -56,13 +56,12 @@ steps:
 
         # Always required variables
         [ -z "$APP_OWNER" ] && ERRORS+=("APP_OWNER is required")
-        [ -z "$APP_REPO" ] && ERRORS+=("APP_REPO is required")
         [ -z "$APP_ENVIRONMENT" ] && ERRORS+=("APP_ENVIRONMENT is required")
         [ -z "$ALTINN_STUDIO_HOSTNAME" ] && ERRORS+=("ALTINN_STUDIO_HOSTNAME is required")
 
         # Variables required when pushing app OCI image (default behavior)
         if [ "$PUSH_APPS_OCI_IMAGE" != "false" ]; then
-          [ -z "$APP_DEPLOY_TOKEN" ] && ERRORS+=("APP_DEPLOY_TOKEN is required when PUSH_APPS_OCI_IMAGE is not 'false'")
+          [ -z "$APP_REPO" ] && ERRORS+=("APP_REPO is required when PUSH_APPS_OCI_IMAGE is not 'false'")
           [ -z "$GITEA_ENVIRONMENT" ] && ERRORS+=("GITEA_ENVIRONMENT is required when PUSH_APPS_OCI_IMAGE is not 'false'")
           [ -z "$APP_COMMIT_ID" ] && ERRORS+=("APP_COMMIT_ID is required when PUSH_APPS_OCI_IMAGE is not 'false'")
           [ -z "$TAGNAME" ] && ERRORS+=("TAGNAME is required when PUSH_APPS_OCI_IMAGE is not 'false'")
@@ -70,7 +69,6 @@ steps:
 
         # Variables required when pushing sync-root GitOps image
         if [ "$PUSH_SYNCROOT_GITOPS_IMAGE" == "true" ]; then
-          [ -z "$APP_DEPLOY_TOKEN" ] && ERRORS+=("APP_DEPLOY_TOKEN is required when PUSH_SYNCROOT_GITOPS_IMAGE is 'true'")
           [ -z "$GITEA_ENVIRONMENT" ] && ERRORS+=("GITEA_ENVIRONMENT is required when PUSH_SYNCROOT_GITOPS_IMAGE is 'true'")
         fi
 
@@ -112,7 +110,7 @@ steps:
   - task: Bash@3
     name: RELEASE_NAME
     displayName: 'Create lowercase release name '
-    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       targetType: inline
       script: |
@@ -129,7 +127,7 @@ steps:
 
   - task: CmdLine@2
     displayName: Pull Repo
-    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       script: |
         # Should use oauth token when authenticating to private repo
@@ -152,14 +150,14 @@ steps:
 
   - task: CmdLine@2
     displayName: Pull GitOps directory
-    condition: eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true')
+    condition: and(succeeded(), eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true'))
     inputs:
       script: |
         git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
 
   - task: Bash@3
     displayName: Set environment variables (ALTINN_HOST, RG_NAME) based on APP_ENVIRONMENT
-    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       targetType: inline
       script: |
@@ -184,7 +182,7 @@ steps:
 
   - task: Bash@3
     displayName: Generate PowerShell script for Application Insights
-    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       targetType: inline
       script: |
@@ -230,7 +228,7 @@ steps:
 
   - task: AzurePowerShell@4
     displayName: Get application Insights instrumentation key (Production)
-    condition: and(ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'production'))
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'production'))
     inputs:
       ConnectedServiceNameARM: $(AI_SERVICE_CONNECTION_ID_PROD)
       ScriptType: FilePath
@@ -241,7 +239,7 @@ steps:
 
   - task: AzurePowerShell@4
     displayName: Get application Insights instrumentation key (Non-Production)
-    condition: and(ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_ENVIRONMENT'], 'production'))
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_ENVIRONMENT'], 'production'))
     inputs:
       ConnectedServiceNameARM: $(AI_SERVICE_CONNECTION_ID_TEST)
       ScriptType: FilePath
@@ -413,7 +411,7 @@ steps:
 
   - task: Bash@3
     displayName: Create flux artifact directory
-    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       targetType: inline
       script: |
@@ -421,7 +419,7 @@ steps:
 
   - task: Bash@3
     displayName: 'Generate helmrelease template file without values'
-    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
@@ -465,7 +463,7 @@ steps:
 
   - task: Bash@3
     displayName: Generate overrides file.
-    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
@@ -563,7 +561,7 @@ steps:
 
   - task: Bash@3
     displayName: 'Generate final helmrelease with merged values from values and overrides file'
-    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
@@ -600,7 +598,7 @@ steps:
 
   - task: AzureCLI@2
     displayName: 'Push OCI artifact to ACR'
-    condition: ne(variables['PUSH_APPS_OCI_IMAGE'], 'false')
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       azureSubscription: 'altinn-studio-apps-deploy'
       scriptType: bash
@@ -626,7 +624,7 @@ steps:
 
   - task: AzureCLI@2
     displayName: 'Push sync-root OCI artifact to ACR'
-    condition: eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true')
+    condition: and(succeeded(), eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true'))
     inputs:
       azureSubscription: 'altinn-studio-apps-deploy'
       scriptType: bash

@@ -27,6 +27,24 @@ public class DecommissionBuildParameters
     public string AppEnvironment { get; set; }
 
     /// <summary>
+    /// The hostname of the altinn studio env
+    /// </summary>
+    [JsonPropertyName("ALTINN_STUDIO_HOSTNAME")]
+    public string AltinnStudioHostname { get; set; }
+
+    /// <summary>
+    /// The deploy token is used to let Azure DevOps pipeline clone private GITEA repos on behalf of app developer
+    /// </summary>
+    [JsonPropertyName("APP_DEPLOY_TOKEN")]
+    public string AppDeployToken { get; set; }
+
+    /// <summary>
+    /// The URI to the correct GITEA environment based on which environment Altinn Studio is located
+    /// </summary>
+    [JsonPropertyName("GITEA_ENVIRONMENT")]
+    public string GiteaEnvironment { get; set; }
+
+    /// <summary>
     /// Whether or not to push the sync root gitops image
     /// </summary>
     [JsonPropertyName("PUSH_SYNCROOT_GITOPS_IMAGE")]

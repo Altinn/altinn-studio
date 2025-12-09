@@ -161,7 +161,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 AppOwner = editingContext.Org,
                 AppRepo = editingContext.Repo,
-                AppEnvironment = env
+                AppEnvironment = env,
+                AltinnStudioHostname = _generalSettings.HostName,
+                AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
+                GiteaEnvironment = $"{_generalSettings.HostName}/repos"
             };
 
             // find the deployed tag
