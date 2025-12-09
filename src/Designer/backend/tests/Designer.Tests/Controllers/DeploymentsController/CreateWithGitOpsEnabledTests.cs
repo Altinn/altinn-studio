@@ -70,7 +70,7 @@ public class CreateWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<CreateW
     }
 
     [Theory]
-    [InlineData("ttd", "deploy-gitops-test", "at22", "1.0.0", "50001")]
+    [InlineData("ttd", "deploy-gitops-test", "at22", "1.0.0", "80001")]
     public async Task Create_WhenGitOpsFeatureFlagEnabled_ShouldCreateDeployEvent(string org, string app, string envName, string tagName, string buildId)
     {
         // Arrange
@@ -118,7 +118,7 @@ public class CreateWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<CreateW
             TargetCommitish = "abc123def456",
             Build = new BuildEntity
             {
-                Id = "11111",
+                Id = "81111",
                 Status = BuildStatus.Completed,
                 Result = BuildResult.Succeeded,
                 Started = DateTime.UtcNow.AddMinutes(-10),
