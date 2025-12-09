@@ -19,7 +19,6 @@ import {
   Validation,
 } from 'src/features/validation/validationContext';
 import { ValidationStorePlugin } from 'src/features/validation/ValidationStorePlugin';
-import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { GeneratorGlobalProvider, GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { useRegistry } from 'src/utils/layout/generator/GeneratorStages';
@@ -85,14 +84,11 @@ export type NodesContext = {
   hasErrors: boolean;
   pagesData: PagesData;
   nodeData: { [key: string]: NodeData };
-  hiddenViaRules: { [key: string]: true | undefined };
-  hiddenViaRulesRan: boolean;
   layouts: ILayouts | undefined; // Used to detect if the layouts have changed
   addNodes: (requests: AddNodeRequest[]) => void;
   removeNodes: (requests: RemoveNodeRequest[]) => void;
   setNodeProps: (requests: SetNodePropRequest[]) => void;
   addError: (error: string, id: string, type: 'node' | 'page') => void;
-  markHiddenViaRule: (hiddenFields: { [nodeId: string]: true }) => void;
 
   addPage: (pageKey: string) => void;
 
@@ -121,8 +117,6 @@ export function createNodesDataStore({ validationsProcessedLast, ...props }: Cre
       pages: {},
     },
     nodeData: {},
-    hiddenViaRules: {},
-    hiddenViaRulesRan: false,
     validationsProcessedLast,
   };
 
@@ -131,15 +125,6 @@ export function createNodesDataStore({ validationsProcessedLast, ...props }: Cre
     ...props,
 
     layouts: undefined,
-
-    markHiddenViaRule: (newState) =>
-      set((state) => {
-        if (deepEqual(state.hiddenViaRules, newState)) {
-          return { hiddenViaRulesRan: true };
-        }
-
-        return { hiddenViaRules: newState, hiddenViaRulesRan: true };
-      }),
 
     addNodes: (requests) =>
       set((state) => {
@@ -364,22 +349,6 @@ function NodesLoader() {
   return <Loader reason='nodes' />;
 }
 
-export function useIsHiddenByRules(nodeId: string) {
-  return Store.useSelector((s) => s.hiddenViaRules[nodeId] ?? false);
-}
-
-export function useIsHiddenByRulesMulti(baseIds: string[]) {
-  const idMutator = useComponentIdMutator();
-  return Store.useShallowSelector((s) => {
-    const hidden: { [baseId: string]: boolean | undefined } = {};
-    for (const baseId of baseIds) {
-      const nodeId = idMutator(baseId);
-      hidden[baseId] = s.hiddenViaRules[nodeId] ?? false;
-    }
-    return hidden;
-  });
-}
-
 /**
  * A set of tools, selectors and functions to use internally in node generator components.
  */
@@ -480,7 +449,6 @@ export const NodesInternal = {
   useStore: () => Store.useStore(),
   useAddPage: () => Store.useStaticSelector((s) => s.addPage),
   useAddError: () => Store.useStaticSelector((s) => s.addError),
-  useMarkHiddenViaRule: () => Store.useStaticSelector((s) => s.markHiddenViaRule),
 
   ...(Object.values(StorePlugins)
     .map((plugin) => plugin.extraHooks(Store))
