@@ -169,7 +169,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // find the deployed tag
             DeploymentEntity lastDeployed = await _deploymentRepository.GetLastDeployed(editingContext.Org, editingContext.Repo, env);
 
-            var build = await _azureDevOpsBuildClient.QueueAsync(decommissionBuildParameters, _azureDevOpsSettings.DecommissionDefinitionId);
+            bool useGitOpsDecommission = await RemoveAppFromGitOpsRepoIfExists(editingContext, env);
+            int definitionId = useGitOpsDecommission
+                ? _azureDevOpsSettings.GitOpsDecommissionDefinitionId
+                : _azureDevOpsSettings.DecommissionDefinitionId;
+
+            var build = await _azureDevOpsBuildClient.QueueAsync(decommissionBuildParameters, definitionId);
 
             DeploymentEntity deploymentEntity = new()
             {
@@ -195,6 +200,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }, cancellationToken);
 
             await PublishDeploymentPipelineQueued(editingContext, build, PipelineType.Undeploy, env, CancellationToken.None);
+        }
+
+        private async Task<bool> RemoveAppFromGitOpsRepoIfExists(AltinnRepoEditingContext editingContext, string env)
+        {
+            if (!await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
+            {
+                return false;
+            }
+
+            var orgContext = AltinnOrgEditingContext.FromOrgDeveloper(editingContext.Org, editingContext.Developer);
+            var appName = AltinnRepoName.FromName(editingContext.Repo);
+            var environment = AltinnEnvironment.FromName(env);
+
+            bool appExistsInGitOps = await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(orgContext, appName, environment);
+
+            if (!appExistsInGitOps)
+            {
+                return false;
+            }
+
+            await _gitOpsConfigurationManager.RemoveAppFromGitOpsEnvironmentConfigurationAsync(editingContext, environment);
+            await _gitOpsConfigurationManager.PersistGitOpsConfigurationAsync(orgContext, environment);
+
+            return true;
         }
 
         private async Task PublishDeploymentPipelineQueued(AltinnRepoEditingContext editingContext, Build build, PipelineType pipelineType, string environment,
