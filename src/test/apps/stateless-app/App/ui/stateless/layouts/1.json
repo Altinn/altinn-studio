@@ -80,7 +80,36 @@
         },
         "required": false,
         "readOnly": false,
-        "labelSettings": {"optionalIndicator": false}
+        "labelSettings": {
+          "optionalIndicator": false
+        },
+        "hidden": [
+          "not",
+          [
+            "if",
+            [
+              "equals",
+              [
+                "dataModel",
+                "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value"
+              ],
+              null
+            ],
+            false,
+            "else",
+            [
+              "greaterThanEq",
+              [
+                "stringLength",
+                [
+                  "dataModel",
+                  "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value"
+                ]
+              ],
+              4
+            ]
+          ]
+        ]
       },
       {
         "id": "jobTitle",

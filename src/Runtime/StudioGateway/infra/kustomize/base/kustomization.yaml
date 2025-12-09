@@ -6,6 +6,7 @@ resources:
   - deployment.yaml
   - networkpolicy.yaml
   - ingressroute.yaml
+  - secrets.yaml
 replacements:
   - source:
       kind: Deployment

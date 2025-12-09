@@ -61,13 +61,22 @@ test: manifests generate fmt vet envtest ## Run unit tests.
 test-e2e: manifests generate fmt vet ## Run e2e tests
 	go run ./cmd/tester test-e2e --keep-running
 
-.PHONY: start
-start: ## Start the Kind cluster and runtime fixture.
+.PHONY: start start-minimal start-standard
+start: start-minimal ## Start the Kind cluster (alias for start-minimal)
+
+start-minimal: ## Start with minimal variant
 	go run ./cmd/tester start minimal
+
+start-standard: ## Start with standard variant
+	go run ./cmd/tester start standard
 
 .PHONY: stop
 stop: ## Stop the Kind cluster and runtime fixture.
 	go run ./cmd/tester stop
+
+.PHONY: sample
+sample: ## Apply the sample MaskinportenClient resource to the cluster.
+	kubectl apply -f config/samples/resources_v1alpha1_maskinportenclient.yaml
 
 .PHONY: bench
 bench: ## Run benchmarks. Usage: make bench filter=<regex> [packages=./internal/crypto] [benchtime=1s]

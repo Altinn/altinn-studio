@@ -34,3 +34,9 @@ spec:
     kind: OCIRepository
     name: grafana-manifests-repo
     namespace: runtime-grafana
+  postBuild:
+    substitute:
+      AZURE_SUBSCRIPTION_ID: ${AZURE_SUBSCRIPTION_ID}
+      ENVIRONMENT: ${ENVIRONMENT}
+      SERVICEOWNER_ID: ${SERVICEOWNER_ID}
+      GATEWAY_URL: "https://${SERVICEOWNER_ID}.apps.tt02.altinn.no/runtime/gateway/api/v1"

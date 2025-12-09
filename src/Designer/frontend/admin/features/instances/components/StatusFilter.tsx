@@ -29,7 +29,7 @@ export const StatusFilter = ({ label, value, setValue, options, disabled }: Stat
           key={JSON.stringify(option.value ?? null)}
           value={JSON.stringify(option.value ?? null)}
         >
-          {option.label}
+          {t(option.label)}
         </StudioSelect.Option>
       ))}
     </StudioSelect>

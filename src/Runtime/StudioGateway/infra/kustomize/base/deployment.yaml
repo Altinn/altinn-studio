@@ -108,7 +108,7 @@ spec:
                   name: runtime-environment
                   key: serviceowner
           volumeMounts:
-            - name: maskinporten-secrets
+            - name: secrets
               mountPath: /app/secrets
               readOnly: true
           livenessProbe:
@@ -132,9 +132,16 @@ spec:
               cpu: 10m
               memory: 64Mi
       volumes:
-        - name: maskinporten-secrets
-          secret:
-            secretName: maskinporten-client-for-designer
-            items:
-              - key: secrets.json
-                path: maskinporten-client-for-designer.json
+        - name: secrets
+          projected:
+            sources:
+              - secret:
+                  name: maskinporten-client-for-designer
+                  items:
+                    - key: secrets.json
+                      path: maskinporten-client-for-designer.json
+              - secret:
+                  name: external-grafana-altinn-studio-gateway-token
+                  items:
+                    - key: secrets.json
+                      path: grafana-token.json
