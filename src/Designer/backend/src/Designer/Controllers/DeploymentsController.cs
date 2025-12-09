@@ -5,23 +5,19 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
-using Altinn.Studio.Designer.Hubs.EntityUpdate;
-using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
-using Microsoft.AspNetCore.SignalR;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Altinn.Studio.Designer.Constants;
-using Microsoft.FeatureManagement.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -37,18 +33,12 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IDeploymentService _deploymentService;
         private readonly IGiteaClient _giteaClient;
         private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;
-        private readonly IDeployEventRepository _deployEventRepository;
-        private readonly IHubContext<EntityUpdatedHub, IEntityUpdateClient> _entityUpdatedHubContext;
-        private readonly IDeploymentRepository _deploymentRepository;
 
-        public DeploymentsController(IDeploymentService deploymentService, IGiteaClient giteaClient, IKubernetesDeploymentsService kubernetesDeploymentsService, IDeployEventRepository deployEventRepository, IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext, IDeploymentRepository deploymentRepository)
+        public DeploymentsController(IDeploymentService deploymentService, IGiteaClient giteaClient, IKubernetesDeploymentsService kubernetesDeploymentsService)
         {
             _deploymentService = deploymentService;
             _giteaClient = giteaClient;
             _kubernetesDeploymentsService = kubernetesDeploymentsService;
-            _deployEventRepository = deployEventRepository;
-            _entityUpdatedHubContext = entityUpdatedHubContext;
-            _deploymentRepository = deploymentRepository;
         }
 
         /// <summary>
@@ -133,107 +123,5 @@ namespace Altinn.Studio.Designer.Controllers
             return Accepted();
         }
 
-        /// <summary>
-        /// Webhook endpoint for receiving deploy events
-        /// </summary>
-        /// <param name="org">Organisation name</param>
-        /// <param name="app">Application name</param>
-        /// <param name="request">Deploy event details</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>Ok response</returns>
-        [HttpPost("events")]
-        [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
-        [FeatureGate(StudioFeatureFlags.GitOpsDeploy)]
-        public async Task<IActionResult> ReceiveDeployEvent(string org, string app, [FromBody] DeployEventRequest request, CancellationToken cancellationToken)
-        {
-            if (!TryParseEventType(request.EventType, out var eventType))
-            {
-                return BadRequest($"Invalid event type: {request.EventType}");
-            }
-
-            var resolveResult = await TryResolveDeploymentAsync(org, app, request, eventType);
-            if (resolveResult.ErrorResult != null)
-            {
-                return resolveResult.ErrorResult;
-            }
-
-            var deployment = resolveResult.Deployment!;
-            var buildId = resolveResult.BuildId!;
-
-            if (deployment.HasFinalEvent)
-            {
-                return Ok();
-            }
-
-            var deployEvent = CreateDeployEvent(eventType, request);
-
-            await _deployEventRepository.AddAsync(org, buildId, deployEvent, cancellationToken);
-
-            await PublishEntityUpdatedAsync(deployment);
-
-            return Ok();
-        }
-
-        private static bool TryParseEventType(string eventTypeString, out DeployEventType eventType)
-        {
-            return Enum.TryParse(eventTypeString, out eventType);
-        }
-
-        private record DeploymentResolveResult(
-            DeploymentEntity Deployment,
-            string BuildId,
-            IActionResult ErrorResult);
-
-        private async Task<DeploymentResolveResult> TryResolveDeploymentAsync(
-            string org,
-            string app,
-            DeployEventRequest request,
-            DeployEventType eventType)
-        {
-            bool isUninstallEvent = eventType is DeployEventType.UninstallSucceeded or DeployEventType.UninstallFailed;
-
-            if (isUninstallEvent)
-            {
-                var deployment = await _deploymentRepository.GetPendingDecommission(org, app, request.Environment);
-                if (deployment == null)
-                {
-                    return new DeploymentResolveResult(null, null, NotFound($"No pending decommission deployment found for {org}/{app} in {request.Environment}"));
-                }
-
-                return new DeploymentResolveResult(deployment, deployment.Build.Id, null);
-            }
-            else
-            {
-                if (string.IsNullOrWhiteSpace(request.BuildId))
-                {
-                    return new DeploymentResolveResult(null, null, BadRequest("BuildId is required for non-uninstall events"));
-                }
-
-                var deployment = await _deploymentRepository.Get(org, request.BuildId);
-                if (deployment == null)
-                {
-                    return new DeploymentResolveResult(null, null, NotFound($"Deployment with build ID {request.BuildId} not found"));
-                }
-
-                return new DeploymentResolveResult(deployment, request.BuildId, null);
-            }
-        }
-
-        private static DeployEvent CreateDeployEvent(DeployEventType eventType, DeployEventRequest request)
-        {
-            return new DeployEvent
-            {
-                EventType = eventType,
-                Message = request.Message,
-                Timestamp = request.Timestamp
-            };
-        }
-
-        private async Task PublishEntityUpdatedAsync(DeploymentEntity deployment)
-        {
-            await _entityUpdatedHubContext.Clients.Group(deployment.CreatedBy)
-                .EntityUpdated(new EntityUpdated(EntityConstants.Deployment));
-        }
     }
 }

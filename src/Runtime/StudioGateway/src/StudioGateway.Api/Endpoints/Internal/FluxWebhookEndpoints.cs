@@ -80,7 +80,7 @@ internal static class FluxWebhookEndpoints
         {
             var httpClient = httpClientFactory.CreateClient(info.SourceEnvironment);
             var response = await httpClient.PostAsJsonAsync(
-                $"designer/api/{info.Org}/{info.App}/deployments/events",
+                $"designer/api/{info.Org}/{info.App}/deployments/webhooks/events",
                 deployEvent,
                 AppJsonSerializerContext.Default.DeployEventRequest,
                 cancellationToken
