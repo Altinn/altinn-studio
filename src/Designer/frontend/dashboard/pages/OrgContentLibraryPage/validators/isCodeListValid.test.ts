@@ -7,7 +7,7 @@ describe('isCodeListValid', () => {
   });
 
   it('returns true for valid code list with all optional fields', () => {
-    const codeList: unknown = [
+    const codeList: CodeList = [
       {
         value: 'cat',
         label: { nb: 'Katt', en: 'Cat' },

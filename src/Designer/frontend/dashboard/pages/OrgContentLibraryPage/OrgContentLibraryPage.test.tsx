@@ -349,7 +349,7 @@ describe('OrgContentLibraryPage', () => {
       ],
       baseCommitSha: sharedResourcesResponse.commitSha,
       commitMessage: textMock('org_content_library.code_lists.commit_message_default'),
-    });
+    } satisfies UpdateSharedResourcesRequest);
   });
 
   it('Publishes a code list when publish is triggered on the new code list page', async () => {
