@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -8,27 +11,26 @@ using Microsoft.AspNetCore.Routing;
 namespace Altinn.Studio.Designer.Infrastructure.Authorization
 {
     /// <summary>
-    /// Authorization Handler for OrganizationAdminPermissionRequirement
+    /// Authorization Handler for AdminPermissionRequirement
     /// </summary>
-    public class OrganizationPermissionHandler
-        : AuthorizationHandler<OrganizationPermissionRequirement>
+    public class AdminPermissionHandler : AuthorizationHandler<AdminPermissionRequirement>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IUserOrganizationService _userOrganizationService;
+        private readonly IGiteaClient _giteaClient;
 
-        public OrganizationPermissionHandler(
+        public AdminPermissionHandler(
             IHttpContextAccessor httpContextAccessor,
-            IUserOrganizationService userOrganizationService
+            IGiteaClient giteaClient
         )
         {
             _httpContextAccessor = httpContextAccessor;
-            _userOrganizationService = userOrganizationService;
+            _giteaClient = giteaClient;
         }
 
         /// <inheritdoc/>
         protected override async Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
-            OrganizationPermissionRequirement requirement
+            AdminPermissionRequirement requirement
         )
         {
             var httpContext = _httpContextAccessor.HttpContext;
@@ -38,14 +40,22 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             }
 
             string? org = httpContext.GetRouteValue("org")?.ToString();
-            if (string.IsNullOrWhiteSpace(org))
+            string? env = httpContext.GetRouteValue("env")?.ToString();
+            if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(env))
             {
                 httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return;
             }
 
-            var userIsMember = await _userOrganizationService.UserIsMemberOfOrganization(org);
-            if (userIsMember)
+            string matchTeam = $"Admin-{env}";
+            List<Team> teams = await _giteaClient.GetTeams();
+
+            bool isInTeam = teams.Any(t =>
+                t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase)
+                && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase)
+            );
+
+            if (isInTeam)
             {
                 context.Succeed(requirement);
             }
