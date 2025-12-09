@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -13,6 +15,7 @@ using Designer.Tests.Controllers.DeploymentsController.Utils;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
@@ -31,6 +34,9 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
         JsonConfigOverrides.Add(
             $$"""
                     {
+                       "FeatureManagement": {
+                           "{{StudioFeatureFlags.GitOpsDeploy}}": false
+                       },
                       "GeneralSettings": {
                             "EnvironmentsUrl": "{{mockServerFixture.MockApi.Url}}/cdn-mock/environments.json",
                             "HostName": "{{mockServerFixture.MockApi.Url}}"
@@ -296,6 +302,41 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
         Assert.Contains(logEntries, entry =>
             entry.RequestMessage.Path.Contains("/build/builds") &&
             entry.RequestMessage.Method == "POST");
+    }
+
+    [Theory]
+    [InlineData("ttd", "deploy-test-at22", "at22", "3.0.0", "40001")]
+    public async Task Create_WhenGitOpsFeatureFlagDisabled_ShouldNotCreateDeployEvent(string org, string app, string envName, string tagName, string buildId)
+    {
+        // Arrange - feature flag is disabled by default (not set in JsonConfigOverrides)
+        await PrepareReleaseInDb(org, app, tagName);
+        _mockServerFixture.PrepareDeploymentMockResponses(org, app, buildId);
+
+        var createDeployment = new CreateDeploymentRequestViewModel
+        {
+            EnvName = envName,
+            TagName = tagName
+        };
+
+        string uri = VersionPrefix(org, app);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri)
+        {
+            Content = JsonContent.Create(createDeployment)
+        };
+
+        // Act
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        // Verify no events were created in the database
+        var events = await DesignerDbFixture.DbContext.DeployEvents
+            .AsNoTracking()
+            .Where(e => e.Deployment.Org == org && e.Deployment.Buildid == buildId)
+            .ToListAsync();
+
+        Assert.Empty(events);
     }
 
     private async Task PrepareReleaseInDb(string org, string app, string tagName)
