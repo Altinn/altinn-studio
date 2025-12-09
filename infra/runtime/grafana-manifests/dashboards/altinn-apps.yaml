@@ -1125,7 +1125,7 @@ spec:
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${datasource}"
+            "uid": "$${datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1209,7 +1209,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${datasource}"
+                "uid": "$${datasource}"
               },
               "editorMode": "code",
               "expr": "sum(\n            container_memory_working_set_bytes{namespace=\"default\", container!=\"\", image!=\"\"}\n            * on(namespace,pod)\n            group_left(workload, workload_type)\n            namespace_workload_pod:kube_pod_owner:relabel{\n                namespace=\"default\",\n                workload_type=\"deployment\",\n                workload=~\"^$org-$app-deployment-v2$\"\n            }\n        ) by (workload)\n        /\n        sum(\n            kube_pod_container_resource_requests{namespace=\"default\", container!=\"\", resource=\"memory\"}\n            * on(namespace,pod)\n            group_left(workload, workload_type)\n            namespace_workload_pod:kube_pod_owner:relabel{\n                namespace=\"default\",\n                workload_type=\"deployment\",\n                workload=~\"^$org-$app-deployment-v2$\"\n            }\n        ) by (workload)\n        * 100",
@@ -1325,7 +1325,7 @@ spec:
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${datasource}"
+            "uid": "$${datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1409,7 +1409,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${datasource}"
+                "uid": "$${datasource}"
               },
               "editorMode": "code",
               "expr": "sum(\n                sum by (namespace, pod, container) (\n                    rate(container_cpu_usage_seconds_total{namespace=\"default\", container!=\"\"}[5m])\n                )\n                * on(namespace,pod)\n                group_left(workload, workload_type)\n                namespace_workload_pod:kube_pod_owner:relabel{\n                    namespace=\"default\",\n                    workload_type=\"deployment\",\n                    workload=~\"^$org-$app-deployment-v2$\"\n                }\n            ) by (workload)\n            /\n            sum(\n                kube_pod_container_resource_requests{namespace=\"default\", container!=\"\", resource=\"cpu\"}\n                * on(namespace,pod)\n                group_left(workload, workload_type)\n                namespace_workload_pod:kube_pod_owner:relabel{\n                    namespace=\"default\",\n                    workload_type=\"deployment\",\n                    workload=~\"^$org-$app-deployment-v2$\"\n                }\n            ) by (workload)\n            * 100",
@@ -1425,7 +1425,7 @@ spec:
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${datasource}"
+            "uid": "$${datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1510,7 +1510,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${datasource}"
+                "uid": "$${datasource}"
               },
               "editorMode": "code",
               "expr": "clamp_max(\n  100 *\n  sum by (namespace, deployment) (\n    kube_deployment_status_replicas_available{namespace=\"default\", deployment=~\"^$org-$app-deployment-v2$\"}\n  )\n  /\n  clamp_min(\n    sum by (namespace, deployment) (\n      kube_deployment_spec_replicas{namespace=\"default\", deployment=~\"^$org-$app-deployment-v2$\"}\n    ), 1\n  ),\n  100\n)",
@@ -1607,7 +1607,7 @@ spec:
             },
             "datasource": {
               "type": "prometheus",
-              "uid": "${datasource}"
+              "uid": "$${datasource}"
             },
             "definition": "label_values(kube_deployment_status_replicas_available,deployment)",
             "includeAll": true,
