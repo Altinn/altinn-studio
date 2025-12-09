@@ -54,9 +54,18 @@ async def handle(state: AgentState) -> AgentState:
             AgentEvent(
                 type="error",
                 session_id=state.session_id,
-                data={"message": f"Intake failed: {exc}"},
+                data={
+                    "message": f"Intake failed: {exc}",
+                    "step": "intake",
+                    "node": "intake",
+                    "error_type": error_type,
+                    "detail": str(exc),
+                    "hint": hint,
+                },
             )
         )
+        state.tests_passed = False
+        state.verify_notes = (state.verify_notes or []) + [hint]
         state.next_action = "stop"
 
     return state
