@@ -1,5 +1,5 @@
 .cardWrapper {
-  margin: 0;
+  margin-inline: var(--ds-size-5);
 }
 
 .cardDescription {
