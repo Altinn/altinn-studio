@@ -12,7 +12,6 @@ import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
-import { useRuleConnections } from 'src/features/form/dynamics/DynamicsContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import { createFormDataWriteStore } from 'src/features/formData/FormDataWriteStateMachine';
@@ -33,7 +32,6 @@ import { useWaitForState } from 'src/hooks/useWaitForState';
 import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
 import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
-import type { IRuleConnections } from 'src/features/form/dynamics';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import type {
   DataModelState,
@@ -56,7 +54,6 @@ interface FormDataContextInitialProps {
   initialDataModels: { [dataType: string]: DataModelState };
   autoSaving: boolean;
   proxies: FormDataWriteProxies;
-  ruleConnections: IRuleConnections | null;
   schemaLookup: { [dataType: string]: SchemaLookupTool };
   changeInstance: ChangeInstanceData;
 }
@@ -81,11 +78,10 @@ const {
     initialDataModels,
     autoSaving,
     proxies,
-    ruleConnections,
     schemaLookup,
     changeInstance,
   }: FormDataContextInitialProps) =>
-    createFormDataWriteStore(initialDataModels, autoSaving, proxies, ruleConnections, schemaLookup, changeInstance),
+    createFormDataWriteStore(initialDataModels, autoSaving, proxies, schemaLookup, changeInstance),
 });
 
 const saveFormDataMutationKey = ['saveFormData'] as const;
@@ -329,7 +325,6 @@ function useIsSavingFormData() {
 
 export function FormDataWriteProvider({ children }: PropsWithChildren) {
   const proxies = useFormDataWriteProxies();
-  const ruleConnections = useRuleConnections();
   const allDataTypes = DataModels.useReadableDataTypes();
   const writableDataTypes = DataModels.useWritableDataTypes();
   const defaultDataType = DataModels.useDefaultDataType();
@@ -364,7 +359,6 @@ export function FormDataWriteProvider({ children }: PropsWithChildren) {
       initialDataModels={initialDataModels}
       autoSaving={!autoSaveBehavior || autoSaveBehavior === 'onChangeFormData'}
       proxies={proxies}
-      ruleConnections={ruleConnections}
       schemaLookup={schemaLookup}
       changeInstance={changeInstance}
     >

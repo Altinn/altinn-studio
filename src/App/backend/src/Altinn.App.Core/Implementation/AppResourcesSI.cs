@@ -438,43 +438,6 @@ public class AppResourcesSI : IAppResources
         return null;
     }
 
-    /// <inheritdoc />
-    public byte[] GetRuleConfigurationForSet(string id)
-    {
-        using var activity = _telemetry?.StartGetRuleConfigurationForSetActivity();
-        string legalPath = Path.Join(_settings.AppBasePath, _settings.UiFolder);
-        string filename = Path.Join(legalPath, id, _settings.RuleConfigurationJSONFileName);
-
-        PathHelper.EnsureLegalPath(legalPath, filename);
-
-        return ReadFileByte(filename);
-    }
-
-    /// <inheritdoc />
-    public byte[] GetRuleHandlerForSet(string id)
-    {
-        using var activity = _telemetry?.StartGetRuleHandlerForSetActivity();
-        string legalPath = Path.Join(_settings.AppBasePath, _settings.UiFolder);
-        string filename = Path.Join(legalPath, id, _settings.RuleHandlerFileName);
-
-        PathHelper.EnsureLegalPath(legalPath, filename);
-
-        return ReadFileByte(filename);
-    }
-
-    private static byte[] ReadFileByte(string fileName)
-    {
-        byte[]? filedata = null;
-        if (File.Exists(fileName))
-        {
-            filedata = File.ReadAllBytes(fileName);
-        }
-
-#nullable disable
-        return filedata;
-#nullable restore
-    }
-
     private static byte[] ReadFileContentsFromLegalPath(string legalPath, string filePath)
     {
         var fullFileName = Path.Join(legalPath, filePath);

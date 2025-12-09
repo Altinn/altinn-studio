@@ -12,7 +12,7 @@ import (
 type Cli struct{}
 
 func (d *Cli) Build(context, dockerfile, tag string) error {
-	cmd := exec.Command(d.Name(), "build", "-t", tag, "-f", dockerfile, context)
+	cmd := exec.Command(d.Name(), "build", "--provenance=false", "--sbom=false", "-t", tag, "-f", dockerfile, context)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("docker build failed: %w\nOutput: %s", err, string(output))

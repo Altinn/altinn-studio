@@ -8,12 +8,17 @@ on:
       - 'src/App/codelists/**'
       - 'src/App/fileanalyzers/**'
       - 'src/Runtime/localtest/**'
+      - 'src/Runtime/pdf3/**'
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/yarn.lock'
       - 'src/test/apps/**'
       - '.github/workflows/app-frontend-cypress.yml'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   install:
@@ -58,7 +63,7 @@ jobs:
         run: docker compose --profile test-apps build
 
       - name: Save docker images
-        run: docker save localtest-loadbalancer:latest localtest:latest localtest-altinn_test_apps -o /tmp/localtest-images.tar
+        run: docker save localtest localtest-loadbalancer localtest-altinn_test_apps localtest-pdf3 -o /tmp/localtest-images.tar
 
       - name: Upload docker images
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

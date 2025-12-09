@@ -57,7 +57,7 @@ const CenterContent = (): ReactElement => {
         variant='regular'
         renderLink={(props) => (
           <NavLink to={`/${org}/apps`} {...props}>
-            <span className={classes.active}>{t('Publiserte apper')}</span>
+            <span className={classes.active}>{t('admin.apps.title')}</span>
           </NavLink>
         )}
       />

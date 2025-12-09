@@ -1,0 +1,7 @@
+.wrapper :global(button[data-color='neutral']) {
+  color: var(--ds-color-text-default);
+}
+
+.wrapper :global(button[data-color='neutral']:hover) {
+  background-color: var(--ds-color-accent-surface-hover);
+}

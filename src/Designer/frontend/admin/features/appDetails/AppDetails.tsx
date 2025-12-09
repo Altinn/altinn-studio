@@ -2,8 +2,10 @@ import { Link, useParams } from 'react-router-dom';
 import { StudioBreadcrumbs } from '@studio/components';
 import { AppMetrics } from './components/AppMetrics';
 import classes from './AppDetails.module.css';
+import { useTranslation } from 'react-i18next';
 
 export const AppsDetails = () => {
+  const { t } = useTranslation();
   const { org, env, app } = useParams() as { org: string; env: string; app: string };
 
   return (
@@ -13,7 +15,7 @@ export const AppsDetails = () => {
         <StudioBreadcrumbs.List>
           <StudioBreadcrumbs.Item>
             <StudioBreadcrumbs.Link asChild>
-              <Link to={`/${org}/apps`}>Publiserte apper</Link>
+              <Link to={`/${org}/apps`}>{t('admin.apps.title')}</Link>
             </StudioBreadcrumbs.Link>
           </StudioBreadcrumbs.Item>
           <StudioBreadcrumbs.Item>

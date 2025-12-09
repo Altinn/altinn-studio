@@ -7,14 +7,16 @@ import { ArchiveReferenceSearch } from './components/ArchiveReferenceSearch';
 import { StatusFilter } from './components/StatusFilter';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import { ProcessTaskFilter } from './components/ProcessTaskFilter';
+import { useTranslation } from 'react-i18next';
 
 const YES_NO_ALL_OPTIONS = [
-  { label: 'Alle', value: undefined },
-  { label: 'Ja', value: true },
-  { label: 'Nei', value: false },
+  { label: 'admin.instances.filter.all', value: undefined },
+  { label: 'admin.instances.filter.yes', value: true },
+  { label: 'admin.instances.filter.no', value: false },
 ];
 
 export const Instances = () => {
+  const { t } = useTranslation();
   const { org, env, app } = useParams() as { org: string; env: string; app: string };
   const [archiveReference, setArchiveReference] = useQueryParamState<string>(
     'archiveReference',
@@ -32,7 +34,7 @@ export const Instances = () => {
         <StudioBreadcrumbs.List>
           <StudioBreadcrumbs.Item>
             <StudioBreadcrumbs.Link asChild>
-              <Link to={`/${org}/apps`}>Publiserte apper</Link>
+              <Link to={`/${org}/apps`}>{t('admin.apps.title')}</Link>
             </StudioBreadcrumbs.Link>
           </StudioBreadcrumbs.Item>
           <StudioBreadcrumbs.Item>
@@ -42,13 +44,13 @@ export const Instances = () => {
           </StudioBreadcrumbs.Item>
           <StudioBreadcrumbs.Item>
             <StudioBreadcrumbs.Link asChild>
-              <Link to=''>Instanser</Link>
+              <Link to=''>{t('admin.instances.title')}</Link>
             </StudioBreadcrumbs.Link>
           </StudioBreadcrumbs.Item>
         </StudioBreadcrumbs.List>
       </StudioBreadcrumbs>
       <h1>
-        {env} / {app} / Instanser
+        {env} / {app} / {t('admin.instances.title')}
       </h1>
       <div className={classes.filterWrapper}>
         <ArchiveReferenceSearch value={archiveReference} setValue={setArchiveReference} />
@@ -60,19 +62,19 @@ export const Instances = () => {
           setValue={setCurrentTask}
         />
         <StatusFilter
-          label='Levert av bruker'
+          label='admin.instances.status.completed'
           value={isArchived}
           setValue={setIsArchived}
           options={YES_NO_ALL_OPTIONS}
         />
         <StatusFilter
-          label='Bekreftet mottatt'
+          label='admin.instances.status.confirmed'
           value={isConfirmed}
           setValue={setIsConfirmed}
           options={YES_NO_ALL_OPTIONS}
         />
         <StatusFilter
-          label='Slettet'
+          label='admin.instances.status.deleted'
           value={isSoftDeleted}
           setValue={setIsSoftDeleted}
           options={YES_NO_ALL_OPTIONS}
