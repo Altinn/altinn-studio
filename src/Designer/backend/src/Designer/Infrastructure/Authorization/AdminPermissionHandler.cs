@@ -48,7 +48,12 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             }
 
             string matchTeam = $"Admin-{env}";
-            List<Team> teams = await _giteaClient.GetTeams();
+            List<Team>? teams = await _giteaClient.GetTeams();
+            if (teams == null)
+            {
+                context.Fail();
+                return;
+            }
 
             bool isInTeam = teams.Any(t =>
                 t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase)
