@@ -35,10 +35,12 @@ export const PresentationComponent = ({
   showNavbar = true,
   showNavigation: _showNavigation = true,
 }: IPresentationProvidedProps) => {
-  const instanceStatus = useInstanceDataQuery({
-    select: (instance) => instance.status,
-  }).data;
+  const instance = useInstanceDataQuery().data;
+
+  const instanceStatus = instance?.status;
+
   const { expandedWidth } = useUiConfigContext();
+
   const hasGroupedNavigation = useHasGroupedNavigation();
   const isReceipt = useIsReceiptPage();
   const realHeader = isReceipt ? <Lang id='receipt.receipt' /> : header;

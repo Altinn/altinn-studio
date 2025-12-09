@@ -243,10 +243,19 @@ namespace Altinn.App.Api.Controllers
     }
     public class HomeController : Microsoft.AspNetCore.Mvc.Controller
     {
-        public HomeController(Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> appSettings, Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.App.IAppMetadata appMetadata) { }
+        public HomeController(Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> appSettings, Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Features.Bootstrap.IInitialDataService initialDataService, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> generalSettings) { }
+        [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/debug-initial-data")]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> DebugInitialData([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] string? instanceId = null, [Microsoft.AspNetCore.Mvc.FromQuery] int? partyId = default, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/")]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Index([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] bool dontChooseReportee) { }
+        [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instance/{partyId}/{instanceGuid}")]
+        [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}")]
+        [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}/{pageId}")]
+        [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/{partyId}/{instanceGuid}")]
+        [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/{partyId}/{instanceGuid}/{taskId}")]
+        [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/{partyId}/{instanceGuid}/{taskId}/{pageId}")]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Index([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int? partyId = default, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid? instanceGuid = default, [Microsoft.AspNetCore.Mvc.FromRoute] string? taskId = null, [Microsoft.AspNetCore.Mvc.FromRoute] string? pageId = null, [Microsoft.AspNetCore.Mvc.FromQuery] bool dontChooseReportee = false) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "text/html", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]

@@ -1,73 +1,9 @@
-import React, { useEffect } from 'react';
+import { useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { createContext } from 'src/core/contexts/context';
 import { useGetAppLanguageQuery } from 'src/features/language/textResources/useGetAppLanguagesQuery';
-import { useProfileQuery } from 'src/features/profile/ProfileProvider';
+import { useProfile } from 'src/features/profile/ProfileProvider';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
-
-interface LanguageCtx {
-  current: string;
-  languageResolved: boolean;
-  appLanguages: string[] | undefined;
-  setWithLanguageSelector: (language: string) => void;
-}
-
-const { Provider, useCtx } = createContext<LanguageCtx>({
-  name: 'Language',
-  required: false,
-  default: {
-    current: 'nb',
-    languageResolved: false,
-    appLanguages: undefined,
-    setWithLanguageSelector: () => {
-      throw new Error('LanguageProvider not initialized');
-    },
-  },
-});
-
-export const LanguageProvider = ({ children }: PropsWithChildren) => {
-  const { data: profile, isLoading: isProfileLoading } = useProfileQuery();
-
-  const userId = isProfileLoading ? undefined : profile?.userId;
-  const languageFromProfile = isProfileLoading ? undefined : profile?.profileSettingPreference.language;
-
-  const languageFromUrl = getLanguageFromUrl();
-  const [languageFromSelector, setWithLanguageSelector] = useLocalStorageState(['selectedLanguage', userId], null);
-
-  const { data: appLanguages, error, isFetching } = useGetAppLanguageQuery();
-  // TODO(Error handling): Should failing to fetch app languages cause PDF generation to fail?
-
-  useEffect(() => {
-    error && window.logError('Fetching app languages failed:\n', error);
-  }, [error]);
-
-  const current = useResolveCurrentLanguage(appLanguages, {
-    languageFromSelector,
-    languageFromUrl,
-    languageFromProfile,
-  });
-
-  const languageResolved = !isProfileLoading && !isFetching;
-
-  return (
-    <Provider
-      value={{
-        current,
-        appLanguages,
-        languageResolved,
-        setWithLanguageSelector,
-      }}
-    >
-      <div lang={current}>{children}</div>
-    </Provider>
-  );
-};
-
-export const useCurrentLanguage = () => useCtx().current;
-export const useIsCurrentLanguageResolved = () => useCtx().languageResolved;
-export const useAppLanguages = () => useCtx().appLanguages;
-export const useSetLanguageWithSelector = () => useCtx().setWithLanguageSelector;
 
 /**
  * AppRoutingContext is not provided yet, so we have to get this manually.
@@ -75,14 +11,14 @@ export const useSetLanguageWithSelector = () => useCtx().setWithLanguageSelector
  * if this query param changes after initial load.
  */
 function getLanguageFromUrl() {
-  const params = new URLSearchParams(window.location.hash.split('?')[1]);
+  const params = new URLSearchParams(window.location.search);
   return params.get('lang');
 }
 
 /**
  * Determines the current language based on the user's preferences and what the app has available
  */
-function useResolveCurrentLanguage(
+function resolveCurrentLanguage(
   appLanguages: string[] | undefined,
   {
     languageFromSelector,
@@ -152,3 +88,41 @@ function useResolveCurrentLanguage(
 
   return 'nb';
 }
+
+export const useCurrentLanguage = () => {
+  const profile = useProfile();
+  const userId = profile?.userId;
+  const languageFromProfile = profile?.profileSettingPreference.language;
+  const languageFromUrl = getLanguageFromUrl();
+  const [languageFromSelector] = useLocalStorageState(['selectedLanguage', userId], null);
+
+  const { data: appLanguages } = useGetAppLanguageQuery();
+
+  return useMemo(
+    () =>
+      resolveCurrentLanguage(appLanguages, {
+        languageFromSelector,
+        languageFromUrl,
+        languageFromProfile,
+      }),
+    [appLanguages, languageFromSelector, languageFromUrl, languageFromProfile],
+  );
+};
+
+export const useIsCurrentLanguageResolved = () => true;
+
+export const useAppLanguages = () => {
+  const { data } = useGetAppLanguageQuery();
+  return data;
+};
+
+export const useSetLanguageWithSelector = () => {
+  const profile = useProfile();
+  const userId = profile?.userId;
+  const [, setLanguage] = useLocalStorageState(['selectedLanguage', userId], null);
+  return setLanguage;
+};
+
+// Legacy exports for backward compatibility
+export const LanguageProvider = ({ children }: PropsWithChildren) => children;
+export const SetShouldFetchAppLanguages = () => null;

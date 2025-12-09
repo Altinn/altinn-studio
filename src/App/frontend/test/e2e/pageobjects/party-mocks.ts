@@ -86,6 +86,36 @@ const InvalidParty: IParty = {
   childParties: [],
 };
 
+export const InvalidOrgPartyLocal: IParty = {
+  partyId: 500700,
+  partyUuid: '117e86a4-117f-41b0-8f2d-c383e2a69f9e',
+  partyTypeName: 2,
+  orgNumber: '950474084',
+  ssn: '',
+  unitType: 'BRL',
+  name: 'Oslos Vakreste Borettslag',
+  isDeleted: false,
+  onlyHierarchyElementWithNoAccess: false,
+  person: null,
+  organization: null,
+  childParties: null,
+};
+
+export const InvalidOrgPartyTT02: IParty = {
+  partyId: 500700,
+  partyUuid: '117e86a4-117f-41b0-8f2d-c383e2a69f9e',
+  partyTypeName: 2,
+  orgNumber: '310732001',
+  ssn: '',
+  unitType: 'BRL',
+  name: 'Søvnig Impulsiv Tiger AS',
+  isDeleted: false,
+  onlyHierarchyElementWithNoAccess: false,
+  person: null,
+  organization: null,
+  childParties: null,
+};
+
 export const CyPartyMocks = {
   ExampleOrgWithSubUnit,
   ExampleDeletedOrg,
@@ -127,6 +157,7 @@ export function cyMockResponses(whatToMock: Mockable) {
             ? whatToMock.allowedToInstantiate(res.body)
             : // eslint-disable-next-line @typescript-eslint/no-explicit-any
               (whatToMock.allowedToInstantiate as any);
+
         res.send(body);
       });
     });

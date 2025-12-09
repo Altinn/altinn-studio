@@ -114,7 +114,6 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
     }),
     [grid, baseComponentId, overrideItemProps, overrideDisplay],
   );
-
   if (hiddenState.hidden) {
     return null;
   }
@@ -156,7 +155,6 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
       </FormComponentContextProvider>
     );
   }
-
   return (
     <FormComponentContextProvider value={formComponentContext}>
       <Flex
@@ -221,12 +219,13 @@ function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObjec
   const errorBinding = searchParams.get(SearchParams.FocusErrorBinding);
 
   const abortController = useRef(new AbortController());
-  const hashWas = window.location.hash;
+  const pathnameWas = window.location.pathname;
   const isNavigating = useIsNavigating();
   const shouldFocus = indexedId && indexedId == nodeId && !isNavigating;
 
   useEffect(() => {
     const div = containerDivRef.current;
+
     if (shouldFocus && div) {
       try {
         requestAnimationFrame(() => {
@@ -238,16 +237,23 @@ function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObjec
           field.focus();
         }
       } finally {
-        if (!abortController.current.signal.aborted && hashWas === window.location.hash) {
-          // Only cleanup when hash is the same as what it was during render. Navigation might have occurred, especially
-          // in Cypress tests where state changes will happen rapidly. These search params are cleaned up in
-          // useNavigatePage() automatically, so it shouldn't be a problem if the page has been changed. If something
-          // else happens, we'll re-render and get a new chance to clean up later.
+        const pathnameMatch = pathnameWas === window.location.pathname;
+        if (!abortController.current.signal.aborted && pathnameMatch) {
           cleanupQuery(searchParams, setSearchParams);
         }
       }
     }
-  }, [containerDivRef, errorBinding, hashWas, nodeId, searchParams, setSearchParams, shouldFocus]);
+  }, [
+    containerDivRef,
+    errorBinding,
+    pathnameWas,
+    nodeId,
+    searchParams,
+    setSearchParams,
+    shouldFocus,
+    indexedId,
+    isNavigating,
+  ]);
 
   useEffect(
     () => () => {

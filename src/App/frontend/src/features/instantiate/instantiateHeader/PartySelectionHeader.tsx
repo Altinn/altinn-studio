@@ -14,7 +14,7 @@ export interface InstantiateHeaderProps {
   profile: IProfile | null;
 }
 
-export const InstantiateHeader = ({ profile }: InstantiateHeaderProps) => {
+export const PartySelectionHeader = ({ profile }: InstantiateHeaderProps) => {
   const party = profile?.party;
 
   return (

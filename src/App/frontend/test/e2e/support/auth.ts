@@ -143,7 +143,6 @@ type LocalLoginParams =
 
 function localLogin({ authenticationLevel, appName, ...rest }: LocalLoginParams) {
   cy.visit(`${Cypress.config('baseUrl')}`);
-
   if ('partyId' in rest) {
     const partyId = rest.partyId;
     cy.log(`Logging in as local user: ${partyId} with authentication level: ${authenticationLevel}`);
@@ -172,7 +171,7 @@ function localLogin({ authenticationLevel, appName, ...rest }: LocalLoginParams)
       cy.get('select#AuthenticationLevel').should('have.value', $option.val() as string);
     });
 
-  cy.intercept({ method: 'POST', url: '/Home/LogInTestUser', times: 1 }, (req) => {
+  cy.intercept({ method: 'POST', url: '/Home/LogInTestUser', times: 5 }, (req) => {
     req.on('response', (res) => {
       expect(res.statusCode).to.eq(302);
       res.send(200, '');
