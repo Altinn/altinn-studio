@@ -116,16 +116,20 @@ export const FormComponentConfig = ({
       )}
 
       {/** Object properties  */}
-      {objectKeys.length > 0 && (
-        <ConfigObjectProperties
-          editFormId={editFormId}
-          objectPropertyKeys={objectKeys}
-          schema={schema}
-          component={component}
-          handleComponentUpdate={handleComponentUpdate}
-          className={classes.elementWrapper}
-        />
-      )}
+      {objectKeys.length > 0 &&
+        objectKeys.map((objectPropertyKey) => {
+          return (
+            <ConfigObjectProperties
+              key={objectPropertyKey}
+              editFormId={editFormId}
+              objectPropertyKey={objectPropertyKey}
+              schema={schema}
+              component={component}
+              handleComponentUpdate={handleComponentUpdate}
+              className={classes.elementWrapper}
+            />
+          );
+        })}
     </>
   );
 };
