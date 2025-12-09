@@ -117,6 +117,10 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
     cyUserLogin({ cyUser, authenticationLevel, appName });
   }
 
+  // Setting frontendVersion cookie to make sure we use the target frontend version for the PDF generation as well
+  const domain = new URL(Cypress.config().baseUrl!).hostname;
+  cy.setCookie('frontendVersion', `http://${targetHost}/`, { domain, sameSite: 'lax' });
+
   cy.visit(targetUrlRaw, visitOptions);
 
   // Make sure the app has started loading before continuing
