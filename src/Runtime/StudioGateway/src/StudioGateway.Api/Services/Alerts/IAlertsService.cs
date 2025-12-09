@@ -10,7 +10,7 @@ namespace StudioGateway.Api.Services.Alerts;
 )]
 public interface IAlertsService
 {
-    public Task<IEnumerable<Alert>> GetFiringAlertsAsync(CancellationToken cancellationToken);
+    public Task<IEnumerable<AlertRule>> GetAlertRulesAsync(CancellationToken cancellationToken);
 
     public Task NotifyAlertsUpdatedAsync(CancellationToken cancellationToken);
 }

@@ -17,10 +17,10 @@ public class AlertsController(IAlertsService alertsService) : ControllerBase
     private readonly IAlertsService _alertsService = alertsService;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Alert>>> GetFiringAlerts(CancellationToken cancellationToken)
+    public async Task<ActionResult<IEnumerable<AlertRule>>> GetAlertRules(CancellationToken cancellationToken)
     {
-        IEnumerable<Alert> alerts = await _alertsService.GetFiringAlertsAsync(cancellationToken);
-        return Ok(alerts);
+        IEnumerable<AlertRule> alertRules = await _alertsService.GetAlertRulesAsync(cancellationToken);
+        return Ok(alertRules);
     }
 
     [HttpPost]

@@ -17,23 +17,30 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     private readonly IMetricsService _metricsService = metricsService;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Metric>>> GetMetrics(
+    public async Task<ActionResult<IEnumerable<Metric>>> GetMetrics(int time, CancellationToken cancellationToken)
+    {
+        IEnumerable<Metric> metrics = await _metricsService.GetMetricsAsync(time, cancellationToken);
+        return Ok(metrics);
+    }
+
+    [HttpGet("app")]
+    public async Task<ActionResult<IEnumerable<AppMetric>>> GetAppMetrics(
         string app,
         int time,
         CancellationToken cancellationToken
     )
     {
-        IEnumerable<Metric> metrics = await _metricsService.GetMetricsAsync(app, time, cancellationToken);
+        IEnumerable<AppMetric> metrics = await _metricsService.GetAppMetricsAsync(app, time, cancellationToken);
         return Ok(metrics);
     }
 
-    [HttpGet("health")]
-    public async Task<ActionResult<IEnumerable<Metric>>> GetHealthMetrics(
+    [HttpGet("app/health")]
+    public async Task<ActionResult<IEnumerable<AppHealthMetric>>> GetAppHealthMetrics(
         string app,
         CancellationToken cancellationToken
     )
     {
-        IEnumerable<HealthMetric> metrics = await _metricsService.GetHealthMetricsAsync(app, cancellationToken);
+        IEnumerable<AppHealthMetric> metrics = await _metricsService.GetAppHealthMetricsAsync(app, cancellationToken);
         return Ok(metrics);
     }
 }

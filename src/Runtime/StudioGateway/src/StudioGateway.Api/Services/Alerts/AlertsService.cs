@@ -21,13 +21,13 @@ internal sealed class AlertsService(
     private readonly AlertsClientSettings _alertsClientSettings = alertsClientSettings.Value;
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Alert>> GetFiringAlertsAsync(CancellationToken cancellationToken)
+    public async Task<IEnumerable<AlertRule>> GetAlertRulesAsync(CancellationToken cancellationToken)
     {
         IAlertsClient client = serviceProvider.GetRequiredKeyedService<IAlertsClient>(_alertsClientSettings.Provider);
 
-        IEnumerable<Alert> alerts = await client.GetFiringAlertsAsync(cancellationToken);
+        IEnumerable<AlertRule> alertRules = await client.GetAlertRulesAsync(cancellationToken);
 
-        return alerts;
+        return alertRules;
     }
 
     /// <inheritdoc />

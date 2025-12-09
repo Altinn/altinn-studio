@@ -64,10 +64,7 @@ builder.Services.AddKeyedTransient<IAlertsClient>(
     (serviceProvider, key) =>
     {
         var factory = serviceProvider.GetRequiredService<IHttpClientFactory>();
-        return new GrafanaClient(
-            factory.CreateClient("grafana"),
-            serviceProvider.GetRequiredService<IOptions<AlertsClientSettings>>()
-        );
+        return new GrafanaClient(factory.CreateClient("grafana"));
     }
 );
 builder.Services.AddHttpClient(

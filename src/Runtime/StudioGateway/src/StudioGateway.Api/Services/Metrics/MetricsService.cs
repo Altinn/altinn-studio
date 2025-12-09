@@ -21,21 +21,40 @@ internal sealed class MetricsService(
     private readonly MetricsClientSettings _metricsClientSettings = metricsClientSettings.Value;
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Metric>> GetMetricsAsync(string app, int time, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Metric>> GetMetricsAsync(int time, CancellationToken cancellationToken)
     {
         IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
             _metricsClientSettings.Provider
         );
 
-        IEnumerable<Metric> metrics = await metricsClient.GetMetricsAsync(app, time, cancellationToken);
+        IEnumerable<Metric> metrics = await metricsClient.GetMetricsAsync(time, cancellationToken);
 
         return metrics;
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<HealthMetric>> GetHealthMetricsAsync(string app, CancellationToken cancellationToken)
+    public async Task<IEnumerable<AppMetric>> GetAppMetricsAsync(
+        string app,
+        int time,
+        CancellationToken cancellationToken
+    )
     {
-        HealthMetric readyPodsMetric = await kubernetesClient.GetReadyPodsMetricAsync(app, cancellationToken);
+        IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
+            _metricsClientSettings.Provider
+        );
+
+        IEnumerable<AppMetric> metrics = await metricsClient.GetAppMetricsAsync(app, time, cancellationToken);
+
+        return metrics;
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<AppHealthMetric>> GetAppHealthMetricsAsync(
+        string app,
+        CancellationToken cancellationToken
+    )
+    {
+        AppHealthMetric readyPodsMetric = await kubernetesClient.GetReadyPodsMetricAsync(app, cancellationToken);
         return [readyPodsMetric];
     }
 }

@@ -7,8 +7,8 @@ namespace StudioGateway.Api.Models.Metrics;
     "CA1515:AvoidUninstantiatedPublicTypes",
     Justification = "Exposed externally"
 )]
-public class HealthMetric
+public class AppMetricDataPoint
 {
-    public required string Name { get; set; }
-    public required double Value { get; set; }
+    public DateTimeOffset DateTimeOffset { get; set; }
+    public double Count { get; set; }
 }

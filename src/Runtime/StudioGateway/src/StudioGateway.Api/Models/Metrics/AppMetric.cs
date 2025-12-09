@@ -7,8 +7,8 @@ namespace StudioGateway.Api.Models.Metrics;
     "CA1515:AvoidUninstantiatedPublicTypes",
     Justification = "Exposed externally"
 )]
-public class MetricDataPoint
+public class AppMetric
 {
-    public DateTimeOffset DateTimeOffset { get; set; }
-    public double Value { get; set; }
+    public required string Name { get; set; }
+    public required IEnumerable<AppMetricDataPoint> DataPoints { get; set; }
 }

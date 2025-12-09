@@ -17,7 +17,7 @@ internal sealed class KubernetesClient(Kubernetes client, IOptions<GeneralSettin
     private readonly GeneralSettings _generalSettings = generalSettings.Value;
 
     /// <inheritdoc/>
-    public async Task<HealthMetric> GetReadyPodsMetricAsync(string app, CancellationToken cancellationToken)
+    public async Task<AppHealthMetric> GetReadyPodsMetricAsync(string app, CancellationToken cancellationToken)
     {
         string org = _generalSettings.ServiceOwner;
 
@@ -44,6 +44,10 @@ internal sealed class KubernetesClient(Kubernetes client, IOptions<GeneralSettin
             )
         );
 
-        return new HealthMetric() { Name = "ready_pods", Value = Math.Round((double)readyPodsCount / items.Count * 100) };
+        return new AppHealthMetric()
+        {
+            Name = "ready_pods",
+            Count = Math.Round((double)readyPodsCount / items.Count * 100),
+        };
     }
 }

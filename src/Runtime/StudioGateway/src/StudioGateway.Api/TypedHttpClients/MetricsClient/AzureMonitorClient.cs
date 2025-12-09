@@ -20,8 +20,28 @@ internal sealed class AzureMonitorClient(
 {
     private readonly MetricsClientSettings _metricsClientSettings = metricsClientSettings.Value;
 
+    private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
+    {
+        {
+            "failed_process_next_requests",
+            [
+                "PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]",
+                "PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next",
+            ]
+        },
+        {
+            "failed_instances_requests",
+            [
+                "POST Instances/Post [app/org]",
+                "POST Instances/PostSimplified [app/org]",
+                "POST {org}/{app}/instances",
+                "POST {org}/{app}/instances/create",
+            ]
+        },
+    };
+
     /// <inheritdoc />
-    public async Task<IEnumerable<Metric>> GetMetricsAsync(string app, int time, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Metric>> GetMetricsAsync(int time, CancellationToken cancellationToken)
     {
         string logAnalyticsWorkspaceId = _metricsClientSettings.ApplicationLogAnalyticsWorkspaceId;
 
@@ -32,13 +52,67 @@ internal sealed class AzureMonitorClient(
             );
         }
 
-        IEnumerable<Metric> appMetrics = await GetAppMetricsAsync(
+        var query =
+            $@"
+                AppRequests
+                | where Success == false
+                | where ClientType != 'Browser'
+                | where toint(ResultCode) >= 500
+                | where OperationName in ('{_operationNames.Values.SelectMany(value => value).Aggregate((a, b) => a + "','" + b)}')
+                | summarize Count = sum(ItemCount) by AppRoleName, OperationName";
+
+        Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
+            logAnalyticsWorkspaceId,
+            query,
+            new QueryTimeRange(TimeSpan.FromMinutes(time)),
+            cancellationToken: cancellationToken
+        );
+
+        return response
+            .Value.Table.Rows.Select(row =>
+            {
+                return new
+                {
+                    AppName = row.GetString("AppRoleName"),
+                    Name = _operationNames.First(n => n.Value.Contains(row.GetString("OperationName"))).Key,
+                    Count = row.GetDouble("Count") ?? 0,
+                };
+            })
+            .GroupBy(row => new { row.AppName, row.Name })
+            .Select(row =>
+            {
+                return new Metric
+                {
+                    Name = row.Key.Name,
+                    AppName = row.Key.AppName,
+                    Count = row.Sum(value => value.Count),
+                };
+            });
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<AppMetric>> GetAppMetricsAsync(
+        string app,
+        int time,
+        CancellationToken cancellationToken
+    )
+    {
+        string logAnalyticsWorkspaceId = _metricsClientSettings.ApplicationLogAnalyticsWorkspaceId;
+
+        if (string.IsNullOrWhiteSpace(logAnalyticsWorkspaceId))
+        {
+            throw new InvalidOperationException(
+                "Configuration value 'ApplicationLogAnalyticsWorkspaceId' is missing or empty."
+            );
+        }
+
+        IEnumerable<AppMetric> appMetrics = await GetAppMetricsAsync(
             logAnalyticsWorkspaceId,
             app,
             time,
             cancellationToken
         );
-        IEnumerable<Metric> appFailedRequests = await GetAppFailedRequestsAsync(
+        IEnumerable<AppMetric> appFailedRequests = await GetAppFailedRequestsAsync(
             logAnalyticsWorkspaceId,
             app,
             time,
@@ -48,7 +122,7 @@ internal sealed class AzureMonitorClient(
         return appMetrics.Concat(appFailedRequests);
     }
 
-    private async Task<IEnumerable<Metric>> GetAppMetricsAsync(
+    private async Task<IEnumerable<AppMetric>> GetAppMetricsAsync(
         string logAnalyticsWorkspaceId,
         string app,
         int time,
@@ -64,8 +138,8 @@ internal sealed class AzureMonitorClient(
                 AppMetrics
                 | where AppRoleName == '{app.Replace("'", "''")}'
                 | where Name in ('{names.Aggregate((a, b) => a + "','" + b)}')
-                | summarize Value = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {roundTo})
-                | order by DateTimeOffset desc";
+                | summarize Count = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {roundTo})
+                | order by DateTimeOffset desc;";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
             logAnalyticsWorkspaceId,
@@ -81,29 +155,29 @@ internal sealed class AzureMonitorClient(
                 {
                     Name = row.GetString("Name"),
                     DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
-                    Value = row.GetDouble("Value") ?? 0,
+                    Count = row.GetDouble("Count") ?? 0,
                 };
             })
             .GroupBy(row => row.Name)
             .Select(row =>
             {
-                return new Metric
+                return new AppMetric
                 {
                     Name = row.Key,
-                    DataPoints = row.Select(e => new MetricDataPoint
+                    DataPoints = row.Select(e => new AppMetricDataPoint
                     {
                         DateTimeOffset = e.DateTimeOffset,
-                        Value = e.Value,
+                        Count = e.Count,
                     }),
                 };
             });
 
         return names.Select(name =>
-            metrics.FirstOrDefault(metric => metric.Name == name) ?? new Metric { Name = name, DataPoints = [] }
+            metrics.FirstOrDefault(metric => metric.Name == name) ?? new AppMetric { Name = name, DataPoints = [] }
         );
     }
 
-    private async Task<IEnumerable<Metric>> GetAppFailedRequestsAsync(
+    private async Task<IEnumerable<AppMetric>> GetAppFailedRequestsAsync(
         string logAnalyticsWorkspaceId,
         string app,
         int time,
@@ -112,12 +186,6 @@ internal sealed class AzureMonitorClient(
     {
         var roundTo = time < 360 ? "5m" : "1h";
 
-        IDictionary<string, string> names = new Dictionary<string, string>
-        {
-            { "PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]", "failed_process_next_requests" },
-            { "POST Instances/Post [app/org]", "failed_processes_started_requests" },
-        };
-
         var query =
             $@"
                 AppRequests
@@ -125,9 +193,9 @@ internal sealed class AzureMonitorClient(
                 | where ClientType != 'Browser'
                 | where toint(ResultCode) >= 500
                 | where AppRoleName == '{app.Replace("'", "''")}'
-                | where OperationName in ('{names.Keys.Aggregate((a, b) => a + "','" + b)}')
-                | summarize Value = sum(ItemCount) by OperationName, DateTimeOffset = bin(TimeGenerated, {roundTo})
-                | order by DateTimeOffset desc";
+                | where OperationName in ('{_operationNames.Values.SelectMany(value => value).Aggregate((a, b) => a + "','" + b)}')
+                | summarize Count = sum(ItemCount) by OperationName, DateTimeOffset = bin(TimeGenerated, {roundTo})
+                | order by DateTimeOffset desc;";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
             logAnalyticsWorkspaceId,
@@ -141,28 +209,28 @@ internal sealed class AzureMonitorClient(
             {
                 return new
                 {
-                    Name = names[row.GetString("OperationName")],
+                    Name = _operationNames.First(n => n.Value.Contains(row.GetString("OperationName"))).Key,
                     DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
-                    Value = row.GetDouble("Value") ?? 0,
+                    Count = row.GetDouble("Count") ?? 0,
                 };
             })
             .GroupBy(row => row.Name)
             .Select(row =>
             {
-                return new Metric
+                return new AppMetric
                 {
                     Name = row.Key,
-                    DataPoints = row.Select(e => new MetricDataPoint
+                    DataPoints = row.Select(e => new AppMetricDataPoint
                     {
                         DateTimeOffset = e.DateTimeOffset,
-                        Value = e.Value,
+                        Count = e.Count,
                     }),
                 };
             });
 
-        return names.Select(name =>
-            metrics.FirstOrDefault(metric => metric.Name == name.Value)
-            ?? new Metric { Name = name.Value, DataPoints = [] }
+        return _operationNames.Select(name =>
+            metrics.FirstOrDefault(metric => metric.Name == name.Key)
+            ?? new AppMetric { Name = name.Key, DataPoints = [] }
         );
     }
 }
