@@ -100,7 +100,7 @@ spec:
       annotations:
         __dashboardUid__: AltinnApps
         __panelId__: "14"
-        summary: '`{{ index $labels "cloud/rolename" }}` har hatt feilende process/next siste 5 minutter'
+        summary: '`{{ index $labels "cloud_RoleName" }}` har hatt feilende process/next siste 5 minutter'
       labels:
         RuleId: failed-process-next-requests
         Type: Altinn
@@ -197,7 +197,7 @@ spec:
       annotations:
         __dashboardUid__: AltinnApps
         __panelId__: "14"
-        summary: '`{{ index $labels "cloud/rolename" }}` har hatt feilende instansieringer siste 5 minutter'
+        summary: '`{{ index $labels "cloud_RoleName" }}` har hatt feilende instansieringer siste 5 minutter'
       labels:
         RuleId: failed-instances-post-requests
         Type: Altinn
