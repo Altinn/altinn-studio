@@ -181,9 +181,57 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
                     }
                   }
                 }
+              } else {
+                // Non-OK response when checking status: clear loading state with error
+                console.warn('Non-OK response when polling agent status:', response.status);
+                const thread = getThread(currentSession);
+                if (thread) {
+                  const updatedMessages = thread.messages.map((msg, index) => {
+                    if (
+                      index === thread.messages.length - 1 &&
+                      msg.author === MessageAuthor.Assistant
+                    ) {
+                      return {
+                        ...msg,
+                        content:
+                          '⚠️ **AI-agenten stoppet underveis**\n\n' +
+                          'Vi klarte ikke å hente status fra AI-agenten.\n\n' +
+                          'Prøv å sende meldingen på nytt. Hvis problemet vedvarer, sjekk at Altinity-agenten kjører og at du har nettverksforbindelse.',
+                        isLoading: false,
+                      };
+                    }
+                    return msg;
+                  });
+                  updateThread(currentSession, { messages: updatedMessages });
+                }
+                setWorkflowStatus((prev) => ({ ...prev, isActive: false }));
               }
             } catch (error) {
               console.warn('Error polling agent status:', error);
+              // Network or other error while polling status: clear loading state so UI is not stuck
+              if (currentSession && hasLoadingMessage) {
+                const thread = getThread(currentSession);
+                if (thread) {
+                  const updatedMessages = thread.messages.map((msg, index) => {
+                    if (
+                      index === thread.messages.length - 1 &&
+                      msg.author === MessageAuthor.Assistant
+                    ) {
+                      return {
+                        ...msg,
+                        content:
+                          '⚠️ **Mistet kontakt med AI-agenten**\n\n' +
+                          'Vi fikk en feil mens vi hentet status fra AI-agenten.\n\n' +
+                          'Prøv å sende meldingen på nytt. Hvis problemet vedvarer, sjekk loggene til Altinity-agenten.',
+                        isLoading: false,
+                      };
+                    }
+                    return msg;
+                  });
+                  updateThread(currentSession, { messages: updatedMessages });
+                }
+                setWorkflowStatus((prev) => ({ ...prev, isActive: false }));
+              }
             }
           }
         };
@@ -224,6 +272,36 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
         ws.onerror = (error) => {
           console.error('WebSocket error:', error);
           setConnectionStatus('error');
+
+          // If we had a loading assistant message, clear it so UI is not stuck on "Vent litt..."
+          const currentSession = currentSessionIdRef.current;
+          if (currentSession) {
+            const thread = getThread(currentSession);
+            if (thread && thread.messages.length > 0) {
+              const lastIndex = thread.messages.length - 1;
+              const lastMessage = thread.messages[lastIndex];
+              if (
+                lastMessage.author === MessageAuthor.Assistant &&
+                (lastMessage as any).isLoading
+              ) {
+                const updatedMessages = thread.messages.map((msg, index) => {
+                  if (index === lastIndex) {
+                    return {
+                      ...msg,
+                      content:
+                        '⚠️ **Tilkoblingen til AI-agenten feilet**\n\n' +
+                        'Meldingen ble ikke fullført.\n\n' +
+                        'Prøv gjerne igjen. Hvis det fortsatt skjer, sjekk at Altinity-agenten kjører lokalt og at WebSocket-tilkoblingen (port 8071) er tilgjengelig.',
+                      isLoading: false,
+                    };
+                  }
+                  return msg;
+                });
+                updateThread(currentSession, { messages: updatedMessages });
+                setWorkflowStatus((prev) => ({ ...prev, isActive: false }));
+              }
+            }
+          }
         };
       } catch (error) {
         console.error('Failed to connect to WebSocket:', error);
@@ -427,6 +505,63 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
               return msg;
             });
             updateThread(currentSessionId, { messages: updatedMessages });
+          }
+        }
+      } else if ((event as any).type === 'status') {
+        // Status event from agent, e.g. { done: true, success: false, status: 'failed', message: 'Task completed with issues' }
+        const statusData: any = (event as any).data || (event as any);
+
+        // Only treat as final when done === true
+        if (statusData?.done) {
+          const currentSession = currentSessionIdRef.current;
+
+          // Build a human-friendly summary based on success flag
+          const statusSummary = statusData.success
+            ? 'AI-agenten fullførte oppgaven.'
+            : 'AI-agenten klarte ikke å fullføre oppgaven.';
+
+          const rawMessage: string | undefined = statusData.message;
+
+          const formattedContent = statusData.success
+            ? `✅ **Oppgave fullført**\n\n${rawMessage ?? statusSummary}`
+            : `❌ **Oppgaven feilet**\n\n${rawMessage ?? statusSummary}\n\n` +
+              'Dette kan skyldes en midlertidig feil, ugyldig input eller et problem i agenten.\n\n' +
+              'Prøv gjerne igjen. Hvis feilen vedvarer, sjekk loggene til Altinity-agenten for mer informasjon.';
+
+          // Update workflow status to reflect completion (with or without issues)
+          setWorkflowStatus((prev) => ({
+            ...prev,
+            currentStep: 'Completed',
+            message:
+              rawMessage ||
+              (statusData.success
+                ? 'AI agent completed successfully'
+                : 'AI agent completed with issues'),
+            isActive: false,
+            lastCompletedAt: new Date(),
+          }));
+
+          // Replace the last loading assistant message ("Vent litt...") with the final status message
+          if (currentSession) {
+            const existingThread = getThread(currentSession);
+            if (existingThread && existingThread.messages.length > 0) {
+              const lastIndex = existingThread.messages.length - 1;
+              const lastMessage = existingThread.messages[lastIndex];
+
+              if (lastMessage && lastMessage.author === MessageAuthor.Assistant) {
+                const updatedMessages = existingThread.messages.map((msg, index) => {
+                  if (index === lastIndex) {
+                    return {
+                      ...msg,
+                      content: formattedContent,
+                      isLoading: false,
+                    };
+                  }
+                  return msg;
+                });
+                updateThread(currentSession, { messages: updatedMessages });
+              }
+            }
           }
         }
       } else if ((event as any).type === 'done') {
