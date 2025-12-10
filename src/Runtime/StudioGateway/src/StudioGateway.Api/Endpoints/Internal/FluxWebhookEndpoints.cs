@@ -24,7 +24,7 @@ internal static class FluxWebhookEndpoints
 
     private static async Task<IResult> HandleFluxWebhook(
         FluxEvent fluxEvent,
-        IHelmReleaseService helmReleaseService,
+        HelmReleaseService helmReleaseService,
         IHttpClientFactory httpClientFactory,
         IHostEnvironment hostEnvironment,
         ILogger<Program> logger,
@@ -106,7 +106,7 @@ internal static class FluxWebhookEndpoints
     }
 
     private static async Task<HelmReleaseInfo?> TryResolveHelmReleaseInfoAsync(
-        IHelmReleaseService helmReleaseService,
+        HelmReleaseService helmReleaseService,
         string helmReleaseName,
         string helmReleaseNamespace,
         ILogger logger,
