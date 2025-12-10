@@ -529,6 +529,7 @@
   "general.close": "Lukk",
   "general.close_item": "Lukk {{item}}",
   "general.component": "Komponent",
+  "general.confirm.delete": "Er du sikker på at du vil slette?",
   "general.contact": "Kontakt og hjelp",
   "general.create_new": "Lag ny",
   "general.data_model": "datamodell",
