@@ -75,9 +75,7 @@ export const DesignView = (): ReactNode => {
     [layoutSet],
   );
 
-  const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(org, app, layoutSet, {
-    onSuccess: autoSelectFirstPage,
-  } as Partial<UseQueryOptions<PagesModel>>);
+  const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(org, app, layoutSet);
   const { mutate: addPageMutation, isPending: isAddPageMutationPending } = useAddPageMutation(
     org,
     app,
@@ -136,7 +134,7 @@ type DesignViewLoadedContentProps = {
   layoutsWithDuplicateComponents: ReturnType<typeof findLayoutsContainingDuplicateComponents>;
   getPdfLayoutName: () => string;
   layoutSet: string;
-  selectedFormLayoutName: string;
+  selectedFormLayoutName: string | undefined;
   setSelectedFormLayoutName: (name: string | undefined) => void;
   setSelectedItem: (item: SelectedItem | null) => void;
   addPageMutation: ReturnType<typeof useAddPageMutation>['mutate'];
