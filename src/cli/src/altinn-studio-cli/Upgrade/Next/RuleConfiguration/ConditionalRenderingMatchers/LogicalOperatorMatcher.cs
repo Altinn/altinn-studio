@@ -3,7 +3,7 @@ using Acornima.Ast;
 namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingMatchers;
 
 /// <summary>
-/// Matches logical operator expressions (&&, ||, !)
+/// Matches logical operator expressions (&amp;&amp;, ||, !)
 /// </summary>
 public class LogicalOperatorMatcher : IExpressionMatcher
 {

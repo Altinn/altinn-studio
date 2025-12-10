@@ -231,7 +231,7 @@ internal class ConditionalRenderingConverter
         var results = new List<InjectionResult>();
 
         // Get the JavaScript function
-        var functionName = rule.SelectedFunction;
+        var functionName = rule.SelectedFunction ?? "";
         var jsFunction = jsParser.GetConditionalFunction(functionName);
 
         if (jsFunction == null)

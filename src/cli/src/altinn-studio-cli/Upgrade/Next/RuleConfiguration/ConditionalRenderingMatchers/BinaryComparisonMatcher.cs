@@ -3,7 +3,7 @@ using Acornima.Ast;
 namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingMatchers;
 
 /// <summary>
-/// Matches binary comparison expressions (===, !==, >, <, >=, <=)
+/// Matches binary comparison expressions (===, !==, &gt;, &lt;, &gt;=, &lt;=)
 /// </summary>
 public class BinaryComparisonMatcher : IExpressionMatcher
 {

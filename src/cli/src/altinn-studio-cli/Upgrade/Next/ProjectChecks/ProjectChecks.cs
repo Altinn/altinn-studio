@@ -21,7 +21,7 @@ internal sealed class ProjectChecks
 
     /// <summary>
     /// Verifies that the project is using supported versions of Altinn.App.Api and Altinn.App.Core
-    /// for the 'next' upgrade. Accepts versions >= 8.0.0 and < 9.0.0.
+    /// for the 'next' upgrade. Accepts versions &gt;= 8.0.0 and &lt; 9.0.0.
     /// </summary>
     /// <returns>True if both packages are present and in the supported version range, false otherwise</returns>
     public bool SupportedSourceVersion()
@@ -36,7 +36,7 @@ internal sealed class ProjectChecks
         }
 
         // If no elements found for either package, fail
-        if (!altinnAppCoreElements.Any() || !altinnAppApiElements.Any())
+        if (altinnAppCoreElements.Count == 0 || altinnAppApiElements.Count == 0)
         {
             return false;
         }
@@ -76,7 +76,7 @@ internal sealed class ProjectChecks
     }
 
     /// <summary>
-    /// Check that version is >= 8.0.0 and < 9.0.0
+    /// Check that version is &gt;= 8.0.0 and &lt; 9.0.0
     /// </summary>
     /// <param name="version">The version string to check</param>
     /// <returns>True if version is in the supported range, false otherwise</returns>

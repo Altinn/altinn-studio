@@ -784,7 +784,7 @@ internal class StatementConverter
         {
             // Simple template literal with no expressions - just a string
             return template.Quasis.Count > 0 && template.Quasis[0].Value.Cooked != null
-                ? $"\"{EscapeString(template.Quasis[0].Value.Cooked)}\""
+                ? $"\"{EscapeString(template.Quasis[0].Value.Cooked ?? "")}\""
                 : "\"\"";
         }
 
@@ -794,7 +794,7 @@ internal class StatementConverter
         {
             if (template.Quasis[i].Value.Cooked != null)
             {
-                result.Append(EscapeString(template.Quasis[i].Value.Cooked));
+                result.Append(EscapeString(template.Quasis[i].Value.Cooked ?? ""));
             }
 
             if (i < template.Expressions.Count)

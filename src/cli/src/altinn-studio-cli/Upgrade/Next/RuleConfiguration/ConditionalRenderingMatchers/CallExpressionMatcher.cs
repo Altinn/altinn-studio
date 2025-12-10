@@ -35,7 +35,7 @@ public class CallExpressionMatcher : IExpressionMatcher
 
             if (methodName != null)
             {
-                return HandleConditionalRuleHandlerCall(methodName, callExpr, context, debugInfo);
+                return HandleConditionalRuleHandlerCall(methodName, context, debugInfo);
             }
         }
 
@@ -67,7 +67,6 @@ public class CallExpressionMatcher : IExpressionMatcher
     /// </summary>
     private object? HandleConditionalRuleHandlerCall(
         string methodName,
-        CallExpression callExpr,
         ConversionContext context,
         List<string> debugInfo
     )
@@ -150,7 +149,7 @@ public class CallExpressionMatcher : IExpressionMatcher
     /// indexOf() by itself can't be converted - it's only valid when compared with -1
     /// That pattern is handled by BinaryComparisonMatcher
     /// </summary>
-    private object? HandleIndexOfStandalone(string methodName, List<string> debugInfo)
+    private object? HandleIndexOfStandalone(string _, List<string> debugInfo)
     {
         debugInfo.Add($"❌ indexOf() must be used in comparison with -1 (e.g., indexOf(x) !== -1)");
         debugInfo.Add($"   Standalone indexOf() calls cannot be converted to expression language");

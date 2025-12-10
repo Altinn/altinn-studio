@@ -53,7 +53,7 @@ internal class DirectFileRestorer
         var resultContent = string.Join(lineEnding, resultLines);
 
         // Preserve trailing newline if original had one
-        if (originalContent.EndsWith("\n") || originalContent.EndsWith("\r\n"))
+        if (originalContent.EndsWith('\n') || originalContent.EndsWith("\r\n", StringComparison.Ordinal))
         {
             resultContent += lineEnding;
         }

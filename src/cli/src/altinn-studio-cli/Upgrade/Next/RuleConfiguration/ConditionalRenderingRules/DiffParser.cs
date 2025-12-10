@@ -9,6 +9,8 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingR
 /// </summary>
 internal class DiffParser
 {
+    private static readonly char[] s_spaceSeparator = { ' ' };
+
     /// <summary>
     /// Parse unified diff output into DiffFile structure
     /// </summary>
@@ -22,17 +24,17 @@ internal class DiffParser
         {
             // Skip file headers
             if (
-                line.StartsWith("diff --git")
-                || line.StartsWith("index ")
-                || line.StartsWith("---")
-                || line.StartsWith("+++")
+                line.StartsWith("diff --git", StringComparison.Ordinal)
+                || line.StartsWith("index ", StringComparison.Ordinal)
+                || line.StartsWith("---", StringComparison.Ordinal)
+                || line.StartsWith("+++", StringComparison.Ordinal)
             )
             {
                 continue;
             }
 
             // Hunk header
-            if (line.StartsWith("@@"))
+            if (line.StartsWith("@@", StringComparison.Ordinal))
             {
                 // Save previous hunk
                 if (currentHunk != null)
@@ -62,22 +64,21 @@ internal class DiffParser
                 // Empty line (context)
                 currentHunk.Lines.Add(new DiffLine { Type = DiffLineType.Context, Content = "" });
             }
-            else if (line.StartsWith("+"))
+            else if (line.StartsWith('+'))
             {
                 currentHunk.Lines.Add(new DiffLine { Type = DiffLineType.Added, Content = line.Substring(1) });
             }
-            else if (line.StartsWith("-"))
+            else if (line.StartsWith('-'))
             {
                 currentHunk.Lines.Add(new DiffLine { Type = DiffLineType.Removed, Content = line.Substring(1) });
             }
-            else if (line.StartsWith(" "))
+            else if (line.StartsWith(' '))
             {
                 currentHunk.Lines.Add(new DiffLine { Type = DiffLineType.Context, Content = line.Substring(1) });
             }
-            else if (line.StartsWith("\\"))
+            else if (line.StartsWith('\\'))
             {
                 // "\ No newline at end of file" - skip
-                continue;
             }
         }
 
@@ -96,7 +97,7 @@ internal class DiffParser
     private HunkHeader ParseHunkHeader(string headerLine)
     {
         // Format: @@ -oldStart,oldCount +newStart,newCount @@
-        var parts = headerLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        var parts = headerLine.Split(s_spaceSeparator, StringSplitOptions.RemoveEmptyEntries);
 
         var oldPart = parts[1].Substring(1); // Remove '-'
         var newPart = parts[2].Substring(1); // Remove '+'
@@ -106,10 +107,12 @@ internal class DiffParser
 
         return new HunkHeader
         {
-            OldStart = int.Parse(oldParts[0]),
-            OldCount = oldParts.Length > 1 ? int.Parse(oldParts[1]) : 1,
-            NewStart = int.Parse(newParts[0]),
-            NewCount = newParts.Length > 1 ? int.Parse(newParts[1]) : 1,
+            OldStart = int.Parse(oldParts[0], System.Globalization.CultureInfo.InvariantCulture),
+            OldCount =
+                oldParts.Length > 1 ? int.Parse(oldParts[1], System.Globalization.CultureInfo.InvariantCulture) : 1,
+            NewStart = int.Parse(newParts[0], System.Globalization.CultureInfo.InvariantCulture),
+            NewCount =
+                newParts.Length > 1 ? int.Parse(newParts[1], System.Globalization.CultureInfo.InvariantCulture) : 1,
         };
     }
 }

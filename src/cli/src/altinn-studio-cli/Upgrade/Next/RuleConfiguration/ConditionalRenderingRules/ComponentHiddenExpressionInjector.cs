@@ -72,14 +72,23 @@ internal class ComponentHiddenExpressionInjector
 
             // Inject placeholder that will be replaced with invalid JSON
             var placeholderNode = JsonNode.Parse($"\"__MANUAL_CONVERSION_REQUIRED_{ruleId}__\"");
+            if (placeholderNode == null)
+            {
+                throw new InvalidOperationException("Failed to create placeholder node");
+            }
 
             // If there's an existing hidden expression, combine with 'or'
             JsonNode finalExpression;
             if (existingHiddenExpression != null)
             {
-                finalExpression = JsonSerializer.SerializeToNode(
+                var serializedNode = JsonSerializer.SerializeToNode(
                     new object[] { "or", existingHiddenExpression, placeholderNode }
-                )!;
+                );
+                if (serializedNode == null)
+                {
+                    throw new InvalidOperationException("Failed to serialize combined expression");
+                }
+                finalExpression = serializedNode;
             }
             else
             {
@@ -102,18 +111,27 @@ internal class ComponentHiddenExpressionInjector
 
         // Inject the successfully converted expression
         var expressionNode = JsonSerializer.SerializeToNode(conversionResult.Expression);
+        if (expressionNode == null)
+        {
+            throw new InvalidOperationException("Failed to serialize expression");
+        }
 
         // If there's an existing hidden expression, combine with 'or'
         JsonNode finalHiddenExpression;
         if (existingHiddenExpression != null)
         {
-            finalHiddenExpression = JsonSerializer.SerializeToNode(
+            var serializedNode = JsonSerializer.SerializeToNode(
                 new object[] { "or", existingHiddenExpression, expressionNode }
-            )!;
+            );
+            if (serializedNode == null)
+            {
+                throw new InvalidOperationException("Failed to serialize combined expression");
+            }
+            finalHiddenExpression = serializedNode;
         }
         else
         {
-            finalHiddenExpression = expressionNode!;
+            finalHiddenExpression = expressionNode;
         }
 
         _layoutManager.UpdateComponentProperty(component, "hidden", finalHiddenExpression);

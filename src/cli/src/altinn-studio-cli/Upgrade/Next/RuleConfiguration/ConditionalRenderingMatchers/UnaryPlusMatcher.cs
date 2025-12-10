@@ -49,7 +49,7 @@ public class UnaryPlusMatcher : IExpressionMatcher
                 }
 
                 debugInfo.Add("✅ Successfully converted !property to equals null");
-                return new object[] { "equals", propertyValue, null };
+                return new object[] { "equals", propertyValue, null! };
             }
 
             // Otherwise, standard negation for boolean expressions

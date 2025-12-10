@@ -8,6 +8,13 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration;
 /// </summary>
 internal class RuleConfigurationParser
 {
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true,
+    };
+
     private readonly string _ruleConfigPath;
     private RuleConfigurationModel? _ruleConfig;
 
@@ -35,15 +42,7 @@ internal class RuleConfigurationParser
             return;
         }
 
-        _ruleConfig = JsonSerializer.Deserialize<RuleConfigurationModel>(
-            jsonContent,
-            new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                AllowTrailingCommas = true,
-            }
-        );
+        _ruleConfig = JsonSerializer.Deserialize<RuleConfigurationModel>(jsonContent, s_jsonOptions);
     }
 
     /// <summary>

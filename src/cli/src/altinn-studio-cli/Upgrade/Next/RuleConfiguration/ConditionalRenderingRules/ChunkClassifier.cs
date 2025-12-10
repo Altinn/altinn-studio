@@ -124,8 +124,8 @@ internal class ChunkClassifier
         var added = addedLines[0].Content;
 
         // Check if one has BOM and the other doesn't
-        var removedHasBom = removed.StartsWith("\uFEFF");
-        var addedHasBom = added.StartsWith("\uFEFF");
+        var removedHasBom = removed.StartsWith('\uFEFF');
+        var addedHasBom = added.StartsWith('\uFEFF');
 
         if (removedHasBom != addedHasBom)
         {

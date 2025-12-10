@@ -78,13 +78,13 @@ public class TypeofMatcher : IExpressionMatcher
         {
             // typeof x !== "undefined" → not null check
             debugInfo.Add("✅ Converted to 'not null' check");
-            return new object[] { "notEquals", target, null };
+            return new object[] { "notEquals", target, null! };
         }
         else
         {
             // typeof x === "undefined" → null check
             debugInfo.Add("✅ Converted to 'equals null' check");
-            return new object[] { "equals", target, null };
+            return new object[] { "equals", target, null! };
         }
     }
 

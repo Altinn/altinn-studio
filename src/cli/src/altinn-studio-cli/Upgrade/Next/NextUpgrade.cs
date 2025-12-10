@@ -24,19 +24,19 @@ internal static class NextUpgrade
     public static Command GetUpgradeCommand(Option<string> projectFolderOption)
     {
         var projectFileOption = new Option<string>(
-            name: "--project",
-            description: "The project file to read relative to --folder",
-            getDefaultValue: () => "App/App.csproj"
+            "--project",
+            () => "App/App.csproj",
+            "The project file to read relative to --folder"
         );
         var targetFrameworkOption = new Option<string>(
-            name: "--target-framework",
-            description: "The target dotnet framework version to upgrade to",
-            getDefaultValue: () => "net8.0"
+            "--target-framework",
+            () => "net8.0",
+            "The target dotnet framework version to upgrade to"
         );
         var skipCsprojUpgradeOption = new Option<bool>(
-            name: "--skip-csproj-upgrade",
-            description: "Skip csproj file upgrade",
-            getDefaultValue: () => false
+            "--skip-csproj-upgrade",
+            () => false,
+            "Skip csproj file upgrade"
         );
 
         var upgradeCommand = new Command("next", "Upgrade an app to the next version (both backend and frontend)")

@@ -4,7 +4,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingM
 
 /// <summary>
 /// Detects truthiness checks in AND expressions and converts them to null checks
-/// E.g., "obj.value && obj.value === 'foo'" becomes ["and", ["notEquals", value, null], ["equals", value, "foo"]]
+/// E.g., "obj.value &amp;&amp; obj.value === 'foo'" becomes ["and", ["notEquals", value, null], ["equals", value, "foo"]]
 /// </summary>
 public class TruthinessCheckMatcher : IExpressionMatcher
 {
@@ -49,6 +49,6 @@ public class TruthinessCheckMatcher : IExpressionMatcher
         }
 
         // Return a notEquals null check
-        return new object[] { "notEquals", propertyValue, null };
+        return new object[] { "notEquals", propertyValue, null! };
     }
 }

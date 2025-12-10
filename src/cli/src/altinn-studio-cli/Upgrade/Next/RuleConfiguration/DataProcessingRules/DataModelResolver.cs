@@ -46,6 +46,8 @@ internal class ApplicationMetadata
 /// </summary>
 internal class DataModelResolver
 {
+    private static readonly JsonSerializerOptions s_jsonOptions = new() { PropertyNameCaseInsensitive = true };
+
     private readonly string _appBasePath;
     private LayoutSetsConfiguration? _layoutSetsConfig;
     private ApplicationMetadata? _applicationMetadata;
@@ -65,19 +67,13 @@ internal class DataModelResolver
         if (File.Exists(layoutSetsPath))
         {
             var json = File.ReadAllText(layoutSetsPath);
-            _layoutSetsConfig = JsonSerializer.Deserialize<LayoutSetsConfiguration>(
-                json,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
+            _layoutSetsConfig = JsonSerializer.Deserialize<LayoutSetsConfiguration>(json, s_jsonOptions);
         }
 
         if (File.Exists(appMetadataPath))
         {
             var json = File.ReadAllText(appMetadataPath);
-            _applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
-                json,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
+            _applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(json, s_jsonOptions);
         }
     }
 
