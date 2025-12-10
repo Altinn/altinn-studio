@@ -95,6 +95,18 @@ internal static class NextUpgrade
                 );
             }
 
+            // Validate version before processing
+            var projectChecks = new ProjectChecks.ProjectChecks(projectFile);
+            if (!projectChecks.SupportedSourceVersion())
+            {
+                ExitWithError(
+                    $"Version(s) in project file {projectFile} are not supported for the 'next' upgrade. "
+                        + $"This upgrade is for apps on version 8.x.x. "
+                        + $"Please ensure both Altinn.App.Core and Altinn.App.Api are version 8.0.0 or higher (but below 9.0.0).",
+                    exitCode: 2
+                );
+            }
+
             // Job 1: Convert to project references and upgrade target framework
             if (!skipCsprojUpgrade && returnCode == 0)
             {
