@@ -17,7 +17,7 @@ namespace Designer.Tests.Helpers
         [InlineData("NonExistingNuget")]
         public async Task TryGetPackageVersionFromCsprojFile_GivenValidCsprojFile_ReturnsTrue(string packageName)
         {
-            string testTemplateCsProjPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "..", "App", "template", "src", "App", "App.csproj");
+            string testTemplateCsProjPath = Path.Join(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "..", "App", "template", "src", "App", "App.csproj");
 
 
             string[] packages = [packageName, $"{packageName}.Experimental"];
@@ -43,7 +43,7 @@ namespace Designer.Tests.Helpers
         public async Task TryGetPackageVersionFromCsprojFile_GivenValidCsprojFileWithPinnedVersions_ReturnsTrue(string packageName)
         {
             // In this directory, the csproj file has versions pinned with [ and ]
-            string testTemplateCsProjPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "testdata", "App", "App.csproj");
+            string testTemplateCsProjPath = Path.Join(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "testdata", "App", "App.csproj");
 
             string[] packages = [packageName, $"{packageName}.Experimental"];
             string[][] inputs = [packages, packages.Reverse().ToArray()];
