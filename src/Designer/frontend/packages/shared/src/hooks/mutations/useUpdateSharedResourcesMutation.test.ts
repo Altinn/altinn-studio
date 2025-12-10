@@ -6,6 +6,7 @@ import { QueryKey } from '../../types/QueryKey';
 
 // Test data:
 const orgName = 'test-org';
+const path = 'path-to-resource';
 const payload: UpdateSharedResourcesRequest = {
   files: [
     {
@@ -21,9 +22,12 @@ const payload: UpdateSharedResourcesRequest = {
 describe('useUpdateSharedResourcesMutation', () => {
   it('Calls updateSharedResources with correct arguments and payload', async () => {
     const updateSharedResources = jest.fn();
-    const { result } = renderHookWithProviders(() => useUpdateSharedResourcesMutation(orgName), {
-      queries: { updateSharedResources },
-    });
+    const { result } = renderHookWithProviders(
+      () => useUpdateSharedResourcesMutation(orgName, path),
+      {
+        queries: { updateSharedResources },
+      },
+    );
 
     await result.current.mutateAsync(payload);
 
@@ -34,13 +38,16 @@ describe('useUpdateSharedResourcesMutation', () => {
   it('Sets the shared resources cache for the given organisation', async () => {
     const queryClient = createQueryClientMock();
     const setQueryData = jest.spyOn(queryClient, 'setQueryData');
-    const { result } = renderHookWithProviders(() => useUpdateSharedResourcesMutation(orgName), {
-      queryClient,
-    });
+    const { result } = renderHookWithProviders(
+      () => useUpdateSharedResourcesMutation(orgName, path),
+      {
+        queryClient,
+      },
+    );
 
     await result.current.mutateAsync(payload);
 
     expect(setQueryData).toHaveBeenCalledTimes(1);
-    expect(setQueryData).toHaveBeenCalledWith([QueryKey.SharedResources, orgName], payload);
+    expect(setQueryData).toHaveBeenCalledWith([QueryKey.SharedResources, orgName, path], payload);
   });
 });
