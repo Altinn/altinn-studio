@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Altinn.Codelists.Extensions;
+using Altinn.App.Logic.ConvertedLegacyRules;
 
 void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
 {
@@ -40,6 +41,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IUserAction, SortPetsAction>();
     services.AddTransient<IUserAction, GeneratePetsAction>();
     services.AddMimeTypeValidation();
+    services.AddTransient<IDataWriteProcessor, ChangenameDataProcessor>();
 }
 
 // ###########################################################################

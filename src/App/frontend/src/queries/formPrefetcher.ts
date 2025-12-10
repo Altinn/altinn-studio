@@ -1,10 +1,8 @@
 import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
 import { useCurrentDataModelDataElementId, useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
-import { useDynamicsQueryDef } from 'src/features/form/dynamics/DynamicsContext';
 import { useLayoutQueryDef } from 'src/features/form/layout/LayoutsContext';
 import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useLayoutSettingsQueryDef } from 'src/features/form/layoutSettings/LayoutSettingsContext';
-import { useRulesQueryDef } from 'src/features/form/rules/RulesContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useOrderDetailsQueryDef } from 'src/features/payment/OrderDetailsProvider';
 import { usePaymentInformationQueryDef } from 'src/features/payment/PaymentInformationProvider';
@@ -28,8 +26,6 @@ export function FormPrefetcher() {
 
   // Prefetch other layout related files
   usePrefetchQuery(useLayoutSettingsQueryDef(layoutSetId));
-  usePrefetchQuery(useDynamicsQueryDef(layoutSetId));
-  usePrefetchQuery(useRulesQueryDef(layoutSetId));
 
   // Prefetch payment data if applicable
   usePrefetchQuery(usePaymentInformationQueryDef(useIsPayment(), instanceId));

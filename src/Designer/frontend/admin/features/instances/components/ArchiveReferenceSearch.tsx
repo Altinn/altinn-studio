@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search } from '@digdir/designsystemet-react';
 
 import classes from './ArchiveReferenceSearch.module.css';
+import { useTranslation } from 'react-i18next';
 
 type ArchiveReferenceSearchProps = {
   value: string | undefined;
@@ -15,6 +16,7 @@ export const ArchiveReferenceSearch = ({
   value: _value,
   setValue,
 }: ArchiveReferenceSearchProps) => {
+  const { t } = useTranslation();
   const value = _value ?? '';
   const [searchString, setSearchString] = useState(value);
 
@@ -43,12 +45,10 @@ export const ArchiveReferenceSearch = ({
     <Search
       className={classes.search}
       variant={canSearch ? 'primary' : 'simple'}
-      error={
-        !isEmpty && !isValid ? 'Må være en gyldig instans-ID eller arkivreferanse.' : undefined
-      }
+      error={!isEmpty && !isValid ? t('admin.instances.archive_reference_validation') : undefined}
       hideLabel={false}
       size='sm'
-      label='Arkivreferanse'
+      label={t('admin.instances.archive_reference')}
       value={searchString}
       onClear={handleClear}
       onChange={handleChange}
