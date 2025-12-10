@@ -1,8 +1,5 @@
 import { v4 as uuid } from 'uuid';
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ARCHIVE_REF_REGEX = /^[0-9a-f]{12}$/i;
-
 export const storageApplicationMetadataRoute = async (req, res) => {
   res.json({});
 };
@@ -10,91 +7,54 @@ export const storageTextsRoute = async (req, res) => {
   res.json({});
 };
 
-class NoResultsError extends Error {}
-
-const taskNames = { Task_1: 'Utfylling' };
-
-function makeInstance(
-  org,
-  app,
-  currentTask,
-  isArchived,
-  isConfirmed,
-  isSoftDeleted,
-  isHardDeleted,
-  archiveReference = null,
+function getRandomDate(
+  min = Date.now() - 100 * 24 * 60 * 60 * 1000,
+  max = Date.now() - 60 * 60 * 1000,
 ) {
-  // Check illogical filters
+  return new Date(Math.round(min + Math.random() * (max - min)));
+}
 
-  if (
-    archiveReference &&
-    !UUID_REGEX.test(archiveReference) &&
-    !ARCHIVE_REF_REGEX.test(archiveReference)
-  ) {
-    throw new NoResultsError();
-  }
+function getMaxDate(...dates) {
+  return new Date(Math.max(...dates.filter((d) => !!d).map((d) => d.getTime())));
+}
 
-  if (isArchived === true && currentTask != null) {
-    throw new NoResultsError();
-  }
+const randomInstances = Array.from({ length: 1000 }).map(() => {
+  const id = uuid();
+  const createdAt = getRandomDate();
 
-  if (isConfirmed === true && (isArchived === false || currentTask != null)) {
-    throw new NoResultsError();
-  }
+  const isActive = Math.random() < 0.2;
 
-  if (isHardDeleted === true && isSoftDeleted === false) {
-    throw new NoResultsError();
-  }
+  const isRead = !isActive || Math.random() < 0.8;
+  const currentTaskId = isActive ? 'Task_1' : null;
+  const currentTaskName = isActive ? 'Utfylling' : null;
+  const archivedAt = !isActive ? getRandomDate(createdAt.getTime()) : null;
+  const completedAt = archivedAt;
+  const confirmedAt = !isActive && Math.random() < 0.8 ? getRandomDate(archivedAt.getTime()) : null;
 
-  // Perform logical constraints
+  const isDeleted = (!isActive && Math.random() < 0.8) || Math.random() < 0.2;
+  const isHardDeleted = isDeleted && Math.random() < 0.33;
 
-  if (isHardDeleted === true) {
-    isSoftDeleted = true;
-  }
+  const softDeletedAt = isDeleted
+    ? getRandomDate(getMaxDate(createdAt, archivedAt, confirmedAt).getTime())
+    : null;
+  const hardDeletedAt = isHardDeleted ? softDeletedAt : null;
 
-  if (isConfirmed === true) {
-    isArchived = true;
-  }
-
-  if (isArchived === false) {
-    currentTask ??= 'Task_1';
-  }
-
-  if (currentTask == null && isArchived == null) {
-    if (Math.random() < 0.5) {
-      currentTask = 'Task_1';
-    } else {
-      isArchived = true;
-    }
-  }
-
-  const id = archiveReference
-    ? UUID_REGEX.test(archiveReference)
-      ? archiveReference
-      : uuid().slice(0, 24) + archiveReference.toLowerCase()
-    : uuid();
-
-  const isRead = isArchived || Math.random() < 0.8;
-  isConfirmed = isConfirmed == null ? isArchived && Math.random() < 0.5 : isConfirmed;
-  isSoftDeleted = isSoftDeleted == null ? Math.random() < 0.5 : isSoftDeleted;
-  isHardDeleted = isHardDeleted == null ? isSoftDeleted && Math.random() < 0.5 : isHardDeleted;
+  const lastChangedAt = getMaxDate(createdAt, archivedAt, confirmedAt, softDeletedAt);
 
   return {
     id,
-    org,
-    app,
     isRead,
-    currentTaskId: currentTask,
-    currentTaskName: currentTask ? taskNames[currentTask] : null,
-    archivedAt: isArchived ? new Date() : null,
-    completedAt: isArchived ? new Date() : null,
-    confirmedAt: isConfirmed ? new Date() : null,
-    softDeletedAt: isSoftDeleted ? new Date() : null,
-    hardDeletedAt: isHardDeleted ? new Date() : null,
-    createdAt: new Date(),
-    lastChangedAt: new Date(),
+    currentTaskId,
+    currentTaskName,
+    archivedAt,
+    completedAt,
+    confirmedAt,
+    softDeletedAt,
+    hardDeletedAt,
+    createdAt,
+    lastChangedAt,
   };
-}
+});
 
 function parseBoolParam(param) {
   if (param === 'true') {
@@ -106,6 +66,11 @@ function parseBoolParam(param) {
   return null;
 }
 
+function parseIntParam(param) {
+  const n = parseInt(param);
+  return !isNaN(n) ? n : null;
+}
+
 export const storageInstancesRoute = (req, res) => {
   const { org, app } = req.params;
   const currentTask = req.query?.['process.currentTask'];
@@ -114,52 +79,37 @@ export const storageInstancesRoute = (req, res) => {
   const isSoftDeleted = parseBoolParam(req.query?.['status.isSoftDeleted']);
   const isHardDeleted = parseBoolParam(req.query?.['status.isHardDeleted']);
   const archiveReference = req.query?.['archiveReference'];
-  const size = req.query?.['size'] ?? 10;
+  const size = parseIntParam(req.query?.['size']) ?? 10;
+  const skip = parseIntParam(req.query?.['continuationToken']) ?? 0;
 
-  try {
-    if (archiveReference) {
-      res.json({
-        count: 1,
-        next: null,
-        instances: [
-          makeInstance(
-            org,
-            app,
-            currentTask,
-            isArchived,
-            isConfirmed,
-            isSoftDeleted,
-            isHardDeleted,
-            archiveReference,
-          ),
-        ],
-      });
-    } else {
-      res.json({
-        count: size,
-        next: 'next',
-        instances: Array.from({ length: size }, () =>
-          makeInstance(
-            org,
-            app,
-            currentTask,
-            isArchived,
-            isConfirmed,
-            isSoftDeleted,
-            isHardDeleted,
-          ),
-        ),
-      });
-    }
-  } catch (error) {
-    if (error instanceof NoResultsError) {
-      res.json({
-        count: 0,
-        next: null,
-        instances: [],
-      });
-    } else {
-      throw error;
-    }
-  }
+  const instances = randomInstances
+    .filter(
+      (i) =>
+        (!currentTask || i.currentTaskId === currentTask) &&
+        (isArchived == null || (isArchived && !!i.archivedAt) || (!isArchived && !i.archivedAt)) &&
+        (isConfirmed == null ||
+          (isConfirmed && !!i.confirmedAt) ||
+          (!isConfirmed && !i.confirmedAt)) &&
+        (isSoftDeleted == null ||
+          (isSoftDeleted && !!i.softDeletedAt) ||
+          (!isSoftDeleted && !i.softDeletedAt)) &&
+        (isHardDeleted == null ||
+          (isHardDeleted && !!i.hardDeletedAt) ||
+          (!isHardDeleted && !i.hardDeletedAt)) &&
+        (!archiveReference ||
+          i.id === archiveReference.toLowerCase() ||
+          i.id.slice(24) === archiveReference.toLowerCase()),
+    )
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(skip, skip + size)
+    .map((i) => ({ org, app, ...i }));
+
+  const count = instances.length;
+  const next = count === size ? (skip + size).toString() : null;
+
+  res.json({
+    count,
+    next,
+    instances,
+  });
 };
