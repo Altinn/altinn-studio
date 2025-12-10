@@ -41,8 +41,10 @@ runs:
           echo "Failed to build localtest Docker images"
           exit 1
         fi
+      shell: bash
 
-        # Save to cache
+    - name: Save docker images
+      run: |
         mkdir -p /tmp/localtest-docker-cache
         images="localtest localtest-loadbalancer localtest-pdf3"
         if [ "${{ inputs.docker-profile }}" == "test-apps" ]; then
@@ -50,10 +52,6 @@ runs:
         fi
         docker save $images -o /tmp/localtest-docker-cache/images.tar
         echo "Built and cached Docker images"
-      shell: bash
-
-    - name: Save docker images
-      run: docker save localtest localtest-loadbalancer localtest-altinn_test_apps localtest-pdf3 -o /tmp/localtest-images.tar
       shell: bash
 
     - name: Upload docker images
