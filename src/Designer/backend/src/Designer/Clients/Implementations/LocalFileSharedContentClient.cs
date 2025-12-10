@@ -25,7 +25,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
 
     private readonly Dictionary<string, string> _fileNamesAndContent = [];
     private string _currentVersion = InitialVersion;
-    private readonly string _basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "altinn", "published_resources");
+    private readonly string _basePath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "altinn", "published_resources");
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
