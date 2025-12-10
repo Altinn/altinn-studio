@@ -1,5 +1,6 @@
 #nullable disable
 using System;
+using System.IO;
 using System.Linq;
 
 namespace Altinn.Studio.Designer.Helpers.Extensions
@@ -75,6 +76,45 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
         public static string WithoutLineBreaks(this string input)
         {
             return input.Replace("\r", "").Replace("\n", "");
+        }
+
+        public static void ValidPathSegment(this string segment, string variableName)
+        {
+            if (string.IsNullOrWhiteSpace(segment))
+            {
+                throw new ArgumentException($"'{variableName}' cannot be null or whitespace.", variableName);
+            }
+
+            if (segment.Contains("..") || segment.Contains('/') || segment.Contains('\\'))
+            {
+                throw new ArgumentException($"'{variableName}' contains invalid path traversal or separator characters.", variableName);
+            }
+
+            Path.GetInvalidFileNameChars();
+
+            foreach (char ch in segment)
+            {
+                if (!(char.IsLetterOrDigit(ch) || ch == '-' || ch == '_'))
+                {
+                    throw new ArgumentException($"'{variableName}' contains invalid character '{ch}'. Only letters, numbers, dash '-' and underscore '_' are allowed.", variableName);
+                }
+            }
+        }
+
+        public static void ValidatePath(this string path, string variableName)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentException($"'{variableName}' cannot be null or whitespace.", variableName);
+            }
+
+            foreach (char c in Path.GetInvalidFileNameChars())
+            {
+                if (path.Contains(c))
+                {
+                    throw new ArgumentException("Invalid path segment.", variableName);
+                }
+            }
         }
     }
 }
