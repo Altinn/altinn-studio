@@ -8,6 +8,7 @@ import type { SchemaConfigProps } from './types';
 export interface ConfigStringPropertiesProps extends SchemaConfigProps {
   stringPropertyKeys: string[];
   className?: string;
+  keepEditOpen?: boolean;
 }
 
 export const ConfigStringProperties = ({
@@ -16,6 +17,7 @@ export const ConfigStringProperties = ({
   component,
   handleComponentUpdate,
   className,
+  keepEditOpen,
 }: ConfigStringPropertiesProps) => {
   const componentPropertyLabel = useComponentPropertyLabel();
   const selectedDataType = useComponentPropertyEnumValue();
@@ -28,6 +30,20 @@ export const ConfigStringProperties = ({
     },
     [component, selectedDataType],
   );
+
+  if (keepEditOpen) {
+    return stringPropertyKeys.map((propertyKey) => (
+      <EditStringValue
+        key={propertyKey}
+        component={component}
+        handleComponentChange={handleComponentUpdate}
+        propertyKey={propertyKey}
+        enumValues={
+          schema.properties[propertyKey]?.enum || schema.properties[propertyKey]?.examples
+        }
+      />
+    ));
+  }
 
   return (
     <>

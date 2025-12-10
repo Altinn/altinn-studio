@@ -7,6 +7,7 @@ import type { SchemaConfigProps } from './types';
 export interface ConfigNumberPropertiesProps extends SchemaConfigProps {
   numberPropertyKeys: string[];
   className?: string;
+  keepEditOpen?: boolean;
 }
 
 export const ConfigNumberProperties = ({
@@ -15,8 +16,21 @@ export const ConfigNumberProperties = ({
   numberPropertyKeys,
   handleComponentUpdate,
   className,
+  keepEditOpen,
 }: ConfigNumberPropertiesProps) => {
   const componentPropertyLabel = useComponentPropertyLabel();
+
+  if (keepEditOpen) {
+    return numberPropertyKeys.map((propertyKey) => (
+      <EditNumberValue
+        component={component}
+        handleComponentChange={handleComponentUpdate}
+        propertyKey={propertyKey}
+        key={propertyKey}
+        enumValues={schema.properties[propertyKey]?.enum}
+      />
+    ));
+  }
 
   return (
     <>
