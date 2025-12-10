@@ -308,7 +308,6 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
 
     public async Task<List<string>> GetPublishedResourcesForOrg(string orgName, string path = "", CancellationToken cancellationToken = default)
     {
-        await Task.Delay(0, cancellationToken); // Added to satisfy async method.
         orgName.ValidPathSegment(nameof(orgName));
         if (path.IsNullOrWhiteSpace() is false)
         {
@@ -322,13 +321,13 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         try
         {
             IEnumerable<string> directoryFiles = Directory.GetFiles(prefix, "*", SearchOption.AllDirectories);
-            return directoryFiles
+            return await Task.FromResult(directoryFiles
                 .Select(file => file.Replace(prefix, string.Empty).Replace("\\", "/"))
-                .ToList();
+                .ToList());
         }
         catch (Exception ex) when (ex is DirectoryNotFoundException)
         {
-            return [];
+            return await Task.FromResult<List<string>>([]);
         }
     }
 
