@@ -57,7 +57,7 @@ export const InstancesTable = ({
     case 'error':
       if (isAxiosError(error) && error.response?.status === 403) {
         const envTitle =
-          env === 'prod'
+          env === 'production'
             ? t(`general.production_environment_alt`).toLowerCase()
             : `${t('general.test_environment_alt').toLowerCase()} ${env?.toUpperCase()}`;
         return (
