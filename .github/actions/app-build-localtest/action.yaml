@@ -1,0 +1,60 @@
+name: "App Build Localtest"
+description: "Builds localtest Docker images"
+inputs:
+  docker-profile:
+    description: "Which docker profile to use"
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+    - name: Cache localtest Docker images
+      id: cache-docker
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: /tmp/localtest-docker-cache
+        key: localtest-docker-${{ runner.os }}-${{ hashFiles('src/Runtime/localtest/**', 'src/test/apps/**', 'src/App/backend/**') }}
+        restore-keys: |
+          localtest-docker-${{ runner.os }}-
+
+    - name: Load cached Docker images
+      if: steps.cache-docker.outputs.cache-hit == 'true'
+      run: |
+        if [ -f /tmp/localtest-docker-cache/images.tar ]; then
+          docker load -i /tmp/localtest-docker-cache/images.tar
+          echo "Loaded cached Docker images"
+        fi
+      shell: bash
+
+    - name: Build localtest
+      if: steps.cache-docker.outputs.cache-hit != 'true'
+      working-directory: src/Runtime/localtest
+      run: |
+        args=""
+        if [ -n "${{ inputs.docker-profile }}" ]; then
+          args="--profile ${{ inputs.docker-profile }}"
+        fi
+
+        if ! docker compose $args build; then
+          echo "Failed to build localtest Docker images"
+          exit 1
+        fi
+
+        # Save to cache
+        mkdir -p /tmp/localtest-docker-cache
+        docker save localtest localtest-loadbalancer localtest-altinn_test_apps localtest-pdf3 -o /tmp/localtest-docker-cache/images.tar
+        echo "Built and cached Docker images"
+      shell: bash
+
+    - name: Save docker images
+      run: docker save localtest localtest-loadbalancer localtest-altinn_test_apps localtest-pdf3 -o /tmp/localtest-images.tar
+      shell: bash
+
+    - name: Upload docker images
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      with:
+        name: localtest-docker-images
+        path: /tmp/localtest-images.tar
+        retention-days: 1

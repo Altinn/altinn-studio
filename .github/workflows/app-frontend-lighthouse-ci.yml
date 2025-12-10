@@ -12,6 +12,26 @@ on:
       - '.github/workflows/app-frontend-lighthouse-ci.yml'
   workflow_dispatch:
 jobs:
+  build-frontend:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - name: Build frontend
+        uses: ./.github/actions/app-build-frontend
+
+  build-localtest:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - name: Build localtest
+        uses: ./.github/actions/app-build-localtest
+        with:
+          profile: 'test-apps'
+
   lighthouse:
     name: Lighthouse CI
     runs-on: ubuntu-latest
@@ -23,10 +43,20 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Build Local Environment
-        uses: ./.github/actions/app-build-local-env
+      - name: Download built frontend
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
-          node-version: '22'
+          name: app-frontend-dist
+          path: src/App/frontend/dist
+
+      - name: Download built localtest docker images
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: localtest-docker-images
+          path: /tmp
+
+      - name: Load docker images
+        run: docker load -i /tmp/localtest-images.tar
 
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
