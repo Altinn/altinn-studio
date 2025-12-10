@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
@@ -30,10 +30,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
         {isClonePossible && (
           <StudioDropdown.Item>
             <StudioPopover.TriggerContext>
-              <StudioPopover.Trigger
-                variant='tertiary'
-                icon={<TabsIcon />}
-              >
+              <StudioPopover.Trigger variant='tertiary' icon={<TabsIcon />}>
                 {t('sync_header.clone')}
               </StudioPopover.Trigger>
               <StudioPopover>{<ClonePopoverContent />}</StudioPopover>
