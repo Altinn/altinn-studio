@@ -15,7 +15,7 @@ runs:
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:
         path: /tmp/localtest-docker-cache
-        key: localtest-docker-${{ runner.os }}-${{ hashFiles('src/Runtime/localtest/**', 'src/test/apps/**', 'src/App/backend/**') }}
+        key: localtest-docker-${{ runner.os }}-${{ hashFiles('src/Runtime/localtest/**', 'src/App/backend/**') }}
         restore-keys: |
           localtest-docker-${{ runner.os }}-
 
