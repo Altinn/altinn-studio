@@ -57,9 +57,22 @@ internal static class SetterGenerator
                         object? value
                     )
                     {
-                        if (model is null || literalIndex < 0 || literalIndex >= model.Count)
+                        if (model is null || literalIndex < 0)
                         {
                             return false;
+                        }
+
+                        // Create list elements if index is out of bounds
+                        while (model.Count <= literalIndex)
+                        {
+                            try
+                            {
+                                model.Add(global::System.Activator.CreateInstance<{{modelPathNode.TypeName}}>());
+                            }
+                            catch
+                            {
+                                return false;
+                            }
                         }
 
                         {{(
@@ -93,24 +106,41 @@ internal static class SetterGenerator
                         return false;
                     }
 
-                    return ParseSegment(path, offset, out int nextOffset, out int literalIndex) switch
+                    var segment = ParseSegment(path, offset, out int nextOffset, out int literalIndex);
+                    return segment switch
                     {
 
             """
         );
         foreach (var child in modelPathNode.Properties)
         {
-            builder.Append(
-                child switch
-                {
-                    { ListType: not null } =>
-                        $"            \"{child.JsonName}\" => SetRecursive(model.{child.CSharpName}, path, literalIndex, nextOffset, value),\r\n",
-                    { Properties.Count: 0 } =>
-                        $"            \"{child.JsonName}\" when nextOffset is -1 && literalIndex is -1 => TrySetValue(val => model.{child.CSharpName} = val, value),\r\n",
-                    _ =>
-                        $"            \"{child.JsonName}\" when literalIndex is -1 => SetRecursive(model.{child.CSharpName}, path, nextOffset, value),\r\n",
-                }
-            );
+            if (child.ListType != null)
+            {
+                // List property - need to ensure list is created and has elements
+                builder.Append(
+                    $$"""
+                                "{{child.JsonName}}" => SetRecursive_WithListCreation_{{modelPathNode.Name}}_{{child.CSharpName}}(model, path, literalIndex, nextOffset, value),
+
+                    """
+                );
+            }
+            else if (child.Properties.Count == 0)
+            {
+                // Simple property - direct set
+                builder.Append(
+                    $"            \"{child.JsonName}\" when nextOffset is -1 && literalIndex is -1 => TrySetValue<{child.TypeName}>(val => model.{child.CSharpName} = val, value),\r\n"
+                );
+            }
+            else
+            {
+                // Complex object property - need to ensure object is created
+                builder.Append(
+                    $$"""
+                                "{{child.JsonName}}" when literalIndex is -1 => SetRecursive_WithObjectCreation_{{modelPathNode.Name}}_{{child.CSharpName}}(model, path, nextOffset, value),
+
+                    """
+                );
+            }
         }
 
         // Return false for unknown paths
@@ -122,6 +152,72 @@ internal static class SetterGenerator
 
             """
         );
+
+        // Generate helper methods for creating intermediate objects/lists
+        foreach (var child in modelPathNode.Properties)
+        {
+            if (child.ListType != null)
+            {
+                // Generate list creation helper
+                builder.Append(
+                    $$"""
+
+                        private static bool SetRecursive_WithListCreation_{{modelPathNode.Name}}_{{child.CSharpName}}(
+                            {{modelPathNode.TypeName}} model,
+                            global::System.ReadOnlySpan<char> path,
+                            int literalIndex,
+                            int nextOffset,
+                            object? value
+                        )
+                        {
+                            if (model.{{child.CSharpName}} is null)
+                            {
+                                try
+                                {
+                                    model.{{child.CSharpName}} = new {{child.ListType}}();
+                                }
+                                catch
+                                {
+                                    return false;
+                                }
+                            }
+                            return SetRecursive(model.{{child.CSharpName}}, path, literalIndex, nextOffset, value);
+                        }
+
+                    """
+                );
+            }
+            else if (child.Properties.Count > 0)
+            {
+                // Generate object creation helper
+                builder.Append(
+                    $$"""
+
+                        private static bool SetRecursive_WithObjectCreation_{{modelPathNode.Name}}_{{child.CSharpName}}(
+                            {{modelPathNode.TypeName}} model,
+                            global::System.ReadOnlySpan<char> path,
+                            int nextOffset,
+                            object? value
+                        )
+                        {
+                            if (model.{{child.CSharpName}} is null)
+                            {
+                                try
+                                {
+                                    model.{{child.CSharpName}} = global::System.Activator.CreateInstance<{{child.TypeName}}>();
+                                }
+                                catch
+                                {
+                                    return false;
+                                }
+                            }
+                            return SetRecursive(model.{{child.CSharpName}}, path, nextOffset, value);
+                        }
+
+                    """
+                );
+            }
+        }
 
         foreach (var child in modelPathNode.Properties)
         {

@@ -303,6 +303,19 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
 
     private static object? ConvertValue(object? value, Type targetType)
     {
+        // Handle nullable types first
+        var underlyingType = Nullable.GetUnderlyingType(targetType);
+        if (underlyingType is not null)
+        {
+            // If target is nullable and value is null, return null
+            if (value is null)
+            {
+                return null;
+            }
+            // Otherwise convert to the underlying type
+            targetType = underlyingType;
+        }
+
         if (value is null)
         {
             return null;
@@ -312,13 +325,6 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
         if (targetType.IsInstanceOfType(value))
         {
             return value;
-        }
-
-        // Handle nullable types
-        var underlyingType = Nullable.GetUnderlyingType(targetType);
-        if (underlyingType is not null)
-        {
-            targetType = underlyingType;
         }
 
         // Try to convert common types
