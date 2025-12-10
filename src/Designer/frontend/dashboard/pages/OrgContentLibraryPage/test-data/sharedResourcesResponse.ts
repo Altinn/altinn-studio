@@ -8,13 +8,11 @@ const vehiclesFileContent = btoaUTF8(JSON.stringify(codeLists.vehicles));
 export const sharedResourcesResponse: SharedResourcesResponse = {
   files: [
     {
-      kind: 'content',
       path: 'CodeLists/animals.json',
       contentType: 'application/json',
       content: animalsFileContent,
     },
     {
-      kind: 'content',
       path: 'CodeLists/vehicles.json',
       contentType: 'application/json',
       content: vehiclesFileContent,
@@ -26,13 +24,11 @@ export const sharedResourcesResponse: SharedResourcesResponse = {
 export const sharedResourcesResponseWithProblem: SharedResourcesResponse = {
   files: [
     {
-      kind: 'content',
       path: 'CodeLists/animals.json',
       contentType: 'application/json',
       content: animalsFileContent,
     },
     {
-      kind: 'problem',
       path: 'CodeLists/vehicles.json',
       contentType: 'application/json',
       problem: {
@@ -48,13 +44,11 @@ export const sharedResourcesResponseWithProblem: SharedResourcesResponse = {
 export const sharedResourcesResponseWithInvalidFormat: SharedResourcesResponse = {
   files: [
     {
-      kind: 'content',
       path: 'CodeLists/animals.json',
       contentType: 'application/json',
       content: animalsFileContent,
     },
     {
-      kind: 'content',
       path: 'CodeLists/invalid.json',
       contentType: 'application/json',
       content: btoa(JSON.stringify({ notCodes: 'invalid' })),
@@ -66,7 +60,6 @@ export const sharedResourcesResponseWithInvalidFormat: SharedResourcesResponse =
 export const sharedResourcesResponseWithNonJson: SharedResourcesResponse = {
   files: [
     {
-      kind: 'content',
       path: 'CodeLists/animals.txt',
       contentType: 'application/text',
       content: animalsFileContent,

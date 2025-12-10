@@ -1,6 +1,6 @@
-import type { LibraryFile } from '../LibraryFile';
+import type { BackendLibraryFile } from '../LibraryFile';
 
 export interface SharedResourcesResponse {
-  files: LibraryFile[];
+  files: BackendLibraryFile[];
   commitSha: string;
 }

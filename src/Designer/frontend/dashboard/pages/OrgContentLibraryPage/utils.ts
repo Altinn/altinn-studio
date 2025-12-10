@@ -14,7 +14,7 @@ import type {
 import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
 import { CODE_LIST_FOLDER } from 'app-shared/constants';
 import { FileNameUtils, Guard } from '@studio/pure-functions';
-import type { LibraryFile } from 'app-shared/types/LibraryFile';
+import type { BackendLibraryFile, FileKind, LibraryFile } from 'app-shared/types/LibraryFile';
 import { isCodeListValid } from './validators/isCodelistValid';
 
 export function textResourceWithLanguageToMutationArgs({
@@ -38,11 +38,39 @@ export function backendCodeListsToLibraryCodeLists(
   return response.files.map(backendCodeListToLibraryCodeList);
 }
 
-function backendCodeListToLibraryCodeList(file: LibraryFile): LibraryCodeListData {
-  const fileWithExtension = FileNameUtils.extractFileName(file.path);
+function backendCodeListToLibraryCodeList(backendFile: BackendLibraryFile): LibraryCodeListData {
+  const libraryFile = addFileKind(backendFile);
+  const fileWithExtension = FileNameUtils.extractFileName(libraryFile.path);
   Guard.againstNonJsonTypes(fileWithExtension);
   const fileName = FileNameUtils.removeExtension(fileWithExtension);
-  return tryConvertFile(file, fileName);
+  return tryConvertFile(libraryFile, fileName);
+}
+
+function addFileKind(file: BackendLibraryFile): LibraryFile {
+  /* istanbul ignore else */
+  if (isOfKind('content', file)) {
+    return { ...file, kind: 'content' };
+  } else if (isOfKind('url', file)) {
+    return { ...file, kind: 'url' };
+  } else if (isOfKind('problem', file)) {
+    return { ...file, kind: 'problem' };
+  } else {
+    throw Error('Could not determine file kind.');
+  }
+}
+
+function isOfKind<Kind extends FileKind>(
+  kind: Kind,
+  backendFile: BackendLibraryFile,
+): backendFile is BackendLibraryFile<Kind> {
+  switch (kind) {
+    case 'content':
+      return 'content' in backendFile && backendFile.content !== undefined;
+    case 'url':
+      return 'url' in backendFile && backendFile.url !== undefined;
+    case 'problem':
+      return 'problem' in backendFile && backendFile.problem !== undefined;
+  }
 }
 
 function tryConvertFile(file: LibraryFile, fileName: string) {
@@ -124,6 +152,7 @@ function mapFiles(updatedCodeLists: LibraryCodeListData[]): FileMetadata[] {
 function filterFilesToDelete(currentData: SharedResourcesResponse, updatedNames: Set<string>) {
   // Add files with empty content for deleted code lists
   return currentData.files
+    .map(addFileKind)
     .filter((file) => file.kind !== 'problem')
     .filter((file) => {
       const fileName = FileNameUtils.extractFileName(FileNameUtils.removeExtension(file.path));

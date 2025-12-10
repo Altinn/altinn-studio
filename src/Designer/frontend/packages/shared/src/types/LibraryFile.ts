@@ -6,16 +6,19 @@ interface ProblemDetails {
   instance?: string;
 }
 
-type FileKind = 'content' | 'url' | 'problem';
+export type FileKind = 'content' | 'url' | 'problem';
 
-type LibraryFileBase<Kind extends FileKind> = {
-  kind: Kind;
+type LibraryFileBase = {
   path: string;
   contentType: string;
 };
 
+export type BackendLibraryFile<Kind extends FileKind = FileKind> = {
+  content: LibraryFileBase & { content: string };
+  url: LibraryFileBase & { url: string };
+  problem: LibraryFileBase & { problem: ProblemDetails };
+}[Kind];
+
 export type LibraryFile<Kind extends FileKind = FileKind> = {
-  content: LibraryFileBase<'content'> & { content: string };
-  url: LibraryFileBase<'url'> & { url: string };
-  problem: LibraryFileBase<'problem'> & { problem: ProblemDetails };
+  [K in Kind]: BackendLibraryFile<K> & { kind: K };
 }[Kind];

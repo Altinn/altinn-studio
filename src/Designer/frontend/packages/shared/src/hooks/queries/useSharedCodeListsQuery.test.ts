@@ -13,7 +13,6 @@ const path = 'CodeLists';
 const getSharedResourcesResponse: SharedResourcesResponse = {
   files: [
     {
-      kind: 'content',
       path: 'CodeLists/list1.json',
       contentType: 'application/json',
       content: '{"key": "value"}',

@@ -205,7 +205,7 @@ export const getProcessTaskType = (org: string, app: string, taskId: string) => 
 export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
 
 // Organisation library
-export const getSharedResources = async (org: string, path: string, reference?: string): Promise<SharedResourcesResponse> => get(orgLibraryPath(org, path, reference));
+export const getSharedResources = async (org: string, path: string, reference?: string): Promise<SharedResourcesResponse> => get<SharedResourcesResponse>(orgLibraryPath(org, path, reference));
 
 export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
 export const getOrgTextLanguages = (org: string): Promise<string[] | null> => get<string[] | null>(orgTextLanguagesPath(org));
