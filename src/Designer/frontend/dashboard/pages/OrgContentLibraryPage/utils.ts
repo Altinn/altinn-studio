@@ -65,14 +65,21 @@ function isOfKind<Kind extends FileKind>(
 ): backendFile is BackendLibraryFile<Kind> {
   switch (kind) {
     case 'content':
-      return 'content' in backendFile && backendFile.content !== undefined;
+      return (
+        'content' in backendFile &&
+        backendFile.content !== undefined &&
+        backendFile.content !== null
+      );
     case 'url':
-      return 'url' in backendFile && backendFile.url !== undefined;
+      return 'url' in backendFile && backendFile.url !== undefined && backendFile.url !== null;
     case 'problem':
-      return 'problem' in backendFile && backendFile.problem !== undefined;
+      return (
+        'problem' in backendFile &&
+        backendFile.problem !== undefined &&
+        backendFile.problem !== null
+      );
   }
 }
-
 function tryConvertFile(file: LibraryFile, fileName: string) {
   switch (file.kind) {
     case 'content':
@@ -98,7 +105,9 @@ function convertToLibraryCodeListData(
   fileName: string,
 ): LibraryCodeListData {
   try {
-    const codeList = JSON.parse(atobUTF8(file.content));
+    const decoded = atobUTF8(file.content);
+    const parsed = JSON.parse(decoded);
+    const codeList = parsed.codes || parsed; // Support both formats
     return {
       name: fileName,
       codes: isCodeListValid(codeList) ? codeList : [],
