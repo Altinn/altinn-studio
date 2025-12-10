@@ -9,9 +9,9 @@ from server.tools.dynamic_expression_tool.dynamic_expressions import dynamic_exp
 from server.tools.datamodel_tool.datamodel_tool import datamodel_tool  # noqa: F401
 from server.tools.resource_tool.resource_tool import resource_tool  # noqa: F401
 from server.tools.policy_tool.policy_tool import policy_tool  # noqa: F401
-from server.tools.prefill_tool.prefill_tool import prefill_tool  # noqa: F401  
-from server.tools.policy_validation_tool.policy_validation_tool import policy_validation_tool  # noqa: F401 
-from server.tools.policy_summarization_tool.policy_summarization_tool import policy_summarization_tool  # noqa: F401 
+from server.tools.prefill_tool.prefill_tool import prefill_tool  # noqa: F401
+from server.tools.policy_validation_tool.policy_validation_tool import policy_validation_tool  # noqa: F401
+from server.tools.policy_summarization_tool.policy_summarization_tool import policy_summarization_tool  # noqa: F401
 from server.tools.schema_validator_tool.schema_validator_tool import schema_validator_tool  # noqa: F401
 from server.tools.layout_properties_tool.layout_properties_tool import layout_properties_tool  # noqa: F401
 from server.tools.planning_tool.planning_tool import planning_tool  # noqa: F401
@@ -56,8 +56,8 @@ def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="Altinity MCP Server")
-    parser.add_argument("--stdio", action="store_true", help="Use stdio transport instead of sse")
-    parser.add_argument("--port", type=int, help="Custom port for sse transport (default: 8069)")
+    parser.add_argument("--stdio", action="store_true", help="Use stdio transport instead of HTTP")
+    parser.add_argument("--port", type=int, help="Custom port for HTTP transport (default: 8069)")
     parser.add_argument("--skip-doc-init", action="store_true", help="Skip documentation initialization at startup")
     
     args = parser.parse_args()
@@ -71,16 +71,21 @@ def main() -> None:
     
     # Now register all the tools with the initialized MCP instance
     register_all_tools()
-    
-    # Create a custom ASGI app that wraps FastMCP's SSE app with agent mode detection
+
+    # Create a custom ASGI app that wraps FastMCP's Streamable HTTP app with agent mode detection.
+    # We use stateless HTTP mode so the server does not maintain any in-memory session registry
+    # between requests or across deploys.
     from starlette.applications import Starlette
     from starlette.routing import Mount
-    
-    # Get the SSE app from FastMCP (suppress deprecation warning)
-    import warnings
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", DeprecationWarning)
-        sse_app = mcp.sse_app()
+    from fastmcp.server.http import create_streamable_http_app
+
+    # Create the Streamable HTTP app with stateless HTTP enabled.
+    # The app will serve MCP over HTTP at the given path ("/sse" kept for compatibility).
+    http_base_app = create_streamable_http_app(
+        mcp,
+        streamable_http_path="/sse",
+        stateless_http=True,
+    )
     
     # Pure ASGI middleware that sets agent mode - compatible with SSE streaming
     class AgentModeASGIMiddleware:
@@ -94,21 +99,24 @@ def main() -> None:
                 set_agent_mode(is_agent)
             return await self.app(scope, receive, send)
     
-    # Create a new Starlette app that mounts the SSE app at both paths
+    # Create a new Starlette app that mounts the HTTP app at both paths.
+    # IMPORTANT: We must propagate the FastMCP app's lifespan so that the
+    # StreamableHTTPSessionManager task group is initialized correctly.
     app = Starlette(
         routes=[
-            Mount('/agent', app=sse_app),  # Agent mode endpoint
-            Mount('/', app=sse_app),        # Standard endpoint
+            Mount('/agent', app=http_base_app),  # Agent mode endpoint
+            Mount('/', app=http_base_app),       # Standard endpoint
         ],
+        lifespan=http_base_app.lifespan,
     )
     
     # Wrap with our ASGI middleware
     app = AgentModeASGIMiddleware(app)
     
-    # Replace mcp's run to use our custom app
+    # Replace mcp's run to use our custom app for HTTP transport
     original_run = mcp.run
     def custom_run(transport="sse", **kwargs):
-        if transport == "sse":
+        if transport == "http":
             import uvicorn
             uvicorn.run(app, host="0.0.0.0", port=port)
         else:
@@ -118,13 +126,13 @@ def main() -> None:
     import sys
     print("""
 ================================================================================
-MCP Server Endpoints:
+MCP Server Endpoints (Streamable HTTP):
   - Standard (with tracing):  /sse
   - Agent mode (no tracing):  /agent/sse
 ================================================================================
 """, file=sys.stderr)
     
-    transport = "stdio" if args.stdio else "sse"
+    transport = "stdio" if args.stdio else "http"
     
     # Pre-fetch documentation unless skipped
     if not args.skip_doc_init:
@@ -157,7 +165,7 @@ MCP Server Endpoints:
     if transport == "stdio":
         print("Starting Altinity MCP server using stdio transport", file=sys.stderr, flush=True)
     else:
-        print(f"Starting Altinity MCP server on port {port} using transport {transport}", file=sys.stderr, flush=True)
+        print(f"Starting Altinity MCP server on port {port} using Streamable HTTP (stateless)", file=sys.stderr, flush=True)
     
     mcp.run(transport=transport)
 
