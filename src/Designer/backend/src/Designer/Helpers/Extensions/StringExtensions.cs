@@ -104,7 +104,7 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
                 throw new ArgumentException($"'{variableName}' cannot be null or whitespace.", variableName);
             }
 
-            if (Path.GetInvalidFileNameChars().Any(path.Contains))
+            if (GetInvalidFileNameChars().Any(path.Contains))
             {
                 throw new ArgumentException("Invalid path segment.", variableName);
             }
