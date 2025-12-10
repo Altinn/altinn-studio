@@ -6,7 +6,7 @@ import type { SchemaConfigProps } from '../types';
 import { useDisplayObjectValues } from './useDisplayObjectValues';
 import { ConfigObjectPropertyCard } from './ConfigObjectPropertyCard';
 
-export interface ConfigObjectPropertiesProps extends SchemaConfigProps {
+export interface ConfigObjectPropertyProps extends SchemaConfigProps {
   objectPropertyKey: string;
   editFormId: string;
   className?: string;
@@ -19,9 +19,9 @@ export const ConfigObjectProperty = ({
   editFormId,
   handleComponentUpdate,
   className,
-}: ConfigObjectPropertiesProps) => {
+}: ConfigObjectPropertyProps) => {
   const componentPropertyLabel = useComponentPropertyLabel();
-  const [openObjectCard, setOpenObjectCard] = useState<Boolean>(false);
+  const [openObjectCard, setOpenObjectCard] = useState<boolean>(false);
   const valuesToBeDisplayed = useDisplayObjectValues(component[objectPropertyKey]);
 
   if (!openObjectCard) {

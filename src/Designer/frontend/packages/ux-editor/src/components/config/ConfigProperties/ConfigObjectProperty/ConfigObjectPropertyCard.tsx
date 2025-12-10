@@ -12,7 +12,7 @@ import type { SchemaConfigProps } from '../types';
 export interface ConfigObjectPropertyCardProps extends SchemaConfigProps {
   objectPropertyKey: string;
   editFormId: string;
-  setOpenObjectCard: (open: Boolean) => void;
+  setOpenObjectCard: (open: boolean) => void;
 }
 
 export const ConfigObjectPropertyCard = ({
