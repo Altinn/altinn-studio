@@ -333,11 +333,11 @@ describe('OrgContentLibraryPage', () => {
       files: [
         {
           path: 'CodeLists/list-1.json',
-          content: JSON.stringify({ codes: newCodeLists[0].codes }, null, 2),
+          content: JSON.stringify(newCodeLists[0].codes, null, 2),
         },
         {
           path: 'CodeLists/list-2.json',
-          content: JSON.stringify({ codes: newCodeLists[1].codes }, null, 2),
+          content: JSON.stringify(newCodeLists[1].codes, null, 2),
         },
         {
           path: 'CodeLists/animals.json',

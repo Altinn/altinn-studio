@@ -110,11 +110,21 @@ describe('utils', () => {
         files: [
           {
             path: 'CodeLists/animals.json',
-            content: JSON.stringify({ codes: codeLists.animals }, null, 2),
+            content: expect.stringMatching(
+              RegExp(
+                '^\\[\\s*{\\s*"value":\\s*"cat",\\s*"label":\\s*{\\s*"nb":\\s*"Katt",.+}\\s*},.+]$',
+                's',
+              ),
+            ),
           },
           {
             path: 'CodeLists/vehicles.json',
-            content: JSON.stringify({ codes: codeLists.vehicles }, null, 2),
+            content: expect.stringMatching(
+              RegExp(
+                '^\\[\\s*{\\s*"value":\\s*"car",\\s*"label":\\s*{\\s*"nb":\\s*"Bil",.+}\\s*},.+]$',
+                's',
+              ),
+            ),
           },
         ],
         baseCommitSha: sharedResourcesResponse.commitSha,
@@ -135,7 +145,7 @@ describe('utils', () => {
         files: [
           {
             path: 'CodeLists/animals.json',
-            content: JSON.stringify({ codes: codeLists.animals }, null, 2),
+            content: JSON.stringify(codeLists.animals, null, 2),
           },
           { path: 'CodeLists/vehicles.json', content: '' },
         ],
@@ -157,7 +167,7 @@ describe('utils', () => {
         files: [
           {
             path: 'CodeLists/animals.json',
-            content: JSON.stringify({ codes: codeLists.animals }, null, 2),
+            content: JSON.stringify(codeLists.animals, null, 2),
           },
         ],
         baseCommitSha: sharedResourcesResponseWithProblem.commitSha,

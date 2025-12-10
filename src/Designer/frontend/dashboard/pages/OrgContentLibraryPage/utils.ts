@@ -154,7 +154,7 @@ export function libraryCodeListsToUpdatePayload(
 function mapFiles(updatedCodeLists: LibraryCodeListData[]): FileMetadata[] {
   return updatedCodeLists.map((codeList) => ({
     path: `${CODE_LIST_FOLDER}/${codeList.name}.json`,
-    content: JSON.stringify({ codes: codeList.codes }, null, 2),
+    content: JSON.stringify(codeList.codes, null, 2),
   }));
 }
 
