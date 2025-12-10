@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
+import type { UseQueryOptions } from '@tanstack/react-query';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -23,11 +24,14 @@ import { DesignViewNavigation } from '../DesignViewNavigation';
 import { PageGroupAccordion } from './PageGroupAccordion';
 import { useAddGroupMutation } from '../../hooks/mutations/useAddGroupMutation';
 import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
+import type { SelectedItem } from '@altinn/ux-editor/AppContext';
 import {
   isPagesModelWithGroups,
+  type PagesModel,
   type PagesModelWithPageOrder,
 } from 'app-shared/types/api/dto/PagesModel';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import { findFirstPage } from '../../utils/pageUtils';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -48,7 +52,32 @@ export const DesignView = (): ReactNode => {
     updateLayoutsForPreview,
   } = useAppContext();
   const { layoutSet } = useUxEditorParams();
-  const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(org, app, layoutSet);
+  const hasInitializedRef = useRef<string | false>(false);
+  const setSelectedFormLayoutNameRef = useRef(setSelectedFormLayoutName);
+  const setSelectedItemRef = useRef(setSelectedItem);
+  setSelectedFormLayoutNameRef.current = setSelectedFormLayoutName;
+  setSelectedItemRef.current = setSelectedItem;
+
+  const autoSelectFirstPage = useCallback(
+    (pageModel: PagesModel) => {
+      if (hasInitializedRef.current !== layoutSet) {
+        const firstPageId = findFirstPage(pageModel);
+        if (firstPageId) {
+          setSelectedFormLayoutNameRef.current(firstPageId);
+          setSelectedItemRef.current({
+            type: ItemType.Page,
+            id: firstPageId,
+          });
+          hasInitializedRef.current = layoutSet;
+        }
+      }
+    },
+    [layoutSet],
+  );
+
+  const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(org, app, layoutSet, {
+    onSuccess: autoSelectFirstPage,
+  } as Partial<UseQueryOptions<PagesModel>>);
   const { mutate: addPageMutation, isPending: isAddPageMutationPending } = useAddPageMutation(
     org,
     app,
@@ -68,12 +97,72 @@ export const DesignView = (): ReactNode => {
 
   const { t } = useTranslation();
 
-  /**
-   * Handles the click of an accordion. It updates the URL and sets the
-   * local storage for which page view that is open
-   *
-   * @param pageName the name of the accordion clicked
-   */
+  const layoutsWithDuplicateComponents = useMemo(
+    () => findLayoutsContainingDuplicateComponents(layouts),
+    [layouts],
+  );
+
+  useLayoutEffect(() => {
+    if (pagesModel && !pagesQueryPending && !selectedFormLayoutName) {
+      autoSelectFirstPage(pagesModel);
+    }
+  }, [pagesModel, pagesQueryPending, selectedFormLayoutName, autoSelectFirstPage]);
+
+  if (pagesQueryPending || !pagesModel) return <StudioSpinner aria-label={t('general.loading')} />;
+
+  return (
+    <DesignViewLoadedContent
+      pagesModel={pagesModel}
+      layoutSet={layoutSet}
+      layouts={layouts}
+      layoutsWithDuplicateComponents={layoutsWithDuplicateComponents}
+      getPdfLayoutName={getPdfLayoutName}
+      selectedFormLayoutName={selectedFormLayoutName}
+      setSelectedFormLayoutName={setSelectedFormLayoutName}
+      setSelectedItem={setSelectedItem}
+      addPageMutation={addPageMutation}
+      isAddPageMutationPending={isAddPageMutationPending}
+      addGroupMutation={addGroupMutation}
+      isAddGroupMutationPending={isAddGroupMutationPending}
+      updateLayoutsForPreview={updateLayoutsForPreview}
+      t={t}
+    />
+  );
+};
+
+type DesignViewLoadedContentProps = {
+  pagesModel: PagesModel;
+  layouts: ReturnType<typeof useFormLayouts>;
+  layoutsWithDuplicateComponents: ReturnType<typeof findLayoutsContainingDuplicateComponents>;
+  getPdfLayoutName: () => string;
+  layoutSet: string;
+  selectedFormLayoutName: string;
+  setSelectedFormLayoutName: (name: string | undefined) => void;
+  setSelectedItem: (item: SelectedItem | null) => void;
+  addPageMutation: ReturnType<typeof useAddPageMutation>['mutate'];
+  isAddPageMutationPending: boolean;
+  addGroupMutation: ReturnType<typeof useAddGroupMutation>['mutate'];
+  isAddGroupMutationPending: boolean;
+  updateLayoutsForPreview: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
+  t: ReturnType<typeof useTranslation>['t'];
+};
+
+const DesignViewLoadedContent = ({
+  pagesModel,
+  layouts,
+  layoutsWithDuplicateComponents,
+  getPdfLayoutName,
+  layoutSet,
+  selectedFormLayoutName,
+  setSelectedFormLayoutName,
+  setSelectedItem,
+  addPageMutation,
+  isAddPageMutationPending,
+  addGroupMutation,
+  isAddGroupMutationPending,
+  updateLayoutsForPreview,
+  t,
+}: DesignViewLoadedContentProps): ReactNode => {
   const handleClickAccordion = (pageName: string) => {
     if (selectedFormLayoutName !== pageName) {
       setSelectedFormLayoutName(pageName);
@@ -112,38 +201,6 @@ export const DesignView = (): ReactNode => {
       },
     });
   };
-
-  const layoutsWithDuplicateComponents = useMemo(
-    () => findLayoutsContainingDuplicateComponents(layouts),
-    [layouts],
-  );
-
-  const firstPageId = useMemo(() => {
-    if (!pagesModel) return undefined;
-    if (isPagesModelWithGroups(pagesModel)) {
-      const firstGroup = pagesModel.groups?.[0];
-      return firstGroup?.order?.[0]?.id;
-    }
-    return pagesModel.pages?.[0]?.id;
-  }, [pagesModel]);
-
-  useEffect(() => {
-    if (!pagesQueryPending && firstPageId && !selectedFormLayoutName) {
-      setSelectedFormLayoutName(firstPageId);
-      setSelectedItem({
-        type: ItemType.Page,
-        id: firstPageId,
-      });
-    }
-  }, [
-    pagesQueryPending,
-    firstPageId,
-    selectedFormLayoutName,
-    setSelectedFormLayoutName,
-    setSelectedItem,
-  ]);
-
-  if (pagesQueryPending) return <StudioSpinner aria-label={t('general.loading')} />;
 
   /**
    * Displays the pages as an ordered list

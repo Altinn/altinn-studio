@@ -1,4 +1,4 @@
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useQuery, type UseQueryOptions, type UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -7,6 +7,7 @@ export const usePagesQuery = (
   org: string,
   app: string,
   layoutSetName: string,
+  options?: Partial<UseQueryOptions<PagesModel>>,
 ): UseQueryResult<PagesModel> => {
   const { getPages } = useServicesContext();
 
@@ -17,5 +18,6 @@ export const usePagesQuery = (
         return pages;
       }),
     enabled: !!layoutSetName,
+    ...options,
   });
 };
