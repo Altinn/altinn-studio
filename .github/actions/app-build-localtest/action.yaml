@@ -33,7 +33,7 @@ runs:
       working-directory: src/Runtime/localtest
       run: |
         args=""
-        if [ -n "${{ inputs.docker-profile }}" ]; then
+        if [[ "${{ inputs.docker-profile }}" != "" ]]; then
           args="--profile ${{ inputs.docker-profile }}"
         fi
 
@@ -44,7 +44,11 @@ runs:
 
         # Save to cache
         mkdir -p /tmp/localtest-docker-cache
-        docker save localtest localtest-loadbalancer localtest-altinn_test_apps localtest-pdf3 -o /tmp/localtest-docker-cache/images.tar
+        images="localtest localtest-loadbalancer localtest-pdf3"
+        if [ "${{ inputs.docker-profile }}" == "test-apps" ]; then
+          images="$images localtest-altinn_test_apps"
+        fi
+        docker save $images -o /tmp/localtest-docker-cache/images.tar
         echo "Built and cached Docker images"
       shell: bash
 
