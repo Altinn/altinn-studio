@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace StudioGateway.Api.Configuration;
+namespace StudioGateway.Api.Settings;
 
 /// <summary>
 /// Alerts client settings
@@ -13,5 +13,4 @@ namespace StudioGateway.Api.Configuration;
 internal sealed class AlertsClientSettings
 {
     public required string Provider { get; set; }
-    public required string BaseUrl { get; set; }
 }

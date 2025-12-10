@@ -3,8 +3,8 @@ using Azure;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
 using Microsoft.Extensions.Options;
-using StudioGateway.Api.Configuration;
 using StudioGateway.Api.Models.Metrics;
+using StudioGateway.Api.Settings;
 
 namespace StudioGateway.Api.TypedHttpClients.MetricsClient;
 

@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Options;
-using StudioGateway.Api.Configuration;
+using StudioGateway.Api.Settings;
 
 namespace StudioGateway.Api.TypedHttpClients.StudioClient;
 

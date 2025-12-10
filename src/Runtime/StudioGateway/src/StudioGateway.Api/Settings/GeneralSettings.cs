@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace StudioGateway.Api.Configuration;
+namespace StudioGateway.Api.Settings;
 
 /// <summary>
 /// General settings
@@ -17,10 +17,4 @@ internal sealed class GeneralSettings
 
     [ConfigurationKeyName("GATEWAY_ENVIRONMENT")]
     public required string Environment { get; set; }
-
-    [ConfigurationKeyName("external-grafana-altinn-studio-gateway-token")]
-    public required string AlertsClientToken { get; set; }
-
-    [ConfigurationKeyName("studio-client-token")]
-    public required string StudioClientToken { get; set; }
 }

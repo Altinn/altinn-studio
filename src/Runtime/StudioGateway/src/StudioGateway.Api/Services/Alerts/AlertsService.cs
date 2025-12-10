@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Options;
-using StudioGateway.Api.Configuration;
 using StudioGateway.Api.Models.Alerts;
+using StudioGateway.Api.Settings;
 using StudioGateway.Api.TypedHttpClients.AlertsClient;
 using StudioGateway.Api.TypedHttpClients.StudioClient;
 

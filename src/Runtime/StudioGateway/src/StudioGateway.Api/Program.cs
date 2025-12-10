@@ -5,18 +5,17 @@ using k8s;
 using Microsoft.Extensions.Options;
 using StudioGateway.Api;
 using StudioGateway.Api.Authentication;
-using StudioGateway.Api.Configuration;
 using StudioGateway.Api.Endpoints.Internal;
 using StudioGateway.Api.Endpoints.Local;
 using StudioGateway.Api.Endpoints.Public;
 using StudioGateway.Api.Hosting;
 using StudioGateway.Api.Services.Alerts;
 using StudioGateway.Api.Services.Metrics;
+using StudioGateway.Api.Settings;
 using StudioGateway.Api.TypedHttpClients.AlertsClient;
 using StudioGateway.Api.TypedHttpClients.KubernetesClient;
 using StudioGateway.Api.TypedHttpClients.MetricsClient;
 using StudioGateway.Api.TypedHttpClients.StudioClient;
-using StudioGateway.Api.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,22 +43,19 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
-builder.Services.AddHttpClient<IStudioClient, StudioClient>(
-    (serviceProvider, httpClient) =>
-    {
-        var generalSettings = serviceProvider.GetRequiredService<IOptions<GeneralSettings>>().Value;
-        var studioClientSettings = serviceProvider.GetRequiredService<IOptions<StudioClientSettings>>().Value;
+builder
+    .Services.AddHttpClient<IStudioClient, StudioClient>(
+        (serviceProvider, httpClient) =>
+        {
+            var studioClientSettings = serviceProvider.GetRequiredService<IOptions<StudioClientSettings>>().Value;
 
-        httpClient.BaseAddress = new Uri(studioClientSettings.BaseUrl);
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer",
-            generalSettings.StudioClientToken
-        );
-    }
-);
+            httpClient.BaseAddress = new Uri(studioClientSettings.BaseUrl);
+        }
+    )
+    .UseMaskinportenAuth();
 builder.Services.AddSingleton(sp =>
 {
-    return new Kubernetes(KubernetesClientConfiguration.InClusterConfig());
+    return new Kubernetes(KubernetesClientConfiguration.BuildDefaultConfig());
 });
 builder.Services.AddTransient<IKubernetesClient, KubernetesClient>();
 builder.Services.AddKeyedTransient<IAlertsClient>(
@@ -74,13 +70,10 @@ builder.Services.AddHttpClient(
     "grafana",
     (serviceProvider, httpClient) =>
     {
-        var generalSettings = serviceProvider.GetRequiredService<IOptions<GeneralSettings>>().Value;
-        var alertsSettings = serviceProvider.GetRequiredService<IOptions<AlertsClientSettings>>().Value;
+        var grafanaSettings = serviceProvider.GetRequiredService<IOptions<GrafanaSettings>>().Value;
 
-        string token = generalSettings.AlertsClientToken;
-
-        httpClient.BaseAddress = new Uri(alertsSettings.BaseUrl);
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        httpClient.BaseAddress = new Uri(grafanaSettings.Url);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", grafanaSettings.Token);
     }
 );
 builder.Services.AddKeyedTransient<IMetricsClient, AzureMonitorClient>("azuremonitor");
@@ -135,8 +128,6 @@ app.UseSwaggerUI(options =>
 
 app.MapHealthChecks("/health/live");
 app.MapHealthChecks("/health/ready");
-
-app.MapControllers();
 
 app.AddPublicApis();
 app.AddInternalApis();

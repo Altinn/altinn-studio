@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace StudioGateway.Api.Configuration;
+namespace StudioGateway.Api.Settings;
 
 /// <summary>
 /// Studio client settings
