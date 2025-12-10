@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,7 +25,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
     private const string IndexFileName = "_index.json";
     private const string LatestCodeListFileName = "_latest.json";
 
-    private readonly Dictionary<string, string> _fileNamesAndContent = [];
+    private readonly ConcurrentDictionary<string, string> _fileNamesAndContent = [];
     private string _currentVersion = InitialVersion;
     private readonly string _basePath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "altinn", "published_resources");
 
@@ -261,7 +262,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
                 continue;
             }
 
-            logger.LogWarning("Could not parse version string to int: {VersionString}, class: {Class}", versionAsString, nameof(AzureSharedContentClient));
+            logger.LogWarning("Could not parse version string to int: {VersionString}, class: {Class}", versionAsString, nameof(LocalFileSharedContentClient));
         }
 
         if (versions.Count == 0) { return; }
