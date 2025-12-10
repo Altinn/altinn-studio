@@ -18,6 +18,7 @@ type InstancesTableProps = {
   confirmed?: boolean;
   isSoftDeleted?: boolean;
   isHardDeleted?: boolean;
+  createdBefore?: string;
 };
 
 export const InstancesTable = ({
@@ -30,6 +31,7 @@ export const InstancesTable = ({
   confirmed,
   isSoftDeleted,
   isHardDeleted,
+  createdBefore,
 }: InstancesTableProps) => {
   const { data, status, fetchNextPage, hasNextPage } = useAppInstancesQuery(
     org,
@@ -41,6 +43,7 @@ export const InstancesTable = ({
     confirmed,
     isSoftDeleted,
     isHardDeleted,
+    createdBefore,
   );
   const { t } = useTranslation();
 

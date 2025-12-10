@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -46,6 +47,7 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
         bool? confirmedFilter,
         bool? isSoftDeletedFilter,
         bool? isHardDeletedFilter,
+        DateOnly? createdBeforeFilter,
         CancellationToken ct
     )
     {
@@ -103,6 +105,12 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
                 "status.isHardDeleted",
                 isHardDeletedFilter.Value.ToString().ToLowerInvariant()
             );
+        }
+
+        if (createdBeforeFilter != null)
+        {
+            var dateString = createdBeforeFilter.Value.ToString("yyyy-MM-dd");
+            uri = QueryHelpers.AddQueryString(uri, "created", $"lt:{dateString}");
         }
 
         using var response = await _httpClient.GetAsync(uri, ct);

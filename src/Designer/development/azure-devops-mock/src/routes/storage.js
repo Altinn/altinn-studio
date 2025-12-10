@@ -56,29 +56,67 @@ const randomInstances = Array.from({ length: 1000 }).map(() => {
   };
 });
 
-function parseBoolParam(param) {
-  if (param === 'true') {
-    return true;
-  }
-  if (param === 'false') {
-    return false;
-  }
-  return null;
-}
-
 function parseIntParam(param) {
   const n = parseInt(param);
   return !isNaN(n) ? n : null;
 }
 
+function parseBoolConstraintParam(param) {
+  if (param === 'true') {
+    return (value) => Boolean(value);
+  }
+  if (param === 'false') {
+    return (value) => !Boolean(value);
+  }
+  return (_) => true;
+}
+
+function getDateOnly(datetime) {
+  return new Date(datetime.toISOString().slice(0, 10)).getTime();
+}
+
+function parseDateConstraintParam(param) {
+  if (!param) {
+    return (_) => true;
+  }
+
+  const params = Array.isArray(param) ? param : [param];
+  const constraints = params.map((value) => {
+    if (!value.includes(':')) {
+      return { type: 'eq', date: new Date(value).getTime() };
+    }
+    const [type, date] = value.split(':');
+    return { type, date: new Date(date).getTime() };
+  });
+
+  return (value) =>
+    constraints.every(({ type, date }) => {
+      switch (type) {
+        case 'eq':
+          return getDateOnly(value) == date;
+        case 'lt':
+          return getDateOnly(value) < date;
+        case 'lte':
+          return getDateOnly(value) <= date;
+        case 'gt':
+          return getDateOnly(value) > date;
+        case 'gte':
+          return getDateOnly(value) >= date;
+        default:
+          throw new Error('Bad date param');
+      }
+    });
+}
+
 export const storageInstancesRoute = (req, res) => {
   const { org, app } = req.params;
   const currentTask = req.query?.['process.currentTask'];
-  const isArchived = parseBoolParam(req.query?.['status.isArchived']);
-  const isConfirmed = parseBoolParam(req.query?.['confirmed']);
-  const isSoftDeleted = parseBoolParam(req.query?.['status.isSoftDeleted']);
-  const isHardDeleted = parseBoolParam(req.query?.['status.isHardDeleted']);
-  const archiveReference = req.query?.['archiveReference'];
+  const archiveReference = req.query?.['archiveReference']?.toLowerCase();
+  const isArchivedConstraint = parseBoolConstraintParam(req.query?.['status.isArchived']);
+  const isConfirmedConstraint = parseBoolConstraintParam(req.query?.['confirmed']);
+  const isSoftDeletedConstraint = parseBoolConstraintParam(req.query?.['status.isSoftDeleted']);
+  const isHardDeletedConstraint = parseBoolConstraintParam(req.query?.['status.isHardDeleted']);
+  const createdConstraint = parseDateConstraintParam(req.query?.['created']);
   const size = parseIntParam(req.query?.['size']) ?? 10;
   const skip = parseIntParam(req.query?.['continuationToken']) ?? 0;
 
@@ -86,19 +124,12 @@ export const storageInstancesRoute = (req, res) => {
     .filter(
       (i) =>
         (!currentTask || i.currentTaskId === currentTask) &&
-        (isArchived == null || (isArchived && !!i.archivedAt) || (!isArchived && !i.archivedAt)) &&
-        (isConfirmed == null ||
-          (isConfirmed && !!i.confirmedAt) ||
-          (!isConfirmed && !i.confirmedAt)) &&
-        (isSoftDeleted == null ||
-          (isSoftDeleted && !!i.softDeletedAt) ||
-          (!isSoftDeleted && !i.softDeletedAt)) &&
-        (isHardDeleted == null ||
-          (isHardDeleted && !!i.hardDeletedAt) ||
-          (!isHardDeleted && !i.hardDeletedAt)) &&
-        (!archiveReference ||
-          i.id === archiveReference.toLowerCase() ||
-          i.id.slice(24) === archiveReference.toLowerCase()),
+        (!archiveReference || i.id === archiveReference || i.id.slice(24) === archiveReference) &&
+        isArchivedConstraint(i.archivedAt) &&
+        isConfirmedConstraint(i.confirmedAt) &&
+        isSoftDeletedConstraint(i.softDeletedAt) &&
+        isHardDeletedConstraint(i.hardDeletedAt) &&
+        createdConstraint(i.createdAt),
     )
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
     .slice(skip, skip + size)

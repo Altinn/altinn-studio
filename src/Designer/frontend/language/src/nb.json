@@ -12,6 +12,8 @@
   "admin.instances.archive_reference": "Arkivreferanse",
   "admin.instances.archive_reference_validation": "Må være en gyldig instans-ID eller arkivreferanse.",
   "admin.instances.created": "Opprettet",
+  "admin.instances.created_before": "Vis instanser som er eldre enn",
+  "admin.instances.created_option": "{{days}} dager",
   "admin.instances.fetch_more": "Last inn 10 flere rader",
   "admin.instances.filter.all": "Alle",
   "admin.instances.filter.no": "Nei",
