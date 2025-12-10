@@ -67,8 +67,7 @@ internal sealed class ProjectFileRewriter
     /// <summary>
     /// Converts package references to project references for local development and updates target framework
     /// </summary>
-    /// <param name="appProjectFolder">The folder containing the App.csproj file</param>
-    public async Task ConvertToProjectReferences(string appProjectFolder)
+    public async Task ConvertToProjectReferences()
     {
         var projectDir = Path.GetDirectoryName(_projectFilePath);
         if (projectDir == null)
@@ -160,9 +159,7 @@ internal sealed class ProjectFileRewriter
                 itemGroup.Add(projectReference);
                 addedAnyProjectReferences = true;
 
-                Console.WriteLine(
-                    $"Converted {packageName} from package reference to project reference: {relativePath}"
-                );
+                Console.WriteLine($"Converted {packageName} from package reference to project reference");
             }
         }
 
@@ -275,6 +272,5 @@ internal sealed class ProjectFileRewriter
         await using XmlWriter xw = XmlWriter.Create(_projectFilePath, xws);
         await _doc.WriteToAsync(xw, CancellationToken.None);
         await xw.FlushAsync();
-        Console.WriteLine($"Saved changes to {Path.GetFileName(_projectFilePath)}");
     }
 }

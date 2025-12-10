@@ -110,7 +110,7 @@ internal static class NextUpgrade
             // Job 1: Convert to project references and upgrade target framework
             if (!skipCsprojUpgrade && returnCode == 0)
             {
-                returnCode = await ConvertToProjectReferences(projectFile, projectFolder, targetFramework);
+                returnCode = await ConvertToProjectReferences(projectFile, targetFramework);
             }
 
             // Job 2: Remove Swashbuckle.AspNetCore dependency
@@ -159,15 +159,12 @@ internal static class NextUpgrade
         return 0;
     }
 
-    static async Task<int> ConvertToProjectReferences(string projectFile, string projectFolder, string targetFramework)
+    static async Task<int> ConvertToProjectReferences(string projectFile, string targetFramework)
     {
         try
         {
             var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
-            await rewriter.ConvertToProjectReferences(projectFolder);
-            await Console.Out.WriteLineAsync(
-                "Package references converted to project references and target framework updated"
-            );
+            await rewriter.ConvertToProjectReferences();
             return 0;
         }
         catch (Exception ex)
