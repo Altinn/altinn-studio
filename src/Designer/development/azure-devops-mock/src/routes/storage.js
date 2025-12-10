@@ -131,7 +131,7 @@ export const storageInstancesRoute = (req, res) => {
         isHardDeletedConstraint(i.hardDeletedAt) &&
         createdConstraint(i.createdAt),
     )
-    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .toSorted((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
     .slice(skip, skip + size)
     .map((i) => ({ org, app, ...i }));
 
