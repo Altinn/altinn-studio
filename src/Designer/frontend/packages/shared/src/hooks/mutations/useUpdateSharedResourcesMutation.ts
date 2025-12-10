@@ -6,6 +6,7 @@ import { QueryKey } from '../../types/QueryKey';
 
 export function useUpdateSharedResourcesMutation(
   orgName: string,
+  path: string,
 ): UseMutationResult<UpdateSharedResourcesRequest, DefaultError, UpdateSharedResourcesRequest> {
   const { updateSharedResources } = useServicesContext();
   const queryClient = useQueryClient();
@@ -14,6 +15,7 @@ export function useUpdateSharedResourcesMutation(
       await updateSharedResources(orgName, payload);
       return payload;
     },
-    onSuccess: (payload) => queryClient.setQueryData([QueryKey.SharedResources, orgName], payload),
+    onSuccess: (payload) =>
+      queryClient.setQueryData([QueryKey.SharedResources, orgName, path], payload),
   });
 }

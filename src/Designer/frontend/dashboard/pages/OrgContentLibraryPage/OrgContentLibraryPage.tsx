@@ -39,7 +39,7 @@ import { useOrgRepoName } from 'dashboard/hooks/useOrgRepoName';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
 import { useOrgTextResourcesQuery } from 'app-shared/hooks/queries/useOrgTextResourcesQuery';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { CODE_LIST_FOLDER, DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
@@ -205,7 +205,7 @@ function usePagesFromFeatureFlags(orgName: string): Partial<PagesConfig> {
 
 function useCodeListsProps(orgName: string): PagesConfig['codeLists']['props'] {
   const { data } = useSharedCodeListsQuery(orgName);
-  const { mutate } = useUpdateSharedResourcesMutation(orgName);
+  const { mutate } = useUpdateSharedResourcesMutation(orgName, CODE_LIST_FOLDER);
   const { mutate: publish } = usePublishCodeListMutation(orgName);
   const { t } = useTranslation();
 
