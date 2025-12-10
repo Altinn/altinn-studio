@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import React, { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
-import type { UseQueryOptions } from '@tanstack/react-query';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
