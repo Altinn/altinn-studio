@@ -11,6 +11,7 @@ from typing import Dict, Any, List, Optional
 from shared.utils.logging_utils import get_logger
 
 from agents.services.mcp.patch_generator import PatchGenerator
+from fastmcp.client.transports import StreamableHttpTransport
 from agents.services.patching import PatchValidator, normalize_patch_structure
 from agents.services.repo import discover_repository_context
 
@@ -32,7 +33,7 @@ class MCPClient:
                 from fastmcp import Client
                 # Server URL should already include /sse if needed
                 log.info(f"Connecting to FastMCP server at: {self.server_url}")
-                self._client = Client(self.server_url)
+                self._client = Client(StreamableHttpTransport(url=self.server_url))
             except ImportError:
                 log.error("FastMCP library not available, install with: pip install fastmcp")
                 raise Exception("FastMCP library not installed")
