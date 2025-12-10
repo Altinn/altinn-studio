@@ -48,6 +48,21 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
     }
 
     /// <inheritdoc />
+    public bool Set(ReadOnlySpan<char> path, object? value)
+    {
+        if (path.IsEmpty)
+        {
+            return false;
+        }
+        var field = path.ToString();
+        if (string.IsNullOrEmpty(field))
+        {
+            return false;
+        }
+        return SetModelDataRecursive(field.Split('.'), 0, _dataModel, value);
+    }
+
+    /// <inheritdoc />
     public void RemoveField(ReadOnlySpan<char> path, RowRemovalOption rowRemovalOption)
     {
         RemoveField(path.ToString(), rowRemovalOption);
@@ -137,6 +152,230 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
         }
 
         return GetModelDataRecursive(keys, index + 1, elementAt);
+    }
+
+    private static bool SetModelDataRecursive(string[] keys, int index, object currentModel, object? value)
+    {
+        if (index == keys.Length - 1)
+        {
+            // We're at the last key, set the value
+            var (key, groupIndex) = ParseKeyPart(keys[index]);
+            var prop = Array.Find(currentModel.GetType().GetProperties(), p => IsPropertyWithJsonName(p, key));
+            if (prop is null)
+            {
+                return false;
+            }
+
+            if (groupIndex is null)
+            {
+                // Setting a simple property
+                var convertedValue = ConvertValue(value, prop.PropertyType);
+                if (
+                    convertedValue is null
+                    && prop.PropertyType.IsValueType
+                    && Nullable.GetUnderlyingType(prop.PropertyType) is null
+                )
+                {
+                    // Can't set a non-nullable value type to null
+                    return false;
+                }
+                try
+                {
+                    prop.SetValue(currentModel, convertedValue);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                // Setting an element in a list
+                var listProperty = prop.GetValue(currentModel);
+                if (listProperty is not System.Collections.IList list)
+                {
+                    return false;
+                }
+
+                if (groupIndex.Value < 0 || groupIndex.Value >= list.Count)
+                {
+                    return false;
+                }
+
+                var elementType = list.GetType().GetGenericArguments().FirstOrDefault();
+                if (elementType is null)
+                {
+                    return false;
+                }
+
+                var convertedValue = ConvertValue(value, elementType);
+                try
+                {
+                    list[groupIndex.Value] = convertedValue;
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
+        // Navigate to the next level
+        var (currentKey, currentGroupIndex) = ParseKeyPart(keys[index]);
+        var currentProp = Array.Find(
+            currentModel.GetType().GetProperties(),
+            p => IsPropertyWithJsonName(p, currentKey)
+        );
+        if (currentProp is null)
+        {
+            return false;
+        }
+
+        var childModel = currentProp.GetValue(currentModel);
+        if (childModel is null)
+        {
+            // Create an instance of the property type if it's null
+            childModel = Activator.CreateInstance(currentProp.PropertyType);
+            if (childModel is null)
+            {
+                return false;
+            }
+            currentProp.SetValue(currentModel, childModel);
+        }
+
+        // Strings are enumerable in C#
+        // Other enumerable types is treated as a collection
+        if (!(childModel is not string && childModel is System.Collections.IEnumerable childModelList))
+        {
+            if (currentGroupIndex is not null)
+            {
+                // Error, trying to index a non-collection
+                return false;
+            }
+            return SetModelDataRecursive(keys, index + 1, childModel, value);
+        }
+
+        if (currentGroupIndex is null)
+        {
+            return false; // Error: index for collection not specified
+        }
+
+        var elementAt = GetElementAt(childModelList, currentGroupIndex.Value);
+        if (elementAt is null)
+        {
+            // Try to create the element at the specified index if it doesn't exist
+            if (childModelList is not System.Collections.IList list)
+            {
+                return false;
+            }
+
+            var elementType = list.GetType().GetGenericArguments().FirstOrDefault();
+            if (elementType is null)
+            {
+                return false;
+            }
+
+            // Ensure the list has enough elements by adding default instances
+            while (list.Count <= currentGroupIndex.Value)
+            {
+                try
+                {
+                    var newElement = Activator.CreateInstance(elementType);
+                    list.Add(newElement);
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            elementAt = list[currentGroupIndex.Value];
+            if (elementAt is null)
+            {
+                return false;
+            }
+        }
+
+        return SetModelDataRecursive(keys, index + 1, elementAt, value);
+    }
+
+    private static object? ConvertValue(object? value, Type targetType)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        // If the value is already the correct type, return it
+        if (targetType.IsInstanceOfType(value))
+        {
+            return value;
+        }
+
+        // Handle nullable types
+        var underlyingType = Nullable.GetUnderlyingType(targetType);
+        if (underlyingType is not null)
+        {
+            targetType = underlyingType;
+        }
+
+        // Try to convert common types
+        try
+        {
+            if (targetType == typeof(string))
+            {
+                return value.ToString();
+            }
+
+            if (targetType == typeof(int))
+            {
+                return Convert.ToInt32(value, CultureInfo.InvariantCulture);
+            }
+
+            if (targetType == typeof(long))
+            {
+                return Convert.ToInt64(value, CultureInfo.InvariantCulture);
+            }
+
+            if (targetType == typeof(decimal))
+            {
+                return Convert.ToDecimal(value, CultureInfo.InvariantCulture);
+            }
+
+            if (targetType == typeof(double))
+            {
+                return Convert.ToDouble(value, CultureInfo.InvariantCulture);
+            }
+
+            if (targetType == typeof(float))
+            {
+                return Convert.ToSingle(value, CultureInfo.InvariantCulture);
+            }
+
+            if (targetType == typeof(bool))
+            {
+                return Convert.ToBoolean(value, CultureInfo.InvariantCulture);
+            }
+
+            if (targetType == typeof(DateTime))
+            {
+                return Convert.ToDateTime(value, CultureInfo.InvariantCulture);
+            }
+
+            if (targetType.IsEnum)
+            {
+                return Enum.Parse(targetType, value.ToString() ?? string.Empty);
+            }
+
+            // Try using Convert.ChangeType as a fallback
+            return Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static object? GetElementAt(System.Collections.IEnumerable enumerable, int index)
