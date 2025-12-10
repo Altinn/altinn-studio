@@ -43,7 +43,7 @@ export const ConfigObjectProperties = ({
         return (
           <div key={propertyKey}>
             {isOpen ? (
-              <StudioCard>
+              <StudioCard className={classes.cardWrapper}>
                 <StudioCard.Block data-size='md'>
                   <div className={classes.flexContainer}>
                     {componentPropertyLabel(propertyKey)}
