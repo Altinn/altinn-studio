@@ -1,0 +1,42 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
+
+namespace StudioGateway.Api.Models.Alerts;
+
+[SuppressMessage(
+    "Microsoft.Performance",
+    "CA1515:AvoidUninstantiatedPublicTypes",
+    Justification = "Exposed externally"
+)]
+public class AlertRule
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+
+    [JsonPropertyName("uid")]
+    public string? Uid { get; set; }
+
+    [JsonPropertyName("folderUID")]
+    public string? FolderUid { get; set; }
+
+    [JsonPropertyName("ruleGroup")]
+    public string? RuleGroup { get; set; }
+
+    [JsonPropertyName("title")]
+    public string? Title { get; set; }
+
+    [JsonPropertyName("updated")]
+    public DateTime Updated { get; set; }
+
+    [JsonPropertyName("noDataState")]
+    public string? NoDataState { get; set; }
+
+    [JsonPropertyName("execErrState")]
+    public string? ExecErrState { get; set; }
+
+    [JsonPropertyName("for")]
+    public string? For { get; set; }
+
+    [JsonPropertyName("isPaused")]
+    public bool IsPaused { get; set; }
+}
