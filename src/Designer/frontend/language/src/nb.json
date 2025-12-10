@@ -17,6 +17,7 @@
   "admin.instances.filter.no": "Nei",
   "admin.instances.filter.yes": "Ja",
   "admin.instances.id": "Id",
+  "admin.instances.missing_rights": "Du har ikke rettigheter til å se instanser i {{envTitle}}. Be eierne i {{orgName}} om å gi deg tilgang.",
   "admin.instances.process_task": "Prosessteg",
   "admin.instances.status": "Status",
   "admin.instances.status.active": "Aktiv",
