@@ -33,7 +33,7 @@ public class InstancesController : ControllerBase
     }
 
     [HttpGet("{org}/{env}/{app}")]
-    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
+    [Authorize(Policy = AltinnPolicy.MustHaveAdminPermission)]
     public async Task<ActionResult<InstancesResponse>> GetInstances(
         string org,
         string env,
