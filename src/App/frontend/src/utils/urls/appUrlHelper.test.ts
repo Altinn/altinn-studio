@@ -2,7 +2,6 @@ import {
   getCreateInstancesUrl,
   getDataListsUrl,
   getEnvironmentLoginUrl,
-  getFetchFormDynamicsUrl,
   getHostname,
   getInstantiateUrl,
   getLayoutSettingsUrl,
@@ -10,7 +9,6 @@ import {
   getOptionsUrl,
   getProcessStateUrl,
   getRedirectUrl,
-  getRulehandlerUrl,
   getSetSelectedPartyUrl,
   getUpgradeAuthLevelUrl,
   getValidationUrl,
@@ -357,14 +355,6 @@ describe('Frontend urlHelper.ts', () => {
     });
   });
 
-  describe('getRulehandlerUrl', () => {
-    it('should return rule handler as passed argument', () => {
-      const result = getRulehandlerUrl('custom-handler.js');
-
-      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/rulehandler/custom-handler.js');
-    });
-  });
-
   describe('getLayoutsUrl', () => {
     it('should return layout as passed argument', () => {
       const result = getLayoutsUrl('custom-layout.json');
@@ -378,14 +368,6 @@ describe('Frontend urlHelper.ts', () => {
       const result = getLayoutSettingsUrl('custom-layout.json');
 
       expect(result).toBe('https://local.altinn.cloud/ttd/test/api/layoutsettings/custom-layout.json');
-    });
-  });
-
-  describe('getFetchFormDynamicsUrl', () => {
-    it('should return layout as passed argument', () => {
-      const result = getFetchFormDynamicsUrl('custom-rule.json');
-
-      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/ruleconfiguration/custom-rule.json');
     });
   });
 });

@@ -34,7 +34,10 @@ services:
 
   altinn_pdf3:
     container_name: localtest-pdf3
-    image: ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:55a277005d
+    image: localtest-pdf3:latest
+    build:
+      context: ../pdf3
+      dockerfile: Dockerfile.worker
     restart: always
     networks:
       - altinntestlocal_network
