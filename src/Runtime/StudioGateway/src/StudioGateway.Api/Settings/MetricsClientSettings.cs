@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 
 namespace StudioGateway.Api.Settings;
@@ -14,5 +15,4 @@ internal sealed class MetricsClientSettings
 {
     public required string Provider { get; set; }
     public required string ApplicationLogAnalyticsWorkspaceId { get; set; }
-    public required string Token { get; set; }
 }

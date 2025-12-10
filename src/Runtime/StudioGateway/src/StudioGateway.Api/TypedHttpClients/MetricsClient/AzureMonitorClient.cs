@@ -45,13 +45,6 @@ internal sealed class AzureMonitorClient(
     {
         string logAnalyticsWorkspaceId = _metricsClientSettings.ApplicationLogAnalyticsWorkspaceId;
 
-        if (string.IsNullOrWhiteSpace(logAnalyticsWorkspaceId))
-        {
-            throw new InvalidOperationException(
-                "Configuration value 'ApplicationLogAnalyticsWorkspaceId' is missing or empty."
-            );
-        }
-
         var query =
             $@"
                 AppRequests
@@ -98,13 +91,6 @@ internal sealed class AzureMonitorClient(
     )
     {
         string logAnalyticsWorkspaceId = _metricsClientSettings.ApplicationLogAnalyticsWorkspaceId;
-
-        if (string.IsNullOrWhiteSpace(logAnalyticsWorkspaceId))
-        {
-            throw new InvalidOperationException(
-                "Configuration value 'ApplicationLogAnalyticsWorkspaceId' is missing or empty."
-            );
-        }
 
         IEnumerable<AppMetric> appMetrics = await GetAppMetricsAsync(
             logAnalyticsWorkspaceId,

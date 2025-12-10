@@ -8,7 +8,7 @@ internal static class MetricsEndpoints
     public static WebApplication MapMetricsEndpoints(this WebApplication app)
     {
         app.MapGet(
-                "/",
+                "/runtime/gateway/api/v1/metrics",
                 async (IMetricsService metricsService, int time, CancellationToken cancellationToken) =>
                 {
                     var metrics = await metricsService.GetMetricsAsync(time, cancellationToken);
@@ -21,7 +21,7 @@ internal static class MetricsEndpoints
             .WithTags("Metrics");
 
         app.MapGet(
-                "/app",
+                "/runtime/gateway/api/v1/metrics/app",
                 async (IMetricsService metricsService, string app, int time, CancellationToken cancellationToken) =>
                 {
                     var appMetrics = await metricsService.GetAppMetricsAsync(app, time, cancellationToken);
@@ -34,7 +34,7 @@ internal static class MetricsEndpoints
             .WithTags("Metrics");
 
         app.MapGet(
-                "/app/health",
+                "/runtime/gateway/api/v1/metrics/app/health",
                 async (IMetricsService metricsService, string app, CancellationToken cancellationToken) =>
                 {
                     var appHealthMetrics = await metricsService.GetAppHealthMetricsAsync(app, cancellationToken);
