@@ -1,7 +1,24 @@
 using StudioGateway.Api;
-using StudioGateway.Api.Flux;
+using StudioGateway.Api.Authentication;
+using StudioGateway.Api.Endpoints.Internal;
+using StudioGateway.Api.Endpoints.Local;
+using StudioGateway.Api.Endpoints.Public;
+using StudioGateway.Api.Hosting;
+using StudioGateway.Api.Settings;
 
 var builder = WebApplication.CreateSlimBuilder(args);
+
+builder.Configuration.AddJsonFile(
+    "/app/secrets/maskinporten-client-for-designer.json",
+    optional: true,
+    reloadOnChange: true
+);
+builder.Configuration.AddJsonFile("/app/secrets/grafana-token.json", optional: true, reloadOnChange: true);
+builder.Services.Configure<GrafanaSettings>(builder.Configuration.GetSection("Grafana"));
+
+builder.ConfigureKestrelPorts();
+builder.AddHostingConfiguration();
+builder.AddMaskinportenAuthentication();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -9,23 +26,57 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
-
 builder.Services.AddHealthChecks();
-builder.Services.AddOpenApi("v1");
+builder.Services.AddOpenApi(
+    "public-v1",
+    options =>
+    {
+        options.ShouldInclude = (description) =>
+        {
+            var scope = description.ActionDescriptor.EndpointMetadata.OfType<PortScopeMetadata>().FirstOrDefault();
+            return scope?.Scope != PortScope.Internal;
+        };
+    }
+);
+builder.Services.AddOpenApi(
+    "internal-v1",
+    options =>
+    {
+        options.ShouldInclude = (description) =>
+        {
+            var scope = description.ActionDescriptor.EndpointMetadata.OfType<PortScopeMetadata>().FirstOrDefault();
+            return scope?.Scope != PortScope.Public;
+        };
+    }
+);
 
 var app = builder.Build();
 
-// OpenApi UI is served as a static file under /openapi.html
-app.UseStaticFiles();
+app.UseHsts();
+app.UseForwardedHeaders();
+
+// Only run auth middleware on public port - internal port is secured by NetworkPolicy
+app.UseWhen(
+    ctx => ctx.Connection.LocalPort == PortConfiguration.PublicPort,
+    branch =>
+    {
+        branch.UseAuthentication();
+        branch.UseAuthorization();
+    }
+);
 
 app.MapOpenApi();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/openapi/public-v1.json", "Public API v1");
+    options.SwaggerEndpoint("/openapi/internal-v1.json", "Internal API v1");
+});
 
-// Health check endpoints
 app.MapHealthChecks("/health/live");
 app.MapHealthChecks("/health/ready");
 
-app.MapFluxWebhookEndpoint();
+app.AddPublicApis();
+app.AddInternalApis();
+app.AddLocalApis();
 
-app.Run();
-
-public partial class Program { }
+await app.RunAsync();

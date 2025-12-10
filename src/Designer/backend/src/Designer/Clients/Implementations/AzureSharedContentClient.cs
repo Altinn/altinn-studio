@@ -10,11 +10,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Exceptions.SharedContent;
+using Altinn.Studio.Designer.Factories;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.SharedContent;
 using Azure;
-using Azure.Identity;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Clients.Implementations;
@@ -23,8 +26,8 @@ public class AzureSharedContentClient : ISharedContentClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<AzureSharedContentClient> _logger;
-    private readonly SharedContentClientSettings _sharedContentClientSettings;
     private readonly string _sharedContentBaseUri;
+    private readonly IBlobContainerClientFactory _blobContainerClientFactory;
 
     private const string InitialVersion = "1";
     private const string CodeListsSegment = "code_lists";
@@ -43,11 +46,15 @@ public class AzureSharedContentClient : ISharedContentClient
         AllowTrailingCommas = true
     };
 
-    public AzureSharedContentClient(HttpClient httpClient, ILogger<AzureSharedContentClient> logger, SharedContentClientSettings sharedContentClientSettings)
+    public AzureSharedContentClient(
+        HttpClient httpClient,
+        ILogger<AzureSharedContentClient> logger,
+        SharedContentClientSettings sharedContentClientSettings,
+        IBlobContainerClientFactory blobContainerClientFactory)
     {
         _httpClient = httpClient;
         _logger = logger;
-        _sharedContentClientSettings = sharedContentClientSettings;
+        _blobContainerClientFactory = blobContainerClientFactory;
 
         string storageAccountUrl = sharedContentClientSettings.StorageAccountUrl;
         string storageContainerName = sharedContentClientSettings.StorageContainerName;
@@ -59,9 +66,9 @@ public class AzureSharedContentClient : ISharedContentClient
         _sharedContentBaseUri = CombineWithDelimiter(storageAccountUrl, storageContainerName);
     }
 
-    public async Task PublishCodeList(string orgName, string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
+    public async Task<string> PublishCodeList(string orgName, string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
     {
-        BlobContainerClient containerClient = GetContainerClient();
+        BlobContainerClient containerClient = _blobContainerClientFactory.GetContainerClient();
         await ThrowIfUnhealthy(containerClient, cancellationToken);
 
         string resourceTypeIndexPrefix = orgName;
@@ -78,6 +85,7 @@ public class AzureSharedContentClient : ISharedContentClient
         CreateCodeListFiles(codeList, codeListFolderPath, versionIndexPrefix);
 
         await UploadBlobs(containerClient, cancellationToken);
+        return CurrentVersion;
     }
 
     internal async Task PrepareOrganisationIndexFile(string orgName, CancellationToken cancellationToken = default)
@@ -302,11 +310,60 @@ public class AzureSharedContentClient : ISharedContentClient
         CurrentVersion = (version + 1).ToString();
     }
 
-    private BlobContainerClient GetContainerClient()
+    public async Task<List<string>> GetPublishedResourcesForOrg(string orgName, string path = "", CancellationToken cancellationToken = default)
     {
-        string storageContainerName = _sharedContentClientSettings.StorageContainerName;
-        string storageAccountUrl = _sharedContentClientSettings.StorageAccountUrl;
-        BlobServiceClient blobServiceClient = new(new Uri(storageAccountUrl), new DefaultAzureCredential());
-        return blobServiceClient.GetBlobContainerClient(storageContainerName);
+        string prefix = $"{orgName}/{path}";
+        return await GetPublishedResourcesWithPrefix(prefix, cancellationToken);
+    }
+
+    private async Task<List<string>> GetPublishedResourcesWithPrefix(string prefix, CancellationToken cancellationToken)
+    {
+        List<BlobItem> blobs = await GetBlobsWithPrefix(prefix, cancellationToken);
+        return blobs
+            .Select(b => RemovePrefixAndLeadingSlash(b.Name, prefix))
+            .ToList();
+    }
+
+    private async Task<List<BlobItem>> GetBlobsWithPrefix(string prefix, CancellationToken cancellationToken)
+    {
+        try
+        {
+            AsyncPageable<BlobItem> blobs = GetPageableBlobsWithPrefix(prefix, cancellationToken);
+            return await EnumerateBlobs(blobs, cancellationToken);
+        }
+        catch (Exception ex) when (ex is RequestFailedException or AggregateException)
+        {
+            _logger.LogError(
+                ex,
+                "Error fetching blobs with prefix {Prefix} in {Class}",
+                prefix.WithoutLineBreaks(),
+                nameof(AzureSharedContentClient)
+            );
+            throw new SharedContentRequestException($"Error fetching blobs with prefix {prefix}", ex);
+        }
+    }
+
+    private AsyncPageable<BlobItem> GetPageableBlobsWithPrefix(string prefix, CancellationToken cancellationToken)
+    {
+        BlobContainerClient containerClient = _blobContainerClientFactory.GetContainerClient();
+        return containerClient.GetBlobsAsync(BlobTraits.None, BlobStates.None, prefix, cancellationToken);
+    }
+
+    private static async Task<List<BlobItem>> EnumerateBlobs(
+        AsyncPageable<BlobItem> enumerableBlobs,
+        CancellationToken cancellationToken
+    )
+    {
+        List<BlobItem> blobItemList = [];
+        await foreach (BlobItem b in enumerableBlobs.WithCancellation(cancellationToken))
+        {
+            blobItemList.Add(b);
+        }
+        return blobItemList;
+    }
+
+    private static string RemovePrefixAndLeadingSlash(string str, string prefix)
+    {
+        return str.WithoutPrefix(prefix).WithoutLeadingSlash();
     }
 }

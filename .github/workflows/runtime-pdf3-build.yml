@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/Runtime/pdf3/**'
+      - 'src/Runtime/test/fixture/**'
       - '.github/workflows/runtime-pdf3-build.yml'
   workflow_dispatch:
 
@@ -46,7 +47,7 @@ jobs:
         run: make lint
 
       - name: Run fixture
-        run: make run v=minimal
+        run: make start-minimal
 
       - name: Run tests
         run: make test

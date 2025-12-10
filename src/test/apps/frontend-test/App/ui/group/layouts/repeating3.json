@@ -19,6 +19,14 @@
         "hidden": ["dataModel", "ForceShowPets"]
       },
       {
+        "id": "generateAnotherFarm",
+        "type": "CustomButton",
+        "textResourceBindings": { "title": "Generer enda en gård" },
+        "actions": [{ "type": "ServerAction", "id": "generatePets" }],
+        "buttonStyle": "secondary",
+        "hidden": ["equals", ["dataModel", "ForceShowPets"], false]
+      },
+      {
         "id": "panelButtons",
         "type": "ButtonGroup",
         "children": ["forceShowPets", "generatePets", "generateWholeFarm"]
@@ -83,11 +91,7 @@
           ["not", ["dataModel", "ForceShowPets"]],
           ["dataModel", "PetsUseOptionComponent"]
         ],
-        "hiddenRow": [
-          "commaContains",
-          ["dataModel", "HiddenPets"],
-          ["dataModel", "Pets.UniqueId"]
-        ],
+        "hiddenRow": ["commaContains", ["dataModel", "HiddenPets"], ["dataModel", "Pets.UniqueId"]],
         "stickyHeader": true
       },
       {
@@ -201,11 +205,7 @@
           ["not", ["dataModel", "ForceShowPets"]],
           ["not", ["dataModel", "PetsUseOptionComponent"]]
         ],
-        "hiddenRow": [
-          "commaContains",
-          ["dataModel", "HiddenPets"],
-          ["dataModel", "Pets.UniqueId"]
-        ],
+        "hiddenRow": ["commaContains", ["dataModel", "HiddenPets"], ["dataModel", "Pets.UniqueId"]],
         "stickyHeader": true
       },
       {
@@ -399,4 +399,3 @@
     ]
   }
 }
-

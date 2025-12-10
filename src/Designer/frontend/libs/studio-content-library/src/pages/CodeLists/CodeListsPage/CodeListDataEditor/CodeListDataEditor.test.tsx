@@ -11,7 +11,8 @@ import { userEvent } from '@testing-library/user-event';
 const data = fruitsData;
 const onUpdate = jest.fn();
 const onDelete = jest.fn();
-const defaultProps: CodeListDataEditorProps = { data, onUpdate, onDelete };
+const onPublish = jest.fn();
+const defaultProps: CodeListDataEditorProps = { data, onUpdate, onDelete, onPublish };
 
 describe('CodeListDataEditor', () => {
   beforeEach(jest.clearAllMocks);
@@ -67,6 +68,21 @@ describe('CodeListDataEditor', () => {
     renderCodeListDataEditor();
     const placeholderText = textMock('app_content_library.code_lists.unnamed');
     expect(screen.queryByText(placeholderText)).not.toBeInTheDocument();
+  });
+
+  it('Calls onPublish with the code list data when the publish button is clicked', async () => {
+    const user = userEvent.setup();
+    renderCodeListDataEditor();
+    const publishButtonName = textMock('app_content_library.code_lists.publish');
+    await user.click(screen.getByRole('button', { name: publishButtonName }));
+    expect(onPublish).toHaveBeenCalledTimes(1);
+    expect(onPublish).toHaveBeenCalledWith(data);
+  });
+
+  it('Disables the publish button when no name is given', () => {
+    renderCodeListDataEditor({ data: { ...data, name: '' } });
+    const publishButtonName = textMock('app_content_library.code_lists.publish');
+    expect(screen.getByRole('button', { name: publishButtonName })).toBeDisabled();
   });
 });
 

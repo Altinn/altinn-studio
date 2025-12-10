@@ -6,14 +6,18 @@ import { useAppInstancesQuery } from 'admin/hooks/queries/useAppInstancesQuery';
 import type { SimpleInstance } from 'admin/types/InstancesResponse';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
 import { useMutation } from '@tanstack/react-query';
+import { InstanceStatus } from './InstanceStatus';
 
 type InstancesTableProps = {
   org: string;
   env: string;
   app: string;
   currentTask?: string;
-  processIsComplete?: boolean;
+  isArchived?: boolean;
   archiveReference?: string;
+  confirmed?: boolean;
+  isSoftDeleted?: boolean;
+  isHardDeleted?: boolean;
 };
 
 export const InstancesTable = ({
@@ -21,16 +25,22 @@ export const InstancesTable = ({
   env,
   app,
   currentTask,
-  processIsComplete,
+  isArchived,
   archiveReference,
+  confirmed,
+  isSoftDeleted,
+  isHardDeleted,
 }: InstancesTableProps) => {
   const { data, status, fetchNextPage, hasNextPage } = useAppInstancesQuery(
     org,
     env,
     app,
     currentTask,
-    processIsComplete,
+    isArchived,
     archiveReference,
+    confirmed,
+    isSoftDeleted,
+    isHardDeleted,
   );
   const { t } = useTranslation();
 
@@ -70,10 +80,10 @@ const InstancesTableWithData = ({
     <StudioTable zebra>
       <StudioTable.Head>
         <StudioTable.Row>
-          <StudioTable.Cell>{t('Id')}</StudioTable.Cell>
-          <StudioTable.Cell>{t('Opprettet')}</StudioTable.Cell>
-          <StudioTable.Cell>{t('Prosessteg')}</StudioTable.Cell>
-          <StudioTable.Cell>{t('Status')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.id')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.created')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.process_task')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.status')}</StudioTable.Cell>
         </StudioTable.Row>
       </StudioTable.Head>
       <StudioTable.Body>
@@ -83,11 +93,15 @@ const InstancesTableWithData = ({
               {/* <Link to={`${instance.id}`}>{instance.id}</Link> */}
               {instance.id}
             </StudioTable.Cell>
-            <StudioTable.Cell>{formatDateAndTime(instance.createdAt)}</StudioTable.Cell>
             <StudioTable.Cell>
-              {instance.currentTaskName ?? instance.currentTaskId ?? 'Avsluttet'}
+              {instance.createdAt ? formatDateAndTime(instance.createdAt) : '-'}
             </StudioTable.Cell>
-            <StudioTable.Cell>{getStatus(instance)}</StudioTable.Cell>
+            <StudioTable.Cell>
+              {instance.currentTaskName ?? instance.currentTaskId ?? '-'}
+            </StudioTable.Cell>
+            <StudioTable.Cell>
+              <InstanceStatus instance={instance} />
+            </StudioTable.Cell>
           </StudioTable.Row>
         ))}
       </StudioTable.Body>
@@ -97,7 +111,7 @@ const InstancesTableWithData = ({
             <StudioTable.Cell className={classes.footerCell} colSpan={4}>
               <StudioButton disabled={isFetchingMoreResults} onClick={() => doFetchMoreResults()}>
                 {isFetchingMoreResults && <StudioSpinner aria-label={t('general.loading')} />}
-                {t('Last inn 10 flere rader')}
+                {t('admin.instances.fetch_more')}
               </StudioButton>
             </StudioTable.Cell>
           </StudioTable.Row>
@@ -106,18 +120,3 @@ const InstancesTableWithData = ({
     </StudioTable>
   );
 };
-
-// TODO: These may not be reducable to a single status?
-function getStatus(instance: SimpleInstance) {
-  switch (true) {
-    case instance.softDeletedAt != null:
-    case instance.hardDeletedAt != null:
-      return 'Slettet';
-    case instance.confirmedAt != null:
-      return 'Bekreftet';
-    case instance.archivedAt != null:
-      return 'Arkivert';
-    default:
-      return 'Aktiv';
-  }
-}

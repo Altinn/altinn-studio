@@ -1,29 +1,23 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { Search } from '@digdir/designsystemet-react';
 
 import classes from './ArchiveReferenceSearch.module.css';
-import { useQueryParamState } from 'admin/hooks/useQueryParamState';
+import { useTranslation } from 'react-i18next';
 
 type ArchiveReferenceSearchProps = {
-  value: string;
-  setValue: (value: string) => void;
+  value: string | undefined;
+  setValue: (value: string | undefined) => void;
 };
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ARCHIVE_REF_REGEX = /^[0-9a-f]{12}$/i;
 
-export const useArchiveReferenceSearch: () => [string, (value: string) => void] = () => {
-  const [{ archiveReference }, _setArchiveReference] = useQueryParamState({ archiveReference: '' });
-
-  const setArchiveReference = useCallback(
-    (value: string) => _setArchiveReference({ archiveReference: value }),
-    [_setArchiveReference],
-  );
-
-  return [archiveReference, setArchiveReference];
-};
-
-export const ArchiveReferenceSearch = ({ value, setValue }: ArchiveReferenceSearchProps) => {
+export const ArchiveReferenceSearch = ({
+  value: _value,
+  setValue,
+}: ArchiveReferenceSearchProps) => {
+  const { t } = useTranslation();
+  const value = _value ?? '';
   const [searchString, setSearchString] = useState(value);
 
   const isEmpty = searchString.length === 0;
@@ -32,7 +26,7 @@ export const ArchiveReferenceSearch = ({ value, setValue }: ArchiveReferenceSear
 
   const handleClear = () => {
     setSearchString('');
-    setValue('');
+    setValue(undefined);
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,12 +45,10 @@ export const ArchiveReferenceSearch = ({ value, setValue }: ArchiveReferenceSear
     <Search
       className={classes.search}
       variant={canSearch ? 'primary' : 'simple'}
-      error={
-        !isEmpty && !isValid ? 'Må være en gyldig instans-ID eller arkivreferanse.' : undefined
-      }
+      error={!isEmpty && !isValid ? t('admin.instances.archive_reference_validation') : undefined}
       hideLabel={false}
       size='sm'
-      label='Arkivreferanse'
+      label={t('admin.instances.archive_reference')}
       value={searchString}
       onClear={handleClear}
       onChange={handleChange}

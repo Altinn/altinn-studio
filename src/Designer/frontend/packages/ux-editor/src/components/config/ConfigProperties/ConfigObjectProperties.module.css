@@ -12,3 +12,7 @@
   align-items: center;
   justify-content: space-between;
 }
+
+.cardWrapper {
+  margin-inline: var(--ds-size-5);
+}

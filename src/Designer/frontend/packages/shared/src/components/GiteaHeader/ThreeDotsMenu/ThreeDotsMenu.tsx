@@ -14,9 +14,6 @@ export type ThreeDotsMenuProps = {
 export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) => {
   const { owner, repoName } = useGiteaHeaderContext();
   const { t } = useTranslation();
-  const [clonePopoverOpen, setClonePopoverOpen] = useState(false);
-
-  const toggleClonePopoverOpen = () => setClonePopoverOpen((oldValue) => !oldValue);
 
   const handleNavigateToGitea = () => {
     window.location.href = repositoryPath(owner, repoName);
@@ -34,15 +31,12 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
           <StudioDropdown.Item>
             <StudioPopover.TriggerContext>
               <StudioPopover.Trigger
-                onClick={toggleClonePopoverOpen}
                 variant='tertiary'
                 icon={<TabsIcon />}
               >
                 {t('sync_header.clone')}
               </StudioPopover.Trigger>
-              <StudioPopover open={clonePopoverOpen} onClose={() => setClonePopoverOpen(false)}>
-                {clonePopoverOpen && <ClonePopoverContent />}
-              </StudioPopover>
+              <StudioPopover>{<ClonePopoverContent />}</StudioPopover>
             </StudioPopover.TriggerContext>
           </StudioDropdown.Item>
         )}
