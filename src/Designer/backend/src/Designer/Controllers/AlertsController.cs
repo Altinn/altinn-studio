@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Infrastructure.Maskinporten;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -28,6 +29,7 @@ public class AlertsController(IAlertsService alertsService) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(MaskinportenConstants.AuthorizationPolicy)]
     public async Task<ActionResult> NotifyAlertsUpdated(
         string org,
         string env,

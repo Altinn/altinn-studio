@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading;
@@ -28,15 +27,12 @@ internal sealed class GatewayClient(
     {
         StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
 
-        string apiToken = studioGatewaySettings.Token;
-        string baseUri = studioGatewaySettings.GetBaseUrl(org);
-        string url = $"{baseUri}/alerts";
+        string baseUrl = studioGatewaySettings.GetBaseUrl(org);
+        string url = $"{baseUrl}/alerts";
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
-
         HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
@@ -53,15 +49,12 @@ internal sealed class GatewayClient(
     {
         StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
 
-        string apiToken = studioGatewaySettings.Token;
-        string baseUri = studioGatewaySettings.GetBaseUrl(org);
-        string url = $"{baseUri}/metrics?time={time}";
+        string baseUrl = studioGatewaySettings.GetBaseUrl(org);
+        string url = $"{baseUrl}/metrics?time={time}";
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
-
         HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
@@ -79,15 +72,12 @@ internal sealed class GatewayClient(
     {
         StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
 
-        string apiToken = studioGatewaySettings.Token;
-        string baseUri = studioGatewaySettings.GetBaseUrl(org);
-        string url = $"{baseUri}/metrics/app?app={app}&time={time}";
+        string baseUrl = studioGatewaySettings.GetBaseUrl(org);
+        string url = $"{baseUrl}/metrics/app?app={app}&time={time}";
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
-
         HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
@@ -104,15 +94,12 @@ internal sealed class GatewayClient(
     {
         StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
 
-        string apiToken = studioGatewaySettings.Token;
-        string baseUri = studioGatewaySettings.GetBaseUrl(org);
-        string url = $"{baseUri}/metrics/app/health?app={app}";
+        string baseUrl = studioGatewaySettings.GetBaseUrl(org);
+        string url = $"{baseUrl}/metrics/app/health?app={app}";
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
-
         HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
