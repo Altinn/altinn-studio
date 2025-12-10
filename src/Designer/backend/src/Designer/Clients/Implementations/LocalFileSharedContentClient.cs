@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.SharedContent;
 using Microsoft.Extensions.Logging;
+using Quartz.Util;
 
 namespace Altinn.Studio.Designer.Clients.Implementations;
 
@@ -273,6 +274,8 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
     {
         cancellationToken.ThrowIfCancellationRequested();
         string absoluteFilePath = Path.Join(_basePath, relativeFilePath);
+        ValidatePathIsSubPath(absoluteFilePath);
+
         try
         {
             File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
@@ -289,6 +292,8 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
     private async Task WriteTextByRelativePathAsync(string relativePath, string text, CancellationToken cancellationToken = default)
     {
         string absoluteFilePath = Path.Join(_basePath, relativePath);
+        ValidatePathIsSubPath(absoluteFilePath);
+
         var fileInfo = new FileInfo(absoluteFilePath);
         if (Directory.Exists(fileInfo.Directory?.FullName) is false && fileInfo.Directory is not null)
         {
@@ -302,12 +307,16 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
 
     public async Task<List<string>> GetPublishedResourcesForOrg(string orgName, string path = "", CancellationToken cancellationToken = default)
     {
-        orgName.ValidPathSegment(nameof(orgName));
-        path.ValidatePath(nameof(path));
         await Task.Delay(0, cancellationToken); // Added to satisfy async method.
+        orgName.ValidPathSegment(nameof(orgName));
+        if (path.IsNullOrWhiteSpace() is false)
+        {
+            path.ValidatePath(nameof(path));
+        }
 
         cancellationToken.ThrowIfCancellationRequested();
         string prefix = Path.Join(_basePath, orgName, path);
+        ValidatePathIsSubPath(prefix);
 
         try
         {
@@ -319,6 +328,16 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         catch (Exception ex) when (ex is DirectoryNotFoundException)
         {
             return [];
+        }
+    }
+
+    private void ValidatePathIsSubPath(string path)
+    {
+        string fullBasePath = Path.GetFullPath(_basePath);
+        string normalizedFilePath = Path.GetFullPath(path);
+        if (!normalizedFilePath.StartsWith(fullBasePath + Path.DirectorySeparatorChar) && normalizedFilePath != fullBasePath)
+        {
+            throw new UnauthorizedAccessException("Attempted path traversal or access outside permitted directory.");
         }
     }
 }

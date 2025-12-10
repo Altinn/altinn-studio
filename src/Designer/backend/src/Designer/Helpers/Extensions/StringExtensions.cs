@@ -90,14 +90,10 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
                 throw new ArgumentException($"'{variableName}' contains invalid path traversal or separator characters.", variableName);
             }
 
-            Path.GetInvalidFileNameChars();
-
-            foreach (char ch in segment)
+            char? invalidChar = segment.FirstOrDefault(ch => !(char.IsLetterOrDigit(ch) || ch == '-' || ch == '_'));
+            if (invalidChar != default(char))
             {
-                if (!(char.IsLetterOrDigit(ch) || ch == '-' || ch == '_'))
-                {
-                    throw new ArgumentException($"'{variableName}' contains invalid character '{ch}'. Only letters, numbers, dash '-' and underscore '_' are allowed.", variableName);
-                }
+                throw new ArgumentException($"'{variableName}' contains invalid character '{invalidChar}'. Only letters, numbers, dash '-' and underscore '_' are allowed.", variableName);
             }
         }
 
@@ -108,12 +104,9 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
                 throw new ArgumentException($"'{variableName}' cannot be null or whitespace.", variableName);
             }
 
-            foreach (char c in Path.GetInvalidFileNameChars())
+            if (Path.GetInvalidFileNameChars().Any(path.Contains))
             {
-                if (path.Contains(c))
-                {
-                    throw new ArgumentException("Invalid path segment.", variableName);
-                }
+                throw new ArgumentException("Invalid path segment.", variableName);
             }
         }
     }
