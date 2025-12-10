@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.SharedContent;
 using Microsoft.Extensions.Logging;
@@ -37,6 +38,9 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
 
     public async Task<string> PublishCodeList(string orgName, string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
     {
+        orgName.ValidPathSegment(nameof(orgName));
+        codeListId.ValidPathSegment(nameof(codeListId));
+
         string resourceTypeIndexPrefix = orgName;
         string resourceIndexPrefix = CombineWithDelimiter(orgName, CodeListsSegment);
         string versionIndexPrefix = CombineWithDelimiter(orgName, CodeListsSegment, codeListId);
@@ -298,6 +302,8 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
 
     public async Task<List<string>> GetPublishedResourcesForOrg(string orgName, string path = "", CancellationToken cancellationToken = default)
     {
+        orgName.ValidPathSegment(nameof(orgName));
+        path.ValidatePath(nameof(path));
         await Task.Delay(0, cancellationToken); // Added to satisfy async method.
 
         cancellationToken.ThrowIfCancellationRequested();
