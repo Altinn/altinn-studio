@@ -20,7 +20,7 @@ namespace Altinn.Studio.Designer.Controllers;
 /// </summary>
 [ApiController]
 [Authorize(MaskinportenConstants.AuthorizationPolicy)]
-[Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/deployments/webhooks")]
+[Route("/designer/api/v1/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/deployments/webhooks")]
 public class DeploymentWebhooksController : ControllerBase
 {
     private readonly IDeployEventRepository _deployEventRepository;
