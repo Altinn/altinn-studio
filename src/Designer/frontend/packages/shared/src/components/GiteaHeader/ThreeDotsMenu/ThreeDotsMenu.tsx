@@ -18,7 +18,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
 
   const toggleClonePopoverOpen = () => setClonePopoverOpen((oldValue) => !oldValue);
 
-  const handleClick = () => {
+  const handleNavigateToGitea = () => {
     window.location.href = repositoryPath(owner, repoName);
   };
 
@@ -47,7 +47,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
           </StudioDropdown.Item>
         )}
         <StudioDropdown.Item>
-          <StudioDropdown.Button icon={<GiteaIcon />} onClick={handleClick}>
+          <StudioDropdown.Button icon={<GiteaIcon />} onClick={handleNavigateToGitea}>
             {t('sync_header.repository')}
           </StudioDropdown.Button>
         </StudioDropdown.Item>

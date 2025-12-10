@@ -13,12 +13,12 @@ export const LocalChangesModal = (): ReactNode => {
 
   return (
     <>
-      <StudioButton icon={<MonitorIcon />} onClick={openDialog} variant='tertiary' data-size='sm'>
+      <StudioButton icon={<MonitorIcon />} onClick={openDialog} variant='tertiary'>
         {t('sync_header.local_changes')}
       </StudioButton>
       <StudioDialog ref={dialogRef} closedby='any' className={classes.dialog}>
-        <StudioDialog.Block className={classes.headerBlock}>
-          <StudioHeading level={2}>{t('sync_header.local_changes')}</StudioHeading>
+        <StudioDialog.Block>
+          <StudioHeading level={1}>{t('sync_header.local_changes')}</StudioHeading>
         </StudioDialog.Block>
         <StudioDialog.Block>
           <LocalChanges />
