@@ -284,7 +284,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         }
         catch (Exception ex) when (ex is IOException)
         {
-            Thread.Sleep(1000);
+            await Task.Delay(1000, cancellationToken);
             File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
             return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8, cancellationToken);
         }
