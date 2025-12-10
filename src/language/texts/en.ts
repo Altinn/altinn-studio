@@ -218,6 +218,7 @@ export function en() {
     'image_upload_component.reset': 'Reset position and zoom',
     'image_upload_component.error_invalid_file_type': 'Invalid file format. Please upload an image file.',
     'image_upload_component.error_file_size_exceeded': 'File size exceeds 10MB limit.',
+    'image_upload_component.error_required': 'You must upload an image',
     'image_upload_component.valid_file_types': 'Image files only',
     'input_components.remaining_characters': 'You have %d characters left',
     'input_components.exceeded_max_limit': 'You have exceeded the maximum limit with %d characters',
