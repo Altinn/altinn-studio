@@ -16,7 +16,7 @@ export const ConfigNumberProperties = ({
   numberPropertyKeys,
   handleComponentUpdate,
   className,
-  keepEditOpen,
+  keepEditOpen = false,
 }: ConfigNumberPropertiesProps) => {
   const componentPropertyLabel = useComponentPropertyLabel();
 

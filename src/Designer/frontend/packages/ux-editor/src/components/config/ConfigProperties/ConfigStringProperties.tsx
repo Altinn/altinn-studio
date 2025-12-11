@@ -17,7 +17,7 @@ export const ConfigStringProperties = ({
   component,
   handleComponentUpdate,
   className,
-  keepEditOpen,
+  keepEditOpen = false,
 }: ConfigStringPropertiesProps) => {
   const componentPropertyLabel = useComponentPropertyLabel();
   const selectedDataType = useComponentPropertyEnumValue();

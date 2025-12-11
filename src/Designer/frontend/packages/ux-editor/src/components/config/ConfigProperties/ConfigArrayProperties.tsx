@@ -17,7 +17,7 @@ export const ConfigArrayProperties = ({
   arrayPropertyKeys,
   handleComponentUpdate,
   className,
-  keepEditOpen,
+  keepEditOpen = false,
 }: ConfigArrayPropertiesProps) => {
   const componentPropertyLabel = useComponentPropertyLabel();
 
