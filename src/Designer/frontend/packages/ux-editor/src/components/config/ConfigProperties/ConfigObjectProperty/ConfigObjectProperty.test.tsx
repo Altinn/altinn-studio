@@ -18,7 +18,7 @@ jest.mock('../../../../hooks/useComponentPropertyDescription', () => ({
 describe('ConfigObjectProperties', () => {
   it('should show description from schema for objects if key is not defined', async () => {
     const user = userEvent.setup();
-    renderConfigObjectProperties({
+    renderConfigObjectProperty({
       props: {
         objectPropertyKey: somePropertyName,
         schema: {
@@ -42,7 +42,7 @@ describe('ConfigObjectProperties', () => {
     const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
     const propertyKey = 'testObjectProperty';
-    renderConfigObjectProperties({
+    renderConfigObjectProperty({
       props: {
         objectPropertyKey: propertyKey,
         schema: {
@@ -79,7 +79,7 @@ describe('ConfigObjectProperties', () => {
   it('should toggle object card when object property button is clicked and close button is clicked', async () => {
     const user = userEvent.setup();
     const propertyKey = 'testObjectProperty';
-    renderConfigObjectProperties({
+    renderConfigObjectProperty({
       props: {
         objectPropertyKey: propertyKey,
         schema: {
@@ -104,7 +104,7 @@ describe('ConfigObjectProperties', () => {
   it('should handle toggle when property is undefined', async () => {
     const user = userEvent.setup();
     const propertyKey = 'undefinedProperty';
-    renderConfigObjectProperties({
+    renderConfigObjectProperty({
       props: {
         objectPropertyKey: propertyKey,
         schema: {
@@ -122,7 +122,7 @@ describe('ConfigObjectProperties', () => {
   });
 
   it('should not render property if it is unsupported', () => {
-    renderConfigObjectProperties({
+    renderConfigObjectProperty({
       props: {
         schema: {
           ...InputSchema,
@@ -138,7 +138,37 @@ describe('ConfigObjectProperties', () => {
     ).not.toBeInTheDocument();
   });
 
-  const renderConfigObjectProperties = ({
+  it('should delete object property and close card when delete button is clicked', async () => {
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    const propertyKey = 'deletableObjectProperty';
+    renderConfigObjectProperty({
+      props: {
+        objectPropertyKey: propertyKey,
+        component: {
+          ...componentMocks.Input,
+          [propertyKey]: { testField: 'testValue' },
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    await openCard(user, propertyKey);
+
+    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+    await user.click(deleteButton);
+
+    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        [propertyKey]: undefined,
+      }),
+    );
+    expect(
+      screen.queryByRole('button', { name: textMock('generale.delete') }),
+    ).not.toBeInTheDocument();
+  });
+
+  const renderConfigObjectProperty = ({
     props = {},
   }: {
     props?: Partial<ConfigObjectPropertyProps>;
