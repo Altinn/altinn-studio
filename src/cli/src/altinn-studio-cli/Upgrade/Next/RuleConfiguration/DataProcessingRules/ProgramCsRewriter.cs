@@ -7,7 +7,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.DataProcessingRules;
 /// <summary>
 /// Roslyn-based rewriter for adding IDataWriteProcessor registrations to Program.cs
 /// </summary>
-internal class ProgramCsRewriter : CSharpSyntaxRewriter
+internal sealed class ProgramCsRewriter : CSharpSyntaxRewriter
 {
     private readonly string _className;
     private bool _registrationAdded;

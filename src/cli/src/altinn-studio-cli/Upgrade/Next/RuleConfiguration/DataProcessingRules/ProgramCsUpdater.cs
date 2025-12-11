@@ -8,7 +8,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.DataProcessingRules;
 /// <summary>
 /// Updates Program.cs to register IDataWriteProcessor implementations
 /// </summary>
-internal class ProgramCsUpdater
+internal sealed class ProgramCsUpdater
 {
     private readonly string _appBasePath;
 

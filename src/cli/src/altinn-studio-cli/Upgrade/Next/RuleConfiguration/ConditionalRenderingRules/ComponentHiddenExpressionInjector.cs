@@ -7,7 +7,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingR
 /// <summary>
 /// Injects hidden expressions into layout components
 /// </summary>
-internal class ComponentHiddenExpressionInjector
+internal sealed class ComponentHiddenExpressionInjector
 {
     private readonly LayoutFileManager _layoutManager;
 
@@ -153,7 +153,7 @@ internal class ComponentHiddenExpressionInjector
 /// <summary>
 /// Result of injecting a hidden expression
 /// </summary>
-internal class InjectionResult
+internal sealed class InjectionResult
 {
     public bool Success { get; set; }
     public string ComponentId { get; set; } = string.Empty;

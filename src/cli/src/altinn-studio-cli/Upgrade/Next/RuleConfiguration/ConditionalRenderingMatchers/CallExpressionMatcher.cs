@@ -56,7 +56,7 @@ public class CallExpressionMatcher : IExpressionMatcher
         return propertyMethodName switch
         {
             "includes" => HandleIncludes(memberExpr, callExpr, context, debugInfo),
-            "indexOf" => HandleIndexOfStandalone(propertyMethodName, debugInfo),
+            "indexOf" => HandleIndexOfStandalone(debugInfo),
             _ => HandleUnsupportedMethod(propertyMethodName, debugInfo),
         };
     }
@@ -149,7 +149,7 @@ public class CallExpressionMatcher : IExpressionMatcher
     /// indexOf() by itself can't be converted - it's only valid when compared with -1
     /// That pattern is handled by BinaryComparisonMatcher
     /// </summary>
-    private object? HandleIndexOfStandalone(string _, List<string> debugInfo)
+    private object? HandleIndexOfStandalone(List<string> debugInfo)
     {
         debugInfo.Add($"❌ indexOf() must be used in comparison with -1 (e.g., indexOf(x) !== -1)");
         debugInfo.Add($"   Standalone indexOf() calls cannot be converted to expression language");

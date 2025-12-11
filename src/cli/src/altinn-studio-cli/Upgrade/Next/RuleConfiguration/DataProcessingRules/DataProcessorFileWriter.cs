@@ -3,7 +3,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.DataProcessingRules;
 /// <summary>
 /// Writes generated IDataWriteProcessor files to disk
 /// </summary>
-internal class DataProcessorFileWriter
+internal sealed class DataProcessorFileWriter
 {
     private readonly string _appBasePath;
 

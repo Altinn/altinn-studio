@@ -49,6 +49,7 @@ public class TruthinessCheckMatcher : IExpressionMatcher
         }
 
         // Return a notEquals null check
+        // ! null literal is intentionally used as the comparison value in the expression
         return new object[] { "notEquals", propertyValue, null! };
     }
 }

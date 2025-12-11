@@ -136,7 +136,7 @@ internal sealed class ProjectFileRewriter
         {
             // Check if package reference exists
             var packageElements = GetPackageReferenceElement(packageName);
-            if (packageElements != null && packageElements.Any())
+            if (packageElements != null && packageElements.Count > 0)
             {
                 // Build the full project path
                 var projectPath = Path.Combine(repoRoot, Path.Combine(relPath));
@@ -185,6 +185,7 @@ internal sealed class ProjectFileRewriter
             return null;
         }
 
+        // ! Path.GetDirectoryName returns non-null for assembly locations
         var currentDir = new DirectoryInfo(Path.GetDirectoryName(assemblyLocation)!);
         while (currentDir != null)
         {

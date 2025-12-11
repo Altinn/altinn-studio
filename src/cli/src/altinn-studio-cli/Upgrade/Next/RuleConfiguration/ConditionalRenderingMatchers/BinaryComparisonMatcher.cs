@@ -186,6 +186,7 @@ public class BinaryComparisonMatcher : IExpressionMatcher
         // indexOf(x) !== -1 means "contains", indexOf(x) === -1 means "does not contain"
         bool isCheckingForContains = op == "!==" || op == "StrictInequality" || op == "!=" || op == "Inequality";
 
+        // ! subject is verified non-null on line 163, searchValueUnwrapped is non-null because searchValue is verified non-null on line 177
         var containsExpression = new object[] { "contains", subject!, searchValueUnwrapped! };
 
         if (isCheckingForContains)

@@ -7,7 +7,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration;
 /// <summary>
 /// Parses RuleHandler.js files to extract function implementations using Acornima AST parser
 /// </summary>
-internal class RuleHandlerParser
+internal sealed class RuleHandlerParser
 {
     private readonly string _ruleHandlerPath;
     private readonly Dictionary<string, JavaScriptFunction> _conditionalFunctions = new();

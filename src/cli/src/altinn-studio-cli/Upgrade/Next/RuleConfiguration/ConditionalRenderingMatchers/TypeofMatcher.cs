@@ -78,12 +78,14 @@ public class TypeofMatcher : IExpressionMatcher
         {
             // typeof x !== "undefined" → not null check
             debugInfo.Add("✅ Converted to 'not null' check");
+            // ! null literal is intentionally used as the comparison value in the expression
             return new object[] { "notEquals", target, null! };
         }
         else
         {
             // typeof x === "undefined" → null check
             debugInfo.Add("✅ Converted to 'equals null' check");
+            // ! null literal is intentionally used as the comparison value in the expression
             return new object[] { "equals", target, null! };
         }
     }

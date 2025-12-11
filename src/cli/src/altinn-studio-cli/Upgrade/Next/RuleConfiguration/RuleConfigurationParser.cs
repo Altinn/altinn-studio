@@ -6,7 +6,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration;
 /// <summary>
 /// Parses RuleConfiguration.json files
 /// </summary>
-internal class RuleConfigurationParser
+internal sealed class RuleConfigurationParser
 {
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {

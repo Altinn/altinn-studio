@@ -23,130 +23,133 @@ internal static class NextUpgrade
     /// <returns>The command for upgrading to the next version</returns>
     public static Command GetUpgradeCommand(Option<string> projectFolderOption)
     {
-        var projectFileOption = new Option<string>(
-            "--project",
-            () => "App/App.csproj",
-            "The project file to read relative to --folder"
-        );
-        var targetFrameworkOption = new Option<string>(
-            "--target-framework",
-            () => "net8.0",
-            "The target dotnet framework version to upgrade to"
-        );
-        var skipCsprojUpgradeOption = new Option<bool>(
-            "--skip-csproj-upgrade",
-            () => false,
-            "Skip csproj file upgrade"
-        );
-
-        var upgradeCommand = new Command("next", "Upgrade an app to the next version (both backend and frontend)")
+        var projectFileOption = new Option<string>("--project")
         {
-            projectFolderOption,
-            projectFileOption,
-            targetFrameworkOption,
-            skipCsprojUpgradeOption,
+            Description = "The project file to read relative to --folder",
+            DefaultValueFactory = _ => "App/App.csproj",
+        };
+        var targetFrameworkOption = new Option<string>("--target-framework")
+        {
+            Description = "The target dotnet framework version to upgrade to",
+            DefaultValueFactory = _ => "net8.0",
+        };
+        var skipCsprojUpgradeOption = new Option<bool>("--skip-csproj-upgrade")
+        {
+            Description = "Skip csproj file upgrade",
+            DefaultValueFactory = _ => false,
         };
 
-        int returnCode = 0;
-        upgradeCommand.SetHandler(async context =>
+        var upgradeCommand = new Command("next")
         {
-            var projectFolder = context.ParseResult.GetValueForOption(projectFolderOption);
-            var projectFile = context.ParseResult.GetValueForOption(projectFileOption);
-            var targetFramework = context.ParseResult.GetValueForOption(targetFrameworkOption);
-            var skipCsprojUpgrade = context.ParseResult.GetValueForOption(skipCsprojUpgradeOption);
+            Description = "Upgrade an app to the next version (both backend and frontend)",
+        };
+        upgradeCommand.Add(projectFolderOption);
+        upgradeCommand.Add(projectFileOption);
+        upgradeCommand.Add(targetFrameworkOption);
+        upgradeCommand.Add(skipCsprojUpgradeOption);
 
-            if (projectFolder is null or "CurrentDirectory")
-                projectFolder = Directory.GetCurrentDirectory();
-
-            if (projectFile is null)
-                ExitWithError("Project file option is required but was not provided");
-
-            if (targetFramework is null)
-                ExitWithError("Target framework option is required but was not provided");
-
-            if (!Directory.Exists(projectFolder))
+        int returnCode = 0;
+        upgradeCommand.SetAction(
+            async (parseResult, cancellationToken) =>
             {
-                ExitWithError(
-                    $"{projectFolder} does not exist. Please supply location of project with --folder [path/to/project]"
-                );
-            }
+                var projectFolder = parseResult.GetValue(projectFolderOption);
+                var projectFile = parseResult.GetValue(projectFileOption);
+                var targetFramework = parseResult.GetValue(targetFrameworkOption);
+                var skipCsprojUpgrade = parseResult.GetValue(skipCsprojUpgradeOption);
 
-            FileAttributes attr = File.GetAttributes(projectFolder);
-            if ((attr & FileAttributes.Directory) != FileAttributes.Directory)
-            {
-                ExitWithError(
-                    $"Project folder {projectFolder} is a file. Please supply location of project with --folder [path/to/project]"
-                );
-            }
+                if (projectFolder is null or "CurrentDirectory")
+                    projectFolder = Directory.GetCurrentDirectory();
 
-            if (!Path.IsPathRooted(projectFolder))
-            {
-                projectFile = Path.Combine(Directory.GetCurrentDirectory(), projectFolder, projectFile);
-            }
-            else
-            {
-                projectFile = Path.Combine(projectFolder, projectFile);
-            }
+                if (projectFile is null)
+                    ExitWithError("Project file option is required but was not provided");
 
-            if (!File.Exists(projectFile))
-            {
-                ExitWithError(
-                    $"Project file {projectFile} does not exist. Please supply location of project with --project [path/to/project.csproj]"
-                );
-            }
+                if (targetFramework is null)
+                    ExitWithError("Target framework option is required but was not provided");
 
-            // Validate version before processing
-            var projectChecks = new ProjectChecks.ProjectChecks(projectFile);
-            if (!projectChecks.SupportedSourceVersion())
-            {
-                ExitWithError(
-                    $"Version(s) in project file {projectFile} are not supported for the 'next' upgrade. "
-                        + $"This upgrade is for apps on version 8.x.x. "
-                        + $"Please ensure both Altinn.App.Core and Altinn.App.Api are version 8.0.0 or higher (but below 9.0.0).",
-                    exitCode: 2
-                );
-            }
+                if (!Directory.Exists(projectFolder))
+                {
+                    ExitWithError(
+                        $"{projectFolder} does not exist. Please supply location of project with --folder [path/to/project]"
+                    );
+                }
 
-            // Job 1: Convert to project references and upgrade target framework
-            if (!skipCsprojUpgrade && returnCode == 0)
-            {
-                returnCode = await ConvertToProjectReferences(projectFile, targetFramework);
-            }
+                FileAttributes attr = File.GetAttributes(projectFolder);
+                if ((attr & FileAttributes.Directory) != FileAttributes.Directory)
+                {
+                    ExitWithError(
+                        $"Project folder {projectFolder} is a file. Please supply location of project with --folder [path/to/project]"
+                    );
+                }
 
-            // Job 2: Remove Swashbuckle.AspNetCore dependency
-            if (returnCode == 0)
-            {
-                returnCode = await RemoveSwashbucklePackage(projectFile);
-            }
+                if (!Path.IsPathRooted(projectFolder))
+                {
+                    projectFile = Path.Combine(Directory.GetCurrentDirectory(), projectFolder, projectFile);
+                }
+                else
+                {
+                    projectFile = Path.Combine(projectFolder, projectFile);
+                }
 
-            // Job 3: Convert conditional rendering rules to layout hidden expressions
-            if (returnCode == 0)
-            {
-                returnCode = await ConvertConditionalRenderingRules(projectFolder);
-            }
+                if (!File.Exists(projectFile))
+                {
+                    ExitWithError(
+                        $"Project file {projectFile} does not exist. Please supply location of project with --project [path/to/project.csproj]"
+                    );
+                }
 
-            // Job 4: Generate data processors for data processing rules
-            if (returnCode == 0)
-            {
-                returnCode = await GenerateDataProcessors(projectFolder);
-            }
+                // Validate version before processing
+                var projectChecks = new ProjectChecks.ProjectChecks(projectFile);
+                if (!projectChecks.SupportedSourceVersion())
+                {
+                    ExitWithError(
+                        $"Version(s) in project file {projectFile} are not supported for the 'next' upgrade. "
+                            + $"This upgrade is for apps on version 8.x.x. "
+                            + $"Please ensure both Altinn.App.Core and Altinn.App.Api are version 8.0.0 or higher (but below 9.0.0).",
+                        exitCode: 2
+                    );
+                }
 
-            // Job 5: Cleanup legacy rule files
-            if (returnCode == 0)
-            {
-                returnCode = await CleanupLegacyRuleFiles(projectFolder);
-            }
+                // Job 1: Convert to project references and upgrade target framework
+                if (!skipCsprojUpgrade && returnCode == 0)
+                {
+                    returnCode = await ConvertToProjectReferences(projectFile, targetFramework);
+                }
 
-            if (returnCode == 0)
-            {
-                Console.WriteLine("Please verify that the application is still working as expected.");
+                // Job 2: Remove Swashbuckle.AspNetCore dependency
+                if (returnCode == 0)
+                {
+                    returnCode = await RemoveSwashbucklePackage(projectFile);
+                }
+
+                // Job 3: Convert conditional rendering rules to layout hidden expressions
+                if (returnCode == 0)
+                {
+                    returnCode = await ConvertConditionalRenderingRules(projectFolder);
+                }
+
+                // Job 4: Generate data processors for data processing rules
+                if (returnCode == 0)
+                {
+                    returnCode = await GenerateDataProcessors(projectFolder);
+                }
+
+                // Job 5: Cleanup legacy rule files
+                if (returnCode == 0)
+                {
+                    returnCode = await CleanupLegacyRuleFiles(projectFolder);
+                }
+
+                if (returnCode == 0)
+                {
+                    Console.WriteLine("Please verify that the application is still working as expected.");
+                }
+                else
+                {
+                    Console.WriteLine("Upgrade completed with errors. Please check for errors in the log above.");
+                }
+                Environment.Exit(returnCode);
             }
-            else
-            {
-                Console.WriteLine("Upgrade completed with errors. Please check for errors in the log above.");
-            }
-            Environment.Exit(returnCode);
-        });
+        );
 
         return upgradeCommand;
     }

@@ -6,7 +6,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.DataProcessingRules;
 /// <summary>
 /// Resolves C# types for JSON paths in data models by parsing source code with Roslyn
 /// </summary>
-internal class DataModelTypeResolver
+internal sealed class DataModelTypeResolver
 {
     private readonly string _appBasePath;
     private INamedTypeSymbol? _rootDataModelType;
@@ -39,7 +39,12 @@ internal class DataModelTypeResolver
             // Create a compilation to get semantic information
             // Add all necessary assembly references so Roslyn can resolve attribute constructor arguments
             // We need to add core runtime assemblies for Roslyn to properly resolve types
-            var coreAssemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
+            var coreAssemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location);
+            if (coreAssemblyPath == null)
+            {
+                return false;
+            }
+
             var references = new List<MetadataReference>
             {
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),

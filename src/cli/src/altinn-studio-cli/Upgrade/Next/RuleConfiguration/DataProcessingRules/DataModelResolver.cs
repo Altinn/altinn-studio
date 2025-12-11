@@ -5,7 +5,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.DataProcessingRules;
 /// <summary>
 /// Model representing a layout set from layout-sets.json
 /// </summary>
-internal class LayoutSet
+internal sealed class LayoutSet
 {
     public string? Id { get; set; }
     public string? DataType { get; set; }
@@ -14,7 +14,7 @@ internal class LayoutSet
 /// <summary>
 /// Model representing layout-sets.json file
 /// </summary>
-internal class LayoutSetsConfiguration
+internal sealed class LayoutSetsConfiguration
 {
     public List<LayoutSet>? Sets { get; set; }
 }
@@ -22,13 +22,13 @@ internal class LayoutSetsConfiguration
 /// <summary>
 /// Model representing a data type from applicationmetadata.json
 /// </summary>
-internal class DataTypeMetadata
+internal sealed class DataTypeMetadata
 {
     public string? Id { get; set; }
     public AppLogic? AppLogic { get; set; }
 }
 
-internal class AppLogic
+internal sealed class AppLogic
 {
     public string? ClassRef { get; set; }
 }
@@ -36,7 +36,7 @@ internal class AppLogic
 /// <summary>
 /// Model representing applicationmetadata.json file
 /// </summary>
-internal class ApplicationMetadata
+internal sealed class ApplicationMetadata
 {
     public List<DataTypeMetadata>? DataTypes { get; set; }
 }
@@ -44,7 +44,7 @@ internal class ApplicationMetadata
 /// <summary>
 /// Resolves data model information for layout sets
 /// </summary>
-internal class DataModelResolver
+internal sealed class DataModelResolver
 {
     private static readonly JsonSerializerOptions s_jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -175,7 +175,7 @@ internal class DataModelResolver
 /// <summary>
 /// Complete information about a data model
 /// </summary>
-internal class DataModelInfo
+internal sealed class DataModelInfo
 {
     public required string DataType { get; init; }
     public required string FullClassRef { get; init; }

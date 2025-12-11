@@ -7,7 +7,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingR
 /// <summary>
 /// Parses unified diff format into structured objects
 /// </summary>
-internal class DiffParser
+internal sealed class DiffParser
 {
     private static readonly char[] s_spaceSeparator = { ' ' };
 
@@ -120,7 +120,7 @@ internal class DiffParser
 /// <summary>
 /// Represents a parsed diff file
 /// </summary>
-internal class DiffFile
+internal sealed class DiffFile
 {
     public string FilePath { get; set; } = string.Empty;
     public List<DiffHunk> Hunks { get; set; } = new List<DiffHunk>();
@@ -129,7 +129,7 @@ internal class DiffFile
 /// <summary>
 /// Represents a hunk in a diff
 /// </summary>
-internal class DiffHunk
+internal sealed class DiffHunk
 {
     public HunkHeader Header { get; set; } = new HunkHeader();
     public List<DiffLine> Lines { get; set; } = new List<DiffLine>();
@@ -139,7 +139,7 @@ internal class DiffHunk
 /// <summary>
 /// Represents a hunk header with line numbers
 /// </summary>
-internal class HunkHeader
+internal sealed class HunkHeader
 {
     public int OldStart { get; set; }
     public int OldCount { get; set; }
@@ -150,7 +150,7 @@ internal class HunkHeader
 /// <summary>
 /// Represents a single line in a diff
 /// </summary>
-internal class DiffLine
+internal sealed class DiffLine
 {
     public DiffLineType Type { get; set; }
     public string Content { get; set; } = string.Empty;

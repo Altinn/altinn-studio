@@ -49,6 +49,7 @@ public class UnaryPlusMatcher : IExpressionMatcher
                 }
 
                 debugInfo.Add("✅ Successfully converted !property to equals null");
+                // ! null literal is intentionally used as the comparison value in the expression
                 return new object[] { "equals", propertyValue, null! };
             }
 

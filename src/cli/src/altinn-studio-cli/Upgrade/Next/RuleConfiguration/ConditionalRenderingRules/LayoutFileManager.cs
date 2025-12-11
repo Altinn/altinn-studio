@@ -6,7 +6,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingR
 /// <summary>
 /// Manages reading, modifying, and writing layout JSON files
 /// </summary>
-internal class LayoutFileManager
+internal sealed class LayoutFileManager
 {
     private readonly string _layoutsDirectory;
     private readonly Dictionary<string, (string FilePath, JsonNode RootNode)> _layoutFiles;

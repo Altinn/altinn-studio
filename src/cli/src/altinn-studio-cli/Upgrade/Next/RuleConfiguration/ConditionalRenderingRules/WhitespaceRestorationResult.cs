@@ -5,7 +5,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingR
 /// <summary>
 /// Result of whitespace restoration operation
 /// </summary>
-internal class WhitespaceRestorationResult
+internal sealed class WhitespaceRestorationResult
 {
     public bool Success { get; set; }
     public int TotalFilesProcessed { get; set; }

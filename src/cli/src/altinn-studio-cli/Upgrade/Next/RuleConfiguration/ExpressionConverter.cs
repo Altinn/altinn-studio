@@ -84,12 +84,16 @@ public class ExpressionConverter
             VariableMappings = parseResult.VariableMappings,
             GlobalConstants = _globalConstants,
             AvailableFunctions = _availableFunctions
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ReturnExpression!)
-                .Where(kvp => kvp.Value != null)
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value)!,
+                .SelectMany(kvp =>
+                    kvp.Value.ReturnExpression != null
+                        ? new[] { KeyValuePair.Create(kvp.Key, kvp.Value.ReturnExpression) }
+                        : Array.Empty<KeyValuePair<string, Acornima.Ast.Expression>>()
+                )
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
         };
 
         debugInfo.Add("=== Converting Return Expression ===");
+        // ! ReturnExpression is guaranteed non-null when parseResult.Success is true (checked on line 67)
         var expression = context.ConvertExpression(parseResult.ReturnExpression!, debugInfo);
 
         if (expression == null)

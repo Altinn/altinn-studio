@@ -3,7 +3,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingR
 /// <summary>
 /// Main orchestrator for restoring whitespace-only changes
 /// </summary>
-internal class WhitespaceRestorationProcessor
+internal sealed class WhitespaceRestorationProcessor
 {
     private readonly string _repositoryRoot;
     private readonly string _layoutsPathRelativeToRepo;

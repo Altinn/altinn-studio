@@ -10,8 +10,10 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingR
 /// <summary>
 /// Main orchestrator for converting conditional rendering rules to layout hidden expressions
 /// </summary>
-internal class ConditionalRenderingConverter
+internal sealed class ConditionalRenderingConverter
 {
+    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+
     private readonly string _appBasePath;
 
     public ConditionalRenderingConverter(string appBasePath)
@@ -141,7 +143,7 @@ internal class ConditionalRenderingConverter
             result.RulesProcessed++;
 
             // Serialize the rule configuration for context in failed conversions
-            var ruleConfigJson = JsonSerializer.Serialize(rule, new JsonSerializerOptions { WriteIndented = true });
+            var ruleConfigJson = JsonSerializer.Serialize(rule, JsonOptions);
 
             var injectionResults = ProcessRule(ruleId, rule, jsParser, layoutManager, ruleConfigJson);
 
@@ -302,7 +304,7 @@ internal class ConditionalRenderingConverter
             var jsonText = File.ReadAllText(filePath);
 
             // Check if there are any failed conversions in this file
-            if (!jsonText.Contains("__MANUAL_CONVERSION_REQUIRED_"))
+            if (!jsonText.Contains("__MANUAL_CONVERSION_REQUIRED_", StringComparison.Ordinal))
             {
                 continue;
             }
@@ -320,8 +322,9 @@ internal class ConditionalRenderingConverter
                 {
                     // Extract rule ID from placeholder
                     var startIdx =
-                        line.IndexOf("__MANUAL_CONVERSION_REQUIRED_") + "__MANUAL_CONVERSION_REQUIRED_".Length;
-                    var endIdx = line.IndexOf("__\"", startIdx);
+                        line.IndexOf("__MANUAL_CONVERSION_REQUIRED_", StringComparison.Ordinal)
+                        + "__MANUAL_CONVERSION_REQUIRED_".Length;
+                    var endIdx = line.IndexOf("__\"", startIdx, StringComparison.Ordinal);
                     var ruleId = endIdx > startIdx ? line.Substring(startIdx, endIdx - startIdx) : "unknown";
 
                     // Look for the _conversionFailureInfo property nearby
@@ -332,17 +335,18 @@ internal class ConditionalRenderingConverter
                         if (lines[j].Contains("\"_conversionFailureInfo\""))
                         {
                             // Extract the rule config and JS function from the comment
-                            var ruleConfigStart = lines[j].IndexOf("Rule config: ");
+                            var ruleConfigStart = lines[j].IndexOf("Rule config: ", StringComparison.Ordinal);
                             if (ruleConfigStart > 0)
                             {
                                 ruleConfigStart += "Rule config: ".Length;
-                                var ruleConfigEnd = lines[j].IndexOf(" | Original JS function: ", ruleConfigStart);
+                                var ruleConfigEnd = lines[j]
+                                    .IndexOf(" | Original JS function: ", ruleConfigStart, StringComparison.Ordinal);
                                 if (ruleConfigEnd > ruleConfigStart)
                                 {
                                     ruleConfig = lines[j].Substring(ruleConfigStart, ruleConfigEnd - ruleConfigStart);
 
                                     var funcStart = ruleConfigEnd + " | Original JS function: ".Length;
-                                    var funcEnd = lines[j].LastIndexOf("\"");
+                                    var funcEnd = lines[j].LastIndexOf('"');
                                     if (funcEnd > funcStart)
                                     {
                                         jsFunction = lines[j].Substring(funcStart, funcEnd - funcStart);
@@ -369,10 +373,15 @@ internal class ConditionalRenderingConverter
                             .Replace("\\r", "\r")
                             .Replace("\\\"", "\"");
                         var ruleConfigLines = unescapedRuleConfig.Split('\n');
+                        var commentBuilder = new System.Text.StringBuilder(comment);
                         foreach (var configLine in ruleConfigLines)
                         {
-                            comment += $"{indent}   {configLine}\n";
+                            commentBuilder.Append(
+                                System.Globalization.CultureInfo.InvariantCulture,
+                                $"{indent}   {configLine}\n"
+                            );
                         }
+                        comment = commentBuilder.ToString();
                     }
                     if (!string.IsNullOrEmpty(jsFunction))
                     {
@@ -384,10 +393,15 @@ internal class ConditionalRenderingConverter
                             .Replace("\\r", "\r")
                             .Replace("\\\"", "\"");
                         var jsFunctionLines = unescapedJsFunction.Split('\n');
+                        var commentBuilder2 = new System.Text.StringBuilder(comment);
                         foreach (var jsLine in jsFunctionLines)
                         {
-                            comment += $"{indent}   {jsLine}\n";
+                            commentBuilder2.Append(
+                                System.Globalization.CultureInfo.InvariantCulture,
+                                $"{indent}   {jsLine}\n"
+                            );
                         }
+                        comment = commentBuilder2.ToString();
                     }
                     comment += $"{indent}   \n";
                     comment += $"{indent}   This rule could not be automatically converted to an expression.\n";
@@ -398,7 +412,10 @@ internal class ConditionalRenderingConverter
                     // Check if this placeholder is inside an array (has existing hidden expression)
                     // by looking at the line structure - if it's just a string value in an array, don't add the property name
                     var trimmedLine = line.TrimStart();
-                    bool isArrayElement = trimmedLine.StartsWith("\"__MANUAL_CONVERSION_REQUIRED_");
+                    bool isArrayElement = trimmedLine.StartsWith(
+                        "\"__MANUAL_CONVERSION_REQUIRED_",
+                        StringComparison.Ordinal
+                    );
 
                     if (isArrayElement)
                     {
@@ -415,7 +432,6 @@ internal class ConditionalRenderingConverter
                 else if (line.Contains("\"_conversionFailureInfo\""))
                 {
                     // Skip this line - it was temporary storage
-                    continue;
                 }
                 else
                 {
@@ -431,7 +447,7 @@ internal class ConditionalRenderingConverter
 /// <summary>
 /// Statistics for the overall conversion process
 /// </summary>
-internal class ConversionStatistics
+internal sealed class ConversionStatistics
 {
     public int TotalLayoutSets { get; set; }
     public int TotalRules { get; set; }
@@ -444,7 +460,7 @@ internal class ConversionStatistics
 /// <summary>
 /// Result of converting a single layout set
 /// </summary>
-internal class LayoutSetConversionResult
+internal sealed class LayoutSetConversionResult
 {
     public string LayoutSetName { get; set; } = string.Empty;
     public int RulesProcessed { get; set; }

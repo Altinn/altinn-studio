@@ -5,8 +5,9 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingR
 /// <summary>
 /// Directly restores whitespace-only changes by manipulating files line-by-line
 /// </summary>
-internal class DirectFileRestorer
+internal sealed class DirectFileRestorer
 {
+    private static readonly string[] LineSeparators = ["\r\n", "\n"];
     private readonly IGitRepositoryService _gitService;
 
     public DirectFileRestorer(IGitRepositoryService gitService)
@@ -40,12 +41,8 @@ internal class DirectFileRestorer
         string originalContent = _gitService.GetFileContentFromHead(repoRoot, diffFile.FilePath);
         string[] originalLines = SplitIntoLines(originalContent);
 
-        // Read current (modified) content from working directory
-        string currentContent = File.ReadAllText(fullFilePath);
-        string[] currentLines = SplitIntoLines(currentContent);
-
         // Build the result by processing hunks
-        var resultLines = BuildRestoredContent(originalLines, currentLines, diffFile.Hunks, classifications);
+        var resultLines = BuildRestoredContent(originalLines, diffFile.Hunks, classifications);
 
         // Write the result back to the file
         // Preserve the original line ending style
@@ -66,7 +63,6 @@ internal class DirectFileRestorer
     /// </summary>
     private List<string> BuildRestoredContent(
         string[] originalLines,
-        string[] currentLines,
         List<DiffHunk> hunks,
         Dictionary<DiffHunk, ChunkClassification> classifications
     )
@@ -155,7 +151,7 @@ internal class DirectFileRestorer
 
         // Split on both \r\n and \n to handle different line endings
         // Use StringSplitOptions.None to preserve empty lines
-        var lines = content.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+        var lines = content.Split(LineSeparators, StringSplitOptions.None);
 
         // If the content ends with a newline, Split will add an empty element at the end
         // Remove it to avoid adding an extra line
@@ -172,12 +168,12 @@ internal class DirectFileRestorer
     /// </summary>
     private string DetectLineEnding(string content)
     {
-        if (content.Contains("\r\n"))
+        if (content.Contains("\r\n", StringComparison.Ordinal))
         {
             return "\r\n"; // Windows style
         }
 
-        if (content.Contains("\n"))
+        if (content.Contains('\n'))
         {
             return "\n"; // Unix style
         }

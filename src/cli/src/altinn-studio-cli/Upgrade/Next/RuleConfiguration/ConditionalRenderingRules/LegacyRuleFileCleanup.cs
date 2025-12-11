@@ -3,7 +3,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingR
 /// <summary>
 /// Cleanup job that removes legacy rule files after conversion
 /// </summary>
-internal class LegacyRuleFileCleanup
+internal sealed class LegacyRuleFileCleanup
 {
     private readonly string _appBasePath;
 
@@ -97,7 +97,7 @@ internal class LegacyRuleFileCleanup
 /// <summary>
 /// Statistics for the cleanup process
 /// </summary>
-internal class CleanupStatistics
+internal sealed class CleanupStatistics
 {
     public int TotalLayoutSets { get; set; }
     public int RuleConfigFilesDeleted { get; set; }
@@ -107,7 +107,7 @@ internal class CleanupStatistics
 /// <summary>
 /// Result of cleaning up a single layout set
 /// </summary>
-internal class LayoutSetCleanupResult
+internal sealed class LayoutSetCleanupResult
 {
     public string LayoutSetName { get; set; } = string.Empty;
     public bool RuleConfigDeleted { get; set; }

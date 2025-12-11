@@ -5,7 +5,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.DataProcessingRules;
 /// <summary>
 /// A StringBuilder-like class that manages indentation levels automatically
 /// </summary>
-internal class IndentedStringBuilder
+internal sealed class IndentedStringBuilder
 {
     private readonly StringBuilder _builder = new();
     private int _indentLevel = 0;

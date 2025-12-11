@@ -6,7 +6,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.DataProcessingRules;
 /// <summary>
 /// Information about a failed rule conversion
 /// </summary>
-internal class FailedRuleInfo
+internal sealed class FailedRuleInfo
 {
     public string RuleName { get; set; } = string.Empty;
     public string Reason { get; set; } = string.Empty;
@@ -16,7 +16,7 @@ internal class FailedRuleInfo
 /// <summary>
 /// Result of generating a data processor class
 /// </summary>
-internal class DataProcessorGenerationResult
+internal sealed class DataProcessorGenerationResult
 {
     public bool Success { get; set; }
     public string? GeneratedCode { get; set; }
@@ -31,8 +31,10 @@ internal class DataProcessorGenerationResult
 /// <summary>
 /// Generates C# IDataWriteProcessor implementations from JavaScript data processing rules
 /// </summary>
-internal class CSharpCodeGenerator
+internal sealed class CSharpCodeGenerator
 {
+    private static readonly char[] NewlineSeparators = ['\n', '\r'];
+
     private readonly string _layoutSetName;
     private readonly DataModelInfo? _dataModelInfo;
     private readonly Dictionary<string, DataProcessingRule> _rules;
@@ -78,11 +80,12 @@ internal class CSharpCodeGenerator
 
             if (!string.IsNullOrEmpty(functionName))
             {
-                if (!functionUsageCount.ContainsKey(functionName))
+                if (!functionUsageCount.TryGetValue(functionName, out var ruleIds))
                 {
-                    functionUsageCount[functionName] = new List<string>();
+                    ruleIds = new List<string>();
+                    functionUsageCount[functionName] = ruleIds;
                 }
-                functionUsageCount[functionName].Add(ruleId);
+                ruleIds.Add(ruleId);
             }
         }
 
@@ -110,8 +113,8 @@ internal class CSharpCodeGenerator
         code.AppendLine($"public class {className} : IDataWriteProcessor");
         code.OpenBrace();
 
-        GenerateProcessDataWriteMethod(code, result);
-        GenerateSharedHelperMethods(code, result, sharedFunctions);
+        GenerateProcessDataWriteMethod(code);
+        GenerateSharedHelperMethods(code, sharedFunctions);
         GenerateRuleMethods(code, result, sharedFunctions);
 
         code.CloseBrace();
@@ -138,7 +141,7 @@ internal class CSharpCodeGenerator
         }
     }
 
-    private void GenerateProcessDataWriteMethod(IndentedStringBuilder code, DataProcessorGenerationResult result)
+    private void GenerateProcessDataWriteMethod(IndentedStringBuilder code)
     {
         var dataClassName = _dataModelInfo?.ClassName ?? "UNKNOWN_DATA_MODEL";
 
@@ -183,7 +186,6 @@ internal class CSharpCodeGenerator
 
     private void GenerateSharedHelperMethods(
         IndentedStringBuilder code,
-        DataProcessorGenerationResult result,
         Dictionary<string, List<string>> sharedFunctions
     )
     {
@@ -275,14 +277,14 @@ internal class CSharpCodeGenerator
 
             // Generate code manually for common patterns
             // Try to detect if this is a simple arithmetic function
-            var implLower = jsFunction.Implementation.ToLower();
+            var implLower = jsFunction.Implementation.ToLower(System.Globalization.CultureInfo.InvariantCulture);
             var isSimpleArithmetic =
-                implLower.Contains("return")
+                implLower.Contains("return", StringComparison.Ordinal)
                 && (
-                    implLower.Contains("+")
-                    || implLower.Contains("-")
-                    || implLower.Contains("*")
-                    || implLower.Contains("/")
+                    implLower.Contains('+')
+                    || implLower.Contains('-')
+                    || implLower.Contains('*')
+                    || implLower.Contains('/')
                 );
 
             if (isSimpleArithmetic && allPossibleKeys.Count > 0 && allPossibleKeys.Count <= 10)
@@ -349,7 +351,7 @@ internal class CSharpCodeGenerator
                         );
 
                         // Also replace standalone .KEY (uppercase version from failed conversion)
-                        var keyUpper = key.ToUpper();
+                        var keyUpper = key.ToUpper(System.Globalization.CultureInfo.InvariantCulture);
                         convertedCode = System.Text.RegularExpressions.Regex.Replace(
                             convertedCode,
                             $@"\.{keyUpper}\b",
@@ -369,7 +371,7 @@ internal class CSharpCodeGenerator
                         }
                     }
 
-                    var lines = convertedCode.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                    var lines = convertedCode.Split(NewlineSeparators, StringSplitOptions.RemoveEmptyEntries);
                     foreach (var line in lines)
                     {
                         var trimmedLine = line.TrimEnd();
@@ -502,7 +504,7 @@ internal class CSharpCodeGenerator
                         var reason = string.IsNullOrEmpty(outputFieldPath)
                             ? "Could not determine output field"
                             : "No input parameters defined";
-                        GenerateTodoStub(code, rule, reason, jsFunction.Implementation);
+                        GenerateTodoStub(code, rule, reason);
                         result.FailedConversions++;
                         result.FailedRules.Add(
                             new FailedRuleInfo
@@ -574,7 +576,7 @@ internal class CSharpCodeGenerator
                             }
 
                             // Ensure the tracked type is nullable to match the generated code
-                            var trackedType = resolvedType.EndsWith("?") ? resolvedType : resolvedType + "?";
+                            var trackedType = resolvedType.EndsWith('?') ? resolvedType : resolvedType + "?";
 
                             converter.MarkVariableType(inputParam.Key, trackedType);
                         }
@@ -614,7 +616,7 @@ internal class CSharpCodeGenerator
                             // The generated code already has proper indentation from IndentedStringBuilder
                             // Split by newlines to process statements and replace return statements with assignments
                             var lines = conversionResult.GeneratedCode.Split(
-                                new[] { '\n', '\r' },
+                                NewlineSeparators,
                                 StringSplitOptions.RemoveEmptyEntries
                             );
 
@@ -625,43 +627,49 @@ internal class CSharpCodeGenerator
                                 var trimmedLine = line.Trim();
 
                                 // If this line is a return statement, convert it to a wrapper.Set() call
-                                if (trimmedLine.StartsWith("return ") && trimmedLine.EndsWith(";"))
+                                if (
+                                    trimmedLine.StartsWith("return ", StringComparison.Ordinal)
+                                    && trimmedLine.EndsWith(';')
+                                )
                                 {
                                     var returnExpr = trimmedLine.Substring(7, trimmedLine.Length - 8); // Extract expression between "return " and ";"
                                     // Preserve the original indentation
                                     var indent =
                                         line.Length > trimmedLine.Length
-                                            ? line.Substring(0, line.IndexOf(trimmedLine))
+                                            ? line.Substring(0, line.IndexOf(trimmedLine, StringComparison.Ordinal))
                                             : "";
                                     code.AppendLine($"{indent}wrapper.Set(\"{outputFieldPath}\", {returnExpr});");
                                 }
                                 else if (trimmedLine == "return;")
                                 {
                                     // Empty return statement - just skip it
-                                    continue;
                                 }
-                                else if (trimmedLine.StartsWith("return "))
+                                else if (trimmedLine.StartsWith("return ", StringComparison.Ordinal))
                                 {
                                     // Multi-line return statement - collect all lines until we find the semicolon
                                     var returnParts = new System.Text.StringBuilder();
-                                    returnParts.Append(trimmedLine.Substring(7)); // Remove "return "
+                                    returnParts.Append(trimmedLine.AsSpan(7)); // Remove "return "
 
                                     // Save original indentation from first line
                                     var indent =
                                         line.Length > trimmedLine.Length
-                                            ? line.Substring(0, line.IndexOf(trimmedLine))
+                                            ? line.AsSpan(0, line.IndexOf(trimmedLine, StringComparison.Ordinal))
+                                                .ToString()
                                             : "";
 
-                                    while (i + 1 < lines.Length && !line.Contains(";"))
+                                    // Collect multi-line return statement
+#pragma warning disable S127 // Loop counter must be updated to consume multi-line statement
+                                    while (i + 1 < lines.Length && !line.Contains(';'))
                                     {
                                         i++;
                                         line = lines[i].TrimEnd();
-                                        returnParts.Append(" ");
+                                        returnParts.Append(' ');
                                         returnParts.Append(line.Trim());
                                     }
+#pragma warning restore S127
 
                                     var returnExpr = returnParts.ToString();
-                                    if (returnExpr.EndsWith(";"))
+                                    if (returnExpr.EndsWith(';'))
                                     {
                                         returnExpr = returnExpr.Substring(0, returnExpr.Length - 1);
                                     }
@@ -678,7 +686,7 @@ internal class CSharpCodeGenerator
                         else
                         {
                             var reason = "No output parameter defined";
-                            GenerateTodoStub(code, rule, reason, jsFunction.Implementation);
+                            GenerateTodoStub(code, rule, reason);
                             result.FailedConversions++;
                             result.FailedRules.Add(
                                 new FailedRuleInfo
@@ -693,7 +701,7 @@ internal class CSharpCodeGenerator
                     else
                     {
                         var reason = conversionResult.FailureReason ?? "Conversion failed";
-                        GenerateTodoStub(code, rule, reason, jsFunction.Implementation);
+                        GenerateTodoStub(code, rule, reason);
                         result.FailedConversions++;
                         result.FailedRules.Add(
                             new FailedRuleInfo
@@ -727,12 +735,7 @@ internal class CSharpCodeGenerator
         }
     }
 
-    private void GenerateTodoStub(
-        IndentedStringBuilder code,
-        DataProcessingRule rule,
-        string reason,
-        string? jsSource = null
-    )
+    private void GenerateTodoStub(IndentedStringBuilder code, DataProcessingRule rule, string reason)
     {
         code.AppendLine($"// TODO: Manual conversion required - {reason}");
 
@@ -778,7 +781,7 @@ internal class CSharpCodeGenerator
             return input;
         }
 
-        return char.ToUpper(input[0]) + input[1..];
+        return char.ToUpper(input[0], System.Globalization.CultureInfo.InvariantCulture) + input[1..];
     }
 
     private string? InferOutputFieldFromRuleName(string ruleConnectionName, string? functionName)
@@ -829,7 +832,7 @@ internal class CSharpCodeGenerator
         if (defaultValue == null)
         {
             // Ensure the type is nullable
-            var nullableType = resolvedType.EndsWith("?") ? resolvedType : resolvedType + "?";
+            var nullableType = resolvedType.EndsWith('?') ? resolvedType : resolvedType + "?";
             return $"({nullableType})wrapper.Get(\"{jsonPath}\")";
         }
 
@@ -838,7 +841,7 @@ internal class CSharpCodeGenerator
         // This casts the result of the null-coalescing to the target type
 
         // Strip the nullable marker to get the base type for the outer cast
-        var baseType = resolvedType.EndsWith("?") ? resolvedType.Substring(0, resolvedType.Length - 1) : resolvedType;
+        var baseType = resolvedType.EndsWith('?') ? resolvedType.Substring(0, resolvedType.Length - 1) : resolvedType;
 
         // The inner expression needs to be nullable for ?? to work
         return $"({baseType})(wrapper.Get(\"{jsonPath}\") ?? {defaultValue})";

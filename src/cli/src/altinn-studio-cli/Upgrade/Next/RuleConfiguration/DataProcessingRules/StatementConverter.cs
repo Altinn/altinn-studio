@@ -6,7 +6,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.DataProcessingRules;
 /// <summary>
 /// Result of a C# code conversion
 /// </summary>
-internal class CSharpConversionResult
+internal sealed class CSharpConversionResult
 {
     public bool Success { get; set; }
     public string? GeneratedCode { get; set; }
@@ -16,7 +16,7 @@ internal class CSharpConversionResult
 /// <summary>
 /// Converts JavaScript statements and expressions to C# code
 /// </summary>
-internal class StatementConverter
+internal sealed class StatementConverter
 {
     private readonly Dictionary<string, string> _inputParams;
     private readonly string _dataVariableName;
@@ -495,8 +495,6 @@ internal class StatementConverter
                 // Handle any further else/else if
                 if (elseIf.Alternate != null)
                 {
-                    // Temporarily create an if statement for recursion
-                    var tempIf = new IfStatement(elseIf.Test, elseIf.Consequent, elseIf.Alternate);
                     // Manually handle the alternate without the initial if
                     if (elseIf.Alternate is IfStatement furtherElseIf)
                     {
@@ -800,10 +798,10 @@ internal class StatementConverter
             if (i < template.Expressions.Count)
             {
                 var expr = ConvertExpression(template.Expressions[i]);
-                result.Append($"{{{expr}}}");
+                result.Append(System.Globalization.CultureInfo.InvariantCulture, $"{{{expr}}}");
             }
         }
-        result.Append("\"");
+        result.Append('"');
         return result.ToString();
     }
 
@@ -872,7 +870,7 @@ internal class StatementConverter
             var paramList = string.Join(", ", arrow.Params.OfType<Identifier>().Select(p => p.Name));
             return $"(({paramList}) => {body})";
         }
-        else if (arrow.Body is BlockStatement blockStmt)
+        else if (arrow.Body is BlockStatement)
         {
             // Arrow function with block body: x => { statements }
             // This is more complex and may need to be converted to a full method
@@ -976,10 +974,9 @@ internal class StatementConverter
             }
 
             // Check if this property is a known input parameter
-            if (_inputParams.ContainsKey(propertyName))
+            if (_inputParams.TryGetValue(propertyName, out var dataModelPath))
             {
                 // Get the full data model path for this parameter
-                var dataModelPath = _inputParams[propertyName];
 
                 // Convert the path to C# property access
                 var propertyPath = ExtractPropertyNameFromPath(dataModelPath);
@@ -1031,10 +1028,9 @@ internal class StatementConverter
         }
 
         // Check if this is a known input parameter
-        if (_inputParams.ContainsKey(identifier.Name))
+        if (_inputParams.TryGetValue(identifier.Name, out var dataModelPath))
         {
             // Get the full data model path for this parameter
-            var dataModelPath = _inputParams[identifier.Name];
 
             // Convert the path to C# property access
             var propertyPath = ExtractPropertyNameFromPath(dataModelPath);
@@ -1089,17 +1085,21 @@ internal class StatementConverter
     {
         // Convert JavaScript numbers to C# decimals since many Altinn data models use decimal types
         // JavaScript doesn't distinguish between integer and floating-point numbers
-        var doubleValue = Convert.ToDouble(value);
+        var doubleValue = Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
 
         // Check if it's a whole number
+#pragma warning disable S1244 // Comparing with Math.Floor is the standard way to check if a number is whole
         if (doubleValue == Math.Floor(doubleValue) && !double.IsInfinity(doubleValue) && !double.IsNaN(doubleValue))
+#pragma warning restore S1244
         {
             // For small whole numbers (1-20) that are commonly used as method parameters
             // (precision, count, index), use the integer form to avoid ambiguous overloads
             // But exclude 0 since it's often used as an accumulator initial value
+#pragma warning disable S1244 // Comparing with Math.Floor is the standard way to check if a number is whole
             if (doubleValue >= 1 && doubleValue <= 20 && doubleValue == Math.Floor(doubleValue))
+#pragma warning restore S1244
             {
-                return ((int)doubleValue).ToString();
+                return ((int)doubleValue).ToString(System.Globalization.CultureInfo.InvariantCulture);
             }
 
             // For large numbers that don't fit in int (> int.MaxValue), use decimal format with m suffix
@@ -1130,13 +1130,15 @@ internal class StatementConverter
         // Special pattern: obj.property ? +obj.property : 0
         // This is JavaScript's way of "convert to number or default to 0"
         // We can simplify this to just the unary plus conversion
+#pragma warning disable S1244 // Checking exact equality with 0 is valid for integer values
         if (
             conditional.Consequent is UnaryExpression unary
             && unary.Operator.ToString() == "UnaryPlus"
             && conditional.Alternate is Literal literal
             && literal.Value is int or long or double
-            && Convert.ToDouble(literal.Value) == 0
+            && Convert.ToDouble(literal.Value, System.Globalization.CultureInfo.InvariantCulture) == 0
         )
+#pragma warning restore S1244
         {
             // Just use the unary plus conversion directly, which already handles the fallback to 0
             return ConvertUnaryPlus(unary.Argument);
@@ -1154,7 +1156,7 @@ internal class StatementConverter
         if (consequentIsString && !alternateIsString)
         {
             // Consequent is string, alternate is not - convert alternate to string
-            if (!alternate.Trim().StartsWith("\""))
+            if (!alternate.Trim().StartsWith('"'))
             {
                 // It's not already a string literal
                 // Check if this is a simple identifier or member expression that could be null
@@ -1174,21 +1176,20 @@ internal class StatementConverter
         else if (!consequentIsString && alternateIsString)
         {
             // Alternate is string, consequent is not - convert consequent to string
-            if (!consequent.Trim().StartsWith("\""))
+            if (
+                !consequent.Trim().StartsWith('"')
+                && (conditional.Consequent is Identifier || conditional.Consequent is MemberExpression)
+            )
             {
-                // It's not already a string literal
-                // Check if this is a simple identifier or member expression that could be null
-                if (conditional.Consequent is Identifier || conditional.Consequent is MemberExpression)
-                {
-                    // For identifiers and member expressions, use null-conditional operator
-                    consequent = $"({consequent}?.ToString() ?? \"\")";
-                }
-                else
-                {
-                    // For complex expressions (binary operations, etc.), the result is a value type
-                    // that can't be null, so just call ToString() without ?.
-                    consequent = $"({consequent}).ToString()";
-                }
+                // For identifiers and member expressions that are not already string literals,
+                // use null-conditional operator
+                consequent = $"({consequent}?.ToString() ?? \"\")";
+            }
+            else if (!consequent.Trim().StartsWith('"'))
+            {
+                // For complex expressions (binary operations, etc.), the result is a value type
+                // that can't be null, so just call ToString() without ?.
+                consequent = $"({consequent}).ToString()";
             }
         }
 
@@ -1566,7 +1567,7 @@ internal class StatementConverter
                         }
 
                         // In .NET 6+, Split with char[] on nullable string requires StringSplitOptions
-                        if (nullConditional == "?" && separator.StartsWith("new[] {"))
+                        if (nullConditional == "?" && separator.StartsWith("new[] {", StringComparison.Ordinal))
                         {
                             return $"{obj}{nullConditional}.Split({separator}, StringSplitOptions.None)";
                         }
@@ -1589,7 +1590,8 @@ internal class StatementConverter
                         {
                             // It's a numeric literal - wrap in ToString() for string Contains
                             // or convert to char for single digit
-                            int intValue = (int)double.Parse(searchValueTrimmed);
+                            int intValue = (int)
+                                double.Parse(searchValueTrimmed, System.Globalization.CultureInfo.InvariantCulture);
                             if (intValue >= 0 && intValue <= 9)
                             {
                                 // Single digit - can be used as char
@@ -1692,7 +1694,7 @@ internal class StatementConverter
         }
 
         // Simple conversion: capitalize first letter
-        return char.ToUpper(input[0]) + input[1..];
+        return char.ToUpper(input[0], System.Globalization.CultureInfo.InvariantCulture) + input[1..];
     }
 
     private string EscapeString(string str)

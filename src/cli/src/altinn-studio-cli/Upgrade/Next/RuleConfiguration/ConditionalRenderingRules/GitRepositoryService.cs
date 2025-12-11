@@ -17,7 +17,7 @@ internal interface IGitRepositoryService
 /// <summary>
 /// LibGit2Sharp implementation of git repository operations
 /// </summary>
-internal class LibGit2SharpGitRepositoryService : IGitRepositoryService
+internal sealed class LibGit2SharpGitRepositoryService : IGitRepositoryService
 {
     /// <summary>
     /// Find the git repository root by using LibGit2Sharp's discovery mechanism

@@ -8,7 +8,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingR
 /// <summary>
 /// Classifies diff hunks as whitespace-only or content changes
 /// </summary>
-internal class ChunkClassifier
+internal sealed class ChunkClassifier
 {
     /// <summary>
     /// Determine if a hunk contains only whitespace changes
@@ -172,7 +172,7 @@ internal class ChunkClassifier
 /// <summary>
 /// Classification result for a hunk
 /// </summary>
-internal class ChunkClassification
+internal sealed class ChunkClassification
 {
     public bool IsWhitespaceOnly { get; set; }
     public string Reason { get; set; } = string.Empty;
