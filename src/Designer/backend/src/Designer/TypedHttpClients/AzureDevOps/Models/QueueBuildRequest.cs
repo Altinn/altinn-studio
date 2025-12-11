@@ -19,11 +19,5 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
         /// </summary>
         [JsonPropertyName("parameters")]
         public string Parameters { get; set; }
-
-        /// <summary>
-        /// The source branch to build from (e.g., refs/heads/main)
-        /// </summary>
-        [JsonPropertyName("sourceBranch")]
-        public string SourceBranch { get; set; } = "refs/heads/feat/deploy-events";
     }
 }
