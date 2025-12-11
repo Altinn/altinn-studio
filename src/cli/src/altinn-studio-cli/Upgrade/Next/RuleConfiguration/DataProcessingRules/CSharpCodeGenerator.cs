@@ -621,9 +621,10 @@ internal sealed class CSharpCodeGenerator
                             );
 
                             // Process each line and replace return statements with wrapper.Set() calls
-                            for (int i = 0; i < lines.Length; i++)
+                            int lineIndex = 0;
+                            while (lineIndex < lines.Length)
                             {
-                                var line = lines[i].TrimEnd();
+                                var line = lines[lineIndex].TrimEnd();
                                 var trimmedLine = line.Trim();
 
                                 // If this line is a return statement, convert it to a wrapper.Set() call
@@ -639,10 +640,12 @@ internal sealed class CSharpCodeGenerator
                                             ? line.Substring(0, line.IndexOf(trimmedLine, StringComparison.Ordinal))
                                             : "";
                                     code.AppendLine($"{indent}wrapper.Set(\"{outputFieldPath}\", {returnExpr});");
+                                    lineIndex++;
                                 }
                                 else if (trimmedLine == "return;")
                                 {
                                     // Empty return statement - just skip it
+                                    lineIndex++;
                                 }
                                 else if (trimmedLine.StartsWith("return ", StringComparison.Ordinal))
                                 {
@@ -658,15 +661,14 @@ internal sealed class CSharpCodeGenerator
                                             : "";
 
                                     // Collect multi-line return statement
-#pragma warning disable S127 // Loop counter must be updated to consume multi-line statement
-                                    while (i + 1 < lines.Length && !line.Contains(';'))
+                                    lineIndex++;
+                                    while (lineIndex < lines.Length && !line.Contains(';'))
                                     {
-                                        i++;
-                                        line = lines[i].TrimEnd();
+                                        line = lines[lineIndex].TrimEnd();
                                         returnParts.Append(' ');
                                         returnParts.Append(line.Trim());
+                                        lineIndex++;
                                     }
-#pragma warning restore S127
 
                                     var returnExpr = returnParts.ToString();
                                     if (returnExpr.EndsWith(';'))
@@ -679,6 +681,11 @@ internal sealed class CSharpCodeGenerator
                                 {
                                     // Output the line as-is since it already has no indentation from the converter
                                     code.AppendLine(line);
+                                    lineIndex++;
+                                }
+                                else
+                                {
+                                    lineIndex++;
                                 }
                             }
                             result.SuccessfulConversions++;

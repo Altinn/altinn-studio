@@ -1087,17 +1087,15 @@ internal sealed class StatementConverter
         // JavaScript doesn't distinguish between integer and floating-point numbers
         var doubleValue = Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
 
-        // Check if it's a whole number
-#pragma warning disable S1244 // Comparing with Math.Floor is the standard way to check if a number is whole
-        if (doubleValue == Math.Floor(doubleValue) && !double.IsInfinity(doubleValue) && !double.IsNaN(doubleValue))
-#pragma warning restore S1244
+        // Check if it's a whole number using tolerance-based comparison
+        const double tolerance = 1e-10;
+        if (Math.Abs(doubleValue % 1) < tolerance && !double.IsInfinity(doubleValue) && !double.IsNaN(doubleValue))
         {
             // For small whole numbers (1-20) that are commonly used as method parameters
             // (precision, count, index), use the integer form to avoid ambiguous overloads
             // But exclude 0 since it's often used as an accumulator initial value
-#pragma warning disable S1244 // Comparing with Math.Floor is the standard way to check if a number is whole
-            if (doubleValue >= 1 && doubleValue <= 20 && doubleValue == Math.Floor(doubleValue))
-#pragma warning restore S1244
+            // Already checked that it's a whole number above, no need to check again
+            if (doubleValue >= 1 && doubleValue <= 20)
             {
                 return ((int)doubleValue).ToString(System.Globalization.CultureInfo.InvariantCulture);
             }
@@ -1130,15 +1128,14 @@ internal sealed class StatementConverter
         // Special pattern: obj.property ? +obj.property : 0
         // This is JavaScript's way of "convert to number or default to 0"
         // We can simplify this to just the unary plus conversion
-#pragma warning disable S1244 // Checking exact equality with 0 is valid for integer values
         if (
             conditional.Consequent is UnaryExpression unary
             && unary.Operator.ToString() == "UnaryPlus"
             && conditional.Alternate is Literal literal
             && literal.Value is int or long or double
-            && Convert.ToDouble(literal.Value, System.Globalization.CultureInfo.InvariantCulture) == 0
+            && Math.Abs(Convert.ToDouble(literal.Value, System.Globalization.CultureInfo.InvariantCulture))
+                < double.Epsilon
         )
-#pragma warning restore S1244
         {
             // Just use the unary plus conversion directly, which already handles the fallback to 0
             return ConvertUnaryPlus(unary.Argument);
