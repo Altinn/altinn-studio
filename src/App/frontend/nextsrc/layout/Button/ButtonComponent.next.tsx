@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { getLayoutSetIdForTask } from 'nextsrc/next/NextForm';
+import { getLayoutSetIdForTask } from 'nextsrc/render-logic/NextForm';
 
 import { useProcessNextMutation } from 'src/http-client/api-client/mutations/processNext';
 import { layoutsQueryOptions } from 'src/http-client/api-client/queries/layouts';

@@ -4,7 +4,7 @@ import 'core-js';
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, Form, Outlet, RouterProvider } from 'react-router-dom';
 
 import '@digdir/designsystemet-css';
 import '@digdir/designsystemet-theme';
@@ -19,14 +19,13 @@ import { NextForm } from 'nextsrc/render-logic/NextForm';
 
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { ErrorPageContent } from 'src/components/ErrorPageContent';
-import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { ComponentRouting } from 'src/components/wrappers/ProcessWrapper';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { createInstanceLoader } from 'src/features/instance/instanceLoader';
-// import { PartySelectionWrapper } from 'src/features/instantiate/containers/PartySelection';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
+// import { PartySelectionWrapper } from 'src/features/instantiate/containers/PartySelection';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
@@ -56,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const root = container && createRoot(container);
   root?.render(
     <QueryClientProvider client={defaultQueryClient}>
+      <div>hello</div>
       <ReactQueryDevtools />
       <ErrorBoundary>
         <ViewportWrapper>
