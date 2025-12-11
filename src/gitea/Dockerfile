@@ -5,7 +5,7 @@ FROM gitea/gitea:${GITEA_VERSION}-rootless AS locale_source
 RUN gitea embedded extract --destination /var/lib/gitea/ options/locale/**.*
 
 # Merge the custom locale files with the base locale files
-FROM node:lts-alpine@sha256:2867d550cf9d8bb50059a0fff528741f11a84d985c732e60e19e8e75c7239c43 AS locale_builder
+FROM node:lts-alpine@sha256:682368d8253e0c3364b803956085c456a612d738bd635926d73fa24db3ce53d7 AS locale_builder
 COPY ./files/locale /build
 WORKDIR /build
 RUN npm install
