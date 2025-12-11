@@ -279,9 +279,10 @@ namespace Designer.Tests.Services
                 It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
                 It.Is<AltinnEnvironment>(env => env.Name == deploymentModel.EnvName)), Times.Once);
 
+            var azureDevOpsSettings = GetAzureDevOpsSettings();
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
                 It.Is<QueueBuildParameters>(qbp => qbp.PushSyncRootGitopsImage == "true"),
-                It.IsAny<int>()), Times.Once);
+                azureDevOpsSettings.GitOpsManagerDefinitionId), Times.Once);
         }
 
         [Theory]
@@ -369,9 +370,11 @@ namespace Designer.Tests.Services
                 It.IsAny<AltinnOrgEditingContext>(),
                 It.IsAny<AltinnEnvironment>()), Times.Never);
 
+            // Should use GitOpsManagerDefinitionId when GitOps is enabled
+            var azureDevOpsSettings = GetAzureDevOpsSettings();
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
                 It.Is<QueueBuildParameters>(qbp => qbp.PushSyncRootGitopsImage == "false"),
-                It.IsAny<int>()), Times.Once);
+                azureDevOpsSettings.GitOpsManagerDefinitionId), Times.Once);
         }
 
         [Theory]
@@ -449,9 +452,11 @@ namespace Designer.Tests.Services
                 It.IsAny<AltinnOrgEditingContext>(),
                 It.IsAny<AltinnEnvironment>()), Times.Never);
 
+            // Should use DeployDefinitionId when GitOps is disabled
+            var azureDevOpsSettings = GetAzureDevOpsSettings();
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
                 It.Is<QueueBuildParameters>(qbp => qbp.PushSyncRootGitopsImage == "false"),
-                It.IsAny<int>()), Times.Once);
+                azureDevOpsSettings.DeployDefinitionId), Times.Once);
         }
 
         private static List<ReleaseEntity> GetReleases(string filename)
@@ -574,7 +579,7 @@ namespace Designer.Tests.Services
 
         [Theory]
         [InlineData("ttd", "test-app", "at23")]
-        public async Task UndeployAsync_WithGitOpsFeatureEnabled_AppExistsInGitOps_ShouldRemoveAppAndUseGitOpsDecommissionDefinitionId(string org, string app, string env)
+        public async Task UndeployAsync_WithGitOpsFeatureEnabled_AppExistsInGitOps_ShouldRemoveAppAndUseGitOpsManagerDefinitionId(string org, string app, string env)
         {
             // Arrange
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, "testUser");
@@ -642,10 +647,10 @@ namespace Designer.Tests.Services
                 It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
                 It.Is<AltinnEnvironment>(e => e.Name == env)), Times.Once);
 
-            // Should use GitOpsDecommissionDefinitionId
+            // Should use GitOpsManagerDefinitionId
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
                 It.IsAny<GitOpsManagementBuildParameters>(),
-                azureDevOpsSettings.GitOpsDecommissionDefinitionId), Times.Once);
+                azureDevOpsSettings.GitOpsManagerDefinitionId), Times.Once);
 
             _mediatrMock.Verify(m => m.Publish(It.Is<DeploymentPipelineQueued>(n =>
                 n.EditingContext.Org == org &&
@@ -718,7 +723,7 @@ namespace Designer.Tests.Services
                 It.IsAny<AltinnOrgEditingContext>(),
                 It.IsAny<AltinnEnvironment>()), Times.Never);
 
-            // Should fallback to DecommissionDefinitionId (not GitOpsDecommissionDefinitionId)
+            // Should fallback to DecommissionDefinitionId (not GitOpsManagerDefinitionId)
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
                 It.IsAny<GitOpsManagementBuildParameters>(),
                 azureDevOpsSettings.DecommissionDefinitionId), Times.Once);
@@ -738,7 +743,7 @@ namespace Designer.Tests.Services
                 BuildDefinitionId = 69,
                 DeployDefinitionId = 81,
                 DecommissionDefinitionId = 82,
-                GitOpsDecommissionDefinitionId = 83
+                GitOpsManagerDefinitionId = 83
             };
         }
     }

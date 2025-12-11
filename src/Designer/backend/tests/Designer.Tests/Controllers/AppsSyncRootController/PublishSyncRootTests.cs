@@ -16,7 +16,7 @@ public class PublishSyncRootTests : DbDesignerEndpointsTestsBase<PublishSyncRoot
     IClassFixture<MockServerFixture>
 {
     private readonly MockServerFixture _mockServerFixture;
-    private const int DeployDefinitionId = 299;
+    private const int GitOpsManagerDefinitionId = 299;
     private static string VersionPrefix(string org, string environment) => $"/designer/api/v1/{org}/sync-gitops/{environment}/push";
 
     public PublishSyncRootTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture, MockServerFixture mockServerFixture) : base(factory, designerDbFixture)
@@ -32,7 +32,7 @@ public class PublishSyncRootTests : DbDesignerEndpointsTestsBase<PublishSyncRoot
                  "Integrations": {
                       "AzureDevOpsSettings": {
                           "BaseUri": "{{mockServerFixture.MockApi.Url}}/",
-                          "DeployDefinitionId": {{DeployDefinitionId}}
+                          "GitOpsManagerDefinitionId": {{GitOpsManagerDefinitionId}}
                       }
                  }
               }
@@ -44,7 +44,7 @@ public class PublishSyncRootTests : DbDesignerEndpointsTestsBase<PublishSyncRoot
     public async Task PublishSyncRoot_ShouldQueueBuildAndReturnAccepted(string org, string environment, string azureDevopsMockQueueBuildResponse)
     {
         // Arrange
-        _mockServerFixture.PrepareQueueBuildResponse(DeployDefinitionId, azureDevopsMockQueueBuildResponse);
+        _mockServerFixture.PrepareQueueBuildResponse(GitOpsManagerDefinitionId, azureDevopsMockQueueBuildResponse);
 
         string uri = VersionPrefix(org, environment);
 

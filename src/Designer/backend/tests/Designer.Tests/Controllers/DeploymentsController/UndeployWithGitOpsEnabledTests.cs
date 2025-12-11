@@ -29,7 +29,7 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
     private readonly MockServerFixture _mockServerFixture;
     private readonly Mock<IGitOpsConfigurationManager> _gitOpsConfigurationManagerMock;
     private const int DecommissionDefinitionId = 297;
-    private const int GitOpsDecommissionDefinitionId = 298;
+    private const int GitOpsManagerDefinitionId = 298;
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
 
     public UndeployWithGitOpsEnabledTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture, MockServerFixture mockServerFixture) : base(factory, designerDbFixture)
@@ -47,7 +47,7 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
                       "AzureDevOpsSettings": {
                           "BaseUri": "{{mockServerFixture.MockApi.Url}}/",
                           "DecommissionDefinitionId": {{DecommissionDefinitionId}},
-                          "GitOpsDecommissionDefinitionId": {{GitOpsDecommissionDefinitionId}}
+                          "GitOpsManagerDefinitionId": {{GitOpsManagerDefinitionId}}
                       }
                  }
               }
@@ -63,7 +63,7 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
 
     [Theory]
     [MemberData(nameof(TestDataAppExistsInGitOps))]
-    public async Task Undeploy_WhenAppExistsInGitOps_ShouldRemoveAppAndUseGitOpsDecommissionDefinitionId(string org, string app, string environment, string azureDevopsMockQueueBuildResponse)
+    public async Task Undeploy_WhenAppExistsInGitOps_ShouldRemoveAppAndUseGitOpsManagerDefinitionId(string org, string app, string environment, string azureDevopsMockQueueBuildResponse)
     {
         // Arrange
         _gitOpsConfigurationManagerMock.Setup(m => m.AppExistsInGitOpsConfigurationAsync(
@@ -82,7 +82,7 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
             It.IsAny<AltinnEnvironment>()
         )).Returns(Task.CompletedTask);
 
-        _mockServerFixture.PrepareQueueBuildResponse(GitOpsDecommissionDefinitionId, azureDevopsMockQueueBuildResponse);
+        _mockServerFixture.PrepareQueueBuildResponse(GitOpsManagerDefinitionId, azureDevopsMockQueueBuildResponse);
 
         var entity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, app, envName: environment);
         await DesignerDbFixture.PrepareEntityInDatabase(entity);

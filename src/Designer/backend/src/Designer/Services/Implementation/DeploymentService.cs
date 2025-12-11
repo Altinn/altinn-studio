@@ -99,7 +99,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 shouldPushSyncRootImage = await AddAppToGitOpsRepoIfNotExists(AltinnOrgEditingContext.FromOrgDeveloper(org, deploymentEntity.CreatedBy), AltinnRepoName.FromName(app), AltinnEnvironment.FromName(deployment.EnvName));
             }
 
-            Build queuedBuild = await QueueDeploymentBuild(release, deploymentEntity, deployment.EnvName, shouldPushSyncRootImage);
+            bool useGitOpsDefinition = await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy);
+            Build queuedBuild = await QueueDeploymentBuild(release, deploymentEntity, deployment.EnvName, shouldPushSyncRootImage, useGitOpsDefinition);
 
             deploymentEntity.Build = new BuildEntity
             {
@@ -172,7 +173,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             bool useGitOpsDecommission = await RemoveAppFromGitOpsRepoIfExists(editingContext, env);
             int definitionId = useGitOpsDecommission
-                ? _azureDevOpsSettings.GitOpsDecommissionDefinitionId
+                ? _azureDevOpsSettings.GitOpsManagerDefinitionId
                 : _azureDevOpsSettings.DecommissionDefinitionId;
 
             var build = await _azureDevOpsBuildClient.QueueAsync(gitOpsManagementBuildParameters, definitionId);
@@ -250,14 +251,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos"
             };
 
-            await _azureDevOpsBuildClient.QueueAsync(buildParameters, _azureDevOpsSettings.DeployDefinitionId);
+            await _azureDevOpsBuildClient.QueueAsync(buildParameters, _azureDevOpsSettings.GitOpsManagerDefinitionId);
         }
 
         private async Task<Build> QueueDeploymentBuild(
             ReleaseEntity release,
             DeploymentEntity deploymentEntity,
             string envName,
-            bool shouldPushSyncRootImage = false)
+            bool shouldPushSyncRootImage,
+            bool useGitOpsDefinition)
         {
             QueueBuildParameters queueBuildParameters = new()
             {
@@ -276,9 +278,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 queueBuildParameters.PushSyncRootGitopsImage = "true";
             }
 
-            return await _azureDevOpsBuildClient.QueueAsync(
-                queueBuildParameters,
-                _azureDevOpsSettings.DeployDefinitionId);
+            int definitionId = useGitOpsDefinition
+                ? _azureDevOpsSettings.GitOpsManagerDefinitionId
+                : _azureDevOpsSettings.DeployDefinitionId;
+
+            return await _azureDevOpsBuildClient.QueueAsync(queueBuildParameters, definitionId);
         }
     }
 }
