@@ -11,6 +11,9 @@ inputs:
     description: "Port for frontend server"
     required: false
     default: "8080"
+  docker-profile:
+    description: "Docker compose profile to use"
+    required: false
 runs:
   using: "composite"
   steps:
@@ -34,9 +37,14 @@ runs:
       if: ${{ inputs.run-localtest == 'true' }}
       working-directory: src/Runtime/localtest
       run: |
-        if ! docker compose up -d; then
+        args=""
+        if [[ "${{ inputs.docker-profile }}" != "" ]]; then
+          args="--profile ${{ inputs.docker-profile }}"
+        fi
+        
+        if ! docker compose $args up -d; then
           echo "Failed to start localtest"
-          docker compose logs
+          docker compose $args logs
           exit 1
         fi
       shell: bash
