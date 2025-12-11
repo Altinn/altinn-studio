@@ -21,6 +21,7 @@ type InstancesTableProps = {
   confirmed?: boolean;
   isSoftDeleted?: boolean;
   isHardDeleted?: boolean;
+  createdBefore?: string;
 };
 
 export const InstancesTable = ({
@@ -33,6 +34,7 @@ export const InstancesTable = ({
   confirmed,
   isSoftDeleted,
   isHardDeleted,
+  createdBefore,
 }: InstancesTableProps) => {
   const { data, status, error, fetchNextPage, hasNextPage } = useAppInstancesQuery(
     org,
@@ -44,6 +46,7 @@ export const InstancesTable = ({
     confirmed,
     isSoftDeleted,
     isHardDeleted,
+    createdBefore,
   );
   const { t, i18n } = useTranslation();
   const orgName = useCurrentOrg().name[i18n.language];
@@ -54,7 +57,7 @@ export const InstancesTable = ({
     case 'error':
       if (isAxiosError(error) && error.response?.status === 403) {
         const envTitle =
-          env === 'prod'
+          env === 'production'
             ? t(`general.production_environment_alt`).toLowerCase()
             : `${t('general.test_environment_alt').toLowerCase()} ${env?.toUpperCase()}`;
         return (
