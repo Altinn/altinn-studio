@@ -59,7 +59,7 @@ public sealed class IsAppDeployedIntegrationTests : IAsyncLifetime
                 FluxApi.HelmRepoGroup,
                 FluxApi.V1,
                 FluxApi.FluxSystemNamespace,
-                FluxApi.HelmRepoPural,
+                FluxApi.HelmRepoPlural,
                 PodInfoRepoName
             );
         }
@@ -111,7 +111,7 @@ public sealed class IsAppDeployedIntegrationTests : IAsyncLifetime
                 group: FluxApi.HelmRepoGroup,
                 version: FluxApi.V1,
                 namespaceParameter: FluxApi.FluxSystemNamespace,
-                plural: FluxApi.HelmRepoPural
+                plural: FluxApi.HelmRepoPlural
             );
             _helmRepoCreated = true;
         }
@@ -190,7 +190,7 @@ public sealed class IsAppDeployedIntegrationTests : IAsyncLifetime
                     group: FluxApi.HelmRepoGroup,
                     version: FluxApi.V1,
                     namespaceParameter: FluxApi.FluxSystemNamespace,
-                    plural: FluxApi.HelmRepoPural,
+                    plural: FluxApi.HelmRepoPlural,
                     name: name,
                     cancellationToken: cts.Token
                 );
@@ -244,16 +244,5 @@ public sealed class IsAppDeployedIntegrationTests : IAsyncLifetime
         {
             // Best effort cleanup
         }
-    }
-
-    private static class FluxApi
-    {
-        public const string FluxSystemNamespace = "flux-system";
-        public const string HelmReleaseGroup = "helm.toolkit.fluxcd.io";
-        public const string HelmRepoGroup = "source.toolkit.fluxcd.io";
-        public const string HelmReleasePlural = "helmreleases";
-        public const string HelmRepoPural = "helmrepositories";
-        public const string V1 = "v1";
-        public const string V2 = "v2";
     }
 }
