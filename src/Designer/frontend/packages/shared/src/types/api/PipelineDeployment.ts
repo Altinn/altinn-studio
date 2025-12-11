@@ -43,7 +43,7 @@ const succeededEventTypeValues = Object.values(SucceededEventType);
 const failedEventTypeValues = Object.values(FailedEventType);
 
 export const getDeployStatus = (deployment: PipelineDeployment): BuildResult => {
-  const lastEventType = deployment?.events.at(-1)?.eventType;
+  const lastEventType = deployment?.events[deployment.events.length - 1]?.eventType;
   if (lastEventType) {
     if (succeededEventTypeValues.includes(lastEventType as SucceededEventType)) {
       return BuildResult.succeeded;
