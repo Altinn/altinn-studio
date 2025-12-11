@@ -72,7 +72,7 @@ namespace Altinn.Studio.Designer.Repository.Models
         public string Message { get; init; }
 
         /// <summary>
-        /// The timestamp when the event occurred
+        /// The timestamp when the event occurred (from the source)
         /// </summary>
         [JsonProperty("timestamp")]
         public DateTimeOffset Timestamp { get; init; }
@@ -82,6 +82,18 @@ namespace Altinn.Studio.Designer.Repository.Models
         /// </summary>
         [JsonProperty("eventType")]
         public DeployEventType EventType { get; init; }
+
+        /// <summary>
+        /// When the event was created in the system
+        /// </summary>
+        [JsonProperty("created")]
+        public DateTimeOffset Created { get; init; }
+
+        /// <summary>
+        /// The origin/source of the event
+        /// </summary>
+        [JsonProperty("origin")]
+        public DeployEventOrigin Origin { get; init; } = DeployEventOrigin.Internal;
     }
 
     public enum DeployEventType
@@ -95,5 +107,12 @@ namespace Altinn.Studio.Designer.Repository.Models
         UpgradeFailed,
         UninstallSucceeded,
         UninstallFailed
+    }
+
+    public enum DeployEventOrigin
+    {
+        Internal,
+        Webhook,
+        PollingJob
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,11 +15,13 @@ public class DeployEventRepository : IDeployEventRepository
 {
     private readonly DesignerdbContext _dbContext;
     private readonly IFeatureManager _featureManager;
+    private readonly TimeProvider _timeProvider;
 
-    public DeployEventRepository(DesignerdbContext dbContext, IFeatureManager featureManager)
+    public DeployEventRepository(DesignerdbContext dbContext, IFeatureManager featureManager, TimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _featureManager = featureManager;
+        _timeProvider = timeProvider;
     }
 
     public async Task AddAsync(string org, string buildId, DeployEvent deployEvent, CancellationToken cancellationToken = default)
@@ -40,7 +43,9 @@ public class DeployEventRepository : IDeployEventRepository
             DeploymentSequenceNo = deploymentSequenceNo,
             EventType = deployEvent.EventType.ToString(),
             Message = deployEvent.Message,
-            Timestamp = deployEvent.Timestamp
+            Timestamp = deployEvent.Timestamp,
+            Created = _timeProvider.GetUtcNow(),
+            Origin = deployEvent.Origin.ToString()
         };
 
         _dbContext.DeployEvents.Add(dbModel);

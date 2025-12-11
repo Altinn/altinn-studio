@@ -72,7 +72,9 @@ public static class DeploymentMapper
             {
                 Message = e.Message,
                 Timestamp = e.Timestamp,
-                EventType = Enum.Parse<DeployEventType>(e.EventType)
+                EventType = Enum.Parse<DeployEventType>(e.EventType),
+                Created = e.Created,
+                Origin = Enum.Parse<DeployEventOrigin>(e.Origin)
             }).ToList() ?? []
         };
     }

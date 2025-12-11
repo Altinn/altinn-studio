@@ -128,7 +128,8 @@ public class DeploymentWebhooksController : ControllerBase
         {
             EventType = eventType,
             Message = request.Message,
-            Timestamp = request.Timestamp
+            Timestamp = request.Timestamp,
+            Origin = DeployEventOrigin.Webhook
         };
     }
 

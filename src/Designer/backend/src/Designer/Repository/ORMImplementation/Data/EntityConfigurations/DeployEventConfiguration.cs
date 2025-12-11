@@ -36,6 +36,16 @@ public class DeployEventConfiguration : IEntityTypeConfiguration<DeployEventDbMo
             .HasColumnName("timestamp")
             .IsRequired();
 
+        builder.Property(e => e.Created)
+            .HasColumnType("timestamptz")
+            .HasColumnName("created")
+            .IsRequired();
+
+        builder.Property(e => e.Origin)
+            .HasColumnType("character varying")
+            .HasColumnName("origin")
+            .IsRequired();
+
         builder.HasOne(e => e.Deployment)
             .WithMany(d => d.Events)
             .HasForeignKey(e => e.DeploymentSequenceNo)

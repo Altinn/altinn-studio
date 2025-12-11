@@ -15,5 +15,9 @@ public class DeployEventDbModel
 
     public DateTimeOffset Timestamp { get; set; }
 
+    public DateTimeOffset Created { get; set; }
+
+    public string Origin { get; set; }
+
     public DeploymentDbModel Deployment { get; set; }
 }

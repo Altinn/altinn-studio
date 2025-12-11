@@ -37,7 +37,7 @@ public class AddAsyncTests : DbIntegrationTestsBase
         await DbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         var featureManager = CreateFeatureManagerMock(gitOpsEnabled: true);
-        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext, featureManager.Object);
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext, featureManager.Object, _timeProvider);
         var deployEvent = new DeployEvent
         {
             EventType = DeployEventType.PipelineScheduled,
@@ -74,7 +74,7 @@ public class AddAsyncTests : DbIntegrationTestsBase
         await DbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         var featureManager = CreateFeatureManagerMock(gitOpsEnabled: true);
-        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext, featureManager.Object);
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext, featureManager.Object, _timeProvider);
         var deployEvent = new DeployEvent
         {
             EventType = DeployEventType.PipelineScheduled,
@@ -106,7 +106,7 @@ public class AddAsyncTests : DbIntegrationTestsBase
         await DbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         var featureManager = CreateFeatureManagerMock(gitOpsEnabled: true);
-        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext, featureManager.Object);
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext, featureManager.Object, _timeProvider);
 
         var events = new[]
         {
@@ -138,7 +138,7 @@ public class AddAsyncTests : DbIntegrationTestsBase
     {
         // Arrange
         var featureManager = CreateFeatureManagerMock(gitOpsEnabled: true);
-        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext, featureManager.Object);
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext, featureManager.Object, _timeProvider);
         var deployEvent = new DeployEvent
         {
             EventType = DeployEventType.PipelineScheduled,
@@ -160,7 +160,7 @@ public class AddAsyncTests : DbIntegrationTestsBase
         await DbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         var featureManager = CreateFeatureManagerMock(gitOpsEnabled: false);
-        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext, featureManager.Object);
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext, featureManager.Object, _timeProvider);
         var deployEvent = new DeployEvent
         {
             EventType = DeployEventType.PipelineScheduled,

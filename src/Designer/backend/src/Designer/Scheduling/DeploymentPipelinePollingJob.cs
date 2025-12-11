@@ -69,7 +69,7 @@ public class DeploymentPipelinePollingJob : IJob
 
         if (build.Status == BuildStatus.Completed && deploymentEntity.Events.All(e => e.EventType != DeployEventType.PipelineSucceeded && e.EventType != DeployEventType.PipelineFailed))
         {
-            await AddDeployEventIfNotExist(build.Status , build, org, buildId);
+            await AddDeployEventIfNotExist(build.Status, build, org, buildId);
         }
 
         await _deploymentRepository.Update(deploymentEntity);
@@ -100,7 +100,8 @@ public class DeploymentPipelinePollingJob : IJob
         {
             EventType = eventType,
             Message = $"Pipeline {buildId} {build.Result}",
-            Timestamp = _timeProvider.GetUtcNow()
+            Timestamp = _timeProvider.GetUtcNow(),
+            Origin = DeployEventOrigin.PollingJob
         });
     }
 
