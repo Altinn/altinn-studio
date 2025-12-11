@@ -51,4 +51,4 @@ runs:
         path: |
           src/App/frontend/node_modules
           src/App/frontend/yarn.lock
-        retention-days: 1
+        if-no-files-found: error
