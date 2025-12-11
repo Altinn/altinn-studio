@@ -20,11 +20,6 @@ runs:
         restore-keys: |
           frontend-build-${{ runner.os }}-${{ hashFiles('src/App/frontend/yarn.lock', 'src/App/frontend/package.json') }}-
 
-    - name: Setup Node.js
-      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-      with:
-        node-version: ${{ inputs.node-version }}
-
     - name: Installing Frontend Dependencies
       if: steps.cache-frontend.outputs.cache-hit != 'true'
       uses: ./.github/actions/yarn-install
@@ -44,11 +39,3 @@ runs:
         path: src/App/frontend/dist
         if-no-files-found: error
 
-    - name: Save yarn dependencies
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-      with:
-        name: app-frontend-deps
-        path: |
-          src/App/frontend/node_modules
-          src/App/frontend/yarn.lock
-        if-no-files-found: error
