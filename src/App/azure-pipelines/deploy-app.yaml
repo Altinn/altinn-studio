@@ -157,7 +157,7 @@ steps:
 
   - task: Bash@3
     displayName: 'Process custom IngressRoute for staf org'
-    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_OWNER'], 'staf'))
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_OWNER'], 'ttd'))
     inputs:
       targetType: inline
       script: |
