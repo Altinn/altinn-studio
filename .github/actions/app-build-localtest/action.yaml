@@ -15,7 +15,7 @@ runs:
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:
         path: /tmp/localtest-docker-cache
-        key: localtest-docker-${{ runner.os }}-${{ hashFiles('src/Runtime/localtest/**', 'src/App/backend/**') }}${{ inputs.docker-profile == 'test-apps' && format('-{0}', hashFiles('src/test/apps/**')) || '' }}
+        key: localtest-docker-${{ runner.os }}-${{ hashFiles('src/Runtime/localtest/**', 'src/Runtime/pdf3/**', 'src/test/apps/**', 'src/App/backend/**') }}
         restore-keys: |
           localtest-docker-${{ runner.os }}-
 
@@ -44,12 +44,20 @@ runs:
       shell: bash
 
     - name: Save docker images
+      working-directory: src/Runtime/localtest
       run: |
         mkdir -p /tmp/localtest-docker-cache
-        images="localtest localtest-loadbalancer localtest-pdf3"
-        if [ "${{ inputs.docker-profile }}" == "test-apps" ]; then
-          images="$images localtest-altinn_test_apps"
+
+        # Get profile argument
+        profile_arg=""
+        if [[ "${{ inputs.docker-profile }}" != "" ]]; then
+          profile_arg="--profile ${{ inputs.docker-profile }}"
         fi
+
+        # Get image names from docker-compose config
+        images=$(docker compose $profile_arg config --format json | jq -r '.services | to_entries[] | select(.value.build != null) | .value.image // ("localtest-" + .key)' | tr '\n' ' ')
+
+        echo "Saving images: $images"
         docker save $images -o /tmp/localtest-docker-cache/images.tar
         echo "Built and cached Docker images"
       shell: bash
