@@ -7,7 +7,7 @@ spec:
   force: false
   interval: 5m0s
   path: ./
-  prune: false
+  prune: true
   retryInterval: 5m0s
   sourceRef:
     kind: OCIRepository

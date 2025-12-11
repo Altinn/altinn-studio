@@ -93,4 +93,30 @@ public class GetIntegrationTests : DbIntegrationTestsBase
         yield return ["ttd", Guid.NewGuid().ToString(), SortDirection.Ascending];
         yield return ["ttd", Guid.NewGuid().ToString(), SortDirection.Descending];
     }
+
+    [Theory]
+    [InlineData("ttd")]
+    public async Task Get_ShouldReturnDeploymentsWithEvents(string org)
+    {
+        // Arrange
+        string app = Guid.NewGuid().ToString();
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, app);
+        await DbFixture.PrepareEntityInDatabase(deploymentEntity);
+
+        var events = EntityGenerationUtils.Deployment.GenerateDeployEvents();
+        foreach (var evt in events)
+        {
+            await DbFixture.PrepareDeployEventInDatabase(org, deploymentEntity.Build.Id, evt);
+        }
+
+        // Act
+        var repository = new DeploymentRepository(DbFixture.DbContext);
+        var query = new DocumentQueryModel { Top = 10, SortDirection = SortDirection.Descending };
+        var result = (await repository.Get(org, app, query)).ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.NotNull(result[0].Events);
+        Assert.Equal(events.Count, result[0].Events.Count);
+    }
 }

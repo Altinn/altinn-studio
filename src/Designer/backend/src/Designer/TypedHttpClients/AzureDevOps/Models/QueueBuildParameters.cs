@@ -67,5 +67,11 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
         /// </summary>
         [JsonPropertyName("PUSH_SYNCROOT_GITOPS_IMAGE")]
         public string PushSyncRootGitopsImage { get; set; } = "false";
+
+        /// <summary>
+        /// Whether or not to push the apps OCI image
+        /// </summary>
+        [JsonPropertyName("PUSH_APPS_OCI_IMAGE")]
+        public string PushAppsOciImage { get; set; } = "true";
     }
 }
