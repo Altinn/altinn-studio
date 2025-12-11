@@ -48,6 +48,12 @@ jobs:
           name: app-frontend-dist
           path: src/App/frontend/dist
 
+      - name: Download yarn dependencies
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: app-frontend-deps
+          path: src/App/frontend
+
       - name: Download built localtest docker images
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
