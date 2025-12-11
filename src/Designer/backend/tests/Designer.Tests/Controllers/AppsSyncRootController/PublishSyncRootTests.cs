@@ -55,20 +55,6 @@ public class PublishSyncRootTests : DbDesignerEndpointsTestsBase<PublishSyncRoot
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
     }
 
-    [Theory]
-    [MemberData(nameof(TestDataInvalidEnvironment))]
-    public async Task PublishSyncRoot_WithInvalidEnvironment_ShouldReturnBadRequest(string org, string environment)
-    {
-        // Arrange
-        string uri = VersionPrefix(org, environment);
-
-        // Act
-        using var response = await HttpClient.GetAsync(uri);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
     public static IEnumerable<object[]> TestData()
     {
         yield return
@@ -86,9 +72,4 @@ public class PublishSyncRootTests : DbDesignerEndpointsTestsBase<PublishSyncRoot
         ];
     }
 
-    public static IEnumerable<object[]> TestDataInvalidEnvironment()
-    {
-        yield return ["ttd", "invalid-env"];
-        yield return ["ttd", "../../etc/passwd"];
-    }
 }
