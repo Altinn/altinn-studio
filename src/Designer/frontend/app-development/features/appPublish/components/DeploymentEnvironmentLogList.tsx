@@ -5,7 +5,7 @@ import { DateUtils } from '@studio/pure-functions';
 import { Trans, useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 
-import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import { getDeployStatus, type PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { BuildResult } from 'app-shared/types/Build';
 import {
@@ -87,9 +87,10 @@ export const DeploymentEnvironmentLogList = ({
             </Table.Head>
             <Table.Body>
               {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
+                const deploymentStatus = getDeployStatus(deploy);
                 const areLogsAvailable = DateUtils.isDateWithinDays(deploy.build.started, 30);
 
-                const tableCellStatusClassName = classes[deploy.build.result];
+                const tableCellStatusClassName = classes[deploymentStatus];
                 const buildStartTime = deploy.build.started
                   ? new Date(deploy.build.started).getTime()
                   : undefined;
@@ -106,11 +107,11 @@ export const DeploymentEnvironmentLogList = ({
                         tableCellStatusClassName,
                       )}
                     >
-                      {getIcon(deploy.build.result)}
+                      {getIcon(deploymentStatus)}
                     </Table.Cell>
                     <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
                       {deploy.deploymentType === 'Deploy' &&
-                      deploy.build.result === BuildResult.failed &&
+                      deploymentStatus === BuildResult.failed &&
                       areLogsAvailable ? (
                         <span>
                           <Trans
@@ -153,7 +154,7 @@ export const DeploymentEnvironmentLogList = ({
                           />
                         </span>
                       ) : (
-                        t(getStatusTextByDeploymentType(deploy))
+                        t(getStatusTextByDeploymentType(deploy, deploymentStatus))
                       )}
                     </Table.Cell>
                     <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
@@ -190,10 +191,12 @@ export const DeploymentEnvironmentLogList = ({
   );
 };
 
-function getStatusTextByDeploymentType(deployment: PipelineDeployment): string {
+function getStatusTextByDeploymentType(
+  deployment: PipelineDeployment,
+  deploymentStatus: BuildResult,
+): string {
   const isUndeploy = deployment.deploymentType === 'Decommission';
-  const deploymentResult = deployment.build.result;
   return isUndeploy
-    ? `app_deployment.pipeline_undeploy.build_result.${deploymentResult}`
-    : `app_deployment.pipeline_deployment.build_result.${deploymentResult}`;
+    ? `app_deployment.pipeline_undeploy.build_result.${deploymentStatus}`
+    : `app_deployment.pipeline_deployment.build_result.${deploymentStatus}`;
 }

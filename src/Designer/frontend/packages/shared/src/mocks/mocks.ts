@@ -20,7 +20,7 @@ import type { Resource, ResourceVersionStatus, Validation } from 'app-shared/typ
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { Build } from 'app-shared/types/Build';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
-import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import type { DeployEvent, PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { Environment } from 'app-shared/types/Environment';
 import type { Organization } from 'app-shared/types/Organization';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
@@ -85,6 +85,15 @@ export const pipelineDeployment: PipelineDeployment = {
   createdBy: '',
   created: '',
   build,
+  events: [],
+};
+
+export const deployEvent: DeployEvent = {
+  message: '',
+  timestamp: '',
+  eventType: 'PipelineScheduled',
+  created: '',
+  origin: 'Internal',
 };
 
 export const kubernetesDeployment: KubernetesDeployment = {
