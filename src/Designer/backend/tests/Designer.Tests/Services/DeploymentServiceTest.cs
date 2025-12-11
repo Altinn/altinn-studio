@@ -259,8 +259,8 @@ namespace Designer.Tests.Services
             // Act
             await deploymentService.CreateAsync(org, app, deploymentModel);
 
-            // Assert
-            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
+            // Assert - feature flag is checked twice (once for GitOps logic, once for definition selection)
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
 
             _gitOpsConfigurationManager.Verify(gm => gm.EnsureGitOpsConfigurationExistsAsync(
                 It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
@@ -349,8 +349,8 @@ namespace Designer.Tests.Services
             // Act
             await deploymentService.CreateAsync(org, app, deploymentModel);
 
-            // Assert
-            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
+            // Assert - feature flag is checked twice (once for GitOps logic, once for definition selection)
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
 
             _gitOpsConfigurationManager.Verify(gm => gm.EnsureGitOpsConfigurationExistsAsync(
                 It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
@@ -431,8 +431,8 @@ namespace Designer.Tests.Services
             // Act
             await deploymentService.CreateAsync(org, app, deploymentModel);
 
-            // Assert
-            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
+            // Assert - feature flag is checked twice (once for GitOps logic, once for definition selection)
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
 
             // Verify NO GitOps methods are called when feature is disabled
             _gitOpsConfigurationManager.Verify(gm => gm.EnsureGitOpsConfigurationExistsAsync(
