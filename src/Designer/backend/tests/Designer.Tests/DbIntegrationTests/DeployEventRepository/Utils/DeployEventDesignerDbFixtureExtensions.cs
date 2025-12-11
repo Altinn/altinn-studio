@@ -23,7 +23,9 @@ public static class DeployEventDesignerDbFixtureExtensions
             DeploymentSequenceNo = deploymentSequenceNo,
             EventType = deployEvent.EventType.ToString(),
             Message = deployEvent.Message,
-            Timestamp = deployEvent.Timestamp
+            Timestamp = deployEvent.Timestamp,
+            Created = deployEvent.Created,
+            Origin = deployEvent.Origin.ToString()
         };
 
         await dbFixture.DbContext.DeployEvents.AddAsync(dbModel);

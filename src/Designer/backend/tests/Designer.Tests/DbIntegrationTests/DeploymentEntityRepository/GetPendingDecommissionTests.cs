@@ -31,7 +31,9 @@ public class GetPendingDecommissionTests : DbIntegrationTestsBase
             {
                 EventType = eventType.Value,
                 Message = message,
-                Timestamp = DateTimeOffset.UtcNow
+                Timestamp = DateTimeOffset.UtcNow,
+                Created = DateTimeOffset.UtcNow,
+                Origin = DeployEventOrigin.Internal
             };
             await DbFixture.PrepareDeployEventInDatabase(org, deploymentEntity.Build.Id, evt);
         }
@@ -79,7 +81,9 @@ public class GetPendingDecommissionTests : DbIntegrationTestsBase
         {
             EventType = eventType,
             Message = message,
-            Timestamp = DateTimeOffset.UtcNow
+            Timestamp = DateTimeOffset.UtcNow,
+            Created = DateTimeOffset.UtcNow,
+            Origin = DeployEventOrigin.Webhook
         };
         await DbFixture.PrepareDeployEventInDatabase(org, deploymentEntity.Build.Id, finalEvent);
 

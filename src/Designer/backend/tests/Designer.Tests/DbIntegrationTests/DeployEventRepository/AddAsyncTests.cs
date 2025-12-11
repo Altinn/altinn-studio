@@ -42,7 +42,8 @@ public class AddAsyncTests : DbIntegrationTestsBase
         {
             EventType = DeployEventType.PipelineScheduled,
             Message = "Pipeline scheduled by user",
-            Timestamp = _timeProvider.GetUtcNow()
+            Timestamp = _timeProvider.GetUtcNow(),
+            Origin = DeployEventOrigin.Internal
         };
 
         // Act
@@ -79,7 +80,8 @@ public class AddAsyncTests : DbIntegrationTestsBase
         {
             EventType = DeployEventType.PipelineScheduled,
             Message = "Pipeline scheduled",
-            Timestamp = _timeProvider.GetUtcNow()
+            Timestamp = _timeProvider.GetUtcNow(),
+            Origin = DeployEventOrigin.Internal
         };
 
         // Act
@@ -110,9 +112,9 @@ public class AddAsyncTests : DbIntegrationTestsBase
 
         var events = new[]
         {
-            new DeployEvent { EventType = DeployEventType.PipelineScheduled, Message = "Scheduled", Timestamp = _timeProvider.GetUtcNow() },
-            new DeployEvent { EventType = DeployEventType.PipelineSucceeded, Message = "Succeeded", Timestamp = _timeProvider.GetUtcNow().AddSeconds(1) },
-            new DeployEvent { EventType = DeployEventType.InstallSucceeded, Message = "Installed", Timestamp = _timeProvider.GetUtcNow().AddSeconds(2) }
+            new DeployEvent { EventType = DeployEventType.PipelineScheduled, Message = "Scheduled", Timestamp = _timeProvider.GetUtcNow(), Origin = DeployEventOrigin.Internal },
+            new DeployEvent { EventType = DeployEventType.PipelineSucceeded, Message = "Succeeded", Timestamp = _timeProvider.GetUtcNow().AddSeconds(1), Origin = DeployEventOrigin.PollingJob },
+            new DeployEvent { EventType = DeployEventType.InstallSucceeded, Message = "Installed", Timestamp = _timeProvider.GetUtcNow().AddSeconds(2), Origin = DeployEventOrigin.Webhook }
         };
 
         // Act
@@ -143,7 +145,8 @@ public class AddAsyncTests : DbIntegrationTestsBase
         {
             EventType = DeployEventType.PipelineScheduled,
             Message = "Test",
-            Timestamp = _timeProvider.GetUtcNow()
+            Timestamp = _timeProvider.GetUtcNow(),
+            Origin = DeployEventOrigin.Internal
         };
 
         // Act & Assert
@@ -165,7 +168,8 @@ public class AddAsyncTests : DbIntegrationTestsBase
         {
             EventType = DeployEventType.PipelineScheduled,
             Message = "Pipeline scheduled",
-            Timestamp = _timeProvider.GetUtcNow()
+            Timestamp = _timeProvider.GetUtcNow(),
+            Origin = DeployEventOrigin.Internal
         };
 
         // Act

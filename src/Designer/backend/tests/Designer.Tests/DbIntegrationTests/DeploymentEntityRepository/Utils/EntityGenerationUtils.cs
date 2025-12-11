@@ -44,13 +44,17 @@ public static partial class EntityGenerationUtils
                 {
                     EventType = DeployEventType.PipelineScheduled,
                     Message = "Pipeline scheduled",
-                    Timestamp = DateTimeOffset.UtcNow.AddMinutes(-2)
+                    Timestamp = DateTimeOffset.UtcNow.AddMinutes(-2),
+                    Created = DateTimeOffset.UtcNow.AddMinutes(-2),
+                    Origin = DeployEventOrigin.Internal
                 },
                 new DeployEvent
                 {
                     EventType = DeployEventType.PipelineSucceeded,
                     Message = "Pipeline succeeded",
-                    Timestamp = DateTimeOffset.UtcNow.AddMinutes(-1)
+                    Timestamp = DateTimeOffset.UtcNow.AddMinutes(-1),
+                    Created = DateTimeOffset.UtcNow.AddMinutes(-2),
+                    Origin = DeployEventOrigin.PollingJob
                 }
             ];
         }

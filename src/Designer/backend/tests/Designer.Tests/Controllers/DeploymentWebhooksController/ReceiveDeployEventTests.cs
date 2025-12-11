@@ -321,7 +321,9 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
         {
             EventType = Enum.Parse<DeployEventType>(finalEventType),
             Message = "Final event",
-            Timestamp = DateTimeOffset.UtcNow.AddMinutes(-1)
+            Timestamp = DateTimeOffset.UtcNow.AddMinutes(-1),
+            Created = DateTimeOffset.UtcNow.AddMinutes(-1),
+            Origin = DeployEventOrigin.Webhook
         };
         await DesignerDbFixture.PrepareDeployEventInDatabase(org, deploymentEntity.Build.Id, existingFinalEvent);
 
@@ -376,7 +378,9 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
         {
             EventType = Enum.Parse<DeployEventType>(finalEventType),
             Message = "Final event",
-            Timestamp = DateTimeOffset.UtcNow.AddMinutes(-1)
+            Timestamp = DateTimeOffset.UtcNow.AddMinutes(-1),
+            Created = DateTimeOffset.UtcNow.AddMinutes(-1),
+            Origin = DeployEventOrigin.Webhook
         };
         await DesignerDbFixture.PrepareDeployEventInDatabase(org, deploymentEntity.Build.Id, existingFinalEvent);
 
