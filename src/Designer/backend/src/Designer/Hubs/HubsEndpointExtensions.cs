@@ -1,4 +1,5 @@
 #nullable disable
+using Altinn.Studio.Designer.Hubs.AlertsUpdate;
 using Altinn.Studio.Designer.Hubs.EntityUpdate;
 using Altinn.Studio.Designer.Hubs.Preview;
 using Microsoft.AspNetCore.Builder;
@@ -14,5 +15,6 @@ public static class HubsEndpointExtensions
         endpoints.MapHub<PreviewHub>("/hubs/preview");
         endpoints.MapHub<Sync.SyncHub>("/hubs/sync");
         endpoints.MapHub<EntityUpdatedHub>("/hubs/entity-updated");
+        endpoints.MapHub<AlertsUpdatedHub>("/hubs/alerts-updated");
     }
 }
