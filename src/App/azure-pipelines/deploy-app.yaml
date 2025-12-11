@@ -156,6 +156,90 @@ steps:
         git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
 
   - task: Bash@3
+    displayName: 'Process custom IngressRoute for staf org'
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_OWNER'], 'staf'))
+    inputs:
+      targetType: inline
+      script: |
+        TEMPLATES_DIR="${APP_COMMIT_ID}/deployment/templates"
+
+        # Check if templates directory exists
+        if [ ! -d "$TEMPLATES_DIR" ]; then
+          echo "No templates directory found, skipping custom ingress route processing"
+          echo "##vso[task.setvariable variable=HAS_CUSTOM_INGRESS_ROUTES;]false"
+          exit 0
+        fi
+
+        # Count files in templates directory
+        FILE_COUNT=$(find "$TEMPLATES_DIR" -maxdepth 1 -type f | wc -l | tr -d ' ')
+
+        if [ "$FILE_COUNT" -eq 0 ]; then
+          echo "Templates directory is empty, skipping custom ingress route processing"
+          echo "##vso[task.setvariable variable=HAS_CUSTOM_INGRESS_ROUTES;]false"
+          exit 0
+        elif [ "$FILE_COUNT" -gt 1 ]; then
+          echo "##[error]Templates directory contains more than one file ($FILE_COUNT files). Only a single IngressRoute file is supported."
+          exit 1
+        fi
+
+        # Exactly 1 file - get the file path
+        TEMPLATE_FILE=$(find "$TEMPLATES_DIR" -maxdepth 1 -type f)
+        echo "Found template file: $TEMPLATE_FILE"
+
+        # Check if it's an IngressRoute
+        KIND=$(yq eval '.kind' "$TEMPLATE_FILE")
+        if [ "$KIND" != "IngressRoute" ]; then
+          echo "##[error]Template file is not an IngressRoute (kind: $KIND). Only IngressRoute templates are supported."
+          exit 1
+        fi
+
+        echo "Template file is an IngressRoute, mapping to customIngressRoutes format"
+
+        # Filter out linkerd middleware - it will be auto-injected by the helm chart
+        LINKERD_MIDDLEWARE="${RELEASE_NAME}-deployment"
+
+        # Extract and map to customIngressRoutes array format, filtering out linkerd middleware
+        CUSTOM_ROUTE=$(yq eval '{
+          "name": .metadata.name,
+          "entryPoints": .spec.entryPoints,
+          "routes": [.spec.routes[] | .middlewares = [.middlewares[] | select(.name != "'"${LINKERD_MIDDLEWARE}"'")]]
+        }' "$TEMPLATE_FILE")
+
+        # Wrap in array and write to file for merging later
+        echo "$CUSTOM_ROUTE" | yq eval '[.]' - > "${APP_COMMIT_ID}/custom-ingress-routes.yaml"
+        echo "##vso[task.setvariable variable=HAS_CUSTOM_INGRESS_ROUTES;]true"
+
+        echo "Custom ingress route mapped successfully"
+
+        # Log warning to migrate to values file
+        echo ""
+        echo "##[warning]Custom IngressRoute in templates folder is deprecated. Please migrate to deployment/values.yaml file."
+        echo "##[warning]Add the following to your deployment/values.yaml:"
+        echo ""
+        echo "customIngressRoutes:"
+        cat "${APP_COMMIT_ID}/custom-ingress-routes.yaml"
+        echo ""
+        echo "##[warning]After migrating, remove the templates folder from your repository."
+      failOnStderr: false
+
+  - task: Bash@3
+    displayName: 'Warn about unsupported templates directory'
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
+    inputs:
+      targetType: inline
+      script: |
+        TEMPLATES_DIR="${APP_COMMIT_ID}/deployment/templates"
+
+        # Check if templates directory exists and has files
+        if [ -d "$TEMPLATES_DIR" ]; then
+          FILE_COUNT=$(find "$TEMPLATES_DIR" -maxdepth 1 -type f | wc -l | tr -d ' ')
+          if [ "$FILE_COUNT" -gt 0 ]; then
+            echo "##[warning]Templates directory contains $FILE_COUNT file(s). Custom templates are not supported and will be ignored. The altinn-studio deployment helm chart will be used directly."
+          fi
+        fi
+      failOnStderr: false
+
+  - task: Bash@3
     displayName: Set environment variables (ALTINN_HOST, RG_NAME) based on APP_ENVIRONMENT
     condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
@@ -451,7 +535,7 @@ steps:
               retries: 1
           chart:
             spec:
-              version: 3.2.0
+              version: 3.7.0
               chart: deployment
               sourceRef:
                 kind: HelmRepository
@@ -589,6 +673,13 @@ steps:
         yq ea '. as $item ireduce ({}; . * $item )' \
           "${NORMALIZED_VALUES}" \
           "${OVERRIDES_FILE}" > "${MERGED_VALUES}"
+
+        # --- Merge custom ingress routes if available (staf org only) ---
+        CUSTOM_INGRESS_FILE="../${APP_COMMIT_ID}/custom-ingress-routes.yaml"
+        if [[ "${HAS_CUSTOM_INGRESS_ROUTES}" == "true" ]] && [[ -f "${CUSTOM_INGRESS_FILE}" ]]; then
+          echo "Merging custom ingress routes into values"
+          yq eval ".customIngressRoutes = load(\"${CUSTOM_INGRESS_FILE}\")" --inplace "${MERGED_VALUES}"
+        fi
 
         # --- Inject merged values into helmrelease.yaml ---
         yq eval '.spec.values = load("'"${MERGED_VALUES}"'")' --inplace "${HELMRELEASE_FILE}"
