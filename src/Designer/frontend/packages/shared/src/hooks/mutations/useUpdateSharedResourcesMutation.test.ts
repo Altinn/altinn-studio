@@ -37,7 +37,7 @@ describe('useUpdateSharedResourcesMutation', () => {
 
   it('Sets the shared resources cache for the given organisation', async () => {
     const queryClient = createQueryClientMock();
-    const setQueryData = jest.spyOn(queryClient, 'setQueryData');
+    const invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries');
     const { result } = renderHookWithProviders(
       () => useUpdateSharedResourcesMutation(orgName, path),
       {
@@ -47,7 +47,9 @@ describe('useUpdateSharedResourcesMutation', () => {
 
     await result.current.mutateAsync(payload);
 
-    expect(setQueryData).toHaveBeenCalledTimes(1);
-    expect(setQueryData).toHaveBeenCalledWith([QueryKey.SharedResources, orgName, path], payload);
+    expect(invalidateQueries).toHaveBeenCalledTimes(1);
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [QueryKey.SharedResources, orgName, path],
+    });
   });
 });

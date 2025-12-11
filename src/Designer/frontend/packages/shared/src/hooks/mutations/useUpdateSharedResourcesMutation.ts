@@ -15,7 +15,7 @@ export function useUpdateSharedResourcesMutation(
       await updateSharedResources(orgName, payload);
       return payload;
     },
-    onSuccess: (payload) =>
-      queryClient.setQueryData([QueryKey.SharedResources, orgName, path], payload),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: [QueryKey.SharedResources, orgName, path] }),
   });
 }
