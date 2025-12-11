@@ -1,26 +1,21 @@
 import { useCallback, useRef } from 'react';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
-import type { SelectedItem } from '@altinn/ux-editor/AppContext';
+import { useAppContext } from '../../../hooks';
 import { findFirstPage } from '../../../utils/pageUtils';
 import { ItemType } from '../../../components/Properties/ItemType';
 
 interface UseAutoSelectFirstPageParams {
   pagesModel: PagesModel | undefined;
   pagesQueryPending: boolean;
-  selectedFormLayoutName: string | undefined;
   layoutSet: string;
-  setSelectedFormLayoutName: (name: string | undefined) => void;
-  setSelectedItem: (item: SelectedItem | null) => void;
 }
 
 export const useAutoSelectFirstPage = ({
   pagesModel,
   pagesQueryPending,
-  selectedFormLayoutName,
   layoutSet,
-  setSelectedFormLayoutName,
-  setSelectedItem,
 }: UseAutoSelectFirstPageParams): void => {
+  const { setSelectedFormLayoutName, setSelectedItem } = useAppContext();
   const hasInitializedRef = useRef<string | false>(false);
   const setSelectedFormLayoutNameRef = useRef(setSelectedFormLayoutName);
   const setSelectedItemRef = useRef(setSelectedItem);
@@ -44,7 +39,7 @@ export const useAutoSelectFirstPage = ({
     [layoutSet],
   );
 
-  if (!pagesQueryPending && pagesModel && !selectedFormLayoutName) {
+  if (!hasInitializedRef.current && !pagesQueryPending) {
     autoSelectFirstPage(pagesModel);
   }
 };

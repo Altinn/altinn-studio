@@ -25,6 +25,7 @@ import { useAddGroupMutation } from '../../hooks/mutations/useAddGroupMutation';
 import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
 import {
   isPagesModelWithGroups,
+  type PagesModel,
   type PagesModelWithPageOrder,
 } from 'app-shared/types/api/dto/PagesModel';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
@@ -44,32 +45,30 @@ export const DesignView = (): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { layoutSet } = useUxEditorParams();
-  const { selectedFormLayoutName, setSelectedItem, setSelectedFormLayoutName } = useAppContext();
   const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(org, app, layoutSet);
 
   useFormLayoutSettingsQuery(org, app, layoutSet);
 
-  useAutoSelectFirstPage({
-    pagesModel,
-    pagesQueryPending,
-    selectedFormLayoutName,
-    layoutSet,
-    setSelectedFormLayoutName,
-    setSelectedItem,
-  });
+  useAutoSelectFirstPage({ pagesModel, pagesQueryPending, layoutSet });
 
   if (pagesQueryPending || !pagesModel) return <StudioSpinner aria-label={t('general.loading')} />;
 
-  return <DesignViewLoadedContent />;
+  return <DesignViewLoadedContent pagesModel={pagesModel} layoutSet={layoutSet} />;
 };
 
-const DesignViewLoadedContent = (): ReactNode => {
+interface DesignViewLoadedContentProps {
+  pagesModel: PagesModel;
+  layoutSet: string;
+}
+
+const DesignViewLoadedContent = ({
+  pagesModel,
+  layoutSet,
+}: DesignViewLoadedContentProps): ReactNode => {
   const { t } = useTranslation();
-  const { layoutSet } = useUxEditorParams();
   const { getPdfLayoutName } = usePdf();
   const layouts = useFormLayouts();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: pagesModel } = usePagesQuery(org, app, layoutSet);
   const {
     selectedFormLayoutName,
     setSelectedItem,
