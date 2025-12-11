@@ -157,7 +157,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CancellationToken cancellationToken = default)
         {
             Guard.AssertValidEnvironmentName(env);
-            DecommissionBuildParameters decommissionBuildParameters = new()
+            GitOpsManagementBuildParameters gitOpsManagementBuildParameters = new()
             {
                 AppOwner = editingContext.Org,
                 AppRepo = editingContext.Repo,
@@ -175,7 +175,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 ? _azureDevOpsSettings.GitOpsDecommissionDefinitionId
                 : _azureDevOpsSettings.DecommissionDefinitionId;
 
-            var build = await _azureDevOpsBuildClient.QueueAsync(decommissionBuildParameters, definitionId);
+            var build = await _azureDevOpsBuildClient.QueueAsync(gitOpsManagementBuildParameters, definitionId);
 
             DeploymentEntity deploymentEntity = new()
             {
@@ -241,7 +241,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task PublishSyncRootAsync(AltinnOrgEditingContext editingContext, AltinnEnvironment environment, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            DecommissionBuildParameters buildParameters = new()
+            GitOpsManagementBuildParameters buildParameters = new()
             {
                 AppOwner = editingContext.Org,
                 AppEnvironment = environment.Name,

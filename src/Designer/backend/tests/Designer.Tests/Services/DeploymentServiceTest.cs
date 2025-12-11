@@ -520,7 +520,7 @@ namespace Designer.Tests.Services
                 .ReturnsAsync(GetDeployments("createdDeployment.json").First());
 
             _azureDevOpsBuildClient.Setup(b => b.QueueAsync(
-                It.IsAny<DecommissionBuildParameters>(),
+                It.IsAny<GitOpsManagementBuildParameters>(),
                 It.IsAny<int>())).ReturnsAsync(GetBuild());
 
             _deploymentRepository.Setup(r => r.Create(
@@ -562,7 +562,7 @@ namespace Designer.Tests.Services
 
             // Should use DecommissionDefinitionId
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
-                It.IsAny<DecommissionBuildParameters>(),
+                It.IsAny<GitOpsManagementBuildParameters>(),
                 azureDevOpsSettings.DecommissionDefinitionId), Times.Once);
 
             _mediatrMock.Verify(m => m.Publish(It.Is<DeploymentPipelineQueued>(n =>
@@ -599,7 +599,7 @@ namespace Designer.Tests.Services
                 .ReturnsAsync(GetDeployments("createdDeployment.json").First());
 
             _azureDevOpsBuildClient.Setup(b => b.QueueAsync(
-                It.IsAny<DecommissionBuildParameters>(),
+                It.IsAny<GitOpsManagementBuildParameters>(),
                 It.IsAny<int>())).ReturnsAsync(GetBuild());
 
             _deploymentRepository.Setup(r => r.Create(
@@ -644,7 +644,7 @@ namespace Designer.Tests.Services
 
             // Should use GitOpsDecommissionDefinitionId
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
-                It.IsAny<DecommissionBuildParameters>(),
+                It.IsAny<GitOpsManagementBuildParameters>(),
                 azureDevOpsSettings.GitOpsDecommissionDefinitionId), Times.Once);
 
             _mediatrMock.Verify(m => m.Publish(It.Is<DeploymentPipelineQueued>(n =>
@@ -674,7 +674,7 @@ namespace Designer.Tests.Services
                 .ReturnsAsync(GetDeployments("createdDeployment.json").First());
 
             _azureDevOpsBuildClient.Setup(b => b.QueueAsync(
-                It.IsAny<DecommissionBuildParameters>(),
+                It.IsAny<GitOpsManagementBuildParameters>(),
                 It.IsAny<int>())).ReturnsAsync(GetBuild());
 
             _deploymentRepository.Setup(r => r.Create(
@@ -720,7 +720,7 @@ namespace Designer.Tests.Services
 
             // Should fallback to DecommissionDefinitionId (not GitOpsDecommissionDefinitionId)
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
-                It.IsAny<DecommissionBuildParameters>(),
+                It.IsAny<GitOpsManagementBuildParameters>(),
                 azureDevOpsSettings.DecommissionDefinitionId), Times.Once);
 
             _mediatrMock.Verify(m => m.Publish(It.Is<DeploymentPipelineQueued>(n =>
