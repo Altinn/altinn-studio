@@ -30,7 +30,7 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
     private const string MaskinportenTestScheme = "MaskinportenTest";
     private const string RequiredScope = "altinn:studio/designer";
 
-    private static string WebhookUrl(string org, string app) => $"/designer/api/{org}/{app}/deployments/webhooks/events";
+    private static string WebhookUrl(string org, string app) => $"/designer/api/v1/{org}/{app}/deployments/webhooks/events";
 
     public ReceiveDeployEventTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture) : base(factory, designerDbFixture)
     {
