@@ -1,0 +1,9 @@
+services:
+  altinity-agents:
+    build: .
+    image: altinity-agents
+    container_name: altinity-agents
+    ports:
+      - "8071:8071"
+    env_file:
+      - .env.docker
