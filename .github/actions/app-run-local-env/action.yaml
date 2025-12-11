@@ -57,9 +57,19 @@ runs:
     - name: Wait for localtest to be ready
       if: ${{ inputs.run-localtest == 'true' }}
       run: |
-        echo "Waiting for localtest to be ready..."
-        timeout 120 bash -c 'until curl -f http://localhost:80/health || curl -f http://localhost:80; do sleep 5; done'
-        echo "Localtest is ready!"
+        echo "Waiting for backend services to be ready..."
+        
+        # Wait for main localtest service (port 5101)
+        echo "Checking localtest service on port 5101..."
+        timeout 180 bash -c 'until curl -f http://localhost:5101/health > /dev/null 2>&1; do echo "Waiting for localtest service..."; sleep 5; done'
+        echo "✅ Localtest service is ready!"
+        
+        # Wait for loadbalancer to be ready (port 80)
+        echo "Checking loadbalancer on port 80..."
+        timeout 60 bash -c 'until curl -s http://localhost:80 | grep -v "Temporary Redirect" > /dev/null 2>&1; do echo "Waiting for loadbalancer..."; sleep 3; done'
+        echo "✅ Loadbalancer is ready!"
+        
+        echo "🎉 All localtest services are ready!"
       shell: bash
       env:
         TEST_DOMAIN: local.altinn.cloud
