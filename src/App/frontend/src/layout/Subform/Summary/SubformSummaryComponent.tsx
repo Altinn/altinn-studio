@@ -3,8 +3,8 @@ import type { ReactNode } from 'react';
 
 import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
-import { useInstanceDataElements } from 'src/domain/Instance/useInstanceQuery';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
+import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';

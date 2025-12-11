@@ -4,9 +4,9 @@ import { ChevronDownIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { useIsProcessing } from 'src/core/contexts/processingContext';
-import { useInstanceDataElements } from 'src/domain/Instance/useInstanceQuery';
 import { ExprVal } from 'src/features/expressions/types';
 import { useDataTypeFromLayoutSet, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/navigation/components/SubformsForPage.module.css';
 import { isSubformValidation } from 'src/features/validation';

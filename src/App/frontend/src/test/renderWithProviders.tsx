@@ -20,22 +20,31 @@ import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
-import { instanceQueries } from 'src/domain/Instance/useInstanceQuery';
+import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
+import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
+import { InstanceProvider } from 'src/features/instance/InstanceContext';
+import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
+import { LanguageProvider } from 'src/features/language/LanguageProvider';
+import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
+import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
-import { fetchInstanceData } from 'src/http-client/queries';
+import { PartyProvider } from 'src/features/party/PartiesProvider';
+import { ProfileProvider } from 'src/features/profile/ProfileProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { PageNavigationRouter } from 'src/test/routerUtils';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
-import type { AppMutations, AppQueries, AppQueriesContext } from 'src/http-client/types';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternal, CompExternalExact, CompTypes } from 'src/layout/layout';
+import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   renderer: (() => React.ReactElement) | React.ReactElement;
@@ -224,11 +233,11 @@ export function InstanceRouter({
   const router = createMemoryRouter(
     [
       {
-        path: '/ttd/test/instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:pageKey',
+        path: 'instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:pageId',
         element: children,
       },
       {
-        path: '/ttd/test/instance/:instanceOwnerPartyId/:instanceGuid/:taskId',
+        path: 'instance/:instanceOwnerPartyId/:instanceGuid/:taskId',
         element: children,
       },
       {
@@ -237,7 +246,9 @@ export function InstanceRouter({
       },
     ],
     {
+      basename: '/ttd/test',
       initialEntries: [query ? `${path}?${query}` : path],
+      future: { v7_relativeSplatPath: true },
     },
   );
 
@@ -246,7 +257,12 @@ export function InstanceRouter({
     routerRef.current = router;
   }
 
-  return <RouterProvider router={router} />;
+  return (
+    <RouterProvider
+      router={router}
+      future={{ v7_startTransition: true }}
+    />
+  );
 }
 
 export function StatelessRouter({
@@ -260,7 +276,7 @@ export function StatelessRouter({
   const router = createMemoryRouter(
     [
       {
-        path: '/ttd/test/:pageKey',
+        path: ':pageKey',
         element: children,
       },
       {
@@ -269,7 +285,9 @@ export function StatelessRouter({
       },
     ],
     {
+      basename: '/ttd/test',
       initialEntries: [query ? `${path}?${query}` : path],
+      future: { v7_relativeSplatPath: true },
     },
   );
 
@@ -278,7 +296,12 @@ export function StatelessRouter({
     routerRef.current = router;
   }
 
-  return <RouterProvider router={router} />;
+  return (
+    <RouterProvider
+      router={router}
+      future={{ v7_startTransition: true }}
+    />
+  );
 }
 
 interface ProvidersProps extends PropsWithChildren {
@@ -293,13 +316,33 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <UiConfigProvider>
-        <PageNavigationProvider>
-          <Router>
-            <OrgsProvider>{children}</OrgsProvider>
-          </Router>
-        </PageNavigationProvider>
-      </UiConfigProvider>
+      <LanguageProvider>
+        <LangToolsStoreProvider>
+          <UiConfigProvider>
+            <PageNavigationProvider>
+              <Router>
+                <NavigationEffectProvider>
+                  <ApplicationMetadataProvider>
+                    <GlobalFormDataReadersProvider>
+                      <OrgsProvider>
+                        <ApplicationSettingsProvider>
+                          <LayoutSetsProvider>
+                            <ProfileProvider>
+                              <PartyProvider>
+                                <TextResourcesProvider>{children}</TextResourcesProvider>
+                              </PartyProvider>
+                            </ProfileProvider>
+                          </LayoutSetsProvider>
+                        </ApplicationSettingsProvider>
+                      </OrgsProvider>
+                    </GlobalFormDataReadersProvider>
+                  </ApplicationMetadataProvider>
+                </NavigationEffectProvider>
+              </Router>
+            </PageNavigationProvider>
+          </UiConfigProvider>
+        </LangToolsStoreProvider>
+      </LanguageProvider>
     </AppQueriesProvider>
   );
 }
@@ -310,9 +353,11 @@ interface InstanceProvidersProps extends PropsWithChildren {
 
 function InstanceFormAndLayoutProviders({ children, formDataProxies }: InstanceProvidersProps) {
   return (
-    <FormDataWriteProxyProvider value={formDataProxies}>
-      <FormProvider>{children}</FormProvider>
-    </FormDataWriteProxyProvider>
+    <InstanceProvider>
+      <FormDataWriteProxyProvider value={formDataProxies}>
+        <FormProvider>{children}</FormProvider>
+      </FormDataWriteProxyProvider>
+    </InstanceProvider>
   );
 }
 
@@ -322,7 +367,11 @@ function MinimalProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <Router>{children}</Router>
+      <LangToolsStoreProvider>
+        <Router>
+          <NavigationEffectProvider>{children}</NavigationEffectProvider>
+        </Router>
+      </LangToolsStoreProvider>
     </AppQueriesProvider>
   );
 }
@@ -393,96 +442,6 @@ const renderBase = async ({
   const mutationMocks = Object.fromEntries(
     Object.entries(mutations).map(([key, value]) => [key, value.mock]),
   ) as AppMutations;
-
-  // Preload window.AltinnAppData and query cache with mocked data BEFORE rendering
-  // Text resources: call the mocked query and update window
-  if (queryMocks.fetchTextResources) {
-    try {
-      const textResources = await queryMocks.fetchTextResources('nb');
-      if (textResources && window.AltinnAppGlobalData) {
-        window.AltinnAppGlobalData.textResources = textResources;
-      }
-    } catch (_e) {
-      // If the mock throws or returns invalid data, keep default text resources
-    }
-  }
-
-  // Application metadata: call the globally-mocked query and set in query cache
-  // Note: fetchApplicationMetadata is mocked globally in tests but excluded from AppQueries
-  try {
-    const { fetchApplicationMetadata } = await import('src/http-client/queries');
-    const applicationMetadata = await fetchApplicationMetadata();
-    if (applicationMetadata && window.AltinnAppGlobalData) {
-      window.AltinnAppGlobalData.applicationMetadata = applicationMetadata;
-      // Also preload into query cache so ApplicationMetadataProvider can use it
-      queryClient.setQueryData(['fetchApplicationMetadata'], applicationMetadata);
-    }
-  } catch (_e) {
-    // Keep default metadata if query throws
-  }
-
-  // Application settings: call the mocked query and update window
-  if (queryMocks.fetchApplicationSettings) {
-    try {
-      const applicationSettings = await queryMocks.fetchApplicationSettings();
-      if (applicationSettings && window.AltinnAppGlobalData) {
-        window.AltinnAppGlobalData.frontendSettings = applicationSettings;
-      }
-    } catch (_e) {
-      // Keep default settings if query throws
-    }
-  }
-
-  // Layout sets: call the mocked query and update window (LayoutSetsProvider reads from window.AltinnAppData.layoutSets)
-  if (queryMocks.fetchLayoutSets) {
-    try {
-      const layoutSets = await queryMocks.fetchLayoutSets();
-      if (layoutSets && window.AltinnAppInstanceData) {
-        window.AltinnAppInstanceData.layoutSets = layoutSets;
-      }
-    } catch (_e) {
-      // Keep default layout sets if query throws
-    }
-  }
-
-  // Process state: preload if mocked (useProcessQuery reads from window.AltinnAppData.processState when no instanceId)
-  try {
-    const { fetchProcessState } = await import('src/http-client/queries');
-    if (jest.isMockFunction(fetchProcessState)) {
-      try {
-        const processState = await fetchProcessState('dummy-owner/dummy-guid');
-        if (processState && window.AltinnAppInstanceData) {
-          window.AltinnAppInstanceData.processState = processState;
-        }
-      } catch (_e) {
-        // Mock might throw or return undefined - that's OK
-      }
-    }
-  } catch (_e) {
-    // fetchProcessState not mocked - fine for stateless tests
-  }
-
-  // Instance data: preload if mocked (important for FileUpload tests that need attachments immediately)
-  try {
-    if (jest.isMockFunction(fetchInstanceData)) {
-      // Try to fetch instance data, but catch errors in case mock is set up with mockImplementationOnce
-      // and will be consumed later by the actual test
-      try {
-        const instanceData = await fetchInstanceData('dummy-owner', 'dummy-guid');
-        if (instanceData && window.AltinnAppInstanceData) {
-          window.AltinnAppInstanceData.instance = instanceData;
-        }
-        queryClient.setQueryData(
-          instanceQueries.instanceData({ instanceOwnerPartyId: 'dummy-owner', instanceGuid: 'dummy-guid' }).queryKey,
-          instanceData,
-        );
-      } catch (_e) {
-        // Mock might be set up with mockImplementationOnce - that's OK, test will handle it
-      }
-    }
-  } catch (_e) {
-    // Instance data not mocked or not available - fine for stateless tests
-  }
 
   if (!router) {
     throw new Error('No router provided');
@@ -720,11 +679,9 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     };
 
     return (
-      <InstanceRouter>
-        <FormComponentContextProvider value={{ baseComponentId: realComponentDef.id }}>
-          {renderer(props)}
-        </FormComponentContextProvider>
-      </InstanceRouter>
+      <FormComponentContextProvider value={{ baseComponentId: realComponentDef.id }}>
+        {renderer(props)}
+      </FormComponentContextProvider>
     );
   };
 

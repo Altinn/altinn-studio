@@ -7,7 +7,7 @@ import { AppHeaderMenu } from 'src/components/presentation/AppHeader/AppHeaderMe
 import { LanguageSelector } from 'src/components/presentation/LanguageSelector';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
 import { useHasAppTextsYet } from 'src/core/texts/appTexts';
-import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { Lang } from 'src/features/language/Lang';
 import type { LogoColor } from 'src/components/logo/AltinnLogo';
@@ -18,9 +18,7 @@ export interface AppHeaderProps {
 }
 
 export const AppHeader = ({ logoColor, headerBackgroundColor }: AppHeaderProps) => {
-  const page = usePageSettings();
-
-  const { showLanguageSelector } = page;
+  const { showLanguageSelector } = usePageSettings();
 
   return (
     <header
@@ -38,8 +36,6 @@ export const AppHeader = ({ logoColor, headerBackgroundColor }: AppHeaderProps) 
       <div className={classes.container}>
         <Logo color={logoColor} />
         <div className={classes.wrapper}>
-          {/*<h1>lang:</h1>*/}
-          {/*<pre>{JSON.stringify({ showLanguageSelector }, null, 2)}</pre>*/}
           {showLanguageSelector && <LanguageSelector />}
           <div className={classes.wrapper}>
             <AppHeaderMenu logoColor={logoColor} />
@@ -57,6 +53,6 @@ const Logo = ({ color }: { color: LogoColor }) => {
 };
 
 const MaybeOrganisationLogo = ({ color }: { color: LogoColor }) => {
-  const enableOrgLogo = Boolean(getApplicationMetadata().logo);
+  const enableOrgLogo = Boolean(useApplicationMetadata().logoOptions);
   return enableOrgLogo ? <OrganisationLogo /> : <AltinnLogo color={color} />;
 };

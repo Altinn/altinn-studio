@@ -7,7 +7,7 @@ import cn from 'classnames';
 import classes from 'src/components/atoms/AltinnAttachment.module.css';
 import { MainAttachmentHeader } from 'src/components/atoms/AttachmentHeader';
 import { Lang } from 'src/features/language/Lang';
-import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { FileExtensionIcon } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
 import { getFileEnding, removeFileEnding } from 'src/layout/FileUpload/utils/fileEndings';

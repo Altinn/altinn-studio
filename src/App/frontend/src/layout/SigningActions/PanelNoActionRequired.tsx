@@ -3,8 +3,8 @@ import React from 'react';
 import { Link } from '@digdir/designsystemet-react';
 
 import { Button } from 'src/app-components/Button/Button';
-import { getUserProfile } from 'src/domain/User/getUserProfile';
 import { Lang } from 'src/features/language/Lang';
+import { useProfile } from 'src/features/profile/ProfileProvider';
 import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
 import classes from 'src/layout/SigningActions/SigningActions.module.css';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -16,7 +16,7 @@ type NoActionRequiredPanelProps = {
 };
 
 export function NoActionRequiredPanel({ baseComponentId, hasSigned }: NoActionRequiredPanelProps) {
-  const currentUserPartyId = getUserProfile()?.partyId;
+  const currentUserPartyId = useProfile()?.partyId;
   const { textResourceBindings } = useItemWhenType(baseComponentId, 'SigningActions');
 
   const titleHasSigned =

@@ -2,8 +2,8 @@ import React from 'react';
 
 import { Checkbox, Fieldset } from '@digdir/designsystemet-react';
 
-import { useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
 import classes from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor.module.css';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { processQueries, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import type { IProcess, ITask } from 'src/types/shared';
 

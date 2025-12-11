@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useMemo } from 'react';
-import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { NavigateOptions } from 'react-router-dom';
 
 import { SearchParams } from 'src/core/routing/types';
-import { useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import { useRefetchInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
@@ -17,15 +18,8 @@ import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 import { useHiddenPages } from 'src/utils/layout/hidden';
+import type { NavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import type { NodeRefValidation } from 'src/features/validation';
-
-/**
- * Prepends the base path (/{org}/{app}) to a URL path
- */
-function prependBasePath(path: string): string {
-  const basePath = `/${window.org}/${window.app}`;
-  return `${basePath}${path}`;
-}
 
 export interface NavigateToPageOptions {
   replace?: boolean;
@@ -46,21 +40,24 @@ export enum TaskKeys {
  */
 
 const useOurNavigate = () => {
-  // const storeCallback = useSetNavigationEffect();
+  const storeCallback = useSetNavigationEffect();
   const setReturnToView = useSetReturnToView();
   const setSummaryNodeOfOrigin = useSetSummaryNodeOfOrigin();
   const navigate = useNavigate();
 
   return useCallback(
-    (path: string, ourOptions?: NavigateToPageOptions, theirOptions?: NavigateOptions) => {
+    (path: string, ourOptions?: NavigateToPageOptions, theirOptions?: NavigateOptions, effect?: NavigationEffect) => {
       const resetReturnToView = ourOptions?.resetReturnToView ?? true;
       if (resetReturnToView) {
         setReturnToView?.(undefined);
         setSummaryNodeOfOrigin?.(undefined);
       }
+      if (effect) {
+        storeCallback(effect);
+      }
       navigate(path, theirOptions);
     },
-    [navigate, setReturnToView, setSummaryNodeOfOrigin],
+    [navigate, setReturnToView, setSummaryNodeOfOrigin, storeCallback],
   );
 };
 
@@ -110,7 +107,7 @@ export const useStartUrl = (forcedTaskId?: string) => {
     useAllNavigationParams();
   const isSubformPage = !!mainPageKey;
   const taskType = useGetTaskTypeById()(taskId);
-  const isStateless = useIsStatelessApp();
+  const isStateless = useApplicationMetadata().isStatelessApp;
 
   return useMemo(() => {
     const firstPage = order?.[0];
@@ -160,6 +157,7 @@ export function useNavigateToTask() {
 
   return useCallback(
     (newTaskId: string, options?: NavigateOptions & { runEffect?: boolean }) => {
+      const { runEffect = true } = options ?? {};
       const { instanceOwnerPartyId, instanceGuid, taskId } = navParams.current;
       if (newTaskId === taskId) {
         return;
@@ -171,10 +169,13 @@ export function useNavigateToTask() {
           ? TaskKeys.CustomReceipt
           : TaskKeys.ProcessEnd;
       }
-      const url = prependBasePath(
-        `/instance/${instanceOwnerPartyId}/${instanceGuid}/${realTaskId}${queryKeysRef.current}`,
+      const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${realTaskId}${queryKeysRef.current}`;
+      navigate(
+        url,
+        undefined,
+        options,
+        runEffect ? { callback: () => focusMainContent(options), targetLocation: url, matchStart: true } : undefined,
       );
-      navigate(url, undefined, options);
     },
     [navParams, navigate, queryKeysRef, layoutSets],
   );
@@ -201,12 +202,9 @@ export function useIsValidTaskId() {
 }
 
 export function useNavigatePage() {
-  const isStatelessApp = useIsStatelessApp();
+  const isStatelessApp = useApplicationMetadata().isStatelessApp;
   const navigate = useOurNavigate();
   const navParams = useAllNavigationParamsAsRef();
-
-  const { taskId } = useParams();
-
   const getTaskType = useGetTaskTypeById();
   const refetchInitialValidations = useRefetchInitialValidations();
   const [_searchParams] = useSearchParams();
@@ -220,12 +218,12 @@ export function useNavigatePage() {
     (_pageId: string) => {
       // The page ID may be URL encoded already, if we got this from react-router.
       const pageId = decodeURIComponent(_pageId);
-      if (getTaskType(taskId) !== ProcessTaskType.Data) {
+      if (getTaskType(navParams.current.taskId) !== ProcessTaskType.Data) {
         return false;
       }
       return orderRef.current.includes(pageId) ?? false;
     },
-    [getTaskType, orderRef, taskId],
+    [getTaskType, navParams, orderRef],
   );
 
   /**
@@ -237,7 +235,7 @@ export function useNavigatePage() {
   useEffect(() => {
     const currentPageId = navParams.current.pageKey ?? '';
     if (isStatelessApp && orderRef.current[0] !== undefined && (!currentPageId || !isValidPageId(currentPageId))) {
-      navigate(prependBasePath(`/${orderRef.current[0]}?${searchParamsRef.current}`), { replace: true });
+      navigate(`/${orderRef.current[0]}?${searchParamsRef.current}`, { replace: true });
     }
   }, [isStatelessApp, orderRef, navigate, isValidPageId, navParams, searchParamsRef]);
 
@@ -268,22 +266,20 @@ export function useNavigatePage() {
 
       const searchParams = options?.searchParams ? `?${options.searchParams.toString()}` : '';
       if (isStatelessApp) {
-        const url = prependBasePath(`/${page}${searchParams}`);
-        return navigate(url, options, { replace });
+        const url = `/${page}${searchParams}`;
+        return navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
       }
 
       const { instanceOwnerPartyId, instanceGuid, taskId, mainPageKey, componentId, dataElementId } = navParams.current;
 
       // Subform
       if (mainPageKey && componentId && dataElementId && !shouldExitSubform) {
-        const url = prependBasePath(
-          `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${page}${searchParams}`,
-        );
-        return navigate(url, options, { replace });
+        const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${page}${searchParams}`;
+        return navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
       }
 
-      const url = prependBasePath(`/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`);
-      navigate(url, options, { replace });
+      const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`;
+      navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
     },
     [orderRef, isStatelessApp, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations],
   );
@@ -369,13 +365,11 @@ export function useNavigatePage() {
       return;
     }
     const { instanceOwnerPartyId, instanceGuid, taskId, pageKey } = navParams.current;
-    const url = prependBasePath(
-      `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page ?? pageKey}/${nodeId}/${dataElementId}${validate ? '?validate=true' : ''}`,
-    );
+    const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page ?? pageKey}/${nodeId}/${dataElementId}${validate ? '?validate=true' : ''}`;
 
     await maybeSaveOnPageChange();
     refetchInitialValidations();
-    return navigate(url, undefined, undefined);
+    return navigate(url, undefined, undefined, { targetLocation: url, callback: () => focusMainContent() });
   };
 
   return {

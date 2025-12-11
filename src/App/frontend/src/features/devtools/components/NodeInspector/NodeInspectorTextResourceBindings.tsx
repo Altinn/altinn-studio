@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { useTextResources } from 'src/domain/Textresource/textResourceQuery';
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
 import { Value } from 'src/features/devtools/components/NodeInspector/NodeInspectorDataField';
 import { canBeExpression } from 'src/features/expressions/validation';
+import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useExternalItem } from 'src/utils/layout/hooks';

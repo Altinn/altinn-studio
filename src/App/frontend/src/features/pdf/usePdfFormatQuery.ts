@@ -5,8 +5,8 @@ import type { UseQueryResult } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { type QueryDefinition } from 'src/core/queries/usePrefetchQuery';
-import { useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
 import { useCurrentDataModelDataElementId } from 'src/features/datamodel/useBindingSchema';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import type { IPdfFormat } from 'src/features/pdf/types';
 
 // Also used for prefetching @see formPrefetcher.ts

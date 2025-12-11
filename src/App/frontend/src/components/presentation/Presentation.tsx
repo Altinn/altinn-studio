@@ -14,10 +14,10 @@ import { Progress } from 'src/components/presentation/Progress';
 import { createContext } from 'src/core/contexts/context';
 import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
 import { RenderStart } from 'src/core/ui/RenderStart';
-import { useInstanceDataQuery } from 'src/domain/Instance/useInstanceQuery';
 import { Footer } from 'src/features/footer/Footer';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { SideBarNavigation } from 'src/features/navigation/SidebarNavigation';
 import { useHasGroupedNavigation } from 'src/features/navigation/utils';
@@ -35,12 +35,10 @@ export const PresentationComponent = ({
   showNavbar = true,
   showNavigation: _showNavigation = true,
 }: IPresentationProvidedProps) => {
-  const instance = useInstanceDataQuery().data;
-
-  const instanceStatus = instance?.status;
-
+  const instanceStatus = useInstanceDataQuery({
+    select: (instance) => instance.status,
+  }).data;
   const { expandedWidth } = useUiConfigContext();
-
   const hasGroupedNavigation = useHasGroupedNavigation();
   const isReceipt = useIsReceiptPage();
   const realHeader = isReceipt ? <Lang id='receipt.receipt' /> : header;

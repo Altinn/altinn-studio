@@ -6,7 +6,8 @@ import { screen } from '@testing-library/react';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { Lang } from 'src/features/language/Lang';
-import { fetchInstanceData, fetchUserProfile } from 'src/http-client/queries';
+import { LanguageProvider } from 'src/features/language/LanguageProvider';
+import { fetchInstanceData, fetchUserProfile } from 'src/queries/queries';
 import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
 
 function TestSubject() {
@@ -34,7 +35,11 @@ describe('Lang', () => {
 
   it('should work properly', async () => {
     await renderWithMinimalProviders({
-      renderer: () => <TestSubject />,
+      renderer: () => (
+        <LanguageProvider>
+          <TestSubject />
+        </LanguageProvider>
+      ),
     });
 
     expect(console.error).not.toHaveBeenCalled();
@@ -44,21 +49,23 @@ describe('Lang', () => {
   it('should handle Lang components in params', async () => {
     await renderWithMinimalProviders({
       renderer: () => (
-        <div data-testid='test-subject'>
-          <Lang
-            id='general.progress'
-            params={[
-              <Lang
-                key={0}
-                id='instantiate.inbox'
-              />,
-              <Lang
-                key={1}
-                id='instantiate.profile'
-              />,
-            ]}
-          />
-        </div>
+        <LanguageProvider>
+          <div data-testid='test-subject'>
+            <Lang
+              id='general.progress'
+              params={[
+                <Lang
+                  key={0}
+                  id='instantiate.inbox'
+                />,
+                <Lang
+                  key={1}
+                  id='instantiate.profile'
+                />,
+              ]}
+            />
+          </div>
+        </LanguageProvider>
       ),
     });
 

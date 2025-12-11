@@ -10,8 +10,7 @@ import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { getApplicationMetadata, useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
-import { useInstance, useInstanceDataElements } from 'src/domain/Instance/useInstanceQuery';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { getFirstDataElementId } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useCustomValidationConfigQuery } from 'src/features/customValidation/useCustomValidationQuery';
 import { UpdateDataElementIdsForCypress } from 'src/features/datamodel/DataElementIdsForCypress';
@@ -28,6 +27,7 @@ import {
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
+import { useInstanceDataElements, useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { isAxiosError } from 'src/utils/isAxiosError';
@@ -149,20 +149,18 @@ export function DataModelsProvider({ children }: PropsWithChildren) {
 }
 
 function DataModelsLoader() {
-  const applicationMetadata = getApplicationMetadata();
+  const applicationMetadata = useApplicationMetadata();
   const setDataTypes = useSelector((state) => state.setDataTypes);
   const allDataTypes = useSelector((state) => state.allDataTypes);
   const writableDataTypes = useSelector((state) => state.writableDataTypes);
   const layouts = useLayouts();
   const defaultDataType = useCurrentDataModelName();
-  const isStateless = useIsStatelessApp();
-  const instance = useInstance(); //useInstanceDataQuery().data;
+  const isStateless = useApplicationMetadata().isStatelessApp;
 
-  if (!instance?.instanceOwner.partyId) {
-    throw new Error('instanceOwnerParty is required at this point, something is wrong.');
-  }
-
-  const dataElements = instance.data ?? emptyArray;
+  const { data: dataElements, isFetching } = useInstanceDataQuery({
+    enabled: !isStateless,
+    select: (data) => data.data.map((element) => [element.dataType, element.locked] as const),
+  });
 
   const layoutSetId = useCurrentLayoutSetId();
 
@@ -173,42 +171,44 @@ function DataModelsLoader() {
 
   // Find all data types referenced in dataModelBindings in the layout
   useEffect(() => {
-    if (layouts) {
-      const referencedDataTypes = getAllReferencedDataTypes(layouts, defaultDataType);
-      const allValidDataTypes: string[] = [];
-      const writableDataTypes: string[] = [];
+    if (isFetching) {
+      return;
+    }
 
-      // Verify that referenced data types are defined in application metadata, have a classRef, and have a corresponding data element in the instance data
-      for (const dataType of referencedDataTypes) {
-        const typeDef = applicationMetadata.dataTypes.find((dt) => dt.id === dataType);
+    const referencedDataTypes = getAllReferencedDataTypes(layouts, defaultDataType);
+    const allValidDataTypes: string[] = [];
+    const writableDataTypes: string[] = [];
 
-        if (!typeDef) {
-          const error = new MissingDataTypeException(dataType);
-          window.logErrorOnce(error.message);
-          continue;
-        }
-        if (!typeDef?.appLogic?.classRef) {
-          const error = new MissingClassRefException(dataType);
-          window.logErrorOnce(error.message);
-          continue;
-        }
+    // Verify that referenced data types are defined in application metadata, have a classRef, and have a corresponding data element in the instance data
+    for (const dataType of referencedDataTypes) {
+      const typeDef = applicationMetadata.dataTypes.find((dt) => dt.id === dataType);
 
-        if (!isStateless && !dataElements?.find((dt) => dt.dataType === dataType)) {
-          const error = new MissingDataElementException(dataType);
-          window.logErrorOnce(error.message);
-          continue;
-        }
-
-        allValidDataTypes.push(dataType);
-
-        if (isDataTypeWritable(dataType, isStateless, dataElements ?? [])) {
-          writableDataTypes.push(dataType);
-        }
+      if (!typeDef) {
+        const error = new MissingDataTypeException(dataType);
+        window.logErrorOnce(error.message);
+        continue;
+      }
+      if (!typeDef?.appLogic?.classRef) {
+        const error = new MissingClassRefException(dataType);
+        window.logErrorOnce(error.message);
+        continue;
       }
 
-      setDataTypes(allValidDataTypes, writableDataTypes, defaultDataType, layoutSetId);
+      if (!isStateless && !dataElements?.find(([dt]) => dt === dataType)) {
+        const error = new MissingDataElementException(dataType);
+        window.logErrorOnce(error.message);
+        continue;
+      }
+
+      allValidDataTypes.push(dataType);
+
+      if (isDataTypeWritable(dataType, isStateless, dataElements ?? [])) {
+        writableDataTypes.push(dataType);
+      }
     }
-  }, [applicationMetadata, defaultDataType, isStateless, layouts, setDataTypes, dataElements, layoutSetId]);
+
+    setDataTypes(allValidDataTypes, writableDataTypes, defaultDataType, layoutSetId);
+  }, [applicationMetadata, defaultDataType, isStateless, layouts, setDataTypes, dataElements, layoutSetId, isFetching]);
 
   // We should load form data and schema for all referenced data models, schema is used for dataModelBinding validation which we want to do even if it is readonly
   // We only need to load expression validation config for data types that are not readonly. Additionally, backend will error if we try to validate a model we are not supposed to
@@ -306,17 +306,16 @@ function LoadInitialData({ dataType, overrideDataElement }: LoaderProps & { over
   const setError = useSelector((state) => state.setError);
   const dataElements = useInstanceDataElements(dataType);
   const dataElementId = overrideDataElement ?? getFirstDataElementId(dataElements, dataType);
-  const metaData = getApplicationMetadata();
-
-  const isStatelessApp = useIsStatelessApp();
+  const metaData = useApplicationMetadata();
 
   const url = useDataModelUrl({
     dataType,
     dataElementId,
-    prefillFromQueryParams: getValidPrefillDataFromQueryParams(metaData, dataType, isStatelessApp),
+    prefillFromQueryParams: getValidPrefillDataFromQueryParams(metaData, dataType),
   });
 
   const { data, error } = useFormDataQuery(url);
+
   useEffect(() => {
     if (!data || !url) {
       return;
@@ -397,7 +396,6 @@ export const DataModels = {
     // Using a static selector to avoid re-rendering. While the state can update later, we don't need
     // to re-run data model validations, etc.
     const { schemaLookup, allDataTypes } = useStaticSelector((state) => state);
-
     return useMemo(() => {
       if (allDataTypes?.every((dt) => schemaLookup[dt])) {
         return (reference: IDataModelReference) => schemaLookup[reference.dataType].getSchemaForPath(reference.field);

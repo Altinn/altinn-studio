@@ -1,5 +1,6 @@
+import { ContextNotProvided } from 'src/core/contexts/context';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
-import { getApplicationMetadata, useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { getCurrentLayoutSet } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useLaxLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
@@ -20,14 +21,13 @@ export function useCurrentLayoutSetId(taskId?: string) {
 }
 
 export function useCurrentLayoutSet(_taskId?: string) {
-  const application = getApplicationMetadata();
+  const application = useLaxApplicationMetadata();
   const layoutSets = useLaxLayoutSets();
   const processTaskId = useProcessTaskId();
   const taskId = _taskId ?? processTaskId;
   const overriddenLayoutSetId = useTaskOverrides()?.layoutSetId;
-  const isStatelessApp = useIsStatelessApp();
 
-  if (!layoutSets) {
+  if (application === ContextNotProvided || layoutSets === ContextNotProvided) {
     return undefined;
   }
 
@@ -35,5 +35,5 @@ export function useCurrentLayoutSet(_taskId?: string) {
     return layoutSets.find((set) => set.id === overriddenLayoutSetId);
   }
 
-  return getCurrentLayoutSet({ application, layoutSets, taskId, isStatelessApp });
+  return getCurrentLayoutSet({ application, layoutSets, taskId });
 }

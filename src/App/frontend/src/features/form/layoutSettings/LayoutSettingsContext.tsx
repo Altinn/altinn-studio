@@ -7,7 +7,7 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
-import { useLayoutSetsQuery } from 'src/domain/Layout/layoutSetsQuery';
+import { useLaxGlobalUISettings } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
@@ -132,12 +132,12 @@ const defaults: Required<GlobalPageSettings> = {
 };
 
 export const usePageSettings = (): Required<GlobalPageSettings> => {
-  const globalUISettings = useLayoutSetsQuery().data?.uiSettings as GlobalPageSettings;
-  const layoutSettings = useLayoutSettingsQuery().data?.pageSettings;
+  const globalUISettings = useLaxGlobalUISettings();
+  const layoutSettings = useLaxCtx();
 
   return useShallowMemo({
     ...defaults,
-    ...(!globalUISettings ? {} : globalUISettings),
-    ...(!layoutSettings ? {} : layoutSettings),
+    ...(globalUISettings === ContextNotProvided ? {} : globalUISettings),
+    ...(layoutSettings === ContextNotProvided ? {} : layoutSettings.pageSettings),
   });
 };

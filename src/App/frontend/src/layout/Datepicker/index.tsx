@@ -5,7 +5,7 @@ import { formatISOString, getDateFormat } from 'src/app-components/Datepicker/ut
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { FrontendValidationSource } from 'src/features/validation';
 import { DatepickerDef } from 'src/layout/Datepicker/config.def.generated';
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';

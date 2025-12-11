@@ -1,14 +1,14 @@
 import { createHookContext } from 'src/core/contexts/hookContext';
-import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
-import { useInstanceDataSources } from 'src/domain/Instance/useInstanceQuery';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
+import { useInstanceDataSources } from 'src/features/instance/InstanceContext';
 
 const { Provider, hooks } = createHookContext({
   useLaxInstanceDataSources: () => useInstanceDataSources(),
   useDefaultDataType: () => DataModels.useDefaultDataType(),
   useReadableDataTypes: () => DataModels.useReadableDataTypes(),
-  useExternalApis: () => useExternalApis(getApplicationMetadata().externalApiIds ?? []),
+  useExternalApis: () => useExternalApis(useApplicationMetadata().externalApiIds ?? []),
   useGetDataElementIdForDataType: () => DataModels.useGetDataElementIdForDataType(),
 });
 

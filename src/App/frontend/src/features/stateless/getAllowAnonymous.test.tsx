@@ -6,7 +6,7 @@ import { screen } from '@testing-library/react';
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
-import { fetchApplicationMetadata } from 'src/http-client/queries';
+import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 
 const TestComponent = () => {

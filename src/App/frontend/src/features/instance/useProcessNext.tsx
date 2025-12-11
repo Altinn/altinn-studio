@@ -4,16 +4,16 @@ import { toast } from 'react-toastify';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useHasPendingScans, useInstanceDataQuery, useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
 import { invalidateFormDataQueries } from 'src/features/formData/useFormDataQuery';
+import { useHasPendingScans, useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
-import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useUpdateInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { Validation } from 'src/features/validation/validationContext';
 import { TaskKeys, useNavigateToTask } from 'src/hooks/useNavigatePage';
-import { doProcessNext } from 'src/http-client/queries';
+import { doProcessNext } from 'src/queries/queries';
 import type { BackendValidationIssue } from 'src/features/validation';
 import type { IActionType, IProcess, ProblemDetails } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
@@ -30,7 +30,7 @@ export function getProcessNextMutationKey(action?: IActionType) {
 }
 
 export function useProcessNext({ action }: ProcessNextProps = {}) {
-  const reFetchInstanceData = useInstanceDataQuery().refetch;
+  const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
   const language = useCurrentLanguage();
   const { data: process, refetch: refetchProcessData } = useProcessQuery();
   const navigateToTask = useNavigateToTask();
@@ -79,7 +79,6 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
       if (processData) {
         optimisticallyUpdateProcess(processData);
         await Promise.all([refetchProcessData(), reFetchInstanceData()]);
-        await invalidateFormDataQueries(queryClient);
         await invalidateFormDataQueries(queryClient);
 
         const task = getTargetTaskFromProcess(processData);

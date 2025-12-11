@@ -1,9 +1,13 @@
 import React from 'react';
 
+import { useQuery } from '@tanstack/react-query';
 import cn from 'classnames';
 
 import { AltinnLogo, LogoColor } from 'src/components/logo/AltinnLogo';
-import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { ContextNotProvided } from 'src/core/contexts/context';
+import { DisplayError } from 'src/core/errorHandling/DisplayError';
+import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { FooterEmail } from 'src/features/footer/components/FooterEmail';
 import { FooterLink } from 'src/features/footer/components/FooterLink';
 import { FooterPhone } from 'src/features/footer/components/FooterPhone';
@@ -12,10 +16,20 @@ import classes from 'src/features/footer/Footer.module.css';
 import type { IFooterComponent, IFooterComponentMap } from 'src/features/footer/types';
 
 export const Footer = () => {
-  const data = window.AltinnAppGlobalData?.footerLayout;
-  const application = getApplicationMetadata();
+  const { fetchFooterLayout } = useAppQueries();
+  const { data, error: footerLayoutError } = useQuery({
+    queryKey: ['fetchFooterLayout'],
+    queryFn: fetchFooterLayout,
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+  });
 
-  const shouldUseOrgLogo = application.logo != null;
+  const application = useLaxApplicationMetadata();
+
+  if (footerLayoutError) {
+    return <DisplayError error={footerLayoutError} />;
+  }
+
+  const shouldUseOrgLogo = application !== ContextNotProvided && application.logoOptions != null;
 
   const footerElements = data?.footer;
   if (!footerElements && !shouldUseOrgLogo) {

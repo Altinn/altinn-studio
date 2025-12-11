@@ -1,10 +1,10 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
-import { useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
-import { fetchProcessState } from 'src/http-client/queries';
+import { fetchProcessState } from 'src/queries/queries';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 import type { LooseAutocomplete } from 'src/types';
@@ -17,9 +17,6 @@ export const processQueries = {
     queryOptions({
       queryKey: processQueries.processStateKey(instanceId),
       queryFn: instanceId ? () => fetchProcessState(instanceId) : skipToken,
-      initialData: () => window.AltinnAppInstanceData?.processState,
-      enabled: true,
-      staleTime: Infinity,
     }),
 } as const;
 
@@ -63,7 +60,7 @@ export function useTaskTypeFromBackend() {
  */
 export function useGetTaskTypeById() {
   const { data: processData } = useProcessQuery();
-  const isStateless = useIsStatelessApp();
+  const isStateless = useApplicationMetadata().isStatelessApp;
   const layoutSets = useLayoutSets();
 
   return (taskId: string | undefined) => {

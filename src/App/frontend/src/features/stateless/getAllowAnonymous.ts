@@ -1,18 +1,18 @@
-import { getApplicationMetadata, useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
-import { useLayoutSetsQuery } from 'src/domain/Layout/layoutSetsQuery';
+import { ContextNotProvided } from 'src/core/contexts/context';
+import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { getDataTypeByLayoutSetId } from 'src/features/applicationMetadata/appMetadataUtils';
+import { useLayoutSetsQuery } from 'src/features/form/layoutSets/LayoutSetsProvider';
 
 export const useAllowAnonymous = () => {
-  const application = getApplicationMetadata();
-  const isStatelessApp = useIsStatelessApp();
+  const application = useLaxApplicationMetadata();
   const { data: layoutSets } = useLayoutSetsQuery();
 
-  if (!layoutSets || !isStatelessApp) {
+  if (!layoutSets || application === ContextNotProvided || !application.isStatelessApp) {
     return false;
   }
 
   const dataTypeId = getDataTypeByLayoutSetId({
-    layoutSetId: application.onEntry?.show,
+    layoutSetId: application.onEntry.show,
     layoutSets: layoutSets.sets,
     appMetaData: application,
   });

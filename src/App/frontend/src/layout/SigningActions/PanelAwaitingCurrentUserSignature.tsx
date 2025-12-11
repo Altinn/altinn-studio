@@ -6,11 +6,11 @@ import { Checkbox, Heading, ValidationMessage } from '@digdir/designsystemet-rea
 import { Button } from 'src/app-components/Button/Button';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { Panel } from 'src/app-components/Panel/Panel';
-import { getUserProfile } from 'src/domain/User/getUserProfile';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useProfile } from 'src/features/profile/ProfileProvider';
 import {
   useAuthorizedOrganizationDetails,
   useSigningMutation,
@@ -38,7 +38,7 @@ export function AwaitingCurrentUserSignaturePanel({
   const canSign = isAuthorized('sign');
   const canWrite = isAuthorized('write');
 
-  const currentUserPartyId = getUserProfile()?.partyId;
+  const currentUserPartyId = useProfile()?.partyId;
   const { textResourceBindings } = useItemWhenType(baseComponentId, 'SigningActions');
   const { langAsString } = useLanguage();
 

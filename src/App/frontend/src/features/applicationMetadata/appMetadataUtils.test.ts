@@ -68,10 +68,11 @@ describe('appMetadata.ts', () => {
       },
     ],
   });
-
   const appMetadata: ApplicationMetadata = {
     ...incomingAppMetadata,
-    logo: incomingAppMetadata.logo,
+    isStatelessApp: false,
+    isValidVersion: true,
+    logoOptions: incomingAppMetadata.logo,
     onEntry: { show: 'new-instance' },
   };
 
@@ -104,7 +105,6 @@ describe('appMetadata.ts', () => {
         application: appMetadata,
         layoutSets,
         taskId: 'Task_1',
-        isStatelessApp: false,
       });
       const expected = 'Datamodel';
       expect(result).toEqual(expected);
@@ -112,10 +112,9 @@ describe('appMetadata.ts', () => {
 
     it('should return correct data type if we have a stateless app', () => {
       const result = getCurrentDataTypeForApplication({
-        application: { ...appMetadata, onEntry: { show: 'stateless' } },
+        application: { ...appMetadata, isStatelessApp: true, onEntry: { show: 'stateless' } },
         layoutSets,
         taskId: undefined,
-        isStatelessApp: true,
       });
       const expected = 'Stateless';
       expect(result).toEqual(expected);
@@ -123,10 +122,9 @@ describe('appMetadata.ts', () => {
 
     it('should return correct data type if instance not set', () => {
       const result = getCurrentDataTypeForApplication({
-        application: { ...appMetadata, onEntry: { show: 'stateless' } },
+        application: { ...appMetadata, isStatelessApp: true, onEntry: { show: 'stateless' } },
         layoutSets,
         taskId: undefined,
-        isStatelessApp: true,
       });
       const expected = 'Stateless';
       expect(result).toEqual(expected);
@@ -135,22 +133,16 @@ describe('appMetadata.ts', () => {
 
   describe('getCurrentLayoutSet', () => {
     it('should return correct layout set id if we have an instance', () => {
-      const result = getCurrentLayoutSet({
-        application: appMetadata,
-        layoutSets,
-        taskId: 'Task_1',
-        isStatelessApp: false,
-      });
+      const result = getCurrentLayoutSet({ application: appMetadata, layoutSets, taskId: 'Task_1' });
       const expected = 'datamodel';
       expect(result?.id).toEqual(expected);
     });
 
     it('should return correct layout set id if we have a stateless app', () => {
       const result = getCurrentLayoutSet({
-        application: { ...appMetadata, onEntry: { show: 'stateless' } },
+        application: { ...appMetadata, isStatelessApp: true, onEntry: { show: 'stateless' } },
         layoutSets,
         taskId: undefined,
-        isStatelessApp: true,
       });
       const expected = 'stateless';
       expect(result?.id).toEqual(expected);
@@ -165,7 +157,6 @@ describe('appMetadata.ts', () => {
         dataElements: instance.data,
         layoutSets,
         taskId: 'Task_1',
-        isStatelessApp: false,
       });
       expect(result).toEqual('datamodel-data-guid');
     });
@@ -178,7 +169,6 @@ describe('appMetadata.ts', () => {
         application: appMetadata,
         layoutSets,
         taskId: 'Task_1',
-        isStatelessApp: false,
       });
       const expected = 'Datamodel';
       expect(result).toEqual(expected);
@@ -197,7 +187,6 @@ describe('appMetadata.ts', () => {
         application: appMetadata,
         layoutSets,
         taskId: 'Task_2',
-        isStatelessApp: false,
       });
       const expected = 'Datamodel-for-confirm';
       expect(result).toEqual(expected);
@@ -221,7 +210,6 @@ describe('appMetadata.ts', () => {
         application: appMetadata,
         layoutSets,
         taskId: 'CustomReceipt',
-        isStatelessApp: false,
       });
       const expected = 'Datamodel-for-custom-receipt';
       expect(result).toEqual(expected);

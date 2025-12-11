@@ -4,10 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
-import { useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getDataListsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IDataList } from 'src/features/dataLists/index';
 import type { IMapping } from 'src/layout/common.generated';

@@ -4,7 +4,7 @@ import type { JSX } from 'react';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { InputDef } from 'src/layout/Input/config.def.generated';
 import { evalFormatting } from 'src/layout/Input/formatting';

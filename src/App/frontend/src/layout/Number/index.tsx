@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { evalFormatting } from 'src/layout/Input/formatting';
 import { NumberDef } from 'src/layout/Number/config.def.generated';

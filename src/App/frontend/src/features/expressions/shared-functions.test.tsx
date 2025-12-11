@@ -19,13 +19,8 @@ import {
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
-import {
-  fetchApplicationMetadata,
-  fetchInstanceData,
-  fetchProcessState,
-  fetchUserProfile,
-} from 'src/http-client/queries';
-import { AppQueries } from 'src/http-client/types';
+import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState, fetchUserProfile } from 'src/queries/queries';
+import { AppQueries } from 'src/queries/types';
 import {
   renderWithInstanceAndLayout,
   renderWithoutInstanceAndLayout,
@@ -281,14 +276,6 @@ describe('Expressions shared function tests', () => {
       const profile = getProfileMock();
       if (profileSettings?.language) {
         profile.profileSettingPreference.language = profileSettings.language;
-        // Also add it to appLanguages so resolveCurrentLanguage() accepts it
-        window.AltinnAppGlobalData.availableLanguages = [{ language: profileSettings.language }];
-        // Update the profile in window.AltinnAppData since useProfile() reads from there
-        window.AltinnAppGlobalData.userProfile = profile;
-      } else {
-        // Reset to defaults when no custom profile settings
-        window.AltinnAppGlobalData.availableLanguages = [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }];
-        window.AltinnAppGlobalData.userProfile = profile;
       }
 
       async function fetchFormData(url: string) {
@@ -305,7 +292,7 @@ describe('Expressions shared function tests', () => {
         if (model) {
           return model.data;
         }
-        return {};
+        throw new Error(`Datamodel ${url} not found in ${JSON.stringify(dataModels)}`);
       }
 
       // Clear localstorage, because LanguageProvider uses it to cache selected languages
@@ -360,9 +347,6 @@ describe('Expressions shared function tests', () => {
           const data = codeLists[codeListId];
           return { data } as AxiosResponse<IRawOption[], unknown>;
         },
-        fetchDataModelSchema: async () =>
-          // Return empty schema for all valid data types
-          ({ type: 'object', properties: {} }),
       };
 
       const { rerender } = stateless

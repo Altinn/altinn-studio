@@ -2,11 +2,11 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useQueryClient } from '@tanstack/react-query';
+import { getLayoutSetIdForTask } from 'nextsrc/render-logic/NextForm';
 
 import { useProcessNextMutation } from 'src/http-client/api-client/mutations/processNext';
 import { layoutsQueryOptions } from 'src/http-client/api-client/queries/layouts';
 import { layoutSettingsQueryOptions } from 'src/http-client/api-client/queries/layoutSettings';
-import { getLayoutSetIdForTask } from 'src/next/NextForm';
 import type { CompButtonExternal } from 'src/layout/Button/config.generated';
 
 type PageParams = {

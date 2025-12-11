@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import type { PropsFromGenericComponent } from '..';
 
 import { PDFGeneratorPreview } from 'src/components/PDFGeneratorPreview/PDFGeneratorPreview';
-import { useStrictInstanceId } from 'src/domain/Instance/useInstanceQuery';
+import { useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { NodeValidationProps } from 'src/layout/layout';

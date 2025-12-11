@@ -5,9 +5,12 @@ import { CheckmarkIcon, ChevronDownIcon, GlobeIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import classes from 'src/components/presentation/LanguageSelector.module.css';
-import { useAppLanguages } from 'src/domain/Language/appLanguages';
 import { Lang } from 'src/features/language/Lang';
-import { useCurrentLanguage, useSetLanguageWithSelector } from 'src/features/language/useAppLanguages';
+import {
+  useAppLanguages,
+  useCurrentLanguage,
+  useSetLanguageWithSelector,
+} from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 

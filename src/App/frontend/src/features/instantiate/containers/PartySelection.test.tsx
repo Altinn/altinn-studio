@@ -1,7 +1,7 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getPartyMock, getPartyWithSubunitMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
@@ -140,13 +140,8 @@ describe('PartySelection', () => {
     it.each(testCases)(
       'should be possible to click on ($partyName)',
       async ({ parties, expectedPartyId, partyName, expandSubunit }) => {
-        // Clear initial party so useSelectedPartyIsValid returns false
-        if (window.AltinnAppGlobalData?.userProfile) {
-          window.AltinnAppGlobalData.userProfile.party = undefined;
-        }
-
         const user = userEvent.setup({ delay: null });
-        const { mutations, rerender } = await render(parties);
+        const { mutations } = await render(parties);
 
         expect(screen.getByTestId('valid-party')).toHaveTextContent('false');
 
@@ -157,31 +152,7 @@ describe('PartySelection', () => {
         await user.click(screen.getByRole('button', { name: partyName }));
         await waitFor(() => expect(mutations.doSetSelectedParty.mock).toHaveBeenCalled());
         expect(mutations.doSetSelectedParty.mock).toHaveBeenCalledWith(expectedPartyId);
-
-        // Resolve mutation
-        act(() => {
-          mutations.doSetSelectedParty.resolve('Party successfully updated');
-        });
-
-        // Simulate backend updating userProfile.party after successful mutation
-        const selectedParty = parties.find(
-          (p) => p.partyId === expectedPartyId || p.childParties?.some((c) => c.partyId === expectedPartyId),
-        );
-        act(() => {
-          if (window.AltinnAppGlobalData?.userProfile) {
-            window.AltinnAppGlobalData.userProfile.party =
-              selectedParty?.partyId === expectedPartyId
-                ? selectedParty
-                : selectedParty?.childParties?.find((c) => c.partyId === expectedPartyId);
-          }
-          // Force re-render to pick up window changes
-          rerender(
-            <TestWrapper>
-              <PartySelection />
-            </TestWrapper>,
-          );
-        });
-
+        mutations.doSetSelectedParty.resolve('Party successfully updated');
         await waitFor(() => expect(screen.getByTestId('current-party')).toHaveTextContent(`${expectedPartyId}`));
         await waitFor(() => expect(screen.getByTestId('valid-party')).toHaveTextContent('true'));
       },

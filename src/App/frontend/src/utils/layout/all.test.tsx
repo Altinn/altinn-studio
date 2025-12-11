@@ -10,9 +10,9 @@ import type { JSONSchema7 } from 'json-schema';
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { quirks } from 'src/features/form/layout/quirks';
-import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState } from 'src/http-client/queries';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
+import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { NodesInternal } from 'src/utils/layout/NodesContext';

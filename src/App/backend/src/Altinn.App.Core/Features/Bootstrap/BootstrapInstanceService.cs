@@ -5,7 +5,6 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap.Models;
-using Altinn.App.Core.Features.Testing;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
@@ -58,8 +57,7 @@ internal sealed class BootstrapInstanceService : IBootstrapInstanceService
         IOptions<AppSettings> appSettings,
         IOptions<PlatformSettings> platformSettings,
         IOptions<GeneralSettings> generalSettings,
-        IOptions<FrontEndSettings> frontEndSettings,
-        IMockDataHelper mockDataHelper
+        IOptions<FrontEndSettings> frontEndSettings
     )
     {
         _appResources = appResources;

@@ -4,7 +4,8 @@ import 'core-js';
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom';
+import { createHashRouter, RouterProvider, useLocation } from 'react-router-dom';
+import { Slide, ToastContainer } from 'react-toastify';
 
 import '@digdir/designsystemet-css';
 import '@digdir/designsystemet-theme';
@@ -13,41 +14,34 @@ import 'src/features/logging';
 import 'src/features/styleInjection';
 import 'src/features/toggles';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { useQueryClient } from '@tanstack/react-query';
 
+import { App } from 'src/App';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
-import { ErrorPageContent } from 'src/components/ErrorPageContent';
-import { Form } from 'src/components/form/Form';
-import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
-import { ComponentRouting } from 'src/components/wrappers/ProcessWrapper';
+import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
+import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
+import { ProcessingProvider } from 'src/core/contexts/processingContext';
+import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
-import { createInstanceLoader } from 'src/features/instance/instanceLoader';
-import { PartySelectionWrapper } from 'src/features/instantiate/containers/PartySelection';
-import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
+import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
+import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
+import { LanguageProvider } from 'src/features/language/LanguageProvider';
+import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
+import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
+import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
+import { PartyProvider } from 'src/features/party/PartiesProvider';
+import { ProfileProvider } from 'src/features/profile/ProfileProvider';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
-import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
-import { TaskKeys } from 'src/hooks/useNavigatePage';
-import { createGlobalDataLoader } from 'src/language/globalStateLoader';
-import { NextForm } from 'src/next/NextForm';
+import { AppPrefetcher } from 'src/queries/appPrefetcher';
+import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
+import * as queries from 'src/queries/queries';
 
 import 'leaflet/dist/leaflet.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
-/**
- * This query client should not be used in unit tests, as multiple tests will end up re-using
- * the same query cache. Provide your own when running code in tests.
- */
-export const defaultQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // or Infinity if you truly never want auto-refetch
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
-});
 
 document.addEventListener('DOMContentLoaded', () => {
   propagateTraceWhenPdf();
@@ -55,97 +49,90 @@ document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('root');
   const root = container && createRoot(container);
   root?.render(
-    <QueryClientProvider client={defaultQueryClient}>
-      <ReactQueryDevtools />
+    <AppQueriesProvider {...queries}>
       <ErrorBoundary>
-        <ViewportWrapper>
-          <UiConfigProvider>
-            <RouterProvider
-              router={createBrowserRouter(
-                [
-                  {
-                    path: '/:org/:app/*',
-                    loader: createGlobalDataLoader({
-                      queryClient: defaultQueryClient,
-                    }),
-                    element: <Outlet />,
-                    children: [
+        <AppPrefetcher />
+        <LanguageProvider>
+          <LangToolsStoreProvider>
+            <ViewportWrapper>
+              <UiConfigProvider>
+                <RouterProvider
+                  router={createHashRouter(
+                    [
                       {
-                        path: 'instance-selection',
-                        element: <InstanceSelectionWrapper />,
-                      },
-                      {
-                        path: 'party-selection',
-                        element: <PartySelectionWrapper />,
-                        children: [
-                          {
-                            path: ':errorCode',
-                            element: <PartySelectionWrapper />,
-                          },
-                        ],
-                      },
-                      {
-                        path: 'error',
-                        element: <ErrorPageContent />,
-                      },
-                      {
-                        path: ':pageKey',
+                        path: '*',
                         element: (
-                          <PresentationComponent>
-                            <Form />
-                          </PresentationComponent>
+                          <NavigationEffectProvider>
+                            <ErrorBoundary>
+                              <Root />
+                            </ErrorBoundary>
+                          </NavigationEffectProvider>
                         ),
                       },
-                      {
-                        path: 'instance/:instanceOwnerPartyId/:instanceGuid',
-                        loader: createInstanceLoader({
-                          queryClient: defaultQueryClient,
-                        }),
-                        element: <Outlet />,
-                        children: [
-                          {
-                            path: TaskKeys.ProcessEnd,
-                            element: <DefaultReceipt />,
-                          },
-                          {
-                            path: ':taskId',
-                            element: <Outlet />,
-                            children: [
-                              {
-                                path: ':pageKey',
-                                children: [
-                                  {
-                                    index: true,
-                                    element: <NextForm />,
-                                  },
-                                  {
-                                    path: ':componentId',
-                                    element: <ComponentRouting />,
-                                  },
-                                  {
-                                    path: '*',
-                                    element: <ComponentRouting />,
-                                  },
-                                ],
-                              },
-                            ],
-                          },
-                        ],
-                      },
                     ],
-                  },
-                ],
-                {
-                  future: {
-                    v7_relativeSplatPath: true,
-                  },
-                },
-              )}
-              future={{ v7_startTransition: true }}
-            />
-          </UiConfigProvider>
-        </ViewportWrapper>
+                    {
+                      future: {
+                        v7_relativeSplatPath: true,
+                      },
+                    },
+                  )}
+                  future={{ v7_startTransition: true }}
+                />
+              </UiConfigProvider>
+            </ViewportWrapper>
+          </LangToolsStoreProvider>
+        </LanguageProvider>
       </ErrorBoundary>
-    </QueryClientProvider>,
+    </AppQueriesProvider>,
   );
 });
+
+function Root() {
+  return (
+    <>
+      <InstantiationUrlReset />
+      <ApplicationMetadataProvider>
+        <GlobalFormDataReadersProvider>
+          <LayoutSetsProvider>
+            <ProfileProvider>
+              <TextResourcesProvider>
+                <OrgsProvider>
+                  <ApplicationSettingsProvider>
+                    <PartyProvider>
+                      <KeepAliveProvider>
+                        <ProcessingProvider>
+                          <App />
+                        </ProcessingProvider>
+                        <ToastContainer
+                          position='top-center'
+                          theme='colored'
+                          transition={Slide}
+                          draggable={false}
+                        />
+                      </KeepAliveProvider>
+                    </PartyProvider>
+                  </ApplicationSettingsProvider>
+                </OrgsProvider>
+              </TextResourcesProvider>
+            </ProfileProvider>
+            <PartyPrefetcher />
+          </LayoutSetsProvider>
+        </GlobalFormDataReadersProvider>
+      </ApplicationMetadataProvider>
+    </>
+  );
+}
+
+function InstantiationUrlReset() {
+  const location = useLocation();
+  const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    if (!location.pathname.includes('/instance/')) {
+      const mutations = queryClient.getMutationCache().findAll({ mutationKey: ['instantiate'] });
+      mutations.forEach((mutation) => queryClient.getMutationCache().remove(mutation));
+    }
+  }, [location.pathname, queryClient]);
+
+  return null;
+}

@@ -12,9 +12,9 @@ import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { fetchOptions } from 'src/http-client/queries';
 import type { IRawOption, ISelectionComponentFull } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
+import type { fetchOptions } from 'src/queries/queries';
 
 interface RenderProps {
   type: 'single' | 'multi';
@@ -169,17 +169,15 @@ describe('useGetOptions', () => {
       options,
     });
 
-    // Wait for options to load (especially important for API-based options)
-    await waitFor(() => {
-      const textContent = screen.getByTestId('options').textContent;
-      const asArray = JSON.parse(textContent as string) as IOptionInternal[];
-      expect(asArray).toEqual([
-        { label: 'first', value: 'hello' },
-        { label: 'second', value: 'false' },
-        { label: 'third', value: '2' },
-        { label: 'fourth', value: '3.14' },
-      ]);
-    });
+    const textContent = screen.getByTestId('options').textContent;
+    const asArray = JSON.parse(textContent as string) as IOptionInternal[];
+
+    expect(asArray).toEqual([
+      { label: 'first', value: 'hello' },
+      { label: 'second', value: 'false' },
+      { label: 'third', value: '2' },
+      { label: 'fourth', value: '3.14' },
+    ]);
 
     // Try setting the value to all the options, and observing that the saved value is the stringy version
     for (const option of options) {
@@ -191,7 +189,6 @@ describe('useGetOptions', () => {
       (formDataMethods.setLeafValue as jest.Mock).mockClear();
 
       const currentStringy = JSON.parse(screen.getByTestId('currentStringy').textContent as string);
-
       expect(currentStringy).toEqual([option.value.toString()]);
     }
   });

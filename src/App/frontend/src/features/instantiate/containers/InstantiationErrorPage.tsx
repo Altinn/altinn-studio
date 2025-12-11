@@ -3,7 +3,7 @@ import type { RouteProps } from 'react-router-dom';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { AltinnError } from 'src/components/altinnError';
-import { PartySelectionContainer } from 'src/features/instantiate/containers/PartySelectionContainer';
+import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
 
 export type IInstantiationErrorPageProps = {
   title: React.ReactNode;
@@ -14,7 +14,7 @@ export type IInstantiationErrorPageProps = {
 
 export function InstantiationErrorPage({ content, statusCode, title, showContactInfo }: IInstantiationErrorPageProps) {
   return (
-    <PartySelectionContainer>
+    <InstantiationContainer>
       <Flex
         container
         direction='row'
@@ -26,6 +26,6 @@ export function InstantiationErrorPage({ content, statusCode, title, showContact
           showContactInfo={showContactInfo}
         />
       </Flex>
-    </PartySelectionContainer>
+    </InstantiationContainer>
   );
 }

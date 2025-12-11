@@ -2,8 +2,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useMemo } from 'react';
 
-import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
-import { useDataElementsSelectorProps, useInstanceDataSources } from 'src/domain/Instance/useInstanceQuery';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
@@ -11,8 +10,9 @@ import { ExprFunctionDefinitions } from 'src/features/expressions/expression-fun
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
+import { useDataElementsSelectorProps, useInstanceDataSources } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
 import { useCodeListSelectorProps } from 'src/features/options/CodeListsProvider';
 import { useMultipleDelayedSelectors } from 'src/hooks/delayedSelectors';
@@ -76,7 +76,7 @@ const directHooks = {
   dataModelNames: (isInGenerator) =>
     isInGenerator ? GeneratorData.useReadableDataTypes() : DataModels.useReadableDataTypes(),
   externalApis: (isInGenerator) =>
-    isInGenerator ? GeneratorData.useExternalApis() : useExternalApis(getApplicationMetadata().externalApiIds ?? []),
+    isInGenerator ? GeneratorData.useExternalApis() : useExternalApis(useApplicationMetadata().externalApiIds ?? []),
   langToolsSelector: (isInGenerator) =>
     useInnerLanguageWithForcedPathSelector(
       isInGenerator ? GeneratorData.useDefaultDataType() : DataModels.useDefaultDataType(),

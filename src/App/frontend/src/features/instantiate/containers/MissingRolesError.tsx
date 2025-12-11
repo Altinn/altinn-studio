@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
 import { Lang } from 'src/features/language/Lang';
@@ -10,8 +10,6 @@ import { getHostname } from 'src/utils/urls/appUrlHelper';
 export function MissingRolesError() {
   const { langAsString } = useLanguage();
   const selectedParty = useSelectedParty();
-
-  const { org, app } = useParams();
 
   return (
     <InstantiationErrorPage
@@ -24,7 +22,7 @@ export function MissingRolesError() {
               params={[selectedParty?.name]}
             />{' '}
             (
-            <Link to={`/${org}/${app}/party-selection/`}>
+            <Link to='/party-selection/'>
               <Lang id='party_selection.change_party' />
             </Link>
             ).

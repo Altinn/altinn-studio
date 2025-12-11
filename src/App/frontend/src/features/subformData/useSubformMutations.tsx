@@ -9,7 +9,7 @@ import {
   useOptimisticallyAppendDataElements,
   useOptimisticallyRemoveDataElement,
   useStrictInstanceId,
-} from 'src/domain/Instance/useInstanceQuery';
+} from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 
 export const useAddEntryMutation = (dataType: string) => {

@@ -4,7 +4,7 @@ import { Alert, Button } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { isAxiosError } from 'axios';
 
-import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { type IFailedAttachment, isDataPostError } from 'src/features/attachments';
 import { useDeleteFailedAttachment, useFailedAttachmentsFor } from 'src/features/attachments/hooks';
 import { Lang } from 'src/features/language/Lang';
@@ -72,7 +72,7 @@ function FileUploadError({ attachment, handleClose }: { attachment: IFailedAttac
 }
 
 function ErrorDetails({ attachment: { data, error } }: { attachment: IFailedAttachment }) {
-  const backendFeatures = getApplicationMetadata().features ?? {};
+  const backendFeatures = useApplicationMetadata().features ?? {};
   const [showingMore, setShowingMore] = useState(false);
 
   if (isAxiosError(error)) {

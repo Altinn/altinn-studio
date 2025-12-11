@@ -8,7 +8,7 @@ import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplication
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AppHeader } from 'src/components/presentation/AppHeader/AppHeader';
-import { fetchApplicationMetadata } from 'src/http-client/queries';
+import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
@@ -37,7 +37,7 @@ describe('presentation/AppHeader', () => {
   interface IRenderComponentProps {
     party: IParty;
     user?: IProfile;
-    logo?: ApplicationMetadata['logo'];
+    logo?: ApplicationMetadata['logoOptions'];
     showLanguageSelector?: boolean;
     languageResponse?: IAppLanguage[];
     textResources?: IRawTextResource[];

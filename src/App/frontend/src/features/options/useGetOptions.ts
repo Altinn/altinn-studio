@@ -4,7 +4,7 @@ import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { useGetOptionsQuery, useGetOptionsUrl } from 'src/features/options/useGetOptionsQuery';

@@ -11,9 +11,9 @@ import { getAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { DataPostResponse } from 'src/features/attachments';
-import { doUpdateAttachmentTags, fetchApplicationMetadata, fetchInstanceData } from 'src/http-client/queries';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';
+import { doUpdateAttachmentTags, fetchApplicationMetadata, fetchInstanceData } from 'src/queries/queries';
 import { renderGenericComponentTest, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IGetAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import type { IRawOption } from 'src/layout/common.generated';
@@ -530,9 +530,6 @@ describe('File uploading components', () => {
     attachments: attachmentsGenerator = (dataType) => getDataElements({ dataType }),
     queries,
   }: Props<T>) {
-    const id = uuidv4();
-    const attachments = attachmentsGenerator(id);
-
     jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
       getIncomingApplicationMetadataMock((a) => {
         a.dataTypes.push({
@@ -548,6 +545,9 @@ describe('File uploading components', () => {
         i.data.push(...attachments);
       }),
     );
+
+    const id = uuidv4();
+    const attachments = attachmentsGenerator(id);
 
     const textResourceBindings = {
       title: 'attachment-title',

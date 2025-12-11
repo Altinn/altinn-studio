@@ -11,7 +11,7 @@ import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { ProcessTaskType } from 'src/types';
 import { getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 import type { IPresentationProvidedProps } from 'src/components/presentation/Presentation';
-import type { AppQueries } from 'src/http-client/types';
+import type { AppQueries } from 'src/queries/types';
 
 jest.mock('axios');
 

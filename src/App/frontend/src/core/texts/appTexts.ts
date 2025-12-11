@@ -1,6 +1,9 @@
-import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
-import { useHasTextResources } from 'src/domain/Textresource/textResourceQuery';
-import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
+import {
+  useApplicationMetadata,
+  useHasApplicationMetadata,
+} from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useHasTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useHasOrgs, useOrgs } from 'src/features/orgs/OrgsProvider';
 
@@ -16,14 +19,15 @@ export function useTextResourceOr<T extends string | undefined>(resource: string
 }
 
 export function useHasAppTextsYet() {
+  const hasAppMetadata = useHasApplicationMetadata();
   const hasOrgs = useHasOrgs();
   const hasTexts = useHasTextResources();
 
-  return hasOrgs && hasTexts;
+  return hasAppMetadata && hasOrgs && hasTexts;
 }
 
 export function useAppName() {
-  const application = getApplicationMetadata();
+  const application = useApplicationMetadata();
 
   const appName = useTextResourceOr('appName', undefined);
   const oldAppName = useTextResourceOr('ServiceName', undefined);
@@ -34,19 +38,19 @@ export function useAppName() {
 }
 
 export function useAppOwner() {
-  const application = getApplicationMetadata();
+  const application = useApplicationMetadata();
   const fromMetaData = useOrgName(application.org);
   return useTextResourceOr('appOwner', fromMetaData);
 }
 
 export function useAppReceiver() {
-  const application = getApplicationMetadata();
+  const application = useApplicationMetadata();
   const fromMetaData = useOrgName(application.org);
   return useTextResourceOr('appReceiver', fromMetaData);
 }
 
 export function useAppLogoAltText() {
-  const application = getApplicationMetadata();
+  const application = useApplicationMetadata();
   const fromMetaData = useOrgName(application.org);
   return useTextResourceOr('appLogo.altText', fromMetaData);
 }

@@ -1,8 +1,8 @@
-import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import type { IDataType } from 'src/types/shared';
 
 export function useAvailableDataModels() {
-  const dataTypes = getApplicationMetadata().dataTypes;
+  const dataTypes = useApplicationMetadata().dataTypes;
   return dataTypes.filter((dataType) => getDataTypeVariant(dataType) === DataTypeVariant.DataModel);
 }
 

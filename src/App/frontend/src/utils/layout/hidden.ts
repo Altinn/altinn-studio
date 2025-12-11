@@ -48,8 +48,6 @@ export function useIsHidden<Reason extends boolean = false>(
     throw new Error("useIsHidden doesn't support changing the baseComponentId, that would break the rule of hooks");
   }
 
-  // const INDEXED = useIndexedId(baseComponentId) ?? '';
-
   const layoutLookups = useLayoutLookups();
   const hiddenPages = useHiddenLayoutsExpressions();
   const hiddenSources = findHiddenSources(baseComponentId, layoutLookups, hiddenPages).reverse();

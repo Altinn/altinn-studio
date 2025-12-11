@@ -7,7 +7,6 @@ interface CommonProps {
   application: ApplicationMetadata;
   layoutSets: ILayoutSet[];
   taskId: string | undefined;
-  isStatelessApp: boolean;
 }
 
 interface GetCurrentTaskDataElementIdProps extends CommonProps {
@@ -75,27 +74,22 @@ export const onEntryValuesThatHaveState: ShowTypes[] = ['new-instance', 'select-
 /**
  * Get the current layout set for application if it exists
  */
-export function getCurrentLayoutSet({ application, layoutSets, taskId, isStatelessApp }: CommonProps) {
-  if (isStatelessApp) {
+export function getCurrentLayoutSet({ application, layoutSets, taskId }: CommonProps) {
+  if (application.isStatelessApp) {
     // We have a stateless app with a layout set
-    return layoutSets.find((set) => set.id === application.onEntry?.show);
+    return layoutSets.find((set) => set.id === application.onEntry.show);
   }
 
-  const dataType = getCurrentDataTypeForApplication({ application, layoutSets, taskId, isStatelessApp });
+  const dataType = getCurrentDataTypeForApplication({ application, layoutSets, taskId });
   return getLayoutSetForDataElement(taskId, dataType, layoutSets);
 }
 
 /**
  * Get the current data type for the application
  */
-export function getCurrentDataTypeForApplication({
-  application,
-  layoutSets,
-  taskId,
-  isStatelessApp,
-}: CommonProps): string | undefined {
-  const showOnEntry = application.onEntry?.show;
-  if (isStatelessApp) {
+export function getCurrentDataTypeForApplication({ application, layoutSets, taskId }: CommonProps): string | undefined {
+  const showOnEntry = application.onEntry.show;
+  if (application.isStatelessApp) {
     // we have a stateless app with a layout set
     return getDataTypeByLayoutSetId({ layoutSetId: showOnEntry, layoutSets, appMetaData: application });
   }

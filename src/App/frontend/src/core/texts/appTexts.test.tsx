@@ -5,7 +5,7 @@ import { screen } from '@testing-library/react';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { fetchApplicationMetadata } from 'src/http-client/queries';
+import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IRawTextResource } from 'src/features/language/textResources';

@@ -126,13 +126,11 @@ function AddRemoveNode<T extends CompTypes>({
   const layoutsWas = NodesStore.useStaticSelector((s) => s.layouts!);
 
   useEffect(() => {
-    if (!isAdded) {
-      const targetState = def.stateFactory(stateFactoryProps as never);
+    !isAdded &&
       addNode({
         nodeId: intermediateItem.id,
-        targetState,
+        targetState: def.stateFactory(stateFactoryProps as never),
       });
-    }
   }, [addNode, def, intermediateItem.id, isAdded, layoutsWas, stateFactoryProps]);
 
   useEffect(

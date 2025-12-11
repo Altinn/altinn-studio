@@ -6,10 +6,10 @@ import type { UseQueryOptions } from '@tanstack/react-query';
 import { type BackendValidationIssue } from '..';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
-import { useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
-import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAsRef } from 'src/hooks/useAsRef';
-import type { fetchBackendValidations } from 'src/http-client/queries';
+import type { fetchBackendValidations } from 'src/queries/queries';
 
 /**
  * The same queryKey must be used for all of the functions below

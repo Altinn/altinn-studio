@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -8,7 +8,7 @@ import { getHostname } from 'src/utils/urls/appUrlHelper';
 
 export function NoValidPartiesError() {
   const { langAsString } = useLanguage();
-  const appMetadata = getApplicationMetadata();
+  const appMetadata = useApplicationMetadata();
 
   function getAllowedParties(): string {
     let returnString = '';

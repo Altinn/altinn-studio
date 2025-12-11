@@ -16,10 +16,8 @@ import type { AxiosResponse } from 'axios';
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 // Importing CSS for jest-preview to look nicer
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import type {
   doProcessNext,
   doUpdateAttachmentTags,
@@ -27,8 +25,8 @@ import type {
   fetchInstanceData,
   fetchProcessState,
   fetchUserProfile,
-} from 'src/http-client/queries';
-import type { AppQueries } from 'src/http-client/types';
+} from 'src/queries/queries';
+import type { AppQueries } from 'src/queries/types';
 import type { IProcess } from 'src/types/shared';
 
 import 'src/index.css';
@@ -86,36 +84,6 @@ window.logInfoOnce = window.logError;
 window.scrollTo = () => {};
 document.getAnimations = () => [];
 
-// Initialize window.AltinnAppData with default mock data
-// Use IDs that match the test router expectations (see renderWithProviders.tsx)
-const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
-const examplePartyId = 512345;
-window.AltinnAppInstanceData = {
-  instance: getInstanceDataMock((instance) => {
-    instance.id = `${examplePartyId}/${exampleGuid}`;
-    instance.data[0].instanceGuid = exampleGuid;
-  }, examplePartyId),
-  processState: getProcessDataMock(),
-  layoutSets: getLayoutSetsMock(),
-  applicationMetadata: getIncomingApplicationMetadataMock(),
-  footerLayout: null,
-  availableLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
-  frontendSettings: {},
-  layout: {},
-};
-
-window.AltinnAppGlobalData = {
-  userProfile: getProfileMock(),
-  applicationMetadata: getIncomingApplicationMetadataMock(),
-  footerLayout: null,
-  availableLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
-  frontendSettings: {},
-  textResources: {
-    language: 'nb',
-    resources: getTextResourcesMock(),
-  },
-};
-
 jest.setTimeout(env.parsed?.JEST_TIMEOUT ? parseInt(env.parsed.JEST_TIMEOUT, 10) : 20000);
 
 jest.mock('axios');
@@ -146,8 +114,8 @@ testingLibraryConfigure({
   asyncUtilTimeout: env.parsed?.WAITFOR_TIMEOUT ? parseInt(env.parsed.WAITFOR_TIMEOUT, 10) : 15000,
 });
 
-jest.mock('src/http-client/queries', () => ({
-  ...jest.requireActual<AppQueries>('src/http-client/queries'),
+jest.mock('src/queries/queries', () => ({
+  ...jest.requireActual<AppQueries>('src/queries/queries'),
   fetchApplicationMetadata: jest
     .fn<typeof fetchApplicationMetadata>()
     .mockImplementation(async () => getIncomingApplicationMetadataMock()),
