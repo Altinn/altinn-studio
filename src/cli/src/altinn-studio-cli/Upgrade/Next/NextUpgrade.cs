@@ -316,7 +316,7 @@ internal static class NextUpgrade
                 if (generationResult.FailedConversions > 0)
                 {
                     await Console.Out.WriteLineAsync(
-                        $"  Warning: {generationResult.FailedConversions} of {generationResult.TotalRules} rules require manual implementation"
+                        $"  Warning: {generationResult.FailedConversions} of {generationResult.TotalRules} rules failed to convert to C# code"
                     );
                 }
 
