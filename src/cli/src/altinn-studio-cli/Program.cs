@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.ComponentModel;
 using Altinn.Studio.Cli.Upgrade;
 using Altinn.Studio.Cli.Version;
 
@@ -12,8 +13,8 @@ internal sealed class Program
     {
         var rootCommand = new RootCommand("Command line interface for working with Altinn 3 Applications");
         rootCommand.Name = RootCommandName;
-        rootCommand.AddCommand(UpgradeCommand.GetUpgradeCommand());
-        rootCommand.AddCommand(VersionCommand.GetVersionCommand(RootCommandName));
+        rootCommand.Add(UpgradeCommand.GetUpgradeCommand());
+        rootCommand.Add(VersionCommand.GetVersionCommand(RootCommandName));
         await rootCommand.InvokeAsync(args);
         return 0;
     }
