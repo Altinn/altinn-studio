@@ -237,6 +237,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Environment = environment
             }, cancellationToken);
 
+        /// <inheritdoc/>
+        public async Task PublishSyncRootAsync(AltinnOrgEditingContext editingContext, AltinnEnvironment environment, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            DecommissionBuildParameters buildParameters = new()
+            {
+                AppOwner = editingContext.Org,
+                AppEnvironment = environment.Name,
+                AltinnStudioHostname = _generalSettings.HostName,
+                AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
+                GiteaEnvironment = $"{_generalSettings.HostName}/repos"
+            };
+
+            await _azureDevOpsBuildClient.QueueAsync(buildParameters, _azureDevOpsSettings.DeployDefinitionId);
+        }
+
         private async Task<Build> QueueDeploymentBuild(
             ReleaseEntity release,
             DeploymentEntity deploymentEntity,
