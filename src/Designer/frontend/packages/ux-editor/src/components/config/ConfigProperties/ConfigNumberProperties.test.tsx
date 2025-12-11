@@ -57,6 +57,13 @@ describe('ConfigNumberProperties', () => {
     ).toBeInTheDocument();
   });
 
+  it('should render EditStringValue components when keepEditOpen is true', () => {
+    renderConfigNumberProperties({
+      keepEditOpen: true,
+    });
+    expect(screen.getAllByRole('combobox').length).toBe(1);
+  });
+
   const defaultProps: ConfigNumberPropertiesProps = {
     numberPropertyKeys: ['someNumberProperty'],
     schema: {

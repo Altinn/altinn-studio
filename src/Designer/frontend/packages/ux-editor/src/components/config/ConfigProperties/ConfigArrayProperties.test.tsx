@@ -15,14 +15,8 @@ describe('ConfigArrayProperties', () => {
       name: textMock(`ux_editor.component_properties.${supportedKey}`),
     });
     await user.click(arrayPropertyButton);
-    const combobox = screen.getByRole('combobox', {
-      name: textMock(`ux_editor.component_properties.${supportedKey}`),
-    });
-    await user.click(combobox);
-    const option1 = screen.getByRole('option', {
-      name: textMock('ux_editor.component_properties.enum_option1'),
-    });
-    await user.click(option1);
+    await selectOption('option1');
+
     await waitFor(() => {
       expect(handleComponentUpdateMock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -76,6 +70,24 @@ describe('ConfigArrayProperties', () => {
     });
     expect(combobox).toBeInTheDocument();
   });
+
+  it('should call handleComponentUpdate in keepEditOpen mode when array property is updated', async () => {
+    const handleComponentUpdateMock = jest.fn();
+    renderConfigArrayProperties({
+      props: {
+        handleComponentUpdate: handleComponentUpdateMock,
+        keepEditOpen: true,
+      },
+    });
+    await selectOption('option2');
+    await waitFor(() => {
+      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [supportedKey]: ['option2'],
+        }),
+      );
+    });
+  });
 });
 
 const supportedKey = 'supportedArrayProperty';
@@ -89,6 +101,18 @@ const defaultArraySchema = {
       },
     },
   },
+};
+
+const selectOption = async (optionText: string) => {
+  const user = userEvent.setup();
+  const combobox = screen.getByRole('combobox', {
+    name: textMock(`ux_editor.component_properties.${supportedKey}`),
+  });
+  await user.click(combobox);
+  const option = screen.getByRole('option', {
+    name: textMock(`ux_editor.component_properties.enum_${optionText}`),
+  });
+  await user.click(option);
 };
 
 const renderConfigArrayProperties = ({
