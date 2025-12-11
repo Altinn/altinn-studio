@@ -164,7 +164,7 @@ describe('ConfigObjectProperties', () => {
       }),
     );
     expect(
-      screen.queryByRole('button', { name: textMock('generale.delete') }),
+      screen.queryByRole('button', { name: textMock('general.delete') }),
     ).not.toBeInTheDocument();
   });
 
