@@ -1,5 +1,6 @@
 #nullable disable
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Studio.Designer.Events;
@@ -65,21 +66,16 @@ public class DeploymentPipelinePollingJob : IJob
         deploymentEntity.Build.Started = build.Started;
         deploymentEntity.Build.Finished = build.Finished;
         deploymentEntity.Build.Result = build.Result;
+
+        if (build.Status == BuildStatus.Completed && deploymentEntity.Events.All(e => e.EventType != DeployEventType.PipelineSucceeded && e.EventType != DeployEventType.PipelineFailed))
+        {
+            await AddDeployEventIfNotExist(build.Status , build, org, buildId);
+        }
+
         await _deploymentRepository.Update(deploymentEntity);
 
         if (build.Status == BuildStatus.Completed)
         {
-            var eventType = build.Result == BuildResult.Succeeded
-                ? DeployEventType.PipelineSucceeded
-                : DeployEventType.PipelineFailed;
-
-            await _deployEventRepository.AddAsync(org, buildId, new DeployEvent
-            {
-                EventType = eventType,
-                Message = $"Pipeline {buildId} {build.Result}",
-                Timestamp = _timeProvider.GetUtcNow()
-            });
-
             if (type == PipelineType.Undeploy && build.Result == BuildResult.Succeeded)
             {
                 await UpdateMetadataInStorage(editingContext, environment);
@@ -92,6 +88,20 @@ public class DeploymentPipelinePollingJob : IJob
             CancelJob(context);
         }
 
+    }
+
+    private async Task AddDeployEventIfNotExist(BuildStatus buildStatus, BuildEntity build, string org, string buildId)
+    {
+        var eventType = build.Result == BuildResult.Succeeded
+            ? DeployEventType.PipelineSucceeded
+            : DeployEventType.PipelineFailed;
+
+        await _deployEventRepository.AddAsync(org, buildId, new DeployEvent
+        {
+            EventType = eventType,
+            Message = $"Pipeline {buildId} {build.Result}",
+            Timestamp = _timeProvider.GetUtcNow()
+        });
     }
 
     private async Task PublishCompletedEvent(AltinnRepoEditingContext editingContext, PipelineType type,
