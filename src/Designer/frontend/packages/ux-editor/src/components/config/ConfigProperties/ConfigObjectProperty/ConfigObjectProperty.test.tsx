@@ -1,16 +1,16 @@
 import React from 'react';
-import { renderWithProviders } from '../../../testing/mocks';
-import { ConfigObjectProperties, type ConfigObjectPropertiesProps } from './ConfigObjectProperties';
-import { componentMocks } from '../../../testing/componentMocks';
-import InputSchema from '../../../testing/schemas/json/component/Input.schema.v1.json';
-import { screen, waitFor } from '@testing-library/react';
+import { renderWithProviders } from '../../../../testing/mocks';
+import { ConfigObjectProperty, type ConfigObjectPropertyProps } from './ConfigObjectProperty';
+import { componentMocks } from '../../../../testing/componentMocks';
+import InputSchema from '../../../../testing/schemas/json/component/Input.schema.v1.json';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 
 const somePropertyName = 'somePropertyName';
 
-jest.mock('../../../hooks/useComponentPropertyDescription', () => ({
+jest.mock('../../../../hooks/useComponentPropertyDescription', () => ({
   useComponentPropertyDescription: () => (propertyKey) =>
     propertyKey === 'somePropertyName' ? 'Some description' : undefined,
 }));
@@ -20,7 +20,7 @@ describe('ConfigObjectProperties', () => {
     const user = userEvent.setup();
     renderConfigObjectProperties({
       props: {
-        objectPropertyKeys: [somePropertyName],
+        objectPropertyKey: somePropertyName,
         schema: {
           ...InputSchema,
           properties: {
@@ -44,7 +44,7 @@ describe('ConfigObjectProperties', () => {
     const propertyKey = 'testObjectProperty';
     renderConfigObjectProperties({
       props: {
-        objectPropertyKeys: [propertyKey],
+        objectPropertyKey: propertyKey,
         schema: {
           properties: {
             [propertyKey]: {
@@ -55,10 +55,6 @@ describe('ConfigObjectProperties', () => {
             },
           },
         },
-        component: {
-          ...componentMocks.Input,
-          [propertyKey]: { readOnly: false },
-        },
         handleComponentUpdate: handleComponentUpdateMock,
       },
     });
@@ -67,15 +63,17 @@ describe('ConfigObjectProperties', () => {
       name: textMock('ux_editor.component_properties.readOnly'),
     });
     await user.click(readOnlySwitch);
-    await waitFor(() => {
-      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          [propertyKey]: expect.objectContaining({
-            readOnly: true,
-          }),
+
+    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
+    await user.click(saveButton);
+
+    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        [propertyKey]: expect.objectContaining({
+          readOnly: true,
         }),
-      );
-    });
+      }),
+    );
   });
 
   it('should toggle object card when object property button is clicked and close button is clicked', async () => {
@@ -83,7 +81,7 @@ describe('ConfigObjectProperties', () => {
     const propertyKey = 'testObjectProperty';
     renderConfigObjectProperties({
       props: {
-        objectPropertyKeys: [propertyKey],
+        objectPropertyKey: propertyKey,
         schema: {
           properties: {
             [propertyKey]: {
@@ -93,10 +91,6 @@ describe('ConfigObjectProperties', () => {
               },
             },
           },
-        },
-        component: {
-          ...componentMocks.Input,
-          [propertyKey]: {},
         },
       },
     });
@@ -112,17 +106,14 @@ describe('ConfigObjectProperties', () => {
     const propertyKey = 'undefinedProperty';
     renderConfigObjectProperties({
       props: {
-        objectPropertyKeys: [propertyKey],
+        objectPropertyKey: propertyKey,
         schema: {
           properties: {
             [propertyKey]: {
               type: 'object',
-              properties: {},
+              properties: undefined,
             },
           },
-        },
-        component: {
-          ...componentMocks.Input,
         },
       },
     });
@@ -133,18 +124,11 @@ describe('ConfigObjectProperties', () => {
   it('should not render property if it is unsupported', () => {
     renderConfigObjectProperties({
       props: {
-        objectPropertyKeys: [],
         schema: {
           ...InputSchema,
           properties: {
             ...InputSchema.properties,
-            unsupportedProperty: {
-              type: 'object',
-              properties: {},
-              additionalProperties: {
-                type: 'string',
-              },
-            },
+            unsupportedProperty: {},
           },
         },
       },
@@ -157,17 +141,17 @@ describe('ConfigObjectProperties', () => {
   const renderConfigObjectProperties = ({
     props = {},
   }: {
-    props?: Partial<ConfigObjectPropertiesProps>;
+    props?: Partial<ConfigObjectPropertyProps>;
   }) => {
     const { Input: inputComponent } = componentMocks;
-    const defaultProps: ConfigObjectPropertiesProps = {
-      objectPropertyKeys: [],
+    const defaultProps: ConfigObjectPropertyProps = {
+      objectPropertyKey: undefined,
       schema: InputSchema,
       component: inputComponent,
       handleComponentUpdate: jest.fn(),
       editFormId: 'test-form',
     };
-    return renderWithProviders(<ConfigObjectProperties {...defaultProps} {...props} />);
+    return renderWithProviders(<ConfigObjectProperty {...defaultProps} {...props} />);
   };
 });
 
@@ -176,12 +160,12 @@ const openCard = async (user: UserEvent, propertyKey: string) => {
     name: textMock(`ux_editor.component_properties.${propertyKey}`),
   });
   await user.click(openButton);
-  expect(screen.getByRole('button', { name: textMock('general.close') })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: textMock('general.cancel') })).toBeInTheDocument();
 };
 
 const closeCard = async (user: UserEvent, propertyKey: string) => {
   const closeButton = await screen.findByRole('button', {
-    name: textMock('general.close'),
+    name: textMock('general.cancel'),
   });
   await user.click(closeButton);
   expect(
