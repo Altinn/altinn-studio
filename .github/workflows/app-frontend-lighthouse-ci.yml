@@ -90,6 +90,11 @@ jobs:
             kill $APP_PID 2>/dev/null || true
             exit 1
           fi
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+
       - name: Run Lighthouse CI
         id: lighthouse-ci
         working-directory: src/App/frontend
