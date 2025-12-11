@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -23,14 +23,12 @@ import { DesignViewNavigation } from '../DesignViewNavigation';
 import { PageGroupAccordion } from './PageGroupAccordion';
 import { useAddGroupMutation } from '../../hooks/mutations/useAddGroupMutation';
 import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
-import type { SelectedItem } from '@altinn/ux-editor/AppContext';
 import {
   isPagesModelWithGroups,
-  type PagesModel,
   type PagesModelWithPageOrder,
 } from 'app-shared/types/api/dto/PagesModel';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
-import { findFirstPage } from '../../utils/pageUtils';
+import { useAutoSelectFirstPage } from './hooks/useAutoSelectFirstPage';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -43,38 +41,42 @@ import { findFirstPage } from '../../utils/pageUtils';
  * @returns {ReactNode} - The rendered component
  */
 export const DesignView = (): ReactNode => {
+  const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
+  const { layoutSet } = useUxEditorParams();
+  const { selectedFormLayoutName, setSelectedItem, setSelectedFormLayoutName } = useAppContext();
+  const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(org, app, layoutSet);
+
+  useFormLayoutSettingsQuery(org, app, layoutSet);
+
+  useAutoSelectFirstPage({
+    pagesModel,
+    pagesQueryPending,
+    selectedFormLayoutName,
+    layoutSet,
+    setSelectedFormLayoutName,
+    setSelectedItem,
+  });
+
+  if (pagesQueryPending || !pagesModel) return <StudioSpinner aria-label={t('general.loading')} />;
+
+  return <DesignViewLoadedContent />;
+};
+
+const DesignViewLoadedContent = (): ReactNode => {
+  const { t } = useTranslation();
+  const { layoutSet } = useUxEditorParams();
+  const { getPdfLayoutName } = usePdf();
+  const layouts = useFormLayouts();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: pagesModel } = usePagesQuery(org, app, layoutSet);
   const {
     selectedFormLayoutName,
     setSelectedItem,
     setSelectedFormLayoutName,
     updateLayoutsForPreview,
   } = useAppContext();
-  const { layoutSet } = useUxEditorParams();
-  const hasInitializedRef = useRef<string | false>(false);
-  const setSelectedFormLayoutNameRef = useRef(setSelectedFormLayoutName);
-  const setSelectedItemRef = useRef(setSelectedItem);
-  setSelectedFormLayoutNameRef.current = setSelectedFormLayoutName;
-  setSelectedItemRef.current = setSelectedItem;
 
-  const autoSelectFirstPage = useCallback(
-    (pageModel: PagesModel) => {
-      if (hasInitializedRef.current !== layoutSet) {
-        const firstPageId = findFirstPage(pageModel);
-        if (firstPageId) {
-          setSelectedFormLayoutNameRef.current(firstPageId);
-          setSelectedItemRef.current({
-            type: ItemType.Page,
-            id: firstPageId,
-          });
-          hasInitializedRef.current = layoutSet;
-        }
-      }
-    },
-    [layoutSet],
-  );
-
-  const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(org, app, layoutSet);
   const { mutate: addPageMutation, isPending: isAddPageMutationPending } = useAddPageMutation(
     org,
     app,
@@ -86,80 +88,6 @@ export const DesignView = (): ReactNode => {
     app,
   );
 
-  // Referring to useFormLayoutSettingsQuery twice is a hack to ensure designView is re-rendered after converting
-  // a newly added layout to a PDF. See issue: https://github.com/Altinn/altinn-studio/issues/13679
-  useFormLayoutSettingsQuery(org, app, layoutSet);
-  const layouts = useFormLayouts();
-  const { getPdfLayoutName } = usePdf();
-
-  const { t } = useTranslation();
-
-  const layoutsWithDuplicateComponents = useMemo(
-    () => findLayoutsContainingDuplicateComponents(layouts),
-    [layouts],
-  );
-
-  useLayoutEffect(() => {
-    if (pagesModel && !pagesQueryPending && !selectedFormLayoutName) {
-      autoSelectFirstPage(pagesModel);
-    }
-  }, [pagesModel, pagesQueryPending, selectedFormLayoutName, autoSelectFirstPage]);
-
-  if (pagesQueryPending || !pagesModel) return <StudioSpinner aria-label={t('general.loading')} />;
-
-  return (
-    <DesignViewLoadedContent
-      pagesModel={pagesModel}
-      layoutSet={layoutSet}
-      layouts={layouts}
-      layoutsWithDuplicateComponents={layoutsWithDuplicateComponents}
-      getPdfLayoutName={getPdfLayoutName}
-      selectedFormLayoutName={selectedFormLayoutName}
-      setSelectedFormLayoutName={setSelectedFormLayoutName}
-      setSelectedItem={setSelectedItem}
-      addPageMutation={addPageMutation}
-      isAddPageMutationPending={isAddPageMutationPending}
-      addGroupMutation={addGroupMutation}
-      isAddGroupMutationPending={isAddGroupMutationPending}
-      updateLayoutsForPreview={updateLayoutsForPreview}
-      t={t}
-    />
-  );
-};
-
-type DesignViewLoadedContentProps = {
-  pagesModel: PagesModel;
-  layouts: ReturnType<typeof useFormLayouts>;
-  layoutsWithDuplicateComponents: ReturnType<typeof findLayoutsContainingDuplicateComponents>;
-  getPdfLayoutName: () => string;
-  layoutSet: string;
-  selectedFormLayoutName: string | undefined;
-  setSelectedFormLayoutName: (name: string | undefined) => void;
-  setSelectedItem: (item: SelectedItem | null) => void;
-  addPageMutation: ReturnType<typeof useAddPageMutation>['mutate'];
-  isAddPageMutationPending: boolean;
-  addGroupMutation: ReturnType<typeof useAddGroupMutation>['mutate'];
-  isAddGroupMutationPending: boolean;
-  updateLayoutsForPreview: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
-  t: ReturnType<typeof useTranslation>['t'];
-};
-
-const DesignViewLoadedContent = ({
-  pagesModel,
-  layouts,
-  layoutsWithDuplicateComponents,
-  getPdfLayoutName,
-  layoutSet,
-  selectedFormLayoutName,
-  setSelectedFormLayoutName,
-  setSelectedItem,
-  addPageMutation,
-  isAddPageMutationPending,
-  addGroupMutation,
-  isAddGroupMutationPending,
-  updateLayoutsForPreview,
-  t,
-}: DesignViewLoadedContentProps): ReactNode => {
   const handleClickAccordion = (pageName: string) => {
     if (selectedFormLayoutName !== pageName) {
       setSelectedFormLayoutName(pageName);
@@ -198,6 +126,11 @@ const DesignViewLoadedContent = ({
       },
     });
   };
+
+  const layoutsWithDuplicateComponents = useMemo(
+    () => findLayoutsContainingDuplicateComponents(layouts),
+    [layouts],
+  );
 
   /**
    * Displays the pages as an ordered list
