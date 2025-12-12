@@ -95,11 +95,8 @@
 
 .events {
   font-size: 0.8rem;
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-size-2);
   margin: 0;
-  padding: var(--ds-size-4);
+  padding: var(--ds-size-2) 0;
   white-space: pre-wrap;
   word-wrap: break-word;
 }
@@ -107,6 +104,7 @@
 .event {
   display: flex;
   gap: var(--ds-size-4);
+  padding: var(--ds-size-2) 0;
 }
 
 .eventCreatedDate {
