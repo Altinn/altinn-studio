@@ -4,9 +4,10 @@ using System.Text.Json.Serialization;
 namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 
 /// <summary>
-/// Parameters for the application decommissioning build pipeline.
+/// Parameters for publishing the apps syncroot image.
+/// Supports calling depricated Decommission pipeline.
 /// </summary>
-public class DecommissionBuildParameters
+public class GitOpsManagementBuildParameters
 {
     /// <summary>
     /// Owner of the application.

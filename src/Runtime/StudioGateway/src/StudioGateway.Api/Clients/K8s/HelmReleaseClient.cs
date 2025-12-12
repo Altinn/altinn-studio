@@ -5,7 +5,7 @@ namespace StudioGateway.Api.Clients.K8s;
 /// <summary>
 /// Service for interacting with HelmRelease resources in Kubernetes
 /// </summary>
-internal sealed class HelmReleaseService(IKubernetes kubernetes)
+internal sealed class HelmReleaseClient(IKubernetes kubernetes)
 {
     private const string HelmReleaseGroup = "helm.toolkit.fluxcd.io";
     private const string HelmReleaseVersion = "v2";
