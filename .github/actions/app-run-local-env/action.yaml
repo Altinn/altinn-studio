@@ -92,7 +92,7 @@ runs:
       working-directory: src/App/frontend
       run: |
         echo "Starting frontend server on port ${{ inputs.frontend-port }}..."
-        npx http-server dist --cors="*" -p ${{ inputs.frontend-port }} > frontend-server.log 2>&1 &
+        yarn run serve -p ${{ inputs.frontend-port }} > frontend-server.log 2>&1 &
         echo $! > frontend-server.pid
         echo "Frontend server started with PID $(cat frontend-server.pid)"
       shell: bash
