@@ -5,7 +5,7 @@ import { DateUtils } from '@studio/pure-functions';
 import { Trans, useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 
-import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import { getDeployStatus, type PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { BuildResult } from 'app-shared/types/Build';
 import {
@@ -38,7 +38,7 @@ const getIcon = (buildResult: BuildResult) => {
       return <CheckmarkCircleFillIcon className={classnames} />;
     case BuildResult.none:
     default:
-      return <StudioSpinner aria-hidden spinnerTitle='' />;
+      return <StudioSpinner aria-hidden spinnerTitle='' data-size='sm' className={classnames} />;
   }
 };
 
@@ -55,7 +55,7 @@ export const DeploymentEnvironmentLogList = ({
     : `${t('general.test_environment_alt').toLowerCase()} ${envName?.toUpperCase()}`;
 
   return (
-    <div className={classes.container}>
+    <>
       {pipelineDeploymentList.length === 0 ? (
         <div id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
           {t('app_deployment.table.deployed_version_history_empty', { envTitle })}
@@ -87,9 +87,10 @@ export const DeploymentEnvironmentLogList = ({
             </Table.Head>
             <Table.Body>
               {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
+                const deploymentStatus = getDeployStatus(deploy);
                 const areLogsAvailable = DateUtils.isDateWithinDays(deploy.build.started, 30);
 
-                const tableCellStatusClassName = classes[deploy.build.result];
+                const tableCellStatusClassName = classes[deploymentStatus];
                 const buildStartTime = deploy.build.started
                   ? new Date(deploy.build.started).getTime()
                   : undefined;
@@ -106,11 +107,17 @@ export const DeploymentEnvironmentLogList = ({
                         tableCellStatusClassName,
                       )}
                     >
-                      {getIcon(deploy.build.result)}
+                      {getIcon(deploymentStatus)}
                     </Table.Cell>
-                    <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
+                    <Table.Cell
+                      className={classNames(
+                        classes.tableCell,
+                        tableCellStatusClassName,
+                        classes.statusCell,
+                      )}
+                    >
                       {deploy.deploymentType === 'Deploy' &&
-                      deploy.build.result === BuildResult.failed &&
+                      deploymentStatus === BuildResult.failed &&
                       areLogsAvailable ? (
                         <span>
                           <Trans
@@ -153,19 +160,58 @@ export const DeploymentEnvironmentLogList = ({
                           />
                         </span>
                       ) : (
-                        t(getStatusTextByDeploymentType(deploy))
+                        t(getStatusTextByDeploymentType(deploy, deploymentStatus))
+                      )}
+                      {deploy.events.length > 0 && (
+                        <details className={classes.eventsDetails}>
+                          <summary>{t('app_deployment.events')}</summary>
+                          <div className={classes.events}>
+                            {deploy.events.map((event) => (
+                              <div key={event.created + event.eventType} className={classes.event}>
+                                <div className={classes.eventCreatedDate}>
+                                  {DateUtils.formatDateTime(event.created)}
+                                </div>
+                                <div>{event.message}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
                       )}
                     </Table.Cell>
-                    <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
+                    <Table.Cell
+                      className={classNames(
+                        classes.tableCell,
+                        tableCellStatusClassName,
+                        classes.versionCell,
+                      )}
+                    >
                       {deploy.tagName}
                     </Table.Cell>
-                    <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
+                    <Table.Cell
+                      className={classNames(
+                        classes.tableCell,
+                        tableCellStatusClassName,
+                        classes.finishedDateCell,
+                      )}
+                    >
                       {deploy.build.finished && DateUtils.formatDateTime(deploy.build.finished)}
                     </Table.Cell>
-                    <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
+                    <Table.Cell
+                      className={classNames(
+                        classes.tableCell,
+                        tableCellStatusClassName,
+                        classes.deployedByCell,
+                      )}
+                    >
                       {deploy.createdBy}
                     </Table.Cell>
-                    <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
+                    <Table.Cell
+                      className={classNames(
+                        classes.tableCell,
+                        tableCellStatusClassName,
+                        classes.buildLogCell,
+                      )}
+                    >
                       {deploy.build.started &&
                         (areLogsAvailable ? (
                           <Link
@@ -186,14 +232,16 @@ export const DeploymentEnvironmentLogList = ({
           </Table>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
-function getStatusTextByDeploymentType(deployment: PipelineDeployment): string {
+function getStatusTextByDeploymentType(
+  deployment: PipelineDeployment,
+  deploymentStatus: BuildResult,
+): string {
   const isUndeploy = deployment.deploymentType === 'Decommission';
-  const deploymentResult = deployment.build.result;
   return isUndeploy
-    ? `app_deployment.pipeline_undeploy.build_result.${deploymentResult}`
-    : `app_deployment.pipeline_deployment.build_result.${deploymentResult}`;
+    ? `app_deployment.pipeline_undeploy.build_result.${deploymentStatus}`
+    : `app_deployment.pipeline_deployment.build_result.${deploymentStatus}`;
 }

@@ -31,4 +31,29 @@ public class GetLastDeployedTests : DbIntegrationTestsBase
 
         EntityAssertions.AssertEqual(deploymentEntity, lastEntity, TimeSpan.FromMilliseconds(200));
     }
+
+    [Theory]
+    [InlineData("ttd", "local")]
+    public async Task GetLastDeployed_ShouldReturnDeploymentWithEvents(string org, string envName)
+    {
+        // Arrange
+        string app = Guid.NewGuid().ToString();
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, app, envName: envName);
+        await DbFixture.PrepareEntityInDatabase(deploymentEntity);
+
+        var events = EntityGenerationUtils.Deployment.GenerateDeployEvents();
+        foreach (var evt in events)
+        {
+            await DbFixture.PrepareDeployEventInDatabase(org, deploymentEntity.Build.Id, evt);
+        }
+
+        // Act
+        var repository = new DeploymentRepository(DbFixture.DbContext);
+        var result = await repository.GetLastDeployed(org, app, envName);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotNull(result.Events);
+        Assert.Equal(events.Count, result.Events.Count);
+    }
 }
