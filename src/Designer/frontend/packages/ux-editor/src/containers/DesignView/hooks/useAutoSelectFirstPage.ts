@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { useAppContext } from '../../../hooks';
 import { findFirstPage } from '../../../utils/pageUtils';
@@ -14,19 +14,23 @@ export const useAutoSelectFirstPage = ({
   pagesQueryPending,
 }: UseAutoSelectFirstPageParams): void => {
   const { selectedFormLayoutName, setSelectedFormLayoutName, setSelectedItem } = useAppContext();
-  const hasInitializedRef = useRef<boolean>(false);
-  const setSelectedFormLayoutNameRef = useRef(setSelectedFormLayoutName);
-  const setSelectedItemRef = useRef(setSelectedItem);
+  const initialisedForPagesModelRef = useRef<PagesModel | undefined>(undefined);
 
-  if (!hasInitializedRef.current && !pagesQueryPending && pagesModel) {
+  useEffect(() => {
+    if (pagesQueryPending || !pagesModel) return;
+    if (initialisedForPagesModelRef.current === pagesModel) return;
+
     const firstPageId = findFirstPage(pagesModel);
     if (firstPageId && selectedFormLayoutName !== firstPageId) {
-      setSelectedFormLayoutNameRef.current(firstPageId);
-      setSelectedItemRef.current({
-        type: ItemType.Page,
-        id: firstPageId,
-      });
+      setSelectedFormLayoutName(firstPageId);
+      setSelectedItem({ type: ItemType.Page, id: firstPageId });
     }
-    hasInitializedRef.current = true;
-  }
+    initialisedForPagesModelRef.current = pagesModel;
+  }, [
+    pagesModel,
+    pagesQueryPending,
+    selectedFormLayoutName,
+    setSelectedFormLayoutName,
+    setSelectedItem,
+  ]);
 };
