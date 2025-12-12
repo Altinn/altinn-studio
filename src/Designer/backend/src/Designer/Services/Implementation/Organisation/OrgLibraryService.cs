@@ -78,6 +78,11 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repositoryName, developer);
 
         string latestCommitSha = await giteaClient.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
+
+        sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
+        await sourceControl.PullRemoteChanges(editingContext.Org, editingContext.Repo);
+        await sourceControl.FetchGitNotes(editingContext);
+
         if (latestCommitSha == request.BaseCommitSha)
         {
             await HandleCommit(editingContext, request, cancellationToken);
@@ -95,8 +100,6 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
 
     internal async Task HandleCommit(AltinnRepoEditingContext editingContext, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default)
     {
-        sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
-        await sourceControl.PullRemoteChanges(editingContext.Org, editingContext.Repo);
         await UpdateFiles(editingContext, request, cancellationToken);
         sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
     }
