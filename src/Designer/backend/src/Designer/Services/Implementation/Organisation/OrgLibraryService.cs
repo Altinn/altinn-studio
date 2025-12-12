@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -17,10 +18,17 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 
-public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ISharedContentClient sharedContentClient) : IOrgLibraryService
+public class OrgLibraryService(
+    IGiteaClient giteaClient,
+    ISourceControl sourceControl,
+    IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+    ISharedContentClient sharedContentClient,
+    ILogger<OrgLibraryService> logger
+) : IOrgLibraryService
 {
     private const string DefaultCommitMessage = "Update shared resources.";
     private const string JsonExtension = ".json";
@@ -69,33 +77,55 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
     /// <inheritdoc />
     public async Task UpdateSharedResourcesByPath(string org, string developer, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default)
     {
+        logger.LogDebug($"{nameof(UpdateSharedResourcesByPath)}-----------------------------------------------------");
+        Stopwatch swTotalTime = new();
+        swTotalTime.Start();
+        Stopwatch sw = new();
+        sw.Start();
+
         cancellationToken.ThrowIfCancellationRequested();
 
         ValidateCommitMessage(request.CommitMessage);
         string repositoryName = GetStaticContentRepo(org);
 
-        await sourceControl.CloneIfNotExists(org, repositoryName);
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repositoryName, developer);
 
         string latestCommitSha = await giteaClient.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
+        logger.LogInformation($"Time elapsed on {nameof(giteaClient.GetLatestCommitOnBranch)} was {sw.ElapsedMilliseconds} ms.");
+        sw.Restart();
 
         sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
+        logger.LogInformation($"Time elapsed on {nameof(sourceControl.CheckoutRepoOnBranch)} was {sw.ElapsedMilliseconds} ms.");
+        sw.Restart();
         await sourceControl.PullRemoteChanges(editingContext.Org, editingContext.Repo);
+        logger.LogInformation($"Time elapsed on {nameof(sourceControl.PullRemoteChanges)} was {sw.ElapsedMilliseconds} ms.");
+        sw.Restart();
         await sourceControl.FetchGitNotes(editingContext);
+        logger.LogInformation($"Time elapsed on {nameof(sourceControl.FetchGitNotes)} was {sw.ElapsedMilliseconds} ms.");
+        sw.Restart();
 
         if (latestCommitSha == request.BaseCommitSha)
         {
             await HandleCommit(editingContext, request, cancellationToken);
+            logger.LogInformation($"Time elapsed on {nameof(HandleCommit)} was {sw.ElapsedMilliseconds} ms.");
+            sw.Restart();
         }
         else
         {
             await HandleDivergentCommit(editingContext, request, cancellationToken);
+            logger.LogInformation($"Time elapsed on {nameof(HandleDivergentCommit)} was {sw.ElapsedMilliseconds} ms.");
+            sw.Restart();
         }
         bool pushOk = await sourceControl.Push(org, repositoryName);
+        logger.LogInformation($"Time elapsed on {nameof(sourceControl.Push)} was {sw.ElapsedMilliseconds} ms.");
+        sw.Restart();
         if (!pushOk)
         {
             throw new InvalidOperationException($"Push failed for {org}/{repositoryName}. Remote rejected the update.");
         }
+
+        logger.LogInformation($"Total time elapsed was {swTotalTime.ElapsedMilliseconds} ms.");
+        logger.LogDebug($"END {nameof(UpdateSharedResourcesByPath)}-----------------------------------------------------");
     }
 
     internal async Task HandleCommit(AltinnRepoEditingContext editingContext, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default)
