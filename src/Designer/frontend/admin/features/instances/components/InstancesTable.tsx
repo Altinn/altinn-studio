@@ -10,6 +10,7 @@ import { InstanceStatus } from './InstanceStatus';
 import { isAxiosError } from 'axios';
 import { Alert } from '@digdir/designsystemet-react';
 import { useCurrentOrg } from 'admin/layout/PageLayout';
+import { Link } from 'react-router-dom';
 
 type InstancesTableProps = {
   org: string;
@@ -108,8 +109,7 @@ const InstancesTableWithData = ({
         {instances.map((instance) => (
           <StudioTable.Row key={instance.id}>
             <StudioTable.Cell>
-              {/* <Link to={`${instance.id}`}>{instance.id}</Link> */}
-              {instance.id}
+              <Link to={`${instance.id}`}>{instance.id}</Link>
             </StudioTable.Cell>
             <StudioTable.Cell>
               {instance.createdAt ? formatDateAndTime(instance.createdAt) : '-'}

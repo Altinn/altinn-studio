@@ -127,4 +127,29 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
 
         return queryResponse;
     }
+
+    public async Task<SimpleInstanceDetails> GetInstanceDetails(
+        string org,
+        string env,
+        string app,
+        string instanceId,
+        CancellationToken ct
+    )
+    {
+        var platformUri = await _environmentsService.CreatePlatformUri(env);
+        var uri =
+            $"{platformUri}{_platformSettings.ApiStorageInstancesUri}{org}/{app}/{instanceId}";
+
+        using var response = await _httpClient.GetAsync(uri, ct);
+        response.EnsureSuccessStatusCode();
+
+        var instanceDetails = await response.Content.ReadFromJsonAsync<SimpleInstanceDetails>(ct);
+
+        if (instanceDetails == null)
+        {
+            throw new JsonException("Could not deserialize Instance response");
+        }
+
+        return instanceDetails;
+    }
 }

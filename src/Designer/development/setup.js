@@ -121,6 +121,9 @@ const addUserToSomeTestDepTeams = async (env) => {
     'AccessLists-AT23',
     'AccessLists-AT24',
     'AccessLists-TT02',
+    'Admin-TT02',
+    'Admin-AT21',
+    'Admin-AT22',
   ]) {
     const existing = teams.find((t) => t.name === teamName);
 
@@ -148,6 +151,9 @@ const addUserToSomeTestDepTeams = async (env) => {
     'AccessLists-AT23',
     'AccessLists-AT24',
     'AccessLists-TT02',
+    'Admin-TT02',
+    'Admin-AT21',
+    'Admin-AT22',
   ]) {
     const existing = teams.find((t) => t.name === teamName);
 

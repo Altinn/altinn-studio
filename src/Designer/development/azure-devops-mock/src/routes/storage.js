@@ -41,6 +41,29 @@ const randomInstances = Array.from({ length: 1000 }).map(() => {
 
   const lastChangedAt = getMaxDate(createdAt, archivedAt, confirmedAt, softDeletedAt);
 
+  function generateDataElement() {
+    const id = uuid();
+    const _lastChangedAt = getRandomDate(createdAt.getTime(), lastChangedAt.getTime());
+    const dataType = 'model';
+    const contentType = 'application/xml';
+    const size = Math.round(Math.random() * 1000);
+    const locked = !isActive;
+    const fileScanResult = 'NotApplicable';
+
+    return {
+      id,
+      dataType,
+      contentType,
+      size,
+      locked,
+      isRead,
+      fileScanResult,
+      hardDeletedAt,
+      createdAt,
+      lastChangedAt: _lastChangedAt,
+    };
+  }
+
   return {
     id,
     isRead,
@@ -53,6 +76,7 @@ const randomInstances = Array.from({ length: 1000 }).map(() => {
     hardDeletedAt,
     createdAt,
     lastChangedAt,
+    data: [generateDataElement()],
   };
 });
 
@@ -133,7 +157,7 @@ export const storageInstancesRoute = (req, res) => {
     )
     .toSorted((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
     .slice(skip, skip + size)
-    .map((i) => ({ org, app, ...i }));
+    .map(({ data, ...i }) => ({ org, app, ...i }));
 
   const count = instances.length;
   const next = count === size ? (skip + size).toString() : null;
@@ -143,4 +167,16 @@ export const storageInstancesRoute = (req, res) => {
     next,
     instances,
   });
+};
+
+export const storageInstanceDetailsRoute = (req, res) => {
+  const { org, app, instanceId } = req.params;
+  const instance = randomInstances.find((i) => i.id === instanceId);
+
+  if (!instance) {
+    res.sendStatus(404);
+    return;
+  }
+
+  res.json({ org, app, ...instance });
 };
