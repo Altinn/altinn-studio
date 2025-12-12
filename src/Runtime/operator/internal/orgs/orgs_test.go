@@ -11,21 +11,23 @@ import (
 )
 
 const testOrgData = `{
-	"ttd": {
-		"name": {
-			"en": "Test Department",
-			"nb": "Testdepartementet",
-			"nn": "Testdepartementet"
+	"orgs": {
+		"ttd": {
+			"name": {
+				"en": "Test Department",
+				"nb": "Testdepartementet",
+				"nn": "Testdepartementet"
+			},
+			"orgnr": "991825827"
 		},
-		"orgnr": "991825827"
-	},
-	"digdir": {
-		"name": {
-			"en": "Norwegian Digitalisation Agency",
-			"nb": "Digitaliseringsdirektoratet",
-			"nn": "Digitaliseringsdirektoratet"
-		},
-		"orgnr": "991825827"
+		"digdir": {
+			"name": {
+				"en": "Norwegian Digitalisation Agency",
+				"nb": "Digitaliseringsdirektoratet",
+				"nn": "Digitaliseringsdirektoratet"
+			},
+			"orgnr": "991825827"
+		}
 	}
 }`
 
