@@ -30,12 +30,12 @@ public class OrgLibraryServiceTests
     public async Task GetSharedResourcesByPath(string? path, int expectedFileCount)
     {
         // Arrange
-        string encodedContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(NotACodeList));
-        string encodedContent2 = Convert.ToBase64String(Encoding.UTF8.GetBytes(CodeList));
+        string notACodeListContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(NotACodeList));
+        string codeListContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(CodeList));
         List<FileSystemObject> rootObjects = [
             new FileSystemObject(){
                 Encoding = "base64",
-                Content = encodedContent,
+                Content = notACodeListContent,
                 Name = "rootFile.json",
                 Type = "file",
                 Path = "/rootFile.json"
@@ -50,7 +50,7 @@ public class OrgLibraryServiceTests
         List<FileSystemObject> codeListFiles = [
             new FileSystemObject(){
                 Encoding = "base64",
-                Content = encodedContent,
+                Content = codeListContent,
                 Name = "fileInPath.json",
                 Type = "file",
                 Path = "CodeLists/fileInPath.json"
