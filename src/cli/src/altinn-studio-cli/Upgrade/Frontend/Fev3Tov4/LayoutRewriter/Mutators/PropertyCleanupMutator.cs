@@ -39,48 +39,18 @@ internal sealed class PropertyCleanupMutator : ILayoutMutator
             "TextArea",
         };
 
-        if (component.ContainsKey("componentType"))
-        {
-            component.Remove("componentType");
-        }
-
-        if (component.ContainsKey("triggers"))
-        {
-            component.Remove("triggers");
-        }
-
-        if (component.ContainsKey("textResourceId"))
-        {
-            component.Remove("textResourceId");
-        }
-
-        if (component.ContainsKey("customType"))
-        {
-            component.Remove("customType");
-        }
-
-        if (component.ContainsKey("description"))
-        {
-            component.Remove("description");
-        }
-
-        if (component.ContainsKey("pageRef"))
-        {
-            component.Remove("pageRef");
-        }
+        component.Remove("componentType");
+        component.Remove("triggers");
+        component.Remove("textResourceId");
+        component.Remove("customType");
+        component.Remove("description");
+        component.Remove("pageRef");
 
         // All non-form components
         if (!formComponentTypes.Contains(type))
         {
-            if (component.ContainsKey("required"))
-            {
-                component.Remove("required");
-            }
-
-            if (component.ContainsKey("readOnly"))
-            {
-                component.Remove("readOnly");
-            }
+            component.Remove("required");
+            component.Remove("readOnly");
         }
 
         if (
@@ -102,17 +72,17 @@ internal sealed class PropertyCleanupMutator : ILayoutMutator
             component.Remove("dataModelBindings");
         }
 
-        if (type == "Paragraph" && component.ContainsKey("size"))
+        if (type == "Paragraph")
         {
             component.Remove("size");
         }
 
-        if (type == "Panel" && component.ContainsKey("size"))
+        if (type == "Panel")
         {
             component.Remove("size");
         }
 
-        if (type == "NavigationBar" && component.ContainsKey("textResourceBindings"))
+        if (type == "NavigationBar")
         {
             component.Remove("textResourceBindings");
         }

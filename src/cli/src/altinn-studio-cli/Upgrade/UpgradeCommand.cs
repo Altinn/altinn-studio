@@ -1,6 +1,7 @@
 using System.CommandLine;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.BackendUpgrade;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.FrontendUpgrade;
+using Altinn.Studio.Cli.Upgrade.Next;
 
 namespace Altinn.Studio.Cli.Upgrade;
 
@@ -25,6 +26,7 @@ public static class UpgradeCommand
             projectFolderOption,
             FrontendUpgrade.GetUpgradeCommand(projectFolderOption),
             BackendUpgrade.GetUpgradeCommand(projectFolderOption),
+            NextUpgrade.GetUpgradeCommand(projectFolderOption),
         };
         return upgradeCommand;
     }
