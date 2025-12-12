@@ -208,6 +208,20 @@ func (r *OrgRegistry) fetch(ctx context.Context) error {
 		return fmt.Errorf("failed to unmarshal orgs: %w", err)
 	}
 
+	if registry.Orgs == nil {
+		err := fmt.Errorf(`invalid org registry payload: missing required top-level key "orgs"`)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return err
+	}
+
+	if len(registry.Orgs) == 0 {
+		err := fmt.Errorf(`length of "orgs" property is zero`)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return err
+	}
+
 	r.orgs.Store(&registry.Orgs)
 
 	span.SetAttributes(attribute.Int("orgs.count", len(registry.Orgs)))
