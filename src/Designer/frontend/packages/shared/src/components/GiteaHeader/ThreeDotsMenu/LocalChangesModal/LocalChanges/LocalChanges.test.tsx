@@ -71,4 +71,4 @@ const deleteButtonName = textMock('local_changes.modal_delete_button');
 const cancelButtonName = textMock('general.cancel');
 const deleteModalHeading = textMock('local_changes.modal_delete_modal_title');
 
-const deleteModalHeadingOptions: ByRoleOptions = { name: deleteModalHeading, level: 2 };
+const deleteModalHeadingOptions: ByRoleOptions = { name: deleteModalHeading, level: 1 };
