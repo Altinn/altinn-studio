@@ -45,10 +45,8 @@ const setupAndVerifyUiEditorPage = async (
   }
 
   await uiEditorPage.clickOnUxEditorButton();
-  await uiEditorPage.verifyThatAddNewPageButtonIsVisible();
-
-  await uiEditorPage.clickOnPageAccordion(pageName);
   await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, pageName);
+  await uiEditorPage.verifyThatAddNewPageButtonIsVisible();
 
   return uiEditorPage;
 };
@@ -120,8 +118,6 @@ test('That it is possible to navigate back to ui-editor page and add the data mo
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.clickOnUxEditorButton();
   await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, pageName);
-  await uiEditorPage.clickOnPageAccordion(pageName);
-  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, pageName);
   await uiEditorPage.clickOnTreeItem(newInputLabel);
 
   await uiEditorPage.clickOnAddDataModelButton(ComponentType.Input);
@@ -178,7 +174,6 @@ test('That it is possible to navigate back to ui-editor page and add the newly a
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
   await uiEditorPage.clickOnUxEditorButton();
-  await uiEditorPage.clickOnPageAccordion(pageName);
   await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, pageName);
 
   await uiEditorPage.dragComponentIntoDroppableList(ComponentType.Input);
