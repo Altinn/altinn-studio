@@ -43,8 +43,6 @@ export enum FailedEventType {
 const succeededEventTypeValues = Object.values(SucceededEventType);
 const failedEventTypeValues = Object.values(FailedEventType);
 
-const now = new Date().getTime();
-
 export const getDeployStatus = (deployment: PipelineDeployment | undefined): BuildResult => {
   const lastEvent = deployment?.events[deployment.events.length - 1];
   const lastEventType = lastEvent?.eventType;
@@ -60,7 +58,7 @@ export const getDeployStatus = (deployment: PipelineDeployment | undefined): Bui
         (lastEventType === EventType.PipelineSucceeded ||
           lastEventType === EventType.PipelineFailed) &&
         (firstEventType === EventType.DeprecatedPipelineScheduled ||
-          now - lastEvent.created.getTime() > 15 * 60 * 1000)
+          new Date().getTime() - lastEvent.created.getTime() > 15 * 60 * 1000)
       ) {
         return lastEventType === EventType.PipelineSucceeded
           ? BuildResult.succeeded
