@@ -72,10 +72,12 @@ export const DeleteModal = forwardRef<HTMLDialogElement, DeleteModalProps>(
             ) : (
               <>
                 <StudioButton
+                  iconPlacement='right'
                   variant='secondary'
                   data-color='danger'
                   onClick={handleDelete}
                   disabled={app !== nameToDelete}
+                  icon={<TrashIcon />}
                 >
                   {t('local_changes.modal_confirm_delete_button')}
                 </StudioButton>
