@@ -38,7 +38,7 @@ const getIcon = (buildResult: BuildResult) => {
       return <CheckmarkCircleFillIcon className={classnames} />;
     case BuildResult.none:
     default:
-      return <StudioSpinner aria-hidden spinnerTitle='' />;
+      return <StudioSpinner aria-hidden spinnerTitle='' data-size='sm' className={classnames} />;
   }
 };
 
@@ -55,7 +55,7 @@ export const DeploymentEnvironmentLogList = ({
     : `${t('general.test_environment_alt').toLowerCase()} ${envName?.toUpperCase()}`;
 
   return (
-    <div className={classes.container}>
+    <>
       {pipelineDeploymentList.length === 0 ? (
         <div id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
           {t('app_deployment.table.deployed_version_history_empty', { envTitle })}
@@ -86,7 +86,7 @@ export const DeploymentEnvironmentLogList = ({
               </Table.Row>
             </Table.Head>
             <Table.Body>
-              {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
+              {pipelineDeploymentList.map((deploy: PipelineDeployment, index) => {
                 const deploymentStatus = getDeployStatus(deploy);
                 const areLogsAvailable = DateUtils.isDateWithinDays(deploy.build.started, 30);
 
@@ -109,7 +109,13 @@ export const DeploymentEnvironmentLogList = ({
                     >
                       {getIcon(deploymentStatus)}
                     </Table.Cell>
-                    <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
+                    <Table.Cell
+                      className={classNames(
+                        classes.tableCell,
+                        tableCellStatusClassName,
+                        classes.statusCell,
+                      )}
+                    >
                       {deploy.deploymentType === 'Deploy' &&
                       deploymentStatus === BuildResult.failed &&
                       areLogsAvailable ? (
@@ -156,17 +162,54 @@ export const DeploymentEnvironmentLogList = ({
                       ) : (
                         t(getStatusTextByDeploymentType(deploy, deploymentStatus))
                       )}
+                      <details className={classes.eventsDetails} open={index === 0}>
+                        <summary>{t(`app_deployment.events`)}</summary>
+                        <div className={classes.events}>
+                          {deploy.events.map((event) => (
+                            <div key={event.created + event.eventType} className={classes.event}>
+                              <div className={classes.eventCreatedDate}>
+                                {DateUtils.formatDateTime(event.created)}
+                              </div>
+                              <div className={classes.eventMessage}>{event.message}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
                     </Table.Cell>
-                    <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
+                    <Table.Cell
+                      className={classNames(
+                        classes.tableCell,
+                        tableCellStatusClassName,
+                        classes.versionCell,
+                      )}
+                    >
                       {deploy.tagName}
                     </Table.Cell>
-                    <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
+                    <Table.Cell
+                      className={classNames(
+                        classes.tableCell,
+                        tableCellStatusClassName,
+                        classes.finishedDateCell,
+                      )}
+                    >
                       {deploy.build.finished && DateUtils.formatDateTime(deploy.build.finished)}
                     </Table.Cell>
-                    <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
+                    <Table.Cell
+                      className={classNames(
+                        classes.tableCell,
+                        tableCellStatusClassName,
+                        classes.deployedByCell,
+                      )}
+                    >
                       {deploy.createdBy}
                     </Table.Cell>
-                    <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
+                    <Table.Cell
+                      className={classNames(
+                        classes.tableCell,
+                        tableCellStatusClassName,
+                        classes.buildLogCell,
+                      )}
+                    >
                       {deploy.build.started &&
                         (areLogsAvailable ? (
                           <Link
@@ -187,7 +230,7 @@ export const DeploymentEnvironmentLogList = ({
           </Table>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
