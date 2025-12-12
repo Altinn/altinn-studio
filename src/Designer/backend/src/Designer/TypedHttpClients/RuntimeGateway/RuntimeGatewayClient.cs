@@ -34,9 +34,13 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
 
     private string GetGatewayUrl(string org, AltinnEnvironment environment)
     {
-        return environment == AltinnEnvironment.Prod
-            ? string.Format(_runtimeGatewaySettings.ProdUrlFormat, org)
-            : string.Format(_runtimeGatewaySettings.TestUrlFormat, org, environment.Name);
+        if (environment == AltinnEnvironment.Prod)
+            return string.Format(_runtimeGatewaySettings.ProdUrlFormat, org);
+
+        if (environment.Name.StartsWith("tt"))
+            return string.Format(_runtimeGatewaySettings.TtUrlFormat, org);
+
+        return string.Format(_runtimeGatewaySettings.AtYtUrlFormat, org);
     }
 
     private string GetOriginEnvironment()
