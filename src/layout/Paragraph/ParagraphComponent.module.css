@@ -1,5 +1,5 @@
 .paragraphWrapper {
   display: flex;
   align-items: center;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }

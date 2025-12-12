@@ -37,7 +37,7 @@
 .summaryValue {
   width: -moz-fit-content;
   width: fit-content;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .error {
