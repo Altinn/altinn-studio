@@ -25,6 +25,9 @@ spec:
   force: false
   wait: true
   path: ./${ENVIRONMENT}
+  postBuild:
+    substitute:
+      ENVIRONMENT: ${ENVIRONMENT}
   sourceRef:
     kind: OCIRepository
     name: apps-syncroot-repo
