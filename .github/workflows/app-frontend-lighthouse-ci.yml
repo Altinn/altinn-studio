@@ -51,21 +51,6 @@ jobs:
           name: app-frontend-dist
           path: src/App/frontend/dist
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-
-      - name: Pull docker images from registry
-        run: |
-          # Pull the images that were built and cached in the previous job
-          docker compose -f src/Runtime/localtest/docker-compose.yml --profile test-apps pull || true
-
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
