@@ -142,7 +142,7 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
         {
             var pointerObject = JsonPointer.Parse(pointer);
             Assert.Single(errorResponse.Errors.Keys, p => JsonPointer.Parse(p) == pointerObject);
-            Assert.Contains(errorCode, errorResponse.Errors[pointerObject.ToString(JsonPointerStyle.UriEncoded)]);
+            Assert.Contains(errorCode, errorResponse.Errors[pointerObject.ToString()]);
         }
     }
 
