@@ -68,7 +68,7 @@ public static class DeploymentMapper
             Created = dbObject.Created.ToUniversalTime(),
             CreatedBy = dbObject.CreatedBy,
             DeploymentType = (Altinn.Studio.Designer.Repository.Models.DeploymentType)(int)dbObject.DeploymentType,
-            Events = dbObject.Events?.Select(e => new DeployEvent
+            Events = dbObject.Events?.OrderBy(e => e.Created).Select(e => new DeployEvent
             {
                 Message = e.Message,
                 Timestamp = e.Timestamp,

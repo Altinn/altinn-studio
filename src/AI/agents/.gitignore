@@ -1,0 +1,23 @@
+# Environment files
+.env
+.env.local
+.env.docker
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv
+
+# Pytest
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Claude
+.claude
+
+# IDE
+.vscode/
