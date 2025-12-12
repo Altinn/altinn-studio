@@ -57,10 +57,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-
-      - name: Build docker images
-        working-directory: src/Runtime/localtest
-        run: docker compose --profile test-apps build
+      - name: Build localtest
+        uses: ./.github/actions/app-build-localtest
+        with:
+          docker-profile: test-apps
 
       - name: Save docker images
         run: docker save localtest localtest-loadbalancer localtest-altinn_test_apps localtest-pdf3 -o /tmp/localtest-images.tar
