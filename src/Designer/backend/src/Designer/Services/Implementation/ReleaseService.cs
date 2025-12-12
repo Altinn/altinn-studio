@@ -27,7 +27,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly IReleaseRepository _releaseRepository;
-        private readonly HttpContext _httpContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly GeneralSettings _generalSettings;
 
         /// <summary>
@@ -48,14 +48,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _azureDevOpsSettings = azureDevOpsOptions;
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _releaseRepository = releaseRepository;
-            _httpContext = httpContextAccessor.HttpContext;
+            _httpContextAccessor = httpContextAccessor;
             _generalSettings = generalSettings;
         }
 
         /// <inheritdoc/>
         public async Task<ReleaseEntity> CreateAsync(ReleaseEntity release)
         {
-            release.PopulateBaseProperties(release.Org, release.App, _httpContext);
+            release.PopulateBaseProperties(release.Org, release.App, _httpContextAccessor.HttpContext);
 
             await ValidateUniquenessOfRelease(release);
 
@@ -66,7 +66,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 AppRepo = release.App,
                 TagName = release.TagName,
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos",
-                AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
+                AppDeployToken = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync(),
                 AltinnStudioHostname = _generalSettings.HostName
             };
 
