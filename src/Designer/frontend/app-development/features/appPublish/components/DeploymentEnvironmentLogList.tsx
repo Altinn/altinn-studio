@@ -171,7 +171,7 @@ export const DeploymentEnvironmentLogList = ({
                                 <div className={classes.eventCreatedDate}>
                                   {DateUtils.formatDateTime(event.created)}
                                 </div>
-                                <div>{event.message}</div>
+                                <div>{event.message.replace(/^\s+/gm, '')}</div>
                               </div>
                             ))}
                           </pre>
