@@ -163,13 +163,10 @@ void ConfigureLogging(ILoggingBuilder builder)
         // is sent to ApplicationInsights.
         builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
     }
-    else
-    {
-        // If not application insight is available log to console
-        builder.AddFilter("Microsoft", LogLevel.Warning);
-        builder.AddFilter("System", LogLevel.Warning);
-        builder.AddConsole();
-    }
+
+    builder.AddFilter("Microsoft", LogLevel.Warning);
+    builder.AddFilter("System", LogLevel.Warning);
+    builder.AddConsole();
 }
 
 void ConfigureServices(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
