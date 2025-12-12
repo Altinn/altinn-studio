@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json;
 using OpenTelemetry.Logs;
 
 namespace Altinn.App.Tests.Common.Utils;
@@ -75,10 +76,10 @@ public static class OtelVisualizers
         {
             sb.AppendLine($"{activity.DisplayName}");
         }
-        foreach (var (key, value) in activity.Tags)
+        foreach (var (key, value) in activity.TagObjects)
         {
             sb.Append(' ', indent + 1);
-            sb.AppendLine($"{key}: {value}");
+            sb.AppendLine($"{key}: {JsonSerializer.Serialize(value)}");
         }
 
         if (activityByParentId.TryGetValue(activity.SpanId, out var children))
