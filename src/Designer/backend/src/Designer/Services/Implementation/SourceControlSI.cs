@@ -760,10 +760,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return (url, user, cred) => new UsernamePasswordCredentials { Username = token, Password = string.Empty };
         }
 
+        public async Task FetchGitNotes(AltinnRepoEditingContext editingContext)
+        {
+            string repoLocation = FindLocalRepoLocation(editingContext);
+            await FetchGitNotes(repoLocation);
+        }
+
         private async Task FetchGitNotes(string localRepositoryPath)
         {
-            using var repo = new LibGit2Sharp.Repository(localRepositoryPath);
-            var options = new FetchOptions()
+            using LibGit2Sharp.Repository repo = new(localRepositoryPath);
+            FetchOptions options = new()
             {
                 CredentialsProvider = await GetCredentialsAsync()
             };
