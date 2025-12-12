@@ -17,6 +17,7 @@ using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
+using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using MediatR;
@@ -45,6 +46,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly TimeProvider _timeProvider;
         private readonly IGitOpsConfigurationManager _gitOpsConfigurationManager;
         private readonly IFeatureManager _featureManager;
+        private readonly IRuntimeGatewayClient _runtimeGatewayClient;
 
         /// <summary>
         /// Constructor
@@ -60,7 +62,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IApplicationInformationService applicationInformationService,
             ILogger<DeploymentService> logger,
             IPublisher mediatr,
-            GeneralSettings generalSettings, TimeProvider timeProvider, IGitOpsConfigurationManager gitOpsConfigurationManager, IFeatureManager featureManager)
+            GeneralSettings generalSettings,
+            TimeProvider timeProvider,
+            IGitOpsConfigurationManager gitOpsConfigurationManager,
+            IFeatureManager featureManager,
+            IRuntimeGatewayClient runtimeGatewayClient)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _deploymentRepository = deploymentRepository;
@@ -76,6 +82,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _timeProvider = timeProvider;
             _gitOpsConfigurationManager = gitOpsConfigurationManager;
             _featureManager = featureManager;
+            _runtimeGatewayClient = runtimeGatewayClient;
         }
 
         /// <inheritdoc/>
@@ -171,7 +178,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // find the deployed tag
             DeploymentEntity lastDeployed = await _deploymentRepository.GetLastDeployed(editingContext.Org, editingContext.Repo, env);
 
-            bool useGitOpsDecommission = await RemoveAppFromGitOpsRepoIfExists(editingContext, env);
+            bool useGitOpsDecommission = await ShouldUseGitOpsDecommission(editingContext, env, cancellationToken);
             int definitionId = useGitOpsDecommission
                 ? _azureDevOpsSettings.GitOpsManagerDefinitionId
                 : _azureDevOpsSettings.DecommissionDefinitionId;
@@ -204,14 +211,36 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await PublishDeploymentPipelineQueued(editingContext, build, PipelineType.Undeploy, env, CancellationToken.None);
         }
 
-        private async Task<bool> RemoveAppFromGitOpsRepoIfExists(AltinnRepoEditingContext editingContext, string env)
+        private async Task<bool> ShouldUseGitOpsDecommission(AltinnRepoEditingContext editingContext, string env, CancellationToken cancellationToken)
         {
             if (!await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
             {
                 return false;
             }
 
+            bool removedFromGitOps = await RemoveAppFromGitOpsRepoIfExists(editingContext, env);
+            if (removedFromGitOps)
+            {
+                return true;
+            }
+
+            var environment = AltinnEnvironment.FromName(env);
+            return await _runtimeGatewayClient.IsAppDeployedAsync(
+                editingContext.Org,
+                editingContext.Repo,
+                environment,
+                cancellationToken);
+        }
+
+        private async Task<bool> RemoveAppFromGitOpsRepoIfExists(AltinnRepoEditingContext editingContext, string env)
+        {
             var orgContext = AltinnOrgEditingContext.FromOrgDeveloper(editingContext.Org, editingContext.Developer);
+
+            if (!await _gitOpsConfigurationManager.GitOpsConfigurationExistsAsync(orgContext))
+            {
+                return false;
+            }
+
             var appName = AltinnRepoName.FromName(editingContext.Repo);
             var environment = AltinnEnvironment.FromName(env);
 
