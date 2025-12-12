@@ -83,7 +83,7 @@ public sealed class IsAppDeployedIntegrationTests : IAsyncLifetime
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await _httpClient.GetAsync(
-            $"/runtime/gateway/api/v1/deploy/apps/{appName}/{originEnvironment}/deployed",
+            new Uri($"/runtime/gateway/api/v1/deploy/apps/{appName}/{originEnvironment}/deployed", UriKind.Relative),
             ct
         );
 
