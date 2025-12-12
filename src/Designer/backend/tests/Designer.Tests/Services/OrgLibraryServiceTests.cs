@@ -105,9 +105,9 @@ public class OrgLibraryServiceTests
         FileMetadata fileMetadata = new(filePath, null);
 
         // Create a temporary directory for the test repository
-        string tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        string repoPath = Path.Combine(tempDir, developer, org, "ttd-content");
-        string fullFilePath = Path.Combine(repoPath, filePath);
+        string tempDir = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString());
+        string repoPath = Path.Join(tempDir, developer, org, "ttd-content");
+        string fullFilePath = Path.Join(repoPath, filePath);
 
         Directory.CreateDirectory(Path.GetDirectoryName(fullFilePath)!);
         await File.WriteAllTextAsync(fullFilePath, "old content");
