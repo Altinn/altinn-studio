@@ -24,6 +24,7 @@ export class UiEditorPage extends BasePage {
     const baseRoute = this.getRoute('editorUi');
     const expectedPath = baseRoute + (layoutSet ? `/layoutSet/${layoutSet}` : '');
 
+    await this.page.waitForLoadState('load');
     await this.page.waitForURL((url) => {
       if (url.pathname !== expectedPath) return false;
       if (layout !== undefined && layout !== null) {
@@ -265,9 +266,11 @@ export class UiEditorPage extends BasePage {
   }
 
   public async clickOnUxEditorButton(): Promise<void> {
-    await this.page
-      .getByRole('button', { name: this.textMock('ux_editor.task_card.ux_editor') })
-      .click();
+    const button = this.page.getByRole('button', {
+      name: this.textMock('ux_editor.task_card.ux_editor'),
+    });
+    await button.waitFor({ state: 'visible' });
+    await button.click();
   }
 
   public async verifyThatAddNewPageButtonIsVisible(): Promise<void> {
