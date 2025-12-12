@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/App/frontend/**'
       - '.github/workflows/app-frontend-lighthouse-ci.yml'
+      - './.github/actions/**'
   pull_request:
     paths:
       - 'src/App/frontend/**'
@@ -39,31 +40,18 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
-        with:
-          dotnet-version: '8.0.x'
-
       - name: Download built frontend
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: app-frontend-dist
           path: src/App/frontend/dist
 
-      - name: Download built localtest docker images
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
-        with:
-          name: localtest-docker-images
-          path: /tmp
-
-      - name: Load docker images
-        run: docker load -i /tmp/images.tar
-
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
           run-frontend: false
           run-localtest: true
+          docker-profile: test-apps
 
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -74,7 +62,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: src/App/frontend
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Run Lighthouse CI
         id: lighthouse-ci
@@ -100,3 +88,8 @@ jobs:
               repo: context.repo.repo,
               body: '🔍 **Lighthouse Report**\n\n📊 [View Performance Report](${{ env.REPORT_URL }})'
             });
+
+      - name: Stop localtest
+        if: always()
+        working-directory: src/Runtime/localtest
+        run: docker compose down

@@ -11,6 +11,9 @@ inputs:
     description: "Port for frontend server"
     required: false
     default: "8080"
+  docker-profile:
+    description: "Docker compose profile to use"
+    required: false
 runs:
   using: "composite"
   steps:
@@ -30,13 +33,47 @@ runs:
           exit 1
         fi
       shell: bash
+
+    - name: Set profile args
+      id: set-profile
+      shell: bash
+      run: |
+        profile_args=""
+        if [[ "${{ inputs.docker-profile }}" != "" ]]; then
+          profile_args="--profile ${{ inputs.docker-profile }}"
+        fi
+
+        echo "profile-args=$profile_args" >> $GITHUB_OUTPUT
+
+    - name: Set up Docker Buildx
+      if: ${{ inputs.run-localtest == 'true' }}
+      uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+
+    - name: Login to GitHub Container Registry
+      if: ${{ inputs.run-localtest == 'true' }}
+      uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+
+    - name: Pull cached images
+      if: ${{ inputs.run-localtest == 'true' }}
+      working-directory: src/Runtime/localtest
+      run: |
+        args="${{ steps.set-profile.outputs.profile-args }}"
+        docker compose $args pull || echo "Pull failed, will build images instead"
+      shell: bash
+
     - name: Start localtest
       if: ${{ inputs.run-localtest == 'true' }}
       working-directory: src/Runtime/localtest
       run: |
-        if ! docker compose up -d; then
+        args="${{ steps.set-profile.outputs.profile-args }}"
+
+        if ! docker compose $args up -d; then
           echo "Failed to start localtest"
-          docker compose logs
+          docker compose $args logs
           exit 1
         fi
       shell: bash
@@ -56,10 +93,23 @@ runs:
 
     - name: Wait for localtest to be ready
       if: ${{ inputs.run-localtest == 'true' }}
+      working-directory: src/Runtime/localtest
       run: |
-        echo "Waiting for localtest to be ready..."
-        timeout 120 bash -c 'until curl -f http://localhost:80/health || curl -f http://localhost:80; do sleep 5; done'
-        echo "Localtest is ready!"
+        args="${{ steps.set-profile.outputs.profile-args }}"
+
+        echo "Waiting for backend services to be ready..."
+
+        # Wait for main localtest service (port 5101)
+        echo "Checking localtest service on port 5101..."
+        timeout 180 bash -c 'until curl -f http://localhost:5101/health > /dev/null 2>&1; do echo "Waiting for localtest service..."; sleep 5; done'
+        echo "✅ Localtest service is ready!"
+
+        # Wait for loadbalancer to be ready (port 80)
+        echo "Checking loadbalancer on port 80..."
+        timeout 60 bash -c 'until curl -s http://localhost:80 | grep -v "Temporary Redirect" > /dev/null 2>&1; do echo "Waiting for loadbalancer..."; sleep 3; done'
+        echo "✅ Loadbalancer is ready!"
+
+        echo "🎉 All localtest services are ready!"
       shell: bash
       env:
         TEST_DOMAIN: local.altinn.cloud
