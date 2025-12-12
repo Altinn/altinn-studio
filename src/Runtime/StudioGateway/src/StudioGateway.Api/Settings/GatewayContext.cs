@@ -1,6 +1,6 @@
 namespace StudioGateway.Api.Settings;
 
-internal class GatewayContext
+internal sealed class GatewayContext
 {
     public string ServiceOwner { get; set; } = "";
     public string UpgradeChannel { get; set; } = "";
