@@ -33,6 +33,12 @@ public class GitRepoGitOpsConfigurationManager(
 
     private string GitOpsRepoName(string org) => string.Format(gitOpsSettings.GitOpsRepoNameFormat, org);
 
+    public async Task<bool> GitOpsConfigurationExistsAsync(AltinnOrgEditingContext context)
+    {
+        var repo = await giteaClient.GetRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org));
+        return repo is not null;
+    }
+
     public async Task EnsureGitOpsConfigurationExistsAsync(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
         DeleteLocalRepositoryIfExists(context);
@@ -46,9 +52,7 @@ public class GitRepoGitOpsConfigurationManager(
 
     private async Task EnsureRemoteRepositoryExists(AltinnOrgEditingContext context)
     {
-        // Check if remote repo exists
-        var repo = await giteaClient.GetRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org));
-        if (repo is not null)
+        if (await GitOpsConfigurationExistsAsync(context))
         {
             return;
         }

@@ -1,0 +1,3 @@
+.dialog > :first-child > button {
+  width: fit-content;
+}
