@@ -17,7 +17,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
     public class GiteaPublishResourcePermissionHandler : AuthorizationHandler<GiteaPublishResourcePermissionRequirement>
     {
         private readonly IGiteaClient _giteaClient;
-        private readonly HttpContext _httpContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
         /// Constructor
@@ -26,7 +26,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         public GiteaPublishResourcePermissionHandler(IGiteaClient giteaClient, IHttpContextAccessor httpContextAccessor)
         {
-            _httpContext = httpContextAccessor.HttpContext;
+            _httpContextAccessor = httpContextAccessor;
             _giteaClient = giteaClient;
         }
 
@@ -36,16 +36,16 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             GiteaPublishResourcePermissionRequirement requirement
         )
         {
-            if (_httpContext == null)
+            if (_httpContextAccessor.HttpContext == null)
             {
                 return;
             }
 
-            string org = _httpContext.GetRouteValue("org")?.ToString();
-            string environment = _httpContext.GetRouteValue("env")?.ToString();
+            string org = _httpContextAccessor.HttpContext.GetRouteValue("org")?.ToString();
+            string environment = _httpContextAccessor.HttpContext.GetRouteValue("env")?.ToString();
             if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(environment))
             {
-                _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return;
             }
 
@@ -63,7 +63,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             }
             else
             {
-                _httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
             }
         }
     }

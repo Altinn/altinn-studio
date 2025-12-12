@@ -20,7 +20,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
     public class GiteaDeployPermissionHandler : AuthorizationHandler<GiteaDeployPermissionRequirement>
     {
         private readonly IGiteaClient _giteaClient;
-        private readonly HttpContext _httpContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
         /// Constructor
@@ -29,7 +29,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         public GiteaDeployPermissionHandler(IGiteaClient giteaClient, IHttpContextAccessor httpContextAccessor)
         {
-            _httpContext = httpContextAccessor.HttpContext;
+            _httpContextAccessor = httpContextAccessor;
             _giteaClient = giteaClient;
         }
 
@@ -39,28 +39,28 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             GiteaDeployPermissionRequirement requirement
         )
         {
-            if (_httpContext == null)
+            if (_httpContextAccessor.HttpContext == null)
             {
                 return;
             }
 
-            string org = _httpContext.GetRouteValue("org")?.ToString();
+            string org = _httpContextAccessor.HttpContext.GetRouteValue("org")?.ToString();
 
             if (string.IsNullOrWhiteSpace(org))
             {
-                _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return;
             }
 
-            string environment = _httpContext.GetRouteValue("environment")?.ToString();
+            string environment = _httpContextAccessor.HttpContext.GetRouteValue("environment")?.ToString();
 
             if (string.IsNullOrEmpty(environment))
             {
-                _httpContext.Request.EnableBuffering();
+                _httpContextAccessor.HttpContext.Request.EnableBuffering();
 
                 using (
                     var reader = new StreamReader(
-                        _httpContext.Request.Body,
+                        _httpContextAccessor.HttpContext.Request.Body,
                         encoding: Encoding.UTF8,
                         detectEncodingFromByteOrderMarks: false,
                         bufferSize: 1024,
@@ -84,12 +84,12 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                     }
                     catch
                     {
-                        _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                        _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                         return;
                     }
                     reader.Close();
                     // Reset the request body stream position so the next middleware can read it
-                    _httpContext.Request.Body.Position = 0;
+                    _httpContextAccessor.HttpContext.Request.Body.Position = 0;
                 }
             }
 
@@ -107,7 +107,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             }
             else
             {
-                _httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
             }
         }
     }

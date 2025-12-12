@@ -77,7 +77,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 AppRepo = release.App,
                 TagName = release.TagName,
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos",
-                AppDeployToken = await httpContext.GetDeveloperAppTokenAsync(),
+                AppDeployToken = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync(),
                 AltinnStudioHostname = _generalSettings.HostName,
                 AppMaskinportenScopes = await GetAppScopesAsJson(release.Org, release.App, cancellationToken),
             };
