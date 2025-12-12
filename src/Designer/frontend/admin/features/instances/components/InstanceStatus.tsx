@@ -3,6 +3,7 @@ import { Tag } from '@digdir/designsystemet-react';
 import type { SimpleInstance } from 'admin/types/InstancesResponse';
 
 import classes from './InstanceStatus.module.css';
+import { useTranslation } from 'react-i18next';
 
 type InstanceStatusProps = {
   instance: SimpleInstance;
@@ -24,35 +25,37 @@ type InstanceStatusChipProps = {
 };
 
 const InstanceStatusChip = ({ status }: InstanceStatusChipProps) => {
+  const { t } = useTranslation();
+
   switch (status) {
     case InstanceStatuses.Unread:
       return (
         <Tag size='sm' color='warning'>
-          Ulest
+          {t('admin.instances.status.unread')}
         </Tag>
       );
     case InstanceStatuses.Active:
       return (
         <Tag size='sm' color='first'>
-          Aktiv
+          {t('admin.instances.status.active')}
         </Tag>
       );
     case InstanceStatuses.Archived:
       return (
         <Tag size='sm' color='success'>
-          Levert av bruker
+          {t('admin.instances.status.completed')}
         </Tag>
       );
     case InstanceStatuses.Confirmed:
       return (
         <Tag size='sm' color='success'>
-          Bekreftet mottatt
+          {t('admin.instances.status.confirmed')}
         </Tag>
       );
     case InstanceStatuses.SoftDeleted:
       return (
         <Tag size='sm' color='danger'>
-          Slettet
+          {t('admin.instances.status.deleted')}
         </Tag>
       );
   }

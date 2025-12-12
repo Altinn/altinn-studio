@@ -7,6 +7,9 @@ import type { SimpleInstance } from 'admin/types/InstancesResponse';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
 import { useMutation } from '@tanstack/react-query';
 import { InstanceStatus } from './InstanceStatus';
+import { isAxiosError } from 'axios';
+import { Alert } from '@digdir/designsystemet-react';
+import { useCurrentOrg } from 'admin/layout/PageLayout';
 
 type InstancesTableProps = {
   org: string;
@@ -18,6 +21,7 @@ type InstancesTableProps = {
   confirmed?: boolean;
   isSoftDeleted?: boolean;
   isHardDeleted?: boolean;
+  createdBefore?: string;
 };
 
 export const InstancesTable = ({
@@ -30,8 +34,9 @@ export const InstancesTable = ({
   confirmed,
   isSoftDeleted,
   isHardDeleted,
+  createdBefore,
 }: InstancesTableProps) => {
-  const { data, status, fetchNextPage, hasNextPage } = useAppInstancesQuery(
+  const { data, status, error, fetchNextPage, hasNextPage } = useAppInstancesQuery(
     org,
     env,
     app,
@@ -41,13 +46,26 @@ export const InstancesTable = ({
     confirmed,
     isSoftDeleted,
     isHardDeleted,
+    createdBefore,
   );
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const orgName = useCurrentOrg().name[i18n.language];
 
   switch (status) {
     case 'pending':
       return <StudioSpinner aria-label={t('general.loading')} />;
     case 'error':
+      if (isAxiosError(error) && error.response?.status === 403) {
+        const envTitle =
+          env === 'production'
+            ? t(`general.production_environment_alt`).toLowerCase()
+            : `${t('general.test_environment_alt').toLowerCase()} ${env?.toUpperCase()}`;
+        return (
+          <Alert severity='info'>
+            {t('admin.instances.missing_rights', { envTitle, orgName })}
+          </Alert>
+        );
+      }
       return <StudioError>{t('general.page_error_title')}</StudioError>;
     case 'success':
       return (
@@ -80,10 +98,10 @@ const InstancesTableWithData = ({
     <StudioTable zebra>
       <StudioTable.Head>
         <StudioTable.Row>
-          <StudioTable.Cell>{t('Id')}</StudioTable.Cell>
-          <StudioTable.Cell>{t('Opprettet')}</StudioTable.Cell>
-          <StudioTable.Cell>{t('Prosessteg')}</StudioTable.Cell>
-          <StudioTable.Cell>{t('Status')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.id')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.created')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.process_task')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.status')}</StudioTable.Cell>
         </StudioTable.Row>
       </StudioTable.Head>
       <StudioTable.Body>
@@ -93,7 +111,9 @@ const InstancesTableWithData = ({
               {/* <Link to={`${instance.id}`}>{instance.id}</Link> */}
               {instance.id}
             </StudioTable.Cell>
-            <StudioTable.Cell>{formatDateAndTime(instance.createdAt)}</StudioTable.Cell>
+            <StudioTable.Cell>
+              {instance.createdAt ? formatDateAndTime(instance.createdAt) : '-'}
+            </StudioTable.Cell>
             <StudioTable.Cell>
               {instance.currentTaskName ?? instance.currentTaskId ?? '-'}
             </StudioTable.Cell>
@@ -109,7 +129,7 @@ const InstancesTableWithData = ({
             <StudioTable.Cell className={classes.footerCell} colSpan={4}>
               <StudioButton disabled={isFetchingMoreResults} onClick={() => doFetchMoreResults()}>
                 {isFetchingMoreResults && <StudioSpinner aria-label={t('general.loading')} />}
-                {t('Last inn 10 flere rader')}
+                {t('admin.instances.fetch_more')}
               </StudioButton>
             </StudioTable.Cell>
           </StudioTable.Row>

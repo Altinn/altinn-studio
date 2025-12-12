@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage.Models;
@@ -23,6 +24,7 @@ public interface IAltinnStorageInstancesClient
         bool? confirmedFilter,
         bool? isSoftDeletedFilter,
         bool? isHardDeletedFilter,
+        DateOnly? createdBeforeFilter,
         CancellationToken ct
     );
 }

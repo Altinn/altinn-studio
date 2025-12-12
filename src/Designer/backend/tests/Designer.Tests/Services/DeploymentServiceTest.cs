@@ -18,6 +18,7 @@ using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
+using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Designer.Tests.Utils;
@@ -37,6 +38,7 @@ namespace Designer.Tests.Services
     {
         private readonly Mock<IHttpContextAccessor> _httpContextAccessor;
         private readonly Mock<IDeploymentRepository> _deploymentRepository;
+        private readonly Mock<IDeployEventRepository> _deployEventRepository;
         private readonly Mock<ILogger<DeploymentService>> _deploymentLogger;
         private readonly Mock<IReleaseRepository> _releaseRepository;
         private readonly Mock<IApplicationInformationService> _applicationInformationService;
@@ -45,6 +47,7 @@ namespace Designer.Tests.Services
         private readonly Mock<IPublisher> _mediatrMock;
         private readonly Mock<IGitOpsConfigurationManager> _gitOpsConfigurationManager;
         private readonly Mock<IFeatureManager> _featureManager;
+        private readonly Mock<IRuntimeGatewayClient> _runtimeGatewayClient;
         private readonly GeneralSettings _generalSettings;
         private readonly FakeTimeProvider _fakeTimeProvider;
 
@@ -53,6 +56,7 @@ namespace Designer.Tests.Services
             _httpContextAccessor = AuthenticationUtil.GetAuthenticatedHttpContextAccessor();
             _deploymentLogger = new Mock<ILogger<DeploymentService>>();
             _deploymentRepository = new Mock<IDeploymentRepository>();
+            _deployEventRepository = new Mock<IDeployEventRepository>();
             _releaseRepository = new Mock<IReleaseRepository>();
             _environementsService = new Mock<IEnvironmentsService>();
             _azureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
@@ -62,6 +66,7 @@ namespace Designer.Tests.Services
             _mediatrMock = new Mock<IPublisher>();
             _gitOpsConfigurationManager = new Mock<IGitOpsConfigurationManager>();
             _featureManager = new Mock<IFeatureManager>();
+            _runtimeGatewayClient = new Mock<IRuntimeGatewayClient>();
             _generalSettings = new GeneralSettings();
             _fakeTimeProvider = new FakeTimeProvider();
         }
@@ -103,6 +108,7 @@ namespace Designer.Tests.Services
                 _azureDevOpsBuildClient.Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
+                _deployEventRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _applicationInformationService.Object,
@@ -111,7 +117,8 @@ namespace Designer.Tests.Services
                 _generalSettings,
                 _fakeTimeProvider,
                 _gitOpsConfigurationManager.Object,
-                _featureManager.Object);
+                _featureManager.Object,
+                _runtimeGatewayClient.Object);
 
             // Act
             DeploymentEntity deploymentEntity =
@@ -164,6 +171,7 @@ namespace Designer.Tests.Services
                 _azureDevOpsBuildClient.Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
+                _deployEventRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _applicationInformationService.Object,
@@ -172,7 +180,8 @@ namespace Designer.Tests.Services
                 _generalSettings,
                 _fakeTimeProvider,
                 _gitOpsConfigurationManager.Object,
-                _featureManager.Object);
+                _featureManager.Object,
+                _runtimeGatewayClient.Object);
 
             // Act
             SearchResults<DeploymentEntity> results =
@@ -181,43 +190,6 @@ namespace Designer.Tests.Services
             // Assert
             Assert.Equal(8, results.Results.Count());
             _deploymentRepository.Verify(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task UpdateAsync()
-        {
-            // Arrange
-            _deploymentRepository.Setup(r => r.Get(
-                It.IsAny<string>(),
-                It.IsAny<string>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
-
-            _deploymentRepository.Setup(r => r.Update(
-                It.IsAny<DeploymentEntity>())).Returns(Task.CompletedTask);
-
-            DeploymentService deploymentService = new(
-                GetAzureDevOpsSettings(),
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _generalSettings,
-                _fakeTimeProvider,
-                _gitOpsConfigurationManager.Object,
-                _featureManager.Object);
-
-            _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>()))
-                .ReturnsAsync(GetReleases("createdRelease.json").First().Build);
-
-            // Act
-            await deploymentService.UpdateAsync(GetDeployments("createdDeployment.json").First().Build.Id, "ttd");
-
-            // Assert
-            _deploymentRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            _deploymentRepository.Verify(r => r.Update(It.IsAny<DeploymentEntity>()), Times.Once);
         }
 
         [Theory]
@@ -278,6 +250,7 @@ namespace Designer.Tests.Services
                 _azureDevOpsBuildClient.Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
+                _deployEventRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _applicationInformationService.Object,
@@ -286,13 +259,14 @@ namespace Designer.Tests.Services
                 _generalSettings,
                 _fakeTimeProvider,
                 _gitOpsConfigurationManager.Object,
-                _featureManager.Object);
+                _featureManager.Object,
+                _runtimeGatewayClient.Object);
 
             // Act
             await deploymentService.CreateAsync(org, app, deploymentModel);
 
-            // Assert
-            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
+            // Assert - feature flag is checked twice (once for GitOps logic, once for definition selection)
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
 
             _gitOpsConfigurationManager.Verify(gm => gm.EnsureGitOpsConfigurationExistsAsync(
                 It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
@@ -311,9 +285,10 @@ namespace Designer.Tests.Services
                 It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
                 It.Is<AltinnEnvironment>(env => env.Name == deploymentModel.EnvName)), Times.Once);
 
+            var azureDevOpsSettings = GetAzureDevOpsSettings();
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
                 It.Is<QueueBuildParameters>(qbp => qbp.PushSyncRootGitopsImage == "true"),
-                It.IsAny<int>()), Times.Once);
+                azureDevOpsSettings.GitOpsManagerDefinitionId), Times.Once);
         }
 
         [Theory]
@@ -366,6 +341,7 @@ namespace Designer.Tests.Services
                 _azureDevOpsBuildClient.Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
+                _deployEventRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _applicationInformationService.Object,
@@ -374,13 +350,14 @@ namespace Designer.Tests.Services
                 _generalSettings,
                 _fakeTimeProvider,
                 _gitOpsConfigurationManager.Object,
-                _featureManager.Object);
+                _featureManager.Object,
+                _runtimeGatewayClient.Object);
 
             // Act
             await deploymentService.CreateAsync(org, app, deploymentModel);
 
-            // Assert
-            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
+            // Assert - feature flag is checked twice (once for GitOps logic, once for definition selection)
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
 
             _gitOpsConfigurationManager.Verify(gm => gm.EnsureGitOpsConfigurationExistsAsync(
                 It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
@@ -400,9 +377,11 @@ namespace Designer.Tests.Services
                 It.IsAny<AltinnOrgEditingContext>(),
                 It.IsAny<AltinnEnvironment>()), Times.Never);
 
+            // Should use GitOpsManagerDefinitionId when GitOps is enabled
+            var azureDevOpsSettings = GetAzureDevOpsSettings();
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
                 It.Is<QueueBuildParameters>(qbp => qbp.PushSyncRootGitopsImage == "false"),
-                It.IsAny<int>()), Times.Once);
+                azureDevOpsSettings.GitOpsManagerDefinitionId), Times.Once);
         }
 
         [Theory]
@@ -445,6 +424,7 @@ namespace Designer.Tests.Services
                 _azureDevOpsBuildClient.Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
+                _deployEventRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _applicationInformationService.Object,
@@ -453,13 +433,14 @@ namespace Designer.Tests.Services
                 _generalSettings,
                 _fakeTimeProvider,
                 _gitOpsConfigurationManager.Object,
-                _featureManager.Object);
+                _featureManager.Object,
+                _runtimeGatewayClient.Object);
 
             // Act
             await deploymentService.CreateAsync(org, app, deploymentModel);
 
-            // Assert
-            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
+            // Assert - feature flag is checked twice (once for GitOps logic, once for definition selection)
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
 
             // Verify NO GitOps methods are called when feature is disabled
             _gitOpsConfigurationManager.Verify(gm => gm.EnsureGitOpsConfigurationExistsAsync(
@@ -479,9 +460,11 @@ namespace Designer.Tests.Services
                 It.IsAny<AltinnOrgEditingContext>(),
                 It.IsAny<AltinnEnvironment>()), Times.Never);
 
+            // Should use DeployDefinitionId when GitOps is disabled
+            var azureDevOpsSettings = GetAzureDevOpsSettings();
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
                 It.Is<QueueBuildParameters>(qbp => qbp.PushSyncRootGitopsImage == "false"),
-                It.IsAny<int>()), Times.Once);
+                azureDevOpsSettings.DeployDefinitionId), Times.Once);
         }
 
         private static List<ReleaseEntity> GetReleases(string filename)
@@ -536,13 +519,353 @@ namespace Designer.Tests.Services
             return new Build { Id = 1, Status = BuildStatus.InProgress, StartTime = DateTime.Now };
         }
 
+        [Theory]
+        [InlineData("ttd", "test-app", "at23")]
+        public async Task UndeployAsync_WithGitOpsFeatureDisabled_ShouldUseDecommissionDefinitionId(string org, string app, string env)
+        {
+            // Arrange
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, "testUser");
+
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
+                .ReturnsAsync(false);
+
+            _deploymentRepository.Setup(r => r.GetLastDeployed(org, app, env))
+                .ReturnsAsync(GetDeployments("createdDeployment.json").First());
+
+            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(
+                It.IsAny<GitOpsManagementBuildParameters>(),
+                It.IsAny<int>())).ReturnsAsync(GetBuild());
+
+            _deploymentRepository.Setup(r => r.Create(
+                It.IsAny<DeploymentEntity>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
+
+            var azureDevOpsSettings = GetAzureDevOpsSettings();
+
+            DeploymentService deploymentService = new(
+                azureDevOpsSettings,
+                _azureDevOpsBuildClient.Object,
+                _httpContextAccessor.Object,
+                _deploymentRepository.Object,
+                _deployEventRepository.Object,
+                _releaseRepository.Object,
+                _environementsService.Object,
+                _applicationInformationService.Object,
+                _deploymentLogger.Object,
+                _mediatrMock.Object,
+                _generalSettings,
+                _fakeTimeProvider,
+                _gitOpsConfigurationManager.Object,
+                _featureManager.Object,
+                _runtimeGatewayClient.Object);
+
+            // Act
+            await deploymentService.UndeployAsync(editingContext, env);
+
+            // Assert
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
+
+            // Should NOT call any GitOps methods
+            _gitOpsConfigurationManager.Verify(gm => gm.GitOpsConfigurationExistsAsync(
+                It.IsAny<AltinnOrgEditingContext>()), Times.Never);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.AppExistsInGitOpsConfigurationAsync(
+                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnRepoName>(),
+                It.IsAny<AltinnEnvironment>()), Times.Never);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.RemoveAppFromGitOpsEnvironmentConfigurationAsync(
+                It.IsAny<AltinnRepoEditingContext>(),
+                It.IsAny<AltinnEnvironment>()), Times.Never);
+
+            // Should use DecommissionDefinitionId
+            _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
+                It.IsAny<GitOpsManagementBuildParameters>(),
+                azureDevOpsSettings.DecommissionDefinitionId), Times.Once);
+
+            _mediatrMock.Verify(m => m.Publish(It.Is<DeploymentPipelineQueued>(n =>
+                n.EditingContext.Org == org &&
+                n.EditingContext.Repo == app &&
+                n.Environment == env &&
+                n.PipelineType == PipelineType.Undeploy), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("ttd", "test-app", "at23")]
+        public async Task UndeployAsync_WithGitOpsFeatureEnabled_AppExistsInGitOps_ShouldRemoveAppAndUseGitOpsManagerDefinitionId(string org, string app, string env)
+        {
+            // Arrange
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, "testUser");
+
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
+                .ReturnsAsync(true);
+
+            _gitOpsConfigurationManager.Setup(gm => gm.GitOpsConfigurationExistsAsync(
+                It.IsAny<AltinnOrgEditingContext>())).ReturnsAsync(true);
+
+            _gitOpsConfigurationManager.Setup(gm => gm.AppExistsInGitOpsConfigurationAsync(
+                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnRepoName>(),
+                It.IsAny<AltinnEnvironment>())).ReturnsAsync(true);
+
+            _gitOpsConfigurationManager.Setup(gm => gm.RemoveAppFromGitOpsEnvironmentConfigurationAsync(
+                It.IsAny<AltinnRepoEditingContext>(),
+                It.IsAny<AltinnEnvironment>())).Returns(Task.CompletedTask);
+
+            _gitOpsConfigurationManager.Setup(gm => gm.PersistGitOpsConfigurationAsync(
+                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnEnvironment>())).Returns(Task.CompletedTask);
+
+            _deploymentRepository.Setup(r => r.GetLastDeployed(org, app, env))
+                .ReturnsAsync(GetDeployments("createdDeployment.json").First());
+
+            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(
+                It.IsAny<GitOpsManagementBuildParameters>(),
+                It.IsAny<int>())).ReturnsAsync(GetBuild());
+
+            _deploymentRepository.Setup(r => r.Create(
+                It.IsAny<DeploymentEntity>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
+
+            var azureDevOpsSettings = GetAzureDevOpsSettings();
+
+            DeploymentService deploymentService = new(
+                azureDevOpsSettings,
+                _azureDevOpsBuildClient.Object,
+                _httpContextAccessor.Object,
+                _deploymentRepository.Object,
+                _deployEventRepository.Object,
+                _releaseRepository.Object,
+                _environementsService.Object,
+                _applicationInformationService.Object,
+                _deploymentLogger.Object,
+                _mediatrMock.Object,
+                _generalSettings,
+                _fakeTimeProvider,
+                _gitOpsConfigurationManager.Object,
+                _featureManager.Object,
+                _runtimeGatewayClient.Object);
+
+            // Act
+            await deploymentService.UndeployAsync(editingContext, env);
+
+            // Assert
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.GitOpsConfigurationExistsAsync(
+                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org)), Times.Once);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.AppExistsInGitOpsConfigurationAsync(
+                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
+                It.Is<AltinnRepoName>(repo => repo.Name == app),
+                It.Is<AltinnEnvironment>(e => e.Name == env)), Times.Once);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.RemoveAppFromGitOpsEnvironmentConfigurationAsync(
+                It.Is<AltinnRepoEditingContext>(ctx => ctx.Org == org && ctx.Repo == app),
+                It.Is<AltinnEnvironment>(e => e.Name == env)), Times.Once);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.PersistGitOpsConfigurationAsync(
+                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
+                It.Is<AltinnEnvironment>(e => e.Name == env)), Times.Once);
+
+            // Should use GitOpsManagerDefinitionId
+            _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
+                It.IsAny<GitOpsManagementBuildParameters>(),
+                azureDevOpsSettings.GitOpsManagerDefinitionId), Times.Once);
+
+            _mediatrMock.Verify(m => m.Publish(It.Is<DeploymentPipelineQueued>(n =>
+                n.EditingContext.Org == org &&
+                n.EditingContext.Repo == app &&
+                n.Environment == env &&
+                n.PipelineType == PipelineType.Undeploy), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("ttd", "test-app", "at23")]
+        public async Task UndeployAsync_WithGitOpsFeatureEnabled_AppDoesNotExistInGitOps_NotDeployedInCluster_ShouldUseDecommissionDefinitionId(string org, string app, string env)
+        {
+            // Arrange
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, "testUser");
+
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
+                .ReturnsAsync(true);
+
+            _gitOpsConfigurationManager.Setup(gm => gm.GitOpsConfigurationExistsAsync(
+                It.IsAny<AltinnOrgEditingContext>())).ReturnsAsync(true);
+
+            // App does NOT exist in GitOps configuration
+            _gitOpsConfigurationManager.Setup(gm => gm.AppExistsInGitOpsConfigurationAsync(
+                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnRepoName>(),
+                It.IsAny<AltinnEnvironment>())).ReturnsAsync(false);
+
+            // App is NOT deployed in cluster
+            _runtimeGatewayClient.Setup(rgc => rgc.IsAppDeployedWithGitOpsAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<AltinnEnvironment>(),
+                It.IsAny<CancellationToken>())).ReturnsAsync(false);
+
+            _deploymentRepository.Setup(r => r.GetLastDeployed(org, app, env))
+                .ReturnsAsync(GetDeployments("createdDeployment.json").First());
+
+            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(
+                It.IsAny<GitOpsManagementBuildParameters>(),
+                It.IsAny<int>())).ReturnsAsync(GetBuild());
+
+            _deploymentRepository.Setup(r => r.Create(
+                It.IsAny<DeploymentEntity>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
+
+            var azureDevOpsSettings = GetAzureDevOpsSettings();
+
+            DeploymentService deploymentService = new(
+                azureDevOpsSettings,
+                _azureDevOpsBuildClient.Object,
+                _httpContextAccessor.Object,
+                _deploymentRepository.Object,
+                _deployEventRepository.Object,
+                _releaseRepository.Object,
+                _environementsService.Object,
+                _applicationInformationService.Object,
+                _deploymentLogger.Object,
+                _mediatrMock.Object,
+                _generalSettings,
+                _fakeTimeProvider,
+                _gitOpsConfigurationManager.Object,
+                _featureManager.Object,
+                _runtimeGatewayClient.Object);
+
+            // Act
+            await deploymentService.UndeployAsync(editingContext, env);
+
+            // Assert
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.GitOpsConfigurationExistsAsync(
+                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org)), Times.Once);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.AppExistsInGitOpsConfigurationAsync(
+                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
+                It.Is<AltinnRepoName>(repo => repo.Name == app),
+                It.Is<AltinnEnvironment>(e => e.Name == env)), Times.Once);
+
+            // Should check if app is deployed in cluster
+            _runtimeGatewayClient.Verify(rgc => rgc.IsAppDeployedWithGitOpsAsync(
+                org, app, It.Is<AltinnEnvironment>(e => e.Name == env), It.IsAny<CancellationToken>()), Times.Once);
+
+            // Should NOT remove app since it doesn't exist
+            _gitOpsConfigurationManager.Verify(gm => gm.RemoveAppFromGitOpsEnvironmentConfigurationAsync(
+                It.IsAny<AltinnRepoEditingContext>(),
+                It.IsAny<AltinnEnvironment>()), Times.Never);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.PersistGitOpsConfigurationAsync(
+                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnEnvironment>()), Times.Never);
+
+            // Should fallback to DecommissionDefinitionId since app is not deployed in cluster
+            _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
+                It.IsAny<GitOpsManagementBuildParameters>(),
+                azureDevOpsSettings.DecommissionDefinitionId), Times.Once);
+
+            _mediatrMock.Verify(m => m.Publish(It.Is<DeploymentPipelineQueued>(n =>
+                n.EditingContext.Org == org &&
+                n.EditingContext.Repo == app &&
+                n.Environment == env &&
+                n.PipelineType == PipelineType.Undeploy), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("ttd", "test-app", "at23")]
+        public async Task UndeployAsync_WithGitOpsFeatureEnabled_AppDoesNotExistInGitOps_ButDeployedInCluster_ShouldUseGitOpsManagerDefinitionId(string org, string app, string env)
+        {
+            // Arrange
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, "testUser");
+
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
+                .ReturnsAsync(true);
+
+            _gitOpsConfigurationManager.Setup(gm => gm.GitOpsConfigurationExistsAsync(
+                It.IsAny<AltinnOrgEditingContext>())).ReturnsAsync(true);
+
+            // App does NOT exist in GitOps configuration
+            _gitOpsConfigurationManager.Setup(gm => gm.AppExistsInGitOpsConfigurationAsync(
+                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnRepoName>(),
+                It.IsAny<AltinnEnvironment>())).ReturnsAsync(false);
+
+            // App IS deployed in cluster (e.g., GitOps sync failed but helm release exists)
+            _runtimeGatewayClient.Setup(rgc => rgc.IsAppDeployedWithGitOpsAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<AltinnEnvironment>(),
+                It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+            _deploymentRepository.Setup(r => r.GetLastDeployed(org, app, env))
+                .ReturnsAsync(GetDeployments("createdDeployment.json").First());
+
+            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(
+                It.IsAny<GitOpsManagementBuildParameters>(),
+                It.IsAny<int>())).ReturnsAsync(GetBuild());
+
+            _deploymentRepository.Setup(r => r.Create(
+                It.IsAny<DeploymentEntity>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
+
+            var azureDevOpsSettings = GetAzureDevOpsSettings();
+
+            DeploymentService deploymentService = new(
+                azureDevOpsSettings,
+                _azureDevOpsBuildClient.Object,
+                _httpContextAccessor.Object,
+                _deploymentRepository.Object,
+                _deployEventRepository.Object,
+                _releaseRepository.Object,
+                _environementsService.Object,
+                _applicationInformationService.Object,
+                _deploymentLogger.Object,
+                _mediatrMock.Object,
+                _generalSettings,
+                _fakeTimeProvider,
+                _gitOpsConfigurationManager.Object,
+                _featureManager.Object,
+                _runtimeGatewayClient.Object);
+
+            // Act
+            await deploymentService.UndeployAsync(editingContext, env);
+
+            // Assert
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.GitOpsConfigurationExistsAsync(
+                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org)), Times.Once);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.AppExistsInGitOpsConfigurationAsync(
+                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
+                It.Is<AltinnRepoName>(repo => repo.Name == app),
+                It.Is<AltinnEnvironment>(e => e.Name == env)), Times.Once);
+
+            // Should check if app is deployed in cluster
+            _runtimeGatewayClient.Verify(rgc => rgc.IsAppDeployedWithGitOpsAsync(
+                org, app, It.Is<AltinnEnvironment>(e => e.Name == env), It.IsAny<CancellationToken>()), Times.Once);
+
+            // Should use GitOpsManagerDefinitionId since app is deployed in cluster
+            _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
+                It.IsAny<GitOpsManagementBuildParameters>(),
+                azureDevOpsSettings.GitOpsManagerDefinitionId), Times.Once);
+
+            _mediatrMock.Verify(m => m.Publish(It.Is<DeploymentPipelineQueued>(n =>
+                n.EditingContext.Org == org &&
+                n.EditingContext.Repo == app &&
+                n.Environment == env &&
+                n.PipelineType == PipelineType.Undeploy), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
         private static AzureDevOpsSettings GetAzureDevOpsSettings()
         {
             return new AzureDevOpsSettings
             {
                 BaseUri = "https://dev.azure.com/brreg/altinn-studio/_apis/",
                 BuildDefinitionId = 69,
-                DeployDefinitionId = 81
+                DeployDefinitionId = 81,
+                DecommissionDefinitionId = 82,
+                GitOpsManagerDefinitionId = 83
             };
         }
     }

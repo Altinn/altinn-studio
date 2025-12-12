@@ -29,6 +29,7 @@ internal static class MaskinportenAuthenticationExtensions
         builder.Services.AddHostedService<IssuerSchemeCacheInitializer>();
 
         builder.Services.AddSingleton<MaskinportenClient>();
+        builder.Services.AddTransient<MaskinportenHttpMessageHandler>();
 
         var authBuilder = builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
         var schemeNames = new List<string>(settings.MetadataAddresses.Length);

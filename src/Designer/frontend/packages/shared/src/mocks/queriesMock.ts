@@ -140,6 +140,7 @@ export const queriesMock: ServicesContextProps = {
       commitSha: '',
     }),
   ),
+  getPublishedResources: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
   getRepoPull: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
   getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),

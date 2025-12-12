@@ -103,6 +103,7 @@ export const orgCodeListUploadPath = (org) => `${apiBasePath}/${org}/code-lists/
 export const orgTextResourcesPath = (org, language) => `${apiBasePath}/${org}/text/language/${language}`; // Get, patch, post
 export const orgTextLanguagesPath = (org) => `${apiBasePath}/${org}/text/languages`; // Get
 export const availableResourcesInOrgLibraryPath = (org, contentType) => `${apiBasePath}/${org}/content?${s({ contentType })}`; // Get
+export const publishedResourcesPath = (org, path) => `${apiBasePath}/${org}/shared-resources/published?${s({ path })}`; // Get
 
 // Organizations
 export const orgsListPath = () => `${apiBasePath}/orgs`; // Get
