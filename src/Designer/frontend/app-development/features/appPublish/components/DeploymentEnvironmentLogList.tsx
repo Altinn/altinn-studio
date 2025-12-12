@@ -165,7 +165,7 @@ export const DeploymentEnvironmentLogList = ({
                       {deploy.events.length > 0 && (
                         <details className={classes.eventsDetails}>
                           <summary>{t('app_deployment.events')}</summary>
-                          <div className={classes.events}>
+                          <pre className={classes.events}>
                             {deploy.events.map((event) => (
                               <div key={event.created + event.eventType} className={classes.event}>
                                 <div className={classes.eventCreatedDate}>
@@ -174,7 +174,7 @@ export const DeploymentEnvironmentLogList = ({
                                 <div>{event.message}</div>
                               </div>
                             ))}
-                          </div>
+                          </pre>
                         </details>
                       )}
                     </Table.Cell>
