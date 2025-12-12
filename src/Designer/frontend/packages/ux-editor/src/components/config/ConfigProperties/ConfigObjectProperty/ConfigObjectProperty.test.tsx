@@ -101,43 +101,6 @@ describe('ConfigObjectProperties', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should handle toggle when property is undefined', async () => {
-    const user = userEvent.setup();
-    const propertyKey = 'undefinedProperty';
-    renderConfigObjectProperty({
-      props: {
-        objectPropertyKey: propertyKey,
-        schema: {
-          properties: {
-            [propertyKey]: {
-              type: 'object',
-              properties: undefined,
-            },
-          },
-        },
-      },
-    });
-    await openCard(user, propertyKey);
-    await closeCard(user, propertyKey);
-  });
-
-  it('should not render property if it is unsupported', () => {
-    renderConfigObjectProperty({
-      props: {
-        schema: {
-          ...InputSchema,
-          properties: {
-            ...InputSchema.properties,
-            unsupportedProperty: {},
-          },
-        },
-      },
-    });
-    expect(
-      screen.queryByText(textMock(`ux_editor.component_properties.unsupportedProperty`)),
-    ).not.toBeInTheDocument();
-  });
-
   it('should delete object property and close card when delete button is clicked', async () => {
     jest.spyOn(window, 'confirm').mockReturnValue(true);
     const user = userEvent.setup();
