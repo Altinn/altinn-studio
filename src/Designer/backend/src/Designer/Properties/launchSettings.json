@@ -17,7 +17,7 @@
     },
     "AltinnCoreDesigner": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "launchBrowser": false,
       "launchUrl": "http://studio.localhost/",
       "applicationUrl": "http://0.0.0.0:5000",
       "environmentVariables": {
