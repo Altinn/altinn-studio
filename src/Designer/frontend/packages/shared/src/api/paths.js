@@ -93,8 +93,9 @@ export const validateImageFromExternalUrlPath = (org, app, url) => `${apiBasePat
 export const getImageFileNamesPath = (org, app) => `${apiBasePath}/${org}/${app}/images/fileNames`; // Get
 
 // Library - org-level
+export const orgLibraryPath = (org, path, reference) => `${apiBasePath}/${org}/shared-resources?${s({ path, reference })}`; // Get
+export const orgLibraryUpdatePath = (org) => `${apiBasePath}/${org}/shared-resources`; // Put
 export const orgCodeListsPath = (org) => `${apiBasePath}/${org}/code-lists`; // Get
-export const orgCodeListsNewPath = (org) => `${apiBasePath}/${org}/code-lists/new`; // Get, Put
 export const orgCodeListPath = (org, codeListId) => `${apiBasePath}/${org}/code-lists/${codeListId}`; // Post, Put, Delete
 export const orgCodeListPublishPath = (org) => `${apiBasePath}/${org}/code-lists/new/publish`; // Post
 export const orgCodeListUpdateIdPath = (org, codeListId) => `${apiBasePath}/${org}/code-lists/change-name/${codeListId}`;
