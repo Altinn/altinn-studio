@@ -33,15 +33,23 @@ runs:
           exit 1
         fi
       shell: bash
+
+    - name: Set profile args
+      id: set-profile
+      shell: bash
+      run: |
+        profile_args=""
+        if [[ "${{ inputs.docker-profile }}" != "" ]]; then
+          profile_args="--profile ${{ inputs.docker-profile }}"
+        fi
+
+        echo "profile_args=$profile_args" >> $GITHUB_OUTPUT
     - name: Start localtest
       if: ${{ inputs.run-localtest == 'true' }}
       working-directory: src/Runtime/localtest
       run: |
-        args=""
-        if [[ "${{ inputs.docker-profile }}" != "" ]]; then
-          args="--profile ${{ inputs.docker-profile }}"
-        fi
-        
+        args=${{ steps.set-profile.outputs.profile-args }}
+
         if ! docker compose $args up -d; then
           echo "Failed to start localtest"
           docker compose $args logs
@@ -64,20 +72,36 @@ runs:
 
     - name: Wait for localtest to be ready
       if: ${{ inputs.run-localtest == 'true' }}
+      working-directory: src/Runtime/localtest
       run: |
+        args=${{ steps.set-profile.outputs.profile-args }}
+
         echo "Waiting for backend services to be ready..."
-        
+
         # Wait for main localtest service (port 5101)
         echo "Checking localtest service on port 5101..."
         timeout 180 bash -c 'until curl -f http://localhost:5101/health > /dev/null 2>&1; do echo "Waiting for localtest service..."; sleep 5; done'
         echo "✅ Localtest service is ready!"
-        
+
         # Wait for loadbalancer to be ready (port 80)
         echo "Checking loadbalancer on port 80..."
         timeout 60 bash -c 'until curl -s http://localhost:80 | grep -v "Temporary Redirect" > /dev/null 2>&1; do echo "Waiting for loadbalancer..."; sleep 3; done'
         echo "✅ Loadbalancer is ready!"
-        
+
         echo "🎉 All localtest services are ready!"
+
+        # Debug: Show what containers are actually running
+        echo "=== Container Status ==="
+        docker compose $args ps
+
+        # Debug: Test the specific URL that Lighthouse will access
+        echo "=== Testing Lighthouse URL ==="
+        echo "Testing: http://localhost:80/ttd/component-library/"
+        curl -s -I "http://localhost:80/ttd/component-library/" || echo "Failed to get headers"
+        echo ""
+        echo "Response body (first 500 chars):"
+        curl -s "http://localhost:80/ttd/component-library/" | head -c 500 || echo "Failed to get response body"
+        echo ""
       shell: bash
       env:
         TEST_DOMAIN: local.altinn.cloud
