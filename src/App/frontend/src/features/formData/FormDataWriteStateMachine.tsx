@@ -7,11 +7,9 @@ import { immer } from 'zustand/middleware/immer';
 
 import { convertData } from 'src/features/formData/convertData';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
-import { runLegacyRules } from 'src/features/formData/LegacyRules';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { getFeature } from 'src/features/toggles';
 import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
-import type { IRuleConnections } from 'src/features/form/dynamics';
 import type { FDLeafValue } from 'src/features/formData/FormDataWrite';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { DebounceReason } from 'src/features/formData/types';
@@ -56,9 +54,6 @@ export interface DataModelState {
 
   // Whether this data model can be written to or not
   readonly: boolean;
-
-  // Whether this data model is the default data model (from layout sets)
-  isDefault: boolean;
 }
 
 interface LockRequest {
@@ -216,7 +211,6 @@ export type FormDataContext = FormDataState & FormDataMethods;
 function makeActions(
   set: (fn: (state: FormDataContext) => void) => void,
   changeInstance: ChangeInstanceData,
-  ruleConnections: IRuleConnections | null,
   schemaLookup: { [dataType: string]: SchemaLookupTool },
 ): FormDataMethods {
   const debounceOnBlur = getFeature('saveOnBlur').value;
@@ -269,7 +263,7 @@ function makeActions(
       changeInstance(() => instance);
     }
 
-    for (const [dataType, { dataElementId, isDefault }] of Object.entries(state.dataModels)) {
+    for (const [dataType, { dataElementId }] of Object.entries(state.dataModels)) {
       const next = dataElementId
         ? newDataModels.find((m) => m.dataElementId === dataElementId)?.data // Stateful apps
         : newDataModels.find((m) => m.dataType === dataType)?.data; // Stateless apps
@@ -281,20 +275,6 @@ function makeActions(
         });
         applyPatch(state.dataModels[dataType].currentData, backendChangesPatch);
         state.dataModels[dataType].lastSavedData = next;
-
-        // Run rules again, against current data. Now that we have updates from the backend, some rules may
-        // have caused data to change.
-        if (isDefault) {
-          const ruleResults = runLegacyRules(
-            ruleConnections,
-            savedData[dataType],
-            state.dataModels[dataType].currentData,
-            dataType,
-          );
-          for (const { reference, newValue } of ruleResults) {
-            dot.str(reference.field, newValue, state.dataModels[dataType].currentData);
-          }
-        }
 
         // When we've copied over changes into the current model from the backend, we should also debounce this
         // immediately. Some selectors run on the debounced model (such as 'mapping', which should never run on the
@@ -316,23 +296,11 @@ function makeActions(
       return;
     }
 
-    for (const [dataType, { isDefault }] of Object.entries(state.dataModels)) {
+    for (const dataType of Object.keys(state.dataModels)) {
       state.dataModels[dataType].invalidDebouncedCurrentData = state.dataModels[dataType].invalidCurrentData;
       if (deepEqual(state.dataModels[dataType].debouncedCurrentData, state.dataModels[dataType].currentData)) {
         state.dataModels[dataType].debouncedCurrentData = state.dataModels[dataType].currentData;
         continue;
-      }
-
-      if (isDefault) {
-        const ruleChanges = runLegacyRules(
-          ruleConnections,
-          state.dataModels[dataType].debouncedCurrentData,
-          state.dataModels[dataType].currentData,
-          dataType,
-        );
-        for (const { reference, newValue } of ruleChanges) {
-          dot.str(reference.field, newValue, state.dataModels[dataType].currentData);
-        }
       }
 
       state.dataModels[dataType].debouncedCurrentData = state.dataModels[dataType].currentData;
@@ -617,13 +585,12 @@ export const createFormDataWriteStore = (
   initialDataModels: { [dataType: string]: DataModelState },
   autoSaving: boolean,
   proxies: FormDataWriteProxies,
-  ruleConnections: IRuleConnections | null,
   schemaLookup: { [dataType: string]: SchemaLookupTool },
   changeInstance: ChangeInstanceData,
 ) =>
   createStore<FormDataContext>()(
     immer((set) => {
-      const actions = makeActions(set, changeInstance, ruleConnections, schemaLookup);
+      const actions = makeActions(set, changeInstance, schemaLookup);
       for (const name of Object.keys(actions)) {
         const fnName = name as keyof FormDataMethods;
         const original = actions[fnName];

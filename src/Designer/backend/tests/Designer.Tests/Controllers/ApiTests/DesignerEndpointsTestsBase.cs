@@ -12,6 +12,8 @@ using Medallion.Threading;
 using Medallion.Threading.FileSystem;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace Designer.Tests.Controllers.ApiTests
 {
@@ -43,6 +45,11 @@ namespace Designer.Tests.Controllers.ApiTests
                 var directoryInfo = TestLockPathProvider.Instance.LockFileDirectory;
                 return new FileDistributedSynchronizationProvider(directoryInfo);
             });
+
+            // Use mock logger for Quartz to prevent ObjectDisposedException on LoggerFactory
+            var mockLoggerFactory = new Mock<ILoggerFactory>();
+            mockLoggerFactory.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(new Mock<ILogger>().Object);
+            Quartz.Logging.LogContext.SetCurrentLogProvider(mockLoggerFactory.Object);
         }
 
         /// <summary>

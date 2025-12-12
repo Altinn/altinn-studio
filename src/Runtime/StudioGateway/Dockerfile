@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0-noble@sha256:c7445f141c04f1a6b454181bd098dcfa606c61ba0bd213d0a702489e5bd4cd71 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble@sha256:d1823fecac3689a2eb959e02ee3bfe1c2142392808240039097ad70644566190 AS build
 
 # Install native AOT build prerequisites
 RUN apt-get update && apt-get install -y clang zlib1g-dev && rm -rf /var/lib/apt/lists/*
@@ -19,7 +19,7 @@ COPY src/StudioGateway.Api/ StudioGateway.Api/
 WORKDIR /build/StudioGateway.Api
 RUN dotnet publish -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:b857c8cb8d929183cfe4c6dd9994abba92a2639dd2dbaf06005379f815991604
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:9416d3afd6060895c906a7fd5bda9c520b39f4cc4a2f3e755d079b63220800c7
 WORKDIR /app
 COPY --from=build /app/publish .
 

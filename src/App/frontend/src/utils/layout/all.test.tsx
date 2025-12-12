@@ -155,8 +155,6 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
         fetchFormData: async (url) => set.getModel({ url }).simulateDataModel(),
         fetchDataModelSchema: async (name) => set.getModel({ name }).getSchema(),
         fetchLayoutSchema: async () => layoutSchema as unknown as JSONSchema7,
-        fetchRuleHandler: async (setId) => set.app.getLayoutSet(setId).getRuleHandler(),
-        fetchDynamics: async (setId) => set.app.getLayoutSet(setId).getRuleConfiguration(),
       },
       alwaysRouteToChildren: true,
     });

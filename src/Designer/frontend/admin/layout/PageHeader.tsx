@@ -11,13 +11,11 @@ import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation'
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { NavLink, useParams } from 'react-router-dom';
 import classes from './PageHeader.module.css';
+import { useCurrentOrg, useCurrentUser } from './PageLayout';
 
-type PageHeaderProps = {
-  org: Org;
-  user: User;
-};
-
-export const PageHeader = ({ org, user }: PageHeaderProps): ReactElement => {
+export const PageHeader = (): ReactElement => {
+  const org = useCurrentOrg();
+  const user = useCurrentUser();
   const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { i18n } = useTranslation();
 
@@ -57,7 +55,7 @@ const CenterContent = (): ReactElement => {
         variant='regular'
         renderLink={(props) => (
           <NavLink to={`/${org}/apps`} {...props}>
-            <span className={classes.active}>{t('Publiserte apper')}</span>
+            <span className={classes.active}>{t('admin.apps.title')}</span>
           </NavLink>
         )}
       />

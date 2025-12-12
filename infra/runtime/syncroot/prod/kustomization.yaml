@@ -3,3 +3,11 @@ kind: Kustomization
 resources:
   - ../base
   - ../grafana-manifests
+patches:
+  - target:
+      kind: Kustomization
+      name: grafana-manifests
+    patch: |-
+      - op: replace
+        path: /spec/postBuild/substitute/GATEWAY_URL
+        value: "https://${SERVICEOWNER_ID}.apps.altinn.no/runtime/gateway/api/v1"
