@@ -3,7 +3,6 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-
   <ItemGroup Label="Altinn specific packages">
     <PackageVersion Include="Altinn.App.Core" Version="8.8.3" />
     <PackageVersion Include="Altinn.Common.AccessToken" Version="5.1.0" />
@@ -11,8 +10,8 @@
     <PackageVersion Include="Altinn.Platform.Storage.Interface" Version="4.1.0" />
     <PackageVersion Include="Altinn.Authorization.ABAC" Version="0.1.1" />
     <PackageVersion Include="Altinn.ApiClients.Maskinporten" Version="9.2.1" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.10.0" />
   </ItemGroup>
-
   <ItemGroup Label="Shared nuget packages">
     <PackageVersion Include="JsonSchema.Net" Version="5.5.1" />
     <PackageVersion Include="CompilerAttributes" Version="1.1.2" />
@@ -66,7 +65,6 @@
     <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.15.1" />
     <PackageVersion Include="Quartz.Serialization.SystemTextJson" Version="3.15.1" />
   </ItemGroup>
-
   <ItemGroup Label="Packages used for testing">
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.11" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />

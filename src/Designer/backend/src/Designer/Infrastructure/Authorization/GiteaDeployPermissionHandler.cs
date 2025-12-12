@@ -46,10 +46,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             }
 
             string org = _httpContextAccessor.HttpContext.GetRouteValue("org")?.ToString();
-            string app = _httpContextAccessor.HttpContext.GetRouteValue("app")?.ToString();
 
-            if (string.IsNullOrWhiteSpace(org) ||
-                string.IsNullOrWhiteSpace(app))
+            if (string.IsNullOrWhiteSpace(org))
             {
                 _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return;

@@ -5,15 +5,17 @@ RUN apt-get update && apt-get install -y clang zlib1g-dev && rm -rf /var/lib/apt
 
 WORKDIR /build
 
-# Copy project file and package management
+# Copy project files and package management
 COPY Directory.Packages.props .
 COPY src/StudioGateway.Api/StudioGateway.Api.csproj StudioGateway.Api/
+COPY src/StudioGateway.Contracts/StudioGateway.Contracts.csproj StudioGateway.Contracts/
 
 # Restore dependencies
 RUN dotnet restore StudioGateway.Api/StudioGateway.Api.csproj
 
 # Copy source code
 COPY src/StudioGateway.Api/ StudioGateway.Api/
+COPY src/StudioGateway.Contracts/ StudioGateway.Contracts/
 
 # Build and publish native AOT
 WORKDIR /build/StudioGateway.Api
