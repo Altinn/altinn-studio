@@ -698,7 +698,7 @@ namespace Designer.Tests.Services
                 It.IsAny<AltinnEnvironment>())).ReturnsAsync(false);
 
             // App is NOT deployed in cluster
-            _runtimeGatewayClient.Setup(rgc => rgc.IsAppDeployedAsync(
+            _runtimeGatewayClient.Setup(rgc => rgc.IsAppDeployedWithGitOpsAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<AltinnEnvironment>(),
@@ -748,7 +748,7 @@ namespace Designer.Tests.Services
                 It.Is<AltinnEnvironment>(e => e.Name == env)), Times.Once);
 
             // Should check if app is deployed in cluster
-            _runtimeGatewayClient.Verify(rgc => rgc.IsAppDeployedAsync(
+            _runtimeGatewayClient.Verify(rgc => rgc.IsAppDeployedWithGitOpsAsync(
                 org, app, It.Is<AltinnEnvironment>(e => e.Name == env), It.IsAny<CancellationToken>()), Times.Once);
 
             // Should NOT remove app since it doesn't exist
@@ -792,7 +792,7 @@ namespace Designer.Tests.Services
                 It.IsAny<AltinnEnvironment>())).ReturnsAsync(false);
 
             // App IS deployed in cluster (e.g., GitOps sync failed but helm release exists)
-            _runtimeGatewayClient.Setup(rgc => rgc.IsAppDeployedAsync(
+            _runtimeGatewayClient.Setup(rgc => rgc.IsAppDeployedWithGitOpsAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<AltinnEnvironment>(),
@@ -842,7 +842,7 @@ namespace Designer.Tests.Services
                 It.Is<AltinnEnvironment>(e => e.Name == env)), Times.Once);
 
             // Should check if app is deployed in cluster
-            _runtimeGatewayClient.Verify(rgc => rgc.IsAppDeployedAsync(
+            _runtimeGatewayClient.Verify(rgc => rgc.IsAppDeployedWithGitOpsAsync(
                 org, app, It.Is<AltinnEnvironment>(e => e.Name == env), It.IsAny<CancellationToken>()), Times.Once);
 
             // Should use GitOpsManagerDefinitionId since app is deployed in cluster

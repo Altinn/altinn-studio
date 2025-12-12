@@ -6,5 +6,5 @@ namespace Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 
 public interface IRuntimeGatewayClient
 {
-    Task<bool> IsAppDeployedAsync(string org, string app, AltinnEnvironment environment, CancellationToken cancellationToken);
+    Task<bool> IsAppDeployedWithGitOpsAsync(string org, string app, AltinnEnvironment environment, CancellationToken cancellationToken);
 }

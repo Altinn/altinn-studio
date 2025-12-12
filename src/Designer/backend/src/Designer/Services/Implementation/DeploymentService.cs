@@ -225,7 +225,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             var environment = AltinnEnvironment.FromName(env);
-            return await _runtimeGatewayClient.IsAppDeployedAsync(
+            return await _runtimeGatewayClient.IsAppDeployedWithGitOpsAsync(
                 editingContext.Org,
                 editingContext.Repo,
                 environment,
@@ -240,9 +240,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 return false;
             }
+            var environment = AltinnEnvironment.FromName(env);
+            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(AltinnOrgEditingContext.FromAltinnRepoEditingContext(editingContext), environment);
 
             var appName = AltinnRepoName.FromName(editingContext.Repo);
-            var environment = AltinnEnvironment.FromName(env);
 
             bool appExistsInGitOps = await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(orgContext, appName, environment);
 

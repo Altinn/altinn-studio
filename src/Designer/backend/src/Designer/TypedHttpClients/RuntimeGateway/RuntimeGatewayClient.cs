@@ -21,7 +21,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         _generalSettings = generalSettings;
     }
 
-    public async Task<bool> IsAppDeployedAsync(string org, string app, AltinnEnvironment environment, CancellationToken cancellationToken)
+    public async Task<bool> IsAppDeployedWithGitOpsAsync(string org, string app, AltinnEnvironment environment, CancellationToken cancellationToken)
     {
         var client = _httpClientFactory.GetRuntimeGatewayHttpClient(environment);
         var baseUrl = GetGatewayUrl(org, environment);

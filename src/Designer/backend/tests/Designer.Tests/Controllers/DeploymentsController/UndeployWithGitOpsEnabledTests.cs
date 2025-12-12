@@ -144,7 +144,7 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
         )).ReturnsAsync(false);
 
         // App is NOT deployed in cluster
-        _runtimeGatewayClientMock.Setup(m => m.IsAppDeployedAsync(
+        _runtimeGatewayClientMock.Setup(m => m.IsAppDeployedWithGitOpsAsync(
             It.IsAny<string>(),
             It.IsAny<string>(),
             It.IsAny<AltinnEnvironment>(),
