@@ -209,29 +209,27 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
             } catch (error) {
               console.warn('Error polling agent status:', error);
               // Network or other error while polling status: clear loading state so UI is not stuck
-              if (currentSession && hasLoadingMessage) {
-                const thread = getThread(currentSession);
-                if (thread) {
-                  const updatedMessages = thread.messages.map((msg, index) => {
-                    if (
-                      index === thread.messages.length - 1 &&
-                      msg.author === MessageAuthor.Assistant
-                    ) {
-                      return {
-                        ...msg,
-                        content:
-                          '⚠️ **Mistet kontakt med AI-agenten**\n\n' +
-                          'Vi fikk en feil mens vi hentet status fra AI-agenten.\n\n' +
-                          'Prøv å sende meldingen på nytt. Hvis problemet vedvarer, sjekk loggene til Altinity-agenten.',
-                        isLoading: false,
-                      };
-                    }
-                    return msg;
-                  });
-                  updateThread(currentSession, { messages: updatedMessages });
-                }
-                setWorkflowStatus((prev) => ({ ...prev, isActive: false }));
+              const thread = getThread(currentSession);
+              if (thread) {
+                const updatedMessages = thread.messages.map((msg, index) => {
+                  if (
+                    index === thread.messages.length - 1 &&
+                    msg.author === MessageAuthor.Assistant
+                  ) {
+                    return {
+                      ...msg,
+                      content:
+                        '⚠️ **Mistet kontakt med AI-agenten**\n\n' +
+                        'Vi fikk en feil mens vi hentet status fra AI-agenten.\n\n' +
+                        'Prøv å sende meldingen på nytt. Hvis problemet vedvarer, sjekk loggene til Altinity-agenten.',
+                      isLoading: false,
+                    };
+                  }
+                  return msg;
+                });
+                updateThread(currentSession, { messages: updatedMessages });
               }
+              setWorkflowStatus((prev) => ({ ...prev, isActive: false }));
             }
           }
         };
