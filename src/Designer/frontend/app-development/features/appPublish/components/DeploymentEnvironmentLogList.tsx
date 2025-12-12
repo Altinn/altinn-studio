@@ -86,7 +86,7 @@ export const DeploymentEnvironmentLogList = ({
               </Table.Row>
             </Table.Head>
             <Table.Body>
-              {pipelineDeploymentList.map((deploy: PipelineDeployment, index) => {
+              {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
                 const deploymentStatus = getDeployStatus(deploy);
                 const areLogsAvailable = DateUtils.isDateWithinDays(deploy.build.started, 30);
 
@@ -162,19 +162,21 @@ export const DeploymentEnvironmentLogList = ({
                       ) : (
                         t(getStatusTextByDeploymentType(deploy, deploymentStatus))
                       )}
-                      <details className={classes.eventsDetails} open={index === 0}>
-                        <summary>{t(`app_deployment.events`)}</summary>
-                        <div className={classes.events}>
-                          {deploy.events.map((event) => (
-                            <div key={event.created + event.eventType} className={classes.event}>
-                              <div className={classes.eventCreatedDate}>
-                                {DateUtils.formatDateTime(event.created)}
+                      {deploy.events.length > 0 && (
+                        <details className={classes.eventsDetails}>
+                          <summary>{t('app_deployment.events')}</summary>
+                          <div className={classes.events}>
+                            {deploy.events.map((event) => (
+                              <div key={event.created + event.eventType} className={classes.event}>
+                                <div className={classes.eventCreatedDate}>
+                                  {DateUtils.formatDateTime(event.created)}
+                                </div>
+                                <div>{event.message}</div>
                               </div>
-                              <div className={classes.eventMessage}>{event.message}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </details>
+                            ))}
+                          </div>
+                        </details>
+                      )}
                     </Table.Cell>
                     <Table.Cell
                       className={classNames(

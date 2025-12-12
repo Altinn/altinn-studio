@@ -68,6 +68,14 @@
   color: var(--fds-semantic-border-success-default);
 }
 
+.statusCell,
+.versionCell,
+.finishedDateCell,
+.deployedByCell,
+.buildLogCell {
+  padding: var(--ds-size-4);
+}
+
 .versionCell,
 .finishedDateCell,
 .deployedByCell,

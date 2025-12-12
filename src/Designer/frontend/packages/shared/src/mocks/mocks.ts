@@ -21,7 +21,7 @@ import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { Build } from 'app-shared/types/Build';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import {
-  InProgressEventType,
+  EventType,
   type DeployEvent,
   type PipelineDeployment,
 } from 'app-shared/types/api/PipelineDeployment';
@@ -95,7 +95,7 @@ export const pipelineDeployment: PipelineDeployment = {
 export const deployEvent: DeployEvent = {
   message: '',
   timestamp: '',
-  eventType: InProgressEventType.PipelineScheduled,
+  eventType: EventType.PipelineScheduled,
   created: '',
   origin: 'Internal',
 };

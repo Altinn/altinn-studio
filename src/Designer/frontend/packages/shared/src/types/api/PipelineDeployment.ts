@@ -16,12 +16,13 @@ export interface PipelineDeployment {
 export type DeployEvent = {
   message: string;
   timestamp: string;
-  eventType: InProgressEventType | SucceededEventType | FailedEventType;
+  eventType: EventType | SucceededEventType | FailedEventType;
   created: string;
   origin: 'Internal' | 'Webhook' | 'PollingJob';
 };
 
-export enum InProgressEventType {
+export enum EventType {
+  DeprecatedPipelineScheduled = 'DeprecatedPipelineScheduled',
   PipelineScheduled = 'PipelineScheduled',
   PipelineSucceeded = 'PipelineSucceeded',
   PipelineFailed = 'PipelineFailed',
@@ -43,13 +44,27 @@ const succeededEventTypeValues = Object.values(SucceededEventType);
 const failedEventTypeValues = Object.values(FailedEventType);
 
 export const getDeployStatus = (deployment: PipelineDeployment | undefined): BuildResult => {
-  const lastEventType = deployment?.events[deployment.events.length - 1]?.eventType;
+  const lastEvent = deployment?.events[deployment.events.length - 1];
+  const lastEventType = lastEvent?.eventType;
   if (lastEventType) {
     if (succeededEventTypeValues.includes(lastEventType as SucceededEventType)) {
       return BuildResult.succeeded;
     } else if (failedEventTypeValues.includes(lastEventType as FailedEventType)) {
       return BuildResult.failed;
     } else {
+      const firstEventType = deployment?.events[0]?.eventType;
+
+      if (
+        (lastEventType === EventType.PipelineSucceeded ||
+          lastEventType === EventType.PipelineFailed) &&
+        (firstEventType === EventType.DeprecatedPipelineScheduled ||
+          new Date().getTime() - new Date(lastEvent.created).getTime() > 15 * 60 * 1000)
+      ) {
+        return lastEventType === EventType.PipelineSucceeded
+          ? BuildResult.succeeded
+          : BuildResult.failed;
+      }
+
       return BuildResult.none;
     }
   } else {

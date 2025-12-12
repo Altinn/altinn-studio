@@ -8,7 +8,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import {
   FailedEventType,
-  InProgressEventType,
+  EventType,
   SucceededEventType,
   type PipelineDeployment,
 } from 'app-shared/types/api/PipelineDeployment';
@@ -173,7 +173,7 @@ describe('DeploymentEnvironmentLogList', () => {
           pipelineDeploymentList: [
             {
               ...pipelineDeployment,
-              events: [{ ...deployEvent, eventType: InProgressEventType.PipelineScheduled }],
+              events: [{ ...deployEvent, eventType: EventType.PipelineScheduled }],
             },
           ],
         });
