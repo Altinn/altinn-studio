@@ -54,7 +54,7 @@ namespace Designer.Tests.Controllers.RepositoryController
                 .ReturnsAsync(expectedRepoStatus);
 
             var request = new CheckoutBranchRequest { BranchName = branchName };
-            var content = new StringContent(
+            using var content = new StringContent(
                 JsonSerializer.Serialize(request, JsonSerializerOptions),
                 Encoding.UTF8,
                 "application/json");
@@ -100,7 +100,7 @@ namespace Designer.Tests.Controllers.RepositoryController
                 .ThrowsAsync(exception);
 
             var request = new CheckoutBranchRequest { BranchName = targetBranch };
-            var content = new StringContent(
+            using var content = new StringContent(
                 JsonSerializer.Serialize(request, JsonSerializerOptions),
                 Encoding.UTF8,
                 "application/json");
@@ -129,7 +129,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             string uri = $"{VersionPrefix}/repo/{org}/{repo}/checkout";
 
             var request = new CheckoutBranchRequest { BranchName = branchName };
-            var content = new StringContent(
+            using var content = new StringContent(
                 JsonSerializer.Serialize(request, JsonSerializerOptions),
                 Encoding.UTF8,
                 "application/json");
@@ -156,7 +156,7 @@ namespace Designer.Tests.Controllers.RepositoryController
                 .ThrowsAsync(new LibGit2Sharp.NotFoundException("Branch not found"));
 
             var request = new CheckoutBranchRequest { BranchName = branchName };
-            var content = new StringContent(
+            using var content = new StringContent(
                 JsonSerializer.Serialize(request, JsonSerializerOptions),
                 Encoding.UTF8,
                 "application/json");
