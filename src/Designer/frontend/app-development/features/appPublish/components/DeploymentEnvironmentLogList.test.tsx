@@ -209,6 +209,82 @@ describe('DeploymentEnvironmentLogList', () => {
           screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
         ).toBeInTheDocument();
       });
+
+      it('renders when deprecated undeploy pipeline failed', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              events: [
+                { ...deployEvent, eventType: EventType.DeprecatedPipelineScheduled },
+                { ...deployEvent, eventType: EventType.PipelineFailed },
+              ],
+            },
+          ],
+        });
+        expect(
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
+        ).toBeInTheDocument();
+      });
+
+      it('renders when deprecated undeploy pipeline succeeded', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              events: [
+                { ...deployEvent, eventType: EventType.DeprecatedPipelineScheduled },
+                { ...deployEvent, eventType: EventType.PipelineSucceeded },
+              ],
+            },
+          ],
+        });
+        expect(
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
+        ).toBeInTheDocument();
+      });
+
+      it('renders when created event date > 15m and pipeline failed', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              events: [
+                { ...deployEvent, eventType: EventType.PipelineScheduled },
+                {
+                  ...deployEvent,
+                  eventType: EventType.PipelineFailed,
+                  created: new Date(Date.now() - 16 * 60 * 1000),
+                },
+              ],
+            },
+          ],
+        });
+        expect(
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
+        ).toBeInTheDocument();
+      });
+
+      it('renders when created event date > 15m and pipeline succeeded', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              events: [
+                { ...deployEvent, eventType: EventType.PipelineScheduled },
+                {
+                  ...deployEvent,
+                  eventType: EventType.PipelineSucceeded,
+                  created: new Date(Date.now() - 16 * 60 * 1000),
+                },
+              ],
+            },
+          ],
+        });
+        expect(
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
+        ).toBeInTheDocument();
+      });
     });
   });
 
