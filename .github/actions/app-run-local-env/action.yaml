@@ -62,7 +62,13 @@ runs:
       working-directory: src/Runtime/localtest
       run: |
         args="${{ steps.set-profile.outputs.profile-args }}"
-        docker compose $args pull || echo "Pull failed, will build images instead"
+
+        if ! docker compose $args pull; then
+          echo "Pull failed, building images from scratch..."
+          docker compose $args build
+        else
+          echo "Successfully pulled cached images"
+        fi
       shell: bash
 
     - name: Start localtest
