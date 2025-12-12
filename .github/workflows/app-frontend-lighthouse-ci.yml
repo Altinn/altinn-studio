@@ -40,11 +40,6 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
-        with:
-          dotnet-version: '8.0.x'
-
       - name: Download built frontend
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
@@ -93,3 +88,8 @@ jobs:
               repo: context.repo.repo,
               body: '🔍 **Lighthouse Report**\n\n📊 [View Performance Report](${{ env.REPORT_URL }})'
             });
+
+      - name: Stop localtest
+        if: always()
+        working-directory: src/Runtime/localtest
+        run: docker compose down
