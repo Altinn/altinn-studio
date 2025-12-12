@@ -35,6 +35,10 @@ type OrgName struct {
 	Nn string `json:"nn"`
 }
 
+type orgRegistryResponse struct {
+	Orgs map[string]Org `json:"orgs"`
+}
+
 type OrgRegistry struct {
 	url            string
 	orgs           atomic.Pointer[map[string]Org]
@@ -197,16 +201,16 @@ func (r *OrgRegistry) fetch(ctx context.Context) error {
 		return fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	var orgs map[string]Org
-	if err := json.Unmarshal(body, &orgs); err != nil {
+	var registry orgRegistryResponse
+	if err := json.Unmarshal(body, &registry); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("failed to unmarshal orgs: %w", err)
 	}
 
-	r.orgs.Store(&orgs)
+	r.orgs.Store(&registry.Orgs)
 
-	span.SetAttributes(attribute.Int("orgs.count", len(orgs)))
+	span.SetAttributes(attribute.Int("orgs.count", len(registry.Orgs)))
 
 	return nil
 }
