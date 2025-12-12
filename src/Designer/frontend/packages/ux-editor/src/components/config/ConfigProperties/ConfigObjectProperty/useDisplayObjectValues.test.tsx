@@ -17,14 +17,14 @@ describe('useDisplayObjectValues', () => {
         ({
           value1: textMock('ux_editor.component_properties.value1'),
           value2: 'value2',
-          enum_value3: textMock('ux_editor.component_properties.enum_value3'),
+          value3: textMock('ux_editor.component_properties.enum_value3'),
         })[value] || value,
     );
 
     const valuesToBeSaved = {
       key1: 'value1',
       key2: 'value2',
-      key3: 'enum_value3',
+      key3: 'value3',
     };
     const { result } = renderHook(() => useDisplayObjectValues(valuesToBeSaved));
     expect(result.current).toBe(
