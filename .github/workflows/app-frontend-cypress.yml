@@ -62,16 +62,6 @@ jobs:
         with:
           docker-profile: test-apps
 
-      - name: Save docker images
-        run: docker save localtest localtest-loadbalancer localtest-altinn_test_apps localtest-pdf3 -o /tmp/localtest-images.tar
-
-      - name: Upload docker images
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: localtest-docker-images
-          path: /tmp/localtest-images.tar
-          retention-days: 1
-
   cypress-run-internal:
     name: Cypress Run Internal
     if: |
@@ -92,20 +82,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
       - name: Download the build folder
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: app-frontend-dist
           path: src/App/frontend/dist
 
-      - name: Download docker images
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
-        with:
-          name: localtest-docker-images
-          path: /tmp
-
-      - name: Load docker images
-        run: docker load -i /tmp/localtest-images.tar
+      - name: Pull docker images from registry
+        run: |
+          # Pull the images that were built and cached in the previous job
+          docker compose -f src/Runtime/localtest/docker-compose.yml --profile test-apps pull || true
 
       - name: Start localtest
         working-directory: src/Runtime/localtest
@@ -171,20 +167,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
       - name: Download the build folder
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: app-frontend-dist
           path: src/App/frontend/dist
 
-      - name: Download docker images
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
-        with:
-          name: localtest-docker-images
-          path: /tmp
-
-      - name: Load docker images
-        run: docker load -i /tmp/localtest-images.tar
+      - name: Pull docker images from registry
+        run: |
+          # Pull the images that were built and cached in the previous job
+          docker compose -f src/Runtime/localtest/docker-compose.yml --profile test-apps pull || true
 
       - name: Start localtest
         working-directory: src/Runtime/localtest
