@@ -43,7 +43,7 @@ runs:
           profile_args="--profile ${{ inputs.docker-profile }}"
         fi
 
-        echo "profile_args=$profile_args" >> $GITHUB_OUTPUT
+        echo "profile-args=$profile_args" >> $GITHUB_OUTPUT
     - name: Start localtest
       if: ${{ inputs.run-localtest == 'true' }}
       working-directory: src/Runtime/localtest
