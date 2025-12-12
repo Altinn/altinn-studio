@@ -44,7 +44,7 @@ runs:
         YARN_ENABLE_HARDENED_MODE: >-
           ${{
             (github.repository_owner == 'Altinn' &&
-             ((github.event_name != 'pull_request' && github.event.repository.fork == false) ||
+             ((github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.event.repository.fork == false) ||
               (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)))
             && '0' || '1'
           }}
