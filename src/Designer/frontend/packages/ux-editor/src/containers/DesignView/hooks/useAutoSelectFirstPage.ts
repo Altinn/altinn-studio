@@ -13,26 +13,20 @@ export const useAutoSelectFirstPage = ({
   pagesModel,
   pagesQueryPending,
 }: UseAutoSelectFirstPageParams): void => {
-  const { setSelectedFormLayoutName, setSelectedItem } = useAppContext();
+  const { selectedFormLayoutName, setSelectedFormLayoutName, setSelectedItem } = useAppContext();
   const hasInitializedRef = useRef<boolean>(false);
   const setSelectedFormLayoutNameRef = useRef(setSelectedFormLayoutName);
   const setSelectedItemRef = useRef(setSelectedItem);
 
-  const autoSelectFirstPage = (pageModel: PagesModel) => {
-    if (!hasInitializedRef.current) {
-      const firstPageId = findFirstPage(pageModel);
-      if (firstPageId) {
-        setSelectedFormLayoutNameRef.current(firstPageId);
-        setSelectedItemRef.current({
-          type: ItemType.Page,
-          id: firstPageId,
-        });
-        hasInitializedRef.current = true;
-      }
+  if (!hasInitializedRef.current && !pagesQueryPending && pagesModel) {
+    const firstPageId = findFirstPage(pagesModel);
+    if (firstPageId && selectedFormLayoutName !== firstPageId) {
+      setSelectedFormLayoutNameRef.current(firstPageId);
+      setSelectedItemRef.current({
+        type: ItemType.Page,
+        id: firstPageId,
+      });
     }
-  };
-
-  if (!hasInitializedRef.current && !pagesQueryPending) {
-    autoSelectFirstPage(pagesModel);
+    hasInitializedRef.current = true;
   }
 };
