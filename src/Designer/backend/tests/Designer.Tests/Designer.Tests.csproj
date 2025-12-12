@@ -4,6 +4,11 @@
     <IsPackable>false</IsPackable>
     <AssemblyName>Altinn.Studio.Designer.Tests</AssemblyName>
     <RootNamespace>Designer.Tests</RootNamespace>
+
+    <NoWarn>$(NoWarn);ALTINNAPP0500</NoWarn>
+    <!--
+      ALTINNAPP0500: Eeager use of HttpContext from HttpContextAccessor
+    -->
   </PropertyGroup>
 
   <PropertyGroup>
