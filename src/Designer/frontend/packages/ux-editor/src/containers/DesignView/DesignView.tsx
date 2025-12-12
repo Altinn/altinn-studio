@@ -49,7 +49,7 @@ export const DesignView = (): ReactNode => {
 
   useFormLayoutSettingsQuery(org, app, layoutSet);
 
-  useAutoSelectFirstPage({ pagesModel, pagesQueryPending, layoutSet });
+  useAutoSelectFirstPage({ pagesModel, pagesQueryPending });
 
   if (pagesQueryPending || !pagesModel) return <StudioSpinner aria-label={t('general.loading')} />;
 
