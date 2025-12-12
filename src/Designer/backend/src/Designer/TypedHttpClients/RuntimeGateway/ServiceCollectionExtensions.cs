@@ -1,4 +1,5 @@
 #nullable disable
+using System.Threading.Tasks;
 using Altinn.ApiClients.Maskinporten.Config;
 using Altinn.ApiClients.Maskinporten.Extensions;
 using Altinn.ApiClients.Maskinporten.Services;
@@ -16,7 +17,21 @@ public static class ServiceCollectionExtensions
 
         foreach ((string name, MaskinportenSettings maskinportenSettings) in maskinportenClientForRuntime)
         {
-            services.AddMaskinportenHttpClient<SettingsJwkClientDefinition>($"runtime-gateway-{name}", maskinportenSettings);
+            services.AddMaskinportenHttpClient<SettingsJwkClientDefinition>($"runtime-gateway-{name}", maskinportenSettings)
+                .AddStandardResilienceHandler(options =>
+                {
+                    options.Retry.MaxRetryAttempts = 3;
+                    options.Retry.UseJitter = true;
+                    options.Retry.ShouldHandle = args =>
+                        ValueTask.FromResult(
+                            args.Outcome switch
+                            {
+                                { Exception: not null } => true,
+                                { Result.IsSuccessStatusCode: false } => true,
+                                _ => false,
+                            }
+                        );
+                });
         }
 
         services.AddTransient<IRuntimeGatewayClient, RuntimeGatewayClient>();
