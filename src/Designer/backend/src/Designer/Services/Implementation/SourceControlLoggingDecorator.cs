@@ -414,11 +414,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private void LogError(Exception ex, string method)
-        {
-            LogError(ex, method, string.Empty, string.Empty);
-        }
-
         /// <inheritdoc/>
         public CurrentBranchInfo GetCurrentBranch(string org, string repository)
         {
@@ -428,7 +423,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "GetCurrentBranch", org, repository);
+                LogError(ex, nameof(GetCurrentBranch), org, repository);
                 throw;
             }
         }
@@ -442,7 +437,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "CheckoutBranchWithValidation", org, repository, repository, branchName);
+                LogError(ex, nameof(CheckoutBranchWithValidation), org, repository, repository, branchName);
                 throw;
             }
         }
@@ -456,9 +451,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "DiscardLocalChanges", org, repository);
+                LogError(ex, nameof(DiscardLocalChanges), org, repository);
                 throw;
             }
+        }
+
+        private void LogError(Exception ex, string method)
+        {
+            LogError(ex, method, string.Empty, string.Empty);
         }
 
         private void LogError(Exception ex, string method, string org, string repository)
@@ -470,7 +470,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
-            _logger.LogError(ex, "Failed executing method {Method} for user {Developer} in org {Org} / repository {Repository}. Destination: {DestinationPath}. Branch: {Branch}.", method, developer, org, repository, destinationPath, branch);
+            string safeRepository = SanitizeForLog(repository);
+            string safeDestinationPath = SanitizeForLog(destinationPath);
+            string safeBranch = SanitizeForLog(branch);
+
+            _logger.LogError(ex, "Failed executing method {Method} for user {Developer} in org {Org} / repository {Repository}. Destination: {DestinationPath}. Branch: {Branch}.", method, developer, org, safeRepository, safeDestinationPath, safeBranch);
+        }
+
+        private static string SanitizeForLog(string input)
+        {
+            return input?.Replace("\r", "").Replace("\n", "").Replace("\t", "");
         }
     }
 }
