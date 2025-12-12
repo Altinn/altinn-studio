@@ -17,7 +17,6 @@ jest.mock('../../../../hooks/useComponentPropertyDescription', () => ({
 
 describe('ConfigObjectProperties', () => {
   it('should show description from schema for objects if key is not defined', async () => {
-    const user = userEvent.setup();
     renderConfigObjectProperty({
       props: {
         objectPropertyKey: somePropertyName,
@@ -34,20 +33,19 @@ describe('ConfigObjectProperties', () => {
         },
       },
     });
-    await openCard(user, somePropertyName);
+    await openCard();
     expect(screen.getByText('Some description')).toBeInTheDocument();
   });
 
   it('should call handleComponentUpdate when a nested boolean property is toggled', async () => {
     const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
-    const propertyKey = 'testObjectProperty';
     renderConfigObjectProperty({
       props: {
-        objectPropertyKey: propertyKey,
+        objectPropertyKey: somePropertyName,
         schema: {
           properties: {
-            [propertyKey]: {
+            [somePropertyName]: {
               type: 'object',
               properties: {
                 readOnly: { type: 'boolean', default: false },
@@ -58,7 +56,7 @@ describe('ConfigObjectProperties', () => {
         handleComponentUpdate: handleComponentUpdateMock,
       },
     });
-    await openCard(user, propertyKey);
+    await openCard();
     const readOnlySwitch = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.readOnly'),
     });
@@ -69,7 +67,7 @@ describe('ConfigObjectProperties', () => {
 
     expect(handleComponentUpdateMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        [propertyKey]: expect.objectContaining({
+        [somePropertyName]: expect.objectContaining({
           readOnly: true,
         }),
       }),
@@ -77,25 +75,9 @@ describe('ConfigObjectProperties', () => {
   });
 
   it('should toggle object card when object property button is clicked and close button is clicked', async () => {
-    const user = userEvent.setup();
-    const propertyKey = 'testObjectProperty';
-    renderConfigObjectProperty({
-      props: {
-        objectPropertyKey: propertyKey,
-        schema: {
-          properties: {
-            [propertyKey]: {
-              type: 'object',
-              properties: {
-                testField: { type: 'string' },
-              },
-            },
-          },
-        },
-      },
-    });
-    await openCard(user, propertyKey);
-    await closeCard(user, propertyKey);
+    renderConfigObjectProperty({});
+    await openCard();
+    await closeCard();
     expect(
       screen.queryByRole('button', { name: textMock('general.close') }),
     ).not.toBeInTheDocument();
@@ -105,25 +87,24 @@ describe('ConfigObjectProperties', () => {
     jest.spyOn(window, 'confirm').mockReturnValue(true);
     const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
-    const propertyKey = 'deletableObjectProperty';
     renderConfigObjectProperty({
       props: {
-        objectPropertyKey: propertyKey,
+        objectPropertyKey: somePropertyName,
         component: {
           ...componentMocks.Input,
-          [propertyKey]: { testField: 'testValue' },
+          [somePropertyName]: { testField: 'testValue' },
         },
         handleComponentUpdate: handleComponentUpdateMock,
       },
     });
-    await openCard(user, propertyKey);
+    await openCard();
 
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
     await user.click(deleteButton);
 
     expect(handleComponentUpdateMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        [propertyKey]: undefined,
+        [somePropertyName]: undefined,
       }),
     );
     expect(
@@ -138,8 +119,16 @@ describe('ConfigObjectProperties', () => {
   }) => {
     const { Input: inputComponent } = componentMocks;
     const defaultProps: ConfigObjectPropertyProps = {
-      objectPropertyKey: undefined,
-      schema: InputSchema,
+      objectPropertyKey: somePropertyName,
+      schema: {
+        ...InputSchema,
+        properties: {
+          [somePropertyName]: {
+            type: 'object',
+            properties: {},
+          },
+        },
+      },
       component: inputComponent,
       handleComponentUpdate: jest.fn(),
       editFormId: 'test-form',
@@ -148,20 +137,24 @@ describe('ConfigObjectProperties', () => {
   };
 });
 
-const openCard = async (user: UserEvent, propertyKey: string) => {
+const openCard = async () => {
+  const user = userEvent.setup();
   const openButton = await screen.findByRole('button', {
-    name: textMock(`ux_editor.component_properties.${propertyKey}`),
+    name: textMock(`ux_editor.component_properties.${somePropertyName}`),
   });
   await user.click(openButton);
   expect(screen.getByRole('button', { name: textMock('general.cancel') })).toBeInTheDocument();
 };
 
-const closeCard = async (user: UserEvent, propertyKey: string) => {
+const closeCard = async () => {
+  const user = userEvent.setup();
   const closeButton = await screen.findByRole('button', {
     name: textMock('general.cancel'),
   });
   await user.click(closeButton);
   expect(
-    screen.getByRole('button', { name: textMock(`ux_editor.component_properties.${propertyKey}`) }),
+    screen.getByRole('button', {
+      name: textMock(`ux_editor.component_properties.${somePropertyName}`),
+    }),
   ).toBeInTheDocument();
 };

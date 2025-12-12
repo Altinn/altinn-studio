@@ -57,11 +57,15 @@ describe('ConfigNumberProperties', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render EditStringValue components when keepEditOpen is true', () => {
+  it('should render EditNumberValue components when keepEditOpen is true', () => {
     renderConfigNumberProperties({
       keepEditOpen: true,
     });
-    expect(screen.getAllByRole('combobox').length).toBe(1);
+    expect(
+      screen.getByRole('combobox', {
+        name: textMock('ux_editor.component_properties.someNumberProperty'),
+      }),
+    ).toBeInTheDocument();
   });
 
   const defaultProps: ConfigNumberPropertiesProps = {
