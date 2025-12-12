@@ -6,9 +6,13 @@ import userEvent from '@testing-library/user-event';
 import { mockTexts } from '../../mocks/mockTexts';
 import type { ChatThread } from '../../types/ChatThread';
 import { MessageAuthor } from '../../types/MessageAuthor';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 // Test data
 const onSubmitMessage = jest.fn();
+const onSelectThread = jest.fn();
 
 const threadTitle1 = 'Thread 1';
 const threadTitle2 = 'Thread 2';
@@ -78,16 +82,15 @@ describe('CompleteInterface', () => {
     expect(userMessage).toBeInTheDocument();
   });
 
-  it('should switch thread when a different thread is selected', async () => {
+  it('should call onSelectThread when a different thread is selected', async () => {
     const user = userEvent.setup();
-    renderCompleteInterface({ chatThreads: mockChatThreads });
-
-    expect(screen.getByText('User message')).toBeInTheDocument();
+    const mockOnSelectThread = jest.fn();
+    renderCompleteInterface({ chatThreads: mockChatThreads, onSelectThread: mockOnSelectThread });
 
     const thread2Tab = screen.getByRole('tab', { name: threadTitle2 });
     await user.click(thread2Tab);
 
-    expect(screen.queryByText('User message')).not.toBeInTheDocument();
+    expect(mockOnSelectThread).toHaveBeenCalledWith('2');
   });
 
   it('should render the chat input', () => {
@@ -129,12 +132,19 @@ describe('CompleteInterface', () => {
 const defaultProps: CompleteInterfaceProps = {
   texts: mockTexts,
   onSubmitMessage,
+  onSelectThread,
+  chatThreads: mockChatThreads,
   activeThreadId: '1',
   connectionStatus: 'connected',
   workflowStatus: { isActive: true },
-  previewContent: <p>Preview</p>,
+  previewContent: <p>Preview placeholder</p>,
 };
 
 const renderCompleteInterface = (props?: Partial<CompleteInterfaceProps>): void => {
-  render(<CompleteInterface {...defaultProps} {...props} />);
+  const queryClient = createQueryClientMock();
+  render(
+    <ServicesContextProvider {...queriesMock} client={queryClient}>
+      <CompleteInterface {...defaultProps} {...props} />
+    </ServicesContextProvider>,
+  );
 };

@@ -388,7 +388,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (File.Exists(contentPath))
             {
-                FileSystemObject f = GetFileSystemObjectForFile(contentPath);
+                // When a specific file path is requested, include the file content so
+                // clients can display the file directly (e.g. in the AI assistant kode tab).
+                FileSystemObject f = GetFileSystemObjectForFile(contentPath, includeContent: true);
                 contents.Add(f);
             }
             else if (Directory.Exists(contentPath))
@@ -403,6 +405,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 string[] files = Directory.GetFiles(contentPath);
                 foreach (string filePath in files)
                 {
+                    // For directory listings we only need metadata; keep Content null
+                    // to avoid reading all files eagerly.
                     FileSystemObject f = GetFileSystemObjectForFile(filePath);
                     contents.Add(f);
                 }
@@ -555,7 +559,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return string.Format("{0}_resource.json", identifier);
         }
 
-        private FileSystemObject GetFileSystemObjectForFile(string path)
+        private FileSystemObject GetFileSystemObjectForFile(string path, bool includeContent = false)
         {
             FileInfo fi = new(path);
             string encoding;
@@ -565,12 +569,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 encoding = sr.CurrentEncoding.EncodingName;
             }
 
+            string content = null;
+            if (includeContent)
+            {
+                // Files in app repositories are expected to be UTF-8 encoded.
+                content = File.ReadAllText(path, Encoding.UTF8);
+            }
+
             FileSystemObject fso = new()
             {
                 Type = FileSystemObjectType.File.ToString(),
                 Name = fi.Name,
                 Encoding = encoding,
                 Path = fi.FullName,
+                Content = content,
             };
 
             return fso;

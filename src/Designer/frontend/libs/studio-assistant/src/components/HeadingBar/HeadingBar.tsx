@@ -1,13 +1,6 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import {
-  StudioHeading,
-  StudioToggleGroup,
-  StudioBadge,
-  StudioParagraph,
-  StudioAlert,
-  StudioTag,
-} from '@studio/components';
+import { StudioHeading, StudioToggleGroup, StudioTag } from '@studio/components';
 import classes from './HeadingBar.module.css';
 import { CodeIcon, PlayFillIcon } from '@studio/icons';
 import { ToolColumnMode } from '../../types/ToolColumnMode';

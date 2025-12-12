@@ -26,6 +26,7 @@ export function CompleteInterface({
   onDeleteThread,
   onCreateThread,
   previewContent,
+  fileBrowserContent,
 }: CompleteInterfaceProps): ReactElement {
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
   const [toolColumnMode, setToolColumnMode] = useState<ToolColumnMode>(ToolColumnMode.Preview);
@@ -97,7 +98,11 @@ export function CompleteInterface({
           />
         </StudioResizableLayout.Element>
         <StudioResizableLayout.Element minimumSize={200}>
-          <ToolColumn mode={toolColumnMode} previewContent={previewContent} />
+          <ToolColumn
+            mode={toolColumnMode}
+            previewContent={previewContent}
+            fileBrowserContent={fileBrowserContent}
+          />
         </StudioResizableLayout.Element>
       </StudioResizableLayout.Container>
     </div>

@@ -3,6 +3,9 @@ import { Assistant } from './Assistant';
 import { render, screen } from '@testing-library/react';
 import type { AssistantProps } from '../Assistant/Assistant';
 import { mockTexts } from '../mocks/mockTexts';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 // Test data
 const onSubmitMessage = jest.fn();
@@ -42,9 +45,14 @@ const defaultProps: AssistantProps = {
   activeThreadId: '',
   connectionStatus: 'error',
   workflowStatus: undefined,
-  previewContent: <p>Preview</p>,
+  previewContent: <p>Preview placeholder</p>,
 };
 
 const renderAssistant = (props?: Partial<AssistantProps>): void => {
-  render(<Assistant {...defaultProps} {...props} />);
+  const queryClient = createQueryClientMock();
+  render(
+    <ServicesContextProvider {...queriesMock} client={queryClient}>
+      <Assistant {...defaultProps} {...props} />
+    </ServicesContextProvider>,
+  );
 };

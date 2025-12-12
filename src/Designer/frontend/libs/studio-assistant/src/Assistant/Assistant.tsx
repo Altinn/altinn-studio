@@ -19,6 +19,7 @@ export type AssistantProps = {
   onCreateThread?: () => void;
   workflowStatus: WorkflowStatus;
   previewContent: ReactElement;
+  fileBrowserContent?: ReactElement;
 };
 
 export function Assistant({
@@ -33,6 +34,7 @@ export function Assistant({
   onDeleteThread,
   onCreateThread,
   previewContent,
+  fileBrowserContent,
 }: AssistantProps): React.ReactElement {
   return enableCompactInterface ? (
     <CompactInterface texts={texts} onSubmitMessage={onSubmitMessage} />
@@ -48,6 +50,7 @@ export function Assistant({
       onDeleteThread={onDeleteThread}
       onCreateThread={onCreateThread}
       previewContent={previewContent}
+      fileBrowserContent={fileBrowserContent}
     />
   );
 }

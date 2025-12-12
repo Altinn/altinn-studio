@@ -54,7 +54,7 @@ describe('ToolColumn', () => {
 
 const defaultProps: ToolColumnProps = {
   mode: ToolColumnMode.Preview,
-  previewContent: <p>Preview</p>,
+  previewContent: <p>Preview placeholder</p>,
 };
 
 const renderToolColumn = (props?: Partial<ToolColumnProps>): void => {

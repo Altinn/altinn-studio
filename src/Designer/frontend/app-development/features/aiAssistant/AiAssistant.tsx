@@ -5,6 +5,8 @@ import { Assistant } from '@studio/assistant';
 import { useTranslation } from 'react-i18next';
 import { useAltinityAssistant } from './hooks';
 import { Preview } from './components/Preview';
+import { FileBrowser } from './components/FileBrowser';
+import classes from './AiAssistant.module.css';
 
 export function AiAssistant(): ReactElement {
   const { t } = useTranslation();
@@ -42,18 +44,21 @@ export function AiAssistant(): ReactElement {
   };
 
   return (
-    <Assistant
-      texts={texts}
-      enableCompactInterface={false}
-      chatThreads={chatThreads}
-      activeThreadId={currentSessionId}
-      onSubmitMessage={onSubmitMessage}
-      onSelectThread={selectThread}
-      onCreateThread={createNewThread}
-      onDeleteThread={deleteThread}
-      connectionStatus={connectionStatus}
-      workflowStatus={workflowStatus}
-      previewContent={<Preview />}
-    />
+    <div className={classes.container}>
+      <Assistant
+        texts={texts}
+        enableCompactInterface={false}
+        chatThreads={chatThreads}
+        activeThreadId={currentSessionId}
+        onSubmitMessage={onSubmitMessage}
+        onSelectThread={selectThread}
+        onCreateThread={createNewThread}
+        onDeleteThread={deleteThread}
+        connectionStatus={connectionStatus}
+        workflowStatus={workflowStatus}
+        previewContent={<Preview />}
+        fileBrowserContent={<FileBrowser />}
+      />
+    </div>
   );
 }

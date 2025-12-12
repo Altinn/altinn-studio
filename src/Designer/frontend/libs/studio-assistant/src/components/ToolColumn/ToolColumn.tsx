@@ -19,7 +19,9 @@ export function ToolColumn({
     <div className={classes.container}>
       {mode === ToolColumnMode.Preview && previewContent}
       {mode === ToolColumnMode.FileExplorer &&
-        (fileBrowserContent || (
+        (fileBrowserContent ? (
+          <div className={classes.fileExplorerContainer}>{fileBrowserContent}</div>
+        ) : (
           <div className={classes.placeholder}>
             <ul className={classes.fileList}>
               <li>📁 src/</li>
