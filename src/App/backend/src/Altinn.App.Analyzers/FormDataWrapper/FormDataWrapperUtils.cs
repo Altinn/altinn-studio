@@ -161,7 +161,13 @@ public static class FormDataWrapperUtils
 
             var cSharpName = property.Name;
             var jsonName = SourceReaderUtils.GetJsonName(property) ?? cSharpName;
-            var typeString = SourceReaderUtils.TypeSymbolToString(propertyTypeSymbol);
+            // For nullable value types (int?), preserve the full type including the Nullable wrapper
+            // For everything else, use the unwrapped type
+            var typeStringSymbol =
+                property.Type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
+                    ? property.Type
+                    : propertyTypeSymbol;
+            var typeString = SourceReaderUtils.TypeSymbolToString(typeStringSymbol);
             var collectionTypeString = propertyCollectionTypeSymbol is null
                 ? null
                 : SourceReaderUtils.TypeSymbolToString(propertyCollectionTypeSymbol);
