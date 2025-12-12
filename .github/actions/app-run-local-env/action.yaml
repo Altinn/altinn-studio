@@ -48,7 +48,7 @@ runs:
       if: ${{ inputs.run-localtest == 'true' }}
       working-directory: src/Runtime/localtest
       run: |
-        args=${{ steps.set-profile.outputs.profile-args }}
+        args="${{ steps.set-profile.outputs.profile-args }}"
 
         if ! docker compose $args up -d; then
           echo "Failed to start localtest"
@@ -74,7 +74,7 @@ runs:
       if: ${{ inputs.run-localtest == 'true' }}
       working-directory: src/Runtime/localtest
       run: |
-        args=${{ steps.set-profile.outputs.profile-args }}
+        args="${{ steps.set-profile.outputs.profile-args }}"
 
         echo "Waiting for backend services to be ready..."
 
