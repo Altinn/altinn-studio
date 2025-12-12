@@ -1,10 +1,10 @@
 #nullable disable
 using Altinn.ApiClients.Maskinporten.Config;
+using Altinn.ApiClients.Maskinporten.Extensions;
+using Altinn.ApiClients.Maskinporten.Services;
 using Altinn.Studio.Designer.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Altinn.ApiClients.Maskinporten.Extensions;
-using Altinn.ApiClients.Maskinporten.Services;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 

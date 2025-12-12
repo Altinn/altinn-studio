@@ -44,10 +44,14 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         var hostName = _generalSettings.HostName;
 
         if (hostName.StartsWith("dev."))
+        {
             return "dev";
+        }
 
         if (hostName.StartsWith("staging."))
+        {
             return "staging";
+        }
 
         return "prod";
     }
