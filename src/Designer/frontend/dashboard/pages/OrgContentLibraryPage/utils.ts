@@ -159,18 +159,18 @@ function mapFiles(updatedCodeLists: LibraryCodeListData[]): FileMetadata[] {
 }
 
 function filterFilesToDelete(currentData: SharedResourcesResponse, updatedNames: Set<string>) {
-  // Add files with empty content for deleted code lists
   return currentData.files
     .map(addFileKind)
-    .filter((file) => file.kind !== 'problem')
-    .filter((file) => {
-      const fileName = FileNameUtils.extractFileName(FileNameUtils.removeExtension(file.path));
-      return fileName && !updatedNames.has(fileName);
-    })
+    .filter((file) => isDeleted(file, updatedNames))
     .map((file) => ({
       path: file.path,
-      content: '',
+      content: null,
     }));
+}
+
+function isDeleted(file: LibraryFile, updatedNames: Set<string>): boolean {
+  const fileName = FileNameUtils.extractFileName(FileNameUtils.removeExtension(file.path));
+  return file.kind !== 'problem' && !updatedNames.has(fileName);
 }
 
 export function libraryCodeListDataToBackendCodeListData({

@@ -341,11 +341,11 @@ describe('OrgContentLibraryPage', () => {
         },
         {
           path: 'CodeLists/animals.json',
-          content: '',
+          content: null,
         },
         {
           path: 'CodeLists/vehicles.json',
-          content: '',
+          content: null,
         },
       ],
       baseCommitSha: sharedResourcesResponse.commitSha,

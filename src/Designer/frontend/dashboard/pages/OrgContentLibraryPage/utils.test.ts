@@ -133,7 +133,7 @@ describe('utils', () => {
       expect(result).toEqual(expectedResult);
     });
 
-    it('Marks deleted code lists with empty content', () => {
+    it('Marks deleted code lists with null as content', () => {
       const updatedCodeLists: CodeListData[] = [{ name: 'animals', codes: codeLists.animals }];
       const commitMessage = 'Lorem ipsum';
       const result = libraryCodeListsToUpdatePayload(
@@ -147,7 +147,7 @@ describe('utils', () => {
             path: 'CodeLists/animals.json',
             content: JSON.stringify(codeLists.animals, null, 2),
           },
-          { path: 'CodeLists/vehicles.json', content: '' },
+          { path: 'CodeLists/vehicles.json', content: null },
         ],
         baseCommitSha: sharedResourcesResponse.commitSha,
         commitMessage,

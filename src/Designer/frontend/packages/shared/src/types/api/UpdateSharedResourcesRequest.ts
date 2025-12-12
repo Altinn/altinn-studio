@@ -1,6 +1,6 @@
 export interface FileMetadata {
   path: string;
-  content: string;
+  content: string | null;
   encoding?: string;
 }
 
