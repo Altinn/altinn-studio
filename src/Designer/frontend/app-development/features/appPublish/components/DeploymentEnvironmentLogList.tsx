@@ -165,16 +165,18 @@ export const DeploymentEnvironmentLogList = ({
                       {deploy.events.length > 0 && (
                         <details className={classes.eventsDetails}>
                           <summary>{t('app_deployment.events')}</summary>
-                          <pre className={classes.events}>
+                          <ul className={classes.events}>
                             {deploy.events.map((event) => (
-                              <div key={event.created + event.eventType} className={classes.event}>
-                                <div className={classes.eventCreatedDate}>
+                              <li key={event.created + event.eventType} className={classes.event}>
+                                <time className={classes.eventCreatedDate} dateTime={event.created}>
                                   {DateUtils.formatDateTime(event.created)}
-                                </div>
-                                <div>{event.message.replace(/^\s+/gm, '')}</div>
-                              </div>
+                                </time>
+                                <pre className={classes.eventMessage}>
+                                  {event.message.replace(/^\s+/gm, '')}
+                                </pre>
+                              </li>
                             ))}
-                          </pre>
+                          </ul>
                         </details>
                       )}
                     </Table.Cell>
