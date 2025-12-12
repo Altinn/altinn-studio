@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { createHashRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { scan } from 'react-scan';
 
 import { setAutoFreeze } from 'immer';
@@ -16,16 +16,18 @@ setAutoFreeze(false);
 const { org, app } = window;
 const origin = window.location.origin;
 
+console.log('origin', origin);
+
 export const ORG = org;
 export const APP = app;
 
 export const API_CLIENT = new Api({
-  baseUrl: origin,
+  baseUrl: `${origin}`,
 });
 
-const router = createHashRouter([
+const router = createBrowserRouter([
   {
-    path: '/',
+    path: '/:org/:app/',
     loader: initialLoader,
     element: <AppLayout />,
     children: [

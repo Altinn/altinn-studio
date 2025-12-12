@@ -1,29 +1,30 @@
-import { isInitialState } from 'nextsrc/nextpoc/types/InitialState/initialStateTypeChecker';
 import { createStore } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { InitialState } from 'nextsrc/nextpoc/types/InitialState/InitialState';
 
 import { getComponentConfigs } from 'src/layout/components.generated';
 
-const getInitialState = (): InitialState => {
-  const windowValid =
-    typeof window !== 'undefined' && (window as unknown as { __INITIAL_STATE__: unknown }).__INITIAL_STATE__;
+const getInitialState = (): InitialState =>
+  // const windowValid =
+  //   typeof window !== 'undefined' && (window as unknown as { __INITIAL_STATE__: unknown }).__INITIAL_STATE__;
+  //
+  // if (!windowValid) {
+  //   throw new Error('window invalid');
+  // }
+  //
+  // const state = (window as unknown as { __INITIAL_STATE__: unknown }).__INITIAL_STATE__;
+  //
+  // if (!isInitialState(state)) {
+  //   throw new Error('State is invalid');
+  // }
 
-  if (!windowValid) {
-    throw new Error('window invalid');
-  }
-
-  const state = (window as unknown as { __INITIAL_STATE__: unknown }).__INITIAL_STATE__;
-
-  if (!isInitialState(state)) {
-    throw new Error('State is invalid');
-  }
-
-  return {
-    ...state,
-  };
-};
-
+  ({
+    applicationMetadata: window.AltinnAppGlobalData.applicationMetadata,
+    frontEndSettings: window.AltinnAppGlobalData.frontendSettings,
+    user: window.AltinnAppGlobalData.userProfile,
+    validParties: [],
+    componentConfigs: null,
+  });
 // Create the Zustand store with devtools
 export const initialStateStore = createStore<InitialState>()(
   devtools(

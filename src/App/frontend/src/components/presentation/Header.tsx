@@ -16,7 +16,7 @@ interface IInnerHeaderProps extends IHeaderProps {
   aboveHeader?: string | React.ReactNode;
 }
 
-const InnerHeader = ({ header, aboveHeader, children }: IInnerHeaderProps) => (
+export const InnerHeader = ({ header, aboveHeader, children }: IInnerHeaderProps) => (
   <header className={classes.wrapper}>
     <Flex
       container

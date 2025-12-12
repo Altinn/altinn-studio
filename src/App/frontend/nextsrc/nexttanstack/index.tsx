@@ -15,13 +15,13 @@ import 'src/features/toggles';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { createInstanceLoader } from 'nextsrc/nexttanstack/instanceLoader';
 import { InstanceSelection } from 'nextsrc/nexttanstack/render-logic/InstanceSelection';
 import { NextForm } from 'nextsrc/nexttanstack/render-logic/NextForm';
 
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
-import { createInstanceLoader } from 'src/features/instance/instanceLoader';
 // import { PartySelectionWrapper } from 'src/features/instantiate/containers/PartySelection';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';

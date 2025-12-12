@@ -1,5 +1,4 @@
 import type {
-  ApplicationMetadata,
   IApplicationSettings,
   IDataType,
   InitialState,
@@ -8,6 +7,8 @@ import type {
   IProfile,
   ITitle,
 } from 'nextsrc/nextpoc/types/InitialState/InitialState';
+
+import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 
 const isString = (value: unknown): value is string => typeof value === 'string';
 const isNumber = (value: unknown): value is number => typeof value === 'number';
@@ -111,7 +112,7 @@ const isIProfile = (value: unknown): value is IProfile => {
   return true;
 };
 
-const isApplicationMetadata = (value: unknown): value is ApplicationMetadata => {
+const isApplicationMetadata = (value: unknown): value is IncomingApplicationMetadata => {
   if (!isObject(value)) {
     console.error(`Validation Error: Expected ApplicationMetadata to be an object`);
     return false;

@@ -20,11 +20,11 @@ export interface LoaderData {
 }
 
 export async function initialLoader() {
-  const { user, validParties } = initialStateStore.getState();
+  const { user } = initialStateStore.getState();
 
   const { layoutSetsConfig } = layoutStore.getState();
 
-  const currentParty = validParties[0];
+  const currentParty = user.party;
   if (!currentParty) {
     throw new Error('No valid parties');
   }
@@ -74,8 +74,8 @@ export async function initialLoader() {
 
 export const AppLayout = () => {
   const params = useParams();
-  const { validParties } = useStore(initialStateStore);
-  const currentParty = validParties[0];
+  const { user } = useStore(initialStateStore);
+  const currentParty = user.party;
 
   const { instanceId } = useLoaderData() as LoaderData;
   if (!instanceId) {

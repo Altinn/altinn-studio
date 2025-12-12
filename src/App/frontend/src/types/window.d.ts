@@ -1,4 +1,4 @@
-import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata, IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { ILayoutSets } from 'src/layout/common.generated';
@@ -18,7 +18,7 @@ import type { IAppLanguage, IApplicationSettings, IInstance, IProcess, IProfile 
 
 export type AltinnAppGlobalData = {
   userProfile: IProfile;
-  applicationMetadata: ApplicationMetadata;
+  applicationMetadata: IncomingApplicationMetadata;
   footerLayout: IFooterLayout | null;
   availableLanguages: IAppLanguage[];
   frontendSettings: IApplicationSettings;

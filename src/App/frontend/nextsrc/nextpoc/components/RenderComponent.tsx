@@ -7,8 +7,6 @@ import { ComponentSwitch } from 'nextsrc/nexttanstack/render-logic/ComponentSwit
 import { useStore } from 'zustand';
 import type { ResolvedCompExternal } from 'nextsrc/nextpoc/stores/layoutStore';
 
-import type { CompTypes } from 'src/layout/layout';
-
 export interface RenderComponentType {
   component: ResolvedCompExternal;
   parentBinding?: string;
@@ -17,7 +15,7 @@ export interface RenderComponentType {
   renderAsSummary?: boolean;
 }
 
-export const RenderComponent = memo(function RenderComponentMemo<Type extends CompTypes = CompTypes>({
+export const RenderComponent = memo(function RenderComponentMemo({
   component,
   parentBinding,
   itemIndex,

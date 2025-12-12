@@ -2,6 +2,7 @@
 
 // import type { createComponentConfigs } from 'src/layout/components.generated';
 
+import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { getComponentConfigs } from 'src/layout/components.generated';
 
 export interface IApplicationLogic {
@@ -246,28 +247,28 @@ type ILogoOptions = {
   size?: 'small' | 'medium' | 'large';
 };
 
-export interface IncomingApplicationMetadata {
-  id: string;
-  title: ITitle;
-  org: string;
-  partyTypesAllowed: IPartyTypesAllowed;
-  dataTypes: IDataType[];
-  autoDeleteOnProcessEnd: boolean;
-  features?: Partial<IBackendFeaturesState>;
-  promptForParty?: 'always' | 'never';
-  externalApiIds?: string[];
+// export interface IncomingApplicationMetadata {
+//   id: string;
+//   title: ITitle;
+//   org: string;
+//   partyTypesAllowed: IPartyTypesAllowed;
+//   dataTypes: IDataType[];
+//   autoDeleteOnProcessEnd: boolean;
+//   features?: Partial<IBackendFeaturesState>;
+//   promptForParty?: 'always' | 'never';
+//   externalApiIds?: string[];
+//
+//   onEntry?: IOnEntry;
+//   altinnNugetVersion?: string;
+//   logo?: ILogoOptions;
+// }
 
-  onEntry?: IOnEntry;
-  altinnNugetVersion?: string;
-  logo?: ILogoOptions;
-}
-
-export type ApplicationMetadata = Omit<IncomingApplicationMetadata, 'onEntry' | 'logo'> & {
-  onEntry: IOnEntry;
-  isValidVersion: boolean;
-  isStatelessApp: boolean;
-  logoOptions?: ILogoOptions;
-};
+// export type ApplicationMetadata = Omit<IncomingApplicationMetadata, 'onEntry' | 'logo'> & {
+//   onEntry: IOnEntry;
+//   isValidVersion: boolean;
+//   isStatelessApp: boolean;
+//   logoOptions?: ILogoOptions;
+// };
 
 export interface IOnEntry {
   show: ShowTypes;
@@ -294,7 +295,7 @@ export interface IBackendFeaturesState {
 }
 
 export interface InitialState {
-  applicationMetadata: ApplicationMetadata;
+  applicationMetadata: IncomingApplicationMetadata;
   frontEndSettings: IApplicationSettings;
   user: IProfile;
   validParties: IParty[];

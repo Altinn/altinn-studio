@@ -12,8 +12,8 @@ export interface LoaderData {
 
 export const AppLayout = () => {
   const params = useParams();
-  const { validParties } = useStore(initialStateStore);
-  const currentParty = validParties[0];
+  const { user } = useStore(initialStateStore);
+  const currentParty = user.party;
 
   const { instanceId } = useLoaderData() as LoaderData;
   if (!instanceId) {

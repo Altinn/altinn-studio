@@ -21,9 +21,9 @@ export async function instanceLoader({ params }: LoaderFunctionArgs<InstancePara
   if (!partyId || !instanceGuid) {
     throw new Error('missing url params');
   }
-  const { validParties } = initialStateStore.getState();
+  const { validParties, user } = initialStateStore.getState();
 
-  const currentParty = validParties[0];
+  const currentParty = user.party;
   if (!currentParty) {
     throw new Error('No valid parties');
   }

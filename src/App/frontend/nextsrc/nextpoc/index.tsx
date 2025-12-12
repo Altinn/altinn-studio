@@ -1,12 +1,14 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 
+import { App } from 'nextsrc/nextpoc/app/App/App';
+
 // import 'src/features/baseurlinjection';
 // import 'src/features/toggles';
 // import 'src/features/logging';
 // import 'src/features/styleInjection';
 // import '@digdir/designsystemet-css';
-import { App } from 'src/App';
+// import { App } from 'src/App';
 
 // import 'react-toastify/dist/ReactToastify.css';
 // import 'src/index.css';

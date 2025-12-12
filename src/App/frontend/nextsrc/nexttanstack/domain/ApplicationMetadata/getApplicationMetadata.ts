@@ -1,7 +1,7 @@
 import { onEntryValuesThatHaveState } from 'src/features/applicationMetadata/appMetadataUtils';
-import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 
-export const getApplicationMetadata = (): ApplicationMetadata => window.AltinnAppGlobalData.applicationMetadata;
+export const getApplicationMetadata = (): IncomingApplicationMetadata => window.AltinnAppGlobalData.applicationMetadata;
 
 export function isStatelessApp2(hasInstanceGuid: boolean) {
   const appMetadata = getApplicationMetadata();

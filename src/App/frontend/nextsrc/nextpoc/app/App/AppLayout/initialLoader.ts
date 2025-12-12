@@ -66,7 +66,7 @@ export async function initialLoader() {
 
   schemaData.forEach((data, idx) => setDataModelSchema(dataModelNames[idx], resolveSchemaDefs(data)));
 
-  const currentParty = validParties[0];
+  const currentParty = user.party;
 
   if (!currentParty) {
     throw new Error('No valid parties');
