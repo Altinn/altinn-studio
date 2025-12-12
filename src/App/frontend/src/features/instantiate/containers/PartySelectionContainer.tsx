@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { getUserProfile } from 'nextsrc/domain/User/getUserProfile';
+import { getUserProfile } from 'nextsrc/nexttanstack/domain/User/getUserProfile';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { RenderStart } from 'src/core/ui/RenderStart';

@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from 'react-router-dom';
 
-import { convertResult } from 'nextsrc/domain/Textresource/textResourceQuery';
+import { convertResult } from 'nextsrc/nexttanstack/domain/Textresource/textResourceQuery';
 import type { QueryClient } from '@tanstack/react-query';
 
 // import { getLanguageFromUrl } from 'src/features/language/useAppLanguages';

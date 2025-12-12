@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useInstanceDataElements } from 'nextsrc/domain/Instance/useInstanceQuery';
+import { useInstanceDataElements } from 'nextsrc/nexttanstack/domain/Instance/useInstanceQuery';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { getFirstDataElementId } from 'src/features/applicationMetadata/appMetadataUtils';
