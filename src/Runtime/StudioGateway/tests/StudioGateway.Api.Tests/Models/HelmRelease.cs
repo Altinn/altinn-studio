@@ -79,4 +79,6 @@ internal sealed class CrossNamespaceObjectReference
 [JsonSerializable(typeof(HelmChartTemplate))]
 [JsonSerializable(typeof(HelmChartTemplateSpec))]
 [JsonSerializable(typeof(CrossNamespaceObjectReference))]
+[JsonSerializable(typeof(HelmRepository))]
+[JsonSerializable(typeof(HelmRepositorySpec))]
 internal sealed partial class TestJsonContext : JsonSerializerContext;

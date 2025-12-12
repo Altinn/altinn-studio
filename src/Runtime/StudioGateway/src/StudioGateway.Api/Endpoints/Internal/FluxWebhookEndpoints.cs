@@ -2,7 +2,6 @@ using StudioGateway.Api.Clients.Designer.Contracts;
 using StudioGateway.Api.Clients.K8s;
 using StudioGateway.Api.Endpoints.Internal.Contracts;
 using StudioGateway.Api.Hosting;
-using HelmReleaseNameParser = StudioGateway.Api.Clients.K8s.HelmReleaseNameParser;
 
 namespace StudioGateway.Api.Endpoints.Internal;
 
@@ -24,7 +23,7 @@ internal static class FluxWebhookEndpoints
 
     private static async Task<IResult> HandleFluxWebhook(
         FluxEvent fluxEvent,
-        HelmReleaseService helmReleaseService,
+        HelmReleaseClient helmReleaseClient,
         IHttpClientFactory httpClientFactory,
         IHostEnvironment hostEnvironment,
         ILogger<Program> logger,
@@ -64,7 +63,7 @@ internal static class FluxWebhookEndpoints
         }
 
         var info = await TryResolveHelmReleaseInfoAsync(
-            helmReleaseService,
+            helmReleaseClient,
             helmReleaseName,
             helmReleaseNamespace,
             logger,
@@ -106,17 +105,17 @@ internal static class FluxWebhookEndpoints
     }
 
     private static async Task<HelmReleaseInfo?> TryResolveHelmReleaseInfoAsync(
-        HelmReleaseService helmReleaseService,
+        HelmReleaseClient helmReleaseClient,
         string helmReleaseName,
         string helmReleaseNamespace,
         ILogger logger,
         CancellationToken cancellationToken
     )
     {
-        var exists = await helmReleaseService.ExistsAsync(helmReleaseName, helmReleaseNamespace, cancellationToken);
+        var exists = await helmReleaseClient.ExistsAsync(helmReleaseName, helmReleaseNamespace, cancellationToken);
         if (exists)
         {
-            var labels = await helmReleaseService.GetLabelsAsync(
+            var labels = await helmReleaseClient.GetLabelsAsync(
                 helmReleaseName,
                 helmReleaseNamespace,
                 cancellationToken
@@ -149,7 +148,7 @@ internal static class FluxWebhookEndpoints
 
         logger.LogInformation("HelmRelease {Name} not found, attempting to parse values from name", helmReleaseName);
 
-        if (!HelmReleaseNameParser.TryParse(helmReleaseName, out var org, out var app, out var env))
+        if (!HelmReleaseNameHelper.TryParse(helmReleaseName, out var org, out var app, out var env))
         {
             logger.LogWarning(
                 "Could not parse HelmRelease name: {Name}. Expected format: {{org}}-{{app}}-{{env}}",

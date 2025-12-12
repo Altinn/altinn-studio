@@ -41,10 +41,10 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
             try
             {
                 await _client.CustomObjects.DeleteNamespacedCustomObjectAsync(
-                    group: "helm.toolkit.fluxcd.io",
-                    version: "v2",
+                    group: FluxApi.HelmReleaseGroup,
+                    version: FluxApi.V2,
                     namespaceParameter: TestNamespace,
-                    plural: "helmreleases",
+                    plural: FluxApi.HelmReleasePlural,
                     name: name
                 );
             }
@@ -97,7 +97,7 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
                         {
                             Kind = "HelmRepository",
                             Name = "metrics-server", // this is something that already exists in flux-system. It will produce a valid Fail event
-                            Namespace = "flux-system",
+                            Namespace = FluxApi.FluxSystemNamespace,
                         },
                     },
                 },
@@ -106,10 +106,10 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
 
         await _client.CustomObjects.CreateNamespacedCustomObjectAsync(
             body: helmRelease,
-            group: "helm.toolkit.fluxcd.io",
-            version: "v2",
+            group: FluxApi.HelmReleaseGroup,
+            version: FluxApi.V2,
             namespaceParameter: TestNamespace,
-            plural: "helmreleases",
+            plural: FluxApi.HelmReleasePlural,
             cancellationToken: ct
         );
 
@@ -118,10 +118,10 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
 
         // Verify the HelmRelease was created and has a status
         var result = await _client.CustomObjects.GetNamespacedCustomObjectAsync(
-            group: "helm.toolkit.fluxcd.io",
-            version: "v2",
+            group: FluxApi.HelmReleaseGroup,
+            version: FluxApi.V2,
             namespaceParameter: TestNamespace,
-            plural: "helmreleases",
+            plural: FluxApi.HelmReleasePlural,
             name: helmReleaseName,
             cancellationToken: ct
         );
@@ -164,7 +164,7 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
         var deployment = await _client.AppsV1.ReadNamespacedDeploymentAsync(
             name: "notification-controller",
-            namespaceParameter: "flux-system",
+            namespaceParameter: FluxApi.FluxSystemNamespace,
             cancellationToken: ct
         );
 
@@ -177,10 +177,10 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
     {
         var ct = TestContext.Current.CancellationToken;
         var alert = await _client.CustomObjects.GetNamespacedCustomObjectAsync(
-            group: "notification.toolkit.fluxcd.io",
-            version: "v1beta3",
-            namespaceParameter: "flux-system",
-            plural: "alerts",
+            group: FluxApi.NotificationGroup,
+            version: FluxApi.V1Beta3,
+            namespaceParameter: FluxApi.FluxSystemNamespace,
+            plural: FluxApi.AlertsPlural,
             name: "helm-releases",
             cancellationToken: ct
         );
@@ -193,10 +193,10 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
     {
         var ct = TestContext.Current.CancellationToken;
         var provider = await _client.CustomObjects.GetNamespacedCustomObjectAsync(
-            group: "notification.toolkit.fluxcd.io",
-            version: "v1beta3",
-            namespaceParameter: "flux-system",
-            plural: "providers",
+            group: FluxApi.NotificationGroup,
+            version: FluxApi.V1Beta3,
+            namespaceParameter: FluxApi.FluxSystemNamespace,
+            plural: FluxApi.ProvidersPlural,
             name: "generic-webhook",
             cancellationToken: ct
         );
