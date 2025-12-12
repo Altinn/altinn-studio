@@ -41,10 +41,10 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
 
         if (environment.Name.StartsWith("tt"))
         {
-            return string.Format(_runtimeGatewaySettings.TtUrlFormat, org);
+            return string.Format(_runtimeGatewaySettings.TtUrlFormat, org, environment.Name);
         }
 
-        return string.Format(_runtimeGatewaySettings.AtYtUrlFormat, org);
+        return string.Format(_runtimeGatewaySettings.AtYtUrlFormat, org, environment.Name);
     }
 
     private string GetOriginEnvironment()
