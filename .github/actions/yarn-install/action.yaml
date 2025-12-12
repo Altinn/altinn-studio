@@ -5,6 +5,10 @@ inputs:
     description: "The directory to run yarn install in"
     required: false
     default: "."
+  node-version:
+    description: "The node version to use"
+    required: false
+    default: "22"
 runs:
   using: "composite"
   steps:
@@ -13,6 +17,7 @@ runs:
       with:
         cache: 'yarn'
         cache-dependency-path: ${{ inputs.working-directory }}/yarn.lock
+        node-version: ${{ inputs.node-version }}
 
     - name: "Getting yarn cache directory path"
       id: yarn-cache-dir-path
@@ -38,8 +43,8 @@ runs:
         HUSKY: '0'
         YARN_ENABLE_HARDENED_MODE: >-
           ${{
-            (github.repository_owner == 'Altinn' && 
-             ((github.event_name != 'pull_request' && github.event.repository.fork == false) || 
-              (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false))) 
+            (github.repository_owner == 'Altinn' &&
+             ((github.event_name != 'pull_request' && github.event.repository.fork == false) ||
+              (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)))
             && '0' || '1'
           }}
