@@ -110,19 +110,6 @@ runs:
         echo "✅ Loadbalancer is ready!"
 
         echo "🎉 All localtest services are ready!"
-
-        # Debug: Show what containers are actually running
-        echo "=== Container Status ==="
-        docker compose $args ps
-
-        # Debug: Test the specific URL that Lighthouse will access
-        echo "=== Testing Lighthouse URL ==="
-        echo "Testing: http://localhost:80/ttd/component-library/"
-        curl -s -I "http://localhost:80/ttd/component-library/" || echo "Failed to get headers"
-        echo ""
-        echo "Response body (first 500 chars):"
-        curl -s "http://localhost:80/ttd/component-library/" | head -c 500 || echo "Failed to get response body"
-        echo ""
       shell: bash
       env:
         TEST_DOMAIN: local.altinn.cloud
