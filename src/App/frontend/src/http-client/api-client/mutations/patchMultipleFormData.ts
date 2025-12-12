@@ -6,20 +6,21 @@ import { apiClient } from '../client';
 // Types
 // ============================================================
 
+export type JsonPatchOperation = {
+  op: 'add' | 'remove' | 'replace' | 'move' | 'copy' | 'test';
+  path: string;
+  value?: unknown;
+  from?: string;
+};
+
 export type PatchMultipleFormDataParams = {
-  url: string;
-  data: {
-    patches: Array<{
-      dataElementId: string;
-      patch: Array<{
-        op: 'add' | 'remove' | 'replace' | 'move' | 'copy' | 'test';
-        path: string;
-        value?: unknown;
-        from?: string;
-      }>;
-    }>;
-    ignoredValidators?: string[];
-  };
+  instanceOwnerPartyId: string;
+  instanceGuid: string;
+  patches: Array<{
+    dataElementId: string;
+    patch: JsonPatchOperation[];
+  }>;
+  ignoredValidators?: string[];
 };
 
 export type PatchMultipleFormDataResponse = {
@@ -46,8 +47,15 @@ export type PatchMultipleFormDataResponse = {
 export async function doPatchMultipleFormData(
   params: PatchMultipleFormDataParams,
 ): Promise<PatchMultipleFormDataResponse> {
-  const { url, data } = params;
-  const response = await apiClient.patch<PatchMultipleFormDataResponse>(url, data);
+  const { instanceOwnerPartyId, instanceGuid, patches, ignoredValidators } = params;
+  const url = `/instances/${instanceOwnerPartyId}/${instanceGuid}/data`;
+
+  const requestBody = {
+    patches,
+    ignoredValidators,
+  };
+
+  const response = await apiClient.patch<PatchMultipleFormDataResponse>(url, requestBody);
   return response.data;
 }
 

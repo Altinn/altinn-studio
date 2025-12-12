@@ -1,8 +1,9 @@
 import React from 'react';
 
+import { getUserProfile } from 'nextsrc/domain/User/getUserProfile';
+
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { RenderStart } from 'src/core/ui/RenderStart';
-import { getUserProfile } from 'src/domain/User/getUserProfile';
 import { Footer } from 'src/features/footer/Footer';
 import classes from 'src/features/instantiate/containers/InstantiationContainer.module.css';
 import { PartySelectionHeader } from 'src/features/instantiate/instantiateHeader/PartySelectionHeader';

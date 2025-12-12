@@ -4,7 +4,7 @@ import 'core-js';
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { createBrowserRouter, Form, Outlet, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom';
 
 import '@digdir/designsystemet-css';
 import '@digdir/designsystemet-theme';
@@ -15,16 +15,13 @@ import 'src/features/toggles';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { InstanceSelection } from 'nextsrc/render-logic/InstanceSelection';
 import { NextForm } from 'nextsrc/render-logic/NextForm';
 
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
-import { ErrorPageContent } from 'src/components/ErrorPageContent';
-import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
-import { ComponentRouting } from 'src/components/wrappers/ProcessWrapper';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { createInstanceLoader } from 'src/features/instance/instanceLoader';
-import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 // import { PartySelectionWrapper } from 'src/features/instantiate/containers/PartySelection';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
@@ -55,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const root = container && createRoot(container);
   root?.render(
     <QueryClientProvider client={defaultQueryClient}>
-      <div>hello</div>
       <ReactQueryDevtools />
       <ErrorBoundary>
         <ViewportWrapper>
@@ -72,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     children: [
                       {
                         path: 'instance-selection',
-                        element: <InstanceSelectionWrapper />,
+                        element: <InstanceSelection />,
                       },
                       // {
                       //   path: 'party-selection',
@@ -84,18 +80,18 @@ document.addEventListener('DOMContentLoaded', () => {
                       //     },
                       //   ],
                       // },
-                      {
-                        path: 'error',
-                        element: <ErrorPageContent />,
-                      },
-                      {
-                        path: ':pageKey',
-                        element: (
-                          <PresentationComponent>
-                            <Form />
-                          </PresentationComponent>
-                        ),
-                      },
+                      // {
+                      //   path: 'error',
+                      //   element: <ErrorPageContent />,
+                      // },
+                      // {
+                      //   path: ':pageKey',
+                      //   element: (
+                      //     <PresentationComponent>
+                      //       <Form />
+                      //     </PresentationComponent>
+                      //   ),
+                      // },
                       {
                         path: 'instance/:instanceOwnerPartyId/:instanceGuid',
                         loader: createInstanceLoader({
@@ -117,14 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                   {
                                     index: true,
                                     element: <NextForm />,
-                                  },
-                                  {
-                                    path: ':componentId',
-                                    element: <ComponentRouting />,
-                                  },
-                                  {
-                                    path: '*',
-                                    element: <ComponentRouting />,
                                   },
                                 ],
                               },

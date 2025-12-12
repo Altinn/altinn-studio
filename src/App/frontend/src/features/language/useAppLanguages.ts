@@ -1,5 +1,6 @@
-import { useAppLanguages } from 'src/domain/Language/appLanguages';
-import { getUserProfile } from 'src/domain/User/getUserProfile';
+import { useAppLanguages } from 'nextsrc/domain/Language/appLanguages';
+import { getUserProfile } from 'nextsrc/domain/User/getUserProfile';
+
 import { useResolveCurrentLanguage } from 'src/features/language/useResolveCurrentLanguage';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
 

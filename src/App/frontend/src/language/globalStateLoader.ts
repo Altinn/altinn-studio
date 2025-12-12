@@ -1,9 +1,9 @@
 import type { LoaderFunctionArgs } from 'react-router-dom';
 
+import { convertResult } from 'nextsrc/domain/Textresource/textResourceQuery';
 import type { QueryClient } from '@tanstack/react-query';
 
-import { convertResult } from 'src/domain/Textresource/textResourceQuery';
-import { getLanguageFromUrl } from 'src/features/language/useAppLanguages';
+// import { getLanguageFromUrl } from 'src/features/language/useAppLanguages';
 import { textResourcesKeys } from 'src/http-client/api-client/queries/textResources';
 import { fetchTextResources } from 'src/http-client/queries';
 import type { TextResourceMap } from 'src/features/language/textResources';
@@ -12,6 +12,11 @@ interface LanguageLoaderProps extends LoaderFunctionArgs {
   context: {
     queryClient: QueryClient;
   };
+}
+
+export function getLanguageFromUrl() {
+  const params = new URLSearchParams(window.location.search.split('?')[1]);
+  return params.get('lang');
 }
 
 export function getLang(

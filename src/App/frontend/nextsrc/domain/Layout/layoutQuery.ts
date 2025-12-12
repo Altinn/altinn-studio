@@ -2,9 +2,9 @@
 import { useEffect, useMemo } from 'react';
 
 import { skipToken, useQuery } from '@tanstack/react-query';
+import { useInstanceDataQuery } from 'nextsrc/domain/Instance/useInstanceQuery';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
-import { useInstanceDataQuery } from 'src/domain/Instance/useInstanceQuery';
 import { useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
