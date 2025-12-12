@@ -17,7 +17,7 @@ export type DeployEvent = {
   message: string;
   timestamp: string;
   eventType: EventType | SucceededEventType | FailedEventType;
-  created: Date;
+  created: string;
   origin: 'Internal' | 'Webhook' | 'PollingJob';
 };
 
@@ -58,7 +58,7 @@ export const getDeployStatus = (deployment: PipelineDeployment | undefined): Bui
         (lastEventType === EventType.PipelineSucceeded ||
           lastEventType === EventType.PipelineFailed) &&
         (firstEventType === EventType.DeprecatedPipelineScheduled ||
-          new Date().getTime() - lastEvent.created.getTime() > 15 * 60 * 1000)
+          new Date().getTime() - new Date(lastEvent.created).getTime() > 15 * 60 * 1000)
       ) {
         return lastEventType === EventType.PipelineSucceeded
           ? BuildResult.succeeded

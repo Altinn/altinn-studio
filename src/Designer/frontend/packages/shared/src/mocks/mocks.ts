@@ -96,7 +96,7 @@ export const deployEvent: DeployEvent = {
   message: '',
   timestamp: '',
   eventType: EventType.PipelineScheduled,
-  created: new Date(),
+  created: '',
   origin: 'Internal',
 };
 

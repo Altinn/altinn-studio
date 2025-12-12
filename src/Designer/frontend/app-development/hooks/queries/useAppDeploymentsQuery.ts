@@ -12,19 +12,7 @@ export const useAppDeploymentsQuery = (
   const { getDeployments } = useServicesContext();
   return useQuery<DeploymentsResponse>({
     queryKey: [QueryKey.AppDeployments, owner, app],
-    queryFn: async () => {
-      const deployments = await getDeployments(owner, app);
-      return {
-        ...deployments,
-        pipelineDeploymentList: deployments.pipelineDeploymentList.map((deployment) => ({
-          ...deployment,
-          events: deployment.events.map((event) => ({
-            ...event,
-            created: new Date(event.created),
-          })),
-        })),
-      };
-    },
+    queryFn: () => getDeployments(owner, app),
     meta,
   });
 };

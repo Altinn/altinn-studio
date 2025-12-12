@@ -254,7 +254,7 @@ describe('DeploymentEnvironmentLogList', () => {
                 {
                   ...deployEvent,
                   eventType: EventType.PipelineFailed,
-                  created: new Date(Date.now() - 16 * 60 * 1000),
+                  created: '2025-12-12T09:26:10.730806+00:00',
                 },
               ],
             },
@@ -275,7 +275,7 @@ describe('DeploymentEnvironmentLogList', () => {
                 {
                   ...deployEvent,
                   eventType: EventType.PipelineSucceeded,
-                  created: new Date(Date.now() - 16 * 60 * 1000),
+                  created: '2025-12-12T09:26:10.730806+00:00',
                 },
               ],
             },
