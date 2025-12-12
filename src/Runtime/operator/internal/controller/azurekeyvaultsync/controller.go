@@ -35,21 +35,31 @@ type KeyVaultSecretMapping struct {
 	BuildOutput func(secrets map[string]string) any
 }
 
-func DefaultMappings() []KeyVaultSecretMapping {
+func DefaultMappings(runtime rt.Runtime) []KeyVaultSecretMapping {
+	env := runtime.GetOperatorContext().Environment
+	var envInKey string
+	switch env {
+	case operatorcontext.EnvironmentProd:
+		envInKey = "Prod"
+	default:
+		envInKey = "Test"
+	}
+	clientIdKey := fmt.Sprintf("Gateway--MaskinportenClientForDesigner--%s--ClientId", envInKey)
+	jwkKey := fmt.Sprintf("Gateway--MaskinportenClientForDesigner--%s--Jwk", envInKey)
 	return []KeyVaultSecretMapping{
 		{
 			Name:      "maskinporten-client-for-designer",
 			Namespace: "runtime-gateway",
 			FileName:  "secrets.json",
 			Secrets: []string{
-				"Gateway--MaskinportenClientForDesigner--Test--ClientId",
-				"Gateway--MaskinportenClientForDesigner--Test--Jwk",
+				clientIdKey,
+				jwkKey,
 			},
 			BuildOutput: func(secrets map[string]string) any {
 				return map[string]any{
 					"MaskinportenClientForDesigner": map[string]any{
-						"ClientId": secrets["Gateway--MaskinportenClientForDesigner--Test--ClientId"],
-						"Jwk":      secrets["Gateway--MaskinportenClientForDesigner--Test--Jwk"],
+						"ClientId": secrets[clientIdKey],
+						"Jwk":      secrets[jwkKey],
 					},
 				}
 			},
@@ -102,7 +112,7 @@ func NewReconciler(
 		k8sClient: k8sClient,
 		kvClient:  newAzureKeyVaultSecretsClient(azClient),
 		runtime:   runtime,
-		mappings:  DefaultMappings(),
+		mappings:  DefaultMappings(runtime),
 	}, nil
 }
 
