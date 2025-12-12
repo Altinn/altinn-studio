@@ -42,7 +42,7 @@ export enum FailedEventType {
 const succeededEventTypeValues = Object.values(SucceededEventType);
 const failedEventTypeValues = Object.values(FailedEventType);
 
-export const getDeployStatus = (deployment: PipelineDeployment): BuildResult => {
+export const getDeployStatus = (deployment: PipelineDeployment | undefined): BuildResult => {
   const lastEventType = deployment?.events[deployment.events.length - 1]?.eventType;
   if (lastEventType) {
     if (succeededEventTypeValues.includes(lastEventType as SucceededEventType)) {
