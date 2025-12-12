@@ -22,12 +22,15 @@ export class UiEditorPage extends BasePage {
 
   public async verifyUiEditorPage(layoutSet?: string, layout?: string | null): Promise<void> {
     const baseRoute = this.getRoute('editorUi');
-    const pageUrl = new URL(
-      baseRoute + (layoutSet ? `/layoutSet/${layoutSet}` : ''),
-      this.page.url(),
-    );
-    if (layout) pageUrl.searchParams.append('layout', layout);
-    await this.page.waitForURL(pageUrl.toString());
+    const expectedPath = baseRoute + (layoutSet ? `/layoutSet/${layoutSet}` : '');
+
+    await this.page.waitForURL((url) => {
+      if (url.pathname !== expectedPath) return false;
+      if (layout !== undefined && layout !== null) {
+        return url.searchParams.get('layout') === layout;
+      }
+      return true;
+    });
   }
 
   public async clickOnPageAccordion(pageName: string): Promise<void> {
