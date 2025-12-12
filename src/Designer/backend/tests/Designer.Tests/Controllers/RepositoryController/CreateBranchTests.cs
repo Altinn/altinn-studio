@@ -48,7 +48,7 @@ namespace Designer.Tests.Controllers.RepositoryController
                 .ReturnsAsync(expectedBranch);
 
             var request = new CreateBranchRequest { BranchName = branchName };
-            var content = new StringContent(
+            using var content = new StringContent(
                 JsonSerializer.Serialize(request, JsonSerializerOptions),
                 Encoding.UTF8,
                 "application/json");
@@ -76,7 +76,7 @@ namespace Designer.Tests.Controllers.RepositoryController
                 .ThrowsAsync(new LibGit2Sharp.NameConflictException("Branch already exists"));
 
             var request = new CreateBranchRequest { BranchName = branchName };
-            var content = new StringContent(
+            using var content = new StringContent(
                 JsonSerializer.Serialize(request, JsonSerializerOptions),
                 Encoding.UTF8,
                 "application/json");
@@ -95,7 +95,7 @@ namespace Designer.Tests.Controllers.RepositoryController
         {
             // Arrange
             string uri = $"{VersionPrefix}/repo/ttd/apps-test/branches";
-            var content = new StringContent("{}", Encoding.UTF8, "application/json");
+            using var content = new StringContent("{}", Encoding.UTF8, "application/json");
 
             // Act
             using HttpResponseMessage response = await HttpClient.PostAsync(uri, content);
