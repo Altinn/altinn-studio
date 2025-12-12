@@ -17,13 +17,15 @@ export const useAutoSelectFirstPage = ({
   const initialisedForPagesModelRef = useRef<PagesModel | undefined>(undefined);
 
   useEffect(() => {
-    if (pagesQueryPending || !pagesModel) return;
-    if (initialisedForPagesModelRef.current === pagesModel) return;
-
-    const firstPageId = findFirstPage(pagesModel);
-    if (firstPageId && selectedFormLayoutName !== firstPageId) {
-      setSelectedFormLayoutName(firstPageId);
-      setSelectedItem({ type: ItemType.Page, id: firstPageId });
+    if (pagesQueryPending || !pagesModel || initialisedForPagesModelRef.current === pagesModel) {
+      return;
+    }
+    if (!selectedFormLayoutName) {
+      const firstPageId = findFirstPage(pagesModel);
+      if (firstPageId) {
+        setSelectedFormLayoutName(firstPageId);
+        setSelectedItem({ type: ItemType.Page, id: firstPageId });
+      }
     }
     initialisedForPagesModelRef.current = pagesModel;
   }, [
