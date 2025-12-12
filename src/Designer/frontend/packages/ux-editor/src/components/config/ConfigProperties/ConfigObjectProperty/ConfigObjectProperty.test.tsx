@@ -6,7 +6,6 @@ import InputSchema from '../../../../testing/schemas/json/component/Input.schema
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import type { UserEvent } from '@testing-library/user-event';
 
 const somePropertyName = 'somePropertyName';
 
