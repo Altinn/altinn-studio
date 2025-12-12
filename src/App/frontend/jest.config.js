@@ -23,6 +23,7 @@ const config = {
   moduleDirectories: ['<rootDir>', 'node_modules'],
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/src/$1',
+    '^nextsrc/(.*)$': '<rootDir>/nextsrc/$1',
     '^schemas/(.*)$': '<rootDir>/schemas/$1',
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'json'],
