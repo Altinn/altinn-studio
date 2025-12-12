@@ -1,5 +1,9 @@
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using StudioGateway.Api;
 using StudioGateway.Api.Authentication;
+using StudioGateway.Api.Clients.Designer;
+using StudioGateway.Api.Clients.K8s;
 using StudioGateway.Api.Endpoints.Internal;
 using StudioGateway.Api.Endpoints.Local;
 using StudioGateway.Api.Endpoints.Public;
@@ -15,6 +19,12 @@ builder.Configuration.AddJsonFile(
 );
 builder.Configuration.AddJsonFile("/app/secrets/grafana-token.json", optional: true, reloadOnChange: true);
 builder.Services.Configure<GrafanaSettings>(builder.Configuration.GetSection("Grafana"));
+
+builder.Services.Configure<GatewayContext>(builder.Configuration.GetSection("Gateway"));
+
+// Register class itself as scoped to avoid using IOptions interfaces throughout the codebase
+// Avoided singleton registration to support dynamic reloading of configuration
+builder.Services.TryAddScoped<GatewayContext>(sp => sp.GetRequiredService<IOptionsSnapshot<GatewayContext>>().Value);
 
 builder.ConfigureKestrelPorts();
 builder.AddHostingConfiguration();
@@ -49,6 +59,8 @@ builder.Services.AddOpenApi(
         };
     }
 );
+builder.Services.AddDesignerClients(builder.Configuration);
+builder.Services.AddKubernetesServices();
 
 var app = builder.Build();
 

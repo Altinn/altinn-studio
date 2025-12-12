@@ -37,5 +37,10 @@ namespace Altinn.Studio.Designer.ModelBinding.Constants
         /// User must have permission in the relevant organization.
         /// </summary>
         public const string MustHaveOrganizationPermission = "MustHaveOrganizationPermission";
+
+        /// <summary>
+        /// MustHaveAdminPermission
+        /// </summary>
+        public const string MustHaveAdminPermission = "MustHaveAdminPermission";
     }
 }

@@ -14,6 +14,7 @@ import (
 )
 
 const EnvironmentLocal = "localtest"
+const EnvironmentProd = "prod"
 
 // ResolveEnvironment determines the environment from the override or OPERATOR_ENVIRONMENT env var.
 // Returns EnvironmentLocal if neither is set.

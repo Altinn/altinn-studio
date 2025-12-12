@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
@@ -36,7 +35,6 @@ public class ApplicationsController : ControllerBase
     }
 
     [HttpGet("{org}")]
-    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
     public async Task<ActionResult<Dictionary<string, List<PublishedApplication>>>> GetApps(
         string org,
         CancellationToken ct
@@ -71,7 +69,6 @@ public class ApplicationsController : ControllerBase
     }
 
     [HttpGet("{org}/{env}/{app}/process-tasks")]
-    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
     public async Task<ActionResult<IEnumerable<ProcessTask>>> GetProcessTasks(
         string org,
         string env,

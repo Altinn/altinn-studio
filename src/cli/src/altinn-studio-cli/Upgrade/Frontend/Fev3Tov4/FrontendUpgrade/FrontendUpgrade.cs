@@ -1,5 +1,4 @@
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.Checks;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.CustomReceiptRewriter;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.FooterRewriter;
@@ -29,86 +28,86 @@ internal static class FrontendUpgrade
 
     public static Command GetUpgradeCommand(Option<string> projectFolderOption)
     {
-        var targetVersionOption = new Option<string>(
-            name: "--target-version",
-            description: "The target version to upgrade to",
-            getDefaultValue: () => "4"
-        );
-        var indexFileOption = new Option<string>(
-            name: "--index-file",
-            description: "The name of the Index.cshtml file relative to --folder",
-            getDefaultValue: () => "App/views/Home/Index.cshtml"
-        );
-        var skipIndexFileUpgradeOption = new Option<bool>(
-            name: "--skip-index-file-upgrade",
-            description: "Skip Index.cshtml upgrade",
-            getDefaultValue: () => false
-        );
-        var uiFolderOption = new Option<string>(
-            name: "--ui-folder",
-            description: "The folder containing layout files relative to --folder",
-            getDefaultValue: () => "App/ui/"
-        );
-        var textsFolderOption = new Option<string>(
-            name: "--texts-folder",
-            description: "The folder containing text files relative to --folder",
-            getDefaultValue: () => "App/config/texts/"
-        );
-        var layoutSetNameOption = new Option<string>(
-            name: "--layout-set-name",
-            description: "The name of the layout set to be created",
-            getDefaultValue: () => "form"
-        );
-        var applicationMetadataFileOption = new Option<string>(
-            name: "--application-metadata",
-            description: "The path of the applicationmetadata.json file relative to --folder",
-            getDefaultValue: () => "App/config/applicationmetadata.json"
-        );
-        var skipLayoutSetUpgradeOption = new Option<bool>(
-            name: "--skip-layout-set-upgrade",
-            description: "Skip layout set upgrade",
-            getDefaultValue: () => false
-        );
-        var skipSettingsUpgradeOption = new Option<bool>(
-            name: "--skip-settings-upgrade",
-            description: "Skip layout settings upgrade",
-            getDefaultValue: () => false
-        );
-        var skipLayoutUpgradeOption = new Option<bool>(
-            name: "--skip-layout-upgrade",
-            description: "Skip layout files upgrade",
-            getDefaultValue: () => false
-        );
-        var convertGroupTitlesOption = new Option<bool>(
-            name: "--convert-group-titles",
-            description: "Convert 'title' in repeating groups to 'summaryTitle'",
-            getDefaultValue: () => false
-        );
-        var skipSchemaRefUpgradeOption = new Option<bool>(
-            name: "--skip-schema-ref-upgrade",
-            description: "Skip schema reference upgrade",
-            getDefaultValue: () => false
-        );
-        var skipFooterUpgradeOption = new Option<bool>(
-            name: "--skip-footer-upgrade",
-            description: "Skip footer upgrade",
-            getDefaultValue: () => false
-        );
-        var receiptLayoutSetNameOption = new Option<string>(
-            name: "--receipt-layout-set-name",
-            description: "The name of the layout set to be created for the custom receipt",
-            getDefaultValue: () => "receipt"
-        );
-        var skipCustomReceiptUpgradeOption = new Option<bool>(
-            name: "--skip-custom-receipt-upgrade",
-            description: "Skip custom receipt upgrade",
-            getDefaultValue: () => false
-        );
-        var skipChecksOption = new Option<bool>(
-            name: "--skip-checks",
-            description: "Skip checks",
-            getDefaultValue: () => false
-        );
+        var targetVersionOption = new Option<string>(name: "--target-version")
+        {
+            Description = "The target version to upgrade to",
+            DefaultValueFactory = _ => "4",
+        };
+        var indexFileOption = new Option<string>(name: "--index-file")
+        {
+            Description = "The name of the Index.cshtml file relative to --folder",
+            DefaultValueFactory = _ => "App/views/Home/Index.cshtml",
+        };
+        var skipIndexFileUpgradeOption = new Option<bool>(name: "--skip-index-file-upgrade")
+        {
+            Description = "Skip Index.cshtml upgrade",
+            DefaultValueFactory = _ => false,
+        };
+        var uiFolderOption = new Option<string>(name: "--ui-folder")
+        {
+            Description = "The folder containing layout files relative to --folder",
+            DefaultValueFactory = _ => "App/ui/",
+        };
+        var textsFolderOption = new Option<string>(name: "--texts-folder")
+        {
+            Description = "The folder containing text files relative to --folder",
+            DefaultValueFactory = _ => "App/config/texts/",
+        };
+        var layoutSetNameOption = new Option<string>(name: "--layout-set-name")
+        {
+            Description = "The name of the layout set to be created",
+            DefaultValueFactory = _ => "form",
+        };
+        var applicationMetadataFileOption = new Option<string>(name: "--application-metadata")
+        {
+            Description = "The path of the applicationmetadata.json file relative to --folder",
+            DefaultValueFactory = _ => "App/config/applicationmetadata.json",
+        };
+        var skipLayoutSetUpgradeOption = new Option<bool>(name: "--skip-layout-set-upgrade")
+        {
+            Description = "Skip layout set upgrade",
+            DefaultValueFactory = _ => false,
+        };
+        var skipSettingsUpgradeOption = new Option<bool>(name: "--skip-settings-upgrade")
+        {
+            Description = "Skip layout settings upgrade",
+            DefaultValueFactory = _ => false,
+        };
+        var skipLayoutUpgradeOption = new Option<bool>(name: "--skip-layout-upgrade")
+        {
+            Description = "Skip layout files upgrade",
+            DefaultValueFactory = _ => false,
+        };
+        var convertGroupTitlesOption = new Option<bool>(name: "--convert-group-titles")
+        {
+            Description = "Convert 'title' in repeating groups to 'summaryTitle'",
+            DefaultValueFactory = _ => false,
+        };
+        var skipSchemaRefUpgradeOption = new Option<bool>(name: "--skip-schema-ref-upgrade")
+        {
+            Description = "Skip schema reference upgrade",
+            DefaultValueFactory = _ => false,
+        };
+        var skipFooterUpgradeOption = new Option<bool>(name: "--skip-footer-upgrade")
+        {
+            Description = "Skip footer upgrade",
+            DefaultValueFactory = _ => false,
+        };
+        var receiptLayoutSetNameOption = new Option<string>(name: "--receipt-layout-set-name")
+        {
+            Description = "The name of the layout set to be created for the custom receipt",
+            DefaultValueFactory = _ => "receipt",
+        };
+        var skipCustomReceiptUpgradeOption = new Option<bool>(name: "--skip-custom-receipt-upgrade")
+        {
+            Description = "Skip custom receipt upgrade",
+            DefaultValueFactory = _ => false,
+        };
+        var skipChecksOption = new Option<bool>(name: "--skip-checks")
+        {
+            Description = "Skip checks",
+            DefaultValueFactory = _ => false,
+        };
 
         var upgradeCommand = new Command("frontend", "Upgrade an app from using App-Frontend v3 to v4")
         {
@@ -131,26 +130,26 @@ internal static class FrontendUpgrade
             skipChecksOption,
         };
 
-        upgradeCommand.SetHandler(
-            async (InvocationContext context) =>
+        upgradeCommand.SetAction(
+            async (ParseResult result) =>
             {
                 var returnCode = 0;
 
                 // Get simple options
-                var skipIndexFileUpgrade = context.ParseResult.GetValueForOption(skipIndexFileUpgradeOption);
-                var skipLayoutSetUpgrade = context.ParseResult.GetValueForOption(skipLayoutSetUpgradeOption);
-                var skipSettingsUpgrade = context.ParseResult.GetValueForOption(skipSettingsUpgradeOption);
-                var skipLayoutUpgrade = context.ParseResult.GetValueForOption(skipLayoutUpgradeOption);
-                var skipSchemaRefUpgrade = context.ParseResult.GetValueForOption(skipSchemaRefUpgradeOption);
-                var skipFooterUpgrade = context.ParseResult.GetValueForOption(skipFooterUpgradeOption);
-                var skipCustomReceiptUpgrade = context.ParseResult.GetValueForOption(skipCustomReceiptUpgradeOption);
-                var skipChecks = context.ParseResult.GetValueForOption(skipChecksOption);
-                var layoutSetName = context.ParseResult.GetValueForOption(layoutSetNameOption);
-                var receiptLayoutSetName = context.ParseResult.GetValueForOption(receiptLayoutSetNameOption);
-                var convertGroupTitles = context.ParseResult.GetValueForOption(convertGroupTitlesOption);
-                var targetVersion = context.ParseResult.GetValueForOption(targetVersionOption);
+                var skipIndexFileUpgrade = result.GetValue(skipIndexFileUpgradeOption);
+                var skipLayoutSetUpgrade = result.GetValue(skipLayoutSetUpgradeOption);
+                var skipSettingsUpgrade = result.GetValue(skipSettingsUpgradeOption);
+                var skipLayoutUpgrade = result.GetValue(skipLayoutUpgradeOption);
+                var skipSchemaRefUpgrade = result.GetValue(skipSchemaRefUpgradeOption);
+                var skipFooterUpgrade = result.GetValue(skipFooterUpgradeOption);
+                var skipCustomReceiptUpgrade = result.GetValue(skipCustomReceiptUpgradeOption);
+                var skipChecks = result.GetValue(skipChecksOption);
+                var layoutSetName = result.GetValue(layoutSetNameOption);
+                var receiptLayoutSetName = result.GetValue(receiptLayoutSetNameOption);
+                var convertGroupTitles = result.GetValue(convertGroupTitlesOption);
+                var targetVersion = result.GetValue(targetVersionOption);
 
-                var projectFolder = context.ParseResult.GetValueForOption(projectFolderOption);
+                var projectFolder = result.GetValue(projectFolderOption);
                 if (projectFolder is null)
                 {
                     PrintError("Project folder option is required.");
@@ -175,7 +174,7 @@ internal static class FrontendUpgrade
                 }
 
                 // Get options requiring project folder
-                var applicationMetadataFile = context.ParseResult.GetValueForOption(applicationMetadataFileOption);
+                var applicationMetadataFile = result.GetValue(applicationMetadataFileOption);
                 if (applicationMetadataFile is null)
                 {
                     PrintError("Application metadata file option is required.");
@@ -184,7 +183,7 @@ internal static class FrontendUpgrade
                 }
                 applicationMetadataFile = Path.Combine(projectFolder, applicationMetadataFile);
 
-                var uiFolder = context.ParseResult.GetValueForOption(uiFolderOption);
+                var uiFolder = result.GetValue(uiFolderOption);
                 if (uiFolder is null)
                 {
                     PrintError("UI folder option is required.");
@@ -193,7 +192,7 @@ internal static class FrontendUpgrade
                 }
                 uiFolder = Path.Combine(projectFolder, uiFolder);
 
-                var textsFolder = context.ParseResult.GetValueForOption(textsFolderOption);
+                var textsFolder = result.GetValue(textsFolderOption);
                 if (textsFolder is null)
                 {
                     PrintError("Texts folder option is required.");
@@ -202,7 +201,7 @@ internal static class FrontendUpgrade
                 }
                 textsFolder = Path.Combine(projectFolder, textsFolder);
 
-                var indexFile = context.ParseResult.GetValueForOption(indexFileOption);
+                var indexFile = result.GetValue(indexFileOption);
                 if (indexFile is null)
                 {
                     PrintError("Index file option is required.");

@@ -92,17 +92,17 @@ spec:
                 configMapKeyRef:
                   name: runtime-environment
                   key: environment
-            - name: GATEWAY_UPGRADE_CHANNEL
+            - name: Gateway__UpgradeChannel
               valueFrom:
                 configMapKeyRef:
                   name: runtime-environment
                   key: upgrade_channel
-            - name: GATEWAY_ENVIRONMENT
+            - name: Gateway__Environment
               valueFrom:
                 configMapKeyRef:
                   name: runtime-environment
                   key: environment
-            - name: GATEWAY_SERVICEOWNER
+            - name: Gateway__ServiceOwner
               valueFrom:
                 configMapKeyRef:
                   name: runtime-environment
