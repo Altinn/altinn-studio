@@ -183,7 +183,7 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
 
         ValidateFilePath(fileMetadata.Path);
 
-        if(fileMetadata.Content is null)
+        if (fileMetadata.Content is null)
         {
             altinnOrgGitRepository.DeleteFileByRelativePath(fileMetadata.Path);
         }
