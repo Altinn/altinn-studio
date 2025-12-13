@@ -91,7 +91,7 @@ namespace Designer.Tests.Controllers.RepositoryController
         }
 
         [Fact]
-        public async Task CreateBranch_EmptyRequest_ReturnsNoContent()
+        public async Task CreateBranch_EmptyRequest_ReturnsBadRequest()
         {
             // Arrange
             string uri = $"{VersionPrefix}/repo/ttd/apps-test/branches";
@@ -101,8 +101,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             using HttpResponseMessage response = await HttpClient.PostAsync(uri, content);
 
             // Assert
-            // Empty body with null BranchName doesn't cause error, but should not create branch
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
     }
 }

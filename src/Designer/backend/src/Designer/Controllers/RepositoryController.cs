@@ -412,6 +412,11 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches")]
         public async Task<ActionResult<Branch>> CreateBranch(string org, string repository, [FromBody] CreateBranchRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request?.BranchName))
+            {
+                return BadRequest("Branch name is required");
+            }
+
             try
             {
                 Guard.AssertValidRepoBranchName(request.BranchName);
@@ -450,6 +455,11 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/checkout")]
         public async Task<ActionResult<RepoStatus>> CheckoutBranch(string org, string repository, [FromBody] CheckoutBranchRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request?.BranchName))
+            {
+                return BadRequest("Branch name is required");
+            }
+
             try
             {
                 Guard.AssertValidRepoBranchName(request.BranchName);
