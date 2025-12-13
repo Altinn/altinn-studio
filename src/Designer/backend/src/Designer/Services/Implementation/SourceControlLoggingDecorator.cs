@@ -470,7 +470,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
-            _logger.LogError(ex, "Failed executing method {Method} for user {Developer} in org {Org} / repository {Repository}. Destination: {DestinationPath}. Branch: {Branch}.", method, developer, org, repository, destinationPath, branch);
+            string safeOrg = SanitizeForLog(org);
+            string safeRepository = SanitizeForLog(repository);
+            string safeDestinationPath = SanitizeForLog(destinationPath);
+            string safeBranch = SanitizeForLog(branch);
+
+            _logger.LogError(ex, "Failed executing method {Method} for user {Developer} in org {Org} / repository {Repository}. Destination: {DestinationPath}. Branch: {Branch}.", method, developer, safeOrg, safeRepository, safeDestinationPath, safeBranch);
+        }
+
+        private static string SanitizeForLog(string input)
+        {
+            return input.Replace("\r", "").Replace("\n", "").Replace("\t", "");
         }
     }
 }

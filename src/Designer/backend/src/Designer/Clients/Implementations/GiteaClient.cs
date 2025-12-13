@@ -446,7 +446,8 @@ public class GiteaClient(
             .FallbackAsync(ct =>
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-                logger.LogError("User {Developer}, method {MethodName} failed for branch {BranchName} on repo {Org}/{Repo}", developer, nameof(CreateBranch), branchName, org, repository);
+                string safeBranchName = SanitizeForLog(branchName);
+                logger.LogError("User {Developer}, method {MethodName} failed for branch {BranchName} on repo {Org}/{Repo}", developer, nameof(CreateBranch), safeBranchName, org, repository);
                 throw new GiteaClientException($"Failed to create branch {branchName} in Gitea after 4 retries.");
             })
             .WrapAsync(
@@ -714,6 +715,11 @@ public class GiteaClient(
             return path;
         }
         return $"{path}?ref={Uri.EscapeDataString(reference)}";
+    }
+
+    private static string SanitizeForLog(string input)
+    {
+        return input.Replace("\r", "").Replace("\n", "").Replace("\t", "");
     }
 }
 
