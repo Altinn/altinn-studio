@@ -13,6 +13,7 @@ import (
 	"altinn.studio/runtime-fixture/pkg/cache"
 	"altinn.studio/runtime-fixture/pkg/container"
 	"altinn.studio/runtime-fixture/pkg/flux"
+	"altinn.studio/runtime-fixture/pkg/helm"
 	"altinn.studio/runtime-fixture/pkg/kindclient"
 	"altinn.studio/runtime-fixture/pkg/kubernetes"
 	"altinn.studio/runtime-fixture/pkg/runtimes"
@@ -87,6 +88,7 @@ type KindContainerRuntime struct {
 
 	ContainerClient  container.ContainerClient
 	FluxClient       *flux.FluxClient
+	HelmClient       *helm.Client
 	KindClient       *kindclient.KindClient
 	KubernetesClient *kubernetes.KubernetesClient
 
@@ -221,8 +223,7 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 		return nil, nil, err
 	}
 
-	// Install only the tools needed for KindContainerRuntime (not k6, which is only needed for loadtest)
-	if _, err := installer.Install(context.Background(), "helm,golangci-lint"); err != nil {
+	if _, err := installer.Install(context.Background(), "golangci-lint"); err != nil {
 		return nil, nil, fmt.Errorf("failed to ensure CLIs: %w", err)
 	}
 
@@ -232,12 +233,19 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 		return nil, nil, fmt.Errorf("couldn't get current clusters: %w", err)
 	}
 
+	// plainHTTP for local registry without TLS
+	helmClient, err := helm.NewClient(true)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create helm client: %w", err)
+	}
+
 	return &KindContainerRuntime{
 		cachePath: cachePath,
 
 		Installer: installer,
 
 		ContainerClient: containerClient,
+		HelmClient:      helmClient,
 		KindClient:      kindClient,
 	}, clusters, nil
 }
