@@ -169,16 +169,4 @@ public interface IAppResources
     /// </summary>
     /// <returns>The layout settings</returns>
     LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);
-
-    /// <summary>
-    /// Gets the ruleconfiguration for av given layoutset
-    /// </summary>
-    /// <returns>A dictionary of FormLayout objects serialized to JSON</returns>
-    byte[] GetRuleConfigurationForSet(string id);
-
-    /// <summary>
-    /// Gets the the rule handler for a layoutset
-    /// </summary>
-    /// <returns>The layout settings</returns>
-    byte[] GetRuleHandlerForSet(string id);
 }

@@ -24,6 +24,11 @@ namespace Altinn.Studio.Designer.Infrastructure.Models
         public int DecommissionDefinitionId { get; set; }
 
         /// <summary>
+        /// Id for a definition that manages deploy of an Altinn Studio apps using GitOps
+        /// </summary>
+        public int GitOpsManagerDefinitionId { get; set; }
+
+        /// <summary>
         /// Base URI for Azure DevOps
         /// </summary>
         public string BaseUri { get; set; }

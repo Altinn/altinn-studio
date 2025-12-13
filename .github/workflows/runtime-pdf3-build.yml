@@ -47,7 +47,7 @@ jobs:
         run: make lint
 
       - name: Run fixture
-        run: make run v=minimal
+        run: make start-minimal
 
       - name: Run tests
         run: make test

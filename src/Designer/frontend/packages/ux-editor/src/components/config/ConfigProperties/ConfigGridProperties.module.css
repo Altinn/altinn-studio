@@ -1,5 +1,6 @@
 .objectPropertyContainer {
   gap: 0.5rem;
+  margin-inline: var(--ds-size-5);
 }
 
 .heading {

@@ -80,7 +80,7 @@ import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
-import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
+import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -137,12 +137,6 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<OptionListReferences>([])),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
   getOrgCodeLists: jest.fn().mockImplementation(() => Promise.resolve<CodeListsResponse>([])),
-  getOrgCodeListsNew: jest.fn().mockImplementation(() =>
-    Promise.resolve<CodeListsNewResponse>({
-      codeListWrappers: [],
-      commitSha: '',
-    }),
-  ),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrgTextLanguages: jest.fn().mockImplementation(() => Promise.resolve<string[] | null>([])),
   getOrgTextResources: jest
@@ -150,6 +144,13 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() =>
       Promise.resolve<ITextResourcesWithLanguage>(textResourcesWithLanguage),
     ),
+  getSharedResources: jest.fn().mockImplementation(() =>
+    Promise.resolve<SharedResourcesResponse>({
+      files: [],
+      commitSha: '',
+    }),
+  ),
+  getPublishedResources: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
   getRepoPull: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
   getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
@@ -285,7 +286,6 @@ export const queriesMock: ServicesContextProps = {
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateOrgCodeLists: jest.fn().mockImplementation(() => Promise.resolve()),
   updateTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve()),
   unsetStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -302,6 +302,7 @@ export const queriesMock: ServicesContextProps = {
   updateOrgCodeListId: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOrgTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateSharedResources: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   uploadOptionList: jest.fn().mockImplementation(() => Promise.resolve()),

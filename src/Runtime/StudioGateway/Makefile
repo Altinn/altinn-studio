@@ -1,4 +1,4 @@
-.PHONY: help run stop test build clean tidy
+.PHONY: help start start-minimal start-standard stop test build clean tidy
 .DEFAULT_GOAL := help
 
 CACHE_DIR := .cache
@@ -9,11 +9,13 @@ help: ## Show this help message
 	@echo 'Available targets:'
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
 
-run: ## Start the runtime fixture/cluster (usage: make run v=minimal|standard)
-ifndef v
-	$(error v parameter is required. Usage: make run v=minimal|standard)
-endif
-	@go run ./cmd/tester start $(v)
+start: start-minimal ## Start the Kind cluster (alias for start-minimal)
+
+start-minimal: ## Start with minimal variant
+	@go run ./cmd/tester start minimal
+
+start-standard: ## Start with standard variant
+	@go run ./cmd/tester start standard
 
 stop: ## Stop the runtime fixture/cluster
 	@go run ./cmd/tester stop

@@ -1,4 +1,4 @@
-{
+﻿{
   "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "layout": [
@@ -140,7 +140,18 @@
           ],
           "multiPage": true,
           "openByDefault": false
-        }
+        },
+        "hidden": [
+          "not",
+          [
+            "equals",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.Avgiver-grp-9787.KontaktpersonEPost-datadef-27688.value"
+            ],
+            "Ja"
+          ]
+        ]
       },
       {
         "id": "currentValue",
@@ -462,7 +473,18 @@
           }
         ],
         "required": false,
-        "readOnly": false
+        "readOnly": false,
+        "hidden": [
+          "not",
+          [
+            "equals",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.extraOptionsToggle"
+            ],
+            "Ja"
+          ]
+        ]
       },
       {
         "id": "comments",
@@ -475,8 +497,20 @@
         },
         "required": false,
         "readOnly": false,
-        "labelSettings": { "optionalIndicator": false },
-        "showValidations": ["AllExceptRequired"]
+        "labelSettings": {
+          "optionalIndicator": false
+        },
+        "showValidations": [
+          "AllExceptRequired"
+        ],
+        "hidden": [
+          "equals",
+          [
+            "dataModel",
+            "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.hideComment"
+          ],
+          "Ja"
+        ]
       },
       {
         "id": "hideComment",
