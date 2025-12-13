@@ -101,12 +101,6 @@ func TestInstallSpecificTool(t *testing.T) {
 	if _, err := os.Stat(tool.Path); err != nil {
 		t.Errorf("kind binary not found: %v", err)
 	}
-
-	// Creating a kubernetes client with a non-existent context should fail
-	_, err = installer.GetKubernetesClient("nonexistent-context")
-	if err == nil {
-		t.Errorf("Should not be able to get a k8s client with invalid context")
-	}
 }
 
 // TestInstallMultipleSpecificTools tests installing multiple specific tools

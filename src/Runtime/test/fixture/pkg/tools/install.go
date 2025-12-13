@@ -13,9 +13,6 @@ import (
 	"strings"
 
 	"altinn.studio/runtime-fixture/pkg/cache"
-	"altinn.studio/runtime-fixture/pkg/flux"
-	"altinn.studio/runtime-fixture/pkg/kindclient"
-	"altinn.studio/runtime-fixture/pkg/kubernetes"
 )
 
 //go:embed .tool-versions
@@ -69,22 +66,6 @@ func (i *Installer) GetToolInfo(name string) (*ToolInfo, error) {
 	}
 
 	return tool, nil
-}
-
-func (i *Installer) GetFluxClient(contextName string) (*flux.FluxClient, error) {
-	kubeClient, err := i.GetKubernetesClient(contextName)
-	if err != nil {
-		return nil, err
-	}
-	return flux.New(kubeClient)
-}
-
-func (i *Installer) GetKubernetesClient(contextName string) (*kubernetes.KubernetesClient, error) {
-	return kubernetes.New(contextName)
-}
-
-func (i *Installer) GetKindClient() *kindclient.KindClient {
-	return kindclient.New()
 }
 
 // Install installs the specified tools (comma-separated) or all tools if tools is empty

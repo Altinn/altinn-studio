@@ -222,11 +222,11 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 	}
 
 	// Install only the tools needed for KindContainerRuntime (not k6, which is only needed for loadtest)
-	if _, err := installer.Install(context.Background(), "kind,helm,flux,golangci-lint"); err != nil {
+	if _, err := installer.Install(context.Background(), "helm,golangci-lint"); err != nil {
 		return nil, nil, fmt.Errorf("failed to ensure CLIs: %w", err)
 	}
 
-	kindClient := installer.GetKindClient()
+	kindClient := kindclient.New()
 	clusters, err := kindClient.GetClusters()
 	if err != nil {
 		return nil, nil, fmt.Errorf("couldn't get current clusters: %w", err)
@@ -247,12 +247,12 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 func (r *KindContainerRuntime) initializeClients() error {
 	contextName := r.GetContextName()
 
-	kubernetesClient, err := r.Installer.GetKubernetesClient(contextName)
+	kubernetesClient, err := kubernetes.New(contextName)
 	if err != nil {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
 
-	fluxClient, err := r.Installer.GetFluxClient(contextName)
+	fluxClient, err := flux.New(kubernetesClient)
 	if err != nil {
 		return fmt.Errorf("failed to create flux client: %w", err)
 	}
