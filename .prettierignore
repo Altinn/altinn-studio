@@ -9,3 +9,4 @@ yarn.lock
 *.snap
 *.yaml
 eidlogger/
+src/AI/mcp/

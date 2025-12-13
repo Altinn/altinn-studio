@@ -97,7 +97,6 @@ OTel is still experimental for browsers. Do we want to implement something that 
 **Who is generating the data?**
 
 - **Robots**
-
   - Synthetic monitoring
   - Load/perf tests (including Lighthouse/k6 browser)
 

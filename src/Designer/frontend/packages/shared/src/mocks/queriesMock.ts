@@ -6,6 +6,7 @@ import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { Branch, CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
 import type {
   DataModelMetadataJson,
   DataModelMetadataXsd,
@@ -92,6 +93,15 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
   getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve<BranchStatus>(branchStatus)),
+  getBranches: jest.fn().mockImplementation(() => Promise.resolve<Branch[]>([])),
+  getCurrentBranch: jest.fn().mockImplementation(() =>
+    Promise.resolve<CurrentBranchInfo>({
+      branchName: 'master',
+      commitSha: 'abc123',
+      isTracking: true,
+      remoteName: 'origin',
+    }),
+  ),
   getDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   getDataModelMetadata: jest
     .fn()
@@ -240,10 +250,12 @@ export const queriesMock: ServicesContextProps = {
   addLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
   addRepo: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
   addXsdFromRepo: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  checkoutBranch: jest.fn().mockImplementation(() => Promise.resolve({})),
   commitAndPushChanges: jest
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   copyApp: jest.fn().mockImplementation(() => Promise.resolve()),
+  createBranch: jest.fn().mockImplementation(() => Promise.resolve()),
   createDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   createDeployment: jest.fn().mockImplementation(() => Promise.resolve()),
   createOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -261,6 +273,7 @@ export const queriesMock: ServicesContextProps = {
   deleteLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
+  discardChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   generateModels: jest.fn().mockImplementation(() => Promise.resolve()),
   importCodeListFromOrgToApp: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
   logout: jest.fn().mockImplementation(() => Promise.resolve()),
