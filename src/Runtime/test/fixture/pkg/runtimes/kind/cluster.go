@@ -31,15 +31,3 @@ func (r *KindContainerRuntime) createCluster() error {
 	fmt.Printf("Cluster %s created successfully\n", r.clusterName)
 	return nil
 }
-
-// setKubectlContext sets the kubectl context to the kind cluster
-func (r *KindContainerRuntime) setKubectlContext() error {
-	contextName := fmt.Sprintf("kind-%s", r.clusterName)
-	fmt.Printf("Setting kubectl context to %s...\n", contextName)
-
-	if err := r.KubernetesClient.ConfigUseContext(contextName); err != nil {
-		return err
-	}
-
-	return nil
-}

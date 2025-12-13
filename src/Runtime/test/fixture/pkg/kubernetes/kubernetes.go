@@ -1,262 +1,470 @@
 package kubernetes
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"os"
-	"os/exec"
+	"path/filepath"
+	"sort"
 	"strings"
 	"time"
+
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	apiextensionsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
+	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/discovery/cached/memory"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/restmapper"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
+	"sigs.k8s.io/kustomize/api/krusty"
+	kustomizeTypes "sigs.k8s.io/kustomize/api/types"
+	"sigs.k8s.io/kustomize/kyaml/filesys"
 )
 
-// KubernetesClient wraps kubectl CLI operations
+// Common GVRs for core Kubernetes resources
+var (
+	NamespaceGVR  = corev1.SchemeGroupVersion.WithResource("namespaces")
+	DeploymentGVR = appsv1.SchemeGroupVersion.WithResource("deployments")
+)
+
+// KubernetesClient wraps client-go operations for a specific context
 type KubernetesClient struct {
-	kubectlBin string
+	clientset       *kubernetes.Clientset
+	apiextClientset *apiextensionsclientset.Clientset
+	dynamicClient   dynamic.Interface
+	mapper          *restmapper.DeferredDiscoveryRESTMapper
+	cachedDiscovery discovery.CachedDiscoveryInterface
 }
 
-// New creates a new KubernetesClient with the given kubectl binary path
-func New(kubectlBinPath string) (*KubernetesClient, error) {
-	if _, err := os.Stat(kubectlBinPath); err != nil {
-		return nil, fmt.Errorf("kubectl binary stat error: %w", err)
+// New creates a KubernetesClient for the specified kubectl context.
+// The context name should be like "kind-runtime-fixture-kind-standard".
+func New(contextName string) (*KubernetesClient, error) {
+	kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
+
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
+		&clientcmd.ConfigOverrides{CurrentContext: contextName},
+	).ClientConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load config for context %s: %w", contextName, err)
 	}
+
+	return newFromConfig(config)
+}
+
+func newFromConfig(config *rest.Config) (*KubernetesClient, error) {
+	// Increase rate limits for faster reconciliation loops
+	config.QPS = 50
+	config.Burst = 100
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create clientset: %w", err)
+	}
+
+	apiextClientset, err := apiextensionsclientset.NewForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create apiextensions clientset: %w", err)
+	}
+
+	dynamicClient, err := dynamic.NewForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create dynamic client: %w", err)
+	}
+
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create discovery client: %w", err)
+	}
+	cachedDiscovery := memory.NewMemCacheClient(discoveryClient)
+	mapper := restmapper.NewDeferredDiscoveryRESTMapper(cachedDiscovery)
+
 	return &KubernetesClient{
-		kubectlBin: kubectlBinPath,
+		clientset:       clientset,
+		apiextClientset: apiextClientset,
+		dynamicClient:   dynamicClient,
+		mapper:          mapper,
+		cachedDiscovery: cachedDiscovery,
 	}, nil
 }
 
-// ApplyManifest applies Kubernetes manifest YAML content using kubectl apply
-// This function is idempotent - it can be called multiple times safely
-func (c *KubernetesClient) ApplyManifest(yaml string) (string, error) {
-	cmd := exec.Command(c.kubectlBin, "apply", "-f", "-")
-	cmd.Stdin = strings.NewReader(yaml)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("failed to apply manifest: %w\nOutput: %s", err, string(output))
-	}
-	return string(output), nil
+// ResetMapper invalidates the cached API resource discovery.
+// Call this after installing CRDs to make them available.
+func (c *KubernetesClient) ResetMapper() {
+	c.cachedDiscovery.Invalidate()
+	c.mapper.Reset()
 }
 
-// Get checks if a Kubernetes resource exists
-// Returns nil if the resource exists, error otherwise
-func (c *KubernetesClient) Get(resource, name, namespace string) error {
-	args := []string{"get", resource}
-	if name != "" {
-		args = append(args, name)
+// ApplyManifest applies Kubernetes manifest YAML content using Server-Side Apply.
+// This function is idempotent - it can be called multiple times safely.
+func (c *KubernetesClient) ApplyManifest(yamlContent string) (string, error) {
+	ctx := context.Background()
+	decoder := utilyaml.NewYAMLOrJSONDecoder(strings.NewReader(yamlContent), 4096)
+	var results []string
+
+	for {
+		var rawObj unstructured.Unstructured
+		if err := decoder.Decode(&rawObj); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return "", fmt.Errorf("failed to decode YAML: %w", err)
+		}
+
+		// Skip empty documents
+		if len(rawObj.Object) == 0 {
+			continue
+		}
+
+		gvk := rawObj.GroupVersionKind()
+		mapping, err := c.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+		if err != nil {
+			return "", fmt.Errorf("failed to get REST mapping for %v: %w", gvk, err)
+		}
+
+		data, err := json.Marshal(rawObj.Object)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal object: %w", err)
+		}
+
+		var dr dynamic.ResourceInterface
+		if mapping.Scope.Name() == meta.RESTScopeNameNamespace {
+			ns := rawObj.GetNamespace()
+			if ns == "" {
+				ns = "default"
+			}
+			dr = c.dynamicClient.Resource(mapping.Resource).Namespace(ns)
+		} else {
+			dr = c.dynamicClient.Resource(mapping.Resource)
+		}
+
+		_, err = dr.Patch(ctx, rawObj.GetName(), types.ApplyPatchType, data,
+			metav1.PatchOptions{FieldManager: "runtime-fixture"})
+		if err != nil {
+			return "", fmt.Errorf("failed to apply %s/%s: %w", gvk.Kind, rawObj.GetName(), err)
+		}
+		results = append(results, fmt.Sprintf("%s/%s configured", strings.ToLower(gvk.Kind), rawObj.GetName()))
 	}
+	return strings.Join(results, "\n"), nil
+}
+
+// Get checks if a Kubernetes resource exists.
+// Returns nil if the resource exists, error otherwise.
+func (c *KubernetesClient) Get(gvr schema.GroupVersionResource, name, namespace string) error {
+	ctx := context.Background()
+
+	var dr dynamic.ResourceInterface
 	if namespace != "" {
-		args = append(args, "-n", namespace)
+		dr = c.dynamicClient.Resource(gvr).Namespace(namespace)
+	} else {
+		dr = c.dynamicClient.Resource(gvr)
 	}
 
-	cmd := exec.Command(c.kubectlBin, args...)
-	output, err := cmd.CombinedOutput()
+	_, err := dr.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
-		return fmt.Errorf("kubectl get failed: %w\nOutput: %s", err, string(output))
+		return fmt.Errorf("failed to get %s/%s: %w", gvr.Resource, name, err)
 	}
 	return nil
 }
 
-// CRDExists checks if a CustomResourceDefinition exists in the cluster
-// Returns true if the CRD exists, false otherwise
+// CRDExists checks if a CustomResourceDefinition exists in the cluster.
+// Returns true if the CRD exists, false otherwise.
 func (c *KubernetesClient) CRDExists(crdName string) (bool, error) {
-	cmd := exec.Command(c.kubectlBin, "get", "crd", crdName)
-	output, err := cmd.CombinedOutput()
+	_, err := c.apiextClientset.ApiextensionsV1().CustomResourceDefinitions().Get(
+		context.Background(), crdName, metav1.GetOptions{})
 	if err != nil {
-		// Check if it's a NotFound error (CRD doesn't exist)
-		if strings.Contains(string(output), "NotFound") {
+		if errors.IsNotFound(err) {
 			return false, nil
 		}
-		// Real error - return it with context
-		return false, fmt.Errorf("failed to check CRD existence: %w\nOutput: %s", err, string(output))
+		return false, fmt.Errorf("failed to check CRD existence: %w", err)
 	}
 	return true, nil
 }
 
-// GetWithJSONPath retrieves a specific field from a Kubernetes resource using JSONPath
-// Returns the field value as a string, or error if the resource doesn't exist or JSONPath is invalid
-func (c *KubernetesClient) GetWithJSONPath(resource, name, namespace, jsonPath string) (string, error) {
-	args := []string{"get", resource}
-	if name != "" {
-		args = append(args, name)
+// RolloutStatus waits for a deployment rollout to complete using a watch.
+// Returns an error if the rollout fails or times out.
+func (c *KubernetesClient) RolloutStatus(deployment, namespace string, timeout time.Duration) error {
+	ctx := context.Background()
+	if timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+		defer cancel()
 	}
-	if namespace != "" {
-		args = append(args, "-n", namespace)
-	}
-	args = append(args, "-o", "jsonpath="+jsonPath)
 
-	cmd := exec.Command(c.kubectlBin, args...)
-	output, err := cmd.CombinedOutput()
+	fieldSelector := fmt.Sprintf("metadata.name=%s", deployment)
+	watcher, err := c.clientset.AppsV1().Deployments(namespace).Watch(ctx, metav1.ListOptions{
+		FieldSelector: fieldSelector,
+	})
 	if err != nil {
-		return "", fmt.Errorf("failed to get resource with jsonpath: %w\nOutput: %s", err, string(output))
+		return fmt.Errorf("failed to watch deployment %s: %w", deployment, err)
 	}
+	defer watcher.Stop()
 
-	return strings.TrimSpace(string(output)), nil
-}
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("timeout waiting for deployment %s", deployment)
+		case event, ok := <-watcher.ResultChan():
+			if !ok {
+				return fmt.Errorf("watch channel closed for deployment %s", deployment)
+			}
 
-// ConfigUseContext sets the kubectl context
-// This function is idempotent - it checks the current context first and only changes it if needed
-func (c *KubernetesClient) ConfigUseContext(contextName string) error {
-	// Check current context first
-	currentCmd := exec.Command(c.kubectlBin, "config", "current-context")
-	currentOutput, err := currentCmd.Output()
-	if err == nil {
-		currentContext := strings.TrimSpace(string(currentOutput))
-		if currentContext == contextName {
-			// Context is already correct, no need to change
-			return nil
+			dep, ok := event.Object.(*appsv1.Deployment)
+			if !ok {
+				continue
+			}
+
+			replicas := int32(1)
+			if dep.Spec.Replicas != nil {
+				replicas = *dep.Spec.Replicas
+			}
+
+			if dep.Status.ObservedGeneration >= dep.Generation &&
+				dep.Status.UpdatedReplicas == replicas &&
+				dep.Status.AvailableReplicas == replicas &&
+				dep.Status.UnavailableReplicas == 0 {
+				return nil
+			}
 		}
 	}
-
-	// Context is different or couldn't be determined, set it
-	cmd := exec.Command(c.kubectlBin, "config", "use-context", contextName)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed to set kubectl context: %w\nOutput: %s", err, string(output))
-	}
-	return nil
-}
-
-// RolloutStatus waits for a deployment rollout to complete
-// Returns an error if the rollout fails or times out
-func (c *KubernetesClient) RolloutStatus(deployment, namespace string, timeout time.Duration) error {
-	args := []string{
-		"rollout", "status",
-		"deployment/" + deployment,
-		"-n", namespace,
-	}
-
-	if timeout > 0 {
-		args = append(args, fmt.Sprintf("--timeout=%s", timeout))
-	}
-
-	cmd := exec.Command(c.kubectlBin, args...)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed waiting for %s: %w\nOutput: %s", deployment, err, string(output))
-	}
-
-	return nil
 }
 
 func (c *KubernetesClient) KustomizeRender(path string) (string, error) {
-	args := []string{
-		"kustomize",
-		".",
-		"--load-restrictor",
-		"LoadRestrictionsNone",
-	}
+	fSys := filesys.MakeFsOnDisk()
+	opts := krusty.MakeDefaultOptions()
+	opts.LoadRestrictions = kustomizeTypes.LoadRestrictionsNone
 
-	cmd := exec.Command(c.kubectlBin, args...)
-	cmd.Dir = path
-	output, err := cmd.CombinedOutput()
+	k := krusty.MakeKustomizer(opts)
+	resMap, err := k.Run(fSys, path)
 	if err != nil {
-		return "", fmt.Errorf("failed rendering kustomization at %s: %w: %s", path, err, output)
+		return "", fmt.Errorf("failed rendering kustomization at %s: %w", path, err)
 	}
 
-	return string(output), nil
+	yamlBytes, err := resMap.AsYaml()
+	if err != nil {
+		return "", fmt.Errorf("failed to convert to YAML: %w", err)
+	}
+	return string(yamlBytes), nil
 }
 
 // LogOptions configures how logs should be collected
 type LogOptions struct {
-	// Namespace to collect logs from
-	Namespace string
-
-	// LabelSelector to filter pods (e.g., "app=pdf3-proxy")
+	Namespace     string
 	LabelSelector string
-
-	// ContainerName to collect logs from (if empty, collects from all containers)
 	ContainerName string
-
-	// OutputPath where logs should be written (if empty, returns logs as string)
-	OutputPath string
-
-	// SinceSeconds only return logs newer than a relative duration (0 means all logs)
-	SinceSeconds int
-
-	// Prefix each log line with the pod name
-	Prefix bool
-
-	// IgnoreErrors continues collecting logs even if some containers fail
-	IgnoreErrors bool
+	OutputPath    string
+	SinceSeconds  int
+	Prefix        bool
+	IgnoreErrors  bool
 }
 
-// CollectLogs collects logs from pods matching the specified criteria
-// If OutputPath is specified, writes logs to that file. Otherwise returns logs as error message.
+// CollectLogs collects logs from pods matching the specified criteria.
+// If OutputPath is specified, writes logs to that file.
+// Logs are sorted by timestamp across all containers.
 func (c *KubernetesClient) CollectLogs(opts LogOptions) error {
-	args := []string{"logs"}
+	ctx := context.Background()
 
-	if opts.Namespace != "" {
-		args = append(args, "-n", opts.Namespace)
-	}
-
+	listOpts := metav1.ListOptions{}
 	if opts.LabelSelector != "" {
-		args = append(args, "-l", opts.LabelSelector)
+		listOpts.LabelSelector = opts.LabelSelector
 	}
 
-	if opts.ContainerName != "" {
-		args = append(args, "-c", opts.ContainerName)
+	pods, err := c.clientset.CoreV1().Pods(opts.Namespace).List(ctx, listOpts)
+	if err != nil {
+		return fmt.Errorf("failed to list pods: %w", err)
 	}
 
-	if opts.Prefix {
-		args = append(args, "--prefix=true")
+	type logLine struct {
+		timestamp time.Time
+		line      string
 	}
 
-	if opts.SinceSeconds > 0 {
-		args = append(args, fmt.Sprintf("--since=%ds", opts.SinceSeconds))
+	type logResult struct {
+		lines []logLine
+		err   error
 	}
 
-	if opts.IgnoreErrors {
-		args = append(args, "--ignore-errors=true")
-	}
-
-	cmd := exec.Command(c.kubectlBin, args...)
-
-	// If output path is specified, write directly to file
-	if opts.OutputPath != "" {
-		outFile, err := os.Create(opts.OutputPath)
-		if err != nil {
-			return fmt.Errorf("failed to create log file: %w", err)
+	var targets []struct{ pod, container string }
+	for _, pod := range pods.Items {
+		containers := pod.Spec.Containers
+		if opts.ContainerName != "" {
+			for _, container := range pod.Spec.Containers {
+				if container.Name == opts.ContainerName {
+					targets = append(targets, struct{ pod, container string }{pod.Name, container.Name})
+					break
+				}
+			}
+		} else {
+			for _, container := range containers {
+				targets = append(targets, struct{ pod, container string }{pod.Name, container.Name})
+			}
 		}
-		defer func() { _ = outFile.Close() }()
+	}
 
-		cmd.Stdout = outFile
-		cmd.Stderr = outFile
-
-		if err := cmd.Run(); err != nil {
-			// Log the error but don't fail - some containers might not have logs
-			_, _ = fmt.Fprintf(outFile, "\nWarning: kubectl logs command failed: %v\n", err)
-		}
-
+	if len(targets) == 0 {
 		return nil
 	}
 
-	// Otherwise return output as part of error if command fails
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed to collect logs: %w\nOutput: %s", err, string(output))
+	resultCh := make(chan logResult, len(targets))
+
+	for _, t := range targets {
+		go func(podName, containerName string) {
+			logOpts := &corev1.PodLogOptions{
+				Container:  containerName,
+				Timestamps: true,
+			}
+			if opts.SinceSeconds > 0 {
+				sec := int64(opts.SinceSeconds)
+				logOpts.SinceSeconds = &sec
+			}
+
+			req := c.clientset.CoreV1().Pods(opts.Namespace).GetLogs(podName, logOpts)
+			stream, err := req.Stream(ctx)
+			if err != nil {
+				resultCh <- logResult{err: fmt.Errorf("failed to get logs for %s/%s: %w", podName, containerName, err)}
+				return
+			}
+			defer stream.Close()
+
+			data, _ := io.ReadAll(stream)
+			rawLines := strings.Split(string(data), "\n")
+
+			var lines []logLine
+			prefix := ""
+			if opts.Prefix {
+				prefix = fmt.Sprintf("[%s/%s] ", podName, containerName)
+			}
+
+			for _, raw := range rawLines {
+				if raw == "" {
+					continue
+				}
+				// Parse timestamp prefix (RFC3339Nano format): 2024-01-02T15:04:05.999999999Z
+				ts := time.Time{}
+				content := raw
+				if idx := strings.Index(raw, " "); idx > 0 && idx < 35 {
+					if parsed, err := time.Parse(time.RFC3339Nano, raw[:idx]); err == nil {
+						ts = parsed
+						content = raw[idx+1:]
+					}
+				}
+				lines = append(lines, logLine{
+					timestamp: ts,
+					line:      prefix + content,
+				})
+			}
+
+			resultCh <- logResult{lines: lines}
+		}(t.pod, t.container)
+	}
+
+	var allLines []logLine
+	for range targets {
+		r := <-resultCh
+		if r.err != nil && !opts.IgnoreErrors {
+			return r.err
+		}
+		allLines = append(allLines, r.lines...)
+	}
+
+	sort.Slice(allLines, func(i, j int) bool {
+		return allLines[i].timestamp.Before(allLines[j].timestamp)
+	})
+
+	var allLogs strings.Builder
+	for _, l := range allLines {
+		allLogs.WriteString(l.line)
+		allLogs.WriteByte('\n')
+	}
+
+	if opts.OutputPath != "" {
+		if err := os.WriteFile(opts.OutputPath, []byte(allLogs.String()), 0644); err != nil {
+			return fmt.Errorf("failed to write logs to file: %w", err)
+		}
 	}
 
 	return nil
 }
 
 // Annotate sets or updates an annotation on a Kubernetes resource
-func (c *KubernetesClient) Annotate(resource, name, namespace, key, value string) error {
-	args := []string{"annotate", resource, name, fmt.Sprintf("%s=%s", key, value), "--overwrite"}
-	if namespace != "" {
-		args = append(args, "-n", namespace)
+func (c *KubernetesClient) Annotate(gvr schema.GroupVersionResource, name, namespace, key, value string) error {
+	ctx := context.Background()
+
+	patch := map[string]any{
+		"metadata": map[string]any{
+			"annotations": map[string]string{
+				key: value,
+			},
+		},
 	}
 
-	cmd := exec.Command(c.kubectlBin, args...)
-	output, err := cmd.CombinedOutput()
+	patchData, err := json.Marshal(patch)
 	if err != nil {
-		return fmt.Errorf("failed to annotate %s/%s: %w\nOutput: %s", resource, name, err, string(output))
+		return fmt.Errorf("failed to marshal patch: %w", err)
+	}
+
+	var dr dynamic.ResourceInterface
+	if namespace != "" {
+		dr = c.dynamicClient.Resource(gvr).Namespace(namespace)
+	} else {
+		dr = c.dynamicClient.Resource(gvr)
+	}
+
+	_, err = dr.Patch(ctx, name, types.MergePatchType, patchData, metav1.PatchOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to annotate %s/%s: %w", gvr.Resource, name, err)
 	}
 	return nil
 }
 
 // GetConditionStatus returns the status value of a condition on a resource.
 // Returns empty string if condition not found.
-func (c *KubernetesClient) GetConditionStatus(resource, name, namespace, conditionType string) (string, error) {
-	jsonPath := fmt.Sprintf("{.status.conditions[?(@.type=='%s')].status}", conditionType)
-	return c.GetWithJSONPath(resource, name, namespace, jsonPath)
+func (c *KubernetesClient) GetConditionStatus(gvr schema.GroupVersionResource, name, namespace, conditionType string) (string, error) {
+	ctx := context.Background()
+
+	var dr dynamic.ResourceInterface
+	if namespace != "" {
+		dr = c.dynamicClient.Resource(gvr).Namespace(namespace)
+	} else {
+		dr = c.dynamicClient.Resource(gvr)
+	}
+
+	obj, err := dr.Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return "", fmt.Errorf("failed to get resource: %w", err)
+	}
+
+	conditions, found, err := unstructured.NestedSlice(obj.Object, "status", "conditions")
+	if err != nil || !found {
+		return "", nil
+	}
+
+	for _, cond := range conditions {
+		condMap, ok := cond.(map[string]any)
+		if !ok {
+			continue
+		}
+		if condMap["type"] == conditionType {
+			if status, ok := condMap["status"].(string); ok {
+				return status, nil
+			}
+		}
+	}
+
+	return "", nil
 }
 
 // SourceRef holds reference to a Flux source
@@ -267,36 +475,55 @@ type SourceRef struct {
 }
 
 // GetSourceRef returns the sourceRef from a HelmRelease or Kustomization resource
-func (c *KubernetesClient) GetSourceRef(resource, name, namespace string) (*SourceRef, error) {
+func (c *KubernetesClient) GetSourceRef(gvr schema.GroupVersionResource, name, namespace string) (*SourceRef, error) {
+	ctx := context.Background()
+
+	var dr dynamic.ResourceInterface
+	if namespace != "" {
+		dr = c.dynamicClient.Resource(gvr).Namespace(namespace)
+	} else {
+		dr = c.dynamicClient.Resource(gvr)
+	}
+
+	obj, err := dr.Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get resource: %w", err)
+	}
+
 	// HelmRelease uses .spec.chart.spec.sourceRef
 	// Kustomization uses .spec.sourceRef
-	var jsonPath string
-	if strings.Contains(resource, "helmrelease") {
-		jsonPath = "{.spec.chart.spec.sourceRef.kind},{.spec.chart.spec.sourceRef.name},{.spec.chart.spec.sourceRef.namespace}"
+	var sourceRef map[string]any
+	if strings.Contains(gvr.Resource, "helmrelease") {
+		chart, found, _ := unstructured.NestedMap(obj.Object, "spec", "chart", "spec")
+		if found {
+			sourceRef, _, _ = unstructured.NestedMap(chart, "sourceRef")
+		}
 	} else {
-		jsonPath = "{.spec.sourceRef.kind},{.spec.sourceRef.name},{.spec.sourceRef.namespace}"
+		sourceRef, _, _ = unstructured.NestedMap(obj.Object, "spec", "sourceRef")
 	}
 
-	output, err := c.GetWithJSONPath(resource, name, namespace, jsonPath)
-	if err != nil {
-		return nil, err
-	}
-
-	parts := strings.Split(output, ",")
-	if len(parts) != 3 {
-		return nil, fmt.Errorf("unexpected sourceRef format: %s", output)
+	if sourceRef == nil {
+		return nil, fmt.Errorf("sourceRef not found in %s/%s", gvr.Resource, name)
 	}
 
 	ref := &SourceRef{
-		Kind:      parts[0],
-		Name:      parts[1],
-		Namespace: parts[2],
+		Kind:      getString(sourceRef, "kind"),
+		Name:      getString(sourceRef, "name"),
+		Namespace: getString(sourceRef, "namespace"),
 	}
 
-	// Default namespace to the resource's namespace if not specified
 	if ref.Namespace == "" {
 		ref.Namespace = namespace
 	}
 
 	return ref, nil
+}
+
+func getString(m map[string]any, key string) string {
+	if v, ok := m[key]; ok {
+		if s, ok := v.(string); ok {
+			return s
+		}
+	}
+	return ""
 }

@@ -13,16 +13,17 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	ociclient "github.com/fluxcd/pkg/oci/client"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"altinn.studio/runtime-fixture/pkg/kubernetes"
 )
 
 var (
-	// Flux resource types for kubectl (kind.group format)
-	helmRepositoryResource = strings.ToLower(sourcev1.HelmRepositoryKind) + "." + sourcev1.GroupVersion.Group
-	helmReleaseResource    = strings.ToLower(helmv2.HelmReleaseKind) + "." + helmv2.GroupVersion.Group
-	kustomizationResource  = strings.ToLower(kustomizev1.KustomizationKind) + "." + kustomizev1.GroupVersion.Group
-	ociRepositoryResource  = strings.ToLower(sourcev1.OCIRepositoryKind) + "." + sourcev1.GroupVersion.Group
+	// Flux GVRs - constructed directly from API packages to avoid discovery issues
+	helmRepositoryGVR = sourcev1.GroupVersion.WithResource("helmrepositories")
+	helmReleaseGVR    = helmv2.GroupVersion.WithResource("helmreleases")
+	kustomizationGVR  = kustomizev1.GroupVersion.WithResource("kustomizations")
+	ociRepositoryGVR  = sourcev1.GroupVersion.WithResource("ocirepositories")
 )
 
 // FluxClient provides Flux operations using native Go packages
@@ -112,66 +113,66 @@ func (c *FluxClient) PushArtifact(url, path, source, revision string) error {
 
 // ReconcileHelmRepository reconciles a HelmRepository source
 func (c *FluxClient) ReconcileHelmRepository(name, namespace string, opts ReconcileOptions) error {
-	return c.reconcile(helmRepositoryResource, name, namespace, opts)
+	return c.reconcile(helmRepositoryGVR, name, namespace, opts)
 }
 
 // ReconcileHelmRelease reconciles a HelmRelease resource
 func (c *FluxClient) ReconcileHelmRelease(name, namespace string, withSource bool, opts ReconcileOptions) error {
 	if withSource {
-		if err := c.reconcileSource(helmReleaseResource, name, namespace, opts); err != nil {
+		if err := c.reconcileSource(helmReleaseGVR, name, namespace, opts); err != nil {
 			return err
 		}
 	}
-	return c.reconcile(helmReleaseResource, name, namespace, opts)
+	return c.reconcile(helmReleaseGVR, name, namespace, opts)
 }
 
 // ReconcileKustomization reconciles a Kustomization resource
 func (c *FluxClient) ReconcileKustomization(name, namespace string, withSource bool, opts ReconcileOptions) error {
 	if withSource {
-		if err := c.reconcileSource(kustomizationResource, name, namespace, opts); err != nil {
+		if err := c.reconcileSource(kustomizationGVR, name, namespace, opts); err != nil {
 			return err
 		}
 	}
-	return c.reconcile(kustomizationResource, name, namespace, opts)
+	return c.reconcile(kustomizationGVR, name, namespace, opts)
 }
 
 // reconcileSource reconciles the source referenced by a HelmRelease or Kustomization
-func (c *FluxClient) reconcileSource(resource, name, namespace string, opts ReconcileOptions) error {
-	sourceRef, err := c.kubeClient.GetSourceRef(resource, name, namespace)
+func (c *FluxClient) reconcileSource(gvr schema.GroupVersionResource, name, namespace string, opts ReconcileOptions) error {
+	sourceRef, err := c.kubeClient.GetSourceRef(gvr, name, namespace)
 	if err != nil {
-		return fmt.Errorf("failed to get sourceRef for %s/%s: %w", resource, name, err)
+		return fmt.Errorf("failed to get sourceRef for %s/%s: %w", gvr.Resource, name, err)
 	}
 
-	sourceResource := kindToResource(sourceRef.Kind)
-	if sourceResource == "" {
+	sourceGVR := kindToGVR(sourceRef.Kind)
+	if sourceGVR.Resource == "" {
 		return fmt.Errorf("unknown source kind: %s", sourceRef.Kind)
 	}
 
-	return c.reconcile(sourceResource, sourceRef.Name, sourceRef.Namespace, opts)
+	return c.reconcile(sourceGVR, sourceRef.Name, sourceRef.Namespace, opts)
 }
 
 // reconcile triggers reconciliation of a Flux resource by setting the reconcile annotation
-func (c *FluxClient) reconcile(resource, name, namespace string, opts ReconcileOptions) error {
+func (c *FluxClient) reconcile(gvr schema.GroupVersionResource, name, namespace string, opts ReconcileOptions) error {
 	timestamp := time.Now().Format(time.RFC3339Nano)
 
-	if err := c.kubeClient.Annotate(resource, name, namespace, meta.ReconcileRequestAnnotation, timestamp); err != nil {
-		return fmt.Errorf("failed to annotate %s/%s: %w", resource, name, err)
+	if err := c.kubeClient.Annotate(gvr, name, namespace, meta.ReconcileRequestAnnotation, timestamp); err != nil {
+		return fmt.Errorf("failed to annotate %s/%s: %w", gvr.Resource, name, err)
 	}
 
 	if !opts.ShouldWait {
 		go func() {
-			if err := c.waitForReady(resource, name, namespace, opts.Timeout); err != nil {
-				fmt.Fprintf(os.Stderr, "Flux reconcile for %s/%s (namespace: %s) failed: %v\n", resource, name, namespace, err)
+			if err := c.waitForReady(gvr, name, namespace, opts.Timeout); err != nil {
+				fmt.Fprintf(os.Stderr, "Flux reconcile for %s/%s (namespace: %s) failed: %v\n", gvr.Resource, name, namespace, err)
 			}
 		}()
 		return nil
 	}
 
-	return c.waitForReady(resource, name, namespace, opts.Timeout)
+	return c.waitForReady(gvr, name, namespace, opts.Timeout)
 }
 
 // waitForReady polls until the resource's Ready condition is True or timeout
-func (c *FluxClient) waitForReady(resource, name, namespace string, timeout time.Duration) error {
+func (c *FluxClient) waitForReady(gvr schema.GroupVersionResource, name, namespace string, timeout time.Duration) error {
 	ctx := context.Background()
 	if timeout > 0 {
 		var cancel context.CancelFunc
@@ -179,14 +180,14 @@ func (c *FluxClient) waitForReady(resource, name, namespace string, timeout time
 		defer cancel()
 	}
 
-	identifier := fmt.Sprintf("%s/%s (namespace: %s)", resource, name, namespace)
+	identifier := fmt.Sprintf("%s/%s (namespace: %s)", gvr.Resource, name, namespace)
 	pollInterval := 100 * time.Millisecond
 
 	for {
 		if ctx.Err() != nil {
 			return fmt.Errorf("timeout waiting for %s to become ready", identifier)
 		}
-		status, err := c.kubeClient.GetConditionStatus(resource, name, namespace, meta.ReadyCondition)
+		status, err := c.kubeClient.GetConditionStatus(gvr, name, namespace, meta.ReadyCondition)
 		if err == nil && strings.EqualFold(status, "True") {
 			return nil
 		}
@@ -200,18 +201,18 @@ func (c *FluxClient) waitForReady(resource, name, namespace string, timeout time
 	}
 }
 
-// kindToResource maps Flux kinds to kubectl resource types
-func kindToResource(kind string) string {
+// kindToGVR maps Flux kinds to GVRs
+func kindToGVR(kind string) schema.GroupVersionResource {
 	switch kind {
 	case sourcev1.HelmRepositoryKind:
-		return helmRepositoryResource
+		return helmRepositoryGVR
 	case sourcev1.OCIRepositoryKind:
-		return ociRepositoryResource
+		return ociRepositoryGVR
 	case helmv2.HelmReleaseKind:
-		return helmReleaseResource
+		return helmReleaseGVR
 	case kustomizev1.KustomizationKind:
-		return kustomizationResource
+		return kustomizationGVR
 	default:
-		return ""
+		return schema.GroupVersionResource{}
 	}
 }

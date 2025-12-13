@@ -71,21 +71,16 @@ func (i *Installer) GetToolInfo(name string) (*ToolInfo, error) {
 	return tool, nil
 }
 
-func (i *Installer) GetFluxClient() (*flux.FluxClient, error) {
-	kubeClient, err := i.GetKubernetesClient()
+func (i *Installer) GetFluxClient(contextName string) (*flux.FluxClient, error) {
+	kubeClient, err := i.GetKubernetesClient(contextName)
 	if err != nil {
 		return nil, err
 	}
 	return flux.New(kubeClient)
 }
 
-func (i *Installer) GetKubernetesClient() (*kubernetes.KubernetesClient, error) {
-	tool, ok := i.tools["kubectl"]
-	if !ok {
-		return nil, fmt.Errorf("kubectl not found")
-	}
-
-	return kubernetes.New(tool.Path)
+func (i *Installer) GetKubernetesClient(contextName string) (*kubernetes.KubernetesClient, error) {
+	return kubernetes.New(contextName)
 }
 
 func (i *Installer) GetKindClient() *kindclient.KindClient {

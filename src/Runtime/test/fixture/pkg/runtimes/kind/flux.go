@@ -6,17 +6,18 @@ import (
 	"time"
 
 	"altinn.studio/runtime-fixture/pkg/flux"
+	"altinn.studio/runtime-fixture/pkg/kubernetes"
 )
 
 // isFluxInstalled checks if Flux is already installed in the cluster
 func (r *KindContainerRuntime) isFluxInstalled() (bool, error) {
 	// Check if flux-system namespace exists
-	if err := r.KubernetesClient.Get("namespace", "flux-system", ""); err != nil {
+	if err := r.KubernetesClient.Get(kubernetes.NamespaceGVR, "flux-system", ""); err != nil {
 		return false, nil
 	}
 
 	// Check if source-controller deployment exists
-	if err := r.KubernetesClient.Get("deployment", "source-controller", "flux-system"); err != nil {
+	if err := r.KubernetesClient.Get(kubernetes.DeploymentGVR, "source-controller", "flux-system"); err != nil {
 		return false, nil
 	}
 
@@ -76,11 +77,8 @@ func (r *KindContainerRuntime) waitForFluxControllers() error {
 			}
 
 			// Check deployment status
-			output, err := r.KubernetesClient.GetWithJSONPath("deployment", controller,
-				"flux-system",
-				"{.status.conditions[?(@.type=='Available')].status}")
-
-			if err == nil && strings.TrimSpace(output) == "True" {
+			status, err := r.KubernetesClient.GetConditionStatus(kubernetes.DeploymentGVR, controller, "flux-system", "Available")
+			if err == nil && status == "True" {
 				fmt.Printf("✓ %s is ready\n", controller)
 				break
 			}
@@ -153,7 +151,7 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 			deadline := time.Now().Add(2 * time.Minute)
 
 			for !time.Now().After(deadline) {
-				err = r.KubernetesClient.Get("deployment", "traefik", "traefik")
+				err = r.KubernetesClient.Get(kubernetes.DeploymentGVR, "traefik", "traefik")
 				if err == nil {
 					break
 				}

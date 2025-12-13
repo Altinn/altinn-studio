@@ -112,6 +112,8 @@ func New(variant KindContainerRuntimeVariant, cachePath string, options KindCont
 		return nil, err
 	}
 
+	// Note: kubernetes/flux clients are initialized in Run() after cluster creation
+
 	var configContent []byte
 
 	switch variant {
@@ -154,9 +156,9 @@ func Load(variant KindContainerRuntimeVariant, cachePath string, options KindCon
 		return nil, err
 	}
 
-	// Set kubectl context to match the loaded cluster
-	if err := r.setKubectlContext(); err != nil {
-		return nil, fmt.Errorf("failed to set kubectl context: %w", err)
+	// Initialize kubernetes/flux clients now that we know the cluster name
+	if err := r.initializeClients(); err != nil {
+		return nil, err
 	}
 
 	return r, nil
@@ -189,9 +191,9 @@ func LoadCurrent(cachePath string) (*KindContainerRuntime, error) {
 		return nil, err
 	}
 
-	// Set kubectl context to match the loaded cluster
-	if err := r.setKubectlContext(); err != nil {
-		return nil, fmt.Errorf("failed to set kubectl context: %w", err)
+	// Initialize kubernetes/flux clients now that we know the cluster name
+	if err := r.initializeClients(); err != nil {
+		return nil, err
 	}
 
 	return r, nil
@@ -209,7 +211,7 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 		}
 	}
 
-	// Initialiize clients
+	// Initialize clients
 	containerClient, err := container.Detect()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to detect container runtime: %w", err)
@@ -220,18 +222,8 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 	}
 
 	// Install only the tools needed for KindContainerRuntime (not k6, which is only needed for loadtest)
-	if _, err := installer.Install(context.Background(), "kind,kubectl,helm,flux,golangci-lint"); err != nil {
+	if _, err := installer.Install(context.Background(), "kind,helm,flux,golangci-lint"); err != nil {
 		return nil, nil, fmt.Errorf("failed to ensure CLIs: %w", err)
-	}
-
-	fluxClient, err := installer.GetFluxClient()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	kubernetesClient, err := installer.GetKubernetesClient()
-	if err != nil {
-		return nil, nil, err
 	}
 
 	kindClient := installer.GetKindClient()
@@ -245,11 +237,29 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 
 		Installer: installer,
 
-		ContainerClient:  containerClient,
-		FluxClient:       fluxClient,
-		KindClient:       kindClient,
-		KubernetesClient: kubernetesClient,
+		ContainerClient: containerClient,
+		KindClient:      kindClient,
 	}, clusters, nil
+}
+
+// initializeClients creates the KubernetesClient and FluxClient for the runtime.
+// Must be called after clusterName is set.
+func (r *KindContainerRuntime) initializeClients() error {
+	contextName := r.GetContextName()
+
+	kubernetesClient, err := r.Installer.GetKubernetesClient(contextName)
+	if err != nil {
+		return fmt.Errorf("failed to create kubernetes client: %w", err)
+	}
+
+	fluxClient, err := r.Installer.GetFluxClient(contextName)
+	if err != nil {
+		return fmt.Errorf("failed to create flux client: %w", err)
+	}
+
+	r.KubernetesClient = kubernetesClient
+	r.FluxClient = fluxClient
+	return nil
 }
 
 func newInternal(r *KindContainerRuntime, clusters []string, variant KindContainerRuntimeVariant, cachePath string, isLoad bool) error {
@@ -385,17 +395,15 @@ func (r *KindContainerRuntime) Run() error {
 		fmt.Printf("✓ Cluster %s already exists\n", r.clusterName)
 	}
 
-	// Step 4: Set kubectl context
-	fmt.Println("\n4. Setting kubectl context...")
-	start = time.Now()
-	if err := r.setKubectlContext(); err != nil {
-		return fmt.Errorf("failed to set kubectl context: %w", err)
+	// Initialize kubernetes/flux clients now that cluster exists
+	if r.KubernetesClient == nil {
+		if err := r.initializeClients(); err != nil {
+			return fmt.Errorf("failed to initialize clients: %w", err)
+		}
 	}
-	fmt.Println("✓ Kubectl context set")
-	logDuration("Set kubectl context", start)
 
-	// Step 5: Configure registry
-	fmt.Println("\n5. Configuring up container registry...")
+	// Step 4: Configure registry
+	fmt.Println("\n4. Configuring container registry...")
 	start = time.Now()
 	if err := r.configureRegistry(); err != nil {
 		return fmt.Errorf("failed to configure registry: %w", err)
@@ -413,19 +421,20 @@ func (r *KindContainerRuntime) Run() error {
 
 // installInfra sets up all components for the Standard variant
 func (r *KindContainerRuntime) installInfra() error {
-	// Step 6: Install Flux
-	fmt.Println("\n6. Installing Flux...")
+	// Step 5: Install Flux
+	fmt.Println("\n5. Installing Flux...")
 	start := time.Now()
 	// TODO: find a way to customize controllers for vertical scaling
 	// e.g. concurrency and requeueuing
 	if err := r.installFluxToCluster(); err != nil {
 		return fmt.Errorf("failed to install flux: %w", err)
 	}
+	r.KubernetesClient.ResetMapper() // Flux installed new CRDs
 	fmt.Println("✓ Flux installed")
 	logDuration("Install Flux", start)
 
-	// Step 7: Deploy base infrastructure
-	fmt.Println("\n7. Deploying base infrastructure...")
+	// Step 6: Deploy base infrastructure
+	fmt.Println("\n6. Deploying base infrastructure...")
 	start = time.Now()
 	if err := r.applyBaseInfrastructure(); err != nil {
 		return fmt.Errorf("failed to deploy base infrastructure: %w", err)
@@ -433,17 +442,18 @@ func (r *KindContainerRuntime) installInfra() error {
 	fmt.Println("✓ Base infrastructure deployed")
 	logDuration("Deploy base infrastructure", start)
 
-	// Step 8: Wait for Flux controllers
-	fmt.Println("\n8. Waiting for Flux controllers...")
+	// Step 7: Wait for Flux controllers
+	fmt.Println("\n7. Waiting for Flux controllers...")
 	start = time.Now()
 	if err := r.waitForFluxControllers(); err != nil {
 		return fmt.Errorf("failed waiting for flux controllers: %w", err)
 	}
+	r.KubernetesClient.ResetMapper() // CRDs fully available now
 	fmt.Println("✓ Flux controllers ready")
 	logDuration("Wait for Flux controllers", start)
 
-	// Step 9: Reconcile base infra
-	fmt.Println("\n9. Reconciling base infra...")
+	// Step 8: Reconcile base infra
+	fmt.Println("\n8. Reconciling base infra...")
 	start = time.Now()
 	if err := r.reconcileBaseInfra(); err != nil {
 		return fmt.Errorf("failed to reconcile base infra: %w", err)
@@ -451,9 +461,9 @@ func (r *KindContainerRuntime) installInfra() error {
 	fmt.Println("✓ Base infra ready")
 	logDuration("Reconcile base infra", start)
 
-	// Step 10: Apply testserver manifest (only if enabled)
+	// Step 9: Apply testserver manifest (only if enabled)
 	if r.options.IncludeTestserver {
-		fmt.Println("\n10. Applying testserver manifest...")
+		fmt.Println("\n9. Applying testserver manifest...")
 		start = time.Now()
 		testserverYaml := string(testserverManifest)
 		if r.variant == KindContainerRuntimeVariantMinimal {

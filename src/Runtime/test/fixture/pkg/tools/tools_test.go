@@ -102,16 +102,10 @@ func TestInstallSpecificTool(t *testing.T) {
 		t.Errorf("kind binary not found: %v", err)
 	}
 
-	tool, err = installer.GetToolInfo("kubectl")
-	if err != nil {
-		t.Errorf("Should be able to get tool info: %v", err)
-	}
-	if _, err := os.Stat(tool.Path); err == nil {
-		t.Errorf("kubectl binary found even though it shouldn't be installed")
-	}
-	_, err = installer.GetKubernetesClient()
+	// Creating a kubernetes client with a non-existent context should fail
+	_, err = installer.GetKubernetesClient("nonexistent-context")
 	if err == nil {
-		t.Errorf("Should not be able to get the actual k8s client")
+		t.Errorf("Should not be able to get a k8s client with invalid context")
 	}
 }
 
