@@ -16,6 +16,7 @@ import (
 	"altinn.studio/runtime-fixture/pkg/helm"
 	"altinn.studio/runtime-fixture/pkg/kindclient"
 	"altinn.studio/runtime-fixture/pkg/kubernetes"
+	"altinn.studio/runtime-fixture/pkg/oci"
 	"altinn.studio/runtime-fixture/pkg/runtimes"
 	"altinn.studio/runtime-fixture/pkg/tools"
 )
@@ -91,6 +92,7 @@ type KindContainerRuntime struct {
 	HelmClient       *helm.Client
 	KindClient       *kindclient.KindClient
 	KubernetesClient *kubernetes.KubernetesClient
+	OCIClient        *oci.Client
 
 	RegistryStartedEvent chan<- error
 	IngressReadyEvent    chan<- error
@@ -239,6 +241,8 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 		return nil, nil, fmt.Errorf("failed to create helm client: %w", err)
 	}
 
+	ociClient := oci.NewClient()
+
 	return &KindContainerRuntime{
 		cachePath: cachePath,
 
@@ -247,6 +251,7 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 		ContainerClient: containerClient,
 		HelmClient:      helmClient,
 		KindClient:      kindClient,
+		OCIClient:       ociClient,
 	}, clusters, nil
 }
 

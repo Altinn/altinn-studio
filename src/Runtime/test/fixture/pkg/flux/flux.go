@@ -11,7 +11,6 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
-	ociclient "github.com/fluxcd/pkg/oci/client"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
@@ -29,7 +28,6 @@ var (
 // FluxClient provides Flux operations using native Go packages
 type FluxClient struct {
 	kubeClient *kubernetes.KubernetesClient
-	ociClient  *ociclient.Client
 }
 
 // New creates a new FluxClient with the given KubernetesClient
@@ -38,11 +36,8 @@ func New(kubeClient *kubernetes.KubernetesClient) (*FluxClient, error) {
 		return nil, fmt.Errorf("kubeClient is required")
 	}
 
-	ociClient := ociclient.NewClient(ociclient.DefaultOptions())
-
 	return &FluxClient{
 		kubeClient: kubeClient,
-		ociClient:  ociClient,
 	}, nil
 }
 
@@ -85,34 +80,15 @@ func (c *FluxClient) Install(components []string) error {
 	return nil
 }
 
-// PushArtifact pushes an OCI artifact to a registry
-func (c *FluxClient) PushArtifact(url, path, source, revision string) error {
-	ctx := context.Background()
-
-	// Parse the OCI URL to strip the oci:// prefix
-	ref, err := ociclient.ParseArtifactURL(url)
-	if err != nil {
-		return fmt.Errorf("invalid URL: %w", err)
-	}
-
-	metadata := ociclient.Metadata{
-		Source:   source,
-		Revision: revision,
-	}
-
-	_, err = c.ociClient.Push(ctx, ref, path,
-		ociclient.WithPushMetadata(metadata),
-		ociclient.WithPushLayerType(ociclient.LayerTypeTarball),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to push artifact to %s: %w", url, err)
-	}
-
-	return nil
-}
-
-// ReconcileHelmRepository reconciles a HelmRepository source
+// ReconcileHelmRepository reconciles a HelmRepository source.
+// For OCI-type repositories, this is a no-op since they don't have reconciliation status.
 func (c *FluxClient) ReconcileHelmRepository(name, namespace string, opts ReconcileOptions) error {
+	// Check if this is an OCI-type repository - they don't have Ready status
+	repoType, err := c.kubeClient.GetFieldString(helmRepositoryGVR, name, namespace, "spec", "type")
+	if err == nil && repoType == "oci" {
+		// OCI repositories are static references, no reconciliation needed
+		return nil
+	}
 	return c.reconcile(helmRepositoryGVR, name, namespace, opts)
 }
 

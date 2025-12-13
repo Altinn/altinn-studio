@@ -61,7 +61,7 @@ func pushArtifact(_ context.Context, cfg Config, runtime *kind.KindContainerRunt
 		revision = "local"
 	}
 
-	if err := runtime.FluxClient.PushArtifact(art.URL, artPath, source, revision); err != nil {
+	if err := runtime.OCIClient.PushArtifact(art.URL, artPath, source, revision); err != nil {
 		return fmt.Errorf("failed to push artifact %s: %w", art.Name, err)
 	}
 

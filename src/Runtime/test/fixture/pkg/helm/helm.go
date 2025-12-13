@@ -44,16 +44,33 @@ func (c *Client) PackageChart(chartPath, destDir string) (string, error) {
 }
 
 // PushChart pushes a packaged chart (.tgz) to the OCI registry.
-// ociRef should be the registry reference (e.g., "oci://localhost:5001/charts").
+// ociRef should be the base registry reference (e.g., "oci://localhost:5001").
+// The chart name and version are extracted from the chart and appended to form the full ref.
 func (c *Client) PushChart(chartFile, ociRef string) error {
+	// Load chart to get metadata
+	f, err := os.Open(chartFile)
+	if err != nil {
+		return fmt.Errorf("failed to open chart file: %w", err)
+	}
+	defer f.Close()
+
+	chart, err := loader.LoadArchive(f)
+	if err != nil {
+		return fmt.Errorf("failed to load chart archive: %w", err)
+	}
+
+	// Read file contents for push
 	chartBytes, err := os.ReadFile(chartFile)
 	if err != nil {
 		return fmt.Errorf("failed to read chart file %s: %w", chartFile, err)
 	}
 
-	_, err = c.registryClient.Push(chartBytes, ociRef)
+	// Construct full OCI reference: oci://registry/name:version
+	fullRef := fmt.Sprintf("%s/%s:%s", ociRef, chart.Metadata.Name, chart.Metadata.Version)
+
+	_, err = c.registryClient.Push(chartBytes, fullRef)
 	if err != nil {
-		return fmt.Errorf("failed to push chart to %s: %w", ociRef, err)
+		return fmt.Errorf("failed to push chart to %s: %w", fullRef, err)
 	}
 
 	return nil

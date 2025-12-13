@@ -467,6 +467,30 @@ func (c *KubernetesClient) GetConditionStatus(gvr schema.GroupVersionResource, n
 	return "", nil
 }
 
+// GetFieldString returns a string field value from a resource at the given path.
+func (c *KubernetesClient) GetFieldString(gvr schema.GroupVersionResource, name, namespace string, fields ...string) (string, error) {
+	ctx := context.Background()
+
+	var dr dynamic.ResourceInterface
+	if namespace != "" {
+		dr = c.dynamicClient.Resource(gvr).Namespace(namespace)
+	} else {
+		dr = c.dynamicClient.Resource(gvr)
+	}
+
+	obj, err := dr.Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return "", fmt.Errorf("failed to get resource: %w", err)
+	}
+
+	val, found, err := unstructured.NestedString(obj.Object, fields...)
+	if err != nil || !found {
+		return "", err
+	}
+
+	return val, nil
+}
+
 // SourceRef holds reference to a Flux source
 type SourceRef struct {
 	Kind      string
