@@ -4,22 +4,44 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
+	"strings"
 	"time"
+
+	"github.com/fluxcd/flux2/v2/pkg/manifestgen/install"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	"github.com/fluxcd/pkg/apis/meta"
+	ociclient "github.com/fluxcd/pkg/oci/client"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+
+	"altinn.studio/runtime-fixture/pkg/kubernetes"
 )
 
-// FluxClient wraps flux CLI operations
+var (
+	// Flux resource types for kubectl (kind.group format)
+	helmRepositoryResource = strings.ToLower(sourcev1.HelmRepositoryKind) + "." + sourcev1.GroupVersion.Group
+	helmReleaseResource    = strings.ToLower(helmv2.HelmReleaseKind) + "." + helmv2.GroupVersion.Group
+	kustomizationResource  = strings.ToLower(kustomizev1.KustomizationKind) + "." + kustomizev1.GroupVersion.Group
+	ociRepositoryResource  = strings.ToLower(sourcev1.OCIRepositoryKind) + "." + sourcev1.GroupVersion.Group
+)
+
+// FluxClient provides Flux operations using native Go packages
 type FluxClient struct {
-	fluxBin string
+	kubeClient *kubernetes.KubernetesClient
+	ociClient  *ociclient.Client
 }
 
-// New creates a new FluxClient with the given flux binary path
-func New(fluxBinPath string) (*FluxClient, error) {
-	if _, err := os.Stat(fluxBinPath); err != nil {
-		return nil, fmt.Errorf("flux binary stat error: %w", err)
+// New creates a new FluxClient with the given KubernetesClient
+func New(kubeClient *kubernetes.KubernetesClient) (*FluxClient, error) {
+	if kubeClient == nil {
+		return nil, fmt.Errorf("kubeClient is required")
 	}
+
+	ociClient := ociclient.NewClient(ociclient.DefaultOptions())
+
 	return &FluxClient{
-		fluxBin: fluxBinPath,
+		kubeClient: kubeClient,
+		ociClient:  ociClient,
 	}, nil
 }
 
@@ -45,22 +67,18 @@ func DefaultReconcileOptions() ReconcileOptions {
 
 // Install installs Flux to the cluster with the specified components
 func (c *FluxClient) Install(components []string) error {
-	args := []string{"install"}
-	if len(components) > 0 {
-		componentList := ""
-		for i, comp := range components {
-			if i > 0 {
-				componentList += ","
-			}
-			componentList += comp
-		}
-		args = append(args, "--components="+componentList)
+	opts := install.MakeDefaultOptions()
+	opts.Components = components
+
+	// Generate install manifests
+	manifest, err := install.Generate(opts, "")
+	if err != nil {
+		return fmt.Errorf("failed to generate flux install manifests: %w", err)
 	}
 
-	cmd := exec.Command(c.fluxBin, args...)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed to install flux: %w\nOutput: %s", err, string(output))
+	// Apply manifests via kubectl
+	if _, err := c.kubeClient.ApplyManifest(manifest.Content); err != nil {
+		return fmt.Errorf("failed to apply flux install manifests: %w", err)
 	}
 
 	return nil
@@ -68,18 +86,25 @@ func (c *FluxClient) Install(components []string) error {
 
 // PushArtifact pushes an OCI artifact to a registry
 func (c *FluxClient) PushArtifact(url, path, source, revision string) error {
-	args := []string{
-		"push", "artifact",
-		url,
-		"--path", path,
-		"--source", source,
-		"--revision", revision,
+	ctx := context.Background()
+
+	// Parse the OCI URL to strip the oci:// prefix
+	ref, err := ociclient.ParseArtifactURL(url)
+	if err != nil {
+		return fmt.Errorf("invalid URL: %w", err)
 	}
 
-	cmd := exec.Command(c.fluxBin, args...)
-	output, err := cmd.CombinedOutput()
+	metadata := ociclient.Metadata{
+		Source:   source,
+		Revision: revision,
+	}
+
+	_, err = c.ociClient.Push(ctx, ref, path,
+		ociclient.WithPushMetadata(metadata),
+		ociclient.WithPushLayerType(ociclient.LayerTypeTarball),
+	)
 	if err != nil {
-		return fmt.Errorf("failed to push artifact: %w\nOutput: %s", err, string(output))
+		return fmt.Errorf("failed to push artifact to %s: %w", url, err)
 	}
 
 	return nil
@@ -87,59 +112,66 @@ func (c *FluxClient) PushArtifact(url, path, source, revision string) error {
 
 // ReconcileHelmRepository reconciles a HelmRepository source
 func (c *FluxClient) ReconcileHelmRepository(name, namespace string, opts ReconcileOptions) error {
-	args := []string{
-		"reconcile", "source", "helm",
-		name,
-		"-n", namespace,
-	}
-
-	return c.runReconcile("HelmRepository", name, namespace, args, opts)
+	return c.reconcile(helmRepositoryResource, name, namespace, opts)
 }
 
 // ReconcileHelmRelease reconciles a HelmRelease resource
 func (c *FluxClient) ReconcileHelmRelease(name, namespace string, withSource bool, opts ReconcileOptions) error {
-	args := []string{
-		"reconcile", "helmrelease",
-		name,
-		"-n", namespace,
-	}
-
 	if withSource {
-		args = append(args, "--with-source")
+		if err := c.reconcileSource(helmReleaseResource, name, namespace, opts); err != nil {
+			return err
+		}
 	}
-
-	return c.runReconcile("HelmRelease", name, namespace, args, opts)
+	return c.reconcile(helmReleaseResource, name, namespace, opts)
 }
 
 // ReconcileKustomization reconciles a Kustomization resource
 func (c *FluxClient) ReconcileKustomization(name, namespace string, withSource bool, opts ReconcileOptions) error {
-	args := []string{
-		"reconcile", "kustomization",
-		name,
-		"-n", namespace,
-	}
-
 	if withSource {
-		args = append(args, "--with-source")
+		if err := c.reconcileSource(kustomizationResource, name, namespace, opts); err != nil {
+			return err
+		}
 	}
-
-	return c.runReconcile("Kustomization", name, namespace, args, opts)
+	return c.reconcile(kustomizationResource, name, namespace, opts)
 }
 
-// runReconcile executes a reconcile command with the given options
-func (c *FluxClient) runReconcile(resourceType, name, namespace string, args []string, opts ReconcileOptions) error {
-	if opts.ShouldWait {
-		// Synchronous execution
-		return c.runCommandSync(args, opts.Timeout)
+// reconcileSource reconciles the source referenced by a HelmRelease or Kustomization
+func (c *FluxClient) reconcileSource(resource, name, namespace string, opts ReconcileOptions) error {
+	sourceRef, err := c.kubeClient.GetSourceRef(resource, name, namespace)
+	if err != nil {
+		return fmt.Errorf("failed to get sourceRef for %s/%s: %w", resource, name, err)
 	}
 
-	// Asynchronous execution
-	go c.runCommandAsync(resourceType, name, namespace, args, opts.Timeout)
-	return nil
+	sourceResource := kindToResource(sourceRef.Kind)
+	if sourceResource == "" {
+		return fmt.Errorf("unknown source kind: %s", sourceRef.Kind)
+	}
+
+	return c.reconcile(sourceResource, sourceRef.Name, sourceRef.Namespace, opts)
 }
 
-// runCommandSync runs a flux command synchronously and returns any errors
-func (c *FluxClient) runCommandSync(args []string, timeout time.Duration) error {
+// reconcile triggers reconciliation of a Flux resource by setting the reconcile annotation
+func (c *FluxClient) reconcile(resource, name, namespace string, opts ReconcileOptions) error {
+	timestamp := time.Now().Format(time.RFC3339Nano)
+
+	if err := c.kubeClient.Annotate(resource, name, namespace, meta.ReconcileRequestAnnotation, timestamp); err != nil {
+		return fmt.Errorf("failed to annotate %s/%s: %w", resource, name, err)
+	}
+
+	if !opts.ShouldWait {
+		go func() {
+			if err := c.waitForReady(resource, name, namespace, opts.Timeout); err != nil {
+				fmt.Fprintf(os.Stderr, "Flux reconcile for %s/%s (namespace: %s) failed: %v\n", resource, name, namespace, err)
+			}
+		}()
+		return nil
+	}
+
+	return c.waitForReady(resource, name, namespace, opts.Timeout)
+}
+
+// waitForReady polls until the resource's Ready condition is True or timeout
+func (c *FluxClient) waitForReady(resource, name, namespace string, timeout time.Duration) error {
 	ctx := context.Background()
 	if timeout > 0 {
 		var cancel context.CancelFunc
@@ -147,37 +179,39 @@ func (c *FluxClient) runCommandSync(args []string, timeout time.Duration) error 
 		defer cancel()
 	}
 
-	cmd := exec.CommandContext(ctx, c.fluxBin, args...)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		if ctx.Err() == context.DeadlineExceeded {
-			return fmt.Errorf("flux command timed out after %s: %w\nOutput: %s", timeout, err, string(output))
-		}
-		return fmt.Errorf("flux command failed: %w\nOutput: %s", err, string(output))
-	}
+	identifier := fmt.Sprintf("%s/%s (namespace: %s)", resource, name, namespace)
+	pollInterval := 100 * time.Millisecond
 
-	return nil
+	for {
+		if ctx.Err() != nil {
+			return fmt.Errorf("timeout waiting for %s to become ready", identifier)
+		}
+		status, err := c.kubeClient.GetConditionStatus(resource, name, namespace, meta.ReadyCondition)
+		if err == nil && strings.EqualFold(status, "True") {
+			return nil
+		}
+
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("timeout waiting for %s to become ready", identifier)
+		case <-time.After(pollInterval):
+		default:
+		}
+	}
 }
 
-// runCommandAsync runs a flux command asynchronously in a goroutine, logging only on failure
-func (c *FluxClient) runCommandAsync(resourceType, name, namespace string, args []string, timeout time.Duration) {
-	ctx := context.Background()
-	if timeout > 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, timeout)
-		defer cancel()
-	}
-
-	identifier := fmt.Sprintf("%s/%s (namespace: %s)", resourceType, name, namespace)
-
-	cmd := exec.CommandContext(ctx, c.fluxBin, args...)
-	output, err := cmd.CombinedOutput()
-
-	if err != nil {
-		if ctx.Err() == context.DeadlineExceeded {
-			fmt.Fprintf(os.Stderr, "Flux reconcile for %s timed out after %s\nOutput: %s\n", identifier, timeout, string(output))
-		} else {
-			fmt.Fprintf(os.Stderr, "Flux reconcile for %s failed: %v\nOutput: %s\n", identifier, err, string(output))
-		}
+// kindToResource maps Flux kinds to kubectl resource types
+func kindToResource(kind string) string {
+	switch kind {
+	case sourcev1.HelmRepositoryKind:
+		return helmRepositoryResource
+	case sourcev1.OCIRepositoryKind:
+		return ociRepositoryResource
+	case helmv2.HelmReleaseKind:
+		return helmReleaseResource
+	case kustomizev1.KustomizationKind:
+		return kustomizationResource
+	default:
+		return ""
 	}
 }

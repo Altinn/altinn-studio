@@ -236,3 +236,67 @@ func (c *KubernetesClient) CollectLogs(opts LogOptions) error {
 
 	return nil
 }
+
+// Annotate sets or updates an annotation on a Kubernetes resource
+func (c *KubernetesClient) Annotate(resource, name, namespace, key, value string) error {
+	args := []string{"annotate", resource, name, fmt.Sprintf("%s=%s", key, value), "--overwrite"}
+	if namespace != "" {
+		args = append(args, "-n", namespace)
+	}
+
+	cmd := exec.Command(c.kubectlBin, args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to annotate %s/%s: %w\nOutput: %s", resource, name, err, string(output))
+	}
+	return nil
+}
+
+// GetConditionStatus returns the status value of a condition on a resource.
+// Returns empty string if condition not found.
+func (c *KubernetesClient) GetConditionStatus(resource, name, namespace, conditionType string) (string, error) {
+	jsonPath := fmt.Sprintf("{.status.conditions[?(@.type=='%s')].status}", conditionType)
+	return c.GetWithJSONPath(resource, name, namespace, jsonPath)
+}
+
+// SourceRef holds reference to a Flux source
+type SourceRef struct {
+	Kind      string
+	Name      string
+	Namespace string
+}
+
+// GetSourceRef returns the sourceRef from a HelmRelease or Kustomization resource
+func (c *KubernetesClient) GetSourceRef(resource, name, namespace string) (*SourceRef, error) {
+	// HelmRelease uses .spec.chart.spec.sourceRef
+	// Kustomization uses .spec.sourceRef
+	var jsonPath string
+	if strings.Contains(resource, "helmrelease") {
+		jsonPath = "{.spec.chart.spec.sourceRef.kind},{.spec.chart.spec.sourceRef.name},{.spec.chart.spec.sourceRef.namespace}"
+	} else {
+		jsonPath = "{.spec.sourceRef.kind},{.spec.sourceRef.name},{.spec.sourceRef.namespace}"
+	}
+
+	output, err := c.GetWithJSONPath(resource, name, namespace, jsonPath)
+	if err != nil {
+		return nil, err
+	}
+
+	parts := strings.Split(output, ",")
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("unexpected sourceRef format: %s", output)
+	}
+
+	ref := &SourceRef{
+		Kind:      parts[0],
+		Name:      parts[1],
+		Namespace: parts[2],
+	}
+
+	// Default namespace to the resource's namespace if not specified
+	if ref.Namespace == "" {
+		ref.Namespace = namespace
+	}
+
+	return ref, nil
+}

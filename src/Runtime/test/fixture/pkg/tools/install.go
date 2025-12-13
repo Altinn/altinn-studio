@@ -72,12 +72,11 @@ func (i *Installer) GetToolInfo(name string) (*ToolInfo, error) {
 }
 
 func (i *Installer) GetFluxClient() (*flux.FluxClient, error) {
-	tool, ok := i.tools["flux"]
-	if !ok {
-		return nil, fmt.Errorf("flux not found")
+	kubeClient, err := i.GetKubernetesClient()
+	if err != nil {
+		return nil, err
 	}
-
-	return flux.New(tool.Path)
+	return flux.New(kubeClient)
 }
 
 func (i *Installer) GetKubernetesClient() (*kubernetes.KubernetesClient, error) {
