@@ -412,6 +412,15 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches")]
         public async Task<ActionResult<Branch>> CreateBranch(string org, string repository, [FromBody] CreateBranchRequest request)
         {
+            try
+            {
+                Guard.AssertValidRepoBranchName(request.BranchName);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{request.BranchName} is an invalid branch name.");
+            }
+
             var branch = await _sourceControl.CreateBranch(org, repository, request.BranchName);
             return Ok(branch);
         }
@@ -441,9 +450,13 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/checkout")]
         public async Task<ActionResult<RepoStatus>> CheckoutBranch(string org, string repository, [FromBody] CheckoutBranchRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request?.BranchName))
+            try
             {
-                return BadRequest("Branch name is required");
+                Guard.AssertValidRepoBranchName(request.BranchName);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{request.BranchName} is an invalid branch name.");
             }
 
             var repoStatus = await _sourceControl.CheckoutBranchWithValidation(org, repository, request.BranchName);
