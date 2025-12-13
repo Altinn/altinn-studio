@@ -209,7 +209,7 @@ export class UiEditorPage extends BasePage {
   public async clickOnSaveDataModel(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('general.save'),
+        name: this.textMock('right_menu.data_model_bindings_save_button'),
         exact: true,
       })
       .click();

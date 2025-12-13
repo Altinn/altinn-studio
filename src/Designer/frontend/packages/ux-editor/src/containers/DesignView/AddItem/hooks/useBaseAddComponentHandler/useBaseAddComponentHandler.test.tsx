@@ -7,6 +7,8 @@ import { useBaseAddComponentHandler } from './useBaseAddComponentHandler';
 import { waitFor } from '@testing-library/react';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { useFormItemContext } from '../../../../FormItemContext';
+import { dataModelMetadataMock } from '../../../../../testing/dataModelMock';
+import { useValidDataModels } from '../../../../../hooks/useValidDataModels';
 
 jest.mock('app-development/contexts/PreviewContext');
 jest.mock('../../../../../hooks', () => ({
@@ -24,6 +26,8 @@ jest.mock('../../../../../hooks/mutations/useAddItemToLayoutMutation', () => ({
   }),
 }));
 
+jest.mock('../../../../../hooks/useValidDataModels');
+
 jest.mock('../../../../FormItemContext');
 
 const mockedItemToAdd: [ComponentType, string, number, string] = [
@@ -34,6 +38,18 @@ const mockedItemToAdd: [ComponentType, string, number, string] = [
 ];
 
 describe('useAddComponentHandler', () => {
+  beforeEach(() => {
+    (useValidDataModels as jest.Mock).mockReturnValue({
+      dataModelMetadata: undefined,
+      selectedDataModel: undefined,
+      isLoadingDataModels: false,
+    });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should call baseAddItem with correct arguments and an empty callback (silent)', async () => {
     const handleEditMock = mockFormItemContext();
     const doReloadPreviewMock = mockPreviewContext();
@@ -49,6 +65,36 @@ describe('useAddComponentHandler', () => {
       pageIndex: null,
       type: 'Input',
     });
+
+    await waitFor(() => expect(doReloadPreviewMock).toHaveBeenCalled());
+    expect(onDoneMock).toHaveBeenCalled();
+  });
+
+  it('should auto-bind data model field when data model is available', async () => {
+    const testDataModelName = 'testModel';
+    (useValidDataModels as jest.Mock).mockReturnValue({
+      dataModelMetadata: dataModelMetadataMock,
+      selectedDataModel: testDataModelName,
+      isLoadingDataModels: false,
+    });
+    const handleEditMock = mockFormItemContext();
+    const doReloadPreviewMock = mockPreviewContext();
+    const onDoneMock = jest.fn();
+
+    const { addItem } = renderUseAddComponentHandler(layoutMock);
+    addItem(...mockedItemToAdd, onDoneMock);
+    expect(handleEditMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'new-id',
+        type: 'Input',
+        dataModelBindings: {
+          simpleBinding: {
+            field: 'field1',
+            dataType: testDataModelName,
+          },
+        },
+      }),
+    );
 
     await waitFor(() => expect(doReloadPreviewMock).toHaveBeenCalled());
     expect(onDoneMock).toHaveBeenCalled();

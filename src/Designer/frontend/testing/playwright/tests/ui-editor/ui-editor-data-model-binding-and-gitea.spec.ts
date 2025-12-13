@@ -123,13 +123,6 @@ test('That it is possible to navigate back to ui-editor page and add the data mo
   await uiEditorPage.clickOnPageAccordion(pageName);
   await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, pageName);
   await uiEditorPage.clickOnTreeItem(newInputLabel);
-
-  await uiEditorPage.clickOnAddDataModelButton(ComponentType.Input);
-  await uiEditorPage.clickOnDataModelFieldBindingCombobox();
-  await uiEditorPage.verifyThatThereAreOptionsInTheDataModelFieldList();
-
-  await uiEditorPage.clickOnDataModelFieldPropertyOption(dataModelBindingName);
-  await uiEditorPage.clickOnSaveDataModel();
   await uiEditorPage.waitForDataModelToBeSelected();
 });
 
