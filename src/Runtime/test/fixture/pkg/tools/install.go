@@ -14,7 +14,7 @@ import (
 
 	"altinn.studio/runtime-fixture/pkg/cache"
 	"altinn.studio/runtime-fixture/pkg/flux"
-	"altinn.studio/runtime-fixture/pkg/kindcli"
+	"altinn.studio/runtime-fixture/pkg/kindclient"
 	"altinn.studio/runtime-fixture/pkg/kubernetes"
 )
 
@@ -88,13 +88,8 @@ func (i *Installer) GetKubernetesClient() (*kubernetes.KubernetesClient, error) 
 	return kubernetes.New(tool.Path)
 }
 
-func (i *Installer) GetKindClient() (*kindcli.KindClient, error) {
-	tool, ok := i.tools["kind"]
-	if !ok {
-		return nil, fmt.Errorf("kind not found")
-	}
-
-	return kindcli.New(tool.Path)
+func (i *Installer) GetKindClient() *kindclient.KindClient {
+	return kindclient.New()
 }
 
 // Install installs the specified tools (comma-separated) or all tools if tools is empty

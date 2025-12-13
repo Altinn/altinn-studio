@@ -24,7 +24,7 @@ func (r *KindContainerRuntime) clusterExists() (bool, error) {
 func (r *KindContainerRuntime) createCluster() error {
 	fmt.Printf("Creating kind cluster %s...\n", r.clusterName)
 
-	if err := r.KindClient.CreateCluster(r.configPath); err != nil {
+	if err := r.KindClient.CreateCluster(r.clusterName, r.configPath); err != nil {
 		return fmt.Errorf("failed to create cluster: %w", err)
 	}
 

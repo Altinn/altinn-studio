@@ -13,7 +13,7 @@ import (
 	"altinn.studio/runtime-fixture/pkg/cache"
 	"altinn.studio/runtime-fixture/pkg/container"
 	"altinn.studio/runtime-fixture/pkg/flux"
-	"altinn.studio/runtime-fixture/pkg/kindcli"
+	"altinn.studio/runtime-fixture/pkg/kindclient"
 	"altinn.studio/runtime-fixture/pkg/kubernetes"
 	"altinn.studio/runtime-fixture/pkg/runtimes"
 	"altinn.studio/runtime-fixture/pkg/tools"
@@ -87,7 +87,7 @@ type KindContainerRuntime struct {
 
 	ContainerClient  container.ContainerClient
 	FluxClient       *flux.FluxClient
-	KindClient       *kindcli.KindClient
+	KindClient       *kindclient.KindClient
 	KubernetesClient *kubernetes.KubernetesClient
 
 	RegistryStartedEvent chan<- error
@@ -234,10 +234,7 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 		return nil, nil, err
 	}
 
-	kindClient, err := installer.GetKindClient()
-	if err != nil {
-		return nil, nil, err
-	}
+	kindClient := installer.GetKindClient()
 	clusters, err := kindClient.GetClusters()
 	if err != nil {
 		return nil, nil, fmt.Errorf("couldn't get current clusters: %w", err)
