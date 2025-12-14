@@ -63,6 +63,11 @@ type KindContainerRuntimeOptions struct {
 	// When false (default), no linkerd resources are provisioned.
 	// When true, linkerd-crds and linkerd-control-plane are deployed.
 	IncludeLinkerd bool
+
+	// IncludeFluxNotificationController controls whether the Flux notification-controller is installed.
+	// When false (default), notification-controller is not deployed (saves startup time).
+	// When true, notification-controller is deployed (needed for StudioGateway alerts).
+	IncludeFluxNotificationController bool
 }
 
 // DefaultOptions returns the default options for the Kind runtime
@@ -358,8 +363,6 @@ func (r *KindContainerRuntime) installInfra() error {
 	// Step 5: Install Flux
 	fmt.Println("\n5. Installing Flux...")
 	start := time.Now()
-	// TODO: find a way to customize controllers for vertical scaling
-	// e.g. concurrency and requeueuing
 	if err := r.installFluxToCluster(); err != nil {
 		return fmt.Errorf("failed to install flux: %w", err)
 	}

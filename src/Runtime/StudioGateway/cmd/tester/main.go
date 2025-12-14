@@ -147,8 +147,9 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*harness.Result, er
 		ProjectRoot: root,
 		Variant:     variant,
 		ClusterOptions: kind.KindContainerRuntimeOptions{
-			IncludeMonitoring: false,
-			IncludeTestserver: false,
+			IncludeMonitoring:                 false,
+			IncludeTestserver:                 false,
+			IncludeFluxNotificationController: true,
 		},
 		Images: []harness.Image{
 			{

@@ -45,10 +45,13 @@ func (r *KindContainerRuntime) installFluxToCluster() error {
 		"source-controller",
 		"helm-controller",
 		"kustomize-controller",
-		"notification-controller",
+	}
+	if r.options.IncludeFluxNotificationController {
+		components = append(components, "notification-controller")
 	}
 
-	if err := r.FluxClient.Install(components); err != nil {
+	opts := flux.LocalTestInstallOptions()
+	if err := r.FluxClient.Install(components, opts); err != nil {
 		return err
 	}
 
@@ -63,7 +66,9 @@ func (r *KindContainerRuntime) waitForFluxControllers() error {
 		"source-controller",
 		"helm-controller",
 		"kustomize-controller",
-		"notification-controller",
+	}
+	if r.options.IncludeFluxNotificationController {
+		controllers = append(controllers, "notification-controller")
 	}
 
 	timeout := 1 * time.Minute

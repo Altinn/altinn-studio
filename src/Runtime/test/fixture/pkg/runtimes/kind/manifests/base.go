@@ -19,6 +19,8 @@ const (
 
 // BuildBaseInfrastructure creates all base infrastructure resources.
 func BuildBaseInfrastructure(caCrt, issuerCrt, issuerKey []byte, includeLinkerd bool) []runtime.Object {
+	// TODO: take this one step further and have abstractions to represent resources and have better support
+	// for modelling references/dependencies without a ton of magic strings.
 	objs := []runtime.Object{
 		// Namespaces
 		buildNamespace("traefik"),
