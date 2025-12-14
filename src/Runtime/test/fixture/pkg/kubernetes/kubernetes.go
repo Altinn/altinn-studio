@@ -104,24 +104,22 @@ func newFromConfig(config *rest.Config) (*KubernetesClient, error) {
 	}, nil
 }
 
-// ResetMapper invalidates the cached API resource discovery.
-// Call this after installing CRDs to make them available.
-func (c *KubernetesClient) ResetMapper() {
-	c.cachedDiscovery.Invalidate()
-	c.mapper.Reset()
-}
-
 // applyUnstructured applies a single unstructured object using Server-Side Apply.
 func (c *KubernetesClient) applyUnstructured(ctx context.Context, obj *unstructured.Unstructured) (string, error) {
 	gvk := obj.GroupVersionKind()
 	mapping, err := c.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	if meta.IsNoMatchError(err) {
+		// CRD may have just been installed - reset discovery cache and retry
+		c.mapper.Reset()
+		mapping, err = c.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	}
 	if err != nil {
-		return "", fmt.Errorf("failed to get REST mapping for %v: %w", gvk, err)
+		return "", fmt.Errorf("failed to get REST mapping for %v: %s: %w", gvk, obj.GetName(), err)
 	}
 
 	data, err := json.Marshal(obj.Object)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal object: %w", err)
+		return "", fmt.Errorf("failed to marshal object %s: %w", obj.GetName(), err)
 	}
 
 	var dr dynamic.ResourceInterface

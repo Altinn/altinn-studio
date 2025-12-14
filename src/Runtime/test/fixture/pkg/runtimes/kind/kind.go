@@ -366,7 +366,6 @@ func (r *KindContainerRuntime) installInfra() error {
 	if err := r.installFluxToCluster(); err != nil {
 		return fmt.Errorf("failed to install flux: %w", err)
 	}
-	r.KubernetesClient.ResetMapper() // Flux installed new CRDs
 	fmt.Println("✓ Flux installed")
 	logDuration("Install Flux", start)
 
@@ -385,7 +384,6 @@ func (r *KindContainerRuntime) installInfra() error {
 	if err := r.waitForFluxControllers(); err != nil {
 		return fmt.Errorf("failed waiting for flux controllers: %w", err)
 	}
-	r.KubernetesClient.ResetMapper() // CRDs fully available now
 	fmt.Println("✓ Flux controllers ready")
 	logDuration("Wait for Flux controllers", start)
 
