@@ -15,6 +15,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import { useMetricsQuery } from 'admin/hooks/queries/useMetricsQuery';
+import { TimeRangeSelect } from 'admin/shared/TimeRangeSelect';
 
 type AppsTableProps = {
   org: string;
@@ -87,18 +88,16 @@ type AppsTableContentProps = AppsTableWithDataProps & {
 
 const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTableContentProps) => {
   const { t } = useTranslation();
-  const time = 2280;
+  const defaultRange = 1440;
+  const [range, setRange] = useQueryParamState<number>('range', defaultRange);
   const {
     data: metrics,
     isPending: metricsIsPending,
     isError: metricsIsError,
-  } = useMetricsQuery(org, env, time, {
+  } = useMetricsQuery(org, env, range!, {
     hideDefaultError: true,
   });
 
-  if (metricsIsPending) {
-    return <StudioSpinner aria-label={t('general.loading')} />;
-  }
   return (
     <>
       {metricsIsError && (
@@ -117,6 +116,13 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
           <StudioTable.Row>
             <StudioTable.Cell>{t('admin.apps.name')}</StudioTable.Cell>
             <StudioTable.Cell>{t('admin.apps.version')}</StudioTable.Cell>
+            <StudioTable.Cell className={classes.metricsHeaderCell}>
+              <TimeRangeSelect
+                label={t('admin.apps.alerts')}
+                value={range!}
+                onChange={(e) => setRange(e)}
+              />
+            </StudioTable.Cell>
           </StudioTable.Row>
         </StudioTable.Head>
         <StudioTable.Body>
@@ -136,11 +142,15 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
             .map((app) => (
               <StudioTable.Row key={app.app}>
                 <StudioTable.Cell>
-                  <Link to={`${env}/${app.app}`}>{app.app}</Link>
+                  <Link
+                    to={`${env}/${app.app}${range && range !== defaultRange ? '?range=' + range : ''}`}
+                  >
+                    {app.app}
+                  </Link>
                 </StudioTable.Cell>
                 <StudioTable.Cell>{app.version}</StudioTable.Cell>
-                <StudioTable.Cell>
-                  <div className={classes.metricCell}>
+                <StudioTable.Cell className={classes.metricsCell}>
+                  <div className={classes.metricsCellContainer}>
                     {app.metrics?.map((metric) => {
                       return (
                         <StudioAlert

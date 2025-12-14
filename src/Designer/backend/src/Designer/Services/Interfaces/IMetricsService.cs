@@ -10,7 +10,7 @@ public interface IMetricsService
     public Task<IEnumerable<Metric>> GetMetricsAsync(
         string org,
         string env,
-        int time,
+        int range,
         CancellationToken cancellationToken
     );
 
@@ -18,7 +18,7 @@ public interface IMetricsService
         string org,
         string env,
         string app,
-        int time,
+        int range,
         CancellationToken cancellationToken
     );
 

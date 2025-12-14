@@ -32,7 +32,7 @@ ChartJS.register(
   TimeScale,
 );
 
-const getChartOptions = (time: number) => ({
+const getChartOptions = (range: number) => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -55,7 +55,7 @@ const getChartOptions = (time: number) => ({
       },
       type: 'time',
       time: {
-        unit: time >= 1140 ? 'hour' : 'minute',
+        unit: range >= 1140 ? 'hour' : 'minute',
       },
     },
     y: {
@@ -121,13 +121,13 @@ const getRandomColor = () => {
 };
 
 type AppMetricProps = {
-  time: number;
+  range: number;
   metric: Metric;
 };
 
-export const AppMetric = ({ time, metric }: AppMetricProps) => {
+export const AppMetric = ({ range, metric }: AppMetricProps) => {
   const { t } = useTranslation();
-  const options = getChartOptions(time);
+  const options = getChartOptions(range);
   const count = metric.dataPoints.reduce((sum, item) => sum + item.count, 0);
   const isErrorMetric = metric.name.startsWith('failed_');
   const isError = isErrorMetric && count > 0;

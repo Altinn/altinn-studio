@@ -17,7 +17,7 @@ public interface IGatewayClient
     public Task<IEnumerable<Metric>> GetMetricsAsync(
         string org,
         string env,
-        int time,
+        int range,
         CancellationToken cancellationToken
     );
 
@@ -25,7 +25,7 @@ public interface IGatewayClient
         string org,
         string env,
         string app,
-        int time,
+        int range,
         CancellationToken cancellationToken
     );
 

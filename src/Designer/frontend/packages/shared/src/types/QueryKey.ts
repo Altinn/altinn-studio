@@ -64,7 +64,6 @@ export enum QueryKey {
   // Admin
   HealthMetrics = 'HealthMetrics',
   Metrics = 'Metrics',
-  ProcessNext = 'ProcessNext',
   AppInstances = 'AppInstances',
   AppInstanceDetails = 'AppInstanceDetails',
   AppProcessTasks = 'AppProcessTasks',

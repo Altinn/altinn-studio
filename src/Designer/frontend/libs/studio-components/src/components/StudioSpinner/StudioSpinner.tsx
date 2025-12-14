@@ -7,7 +7,7 @@ import type { SpinnerProps } from '@digdir/designsystemet-react';
 import { StudioParagraph } from '../StudioParagraph';
 
 export type StudioSpinnerProps = {
-  spinnerTitle?: string;
+  spinnerTitle?: ReactElement | string;
 } & SpinnerProps;
 
 function StudioSpinner(

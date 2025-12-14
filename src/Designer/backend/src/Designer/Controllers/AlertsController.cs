@@ -17,7 +17,7 @@ public class AlertsController(IAlertsService alertsService) : ControllerBase
     private readonly IAlertsService _alertsService = alertsService;
 
     [HttpGet]
-    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
+    [Authorize(Policy = AltinnPolicy.MustHaveAdminPermission)]
     public async Task<ActionResult<IEnumerable<Alert>>> GetFiringAlerts(
         string org,
         string env,

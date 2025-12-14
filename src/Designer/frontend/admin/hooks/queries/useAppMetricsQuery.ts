@@ -9,13 +9,13 @@ export const useAppMetricsQuery = (
   org: string,
   env: string,
   app: string,
-  time: number,
+  range: number,
   meta?: QueryMeta,
 ): UseQueryResult<AppMetric[]> => {
   return useQuery<AppMetric[]>({
-    queryKey: [QueryKey.Metrics, org, env, app, time],
+    queryKey: [QueryKey.Metrics, org, env, app, range],
     queryFn: async ({ signal }) =>
-      (await axios.get<AppMetric[]>(appMetricsPath(org, env, app, time), { signal })).data,
+      (await axios.get<AppMetric[]>(appMetricsPath(org, env, app, range), { signal })).data,
     meta,
   });
 };

@@ -11,7 +11,11 @@
   width: 40%;
 }
 
-.metricCell {
+.metricsCell {
+  height: 33px;
+}
+
+.metricsCellContainer {
   display: flex;
   flex-wrap: wrap;
   gap: var(--ds-size-2);

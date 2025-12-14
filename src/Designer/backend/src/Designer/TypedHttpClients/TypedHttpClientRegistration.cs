@@ -3,7 +3,6 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
-using System.Text;
 using Altinn.ApiClients.Maskinporten.Extensions;
 using Altinn.ApiClients.Maskinporten.Services;
 using Altinn.Studio.Designer.Configuration;
@@ -29,6 +28,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Altinn.ApiClients.Maskinporten.Config;
 
 namespace Altinn.Studio.Designer.TypedHttpClients
 {
@@ -204,12 +204,13 @@ namespace Altinn.Studio.Designer.TypedHttpClients
 
             var jwkString = configuration["MaskinportenClientForRuntime:Test:Jwk"];
             var scope = configuration["MaskinportenClientForRuntime:Test:Scope"];
-            var maskinportenClientForRuntimeTestSettings = new MaskinportenClientSettings()
+            var maskinportenClientForRuntimeTestSettings = new MaskinportenSettings()
             {
                 ClientId = configuration["MaskinportenClientForRuntime:Test:ClientId"],
-                // Library expects base64 encoded JWK, but we store the raw JSON in Azure KV
-                EncodedJwk = !string.IsNullOrWhiteSpace(jwkString) ? Convert.ToBase64String(Encoding.UTF8.GetBytes(jwkString)) : null,
-                Scope = configuration["MaskinportenClientForRuntime:Test:Scope"]
+                EncodedJwk = jwkString,
+                Scope = configuration["MaskinportenClientForRuntime:Test:Scope"],
+                Environment = configuration["MaskinportenClientForRuntime:Test:Environment"],
+
             };
 
             services.AddMaskinportenHttpClient<SettingsJwkClientDefinition, IGatewayClient, GatewayClient>(maskinportenClientForRuntimeTestSettings)

@@ -1,29 +1,13 @@
-.card {
-  flex: 0.75;
-}
-
-.header {
-  margin-bottom: var(--ds-size-8);
-}
-
 .heading {
-  margin-bottom: var(--ds-size-8);
+  margin-bottom: var(--ds-size-12);
 }
 
 .subheading {
   margin-bottom: var(--ds-size-6);
 }
 
-.select {
-  float: right;
-  flex-direction: row;
-  gap: var(--ds-size-4);
-  white-space: nowrap;
-  align-items: center;
-}
-
-.select * {
-  margin: 0;
+.select select {
+  font-size: 0.9rem;
 }
 
 .content {
