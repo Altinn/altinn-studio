@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
@@ -110,6 +111,38 @@ func (c *KubernetesClient) ResetMapper() {
 	c.mapper.Reset()
 }
 
+// applyUnstructured applies a single unstructured object using Server-Side Apply.
+func (c *KubernetesClient) applyUnstructured(ctx context.Context, obj *unstructured.Unstructured) (string, error) {
+	gvk := obj.GroupVersionKind()
+	mapping, err := c.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	if err != nil {
+		return "", fmt.Errorf("failed to get REST mapping for %v: %w", gvk, err)
+	}
+
+	data, err := json.Marshal(obj.Object)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal object: %w", err)
+	}
+
+	var dr dynamic.ResourceInterface
+	if mapping.Scope.Name() == meta.RESTScopeNameNamespace {
+		ns := obj.GetNamespace()
+		if ns == "" {
+			ns = "default"
+		}
+		dr = c.dynamicClient.Resource(mapping.Resource).Namespace(ns)
+	} else {
+		dr = c.dynamicClient.Resource(mapping.Resource)
+	}
+
+	_, err = dr.Patch(ctx, obj.GetName(), types.ApplyPatchType, data,
+		metav1.PatchOptions{FieldManager: "runtime-fixture"})
+	if err != nil {
+		return "", fmt.Errorf("failed to apply %s/%s: %w", gvk.Kind, obj.GetName(), err)
+	}
+	return fmt.Sprintf("%s/%s configured", strings.ToLower(gvk.Kind), obj.GetName()), nil
+}
+
 // ApplyManifest applies Kubernetes manifest YAML content using Server-Side Apply.
 // This function is idempotent - it can be called multiple times safely.
 func (c *KubernetesClient) ApplyManifest(yamlContent string) (string, error) {
@@ -126,39 +159,43 @@ func (c *KubernetesClient) ApplyManifest(yamlContent string) (string, error) {
 			return "", fmt.Errorf("failed to decode YAML: %w", err)
 		}
 
-		// Skip empty documents
 		if len(rawObj.Object) == 0 {
 			continue
 		}
 
-		gvk := rawObj.GroupVersionKind()
-		mapping, err := c.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+		result, err := c.applyUnstructured(ctx, &rawObj)
 		if err != nil {
-			return "", fmt.Errorf("failed to get REST mapping for %v: %w", gvk, err)
+			return "", err
 		}
+		results = append(results, result)
+	}
+	return strings.Join(results, "\n"), nil
+}
 
-		data, err := json.Marshal(rawObj.Object)
-		if err != nil {
-			return "", fmt.Errorf("failed to marshal object: %w", err)
-		}
+// ApplyObjects applies typed Kubernetes objects using Server-Side Apply.
+// This function is idempotent - it can be called multiple times safely.
+func (c *KubernetesClient) ApplyObjects(objs ...runtime.Object) (string, error) {
+	ctx := context.Background()
+	var results []string
 
-		var dr dynamic.ResourceInterface
-		if mapping.Scope.Name() == meta.RESTScopeNameNamespace {
-			ns := rawObj.GetNamespace()
-			if ns == "" {
-				ns = "default"
-			}
-			dr = c.dynamicClient.Resource(mapping.Resource).Namespace(ns)
+	for _, obj := range objs {
+		var u *unstructured.Unstructured
+
+		if existing, ok := obj.(*unstructured.Unstructured); ok {
+			u = existing
 		} else {
-			dr = c.dynamicClient.Resource(mapping.Resource)
+			content, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
+			if err != nil {
+				return "", fmt.Errorf("failed to convert object to unstructured: %w", err)
+			}
+			u = &unstructured.Unstructured{Object: content}
 		}
 
-		_, err = dr.Patch(ctx, rawObj.GetName(), types.ApplyPatchType, data,
-			metav1.PatchOptions{FieldManager: "runtime-fixture"})
+		result, err := c.applyUnstructured(ctx, u)
 		if err != nil {
-			return "", fmt.Errorf("failed to apply %s/%s: %w", gvk.Kind, rawObj.GetName(), err)
+			return "", err
 		}
-		results = append(results, fmt.Sprintf("%s/%s configured", strings.ToLower(gvk.Kind), rawObj.GetName()))
+		results = append(results, result)
 	}
 	return strings.Join(results, "\n"), nil
 }

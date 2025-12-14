@@ -2,11 +2,11 @@ package kind
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"altinn.studio/runtime-fixture/pkg/flux"
 	"altinn.studio/runtime-fixture/pkg/kubernetes"
+	"altinn.studio/runtime-fixture/pkg/runtimes/kind/manifests"
 )
 
 // isFluxInstalled checks if Flux is already installed in the cluster
@@ -182,46 +182,22 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 // - HelmReleases for: metrics-server, traefik, linkerd-crds, linkerd-control-plane, pdf-generator
 func (r *KindContainerRuntime) applyBaseInfrastructure() error {
 	fmt.Println("Applying base infrastructure manifest...")
-	manifest := r.buildBaseInfrastructureManifest()
-	if _, err := r.KubernetesClient.ApplyManifest(manifest); err != nil {
+
+	baseObjs := manifests.BuildBaseInfrastructure(certCACrt, certIssuerCrt, certIssuerKey)
+	if _, err := r.KubernetesClient.ApplyObjects(baseObjs...); err != nil {
 		return fmt.Errorf("failed to apply base infrastructure: %w", err)
 	}
 	fmt.Println("✓ Base infrastructure manifest applied")
 
 	if r.options.IncludeMonitoring {
 		fmt.Println("Applying monitoring infrastructure manifest...")
-		if _, err := r.KubernetesClient.ApplyManifest(string(monitoringInfrastructureManifest)); err != nil {
+
+		monitoringObjs := manifests.BuildMonitoringInfrastructure()
+		if _, err := r.KubernetesClient.ApplyObjects(monitoringObjs...); err != nil {
 			return fmt.Errorf("failed to apply monitoring infrastructure: %w", err)
 		}
 		fmt.Println("✓ Monitoring infrastructure manifest applied")
 	}
 
 	return nil
-}
-
-// buildBaseInfrastructureManifest creates a manifest with all base infrastructure resources
-// It substitutes certificate placeholders with actual certificate data
-func (r *KindContainerRuntime) buildBaseInfrastructureManifest() string {
-	manifest := string(baseInfrastructureManifest)
-
-	// Replace certificate placeholders with indented cert data
-	// Each line needs 4 spaces to match the YAML indentation level
-	manifest = strings.ReplaceAll(manifest, "    {{CA_CRT}}", indentLines(string(certCACrt), 4))
-	manifest = strings.ReplaceAll(manifest, "    {{ISSUER_CRT}}", indentLines(string(certIssuerCrt), 4))
-	manifest = strings.ReplaceAll(manifest, "    {{ISSUER_KEY}}", indentLines(string(certIssuerKey), 4))
-
-	return manifest
-}
-
-// indentLines indents each line of a multi-line string by the specified number of spaces
-func indentLines(s string, spaces int) string {
-	if s == "" {
-		return s
-	}
-	indent := strings.Repeat(" ", spaces)
-	lines := strings.Split(strings.TrimRight(s, "\n"), "\n")
-	for i := range lines {
-		lines[i] = indent + lines[i]
-	}
-	return strings.Join(lines, "\n")
 }

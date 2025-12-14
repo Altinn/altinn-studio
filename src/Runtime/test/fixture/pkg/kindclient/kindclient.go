@@ -1,6 +1,7 @@
 package kindclient
 
 import (
+	"sigs.k8s.io/kind/pkg/apis/config/v1alpha4"
 	"sigs.k8s.io/kind/pkg/cluster"
 )
 
@@ -21,9 +22,9 @@ func (c *KindClient) GetClusters() ([]string, error) {
 	return c.provider.List()
 }
 
-// CreateCluster creates a new kind cluster using the specified config file
-func (c *KindClient) CreateCluster(name, configPath string) error {
-	return c.provider.Create(name, cluster.CreateWithConfigFile(configPath))
+// CreateCluster creates a new kind cluster using the specified config
+func (c *KindClient) CreateCluster(name string, config *v1alpha4.Cluster) error {
+	return c.provider.Create(name, cluster.CreateWithV1Alpha4Config(config))
 }
 
 // DeleteCluster deletes a kind cluster by name

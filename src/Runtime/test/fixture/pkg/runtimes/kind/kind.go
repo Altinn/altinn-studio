@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path/filepath"
-	"strings"
 	"time"
 
 	"altinn.studio/runtime-fixture/pkg/cache"
@@ -17,13 +15,9 @@ import (
 	"altinn.studio/runtime-fixture/pkg/kubernetes"
 	"altinn.studio/runtime-fixture/pkg/oci"
 	"altinn.studio/runtime-fixture/pkg/runtimes"
+	"altinn.studio/runtime-fixture/pkg/runtimes/kind/manifests"
+	"sigs.k8s.io/kind/pkg/apis/config/v1alpha4"
 )
-
-//go:embed config/kind.config.standard.yaml
-var kindConfigStandard []byte
-
-//go:embed config/kind.config.minimal.yaml
-var kindConfigMinimal []byte
 
 //go:embed config/certs/ca.crt
 var certCACrt []byte
@@ -34,14 +28,17 @@ var certIssuerCrt []byte
 //go:embed config/certs/issuer.key
 var certIssuerKey []byte
 
-//go:embed config/testserver.yaml
-var testserverManifest []byte
+//go:embed config/testserver/nginx.conf
+var testserverNginxConf []byte
 
-//go:embed config/base-infrastructure.yaml
-var baseInfrastructureManifest []byte
+//go:embed config/testserver/jumpbox-nginx.conf
+var jumpboxNginxConf []byte
 
-//go:embed config/monitoring-infrastructure.yaml
-var monitoringInfrastructureManifest []byte
+//go:embed config/testserver/index.html
+var testserverIndexHtml []byte
+
+//go:embed config/testserver/eur1.html
+var testserverEur1Html []byte
 
 type KindContainerRuntimeVariant int
 
@@ -72,11 +69,11 @@ func DefaultOptions() KindContainerRuntimeOptions {
 }
 
 type KindContainerRuntime struct {
-	variant        KindContainerRuntimeVariant
-	options        KindContainerRuntimeOptions
+	variant     KindContainerRuntimeVariant
+	options     KindContainerRuntimeOptions
 	cachePath   string
 	clusterName string
-	configPath  string
+	kindConfig  *v1alpha4.Cluster
 
 	ContainerClient  container.ContainerClient
 	FluxClient       *flux.FluxClient
@@ -108,23 +105,6 @@ func New(variant KindContainerRuntimeVariant, cachePath string, options KindCont
 	}
 
 	// Note: kubernetes/flux clients are initialized in Run() after cluster creation
-
-	var configContent []byte
-
-	switch variant {
-	case KindContainerRuntimeVariantStandard:
-		configContent = kindConfigStandard
-	case KindContainerRuntimeVariantMinimal:
-		configContent = kindConfigMinimal
-	default:
-		return nil, fmt.Errorf("unknown variant: %d", variant)
-	}
-
-	// Write embedded config to disk
-	if err := os.WriteFile(r.configPath, configContent, 0644); err != nil {
-		return nil, fmt.Errorf("failed to write kind config: %w", err)
-	}
-
 	return r, nil
 }
 
@@ -244,17 +224,14 @@ func (r *KindContainerRuntime) initializeClients() error {
 	return nil
 }
 
-func newInternal(r *KindContainerRuntime, clusters []string, variant KindContainerRuntimeVariant, cachePath string, isLoad bool) error {
+func newInternal(r *KindContainerRuntime, clusters []string, variant KindContainerRuntimeVariant, _ string, isLoad bool) error {
 	var clusterName string
-	var configDir string
 
 	switch variant {
 	case KindContainerRuntimeVariantStandard:
 		clusterName = "runtime-fixture-kind-standard"
-		configDir = filepath.Join(cachePath, "config", "kind-standard")
 	case KindContainerRuntimeVariantMinimal:
 		clusterName = "runtime-fixture-kind-minimal"
-		configDir = filepath.Join(cachePath, "config", "kind-minimal")
 	default:
 		return fmt.Errorf("unknown variant: %d", variant)
 	}
@@ -268,23 +245,19 @@ func newInternal(r *KindContainerRuntime, clusters []string, variant KindContain
 		}
 	}
 
-	if isLoad {
-		if !foundCluster {
-			return fmt.Errorf("KindContainerRuntime cluster variant wasn't found running")
-		}
-		if _, err := os.Stat(configDir); err != nil {
-			return fmt.Errorf("cache config directory stat error: %w", err)
-		}
-	} else {
-		err := cache.EnsureDirExists(configDir)
-		if err != nil {
-			return err
-		}
+	if isLoad && !foundCluster {
+		return fmt.Errorf("KindContainerRuntime cluster variant wasn't found running")
 	}
 
 	r.variant = variant
 	r.clusterName = clusterName
-	r.configPath = filepath.Join(configDir, "kind.config.yaml")
+
+	switch variant {
+	case KindContainerRuntimeVariantStandard:
+		r.kindConfig = manifests.BuildStandardConfig(clusterName)
+	case KindContainerRuntimeVariantMinimal:
+		r.kindConfig = manifests.BuildMinimalConfig(clusterName)
+	}
 
 	return nil
 }
@@ -420,11 +393,18 @@ func (r *KindContainerRuntime) installInfra() error {
 	if r.options.IncludeTestserver {
 		fmt.Println("\n9. Applying testserver manifest...")
 		start = time.Now()
-		testserverYaml := string(testserverManifest)
+		replicas := int32(3)
 		if r.variant == KindContainerRuntimeVariantMinimal {
-			testserverYaml = strings.ReplaceAll(testserverYaml, "replicas: 3", "replicas: 1")
+			replicas = 1
 		}
-		if _, err := r.KubernetesClient.ApplyManifest(testserverYaml); err != nil {
+		testserverObjs := manifests.BuildTestserver(
+			testserverNginxConf,
+			testserverIndexHtml,
+			testserverEur1Html,
+			jumpboxNginxConf,
+			replicas,
+		)
+		if _, err := r.KubernetesClient.ApplyObjects(testserverObjs...); err != nil {
 			return fmt.Errorf("failed to apply testserver manifest: %w", err)
 		}
 		fmt.Println("✓ Testserver manifest applied")
