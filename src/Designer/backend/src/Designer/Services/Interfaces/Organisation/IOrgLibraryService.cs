@@ -26,5 +26,12 @@ public interface IOrgLibraryService
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     Task UpdateSharedResourcesByPath(string org, string developer, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Gets all the published library elements for the organisation.
+    /// </summary>
+    /// <param name="org">Organisation.</param>
+    /// <param name="path">Path to a folder.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The published library elements from mentioned path.</returns>
     Task<List<string>> GetPublishedResourcesForOrg(string org, string path, CancellationToken cancellationToken = default);
 }

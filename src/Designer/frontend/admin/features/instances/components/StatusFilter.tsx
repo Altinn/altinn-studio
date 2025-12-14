@@ -6,7 +6,7 @@ type StatusFilterProps = {
   label: string;
   value: any;
   setValue: (value: any) => void;
-  options: { label: string; value: any }[];
+  options: { label: string; labelParams?: Record<string, unknown>; value: any }[];
   disabled?: boolean;
 };
 
@@ -29,7 +29,7 @@ export const StatusFilter = ({ label, value, setValue, options, disabled }: Stat
           key={JSON.stringify(option.value ?? null)}
           value={JSON.stringify(option.value ?? null)}
         >
-          {t(option.label)}
+          {t(option.label, option.labelParams)}
         </StudioSelect.Option>
       ))}
     </StudioSelect>

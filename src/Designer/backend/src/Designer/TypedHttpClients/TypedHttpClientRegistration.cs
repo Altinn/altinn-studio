@@ -21,6 +21,7 @@ using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
+using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
@@ -73,6 +74,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddMaskinportenHttpClient();
             services.AddSlackClient(config);
             services.AddStudioGatewayClient(logger, config);
+            services.AddRuntimeGatewayHttpClient(config);
 
             return services;
         }

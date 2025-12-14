@@ -20,6 +20,7 @@ export const instancesListPath = (
   confirmed?: boolean,
   isSoftDeleted?: boolean,
   isHardDeleted?: boolean,
+  createdBefore?: string,
 ) => {
   const queryString = getQueryStringFromObject({
     continuationToken,
@@ -29,6 +30,7 @@ export const instancesListPath = (
     confirmed: typeof confirmed === 'boolean' ? String(confirmed) : null,
     isSoftDeleted: typeof isSoftDeleted === 'boolean' ? String(isSoftDeleted) : null,
     isHardDeleted: typeof isHardDeleted === 'boolean' ? String(isHardDeleted) : null,
+    createdBefore,
   });
   return `${adminApiBasePath}/instances/${org}/${env}/${app}${queryString}`; // Get
 };

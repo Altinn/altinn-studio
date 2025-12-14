@@ -54,7 +54,8 @@ public static class DeploymentEntityDesignerDbFixtureExtensions
             CreatedBy = entity.CreatedBy,
             Entity = JsonSerializer.Serialize(entity, s_jsonOptions),
             EnvName = entity.EnvName,
-            Build = MapBuildToDbModel(entity.Build)
+            Build = MapBuildToDbModel(entity.Build),
+            DeploymentType = (Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentType)(int)entity.DeploymentType
         };
 
     private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel MapBuildToDbModel(BuildEntity buildEntity) =>
