@@ -241,9 +241,18 @@ func (c *KubernetesClient) RolloutStatus(deployment, namespace string, timeout t
 		defer cancel()
 	}
 
-	fieldSelector := fmt.Sprintf("metadata.name=%s", deployment)
+	dep, err := c.clientset.AppsV1().Deployments(namespace).Get(ctx, deployment, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to get deployment %s: %w", deployment, err)
+	}
+
+	if isRolloutComplete(dep) {
+		return nil
+	}
+
 	watcher, err := c.clientset.AppsV1().Deployments(namespace).Watch(ctx, metav1.ListOptions{
-		FieldSelector: fieldSelector,
+		FieldSelector:   fmt.Sprintf("metadata.name=%s", deployment),
+		ResourceVersion: dep.ResourceVersion,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to watch deployment %s: %w", deployment, err)
@@ -264,19 +273,22 @@ func (c *KubernetesClient) RolloutStatus(deployment, namespace string, timeout t
 				continue
 			}
 
-			replicas := int32(1)
-			if dep.Spec.Replicas != nil {
-				replicas = *dep.Spec.Replicas
-			}
-
-			if dep.Status.ObservedGeneration >= dep.Generation &&
-				dep.Status.UpdatedReplicas == replicas &&
-				dep.Status.AvailableReplicas == replicas &&
-				dep.Status.UnavailableReplicas == 0 {
+			if isRolloutComplete(dep) {
 				return nil
 			}
 		}
 	}
+}
+
+func isRolloutComplete(dep *appsv1.Deployment) bool {
+	replicas := int32(1)
+	if dep.Spec.Replicas != nil {
+		replicas = *dep.Spec.Replicas
+	}
+	return dep.Status.ObservedGeneration >= dep.Generation &&
+		dep.Status.UpdatedReplicas == replicas &&
+		dep.Status.AvailableReplicas == replicas &&
+		dep.Status.UnavailableReplicas == 0
 }
 
 // WatchCondition watches a resource until a condition reaches the target status.
@@ -288,9 +300,18 @@ func (c *KubernetesClient) WatchCondition(ctx context.Context, gvr schema.GroupV
 		dr = c.dynamicClient.Resource(gvr)
 	}
 
-	fieldSelector := fmt.Sprintf("metadata.name=%s", name)
+	obj, err := dr.Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to get %s/%s: %w", gvr.Resource, name, err)
+	}
+
+	if hasCondition(obj, conditionType, targetStatus) {
+		return nil
+	}
+
 	watcher, err := dr.Watch(ctx, metav1.ListOptions{
-		FieldSelector: fieldSelector,
+		FieldSelector:   fmt.Sprintf("metadata.name=%s", name),
+		ResourceVersion: obj.GetResourceVersion(),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to watch %s/%s: %w", gvr.Resource, name, err)
@@ -311,24 +332,30 @@ func (c *KubernetesClient) WatchCondition(ctx context.Context, gvr schema.GroupV
 				continue
 			}
 
-			conditions, found, _ := unstructured.NestedSlice(obj.Object, "status", "conditions")
-			if !found {
-				continue
-			}
-
-			for _, cond := range conditions {
-				condMap, ok := cond.(map[string]any)
-				if !ok {
-					continue
-				}
-				if condMap["type"] == conditionType {
-					if status, ok := condMap["status"].(string); ok && strings.EqualFold(status, targetStatus) {
-						return nil
-					}
-				}
+			if hasCondition(obj, conditionType, targetStatus) {
+				return nil
 			}
 		}
 	}
+}
+
+func hasCondition(obj *unstructured.Unstructured, conditionType, targetStatus string) bool {
+	conditions, found, _ := unstructured.NestedSlice(obj.Object, "status", "conditions")
+	if !found {
+		return false
+	}
+	for _, cond := range conditions {
+		condMap, ok := cond.(map[string]any)
+		if !ok {
+			continue
+		}
+		if condMap["type"] == conditionType {
+			if status, ok := condMap["status"].(string); ok && strings.EqualFold(status, targetStatus) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (c *KubernetesClient) KustomizeRender(path string) (string, error) {
