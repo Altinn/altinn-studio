@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc;
 using StudioGateway.Api.Hosting;
 using StudioGateway.Api.Services.Metrics;
 
@@ -11,11 +9,7 @@ internal static class MetricsEndpoints
     {
         app.MapGet(
                 "/runtime/gateway/api/v1/metrics",
-                async (
-                    IMetricsService metricsService,
-                    [FromQuery, Range(1, 10080)] int range,
-                    CancellationToken cancellationToken
-                ) =>
+                async (IMetricsService metricsService, int range, CancellationToken cancellationToken) =>
                 {
                     var metrics = await metricsService.GetMetricsAsync(range, cancellationToken);
                     return Results.Ok(metrics);
@@ -28,12 +22,7 @@ internal static class MetricsEndpoints
 
         app.MapGet(
                 "/runtime/gateway/api/v1/metrics/app",
-                async (
-                    IMetricsService metricsService,
-                    string app,
-                    [FromQuery, Range(1, 10080)] int range,
-                    CancellationToken cancellationToken
-                ) =>
+                async (IMetricsService metricsService, string app, int range, CancellationToken cancellationToken) =>
                 {
                     var appMetrics = await metricsService.GetAppMetricsAsync(app, range, cancellationToken);
                     return Results.Ok(appMetrics);

@@ -20,6 +20,8 @@ internal sealed class AzureMonitorClient(
 {
     private readonly MetricsClientSettings _metricsClientSettings = metricsClientSettings.Value;
 
+    private const int MaxRange = 10080;
+
     private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
     {
         {
@@ -43,6 +45,8 @@ internal sealed class AzureMonitorClient(
     /// <inheritdoc />
     public async Task<IEnumerable<Metric>> GetMetricsAsync(int range, CancellationToken cancellationToken)
     {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
+
         string logAnalyticsWorkspaceId = _metricsClientSettings.ApplicationLogAnalyticsWorkspaceId;
 
         var query =
@@ -90,6 +94,8 @@ internal sealed class AzureMonitorClient(
         CancellationToken cancellationToken
     )
     {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
+
         string logAnalyticsWorkspaceId = _metricsClientSettings.ApplicationLogAnalyticsWorkspaceId;
 
         var interval = range < 360 ? "5m" : "1h";
