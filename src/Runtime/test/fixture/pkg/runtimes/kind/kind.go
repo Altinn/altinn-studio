@@ -58,6 +58,11 @@ type KindContainerRuntimeOptions struct {
 	// When false (default), no testserver is deployed.
 	// When true, the testserver (nginx with test pages) is deployed for integration testing.
 	IncludeTestserver bool
+
+	// IncludeLinkerd controls whether Linkerd service mesh is deployed.
+	// When false (default), no linkerd resources are provisioned.
+	// When true, linkerd-crds and linkerd-control-plane are deployed.
+	IncludeLinkerd bool
 }
 
 // DefaultOptions returns the default options for the Kind runtime
@@ -65,6 +70,7 @@ func DefaultOptions() KindContainerRuntimeOptions {
 	return KindContainerRuntimeOptions{
 		IncludeMonitoring: false,
 		IncludeTestserver: false,
+		IncludeLinkerd:    false,
 	}
 }
 

@@ -18,32 +18,37 @@ const (
 )
 
 // BuildBaseInfrastructure creates all base infrastructure resources.
-func BuildBaseInfrastructure(caCrt, issuerCrt, issuerKey []byte) []runtime.Object {
-	return []runtime.Object{
+func BuildBaseInfrastructure(caCrt, issuerCrt, issuerKey []byte, includeLinkerd bool) []runtime.Object {
+	objs := []runtime.Object{
 		// Namespaces
-		buildNamespace("linkerd"),
 		buildNamespace("traefik"),
 		buildNamespace("monitoring"),
-
-		// Secret
-		buildLinkerdIdentitySecret(caCrt, issuerCrt, issuerKey),
 
 		// HelmRepositories
 		buildHelmRepository("metrics-server", "https://kubernetes-sigs.github.io/metrics-server/"),
 		buildHelmRepository("traefik", "https://traefik.github.io/charts"),
 		buildHelmRepository("traefik-crds", "https://traefik.github.io/charts"),
-		buildHelmRepository("linkerd-edge", "https://helm.linkerd.io/edge"),
 		buildHelmRepository("altinn-studio", "https://charts.altinn.studio"),
 		buildHelmRepository("prometheus-community", "https://prometheus-community.github.io/helm-charts"),
 
 		// HelmReleases
 		buildMetricsServerRelease(),
 		buildTraefikCRDsRelease(),
-		buildLinkerdCRDsRelease(),
 		buildPrometheusOperatorCRDsRelease(),
-		buildLinkerdControlPlaneRelease(),
-		buildTraefikRelease(),
+		buildTraefikRelease(includeLinkerd),
 	}
+
+	if includeLinkerd {
+		objs = append(objs,
+			buildNamespace("linkerd"),
+			buildLinkerdIdentitySecret(caCrt, issuerCrt, issuerKey),
+			buildHelmRepository("linkerd-edge", "https://helm.linkerd.io/edge"),
+			buildLinkerdCRDsRelease(),
+			buildLinkerdControlPlaneRelease(),
+		)
+	}
+
+	return objs
 }
 
 func buildNamespace(name string) *corev1.Namespace {
@@ -300,7 +305,7 @@ func buildLinkerdControlPlaneRelease() *helmv2.HelmRelease {
 	}
 }
 
-func buildTraefikRelease() *helmv2.HelmRelease {
+func buildTraefikRelease(includeLinkerd bool) *helmv2.HelmRelease {
 	values := map[string]interface{}{
 		"global": map[string]interface{}{
 			"checkNewVersion":    false,
@@ -350,6 +355,16 @@ func buildTraefikRelease() *helmv2.HelmRelease {
 		},
 	}
 
+	dependsOn := []helmv2.DependencyReference{
+		{Name: "traefik-crds", Namespace: "traefik"},
+	}
+	if includeLinkerd {
+		dependsOn = append(dependsOn,
+			helmv2.DependencyReference{Name: "linkerd-crds", Namespace: "linkerd"},
+			helmv2.DependencyReference{Name: "linkerd-control-plane", Namespace: "linkerd"},
+		)
+	}
+
 	return &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "helm.toolkit.fluxcd.io/v2",
@@ -369,11 +384,7 @@ func buildTraefikRelease() *helmv2.HelmRelease {
 				DisableWait: true,
 				CRDs:        helmv2.Skip,
 			},
-			DependsOn: []helmv2.DependencyReference{
-				{Name: "traefik-crds", Namespace: "traefik"},
-				{Name: "linkerd-crds", Namespace: "linkerd"},
-				{Name: "linkerd-control-plane", Namespace: "linkerd"},
-			},
+			DependsOn: dependsOn,
 			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   "traefik",

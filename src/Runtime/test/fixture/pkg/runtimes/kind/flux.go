@@ -124,8 +124,10 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 	asyncOpts.ShouldWait = false
 	syncOpts := flux.DefaultReconcileOptions()
 
-	if err := r.FluxClient.ReconcileHelmRelease("linkerd-crds", "linkerd", true, asyncOpts); err != nil {
-		return fmt.Errorf("failed to reconcile base infra: %w", err)
+	if r.options.IncludeLinkerd {
+		if err := r.FluxClient.ReconcileHelmRelease("linkerd-crds", "linkerd", true, asyncOpts); err != nil {
+			return fmt.Errorf("failed to reconcile base infra: %w", err)
+		}
 	}
 	if err := r.FluxClient.ReconcileHelmRelease("traefik-crds", "traefik", true, asyncOpts); err != nil {
 		return fmt.Errorf("failed to reconcile base infra: %w", err)
@@ -133,8 +135,10 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 	if err := r.FluxClient.ReconcileHelmRelease("traefik", "traefik", true, asyncOpts); err != nil {
 		return fmt.Errorf("failed to reconcile base infra: %w", err)
 	}
-	if err := r.FluxClient.ReconcileHelmRelease("linkerd-control-plane", "linkerd", true, syncOpts); err != nil {
-		return fmt.Errorf("failed to reconcile base infra: %w", err)
+	if r.options.IncludeLinkerd {
+		if err := r.FluxClient.ReconcileHelmRelease("linkerd-control-plane", "linkerd", true, syncOpts); err != nil {
+			return fmt.Errorf("failed to reconcile base infra: %w", err)
+		}
 	}
 	if r.options.IncludeMonitoring {
 		if err := r.FluxClient.ReconcileHelmRelease("kube-prometheus-stack", "monitoring", true, syncOpts); err != nil {
@@ -183,7 +187,7 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 func (r *KindContainerRuntime) applyBaseInfrastructure() error {
 	fmt.Println("Applying base infrastructure manifest...")
 
-	baseObjs := manifests.BuildBaseInfrastructure(certCACrt, certIssuerCrt, certIssuerKey)
+	baseObjs := manifests.BuildBaseInfrastructure(certCACrt, certIssuerCrt, certIssuerKey, r.options.IncludeLinkerd)
 	if _, err := r.KubernetesClient.ApplyObjects(baseObjs...); err != nil {
 		return fmt.Errorf("failed to apply base infrastructure: %w", err)
 	}
@@ -192,7 +196,7 @@ func (r *KindContainerRuntime) applyBaseInfrastructure() error {
 	if r.options.IncludeMonitoring {
 		fmt.Println("Applying monitoring infrastructure manifest...")
 
-		monitoringObjs := manifests.BuildMonitoringInfrastructure()
+		monitoringObjs := manifests.BuildMonitoringInfrastructure(r.options.IncludeLinkerd)
 		if _, err := r.KubernetesClient.ApplyObjects(monitoringObjs...); err != nil {
 			return fmt.Errorf("failed to apply monitoring infrastructure: %w", err)
 		}

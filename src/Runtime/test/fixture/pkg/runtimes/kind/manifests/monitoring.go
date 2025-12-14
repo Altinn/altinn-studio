@@ -9,13 +9,13 @@ import (
 )
 
 // BuildMonitoringInfrastructure creates the kube-prometheus-stack HelmRelease.
-func BuildMonitoringInfrastructure() []runtime.Object {
+func BuildMonitoringInfrastructure(includeLinkerd bool) []runtime.Object {
 	return []runtime.Object{
-		buildKubePrometheusStackRelease(),
+		buildKubePrometheusStackRelease(includeLinkerd),
 	}
 }
 
-func buildKubePrometheusStackRelease() *helmv2.HelmRelease {
+func buildKubePrometheusStackRelease(includeLinkerd bool) *helmv2.HelmRelease {
 	values := map[string]interface{}{
 		"prometheus": map[string]interface{}{
 			"prometheusSpec": map[string]interface{}{
@@ -51,6 +51,16 @@ func buildKubePrometheusStackRelease() *helmv2.HelmRelease {
 		},
 	}
 
+	dependsOn := []helmv2.DependencyReference{
+		{Name: "prometheus-operator-crds", Namespace: "monitoring"},
+	}
+	if includeLinkerd {
+		dependsOn = append(dependsOn,
+			helmv2.DependencyReference{Name: "linkerd-crds", Namespace: "linkerd"},
+			helmv2.DependencyReference{Name: "linkerd-control-plane", Namespace: "linkerd"},
+		)
+	}
+
 	return &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "helm.toolkit.fluxcd.io/v2",
@@ -70,11 +80,7 @@ func buildKubePrometheusStackRelease() *helmv2.HelmRelease {
 				DisableWait: true,
 				CRDs:        helmv2.Skip,
 			},
-			DependsOn: []helmv2.DependencyReference{
-				{Name: "linkerd-crds", Namespace: "linkerd"},
-				{Name: "prometheus-operator-crds", Namespace: "monitoring"},
-				{Name: "linkerd-control-plane", Namespace: "linkerd"},
-			},
+			DependsOn: dependsOn,
 			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   "kube-prometheus-stack",
