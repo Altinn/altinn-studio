@@ -57,14 +57,6 @@ jobs:
           go-version-file: src/Runtime/operator/go.mod
           cache-dependency-path: src/Runtime/operator/go.sum
 
-      - name: Cache CLI tools
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: src/Runtime/operator/.cache/bin
-          key: operator-tools-${{ runner.os }}-${{ hashFiles('src/Runtime/test/fixture/pkg/tools/.tool-versions') }}
-          restore-keys: |
-            operator-tools-${{ runner.os }}-
-
       - name: Run e2e tests
         run: make start
 
