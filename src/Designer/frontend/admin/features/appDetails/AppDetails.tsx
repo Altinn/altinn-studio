@@ -3,10 +3,13 @@ import { StudioBreadcrumbs } from '@studio/components';
 import { AppMetrics } from './components/AppMetrics';
 import classes from './AppDetails.module.css';
 import { useTranslation } from 'react-i18next';
+import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 
 export const AppsDetails = () => {
   const { t } = useTranslation();
   const { org, env, app } = useParams() as { org: string; env: string; app: string };
+  const defaultRange = 1440;
+  const [range, setRange] = useQueryParamState<number>('range', defaultRange);
 
   return (
     <div>
@@ -20,7 +23,7 @@ export const AppsDetails = () => {
           </StudioBreadcrumbs.Item>
           <StudioBreadcrumbs.Item>
             <StudioBreadcrumbs.Link asChild>
-              <Link to=''>{app}</Link>
+              <Link to={`${range && range !== defaultRange ? '?range=' + range : ''}`}>{app}</Link>
             </StudioBreadcrumbs.Link>
           </StudioBreadcrumbs.Item>
         </StudioBreadcrumbs.List>
@@ -29,7 +32,7 @@ export const AppsDetails = () => {
         {env} / {app}
       </h1>
       <div className={classes.metrics}>
-        <AppMetrics />
+        <AppMetrics range={range!} setRange={setRange} />
       </div>
       <p>
         Gå til <Link to='instances'>instanser</Link>.

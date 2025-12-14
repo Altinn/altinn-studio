@@ -15,11 +15,11 @@ internal sealed class MetricsService(
     public async Task<IEnumerable<Metric>> GetMetricsAsync(
         string org,
         string env,
-        int time,
+        int range,
         CancellationToken cancellationToken
     )
     {
-        return await gatewayClient.GetMetricsAsync(org, env, time, cancellationToken);
+        return await gatewayClient.GetMetricsAsync(org, env, range, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -27,11 +27,11 @@ internal sealed class MetricsService(
         string org,
         string env,
         string app,
-        int time,
+        int range,
         CancellationToken cancellationToken
     )
     {
-        return await gatewayClient.GetAppMetricsAsync(org, env, app, time, cancellationToken);
+        return await gatewayClient.GetAppMetricsAsync(org, env, app, range, cancellationToken);
     }
 
     /// <inheritdoc />

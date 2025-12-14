@@ -13,10 +13,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Gateway;
 
 internal sealed class GatewayClient(
     HttpClient httpClient,
-    IOptions<StudioGatewaySettings> studioGatewaySettings
+    IOptions<GatewaySettings> gatewaySettings
     ) : IGatewayClient
 {
-    private readonly StudioGatewaySettings _studioGatewaySettings = studioGatewaySettings.Value;
+    private readonly GatewaySettings _gatewaySettings = gatewaySettings.Value;
 
     /// <inheritdoc />
     public async Task<IEnumerable<StudioGatewayAlert>> GetFiringAlertsAsync(
@@ -25,17 +25,14 @@ internal sealed class GatewayClient(
         CancellationToken cancellationToken
     )
     {
-        StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
-
-        string baseUrl = studioGatewaySettings.GetBaseUrl(org);
+        string baseUrl = _gatewaySettings.GetBaseUrl(org, env);
         string url = $"{baseUrl}/alerts";
-
-        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
         return await response.Content.ReadFromJsonAsync<List<StudioGatewayAlert>>(options, cancellationToken: cancellationToken) ?? [];
     }
 
@@ -43,21 +40,18 @@ internal sealed class GatewayClient(
     public async Task<IEnumerable<Metric>> GetMetricsAsync(
         string org,
         string env,
-        int time,
+        int range,
         CancellationToken cancellationToken
     )
     {
-        StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
-
-        string baseUrl = studioGatewaySettings.GetBaseUrl(org);
-        string url = $"{baseUrl}/metrics?time={time}";
-
-        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
+        string baseUrl = _gatewaySettings.GetBaseUrl(org, env);
+        string url = $"{baseUrl}/metrics?range={range}";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
         return await response.Content.ReadFromJsonAsync<List<Metric>>(options, cancellationToken: cancellationToken) ?? [];
     }
 
@@ -66,21 +60,18 @@ internal sealed class GatewayClient(
         string org,
         string env,
         string app,
-        int time,
+        int range,
         CancellationToken cancellationToken
     )
     {
-        StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
-
-        string baseUrl = studioGatewaySettings.GetBaseUrl(org);
-        string url = $"{baseUrl}/metrics/app?app={app}&time={time}";
-
-        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
+        string baseUrl = _gatewaySettings.GetBaseUrl(org, env);
+        string url = $"{baseUrl}/metrics/app?app={app}&range={range}";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
         return await response.Content.ReadFromJsonAsync<List<AppMetric>>(options, cancellationToken: cancellationToken) ?? [];
     }
 
@@ -92,17 +83,14 @@ internal sealed class GatewayClient(
         CancellationToken cancellationToken
     )
     {
-        StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
-
-        string baseUrl = studioGatewaySettings.GetBaseUrl(org);
+        string baseUrl = _gatewaySettings.GetBaseUrl(org, env);
         string url = $"{baseUrl}/metrics/app/health?app={app}";
-
-        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
         return await response.Content.ReadFromJsonAsync<List<AppHealthMetric>>(options, cancellationToken: cancellationToken) ?? [];
     }
 }

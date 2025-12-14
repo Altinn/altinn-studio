@@ -18,15 +18,13 @@ export const AppHealthMetric = ({ metric }: AppHealthMetricProps) => {
       <div className={classes.title}>
         <div className={classes.name}>{t(`admin.metrics.${metric.name}`)}</div>
       </div>
-      <div className={classes.chart}>
-        <div
-          className={cn(classes.marker, {
-            [classes.error]: isError,
-            [classes.success]: !isError,
-          })}
-        >
-          {metric.name === 'health' ? (isError ? 'Down' : 'Up') : `${metric.count}%`}
-        </div>
+      <div
+        className={cn(classes.marker, {
+          [classes.error]: isError,
+          [classes.success]: !isError,
+        })}
+      >
+        {metric.name === 'health' ? (isError ? 'Down' : 'Up') : `${metric.count}%`}
       </div>
     </div>
   );

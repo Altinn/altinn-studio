@@ -14,10 +14,15 @@ import { useTranslation } from 'react-i18next';
 import { AppMetric } from './AppMetric';
 import { useAppHealthMetricsQuery } from 'admin/hooks/queries/useAppHealthMetricsQuery';
 import { AppHealthMetric } from './AppHealthMetric';
+import { TimeRangeSelect } from 'admin/shared/TimeRangeSelect';
 
-export const AppMetrics = () => {
+type AppMetricsProps = {
+  range: number;
+  setRange: (value: number) => void;
+};
+
+export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
   const { org, env, app } = useParams() as { org: string; env: string; app: string };
-  const [time, setTime] = useState(1440);
   const { t } = useTranslation();
 
   const {
@@ -32,13 +37,9 @@ export const AppMetrics = () => {
     data: appMetrics,
     isPending: appMetricsIsPending,
     isError: appMetricsIsError,
-  } = useAppMetricsQuery(org, env, app, time, {
+  } = useAppMetricsQuery(org, env, app, range!, {
     hideDefaultError: true,
   });
-
-  const handleTime = (value: number) => {
-    setTime(value);
-  };
 
   const renderAppHealthMetrics = () => {
     if (appHealthMetricsIsPending) {
@@ -66,7 +67,7 @@ export const AppMetrics = () => {
         {appMetrics
           ?.filter((metric) => metric.name.startsWith('failed_'))
           ?.map((metric) => (
-            <AppMetric key={metric.name} time={time} metric={metric} />
+            <AppMetric key={metric.name} range={range} metric={metric} />
           ))}
       </div>
     );
@@ -86,34 +87,21 @@ export const AppMetrics = () => {
         {appMetrics
           ?.filter((metric) => !metric.name.startsWith('failed_'))
           ?.map((metric) => (
-            <AppMetric key={metric.name} time={time} metric={metric} />
+            <AppMetric key={metric.name} range={range} metric={metric} />
           ))}
       </div>
     );
   };
 
   return (
-    <StudioCard data-color='neutral' className={classes.card}>
-      <div className={classes.header}>
-        <StudioSelect
-          label={t('admin.metrics.time_window')}
-          value={time}
-          onChange={(e) => handleTime(Number(e.target.value))}
-          className={classes.select}
-        >
-          <StudioSelect.Option value='5'>5m</StudioSelect.Option>
-          <StudioSelect.Option value='15'>15m</StudioSelect.Option>
-          <StudioSelect.Option value='30'>30m</StudioSelect.Option>
-          <StudioSelect.Option value='60'>1t</StudioSelect.Option>
-          <StudioSelect.Option value='360'>6t</StudioSelect.Option>
-          <StudioSelect.Option value='720'>12t</StudioSelect.Option>
-          <StudioSelect.Option value='1440'>1d</StudioSelect.Option>
-          <StudioSelect.Option value='4320'>3d</StudioSelect.Option>
-          <StudioSelect.Option value='10080'>7d</StudioSelect.Option>
-          <StudioSelect.Option value='43200'>30d</StudioSelect.Option>
-        </StudioSelect>
-        <StudioHeading className={classes.heading}>{t('admin.metrics.heading')}</StudioHeading>
-      </div>
+    <StudioCard data-color='neutral'>
+      <StudioHeading className={classes.heading}>
+        <TimeRangeSelect
+          label={t('admin.metrics.heading')}
+          value={range!}
+          onChange={(e) => setRange(e)}
+        />
+      </StudioHeading>
       <div className={classes.content}>
         <div>
           <StudioHeading className={classes.subheading}>
