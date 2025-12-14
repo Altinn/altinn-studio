@@ -281,6 +281,58 @@ func (c *KubernetesClient) RolloutStatus(deployment, namespace string, timeout t
 	}
 }
 
+// WatchCondition watches a resource until a condition reaches the target status.
+func (c *KubernetesClient) WatchCondition(ctx context.Context, gvr schema.GroupVersionResource, name, namespace, conditionType, targetStatus string) error {
+	var dr dynamic.ResourceInterface
+	if namespace != "" {
+		dr = c.dynamicClient.Resource(gvr).Namespace(namespace)
+	} else {
+		dr = c.dynamicClient.Resource(gvr)
+	}
+
+	fieldSelector := fmt.Sprintf("metadata.name=%s", name)
+	watcher, err := dr.Watch(ctx, metav1.ListOptions{
+		FieldSelector: fieldSelector,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to watch %s/%s: %w", gvr.Resource, name, err)
+	}
+	defer watcher.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("timeout waiting for %s/%s condition %s=%s", gvr.Resource, name, conditionType, targetStatus)
+		case event, ok := <-watcher.ResultChan():
+			if !ok {
+				return fmt.Errorf("watch channel closed for %s/%s", gvr.Resource, name)
+			}
+
+			obj, ok := event.Object.(*unstructured.Unstructured)
+			if !ok {
+				continue
+			}
+
+			conditions, found, _ := unstructured.NestedSlice(obj.Object, "status", "conditions")
+			if !found {
+				continue
+			}
+
+			for _, cond := range conditions {
+				condMap, ok := cond.(map[string]any)
+				if !ok {
+					continue
+				}
+				if condMap["type"] == conditionType {
+					if status, ok := condMap["status"].(string); ok && strings.EqualFold(status, targetStatus) {
+						return nil
+					}
+				}
+			}
+		}
+	}
+}
+
 func (c *KubernetesClient) KustomizeRender(path string) (string, error) {
 	fSys := filesys.MakeFsOnDisk()
 	opts := krusty.MakeDefaultOptions()

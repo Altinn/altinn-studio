@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/fluxcd/flux2/v2/pkg/manifestgen/install"
@@ -20,7 +19,7 @@ import (
 var (
 	// Flux GVRs - constructed directly from API packages to avoid discovery issues
 	helmRepositoryGVR = sourcev1.GroupVersion.WithResource("helmrepositories")
-	helmReleaseGVR    = helmv2.GroupVersion.WithResource("helmreleases")
+	HelmReleaseGVR    = helmv2.GroupVersion.WithResource("helmreleases")
 	kustomizationGVR  = kustomizev1.GroupVersion.WithResource("kustomizations")
 	ociRepositoryGVR  = sourcev1.GroupVersion.WithResource("ocirepositories")
 )
@@ -95,11 +94,11 @@ func (c *FluxClient) ReconcileHelmRepository(name, namespace string, opts Reconc
 // ReconcileHelmRelease reconciles a HelmRelease resource
 func (c *FluxClient) ReconcileHelmRelease(name, namespace string, withSource bool, opts ReconcileOptions) error {
 	if withSource {
-		if err := c.reconcileSource(helmReleaseGVR, name, namespace, opts); err != nil {
+		if err := c.reconcileSource(HelmReleaseGVR, name, namespace, opts); err != nil {
 			return err
 		}
 	}
-	return c.reconcile(helmReleaseGVR, name, namespace, opts)
+	return c.reconcile(HelmReleaseGVR, name, namespace, opts)
 }
 
 // ReconcileKustomization reconciles a Kustomization resource
@@ -147,7 +146,7 @@ func (c *FluxClient) reconcile(gvr schema.GroupVersionResource, name, namespace 
 	return c.waitForReady(gvr, name, namespace, opts.Timeout)
 }
 
-// waitForReady polls until the resource's Ready condition is True or timeout
+// waitForReady watches until the resource's Ready condition is True or timeout
 func (c *FluxClient) waitForReady(gvr schema.GroupVersionResource, name, namespace string, timeout time.Duration) error {
 	ctx := context.Background()
 	if timeout > 0 {
@@ -156,25 +155,7 @@ func (c *FluxClient) waitForReady(gvr schema.GroupVersionResource, name, namespa
 		defer cancel()
 	}
 
-	identifier := fmt.Sprintf("%s/%s (namespace: %s)", gvr.Resource, name, namespace)
-	pollInterval := 100 * time.Millisecond
-
-	for {
-		if ctx.Err() != nil {
-			return fmt.Errorf("timeout waiting for %s to become ready", identifier)
-		}
-		status, err := c.kubeClient.GetConditionStatus(gvr, name, namespace, meta.ReadyCondition)
-		if err == nil && strings.EqualFold(status, "True") {
-			return nil
-		}
-
-		select {
-		case <-ctx.Done():
-			return fmt.Errorf("timeout waiting for %s to become ready", identifier)
-		case <-time.After(pollInterval):
-		default:
-		}
-	}
+	return c.kubeClient.WatchCondition(ctx, gvr, name, namespace, meta.ReadyCondition, "True")
 }
 
 // kindToGVR maps Flux kinds to GVRs
@@ -185,7 +166,7 @@ func kindToGVR(kind string) schema.GroupVersionResource {
 	case sourcev1.OCIRepositoryKind:
 		return ociRepositoryGVR
 	case helmv2.HelmReleaseKind:
-		return helmReleaseGVR
+		return HelmReleaseGVR
 	case kustomizev1.KustomizationKind:
 		return kustomizationGVR
 	default:

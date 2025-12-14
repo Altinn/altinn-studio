@@ -1,6 +1,7 @@
 package kind
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -66,25 +67,16 @@ func (r *KindContainerRuntime) waitForFluxControllers() error {
 	}
 
 	timeout := 1 * time.Minute
-	deadline := time.Now().Add(timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 
 	for _, controller := range controllers {
 		fmt.Printf("Waiting for %s...\n", controller)
 
-		for {
-			if time.Now().After(deadline) {
-				return fmt.Errorf("timeout waiting for %s to be ready", controller)
-			}
-
-			// Check deployment status
-			status, err := r.KubernetesClient.GetConditionStatus(kubernetes.DeploymentGVR, controller, "flux-system", "Available")
-			if err == nil && status == "True" {
-				fmt.Printf("✓ %s is ready\n", controller)
-				break
-			}
-
-			time.Sleep(500 * time.Millisecond)
+		if err := r.KubernetesClient.WatchCondition(ctx, kubernetes.DeploymentGVR, controller, "flux-system", "Available", "True"); err != nil {
+			return fmt.Errorf("timeout waiting for %s to be ready", controller)
 		}
+		fmt.Printf("✓ %s is ready\n", controller)
 	}
 
 	fmt.Println("✓ All Flux controllers are ready")
@@ -117,7 +109,6 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 		return nil
 	}
 
-	time.Sleep(1 * time.Second)
 	fmt.Println("Reconciling base infra (blocking)...")
 
 	asyncOpts := flux.DefaultReconcileOptions()
@@ -150,29 +141,16 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 
 	if r.IngressReadyEvent != nil {
 		go func() {
-			var err error
-			defer func() { fmt.Printf("Done waiting for ingress. Error=%v\n", err) }()
-			deadline := time.Now().Add(2 * time.Minute)
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+			defer cancel()
 
-			for !time.Now().After(deadline) {
-				err = r.KubernetesClient.Get(kubernetes.DeploymentGVR, "traefik", "traefik")
-				if err == nil {
-					break
-				}
-				time.Sleep(250 * time.Millisecond)
-			}
-
+			err := r.KubernetesClient.WatchCondition(ctx, flux.HelmReleaseGVR, "traefik", "traefik", "Ready", "True")
+			fmt.Printf("Done waiting for ingress. Error=%v\n", err)
 			if err != nil {
-				r.IngressReadyEvent <- fmt.Errorf("error waiting for ingress deployment: %v", err)
+				r.IngressReadyEvent <- fmt.Errorf("error waiting for traefik HelmRelease: %v", err)
 				return
 			}
-
-			err = r.KubernetesClient.RolloutStatus("traefik", "traefik", 2*time.Minute)
-			if err == nil {
-				r.IngressReadyEvent <- nil
-			} else {
-				r.IngressReadyEvent <- fmt.Errorf("error waiting for ingress readiness: %v", err)
-			}
+			r.IngressReadyEvent <- nil
 		}()
 	}
 
