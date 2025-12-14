@@ -289,21 +289,6 @@ func runTest() {
 					break
 				}
 			}
-
-			fmt.Println("Running unit tests...")
-			if err := runTests(projectRoot, "./internal/..."); err != nil {
-				if exitErr, ok := err.(*exec.ExitError); ok {
-					testExitCode = exitErr.ExitCode()
-				} else {
-					testExitCode = 1
-				}
-				// Exit immediately on failure when looping
-				if *iterations > 1 {
-					fmt.Println("")
-					fmt.Printf("FAILED on iteration %d of %d\n", i, *iterations)
-					break
-				}
-			}
 		}
 
 		if testExitCode == 0 && (runBoth || *runSmoke) {

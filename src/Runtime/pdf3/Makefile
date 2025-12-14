@@ -1,4 +1,4 @@
-.PHONY: help format lint build-local test test-loop logs loadtest start start-minimal start-standard start-minimal-monitoring start-standard-monitoring stop golangci-lint
+.PHONY: help format lint build-local test test-e2e test-e2e-simple test-e2e-smoke test-loop logs loadtest start start-minimal start-standard start-minimal-monitoring start-standard-monitoring stop golangci-lint
 .DEFAULT_GOAL := help
 
 help: ## Show this help message
@@ -32,13 +32,18 @@ lint: golangci-lint ## Run linters with auto-fix
 	@echo "Running linters..."
 	@"$(GOLANGCI_LINT)" run --fix
 
-test: ## Run all tests (simple first, then smoke)
+test: ## Run unit tests
+	@echo "Running unit tests..."
+	@go test ./internal/... ./cmd/...
+	@echo "✓ Unit tests passed"
+
+test-e2e: ## Run all e2e tests (simple first, then smoke)
 	@go run ./cmd/tester test --keep-running
 
-test-smoke: ## Run smoke tests only
+test-e2e-smoke: ## Run e2e smoke tests only
 	@go run ./cmd/tester test --smoke --keep-running
 
-test-simple: ## Run simple tests only
+test-e2e-simple: ## Run e2e simple tests only
 	@go run ./cmd/tester test --simple --keep-running
 
 check: tidy fmt lint test ## Run fmt, lint, and test

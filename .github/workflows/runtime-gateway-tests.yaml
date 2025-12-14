@@ -44,8 +44,11 @@ jobs:
       - name: Build
         run: make build
 
+      - name: Run unit tests
+        run: make test
+
       - name: Run fixture
         run: make start-minimal
 
-      - name: Test
-        run: make test
+      - name: Run e2e tests
+        run: make test-e2e

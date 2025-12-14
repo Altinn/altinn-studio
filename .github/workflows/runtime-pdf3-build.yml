@@ -46,11 +46,14 @@ jobs:
       - name: Run linters
         run: make lint
 
+      - name: Run unit tests
+        run: make test
+
       - name: Run fixture
         run: make start-minimal
 
-      - name: Run tests
-        run: make test
+      - name: Run e2e tests
+        run: make test-e2e
 
       - name: Upload test logs
         if: failure()
