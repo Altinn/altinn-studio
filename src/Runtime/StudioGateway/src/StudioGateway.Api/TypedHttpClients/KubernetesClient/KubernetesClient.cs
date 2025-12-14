@@ -12,7 +12,8 @@ namespace StudioGateway.Api.TypedHttpClients.KubernetesClient;
     "CA1812:AvoidUninstantiatedInternalClasses",
     Justification = "Class is instantiated via dependency injection"
 )]
-internal sealed class KubernetesClient(Kubernetes client, IOptions<GeneralSettings> generalSettings) : IKubernetesClient
+internal sealed class KubernetesClient(IKubernetes client, IOptions<GeneralSettings> generalSettings)
+    : IKubernetesClient
 {
     private readonly GeneralSettings _generalSettings = generalSettings.Value;
 
@@ -22,7 +23,7 @@ internal sealed class KubernetesClient(Kubernetes client, IOptions<GeneralSettin
         string org = _generalSettings.ServiceOwner;
 
         IList<V1Pod> items = (
-            await client.ListNamespacedPodAsync(
+            await client.CoreV1.ListNamespacedPodAsync(
                 "default",
                 null,
                 null,

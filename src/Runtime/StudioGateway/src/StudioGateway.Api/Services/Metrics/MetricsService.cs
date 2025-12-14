@@ -21,13 +21,13 @@ internal sealed class MetricsService(
     private readonly MetricsClientSettings _metricsClientSettings = metricsClientSettings.Value;
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Metric>> GetMetricsAsync(int time, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Metric>> GetMetricsAsync(int range, CancellationToken cancellationToken)
     {
         IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
             _metricsClientSettings.Provider
         );
 
-        IEnumerable<Metric> metrics = await metricsClient.GetMetricsAsync(time, cancellationToken);
+        IEnumerable<Metric> metrics = await metricsClient.GetMetricsAsync(range, cancellationToken);
 
         return metrics;
     }
@@ -35,7 +35,7 @@ internal sealed class MetricsService(
     /// <inheritdoc />
     public async Task<IEnumerable<AppMetric>> GetAppMetricsAsync(
         string app,
-        int time,
+        int range,
         CancellationToken cancellationToken
     )
     {
@@ -43,7 +43,7 @@ internal sealed class MetricsService(
             _metricsClientSettings.Provider
         );
 
-        IEnumerable<AppMetric> metrics = await metricsClient.GetAppMetricsAsync(app, time, cancellationToken);
+        IEnumerable<AppMetric> metrics = await metricsClient.GetAppMetricsAsync(app, range, cancellationToken);
 
         return metrics;
     }
