@@ -24,7 +24,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<GeneralSettings>(builder.Configuration.Bind);
 builder.Services.Configure<AlertsClientSettings>(builder.Configuration.GetSection("AlertsClientSettings"));
-builder.Services.Configure<StudioClientSettings>(builder.Configuration.GetSection("StudioClientSettings"));
 builder.Services.Configure<MetricsClientSettings>(builder.Configuration.GetSection("MetricsClientSettings"));
 builder.Services.AddSingleton(new LogsQueryClient(new DefaultAzureCredential()));
 
@@ -52,16 +51,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
-builder
-    .Services.AddHttpClient<IStudioClient, StudioClient>(
-        (serviceProvider, httpClient) =>
-        {
-            var studioClientSettings = serviceProvider.GetRequiredService<IOptions<StudioClientSettings>>().Value;
-
-            httpClient.BaseAddress = new Uri(studioClientSettings.BaseUrl);
-        }
-    )
-    .UseMaskinportenAuth();
+builder.Services.AddHttpClient<IStudioClient, StudioClient>("prod");
 builder.Services.AddSingleton(sp =>
 {
     return new Kubernetes(KubernetesClientConfiguration.BuildDefaultConfig());

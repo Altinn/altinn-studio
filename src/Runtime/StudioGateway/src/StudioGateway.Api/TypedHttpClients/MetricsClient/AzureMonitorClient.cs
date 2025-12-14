@@ -20,6 +20,8 @@ internal sealed class AzureMonitorClient(
 {
     private readonly MetricsClientSettings _metricsClientSettings = metricsClientSettings.Value;
 
+    private const int MaxRange = 10080;
+
     private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
     {
         {
@@ -41,8 +43,10 @@ internal sealed class AzureMonitorClient(
     };
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Metric>> GetMetricsAsync(int time, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Metric>> GetMetricsAsync(int range, CancellationToken cancellationToken)
     {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
+
         string logAnalyticsWorkspaceId = _metricsClientSettings.ApplicationLogAnalyticsWorkspaceId;
 
         var query =
@@ -57,7 +61,7 @@ internal sealed class AzureMonitorClient(
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
             logAnalyticsWorkspaceId,
             query,
-            new QueryTimeRange(TimeSpan.FromMinutes(time)),
+            new QueryTimeRange(TimeSpan.FromMinutes(range)),
             cancellationToken: cancellationToken
         );
 
@@ -86,22 +90,28 @@ internal sealed class AzureMonitorClient(
     /// <inheritdoc />
     public async Task<IEnumerable<AppMetric>> GetAppMetricsAsync(
         string app,
-        int time,
+        int range,
         CancellationToken cancellationToken
     )
     {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
+
         string logAnalyticsWorkspaceId = _metricsClientSettings.ApplicationLogAnalyticsWorkspaceId;
+
+        var interval = range < 360 ? "5m" : "1h";
 
         IEnumerable<AppMetric> appMetrics = await GetAppMetricsAsync(
             logAnalyticsWorkspaceId,
             app,
-            time,
+            interval,
+            range,
             cancellationToken
         );
         IEnumerable<AppMetric> appFailedRequests = await GetAppFailedRequestsAsync(
             logAnalyticsWorkspaceId,
             app,
-            time,
+            interval,
+            range,
             cancellationToken
         );
 
@@ -111,26 +121,25 @@ internal sealed class AzureMonitorClient(
     private async Task<IEnumerable<AppMetric>> GetAppMetricsAsync(
         string logAnalyticsWorkspaceId,
         string app,
-        int time,
+        string interval,
+        int range,
         CancellationToken cancellationToken
     )
     {
         List<string> names = ["altinn_app_lib_processes_started", "altinn_app_lib_processes_completed"];
-
-        var roundTo = time < 360 ? "5m" : "1h";
 
         var query =
             $@"
                 AppMetrics
                 | where AppRoleName == '{app.Replace("'", "''")}'
                 | where Name in ('{names.Aggregate((a, b) => a + "','" + b)}')
-                | summarize Count = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {roundTo})
+                | summarize Count = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
             logAnalyticsWorkspaceId,
             query,
-            new QueryTimeRange(TimeSpan.FromMinutes(time)),
+            new QueryTimeRange(TimeSpan.FromMinutes(range)),
             cancellationToken: cancellationToken
         );
 
@@ -166,12 +175,11 @@ internal sealed class AzureMonitorClient(
     private async Task<IEnumerable<AppMetric>> GetAppFailedRequestsAsync(
         string logAnalyticsWorkspaceId,
         string app,
-        int time,
+        string interval,
+        int range,
         CancellationToken cancellationToken
     )
     {
-        var roundTo = time < 360 ? "5m" : "1h";
-
         var query =
             $@"
                 AppRequests
@@ -180,13 +188,13 @@ internal sealed class AzureMonitorClient(
                 | where toint(ResultCode) >= 500
                 | where AppRoleName == '{app.Replace("'", "''")}'
                 | where OperationName in ('{_operationNames.Values.SelectMany(value => value).Aggregate((a, b) => a + "','" + b)}')
-                | summarize Count = sum(ItemCount) by OperationName, DateTimeOffset = bin(TimeGenerated, {roundTo})
+                | summarize Count = sum(ItemCount) by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
             logAnalyticsWorkspaceId,
             query,
-            new QueryTimeRange(TimeSpan.FromMinutes(time)),
+            new QueryTimeRange(TimeSpan.FromMinutes(range)),
             cancellationToken: cancellationToken
         );
 

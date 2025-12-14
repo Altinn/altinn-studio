@@ -10,7 +10,7 @@ namespace StudioGateway.Api.Services.Metrics;
 )]
 public interface IMetricsService
 {
-    public Task<IEnumerable<Metric>> GetMetricsAsync(int time, CancellationToken cancellationToken);
-    public Task<IEnumerable<AppMetric>> GetAppMetricsAsync(string app, int time, CancellationToken cancellationToken);
+    public Task<IEnumerable<Metric>> GetMetricsAsync(int range, CancellationToken cancellationToken);
+    public Task<IEnumerable<AppMetric>> GetAppMetricsAsync(string app, int range, CancellationToken cancellationToken);
     public Task<IEnumerable<AppHealthMetric>> GetAppHealthMetricsAsync(string app, CancellationToken cancellationToken);
 }
