@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.ModelBinding.Constants;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Metrics;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -24,7 +25,8 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        IEnumerable<Metric> metrics = await _metricsService.GetMetricsAsync(org, env, range, cancellationToken);
+        var environment = AltinnEnvironment.FromName(env);
+        IEnumerable<Metric> metrics = await _metricsService.GetMetricsAsync(org, environment, range, cancellationToken);
         return Ok(metrics);
     }
 
@@ -37,7 +39,8 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        IEnumerable<AppMetric> metrics = await _metricsService.GetAppMetricsAsync(org, env, app, range, cancellationToken);
+        var environment = AltinnEnvironment.FromName(env);
+        IEnumerable<AppMetric> metrics = await _metricsService.GetAppMetricsAsync(org, environment, app, range, cancellationToken);
         return Ok(metrics);
     }
 
@@ -49,7 +52,8 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        IEnumerable<AppHealthMetric> healthMetrics = await _metricsService.GetAppHealthMetricsAsync(org, env, app, cancellationToken);
+        var environment = AltinnEnvironment.FromName(env);
+        IEnumerable<AppHealthMetric> healthMetrics = await _metricsService.GetAppHealthMetricsAsync(org, environment, app, cancellationToken);
         return Ok(healthMetrics);
     }
 }

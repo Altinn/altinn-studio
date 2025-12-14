@@ -3,11 +3,8 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
-using Altinn.ApiClients.Maskinporten.Extensions;
-using Altinn.ApiClients.Maskinporten.Services;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
-using Altinn.Studio.Designer.TypedHttpClients.Gateway;
 using Altinn.Studio.Designer.Clients.Implementations;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
@@ -28,7 +25,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Altinn.ApiClients.Maskinporten.Config;
 
 namespace Altinn.Studio.Designer.TypedHttpClients
 {
@@ -73,7 +69,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddTransient<PlatformSubscriptionAuthDelegatingHandler>();
             services.AddMaskinportenHttpClient();
             services.AddSlackClient(config);
-            services.AddStudioGatewayClient(logger, config);
             services.AddRuntimeGatewayHttpClient(config);
 
             return services;
@@ -195,26 +190,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
             }).AddHttpMessageHandler<EnsureSuccessHandler>();
-        }
-
-        private static void AddStudioGatewayClient(this IServiceCollection services, ILogger logger, IConfiguration configuration)
-        {
-            var clientId = configuration["MaskinportenClientForRuntime:Test:ClientId"];
-            logger.LogInformation("// AddStudioGatewayClient // MaskinportenClientForRuntime:Test is configured with {ClientId}", clientId);
-
-            var jwkString = configuration["MaskinportenClientForRuntime:Test:Jwk"];
-            var scope = configuration["MaskinportenClientForRuntime:Test:Scope"];
-            var maskinportenClientForRuntimeTestSettings = new MaskinportenSettings()
-            {
-                ClientId = configuration["MaskinportenClientForRuntime:Test:ClientId"],
-                EncodedJwk = jwkString,
-                Scope = configuration["MaskinportenClientForRuntime:Test:Scope"],
-                Environment = configuration["MaskinportenClientForRuntime:Test:Environment"],
-
-            };
-
-            services.AddMaskinportenHttpClient<SettingsJwkClientDefinition, IGatewayClient, GatewayClient>(maskinportenClientForRuntimeTestSettings)
-                .AddHttpMessageHandler<EnsureSuccessHandler>();
         }
     }
 }
