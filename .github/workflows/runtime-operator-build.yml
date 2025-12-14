@@ -57,7 +57,7 @@ jobs:
           go-version-file: src/Runtime/operator/go.mod
           cache-dependency-path: src/Runtime/operator/go.sum
 
-      - name: Run e2e tests
+      - name: Run fixture
         run: make start
 
       - name: Run e2e tests

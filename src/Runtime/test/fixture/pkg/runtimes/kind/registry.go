@@ -11,6 +11,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+var isCI = os.Getenv("CI") != ""
+
 const (
 	registryName = "kind-registry"
 	registryPort = "5001"
@@ -213,19 +215,16 @@ func (r *KindContainerRuntime) configureRegistryInNodes() error {
 		return err
 	}
 
-	// Configure docker.io mirror
-	if err := r.configureRegistryMirror(nodes, "docker.io", registryDockerName, "https://registry-1.docker.io"); err != nil {
-		return err
-	}
-
-	// Configure registry.k8s.io mirror
-	if err := r.configureRegistryMirror(nodes, "registry.k8s.io", registryK8sName, "https://registry.k8s.io"); err != nil {
-		return err
-	}
-
-	// Configure ghcr.io mirror
-	if err := r.configureRegistryMirror(nodes, "ghcr.io", registryGhcrName, "https://ghcr.io"); err != nil {
-		return err
+	if !isCI {
+		if err := r.configureRegistryMirror(nodes, "docker.io", registryDockerName, "https://registry-1.docker.io"); err != nil {
+			return err
+		}
+		if err := r.configureRegistryMirror(nodes, "registry.k8s.io", registryK8sName, "https://registry.k8s.io"); err != nil {
+			return err
+		}
+		if err := r.configureRegistryMirror(nodes, "ghcr.io", registryGhcrName, "https://ghcr.io"); err != nil {
+			return err
+		}
 	}
 
 	fmt.Printf("✓ Configured registry mirrors in %d nodes\n", len(nodes))
@@ -318,9 +317,10 @@ func (r *KindContainerRuntime) startRegistry() error {
 		fmt.Printf("Registry %s already running\n", registryName)
 	}
 
-	// Start proxy registries for pull-through caching
-	if err := r.startProxyRegistries(); err != nil {
-		return fmt.Errorf("failed to start proxy registries: %w", err)
+	if !isCI {
+		if err := r.startProxyRegistries(); err != nil {
+			return fmt.Errorf("failed to start proxy registries: %w", err)
+		}
 	}
 
 	return nil
@@ -340,9 +340,10 @@ func (r *KindContainerRuntime) configureRegistry() error {
 		return err
 	}
 
-	// Connect proxy registries to kind network
-	if err := r.connectProxyRegistriesToKindNetwork(); err != nil {
-		return err
+	if !isCI {
+		if err := r.connectProxyRegistriesToKindNetwork(); err != nil {
+			return err
+		}
 	}
 
 	// Configure registry in kind nodes
