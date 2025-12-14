@@ -131,8 +131,8 @@ namespace Designer.Tests.Fixtures
             await CreateTestOrg(GiteaConstants.SecondaryTestOrgUsername, GiteaConstants.SecondaryTestOrgName, GiteaConstants.SecondaryTestOrgDescription);
             await CreateTestOrgTeams();
             await CreateTestOrgTeams(GiteaConstants.SecondaryTestOrgUsername);
-            await AddUserToTeams(GiteaConstants.TestOrgUsername, "Owners", "Deploy-TT02", "Devs", "Deploy-AT21", "Deploy-AT22");
-            await AddUserToTeams(GiteaConstants.SecondaryTestOrgUsername, "Owners", "Deploy-TT02", "Devs", "Deploy-AT21", "Deploy-AT22");
+            await AddUserToTeams(GiteaConstants.TestOrgUsername, "Owners", "Deploy-TT02", "Devs", "Deploy-AT21", "Deploy-AT22", "Admin-TT02", "Admin-AT21", "Admin-AT22");
+            await AddUserToTeams(GiteaConstants.SecondaryTestOrgUsername, "Owners", "Deploy-TT02", "Devs", "Deploy-AT21", "Deploy-AT22", "Admin-TT02", "Admin-AT21", "Admin-AT22");
             await GenerateApplicationClientIdAndClientSecretInGitea();
         }
 
