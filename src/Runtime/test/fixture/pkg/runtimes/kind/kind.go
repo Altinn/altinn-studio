@@ -1,7 +1,6 @@
 package kind
 
 import (
-	"context"
 	_ "embed"
 	"fmt"
 	"net/http"
@@ -18,7 +17,6 @@ import (
 	"altinn.studio/runtime-fixture/pkg/kubernetes"
 	"altinn.studio/runtime-fixture/pkg/oci"
 	"altinn.studio/runtime-fixture/pkg/runtimes"
-	"altinn.studio/runtime-fixture/pkg/tools"
 )
 
 //go:embed config/kind.config.standard.yaml
@@ -84,8 +82,6 @@ type KindContainerRuntime struct {
 	configPath     string
 	certsPath      string
 	testserverPath string
-
-	Installer *tools.Installer
 
 	ContainerClient  container.ContainerClient
 	FluxClient       *flux.FluxClient
@@ -220,14 +216,6 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to detect container runtime: %w", err)
 	}
-	installer, err := tools.NewInstaller(cachePath, false, true)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if _, err := installer.Install(context.Background(), "golangci-lint"); err != nil {
-		return nil, nil, fmt.Errorf("failed to ensure CLIs: %w", err)
-	}
 
 	kindClient := kindclient.New()
 	clusters, err := kindClient.GetClusters()
@@ -245,8 +233,6 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 
 	return &KindContainerRuntime{
 		cachePath: cachePath,
-
-		Installer: installer,
 
 		ContainerClient: containerClient,
 		HelmClient:      helmClient,

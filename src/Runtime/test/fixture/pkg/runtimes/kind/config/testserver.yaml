@@ -588,6 +588,7 @@ data:
             access_log /dev/stdout proxy;
             location / {
                 proxy_pass http://$host;
+                proxy_connect_timeout 2s;
                 proxy_set_header Host $host;
                 proxy_set_header X-Real-IP $remote_addr;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

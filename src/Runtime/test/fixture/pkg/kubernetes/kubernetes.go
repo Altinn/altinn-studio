@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -550,4 +552,84 @@ func getString(m map[string]any, key string) string {
 		}
 	}
 	return ""
+}
+
+// StreamLogOptions configures streaming logs
+type StreamLogOptions struct {
+	Namespace     string
+	LabelSelector string
+	ContainerName string
+}
+
+// StreamLogs streams logs from pods matching the specified criteria.
+// Returns a reader that combines output from all matching containers.
+// The caller must close the returned reader when done.
+func (c *KubernetesClient) StreamLogs(ctx context.Context, opts StreamLogOptions) (io.ReadCloser, error) {
+	listOpts := metav1.ListOptions{}
+	if opts.LabelSelector != "" {
+		listOpts.LabelSelector = opts.LabelSelector
+	}
+
+	pods, err := c.clientset.CoreV1().Pods(opts.Namespace).List(ctx, listOpts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list pods: %w", err)
+	}
+
+	var targets []struct{ pod, container string }
+	for _, pod := range pods.Items {
+		if opts.ContainerName != "" {
+			for _, container := range pod.Spec.Containers {
+				if container.Name == opts.ContainerName {
+					targets = append(targets, struct{ pod, container string }{pod.Name, container.Name})
+					break
+				}
+			}
+		} else {
+			for _, container := range pod.Spec.Containers {
+				targets = append(targets, struct{ pod, container string }{pod.Name, container.Name})
+			}
+		}
+	}
+
+	if len(targets) == 0 {
+		return io.NopCloser(strings.NewReader("")), nil
+	}
+
+	pr, pw := io.Pipe()
+	var wg sync.WaitGroup
+
+	for _, t := range targets {
+		wg.Add(1)
+		go func(podName, containerName string) {
+			defer wg.Done()
+
+			logOpts := &corev1.PodLogOptions{
+				Container: containerName,
+				Follow:    true,
+			}
+
+			req := c.clientset.CoreV1().Pods(opts.Namespace).GetLogs(podName, logOpts)
+			stream, err := req.Stream(ctx)
+			if err != nil {
+				return
+			}
+			defer stream.Close()
+
+			prefix := fmt.Sprintf("[%s/%s] ", podName, containerName)
+			scanner := bufio.NewScanner(stream)
+			for scanner.Scan() {
+				line := prefix + scanner.Text() + "\n"
+				if _, err := pw.Write([]byte(line)); err != nil {
+					return
+				}
+			}
+		}(t.pod, t.container)
+	}
+
+	go func() {
+		wg.Wait()
+		pw.Close()
+	}()
+
+	return pr, nil
 }
