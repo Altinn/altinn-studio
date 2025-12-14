@@ -47,7 +47,6 @@ func TestNew_ShowCachePathStructure(t *testing.T) {
 	t.Logf("")
 	t.Logf("  Key paths:")
 	t.Logf("    Config path: %s", runtime.configPath)
-	t.Logf("    Certs path:  %s", runtime.certsPath)
 }
 
 // TestNew_VerifyAllRequiredFiles ensures all required files are present
@@ -62,11 +61,6 @@ func TestNew_VerifyAllRequiredFiles(t *testing.T) {
 	// List of all files that MUST exist
 	requiredFiles := map[string]string{
 		"kind.config.yaml": runtime.configPath,
-		"ca.crt":           filepath.Join(runtime.certsPath, "ca.crt"),
-		"ca.key":           filepath.Join(runtime.certsPath, "ca.key"),
-		"issuer.crt":       filepath.Join(runtime.certsPath, "issuer.crt"),
-		"issuer.key":       filepath.Join(runtime.certsPath, "issuer.key"),
-		"testserver.yaml":  runtime.testserverPath,
 	}
 
 	t.Log("Verifying all required files exist:")
@@ -113,16 +107,11 @@ func TestNew_CompareVariants(t *testing.T) {
 			t.Logf("%s variant cache structure:", tt.name)
 			t.Logf("  Cluster name: %s", runtime.clusterName)
 			t.Logf("  Config file:  %s", runtime.configPath)
-			t.Logf("  Certs dir:    %s", runtime.certsPath)
 
 			// Read and display config file size
 			if info, err := os.Stat(runtime.configPath); err == nil {
 				t.Logf("  Config size:  %d bytes", info.Size())
 			}
-
-			// Count cert files
-			certFiles, _ := filepath.Glob(filepath.Join(runtime.certsPath, "*"))
-			t.Logf("  Cert files:   %d files", len(certFiles))
 		})
 	}
 }

@@ -50,24 +50,7 @@ func TestNew_CreatesRequiredFiles(t *testing.T) {
 				t.Errorf("kind config path is a directory, expected a file")
 			}
 
-			// Verify certs directory was created
-			if info, err := os.Stat(runtime.certsPath); err != nil {
-				t.Errorf("certs directory was not created at %s: %v", runtime.certsPath, err)
-			} else if !info.IsDir() {
-				t.Errorf("certs path is not a directory")
-			}
-
-			// Verify all certificate files were created
-			expectedCerts := []string{"ca.crt", "ca.key", "issuer.crt", "issuer.key"}
-			for _, certFile := range expectedCerts {
-				certPath := filepath.Join(runtime.certsPath, certFile)
-				if info, err := os.Stat(certPath); err != nil {
-					t.Errorf("certificate file %s was not created: %v", certFile, err)
-				} else if info.IsDir() {
-					t.Errorf("certificate file %s is a directory, expected a file", certFile)
-				}
-			}
-		})
+			})
 	}
 }
 
@@ -130,75 +113,6 @@ func TestNew_KindConfigContent(t *testing.T) {
 			// Verify it's valid YAML (basic check)
 			if !strings.HasPrefix(configStr, "kind:") && !strings.HasPrefix(configStr, "---") {
 				t.Errorf("kind config does not appear to be valid YAML")
-			}
-		})
-	}
-}
-
-func TestNew_CertificateContent(t *testing.T) {
-	cachePath := filepath.Join(t.TempDir(), ".cache")
-
-	runtime, err := New(KindContainerRuntimeVariantStandard, cachePath, DefaultOptions())
-	if err != nil {
-		t.Fatalf("New() error = %v", err)
-	}
-
-	tests := []struct {
-		filename       string
-		expectedPrefix string
-		minSize        int
-		shouldBePEM    bool
-	}{
-		{
-			filename:       "ca.crt",
-			expectedPrefix: "-----BEGIN CERTIFICATE-----",
-			minSize:        100,
-			shouldBePEM:    true,
-		},
-		{
-			filename:       "ca.key",
-			expectedPrefix: "-----BEGIN",
-			minSize:        50,
-			shouldBePEM:    true,
-		},
-		{
-			filename:       "issuer.crt",
-			expectedPrefix: "-----BEGIN CERTIFICATE-----",
-			minSize:        100,
-			shouldBePEM:    true,
-		},
-		{
-			filename:       "issuer.key",
-			expectedPrefix: "-----BEGIN",
-			minSize:        50,
-			shouldBePEM:    true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.filename, func(t *testing.T) {
-			certPath := filepath.Join(runtime.certsPath, tt.filename)
-
-			content, err := os.ReadFile(certPath)
-			if err != nil {
-				t.Fatalf("failed to read %s: %v", tt.filename, err)
-			}
-
-			// Verify minimum size
-			if len(content) < tt.minSize {
-				t.Errorf("%s is too small: got %d bytes, want at least %d", tt.filename, len(content), tt.minSize)
-			}
-
-			// Verify PEM format if expected
-			if tt.shouldBePEM {
-				contentStr := string(content)
-				if !strings.HasPrefix(contentStr, tt.expectedPrefix) {
-					t.Errorf("%s does not start with expected prefix: got %q, want prefix %q",
-						tt.filename, contentStr[:min(len(contentStr), 30)], tt.expectedPrefix)
-				}
-				if !strings.Contains(contentStr, "-----END") {
-					t.Errorf("%s does not contain PEM end marker", tt.filename)
-				}
 			}
 		})
 	}
@@ -301,11 +215,6 @@ func TestNew_IdempotentFileWrites(t *testing.T) {
 		t.Fatalf("failed to read initial config: %v", err)
 	}
 
-	initialCACrt, err := os.ReadFile(filepath.Join(runtime1.certsPath, "ca.crt"))
-	if err != nil {
-		t.Fatalf("failed to read initial ca.crt: %v", err)
-	}
-
 	// Create runtime second time (should overwrite)
 	runtime2, err := New(KindContainerRuntimeVariantStandard, cachePath, DefaultOptions())
 	if err != nil {
@@ -318,24 +227,8 @@ func TestNew_IdempotentFileWrites(t *testing.T) {
 		t.Fatalf("failed to read second config: %v", err)
 	}
 
-	secondCACrt, err := os.ReadFile(filepath.Join(runtime2.certsPath, "ca.crt"))
-	if err != nil {
-		t.Fatalf("failed to read second ca.crt: %v", err)
-	}
-
 	// Verify contents are identical (idempotent)
 	if string(initialConfig) != string(secondConfig) {
 		t.Error("kind config changed between calls to New()")
 	}
-
-	if string(initialCACrt) != string(secondCACrt) {
-		t.Error("ca.crt changed between calls to New()")
-	}
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }

@@ -28,9 +28,6 @@ var kindConfigMinimal []byte
 //go:embed config/certs/ca.crt
 var certCACrt []byte
 
-//go:embed config/certs/ca.key
-var certCAKey []byte
-
 //go:embed config/certs/issuer.crt
 var certIssuerCrt []byte
 
@@ -77,11 +74,9 @@ func DefaultOptions() KindContainerRuntimeOptions {
 type KindContainerRuntime struct {
 	variant        KindContainerRuntimeVariant
 	options        KindContainerRuntimeOptions
-	cachePath      string
-	clusterName    string
-	configPath     string
-	certsPath      string
-	testserverPath string
+	cachePath   string
+	clusterName string
+	configPath  string
 
 	ContainerClient  container.ContainerClient
 	FluxClient       *flux.FluxClient
@@ -128,18 +123,6 @@ func New(variant KindContainerRuntimeVariant, cachePath string, options KindCont
 	// Write embedded config to disk
 	if err := os.WriteFile(r.configPath, configContent, 0644); err != nil {
 		return nil, fmt.Errorf("failed to write kind config: %w", err)
-	}
-
-	// Write embedded certificates to disk
-	if err := r.writeCertificates(); err != nil {
-		return nil, fmt.Errorf("failed to write certificates: %w", err)
-	}
-
-	// Write testserver manifest to disk (only if needed)
-	if options.IncludeTestserver {
-		if err := os.WriteFile(r.testserverPath, testserverManifest, 0644); err != nil {
-			return nil, fmt.Errorf("failed to write testserver manifest: %w", err)
-		}
 	}
 
 	return r, nil
@@ -302,33 +285,6 @@ func newInternal(r *KindContainerRuntime, clusters []string, variant KindContain
 	r.variant = variant
 	r.clusterName = clusterName
 	r.configPath = filepath.Join(configDir, "kind.config.yaml")
-	r.certsPath = filepath.Join(configDir, "certs")
-	r.testserverPath = filepath.Join(configDir, "testserver.yaml")
-
-	return nil
-}
-
-// writeCertificates writes embedded certificates to the certs directory
-func (r *KindContainerRuntime) writeCertificates() error {
-	// Create certs directory
-	if err := os.MkdirAll(r.certsPath, 0755); err != nil {
-		return fmt.Errorf("failed to create certs directory: %w", err)
-	}
-
-	// Write certificates
-	certs := map[string][]byte{
-		"ca.crt":     certCACrt,
-		"ca.key":     certCAKey,
-		"issuer.crt": certIssuerCrt,
-		"issuer.key": certIssuerKey,
-	}
-
-	for filename, content := range certs {
-		path := filepath.Join(r.certsPath, filename)
-		if err := os.WriteFile(path, content, 0644); err != nil {
-			return fmt.Errorf("failed to write %s: %w", filename, err)
-		}
-	}
 
 	return nil
 }
