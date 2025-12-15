@@ -18,11 +18,9 @@ internal sealed class StudioClient(HttpClient httpClient, IOptions<GeneralSettin
     {
         string org = _generalSettings.ServiceOwner;
         string env = _generalSettings.Environment;
+        Uri requestUrl = new($"admin/alerts/{org}/{env}", UriKind.Relative);
 
-        string url = $"/admin/alerts/{org}/{env}";
-
-        using var request = new HttpRequestMessage(HttpMethod.Post, url);
-        HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
+        HttpResponseMessage response = await httpClient.PostAsync(requestUrl, null, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 }
