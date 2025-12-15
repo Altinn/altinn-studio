@@ -10,6 +10,10 @@ services:
       context: ./loadbalancer
       args:
         NGINX_VERSION: 1.25.3
+      cache_from:
+        - ghcr.io/altinn/altinn-studio/localtest-loadbalancer-cache:latest
+      cache_to:
+        - ghcr.io/altinn/altinn-studio/localtest-loadbalancer-cache:latest
     restart: always
     networks:
       - altinntestlocal_network
@@ -36,6 +40,10 @@ services:
     build:
       context: ../pdf3
       dockerfile: Dockerfile.worker
+      cache_from:
+        - ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest
+      cache_to:
+        - ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest
     restart: always
     networks:
       - altinntestlocal_network
@@ -59,6 +67,10 @@ services:
       - "5101:5101"
     build:
       context: .
+      cache_from:
+        - ghcr.io/altinn/altinn-studio/localtest-main-cache:latest
+      cache_to:
+        - ghcr.io/altinn/altinn-studio/localtest-main-cache:latest
     environment:
       - DOTNET_ENVIRONMENT=Docker
       - GeneralSettings__BaseUrl=http://${TEST_DOMAIN:-local.altinn.cloud}:${ALTINN3LOCAL_PORT:-80}
@@ -162,6 +174,10 @@ services:
     build:
       context: ../../..
       dockerfile: src/test/apps/Dockerfile
+      cache_from:
+        - ghcr.io/altinn/altinn-studio/localtest-test-apps-cache:latest
+      cache_to:
+        - ghcr.io/altinn/altinn-studio/localtest-test-apps-cache:latest
     restart: always
     networks:
       - altinntestlocal_network
