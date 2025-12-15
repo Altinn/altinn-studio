@@ -16,6 +16,7 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.Gitea;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Microsoft.AspNetCore.Http;
@@ -446,8 +447,14 @@ public class GiteaClient(
             .FallbackAsync(ct =>
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-                string safeBranchName = SanitizeForLog(branchName);
-                logger.LogError("User {Developer}, method {MethodName} failed for branch {BranchName} on repo {Org}/{Repo}", developer, nameof(CreateBranch), safeBranchName, org, repository);
+                logger.LogError(
+                    "User {Developer}, method {MethodName} failed for branch {BranchName} on repo {Org}/{Repo}",
+                    developer,
+                    nameof(CreateBranch),
+                    branchName.WithoutLineBreaks(),
+                    org.WithoutLineBreaks(),
+                    repository.WithoutLineBreaks()
+                    );
                 throw new GiteaClientException($"Failed to create branch {branchName} in Gitea after 4 retries.");
             })
             .WrapAsync(
@@ -715,11 +722,6 @@ public class GiteaClient(
             return path;
         }
         return $"{path}?ref={Uri.EscapeDataString(reference)}";
-    }
-
-    private static string SanitizeForLog(string input)
-    {
-        return input.Replace("\r", "").Replace("\n", "").Replace("\t", "");
     }
 }
 

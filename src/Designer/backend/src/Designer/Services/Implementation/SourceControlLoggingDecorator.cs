@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -470,17 +471,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
-            string safeOrg = SanitizeForLog(org);
-            string safeRepository = SanitizeForLog(repository);
-            string safeDestinationPath = SanitizeForLog(destinationPath);
-            string safeBranch = SanitizeForLog(branch);
-
-            _logger.LogError(ex, "Failed executing method {Method} for user {Developer} in org {Org} / repository {Repository}. Destination: {DestinationPath}. Branch: {Branch}.", method, developer, safeOrg, safeRepository, safeDestinationPath, safeBranch);
-        }
-
-        private static string SanitizeForLog(string input)
-        {
-            return input.Replace("\r", "").Replace("\n", "").Replace("\t", "");
+            _logger.LogError(
+                ex,
+                "Failed executing method {Method} for user {Developer} in org {Org} / repository {Repository}. Destination: {DestinationPath}. Branch: {Branch}.",
+                method,
+                developer,
+                org.WithoutLineBreaks(),
+                repository.WithoutLineBreaks(),
+                destinationPath.WithoutLineBreaks(),
+                branch.WithoutLineBreaks());
         }
     }
 }
