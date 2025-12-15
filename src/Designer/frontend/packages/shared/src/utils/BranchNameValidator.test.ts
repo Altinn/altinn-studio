@@ -6,13 +6,13 @@ describe('BranchNameValidator', () => {
       it('should reject empty string', () => {
         const result = BranchNameValidator.validate('');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_empty');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_empty');
       });
 
       it('should reject branch name with only whitespace', () => {
         const result = BranchNameValidator.validate('   ');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_invalid_chars');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_invalid_chars');
       });
     });
 
@@ -20,61 +20,61 @@ describe('BranchNameValidator', () => {
       it('should reject branch name with spaces', () => {
         const result = BranchNameValidator.validate('feature branch');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_invalid_chars');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_invalid_chars');
       });
 
       it('should reject branch name with tilde (~)', () => {
         const result = BranchNameValidator.validate('feature~test');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_invalid_chars');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_invalid_chars');
       });
 
       it('should reject branch name with caret (^)', () => {
         const result = BranchNameValidator.validate('feature^test');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_invalid_chars');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_invalid_chars');
       });
 
       it('should reject branch name with colon (:)', () => {
         const result = BranchNameValidator.validate('feature:test');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_invalid_chars');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_invalid_chars');
       });
 
       it('should reject branch name with question mark (?)', () => {
         const result = BranchNameValidator.validate('feature?test');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_invalid_chars');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_invalid_chars');
       });
 
       it('should reject branch name with asterisk (*)', () => {
         const result = BranchNameValidator.validate('feature*test');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_invalid_chars');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_invalid_chars');
       });
 
       it('should reject branch name with square brackets ([])', () => {
         const result = BranchNameValidator.validate('feature[test]');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_invalid_chars');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_invalid_chars');
       });
 
       it('should reject branch name with backslash (\\)', () => {
         const result = BranchNameValidator.validate('feature\\test');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_invalid_chars');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_invalid_chars');
       });
 
       it('should reject branch name with at sign (@)', () => {
         const result = BranchNameValidator.validate('feature@test');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_invalid_chars');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_invalid_chars');
       });
 
       it('should reject branch name with curly braces ({})', () => {
         const result = BranchNameValidator.validate('feature{test}');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_invalid_chars');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_invalid_chars');
       });
     });
 
@@ -82,25 +82,25 @@ describe('BranchNameValidator', () => {
       it('should reject branch name with double dots (..)', () => {
         const result = BranchNameValidator.validate('feature..test');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_invalid_pattern');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_invalid_pattern');
       });
 
       it('should reject branch name with double slashes (//)', () => {
         const result = BranchNameValidator.validate('feature//test');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_invalid_pattern');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_invalid_pattern');
       });
 
       it('should reject branch name starting with slash', () => {
         const result = BranchNameValidator.validate('/feature');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_invalid_pattern');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_invalid_pattern');
       });
 
       it('should reject branch name ending with slash', () => {
         const result = BranchNameValidator.validate('feature/');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_invalid_pattern');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_invalid_pattern');
       });
     });
 
@@ -108,13 +108,13 @@ describe('BranchNameValidator', () => {
       it('should reject branch name ending with .lock', () => {
         const result = BranchNameValidator.validate('feature.lock');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_reserved_ending');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_reserved_ending');
       });
 
       it('should reject branch name with .lock anywhere in path', () => {
         const result = BranchNameValidator.validate('feature/test.lock');
         expect(result.isValid).toBe(false);
-        expect(result.errorKey).toBe('create_branch.error_reserved_ending');
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_reserved_ending');
       });
     });
 

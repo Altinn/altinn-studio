@@ -8,19 +8,19 @@ export interface ValidationResult {
 export class BranchNameValidator {
   public static validate(name: string): ValidationResult {
     if (!name || name.length === 0) {
-      return { isValid: false, errorKey: 'create_branch.error_empty' };
+      return { isValid: false, errorKey: 'branching.new_branch_dialog.error_empty' };
     }
 
     if (GIT_BRANCH_VALIDATION.INVALID_CHARS.test(name)) {
-      return { isValid: false, errorKey: 'create_branch.error_invalid_chars' };
+      return { isValid: false, errorKey: 'branching.new_branch_dialog.error_invalid_chars' };
     }
 
     if (GIT_BRANCH_VALIDATION.INVALID_PATTERNS.test(name)) {
-      return { isValid: false, errorKey: 'create_branch.error_invalid_pattern' };
+      return { isValid: false, errorKey: 'branching.new_branch_dialog.error_invalid_pattern' };
     }
 
     if (GIT_BRANCH_VALIDATION.RESERVED_ENDING.test(name)) {
-      return { isValid: false, errorKey: 'create_branch.error_reserved_ending' };
+      return { isValid: false, errorKey: 'branching.new_branch_dialog.error_reserved_ending' };
     }
 
     return { isValid: true, errorKey: '' };

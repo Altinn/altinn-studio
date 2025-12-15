@@ -45,16 +45,16 @@ export const CreateBranchDialog = ({ isOpen, onClose, org, app }: CreateBranchDi
           <StudioHeading>{createButtonText}</StudioHeading>
         </StudioDialog.Block>
         <StudioDialog.Block className={classes.dialogMainContent}>
-          <StudioParagraph>{t('create_branch.description')}</StudioParagraph>
+          <StudioParagraph>{t('branching.new_branch_dialog.description')}</StudioParagraph>
           <StudioTextfield
-            label={t('create_branch.branch_name_label')}
+            label={t('branching.new_branch_dialog.branch_name_label')}
             value={branchName}
             onChange={(e) => setBranchName(e.target.value)}
-            placeholder={t('create_branch.branch_name_placeholder')}
+            placeholder={t('branching.new_branch_dialog.branch_name_placeholder')}
             error={error}
             disabled={isCreatingOrCheckingOut}
           />
-          <StudioParagraph>{t('create_branch.hint')}</StudioParagraph>
+          <StudioParagraph>{t('branching.new_branch_dialog.hint')}</StudioParagraph>
           <div className={classes.buttons}>
             <StudioButton variant='secondary' onClick={onClose}>
               {t('general.cancel')}

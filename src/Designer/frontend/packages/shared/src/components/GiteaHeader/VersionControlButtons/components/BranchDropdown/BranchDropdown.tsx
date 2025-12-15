@@ -76,7 +76,7 @@ export const BranchDropdown = () => {
           <StudioDropdown.Item>
             <StudioDropdown.Button onClick={() => setShowCreateDialog(true)}>
               <PlusIcon />
-              {t('create_branch.button')}
+              {t('branching.new_branch_dialog.trigger')}
             </StudioDropdown.Button>
           </StudioDropdown.Item>
         </StudioDropdown.List>

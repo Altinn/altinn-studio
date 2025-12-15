@@ -57,9 +57,9 @@ export const useCreateBranchFlow = ({
     },
     onError: (err: AxiosError) => {
       if (err.response?.status === 409) {
-        setError(t('create_branch.error_already_exists'));
+        setError(t('branching.new_branch_dialog.error_already_exists'));
       } else {
-        setError(t('create_branch.error_generic'));
+        setError(t('branching.new_branch_dialog.error_generic'));
       }
     },
   });
@@ -70,7 +70,7 @@ export const useCreateBranchFlow = ({
     },
     onSuccess: resetAndClose,
     onOtherError: () => {
-      setError(t('create_branch.error_generic'));
+      setError(t('branching.new_branch_dialog.error_generic'));
     },
   });
 
@@ -90,8 +90,8 @@ export const useCreateBranchFlow = ({
   const hasError = Boolean(error);
   const cannotCreateBranch = !branchName || isCreatingOrCheckingOut || hasError;
   const createButtonText = isCreatingOrCheckingOut
-    ? t('create_branch.creating')
-    : t('create_branch.create');
+    ? t('branching.new_branch_dialog.creating')
+    : t('branching.new_branch_dialog.create');
 
   return {
     branchName,

@@ -81,7 +81,7 @@ describe('useCreateBranchFlow', () => {
         },
       );
 
-      expect(result.current.createButtonText).toBe(textMock('create_branch.create'));
+      expect(result.current.createButtonText).toBe(textMock('branching.new_branch_dialog.create'));
     });
   });
 
@@ -162,7 +162,9 @@ describe('useCreateBranchFlow', () => {
         result.current.handleCreate();
       });
 
-      expect(result.current.error).toBe('[mockedText(create_branch.error_invalid_chars)]');
+      expect(result.current.error).toBe(
+        '[mockedText(branching.new_branch_dialog.error_invalid_chars)]',
+      );
       expect(createBranch).not.toHaveBeenCalled();
     });
 
@@ -185,7 +187,9 @@ describe('useCreateBranchFlow', () => {
         result.current.handleCreate();
       });
 
-      expect(result.current.error).toBe('[mockedText(create_branch.error_invalid_pattern)]');
+      expect(result.current.error).toBe(
+        '[mockedText(branching.new_branch_dialog.error_invalid_pattern)]',
+      );
       expect(createBranch).not.toHaveBeenCalled();
     });
 
@@ -302,7 +306,9 @@ describe('useCreateBranchFlow', () => {
 
       await waitFor(() => expect(createBranch).toHaveBeenCalledWith(org, app, 'feature/test'));
       await waitFor(() =>
-        expect(result.current.error).toBe('[mockedText(create_branch.error_already_exists)]'),
+        expect(result.current.error).toBe(
+          '[mockedText(branching.new_branch_dialog.error_already_exists)]',
+        ),
       );
     });
 
@@ -482,7 +488,9 @@ describe('useCreateBranchFlow', () => {
 
       await waitFor(() => expect(result.current.isCreatingOrCheckingOut).toBe(true));
       await waitFor(() =>
-        expect(result.current.createButtonText).toBe('[mockedText(create_branch.creating)]'),
+        expect(result.current.createButtonText).toBe(
+          '[mockedText(branching.new_branch_dialog.creating)]',
+        ),
       );
     });
 

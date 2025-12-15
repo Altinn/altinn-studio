@@ -42,7 +42,7 @@ export const UncommittedChangesDialog = ({
   });
 
   const handleDiscardAndSwitch = () => {
-    if (!window.confirm(t('branch_switch.confirm_discard'))) {
+    if (!window.confirm(t('branching.uncommited_changes_dialog.confirm_discard'))) {
       return;
     }
 
@@ -51,8 +51,8 @@ export const UncommittedChangesDialog = ({
 
   const isProcessing = discardMutation.isPending || checkoutMutation.isPending;
   const discardButtonText = isProcessing
-    ? t('branch_switch.discarding')
-    : t('branch_switch.discard_and_switch');
+    ? t('branching.uncommited_changes_dialog.discarding')
+    : t('branching.uncommited_changes_dialog.discard_and_switch');
 
   return (
     <StudioDialog open={true} onClose={onClose} data-color-scheme='light'>
@@ -62,7 +62,7 @@ export const UncommittedChangesDialog = ({
       <StudioDialog.Block className={classes.dialogMainContent}>
         <StudioAlert>
           <Trans
-            i18nKey='branch_switch.uncommitted_changes_message'
+            i18nKey='branching.uncommited_changes_dialog.alert'
             values={{ currentBranch: error.currentBranch, targetBranch }}
             components={{ strong: <strong /> }}
             shouldUnescape
@@ -71,7 +71,9 @@ export const UncommittedChangesDialog = ({
 
         <div className={classes.fileList}>
           <StudioHeading level={4}>
-            {t('branch_switch.uncommitted_files', { count: error.uncommittedFiles.length })}
+            {t('branching.uncommited_changes_dialog.uncommitted_files', {
+              count: error.uncommittedFiles.length,
+            })}
           </StudioHeading>
           <ul className={classes.files}>
             {error.uncommittedFiles.map((file) => (
@@ -83,7 +85,7 @@ export const UncommittedChangesDialog = ({
           </ul>
         </div>
 
-        <StudioParagraph>{t('branch_switch.choose_action')}</StudioParagraph>
+        <StudioParagraph>{t('branching.uncommited_changes_dialog.choose_action')}</StudioParagraph>
 
         <div className={classes.buttons}>
           <StudioButton variant='secondary' onClick={onClose}>
