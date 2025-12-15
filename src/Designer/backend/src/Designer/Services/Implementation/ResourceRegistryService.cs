@@ -650,7 +650,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<List<ConsentTemplate>> GetConsentTemplates(string org)
         {
             // Temp location. Will be moved to CDN
-            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/consent_templates.json";
+            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/feat/consent-bst-krav-v2/content/authorization/architecture/resourceregistry/consent_templates.json";
 
             try
             {
@@ -658,12 +658,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 response.EnsureSuccessStatusCode();
                 string consentTemplatesString = await response.Content.ReadAsStringAsync();
                 List<ConsentTemplate> consentTemplates = JsonSerializer.Deserialize<List<ConsentTemplate>>(consentTemplatesString, _serializerOptions);
-                // Filter out templates not permitted for this service owner
-                consentTemplates = [.. consentTemplates
-                    .Where(t =>
-                        t.RestrictedToServiceOwners == null
+                // Filter out non-active templates and templates not permitted for this service owner
+                consentTemplates = [.. consentTemplates.Where(t => {
+                    bool canBeUsedByCurrentOrg = t.RestrictedToServiceOwners == null
                         || t.RestrictedToServiceOwners.Count == 0
-                        || t.RestrictedToServiceOwners.Contains(org, StringComparer.OrdinalIgnoreCase))];
+                        || t.RestrictedToServiceOwners.Contains(org, StringComparer.OrdinalIgnoreCase);
+                    return canBeUsedByCurrentOrg && t.IsActive;
+                })];
+                    
+                        
                 return consentTemplates;
             }
             catch (Exception ex)
