@@ -25,7 +25,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     public async Task<bool> IsAppDeployedWithGitOpsAsync(string org, string app, AltinnEnvironment environment, CancellationToken cancellationToken)
     {
         using var client = _httpClientFactory.CreateClient($"runtime-gateway");
-        var baseUrl = _environmentsService.GetAppClusterUri(org, environment.Name);
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         var originEnvironment = GetOriginEnvironment();
         var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{originEnvironment}/deployed";
 
