@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
-using StudioGateway.Api.Models.Alerts;
+using StudioGateway.Api.Clients.AlertsClient.Contracts;
 
-namespace StudioGateway.Api.TypedHttpClients.AlertsClient;
+namespace StudioGateway.Api.Clients.AlertsClient;
 
 [SuppressMessage(
     "Microsoft.Performance",
@@ -10,5 +10,5 @@ namespace StudioGateway.Api.TypedHttpClients.AlertsClient;
 )]
 public interface IAlertsClient
 {
-    public Task<IEnumerable<AlertRule>> GetAlertRulesAsync(CancellationToken cancellationToken);
+    public Task<IEnumerable<GrafanaAlertRule>> GetAlertRulesAsync(CancellationToken cancellationToken);
 }

@@ -1,13 +1,7 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace StudioGateway.Api.Models.Alerts;
+namespace StudioGateway.Contracts.Alerts;
 
-[SuppressMessage(
-    "Microsoft.Performance",
-    "CA1515:AvoidUninstantiatedPublicTypes",
-    Justification = "Exposed externally"
-)]
 public class AlertRule
 {
     [JsonPropertyName("id")]

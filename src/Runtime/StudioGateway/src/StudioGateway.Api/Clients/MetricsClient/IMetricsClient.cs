@@ -1,7 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
-using StudioGateway.Api.Models.Metrics;
+using StudioGateway.Api.Clients.MetricsClient.Contracts;
+using StudioGateway.Contracts.Metrics;
 
-namespace StudioGateway.Api.TypedHttpClients.MetricsClient;
+namespace StudioGateway.Api.Clients.MetricsClient;
 
 [SuppressMessage(
     "Microsoft.Performance",
@@ -10,6 +11,6 @@ namespace StudioGateway.Api.TypedHttpClients.MetricsClient;
 )]
 public interface IMetricsClient
 {
-    public Task<IEnumerable<Metric>> GetMetricsAsync(int range, CancellationToken cancellationToken);
+    public Task<IEnumerable<AzureMonitorMetric>> GetMetricsAsync(int range, CancellationToken cancellationToken);
     public Task<IEnumerable<AppMetric>> GetAppMetricsAsync(string app, int range, CancellationToken cancellationToken);
 }

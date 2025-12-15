@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace StudioGateway.Api.TypedHttpClients.StudioClient;
+namespace StudioGateway.Api.Clients.StudioClient;
 
 [SuppressMessage(
     "Microsoft.Performance",

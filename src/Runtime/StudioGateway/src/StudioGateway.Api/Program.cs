@@ -6,17 +6,16 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using StudioGateway.Api;
 using StudioGateway.Api.Authentication;
+using StudioGateway.Api.Clients.AlertsClient;
 using StudioGateway.Api.Clients.Designer;
 using StudioGateway.Api.Clients.K8s;
+using StudioGateway.Api.Clients.MetricsClient;
+using StudioGateway.Api.Clients.StudioClient;
 using StudioGateway.Api.Endpoints.Internal;
 using StudioGateway.Api.Endpoints.Local;
 using StudioGateway.Api.Endpoints.Public;
 using StudioGateway.Api.Hosting;
 using StudioGateway.Api.Settings;
-using StudioGateway.Api.TypedHttpClients.AlertsClient;
-using StudioGateway.Api.TypedHttpClients.KubernetesClient;
-using StudioGateway.Api.TypedHttpClients.MetricsClient;
-using StudioGateway.Api.TypedHttpClients.StudioClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,7 +55,6 @@ builder.Services.AddSingleton(sp =>
 {
     return new Kubernetes(KubernetesClientConfiguration.BuildDefaultConfig());
 });
-builder.Services.AddTransient<IKubernetesClient, KubernetesClient>();
 builder.Services.AddKeyedTransient<IAlertsClient>(
     "grafana",
     (serviceProvider, key) =>

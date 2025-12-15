@@ -1,14 +1,14 @@
-using StudioGateway.Api.Models.Alerts;
+using StudioGateway.Api.Clients.AlertsClient;
+using StudioGateway.Api.Clients.AlertsClient.Contracts;
+using StudioGateway.Api.Clients.StudioClient;
 using StudioGateway.Api.Settings;
-using StudioGateway.Api.TypedHttpClients.AlertsClient;
-using StudioGateway.Api.TypedHttpClients.StudioClient;
+using StudioGateway.Contracts.Alerts;
 
 namespace StudioGateway.Api.Application;
 
 internal static class HandleAlerts
 {
-    /// <inheritdoc />
-    internal static async Task<IEnumerable<AlertRule>> GetAlertRulesAsync(
+    internal static async Task<IResult> GetAlertRulesAsync(
         IServiceProvider serviceProvider,
         AlertsClientSettings alertsClientSettings,
         CancellationToken cancellationToken
@@ -16,14 +16,29 @@ internal static class HandleAlerts
     {
         IAlertsClient client = serviceProvider.GetRequiredKeyedService<IAlertsClient>(alertsClientSettings.Provider);
 
-        IEnumerable<AlertRule> alertRules = await client.GetAlertRulesAsync(cancellationToken);
+        IEnumerable<GrafanaAlertRule> alertRules = await client.GetAlertRulesAsync(cancellationToken);
 
-        return alertRules;
+        return Results.Ok(alertRules?.Select(alert =>
+            {
+                return new AlertRule
+                {
+                    Id = alert.Id,
+                    Uid = alert.Uid,
+                    FolderUid = alert.FolderUid,
+                    RuleGroup = alert.RuleGroup,
+                    Title = alert.Title,
+                    Updated = alert.Updated,
+                    NoDataState = alert.NoDataState,
+                    ExecErrState = alert.ExecErrState,
+                    For = alert.For,
+                    IsPaused = alert.IsPaused,
+                };
+            }) ?? []);
     }
 
-    /// <inheritdoc />
-    internal static async Task NotifyAlertsUpdatedAsync(IStudioClient studioClient, CancellationToken cancellationToken)
+    internal static async Task<IResult> NotifyAlertsUpdatedAsync(IStudioClient studioClient, CancellationToken cancellationToken)
     {
         await studioClient.NotifyAlertsUpdatedAsync(cancellationToken);
+        return Results.Ok();
     }
 }

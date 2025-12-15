@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace StudioGateway.Api.Models.Alerts;
+namespace StudioGateway.Api.Clients.AlertsClient.Contracts;
 
 [SuppressMessage(
     "Microsoft.Performance",

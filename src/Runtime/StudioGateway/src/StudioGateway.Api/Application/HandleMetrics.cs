@@ -1,20 +1,20 @@
-using StudioGateway.Api.Models.Metrics;
+using k8s.Models;
+using StudioGateway.Api.Clients.K8s;
+using StudioGateway.Api.Clients.MetricsClient;
+using StudioGateway.Api.Clients.StudioClient;
 using StudioGateway.Api.Settings;
-using StudioGateway.Api.TypedHttpClients.KubernetesClient;
-using StudioGateway.Api.TypedHttpClients.MetricsClient;
-using StudioGateway.Api.TypedHttpClients.StudioClient;
+using StudioGateway.Contracts.Metrics;
 
 namespace StudioGateway.Api.Application;
 
 internal static class HandleMetrics
 {
-    /// <inheritdoc />
     internal static async Task NotifyAlertsUpdatedAsync(IStudioClient studioClient, CancellationToken cancellationToken)
     {
         await studioClient.NotifyAlertsUpdatedAsync(cancellationToken);
     }
 
-    internal static async Task<IEnumerable<Metric>> GetMetricsAsync(
+    internal static async Task<IResult> GetMetricsAsync(
         IServiceProvider serviceProvider,
         MetricsClientSettings metricsClientSettings,
         int range,
@@ -25,13 +25,21 @@ internal static class HandleMetrics
             metricsClientSettings.Provider
         );
 
-        IEnumerable<Metric> metrics = await metricsClient.GetMetricsAsync(range, cancellationToken);
+        var azureMonitorMetrics = await metricsClient.GetMetricsAsync(range, cancellationToken);
+        var metrics = azureMonitorMetrics.Select(metric =>
+        {
+            return new Metric
+            {
+                Name = metric.Name,
+                AppName = metric.AppName,
+                Count = metric.Count
+            };
+        });
 
-        return metrics;
+        return Results.Ok(metrics);
     }
 
-    /// <inheritdoc />
-    internal static async Task<IEnumerable<AppMetric>> GetAppMetricsAsync(
+    internal static async Task<IResult> GetAppMetricsAsync(
         IServiceProvider serviceProvider,
         MetricsClientSettings metricsClientSettings,
         string app,
@@ -45,17 +53,32 @@ internal static class HandleMetrics
 
         IEnumerable<AppMetric> metrics = await metricsClient.GetAppMetricsAsync(app, range, cancellationToken);
 
-        return metrics;
+        return Results.Ok(metrics);
     }
 
-    /// <inheritdoc />
-    internal static async Task<IEnumerable<AppHealthMetric>> GetAppHealthMetricsAsync(
-        IKubernetesClient kubernetesClient,
+    internal static async Task<IResult> GetAppHealthMetricsAsync(
+        PodsClient podsClient,
         string app,
         CancellationToken cancellationToken
     )
     {
-        AppHealthMetric readyPodsMetric = await kubernetesClient.GetReadyPodsMetricAsync(app, cancellationToken);
-        return [readyPodsMetric];
+        IList<V1Pod> pods = await podsClient.GetPodsAsync(app, cancellationToken);
+
+        var readyPodsCount = pods.Count(pod =>
+            pod.Spec.Containers.All(container =>
+                pod.Status.ContainerStatuses.FirstOrDefault(s => s.Name == container.Name)?.Ready == true
+            )
+        );
+
+        var metrics = new List<AppHealthMetric>
+        {
+            new()
+            {
+                Name = "ready_pods",
+                Count = Math.Round((double)readyPodsCount / pods.Count * 100),
+            },
+        };
+
+        return Results.Ok(metrics);
     }
 }

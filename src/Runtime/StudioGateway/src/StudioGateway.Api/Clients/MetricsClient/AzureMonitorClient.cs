@@ -1,17 +1,12 @@
-using System.Diagnostics.CodeAnalysis;
 using Azure;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
-using StudioGateway.Api.Models.Metrics;
+using StudioGateway.Api.Clients.MetricsClient.Contracts;
 using StudioGateway.Api.Settings;
+using StudioGateway.Contracts.Metrics;
 
-namespace StudioGateway.Api.TypedHttpClients.MetricsClient;
+namespace StudioGateway.Api.Clients.MetricsClient;
 
-[SuppressMessage(
-    "Microsoft.Performance",
-    "CA1812:AvoidUninstantiatedInternalClasses",
-    Justification = "Class is instantiated via dependency injection"
-)]
 internal sealed class AzureMonitorClient(MetricsClientSettings metricsClientSettings, LogsQueryClient logsQueryClient)
     : IMetricsClient
 {
@@ -38,7 +33,7 @@ internal sealed class AzureMonitorClient(MetricsClientSettings metricsClientSett
     };
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Metric>> GetMetricsAsync(int range, CancellationToken cancellationToken)
+    public async Task<IEnumerable<AzureMonitorMetric>> GetMetricsAsync(int range, CancellationToken cancellationToken)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
@@ -71,14 +66,11 @@ internal sealed class AzureMonitorClient(MetricsClientSettings metricsClientSett
                 };
             })
             .GroupBy(row => new { row.AppName, row.Name })
-            .Select(row =>
+            .Select(row => new AzureMonitorMetric
             {
-                return new Metric
-                {
-                    Name = row.Key.Name,
-                    AppName = row.Key.AppName,
-                    Count = row.Sum(value => value.Count),
-                };
+                AppName = row.Key.AppName,
+                Name = row.Key.Name,
+                Count = row.Sum(value => value.Count),
             });
     }
 

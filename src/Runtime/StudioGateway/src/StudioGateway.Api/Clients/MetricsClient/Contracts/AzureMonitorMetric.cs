@@ -1,13 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace StudioGateway.Api.Models.Metrics;
+namespace StudioGateway.Api.Clients.MetricsClient.Contracts;
 
 [SuppressMessage(
     "Microsoft.Performance",
     "CA1515:AvoidUninstantiatedPublicTypes",
     Justification = "Exposed externally"
 )]
-public class Metric
+public class AzureMonitorMetric
 {
     public required string Name { get; set; }
     public required string AppName { get; set; }
