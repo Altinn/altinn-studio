@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	ociclient "github.com/fluxcd/pkg/oci/client"
+	ociclient "github.com/fluxcd/pkg/oci"
 )
 
 type Client struct {
