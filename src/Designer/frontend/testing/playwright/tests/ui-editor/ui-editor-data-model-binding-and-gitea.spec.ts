@@ -48,7 +48,7 @@ const setupAndVerifyUiEditorPage = async (
   await uiEditorPage.verifyThatAddNewPageButtonIsVisible();
 
   await uiEditorPage.clickOnPageAccordion(pageName);
-  await uiEditorPage.verifyThatAddNewPageButtonIsVisible();
+  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, pageName);
 
   return uiEditorPage;
 };
