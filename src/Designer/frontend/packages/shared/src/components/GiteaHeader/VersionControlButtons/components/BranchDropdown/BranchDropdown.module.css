@@ -3,3 +3,8 @@
   align-items: center;
   padding: 0 var(--ds-size-2);
 }
+
+/* Style for .branchButton is temporary until we migrate to StudioPageHeader */
+.branchButton {
+  color: var(--fds-semantic-text-action-on-action-container);
+}

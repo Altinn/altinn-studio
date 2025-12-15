@@ -61,6 +61,7 @@ export const BranchDropdown = () => {
         triggerButtonTitle={t('branching.select_branch')}
         data-color='light'
         data-color-scheme='light'
+        triggerButtonClassName={classes.branchButton}
       >
         <StudioDropdown.List>
           {branches?.map((branch) => (
