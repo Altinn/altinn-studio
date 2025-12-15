@@ -388,6 +388,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
         public async Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName)
         {
             try
@@ -401,6 +402,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
         public async Task FetchGitNotes(AltinnRepoEditingContext editingContext)
         {
             try
@@ -414,6 +416,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
         public async Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
         {
             try
