@@ -13,7 +13,8 @@
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.10.0" />
   </ItemGroup>
   <ItemGroup Label="Shared nuget packages">
-    <PackageVersion Include="JsonSchema.Net" Version="5.5.1" />
+    <PackageVersion Include="Humanizer" Version="3.0.1" />
+    <PackageVersion Include="JsonSchema.Net" Version="8.0.3" />
     <PackageVersion Include="CompilerAttributes" Version="1.1.2" />
     <PackageVersion Include="Confluent.Kafka" Version="2.12.0" />
     <PackageVersion Include="Confluent.SchemaRegistry" Version="2.12.0" />
