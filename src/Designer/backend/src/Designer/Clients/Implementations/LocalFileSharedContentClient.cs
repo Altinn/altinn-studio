@@ -65,7 +65,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         string path = IndexFileName; // No prefix since it's on root.
         try
         {
-            await UpdateIndexFile(path, content, path, cancellationToken);
+            await UpdateIndexFile(content, path, cancellationToken);
         }
         catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
         {
@@ -84,7 +84,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         string path = CombineWithDelimiter(pathPrefix, IndexFileName);
         try
         {
-            await UpdateIndexFile(path, content, path, cancellationToken);
+            await UpdateIndexFile(content, path, cancellationToken);
         }
         catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
         {
@@ -103,7 +103,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         string path = CombineWithDelimiter(pathPrefix, IndexFileName);
         try
         {
-            await UpdateIndexFile(path, content, path, cancellationToken);
+            await UpdateIndexFile(content, path, cancellationToken);
         }
         catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
         {
@@ -121,7 +121,6 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         string path = CombineWithDelimiter(pathPrefix, IndexFileName);
         try
         {
-            await UpdateIndexFile(path, pathPrefix, path, cancellationToken);
             await UpdateCurrentVersion(pathPrefix, path, cancellationToken);
         }
         catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
@@ -166,13 +165,12 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
     }
 
     private async Task UpdateIndexFile(
-        string path,
         string prefix,
         string indexFilePath,
         CancellationToken cancellationToken = default
     )
     {
-        string? indexFileString = await ReadFileByRelativePathAsync(path, cancellationToken);
+        string? indexFileString = await ReadFileByRelativePathAsync(indexFilePath, cancellationToken);
         if (indexFileString is null)
         {
             AddIndexFile(indexFilePath, [prefix]);
