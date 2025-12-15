@@ -3,12 +3,15 @@
 }
 
 .metricsError {
-  margin: var(--ds-size-6) 0;
+  display: inline-flex;
+  padding-block-start: var(--ds-size-3);
+  padding-block-end: var(--ds-size-3);
 }
 
 .metricsHeaderCell {
-  text-align: right;
-  width: 40%;
+  display: flex;
+  justify-content: end;
+  gap: var(--ds-size-3);
 }
 
 .metricsCell {

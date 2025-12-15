@@ -1,4 +1,4 @@
-import React, { forwardRef, useId } from 'react';
+import React, { forwardRef, useEffect, useId } from 'react';
 import type { ReactElement, Ref } from 'react';
 import classes from './StudioSpinner.module.css';
 import cn from 'classnames';
@@ -8,23 +8,39 @@ import { StudioParagraph } from '../StudioParagraph';
 
 export type StudioSpinnerProps = {
   spinnerTitle?: ReactElement | string;
+  delayMs?: number;
 } & SpinnerProps;
 
 function StudioSpinner(
-  { spinnerTitle, className: givenClassName, ...rest }: StudioSpinnerProps,
+  { spinnerTitle, className: givenClassName, delayMs, ...rest }: StudioSpinnerProps,
   ref: Ref<HTMLDivElement>,
 ): ReactElement {
   const spinnerDescriptionId = useId();
+  const [loaded, setLoaded] = React.useState(!delayMs);
+
+  useEffect(() => {
+    if (!delayMs) return;
+
+    const timer = setTimeout(() => {
+      setLoaded(true);
+    }, delayMs);
+
+    return () => clearTimeout(timer);
+  }, [delayMs]);
 
   return (
-    <div ref={ref} className={cn(givenClassName, classes.spinnerWrapper)}>
-      <Spinner
-        aria-describedby={spinnerTitle ? spinnerDescriptionId : undefined}
-        data-testid='studio-spinner-test-id'
-        {...rest}
-      />
-      {spinnerTitle && <StudioParagraph id={spinnerDescriptionId}>{spinnerTitle}</StudioParagraph>}
-    </div>
+    loaded && (
+      <div ref={ref} className={cn(givenClassName, classes.spinnerWrapper)}>
+        <Spinner
+          aria-describedby={spinnerTitle ? spinnerDescriptionId : undefined}
+          data-testid='studio-spinner-test-id'
+          {...rest}
+        />
+        {spinnerTitle && (
+          <StudioParagraph id={spinnerDescriptionId}>{spinnerTitle}</StudioParagraph>
+        )}
+      </div>
+    )
   );
 }
 

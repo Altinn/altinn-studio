@@ -6,10 +6,6 @@
   margin-bottom: var(--ds-size-6);
 }
 
-.select select {
-  font-size: 0.9rem;
-}
-
 .content {
   font-size: 0.9rem;
   display: flex;

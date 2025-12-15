@@ -1,13 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './AppMetrics.module.css';
 import { useParams } from 'react-router-dom';
-import {
-  StudioCard,
-  StudioError,
-  StudioHeading,
-  StudioSelect,
-  StudioSpinner,
-} from '@studio/components';
+import { StudioCard, StudioError, StudioHeading, StudioSpinner } from '@studio/components';
 import { useAppMetricsQuery } from 'admin/hooks/queries/useAppMetricsQuery';
 import { useTranslation } from 'react-i18next';
 

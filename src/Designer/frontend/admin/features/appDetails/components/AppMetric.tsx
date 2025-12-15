@@ -42,16 +42,11 @@ const getChartOptions = (range: number) => ({
   },
   scales: {
     x: {
-      // grid: {
-      //   display: false,
-      // },
       ticks: {
-        //display: false,
         font: {
           color: '#ddd',
           size: 10,
         },
-        // maxTicksLimit: 5,
       },
       type: 'time',
       time: {
@@ -60,14 +55,7 @@ const getChartOptions = (range: number) => ({
     },
     y: {
       beginAtZero: true,
-      // border: {
-      //   display: false,
-      // },
-      // grid: {
-      //   display: false,
-      // },
       ticks: {
-        //display: false,
         stepSize: 1,
         font: {
           color: '#ddd',
@@ -82,16 +70,8 @@ const getChartData = (dataPoints: AppMetricDataPoint[], options) => {
     labels: dataPoints?.map((dataPoint) => dataPoint.dateTimeOffset),
     datasets: [
       {
-        /*
-        fill: {
-          target: { value: 70 },
-          above: 'rgba(206, 77, 77, 0.7)', // Green color with transparency
-          below: 'rgba(16, 140, 34, 0.7)', // No fill below
-        },
-        */
         fill: true,
         data: dataPoints?.map((dataPoint) => dataPoint.count),
-        // tension: 0.4,
         borderWidth: 2,
         pointRadius: 0,
         ...options,
@@ -101,13 +81,13 @@ const getChartData = (dataPoints: AppMetricDataPoint[], options) => {
 };
 
 const COLORS = [
-  'rgb(54, 162, 235)', // blue
-  //'rgb(255, 99, 132)', // red
-  'rgb(255, 159, 64)', // orange
-  'rgb(255, 205, 86)', // yellow
-  'rgb(75, 192, 192)', // green
-  'rgb(153, 102, 255)', // purple
-  //'rgb(201, 203, 207)', // grey
+  'rgb(54, 162, 235)',
+  //'rgb(255, 99, 132)',
+  'rgb(255, 159, 64)',
+  'rgb(255, 205, 86)',
+  'rgb(75, 192, 192)',
+  'rgb(153, 102, 255)',
+  //'rgb(201, 203, 207)',
 ];
 
 const getRandomColor = () => {

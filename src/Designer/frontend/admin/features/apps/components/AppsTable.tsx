@@ -11,7 +11,7 @@ import {
   StudioLink,
 } from '@studio/components';
 import React from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import { useMetricsQuery } from 'admin/hooks/queries/useMetricsQuery';
@@ -98,13 +98,31 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
     hideDefaultError: true,
   });
 
+  const renderAlertsHeader = () => {
+    if (metricsIsError) {
+      return (
+        <StudioError className={classes.metricsError} data-size='small'>
+          {t('admin.alerts.error')}
+        </StudioError>
+      );
+    }
+
+    return (
+      <>
+        {metricsIsPending && (
+          <StudioSpinner aria-label={t('admin.alerts.pending')} delayMs={1000} />
+        )}
+        <TimeRangeSelect
+          label={t('admin.apps.alerts')}
+          value={range!}
+          onChange={(e) => setRange(e)}
+        />
+      </>
+    );
+  };
+
   return (
     <>
-      {metricsIsError && (
-        <StudioAlert data-color={'danger'} className={classes.metricsError}>
-          <Trans i18nKey={'admin.alerts.error'} values={{ env }} />
-        </StudioAlert>
-      )}
       <StudioSearch
         className={classes.appSearch}
         value={search ?? ''}
@@ -117,11 +135,7 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
             <StudioTable.Cell>{t('admin.apps.name')}</StudioTable.Cell>
             <StudioTable.Cell>{t('admin.apps.version')}</StudioTable.Cell>
             <StudioTable.Cell className={classes.metricsHeaderCell}>
-              <TimeRangeSelect
-                label={t('admin.apps.alerts')}
-                value={range!}
-                onChange={(e) => setRange(e)}
-              />
+              {renderAlertsHeader()}
             </StudioTable.Cell>
           </StudioTable.Row>
         </StudioTable.Head>
