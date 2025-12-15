@@ -27,7 +27,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         using var client = _httpClientFactory.CreateClient($"runtime-gateway");
         var baseUrl = _environmentsService.GetAppClusterUri(org, environment.Name);
         var originEnvironment = GetOriginEnvironment();
-        var requestUrl = $"{baseUrl}/deploy/apps/{app}/{originEnvironment}/deployed";
+        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{originEnvironment}/deployed";
 
         var response = await client.GetFromJsonAsync<IsAppDeployedResponse>(requestUrl, cancellationToken);
         return response?.IsDeployed ?? false;
