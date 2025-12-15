@@ -1,10 +1,5 @@
 name: "App Build Frontend"
 description: "Builds app frontend"
-inputs:
-  node-version:
-    description: "Node.js version to use"
-    required: false
-    default: "22"
 runs:
   using: "composite"
   steps:
@@ -25,7 +20,6 @@ runs:
       uses: ./.github/actions/yarn-install
       with:
         working-directory: src/App/frontend
-        node-version: ${{ inputs.node-version }}
 
     - name: Build frontend
       if: steps.cache-frontend.outputs.cache-hit != 'true'
