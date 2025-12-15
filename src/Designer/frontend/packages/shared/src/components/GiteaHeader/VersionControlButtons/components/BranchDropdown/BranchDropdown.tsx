@@ -27,6 +27,7 @@ export const BranchDropdown = () => {
     onUncommittedChanges: (error) => {
       setUncommittedChangesError(error);
     },
+    onSuccess: async () => location.reload(),
   });
 
   const handleBranchSelect = (branchName: string) => {
