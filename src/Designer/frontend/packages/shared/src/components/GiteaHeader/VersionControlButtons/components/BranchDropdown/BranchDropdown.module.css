@@ -6,5 +6,7 @@
 
 /* Style for .branchButton is temporary until we migrate to StudioPageHeader */
 .branchButton {
-  color: var(--fds-semantic-text-action-on-action-container);
+  color: var(--ds-base-contrast-default);
+  font-family: var(--studio-font-family);
+  font-size: var(--ds--body-xs-font-size);
 }
