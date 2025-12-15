@@ -28,7 +28,6 @@ export const CreateBranchDialog = ({ isOpen, onClose, org, app }: CreateBranchDi
     uncommittedChangesError,
     targetBranch,
     isCreatingOrCheckingOut,
-    cannotCreateBranch,
     createButtonText,
     handleCreate,
     handleCloseUncommittedChangesDialog,
