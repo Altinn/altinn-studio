@@ -139,7 +139,7 @@ describe('useCreateBranchFlow', () => {
         result.current.handleCreate();
       });
 
-      expect(result.current.error).toBe('[mockedText(create_branch.error_empty)]');
+      expect(result.current.error).toBe('[mockedText(branching.new_branch_dialog.error_empty)]');
       expect(createBranch).not.toHaveBeenCalled();
     });
 
@@ -232,7 +232,7 @@ describe('useCreateBranchFlow', () => {
         result.current.handleCreate();
       });
 
-      expect(result.current.error).toBe('[mockedText(create_branch.error_empty)]');
+      expect(result.current.error).toBe('[mockedText(branching.new_branch_dialog.error_empty)]');
 
       // Second attempt with valid name
       act(() => {
@@ -347,7 +347,9 @@ describe('useCreateBranchFlow', () => {
 
       await waitFor(() => expect(createBranch).toHaveBeenCalledWith(org, app, 'feature/test'));
       await waitFor(() =>
-        expect(result.current.error).toBe('[mockedText(create_branch.error_generic)]'),
+        expect(result.current.error).toBe(
+          '[mockedText(branching.new_branch_dialog.error_generic)]',
+        ),
       );
     });
   });
@@ -457,7 +459,9 @@ describe('useCreateBranchFlow', () => {
       await waitFor(() => expect(createBranch).toHaveBeenCalledWith(org, app, 'feature/test'));
       await waitFor(() => expect(checkoutBranch).toHaveBeenCalledWith(org, app, 'feature/test'));
       await waitFor(() =>
-        expect(result.current.error).toBe('[mockedText(create_branch.error_generic)]'),
+        expect(result.current.error).toBe(
+          '[mockedText(branching.new_branch_dialog.error_generic)]',
+        ),
       );
     });
   });

@@ -42,7 +42,7 @@ export const CreateBranchDialog = ({ isOpen, onClose, org, app }: CreateBranchDi
         data-color-scheme='light'
       >
         <StudioDialog.Block>
-          <StudioHeading>{createButtonText}</StudioHeading>
+          <StudioHeading>{t('branching.new_branch_dialog.create')}</StudioHeading>
         </StudioDialog.Block>
         <StudioDialog.Block className={classes.dialogMainContent}>
           <StudioParagraph>{t('branching.new_branch_dialog.description')}</StudioParagraph>

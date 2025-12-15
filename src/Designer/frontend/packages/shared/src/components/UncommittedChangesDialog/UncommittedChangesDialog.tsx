@@ -57,7 +57,7 @@ export const UncommittedChangesDialog = ({
   return (
     <StudioDialog open={true} onClose={onClose} data-color-scheme='light'>
       <StudioDialog.Block>
-        <StudioHeading>{t('branching.uncommited_changes_dialog.uncommited_changes')}</StudioHeading>
+        <StudioHeading>{t('branching.uncommited_changes_dialog.heading')}</StudioHeading>
       </StudioDialog.Block>
       <StudioDialog.Block className={classes.dialogMainContent}>
         <StudioAlert>
