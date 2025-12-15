@@ -34,7 +34,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
 
     private string GetGatewayUrl(string org, AltinnEnvironment environment)
     {
-        if (environment == AltinnEnvironment.Prod)
+        if (environment.Name is "prod" or "production")
         {
             return string.Format(_runtimeGatewaySettings.ProdUrlFormat, org);
         }
