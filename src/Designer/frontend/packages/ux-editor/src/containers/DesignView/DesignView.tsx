@@ -68,6 +68,7 @@ const DesignViewLoadedContent = ({
   const { org, app } = useStudioEnvironmentParams();
   const {
     selectedFormLayoutName,
+    selectedItem,
     setSelectedItem,
     setSelectedFormLayoutName,
     updateLayoutsForPreview,
@@ -84,8 +85,10 @@ const DesignViewLoadedContent = ({
     app,
   );
 
+  const selectedPageId = selectedItem?.type === ItemType.Page ? selectedItem.id : undefined;
+
   const handleClickAccordion = (pageName: string) => {
-    if (selectedFormLayoutName !== pageName) {
+    if (selectedPageId !== pageName) {
       setSelectedFormLayoutName(pageName);
       setSelectedItem({
         type: ItemType.Page,
@@ -97,6 +100,7 @@ const DesignViewLoadedContent = ({
         type: ItemType.Page,
         id: pageName,
       });
+      setSelectedItem(null);
     }
   };
 
@@ -140,12 +144,13 @@ const DesignViewLoadedContent = ({
 
       // Check if the layout has unique component IDs
       const isInvalidLayout = duplicatedIdsExistsInLayout(layout);
+      const isPageOpen = pageModel.id === selectedPageId;
 
       return (
         <PageAccordion
           key={pageModel.id}
           pageId={pageModel.id}
-          isOpen={pageModel.id === selectedFormLayoutName}
+          isOpen={isPageOpen}
           onClick={() => handleClickAccordion(pageModel.id)}
           isInvalid={isInvalidLayout}
           hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(pageModel.id)}

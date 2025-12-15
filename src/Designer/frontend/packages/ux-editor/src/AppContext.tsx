@@ -59,7 +59,9 @@ export const AppContextProvider = ({
   onLayoutSetNameChange,
 }: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
-  const [selectedItemOverride, setSelectedItemOverride] = useState<SelectedItem | null>(null);
+  const [selectedItemOverride, setSelectedItemOverride] = useState<SelectedItem | null | undefined>(
+    undefined,
+  );
   const { org, app } = useStudioEnvironmentParams();
   const { layoutSet } = useUxEditorParams();
   const { isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
@@ -68,7 +70,7 @@ export const AppContextProvider = ({
     useSelectedFormLayoutName(layoutSet);
 
   const selectedItem: SelectedItem | null = useMemo(() => {
-    if (selectedItemOverride) return selectedItemOverride;
+    if (selectedItemOverride !== undefined) return selectedItemOverride;
     if (selectedFormLayoutName) {
       return {
         type: ItemType.Page,

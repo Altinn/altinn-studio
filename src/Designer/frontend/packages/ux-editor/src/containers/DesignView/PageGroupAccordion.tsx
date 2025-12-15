@@ -105,10 +105,11 @@ export const PageGroupAccordion = ({
 
     const groupDisplayName = pageGroupDisplayName(group);
     const { type, id } = selectedItem ?? {};
+    const selectedPageId = type === ItemType.Page ? id : undefined;
 
     const isGroupOrPageSelected =
       (type === ItemType.Group && id === groupIndex) ||
-      group.order.some((page) => page.id === id || page.id === selectedFormLayoutName);
+      group.order.some((page) => page.id === selectedPageId || page.id === selectedFormLayoutName);
 
     return (
       <div
@@ -163,11 +164,13 @@ export const PageGroupAccordion = ({
         {group.order.map((page) => {
           const layout = layouts?.[page.id];
           const isInvalidLayout = layout ? duplicatedIdsExistsInLayout(layout) : false;
+          const isPageOpen = page.id === selectedPageId;
+
           return (
             <Accordion key={page.id} className={classes.groupPageAccordionWrapper}>
               <PageAccordion
                 pageId={page.id}
-                isOpen={page.id === selectedFormLayoutName}
+                isOpen={isPageOpen}
                 onClick={() => onAccordionClick(page.id)}
                 isInvalid={isInvalidLayout}
                 hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(page.id)}
