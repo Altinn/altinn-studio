@@ -130,7 +130,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         catch (Exception ex) when (ex is IOException)
         {
             logger.LogError("File is empty or doesn't exist, in {Client}", nameof(LocalFileSharedContentClient));
-            throw new InvalidOperationException($"Request failed, class: {nameof(LocalFileSharedContentClient)}");
+            throw new InvalidOperationException($"Request failed, class: {nameof(LocalFileSharedContentClient)}", ex);
         }
     }
 
