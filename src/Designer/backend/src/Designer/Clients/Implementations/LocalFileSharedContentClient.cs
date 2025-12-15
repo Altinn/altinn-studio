@@ -321,9 +321,11 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         try
         {
             IEnumerable<string> directoryFiles = Directory.GetFiles(prefix, "*", SearchOption.AllDirectories);
-            return await Task.FromResult(directoryFiles
+            return directoryFiles
+                .Select(file => Path.GetRelativePath(prefix, file).Replace("\\", "/"))
+
                 .Select(file => file.Replace(prefix, string.Empty).Replace("\\", "/"))
-                .ToList());
+                .ToList();
         }
         catch (Exception ex) when (ex is DirectoryNotFoundException)
         {
