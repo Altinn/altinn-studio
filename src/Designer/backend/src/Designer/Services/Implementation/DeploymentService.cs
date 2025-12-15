@@ -203,7 +203,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await _deployEventRepository.AddAsync(editingContext.Org, deploymentEntity.Build.Id, new DeployEvent
             {
-                EventType = DeployEventType.PipelineScheduled,
+                EventType = useGitOpsDecommission ? DeployEventType.PipelineScheduled : DeployEventType.DeprecatedPipelineScheduled,
                 Message = $"Undeploy pipeline {build.Id} scheduled",
                 Timestamp = _timeProvider.GetUtcNow()
             }, cancellationToken);

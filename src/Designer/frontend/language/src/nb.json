@@ -140,6 +140,7 @@
   "app_deployment.deploy_more_options_menu_label": "Åpne meny med tilgang til miljø og mulighet for avpublisering",
   "app_deployment.error": "Kunne ikke laste inn statusen og aktiviteten for denne appen. Prøv igjen senere.",
   "app_deployment.error_unknown.message": "Det har oppstått en ukjent feil ved avpublisering av appen, prøv igjen om litt. Hvis problemet fortsetter, <a>ta kontakt med oss</a>",
+  "app_deployment.events": "Se mer",
   "app_deployment.last_published": "Sist publisert {{lastPublishedDate}}.",
   "app_deployment.loading": "Laster inn statusen og aktiviteten for denne appen...",
   "app_deployment.missing_rights": "Du har ikke rettigheter til å publisere til {{envTitle}}. Be eierne i {{orgName}} om å gi deg tilgang.",

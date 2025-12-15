@@ -25,13 +25,13 @@ import {
   textResources,
   textResourcesWithLanguage,
 } from './test-data/textResources';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { CODE_LIST_FOLDER, DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
 import { FeatureFlag } from '@studio/feature-flags';
-import { codeListsNewResponse } from './test-data/codeListsNewResponse';
-import type { UpdateOrgCodeListsPayload } from 'app-shared/types/api/UpdateOrgCodeListsPayload';
+import { sharedResourcesResponse } from './test-data/sharedResourcesResponse';
+import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 
 // Test data:
 const orgName: string = 'org';
@@ -43,7 +43,11 @@ const repositoryName = `${orgName}-content`;
 const repoStatusQueryKey: string[] = [QueryKey.RepoStatus, orgName, repositoryName];
 const orgCodeListsQueryKey: string[] = [QueryKey.OrgCodeLists, orgName];
 const orgTextResourcesQueryKey: string[] = [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE];
-const orgCodeListsNewQueryKey: string[] = [QueryKey.OrgCodeListsNew, orgName];
+const sharedResourcesByPathQueryKey: string[] = [
+  QueryKey.SharedResources,
+  orgName,
+  CODE_LIST_FOLDER,
+];
 
 // Mocks:
 jest.mock('@studio/content-library', () => ({
@@ -307,14 +311,14 @@ describe('OrgContentLibraryPage', () => {
     renderOrgContentLibraryWithData({ featureFlags: [FeatureFlag.NewCodeLists] });
     const pagesConfig = retrievePagesConfig();
     const { codeLists } = pagesConfig.codeLists.props;
-    expect(codeLists).toHaveLength(codeListsNewResponse.codeListWrappers.length);
+    expect(codeLists).toHaveLength(sharedResourcesResponse.files.length);
   });
 
-  it('Calls updateOrgCodeLists with correct data when code list saving is triggered on the new code list page', async () => {
-    const updateOrgCodeLists = jest.fn();
+  it('Calls updateSharedResources with correct data when code list saving is triggered on the new code list page', async () => {
+    const updateSharedResources = jest.fn();
     renderOrgContentLibraryWithData({
       featureFlags: [FeatureFlag.NewCodeLists],
-      queries: { updateOrgCodeLists },
+      queries: { updateSharedResources },
     });
 
     const newCodeLists: LibraryCodeListData[] = [
@@ -322,18 +326,31 @@ describe('OrgContentLibraryPage', () => {
       { name: 'list-2', codes: [{ value: '9', label: { en: 'Nine' } }] },
     ];
     retrievePagesConfig().codeLists.props.onSave(newCodeLists);
-    await waitFor(expect(updateOrgCodeLists).toHaveBeenCalled);
+    await waitFor(expect(updateSharedResources).toHaveBeenCalled);
 
-    const expectedPayload: UpdateOrgCodeListsPayload = {
-      baseCommitSha: codeListsNewResponse.commitSha,
-      codeListWrappers: expect.arrayContaining([
-        { title: newCodeLists[0].name, codeList: { codes: newCodeLists[0].codes } },
-        { title: newCodeLists[1].name, codeList: { codes: newCodeLists[1].codes } },
-      ]),
+    expect(updateSharedResources).toHaveBeenCalledTimes(1);
+    expect(updateSharedResources).toHaveBeenCalledWith(orgName, {
+      files: [
+        {
+          path: 'CodeLists/list-1.json',
+          content: JSON.stringify(newCodeLists[0].codes, null, 2),
+        },
+        {
+          path: 'CodeLists/list-2.json',
+          content: JSON.stringify(newCodeLists[1].codes, null, 2),
+        },
+        {
+          path: 'CodeLists/animals.json',
+          content: null,
+        },
+        {
+          path: 'CodeLists/vehicles.json',
+          content: null,
+        },
+      ],
+      baseCommitSha: sharedResourcesResponse.commitSha,
       commitMessage: textMock('org_content_library.code_lists.commit_message_default'),
-    };
-    expect(updateOrgCodeLists).toHaveBeenCalledTimes(1);
-    expect(updateOrgCodeLists).toHaveBeenCalledWith(orgName, expectedPayload);
+    } satisfies UpdateSharedResourcesRequest);
   });
 
   it('Publishes a code list when publish is triggered on the new code list page', async () => {
@@ -342,10 +359,14 @@ describe('OrgContentLibraryPage', () => {
       featureFlags: [FeatureFlag.NewCodeLists],
       queries: { publishCodeList },
     });
-    const codeListToPublish = codeListsNewResponse.codeListWrappers[0];
     const libraryCodeListData: LibraryCodeListData = {
-      name: codeListToPublish.title,
-      codes: codeListToPublish.codeList.codes,
+      name: 'animals',
+      codes: [
+        {
+          value: 'cat',
+          label: { nb: 'Katt', nn: 'Katt', en: 'Cat' },
+        },
+      ],
     };
 
     retrievePagesConfig().codeLists.props.onPublish(libraryCodeListData);
@@ -354,7 +375,7 @@ describe('OrgContentLibraryPage', () => {
     expect(publishCodeList).toHaveBeenCalledTimes(1);
     expect(publishCodeList).toHaveBeenCalledWith(
       orgName,
-      expect.objectContaining({ title: codeListToPublish.title }),
+      expect.objectContaining({ title: 'animals' }),
     );
   });
 });
@@ -369,7 +390,7 @@ function createQueryClientWithData(): QueryClient {
   queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
   queryClient.setQueryData(orgTextResourcesQueryKey, textResourcesWithLanguage);
   queryClient.setQueryData(repoStatusQueryKey, repoStatus);
-  queryClient.setQueryData(orgCodeListsNewQueryKey, codeListsNewResponse);
+  queryClient.setQueryData(sharedResourcesByPathQueryKey, sharedResourcesResponse);
   return queryClient;
 }
 
@@ -383,7 +404,7 @@ function createQueryClientWithMissingTextResources(): QueryClient {
   queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
   queryClient.setQueryData(orgTextResourcesQueryKey, null);
   queryClient.setQueryData(repoStatusQueryKey, repoStatus);
-  queryClient.setQueryData(orgCodeListsNewQueryKey, codeListsNewResponse);
+  queryClient.setQueryData(sharedResourcesByPathQueryKey, sharedResourcesResponse);
   return queryClient;
 }
 
