@@ -59,9 +59,7 @@ export const CreateBranchDialog = ({ isOpen, onClose, org, app }: CreateBranchDi
             <StudioButton variant='secondary' onClick={onClose}>
               {t('general.cancel')}
             </StudioButton>
-            <StudioButton onClick={handleCreate} disabled={cannotCreateBranch}>
-              {createButtonText}
-            </StudioButton>
+            <StudioButton onClick={handleCreate}>{createButtonText}</StudioButton>
           </div>
         </StudioDialog.Block>
       </StudioDialog>
