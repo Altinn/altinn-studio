@@ -8,12 +8,13 @@ import {
   StudioError,
   StudioTabs,
 } from '@studio/components';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
 // import { ProcessHistory } from './ProcessHistory';
 // import { InstanceEvents } from './InstanceEvents';
 import type { SimpleInstanceDetails } from 'admin/types/SimpleInstanceDetails';
+import { InstanceStatus } from 'admin/features/instances/components/InstanceStatus';
 
 type InstanceDataViewProps = {
   org: string;
@@ -70,6 +71,13 @@ const InstanceDataViewWithData = ({
       </StudioTabs.List>
       <StudioTabs.Panel value={InstanceDataViewTabs.Info}>
         <LabelValue label={t('Instans ID')} value={instance.id} />
+        {(instance.currentTaskName || instance.currentTaskId) && (
+          <LabelValue
+            label={t('Prosessteg')}
+            value={instance.currentTaskName ?? instance.currentTaskId}
+          />
+        )}
+        <LabelValue label={t('Status')} value={<InstanceStatus instance={instance} />} />
         <LabelValue label={t('Opprettet')} value={formatDateAndTime(instance.createdAt)} />
         <LabelValue label={t('Sist endret')} value={formatDateAndTime(instance.lastChangedAt)} />
 
@@ -111,7 +119,7 @@ const InstanceDataViewWithData = ({
   );
 };
 
-const LabelValue = ({ label, value }: { label: string; value: string }) => {
+const LabelValue = ({ label, value }: { label: string; value: ReactNode }) => {
   const labelId = `label-${label}`;
   return (
     <StudioField>
