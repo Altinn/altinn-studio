@@ -13,6 +13,13 @@ patches:
         value: production
   - target:
       kind: Kustomization
+      name: syncroot-apps-kustomization
+    patch: |-
+      - op: replace
+        path: /spec/path
+        value: ./production
+  - target:
+      kind: Kustomization
       name: grafana-manifests
     patch: |-
       - op: replace
