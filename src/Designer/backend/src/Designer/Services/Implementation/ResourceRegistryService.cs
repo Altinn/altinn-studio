@@ -665,8 +665,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         || t.RestrictedToServiceOwners.Contains(org, StringComparer.OrdinalIgnoreCase);
                     return canBeUsedByCurrentOrg && t.IsActive;
                 })];
-                    
-                        
+
+
                 return consentTemplates;
             }
             catch (Exception ex)
