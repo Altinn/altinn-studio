@@ -61,6 +61,7 @@ export const UncommittedChangesDialog = ({
           {t('branch_switch.uncommitted_changes_message', {
             currentBranch: error.currentBranch,
             targetBranch,
+            interpolation: { escapeValue: false },
           })}
         </StudioAlert>
 
