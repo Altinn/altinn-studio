@@ -8,7 +8,8 @@ import {
   StudioError,
   StudioTabs,
 } from '@studio/components';
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
 // import { ProcessHistory } from './ProcessHistory';
