@@ -1,5 +1,5 @@
+using StudioGateway.Api.Application;
 using StudioGateway.Api.Hosting;
-using StudioGateway.Api.Services.Alerts;
 
 namespace StudioGateway.Api.Endpoints.Public;
 
@@ -7,27 +7,13 @@ internal static class AlertsEndpoints
 {
     public static WebApplication MapAlertsEndpoints(this WebApplication app)
     {
-        app.MapGet(
-                "/runtime/gateway/api/v1/alerts",
-                async (IAlertsService alertsService, CancellationToken cancellationToken) =>
-                {
-                    var alertRules = await alertsService.GetAlertRulesAsync(cancellationToken);
-                    return Results.Ok(alertRules);
-                }
-            )
+        app.MapGet("/runtime/gateway/api/v1/alerts", HandleAlerts.GetAlertRulesAsync)
             .RequirePublicPort()
             .RequireAuthorization("MaskinportenScope")
             .WithName("GetAlertsRules")
             .WithTags("Alerts");
 
-        app.MapPost(
-                "/runtime/gateway/api/v1/alerts",
-                async (IAlertsService alertsService, CancellationToken cancellationToken) =>
-                {
-                    await alertsService.NotifyAlertsUpdatedAsync(cancellationToken);
-                    return Results.Ok();
-                }
-            )
+        app.MapPost("/runtime/gateway/api/v1/alerts", HandleAlerts.NotifyAlertsUpdatedAsync)
             .RequirePublicPort()
             .RequireAuthorization("MaskinportenScope")
             .WithName("NotifyAlertsUpdated")

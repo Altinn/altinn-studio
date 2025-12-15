@@ -9,15 +9,15 @@ namespace StudioGateway.Api.TypedHttpClients.StudioClient;
     "CA1812:AvoidUninstantiatedInternalClasses",
     Justification = "Class is instantiated via dependency injection"
 )]
-internal sealed class StudioClient(HttpClient httpClient, IOptions<GeneralSettings> generalSettings) : IStudioClient
+internal sealed class StudioClient(HttpClient httpClient, IOptions<GatewayContext> gatewayContext) : IStudioClient
 {
-    private readonly GeneralSettings _generalSettings = generalSettings.Value;
+    private readonly GatewayContext _gatewayContext = gatewayContext.Value;
 
     /// <inheritdoc />
     public async Task NotifyAlertsUpdatedAsync(CancellationToken cancellationToken)
     {
-        string org = _generalSettings.ServiceOwner;
-        string env = _generalSettings.Environment;
+        string org = _gatewayContext.ServiceOwner;
+        string env = _gatewayContext.Environment;
         Uri requestUrl = new($"admin/alerts/{org}/{env}", UriKind.Relative);
 
         HttpResponseMessage response = await httpClient.PostAsync(requestUrl, null, cancellationToken);

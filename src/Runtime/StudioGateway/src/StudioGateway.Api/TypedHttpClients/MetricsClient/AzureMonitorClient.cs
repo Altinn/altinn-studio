@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using Azure;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
-using Microsoft.Extensions.Options;
 using StudioGateway.Api.Models.Metrics;
 using StudioGateway.Api.Settings;
 
@@ -13,13 +12,9 @@ namespace StudioGateway.Api.TypedHttpClients.MetricsClient;
     "CA1812:AvoidUninstantiatedInternalClasses",
     Justification = "Class is instantiated via dependency injection"
 )]
-internal sealed class AzureMonitorClient(
-    IOptions<MetricsClientSettings> metricsClientSettings,
-    LogsQueryClient logsQueryClient
-) : IMetricsClient
+internal sealed class AzureMonitorClient(MetricsClientSettings metricsClientSettings, LogsQueryClient logsQueryClient)
+    : IMetricsClient
 {
-    private readonly MetricsClientSettings _metricsClientSettings = metricsClientSettings.Value;
-
     private const int MaxRange = 10080;
 
     private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
@@ -47,7 +42,7 @@ internal sealed class AzureMonitorClient(
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
-        string logAnalyticsWorkspaceId = _metricsClientSettings.ApplicationLogAnalyticsWorkspaceId;
+        string logAnalyticsWorkspaceId = metricsClientSettings.ApplicationLogAnalyticsWorkspaceId;
 
         var query =
             $@"
@@ -96,7 +91,7 @@ internal sealed class AzureMonitorClient(
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
-        string logAnalyticsWorkspaceId = _metricsClientSettings.ApplicationLogAnalyticsWorkspaceId;
+        string logAnalyticsWorkspaceId = metricsClientSettings.ApplicationLogAnalyticsWorkspaceId;
 
         var interval = range < 360 ? "5m" : "1h";
 

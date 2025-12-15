@@ -1,30 +1,28 @@
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.Extensions.Options;
 using StudioGateway.Api.Models.Metrics;
 using StudioGateway.Api.Settings;
 using StudioGateway.Api.TypedHttpClients.KubernetesClient;
 using StudioGateway.Api.TypedHttpClients.MetricsClient;
+using StudioGateway.Api.TypedHttpClients.StudioClient;
 
-namespace StudioGateway.Api.Services.Metrics;
+namespace StudioGateway.Api.Application;
 
-[SuppressMessage(
-    "Microsoft.Performance",
-    "CA1812:AvoidUninstantiatedInternalClasses",
-    Justification = "Class is instantiated via dependency injection"
-)]
-internal sealed class MetricsService(
-    IServiceProvider serviceProvider,
-    IOptions<MetricsClientSettings> metricsClientSettings,
-    IKubernetesClient kubernetesClient
-) : IMetricsService
+internal static class HandleMetrics
 {
-    private readonly MetricsClientSettings _metricsClientSettings = metricsClientSettings.Value;
-
     /// <inheritdoc />
-    public async Task<IEnumerable<Metric>> GetMetricsAsync(int range, CancellationToken cancellationToken)
+    internal static async Task NotifyAlertsUpdatedAsync(IStudioClient studioClient, CancellationToken cancellationToken)
+    {
+        await studioClient.NotifyAlertsUpdatedAsync(cancellationToken);
+    }
+
+    internal static async Task<IEnumerable<Metric>> GetMetricsAsync(
+        IServiceProvider serviceProvider,
+        MetricsClientSettings metricsClientSettings,
+        int range,
+        CancellationToken cancellationToken
+    )
     {
         IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
-            _metricsClientSettings.Provider
+            metricsClientSettings.Provider
         );
 
         IEnumerable<Metric> metrics = await metricsClient.GetMetricsAsync(range, cancellationToken);
@@ -33,14 +31,16 @@ internal sealed class MetricsService(
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<AppMetric>> GetAppMetricsAsync(
+    internal static async Task<IEnumerable<AppMetric>> GetAppMetricsAsync(
+        IServiceProvider serviceProvider,
+        MetricsClientSettings metricsClientSettings,
         string app,
         int range,
         CancellationToken cancellationToken
     )
     {
         IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
-            _metricsClientSettings.Provider
+            metricsClientSettings.Provider
         );
 
         IEnumerable<AppMetric> metrics = await metricsClient.GetAppMetricsAsync(app, range, cancellationToken);
@@ -49,7 +49,8 @@ internal sealed class MetricsService(
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<AppHealthMetric>> GetAppHealthMetricsAsync(
+    internal static async Task<IEnumerable<AppHealthMetric>> GetAppHealthMetricsAsync(
+        IKubernetesClient kubernetesClient,
         string app,
         CancellationToken cancellationToken
     )
