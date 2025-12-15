@@ -70,9 +70,10 @@ func GetNonEmptyLines(output string) []string {
 
 // K8sClient provides REST clients for CRDs, core resources, and Flux resources
 type K8sClient struct {
-	CRD  *rest.RESTClient
-	Core *rest.RESTClient
-	Flux *rest.RESTClient
+	CRD    *rest.RESTClient
+	Core   *rest.RESTClient
+	Flux   *rest.RESTClient
+	Source *rest.RESTClient
 }
 
 // CreateK8sClient returns a client configured for the specified kubectl context.
@@ -137,7 +138,22 @@ func CreateK8sClient(contextName string) (*K8sClient, error) {
 		return nil, err
 	}
 
-	return &K8sClient{CRD: crdClient, Core: coreClient, Flux: fluxClient}, nil
+	// Source client (HelmRepository, etc.)
+	sourceConfig := *restConfig
+	sourceConfig.GroupVersion = &schema.GroupVersion{
+		Group:   "source.toolkit.fluxcd.io",
+		Version: "v1",
+	}
+	sourceConfig.APIPath = "/apis"
+	sourceConfig.NegotiatedSerializer = codecFactory
+	sourceConfig.UserAgent = rest.DefaultKubernetesUserAgent()
+
+	sourceClient, err := rest.UnversionedRESTClientFor(&sourceConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return &K8sClient{CRD: crdClient, Core: coreClient, Flux: fluxClient, Source: sourceClient}, nil
 }
 
 type deterministicRand struct {
