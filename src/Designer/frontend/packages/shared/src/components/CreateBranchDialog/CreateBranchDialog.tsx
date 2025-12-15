@@ -1,6 +1,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioDialog, StudioButton, StudioTextfield, StudioParagraph } from '@studio/components';
+import {
+  StudioDialog,
+  StudioButton,
+  StudioTextfield,
+  StudioParagraph,
+  StudioHeading,
+} from '@studio/components';
 import { UncommittedChangesDialog } from '../UncommittedChangesDialog';
 import { useCreateBranchFlow } from '../../hooks/useCreateBranchFlow';
 import classes from './CreateBranchDialog.module.css';
@@ -36,8 +42,10 @@ export const CreateBranchDialog = ({ isOpen, onClose, org, app }: CreateBranchDi
         data-color-scheme='light'
       >
         <StudioDialog.Block>
+          <StudioHeading>{createButtonText}</StudioHeading>
+        </StudioDialog.Block>
+        <StudioDialog.Block className={classes.dialogMainContent}>
           <StudioParagraph>{t('create_branch.description')}</StudioParagraph>
-
           <StudioTextfield
             label={t('create_branch.branch_name_label')}
             value={branchName}
@@ -46,14 +54,11 @@ export const CreateBranchDialog = ({ isOpen, onClose, org, app }: CreateBranchDi
             error={error}
             disabled={isCreatingOrCheckingOut}
           />
-
           <StudioParagraph>{t('create_branch.hint')}</StudioParagraph>
-
           <div className={classes.buttons}>
             <StudioButton variant='secondary' onClick={onClose}>
               {t('general.cancel')}
             </StudioButton>
-
             <StudioButton onClick={handleCreate} disabled={cannotCreateBranch}>
               {createButtonText}
             </StudioButton>

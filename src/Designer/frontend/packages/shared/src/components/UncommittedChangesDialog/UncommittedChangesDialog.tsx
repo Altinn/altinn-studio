@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import {
   StudioDialog,
   StudioButton,
@@ -57,12 +57,16 @@ export const UncommittedChangesDialog = ({
   return (
     <StudioDialog open={true} onClose={onClose} data-color-scheme='light'>
       <StudioDialog.Block>
+        <StudioHeading>{t('branching.uncommited_changes_dialog.uncommited_changes')}</StudioHeading>
+      </StudioDialog.Block>
+      <StudioDialog.Block className={classes.dialogMainContent}>
         <StudioAlert>
-          {t('branch_switch.uncommitted_changes_message', {
-            currentBranch: error.currentBranch,
-            targetBranch,
-            interpolation: { escapeValue: false },
-          })}
+          <Trans
+            i18nKey='branch_switch.uncommitted_changes_message'
+            values={{ currentBranch: error.currentBranch, targetBranch }}
+            components={{ strong: <strong /> }}
+            shouldUnescape
+          />
         </StudioAlert>
 
         <div className={classes.fileList}>

@@ -1,7 +1,13 @@
+.dialogMainContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+}
+
 .fileList {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-size-2);
+  gap: var(--ds-size-4);
 }
 
 .files {
