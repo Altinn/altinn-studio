@@ -42,16 +42,18 @@ export function ThreadColumn({
       <StudioHeading level={3} className={classes.threadHeading}>
         {texts.previousThreads}
       </StudioHeading>
-      <StudioContentMenu selectedTabId={selectedThreadId} onChangeTab={onSelectThread}>
-        {chatThreads.map((thread) => (
-          <ThreadMenuTab
-            key={thread.id}
-            thread={thread}
-            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-            onDelete={onDeleteThread ? () => onDeleteThread(thread.id) : undefined}
-          />
-        ))}
-      </StudioContentMenu>
+      <div className={classes.threadList}>
+        <StudioContentMenu selectedTabId={selectedThreadId} onChangeTab={onSelectThread}>
+          {chatThreads.map((thread) => (
+            <ThreadMenuTab
+              key={thread.id}
+              thread={thread}
+              // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+              onDelete={onDeleteThread ? () => onDeleteThread(thread.id) : undefined}
+            />
+          ))}
+        </StudioContentMenu>
+      </div>
       <div className={classes.aboutSection}>
         <StudioButton variant='tertiary'>
           {' '}

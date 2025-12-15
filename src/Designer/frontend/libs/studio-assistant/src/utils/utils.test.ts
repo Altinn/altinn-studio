@@ -1,6 +1,12 @@
 import { createAssistantMessage, createNewChatThread, createUserMessage } from './utils';
 import { MessageAuthor } from '../types/MessageAuthor';
 
+Object.defineProperty(global, 'crypto', {
+  value: {
+    randomUUID: () => `${Math.random().toString(36).substring(2)}-${Date.now()}`,
+  },
+});
+
 describe('utils', () => {
   describe('createNewChatThread', () => {
     it('should create a chat thread with required properties', () => {

@@ -103,7 +103,7 @@ describe('UserInput', () => {
     await user.click(sendButton);
 
     expect(onSubmitMessage).toHaveBeenLastCalledWith(
-      expect.objectContaining({ allowAppChanges: true }),
+      expect.objectContaining({ allowAppChanges: false }),
     );
 
     await user.click(allowAppChangesSwitch);
@@ -111,7 +111,7 @@ describe('UserInput', () => {
     await user.click(sendButton);
 
     expect(onSubmitMessage).toHaveBeenLastCalledWith(
-      expect.objectContaining({ allowAppChanges: false }),
+      expect.objectContaining({ allowAppChanges: true }),
     );
     expect(onSubmitMessage).toHaveBeenCalledTimes(2);
   });
