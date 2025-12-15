@@ -29,7 +29,6 @@ import {
   type PagesModelWithPageOrder,
 } from 'app-shared/types/api/dto/PagesModel';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
-import { useAutoSelectFirstPage } from './hooks/useAutoSelectFirstPage';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -48,8 +47,6 @@ export const DesignView = (): ReactNode => {
   const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(org, app, layoutSet);
 
   useFormLayoutSettingsQuery(org, app, layoutSet);
-
-  useAutoSelectFirstPage({ pagesModel, pagesQueryPending });
 
   if (pagesQueryPending || !pagesModel) return <StudioSpinner aria-label={t('general.loading')} />;
 

@@ -37,7 +37,6 @@ const setupAndVerifyUiEditorPage = async (
   await uiEditorPage.loadUiEditorPage();
   await uiEditorPage.verifyUiEditorPage();
   await uiEditorPage.clickOnUxEditorButton();
-  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, PAGE_1);
   await uiEditorPage.verifyThatAddNewPageButtonIsVisible();
 
   return uiEditorPage;
@@ -107,7 +106,8 @@ const openPageAccordionAndVerifyUpdatedUrl = async (
   uiEditorPage: UiEditorPage,
   pageName: string,
 ): Promise<void> => {
-  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, pageName);
+  await uiEditorPage.clickOnPageAccordion(pageName);
+  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, pageName); // When clicking the page, the url is updated to include the layout
 };
 
 const addNewLabelToTreeItemComponent = async (

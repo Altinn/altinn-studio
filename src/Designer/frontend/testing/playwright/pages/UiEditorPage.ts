@@ -22,16 +22,12 @@ export class UiEditorPage extends BasePage {
 
   public async verifyUiEditorPage(layoutSet?: string, layout?: string | null): Promise<void> {
     const baseRoute = this.getRoute('editorUi');
-    const expectedPath = baseRoute + (layoutSet ? `/layoutSet/${layoutSet}` : '');
-
-    await this.page.waitForLoadState('load');
-    await this.page.waitForURL((url) => {
-      if (url.pathname !== expectedPath) return false;
-      if (layout !== undefined && layout !== null) {
-        return url.searchParams.get('layout') === layout;
-      }
-      return true;
-    });
+    const pageUrl = new URL(
+      baseRoute + (layoutSet ? `/layoutSet/${layoutSet}` : ''),
+      this.page.url(),
+    );
+    if (layout) pageUrl.searchParams.append('layout', layout);
+    await this.page.waitForURL(pageUrl.toString());
   }
 
   public async clickOnPageAccordion(pageName: string): Promise<void> {
@@ -266,11 +262,9 @@ export class UiEditorPage extends BasePage {
   }
 
   public async clickOnUxEditorButton(): Promise<void> {
-    const button = this.page.getByRole('button', {
-      name: this.textMock('ux_editor.task_card.ux_editor'),
-    });
-    await button.waitFor({ state: 'visible' });
-    await button.click();
+    await this.page
+      .getByRole('button', { name: this.textMock('ux_editor.task_card.ux_editor') })
+      .click();
   }
 
   public async verifyThatAddNewPageButtonIsVisible(): Promise<void> {
