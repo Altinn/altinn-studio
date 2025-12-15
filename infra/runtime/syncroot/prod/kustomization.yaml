@@ -5,6 +5,13 @@ resources:
   - ../grafana-manifests
 patches:
   - target:
+      kind: OCIRepository
+      name: apps-syncroot-repo
+    patch: |-
+      - op: replace
+        path: /spec/ref/tag
+        value: production
+  - target:
       kind: Kustomization
       name: grafana-manifests
     patch: |-
