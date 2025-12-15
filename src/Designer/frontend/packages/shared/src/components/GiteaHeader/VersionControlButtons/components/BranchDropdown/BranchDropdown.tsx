@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioDropdown, StudioSpinner } from '@studio/components';
-import { PlusIcon } from '@studio/icons';
+import { BranchingIcon, PlusIcon } from '@studio/icons';
 import { useBranchesQuery } from 'app-shared/hooks/queries/useBranchesQuery';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { useCheckoutWithUncommittedChangesHandling } from 'app-shared/hooks/mutations/useCheckoutWithUncommittedChangesHandling';
@@ -54,8 +54,10 @@ export const BranchDropdown = () => {
   return (
     <>
       <StudioDropdown
+        icon={<BranchingIcon />}
         triggerButtonText={currentBranch}
         triggerButtonVariant='tertiary'
+        triggerButtonTitle={t('branching.select_branch')}
         data-color='light'
         data-color-scheme='light'
       >

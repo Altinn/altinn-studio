@@ -340,6 +340,7 @@
   "branch_switch.discarding": "Forkaster...",
   "branch_switch.uncommitted_changes_message": "Du kan ikke bytte fra {{currentBranch}} til {{targetBranch}} fordi du har ulagrede endringer.",
   "branch_switch.uncommitted_files": "Filer med endringer ({{count}})",
+  "branching.select_branch": "Velg gren",
   "code_list_editor.add_button_disabled": "Du kan ikke ha flere enn to alternativer i en boolsk kodeliste",
   "code_list_editor.add_option": "Legg til alternativ",
   "code_list_editor.column_title_delete": "Slett",
