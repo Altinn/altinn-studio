@@ -33,19 +33,14 @@ jobs:
         with:
           go-version-file: src/Runtime/StudioGateway/go.mod
 
-      - name: Cache CLI tools
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: src/Runtime/StudioGateway/.cache/bin
-          key: gateway-tools-${{ runner.os }}-${{ hashFiles('src/Runtime/test/fixture/pkg/tools/.tool-versions') }}
-          restore-keys: |
-            gateway-tools-${{ runner.os }}-
-
       - name: Build
         run: make build
+
+      - name: Run unit tests
+        run: make test
 
       - name: Run fixture
         run: make start-minimal
 
-      - name: Test
-        run: make test
+      - name: Run e2e tests
+        run: make test-e2e

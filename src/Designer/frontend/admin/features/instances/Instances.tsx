@@ -15,6 +15,24 @@ const YES_NO_ALL_OPTIONS = [
   { label: 'admin.instances.filter.no', value: false },
 ];
 
+const CREATED_BEFORE_OPTIONS = [
+  { label: 'admin.instances.filter.all', value: undefined },
+  ...[14, 30, 60].map((days) => ({
+    label: 'admin.instances.created_option',
+    labelParams: { days },
+    value: days,
+  })),
+];
+
+function getCurrentDateOnlyStringMinusDays(days: number | undefined) {
+  if (days === undefined) {
+    return undefined;
+  }
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date.toISOString().slice(0, 10);
+}
+
 export const Instances = () => {
   const { t } = useTranslation();
   const { org, env, app } = useParams() as { org: string; env: string; app: string };
@@ -26,6 +44,10 @@ export const Instances = () => {
   const [isArchived, setIsArchived] = useQueryParamState<boolean>('isArchived', undefined);
   const [isConfirmed, setIsConfirmed] = useQueryParamState<boolean>('isConfirmed', undefined);
   const [isSoftDeleted, setIsSoftDeleted] = useQueryParamState<boolean>('isSoftDeleted', undefined);
+  const [createdBeforeDays, setCreatedBeforeDays] = useQueryParamState<number>(
+    'createdBeforeDays',
+    undefined,
+  );
 
   return (
     <div>
@@ -79,6 +101,12 @@ export const Instances = () => {
           setValue={setIsSoftDeleted}
           options={YES_NO_ALL_OPTIONS}
         />
+        <StatusFilter
+          label='admin.instances.created_before'
+          value={createdBeforeDays}
+          setValue={setCreatedBeforeDays}
+          options={CREATED_BEFORE_OPTIONS}
+        />
       </div>
       <InstancesTable
         org={org}
@@ -89,6 +117,7 @@ export const Instances = () => {
         archiveReference={archiveReference}
         confirmed={isConfirmed}
         isSoftDeleted={isSoftDeleted}
+        createdBefore={getCurrentDateOnlyStringMinusDays(createdBeforeDays)}
       />
     </div>
   );

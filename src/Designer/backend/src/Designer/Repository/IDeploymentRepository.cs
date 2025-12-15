@@ -43,5 +43,11 @@ namespace Altinn.Studio.Designer.Repository
         /// Calls a function to update deployment entity
         /// </summary>
         Task Update(DeploymentEntity deploymentEntity);
+
+        /// <summary>
+        /// Gets a pending decommission deployment for an app in an environment.
+        /// A pending decommission is one that doesn't have a final event yet.
+        /// </summary>
+        Task<DeploymentEntity> GetPendingDecommission(string org, string app, string environment);
     }
 }
