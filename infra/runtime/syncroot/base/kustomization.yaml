@@ -5,6 +5,6 @@ resources:
   - operator.yaml
   - pdf.yaml
   - studio-gateway.yaml
-  - flux-notifications.yaml
+  - flux-config.yaml
   - altinn-charts.yaml
   - apps-syncroot.yaml
