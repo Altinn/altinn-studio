@@ -1485,6 +1485,7 @@
   "ux_editor.component_help_text.Subform": "Bruk Tabell for underskjema når du vil legge inn et underskjema i hovedskjemaet ditt.",
   "ux_editor.component_help_text.Summary2": "Med denne komponenten kan du legge til en oppsummering av det brukerne har fylt ut, på slutten av skjemaet.",
   "ux_editor.component_help_text.TextArea": "Du bruker Stort tekstfelt når du vil at brukerne skal skrive litt lengre tekst.",
+  "ux_editor.component_help_text.Text": "Du bruker Tekst når du vil at brukerne skal kunne vise frem data i tekstformat, for eksempel når brukeren har valgt et alternativ fra en nedtrekksliste.",
   "ux_editor.component_help_text.default": "Ingen informasjon å vise om denne komponenten.",
   "ux_editor.component_help_text_general_title": "Åpne hjelpetekst for komponenten",
   "ux_editor.component_other_properties_hide_many_settings": "Skjul flere innstillinger",
