@@ -28,7 +28,7 @@ export const instancesListPath = (
 };
 export const appProcessTasksPath = (org: string, env: string, app: string) =>
   `${adminApiBasePath}/applications/${org}/${env}/${app}/process-tasks`; // Get
-export const instancePath = (org: string, env: string, app: string, instanceId: string) =>
+export const instanceDetailsPath = (org: string, env: string, app: string, instanceId: string) =>
   `${adminApiBasePath}/instances/${org}/${env}/${app}/${instanceId}`; // Get
 export const instanceProcessHistoryPath = (
   org: string,
