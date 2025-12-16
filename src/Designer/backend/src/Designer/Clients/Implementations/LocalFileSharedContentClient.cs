@@ -24,10 +24,10 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
     private const string CodeListsSegment = "code_lists";
     private const string IndexFileName = "_index.json";
     private const string LatestCodeListFileName = "_latest.json";
-
-    private readonly ConcurrentDictionary<string, string> _fileNamesAndContent = [];
-    private string _currentVersion = InitialVersion;
     private readonly string _basePath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "altinn", "published_resources");
+
+    internal readonly ConcurrentDictionary<string, string> FileNamesAndContent = [];
+    internal string CurrentVersion = InitialVersion;
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
@@ -57,7 +57,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         CreateCodeListFiles(codeList, codeListFolderPath, versionIndexPrefix);
 
         await UploadFiles(cancellationToken);
-        return _currentVersion;
+        return CurrentVersion;
     }
 
     private async Task PrepareOrganisationIndexFile(string content, CancellationToken cancellationToken = default)
@@ -153,7 +153,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         if (versions is not null)
         {
             SetCurrentVersion(versions);
-            string versionWithPrefix = CombineWithDelimiter(versionIndexPrefix, JsonFileName(_currentVersion));
+            string versionWithPrefix = CombineWithDelimiter(versionIndexPrefix, JsonFileName(CurrentVersion));
             versions.Add(versionWithPrefix);
             AddIndexFile(versionIndexPath, versions);
         }
@@ -195,16 +195,16 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         }
     }
 
-    private void AddIndexFile(string indexPath, List<string> prefixes)
+    internal void AddIndexFile(string indexPath, List<string> prefixes)
     {
         IndexFile index = new(Prefixes: prefixes);
         string contents = JsonSerializer.Serialize(index, s_jsonOptions);
-        _fileNamesAndContent[indexPath] = contents;
+        FileNamesAndContent[indexPath] = contents;
     }
 
-    private void CreateCodeListFiles(CodeList codeList, string codeListFolderPath, string versionPrefix)
+    internal void CreateCodeListFiles(CodeList codeList, string codeListFolderPath, string versionPrefix)
     {
-        string version = CombineWithDelimiter(versionPrefix, JsonFileName(_currentVersion));
+        string version = CombineWithDelimiter(versionPrefix, JsonFileName(CurrentVersion));
         SharedCodeList codeListContents = new(
             Codes: codeList.Codes,
             Version: version,
@@ -213,18 +213,18 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         );
         string contentsString = JsonSerializer.Serialize(codeListContents, s_jsonOptions);
 
-        string codeListFileName = JsonFileName(_currentVersion);
+        string codeListFileName = JsonFileName(CurrentVersion);
         string codeListFilePath = CombineWithDelimiter(codeListFolderPath, codeListFileName);
-        _fileNamesAndContent[codeListFilePath] = contentsString;
+        FileNamesAndContent[codeListFilePath] = contentsString;
 
         string latestCodeListFilePath = CombineWithDelimiter(codeListFolderPath, LatestCodeListFileName);
-        _fileNamesAndContent[latestCodeListFilePath] = contentsString;
+        FileNamesAndContent[latestCodeListFilePath] = contentsString;
     }
 
     private async Task UploadFiles(CancellationToken cancellationToken = default)
     {
         ParallelOptions options = new() { MaxDegreeOfParallelism = 10, CancellationToken = cancellationToken };
-        await Parallel.ForEachAsync(_fileNamesAndContent, options, async (fileNameAndContent, token) =>
+        await Parallel.ForEachAsync(FileNamesAndContent, options, async (fileNameAndContent, token) =>
         {
             string relativePath = fileNameAndContent.Key;
             string text = fileNameAndContent.Value;
@@ -236,15 +236,15 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
     /// Combines with forward slash delimiter, no trailing slash.
     /// </summary>
     /// <param name="segments">Segments to join</param>
-    private static string CombineWithDelimiter(params string?[] segments)
+    internal static string CombineWithDelimiter(params string?[] segments)
     {
         IEnumerable<string?> nonNulls = segments.Where(segment => string.IsNullOrWhiteSpace(segment) is false);
         return string.Join('/', nonNulls.Select(segment => segment?.Trim('/')));
     }
 
-    private static string JsonFileName(string filename) => $"{filename}.json";
+    internal static string JsonFileName(string filename) => $"{filename}.json";
 
-    private void SetCurrentVersion(List<string> versionPrefixes)
+    internal void SetCurrentVersion(List<string> versionPrefixes)
     {
         IEnumerable<string?> versionsAsString = versionPrefixes.Select(Path.GetFileNameWithoutExtension);
         List<int> versions = [];
@@ -266,7 +266,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         if (versions.Count == 0) { return; }
 
         int version = versions.Max();
-        _currentVersion = (version + 1).ToString();
+        CurrentVersion = (version + 1).ToString();
     }
 
     private async Task<string?> ReadFileByRelativePathAsync(string relativeFilePath, CancellationToken cancellationToken = default)
@@ -329,7 +329,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         }
     }
 
-    private void ValidatePathIsSubPath(string path)
+    internal void ValidatePathIsSubPath(string path)
     {
         string fullBasePath = Path.GetFullPath(_basePath);
         string normalizedFilePath = Path.GetFullPath(path);
