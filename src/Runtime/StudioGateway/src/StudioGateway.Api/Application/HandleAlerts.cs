@@ -1,6 +1,6 @@
 using StudioGateway.Api.Clients.AlertsClient;
 using StudioGateway.Api.Clients.AlertsClient.Contracts;
-using StudioGateway.Api.Clients.StudioClient;
+using StudioGateway.Api.Clients.Designer;
 using StudioGateway.Api.Settings;
 using StudioGateway.Contracts.Alerts;
 

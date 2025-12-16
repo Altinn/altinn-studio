@@ -1,5 +1,4 @@
 using StudioGateway.Api.Authentication;
-using StudioGateway.Api.Clients.StudioClient;
 
 namespace StudioGateway.Api.Clients.Designer;
 

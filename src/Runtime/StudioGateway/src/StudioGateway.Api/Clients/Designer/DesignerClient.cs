@@ -1,6 +1,6 @@
 using StudioGateway.Api.Settings;
 
-namespace StudioGateway.Api.Clients.StudioClient;
+namespace StudioGateway.Api.Clients.Designer;
 
 internal sealed class DesignerClient(IHttpClientFactory httpClientFactory, GatewayContext gatewayContext)
 {
