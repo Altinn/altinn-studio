@@ -1,5 +1,7 @@
+import type { MetricApp } from './MetricApp';
+
 export type Metric = {
   name: string;
-  appName: string;
-  count: number;
+  operationNames: string[];
+  apps: MetricApp[];
 };

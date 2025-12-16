@@ -47,3 +47,81 @@ export const grafanaPodLogsUrl = ({
 
   return `${baseDomain}${path}?${queryParams}`;
 };
+
+export const getApplicationInsightsTransactionUrl = ({
+  subscriptionId,
+  org,
+  env,
+  appName,
+  operationNames,
+  range,
+}: {
+  subscriptionId: string;
+  org: string;
+  env: string;
+  appName: string;
+  operationNames: string[];
+  range: number;
+}) => {
+  const logsQuery = {
+    tables: ['requests'],
+    timeContextWhereClause: `| where timestamp >= ago(${range}m)")`,
+    filterWhereClause: `| where success == false | where client_Type != 'Browser' | where toint(resultCode) >= 500 | where cloud_RoleName == ${appName} | where operation_Name in ("${operationNames.join('","')}") | order by timestamp desc`,
+    originalParams: {
+      eventTypes: [{ value: 'request', tableName: 'requests', label: 'Request' }],
+      timeContext: { durationMs: range * 60 * 1000 },
+      filter: [
+        {
+          dimension: {
+            displayName: 'Successful request',
+            tables: ['requests'],
+            name: 'request/success',
+            draftKey: 'request/success',
+          },
+          values: ['False'],
+          operator: { label: '=', value: '==', isSelected: true },
+        },
+        {
+          dimension: {
+            displayName: 'Request Response code',
+            tables: ['requests'],
+            name: 'request/resultCode',
+            draftKey: 'request/resultCode',
+          },
+          values: ['500'],
+          operator: { label: '>=', value: '>=', isSelected: true },
+        },
+        {
+          dimension: {
+            displayName: 'Cloud role name',
+            tables: ['requests'],
+            name: 'cloud/roleName',
+            draftKey: 'cloud/roleName',
+          },
+          values: [appName],
+          operator: { label: '=', value: '==', isSelected: true },
+        },
+        {
+          dimension: {
+            displayName: 'Operation name',
+            tables: ['requests'],
+            name: 'operation/name',
+            draftKey: 'operation/name',
+          },
+          values: operationNames,
+          operator: { label: '=', value: '==', isSelected: true },
+        },
+      ],
+      searchPhrase: { originalPhrase: '', _tokens: [] },
+      sort: 'desc',
+    },
+  };
+
+  const encodedApplicationInsightsId = encodeURIComponent(
+    `/subscriptions/${subscriptionId}/resourceGroups/monitor-${org}-${env}-rg/providers/Microsoft.Insights/components/${org}-${env}-ai`,
+  );
+  const encodedLogsQuery = encodeURIComponent(JSON.stringify(logsQuery));
+  const url = `https://portal.azure.com/#blade/AppInsightsExtension/BladeRedirect/BladeName/searchV1/ResourceId/${encodedApplicationInsightsId}/BladeInputs/${encodedLogsQuery}`;
+
+  return url;
+};

@@ -11,7 +11,7 @@ public interface IRuntimeGatewayClient
 {
     Task<bool> IsAppDeployedWithGitOpsAsync(string org, string app, AltinnEnvironment environment, CancellationToken cancellationToken);
     Task<IEnumerable<AlertRule>> GetAlertRulesAsync(string org, AltinnEnvironment environment, CancellationToken cancellationToken);
-    Task<IEnumerable<Metric>> GetMetricsAsync(string org, AltinnEnvironment environment, int range, CancellationToken cancellationToken);
+    Task<MetricsResponse> GetMetricsAsync(string org, AltinnEnvironment environment, int range, CancellationToken cancellationToken);
     Task<IEnumerable<AppMetric>> GetAppMetricsAsync(string org, AltinnEnvironment environment, string app, int range, CancellationToken cancellationToken);
     Task<IEnumerable<AppHealthMetric>> GetAppHealthMetricsAsync(string org, AltinnEnvironment environment, string app, CancellationToken cancellationToken);
 }

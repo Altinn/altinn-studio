@@ -10,12 +10,14 @@ import {
   StudioAlert,
   StudioLink,
 } from '@studio/components';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import { useMetricsQuery } from 'admin/hooks/queries/useMetricsQuery';
 import { TimeRangeSelect } from 'admin/shared/TimeRangeSelect';
+import { toast } from 'react-toastify';
+import { getApplicationInsightsTransactionUrl } from 'app-shared/ext-urls';
 
 type AppsTableProps = {
   org: string;
@@ -98,15 +100,13 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
     hideDefaultError: true,
   });
 
-  const renderAlertsHeader = () => {
+  useEffect(() => {
     if (metricsIsError) {
-      return (
-        <StudioError className={classes.metricsError} data-size='small'>
-          {t('admin.alerts.error')}
-        </StudioError>
-      );
+      toast.error(t('admin.alerts.error'));
     }
+  }, [metricsIsError, t]);
 
+  const renderAlertsHeader = () => {
     return (
       <>
         {metricsIsPending && (
@@ -143,7 +143,17 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
           {runningApps[env]
             .filter((app) => !search || app.app.toLowerCase().includes(search.toLowerCase()))
             .map((app) => {
-              const appMetrics = metrics?.filter((metric) => metric.appName === app.app);
+              var appMetrics = metrics?.metrics
+                .map((metric) => {
+                  var appMetric = metric.apps.find((mApp) => mApp.appName === app.app);
+                  return {
+                    name: metric.name,
+                    operationNames: metric.operationNames,
+                    count: appMetric?.count || 0,
+                  };
+                })
+                .filter((m) => m.count > 0);
+
               return {
                 ...app,
                 metrics: appMetrics,
@@ -177,7 +187,14 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
                             {t(`admin.alerts.${metric.name}`, { count: metric.count })}
                           </span>
                           <StudioLink
-                            href={'metric.url'}
+                            href={getApplicationInsightsTransactionUrl({
+                              subscriptionId: metrics?.subscriptionId!,
+                              org: org,
+                              env: env,
+                              appName: app.app,
+                              operationNames: metric.operationNames,
+                              range: range!,
+                            })}
                             rel='noopener noreferrer'
                             target='_blank'
                             className={classes.metricLink}

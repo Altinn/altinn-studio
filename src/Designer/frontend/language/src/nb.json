@@ -1,7 +1,7 @@
 {
   "admin.alerts.failed_process_next_requests": "{{count}} feilende process/next",
   "admin.alerts.failed_instances_requests": "{{count}} feilende instansieringer",
-  "admin.alerts.link": "Se logger i Grafana her",
+  "admin.alerts.link": "Se logger her",
   "admin.alerts.error": "Kunne ikke hente varsler. Prøv igjen senere.",
   "admin.alerts.pending": "Laster inn varsler...",
   "admin.apps.name": "Navn",

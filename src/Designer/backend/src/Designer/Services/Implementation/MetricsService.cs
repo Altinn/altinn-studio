@@ -13,7 +13,7 @@ internal sealed class MetricsService(
     ) : IMetricsService
 {
     /// <inheritdoc />
-    public async Task<IEnumerable<Metric>> GetMetricsAsync(
+    public async Task<MetricsResponse> GetMetricsAsync(
         string org,
         AltinnEnvironment environment,
         int range,

@@ -50,7 +50,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Metric>> GetMetricsAsync(
+    public async Task<MetricsResponse> GetMetricsAsync(
         string org,
         AltinnEnvironment environment,
         int range,
@@ -61,7 +61,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         string baseUrl = GetGatewayUrl(org, environment);
         string requestUrl = $"{baseUrl}/metrics?range={range}";
 
-        return await client.GetFromJsonAsync<List<Metric>>(requestUrl, cancellationToken) ?? [];
+        return await client.GetFromJsonAsync<MetricsResponse>(requestUrl, cancellationToken) ?? new MetricsResponse { SubscriptionId = "", Metrics = [] };
     }
 
     /// <inheritdoc />

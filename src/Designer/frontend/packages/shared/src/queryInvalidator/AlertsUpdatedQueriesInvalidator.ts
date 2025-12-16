@@ -30,7 +30,7 @@ export class AlertsUpdatedQueriesInvalidator extends Queue {
   }
 
   public invalidateQueries(environment: string): void {
-    const queryKey = [QueryKey.Alerts, this._org, environment];
+    const queryKey = [QueryKey.Metrics, this._org, environment];
     this.addTaskToQueue({
       id: queryKey.join('-'),
       callback: () => {

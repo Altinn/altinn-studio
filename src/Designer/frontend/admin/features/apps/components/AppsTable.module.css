@@ -2,12 +2,6 @@
   max-width: 400px;
 }
 
-.metricsError {
-  display: inline-flex;
-  padding-block-start: var(--ds-size-3);
-  padding-block-end: var(--ds-size-3);
-}
-
 .metricsHeaderCell {
   display: flex;
   justify-content: end;

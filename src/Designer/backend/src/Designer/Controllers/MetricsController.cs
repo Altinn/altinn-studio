@@ -18,7 +18,7 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     private readonly IMetricsService _metricsService = metricsService;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<AppMetric>>> GetMetrics(
+    public async Task<ActionResult<MetricsResponse>> GetMetrics(
         string org,
         string env,
         int range,
@@ -26,7 +26,7 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        IEnumerable<Metric> metrics = await _metricsService.GetMetricsAsync(org, environment, range, cancellationToken);
+        MetricsResponse metrics = await _metricsService.GetMetricsAsync(org, environment, range, cancellationToken);
         return Ok(metrics);
     }
 

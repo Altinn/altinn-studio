@@ -8,7 +8,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IMetricsService
 {
-    public Task<IEnumerable<Metric>> GetMetricsAsync(
+    public Task<MetricsResponse> GetMetricsAsync(
         string org,
         AltinnEnvironment environment,
         int range,
