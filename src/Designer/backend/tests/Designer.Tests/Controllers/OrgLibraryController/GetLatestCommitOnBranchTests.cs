@@ -2,11 +2,13 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -23,6 +25,7 @@ public class GetLatestCommitOnBranchTests(WebApplicationFactory<Program> factory
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
+        services.AddSingleton<IGiteaClient, IGiteaClientMock>();
         services.AddSingleton(_ => _userOrganizationServiceMock.Object);
         services.AddSingleton(_ => _orgLibraryServiceMock.Object);
     }
