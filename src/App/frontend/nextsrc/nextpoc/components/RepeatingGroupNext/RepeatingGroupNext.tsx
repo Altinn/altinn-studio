@@ -40,7 +40,7 @@ export const RepeatingGroupNext: React.FC<RepeatingGroupNextType> = ({ component
   const rowVirtualizer = useVirtualizer({
     count: groupArray.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 150, // just a rough estimate
+    estimateSize: () => 9000, // just a rough estimate
     overscan: 2,
     measureElement: (element, _, __) => element.getBoundingClientRect().height,
   });
@@ -64,7 +64,7 @@ export const RepeatingGroupNext: React.FC<RepeatingGroupNextType> = ({ component
     );
   }
 
-  if (groupArray.length < 100) {
+  if (groupArray.length < 500) {
     return (
       <div style={{ border: '1px solid green' }}>
         <h1>actualBinding {actualBinding}</h1>

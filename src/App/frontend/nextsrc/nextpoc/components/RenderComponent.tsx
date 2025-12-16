@@ -2,6 +2,7 @@ import React, { memo, useState } from 'react';
 
 import { areEqualIgnoringOrder } from 'nextsrc/nextpoc/app/utils/arrayCompare';
 import { CheckboxesNext } from 'nextsrc/nextpoc/components/CheckboxesNext/CheckboxesNext';
+import { InputNext } from 'nextsrc/nextpoc/components/InputNext';
 import { Navbar } from 'nextsrc/nextpoc/components/navbar/Navbar';
 import { RadioButtonsNext } from 'nextsrc/nextpoc/components/RadioButtonsNext/RadioButtonsNext';
 import { RepeatingGroupNext } from 'nextsrc/nextpoc/components/RepeatingGroupNext/RepeatingGroupNext';
@@ -115,6 +116,15 @@ export const RenderComponent = memo(function RenderComponentMemo({
 
   if (isHidden) {
     return <div>Im hidden!</div>;
+  }
+
+  if (component.type === 'Input') {
+    return (
+      <InputNext
+        component={component}
+        commonProps={commonProps}
+      />
+    );
   }
 
   if (component.type === 'RepeatingGroup') {
