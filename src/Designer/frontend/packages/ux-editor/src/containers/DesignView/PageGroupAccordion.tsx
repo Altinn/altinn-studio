@@ -107,15 +107,15 @@ export const PageGroupAccordion = ({
     const groupDisplayName = pageGroupDisplayName(group);
     const { type, id } = selectedItem ?? {};
     const selectedPageId = type === ItemType.Page ? id : undefined;
-    const isClose = selectedItemOverride === null;
+    const isExplicitDeselect = selectedItemOverride === null;
     const overriddenPageId =
       selectedItemOverride && selectedItemOverride.type === ItemType.Page
         ? selectedItemOverride.id
         : undefined;
 
     const isGroupOrPageSelected =
-      (type === ItemType.Group && id === groupIndex) ||
-      (!isClose &&
+      (!isExplicitDeselect && type === ItemType.Group && id === groupIndex) ||
+      (!isExplicitDeselect &&
         group.order.some(
           (page) => page.id === (overriddenPageId ?? selectedFormLayoutName ?? selectedPageId),
         ));
@@ -175,7 +175,8 @@ export const PageGroupAccordion = ({
           const layout = layouts?.[page.id];
           const isInvalidLayout = layout ? duplicatedIdsExistsInLayout(layout) : false;
           const isPageOpen =
-            !isClose && page.id === (overriddenPageId ?? selectedFormLayoutName ?? selectedPageId);
+            !isExplicitDeselect &&
+            page.id === (overriddenPageId ?? selectedFormLayoutName ?? selectedPageId);
 
           return (
             <Accordion key={page.id} className={classes.groupPageAccordionWrapper}>

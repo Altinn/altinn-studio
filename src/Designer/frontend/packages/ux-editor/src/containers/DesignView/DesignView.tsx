@@ -87,14 +87,15 @@ const DesignViewLoadedContent = ({
   );
 
   const selectedPageId = selectedItem?.type === ItemType.Page ? selectedItem.id : undefined;
-  const isClose = selectedItemOverride === null;
+  const isExplicitDeselect = selectedItemOverride === null;
   const overriddenPageId =
     selectedItemOverride && selectedItemOverride.type === ItemType.Page
       ? selectedItemOverride.id
       : undefined;
 
   const handleClickAccordion = (pageName: string) => {
-    const isCurrentlyOpen = !isClose && pageName === (overriddenPageId ?? selectedFormLayoutName);
+    const isCurrentlyOpen =
+      !isExplicitDeselect && pageName === (overriddenPageId ?? selectedFormLayoutName);
 
     if (!isCurrentlyOpen) {
       setSelectedFormLayoutName(pageName);
@@ -148,7 +149,8 @@ const DesignViewLoadedContent = ({
       // Check if the layout has unique component IDs
       const isInvalidLayout = duplicatedIdsExistsInLayout(layout);
       const isPageOpen =
-        !isClose && pageModel.id === (overriddenPageId ?? selectedFormLayoutName ?? selectedPageId);
+        !isExplicitDeselect &&
+        pageModel.id === (overriddenPageId ?? selectedFormLayoutName ?? selectedPageId);
 
       return (
         <PageAccordion
