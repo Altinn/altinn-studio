@@ -131,6 +131,17 @@ describe('WithHoverAddButton', () => {
     const rootElement = screen.getByTestId('with-hover-add-button-root');
     expect(rootElement).not.toHaveClass('lastChild');
   });
+
+  it('should handle null parentContainer when containerId is falsy', () => {
+    const layout = createLayoutWithContainer(repeatingGroupId, 'RepeatingGroup');
+    renderWithHoverAddButton({
+      layout,
+      containerId: '',
+      isLastChild: true,
+    });
+    const rootElement = screen.getByTestId('with-hover-add-button-root');
+    expect(rootElement).not.toHaveClass('lastChild');
+  });
 });
 
 function renderWithHoverAddButton(
