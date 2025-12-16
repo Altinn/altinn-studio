@@ -1,15 +1,23 @@
 using Azure;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
+using Azure.ResourceManager;
+using Azure.ResourceManager.OperationalInsights;
+using Azure.ResourceManager.Resources;
 using StudioGateway.Api.Clients.MetricsClient.Contracts;
 using StudioGateway.Api.Settings;
 using StudioGateway.Contracts.Metrics;
 
 namespace StudioGateway.Api.Clients.MetricsClient;
 
-internal sealed class AzureMonitorClient(MetricsClientSettings metricsClientSettings, LogsQueryClient logsQueryClient)
-    : IMetricsClient
+internal sealed class AzureMonitorClient(
+    GatewayContext gatewayContext,
+    ArmClient armClient,
+    LogsQueryClient logsQueryClient
+) : IMetricsClient
 {
+    private string? _workspaceId;
+
     private const int MaxRange = 10080;
 
     private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
@@ -32,12 +40,34 @@ internal sealed class AzureMonitorClient(MetricsClientSettings metricsClientSett
         },
     };
 
+    private async Task<string> GetApplicationLogAnalyticsWorkspaceIdAsync()
+    {
+        if (_workspaceId != null)
+            return _workspaceId;
+
+        string resourceGroupName = $"monitor-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-rg";
+        string workspaceName = $"application-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-law";
+
+        var subscription = armClient.GetSubscriptionResource(
+            SubscriptionResource.CreateResourceIdentifier(gatewayContext.AzureSubscriptionId)
+        );
+        var rg = await subscription.GetResourceGroups().GetAsync(resourceGroupName);
+        var workspace = await rg.Value.GetOperationalInsightsWorkspaces().GetAsync(workspaceName);
+
+        _workspaceId =
+            workspace.Value.Data.CustomerId?.ToString() ?? throw new InvalidOperationException(
+                "Log Analytics Workspace ID not found."
+            );
+
+        return _workspaceId;
+    }
+
     /// <inheritdoc />
     public async Task<IEnumerable<AzureMonitorMetric>> GetMetricsAsync(int range, CancellationToken cancellationToken)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
-        string logAnalyticsWorkspaceId = metricsClientSettings.ApplicationLogAnalyticsWorkspaceId;
+        var logAnalyticsWorkspaceId = await GetApplicationLogAnalyticsWorkspaceIdAsync();
 
         var query =
             $@"
@@ -46,7 +76,7 @@ internal sealed class AzureMonitorClient(MetricsClientSettings metricsClientSett
                 | where ClientType != 'Browser'
                 | where toint(ResultCode) >= 500
                 | where OperationName in ('{_operationNames.Values.SelectMany(value => value).Aggregate((a, b) => a + "','" + b)}')
-                | summarize Count = sum(ItemCount) by AppRoleName, OperationName";
+                | summarize Count = count() by AppRoleName, OperationName";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
             logAnalyticsWorkspaceId,
@@ -65,12 +95,12 @@ internal sealed class AzureMonitorClient(MetricsClientSettings metricsClientSett
                     Count = row.GetDouble("Count") ?? 0,
                 };
             })
-            .GroupBy(row => new { row.AppName, row.Name })
-            .Select(row => new AzureMonitorMetric
+            .GroupBy(m => m.Name)
+            .Select(g => new AzureMonitorMetric
             {
-                AppName = row.Key.AppName,
-                Name = row.Key.Name,
-                Count = row.Sum(value => value.Count),
+                Name = g.Key,
+                OperationNames = _operationNames[g.Key],
+                Apps = g.Select(a => new AzureMonitorMetricApp { AppName = a.AppName, Count = a.Count }),
             });
     }
 
@@ -83,7 +113,7 @@ internal sealed class AzureMonitorClient(MetricsClientSettings metricsClientSett
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
-        string logAnalyticsWorkspaceId = metricsClientSettings.ApplicationLogAnalyticsWorkspaceId;
+        var logAnalyticsWorkspaceId = await GetApplicationLogAnalyticsWorkspaceIdAsync();
 
         var interval = range < 360 ? "5m" : "1h";
 
@@ -175,7 +205,7 @@ internal sealed class AzureMonitorClient(MetricsClientSettings metricsClientSett
                 | where toint(ResultCode) >= 500
                 | where AppRoleName == '{app.Replace("'", "''")}'
                 | where OperationName in ('{_operationNames.Values.SelectMany(value => value).Aggregate((a, b) => a + "','" + b)}')
-                | summarize Count = sum(ItemCount) by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
+                | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(

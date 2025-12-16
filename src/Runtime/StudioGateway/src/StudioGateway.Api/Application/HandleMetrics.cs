@@ -9,6 +9,7 @@ namespace StudioGateway.Api.Application;
 internal static class HandleMetrics
 {
     internal static async Task<IResult> GetMetricsAsync(
+        GatewayContext gatewayContext,
         IServiceProvider serviceProvider,
         MetricsClientSettings metricsClientSettings,
         int range,
@@ -25,12 +26,18 @@ internal static class HandleMetrics
             return new Metric
             {
                 Name = metric.Name,
-                AppName = metric.AppName,
-                Count = metric.Count,
+                OperationNames = metric.OperationNames,
+                Apps = metric.Apps.Select(appMetric => new MetricApp
+                {
+                    AppName = appMetric.AppName,
+                    Count = appMetric.Count,
+                }),
             };
         });
 
-        return Results.Ok(metrics);
+        return Results.Ok(
+            new MetricsResponse { SubscriptionId = gatewayContext.AzureSubscriptionId, Metrics = metrics }
+        );
     }
 
     internal static async Task<IResult> GetAppMetricsAsync(

@@ -1,6 +1,8 @@
 using System.Net.Http.Headers;
+using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.Query;
+using Azure.ResourceManager;
 using k8s;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -10,7 +12,6 @@ using StudioGateway.Api.Clients.AlertsClient;
 using StudioGateway.Api.Clients.Designer;
 using StudioGateway.Api.Clients.K8s;
 using StudioGateway.Api.Clients.MetricsClient;
-using StudioGateway.Api.Clients.StudioClient;
 using StudioGateway.Api.Endpoints.Internal;
 using StudioGateway.Api.Endpoints.Local;
 using StudioGateway.Api.Endpoints.Public;
@@ -24,7 +25,17 @@ builder.Services.Configure<MetricsClientSettings>(builder.Configuration.GetSecti
 builder.Services.Configure<GrafanaSettings>(builder.Configuration.GetSection("Grafana"));
 builder.Services.Configure<GatewayContext>(builder.Configuration.GetSection("Gateway"));
 
-builder.Services.AddSingleton(new LogsQueryClient(new DefaultAzureCredential()));
+builder.Services.AddSingleton<TokenCredential, DefaultAzureCredential>();
+builder.Services.AddSingleton(sp =>
+{
+    var credential = sp.GetRequiredService<TokenCredential>();
+    return new LogsQueryClient(credential);
+});
+builder.Services.AddSingleton(sp =>
+{
+    var credential = sp.GetRequiredService<TokenCredential>();
+    return new ArmClient(credential);
+});
 
 builder.Configuration.AddJsonFile(
     "/app/secrets/maskinporten-client-for-designer.json",

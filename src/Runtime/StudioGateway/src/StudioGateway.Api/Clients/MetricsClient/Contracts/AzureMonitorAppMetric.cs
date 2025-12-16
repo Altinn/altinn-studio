@@ -7,9 +7,8 @@ namespace StudioGateway.Api.Clients.MetricsClient.Contracts;
     "CA1515:AvoidUninstantiatedPublicTypes",
     Justification = "Exposed externally"
 )]
-public class AzureMonitorMetric
+public class AzureMonitorMetricApp
 {
-    public required string Name { get; set; }
-    public required IEnumerable<string> OperationNames { get; set; }
-    public required IEnumerable<AzureMonitorMetricApp> Apps { get; set; }
+    public required string AppName { get; set; }
+    public required double Count { get; set; }
 }
