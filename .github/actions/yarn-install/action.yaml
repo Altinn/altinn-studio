@@ -13,6 +13,7 @@ runs:
       with:
         cache: 'yarn'
         cache-dependency-path: ${{ inputs.working-directory }}/yarn.lock
+        node-version: '22'
 
     - name: "Getting yarn cache directory path"
       id: yarn-cache-dir-path

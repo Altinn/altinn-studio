@@ -26,6 +26,15 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
     private const string JsonExtension = ".json";
 
     /// <inheritdoc />
+    public async Task<string> GetLatestCommitOnBranch(string org, string branchName = General.DefaultBranch, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string repository = GetStaticContentRepo(org);
+        return await giteaClient.GetLatestCommitOnBranch(org, repository, branchName, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<GetSharedResourcesResponse> GetSharedResourcesByPath(string org, string? path = null, string? reference = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

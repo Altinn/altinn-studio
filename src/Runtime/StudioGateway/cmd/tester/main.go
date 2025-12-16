@@ -147,8 +147,9 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*harness.Result, er
 		ProjectRoot: root,
 		Variant:     variant,
 		ClusterOptions: kind.KindContainerRuntimeOptions{
-			IncludeMonitoring: false,
-			IncludeTestserver: false,
+			IncludeMonitoring:                 false,
+			IncludeTestserver:                 false,
+			IncludeFluxNotificationController: true,
 		},
 		Images: []harness.Image{
 			{
@@ -166,7 +167,8 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*harness.Result, er
 		},
 		Deployments: []harness.Deployment{
 			{
-				Name: "studio-gateway",
+				Name:           "studio-gateway",
+				WaitForIngress: true, // depends on Traefik CRDs (IngressRoute)
 				Kustomize: &harness.KustomizeDeploy{
 					SyncRootDir:       "infra/kustomize/local-syncroot",
 					KustomizationName: "studio-gateway",
@@ -183,7 +185,7 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*harness.Result, er
 		},
 	}
 
-	return harness.Run(cfg)
+	return harness.RunAsync(cfg, harness.AsyncOptions{})
 }
 
 // Helpers
