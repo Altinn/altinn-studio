@@ -109,7 +109,7 @@ describe('CreateBranchDialog', () => {
     expect(queriesMock.createBranch).toHaveBeenCalledWith(org, app, 'new-branch');
   });
 
-  it('should display UncommitedChangesDialog when there are uncommited changes', async () => {
+  it('should display UncommittedChangesDialog when there are uncommitted changes', async () => {
     const user = userEvent.setup();
 
     const uncommittedChangesError = {
