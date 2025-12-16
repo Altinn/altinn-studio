@@ -11,14 +11,14 @@ services:
       args:
         NGINX_VERSION: 1.25.3
       cache_from:
-        - ghcr.io/altinn/altinn-studio/localtest-loadbalancer-cache:latest
+        - ${USE_REGISTRY_CACHE:-type=inline}${USE_REGISTRY_CACHE:+type:registry,ref=ghcr.io/altinn/altinn-studio/localtest-loadbalancer-cache:latest}
       cache_to:
-        - ghcr.io/altinn/altinn-studio/localtest-loadbalancer-cache:latest
+        - ${USE_REGISTRY_CACHE:-type=inline}${USE_REGISTRY_CACHE:+type:registry,ref=ghcr.io/altinn/altinn-studio/localtest-loadbalancer-cache:latest}
     restart: always
     networks:
       - altinntestlocal_network
     ports:
-      - "${ALTINN3LOCAL_PORT:-80}:80"
+      - '${ALTINN3LOCAL_PORT:-80}:80'
     environment:
       - NGINX_HOST=localhost
       - NGINX_PORT=80
@@ -29,7 +29,7 @@ services:
       - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
       - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
     volumes:
       - ./loadbalancer/templates:/etc/nginx/templates/:ro
       - ./loadbalancer/www:/www/:ro
@@ -41,21 +41,21 @@ services:
       context: ../pdf3
       dockerfile: Dockerfile.worker
       cache_from:
-        - ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest
+        - ${USE_REGISTRY_CACHE:-type=inline}${USE_REGISTRY_CACHE:+type:registry,ref=ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest}
       cache_to:
-        - ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest
+        - ${USE_REGISTRY_CACHE:-type=inline}${USE_REGISTRY_CACHE:+type:registry,ref=ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest}
     restart: always
     networks:
       - altinntestlocal_network
     ports:
-      - "5300:5031"
+      - '5300:5031'
     environment:
       - TZ=Europe/Oslo
       - PDF3_ENVIRONMENT=localtest
       - PDF3_QUEUE_SIZE=3
     extra_hosts:
-      - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
-      - "host.containers.internal:host-gateway"
+      - '${TEST_DOMAIN:-local.altinn.cloud}:host-gateway'
+      - 'host.containers.internal:host-gateway'
 
   altinn_localtest:
     container_name: localtest
@@ -64,13 +64,13 @@ services:
     networks:
       - altinntestlocal_network
     ports:
-      - "5101:5101"
+      - '5101:5101'
     build:
       context: .
       cache_from:
-        - ghcr.io/altinn/altinn-studio/localtest-main-cache:latest
+        - ${USE_REGISTRY_CACHE:-type=inline}${USE_REGISTRY_CACHE:+type:registry,ref=ghcr.io/altinn/altinn-studio/localtest-main-cache:latest}
       cache_to:
-        - ghcr.io/altinn/altinn-studio/localtest-main-cache:latest
+        - ${USE_REGISTRY_CACHE:-type=inline}${USE_REGISTRY_CACHE:+type:registry,ref=ghcr.io/altinn/altinn-studio/localtest-main-cache:latest}
     environment:
       - DOTNET_ENVIRONMENT=Docker
       - GeneralSettings__BaseUrl=http://${TEST_DOMAIN:-local.altinn.cloud}:${ALTINN3LOCAL_PORT:-80}
@@ -79,7 +79,7 @@ services:
       - ./testdata:/testdata
       - ${ALTINN3LOCALSTORAGE_PATH:-AltinnPlatformLocal}:/AltinnPlatformLocal
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
 
   monitoring_otel_collector:
     container_name: monitoring_otel_collector
@@ -92,8 +92,8 @@ services:
     volumes:
       - ./infra/otel-collector.yaml:/etc/otel-collector.yaml
     ports:
-      - "4317:4317"   # OTLP gRPC receiver
-    profiles: ["monitoring"]
+      - '4317:4317' # OTLP gRPC receiver
+    profiles: ['monitoring']
     depends_on:
       - monitoring_mimir
       - monitoring_tempo
@@ -110,7 +110,7 @@ services:
       - -log.level=error
     volumes:
       - ./infra/tempo.yaml:/etc/tempo.yaml
-    profiles: ["monitoring"]
+    profiles: ['monitoring']
 
   monitoring_mimir:
     container_name: monitoring_mimir
@@ -124,7 +124,7 @@ services:
       - -log.level=error
     volumes:
       - ./infra/mimir.yaml:/etc/mimir.yaml
-    profiles: ["monitoring"]
+    profiles: ['monitoring']
 
   monitoring_loki:
     container_name: monitoring_loki
@@ -138,7 +138,7 @@ services:
       - -log.level=error
     volumes:
       - ./infra/loki.yaml:/etc/loki.yaml
-    profiles: ["monitoring"]
+    profiles: ['monitoring']
 
   monitoring_grafana:
     container_name: monitoring_grafana
@@ -160,8 +160,8 @@ services:
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
       - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s:%(http_port)s/grafana/
     extra_hosts:
-      - "host.docker.internal:host-gateway"
-    profiles: ["monitoring"]
+      - 'host.docker.internal:host-gateway'
+    profiles: ['monitoring']
     depends_on:
       - monitoring_otel_collector
       - monitoring_mimir
@@ -170,20 +170,20 @@ services:
 
   altinn_test_apps:
     container_name: altinn-test-apps
-    profiles: ["test-apps"]
+    profiles: ['test-apps']
     build:
       context: ../../..
       dockerfile: src/test/apps/Dockerfile
       cache_from:
-        - ghcr.io/altinn/altinn-studio/localtest-test-apps-cache:latest
+        - ${USE_REGISTRY_CACHE:-type=inline}${USE_REGISTRY_CACHE:+type:registry,ref=ghcr.io/altinn/altinn-studio/localtest-test-apps-cache:latest}
       cache_to:
-        - ghcr.io/altinn/altinn-studio/localtest-test-apps-cache:latest
+        - ${USE_REGISTRY_CACHE:-type=inline}${USE_REGISTRY_CACHE:+type:registry,ref=ghcr.io/altinn/altinn-studio/localtest-test-apps-cache:latest}
     restart: always
     networks:
       - altinntestlocal_network
     extra_hosts:
-      - "host.docker.internal:host-gateway"
-      - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
+      - 'host.docker.internal:host-gateway'
+      - '${TEST_DOMAIN:-local.altinn.cloud}:host-gateway'
     environment:
       - TZ=Europe/Oslo
       - ASPNETCORE_ENVIRONMENT=Development
