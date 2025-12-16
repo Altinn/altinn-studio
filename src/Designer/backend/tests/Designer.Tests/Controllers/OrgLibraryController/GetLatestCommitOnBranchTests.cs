@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Designer.Tests.Controllers.ApiTests;
@@ -48,8 +49,8 @@ public class GetLatestCommitOnBranchTests(WebApplicationFactory<Program> factory
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        string latestCommit = await response.Content.ReadAsAsync<string>();
-        Assert.Equal(expectedCommitId, latestCommit);
+        LatestCommitShaResponse latestCommit = await response.Content.ReadAsAsync<LatestCommitShaResponse>();
+        Assert.Equal(expectedCommitId, latestCommit.LatestCommitSha);
         _orgLibraryServiceMock.VerifyAll();
         _userOrganizationServiceMock.VerifyAll();
     }
