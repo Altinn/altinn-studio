@@ -19,5 +19,5 @@ export const appContextMock: AppContextProps = {
   onLayoutSetNameChange: jest.fn(),
   selectedItem: null,
   setSelectedItem: jest.fn(),
-  selectedItemOverride: null,
+  selectedItemOverride: undefined,
 };
