@@ -45,14 +45,15 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [Route("latest-commit")]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult> GetLatestCommitOnBranch(string org, [FromQuery] string branchName = General.DefaultBranch, CancellationToken cancellationToken = default)
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<string>> GetLatestCommitOnBranch(string org, [FromQuery] string branchName = General.DefaultBranch, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         try
         {
             string latestCommit = await orgLibraryService.GetLatestCommitOnBranch(org, branchName, cancellationToken);
-            return Ok(new { CommitId = latestCommit });
+            return Ok(latestCommit);
         }
         catch (Exception ex)
         {
