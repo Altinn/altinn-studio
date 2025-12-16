@@ -8,7 +8,7 @@ import {
   StudioError,
   StudioTabs,
 } from '@studio/components';
-import type { ReactNode } from 'react';
+import type { PropsWithChildren } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
@@ -71,41 +71,46 @@ const InstanceDataViewWithData = ({
            */}
       </StudioTabs.List>
       <StudioTabs.Panel value={InstanceDataViewTabs.Info}>
-        <LabelValue label={t('Instans ID')} value={instance.id} />
+        <LabelValue label={t('Instans ID')}>{instance.id}</LabelValue>
         {(instance.currentTaskName || instance.currentTaskId) && (
-          <LabelValue
-            label={t('Prosessteg')}
-            value={instance.currentTaskName ?? instance.currentTaskId}
-          />
+          <LabelValue label={t('Prosessteg')}>
+            {instance.currentTaskName ?? instance.currentTaskId}
+          </LabelValue>
         )}
-        <LabelValue label={t('Status')} value={<InstanceStatus instance={instance} />} />
-        <LabelValue label={t('Opprettet')} value={formatDateAndTime(instance.createdAt)} />
-        <LabelValue label={t('Sist endret')} value={formatDateAndTime(instance.lastChangedAt)} />
-
-        <br />
-        <strong>Dataelementer:</strong>
-        {instance.data?.map((dataElement) => (
-          <StudioDetails key={dataElement.id}>
-            <StudioDetails.Summary>
-              {dataElement.id} <StudioTag>{dataElement.dataType}</StudioTag>
-            </StudioDetails.Summary>
-            <StudioDetails.Content>
-              <LabelValue label={t('Data element ID')} value={dataElement.id} />
-              <LabelValue label={t('Data type')} value={dataElement.dataType} />
-              <LabelValue label={t('Opprettet')} value={formatDateAndTime(dataElement.createdAt)} />
-              <LabelValue
-                label={t('Sist endret')}
-                value={formatDateAndTime(dataElement.lastChangedAt)}
-              />
-              <LabelValue label={t('Låst')} value={dataElement.locked ? 'Ja' : 'Nei'} />
-              <LabelValue label={t('Størrelse')} value={dataElement.size / 1e3 + ' kb'} />
-              <LabelValue label={t('Content type')} value={dataElement.contentType} />
-              {dataElement.fileScanResult && dataElement.fileScanResult !== 'NotApplicable' && (
-                <LabelValue label={t('File scan result')} value={dataElement.fileScanResult} />
-              )}
-            </StudioDetails.Content>
-          </StudioDetails>
-        ))}
+        <LabelValue label={t('Status')}>{<InstanceStatus instance={instance} />}</LabelValue>
+        <LabelValue label={t('Opprettet')}>{formatDateAndTime(instance.createdAt)}</LabelValue>
+        <LabelValue label={t('Sist endret')}>
+          {formatDateAndTime(instance.lastChangedAt)}
+        </LabelValue>
+        {!!instance.data?.length && (
+          <LabelValue label={t('Dataelementer')}>
+            {instance.data?.map((dataElement) => (
+              <StudioDetails key={dataElement.id}>
+                <StudioDetails.Summary>
+                  {dataElement.id} <StudioTag>{dataElement.dataType}</StudioTag>
+                </StudioDetails.Summary>
+                <StudioDetails.Content>
+                  <LabelValue label={t('Data element ID')}>{dataElement.id}</LabelValue>
+                  <LabelValue label={t('Data type')}>{dataElement.dataType}</LabelValue>
+                  <LabelValue label={t('Opprettet')}>
+                    {formatDateAndTime(dataElement.createdAt)}
+                  </LabelValue>
+                  <LabelValue label={t('Sist endret')}>
+                    {formatDateAndTime(dataElement.lastChangedAt)}
+                  </LabelValue>
+                  <LabelValue label={t('Låst')}>{dataElement.locked ? 'Ja' : 'Nei'}</LabelValue>
+                  <LabelValue label={t('Størrelse')}>{dataElement.size / 1e3 + ' kb'}</LabelValue>
+                  <LabelValue label={t('Content type')}>{dataElement.contentType}</LabelValue>
+                  {dataElement.fileScanResult && dataElement.fileScanResult !== 'NotApplicable' && (
+                    <LabelValue label={t('File scan result')}>
+                      {dataElement.fileScanResult}
+                    </LabelValue>
+                  )}
+                </StudioDetails.Content>
+              </StudioDetails>
+            ))}
+          </LabelValue>
+        )}
       </StudioTabs.Panel>
       {/*
       <StudioTabs.Panel value={InstanceDataViewTabs.Process}>
@@ -120,13 +125,13 @@ const InstanceDataViewWithData = ({
   );
 };
 
-const LabelValue = ({ label, value }: { label: string; value: ReactNode }) => {
+const LabelValue = ({ label, children }: PropsWithChildren<{ label: string }>) => {
   const labelId = `label-${label}`;
   return (
     <StudioField>
       <StudioLabel id={labelId}>{label}</StudioLabel>
       <br />
-      <span aria-labelledby={labelId}>{value}</span>
+      <span aria-labelledby={labelId}>{children}</span>
     </StudioField>
   );
 };
