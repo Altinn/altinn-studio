@@ -130,7 +130,7 @@
   "app_data_modelling.landing_dialog_paragraph": "Velkommen til datamodellering! Her kan du laste opp en datamodell du har fra før, eller lage en ny modell du kan bruke i appen din.",
   "app_data_modelling.landing_dialog_upload": "Last opp datamodell",
   "app_data_modelling.upload_xsd": "Last opp",
-  "app_data_modelling.upload_xsd_invalid_name_error": "Filnavnet er ugyldig. Du kan bruke tall og store og små bokstaver fra det norske alfabetet, understrek og punktum. Navnet må alltid starte med en bokstav.",
+  "app_data_modelling.upload_xsd_invalid_name_error": "Filnavnet er ugyldig. Du kan bruke sifre, store og små bokstaver fra det norske alfabetet, understrek og punktum. Navnet må alltid starte med en bokstav.",
   "app_data_modelling.uploading_xsd": "Laster opp XSD...",
   "app_deployment.btn_deploy_new_version": "Publiser ny versjon",
   "app_deployment.choose_version": "Velg den versjonen du vil publisere.",
