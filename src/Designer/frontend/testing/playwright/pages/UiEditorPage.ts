@@ -26,8 +26,7 @@ export class UiEditorPage extends BasePage {
       baseRoute + (layoutSet ? `/layoutSet/${layoutSet}` : ''),
       this.page.url(),
     );
-    if (layout) pageUrl.searchParams.append('layout', layout);
-    await this.page.waitForURL(pageUrl.toString());
+    await this.page.waitForURL(pageUrl.toString(), { waitUntil: 'commit' });
   }
 
   public async clickOnPageAccordion(pageName: string): Promise<void> {

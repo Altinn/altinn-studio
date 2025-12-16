@@ -31,9 +31,9 @@ export const useSelectedFormLayoutName = (
 
   const [selectedFormLayoutName, setSelectedFormLayoutName] = useSearchParamsState<string>(
     'layout',
-    firstPageId ?? undefined,
+    firstPageId,
     (pageName: string) => {
-      return isValidLayout(pageName) ? pageName : (firstPageId ?? undefined);
+      return isValidLayout(pageName) ? pageName : firstPageId;
     },
   );
 

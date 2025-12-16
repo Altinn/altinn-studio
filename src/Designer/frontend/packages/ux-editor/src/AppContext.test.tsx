@@ -101,7 +101,9 @@ describe('AppContext', () => {
       </>
     ));
 
-    expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual('Side1');
+    expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual(
+      mockSelectedFormLayoutName,
+    );
 
     await clickButton();
 
