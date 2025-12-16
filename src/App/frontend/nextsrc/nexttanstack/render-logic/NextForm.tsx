@@ -43,6 +43,10 @@ export function useGetCurrentLayout() {
   const { pageKey } = useParams<PageParams>() as Required<PageParams>;
   const layoutSets = window.AltinnAppInstanceData?.layoutSets;
 
+  console.log('pageKey', pageKey);
+
+  console.log('layoutSets', layoutSets);
+
   return useCallback(
     (taskId: string, layouts: ILayoutCollection | undefined): ILayoutFile =>
       getCurrentLayout(layoutSets, layouts, taskId, pageKey),

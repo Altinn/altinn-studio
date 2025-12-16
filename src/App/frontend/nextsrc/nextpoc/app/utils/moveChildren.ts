@@ -21,6 +21,7 @@ export function moveChildren(input: ILayoutFile): ResolvedLayoutFile {
   function resolveItem(id: string, visited = new Set<string>()): ResolvedCompExternal {
     const item = itemMap.get(id);
     if (!item) {
+      debugger;
       throw new Error(`No item found with id: ${id}`);
     }
     if (visited.has(id)) {
@@ -56,6 +57,7 @@ export function moveChildren(input: ILayoutFile): ResolvedLayoutFile {
 
   // Root items are those not listed as someone else's child
   const rootItems = allItems.filter((item) => !childIds.has(item.id));
+
   const visited = new Set<string>();
   const resolvedLayout = rootItems.map((root) => resolveItem(root.id, visited));
 

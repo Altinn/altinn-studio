@@ -30,7 +30,7 @@ export function useResolvedOptions(
     else if (commonProps.options) {
       setFetchedOptions(commonProps.options);
     }
-  }, [component.options, commonProps.options]);
+  }, [component.options, commonProps.options, fetchedOptions?.length]);
 
   // 2. Build query params from the store (if any)
   const optionsQueryParams = useStore(layoutStore, (state) => {

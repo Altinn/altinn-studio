@@ -1,9 +1,9 @@
 import { newEntry } from 'nextsrc/nextpoc';
 import { createRootTanstack } from 'nextsrc/nexttanstack';
 
-const useLegacy = false;
+const useTanstackVersion = false;
 
-if (useLegacy) {
+if (useTanstackVersion) {
   createRootTanstack();
 } else {
   newEntry();

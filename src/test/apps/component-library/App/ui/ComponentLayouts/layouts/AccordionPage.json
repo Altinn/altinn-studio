@@ -12,7 +12,7 @@
         "textResourceBindings": {
           "title": "Sample Accordion Title"
         },
-        "children": ["paragraph-example", "button-example", "AccordionPage-Input"]
+        "children": ["paragraph-example",  "AccordionPage-Input"]
       },
       {
         "id": "paragraph-example",
@@ -33,7 +33,7 @@
           "simpleBinding": "shortAnswerInput"
         }
       },
-      
+
       {
         "id": "AccordionPage-Summary2",
         "type": "Summary2",

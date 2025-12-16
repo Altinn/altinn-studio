@@ -5,6 +5,9 @@ import { useApiClient } from 'nextsrc/nextpoc/app/ApiClientContext';
 import { APP, ORG } from 'nextsrc/nextpoc/app/App/App';
 import { layoutStore } from 'nextsrc/nextpoc/stores/layoutStore';
 import { useStore } from 'zustand';
+import type { LayoutSettingsResponse } from 'nextsrc/nexttanstack/http-client/api-client/queries/layoutSettings';
+
+import type { ILayoutCollection } from 'src/layout/layout';
 
 type TaskParams = {
   taskId: string;
@@ -16,8 +19,6 @@ export const Task = () => {
 
   const navigate = useNavigate();
 
-  const layoutSetsConfig = useStore(layoutStore, (state) => state.layoutSetsConfig);
-
   const pageOrder = useStore(layoutStore, (state) => state.pageOrder);
 
   const setPageOrder = useStore(layoutStore, (state) => state.setPageOrder);
@@ -28,20 +29,25 @@ export const Task = () => {
   const apiClient = useApiClient();
   const [isLoading, setIsLoading] = useState(true);
 
-  const currentLayoutSet = layoutSetsConfig?.sets.find((layoutSet) => layoutSet.tasks.includes(taskId));
+  const currentLayoutSet = window.AltinnAppInstanceData?.layoutSets.sets.find((layoutSet) =>
+    layoutSet?.tasks?.includes(taskId),
+  );
 
   useEffect(() => {
     async function getLayoutDetails(layoutSetId: string) {
-      const res = await apiClient.org.layoutsAllSettingsDetail(layoutSetId, ORG, APP);
-      const data = await res.json();
-      const settings = JSON.parse(data.settings);
-      const layoutsJson = JSON.parse(data.layouts);
+      try {
+        const res = await apiClient.org.layoutsettingsDetail(ORG, APP, layoutSetId);
 
-      // If we have option components, we need to resolve an expression
-
-      setPageOrder(settings);
-      setLayouts(layoutsJson);
-      setIsLoading(false);
+        const data = (await res.json()) as LayoutSettingsResponse;
+        const layoutRes = await apiClient.org.layoutsDetail(ORG, APP, layoutSetId);
+        const layoutData = (await layoutRes.json()) as ILayoutCollection;
+        setPageOrder({ pages: { order: data.pages?.order } });
+        setLayouts(layoutData);
+        setIsLoading(false);
+      } catch (e) {
+        console.log(e);
+        debugger;
+      }
     }
 
     if (currentLayoutSet?.id) {
@@ -60,7 +66,7 @@ export const Task = () => {
   }
 
   if (isLoading) {
-    return <h1>Loading</h1>;
+    return <h1>Loading TASK</h1>;
   }
 
   if (!pageOrder || !pageOrder.pages?.order?.length) {

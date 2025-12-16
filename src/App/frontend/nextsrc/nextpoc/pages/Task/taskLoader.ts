@@ -27,7 +27,7 @@ export async function taskLoader({ params }: LoaderFunctionArgs) {
   }
 
   // Fetch the layout details
-  const res = await API_CLIENT.org.layoutsAllSettingsDetail(currentLayoutSet.id, ORG, APP);
+  const res = await API_CLIENT.org.layoutsettingsDetail(currentLayoutSet.id, ORG, APP);
   const data = await res.json();
 
   // Extract settings/layout JSON

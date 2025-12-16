@@ -72,13 +72,12 @@ export async function initialLoader() {
     throw new Error('No valid parties');
   }
 
-  const res = await API_CLIENT.org.activeDetail(ORG, APP, currentParty.partyId);
+  let instanceId;
 
-  const instances = await res.json();
-  let instanceId = '';
+  const instance = window.AltinnAppInstanceData?.instance;
 
-  if (instances.length > 0) {
-    instanceId = instances[0].id;
+  if (instance) {
+    instanceId = instance.id;
   } else {
     const res = await API_CLIENT.org.instancesCreate(
       ORG,
@@ -95,11 +94,11 @@ export async function initialLoader() {
     instanceId = data.id;
   }
 
-  if (!layoutSetsConfig) {
-    const res = await API_CLIENT.org.layoutsetsDetail(ORG, APP);
-    const data = await res.json();
-    layoutStore.getState().setLayoutSets(data);
-  }
+  // if (!layoutSetsConfig) {
+  //   const res = await API_CLIENT.org.layoutsettingsList(ORG, APP);
+  //   const data = await res.json();
+  //   layoutStore.getState().setLayoutSets(data);
+  // }
 
   const langRes = await API_CLIENT.org.v1TextsDetail(ORG, APP, user.profileSettingPreference.language ?? 'nb');
   const data = await langRes.json();

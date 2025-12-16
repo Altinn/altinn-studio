@@ -28,7 +28,7 @@ export const Navbar: React.FunctionComponent<NavbarProps> = (component) => {
 
   const resolvedPageNames = React.useMemo(
     () =>
-      pages.order.map((page) => {
+      pages?.order?.map((page) => {
         const text = textResource.find((resource) => resource.id === page);
 
         const isCurrent = page === pageId;
@@ -38,7 +38,7 @@ export const Navbar: React.FunctionComponent<NavbarProps> = (component) => {
         }
         return { path: page, label: page, isCurrent };
       }),
-    [pageId, pages.order, textResource],
+    [pageId, pages?.order, textResource],
   );
 
   return (
@@ -63,7 +63,7 @@ export const Navbar: React.FunctionComponent<NavbarProps> = (component) => {
               [classes.menuCompact]: isMobile,
             })}
           >
-            {resolvedPageNames.map((page, index) => (
+            {resolvedPageNames?.map((page, index) => (
               <li
                 className={classes.containerBase}
                 key={index}

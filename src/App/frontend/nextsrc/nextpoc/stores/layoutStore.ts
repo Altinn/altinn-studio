@@ -142,8 +142,8 @@ export const layoutStore = createStore<Layouts>()(
 
           const fetchPromises = distinctOptionIds.map(async (id) => {
             // Adjust org/app to whatever you have in your context
-            const org = 'krt';
-            const app = 'krt-3010a-1';
+            const org = window.org;
+            const app = window.app;
 
             // Possibly also pass language/queryParams:
             const response = await API_CLIENT.org.optionsDetail(

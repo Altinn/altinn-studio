@@ -41,6 +41,7 @@ export async function instanceLoaderFn({ partyId, instanceGuid }: InstanceParams
     Number.parseInt(partyId),
     instanceGuid,
     localInstance.data[0].id,
+    localInstance.data[0].dataType,
   );
   const data = await res.json();
   layoutStore.getState().setDataObject(data);
