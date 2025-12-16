@@ -128,6 +128,7 @@ export const PageGroupAccordion = ({
         <div
           className={classes.groupHeaderWrapper}
           data-testid={pageGroupAccordionHeader(groupIndex)}
+          data-selected={isGroupOrPageSelected}
         >
           <div className={classes.container} onClick={() => handleSelectGroup(groupIndex)}>
             <FolderIcon aria-hidden />
