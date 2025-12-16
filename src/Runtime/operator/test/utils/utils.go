@@ -22,6 +22,8 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
+const apisPath = "/apis"
+
 // Run executes the provided command within this context
 func Run(cmd *exec.Cmd, dir string) ([]byte, error) {
 	var err error
@@ -70,10 +72,12 @@ func GetNonEmptyLines(output string) []string {
 
 // K8sClient provides REST clients for CRDs, core resources, and Flux resources
 type K8sClient struct {
-	CRD    *rest.RESTClient
-	Core   *rest.RESTClient
-	Flux   *rest.RESTClient
-	Source *rest.RESTClient
+	CRD     *rest.RESTClient
+	Core    *rest.RESTClient
+	Flux    *rest.RESTClient
+	Source  *rest.RESTClient
+	CNPG    *rest.RESTClient
+	Storage *rest.RESTClient
 }
 
 // CreateK8sClient returns a client configured for the specified kubectl context.
@@ -102,7 +106,7 @@ func CreateK8sClient(contextName string) (*K8sClient, error) {
 		Group:   resourcesv1alpha1.GroupVersion.Group,
 		Version: resourcesv1alpha1.GroupVersion.Version,
 	}
-	crdConfig.APIPath = "/apis"
+	crdConfig.APIPath = apisPath
 	crdConfig.NegotiatedSerializer = codecFactory
 	crdConfig.UserAgent = rest.DefaultKubernetesUserAgent()
 
@@ -129,7 +133,7 @@ func CreateK8sClient(contextName string) (*K8sClient, error) {
 		Group:   "helm.toolkit.fluxcd.io",
 		Version: "v2",
 	}
-	fluxConfig.APIPath = "/apis"
+	fluxConfig.APIPath = apisPath
 	fluxConfig.NegotiatedSerializer = codecFactory
 	fluxConfig.UserAgent = rest.DefaultKubernetesUserAgent()
 
@@ -144,7 +148,7 @@ func CreateK8sClient(contextName string) (*K8sClient, error) {
 		Group:   "source.toolkit.fluxcd.io",
 		Version: "v1",
 	}
-	sourceConfig.APIPath = "/apis"
+	sourceConfig.APIPath = apisPath
 	sourceConfig.NegotiatedSerializer = codecFactory
 	sourceConfig.UserAgent = rest.DefaultKubernetesUserAgent()
 
@@ -153,7 +157,44 @@ func CreateK8sClient(contextName string) (*K8sClient, error) {
 		return nil, err
 	}
 
-	return &K8sClient{CRD: crdClient, Core: coreClient, Flux: fluxClient, Source: sourceClient}, nil
+	// CNPG client (Cluster, Database, ImageCatalog)
+	cnpgConfig := *restConfig
+	cnpgConfig.GroupVersion = &schema.GroupVersion{
+		Group:   "postgresql.cnpg.io",
+		Version: "v1",
+	}
+	cnpgConfig.APIPath = apisPath
+	cnpgConfig.NegotiatedSerializer = codecFactory
+	cnpgConfig.UserAgent = rest.DefaultKubernetesUserAgent()
+
+	cnpgClient, err := rest.UnversionedRESTClientFor(&cnpgConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	// Storage client (StorageClass, etc.)
+	storageConfig := *restConfig
+	storageConfig.GroupVersion = &schema.GroupVersion{
+		Group:   "storage.k8s.io",
+		Version: "v1",
+	}
+	storageConfig.APIPath = apisPath
+	storageConfig.NegotiatedSerializer = codecFactory
+	storageConfig.UserAgent = rest.DefaultKubernetesUserAgent()
+
+	storageClient, err := rest.UnversionedRESTClientFor(&storageConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return &K8sClient{
+		CRD:     crdClient,
+		Core:    coreClient,
+		Flux:    fluxClient,
+		Source:  sourceClient,
+		CNPG:    cnpgClient,
+		Storage: storageClient,
+	}, nil
 }
 
 type deterministicRand struct {

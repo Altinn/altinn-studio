@@ -1,0 +1,8 @@
+
+[cnpgsync should sync postgresql.json to app secret - 1]
+{
+ "PostgreSQL": {
+  "ConnectionString": "Host=pg-apps-cluster-rw.runtime-cnpg.svc.cluster.local;Port=5432;Database=localtestapp;Username=localtestapp;Password=REDACTED;Maximum Pool Size=40;Application Name=localtestapp;Tcp Keepalive=true"
+ }
+}
+---

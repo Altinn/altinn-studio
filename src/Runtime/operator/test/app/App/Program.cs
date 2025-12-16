@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using App;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -129,6 +130,41 @@ app.MapGet("/ttd/localtestapp/token", async (HttpContext context, IHttpClientFac
     }
 });
 
+app.MapGet("/ttd/localtestapp/dbcheck", async (ILoggerFactory loggerFactory) =>
+{
+    var logger = loggerFactory.CreateLogger("App");
+    logger.LogInformation("Received dbcheck request");
+
+    try
+    {
+        const string secretPath = "/mnt/app-secrets/postgresql.json";
+        if (!File.Exists(secretPath))
+        {
+            return Results.Json(new { success = false, error = $"Secret file not found at {secretPath}" });
+        }
+
+        var json = await File.ReadAllTextAsync(secretPath);
+        var root = JsonSerializer.Deserialize<PostgresJsonRoot>(json);
+        if (root?.PostgreSQL?.ConnectionString == null)
+        {
+            return Results.Json(new { success = false, error = "Failed to parse ConnectionString" });
+        }
+
+        await using var conn = new NpgsqlConnection(root.PostgreSQL.ConnectionString);
+        await conn.OpenAsync();
+        await using var cmd = new NpgsqlCommand("SELECT 1", conn);
+        var result = await cmd.ExecuteScalarAsync();
+
+        logger.LogInformation("Database check succeeded, result: {result}", result);
+        return Results.Json(new { success = true, result = result });
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Database check failed");
+        return Results.Json(new { success = false, error = ex.Message });
+    }
+});
+
 app.Run();
 
 static byte[] Base64UrlDecode(string? input)
@@ -213,4 +249,16 @@ public class FakeTokenClaims
 
     [JsonPropertyName("client_id")]
     public string? ClientId { get; set; }
+}
+
+public class PostgresJsonRoot
+{
+    [JsonPropertyName("PostgreSQL")]
+    public PostgresConfig? PostgreSQL { get; set; }
+}
+
+public class PostgresConfig
+{
+    [JsonPropertyName("ConnectionString")]
+    public string? ConnectionString { get; set; }
 }

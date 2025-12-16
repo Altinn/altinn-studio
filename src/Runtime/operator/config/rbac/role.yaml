@@ -10,6 +10,7 @@ rules:
   - namespaces
   verbs:
   - create
+  - delete
   - get
   - list
   - watch
@@ -36,6 +37,19 @@ rules:
   - helm.toolkit.fluxcd.io
   resources:
   - helmreleases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - postgresql.cnpg.io
+  resources:
+  - clusters
+  - databases
+  - imagecatalogs
   verbs:
   - create
   - delete
@@ -73,6 +87,17 @@ rules:
   - source.toolkit.fluxcd.io
   resources:
   - helmrepositories
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
   verbs:
   - create
   - delete

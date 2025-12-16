@@ -371,7 +371,17 @@ func SnapshotSecret(secret *corev1.Secret, name string) {
 	}
 
 	// Decode and sanitize the secret data for human-readable snapshots
+	// Only include maskinporten-settings.json, remove other keys (e.g. postgresql.json)
+	// Ensure data field exists (normalize nil vs empty)
+	if obj["data"] == nil {
+		obj["data"] = map[string]any{}
+	}
 	if dataField, ok := obj["data"].(map[string]any); ok {
+		for key := range dataField {
+			if key != "maskinporten-settings.json" {
+				delete(dataField, key)
+			}
+		}
 		if settingsB64, ok := dataField["maskinporten-settings.json"].(string); ok {
 			settingsBytes, err := base64.StdEncoding.DecodeString(settingsB64)
 			if err == nil {
@@ -615,6 +625,36 @@ func FetchToken(scope string) (*TokenResponse, error) {
 	}
 
 	return &tokenResp, nil
+}
+
+// DbCheckResponse represents the response from the testapp /dbcheck endpoint
+type DbCheckResponse struct {
+	Success bool   `json:"success"`
+	Result  int    `json:"result,omitempty"`
+	Error   string `json:"error,omitempty"`
+}
+
+// FetchDbCheck calls the testapp dbcheck endpoint to verify database connectivity
+func FetchDbCheck() (*DbCheckResponse, error) {
+	resp, err := http.Get("http://localhost:8020/ttd/localtestapp/dbcheck")
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch dbcheck: %w", err)
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read dbcheck response: %w", err)
+	}
+
+	var dbResp DbCheckResponse
+	if err := json.Unmarshal(body, &dbResp); err != nil {
+		return nil, fmt.Errorf("failed to decode dbcheck response: %w (body: %s)", err, string(body))
+	}
+
+	return &dbResp, nil
 }
 
 // SanitizeTokenResponse sanitizes token claims for deterministic snapshots
