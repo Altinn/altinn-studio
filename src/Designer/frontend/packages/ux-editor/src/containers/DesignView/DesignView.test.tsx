@@ -33,6 +33,12 @@ const mockPageName1: string = layout1NameMock;
 const mockPageName2: string = layout2NameMock;
 
 describe('DesignView', () => {
+  beforeEach(() => {
+    appContextMock.selectedFormLayoutName = layout1NameMock;
+    appContextMock.selectedItem = null;
+    appContextMock.selectedItemOverride = undefined;
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
