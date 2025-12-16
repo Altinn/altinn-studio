@@ -1,0 +1,15 @@
+
+[cnpgsync should create ImageCatalog - 1]
+{
+ "images": [
+  {
+   "image": "ghcr.io/cloudnative-pg/postgresql:17.7-standard-trixie",
+   "major": 17
+  },
+  {
+   "image": "ghcr.io/cloudnative-pg/postgresql:18.1-standard-trixie",
+   "major": 18
+  }
+ ]
+}
+---
