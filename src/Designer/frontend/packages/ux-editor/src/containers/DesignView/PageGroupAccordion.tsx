@@ -58,7 +58,8 @@ export const PageGroupAccordion = ({
     () => findLayoutsContainingDuplicateComponents(layouts),
     [layouts],
   );
-  const { selectedItem, setSelectedItem, setSelectedFormLayoutName } = useAppContext();
+  const { selectedItem, selectedItemOverride, setSelectedItem, setSelectedFormLayoutName } =
+    useAppContext();
   const { layoutSet } = useUxEditorParams();
 
   const { org, app } = useStudioEnvironmentParams();
@@ -106,10 +107,18 @@ export const PageGroupAccordion = ({
     const groupDisplayName = pageGroupDisplayName(group);
     const { type, id } = selectedItem ?? {};
     const selectedPageId = type === ItemType.Page ? id : undefined;
+    const isClose = selectedItemOverride === null;
+    const overriddenPageId =
+      selectedItemOverride && selectedItemOverride.type === ItemType.Page
+        ? selectedItemOverride.id
+        : undefined;
 
     const isGroupOrPageSelected =
       (type === ItemType.Group && id === groupIndex) ||
-      group.order.some((page) => page.id === selectedPageId || page.id === selectedFormLayoutName);
+      (!isClose &&
+        group.order.some(
+          (page) => page.id === (overriddenPageId ?? selectedFormLayoutName ?? selectedPageId),
+        ));
 
     return (
       <div
@@ -164,7 +173,8 @@ export const PageGroupAccordion = ({
         {group.order.map((page) => {
           const layout = layouts?.[page.id];
           const isInvalidLayout = layout ? duplicatedIdsExistsInLayout(layout) : false;
-          const isPageOpen = page.id === selectedPageId;
+          const isPageOpen =
+            !isClose && page.id === (overriddenPageId ?? selectedFormLayoutName ?? selectedPageId);
 
           return (
             <Accordion key={page.id} className={classes.groupPageAccordionWrapper}>

@@ -41,6 +41,7 @@ export interface AppContextProps {
   onLayoutSetNameChange: (layoutSetName: string) => void;
   selectedItem: SelectedItem | null;
   setSelectedItem: (selectedItem: SelectedItem | null) => void;
+  selectedItemOverride: SelectedItem | null | undefined;
 }
 
 export const AppContext = createContext<AppContextProps>(null);
@@ -137,6 +138,7 @@ export const AppContextProvider = ({
       onLayoutSetNameChange,
       selectedItem,
       setSelectedItem: setSelectedItemOverride,
+      selectedItemOverride,
     }),
     [
       selectedFormLayoutName,
@@ -150,6 +152,7 @@ export const AppContextProvider = ({
       onLayoutSetNameChange,
       selectedItem,
       setSelectedItemOverride,
+      selectedItemOverride,
     ],
   );
 
