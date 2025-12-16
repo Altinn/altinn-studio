@@ -175,6 +175,21 @@ describe('PageGroupAccordion', () => {
     await user.click(addButtons[0]);
     expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
   });
+
+  it('marks group as selected when selectedItemOverride is a Group type matching the group index', async () => {
+    await renderPageGroupAccordion({
+      props: { selectedFormLayoutName: '' as string },
+      appContextProps: {
+        selectedFormLayoutName: '',
+        selectedItem: { type: ItemType.Group, id: 0 },
+        selectedItemOverride: { type: ItemType.Group, id: 0 },
+      },
+    });
+    const headerGroup0 = groupAccordionHeader(0);
+    const headerGroup1 = groupAccordionHeader(1);
+    expect(headerGroup0).toHaveAttribute('data-selected', 'true');
+    expect(headerGroup1).toHaveAttribute('data-selected', 'false');
+  });
 });
 
 const groupAccordionHeader = (nth: number) => screen.getByTestId(pageGroupAccordionHeader(nth));

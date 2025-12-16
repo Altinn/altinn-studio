@@ -6,7 +6,7 @@ import { usePagesQuery } from '../../../ux-editor/src/hooks/queries/usePagesQuer
 import { findFirstPage } from '../../../ux-editor/src/utils/pageUtils';
 export type UseSelectedFormLayoutNameResult = {
   selectedFormLayoutName: string;
-  setSelectedFormLayoutName: (layoutName: string) => void;
+  setSelectedFormLayoutName: (layoutName: string | undefined) => void;
 };
 
 export const useSelectedFormLayoutName = (

@@ -95,7 +95,8 @@ const DesignViewLoadedContent = ({
 
   const handleClickAccordion = (pageName: string) => {
     const isCurrentlyOpen =
-      !isExplicitDeselect && pageName === (overriddenPageId ?? selectedFormLayoutName);
+      !isExplicitDeselect &&
+      pageName === (overriddenPageId ?? selectedFormLayoutName ?? selectedPageId);
 
     if (!isCurrentlyOpen) {
       setSelectedFormLayoutName(pageName);
@@ -105,6 +106,7 @@ const DesignViewLoadedContent = ({
       });
     } else {
       setSelectedItem(null);
+      setSelectedFormLayoutName(undefined);
     }
   };
 
