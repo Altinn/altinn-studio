@@ -35,6 +35,7 @@ export const WithHoverAddButton = ({
         isVisible={isOpen || hovered}
         actionBarClassName={classes.hoverCallToAction}
         className={isLastChildInRepGroup ? classes.lastChild : undefined}
+        data-testid='with-hover-add-button-root'
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
