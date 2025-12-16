@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
@@ -14,19 +13,17 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgLibraryController;
 
-public class GetLatestCommitOnBranchTests(WebApplicationFactory<Program> factory) : DesignerEndpointsTestsBase<GetSharedResourcesTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+public class GetLatestCommitOnBranchTests(WebApplicationFactory<Program> factory) : DesignerEndpointsTestsBase<GetLatestCommitOnBranchTests>(factory), IClassFixture<WebApplicationFactory<Program>>
 {
 
     private readonly Mock<IOrgLibraryService> _orgLibraryServiceMock = new();
     private readonly Mock<IUserOrganizationService> _userOrganizationServiceMock = new();
-    private readonly Mock<ISharedContentClient> _sharedContentClientMock = new();
     private const string Org = "ttd";
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
         services.AddSingleton(_ => _userOrganizationServiceMock.Object);
         services.AddSingleton(_ => _orgLibraryServiceMock.Object);
-        services.AddSingleton(_ => _sharedContentClientMock.Object);
     }
 
 
