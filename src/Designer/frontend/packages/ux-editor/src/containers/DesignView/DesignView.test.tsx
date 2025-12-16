@@ -93,6 +93,7 @@ describe('DesignView', () => {
   it('clears the selected item when the currently open page accordion is clicked', async () => {
     const user = userEvent.setup();
     appContextMock.selectedItem = { type: ItemType.Page, id: mockPageName1 };
+    appContextMock.selectedItemOverride = { type: ItemType.Page, id: mockPageName1 };
     renderDesignView({});
 
     const accordionButton1 = screen.getByRole('button', { name: mockPageName1 });
@@ -168,6 +169,7 @@ describe('DesignView', () => {
     const user = userEvent.setup();
     appContextMock.selectedFormLayoutName = layout2NameMock;
     appContextMock.selectedItem = { type: ItemType.Page, id: layout2NameMock };
+    appContextMock.selectedItemOverride = undefined;
     renderDesignView({ pagesModel: groupsPagesModelMock });
     const accordionButton = screen.getByRole('button', { name: layout1NameMock });
     await user.click(accordionButton);
@@ -188,6 +190,25 @@ describe('DesignView', () => {
     expect(appContextMock.setSelectedItem).toHaveBeenCalledTimes(1);
     expect(appContextMock.setSelectedItem).toHaveBeenCalledWith(null);
     expect(appContextMock.setSelectedFormLayoutName).not.toHaveBeenCalled();
+  });
+
+  it('re-selects a page when clicking its accordion after selection was explicitly cleared', async () => {
+    const user = userEvent.setup();
+    appContextMock.selectedFormLayoutName = mockPageName1;
+    appContextMock.selectedItem = null;
+    appContextMock.selectedItemOverride = null;
+    renderDesignView({});
+
+    const accordionButton1 = screen.getByRole('button', { name: mockPageName1 });
+    await user.click(accordionButton1);
+
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(mockPageName1);
+    expect(appContextMock.setSelectedItem).toHaveBeenCalledTimes(1);
+    expect(appContextMock.setSelectedItem).toHaveBeenCalledWith({
+      type: ItemType.Page,
+      id: mockPageName1,
+    });
   });
 });
 
