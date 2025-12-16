@@ -73,6 +73,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<GetSharedResourcesResponse>> GetSharedResources(string org, [FromQuery] string? path, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
     {
@@ -110,6 +111,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> UpdateSharedResources(string org, [FromBody] UpdateSharedResourceRequest requestBody, CancellationToken cancellationToken = default)
     {
@@ -167,6 +169,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<List<string>>> GetPublishedResources(string org, [FromQuery] string path = "", CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
