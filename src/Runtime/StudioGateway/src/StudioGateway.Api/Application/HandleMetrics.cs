@@ -1,7 +1,6 @@
 using k8s.Models;
 using StudioGateway.Api.Clients.K8s;
 using StudioGateway.Api.Clients.MetricsClient;
-using StudioGateway.Api.Clients.StudioClient;
 using StudioGateway.Api.Settings;
 using StudioGateway.Contracts.Metrics;
 
@@ -9,11 +8,6 @@ namespace StudioGateway.Api.Application;
 
 internal static class HandleMetrics
 {
-    internal static async Task NotifyAlertsUpdatedAsync(IStudioClient studioClient, CancellationToken cancellationToken)
-    {
-        await studioClient.NotifyAlertsUpdatedAsync(cancellationToken);
-    }
-
     internal static async Task<IResult> GetMetricsAsync(
         IServiceProvider serviceProvider,
         MetricsClientSettings metricsClientSettings,
@@ -32,7 +26,7 @@ internal static class HandleMetrics
             {
                 Name = metric.Name,
                 AppName = metric.AppName,
-                Count = metric.Count
+                Count = metric.Count,
             };
         });
 
@@ -72,11 +66,7 @@ internal static class HandleMetrics
 
         var metrics = new List<AppHealthMetric>
         {
-            new()
-            {
-                Name = "ready_pods",
-                Count = Math.Round((double)readyPodsCount / pods.Count * 100),
-            },
+            new() { Name = "ready_pods", Count = Math.Round((double)readyPodsCount / pods.Count * 100) },
         };
 
         return Results.Ok(metrics);

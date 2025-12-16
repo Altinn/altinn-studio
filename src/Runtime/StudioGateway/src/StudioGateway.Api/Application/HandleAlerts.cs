@@ -18,7 +18,8 @@ internal static class HandleAlerts
 
         IEnumerable<GrafanaAlertRule> alertRules = await client.GetAlertRulesAsync(cancellationToken);
 
-        return Results.Ok(alertRules?.Select(alert =>
+        return Results.Ok(
+            alertRules?.Select(alert =>
             {
                 return new AlertRule
                 {
@@ -33,12 +34,17 @@ internal static class HandleAlerts
                     For = alert.For,
                     IsPaused = alert.IsPaused,
                 };
-            }) ?? []);
+            }) ?? []
+        );
     }
 
-    internal static async Task<IResult> NotifyAlertsUpdatedAsync(IStudioClient studioClient, CancellationToken cancellationToken)
+    internal static async Task<IResult> NotifyAlertsUpdatedAsync(
+        DesignerClient designerClient,
+        CancellationToken cancellationToken,
+        string environment = "prod"
+    )
     {
-        await studioClient.NotifyAlertsUpdatedAsync(cancellationToken);
+        await designerClient.NotifyAlertsUpdatedAsync(environment, cancellationToken);
         return Results.Ok();
     }
 }

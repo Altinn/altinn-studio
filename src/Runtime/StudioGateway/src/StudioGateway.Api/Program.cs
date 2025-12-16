@@ -50,7 +50,6 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
-builder.Services.AddHttpClient<IStudioClient, StudioClient>("prod");
 builder.Services.AddSingleton(sp =>
 {
     return new Kubernetes(KubernetesClientConfiguration.BuildDefaultConfig());
