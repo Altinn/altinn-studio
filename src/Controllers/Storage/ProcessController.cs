@@ -228,7 +228,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             string action = altinnTaskType switch
             {
-                "data" or "feedback" or "pdf" or "eFormidling" or "fiksArkiv" => "write",
+                "data" or "feedback" or "pdf" or "eFormidling" or "fiksArkiv" or "subformPdf" => "write",
                 "payment" => "pay",
                 "confirmation" => "confirm",
                 "signing" => "sign",
