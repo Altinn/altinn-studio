@@ -26,7 +26,6 @@ import type { ILayoutSettings } from 'app-shared/types/global';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
 import { AppContext } from '@altinn/ux-editor/AppContext';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
-import { ItemType } from '../../components/Properties/ItemType';
 
 const mockSelectedLayoutSet = layoutSet1NameMock;
 const mockPageName1: string = layout1NameMock;
@@ -180,73 +179,6 @@ describe('DesignView', () => {
     await user.click(accordionButton);
     expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
     expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(undefined);
-  });
-
-  describe('Auto-select first page', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    const renderDesignViewWithAutoSelect = (pagesModel: PagesModel) => {
-      const mockSetSelectedFormLayoutName = jest.fn();
-      const mockSetSelectedItem = jest.fn();
-      const appContextWithoutSelection = {
-        ...appContextMock,
-        selectedFormLayoutName: undefined,
-        setSelectedFormLayoutName: mockSetSelectedFormLayoutName,
-        setSelectedItem: mockSetSelectedItem,
-        setSelectedGroupName: jest.fn(),
-      };
-
-      const queryClient = createQueryClientMock();
-      queryClient.setQueryData(
-        [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
-        convertExternalLayoutsToInternalFormat(externalLayoutsMock),
-      );
-      queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModel);
-      queryClient.setQueryData(
-        [QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet],
-        formLayoutSettingsMock,
-      );
-
-      renderWithProviders(
-        <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
-          <FormItemContextProvider>
-            <AppContext.Provider value={appContextWithoutSelection}>
-              <DesignView />
-            </AppContext.Provider>
-          </FormItemContextProvider>
-        </StudioDragAndDrop.Provider>,
-        {
-          queryClient,
-        },
-      );
-
-      return { mockSetSelectedFormLayoutName, mockSetSelectedItem };
-    };
-
-    it('automatically selects the first page when no page is selected and pages are available (without groups)', () => {
-      const { mockSetSelectedFormLayoutName, mockSetSelectedItem } = renderDesignViewWithAutoSelect(
-        { pages: [{ id: layout1NameMock }, { id: layout2NameMock }] },
-      );
-      expect(mockSetSelectedFormLayoutName).toHaveBeenCalledWith(layout1NameMock);
-      expect(mockSetSelectedItem).toHaveBeenCalledWith({
-        type: ItemType.Page,
-        id: layout1NameMock,
-      });
-    });
-
-    it('automatically selects the first page from the first group when no page is selected (with groups)', () => {
-      const { mockSetSelectedFormLayoutName, mockSetSelectedItem } =
-        renderDesignViewWithAutoSelect(groupsPagesModelMock);
-      const firstGroup = groupsPagesModelMock.groups?.[0];
-      const firstPageId = firstGroup?.order?.[0]?.id;
-      expect(mockSetSelectedFormLayoutName).toHaveBeenCalledWith(firstPageId);
-      expect(mockSetSelectedItem).toHaveBeenCalledWith({
-        type: ItemType.Page,
-        id: firstPageId,
-      });
-    });
   });
 });
 
