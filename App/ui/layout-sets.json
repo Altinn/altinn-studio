@@ -16,5 +16,17 @@
       ]
     }
   ],
-  "uiSettings": {}
+  "uiSettings": {
+    "taskNavigation": [
+      {
+        "taskId": "Task_1"
+      },
+      {
+        "taskId": "PreviousProcessSummary"
+      },
+      {
+        "type": "receipt"
+      }
+    ]
+  }
 }
