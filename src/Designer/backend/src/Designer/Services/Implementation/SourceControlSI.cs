@@ -170,7 +170,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task PushChangesForRepository(CommitInfo commitInfo)
         {
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            await CommitAndPushToBranch(commitInfo.Org, commitInfo.Repository, DefaultBranch, localServiceRepoFolder, commitInfo.Message);
+
+            string branchName = commitInfo.BranchName;
+            if (string.IsNullOrEmpty(branchName))
+            {
+                using var repo = new LibGit2Sharp.Repository(localServiceRepoFolder);
+                branchName = repo.Head.FriendlyName;
+            }
+
+            await CommitAndPushToBranch(commitInfo.Org, commitInfo.Repository, branchName, localServiceRepoFolder, commitInfo.Message);
         }
 
         /// <summary>
@@ -296,6 +304,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     repoStatus.AheadBy = branch.TrackingDetails.AheadBy;
                     repoStatus.BehindBy = branch.TrackingDetails.BehindBy;
                 }
+
+                repoStatus.CurrentBranch = repo.Head.FriendlyName;
             }
 
             return repoStatus;
@@ -626,7 +636,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
 
-            Branch branch = repo.Branches.Single(branch => branch.FriendlyName == branchName);
+            Branch branch = repo.Branches.FirstOrDefault(b => b.FriendlyName == branchName);
+
+            if (branch == null)
+            {
+                Branch remoteBranch = repo.Branches.FirstOrDefault(b =>
+                    b.IsRemote && (b.FriendlyName == $"origin/{branchName}" || b.FriendlyName.EndsWith($"/{branchName}")));
+
+                if (remoteBranch != null)
+                {
+                    branch = repo.CreateBranch(branchName, remoteBranch.Tip);
+                    branch = repo.Branches.Update(branch, b => b.TrackedBranch = remoteBranch.CanonicalName);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Branch '{branchName}' not found in local or remote branches.");
+                }
+            }
+
             Commands.Checkout(repo, branch);
         }
 
@@ -646,27 +673,69 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private static bool LocalBranchExists(LibGit2Sharp.Repository repo, string branchName)
+        public CurrentBranchInfo GetCurrentBranch(string org, string repository)
         {
-            return repo.Branches.Any(branch => branch.FriendlyName == branchName);
-        }
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string localPath = _settings.GetServicePath(org, repository, developer);
 
-        private static bool LocalBranchIsHead(LibGit2Sharp.Repository repo, string branchName)
-        {
-            return repo.Head.FriendlyName == branchName;
-        }
-
-        private static bool RemoteBranchExists(string branchName, LibGit2Sharp.Repository repo)
-        {
-            string remoteBranchName = $"refs/remotes/origin/{branchName}";
-            Branch remoteBranch = repo.Branches[remoteBranchName];
-
-            if (remoteBranch is null)
+            using var repo = new LibGit2Sharp.Repository(localPath);
+            return new CurrentBranchInfo
             {
-                return false;
+                BranchName = repo.Head.FriendlyName,
+                CommitSha = repo.Head.Tip?.Sha,
+                IsTracking = repo.Head.IsTracking,
+                RemoteName = repo.Head.TrackedBranch?.FriendlyName
+            };
+        }
+
+        public async Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            var repoStatus = RepositoryStatus(org, repository);
+
+            bool hasUncommittedChanges = repoStatus.ContentStatus
+                .Any(c => c.FileStatus != Enums.FileStatus.Unaltered);
+
+            if (hasUncommittedChanges)
+            {
+                var error = new UncommittedChangesError
+                {
+                    Error = "Cannot switch branches with uncommitted changes",
+                    Message = "You have uncommitted changes. Please commit and push your changes, or discard them before switching branches.",
+                    UncommittedFiles = repoStatus.ContentStatus
+                        .Where(c => c.FileStatus != Enums.FileStatus.Unaltered)
+                        .Select(c => new UncommittedFile
+                        {
+                            FilePath = c.FilePath,
+                            Status = c.FileStatus.ToString()
+                        })
+                        .ToList(),
+                    CurrentBranch = repoStatus.CurrentBranch,
+                    TargetBranch = branchName
+                };
+
+                throw new Exceptions.UncommittedChangesException(error);
             }
 
-            return remoteBranch.IsRemote;
+            await FetchRemoteChanges(org, repository);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            CheckoutRepoOnBranch(editingContext, branchName);
+            return RepositoryStatus(org, repository);
+        }
+
+        /// <inheritdoc/>
+        public RepoStatus DiscardLocalChanges(string org, string repository)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string localPath = _settings.GetServicePath(org, repository, developer);
+
+            using (var repo = new LibGit2Sharp.Repository(localPath))
+            {
+                repo.Reset(ResetMode.Hard, repo.Head.Tip);
+                repo.RemoveUntrackedFiles();
+            }
+
+            return RepositoryStatus(org, repository);
         }
 
         /// <summary>
@@ -732,6 +801,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             await _giteaClient.DeleteRepository(org, repository);
+        }
+
+        private static bool LocalBranchExists(LibGit2Sharp.Repository repo, string branchName)
+        {
+            return repo.Branches.Any(branch => branch.FriendlyName == branchName);
+        }
+
+        private static bool LocalBranchIsHead(LibGit2Sharp.Repository repo, string branchName)
+        {
+            return repo.Head.FriendlyName == branchName;
+        }
+
+        private static bool RemoteBranchExists(string branchName, LibGit2Sharp.Repository repo)
+        {
+            string remoteBranchName = $"refs/remotes/origin/{branchName}";
+            Branch remoteBranch = repo.Branches[remoteBranchName];
+
+            if (remoteBranch is null)
+            {
+                return false;
+            }
+
+            return remoteBranch.IsRemote;
         }
 
         private LibGit2Sharp.Signature GetDeveloperSignature()

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -430,6 +431,48 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
+        public CurrentBranchInfo GetCurrentBranch(string org, string repository)
+        {
+            try
+            {
+                return _decoratedService.GetCurrentBranch(org, repository);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, nameof(GetCurrentBranch), org, repository);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName)
+        {
+            try
+            {
+                return await _decoratedService.CheckoutBranchWithValidation(org, repository, branchName);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, nameof(CheckoutBranchWithValidation), org, repository, repository, branchName);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public RepoStatus DiscardLocalChanges(string org, string repository)
+        {
+            try
+            {
+                return _decoratedService.DiscardLocalChanges(org, repository);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, nameof(DiscardLocalChanges), org, repository);
+                throw;
+            }
+        }
+
         private void LogError(Exception ex, string method)
         {
             LogError(ex, method, string.Empty, string.Empty);
@@ -444,7 +487,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
-            _logger.LogError(ex, "Failed executing method {Method} for user {Developer} in org {Org} / repository {Repository}. Destination: {DestinationPath}. Branch: {Branch}.", method, developer, org, repository, destinationPath, branch);
+            _logger.LogError(
+                ex,
+                "Failed executing method {Method} for user {Developer} in org {Org} / repository {Repository}. Destination: {DestinationPath}. Branch: {Branch}.",
+                method,
+                developer,
+                org.WithoutLineBreaks(),
+                repository.WithoutLineBreaks(),
+                destinationPath.WithoutLineBreaks(),
+                branch.WithoutLineBreaks());
         }
     }
 }

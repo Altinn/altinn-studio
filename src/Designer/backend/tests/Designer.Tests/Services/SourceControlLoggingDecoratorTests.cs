@@ -524,5 +524,8 @@ public class SourceControlStub : ISourceControl
     public Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
     public Task FetchGitNotes(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
+    public CurrentBranchInfo GetCurrentBranch(string org, string repository) => throw new NotImplementedException();
+    public Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName) => throw new NotImplementedException();
+    public RepoStatus DiscardLocalChanges(string org, string repository) => throw new NotImplementedException();
 }
 

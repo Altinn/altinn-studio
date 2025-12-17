@@ -11,7 +11,7 @@ export const options = {
       gracefulStop: '10s',
       preAllocatedVUs: 10,
       maxVUs: 30,
-    }
+    },
   },
 };
 
@@ -56,17 +56,14 @@ export default function () {
 
   const res = http.post(endpoint, payload, params);
 
-  check(
-    res,
-    {
-      [`PDF generation success`]: (r) => {
-        return (
-          r.status === 200 &&
-          r.headers['Content-Type']?.includes('application/pdf') &&
-          !!r.body &&
-          r.body.slice(0, 5) === '%PDF-'
-        );
-      },
-    }
-  );
+  check(res, {
+    [`PDF generation success`]: (r) => {
+      return (
+        r.status === 200 &&
+        r.headers['Content-Type']?.includes('application/pdf') &&
+        !!r.body &&
+        r.body.slice(0, 5) === '%PDF-'
+      );
+    },
+  });
 }

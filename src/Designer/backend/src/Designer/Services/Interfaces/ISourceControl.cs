@@ -205,6 +205,32 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         void MergeBranchIntoHead(AltinnRepoEditingContext editingContext, string featureBranch);
 
         /// <summary>
+        /// Gets information about the current branch
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <returns>Information about the current branch</returns>
+        CurrentBranchInfo GetCurrentBranch(string org, string repository);
+
+        /// <summary>
+        /// Checks out a branch, validating that there are no uncommitted changes first
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="branchName">The name of the branch to checkout</param>
+        /// <returns>The updated repository status, or null if there are uncommitted changes</returns>
+        /// <exception cref="Exceptions.UncommittedChangesException">Thrown when there are uncommitted changes</exception>
+        Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName);
+
+        /// <summary>
+        /// Discards all local changes in the repository (hard reset + clean untracked files)
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <returns>The updated repository status</returns>
+        RepoStatus DiscardLocalChanges(string org, string repository);
+
+        /// <summary>
         /// Deletes a remote branch based on the specified name, if it exists.
         /// </summary>
         /// <param name="editingContext">The altinn repo editing context</param>
