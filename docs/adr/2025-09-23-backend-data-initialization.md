@@ -78,16 +78,10 @@ classDef actor fill:#eef,stroke:#77f,color:#000
 - **Bootstrap contract**
 
   ```html
-  <script
-    id="__appdata"
-    type="application/json"
-  >
+  <script id="__appdata" type="application/json">
     { ... AppData ... }
   </script>
-  <script
-    id="__initialInstanceData"
-    type="application/json"
-  >
+  <script id="__initialInstanceData" type="application/json">
     { ... } <!-- present only when opening an instance -->
   </script>
   <script>

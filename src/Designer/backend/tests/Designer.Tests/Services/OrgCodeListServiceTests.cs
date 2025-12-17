@@ -3,19 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
-using Altinn.Studio.Designer.Constants;
-using Altinn.Studio.Designer.Exceptions.CodeList;
-using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Moq;
@@ -30,8 +25,6 @@ public class OrgCodeListServiceTests : IDisposable
     private const string Org = "ttd";
     private const string Repo = "org-content";
     private const string Developer = "testUser";
-    private readonly Mock<IGiteaClient> _giteaClientMock = new();
-    private readonly Mock<ISourceControl> _sourceControlMock = new();
 
     [Fact]
     public async Task GetCodeLists_ShouldReturnAllCodeLists()
@@ -75,252 +68,6 @@ public class OrgCodeListServiceTests : IDisposable
             Assert.Equal(expectedCodeList[i].Description, fetchedCodeListData[i].Description);
             Assert.Equal(expectedCodeList[i].HelpText, fetchedCodeListData[i].HelpText);
         }
-    }
-
-    [Fact]
-    public async Task GetCodeListsNew()
-    {
-        // Arrange
-        const string FsoWithContentName = "hasContent";
-        const string FsoWithoutContentName = "noContent";
-
-        CodeList validCodeList = SetupCodeList();
-        List<FileSystemObject> remoteFiles =
-        [
-            new()
-            {
-                Name = FsoWithContentName,
-                Path = CodeListUtils.FilePath(FsoWithContentName),
-                Content = FromStringToBase64String(JsonSerializer.Serialize(validCodeList)),
-                Sha = "non-descriptive-sha-1"
-            },
-            new()
-            {
-                Name = FsoWithoutContentName,
-                Path = CodeListUtils.FilePath(FsoWithoutContentName),
-                Content = null,
-                Sha = "non-descriptive-sha-2"
-            }
-        ];
-        List<CodeListWrapper> expected =
-        [
-            new(
-                Title: FsoWithContentName,
-                CodeList: validCodeList,
-                HasError: false
-            ),
-            new(
-                Title: FsoWithoutContentName,
-                CodeList: null,
-                HasError: true
-            )
-        ];
-        _giteaClientMock
-            .Setup(service => service.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(remoteFiles);
-
-        // Act
-        OrgCodeListService service = GetOrgCodeListService();
-        GetCodeListResponse result = await service.GetCodeListsNew(Org);
-
-        // Assert
-        Assert.NotEmpty(result.CodeListWrappers);
-        Assert.Equal(expected, result.CodeListWrappers);
-        _giteaClientMock.Verify(gitea => gitea.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), null, It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task UpdateCodeListsNew_SimpleCommit()
-    {
-        // Arrange
-        const string GiteaCommitMessage = "some message";
-        const string Reference = "some reference";
-        const string CodeListIdNoChange = "codeListOne";
-        const string CodeListIdToDelete = "codeListTwo";
-        CodeList validCodeList = SetupCodeList();
-        List<CodeListWrapper> localCodeListWrappers = [
-            new(Title: CodeListIdNoChange, CodeList: validCodeList),
-            new(Title: CodeListIdToDelete)
-        ];
-
-        TargetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
-
-        _giteaClientMock
-            .Setup(service => service.GetLatestCommitOnBranch(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Reference);
-        _sourceControlMock.Setup(service => service.CloneIfNotExists(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns(Task.CompletedTask);
-        _sourceControlMock.Setup(service => service.CheckoutRepoOnBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
-        _sourceControlMock.Setup(service => service.CommitToLocalRepo(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
-        _sourceControlMock.Setup(service => service.Push(It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(true);
-
-        // Act
-        OrgCodeListService orgListService = GetOrgCodeListService();
-        UpdateCodeListRequest request = new(
-            CodeListWrappers: localCodeListWrappers,
-            BaseCommitSha: Reference,
-            CommitMessage: GiteaCommitMessage
-        );
-
-        await orgListService.UpdateCodeListsNew(TargetOrg, Developer, request);
-
-        // Assert
-        AltinnRepoEditingContext expected = AltinnRepoEditingContext.FromOrgRepoDeveloper(TargetOrg, targetRepository, Developer);
-
-        _giteaClientMock.Verify(service => service.GetLatestCommitOnBranch(TargetOrg, targetRepository, General.DefaultBranch, CancellationToken.None), Times.Once);
-        _sourceControlMock.Verify(service => service.CloneIfNotExists(TargetOrg, targetRepository), Times.Once);
-        _sourceControlMock.Verify(service => service.CheckoutRepoOnBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), "master"), Times.Once);
-        _sourceControlMock.Verify(service => service.CommitToLocalRepo(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), GiteaCommitMessage), Times.Once);
-        _sourceControlMock.Verify(service => service.Push(TargetOrg, targetRepository), Times.Once);
-    }
-
-    [Fact]
-    public async Task UpdateCodeListsNew_FeatureBranch()
-    {
-        // Arrange
-        const string GiteaCommitMessage = "some message";
-        const string Reference = "some reference";
-        const string CodeListIdNoChange = "codeListOne";
-        const string CodeListIdToDelete = "codeListTwo";
-        const string LatestCommitOnRemote = "another user has pushed changes";
-        CodeList validCodeList = SetupCodeList();
-        List<CodeListWrapper> localCodeListWrappers = [
-            new(Title: CodeListIdNoChange, CodeList: validCodeList),
-            new(Title: CodeListIdToDelete)
-        ];
-
-        TargetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
-
-        _giteaClientMock
-            .Setup(service => service.GetLatestCommitOnBranch(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(LatestCommitOnRemote);
-        _sourceControlMock.Setup(service => service.CloneIfNotExists(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns(Task.CompletedTask);
-
-        _sourceControlMock.Setup(service => service.DeleteLocalBranchIfExists(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
-        _sourceControlMock.Setup(service => service.CreateLocalBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>(), It.IsAny<string>()));
-        _sourceControlMock.Setup(service => service.CheckoutRepoOnBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
-
-        _sourceControlMock.Setup(service => service.CommitToLocalRepo(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
-        _sourceControlMock.Setup(service => service.RebaseOntoDefaultBranch(It.IsAny<AltinnRepoEditingContext>()));
-        _sourceControlMock.Setup(service => service.MergeBranchIntoHead(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
-
-        _sourceControlMock.Setup(service => service.Push(It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(true);
-
-        // Act
-        OrgCodeListService orgListService = GetOrgCodeListService();
-        UpdateCodeListRequest request = new(
-            CodeListWrappers: localCodeListWrappers,
-            BaseCommitSha: Reference,
-            CommitMessage: GiteaCommitMessage
-        );
-
-        await orgListService.UpdateCodeListsNew(TargetOrg, Developer, request);
-
-        // Assert
-        AltinnRepoEditingContext expected = AltinnRepoEditingContext.FromOrgRepoDeveloper(TargetOrg, targetRepository, Developer);
-        string expectedFeatureBranchName = expected.Developer;
-
-        _giteaClientMock.Verify(service => service.GetLatestCommitOnBranch(TargetOrg, targetRepository, General.DefaultBranch, CancellationToken.None), Times.Once);
-        _sourceControlMock.Verify(service => service.CloneIfNotExists(TargetOrg, targetRepository), Times.Once);
-
-        _sourceControlMock.Verify(service => service.DeleteLocalBranchIfExists(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName), Times.Exactly(2));
-        _sourceControlMock.Verify(service => service.CreateLocalBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName, Reference), Times.Once);
-        _sourceControlMock.Verify(service => service.CheckoutRepoOnBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName), Times.Once);
-
-        _sourceControlMock.Verify(service => service.CommitToLocalRepo(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), GiteaCommitMessage), Times.Once);
-        _sourceControlMock.Verify(service => service.RebaseOntoDefaultBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual))), Times.Once);
-        _sourceControlMock.Verify(service => service.CheckoutRepoOnBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), "master"), Times.Once);
-        _sourceControlMock.Verify(service => service.MergeBranchIntoHead(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName), Times.Once);
-        _sourceControlMock.Verify(service => service.Push(TargetOrg, targetRepository), Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleCommit()
-    {
-        // Arrange
-        const string GiteaCommitMessage = "some message";
-        const string Reference = "some reference";
-        const string CodeListId = "codeListTwo";
-        CodeList validCodeList = SetupCodeList();
-        List<CodeListWrapper> localCodeListWrappers = [
-            new(Title: CodeListId, CodeList: validCodeList)
-        ];
-
-        TargetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
-
-        _sourceControlMock.Setup(service => service.CheckoutRepoOnBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
-        _sourceControlMock.Setup(service => service.CommitToLocalRepo(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
-
-        // Act
-        OrgCodeListService orgListService = GetOrgCodeListService();
-        UpdateCodeListRequest request = new(
-            CodeListWrappers: localCodeListWrappers,
-            BaseCommitSha: Reference,
-            CommitMessage: GiteaCommitMessage
-        );
-
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(TargetOrg, targetRepository, Developer);
-        await orgListService.HandleCommit(editingContext, request);
-
-        // Assert
-        _sourceControlMock.Verify(service => service.CheckoutRepoOnBranch(It.Is<AltinnRepoEditingContext>(actual => editingContext.Equals(actual)), "master"), Times.Once);
-        _sourceControlMock.Verify(service => service.CommitToLocalRepo(It.Is<AltinnRepoEditingContext>(actual => editingContext.Equals(actual)), GiteaCommitMessage), Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleDivergentCommit()
-    {
-        // Arrange
-        const string GiteaCommitMessage = "some message";
-        const string Reference = "some reference";
-        const string CodeListId = "codeListOne";
-        CodeList validCodeList = SetupCodeList();
-        List<CodeListWrapper> localCodeListWrappers = [
-            new(Title: CodeListId, CodeList: validCodeList),
-        ];
-
-        TargetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
-
-        _sourceControlMock.Setup(service => service.DeleteLocalBranchIfExists(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
-        _sourceControlMock.Setup(service => service.CreateLocalBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>(), It.IsAny<string>()));
-        _sourceControlMock.Setup(service => service.CheckoutRepoOnBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
-
-        _sourceControlMock.Setup(service => service.CommitToLocalRepo(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
-        _sourceControlMock.Setup(service => service.RebaseOntoDefaultBranch(It.IsAny<AltinnRepoEditingContext>()));
-        _sourceControlMock.Setup(service => service.MergeBranchIntoHead(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
-
-        // Act
-        OrgCodeListService orgListService = GetOrgCodeListService();
-        UpdateCodeListRequest request = new(
-            CodeListWrappers: localCodeListWrappers,
-            BaseCommitSha: Reference,
-            CommitMessage: GiteaCommitMessage
-        );
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(TargetOrg, targetRepository, Developer);
-        await orgListService.HandleDivergentCommit(editingContext, request);
-
-        // Assert
-        string expectedFeatureBranchName = editingContext.Developer;
-
-        _sourceControlMock.Verify(service => service.DeleteLocalBranchIfExists(It.Is<AltinnRepoEditingContext>(actual => editingContext.Equals(actual)), expectedFeatureBranchName), Times.Exactly(2));
-        _sourceControlMock.Verify(service => service.CreateLocalBranch(It.Is<AltinnRepoEditingContext>(actual => editingContext.Equals(actual)), expectedFeatureBranchName, Reference), Times.Once);
-        _sourceControlMock.Verify(service => service.CheckoutRepoOnBranch(It.Is<AltinnRepoEditingContext>(actual => editingContext.Equals(actual)), expectedFeatureBranchName), Times.Once);
-
-        _sourceControlMock.Verify(service => service.CommitToLocalRepo(It.Is<AltinnRepoEditingContext>(actual => editingContext.Equals(actual)), GiteaCommitMessage), Times.Once);
-        _sourceControlMock.Verify(service => service.RebaseOntoDefaultBranch(It.Is<AltinnRepoEditingContext>(actual => editingContext.Equals(actual))), Times.Once);
-        _sourceControlMock.Verify(service => service.CheckoutRepoOnBranch(It.Is<AltinnRepoEditingContext>(actual => editingContext.Equals(actual)), "master"), Times.Once);
-        _sourceControlMock.Verify(service => service.MergeBranchIntoHead(It.Is<AltinnRepoEditingContext>(actual => editingContext.Equals(actual)), expectedFeatureBranchName), Times.Once);
     }
 
     [Fact]
@@ -564,32 +311,6 @@ public class OrgCodeListServiceTests : IDisposable
     }
 
     [Fact]
-    public void ValidateCodeListTitles_ShouldThrowException_WhenIllegalTitle()
-    {
-        // Arrange
-        List<CodeListWrapper> wrappers =
-        [
-            new(
-                Title: "illegal title",
-                CodeList: null,
-                HasError: true
-            )
-        ];
-        // Act and Assert
-        Assert.Throws<IllegalCodeListTitleException>(() => OrgCodeListService.ValidateCodeListTitles(wrappers));
-    }
-
-    [Fact]
-    public void ValidateCommitMessage_ShouldThrowException_WhenCommitMessageIsTooLong()
-    {
-        // Arrange
-        string invalidCommitMessage = new('a', 5121);
-
-        // Act and Assert
-        Assert.Throws<IllegalCommitMessageException>(() => OrgCodeListService.ValidateCommitMessage(invalidCommitMessage));
-    }
-
-    [Fact]
     public async Task PublishCodeList_DelegatesToClient()
     {
         // Arrange
@@ -638,17 +359,11 @@ public class OrgCodeListServiceTests : IDisposable
         return codeList;
     }
 
-    private static string FromStringToBase64String(string content)
-    {
-        byte[] contentAsBytes = Encoding.UTF8.GetBytes(content);
-        return Convert.ToBase64String(contentAsBytes);
-    }
-
     private OrgCodeListService GetOrgCodeListService(Mock<ISharedContentClient>? mock = null)
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
         Mock<ISharedContentClient> contentClientMock = mock ?? new Mock<ISharedContentClient>();
-        return new OrgCodeListService(altinnGitRepositoryFactory, _giteaClientMock.Object, _sourceControlMock.Object, contentClientMock.Object);
+        return new OrgCodeListService(altinnGitRepositoryFactory, contentClientMock.Object);
     }
 
     public void Dispose()

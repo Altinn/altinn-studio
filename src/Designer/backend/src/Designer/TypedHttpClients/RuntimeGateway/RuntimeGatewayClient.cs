@@ -7,29 +7,30 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Models.Metrics;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 
 public class RuntimeGatewayClient : IRuntimeGatewayClient
 {
-    private readonly RuntimeGatewaySettings _runtimeGatewaySettings;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly GeneralSettings _generalSettings;
+    private readonly IEnvironmentsService _environmentsService;
 
-    public RuntimeGatewayClient(RuntimeGatewaySettings runtimeGatewaySettings, IHttpClientFactory httpClientFactory, GeneralSettings generalSettings)
+    public RuntimeGatewayClient(IHttpClientFactory httpClientFactory, GeneralSettings generalSettings, IEnvironmentsService environmentsService)
     {
-        _runtimeGatewaySettings = runtimeGatewaySettings;
         _httpClientFactory = httpClientFactory;
         _generalSettings = generalSettings;
+        _environmentsService = environmentsService;
     }
 
     public async Task<bool> IsAppDeployedWithGitOpsAsync(string org, string app, AltinnEnvironment environment, CancellationToken cancellationToken)
     {
-        var client = _httpClientFactory.GetRuntimeGatewayHttpClient(environment);
-        var baseUrl = GetGatewayUrl(org, environment);
+        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         var originEnvironment = GetOriginEnvironment();
-        var requestUrl = $"{baseUrl}/deploy/apps/{app}/{originEnvironment}/deployed";
+        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{originEnvironment}/deployed";
 
         var response = await client.GetFromJsonAsync<IsAppDeployedResponse>(requestUrl, cancellationToken);
         return response?.IsDeployed ?? false;
@@ -42,8 +43,8 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        HttpClient client = _httpClientFactory.GetRuntimeGatewayHttpClient(environment);
-        string baseUrl = GetGatewayUrl(org, environment);
+        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/alerts";
 
         return await client.GetFromJsonAsync<List<AlertRule>>(requestUrl, cancellationToken) ?? [];
@@ -57,8 +58,8 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        HttpClient client = _httpClientFactory.GetRuntimeGatewayHttpClient(environment);
-        string baseUrl = GetGatewayUrl(org, environment);
+        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/metrics?range={range}";
 
         return await client.GetFromJsonAsync<MetricsResponse>(requestUrl, cancellationToken) ?? new MetricsResponse { SubscriptionId = "", Metrics = [] };
@@ -73,8 +74,8 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        HttpClient client = _httpClientFactory.GetRuntimeGatewayHttpClient(environment);
-        string baseUrl = GetGatewayUrl(org, environment);
+        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/metrics/app?app={app}&range={range}";
 
         return await client.GetFromJsonAsync<List<AppMetric>>(requestUrl, cancellationToken) ?? [];
@@ -88,26 +89,11 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        HttpClient client = _httpClientFactory.GetRuntimeGatewayHttpClient(environment);
-        string baseUrl = GetGatewayUrl(org, environment);
+        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/metrics/app/health?app={app}";
 
         return await client.GetFromJsonAsync<List<AppHealthMetric>>(requestUrl, cancellationToken) ?? [];
-    }
-
-    private string GetGatewayUrl(string org, AltinnEnvironment environment)
-    {
-        if (environment == AltinnEnvironment.Prod)
-        {
-            return string.Format(_runtimeGatewaySettings.ProdUrlFormat, org);
-        }
-
-        if (environment.Name.StartsWith("tt"))
-        {
-            return string.Format(_runtimeGatewaySettings.TtUrlFormat, org, environment.Name);
-        }
-
-        return string.Format(_runtimeGatewaySettings.AtYtUrlFormat, org, environment.Name);
     }
 
     private string GetOriginEnvironment()
