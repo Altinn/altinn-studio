@@ -2,9 +2,9 @@
   "$schema": "news.schema.json",
   "news": [
     {
-      "date": "2025-12-16",
+      "date": "2025-12-17",
       "title": "Grener i Studio",
-      "content": "Nå kan du jobbe med flere grener i Studio! Denne funksjonen kan være nyttig hvis dere er flere som jobber på samme app, eller hvis du ikke vil jobbe direkte på master-grenen."
+      "content": "Nå kan du jobbe med flere grener i Studio! Denne funksjonen kan være nyttig hvis dere er flere som jobber på samme app, eller hvis du ikke vil jobbe direkte på hovedgrenen."
     },
     {
       "date": "2025-11-05",

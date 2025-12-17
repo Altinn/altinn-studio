@@ -97,7 +97,7 @@ export const UncommittedChangesDialog = ({
             {discardButtonText}
           </StudioButton>
           <StudioButton variant='secondary' onClick={onClose}>
-            {t('general.cancel')}
+            {t('branching.uncommitted_changes_dialog.cancel')}
           </StudioButton>
         </div>
       </StudioDialog.Block>
