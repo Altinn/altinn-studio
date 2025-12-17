@@ -1,22 +1,24 @@
 package kind
 
 import (
+	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"altinn.studio/runtime-fixture/pkg/flux"
+	"altinn.studio/runtime-fixture/pkg/kubernetes"
+	"altinn.studio/runtime-fixture/pkg/runtimes/kind/manifests"
 )
 
 // isFluxInstalled checks if Flux is already installed in the cluster
 func (r *KindContainerRuntime) isFluxInstalled() (bool, error) {
 	// Check if flux-system namespace exists
-	if err := r.KubernetesClient.Get("namespace", "flux-system", ""); err != nil {
+	if err := r.KubernetesClient.Get(kubernetes.NamespaceGVR, "flux-system", ""); err != nil {
 		return false, nil
 	}
 
 	// Check if source-controller deployment exists
-	if err := r.KubernetesClient.Get("deployment", "source-controller", "flux-system"); err != nil {
+	if err := r.KubernetesClient.Get(kubernetes.DeploymentGVR, "source-controller", "flux-system"); err != nil {
 		return false, nil
 	}
 
@@ -43,10 +45,13 @@ func (r *KindContainerRuntime) installFluxToCluster() error {
 		"source-controller",
 		"helm-controller",
 		"kustomize-controller",
-		"notification-controller",
+	}
+	if r.options.IncludeFluxNotificationController {
+		components = append(components, "notification-controller")
 	}
 
-	if err := r.FluxClient.Install(components); err != nil {
+	opts := flux.LocalTestInstallOptions()
+	if err := r.FluxClient.Install(components, opts); err != nil {
 		return err
 	}
 
@@ -61,32 +66,22 @@ func (r *KindContainerRuntime) waitForFluxControllers() error {
 		"source-controller",
 		"helm-controller",
 		"kustomize-controller",
-		"notification-controller",
+	}
+	if r.options.IncludeFluxNotificationController {
+		controllers = append(controllers, "notification-controller")
 	}
 
 	timeout := 1 * time.Minute
-	deadline := time.Now().Add(timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 
 	for _, controller := range controllers {
 		fmt.Printf("Waiting for %s...\n", controller)
 
-		for {
-			if time.Now().After(deadline) {
-				return fmt.Errorf("timeout waiting for %s to be ready", controller)
-			}
-
-			// Check deployment status
-			output, err := r.KubernetesClient.GetWithJSONPath("deployment", controller,
-				"flux-system",
-				"{.status.conditions[?(@.type=='Available')].status}")
-
-			if err == nil && strings.TrimSpace(output) == "True" {
-				fmt.Printf("✓ %s is ready\n", controller)
-				break
-			}
-
-			time.Sleep(500 * time.Millisecond)
+		if err := r.KubernetesClient.WatchCondition(ctx, kubernetes.DeploymentGVR, controller, "flux-system", "Available", "True"); err != nil {
+			return fmt.Errorf("timeout waiting for %s to be ready", controller)
 		}
+		fmt.Printf("✓ %s is ready\n", controller)
 	}
 
 	fmt.Println("✓ All Flux controllers are ready")
@@ -119,15 +114,16 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 		return nil
 	}
 
-	time.Sleep(1 * time.Second)
 	fmt.Println("Reconciling base infra (blocking)...")
 
 	asyncOpts := flux.DefaultReconcileOptions()
 	asyncOpts.ShouldWait = false
 	syncOpts := flux.DefaultReconcileOptions()
 
-	if err := r.FluxClient.ReconcileHelmRelease("linkerd-crds", "linkerd", true, asyncOpts); err != nil {
-		return fmt.Errorf("failed to reconcile base infra: %w", err)
+	if r.options.IncludeLinkerd {
+		if err := r.FluxClient.ReconcileHelmRelease("linkerd-crds", "linkerd", true, asyncOpts); err != nil {
+			return fmt.Errorf("failed to reconcile base infra: %w", err)
+		}
 	}
 	if err := r.FluxClient.ReconcileHelmRelease("traefik-crds", "traefik", true, asyncOpts); err != nil {
 		return fmt.Errorf("failed to reconcile base infra: %w", err)
@@ -135,8 +131,10 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 	if err := r.FluxClient.ReconcileHelmRelease("traefik", "traefik", true, asyncOpts); err != nil {
 		return fmt.Errorf("failed to reconcile base infra: %w", err)
 	}
-	if err := r.FluxClient.ReconcileHelmRelease("linkerd-control-plane", "linkerd", true, syncOpts); err != nil {
-		return fmt.Errorf("failed to reconcile base infra: %w", err)
+	if r.options.IncludeLinkerd {
+		if err := r.FluxClient.ReconcileHelmRelease("linkerd-control-plane", "linkerd", true, syncOpts); err != nil {
+			return fmt.Errorf("failed to reconcile base infra: %w", err)
+		}
 	}
 	if r.options.IncludeMonitoring {
 		if err := r.FluxClient.ReconcileHelmRelease("kube-prometheus-stack", "monitoring", true, syncOpts); err != nil {
@@ -148,29 +146,16 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 
 	if r.IngressReadyEvent != nil {
 		go func() {
-			var err error
-			defer func() { fmt.Printf("Done waiting for ingress. Error=%v\n", err) }()
-			deadline := time.Now().Add(2 * time.Minute)
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+			defer cancel()
 
-			for !time.Now().After(deadline) {
-				err = r.KubernetesClient.Get("deployment", "traefik", "traefik")
-				if err == nil {
-					break
-				}
-				time.Sleep(250 * time.Millisecond)
-			}
-
+			err := r.KubernetesClient.WatchCondition(ctx, flux.HelmReleaseGVR, "traefik", "traefik", "Ready", "True")
+			fmt.Printf("Done waiting for ingress. Error=%v\n", err)
 			if err != nil {
-				r.IngressReadyEvent <- fmt.Errorf("error waiting for ingress deployment: %v", err)
+				r.IngressReadyEvent <- fmt.Errorf("error waiting for traefik HelmRelease: %v", err)
 				return
 			}
-
-			err = r.KubernetesClient.RolloutStatus("traefik", "traefik", 2*time.Minute)
-			if err == nil {
-				r.IngressReadyEvent <- nil
-			} else {
-				r.IngressReadyEvent <- fmt.Errorf("error waiting for ingress readiness: %v", err)
-			}
+			r.IngressReadyEvent <- nil
 		}()
 	}
 
@@ -184,46 +169,22 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 // - HelmReleases for: metrics-server, traefik, linkerd-crds, linkerd-control-plane, pdf-generator
 func (r *KindContainerRuntime) applyBaseInfrastructure() error {
 	fmt.Println("Applying base infrastructure manifest...")
-	manifest := r.buildBaseInfrastructureManifest()
-	if _, err := r.KubernetesClient.ApplyManifest(manifest); err != nil {
+
+	baseObjs := manifests.BuildBaseInfrastructure(certCACrt, certIssuerCrt, certIssuerKey, r.options.IncludeLinkerd)
+	if _, err := r.KubernetesClient.ApplyObjects(baseObjs...); err != nil {
 		return fmt.Errorf("failed to apply base infrastructure: %w", err)
 	}
 	fmt.Println("✓ Base infrastructure manifest applied")
 
 	if r.options.IncludeMonitoring {
 		fmt.Println("Applying monitoring infrastructure manifest...")
-		if _, err := r.KubernetesClient.ApplyManifest(string(monitoringInfrastructureManifest)); err != nil {
+
+		monitoringObjs := manifests.BuildMonitoringInfrastructure(r.options.IncludeLinkerd)
+		if _, err := r.KubernetesClient.ApplyObjects(monitoringObjs...); err != nil {
 			return fmt.Errorf("failed to apply monitoring infrastructure: %w", err)
 		}
 		fmt.Println("✓ Monitoring infrastructure manifest applied")
 	}
 
 	return nil
-}
-
-// buildBaseInfrastructureManifest creates a manifest with all base infrastructure resources
-// It substitutes certificate placeholders with actual certificate data
-func (r *KindContainerRuntime) buildBaseInfrastructureManifest() string {
-	manifest := string(baseInfrastructureManifest)
-
-	// Replace certificate placeholders with indented cert data
-	// Each line needs 4 spaces to match the YAML indentation level
-	manifest = strings.ReplaceAll(manifest, "    {{CA_CRT}}", indentLines(string(certCACrt), 4))
-	manifest = strings.ReplaceAll(manifest, "    {{ISSUER_CRT}}", indentLines(string(certIssuerCrt), 4))
-	manifest = strings.ReplaceAll(manifest, "    {{ISSUER_KEY}}", indentLines(string(certIssuerKey), 4))
-
-	return manifest
-}
-
-// indentLines indents each line of a multi-line string by the specified number of spaces
-func indentLines(s string, spaces int) string {
-	if s == "" {
-		return s
-	}
-	indent := strings.Repeat(" ", spaces)
-	lines := strings.Split(strings.TrimRight(s, "\n"), "\n")
-	for i := range lines {
-		lines[i] = indent + lines[i]
-	}
-	return strings.Join(lines, "\n")
 }

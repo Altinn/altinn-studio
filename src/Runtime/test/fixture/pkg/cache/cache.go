@@ -3,26 +3,10 @@ package cache
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 )
-
-const BinSubdir string = "bin"
-const ConfigSubdir string = "config"
 
 func EnsureCache(cachePath string) error {
 	err := EnsureDirExists(cachePath)
-	if err != nil {
-		return err
-	}
-
-	binDir := filepath.Join(cachePath, BinSubdir)
-	configDir := filepath.Join(cachePath, ConfigSubdir)
-
-	err = EnsureDirExists(binDir)
-	if err != nil {
-		return err
-	}
-	err = EnsureDirExists(configDir)
 	if err != nil {
 		return err
 	}

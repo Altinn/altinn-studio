@@ -44,9 +44,9 @@ export const DeleteModal = forwardRef<HTMLDialogElement, DeleteModalProps>(
     };
 
     return (
-      <StudioDialog onClose={handleClose} ref={dialogRef} closedby='any'>
-        <StudioDialog.Block>
-          <StudioHeading className={classes.headerWrapper} level={2}>
+      <StudioDialog onClose={handleClose} ref={dialogRef} closedby='any' className={classes.dialog}>
+        <StudioDialog.Block className={classes.headerWrapper}>
+          <StudioHeading level={1} className={classes.heading}>
             <TrashIcon className={classes.trashIcon} />
             {t('local_changes.modal_delete_modal_title')}
           </StudioHeading>
@@ -72,10 +72,12 @@ export const DeleteModal = forwardRef<HTMLDialogElement, DeleteModalProps>(
             ) : (
               <>
                 <StudioButton
+                  iconPlacement='right'
                   variant='secondary'
                   data-color='danger'
                   onClick={handleDelete}
                   disabled={app !== nameToDelete}
+                  icon={<TrashIcon />}
                 >
                   {t('local_changes.modal_confirm_delete_button')}
                 </StudioButton>

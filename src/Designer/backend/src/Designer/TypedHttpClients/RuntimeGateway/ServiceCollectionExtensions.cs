@@ -1,6 +1,5 @@
-#nullable disable
+using System.Linq;
 using System.Threading.Tasks;
-using Altinn.ApiClients.Maskinporten.Config;
 using Altinn.ApiClients.Maskinporten.Extensions;
 using Altinn.ApiClients.Maskinporten.Services;
 using Altinn.Studio.Designer.Configuration;
@@ -13,11 +12,12 @@ public static class ServiceCollectionExtensions
 {
     internal static void AddRuntimeGatewayHttpClient(this IServiceCollection services, IConfiguration config)
     {
-        MaskinportenClientForRuntime maskinportenClientForRuntime = config.GetSection(nameof(MaskinportenClientForRuntime)).Get<MaskinportenClientForRuntime>();
+        var maskinportenClientForRuntime = config.GetSection(nameof(MaskinportenClientForRuntime)).Get<MaskinportenClientForRuntime>();
 
-        foreach ((string name, MaskinportenSettings maskinportenSettings) in maskinportenClientForRuntime)
+        var settings = maskinportenClientForRuntime?.SingleOrDefault().Value;
+        if (settings is not null)
         {
-            services.AddMaskinportenHttpClient<SettingsJwkClientDefinition>($"runtime-gateway-{name}", maskinportenSettings)
+            services.AddMaskinportenHttpClient<SettingsJwkClientDefinition>("runtime-gateway", settings)
                 .AddStandardResilienceHandler(options =>
                 {
                     options.Retry.MaxRetryAttempts = 3;
