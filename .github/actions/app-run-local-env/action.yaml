@@ -61,7 +61,7 @@ runs:
       if: ${{ inputs.run-localtest == 'true' }}
       working-directory: src/Runtime/localtest
       env:
-        USE_REGISTRY_CACHE: true
+        COMPOSE_FILE: 'docker-compose.yml:docker-compose.ci.yml'
       run: |
         args="${{ steps.set-profile.outputs.profile-args }}"
 
@@ -88,7 +88,7 @@ runs:
       env:
         TEST_DOMAIN: local.altinn.cloud
         ALTINN3LOCAL_PORT: 80
-        USE_REGISTRY_CACHE: true
+        COMPOSE_FILE: 'docker-compose.yml:docker-compose.ci.yml'
 
     - name: Start frontend server
       if: ${{ inputs.run-frontend == 'true' }}
