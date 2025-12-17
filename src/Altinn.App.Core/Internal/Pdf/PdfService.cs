@@ -28,7 +28,7 @@ public class PdfService : IPdfService
     private readonly ITranslationService _translationService;
     private readonly GeneralSettings _generalSettings;
     private readonly Telemetry? _telemetry;
-    private const string PdfElementType = "ref-data-as-pdf";
+    internal const string PdfElementType = "ref-data-as-pdf";
     private const string PdfContentType = "application/pdf";
 
     /// <summary>
