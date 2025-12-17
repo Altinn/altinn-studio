@@ -63,7 +63,7 @@
     },
     {
       "id": "TextareaPage",
-      "value": "Langt svar"
+      "value": "Stort tekstfelt (Text area) "
     },
     {
       "id": "ImageUploadPage",
@@ -71,7 +71,7 @@
     },
     {
       "id": "TextareaPage.Textarea.title",
-      "value": "Eksempel på langt svar komponent."
+      "value": "Eksempel på Stort tekstfelt (Text area) komponent."
     },
     {
       "id": "RadioButtonsPage",
