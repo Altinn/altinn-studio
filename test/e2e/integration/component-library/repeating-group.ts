@@ -1,5 +1,7 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
+import type { CompExternal } from 'src/layout/layout';
+
 const appFrontend = new AppFrontend();
 
 describe('Group summary test', () => {
@@ -27,51 +29,79 @@ describe('Group summary test', () => {
   });
 
   it('Should hide column when tableColumns hidden is set on a field', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
-      if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
-        component.tableColumns = {
-          'RepeatingGroup-Input-Name': {
-            hidden: ['equals', 0, 0],
-          },
-        };
-      }
-    });
+    cy.interceptLayout(
+      'ComponentLayouts',
+      (component) => {
+        if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
+          component.tableColumns = {
+            'RepeatingGroup-Input-Name': {
+              hidden: ['equals', ['component', 'RepeatingGroupPage-RadioButtons'], 'moped'],
+            },
+          };
+          component.rowsAfter = [{ header: true, cells: [{ text: 'Kol1' }, { text: 'Kol2' }, { text: 'Kol3' }] }];
+        }
+      },
+      (layout) => {
+        layout['RepeatingGroupPage'].data.layout.splice(1, 0, {
+          id: 'RepeatingGroupPage-RadioButtons',
+          type: 'RadioButtons',
+          textResourceBindings: { title: 'Velg moped for å skjule en kolonne' },
+          dataModelBindings: { simpleBinding: { field: 'radioButtonInput', dataType: 'model' } },
+          options: [
+            { label: 'Bil', value: 'bil' },
+            { label: 'Moped', value: 'moped' },
+            { label: 'Traktor', value: 'traktor' },
+            { label: 'Båt', value: 'baat' },
+          ],
+        } satisfies CompExternal);
+      },
+    );
 
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.gotoNavPage('Repeterende gruppe');
 
-    const nameInput = 'Test navn';
-    const pointsInput = '10';
-    const dateInput = '24.11.2025';
+    const rowsToAdd = [
+      { navn: 'Testnavn1', poeng: '10', dato: '24.11.2025' },
+      { navn: 'Testnavn2', poeng: '20', dato: '25.11.2025' },
+    ];
 
-    cy.findAllByRole('button', { name: /Legg til ny/ })
-      .first()
-      .click();
-    cy.findByRole('textbox', { name: /Navn/ }).type(nameInput);
-    cy.findByRole('textbox', { name: /Poeng/ }).type(pointsInput);
-    cy.findByRole('textbox', { name: /Dato/ }).type(dateInput);
-    cy.findAllByRole('button', { name: /Lagre og lukk/ })
-      .first()
-      .click();
-
-    const name2Input = 'Test2 navn';
-    const points2Input = '20';
-    const date2Input = '25.11.2025';
-
-    cy.findAllByRole('button', { name: /Legg til ny/ })
-      .first()
-      .click();
-
-    cy.findByRole('textbox', { name: /Navn/ }).type(name2Input);
-    cy.findByRole('textbox', { name: /Poeng/ }).type(points2Input);
-    cy.findByRole('textbox', { name: /Dato/ }).type(date2Input);
-    cy.findAllByRole('button', { name: /Lagre og lukk/ })
-      .first()
-      .click();
+    for (const row of rowsToAdd) {
+      cy.findAllByRole('button', { name: /Legg til ny/ })
+        .first()
+        .click();
+      cy.findByRole('textbox', { name: /Navn/ }).type(row.navn);
+      cy.findByRole('textbox', { name: /Poeng/ }).type(row.poeng);
+      cy.findByRole('textbox', { name: /Dato/ }).type(row.dato);
+      cy.findAllByRole('button', { name: /Lagre og lukk/ })
+        .first()
+        .click();
+    }
 
     cy.get('div[data-testid="group-RepeatingGroup"] > table').within(() => {
-      cy.findByRole('columnheader', { name: /Navn/ }).should('not.exist');
+      cy.findByRole('columnheader', { name: /Navn/ }).should('be.visible');
+      cy.findByRole('columnheader', { name: /Kol1/ }).should('be.visible');
     });
+    cy.get('[data-componentid="RepeatingGroup-Summary"]')
+      .find('[data-testid="summary-item-compact"]')
+      .should('have.length', rowsToAdd.length * 3);
+    cy.get('[data-testid="summary-repeating-group-component"] > table').should('contain.text', 'Testnavn1');
+    cy.get('[data-testid="summary-repeating-group-component"] > table').should('contain.text', 'Testnavn2');
+
+    cy.findByRole('radio', { name: 'Moped' }).check();
+
+    cy.get('div[data-testid="group-RepeatingGroup"] > table').within(() => {
+      cy.findByRole('columnheader', { name: /Kol2/ }).should('be.visible');
+      cy.findByRole('columnheader', { name: /Navn/ }).should('not.exist');
+      cy.findByRole('columnheader', { name: /Kol1/ }).should('not.exist');
+    });
+
+    cy.get('[data-componentid="RepeatingGroup-Summary"]')
+      .find('[data-testid="summary-item-compact"]')
+      .should('have.length', rowsToAdd.length * 2);
+
+    cy.get('[data-testid="summary-repeating-group-component"] > table').should('contain.text', '24.11.2025');
+    cy.get('[data-testid="summary-repeating-group-component"] > table').should('not.contain.text', 'Testnavn1');
+    cy.get('[data-testid="summary-repeating-group-component"] > table').should('not.contain.text', 'Testnavn2');
   });
 
   it('Displays a summary for a filled repeating group in table', () => {

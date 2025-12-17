@@ -51,6 +51,11 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
   const tableIds = useTableComponentIds(baseComponentId);
   const tableIdsWithoutHiddenColumns = tableIds.filter((id) => !hiddenColumns.includes(id));
 
+  // Calculate hidden column indices for ExtraRows (which uses positional indexing)
+  const hiddenColumnIndices = tableIds
+    .map((id, index) => (hiddenColumns.includes(id) ? index : -1))
+    .filter((index) => index !== -1);
+
   const numRows = rowsToDisplay.length;
   const firstRowId = numRows >= 1 ? rowsToDisplay[0].uuid : undefined;
 
@@ -115,6 +120,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
           where='Before'
           extraCells={extraCells}
           columnSettings={columnSettings}
+          hiddenColumnIndices={hiddenColumnIndices}
         />
         {showTableHeader && !mobileView && (
           <Table.Head id={`group-${id}-table-header`}>
@@ -168,6 +174,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
           where='After'
           extraCells={extraCells}
           columnSettings={columnSettings}
+          hiddenColumnIndices={hiddenColumnIndices}
         />
       </Table>
     </div>
@@ -234,9 +241,10 @@ interface ExtraRowsProps {
   where: 'Before' | 'After';
   extraCells: GridCell[];
   columnSettings: ITableColumnFormatting;
+  hiddenColumnIndices: number[];
 }
 
-function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
+function ExtraRows({ where, extraCells, columnSettings, hiddenColumnIndices }: ExtraRowsProps) {
   const mobileView = useIsMobileOrTablet();
   const baseComponentId = useRepeatingGroupComponentId();
   const { visibleRows } = useRepeatingGroupRowState();
@@ -280,6 +288,7 @@ function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
       extraCells={extraCells}
       isNested={isNested}
       mutableColumnSettings={columnSettings}
+      hiddenColumnIndices={hiddenColumnIndices}
     />
   );
 }
