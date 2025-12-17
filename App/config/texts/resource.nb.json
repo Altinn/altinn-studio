@@ -35,7 +35,7 @@
     },
     {
       "id": "InputPage",
-      "value": "Kort svar"
+      "value": "Lite tekstfelt (Text field)"
     },
     {
       "id": "DividerPage",
@@ -43,15 +43,15 @@
     },
     {
       "id": "InputPage.Input.title",
-      "value": "Eksempel på kort svar komponent"
+      "value": "Eksempel på Lite tekstfelt (Text field) komponent"
     },
     {
       "id": "InputPage.Input.Grid.title-1",
-      "value": "Eksempel på kort svar komponent med grid"
+      "value": "Eksempel på Lite tekstfelt (Text field) komponent med grid"
     },
     {
       "id": "InputPage.Input.Grid.title-2",
-      "value": "Enda et eksempel på kort svar komponent med grid"
+      "value": "Enda et eksempel på Lite tekstfelt (Text field) komponent med grid"
     },
     {
       "id": "InputPage.Input.Grid.title.long",
@@ -213,7 +213,10 @@
       "id": "RenderSpecificComponentFromPreviousTask",
       "value": "Oppsummering av komponent fra tidligere Task"
     },
-    { "id": "reasons.related", "value": "Slektskap" },
+    {
+      "id": "reasons.related",
+      "value": "Slektskap"
+    },
     {
       "id": "reasons.adoptive",
       "value": "Adoptivforelders etternavn eller mellomnavn"
@@ -234,9 +237,18 @@
       "id": "reasons.pastName",
       "value": "Tidligere etternavn eller mellomnavn"
     },
-    { "id": "reasons.farm", "value": "Gårdsbruk" },
-    { "id": "reasons.newName", "value": "Jeg tror navnet er nytt i Norge" },
-    { "id": "reasons.other", "value": "Annen begrunnelse " },
+    {
+      "id": "reasons.farm",
+      "value": "Gårdsbruk"
+    },
+    {
+      "id": "reasons.newName",
+      "value": "Jeg tror navnet er nytt i Norge"
+    },
+    {
+      "id": "reasons.other",
+      "value": "Annen begrunnelse "
+    },
     {
       "id": "appLogo.url",
       "value": "assets/altinn-logo.svg"
@@ -269,14 +281,38 @@
       "id": "LinkPage",
       "value": "Link"
     },
-    { "id": "DatepickerPage", "value": "Datepicker" },
-    { "id": "NumberPage", "value": "Number" },
-    { "id": "TextPage", "value": "Text" },
-    { "id": "DatePage", "value": "Date" },
-    { "id": "question-1", "value": "Gjør du leksene dine?" },
-    { "id": "question-2", "value": "Fungerer kalkulatoren din?" },
-    { "id": "question-3", "value": "Er pulten din ryddig?" },
-    { "id": "question-4", "value": "Hører skolen på elevenes forslag?" },
+    {
+      "id": "DatepickerPage",
+      "value": "Datepicker"
+    },
+    {
+      "id": "NumberPage",
+      "value": "Number"
+    },
+    {
+      "id": "TextPage",
+      "value": "Text"
+    },
+    {
+      "id": "DatePage",
+      "value": "Date"
+    },
+    {
+      "id": "question-1",
+      "value": "Gjør du leksene dine?"
+    },
+    {
+      "id": "question-2",
+      "value": "Fungerer kalkulatoren din?"
+    },
+    {
+      "id": "question-3",
+      "value": "Er pulten din ryddig?"
+    },
+    {
+      "id": "question-4",
+      "value": "Hører skolen på elevenes forslag?"
+    },
     {
       "id": "question-5",
       "value": "Er dere elever med på å lage regler for hvordan dere skal ha det i klassen/gruppa?"
