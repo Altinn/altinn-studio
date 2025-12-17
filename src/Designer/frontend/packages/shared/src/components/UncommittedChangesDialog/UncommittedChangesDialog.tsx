@@ -60,7 +60,7 @@ export const UncommittedChangesDialog = ({
         <StudioHeading>{t('branching.uncommitted_changes_dialog.heading')}</StudioHeading>
       </StudioDialog.Block>
       <StudioDialog.Block className={classes.dialogMainContent}>
-        <StudioAlert>
+        <StudioAlert data-color='warning'>
           <Trans
             i18nKey='branching.uncommitted_changes_dialog.alert'
             values={{ currentBranch: error.currentBranch, targetBranch }}
@@ -88,10 +88,6 @@ export const UncommittedChangesDialog = ({
         <StudioParagraph>{t('branching.uncommitted_changes_dialog.choose_action')}</StudioParagraph>
 
         <div className={classes.buttons}>
-          <StudioButton variant='secondary' onClick={onClose}>
-            {t('general.cancel')}
-          </StudioButton>
-
           <StudioButton
             variant='secondary'
             color='danger'
@@ -99,6 +95,9 @@ export const UncommittedChangesDialog = ({
             disabled={isProcessing}
           >
             {discardButtonText}
+          </StudioButton>
+          <StudioButton variant='secondary' onClick={onClose}>
+            {t('general.cancel')}
           </StudioButton>
         </div>
       </StudioDialog.Block>

@@ -69,11 +69,11 @@ export const CreateBranchDialog = ({
           />
           <StudioParagraph>{t('branching.new_branch_dialog.hint')}</StudioParagraph>
           <div className={classes.buttons}>
-            <StudioButton variant='secondary' onClick={onClose}>
-              {t('general.cancel')}
-            </StudioButton>
             <StudioButton onClick={handleCreate} disabled={isCreatingOrCheckingOut}>
               {createButtonText}
+            </StudioButton>
+            <StudioButton variant='secondary' onClick={onClose}>
+              {t('general.cancel')}
             </StudioButton>
           </div>
         </StudioDialog.Block>
