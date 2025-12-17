@@ -72,7 +72,9 @@ export const CreateBranchDialog = ({
             <StudioButton variant='secondary' onClick={onClose}>
               {t('general.cancel')}
             </StudioButton>
-            <StudioButton onClick={handleCreate}>{createButtonText}</StudioButton>
+            <StudioButton onClick={handleCreate} disabled={isCreatingOrCheckingOut}>
+              {createButtonText}
+            </StudioButton>
           </div>
         </StudioDialog.Block>
       </StudioDialog>
