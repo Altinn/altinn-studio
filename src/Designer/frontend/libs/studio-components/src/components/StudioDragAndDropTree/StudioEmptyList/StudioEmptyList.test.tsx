@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { StudioEmptyList, type StudioEmptyListProps } from './StudioEmptyList';
 
 describe('StudioEmptyList', () => {
-  it('should renders empty content text when children are provided', () => {
+  it('should render empty content text when children are provided', () => {
     const childrenText = 'No items available';
     renderStudioEmptyList({ children: childrenText });
     expect(screen.getByText(childrenText)).toBeInTheDocument();
