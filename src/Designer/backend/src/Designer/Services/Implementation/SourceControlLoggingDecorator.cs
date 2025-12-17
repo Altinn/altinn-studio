@@ -389,6 +389,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
         public async Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName)
         {
             try
@@ -402,6 +403,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
+        public async Task FetchGitNotes(AltinnRepoEditingContext editingContext)
+        {
+            try
+            {
+                await _decoratedService.FetchGitNotes(editingContext);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, nameof(FetchGitNotes), editingContext.Org, editingContext.Repo);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
         public async Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
         {
             try

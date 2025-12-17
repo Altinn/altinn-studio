@@ -243,5 +243,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="branchName">The name of the branch</param>
         Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName);
+
+        /// <summary>
+        /// Fetches git notes.
+        /// </summary>
+        /// <param name="editingContext">The altinn repo editing context</param>
+        Task FetchGitNotes(AltinnRepoEditingContext editingContext);
     }
 }

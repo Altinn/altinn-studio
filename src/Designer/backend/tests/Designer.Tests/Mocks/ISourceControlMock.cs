@@ -173,6 +173,7 @@ namespace Designer.Tests.Mocks
         public RepoStatus DiscardLocalChanges(string org, string repository) => throw new NotImplementedException();
 
         public Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
+        public Task FetchGitNotes(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
 
         LibGit2Sharp.RebaseResult ISourceControl.RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
 
