@@ -27,7 +27,7 @@ export const CheckboxesNext: React.FC<CheckboxesNextType> = ({ component, common
     <div>
       {fetchedOptions?.map((option, idx) => (
         <Checkbox
-          aria-labelledby={option.label}
+          label={option.label}
           key={idx}
           description={option.description}
           value={`${option.value}`}

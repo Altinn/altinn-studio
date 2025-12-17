@@ -23,7 +23,7 @@ export const RadioButtonsNext: React.FC<RadioButtonsNextType> = ({ component, co
     <div>
       {fetchedOptions?.map((option, idx) => (
         <Radio
-          aria-labelledby={option.label}
+          label={option.label}
           key={idx}
           value={`${option.value}`}
           description={option.description}

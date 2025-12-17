@@ -178,12 +178,16 @@ export const layoutStore = createStore<Layouts>()(
         },
 
         evaluateExpression: (expr: Expression, parentBinding?: string, itemIndex?: number) => {
+          const start = performance.now();
           const { data, componentMap } = get();
           if (!data) {
             throw new Error('No data available in store');
           }
 
-          return evaluateExpression(expr, data, componentMap, parentBinding, itemIndex);
+          const result = evaluateExpression(expr, data, componentMap, parentBinding, itemIndex);
+          const duration = performance.now() - start;
+          console.log(`evaluateExpression took ${duration.toFixed(2)}ms`, { expr, result });
+          return result;
         },
 
         validateComponent: (
