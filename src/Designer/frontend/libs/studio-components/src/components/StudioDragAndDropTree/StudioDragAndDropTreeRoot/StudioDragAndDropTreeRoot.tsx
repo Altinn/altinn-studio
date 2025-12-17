@@ -28,7 +28,7 @@ export const StudioDragAndDropTreeRoot = ({
           onMouseOut={() => setHoveredNodeParent(undefined)}
           selectedId={selectedId}
         >
-          {children || <StudioEmptyList>{emptyMessage}</StudioEmptyList>}
+          {children || (emptyMessage && <StudioEmptyList>{emptyMessage}</StudioEmptyList>)}
         </StudioTreeView.Root>
       </StudioDragAndDrop.List>
     </StudioDragAndDropTreeRootContext.Provider>

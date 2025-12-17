@@ -45,4 +45,10 @@ describe('StudioDragAndDropTreeRoot', () => {
     await user.unhover(item); // Simulate mouse leave
     expect(result.current?.hoveredNodeParent).toBeUndefined();
   });
+
+  it('Renders empty message when no children are provided', () => {
+    const emptyMessage = 'No items found';
+    renderStudioDragAndDropTreeRoot();
+    expect(screen.queryByText(emptyMessage)).not.toBeInTheDocument();
+  });
 });
