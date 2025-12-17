@@ -338,7 +338,7 @@
   "branching.new_branch_dialog.branch_name_placeholder": "f.eks. feature/min-nye-funksjon",
   "branching.new_branch_dialog.create": "Opprett gren",
   "branching.new_branch_dialog.creating": "Oppretter...",
-  "branching.new_branch_dialog.description": "Lag en ny gren basert på den du har åpen nå. Du blir automatisk byttet til den nye grenen.",
+  "branching.new_branch_dialog.description": "Lag en ny gren basert på <strong>{{currentBranch}}</strong>. Du blir automatisk byttet til den nye grenen.",
   "branching.new_branch_dialog.error_already_exists": "En gren med dette navnet eksisterer allerede",
   "branching.new_branch_dialog.error_empty": "Grennavn kan ikke være tomt",
   "branching.new_branch_dialog.error_generic": "Kunne ikke opprette gren",

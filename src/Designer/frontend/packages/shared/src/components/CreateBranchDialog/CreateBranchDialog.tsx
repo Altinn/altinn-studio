@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import {
   StudioDialog,
   StudioButton,
@@ -16,9 +16,16 @@ export interface CreateBranchDialogProps {
   onClose: () => void;
   org: string;
   app: string;
+  currentBranch: string;
 }
 
-export const CreateBranchDialog = ({ isOpen, onClose, org, app }: CreateBranchDialogProps) => {
+export const CreateBranchDialog = ({
+  isOpen,
+  onClose,
+  org,
+  app,
+  currentBranch,
+}: CreateBranchDialogProps) => {
   const { t } = useTranslation();
 
   const {
@@ -44,7 +51,14 @@ export const CreateBranchDialog = ({ isOpen, onClose, org, app }: CreateBranchDi
           <StudioHeading>{t('branching.new_branch_dialog.create')}</StudioHeading>
         </StudioDialog.Block>
         <StudioDialog.Block className={classes.dialogMainContent}>
-          <StudioParagraph>{t('branching.new_branch_dialog.description')}</StudioParagraph>
+          <StudioParagraph>
+            <Trans
+              i18nKey='branching.new_branch_dialog.description'
+              values={{ currentBranch }}
+              components={{ strong: <strong /> }}
+              shouldUnescape
+            />
+          </StudioParagraph>
           <StudioTextfield
             label={t('branching.new_branch_dialog.branch_name_label')}
             value={branchName}

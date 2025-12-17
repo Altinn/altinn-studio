@@ -98,6 +98,7 @@ export const BranchDropdown = () => {
         onClose={() => setShowCreateDialog(false)}
         org={org}
         app={app}
+        currentBranch={currentBranch}
       />
     </>
   );
