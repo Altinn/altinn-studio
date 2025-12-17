@@ -154,6 +154,7 @@ const defaultProps: CreateBranchDialogProps = {
   onClose,
   org,
   app,
+  currentBranch: 'master',
 };
 
 const renderCreateBranchDialog = (props?: Partial<CreateBranchDialogProps>) => {

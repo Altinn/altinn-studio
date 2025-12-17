@@ -99,7 +99,7 @@ describe('UncommittedChangesDialog', () => {
     renderUncommittedChangesDialog();
 
     const cancelButton = screen.getByRole('button', {
-      name: textMock('general.cancel'),
+      name: textMock('branching.uncommitted_changes_dialog.cancel'),
     });
     const discardChangesButton = screen.getByRole('button', {
       name: textMock('branching.uncommitted_changes_dialog.discard_and_switch'),
@@ -114,7 +114,7 @@ describe('UncommittedChangesDialog', () => {
     renderUncommittedChangesDialog();
 
     const cancelButton = screen.getByRole('button', {
-      name: textMock('general.cancel'),
+      name: textMock('branching.uncommitted_changes_dialog.cancel'),
     });
 
     await user.click(cancelButton);
