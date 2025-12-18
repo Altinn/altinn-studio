@@ -31,6 +31,13 @@ export interface ResolvedLayoutFile {
 
 export type ResolvedLayoutCollection = { [pageName: string]: ResolvedLayoutFile };
 
+// Expression cache - lives outside store to avoid triggering re-renders
+const expressionCache = new Map<string, unknown>();
+
+function getCacheKey(expr: Expression, parentBinding?: string, itemIndex?: number): string {
+  return JSON.stringify({ expr, parentBinding, itemIndex });
+}
+
 interface Layouts {
   layoutSetsConfig: LayoutSetsSchema;
   process: ProcessSchema;
@@ -174,19 +181,24 @@ export const layoutStore = createStore<Layouts>()(
         },
 
         setDataObject: (newData) => {
+          expressionCache.clear();
           set({ data: newData });
         },
 
         evaluateExpression: (expr: Expression, parentBinding?: string, itemIndex?: number) => {
-          const start = performance.now();
+          const cacheKey = getCacheKey(expr, parentBinding, itemIndex);
+
+          if (expressionCache.has(cacheKey)) {
+            return expressionCache.get(cacheKey);
+          }
+
           const { data, componentMap } = get();
           if (!data) {
             throw new Error('No data available in store');
           }
 
           const result = evaluateExpression(expr, data, componentMap, parentBinding, itemIndex);
-          const duration = performance.now() - start;
-          console.log(`evaluateExpression took ${duration.toFixed(2)}ms`, { expr, result });
+          expressionCache.set(cacheKey, result);
           return result;
         },
 
@@ -265,6 +277,7 @@ export const layoutStore = createStore<Layouts>()(
               return {};
             }
 
+            expressionCache.clear();
             const nextData = { ...state.data };
             dot.set(binding, newValue, nextData);
 

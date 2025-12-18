@@ -7,6 +7,7 @@ import { Navbar } from 'nextsrc/nextpoc/components/navbar/Navbar';
 import { RadioButtonsNext } from 'nextsrc/nextpoc/components/RadioButtonsNext/RadioButtonsNext';
 import { RepeatingGroupNext } from 'nextsrc/nextpoc/components/RepeatingGroupNext/RepeatingGroupNext';
 import { SummaryNext } from 'nextsrc/nextpoc/components/SummaryNext/SummaryNext';
+import { TextAreaNext } from 'nextsrc/nextpoc/components/TextAreaNext';
 import { layoutStore } from 'nextsrc/nextpoc/stores/layoutStore';
 import { initialStateStore } from 'nextsrc/nextpoc/stores/settingsStore';
 import { textResourceStore } from 'nextsrc/nextpoc/stores/textResourceStore';
@@ -152,6 +153,15 @@ export const RenderComponent = memo(function RenderComponentMemo({
 
   if (component.type === 'NavigationBar') {
     return <Navbar component={component} />;
+  }
+
+  if (component.type === 'TextArea') {
+    return (
+      <TextAreaNext
+        component={component}
+        commonProps={commonProps}
+      />
+    );
   }
 
   return (

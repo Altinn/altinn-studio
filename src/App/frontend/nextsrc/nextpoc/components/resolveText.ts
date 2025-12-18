@@ -22,3 +22,6 @@ export function resolveText(component: CompExternal, textResource?: TextResource
 
   return foundText.value || undefined;
 }
+export const useNoMemo = <const T>(factory: () => T): T =>
+  //'use no memo';
+  factory();

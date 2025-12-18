@@ -3,8 +3,8 @@ import React, { useRef } from 'react';
 import { Button, Table } from '@digdir/designsystemet-react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import dot from 'dot-object';
-import { RenderLayout, RenderLayoutRow } from 'nextsrc/nextpoc/components/RenderLayout';
-import classes from 'nextsrc/nextpoc/components/RepeatingGroupNext/RepeatingGroupNext.module.css';
+import { RenderLayoutRow } from 'nextsrc/nextpoc/components/RenderLayout';
+import { useNoMemo } from 'nextsrc/nextpoc/components/resolveText';
 import { layoutStore } from 'nextsrc/nextpoc/stores/layoutStore';
 import { useStore } from 'zustand';
 import type { ResolvedCompExternal } from 'nextsrc/nextpoc/stores/layoutStore';
@@ -35,16 +35,16 @@ export const RepeatingGroupNext: React.FC<RepeatingGroupNextType> = ({ component
 
   const addRow = useStore(layoutStore, (state) => state.addRow);
 
-  const parentRef = useRef<HTMLDivElement>(null);
+  const scrollElementRef = useRef<HTMLDivElement>(null);
 
-  const rowVirtualizer = useVirtualizer({
+  const virtualizer = useVirtualizer({
     count: groupArray.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 9000, // just a rough estimate
-    overscan: 2,
-    measureElement: (element, _, __) => element.getBoundingClientRect().height,
+    getScrollElement: () => scrollElementRef.current,
+    estimateSize: () => 110,
+    overscan: 5,
   });
 
+  const virtualItems = useNoMemo(() => virtualizer.getVirtualItems());
   const hiddenRow = (component as unknown as CompIntermediateExact<'RepeatingGroup'>)
     .hiddenRow as unknown as Expression;
 
@@ -63,12 +63,11 @@ export const RepeatingGroupNext: React.FC<RepeatingGroupNextType> = ({ component
       </Button>
     );
   }
-
+  // console.log('groupArray', groupArray);
   if (groupArray.length < 500) {
     return (
-      <div style={{ border: '1px solid green' }}>
+      <div>
         <h1>actualBinding {actualBinding}</h1>
-
         <Table>
           <Table.Head id={`group-${component.id}-table-header`}>
             <Table.Row>
@@ -103,60 +102,129 @@ export const RepeatingGroupNext: React.FC<RepeatingGroupNextType> = ({ component
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-      <div
-        ref={parentRef}
-        className={classes.container}
-        style={{
-          width: '100%',
-          height: '500px',
-          overflow: 'auto',
-        }}
-      >
-        <div
+    <div
+      ref={scrollElementRef}
+      style={{
+        width: '100%',
+        height: '500px',
+        overflow: 'auto',
+      }}
+    >
+      <Table>
+        <Table.Head id={`group-${component.id}-table-header`}>
+          <Table.Row>
+            <Table.HeaderCell>#</Table.HeaderCell>
+            {component.children.map((child) => (
+              <Table.HeaderCell key={child.id}>{child.id}</Table.HeaderCell>
+            ))}
+          </Table.Row>
+        </Table.Head>
+
+        <Table.Body
+          id={`group-${component.id}-table-body`}
           style={{
-            height: `${rowVirtualizer.getTotalSize()}px`,
+            height: `${virtualizer.getTotalSize()}px`,
             position: 'relative',
-            width: '100%',
           }}
         >
-          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-            const index = virtualRow.index;
-            return (
-              <div
-                key={index}
-                ref={(el) => {
-                  if (el) {
-                    rowVirtualizer.measureElement(el);
-                  }
-                }}
-                data-index={index}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: `${groupArray[virtualRow.index]}px`,
-                  transform: `translateY(${virtualRow.start}px)`,
-                }}
-              >
-                <RenderLayout
-                  components={component.children}
-                  parentBinding={binding}
-                  itemIndex={index}
-                />
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      <Button
-        onClick={() => {
-          addRow(binding, parentBinding, itemIndex);
-        }}
-      >
-        Til rad
-      </Button>
+          {virtualItems.map((row) => (
+            <RenderLayoutRow
+              key={row.index}
+              components={component.children}
+              parentBinding={actualBinding}
+              itemIndex={row.index}
+              isRowHiddenExpression={hiddenRow}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                height: `${row.size}px`,
+                transform: `translateY(${row.start}px)`,
+              }}
+            />
+          ))}
+        </Table.Body>
+      </Table>
     </div>
   );
+
+  // return <ul>{rowVirtualizer.getVirtualItems().map((virtualRow, index) => {
+  //   return <li>{index}</li>)</ul>
+
+  // return (
+  //   <div
+  //     ref={scrollElementRef}
+  //     style={{
+  //       width: '100%',
+  //       height: '500px',
+  //       overflow: 'auto',
+  //       border: '10px solid yellow',
+  //     }}
+  //   >
+  //     <div
+  //       style={{
+  //         height: `${virtualizer.getTotalSize()}px`,
+  //         position: 'relative',
+  //         width: '100%',
+  //       }}
+  //     >
+  //       {virtualItems.map((virtualRow, index) => {
+  //         // const index = virtualRow.index;
+  //         // console.log('virtualRow', virtualRow);
+  //         const rangeTest = range(virtualRow.start, virtualRow.end);
+  //         // console.log('rangeTest', rangeTest);
+  //         return (
+  //           <ul
+  //             key={`${component.id}-${index}`}
+  //             ref={(el) => {
+  //               if (el) {
+  //                 virtualizer.measureElement(el);
+  //               }
+  //             }}
+  //             data-index={index}
+  //             style={{
+  //               position: 'absolute',
+  //               top: 0,
+  //               left: 0,
+  //               width: '100%',
+  //               height: `${virtualRow.size}px`,
+  //               transform: `translateY(${virtualRow.start}px)`,
+  //               border: '10px solid purple',
+  //             }}
+  //           >
+  //             {index}
+  //             {/*<RenderLayout*/}
+  //             {/*  key={`${component.id}-${index}`}*/}
+  //             {/*  components={component.children}*/}
+  //             {/*  parentBinding={binding}*/}
+  //             {/*  itemIndex={index}*/}
+  //             {/*/>*/}
+  //
+  //             {/*{range(virtualRow.start, virtualRow.end).map((curr) => (*/}
+  //             {/*  // // console.log('curr', curr);*/}
+  //             {/*  // const row = groupArray[curr];*/}
+  //             {/*  // // console.log('row, row');*/}
+  //             {/*  // return <li key={`${component.id}-${curr}-${index}`}>{`${component.id}-${curr}-${index}`}</li>;*/}
+  //
+  //             {/*  <RenderLayout*/}
+  //             {/*    key={curr}*/}
+  //             {/*    components={component.children}*/}
+  //             {/*    parentBinding={binding}*/}
+  //             {/*    itemIndex={index}*/}
+  //             {/*  />*/}
+  //             {/*))}*/}
+  //           </ul>
+  //         );
+  //       })}
+  //     </div>
+  //
+  //     <Button
+  //       onClick={() => {
+  //         addRow(binding, parentBinding, itemIndex);
+  //       }}
+  //     >
+  //       Til rad
+  //     </Button>
+  //   </div>
+  // );
 };

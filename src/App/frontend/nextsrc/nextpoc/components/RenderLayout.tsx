@@ -3,6 +3,8 @@ import React from 'react';
 import { Table } from '@digdir/designsystemet-react';
 import classNames from 'classnames';
 import { RenderComponent } from 'nextsrc/nextpoc/components/RenderComponent';
+import { layoutStore } from 'nextsrc/nextpoc/stores/layoutStore';
+import { useStore } from 'zustand';
 import type { ResolvedCompExternal } from 'nextsrc/nextpoc/stores/layoutStore';
 
 import { Flex } from 'src/app-components/Flex/Flex';
@@ -27,6 +29,8 @@ const getBinding = (component: ResolvedCompExternal): string | undefined => {
 };
 
 export const RenderLayout: React.FunctionComponent<RenderLayoutType> = ({ components, parentBinding, itemIndex }) => {
+  console.log({ components, parentBinding, itemIndex });
+
   if (!components) {
     return null;
   }
@@ -39,6 +43,8 @@ export const RenderLayout: React.FunctionComponent<RenderLayoutType> = ({ compon
     >
       {components.map((currentComponent) => {
         const childMapping = getBinding(currentComponent);
+
+        console.log('childMapping', childMapping);
 
         const childField = childMapping && parentBinding ? childMapping.replace(parentBinding, '') : undefined;
         const id = `item-${currentComponent.id}`;
@@ -72,6 +78,7 @@ interface RenderLayoutRowType {
   parentBinding?: string;
   itemIndex?: number;
   isRowHiddenExpression?: Expression;
+  style?: React.CSSProperties;
 }
 
 export const RenderLayoutRow: React.FunctionComponent<RenderLayoutRowType> = ({
@@ -79,26 +86,27 @@ export const RenderLayoutRow: React.FunctionComponent<RenderLayoutRowType> = ({
   parentBinding,
   itemIndex,
   isRowHiddenExpression,
+  style,
 }) => {
-  console.log('isRowHiddenExpression', isRowHiddenExpression);
-  // const isHidden = useStore(layoutStore, (state) => {
-  //   if (!isRowHiddenExpression) {
-  //     return false;
-  //   }
-  //   // @ts-ignore
-  //   return state.evaluateExpression(isRowHiddenExpression, parentBinding, itemIndex);
-  // });
-  //
-  // if (isHidden) {
-  //   return null;
-  // }
+  const isHidden = useStore(layoutStore, (state) => {
+    if (!isRowHiddenExpression) {
+      return false;
+    }
+    // @ts-ignore
+    return state.evaluateExpression(isRowHiddenExpression, parentBinding, itemIndex);
+  });
+
+  if (isHidden) {
+    return null;
+  }
 
   if (!components) {
     return null;
   }
 
   return (
-    <Table.Row>
+    <Table.Row style={style}>
+      {itemIndex && <Table.Cell>{itemIndex + 1}</Table.Cell>}
       {components.map((currentComponent) => {
         const childMapping = getBinding(currentComponent);
 
