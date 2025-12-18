@@ -22,6 +22,10 @@ internal static partial class FluxApi
     public const string OciRepoGroup = "source.toolkit.fluxcd.io";
     public const string OciRepoPlural = "ocirepositories";
 
+    // Kustomization
+    public const string KustomizationGroup = "kustomize.toolkit.fluxcd.io";
+    public const string KustomizationPlural = "kustomizations";
+
     // Notification
     public const string NotificationGroup = "notification.toolkit.fluxcd.io";
     public const string AlertsPlural = "alerts";

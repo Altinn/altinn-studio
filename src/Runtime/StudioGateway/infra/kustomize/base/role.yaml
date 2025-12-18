@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: studio-gateway-helmrelease-reader
+  name: studio-gateway-role
 rules:
   - apiGroups:
       - helm.toolkit.fluxcd.io
@@ -13,6 +13,13 @@ rules:
       - source.toolkit.fluxcd.io
     resources:
       - ocirepositories
+    verbs:
+      - get
+      - patch
+  - apiGroups:
+      - kustomize.toolkit.fluxcd.io
+    resources:
+      - kustomizations
     verbs:
       - get
       - patch
