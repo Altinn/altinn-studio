@@ -123,7 +123,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
                     bool isUrnMatch = string.Equals(n.Urn, newRoleCode, StringComparison.OrdinalIgnoreCase);
                     return isLegacyUrnMatch || isUrnMatch;
                 });
-                
+
                 if (match != null)
                 {
                     subjectOptions.Add(match);
