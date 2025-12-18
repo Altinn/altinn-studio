@@ -84,16 +84,11 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
                 throw new ArgumentException($"'{variableName}' cannot be null or whitespace.", variableName);
             }
 
-            IsUnsafePathSegment(segment, variableName);
-
-            char? invalidChar = segment.FirstOrDefault(ch => IsValidCharForLibraryElement(ch) is false);
-            if (invalidChar != default(char))
-            {
-                throw new ArgumentException($"'{variableName}' contains invalid character '{invalidChar}'. Only letters, numbers, dash '-' and underscore '_' are allowed.", variableName);
-            }
+            ValidateSafePathSegment(segment, variableName);
+            ValidateLegalSegmentForLibraryElement(segment, variableName);
         }
 
-        public static void IsUnsafePathSegment(this string segment, string variableName)
+        public static void ValidateSafePathSegment(this string segment, string variableName)
         {
             if (segment.Contains("..") || segment.Contains('/') || segment.Contains('\\'))
             {
@@ -101,9 +96,16 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
             }
         }
 
-        public static bool IsValidCharForLibraryElement(this char ch)
+        public static void ValidateLegalSegmentForLibraryElement(this string segment, string variableName)
         {
-            return char.IsLetterOrDigit(ch) || ch == '-' || ch == '_';
+            foreach (char ch in segment)
+            {
+                bool isValidChar = char.IsLetterOrDigit(ch) || ch == '-' || ch == '_';
+                if (isValidChar is false)
+                {
+                    throw new ArgumentException($"'{variableName}' contains invalid character '{ch}'. Only letters, numbers, dash '-' and underscore '_' are allowed.", variableName);
+                }
+            }
         }
 
         public static void ValidatePath(this string path, string variableName)
