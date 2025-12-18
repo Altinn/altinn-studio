@@ -456,6 +456,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // Restrict users from empty commit
             if (repo.RetrieveStatus().IsDirty)
             {
+                await FetchGitNotes(localPath);
                 string remoteUrl = FindRemoteRepoLocation(org, repository);
                 Remote remote = repo.Network.Remotes["origin"];
 
