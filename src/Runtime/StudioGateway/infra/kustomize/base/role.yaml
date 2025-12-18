@@ -9,3 +9,10 @@ rules:
       - helmreleases
     verbs:
       - get
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - ocirepositories
+    verbs:
+      - get
+      - patch

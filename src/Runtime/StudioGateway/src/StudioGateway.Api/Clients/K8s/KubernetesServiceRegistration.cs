@@ -13,6 +13,7 @@ internal static class KubernetesServiceRegistration
         });
 
         services.AddSingleton<HelmReleaseClient>();
+        services.AddSingleton<OciRepositoryClient>();
 
         return services;
     }
