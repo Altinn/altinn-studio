@@ -28,6 +28,7 @@ runs:
         DOCKER_BUILDKIT: 1
         COMPOSE_DOCKER_CLI_BUILD: 1
         BUILDKIT_PROGRESS: plain
+        COMPOSE_FILE: 'docker-compose.yml:docker-compose.ci.yml'
       run: |
         args=""
         if [[ "${{ inputs.docker-profile }}" != "" ]]; then

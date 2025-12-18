@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Exceptions.SharedContent;
 using Altinn.Studio.Designer.Exceptions.SourceControl;
@@ -32,6 +33,35 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 [Route("designer/api/{org}/shared-resources")]
 public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<OrgLibraryController> logger) : ControllerBase
 {
+
+    /// <summary>
+    /// Gets the latest commit sha for a given branch.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="branchName">The branch name. Fallback to default branch.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The latest commit sha.</returns>
+    [HttpGet]
+    [Route("latest-commit")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<LatestCommitShaResponse>> GetLatestCommitOnBranch(string org, [FromQuery] string branchName = General.DefaultBranch, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        try
+        {
+            string latestCommit = await orgLibraryService.GetLatestCommitOnBranch(org, branchName, cancellationToken);
+            return Ok(new LatestCommitShaResponse(latestCommit));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error fetching latest commit for {Org} on branch {BranchName}.", org, branchName);
+            throw;
+        }
+    }
+
     /// <summary>
     /// Fetches the shared resources belonging to the organisation.
     /// </summary>
@@ -43,6 +73,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<GetSharedResourcesResponse>> GetSharedResources(string org, [FromQuery] string? path, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
     {
@@ -80,6 +111,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> UpdateSharedResources(string org, [FromBody] UpdateSharedResourceRequest requestBody, CancellationToken cancellationToken = default)
     {
@@ -137,6 +169,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<List<string>>> GetPublishedResources(string org, [FromQuery] string path = "", CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
