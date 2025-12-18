@@ -110,6 +110,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         GetDeveloperSignature(),
                         pullOptions);
 
+                    await FetchGitNotes(FindLocalRepoLocation(org, repository));
                     TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(head, mergeResult.Commit?.Tree);
                     foreach (TreeEntryChanges change in treeChanges.Modified)
                     {
