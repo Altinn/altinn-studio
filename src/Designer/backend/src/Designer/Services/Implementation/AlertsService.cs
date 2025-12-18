@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.SignalR;
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 internal sealed class AlertsService(
-    IRuntimeGatewayClient runetimeGatewayClient,
+    IRuntimeGatewayClient runtimeGatewayClient,
     IHubContext<AlertsUpdatedHub, IAlertsUpdateClient> alertsUpdatedHubContext
     ) : IAlertsService
 {
@@ -22,7 +22,7 @@ internal sealed class AlertsService(
         CancellationToken cancellationToken
     )
     {
-        return await runetimeGatewayClient.GetAlertRulesAsync(org, environment, cancellationToken);
+        return await runtimeGatewayClient.GetAlertRulesAsync(org, environment, cancellationToken);
     }
 
     /// <inheritdoc />

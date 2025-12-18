@@ -10,7 +10,7 @@ type AppHealthMetricProps = {
 
 export const AppHealthMetric = ({ metric }: AppHealthMetricProps) => {
   const { t } = useTranslation();
-  const isDown = metric.count == 0;
+  const isDown = metric.count === 0;
   const isPartiallyDown = metric.count > 0 && metric.count < 100;
 
   return (
@@ -23,7 +23,7 @@ export const AppHealthMetric = ({ metric }: AppHealthMetricProps) => {
         data={{
           datasets: [
             {
-              data: [100],
+              data: [metric.count, 100 - metric.count],
               backgroundColor: [isDown ? '#e8adad' : isPartiallyDown ? '#eeb04c' : '#8fc997'],
               borderWidth: 0,
             },

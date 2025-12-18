@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -76,7 +77,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     {
         using var client = _httpClientFactory.CreateClient($"runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app?app={app}&range={range}";
+        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app?app={Uri.EscapeDataString(app)}&range={range}";
 
         return await client.GetFromJsonAsync<IEnumerable<AppMetric>>(requestUrl, cancellationToken) ?? [];
     }
@@ -92,7 +93,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     {
         using var client = _httpClientFactory.CreateClient($"runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors?app={app}&range={range}";
+        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors?app={Uri.EscapeDataString(app)}&range={range}";
 
         return await client.GetFromJsonAsync<IEnumerable<AppErrorMetric>>(requestUrl, cancellationToken) ?? [];
     }
@@ -109,10 +110,10 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     {
         using var client = _httpClientFactory.CreateClient($"runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors/logs?app={app}&metric={metric}&range={range}";
+        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors/logs?app={Uri.EscapeDataString(app)}&metric={Uri.EscapeDataString(metric)}&range={range}";
 
         Dictionary<string, string> result = await client.GetFromJsonAsync<Dictionary<string, string>>(requestUrl, cancellationToken) ?? new();
-        return result["url"];
+        return result.TryGetValue("url", out string? url) ? url : string.Empty;
     }
 
     /// <inheritdoc />
@@ -125,7 +126,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     {
         using var client = _httpClientFactory.CreateClient($"runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/health?app={app}";
+        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/health?app={Uri.EscapeDataString(app)}";
 
         return await client.GetFromJsonAsync<IEnumerable<AppHealthMetric>>(requestUrl, cancellationToken) ?? [];
     }

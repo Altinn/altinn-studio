@@ -12,7 +12,7 @@ export const TimeRangeSelect = ({ label, value, onChange }: TimeRangeSelectProps
   return (
     <StudioSelect
       label={label}
-      value={value}
+      value={String(value)}
       onChange={(e) => onChange(Number(e.target.value))}
       className={classes.select}
       data-size='xs'

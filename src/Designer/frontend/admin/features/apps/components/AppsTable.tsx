@@ -144,7 +144,7 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
               return {
                 ...app,
                 metrics: appErrorMetrics,
-                hasMetrics: appErrorMetrics?.length ?? 0 > 0,
+                hasMetrics: (appErrorMetrics?.length ?? 0) > 0,
               };
             })
             .sort(

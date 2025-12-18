@@ -10,6 +10,10 @@ const defaultProps: TimeRangeSelectProps = {
 };
 
 describe('TimeRangeSelect', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render component', () => {
     renderTimeRangeSelect();
 

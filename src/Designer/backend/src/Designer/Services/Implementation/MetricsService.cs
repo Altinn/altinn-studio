@@ -9,7 +9,7 @@ using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 internal sealed class MetricsService(
-    IRuntimeGatewayClient runetimeGatewayClient
+    IRuntimeGatewayClient runtimeGatewayClient
     ) : IMetricsService
 {
     /// <inheritdoc />
@@ -20,7 +20,7 @@ internal sealed class MetricsService(
         CancellationToken cancellationToken
     )
     {
-        return await runetimeGatewayClient.GetErrorMetricsAsync(org, environment, range, cancellationToken);
+        return await runtimeGatewayClient.GetErrorMetricsAsync(org, environment, range, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -32,7 +32,7 @@ internal sealed class MetricsService(
         CancellationToken cancellationToken
     )
     {
-        return await runetimeGatewayClient.GetAppMetricsAsync(org, environment, app, range, cancellationToken);
+        return await runtimeGatewayClient.GetAppMetricsAsync(org, environment, app, range, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -44,7 +44,7 @@ internal sealed class MetricsService(
         CancellationToken cancellationToken
     )
     {
-        return await runetimeGatewayClient.GetAppErrorMetricsAsync(org, environment, app, range, cancellationToken);
+        return await runtimeGatewayClient.GetAppErrorMetricsAsync(org, environment, app, range, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -57,7 +57,7 @@ internal sealed class MetricsService(
         CancellationToken cancellationToken
     )
     {
-        return await runetimeGatewayClient.GetAppErrorMetricsLogsAsync(org, environment, app, metric, range, cancellationToken);
+        return await runtimeGatewayClient.GetAppErrorMetricsLogsAsync(org, environment, app, metric, range, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -68,6 +68,6 @@ internal sealed class MetricsService(
         CancellationToken cancellationToken
     )
     {
-        return await runetimeGatewayClient.GetAppHealthMetricsAsync(org, environment, app, cancellationToken);
+        return await runtimeGatewayClient.GetAppHealthMetricsAsync(org, environment, app, cancellationToken);
     }
 }

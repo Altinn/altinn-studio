@@ -65,7 +65,7 @@ describe('AppMetrics', () => {
     it('should render app health metrics', () => {
       const queryClient = createQueryClientMock();
 
-      var mockData = [{ name: 'ready_pods', count: 100.0 }];
+      const mockData = [{ name: 'ready_pods', count: 100.0 }];
 
       queryClient.setQueryData([QueryKey.AppHealthMetrics, org, env, app], mockData);
 
@@ -105,7 +105,7 @@ describe('AppMetrics', () => {
     it('should render app error metrics', () => {
       const queryClient = createQueryClientMock();
 
-      var mockData = [
+      const mockData = [
         {
           name: 'failed_process_next_requests',
           dataPoints: [],
@@ -152,7 +152,7 @@ describe('AppMetrics', () => {
     it('should render app metrics', () => {
       const queryClient = createQueryClientMock();
 
-      var mockData = [
+      const mockData = [
         {
           name: 'altinn_app_lib_processes_started',
           dataPoints: [],

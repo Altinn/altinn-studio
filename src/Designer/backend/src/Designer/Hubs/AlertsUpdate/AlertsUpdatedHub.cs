@@ -14,7 +14,10 @@ public class AlertsUpdatedHub(IGiteaClient giteaService) : Hub<IAlertsUpdateClie
     {
         string connectionId = Context.ConnectionId;
         List<Organization> organizations = await giteaService.GetUserOrganizations();
-        organizations.ForEach(async org => await Groups.AddToGroupAsync(connectionId, org.Username));
+        foreach (Organization org in organizations)
+        {
+            await Groups.AddToGroupAsync(connectionId, org.Username);
+        }
         await base.OnConnectedAsync();
     }
 }

@@ -33,7 +33,7 @@ export const AppsDetails = () => {
         {env} / {app}
       </StudioHeading>
       <div className={classes.metrics}>
-        <AppMetrics range={range!} setRange={setRange} />
+        <AppMetrics range={range ?? defaultRange} setRange={setRange} />
       </div>
       <div>
         <Instances />

@@ -18,7 +18,9 @@ export class AlertsUpdatedQueriesInvalidator extends Queue {
     org: string,
     timeout?: number,
   ): AlertsUpdatedQueriesInvalidator {
-    const shouldCreateNewInstance = !AlertsUpdatedQueriesInvalidator.instance;
+    const shouldCreateNewInstance =
+      !AlertsUpdatedQueriesInvalidator.instance ||
+      AlertsUpdatedQueriesInvalidator.instance._org !== org;
 
     if (shouldCreateNewInstance) {
       AlertsUpdatedQueriesInvalidator.instance = new AlertsUpdatedQueriesInvalidator(
