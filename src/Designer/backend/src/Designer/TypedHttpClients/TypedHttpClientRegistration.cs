@@ -37,10 +37,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients
         /// Sets up and registers all typed Http clients to DI container
         /// </summary>
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
-        /// <param name="logger">The Microsoft.Extensions.Logging.ILogger for logging.</param>
         /// <param name="config">The Microsoft.Extensions.Configuration.IConfiguration for </param>
         /// <returns>IServiceCollection</returns>
-        public static IServiceCollection RegisterTypedHttpClients(this IServiceCollection services, ILogger logger, IConfiguration config)
+        public static IServiceCollection RegisterTypedHttpClients(this IServiceCollection services, IConfiguration config)
         {
             services.AddHttpClient();
             services.AddTransient<AzureDevOpsTokenDelegatingHandler>();
