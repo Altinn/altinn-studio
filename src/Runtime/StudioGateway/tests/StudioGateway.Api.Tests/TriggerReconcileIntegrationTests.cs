@@ -13,6 +13,7 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
     private const string KindContextName = "kind-runtime-fixture-kind-minimal";
     private const string TestNamespace = "default";
     private const string TestAppName = "test-app";
+    private const string SyncrootName = "apps-syncroot-repo";
 
     private readonly IKubernetes _k8sClient;
     private readonly HttpClient _httpClient;
@@ -33,8 +34,10 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
         return ValueTask.CompletedTask;
     }
 
-    [Fact]
-    public async Task TriggerReconcile_ExistingApp_TriggersAppOciRepoReconciliation()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task TriggerReconcile_ExistingApp_TriggersAppOciRepoReconciliation(bool isUndeploy)
     {
         var ct = TestContext.Current.CancellationToken;
         var originEnvironment = "local";
@@ -42,9 +45,10 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
         var token = FakeMaskinportenTokenGenerator.GenerateValidToken();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var initialAnnotation = await GetOciRepoAnnotationAsync(TestAppName, ct);
+        var initialAppAnnotation = await GetOciRepoAnnotationAsync(TestAppName, ct);
+        var initialSyncrootAnnotation = await GetOciRepoAnnotationAsync(SyncrootName, ct);
 
-        var request = new TriggerReconcileRequest(IsNewApp: false);
+        var request = new TriggerReconcileRequest(IsNewApp: false, IsUndeploy: isUndeploy);
         var response = await _httpClient.PostAsJsonAsync(
             $"/runtime/gateway/api/v1/deploy/apps/{TestAppName}/{originEnvironment}/reconcile",
             request,
@@ -53,11 +57,20 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var newAnnotation = await GetOciRepoAnnotationAsync(TestAppName, ct);
-        Assert.NotNull(newAnnotation);
-        Assert.NotEqual(initialAnnotation, newAnnotation);
-
-        Assert.Matches(FluxApi.TimestampPattern(), newAnnotation);
+        if (isUndeploy)
+        {
+            var newSyncrootAnnotation = await GetOciRepoAnnotationAsync(SyncrootName, ct);
+            Assert.NotNull(newSyncrootAnnotation);
+            Assert.NotEqual(initialSyncrootAnnotation, newSyncrootAnnotation);
+            Assert.Matches(FluxApi.TimestampPattern(), newSyncrootAnnotation);
+        }
+        else
+        {
+            var newAppAnnotation = await GetOciRepoAnnotationAsync(TestAppName, ct);
+            Assert.NotNull(newAppAnnotation);
+            Assert.NotEqual(initialAppAnnotation, newAppAnnotation);
+            Assert.Matches(FluxApi.TimestampPattern(), newAppAnnotation);
+        }
     }
 
     [Fact]
@@ -69,7 +82,7 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
         var token = FakeMaskinportenTokenGenerator.GenerateValidToken();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var request = new TriggerReconcileRequest(IsNewApp: false);
+        var request = new TriggerReconcileRequest(IsNewApp: false, IsUndeploy: false);
         var response = await _httpClient.PostAsJsonAsync(
             $"/runtime/gateway/api/v1/deploy/apps/{TestAppName}/{originEnvironment}/reconcile",
             request,

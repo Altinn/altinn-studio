@@ -17,7 +17,7 @@ internal static class HandleTriggerReconcile
         CancellationToken cancellationToken
     )
     {
-        if (request.IsNewApp)
+        if (request.IsNewApp || request.IsUndeploy)
         {
             var syncRootName = GetSyncRootName(originEnvironment);
             await ociRepositoryClient.TriggerReconcileAsync(syncRootName, DefaultNamespace, cancellationToken);
