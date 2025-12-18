@@ -84,16 +84,26 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
                 throw new ArgumentException($"'{variableName}' cannot be null or whitespace.", variableName);
             }
 
-            if (segment.Contains("..") || segment.Contains('/') || segment.Contains('\\'))
-            {
-                throw new ArgumentException($"'{variableName}' contains invalid path traversal or separator characters.", variableName);
-            }
+            IsUnsafePathSegment(segment, variableName);
 
-            char? invalidChar = segment.FirstOrDefault(ch => !(char.IsLetterOrDigit(ch) || ch == '-' || ch == '_'));
+            char? invalidChar = segment.FirstOrDefault(ch => IsValidCharForLibraryElement(ch) is false);
             if (invalidChar != default(char))
             {
                 throw new ArgumentException($"'{variableName}' contains invalid character '{invalidChar}'. Only letters, numbers, dash '-' and underscore '_' are allowed.", variableName);
             }
+        }
+
+        public static void IsUnsafePathSegment(this string segment, string variableName)
+        {
+            if (segment.Contains("..") || segment.Contains('/') || segment.Contains('\\'))
+            {
+                throw new ArgumentException($"'{variableName}' contains invalid path traversal or separator characters.", variableName);
+            }
+        }
+
+        public static bool IsValidCharForLibraryElement(this char ch)
+        {
+            return char.IsLetterOrDigit(ch) || ch == '-' || ch == '_';
         }
 
         public static void ValidatePath(this string path, string variableName)
