@@ -35,7 +35,7 @@ public class DeploymentPipelineCompletedReconcileHandler : INotificationHandler<
 
     public async Task Handle(Events.DeploymentPipelineCompleted notification, CancellationToken cancellationToken)
     {
-        if (!notification.Succeeded || notification.PipelineType != PipelineType.Deploy)
+        if (!notification.Succeeded)
         {
             return;
         }
@@ -55,6 +55,7 @@ public class DeploymentPipelineCompletedReconcileHandler : INotificationHandler<
                 notification.EditingContext.Repo,
                 environment,
                 isNewApp,
+                isUndeploy: notification.PipelineType == PipelineType.Undeploy,
                 cancellationToken);
 
             _logger.LogInformation(
