@@ -18,12 +18,7 @@ using StudioGateway.Api.Endpoints.Public;
 using StudioGateway.Api.Hosting;
 using StudioGateway.Api.Settings;
 
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.Configure<AlertsClientSettings>(builder.Configuration.GetSection("AlertsClientSettings"));
-builder.Services.Configure<MetricsClientSettings>(builder.Configuration.GetSection("MetricsClientSettings"));
-builder.Services.Configure<GrafanaSettings>(builder.Configuration.GetSection("Grafana"));
-builder.Services.Configure<GatewayContext>(builder.Configuration.GetSection("Gateway"));
+var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.Services.AddSingleton<TokenCredential, DefaultAzureCredential>();
 builder.Services.AddSingleton(sp =>
@@ -43,13 +38,17 @@ builder.Configuration.AddJsonFile(
     reloadOnChange: true
 );
 builder.Configuration.AddJsonFile("/app/secrets/grafana-token.json", optional: true, reloadOnChange: true);
+builder.Services.Configure<GrafanaSettings>(builder.Configuration.GetSection("Grafana"));
+builder.Services.Configure<GatewayContext>(builder.Configuration.GetSection("Gateway"));
+builder.Services.Configure<AlertsClientSettings>(builder.Configuration.GetSection("AlertsClientSettings"));
+builder.Services.Configure<MetricsClientSettings>(builder.Configuration.GetSection("MetricsClientSettings"));
 
 // Register class itself as scoped to avoid using IOptions interfaces throughout the codebase
 // Avoided singleton registration to support dynamic reloading of configuration
-builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<AlertsClientSettings>>().Value);
-builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<MetricsClientSettings>>().Value);
 builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<GrafanaSettings>>().Value);
 builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<GatewayContext>>().Value);
+builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<AlertsClientSettings>>().Value);
+builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<MetricsClientSettings>>().Value);
 
 builder.ConfigureKestrelPorts();
 builder.AddHostingConfiguration();
@@ -84,7 +83,6 @@ builder.Services.AddHttpClient(
     }
 );
 builder.Services.AddKeyedTransient<IMetricsClient, AzureMonitorClient>("azuremonitor");
-builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 builder.Services.AddOpenApi(
     "public-v1",
