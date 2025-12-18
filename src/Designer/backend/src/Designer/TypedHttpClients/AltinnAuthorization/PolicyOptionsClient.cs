@@ -117,7 +117,13 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
                     return; // skip invalid legacy entries
                 }
                 string newRoleCode = $"urn:altinn:rolecode:{oldSubject.SubjectId}";
-                SubjectOption match = newSubjectOptions.Find(n => string.Equals(n.LegacyUrn, newRoleCode, StringComparison.OrdinalIgnoreCase));
+                SubjectOption match = newSubjectOptions.Find(n =>
+                {
+                    bool isLegacyUrnMatch = string.Equals(n.LegacyUrn, newRoleCode, StringComparison.OrdinalIgnoreCase);
+                    bool isUrnMatch = string.Equals(n.Urn, newRoleCode, StringComparison.OrdinalIgnoreCase);
+                    return isLegacyUrnMatch || isUrnMatch;
+                });
+                
                 if (match != null)
                 {
                     subjectOptions.Add(match);
