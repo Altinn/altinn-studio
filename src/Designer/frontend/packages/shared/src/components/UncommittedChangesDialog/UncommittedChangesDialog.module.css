@@ -1,0 +1,52 @@
+.dialogMainContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+}
+
+.fileList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+  margin-bottom: var(--ds-size-2);
+}
+
+.files {
+  list-style: none;
+  padding: var(--ds-size-2);
+  margin: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--ds-color-border-subtle);
+  border-radius: var(--ds-border-radius-md);
+}
+
+.files li {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--ds-size-2);
+  border-bottom: 1px solid var(--ds-color-border-subtle);
+}
+
+.files li:last-child {
+  border-bottom: none;
+}
+
+.fileName {
+  font-family: monospace;
+  font-size: var(--ds-font-size-2);
+}
+
+.fileStatus {
+  font-size: var(--ds-font-size-1);
+  color: var(--ds-color-text-subtle);
+  padding: var(--ds-size-1) var(--ds-size-2);
+  background: var(--ds-color-surface-subtle);
+  border-radius: var(--ds-border-radius-sm);
+}
+
+.buttons {
+  display: flex;
+  gap: var(--ds-size-2);
+  justify-content: flex-start;
+}
