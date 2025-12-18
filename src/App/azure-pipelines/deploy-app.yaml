@@ -223,8 +223,8 @@ steps:
       failOnStderr: false
 
   - task: Bash@3
-    displayName: 'Warn about unsupported templates directory'
-    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
+    displayName: 'Fail if unsupported templates directory exists'
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_OWNER'], 'staf'))
     inputs:
       targetType: inline
       script: |
@@ -234,7 +234,8 @@ steps:
         if [ -d "$TEMPLATES_DIR" ]; then
           FILE_COUNT=$(find "$TEMPLATES_DIR" -maxdepth 1 -type f | wc -l | tr -d ' ')
           if [ "$FILE_COUNT" -gt 0 ]; then
-            echo "##[warning]Templates directory contains $FILE_COUNT file(s). Custom templates are not supported and will be ignored. The altinn-studio deployment helm chart will be used directly."
+            echo "##[error]Templates directory contains $FILE_COUNT file(s). Custom templates are not supported. The altinn-studio deployment helm chart will be used directly."
+            exit 1
           fi
         fi
       failOnStderr: false

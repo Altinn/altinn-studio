@@ -13,4 +13,5 @@ namespace StudioGateway.Api;
 [JsonSerializable(typeof(ClientIpResponse))]
 [JsonSerializable(typeof(DeployEventRequest))]
 [JsonSerializable(typeof(IsAppDeployedResponse))]
+[JsonSerializable(typeof(TriggerReconcileRequest))]
 internal sealed partial class AppJsonSerializerContext : JsonSerializerContext { }
