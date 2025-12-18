@@ -76,5 +76,37 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
         {
             return input.Replace("\r", "").Replace("\n", "");
         }
+
+        public static void ValidPathSegment(this string segment, string variableName)
+        {
+            if (string.IsNullOrWhiteSpace(segment))
+            {
+                throw new ArgumentException($"'{variableName}' cannot be null or whitespace.", variableName);
+            }
+
+            if (segment.Contains("..") || segment.Contains('/') || segment.Contains('\\'))
+            {
+                throw new ArgumentException($"'{variableName}' contains invalid path traversal or separator characters.", variableName);
+            }
+
+            char? invalidChar = segment.FirstOrDefault(ch => !(char.IsLetterOrDigit(ch) || ch == '-' || ch == '_'));
+            if (invalidChar != default(char))
+            {
+                throw new ArgumentException($"'{variableName}' contains invalid character '{invalidChar}'. Only letters, numbers, dash '-' and underscore '_' are allowed.", variableName);
+            }
+        }
+
+        public static void ValidatePath(this string path, string variableName)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentException($"'{variableName}' cannot be null or whitespace.", variableName);
+            }
+
+            if (GetInvalidFileNameChars().Any(path.Contains))
+            {
+                throw new ArgumentException("Invalid path segment.", variableName);
+            }
+        }
     }
 }

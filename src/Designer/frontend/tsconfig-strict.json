@@ -9,6 +9,7 @@
     "libs/studio-components",
     "libs/studio-components-legacy",
     "libs/studio-content-library/src/pages/CodeLists/CodeListsPage",
+    "libs/studio-content-library/src/utils",
     "libs/studio-feature-flags",
     "libs/studio-hooks",
     "libs/studio-icons",
