@@ -107,10 +107,9 @@ export const PolicySubjects = () => {
           </div>
           {policyRule.subject.map((urn) => {
             const subject = findSubject(subjects, urn);
-            let legacyRoleCode = subject?.legacyRoleCode ? ` (${subject.legacyRoleCode})` : '';
-            if (!legacyRoleCode) {
-              legacyRoleCode = subject?.code ? ` (${subject.code})` : '';
-            }
+            const displayCode = subject?.legacyRoleCode || subject?.code;
+            const legacyRoleCode = displayCode ? ` (${displayCode})` : '';
+
             return (
               <SubjectListItem
                 key={`${urn}-selected`}
