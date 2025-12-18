@@ -5,7 +5,7 @@ import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { syncAlertsUpdateWebSocketHub } from 'app-shared/api/paths';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { org } from '@studio/testing/testids';
+import { app, org } from '@studio/testing/testids';
 import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { AlertsUpdated } from 'app-shared/types/api/AlertsUpdated';
@@ -14,6 +14,9 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 
 jest.mock('app-shared/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
+}));
+jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+  useStudioEnvironmentParams: () => ({ org, app }),
 }));
 
 describe('WebSocketSyncWrapper', () => {
