@@ -14,7 +14,7 @@ export type StudioSpinnerProps = {
 function StudioSpinner(
   { spinnerTitle, className: givenClassName, delayMs, ...rest }: StudioSpinnerProps,
   ref: Ref<HTMLDivElement>,
-): ReactElement {
+): ReactElement | null {
   const spinnerDescriptionId = useId();
   const [loaded, setLoaded] = React.useState(!delayMs);
 
@@ -25,23 +25,19 @@ function StudioSpinner(
       setLoaded(true);
     }, delayMs);
 
-    return () => clearTimeout(timer);
+    return (): void => clearTimeout(timer);
   }, [delayMs]);
 
-  return (
-    loaded && (
-      <div ref={ref} className={cn(givenClassName, classes.spinnerWrapper)}>
-        <Spinner
-          aria-describedby={spinnerTitle ? spinnerDescriptionId : undefined}
-          data-testid='studio-spinner-test-id'
-          {...rest}
-        />
-        {spinnerTitle && (
-          <StudioParagraph id={spinnerDescriptionId}>{spinnerTitle}</StudioParagraph>
-        )}
-      </div>
-    )
-  );
+  return loaded ? (
+    <div ref={ref} className={cn(givenClassName, classes.spinnerWrapper)}>
+      <Spinner
+        aria-describedby={spinnerTitle ? spinnerDescriptionId : undefined}
+        data-testid='studio-spinner-test-id'
+        {...rest}
+      />
+      {spinnerTitle && <StudioParagraph id={spinnerDescriptionId}>{spinnerTitle}</StudioParagraph>}
+    </div>
+  ) : null;
 }
 
 const ForwardedStudioSpinner = forwardRef(StudioSpinner);

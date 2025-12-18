@@ -1,4 +1,3 @@
-import type { ReactElement } from 'react';
 import React, { useEffect } from 'react';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';

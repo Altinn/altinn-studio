@@ -14,7 +14,7 @@ import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
-jest.mock('app-development/hooks/useWebSocket', () => ({
+jest.mock('app-shared/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
 }));
 
@@ -52,7 +52,6 @@ describe('PageLayout', () => {
   });
 
   it('renders "UnsupportedVersion" when version is no longer supported', async () => {
-    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
     render({
       getAppVersion: () => Promise.resolve({ frontendVersion: '2', backendVersion: '6' }),
     });
@@ -67,7 +66,6 @@ describe('PageLayout', () => {
   });
 
   it('renders "OutdatedVersion" when version is outdated', async () => {
-    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
     render({
       getAppVersion: () => Promise.resolve({ frontendVersion: '3', backendVersion: '7' }),
     });
@@ -82,7 +80,6 @@ describe('PageLayout', () => {
   });
 
   it('renders the page content and no errors when there are no errors', async () => {
-    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
     await resolveAndWaitForSpinnerToDisappear();
 
     expect(
@@ -95,7 +92,6 @@ describe('PageLayout', () => {
   });
 
   it('renders header with no publish button when repoOwner is a private person', async () => {
-    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
     await resolveAndWaitForSpinnerToDisappear();
 
     expect(screen.getByRole('link', { name: textMock('top_menu.preview') })).toBeInTheDocument();
@@ -106,13 +102,13 @@ describe('PageLayout', () => {
   });
 
   it('should setup the webSocket with the correct parameters', async () => {
-    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
     await resolveAndWaitForSpinnerToDisappear();
 
     expect(useWebSocket).toHaveBeenCalledWith({
       clientsName: ['FileSyncSuccess', 'FileSyncError', 'EntityUpdated'],
       webSocketUrls: [syncEntityUpdateWebSocketHub(), syncEventsWebSocketHub()],
       webSocketConnector: WSConnector,
+      onWSMessageReceived: expect.any(Function),
     });
   });
 

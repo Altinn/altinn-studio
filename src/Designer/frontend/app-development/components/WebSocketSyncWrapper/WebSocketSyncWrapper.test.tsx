@@ -32,7 +32,7 @@ describe('WebSocketSyncWrapper', () => {
       clientsName: ['FileSyncSuccess', 'FileSyncError', 'EntityUpdated'],
       webSocketUrls: [syncEntityUpdateWebSocketHub(), syncEventsWebSocketHub()],
       webSocketConnector: WSConnector,
-      onWSMessageReceived: jest.fn(),
+      onWSMessageReceived: expect.any(Function),
     });
   });
 
@@ -46,13 +46,8 @@ describe('WebSocketSyncWrapper', () => {
       details: '',
     };
 
-    const mockOnWSMessageReceived = jest
-      .fn()
-      .mockImplementation((callback: Function) => callback(syncErrorMock));
-
-    (useWebSocket as jest.Mock).mockReturnValue({
-      ...jest.requireActual('app-shared/hooks/useWebSocket'),
-      onWSMessageReceived: mockOnWSMessageReceived,
+    (useWebSocket as jest.Mock).mockImplementation(({ onWSMessageReceived }) => {
+      onWSMessageReceived(syncErrorMock);
     });
 
     renderWebSocketSyncWrapper();
@@ -72,13 +67,9 @@ describe('WebSocketSyncWrapper', () => {
     const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
 
     invalidator.invalidateQueriesByFileLocation = jest.fn();
-    const mockOnWSMessageReceived = jest
-      .fn()
-      .mockImplementation((callback: Function) => callback(syncSuccessMock));
 
-    (useWebSocket as jest.Mock).mockReturnValue({
-      ...jest.requireActual('app-shared/hooks/useWebSocket'),
-      onWSMessageReceived: mockOnWSMessageReceived,
+    (useWebSocket as jest.Mock).mockImplementation(({ onWSMessageReceived }) => {
+      onWSMessageReceived(syncSuccessMock);
     });
 
     renderWebSocketSyncWrapper();
@@ -97,13 +88,8 @@ describe('WebSocketSyncWrapper', () => {
     const invalidator = EntityUpdatedQueriesInvalidator.getInstance(queryClientMock, org, app);
     invalidator.invalidateQueriesByResourceName = jest.fn();
 
-    const mockOnWSMessageReceived = jest
-      .fn()
-      .mockImplementation((callback: Function) => callback(entityUpdateMock));
-
-    (useWebSocket as jest.Mock).mockReturnValue({
-      ...jest.requireActual('app-shared/hooks/useWebSocket'),
-      onWSMessageReceived: mockOnWSMessageReceived,
+    (useWebSocket as jest.Mock).mockImplementation(({ onWSMessageReceived }) => {
+      onWSMessageReceived(entityUpdateMock);
     });
 
     renderWebSocketSyncWrapper();

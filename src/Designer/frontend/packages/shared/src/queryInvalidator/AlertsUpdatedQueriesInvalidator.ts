@@ -30,13 +30,18 @@ export class AlertsUpdatedQueriesInvalidator extends Queue {
   }
 
   public invalidateQueries(environment: string): void {
-    const queryKey = [QueryKey.Metrics, this._org, environment];
+    const queryKeys = [
+      [QueryKey.ErrorMetrics, this._org, environment],
+      [QueryKey.AppErrorMetrics, this._org, environment],
+    ];
     this.addTaskToQueue({
-      id: queryKey.join('-'),
+      id: queryKeys.join(','),
       callback: () => {
-        this._queryClient.invalidateQueries({
-          queryKey,
-        });
+        queryKeys.forEach((queryKey) =>
+          this._queryClient.invalidateQueries({
+            queryKey,
+          }),
+        );
       },
     });
   }
