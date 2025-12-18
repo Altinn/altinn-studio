@@ -7,8 +7,8 @@ export class AlertsUpdatedQueriesInvalidator extends Queue {
   private _org: string;
   private _queryClient: QueryClient;
 
-  constructor(queryClient: QueryClient, org: string) {
-    super({ timeout: 500 });
+  constructor(queryClient: QueryClient, org: string, timeout: number = 500) {
+    super({ timeout });
     this._org = org;
     this._queryClient = queryClient;
   }
@@ -16,6 +16,7 @@ export class AlertsUpdatedQueriesInvalidator extends Queue {
   public static getInstance(
     queryClient: QueryClient,
     org: string,
+    timeout?: number,
   ): AlertsUpdatedQueriesInvalidator {
     const shouldCreateNewInstance = !AlertsUpdatedQueriesInvalidator.instance;
 
@@ -23,6 +24,7 @@ export class AlertsUpdatedQueriesInvalidator extends Queue {
       AlertsUpdatedQueriesInvalidator.instance = new AlertsUpdatedQueriesInvalidator(
         queryClient,
         org,
+        timeout,
       );
     }
 
