@@ -7,17 +7,16 @@ import {
   StudioSearch,
   StudioError,
   StudioTabs,
-  StudioAlert,
-  StudioLink,
 } from '@studio/components';
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import { useErrorMetricsQuery } from 'admin/hooks/queries/useErrorMetricsQuery';
-import { TimeRangeSelect } from 'admin/shared/TimeRangeSelect';
+import { TimeRangeSelect } from 'admin/shared/TimeRangeSelect/TimeRangeSelect';
 import { toast } from 'react-toastify';
 import { appErrorMetricsLogsPath } from 'admin/utils/apiPaths';
+import { Alert } from 'admin/shared/Alert/Alert';
 
 type AppsTableProps = {
   org: string;
@@ -102,7 +101,7 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
 
   useEffect(() => {
     if (errorMetricsIsError) {
-      toast.error(t('admin.alerts.error'));
+      toast.error(t('admin.metrics.errors.error'));
     }
   }, [errorMetricsIsError, t]);
 
@@ -110,10 +109,10 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
     return (
       <>
         {errorMetricsIsPending && (
-          <StudioSpinner aria-label={t('admin.alerts.pending')} delayMs={1000} />
+          <StudioSpinner aria-label={t('admin.metrics.errors.pending')} delayMs={1000} />
         )}
         <TimeRangeSelect
-          label={t('admin.apps.alerts')}
+          label={t('admin.metrics.errors')}
           value={range!}
           onChange={(e) => setRange(e)}
         />
@@ -167,27 +166,15 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
                   <div className={classes.metricsCellContainer}>
                     {app.metrics?.map((metric) => {
                       return (
-                        <StudioAlert
+                        <Alert
                           key={metric.name}
-                          data-color='danger'
+                          color='danger'
                           data-size='xs'
+                          title={t(`admin.metrics.${metric.name}`)}
+                          count={metric.count.toString()}
+                          url={appErrorMetricsLogsPath(org, env, app.app, metric.name, range!)}
                           className={classes.metric}
-                        >
-                          <div className={classes.metricTitle}>
-                            <span className={classes.metricText}>
-                              <span className={classes.metricCount}>{metric.count}</span>
-                              {t(`admin.metrics.${metric.name}`)}
-                            </span>
-                            <StudioLink
-                              href={appErrorMetricsLogsPath(org, env, app.app, metric.name, range!)}
-                              rel='noopener noreferrer'
-                              target='_blank'
-                              className={classes.metricLink}
-                            >
-                              {t('admin.alerts.link')}
-                            </StudioLink>
-                          </div>
-                        </StudioAlert>
+                        ></Alert>
                       );
                     })}
                   </div>

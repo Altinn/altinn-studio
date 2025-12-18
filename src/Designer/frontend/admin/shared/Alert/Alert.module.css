@@ -1,21 +1,3 @@
-.title {
-  align-items: center;
-  vertical-align: middle;
-  display: flex;
-  flex-direction: row;
-  gap: var(--ds-size-8);
-}
-
-.name {
-  flex: 1;
-  padding: 6px 0px;
-}
-
-.chart {
-  height: 150px;
-  width: 100%;
-}
-
 .metric {
   border: none;
   padding: var(--ds-size-4) var(--ds-size-8) var(--ds-size-6) var(--ds-size-15);
@@ -23,44 +5,49 @@
 }
 
 .metric:before {
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
-.metricTitle {
+.heading {
   display: flex;
-  gap: var(--ds-size-2);
+  gap: var(--ds-size-4);
   justify-content: space-between;
   align-items: center;
   padding-left: 10px;
 }
 
-.metricText {
+.title {
   display: flex;
   align-items: center;
   gap: var(--ds-size-2);
   white-space: nowrap;
 }
 
-.metricCount {
-  font-size: 1.4rem;
+.count {
+  font-size: 1.2rem;
   font-weight: bold;
 }
 
-.metricLink {
+.link {
   margin-left: var(--ds-size-2);
   padding: var(--ds-size-1) var(--ds-size-2);
   text-decoration: underline;
   white-space: nowrap;
 }
 
-.metric[data-color='danger'] .metricLink {
+.metric[data-color='danger'] .link {
   background-color: var(--ds-color-danger-surface-hover);
 }
 
-.metric[data-color='success'] .metricLink {
+.metric[data-color='success'] .link {
   background-color: var(--ds-color-success-surface-hover);
 }
 
-.metric[data-color='info'] .metricLink {
+.metric[data-color='info'] .link {
   background-color: var(--ds-color-info-surface-hover);
+}
+
+.chart {
+  height: 150px;
+  width: 100%;
 }
