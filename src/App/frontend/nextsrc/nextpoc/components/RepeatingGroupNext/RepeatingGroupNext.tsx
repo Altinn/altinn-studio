@@ -106,7 +106,7 @@ export const RepeatingGroupNext: React.FC<RepeatingGroupNextType> = ({ component
       ref={scrollElementRef}
       style={{
         width: '100%',
-        height: '500px',
+        height: '1000px',
         overflow: 'auto',
       }}
     >

@@ -20,7 +20,7 @@ export const RadioButtonsNext: React.FC<RadioButtonsNextType> = ({ component, co
   const [selected, setSelected] = useState<string>(commonProps.currentValue || '');
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'row' }}>
       {fetchedOptions?.map((option, idx) => (
         <Radio
           label={option.label}

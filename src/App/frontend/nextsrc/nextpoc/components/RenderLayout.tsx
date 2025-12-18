@@ -106,7 +106,7 @@ export const RenderLayoutRow: React.FunctionComponent<RenderLayoutRowType> = ({
 
   return (
     <Table.Row style={style}>
-      {itemIndex && <Table.Cell>{itemIndex + 1}</Table.Cell>}
+      {itemIndex !== undefined && <td>{itemIndex + 1}</td>}
       {components.map((currentComponent) => {
         const childMapping = getBinding(currentComponent);
 
