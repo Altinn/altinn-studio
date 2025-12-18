@@ -10,89 +10,64 @@ import { useCreateBranchMutation } from 'app-shared/hooks/mutations/useCreateBra
 import { UncommittedChangesDialog } from 'app-shared/components/UncommittedChangesDialog';
 import { CreateBranchDialog } from 'app-shared/components/CreateBranchDialog';
 import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
-import { BranchNameValidator } from 'app-shared/utils/BranchNameValidator';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 import classes from './BranchDropdown.module.css';
 
 export const BranchDropdown = () => {
   const { t } = useTranslation();
   const { owner: org, repoName: app } = useGiteaHeaderContext();
-  const { data: branches, isLoading: branchesLoading } = useBranchesQuery(org, app);
-  const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
 
-  const [uncommittedChangesError, setUncommittedChangesError] =
-    useState<UncommittedChangesError | null>(null);
+  const { data: currentBranchInfo, isLoading: isLoadingCurrentBranch } = useCurrentBranchQuery(
+    org,
+    app,
+  );
+  const { data: allBranches, isLoading: isLoadingAllBranches } = useBranchesQuery(org, app);
+
+  // Disse tre hookene må sees over/lages/finne riktig eksisterende hook
+  // Tanken er at de kan wrappe rundt andre hooks for å gi ut riktige verdier
+  const {
+    createNewBranch,
+    isLoading: isLoadingCreateNewBranch,
+    uncommittedChangesErrorCreate,
+  } = useCreateNewBranch();
+  const { discardChanges, isLoading: isLoadingDiscardChanges } = useDiscardChangesMutation();
+  const {
+    checkoutBranchAndReload,
+    isLoading: isLoadingBranchCheckout,
+    uncommittedChangesErrorCheckout,
+  } = useCheckoutBranchAndReload();
+
+  const uncommittedChangesError = getFirstUncommittedChangesError([
+    uncommittedChangesErrorCreate,
+    uncommittedChangesErrorCheckout,
+  ]);
+
+  const [targetBranch, setTargetBranch] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newBranchName, setNewBranchName] = useState('');
-  const [createBranchError, setCreateBranchError] = useState<string | null>(null);
+  const [showUncommittedChangesDialog, setShowUncommittedChangesDialog] =
+    useState(!!uncommittedChangesError);
 
-  const handleUncommittedChanges = (error: UncommittedChangesError) => {
-    setUncommittedChangesError(error);
-    setShowCreateDialog(false);
-  };
-
-  const resetCreateBranchState = () => {
-    setNewBranchName('');
-    setCreateBranchError(null);
-    setShowCreateDialog(false);
-  };
-
-  const checkoutMutation = useCheckoutWithUncommittedChangesHandling(org, app, {
-    onUncommittedChanges: setUncommittedChangesError,
-    onSuccess: async () => location.reload(),
-  });
-
-  const checkoutForNewBranchMutation = useCheckoutWithUncommittedChangesHandling(org, app, {
-    onUncommittedChanges: handleUncommittedChanges,
-    onSuccess: resetCreateBranchState,
-    onOtherError: () => {
-      setCreateBranchError(t('branching.new_branch_dialog.error_generic'));
-    },
-  });
-
-  const handleCreateBranchError = (err: AxiosError) => {
-    const errorKey =
-      err.response?.status === 409
-        ? 'branching.new_branch_dialog.error_already_exists'
-        : 'branching.new_branch_dialog.error_generic';
-    setCreateBranchError(t(errorKey));
-  };
-
-  const createMutation = useCreateBranchMutation(org, app, {
-    onSuccess: () => {
-      checkoutForNewBranchMutation.mutate(newBranchName);
-    },
-    onError: handleCreateBranchError,
-  });
-
-  const handleCreate = () => {
-    const validationResult = BranchNameValidator.validate(newBranchName);
-
-    if (!validationResult.isValid) {
-      setCreateBranchError(t(validationResult.errorKey));
+  const handleDiscardAndSwitch = () => {
+    if (!window.confirm(t('branching.uncommitted_changes_dialog.confirm_discard'))) {
       return;
     }
 
-    setCreateBranchError(null);
-    createMutation.mutate(newBranchName);
+    discardChanges();
+    checkoutBranchAndReload();
   };
 
-  const handleBranchSelect = (branchName: string) => {
-    if (branchName === currentBranchInfo?.branchName) return;
-    checkoutMutation.mutate(branchName);
+  const onClickBranch = (branch: string) => {
+    setTargetBranch(branch);
+    checkoutBranchAndReload();
   };
 
-  const handleCloseUncommittedChangesDialog = () => {
-    setUncommittedChangesError(null);
-    setNewBranchName('');
-  };
-
-  const currentBranch = currentBranchInfo?.branchName || 'master';
+  const currentBranch = currentBranchInfo.branchName;
   const isLoading =
-    branchesLoading ||
-    checkoutMutation.isPending ||
-    createMutation.isPending ||
-    checkoutForNewBranchMutation.isPending;
+    isLoadingBranchCheckout ||
+    isLoadingCurrentBranch ||
+    isLoadingAllBranches ||
+    isLoadingCreateNewBranch ||
+    isLoadingDiscardChanges;
 
   if (isLoading) {
     return (
@@ -114,11 +89,11 @@ export const BranchDropdown = () => {
         triggerButtonClassName={classes.branchButton}
       >
         <StudioDropdown.List>
-          {branches?.map((branch) => (
+          {allBranches?.map((branch) => (
             <StudioDropdown.Item key={branch.name}>
               <StudioDropdown.Button
-                onClick={() => handleBranchSelect(branch.name)}
-                disabled={branch.name === currentBranch || checkoutMutation.isPending}
+                onClick={() => onClickBranch(branch.name)}
+                disabled={branch.name === currentBranch || isLoading}
               >
                 {branch.name}
               </StudioDropdown.Button>
@@ -132,26 +107,28 @@ export const BranchDropdown = () => {
           </StudioDropdown.Item>
         </StudioDropdown.List>
       </StudioDropdown>
-
-      {uncommittedChangesError && (
-        <UncommittedChangesDialog
-          error={uncommittedChangesError}
-          onClose={handleCloseUncommittedChangesDialog}
-          org={org}
-          app={app}
-        />
-      )}
-
+      <UncommittedChangesDialog
+        isOpen={showUncommittedChangesDialog}
+        onClose={() => setShowUncommittedChangesDialog(false)}
+        onDiscardAndSwitch={handleDiscardAndSwitch}
+        error={uncommittedChangesError}
+        isLoading={isLoading}
+      />
       <CreateBranchDialog
         isOpen={showCreateDialog}
-        onClose={resetCreateBranchState}
+        onClose={() => setShowCreateDialog(false)}
         currentBranch={currentBranch}
-        newBranchName={newBranchName}
-        setNewBranchName={setNewBranchName}
-        error={createBranchError}
-        isCreatingOrCheckingOut={createMutation.isPending || checkoutForNewBranchMutation.isPending}
-        handleCreate={handleCreate}
+        onCreateBranch={createNewBranch}
+        isLoading={isLoading}
+        newBranchName={targetBranch}
+        setNewBranchName={setTargetBranch}
       />
     </>
   );
 };
+
+function getFirstUncommittedChangesError(
+  array: UncommittedChangesError[],
+): UncommittedChangesError | undefined {
+  return array.find((element) => element !== null);
+}

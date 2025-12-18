@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import {
   StudioDialog,
@@ -8,36 +8,54 @@ import {
   StudioHeading,
 } from '@studio/components';
 import classes from './CreateBranchDialog.module.css';
+import { BranchNameValidator } from 'app-shared/utils/BranchNameValidator';
 
 export interface CreateBranchDialogProps {
   isOpen: boolean;
   onClose: () => void;
   currentBranch: string;
+  onCreateBranch: (name: string) => void;
+  isLoading: boolean;
   newBranchName: string;
   setNewBranchName: (name: string) => void;
-  error: string | null;
-  isCreatingOrCheckingOut: boolean;
-  handleCreate: () => void;
 }
 
 export const CreateBranchDialog = ({
   isOpen,
   onClose,
   currentBranch,
+  onCreateBranch,
+  isLoading,
   newBranchName,
   setNewBranchName,
-  error,
-  isCreatingOrCheckingOut,
-  handleCreate,
 }: CreateBranchDialogProps) => {
   const { t } = useTranslation();
+  const [nameError, setNameError] = useState<string | null>(null);
 
-  const createButtonText = isCreatingOrCheckingOut
+  const handleClose = () => {
+    setNewBranchName('');
+    setNameError('');
+    onClose();
+  };
+
+  const handleCreateBranch = () => {
+    const validationResult = BranchNameValidator.validate(newBranchName);
+
+    if (!validationResult.isValid) {
+      setNameError(t(validationResult.errorKey));
+      return;
+    }
+
+    setNameError(null);
+    onCreateBranch(newBranchName);
+  };
+
+  const createButtonText = isLoading
     ? t('branching.new_branch_dialog.creating')
     : t('branching.new_branch_dialog.create');
 
   return (
-    <StudioDialog open={isOpen} onClose={onClose} data-color-scheme='light'>
+    <StudioDialog open={isOpen} onClose={handleClose} data-color-scheme='light'>
       <StudioDialog.Block>
         <StudioHeading>{t('branching.new_branch_dialog.create')}</StudioHeading>
       </StudioDialog.Block>
@@ -55,15 +73,15 @@ export const CreateBranchDialog = ({
           value={newBranchName}
           onChange={(e) => setNewBranchName(e.target.value)}
           placeholder={t('branching.new_branch_dialog.branch_name_placeholder')}
-          error={error}
-          disabled={isCreatingOrCheckingOut}
+          error={nameError}
+          disabled={isLoading}
         />
         <StudioParagraph>{t('branching.new_branch_dialog.hint')}</StudioParagraph>
         <div className={classes.buttons}>
-          <StudioButton onClick={handleCreate} disabled={isCreatingOrCheckingOut}>
+          <StudioButton onClick={handleCreateBranch} disabled={isLoading}>
             {createButtonText}
           </StudioButton>
-          <StudioButton variant='secondary' onClick={onClose}>
+          <StudioButton variant='secondary' onClick={handleClose}>
             {t('general.cancel')}
           </StudioButton>
         </div>
