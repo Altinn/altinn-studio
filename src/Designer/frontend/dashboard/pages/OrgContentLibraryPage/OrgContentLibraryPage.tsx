@@ -218,7 +218,7 @@ function useCodeListsProps(orgName: string): PagesConfig['codeLists']['props'] {
   const { mutate } = useUpdateSharedResourcesMutation(orgName, CODE_LIST_FOLDER);
   const { mutate: publish } = usePublishCodeListMutation(orgName);
   const { t } = useTranslation();
-  const { data: publishedCodeLists } = usePublishedResourcesQuery(orgName, 'code_lists');
+  const { data: publishedCodeLists } = usePublishedResourcesQuery(orgName, PUBLISHED_CODE_LIST_FOLDER);
 
   const libraryCodeLists = backendCodeListsToLibraryCodeLists(data);
 
