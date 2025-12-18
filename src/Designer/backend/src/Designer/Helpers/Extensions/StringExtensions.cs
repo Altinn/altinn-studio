@@ -117,7 +117,7 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
 
             if (GetInvalidFileNameChars().Any(path.Contains))
             {
-                throw new ArgumentException("Invalid path segment.", variableName);
+                throw new ArgumentException("Invalid path.", variableName);
             }
         }
     }
