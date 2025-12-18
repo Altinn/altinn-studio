@@ -12,6 +12,7 @@ const BASE_URL = __ENV.BASE_URL || 'http://local.altinn.cloud';
 const TEST_DATA = {
   USER: 'DDG Fitness AS (Organisation)',
   AUTH_LEVEL: 'Nivå 2',
+  APPLICATION: 'ttd/frontend-test',
   FRONTEND_VERSION: 'http://localhost:8080/',
   SELECTED_ANIMAL_LABEL: 'Hund',
   SELECTED_ANIMAL: 'Dog',
@@ -103,10 +104,12 @@ async function localtestLogin(page: Page) {
 
     await page.locator('select[name="UserSelect"]').waitFor({ state: 'visible' });
 
+    const appSelect = page.getByRole('combobox', { name: /select app to test/i });
     const userSelect = page.getByRole('combobox', { name: /select test users/i });
     const authSelect = page.getByRole('combobox', { name: /select your authentication level/i });
 
     // Select options from dropdowns
+    await appSelect.selectOption(TEST_DATA.APPLICATION);
     await userSelect.selectOption(TEST_DATA.USER);
     await authSelect.selectOption(TEST_DATA.AUTH_LEVEL);
 
