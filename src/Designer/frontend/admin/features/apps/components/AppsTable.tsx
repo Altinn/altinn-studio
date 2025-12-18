@@ -18,7 +18,7 @@ import { toast } from 'react-toastify';
 import { appErrorMetricsLogsPath } from 'admin/utils/apiPaths';
 import { Alert } from 'admin/shared/Alert/Alert';
 
-type AppsTableProps = {
+export type AppsTableProps = {
   org: string;
 };
 

@@ -39,7 +39,7 @@ ChartJS.register(
   TimeScale,
 );
 
-type AppMetricsProps = {
+export type AppMetricsProps = {
   range: number;
   setRange: (value: number) => void;
 };
