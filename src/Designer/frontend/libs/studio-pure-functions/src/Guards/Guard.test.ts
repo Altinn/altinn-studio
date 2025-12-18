@@ -75,7 +75,7 @@ describe('Guard', () => {
       expect(() => Guard.againstMissingProperty(obj, 'prop2')).toThrow();
     });
 
-    it('Allows the given proeprty to be set', () => {
+    it('Allows the given property to be set', () => {
       const obj: { prop1: number; prop2?: number } = { prop1: 1, prop2: 2 };
       expect(() => Guard.againstMissingProperty(obj, 'prop2')).not.toThrow();
     });
