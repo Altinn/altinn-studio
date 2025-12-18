@@ -7,6 +7,7 @@ import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranch
 import { useCheckoutWithUncommittedChangesHandling } from 'app-shared/hooks/mutations/useCheckoutWithUncommittedChangesHandling';
 import { UncommittedChangesDialog } from 'app-shared/components/UncommittedChangesDialog';
 import { CreateBranchDialog } from 'app-shared/components/CreateBranchDialog';
+import { useCreateBranchFlow } from 'app-shared/hooks/useCreateBranchFlow';
 import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 import classes from './BranchDropdown.module.css';
@@ -30,6 +31,21 @@ export const BranchDropdown = () => {
     onSuccess: async () => location.reload(),
   });
 
+  const {
+    branchName: newBranchName,
+    setBranchName,
+    error: createBranchError,
+    uncommittedChangesError: createUncommittedChangesError,
+    targetBranch: createTargetBranch,
+    isCreatingOrCheckingOut,
+    handleCreate,
+    handleCloseUncommittedChangesDialog: handleCloseCreateUncommittedChangesDialog,
+  } = useCreateBranchFlow({
+    org,
+    app,
+    onSuccess: () => setShowCreateDialog(false),
+  });
+
   const handleBranchSelect = (branchName: string) => {
     if (!branchName || branchName === currentBranchInfo?.branchName) return;
 
@@ -37,12 +53,19 @@ export const BranchDropdown = () => {
     checkoutMutation.mutate(branchName);
   };
 
-  const handleCloseDialog = () => {
+  const handleCloseUncommittedChangesDialog = () => {
     setUncommittedChangesError(null);
     setTargetBranchForSwitch(null);
   };
 
-  if (branchesLoading) {
+  const handleCloseCreateBranchDialog = () => {
+    setBranchName('');
+    setShowCreateDialog(false);
+  };
+
+  const isLoading = branchesLoading || checkoutMutation.isPending || isCreatingOrCheckingOut;
+
+  if (isLoading) {
     return (
       <div className={classes.loading}>
         <StudioSpinner aria-label={t('general.loading')} />
@@ -87,7 +110,17 @@ export const BranchDropdown = () => {
         <UncommittedChangesDialog
           error={uncommittedChangesError}
           targetBranch={targetBranchForSwitch}
-          onClose={handleCloseDialog}
+          onClose={handleCloseUncommittedChangesDialog}
+          org={org}
+          app={app}
+        />
+      )}
+
+      {createUncommittedChangesError && (
+        <UncommittedChangesDialog
+          error={createUncommittedChangesError}
+          targetBranch={createTargetBranch}
+          onClose={handleCloseCreateUncommittedChangesDialog}
           org={org}
           app={app}
         />
@@ -95,10 +128,13 @@ export const BranchDropdown = () => {
 
       <CreateBranchDialog
         isOpen={showCreateDialog}
-        onClose={() => setShowCreateDialog(false)}
-        org={org}
-        app={app}
+        onClose={handleCloseCreateBranchDialog}
         currentBranch={currentBranch}
+        branchName={newBranchName}
+        setBranchName={setBranchName}
+        error={createBranchError}
+        isCreatingOrCheckingOut={isCreatingOrCheckingOut}
+        handleCreate={handleCreate}
       />
     </>
   );

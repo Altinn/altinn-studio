@@ -55,34 +55,6 @@ describe('useCreateBranchFlow', () => {
       expect(result.current.error).toBeNull();
       expect(result.current.uncommittedChangesError).toBeNull();
     });
-
-    it('should initialize with cannotCreateBranch as true (empty name)', () => {
-      const createBranch = jest.fn();
-      const checkoutBranch = jest.fn();
-
-      const { result } = renderHookWithProviders(
-        () => useCreateBranchFlow({ org, app, onSuccess: mockOnSuccess }),
-        {
-          queries: { createBranch, checkoutBranch },
-        },
-      );
-
-      expect(result.current.cannotCreateBranch).toBe(true);
-    });
-
-    it('should initialize with correct button text', () => {
-      const createBranch = jest.fn();
-      const checkoutBranch = jest.fn();
-
-      const { result } = renderHookWithProviders(
-        () => useCreateBranchFlow({ org, app, onSuccess: mockOnSuccess }),
-        {
-          queries: { createBranch, checkoutBranch },
-        },
-      );
-
-      expect(result.current.createButtonText).toBe(textMock('branching.new_branch_dialog.create'));
-    });
   });
 
   describe('setBranchName', () => {
@@ -102,24 +74,6 @@ describe('useCreateBranchFlow', () => {
       });
 
       expect(result.current.branchName).toBe('feature/test');
-    });
-
-    it('should enable create button when valid name is entered', () => {
-      const createBranch = jest.fn();
-      const checkoutBranch = jest.fn();
-
-      const { result } = renderHookWithProviders(
-        () => useCreateBranchFlow({ org, app, onSuccess: mockOnSuccess }),
-        {
-          queries: { createBranch, checkoutBranch },
-        },
-      );
-
-      act(() => {
-        result.current.setBranchName('feature/test');
-      });
-
-      expect(result.current.cannotCreateBranch).toBe(false);
     });
   });
 
@@ -491,37 +445,6 @@ describe('useCreateBranchFlow', () => {
       });
 
       await waitFor(() => expect(result.current.isCreatingOrCheckingOut).toBe(true));
-      await waitFor(() =>
-        expect(result.current.createButtonText).toBe(
-          '[mockedText(branching.new_branch_dialog.creating)]',
-        ),
-      );
-    });
-
-    it('should disable create button when loading', async () => {
-      const createBranch = jest
-        .fn()
-        .mockImplementation(
-          () => new Promise((resolve) => setTimeout(() => resolve(mockBranch), 100)),
-        );
-      const checkoutBranch = jest.fn();
-
-      const { result } = renderHookWithProviders(
-        () => useCreateBranchFlow({ org, app, onSuccess: mockOnSuccess }),
-        {
-          queries: { createBranch, checkoutBranch },
-        },
-      );
-
-      act(() => {
-        result.current.setBranchName('feature/test');
-      });
-
-      act(() => {
-        result.current.handleCreate();
-      });
-
-      await waitFor(() => expect(result.current.cannotCreateBranch).toBe(true));
     });
   });
 

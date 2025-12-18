@@ -3,13 +3,14 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { CreateBranchDialogProps } from './CreateBranchDialog';
 import { CreateBranchDialog } from './CreateBranchDialog';
-import { org, app } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const onClose = jest.fn();
+const setBranchName = jest.fn();
+const handleCreate = jest.fn();
 
 describe('CreateBranchDialog', () => {
   const originalLocation = window.location;
@@ -31,27 +32,21 @@ describe('CreateBranchDialog', () => {
 
   it('should render dialog', () => {
     renderCreateBranchDialog();
-    const dialog = screen.getByRole('dialog');
+    const dialog = getDialog();
     expect(dialog).toBeInTheDocument();
   });
 
   it('should render heading', () => {
     renderCreateBranchDialog();
-    const heading = screen.getByRole('heading', {
-      name: textMock('branching.new_branch_dialog.create'),
-    });
+    const heading = getHeading();
     expect(heading).toBeInTheDocument();
   });
 
   it('should render buttons', () => {
     renderCreateBranchDialog();
 
-    const cancelButton = screen.getByRole('button', {
-      name: textMock('general.cancel'),
-    });
-    const createButton = screen.getByRole('button', {
-      name: textMock('branching.new_branch_dialog.create'),
-    });
+    const cancelButton = getCancelButton();
+    const createButton = getCreateButton();
 
     expect(cancelButton).toBeInTheDocument();
     expect(createButton).toBeInTheDocument();
@@ -61,100 +56,68 @@ describe('CreateBranchDialog', () => {
     const user = userEvent.setup();
     renderCreateBranchDialog();
 
-    const cancelButton = screen.getByRole('button', {
-      name: textMock('general.cancel'),
-    });
-
+    const cancelButton = getCancelButton();
     await user.click(cancelButton);
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('should display error when branch name is invalid', async () => {
-    const user = userEvent.setup();
-    renderCreateBranchDialog();
-
-    const textfield = screen.getByLabelText(
-      textMock('branching.new_branch_dialog.branch_name_label'),
-    );
-    const createButton = screen.getByRole('button', {
-      name: textMock('branching.new_branch_dialog.create'),
+  it('should display error when error prop is provided', () => {
+    renderCreateBranchDialog({
+      error: textMock('branching.new_branch_dialog.error_invalid_chars'),
     });
-
-    await user.type(textfield, 'branch name with spaces');
-    await user.click(createButton);
-
-    const errorMessage = await screen.findByText(
+    const errorMessage = screen.getByText(
       textMock('branching.new_branch_dialog.error_invalid_chars'),
     );
     expect(errorMessage).toBeInTheDocument();
   });
 
-  it('should call create branch query when pressing create button', async () => {
+  it('should call handleCreate when pressing create button', async () => {
     const user = userEvent.setup();
-
     renderCreateBranchDialog();
 
-    const textfield = screen.getByLabelText(
-      textMock('branching.new_branch_dialog.branch_name_label'),
-    );
-    const createButton = screen.getByRole('button', {
-      name: textMock('branching.new_branch_dialog.create'),
-    });
-
-    await user.type(textfield, 'new-branch');
+    const createButton = getCreateButton();
     await user.click(createButton);
 
-    expect(queriesMock.createBranch).toHaveBeenCalledTimes(1);
-    expect(queriesMock.createBranch).toHaveBeenCalledWith(org, app, 'new-branch');
+    expect(handleCreate).toHaveBeenCalledTimes(1);
   });
 
-  it('should display UncommittedChangesDialog when there are uncommitted changes', async () => {
+  it('should call setBranchName when typing in textfield', async () => {
     const user = userEvent.setup();
-
-    const uncommittedChangesError = {
-      uncommittedFiles: [
-        {
-          filePath: 'App/ui/form/layouts/Side1.json',
-          status: 'ModifiedInWorkdir',
-        },
-      ],
-    };
-
-    const checkoutBranchMutationResponse = {
-      response: {
-        status: 409,
-        data: uncommittedChangesError,
-      },
-    };
-
-    (queriesMock.checkoutBranch as jest.Mock).mockRejectedValue(checkoutBranchMutationResponse);
-
     renderCreateBranchDialog();
 
-    const textfield = screen.getByLabelText(
-      textMock('branching.new_branch_dialog.branch_name_label'),
-    );
-    const createButton = screen.getByRole('button', {
-      name: textMock('branching.new_branch_dialog.create'),
-    });
-
+    const textfield = getBranchNameTextfield();
     await user.type(textfield, 'new-branch');
-    await user.click(createButton);
 
-    const uncommittedChangesHeading = await screen.findByRole('heading', {
-      name: textMock('branching.uncommitted_changes_dialog.heading'),
+    expect(setBranchName).toHaveBeenCalled();
+  });
+
+  it('should change button text when isCreatingOrCheckingOut is true', () => {
+    renderCreateBranchDialog({
+      isCreatingOrCheckingOut: true,
     });
-    expect(uncommittedChangesHeading).toBeInTheDocument();
+    const createButton = getCreatingButton();
+    expect(createButton).toBeInTheDocument();
+  });
+
+  it('should disable create button when isCreatingOrCheckingOut is true', () => {
+    renderCreateBranchDialog({
+      isCreatingOrCheckingOut: true,
+    });
+    const createButton = getCreatingButton();
+    expect(createButton).toBeDisabled();
   });
 });
 
 const defaultProps: CreateBranchDialogProps = {
   isOpen: true,
   onClose,
-  org,
-  app,
   currentBranch: 'master',
+  branchName: '',
+  setBranchName,
+  error: null,
+  isCreatingOrCheckingOut: false,
+  handleCreate,
 };
 
 const renderCreateBranchDialog = (props?: Partial<CreateBranchDialogProps>) => {
@@ -164,3 +127,19 @@ const renderCreateBranchDialog = (props?: Partial<CreateBranchDialogProps>) => {
     </ServicesContextProvider>,
   );
 };
+
+const getDialog = () => screen.getByRole('dialog');
+
+const getHeading = () =>
+  screen.getByRole('heading', { name: textMock('branching.new_branch_dialog.create') });
+
+const getCancelButton = () => screen.getByRole('button', { name: textMock('general.cancel') });
+
+const getCreateButton = () =>
+  screen.getByRole('button', { name: textMock('branching.new_branch_dialog.create') });
+
+const getCreatingButton = () =>
+  screen.getByRole('button', { name: textMock('branching.new_branch_dialog.creating') });
+
+const getBranchNameTextfield = () =>
+  screen.getByLabelText(textMock('branching.new_branch_dialog.branch_name_label'));

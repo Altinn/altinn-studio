@@ -19,8 +19,6 @@ interface UseCreateBranchFlowResult {
   uncommittedChangesError: UncommittedChangesError | null;
   targetBranch: string;
   isCreatingOrCheckingOut: boolean;
-  cannotCreateBranch: boolean;
-  createButtonText: string;
   handleCreate: () => void;
   handleCloseUncommittedChangesDialog: () => void;
 }
@@ -87,11 +85,6 @@ export const useCreateBranchFlow = ({
   };
 
   const isCreatingOrCheckingOut = createMutation.isPending || checkoutMutation.isPending;
-  const hasError = Boolean(error);
-  const cannotCreateBranch = !branchName || isCreatingOrCheckingOut || hasError;
-  const createButtonText = isCreatingOrCheckingOut
-    ? t('branching.new_branch_dialog.creating')
-    : t('branching.new_branch_dialog.create');
 
   return {
     branchName,
@@ -100,8 +93,6 @@ export const useCreateBranchFlow = ({
     uncommittedChangesError,
     targetBranch: targetBranchRef.current || branchName,
     isCreatingOrCheckingOut,
-    cannotCreateBranch,
-    createButtonText,
     handleCreate,
     handleCloseUncommittedChangesDialog,
   };
