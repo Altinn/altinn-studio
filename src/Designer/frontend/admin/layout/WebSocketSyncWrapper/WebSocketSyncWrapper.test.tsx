@@ -49,7 +49,7 @@ describe('WebSocketSyncWrapper', () => {
       onWSMessageReceived(alertsUpdateMock);
     });
 
-    renderWebSocketSyncWrapper();
+    renderWebSocketSyncWrapper(queryClientMock);
 
     act(() => jest.advanceTimersByTime(1000));
 
@@ -75,8 +75,7 @@ describe('WebSocketSyncWrapper', () => {
 
 const mockChildren: ReactNode = <div></div>;
 
-const renderWebSocketSyncWrapper = () => {
-  const queryClient = createQueryClientMock();
+const renderWebSocketSyncWrapper = (queryClient = createQueryClientMock()) => {
   return render(
     <QueryClientProvider client={queryClient}>
       <WebSocketSyncWrapper>{mockChildren}</WebSocketSyncWrapper>

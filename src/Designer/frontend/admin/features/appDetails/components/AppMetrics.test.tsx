@@ -76,6 +76,42 @@ describe('AppMetrics', () => {
         expect(metricElement).toBeInTheDocument();
       });
     });
+
+    it('should render a success alert when 100% of the pods are ready', () => {
+      const queryClient = createQueryClientMock();
+
+      var mockData = [{ name: 'ready_pods', count: 100.0 }];
+
+      queryClient.setQueryData([QueryKey.AppHealthMetrics, org, env, app], mockData);
+
+      renderAppMetrics(queryClient);
+
+      expect(screen.getByRole('alert')).toHaveAttribute('data-color', 'success');
+    });
+
+    it('should render a warning alert when 1%-99% of the pods are ready', () => {
+      const queryClient = createQueryClientMock();
+
+      var mockData = [{ name: 'ready_pods', count: 50.0 }];
+
+      queryClient.setQueryData([QueryKey.AppHealthMetrics, org, env, app], mockData);
+
+      renderAppMetrics(queryClient);
+
+      expect(screen.getByRole('alert')).toHaveAttribute('data-color', 'warning');
+    });
+
+    it('should render a danger alert when 0% of the pods are ready', () => {
+      const queryClient = createQueryClientMock();
+
+      var mockData = [{ name: 'ready_pods', count: 0.0 }];
+
+      queryClient.setQueryData([QueryKey.AppHealthMetrics, org, env, app], mockData);
+
+      renderAppMetrics(queryClient);
+
+      expect(screen.getByRole('alert')).toHaveAttribute('data-color', 'danger');
+    });
   });
 
   describe('app error metrics', () => {
@@ -124,6 +160,50 @@ describe('AppMetrics', () => {
         const metricElement = screen.getByText(textMock(`admin.metrics.${metric.name}`));
         expect(metricElement).toBeInTheDocument();
       });
+    });
+
+    it('should render a success alert when no errors', () => {
+      const queryClient = createQueryClientMock();
+
+      const mockData = [
+        {
+          name: 'failed_instances_requests',
+          dataPoints: [],
+        },
+      ];
+
+      queryClient.setQueryData([QueryKey.AppErrorMetrics, org, env, app, range], mockData);
+
+      renderAppMetrics(queryClient);
+
+      mockData.forEach((metric) => {
+        const metricElement = screen.getByText(textMock(`admin.metrics.${metric.name}`));
+        expect(metricElement).toBeInTheDocument();
+      });
+
+      expect(screen.getByRole('alert')).toHaveAttribute('data-color', 'success');
+    });
+
+    it('should render a danger alert when errors', () => {
+      const queryClient = createQueryClientMock();
+
+      const mockData = [
+        {
+          name: 'failed_process_next_requests',
+          dataPoints: [{ count: 5, dateTimeOffset: '2024-01-01T00:00:00Z' }],
+        },
+      ];
+
+      queryClient.setQueryData([QueryKey.AppErrorMetrics, org, env, app, range], mockData);
+
+      renderAppMetrics(queryClient);
+
+      mockData.forEach((metric) => {
+        const metricElement = screen.getByText(textMock(`admin.metrics.${metric.name}`));
+        expect(metricElement).toBeInTheDocument();
+      });
+
+      expect(screen.getByRole('alert')).toHaveAttribute('data-color', 'danger');
     });
   });
 

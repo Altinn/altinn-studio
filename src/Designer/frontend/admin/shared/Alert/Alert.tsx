@@ -17,7 +17,12 @@ type AlertProps = {
 export const Alert = ({ color, count, title, url, children, className, ...rest }: AlertProps) => {
   const { t } = useTranslation();
   return (
-    <StudioAlert data-color={color} className={cn(classes.metric, className)} {...rest}>
+    <StudioAlert
+      data-color={color}
+      role='alert'
+      className={cn(classes.metric, className)}
+      {...rest}
+    >
       <div className={classes.heading}>
         <span className={classes.title}>
           <span className={classes.count}>{count}</span>
