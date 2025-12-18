@@ -20,23 +20,14 @@ internal static class HandleMetrics
         );
 
         var amFailedRequests = await metricsClient.GetFailedRequestsAsync(range, cancellationToken);
-        var metrics = amFailedRequests.Select(metric =>
+        var metrics = amFailedRequests.Select(metric => new ErrorMetric
         {
-            return new ErrorMetric
-            {
-                Name = metric.Name,
-                OperationNames = metric.OperationNames,
-                Apps = metric.Apps.Select(appMetric => new ErrorMetricApp
-                {
-                    AppName = appMetric.AppName,
-                    Count = appMetric.Count,
-                }),
-            };
+            Name = metric.Name,
+            AppName = metric.AppName,
+            Count = metric.Count,
         });
 
-        return Results.Ok(
-            new ErrorMetricsResponse { SubscriptionId = gatewayContext.AzureSubscriptionId, Metrics = metrics }
-        );
+        return Results.Ok(metrics);
     }
 
     internal static async Task<IResult> GetAppMetricsAsync(
@@ -80,10 +71,9 @@ internal static class HandleMetrics
 
         var amFailedRequests = await metricsClient.GetAppFailedRequestsAsync(app, range, cancellationToken);
 
-        var failedRequests = amFailedRequests.Select(failedRequest => new AppErrorMetric
+        var metrics = amFailedRequests.Select(failedRequest => new AppErrorMetric
         {
             Name = failedRequest.Name,
-            OperationNames = failedRequest.OperationNames,
             DataPoints = failedRequest.DataPoints.Select(dataPoint => new AppMetricDataPoint
             {
                 DateTimeOffset = dataPoint.DateTimeOffset,
@@ -91,7 +81,32 @@ internal static class HandleMetrics
             }),
         });
 
-        return Results.Ok(failedRequests);
+        return Results.Ok(metrics);
+    }
+
+    internal static async Task<IResult> GetAppErrorMetricsLogsAsync(
+        GatewayContext gatewayContext,
+        IServiceProvider serviceProvider,
+        MetricsClientSettings metricsClientSettings,
+        string app,
+        string metric,
+        int range
+    )
+    {
+        IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
+            metricsClientSettings.Provider
+        );
+
+        string azureUrl = metricsClient.GetLogsUrl(
+            gatewayContext.AzureSubscriptionId,
+            gatewayContext.ServiceOwner,
+            gatewayContext.Environment,
+            app,
+            metric,
+            range
+        );
+
+        return Results.Ok(new { url = azureUrl });
     }
 
     internal static async Task<IResult> GetAppHealthMetricsAsync(

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Azure;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
@@ -98,12 +99,15 @@ internal sealed class AzureMonitorClient(
                     Count = row.GetDouble("Count") ?? 0,
                 };
             })
-            .GroupBy(m => m.Name)
-            .Select(g => new FailedRequest
+            .GroupBy(row => new { row.AppName, row.Name })
+            .Select(row =>
             {
-                Name = g.Key,
-                OperationNames = _operationNames[g.Key],
-                Apps = g.Select(a => new FailedRequestApp { AppName = a.AppName, Count = a.Count }),
+                return new FailedRequest
+                {
+                    Name = row.Key.Name,
+                    AppName = row.Key.AppName,
+                    Count = row.Sum(value => value.Count),
+                };
             });
     }
 
@@ -154,18 +158,12 @@ internal sealed class AzureMonitorClient(
                 {
                     Name = row.Key,
                     DataPoints = row.Select(e => new DataPoint { DateTimeOffset = e.DateTimeOffset, Count = e.Count }),
-                    OperationNames = _operationNames[row.Key],
                 };
             });
 
         return _operationNames.Select(name =>
             metrics.FirstOrDefault(metric => metric.Name == name.Key)
-            ?? new AppFailedRequest
-            {
-                Name = name.Key,
-                DataPoints = [],
-                OperationNames = _operationNames[name.Key],
-            }
+            ?? new AppFailedRequest { Name = name.Key, DataPoints = [] }
         );
     }
 
@@ -221,5 +219,128 @@ internal sealed class AzureMonitorClient(
         return names.Select(name =>
             metrics.FirstOrDefault(metric => metric.Name == name) ?? new AppMetric { Name = name, DataPoints = [] }
         );
+    }
+
+    public string GetLogsUrl(
+        string subscriptionId,
+        string org,
+        string env,
+        string appName,
+        string metricName,
+        int range
+    )
+    {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
+
+        var operationNames = _operationNames[metricName];
+
+        var options = new JsonSerializerOptions
+        {
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            WriteIndented = false
+        };
+
+        var logsQuery = new
+        {
+            tables = new[] { "requests" },
+            timeContextWhereClause = $"| where timestamp >= ago({range}m))",
+            filterWhereClause = $"| where success == false | where client_Type != 'Browser' | where toint(resultCode) >= 500 | where cloud_RoleName == {appName} | where operation_Name in ('{string.Join("','", operationNames)}') | order by timestamp desc",
+            originalParams = new
+            {
+                eventTypes = new[]
+                {
+                    new
+                    {
+                        value = "request",
+                        tableName = "requests",
+                        label = "Request",
+                    },
+                },
+                timeContext = new { durationMs = range * 60 * 1000 },
+                filter = new object[]
+                {
+                    new
+                    {
+                        dimension = new
+                        {
+                            displayName = "Successful request",
+                            tables = new[] { "requests" },
+                            name = "request/success",
+                            draftKey = "request/success",
+                        },
+                        values = new[] { "False" },
+                        @operator = new
+                        {
+                            label = "=",
+                            value = "==",
+                            isSelected = true,
+                        },
+                    },
+                    new
+                    {
+                        dimension = new
+                        {
+                            displayName = "Request Response code",
+                            tables = new[] { "requests" },
+                            name = "request/resultCode",
+                            draftKey = "request/resultCode",
+                        },
+                        values = new[] { "500" },
+                        @operator = new
+                        {
+                            label = ">=",
+                            value = ">=",
+                            isSelected = true,
+                        },
+                    },
+                    new
+                    {
+                        dimension = new
+                        {
+                            displayName = "Cloud role name",
+                            tables = new[] { "requests" },
+                            name = "cloud/roleName",
+                            draftKey = "cloud/roleName",
+                        },
+                        values = new[] { appName },
+                        @operator = new
+                        {
+                            label = "=",
+                            value = "==",
+                            isSelected = true,
+                        },
+                    },
+                    new
+                    {
+                        dimension = new
+                        {
+                            displayName = "Operation name",
+                            tables = new[] { "requests" },
+                            name = "operation/name",
+                            draftKey = "operation/name",
+                        },
+                        values = operationNames,
+                        @operator = new
+                        {
+                            label = "=",
+                            value = "==",
+                            isSelected = true,
+                        },
+                    },
+                },
+                searchPhrase = new { originalPhrase = "", _tokens = Array.Empty<string>() },
+                sort = "desc",
+            },
+        };
+
+        string encodedApplicationInsightsId = Uri.EscapeDataString(
+            $"/subscriptions/{subscriptionId}/resourceGroups/monitor-{org}-{env}-rg/providers/Microsoft.Insights/components/{org}-{env}-ai"
+        );
+
+        string encodedLogsQuery = Uri.EscapeDataString(JsonSerializer.Serialize(logsQuery));
+
+        var url = $"https://portal.azure.com/#blade/AppInsightsExtension/BladeRedirect/BladeName/searchV1/ResourceId/{encodedApplicationInsightsId}/BladeInputs/{encodedLogsQuery}";
+
+        return url;
     }
 }

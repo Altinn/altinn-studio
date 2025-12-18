@@ -10,6 +10,6 @@ namespace StudioGateway.Api.Clients.MetricsClient.Contracts.AzureMonitor;
 public class FailedRequest
 {
     public required string Name { get; set; }
-    public required IEnumerable<string> OperationNames { get; set; }
-    public required IEnumerable<FailedRequestApp> Apps { get; set; }
+    public required string AppName { get; set; }
+    public required double Count { get; set; }
 }
