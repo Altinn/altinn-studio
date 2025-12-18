@@ -13,7 +13,9 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
     private const string KindContextName = "kind-runtime-fixture-kind-minimal";
     private const string TestNamespace = "default";
     private const string TestAppName = "test-app";
-    private const string SyncrootName = "apps-syncroot-repo";
+    private const string SyncrootOciRepoName = "apps-syncroot-repo";
+    private const string SyncrootKustomizationName = "syncroot-apps-kustomization";
+    private const string ReconcileAnnotation = "reconcile.fluxcd.io/requestedAt";
 
     private readonly IKubernetes _k8sClient;
     private readonly HttpClient _httpClient;
@@ -34,10 +36,8 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
         return ValueTask.CompletedTask;
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task TriggerReconcile_ExistingApp_TriggersAppOciRepoReconciliation(bool isUndeploy)
+    [Fact]
+    public async Task TriggerReconcile_ExistingApp_TriggersBothOciRepoAndKustomization()
     {
         var ct = TestContext.Current.CancellationToken;
         var originEnvironment = "local";
@@ -45,10 +45,10 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
         var token = FakeMaskinportenTokenGenerator.GenerateValidToken();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var initialAppAnnotation = await GetOciRepoAnnotationAsync(TestAppName, ct);
-        var initialSyncrootAnnotation = await GetOciRepoAnnotationAsync(SyncrootName, ct);
+        var initialOciRepoAnnotation = await GetOciRepoAnnotationAsync(TestAppName, ct);
+        var initialKustomizationAnnotation = await GetKustomizationAnnotationAsync(TestAppName, ct);
 
-        var request = new TriggerReconcileRequest(IsNewApp: false, IsUndeploy: isUndeploy);
+        var request = new TriggerReconcileRequest(IsNewApp: false, IsUndeploy: false);
         var response = await _httpClient.PostAsJsonAsync(
             $"/runtime/gateway/api/v1/deploy/apps/{TestAppName}/{originEnvironment}/reconcile",
             request,
@@ -57,24 +57,55 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        if (isUndeploy)
-        {
-            var newSyncrootAnnotation = await GetOciRepoAnnotationAsync(SyncrootName, ct);
-            Assert.NotNull(newSyncrootAnnotation);
-            Assert.NotEqual(initialSyncrootAnnotation, newSyncrootAnnotation);
-            Assert.Matches(FluxApi.TimestampPattern(), newSyncrootAnnotation);
-        }
-        else
-        {
-            var newAppAnnotation = await GetOciRepoAnnotationAsync(TestAppName, ct);
-            Assert.NotNull(newAppAnnotation);
-            Assert.NotEqual(initialAppAnnotation, newAppAnnotation);
-            Assert.Matches(FluxApi.TimestampPattern(), newAppAnnotation);
-        }
+        var newOciRepoAnnotation = await GetOciRepoAnnotationAsync(TestAppName, ct);
+        var newKustomizationAnnotation = await GetKustomizationAnnotationAsync(TestAppName, ct);
+
+        Assert.NotNull(newOciRepoAnnotation);
+        Assert.NotEqual(initialOciRepoAnnotation, newOciRepoAnnotation);
+        Assert.Matches(FluxApi.TimestampPattern(), newOciRepoAnnotation);
+
+        Assert.NotNull(newKustomizationAnnotation);
+        Assert.NotEqual(initialKustomizationAnnotation, newKustomizationAnnotation);
+        Assert.Matches(FluxApi.TimestampPattern(), newKustomizationAnnotation);
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task TriggerReconcile_NewAppOrUndeploy_TriggersSyncrootReconciliation(bool isNewApp, bool isUndeploy)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var originEnvironment = "local";
+
+        var token = FakeMaskinportenTokenGenerator.GenerateValidToken();
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var initialOciRepoAnnotation = await GetOciRepoAnnotationAsync(SyncrootOciRepoName, ct);
+        var initialKustomizationAnnotation = await GetKustomizationAnnotationAsync(SyncrootKustomizationName, ct);
+
+        var request = new TriggerReconcileRequest(IsNewApp: isNewApp, IsUndeploy: isUndeploy);
+        var response = await _httpClient.PostAsJsonAsync(
+            $"/runtime/gateway/api/v1/deploy/apps/{TestAppName}/{originEnvironment}/reconcile",
+            request,
+            ct
+        );
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var newOciRepoAnnotation = await GetOciRepoAnnotationAsync(SyncrootOciRepoName, ct);
+        var newKustomizationAnnotation = await GetKustomizationAnnotationAsync(SyncrootKustomizationName, ct);
+
+        Assert.NotNull(newOciRepoAnnotation);
+        Assert.NotEqual(initialOciRepoAnnotation, newOciRepoAnnotation);
+        Assert.Matches(FluxApi.TimestampPattern(), newOciRepoAnnotation);
+
+        Assert.NotNull(newKustomizationAnnotation);
+        Assert.NotEqual(initialKustomizationAnnotation, newKustomizationAnnotation);
+        Assert.Matches(FluxApi.TimestampPattern(), newKustomizationAnnotation);
     }
 
     [Fact]
-    public async Task TriggerReconcile_TimestampFormat_IsRfc3339Nano()
+    public async Task TriggerReconcile_TimestampFormat_IsRfc3339()
     {
         var ct = TestContext.Current.CancellationToken;
         var originEnvironment = "local";
@@ -93,21 +124,30 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
 
         var annotation = await GetOciRepoAnnotationAsync(TestAppName, ct);
         Assert.NotNull(annotation);
-
         Assert.Matches(FluxApi.TimestampPattern(), annotation);
-
         Assert.EndsWith("Z", annotation, StringComparison.Ordinal);
     }
 
-    private async Task<string?> GetOciRepoAnnotationAsync(string name, CancellationToken ct)
+    private async Task<string?> GetOciRepoAnnotationAsync(string name, CancellationToken ct) =>
+        await GetReconcileAnnotationAsync(FluxApi.OciRepoGroup, FluxApi.OciRepoPlural, name, ct);
+
+    private async Task<string?> GetKustomizationAnnotationAsync(string name, CancellationToken ct) =>
+        await GetReconcileAnnotationAsync(FluxApi.KustomizationGroup, FluxApi.KustomizationPlural, name, ct);
+
+    private async Task<string?> GetReconcileAnnotationAsync(
+        string group,
+        string plural,
+        string name,
+        CancellationToken ct
+    )
     {
         try
         {
             var result = await _k8sClient.CustomObjects.GetNamespacedCustomObjectAsync(
-                group: FluxApi.OciRepoGroup,
+                group: group,
                 version: FluxApi.V1,
                 namespaceParameter: TestNamespace,
-                plural: FluxApi.OciRepoPlural,
+                plural: plural,
                 name: name,
                 cancellationToken: ct
             );
@@ -116,7 +156,7 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
                 result is JsonElement element
                 && element.TryGetProperty("metadata", out var metadata)
                 && metadata.TryGetProperty("annotations", out var annotations)
-                && annotations.TryGetProperty("reconcile.fluxcd.io/requestedAt", out var annotation)
+                && annotations.TryGetProperty(ReconcileAnnotation, out var annotation)
             )
             {
                 return annotation.GetString();
@@ -124,7 +164,7 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
         }
         catch
         {
-            // OCIRepository might not exist
+            // Resource might not exist
         }
 
         return null;

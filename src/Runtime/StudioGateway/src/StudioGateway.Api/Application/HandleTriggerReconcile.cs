@@ -13,24 +13,29 @@ internal static class HandleTriggerReconcile
         string originEnvironment,
         [FromBody] TriggerReconcileRequest request,
         OciRepositoryClient ociRepositoryClient,
+        KustomizationClient kustomizationClient,
         ILogger<Program> logger,
         CancellationToken cancellationToken
     )
     {
         if (request.IsNewApp || request.IsUndeploy)
         {
-            var syncRootName = GetSyncRootName(originEnvironment);
-            await ociRepositoryClient.TriggerReconcileAsync(syncRootName, DefaultNamespace, cancellationToken);
+            var (ociRepoName, kustomizationName) = GetSyncRootNames(originEnvironment);
+
+            await ociRepositoryClient.TriggerReconcileAsync(ociRepoName, DefaultNamespace, cancellationToken);
+            await kustomizationClient.TriggerReconcileAsync(kustomizationName, DefaultNamespace, cancellationToken);
 
             logger.LogInformation(
-                "Triggered reconciliation for syncroot {SyncRoot} (originEnv: {OriginEnv})",
-                syncRootName,
+                "Triggered reconciliation for syncroot {OciRepo}/{Kustomization} (originEnv: {OriginEnv})",
+                ociRepoName,
+                kustomizationName,
                 originEnvironment
             );
         }
         else
         {
             await ociRepositoryClient.TriggerReconcileAsync(app, DefaultNamespace, cancellationToken);
+            await kustomizationClient.TriggerReconcileAsync(app, DefaultNamespace, cancellationToken);
 
             logger.LogInformation(
                 "Triggered reconciliation for app {App} (originEnv: {OriginEnv})",
@@ -42,11 +47,11 @@ internal static class HandleTriggerReconcile
         return Results.Ok();
     }
 
-    private static string GetSyncRootName(string originEnvironment) =>
+    private static (string OciRepoName, string KustomizationName) GetSyncRootNames(string originEnvironment) =>
         originEnvironment switch
         {
-            "dev" => "apps-syncroot-repo-dev",
-            "staging" => "apps-syncroot-repo-staging",
-            _ => "apps-syncroot-repo",
+            "dev" => ("apps-syncroot-repo-dev", "syncroot-apps-kustomization-dev"),
+            "staging" => ("apps-syncroot-repo-staging", "syncroot-apps-kustomization-staging"),
+            _ => ("apps-syncroot-repo", "syncroot-apps-kustomization"),
         };
 }

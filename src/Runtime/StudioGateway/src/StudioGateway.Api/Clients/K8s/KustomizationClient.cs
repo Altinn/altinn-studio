@@ -2,11 +2,11 @@ using k8s;
 
 namespace StudioGateway.Api.Clients.K8s;
 
-internal sealed class OciRepositoryClient(IKubernetes kubernetes, TimeProvider timeProvider)
+internal sealed class KustomizationClient(IKubernetes kubernetes, TimeProvider timeProvider)
 {
-    private const string Group = "source.toolkit.fluxcd.io";
+    private const string Group = "kustomize.toolkit.fluxcd.io";
     private const string Version = "v1";
-    private const string Plural = "ocirepositories";
+    private const string Plural = "kustomizations";
 
     public async Task TriggerReconcileAsync(
         string name,
