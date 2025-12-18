@@ -2,8 +2,9 @@ import React from 'react';
 import classes from './AppHealthMetric.module.css';
 import { useTranslation } from 'react-i18next';
 import type { AppHealthMetric as HealthMetric } from 'admin/types/metrics/AppHealthMetric';
+import { StudioAlert } from '@studio/components';
 import 'chartjs-adapter-date-fns';
-import cn from 'classnames';
+import { Doughnut } from 'react-chartjs-2';
 
 type AppHealthMetricProps = {
   metric: HealthMetric;
@@ -11,21 +12,34 @@ type AppHealthMetricProps = {
 
 export const AppHealthMetric = ({ metric }: AppHealthMetricProps) => {
   const { t } = useTranslation();
-  const isError = metric.count == 0;
+  const isDown = metric.count == 0;
+  const isPartiallyDown = metric.count > 0 && metric.count < 100;
 
   return (
-    <div key={metric.name}>
+    <StudioAlert
+      key={metric.name}
+      data-color={isDown ? 'danger' : isPartiallyDown ? 'warning' : 'success'}
+      className={classes.metric}
+    >
       <div className={classes.title}>
-        <div className={classes.name}>{t(`admin.metrics.${metric.name}`)}</div>
+        <span className={classes.metricText}>
+          <span className={classes.metricCount}>{metric.count}%</span>
+          {t(`admin.metrics.${metric.name}`)}
+        </span>
       </div>
-      <div
-        className={cn(classes.marker, {
-          [classes.error]: isError,
-          [classes.success]: !isError,
-        })}
-      >
-        {metric.name === 'health' ? (isError ? 'Down' : 'Up') : `${metric.count}%`}
+      <div className={classes.chart}>
+        <Doughnut
+          data={{
+            datasets: [
+              {
+                data: [100],
+                backgroundColor: [isDown ? '#e8adad' : isPartiallyDown ? '#eeb04c' : '#8fc997'],
+                borderWidth: 0,
+              },
+            ],
+          }}
+        />
       </div>
-    </div>
+    </StudioAlert>
   );
 };

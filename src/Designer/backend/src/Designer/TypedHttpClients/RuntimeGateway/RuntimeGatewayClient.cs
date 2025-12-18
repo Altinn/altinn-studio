@@ -45,13 +45,13 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     {
         using var client = _httpClientFactory.CreateClient($"runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        string requestUrl = $"{baseUrl}/alerts";
+        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/alerts";
 
-        return await client.GetFromJsonAsync<List<AlertRule>>(requestUrl, cancellationToken) ?? [];
+        return await client.GetFromJsonAsync<IEnumerable<AlertRule>>(requestUrl, cancellationToken) ?? [];
     }
 
     /// <inheritdoc />
-    public async Task<MetricsResponse> GetMetricsAsync(
+    public async Task<IEnumerable<ErrorMetric>> GetErrorMetricsAsync(
         string org,
         AltinnEnvironment environment,
         int range,
@@ -60,9 +60,9 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     {
         using var client = _httpClientFactory.CreateClient($"runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        string requestUrl = $"{baseUrl}/metrics?range={range}";
+        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/errors?range={range}";
 
-        return await client.GetFromJsonAsync<MetricsResponse>(requestUrl, cancellationToken) ?? new MetricsResponse { SubscriptionId = "", Metrics = [] };
+        return await client.GetFromJsonAsync<IEnumerable<ErrorMetric>>(requestUrl, cancellationToken) ?? [];
     }
 
     /// <inheritdoc />
@@ -76,9 +76,43 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     {
         using var client = _httpClientFactory.CreateClient($"runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        string requestUrl = $"{baseUrl}/metrics/app?app={app}&range={range}";
+        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app?app={app}&range={range}";
 
-        return await client.GetFromJsonAsync<List<AppMetric>>(requestUrl, cancellationToken) ?? [];
+        return await client.GetFromJsonAsync<IEnumerable<AppMetric>>(requestUrl, cancellationToken) ?? [];
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<AppErrorMetric>> GetAppErrorMetricsAsync(
+        string org,
+        AltinnEnvironment environment,
+        string app,
+        int range,
+        CancellationToken cancellationToken
+    )
+    {
+        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors?app={app}&range={range}";
+
+        return await client.GetFromJsonAsync<IEnumerable<AppErrorMetric>>(requestUrl, cancellationToken) ?? [];
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GetAppErrorMetricsLogsAsync(
+        string org,
+        AltinnEnvironment environment,
+        string app,
+        string metric,
+        int range,
+        CancellationToken cancellationToken
+    )
+    {
+        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors/logs?app={app}&metric={metric}&range={range}";
+
+        Dictionary<string, string> result = await client.GetFromJsonAsync<Dictionary<string, string>>(requestUrl, cancellationToken) ?? new();
+        return result["url"];
     }
 
     /// <inheritdoc />
@@ -91,9 +125,9 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     {
         using var client = _httpClientFactory.CreateClient($"runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        string requestUrl = $"{baseUrl}/metrics/app/health?app={app}";
+        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/health?app={app}";
 
-        return await client.GetFromJsonAsync<List<AppHealthMetric>>(requestUrl, cancellationToken) ?? [];
+        return await client.GetFromJsonAsync<IEnumerable<AppHealthMetric>>(requestUrl, cancellationToken) ?? [];
     }
 
     private string GetOriginEnvironment()

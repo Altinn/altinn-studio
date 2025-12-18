@@ -13,14 +13,14 @@ internal sealed class MetricsService(
     ) : IMetricsService
 {
     /// <inheritdoc />
-    public async Task<MetricsResponse> GetMetricsAsync(
+    public async Task<IEnumerable<ErrorMetric>> GetErrorMetricsAsync(
         string org,
         AltinnEnvironment environment,
         int range,
         CancellationToken cancellationToken
     )
     {
-        return await runetimeGatewayClient.GetMetricsAsync(org, environment, range, cancellationToken);
+        return await runetimeGatewayClient.GetErrorMetricsAsync(org, environment, range, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -33,6 +33,31 @@ internal sealed class MetricsService(
     )
     {
         return await runetimeGatewayClient.GetAppMetricsAsync(org, environment, app, range, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<AppErrorMetric>> GetAppErrorMetricsAsync(
+        string org,
+        AltinnEnvironment environment,
+        string app,
+        int range,
+        CancellationToken cancellationToken
+    )
+    {
+        return await runetimeGatewayClient.GetAppErrorMetricsAsync(org, environment, app, range, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GetAppErrorMetricsLogsAsync(
+        string org,
+        AltinnEnvironment environment,
+        string app,
+        string metric,
+        int range,
+        CancellationToken cancellationToken
+    )
+    {
+        return await runetimeGatewayClient.GetAppErrorMetricsLogsAsync(org, environment, app, metric, range, cancellationToken);
     }
 
     /// <inheritdoc />

@@ -1,5 +1,4 @@
-.metrics {
+.container {
   display: flex;
-  gap: var(--ds-size-12);
-  flex-wrap: wrap;
+  gap: var(--ds-size-8);
 }

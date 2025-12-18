@@ -14,10 +14,10 @@ import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
-import { useMetricsQuery } from 'admin/hooks/queries/useMetricsQuery';
+import { useErrorMetricsQuery } from 'admin/hooks/queries/useErrorMetricsQuery';
 import { TimeRangeSelect } from 'admin/shared/TimeRangeSelect';
 import { toast } from 'react-toastify';
-import { getApplicationInsightsTransactionUrl } from 'app-shared/ext-urls';
+import { appErrorMetricsLogsPath } from 'admin/utils/apiPaths';
 
 type AppsTableProps = {
   org: string;
@@ -93,23 +93,23 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
   const defaultRange = 1440;
   const [range, setRange] = useQueryParamState<number>('range', defaultRange);
   const {
-    data: metrics,
-    isPending: metricsIsPending,
-    isError: metricsIsError,
-  } = useMetricsQuery(org, env, range!, {
+    data: errorMetrics,
+    isPending: errorMetricsIsPending,
+    isError: errorMetricsIsError,
+  } = useErrorMetricsQuery(org, env, range!, {
     hideDefaultError: true,
   });
 
   useEffect(() => {
-    if (metricsIsError) {
+    if (errorMetricsIsError) {
       toast.error(t('admin.alerts.error'));
     }
-  }, [metricsIsError, t]);
+  }, [errorMetricsIsError, t]);
 
   const renderAlertsHeader = () => {
     return (
       <>
-        {metricsIsPending && (
+        {errorMetricsIsPending && (
           <StudioSpinner aria-label={t('admin.alerts.pending')} delayMs={1000} />
         )}
         <TimeRangeSelect
@@ -143,21 +143,11 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
           {runningApps[env]
             .filter((app) => !search || app.app.toLowerCase().includes(search.toLowerCase()))
             .map((app) => {
-              var appMetrics = metrics?.metrics
-                .map((metric) => {
-                  var appMetric = metric.apps.find((mApp) => mApp.appName === app.app);
-                  return {
-                    name: metric.name,
-                    operationNames: metric.operationNames,
-                    count: appMetric?.count || 0,
-                  };
-                })
-                .filter((m) => m.count > 0);
-
+              const appErrorMetrics = errorMetrics?.filter((metric) => metric.appName === app.app);
               return {
                 ...app,
-                metrics: appMetrics,
-                hasMetrics: appMetrics?.length ?? 0 > 0,
+                metrics: appErrorMetrics,
+                hasMetrics: appErrorMetrics?.length ?? 0 > 0,
               };
             })
             .sort(
@@ -183,24 +173,20 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
                           data-size='xs'
                           className={classes.metric}
                         >
-                          <span className={classes.metricText}>
-                            {t(`admin.alerts.${metric.name}`, { count: metric.count })}
-                          </span>
-                          <StudioLink
-                            href={getApplicationInsightsTransactionUrl({
-                              subscriptionId: metrics?.subscriptionId!,
-                              org: org,
-                              env: env,
-                              appName: app.app,
-                              operationNames: metric.operationNames,
-                              range: range!,
-                            })}
-                            rel='noopener noreferrer'
-                            target='_blank'
-                            className={classes.metricLink}
-                          >
-                            {t('admin.alerts.link')}
-                          </StudioLink>
+                          <div className={classes.metricTitle}>
+                            <span className={classes.metricText}>
+                              <span className={classes.metricCount}>{metric.count}</span>
+                              {t(`admin.metrics.${metric.name}`)}
+                            </span>
+                            <StudioLink
+                              href={appErrorMetricsLogsPath(org, env, app.app, metric.name, range!)}
+                              rel='noopener noreferrer'
+                              target='_blank'
+                              className={classes.metricLink}
+                            >
+                              {t('admin.alerts.link')}
+                            </StudioLink>
+                          </div>
                         </StudioAlert>
                       );
                     })}

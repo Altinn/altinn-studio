@@ -12,7 +12,7 @@ export const useAppHealthMetricsQuery = (
   meta?: QueryMeta,
 ): UseQueryResult<AppHealthMetric[]> => {
   return useQuery<AppHealthMetric[]>({
-    queryKey: [QueryKey.HealthMetrics, org, env, app],
+    queryKey: [QueryKey.AppHealthMetrics, org, env, app],
     queryFn: async ({ signal }) =>
       (await axios.get<AppHealthMetric[]>(appHealthMetricsPath(org, env, app), { signal })).data,
     meta,

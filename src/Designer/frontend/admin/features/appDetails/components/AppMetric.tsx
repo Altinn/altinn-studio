@@ -4,33 +4,11 @@ import { useTranslation } from 'react-i18next';
 import type { AppMetricDataPoint } from 'admin/types/metrics/AppMetricDataPoint';
 import type { AppMetric as Metric } from 'admin/types/metrics/AppMetric';
 import 'chartjs-adapter-date-fns';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Filler,
-  Legend,
-  TimeScale,
-} from 'chart.js';
-import cn from 'classnames';
+import { StudioAlert, StudioLink } from '@studio/components';
 
 import { Line } from 'react-chartjs-2';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Filler,
-  Legend,
-  TimeScale,
-);
+import { appErrorMetricsLogsPath } from 'admin/utils/apiPaths';
+import { useParams } from 'react-router-dom';
 
 const getChartOptions = (range: number) => ({
   responsive: true,
@@ -65,6 +43,7 @@ const getChartOptions = (range: number) => ({
     },
   },
 });
+
 const getChartData = (dataPoints: AppMetricDataPoint[], options) => {
   return {
     labels: dataPoints?.map((dataPoint) => dataPoint.dateTimeOffset),
@@ -80,26 +59,6 @@ const getChartData = (dataPoints: AppMetricDataPoint[], options) => {
   };
 };
 
-const COLORS = [
-  'rgb(54, 162, 235)',
-  //'rgb(255, 99, 132)',
-  'rgb(255, 159, 64)',
-  'rgb(255, 205, 86)',
-  'rgb(75, 192, 192)',
-  'rgb(153, 102, 255)',
-  //'rgb(201, 203, 207)',
-];
-
-const getRandomColor = () => {
-  const randomIndex = Math.floor(Math.random() * COLORS.length);
-  const color = COLORS[randomIndex];
-  return {
-    borderColor: color,
-    color: '#fff',
-    backgroundColor: color.replace('rgb(', 'rgba(').replace(')', ', 0.7)'),
-  };
-};
-
 type AppMetricProps = {
   range: number;
   metric: Metric;
@@ -111,43 +70,38 @@ export const AppMetric = ({ range, metric }: AppMetricProps) => {
   const count = metric.dataPoints.reduce((sum, item) => sum + item.count, 0);
   const isErrorMetric = metric.name.startsWith('failed_');
   const isError = isErrorMetric && count > 0;
+  const { org, env, app } = useParams() as { org: string; env: string; app: string };
 
-  const color = getRandomColor();
-  const metricsChartData = getChartData(
-    metric.dataPoints,
-    isErrorMetric
-      ? {
-          borderColor: isError ? 'rgba(206, 77, 77)' : 'rgb(16, 140, 34)',
-          backgroundColor: isError ? 'rgba(206, 77, 77, 0.7)' : 'rgba(16, 140, 34, 0.7)',
-        }
-      : color,
-  );
-
-  var customStyle = isErrorMetric
-    ? {}
-    : {
-        backgroundColor: color.backgroundColor,
-        color: color.color,
-        opacity: 1,
-      };
+  const metricsChartData = getChartData(metric.dataPoints, {
+    borderColor: isError ? '#590d0d' : isErrorMetric ? '#023409' : '#042d4d',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  });
 
   return (
-    <div key={metric.name}>
-      <div className={classes.title}>
-        <div className={classes.name}>{t(`admin.metrics.${metric.name}`)}</div>
-        <div
-          className={cn(classes.marker, {
-            [classes.error]: isError,
-            [classes.success]: !isError,
-          })}
-          style={customStyle}
-        >
-          {count}
-        </div>
+    <StudioAlert
+      key={metric.name}
+      data-color={isError ? 'danger' : isErrorMetric ? 'success' : 'info'}
+      className={classes.metric}
+    >
+      <div className={classes.metricTitle}>
+        <span className={classes.metricText}>
+          <span className={classes.metricCount}>{count}</span>
+          {t(`admin.metrics.${metric.name}`)}
+        </span>
+        {isErrorMetric && (
+          <StudioLink
+            href={appErrorMetricsLogsPath(org, env, app, metric.name, range!)}
+            rel='noopener noreferrer'
+            target='_blank'
+            className={classes.metricLink}
+          >
+            {t('admin.alerts.link')}
+          </StudioLink>
+        )}
       </div>
       <div className={classes.chart}>
         <Line options={options} data={metricsChartData} />
       </div>
-    </div>
+    </StudioAlert>
   );
 };

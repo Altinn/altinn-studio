@@ -1,11 +1,21 @@
 const adminApiBasePath = `/designer/api/admin`;
 
-export const appHealthMetricsPath = (org: string, env: string, app: string) =>
-  `${adminApiBasePath}/metrics/${org}/${env}/app/health?app=${app}`; // Get
+export const errorMetricsPath = (org: string, env: string, range: number) =>
+  `${adminApiBasePath}/metrics/${org}/${env}/errors?range=${range}`; // Get
 export const appMetricsPath = (org: string, env: string, app: string, range: number) =>
   `${adminApiBasePath}/metrics/${org}/${env}/app?app=${app}&range=${range}`; // Get
-export const metricsPath = (org: string, env: string, range: number) =>
-  `${adminApiBasePath}/metrics/${org}/${env}?range=${range}`; // Get
+export const appErrorMetricsPath = (org: string, env: string, app: string, range: number) =>
+  `${adminApiBasePath}/metrics/${org}/${env}/app/errors?app=${app}&range=${range}`; // Get
+export const appErrorMetricsLogsPath = (
+  org: string,
+  env: string,
+  app: string,
+  metric: string,
+  range: number,
+) =>
+  `${adminApiBasePath}/metrics/${org}/${env}/app/errors/logs?app=${app}&metric=${metric}&range=${range}`; // Get
+export const appHealthMetricsPath = (org: string, env: string, app: string) =>
+  `${adminApiBasePath}/metrics/${org}/${env}/app/health?app=${app}`; // Get
 export const runningAppsPath = (org: string) => `${adminApiBasePath}/applications/${org}`; // Get
 export const instancesListPath = (
   org: string,

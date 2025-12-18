@@ -1,11 +1,11 @@
 import type { QueryMeta, UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import type { AppMetric } from 'admin/types/metrics/AppMetric';
-import { appMetricsPath } from 'admin/utils/apiPaths';
+import { appErrorMetricsPath } from 'admin/utils/apiPaths';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import axios from 'axios';
 
-export const useAppMetricsQuery = (
+export const useAppErrorMetricsQuery = (
   org: string,
   env: string,
   app: string,
@@ -13,9 +13,9 @@ export const useAppMetricsQuery = (
   meta?: QueryMeta,
 ): UseQueryResult<AppMetric[]> => {
   return useQuery<AppMetric[]>({
-    queryKey: [QueryKey.AppMetrics, org, env, app, range],
+    queryKey: [QueryKey.AppErrorMetrics, org, env, app, range],
     queryFn: async ({ signal }) =>
-      (await axios.get<AppMetric[]>(appMetricsPath(org, env, app, range), { signal })).data,
+      (await axios.get<AppMetric[]>(appErrorMetricsPath(org, env, app, range), { signal })).data,
     meta,
   });
 };

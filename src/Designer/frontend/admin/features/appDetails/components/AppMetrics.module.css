@@ -1,5 +1,5 @@
 .heading {
-  margin-bottom: var(--ds-size-12);
+  margin-bottom: var(--ds-size-8);
 }
 
 .subheading {
@@ -7,15 +7,20 @@
 }
 
 .content {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   display: flex;
   flex-direction: row;
-  gap: var(--ds-size-30);
-  white-space: nowrap;
+  gap: var(--ds-size-4);
+  flex-wrap: wrap;
+  align-items: start;
 }
 
 .metrics {
   display: flex;
-  gap: var(--ds-size-12);
+  gap: var(--ds-size-6);
   flex-wrap: wrap;
+}
+
+.metric {
+  max-width: 360px;
 }

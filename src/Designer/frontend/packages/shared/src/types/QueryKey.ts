@@ -64,8 +64,10 @@ export enum QueryKey {
   TaskNavigationGroup = 'TaskNavigationGroup',
 
   // Admin
-  HealthMetrics = 'HealthMetrics',
-  Metrics = 'Metrics',
+  ErrorMetrics = 'ErrorMetrics',
+  AppMetrics = 'AppMetrics',
+  AppErrorMetrics = 'AppErrorMetrics',
+  AppHealthMetrics = 'AppHealthMetrics',
   AppInstances = 'AppInstances',
   AppInstanceDetails = 'AppInstanceDetails',
   AppProcessTasks = 'AppProcessTasks',

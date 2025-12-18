@@ -9,7 +9,7 @@
 }
 
 .metricsCell {
-  height: 33px;
+  height: 39px;
 }
 
 .metricsCellContainer {
@@ -26,12 +26,31 @@
   white-space: nowrap;
 }
 
+.metric:before {
+  margin-top: 3px;
+}
+
+.metricTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-6);
+  justify-content: space-between;
+  margin-left: var(--ds-size-2);
+}
+
 .metricText {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
   white-space: nowrap;
 }
 
+.metricCount {
+  font-weight: bold;
+}
+
 .metricLink {
-  background-color: #f3d2d2;
+  background-color: var(--ds-color-danger-surface-hover);
   margin-left: var(--ds-size-2);
   padding: var(--ds-size-1) var(--ds-size-2);
   text-decoration: underline;

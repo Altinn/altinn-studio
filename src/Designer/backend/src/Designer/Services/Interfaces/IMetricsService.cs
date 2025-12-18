@@ -8,7 +8,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IMetricsService
 {
-    public Task<MetricsResponse> GetMetricsAsync(
+    public Task<IEnumerable<ErrorMetric>> GetErrorMetricsAsync(
         string org,
         AltinnEnvironment environment,
         int range,
@@ -19,6 +19,23 @@ public interface IMetricsService
         string org,
         AltinnEnvironment environment,
         string app,
+        int range,
+        CancellationToken cancellationToken
+    );
+
+    public Task<IEnumerable<AppErrorMetric>> GetAppErrorMetricsAsync(
+        string org,
+        AltinnEnvironment environment,
+        string app,
+        int range,
+        CancellationToken cancellationToken
+    );
+
+    public Task<string> GetAppErrorMetricsLogsAsync(
+        string org,
+        AltinnEnvironment environment,
+        string app,
+        string metric,
         int range,
         CancellationToken cancellationToken
     );

@@ -17,8 +17,8 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
 {
     private readonly IMetricsService _metricsService = metricsService;
 
-    [HttpGet]
-    public async Task<ActionResult<MetricsResponse>> GetMetrics(
+    [HttpGet("errors")]
+    public async Task<ActionResult<IEnumerable<ErrorMetric>>> GetErrorMetrics(
         string org,
         string env,
         int range,
@@ -26,7 +26,7 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        MetricsResponse metrics = await _metricsService.GetMetricsAsync(org, environment, range, cancellationToken);
+        IEnumerable<ErrorMetric> metrics = await _metricsService.GetErrorMetricsAsync(org, environment, range, cancellationToken);
         return Ok(metrics);
     }
 
@@ -44,6 +44,35 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
         return Ok(metrics);
     }
 
+    [HttpGet("app/errors")]
+    public async Task<ActionResult<IEnumerable<AppErrorMetric>>> GetAppErrorMetrics(
+        string org,
+        string env,
+        string app,
+        int range,
+        CancellationToken cancellationToken
+    )
+    {
+        var environment = AltinnEnvironment.FromName(env);
+        IEnumerable<AppErrorMetric> metrics = await _metricsService.GetAppErrorMetricsAsync(org, environment, app, range, cancellationToken);
+        return Ok(metrics);
+    }
+
+    [HttpGet("app/errors/logs")]
+    public async Task<ActionResult> GetAppErrorMetricsLogs(
+        string org,
+        string env,
+        string app,
+        string metric,
+        int range,
+        CancellationToken cancellationToken
+    )
+    {
+        var environment = AltinnEnvironment.FromName(env);
+        string url = await _metricsService.GetAppErrorMetricsLogsAsync(org, environment, app, metric, range, cancellationToken);
+        return Redirect(url);
+    }
+
     [HttpGet("app/health")]
     public async Task<ActionResult<IEnumerable<AppHealthMetric>>> GetAppHealthMetrics(
         string org,
@@ -53,7 +82,7 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        IEnumerable<AppHealthMetric> healthMetrics = await _metricsService.GetAppHealthMetricsAsync(org, environment, app, cancellationToken);
-        return Ok(healthMetrics);
+        IEnumerable<AppHealthMetric> metrics = await _metricsService.GetAppHealthMetricsAsync(org, environment, app, cancellationToken);
+        return Ok(metrics);
     }
 }

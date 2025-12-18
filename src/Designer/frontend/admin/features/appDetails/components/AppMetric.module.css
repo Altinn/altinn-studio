@@ -13,22 +13,54 @@
 
 .chart {
   height: 150px;
-  width: 300px;
+  width: 100%;
 }
 
-.marker {
-  font-size: 1.2rem;
-  border-radius: var(--ds-border-radius-md);
-  padding: var(--ds-size-1) var(--ds-size-3);
+.metric {
+  border: none;
+  padding: var(--ds-size-4) var(--ds-size-8) var(--ds-size-6) var(--ds-size-15);
+  white-space: nowrap;
 }
 
-.error {
-  color: var(--ds-color-danger-surface-default);
-  background-color: var(--ds-color-danger-border-default);
+.metric:before {
+  margin-top: 6px;
 }
 
-.success {
-  color: var(--ds-color-success-surface-default);
-  background-color: var(--ds-color-success-border-default);
-  opacity: 0.7;
+.metricTitle {
+  display: flex;
+  gap: var(--ds-size-2);
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 10px;
+}
+
+.metricText {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  white-space: nowrap;
+}
+
+.metricCount {
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+.metricLink {
+  margin-left: var(--ds-size-2);
+  padding: var(--ds-size-1) var(--ds-size-2);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.metric[data-color='danger'] .metricLink {
+  background-color: var(--ds-color-danger-surface-hover);
+}
+
+.metric[data-color='success'] .metricLink {
+  background-color: var(--ds-color-success-surface-hover);
+}
+
+.metric[data-color='info'] .metricLink {
+  background-color: var(--ds-color-info-surface-hover);
 }

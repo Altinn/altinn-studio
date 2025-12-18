@@ -1,9 +1,9 @@
 import { Link, useParams } from 'react-router-dom';
 import { StudioBreadcrumbs } from '@studio/components';
 import { AppMetrics } from './components/AppMetrics';
-import classes from './AppDetails.module.css';
 import { useTranslation } from 'react-i18next';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
+import classes from './AppDetails.module.css';
 
 export const AppsDetails = () => {
   const { t } = useTranslation();
@@ -31,7 +31,7 @@ export const AppsDetails = () => {
       <h1>
         {env} / {app}
       </h1>
-      <div className={classes.metrics}>
+      <div className={classes.container}>
         <AppMetrics range={range!} setRange={setRange} />
       </div>
       <p>
