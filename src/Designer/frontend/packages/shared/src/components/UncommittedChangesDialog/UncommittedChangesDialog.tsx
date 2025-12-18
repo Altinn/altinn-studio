@@ -14,7 +14,6 @@ import classes from './UncommittedChangesDialog.module.css';
 
 export interface UncommittedChangesDialogProps {
   error: UncommittedChangesError;
-  targetBranch: string;
   onClose: () => void;
   org: string;
   app: string;
@@ -22,7 +21,6 @@ export interface UncommittedChangesDialogProps {
 
 export const UncommittedChangesDialog = ({
   error,
-  targetBranch,
   onClose,
   org,
   app,
@@ -31,7 +29,7 @@ export const UncommittedChangesDialog = ({
 
   const discardMutation = useDiscardChangesMutation(org, app, {
     onSuccess: () => {
-      checkoutMutation.mutate(targetBranch);
+      checkoutMutation.mutate(error.targetBranch);
     },
   });
 
@@ -63,7 +61,7 @@ export const UncommittedChangesDialog = ({
         <StudioAlert data-color='warning'>
           <Trans
             i18nKey='branching.uncommitted_changes_dialog.alert'
-            values={{ currentBranch: error.currentBranch, targetBranch }}
+            values={{ currentBranch: error.currentBranch, targetBranch: error.targetBranch }}
             components={{ strong: <strong /> }}
             shouldUnescape
           />

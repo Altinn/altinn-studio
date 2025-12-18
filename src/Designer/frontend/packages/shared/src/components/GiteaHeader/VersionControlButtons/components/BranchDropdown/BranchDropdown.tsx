@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { AxiosError } from 'axios';
 import { StudioDropdown, StudioSpinner } from '@studio/components';
 import { BranchingIcon, PlusIcon } from '@studio/icons';
 import { useBranchesQuery } from 'app-shared/hooks/queries/useBranchesQuery';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { useCheckoutWithUncommittedChangesHandling } from 'app-shared/hooks/mutations/useCheckoutWithUncommittedChangesHandling';
+import { useCreateBranchMutation } from 'app-shared/hooks/mutations/useCreateBranchMutation';
 import { UncommittedChangesDialog } from 'app-shared/components/UncommittedChangesDialog';
 import { CreateBranchDialog } from 'app-shared/components/CreateBranchDialog';
-import { useCreateBranchFlow } from 'app-shared/hooks/useCreateBranchFlow';
 import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
+import { BranchNameValidator } from 'app-shared/utils/BranchNameValidator';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 import classes from './BranchDropdown.module.css';
 
@@ -21,9 +23,17 @@ export const BranchDropdown = () => {
   const [uncommittedChangesError, setUncommittedChangesError] =
     useState<UncommittedChangesError | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newBranchName, setNewBranchName] = useState('');
+  const [createBranchError, setCreateBranchError] = useState<string | null>(null);
 
   const handleUncommittedChanges = (error: UncommittedChangesError) => {
     setUncommittedChangesError(error);
+    setShowCreateDialog(false);
+  };
+
+  const resetCreateBranchState = () => {
+    setNewBranchName('');
+    setCreateBranchError(null);
     setShowCreateDialog(false);
   };
 
@@ -32,21 +42,43 @@ export const BranchDropdown = () => {
     onSuccess: async () => location.reload(),
   });
 
-  const {
-    newBranchName,
-    setNewBranchName,
-    error: createBranchError,
-    isCreatingOrCheckingOut,
-    handleCreate,
-  } = useCreateBranchFlow({
-    org,
-    app,
-    onSuccess: () => setShowCreateDialog(false),
+  const checkoutForNewBranchMutation = useCheckoutWithUncommittedChangesHandling(org, app, {
     onUncommittedChanges: handleUncommittedChanges,
+    onSuccess: resetCreateBranchState,
+    onOtherError: () => {
+      setCreateBranchError(t('branching.new_branch_dialog.error_generic'));
+    },
   });
 
+  const handleCreateBranchError = (err: AxiosError) => {
+    const errorKey =
+      err.response?.status === 409
+        ? 'branching.new_branch_dialog.error_already_exists'
+        : 'branching.new_branch_dialog.error_generic';
+    setCreateBranchError(t(errorKey));
+  };
+
+  const createMutation = useCreateBranchMutation(org, app, {
+    onSuccess: () => {
+      checkoutForNewBranchMutation.mutate(newBranchName);
+    },
+    onError: handleCreateBranchError,
+  });
+
+  const handleCreate = () => {
+    const validationResult = BranchNameValidator.validate(newBranchName);
+
+    if (!validationResult.isValid) {
+      setCreateBranchError(t(validationResult.errorKey));
+      return;
+    }
+
+    setCreateBranchError(null);
+    createMutation.mutate(newBranchName);
+  };
+
   const handleBranchSelect = (branchName: string) => {
-    if (!branchName || branchName === currentBranchInfo?.branchName) return;
+    if (branchName === currentBranchInfo?.branchName) return;
     checkoutMutation.mutate(branchName);
   };
 
@@ -55,12 +87,12 @@ export const BranchDropdown = () => {
     setNewBranchName('');
   };
 
-  const handleCloseCreateBranchDialog = () => {
-    setNewBranchName('');
-    setShowCreateDialog(false);
-  };
-
-  const isLoading = branchesLoading || checkoutMutation.isPending || isCreatingOrCheckingOut;
+  const currentBranch = currentBranchInfo?.branchName || 'master';
+  const isLoading =
+    branchesLoading ||
+    checkoutMutation.isPending ||
+    createMutation.isPending ||
+    checkoutForNewBranchMutation.isPending;
 
   if (isLoading) {
     return (
@@ -69,8 +101,6 @@ export const BranchDropdown = () => {
       </div>
     );
   }
-
-  const currentBranch = currentBranchInfo?.branchName || 'master';
 
   return (
     <>
@@ -106,7 +136,6 @@ export const BranchDropdown = () => {
       {uncommittedChangesError && (
         <UncommittedChangesDialog
           error={uncommittedChangesError}
-          targetBranch={uncommittedChangesError.targetBranch}
           onClose={handleCloseUncommittedChangesDialog}
           org={org}
           app={app}
@@ -115,12 +144,12 @@ export const BranchDropdown = () => {
 
       <CreateBranchDialog
         isOpen={showCreateDialog}
-        onClose={handleCloseCreateBranchDialog}
+        onClose={resetCreateBranchState}
         currentBranch={currentBranch}
         newBranchName={newBranchName}
         setNewBranchName={setNewBranchName}
         error={createBranchError}
-        isCreatingOrCheckingOut={isCreatingOrCheckingOut}
+        isCreatingOrCheckingOut={createMutation.isPending || checkoutForNewBranchMutation.isPending}
         handleCreate={handleCreate}
       />
     </>
