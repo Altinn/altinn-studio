@@ -1,4 +1,3 @@
-using k8s.Models;
 using StudioGateway.Api.Clients.K8s;
 using StudioGateway.Api.Clients.MetricsClient;
 using StudioGateway.Api.Settings;
@@ -8,7 +7,7 @@ namespace StudioGateway.Api.Application;
 
 internal static class HandleMetrics
 {
-    internal static async Task<IResult> GetMetricsAsync(
+    internal static async Task<IResult> GetErrorMetricsAsync(
         GatewayContext gatewayContext,
         IServiceProvider serviceProvider,
         MetricsClientSettings metricsClientSettings,
@@ -20,14 +19,14 @@ internal static class HandleMetrics
             metricsClientSettings.Provider
         );
 
-        var azureMonitorMetrics = await metricsClient.GetMetricsAsync(range, cancellationToken);
-        var metrics = azureMonitorMetrics.Select(metric =>
+        var amFailedRequests = await metricsClient.GetFailedRequestsAsync(range, cancellationToken);
+        var metrics = amFailedRequests.Select(metric =>
         {
-            return new Metric
+            return new ErrorMetric
             {
                 Name = metric.Name,
                 OperationNames = metric.OperationNames,
-                Apps = metric.Apps.Select(appMetric => new MetricApp
+                Apps = metric.Apps.Select(appMetric => new ErrorMetricApp
                 {
                     AppName = appMetric.AppName,
                     Count = appMetric.Count,
@@ -36,7 +35,7 @@ internal static class HandleMetrics
         });
 
         return Results.Ok(
-            new MetricsResponse { SubscriptionId = gatewayContext.AzureSubscriptionId, Metrics = metrics }
+            new ErrorMetricsResponse { SubscriptionId = gatewayContext.AzureSubscriptionId, Metrics = metrics }
         );
     }
 
@@ -52,9 +51,47 @@ internal static class HandleMetrics
             metricsClientSettings.Provider
         );
 
-        IEnumerable<AppMetric> metrics = await metricsClient.GetAppMetricsAsync(app, range, cancellationToken);
+        var amMetrics = await metricsClient.GetAppMetricsAsync(app, range, cancellationToken);
+
+        var metrics = amMetrics.Select(metric => new AppMetric
+        {
+            Name = metric.Name,
+            DataPoints = metric.DataPoints.Select(dataPoint => new AppMetricDataPoint
+            {
+                DateTimeOffset = dataPoint.DateTimeOffset,
+                Count = dataPoint.Count,
+            }),
+        });
 
         return Results.Ok(metrics);
+    }
+
+    internal static async Task<IResult> GetAppErrorMetricsAsync(
+        IServiceProvider serviceProvider,
+        MetricsClientSettings metricsClientSettings,
+        string app,
+        int range,
+        CancellationToken cancellationToken
+    )
+    {
+        IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
+            metricsClientSettings.Provider
+        );
+
+        var amFailedRequests = await metricsClient.GetAppFailedRequestsAsync(app, range, cancellationToken);
+
+        var failedRequests = amFailedRequests.Select(failedRequest => new AppErrorMetric
+        {
+            Name = failedRequest.Name,
+            OperationNames = failedRequest.OperationNames,
+            DataPoints = failedRequest.DataPoints.Select(dataPoint => new AppMetricDataPoint
+            {
+                DateTimeOffset = dataPoint.DateTimeOffset,
+                Count = dataPoint.Count,
+            }),
+        });
+
+        return Results.Ok(failedRequests);
     }
 
     internal static async Task<IResult> GetAppHealthMetricsAsync(
@@ -63,17 +100,11 @@ internal static class HandleMetrics
         CancellationToken cancellationToken
     )
     {
-        IList<V1Pod> pods = await podsClient.GetPodsAsync(app, cancellationToken);
-
-        var readyPodsCount = pods.Count(pod =>
-            pod.Spec.Containers.All(container =>
-                pod.Status.ContainerStatuses.FirstOrDefault(s => s.Name == container.Name)?.Ready == true
-            )
-        );
+        var readyPodsCount = await podsClient.GetReadyPodsCountAsync(app, cancellationToken);
 
         var metrics = new List<AppHealthMetric>
         {
-            new() { Name = "ready_pods", Count = Math.Round((double)readyPodsCount / pods.Count * 100) },
+            new() { Name = "ready_pods", Count = readyPodsCount },
         };
 
         return Results.Ok(metrics);

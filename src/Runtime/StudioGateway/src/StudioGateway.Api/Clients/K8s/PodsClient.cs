@@ -1,30 +1,37 @@
 using k8s;
-using k8s.Models;
 using StudioGateway.Api.Settings;
 
 namespace StudioGateway.Api.Clients.K8s;
 
 internal sealed class PodsClient(IKubernetes client, GatewayContext gatewayContext)
 {
-    public async Task<IList<V1Pod>> GetPodsAsync(string app, CancellationToken cancellationToken)
+    public async Task<double> GetReadyPodsCountAsync(string app, CancellationToken cancellationToken)
     {
         string org = gatewayContext.ServiceOwner;
 
-        return (
-            await client.CoreV1.ListNamespacedPodAsync(
-                "default",
-                null,
-                null,
-                null,
-                $"release={org}-{app}",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                cancellationToken
-            )
-        ).Items;
+        var namespaceName = "default";
+
+        var deployment = await client.AppsV1.ReadNamespacedDeploymentAsync(
+            $"{org}-{app}-deployment-v2",
+            namespaceName,
+            cancellationToken: cancellationToken
+        );
+
+        int desiredReplicas = deployment.Spec.Replicas ?? 1;
+
+        var selector = deployment.Spec.Selector.MatchLabels;
+        string labelSelector = string.Join(",", selector.Select(kv => $"{kv.Key}={kv.Value}"));
+
+        var pods = await client.CoreV1.ListNamespacedPodAsync(
+            namespaceName,
+            labelSelector: labelSelector,
+            cancellationToken: cancellationToken
+        );
+        var readyPodsCount = pods.Items.Count(pod =>
+            pod.Status.Conditions?.Any(c => c.Type == "Ready" && c.Status == "True") == true
+        );
+        var count = Math.Round((double)readyPodsCount / desiredReplicas * 100);
+
+        return Math.Min(count, 100);
     }
 }

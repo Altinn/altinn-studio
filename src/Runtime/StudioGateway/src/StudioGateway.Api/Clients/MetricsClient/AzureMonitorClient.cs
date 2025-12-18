@@ -4,9 +4,8 @@ using Azure.Monitor.Query.Models;
 using Azure.ResourceManager;
 using Azure.ResourceManager.OperationalInsights;
 using Azure.ResourceManager.Resources;
-using StudioGateway.Api.Clients.MetricsClient.Contracts;
+using StudioGateway.Api.Clients.MetricsClient.Contracts.AzureMonitor;
 using StudioGateway.Api.Settings;
-using StudioGateway.Contracts.Metrics;
 
 namespace StudioGateway.Api.Clients.MetricsClient;
 
@@ -40,6 +39,11 @@ internal sealed class AzureMonitorClient(
         },
     };
 
+    private static string GetInterval(int range)
+    {
+        return range < 360 ? "5m" : "1h";
+    }
+
     private async Task<string> GetApplicationLogAnalyticsWorkspaceIdAsync()
     {
         if (_workspaceId != null)
@@ -62,8 +66,7 @@ internal sealed class AzureMonitorClient(
         return _workspaceId;
     }
 
-    /// <inheritdoc />
-    public async Task<IEnumerable<AzureMonitorMetric>> GetMetricsAsync(int range, CancellationToken cancellationToken)
+    public async Task<IEnumerable<FailedRequest>> GetFailedRequestsAsync(int range, CancellationToken cancellationToken)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
@@ -96,15 +99,76 @@ internal sealed class AzureMonitorClient(
                 };
             })
             .GroupBy(m => m.Name)
-            .Select(g => new AzureMonitorMetric
+            .Select(g => new FailedRequest
             {
                 Name = g.Key,
                 OperationNames = _operationNames[g.Key],
-                Apps = g.Select(a => new AzureMonitorMetricApp { AppName = a.AppName, Count = a.Count }),
+                Apps = g.Select(a => new FailedRequestApp { AppName = a.AppName, Count = a.Count }),
             });
     }
 
-    /// <inheritdoc />
+    public async Task<IEnumerable<AppFailedRequest>> GetAppFailedRequestsAsync(
+        string app,
+        int range,
+        CancellationToken cancellationToken
+    )
+    {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
+
+        var logAnalyticsWorkspaceId = await GetApplicationLogAnalyticsWorkspaceIdAsync();
+
+        var interval = GetInterval(range);
+
+        var query =
+            $@"
+                AppRequests
+                | where Success == false
+                | where ClientType != 'Browser'
+                | where toint(ResultCode) >= 500
+                | where AppRoleName == '{app.Replace("'", "''")}'
+                | where OperationName in ('{_operationNames.Values.SelectMany(value => value).Aggregate((a, b) => a + "','" + b)}')
+                | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
+                | order by DateTimeOffset desc;";
+
+        Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
+            logAnalyticsWorkspaceId,
+            query,
+            new QueryTimeRange(TimeSpan.FromMinutes(range)),
+            cancellationToken: cancellationToken
+        );
+
+        var metrics = response
+            .Value.Table.Rows.Select(row =>
+            {
+                return new
+                {
+                    Name = _operationNames.First(n => n.Value.Contains(row.GetString("OperationName"))).Key,
+                    DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
+                    Count = row.GetDouble("Count") ?? 0,
+                };
+            })
+            .GroupBy(row => row.Name)
+            .Select(row =>
+            {
+                return new AppFailedRequest
+                {
+                    Name = row.Key,
+                    DataPoints = row.Select(e => new DataPoint { DateTimeOffset = e.DateTimeOffset, Count = e.Count }),
+                    OperationNames = _operationNames[row.Key],
+                };
+            });
+
+        return _operationNames.Select(name =>
+            metrics.FirstOrDefault(metric => metric.Name == name.Key)
+            ?? new AppFailedRequest
+            {
+                Name = name.Key,
+                DataPoints = [],
+                OperationNames = _operationNames[name.Key],
+            }
+        );
+    }
+
     public async Task<IEnumerable<AppMetric>> GetAppMetricsAsync(
         string app,
         int range,
@@ -115,34 +179,8 @@ internal sealed class AzureMonitorClient(
 
         var logAnalyticsWorkspaceId = await GetApplicationLogAnalyticsWorkspaceIdAsync();
 
-        var interval = range < 360 ? "5m" : "1h";
+        var interval = GetInterval(range);
 
-        IEnumerable<AppMetric> appMetrics = await GetAppMetricsAsync(
-            logAnalyticsWorkspaceId,
-            app,
-            interval,
-            range,
-            cancellationToken
-        );
-        IEnumerable<AppMetric> appFailedRequests = await GetAppFailedRequestsAsync(
-            logAnalyticsWorkspaceId,
-            app,
-            interval,
-            range,
-            cancellationToken
-        );
-
-        return appMetrics.Concat(appFailedRequests);
-    }
-
-    private async Task<IEnumerable<AppMetric>> GetAppMetricsAsync(
-        string logAnalyticsWorkspaceId,
-        string app,
-        string interval,
-        int range,
-        CancellationToken cancellationToken
-    )
-    {
         List<string> names = ["altinn_app_lib_processes_started", "altinn_app_lib_processes_completed"];
 
         var query =
@@ -176,72 +214,12 @@ internal sealed class AzureMonitorClient(
                 return new AppMetric
                 {
                     Name = row.Key,
-                    DataPoints = row.Select(e => new AppMetricDataPoint
-                    {
-                        DateTimeOffset = e.DateTimeOffset,
-                        Count = e.Count,
-                    }),
+                    DataPoints = row.Select(e => new DataPoint { DateTimeOffset = e.DateTimeOffset, Count = e.Count }),
                 };
             });
 
         return names.Select(name =>
             metrics.FirstOrDefault(metric => metric.Name == name) ?? new AppMetric { Name = name, DataPoints = [] }
-        );
-    }
-
-    private async Task<IEnumerable<AppMetric>> GetAppFailedRequestsAsync(
-        string logAnalyticsWorkspaceId,
-        string app,
-        string interval,
-        int range,
-        CancellationToken cancellationToken
-    )
-    {
-        var query =
-            $@"
-                AppRequests
-                | where Success == false
-                | where ClientType != 'Browser'
-                | where toint(ResultCode) >= 500
-                | where AppRoleName == '{app.Replace("'", "''")}'
-                | where OperationName in ('{_operationNames.Values.SelectMany(value => value).Aggregate((a, b) => a + "','" + b)}')
-                | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
-                | order by DateTimeOffset desc;";
-
-        Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
-            logAnalyticsWorkspaceId,
-            query,
-            new QueryTimeRange(TimeSpan.FromMinutes(range)),
-            cancellationToken: cancellationToken
-        );
-
-        var metrics = response
-            .Value.Table.Rows.Select(row =>
-            {
-                return new
-                {
-                    Name = _operationNames.First(n => n.Value.Contains(row.GetString("OperationName"))).Key,
-                    DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
-                    Count = row.GetDouble("Count") ?? 0,
-                };
-            })
-            .GroupBy(row => row.Name)
-            .Select(row =>
-            {
-                return new AppMetric
-                {
-                    Name = row.Key,
-                    DataPoints = row.Select(e => new AppMetricDataPoint
-                    {
-                        DateTimeOffset = e.DateTimeOffset,
-                        Count = e.Count,
-                    }),
-                };
-            });
-
-        return _operationNames.Select(name =>
-            metrics.FirstOrDefault(metric => metric.Name == name.Key)
-            ?? new AppMetric { Name = name.Key, DataPoints = [] }
         );
     }
 }

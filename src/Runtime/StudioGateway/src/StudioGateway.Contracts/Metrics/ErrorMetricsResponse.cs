@@ -1,7 +1,7 @@
 namespace StudioGateway.Contracts.Metrics;
 
-public class MetricsResponse
+public class ErrorMetricsResponse
 {
     public required string SubscriptionId { get; set; }
-    public required IEnumerable<Metric> Metrics { get; set; }
+    public required IEnumerable<ErrorMetric> Metrics { get; set; }
 }

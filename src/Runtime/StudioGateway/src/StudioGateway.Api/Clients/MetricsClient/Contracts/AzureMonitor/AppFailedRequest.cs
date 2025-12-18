@@ -1,15 +1,15 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace StudioGateway.Api.Clients.MetricsClient.Contracts;
+namespace StudioGateway.Api.Clients.MetricsClient.Contracts.AzureMonitor;
 
 [SuppressMessage(
     "Microsoft.Performance",
     "CA1515:AvoidUninstantiatedPublicTypes",
     Justification = "Exposed externally"
 )]
-public class AzureMonitorMetric
+public class AppFailedRequest
 {
     public required string Name { get; set; }
     public required IEnumerable<string> OperationNames { get; set; }
-    public required IEnumerable<AzureMonitorMetricApp> Apps { get; set; }
+    public required IEnumerable<DataPoint> DataPoints { get; set; }
 }

@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using StudioGateway.Api.Clients.MetricsClient.Contracts;
-using StudioGateway.Contracts.Metrics;
+using StudioGateway.Api.Clients.MetricsClient.Contracts.AzureMonitor;
 
 namespace StudioGateway.Api.Clients.MetricsClient;
 
@@ -11,6 +10,11 @@ namespace StudioGateway.Api.Clients.MetricsClient;
 )]
 public interface IMetricsClient
 {
-    public Task<IEnumerable<AzureMonitorMetric>> GetMetricsAsync(int range, CancellationToken cancellationToken);
+    public Task<IEnumerable<FailedRequest>> GetFailedRequestsAsync(int range, CancellationToken cancellationToken);
+    public Task<IEnumerable<AppFailedRequest>> GetAppFailedRequestsAsync(
+        string app,
+        int range,
+        CancellationToken cancellationToken
+    );
     public Task<IEnumerable<AppMetric>> GetAppMetricsAsync(string app, int range, CancellationToken cancellationToken);
 }
