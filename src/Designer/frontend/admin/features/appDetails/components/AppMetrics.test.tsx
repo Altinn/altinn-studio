@@ -10,12 +10,12 @@ import { app, org } from '@studio/testing/testids';
 import axios from 'axios';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import userEvent from '@testing-library/user-event';
 
 const env = 'test';
 const range = 5;
 
 jest.mock('react-chartjs-2');
-
 jest.mock('react-router-dom', () => {
   const originalModule = jest.requireActual('react-router-dom');
   return {
@@ -27,12 +27,12 @@ jest.mock('react-router-dom', () => {
     })),
   };
 });
-
 jest.mock('axios');
+jest.mock('admin/hooks/useQueryParamState');
 
 const defaultProps: AppMetricsProps = {
   range,
-  setRange: () => {},
+  setRange: jest.fn(),
 };
 
 describe('AppMetrics', () => {
@@ -172,6 +172,19 @@ describe('AppMetrics', () => {
         expect(metricElement).toBeInTheDocument();
       });
     });
+  });
+
+  it('should change range when selecting a new range', async () => {
+    const user = userEvent.setup();
+
+    const queryClient = createQueryClientMock();
+
+    renderAppMetrics(queryClient);
+
+    const select = screen.getByRole('combobox');
+    await user.selectOptions(select, '60');
+
+    expect(defaultProps.setRange).toHaveBeenCalledWith(60);
   });
 });
 

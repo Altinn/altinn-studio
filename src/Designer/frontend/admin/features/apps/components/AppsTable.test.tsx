@@ -11,6 +11,8 @@ import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import userEvent from '@testing-library/user-event';
+import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 
 const range = 1440;
 const env = 'production';
@@ -20,10 +22,20 @@ const defaultProps: AppsTableProps = {
 };
 
 jest.mock('react-toastify');
-
 jest.mock('axios');
+jest.mock('admin/hooks/useQueryParamState');
+
+const mockSetRange = jest.fn();
 
 describe('AppsTable', () => {
+  beforeEach(() => {
+    jest.mocked(useQueryParamState).mockImplementation((key, defaultValue) => {
+      if (key === 'range') {
+        return [1440, mockSetRange];
+      }
+      return [defaultValue, jest.fn()];
+    });
+  });
   afterEach(jest.clearAllMocks);
 
   describe('Metrics', () => {
@@ -110,6 +122,45 @@ describe('AppsTable', () => {
         expect(metricElement).toBeInTheDocument();
       });
     });
+  });
+
+  it('should change range when selecting a new range', async () => {
+    const user = userEvent.setup();
+
+    const queryClient = createQueryClientMock();
+
+    queryClient.setQueryData([QueryKey.PublishedApps, org], {
+      production: [
+        {
+          app,
+          env,
+          org,
+          version: '1',
+        },
+      ],
+    });
+
+    const mockData = [
+      {
+        name: 'failed_process_next_requests',
+        appName: app,
+        count: 22.0,
+      },
+      {
+        name: 'failed_instances_requests',
+        appName: app,
+        count: 5.0,
+      },
+    ];
+
+    queryClient.setQueryData([QueryKey.ErrorMetrics, org, env, range], mockData);
+
+    renderAppsTable(queryClient);
+
+    const select = screen.getByRole('combobox');
+    await user.selectOptions(select, '60');
+
+    expect(mockSetRange).toHaveBeenCalledWith(60);
   });
 });
 
