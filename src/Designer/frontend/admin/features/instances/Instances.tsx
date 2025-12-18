@@ -1,8 +1,8 @@
 import React from 'react';
 import classes from './Instances.module.css';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { InstancesTable } from './components/InstancesTable';
-import { StudioBreadcrumbs, StudioCard, StudioHeading } from '@studio/components';
+import { StudioCard, StudioHeading } from '@studio/components';
 import { ArchiveReferenceSearch } from './components/ArchiveReferenceSearch';
 import { StatusFilter } from './components/StatusFilter';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';

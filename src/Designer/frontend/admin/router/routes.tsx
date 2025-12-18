@@ -2,7 +2,6 @@ import { RoutePaths } from 'admin/enums/RoutePaths';
 import { AppsDetails } from 'admin/features/appDetails/AppDetails';
 import { Apps } from 'admin/features/apps/Apps';
 import { InstanceDetails } from 'admin/features/instanceDetails/InstanceDetails';
-import { Instances } from 'admin/features/instances/Instances';
 import type { ComponentType } from 'react';
 import { Navigate } from 'react-router-dom';
 
