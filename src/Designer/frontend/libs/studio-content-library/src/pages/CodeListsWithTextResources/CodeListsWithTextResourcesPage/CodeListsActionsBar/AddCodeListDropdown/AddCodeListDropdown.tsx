@@ -16,8 +16,8 @@ import { getCodeListIdsFromExternalResources } from './utils';
 
 export type AddCodeListDropdownProps = {
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
-  onCreateTextResource?: (textResource: TextResource) => void;
-  onUpdateTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource: (textResource: TextResource) => void;
+  onUpdateTextResource: (textResource: TextResource) => void;
   onUploadCodeList: (updatedCodeList: File) => void;
   codeListNames: string[];
   textResources?: TextResource[];
@@ -31,7 +31,7 @@ export function AddCodeListDropdown({
   onCreateTextResource,
   onUpdateTextResource,
   onUploadCodeList,
-  textResources,
+  textResources = [],
   externalResources,
   onImportCodeListFromOrg,
 }: AddCodeListDropdownProps): ReactElement {
@@ -39,7 +39,7 @@ export function AddCodeListDropdown({
   const addCodeListRef = useRef<HTMLDialogElement>(null);
   const importCodeListRef = useRef<HTMLDialogElement>(null);
   const codeListIds: string[] = getCodeListIdsFromExternalResources(externalResources);
-  const hasExternalResources: boolean = externalResources && externalResources.length > 0;
+  const hasExternalResources: boolean = !!externalResources && externalResources.length > 0;
 
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
 
@@ -106,7 +106,7 @@ export function AddCodeListDropdown({
         textResources={textResources}
         ref={addCodeListRef}
       />
-      {hasExternalResources && (
+      {hasExternalResources && !!onImportCodeListFromOrg && (
         <ImportFromOrgLibraryDialog
           codeListIds={codeListIds}
           ref={importCodeListRef}
