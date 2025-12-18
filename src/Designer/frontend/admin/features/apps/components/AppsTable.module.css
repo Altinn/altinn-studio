@@ -2,17 +2,17 @@
   max-width: 400px;
 }
 
-.metricsHeaderCell {
+.errorMetricsHeaderCell {
   display: flex;
   justify-content: end;
   gap: var(--ds-size-3);
 }
 
-.metricsCell {
+.errorMetricsCell {
   height: 39px;
 }
 
-.metricsCellContainer {
+.errorMetricsCellContainer {
   display: flex;
   flex-wrap: wrap;
   gap: var(--ds-size-2);
@@ -20,6 +20,6 @@
   justify-content: end;
 }
 
-.metric {
+.errorMetric {
   padding: var(--ds-size-2) var(--ds-size-2) var(--ds-size-2) var(--ds-size-11);
 }

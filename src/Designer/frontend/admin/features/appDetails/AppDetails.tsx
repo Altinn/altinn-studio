@@ -1,9 +1,10 @@
 import { Link, useParams } from 'react-router-dom';
-import { StudioBreadcrumbs } from '@studio/components';
+import { StudioBreadcrumbs, StudioHeading } from '@studio/components';
 import { AppMetrics } from './components/AppMetrics';
 import { useTranslation } from 'react-i18next';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import classes from './AppDetails.module.css';
+import { Instances } from '../instances/Instances';
 
 export const AppsDetails = () => {
   const { t } = useTranslation();
@@ -12,7 +13,7 @@ export const AppsDetails = () => {
   const [range, setRange] = useQueryParamState<number>('range', defaultRange);
 
   return (
-    <div>
+    <div className={classes.container}>
       <StudioBreadcrumbs>
         <StudioBreadcrumbs.Link>{app}</StudioBreadcrumbs.Link>
         <StudioBreadcrumbs.List>
@@ -28,15 +29,15 @@ export const AppsDetails = () => {
           </StudioBreadcrumbs.Item>
         </StudioBreadcrumbs.List>
       </StudioBreadcrumbs>
-      <h1>
+      <StudioHeading className={classes.heading} data-size='lg'>
         {env} / {app}
-      </h1>
-      <div className={classes.container}>
+      </StudioHeading>
+      <div className={classes.metrics}>
         <AppMetrics range={range!} setRange={setRange} />
       </div>
-      <p>
-        Gå til <Link to='instances'>instanser</Link>.
-      </p>
+      <div>
+        <Instances />
+      </div>
     </div>
   );
 };

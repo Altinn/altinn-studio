@@ -124,8 +124,8 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
   };
 
   return (
-    <StudioCard data-color='neutral'>
-      <StudioHeading className={classes.heading}>
+    <StudioCard data-color='neutral' className={classes.container}>
+      <StudioHeading className={classes.heading} data-size='sm'>
         <TimeRangeSelect
           label={t('admin.metrics.heading')}
           value={range!}

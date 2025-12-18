@@ -25,10 +25,6 @@ export const routerRoutes: RouterRoute[] = [
     page: AppsDetails,
   },
   {
-    path: RoutePaths.Instances,
-    page: Instances,
-  },
-  {
     path: RoutePaths.Instance,
     page: InstanceDetails,
   },

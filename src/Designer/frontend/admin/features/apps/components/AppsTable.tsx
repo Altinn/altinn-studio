@@ -105,12 +105,10 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
     }
   }, [errorMetricsIsError, t]);
 
-  const renderAlertsHeader = () => {
+  const renderErrorsMetricsHeaderCell = () => {
     return (
       <>
-        {errorMetricsIsPending && (
-          <StudioSpinner aria-label={t('admin.metrics.errors.pending')} delayMs={1000} />
-        )}
+        {errorMetricsIsPending && <StudioSpinner aria-label={t('admin.metrics.errors.pending')} />}
         <TimeRangeSelect
           label={t('admin.metrics.errors')}
           value={range!}
@@ -133,8 +131,8 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
           <StudioTable.Row>
             <StudioTable.Cell>{t('admin.apps.name')}</StudioTable.Cell>
             <StudioTable.Cell>{t('admin.apps.version')}</StudioTable.Cell>
-            <StudioTable.Cell className={classes.metricsHeaderCell}>
-              {renderAlertsHeader()}
+            <StudioTable.Cell className={classes.errorMetricsHeaderCell}>
+              {renderErrorsMetricsHeaderCell()}
             </StudioTable.Cell>
           </StudioTable.Row>
         </StudioTable.Head>
@@ -162,8 +160,8 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
                   </Link>
                 </StudioTable.Cell>
                 <StudioTable.Cell>{app.version}</StudioTable.Cell>
-                <StudioTable.Cell className={classes.metricsCell}>
-                  <div className={classes.metricsCellContainer}>
+                <StudioTable.Cell className={classes.errorMetricsCell}>
+                  <div className={classes.errorMetricsCellContainer}>
                     {app.metrics?.map((metric) => {
                       return (
                         <Alert
@@ -173,7 +171,7 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
                           title={t(`admin.metrics.${metric.name}`)}
                           count={metric.count.toString()}
                           url={appErrorMetricsLogsPath(org, env, app.app, metric.name, range!)}
-                          className={classes.metric}
+                          className={classes.errorMetric}
                         ></Alert>
                       );
                     })}

@@ -1,3 +1,7 @@
+.container {
+  flex: 1;
+}
+
 .metric {
   max-width: 360px;
 }
