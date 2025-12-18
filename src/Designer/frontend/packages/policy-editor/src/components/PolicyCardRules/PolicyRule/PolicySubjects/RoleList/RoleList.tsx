@@ -39,7 +39,8 @@ export const RoleList = ({ subjects, selectedSubjects, heading, handleChange }: 
         </StudioAlert>
       )}
       {filteredSubjects.map((subject) => {
-        const legacyRoleCode = subject.legacyRoleCode ? ` (${subject.legacyRoleCode})` : '';
+        const displayCode = subject?.legacyRoleCode || subject?.code;
+        const legacyRoleCode = displayCode ? ` (${displayCode})` : '';
         const subjectTitle = `${subject.name}${legacyRoleCode}`;
         return (
           <SubjectListItem

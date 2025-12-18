@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -35,7 +36,7 @@ public class AzureSharedContentClient : ISharedContentClient
     private const string LatestCodeListFileName = "_latest.json";
 
     internal string CurrentVersion = InitialVersion;
-    internal readonly Dictionary<string, string> FileNamesAndContent = [];
+    internal readonly ConcurrentDictionary<string, string> FileNamesAndContent = [];
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {

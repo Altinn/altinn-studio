@@ -4,12 +4,14 @@ import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PageName } from '../../types/PageName';
 import { infoBoxConfigs } from './infoBoxConfigs';
+import { Guard } from '@studio/pure-functions';
 
 const pageNameMock: PageName = PageName.CodeListsWithTextResources;
 
 describe('InfoBox', () => {
   it('renders the infobox illustration, title and description', () => {
     renderInfoBox();
+    Guard.againstMissingProperty(infoBoxConfigs, pageNameMock);
     const infoBoxIllustration = screen.getByRole('img', {
       name: textMock(infoBoxConfigs[pageNameMock].titleTextKey),
     });
