@@ -36,12 +36,17 @@ describe('PublishedElements', () => {
     });
   });
 
-  describe('latestVersion', () => {
-    it('Returns the latest version number of the element with the given name', () => {
+  describe('latestVersionOrNull', () => {
+    it('Returns the latest version number of the element with the given name if it exists', () => {
       const publishedElements = new PublishedElements(fileNames);
-      expect(publishedElements.latestVersion(elementName1)).toBe(1);
-      expect(publishedElements.latestVersion(elementName2)).toBe(2);
-      expect(publishedElements.latestVersion(elementName3)).toBe(3);
+      expect(publishedElements.latestVersionOrNull(elementName1)).toBe(1);
+      expect(publishedElements.latestVersionOrNull(elementName2)).toBe(2);
+      expect(publishedElements.latestVersionOrNull(elementName3)).toBe(3);
+    });
+
+    it('Returns null when an element with the given name does not exist in the list', () => {
+      const publishedElements = new PublishedElements(fileNames);
+      expect(publishedElements.latestVersionOrNull('trains')).toBeNull();
     });
   });
 });

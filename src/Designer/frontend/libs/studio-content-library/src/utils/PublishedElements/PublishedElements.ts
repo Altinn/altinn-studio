@@ -19,7 +19,7 @@ export class PublishedElements {
     return this.#fileNames.some((n) => n.toLowerCase() === `${elementName}/${version}.json`);
   }
 
-  public latestVersion(elementName: string): number {
+  private latestVersion(elementName: string): number {
     const allVersions = this.allStaticVersionsAsNumbers(elementName);
     return Math.max(...allVersions);
   }
