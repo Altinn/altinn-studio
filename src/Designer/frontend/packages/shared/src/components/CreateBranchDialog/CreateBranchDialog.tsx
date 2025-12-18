@@ -13,8 +13,8 @@ export interface CreateBranchDialogProps {
   isOpen: boolean;
   onClose: () => void;
   currentBranch: string;
-  branchName: string;
-  setBranchName: (name: string) => void;
+  newBranchName: string;
+  setNewBranchName: (name: string) => void;
   error: string | null;
   isCreatingOrCheckingOut: boolean;
   handleCreate: () => void;
@@ -24,8 +24,8 @@ export const CreateBranchDialog = ({
   isOpen,
   onClose,
   currentBranch,
-  branchName,
-  setBranchName,
+  newBranchName,
+  setNewBranchName,
   error,
   isCreatingOrCheckingOut,
   handleCreate,
@@ -52,8 +52,8 @@ export const CreateBranchDialog = ({
         </StudioParagraph>
         <StudioTextfield
           label={t('branching.new_branch_dialog.branch_name_label')}
-          value={branchName}
-          onChange={(e) => setBranchName(e.target.value)}
+          value={newBranchName}
+          onChange={(e) => setNewBranchName(e.target.value)}
           placeholder={t('branching.new_branch_dialog.branch_name_placeholder')}
           error={error}
           disabled={isCreatingOrCheckingOut}

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AxiosError } from 'axios';
 import { useCreateBranchMutation } from './mutations/useCreateBranchMutation';
@@ -10,48 +10,37 @@ interface UseCreateBranchFlowOptions {
   org: string;
   app: string;
   onSuccess: () => void;
+  onUncommittedChanges?: (error: UncommittedChangesError) => void;
 }
 
 interface UseCreateBranchFlowResult {
-  branchName: string;
-  setBranchName: (name: string) => void;
+  newBranchName: string;
+  setNewBranchName: (name: string) => void;
   error: string | null;
-  uncommittedChangesError: UncommittedChangesError | null;
-  targetBranch: string;
   isCreatingOrCheckingOut: boolean;
   handleCreate: () => void;
-  handleCloseUncommittedChangesDialog: () => void;
 }
 
 export const useCreateBranchFlow = ({
   org,
   app,
   onSuccess,
+  onUncommittedChanges,
 }: UseCreateBranchFlowOptions): UseCreateBranchFlowResult => {
   const { t } = useTranslation();
 
-  const [branchName, setBranchName] = useState('');
+  const [newBranchName, setNewBranchName] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [uncommittedChangesError, setUncommittedChangesError] =
-    useState<UncommittedChangesError | null>(null);
-  const targetBranchRef = useRef<string>('');
 
   const resetAndClose = () => {
-    setBranchName('');
+    setNewBranchName('');
     setError(null);
-    setUncommittedChangesError(null);
     onSuccess();
-  };
-
-  const handleCloseUncommittedChangesDialog = () => {
-    setUncommittedChangesError(null);
-    resetAndClose();
   };
 
   const createMutation = useCreateBranchMutation(org, app, {
     onSuccess: () => {
-      targetBranchRef.current = branchName;
-      checkoutMutation.mutate(branchName);
+      checkoutMutation.mutate(newBranchName);
     },
     onError: (err: AxiosError) => {
       if (err.response?.status === 409) {
@@ -63,9 +52,7 @@ export const useCreateBranchFlow = ({
   });
 
   const checkoutMutation = useCheckoutWithUncommittedChangesHandling(org, app, {
-    onUncommittedChanges: (error) => {
-      setUncommittedChangesError(error);
-    },
+    onUncommittedChanges,
     onSuccess: resetAndClose,
     onOtherError: () => {
       setError(t('branching.new_branch_dialog.error_generic'));
@@ -73,7 +60,7 @@ export const useCreateBranchFlow = ({
   });
 
   const handleCreate = () => {
-    const validationResult = BranchNameValidator.validate(branchName);
+    const validationResult = BranchNameValidator.validate(newBranchName);
 
     if (!validationResult.isValid) {
       setError(t(validationResult.errorKey));
@@ -81,19 +68,16 @@ export const useCreateBranchFlow = ({
     }
 
     setError(null);
-    createMutation.mutate(branchName);
+    createMutation.mutate(newBranchName);
   };
 
   const isCreatingOrCheckingOut = createMutation.isPending || checkoutMutation.isPending;
 
   return {
-    branchName,
-    setBranchName,
+    newBranchName,
+    setNewBranchName,
     error,
-    uncommittedChangesError,
-    targetBranch: targetBranchRef.current || branchName,
     isCreatingOrCheckingOut,
     handleCreate,
-    handleCloseUncommittedChangesDialog,
   };
 };

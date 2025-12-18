@@ -53,7 +53,6 @@ describe('useCreateBranchFlow', () => {
 
       expect(result.current.branchName).toBe('');
       expect(result.current.error).toBeNull();
-      expect(result.current.uncommittedChangesError).toBeNull();
     });
   });
 
@@ -309,7 +308,7 @@ describe('useCreateBranchFlow', () => {
   });
 
   describe('checkout mutation flow', () => {
-    it('should set uncommittedChangesError when checkout fails with uncommitted changes', async () => {
+    it('should call onUncommittedChanges callback when checkout fails with uncommitted changes', async () => {
       const mockUncommittedChangesError: UncommittedChangesError = {
         error: 'Cannot switch branches',
         message: 'You have uncommitted changes',
@@ -334,9 +333,16 @@ describe('useCreateBranchFlow', () => {
 
       const createBranch = jest.fn().mockImplementation(() => Promise.resolve(mockBranch));
       const checkoutBranch = jest.fn().mockImplementation(() => Promise.reject(error409));
+      const mockOnUncommittedChanges = jest.fn();
 
       const { result } = renderHookWithProviders(
-        () => useCreateBranchFlow({ org, app, onSuccess: mockOnSuccess }),
+        () =>
+          useCreateBranchFlow({
+            org,
+            app,
+            onSuccess: mockOnSuccess,
+            onUncommittedChanges: mockOnUncommittedChanges,
+          }),
         {
           queries: { createBranch, checkoutBranch },
         },
@@ -353,7 +359,7 @@ describe('useCreateBranchFlow', () => {
       await waitFor(() => expect(createBranch).toHaveBeenCalledWith(org, app, 'feature/test'));
       await waitFor(() => expect(checkoutBranch).toHaveBeenCalledWith(org, app, 'feature/test'));
       await waitFor(() =>
-        expect(result.current.uncommittedChangesError).toEqual(mockUncommittedChangesError),
+        expect(mockOnUncommittedChanges).toHaveBeenCalledWith(mockUncommittedChangesError),
       );
     });
 
@@ -445,79 +451,6 @@ describe('useCreateBranchFlow', () => {
       });
 
       await waitFor(() => expect(result.current.isCreatingOrCheckingOut).toBe(true));
-    });
-  });
-
-  describe('handleCloseUncommittedChangesDialog', () => {
-    it('should clear uncommittedChangesError and call onSuccess', async () => {
-      const mockUncommittedChangesError: UncommittedChangesError = {
-        error: 'Cannot switch branches',
-        message: 'You have uncommitted changes',
-        uncommittedFiles: [],
-        currentBranch: 'main',
-        targetBranch: 'feature/test',
-      };
-
-      const error409: AxiosError<UncommittedChangesError> = {
-        response: {
-          status: 409,
-          data: mockUncommittedChangesError,
-          statusText: 'Conflict',
-          headers: {},
-          config: {} as any,
-        },
-        isAxiosError: true,
-        toJSON: () => ({}),
-        name: 'AxiosError',
-        message: 'Request failed with status code 409',
-      };
-
-      const createBranch = jest.fn().mockImplementation(() => Promise.resolve(mockBranch));
-      const checkoutBranch = jest.fn().mockImplementation(() => Promise.reject(error409));
-
-      const { result } = renderHookWithProviders(
-        () => useCreateBranchFlow({ org, app, onSuccess: mockOnSuccess }),
-        {
-          queries: { createBranch, checkoutBranch },
-        },
-      );
-
-      act(() => {
-        result.current.setBranchName('feature/test');
-      });
-
-      act(() => {
-        result.current.handleCreate();
-      });
-
-      await waitFor(() => expect(result.current.uncommittedChangesError).not.toBeNull());
-
-      act(() => {
-        result.current.handleCloseUncommittedChangesDialog();
-      });
-
-      expect(result.current.uncommittedChangesError).toBeNull();
-      expect(mockOnSuccess).toHaveBeenCalled();
-    });
-  });
-
-  describe('targetBranch', () => {
-    it('should return current branchName as targetBranch', () => {
-      const createBranch = jest.fn();
-      const checkoutBranch = jest.fn();
-
-      const { result } = renderHookWithProviders(
-        () => useCreateBranchFlow({ org, app, onSuccess: mockOnSuccess }),
-        {
-          queries: { createBranch, checkoutBranch },
-        },
-      );
-
-      act(() => {
-        result.current.setBranchName('feature/test');
-      });
-
-      expect(result.current.targetBranch).toBe('feature/test');
     });
   });
 });
