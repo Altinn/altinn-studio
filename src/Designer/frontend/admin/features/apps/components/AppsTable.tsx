@@ -108,7 +108,7 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
   const renderErrorsMetricsHeaderCell = () => {
     return (
       <>
-        {errorMetricsIsPending && <StudioSpinner aria-label={t('admin.metrics.errors.pending')} />}
+        {errorMetricsIsPending && <StudioSpinner aria-label={t('admin.metrics.errors.loading')} />}
         <TimeRangeSelect
           label={t('admin.metrics.errors')}
           value={range!}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { AppMetrics, type AppMetricsProps } from './AppMetrics';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -7,6 +7,9 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
+import axios from 'axios';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const env = 'test';
 const range = 5;
@@ -25,72 +28,149 @@ jest.mock('react-router-dom', () => {
   };
 });
 
+jest.mock('axios');
+
 const defaultProps: AppMetricsProps = {
   range,
   setRange: () => {},
 };
 
 describe('AppMetrics', () => {
-  it('should render app health metrics', () => {
-    const queryClient = createQueryClientMock();
+  afterEach(jest.clearAllMocks);
 
-    var mockData = [{ name: 'ready_pods', count: 100.0 }];
+  describe('app health metrics', () => {
+    it('should render loading state', () => {
+      renderAppMetrics();
 
-    queryClient.setQueryData([QueryKey.AppHealthMetrics, org, env, app], mockData);
+      expect(
+        screen.getByLabelText(textMock('admin.metrics.app.health.loading')),
+      ).toBeInTheDocument();
+    });
 
-    renderAppMetrics(queryClient);
+    it('should render error state', async () => {
+      const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
+      (axios.get as jest.Mock).mockRejectedValue(axiosError);
 
-    mockData.forEach((metric) => {
-      const metricElement = screen.getByText(textMock(`admin.metrics.${metric.name}`));
-      expect(metricElement).toBeInTheDocument();
+      renderAppMetrics();
+
+      await waitFor(() => {
+        expect(
+          screen.queryByLabelText(textMock('admin.metrics.app.loading')),
+        ).not.toBeInTheDocument();
+      });
+
+      expect(screen.getByText(textMock('admin.metrics.app.health.error'))).toBeInTheDocument();
+    });
+
+    it('should render app health metrics', () => {
+      const queryClient = createQueryClientMock();
+
+      var mockData = [{ name: 'ready_pods', count: 100.0 }];
+
+      queryClient.setQueryData([QueryKey.AppHealthMetrics, org, env, app], mockData);
+
+      renderAppMetrics(queryClient);
+
+      mockData.forEach((metric) => {
+        const metricElement = screen.getByText(textMock(`admin.metrics.${metric.name}`));
+        expect(metricElement).toBeInTheDocument();
+      });
     });
   });
 
-  it('should render app error metrics', () => {
-    const queryClient = createQueryClientMock();
+  describe('app error metrics', () => {
+    it('should render loading state', () => {
+      renderAppMetrics();
 
-    var mockData = [
-      {
-        name: 'failed_process_next_requests',
-        dataPoints: [],
-      },
-      {
-        name: 'failed_instances_requests',
-        dataPoints: [],
-      },
-    ];
+      expect(
+        screen.getByLabelText(textMock('admin.metrics.app.errors.loading')),
+      ).toBeInTheDocument();
+    });
 
-    queryClient.setQueryData([QueryKey.AppErrorMetrics, org, env, app, range], mockData);
+    it('should render error state', async () => {
+      const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
+      (axios.get as jest.Mock).mockRejectedValue(axiosError);
 
-    renderAppMetrics(queryClient);
+      renderAppMetrics();
 
-    mockData.forEach((metric) => {
-      const metricElement = screen.getByText(textMock(`admin.metrics.${metric.name}`));
-      expect(metricElement).toBeInTheDocument();
+      await waitFor(() => {
+        expect(
+          screen.queryByLabelText(textMock('admin.metrics.app.loading')),
+        ).not.toBeInTheDocument();
+      });
+
+      expect(screen.getByText(textMock('admin.metrics.app.errors.error'))).toBeInTheDocument();
+    });
+
+    it('should render app error metrics', () => {
+      const queryClient = createQueryClientMock();
+
+      var mockData = [
+        {
+          name: 'failed_process_next_requests',
+          dataPoints: [],
+        },
+        {
+          name: 'failed_instances_requests',
+          dataPoints: [],
+        },
+      ];
+
+      queryClient.setQueryData([QueryKey.AppErrorMetrics, org, env, app, range], mockData);
+
+      renderAppMetrics(queryClient);
+
+      mockData.forEach((metric) => {
+        const metricElement = screen.getByText(textMock(`admin.metrics.${metric.name}`));
+        expect(metricElement).toBeInTheDocument();
+      });
     });
   });
 
-  it('should render app metrics', () => {
-    const queryClient = createQueryClientMock();
+  describe('app metrics', () => {
+    it('should render loading state', () => {
+      renderAppMetrics();
 
-    var mockData = [
-      {
-        name: 'altinn_app_lib_processes_started',
-        dataPoints: [],
-      },
-      {
-        name: 'altinn_app_lib_processes_completed',
-        dataPoints: [],
-      },
-    ];
+      expect(screen.getByLabelText(textMock('admin.metrics.app.loading'))).toBeInTheDocument();
+    });
 
-    queryClient.setQueryData([QueryKey.AppMetrics, org, env, app, range], mockData);
+    it('should render error state', async () => {
+      const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
+      (axios.get as jest.Mock).mockRejectedValue(axiosError);
 
-    renderAppMetrics(queryClient);
+      renderAppMetrics();
 
-    mockData.forEach((metric) => {
-      const metricElement = screen.getByText(textMock(`admin.metrics.${metric.name}`));
-      expect(metricElement).toBeInTheDocument();
+      await waitFor(() => {
+        expect(
+          screen.queryByLabelText(textMock('admin.metrics.app.loading')),
+        ).not.toBeInTheDocument();
+      });
+
+      expect(screen.getByText(textMock('admin.metrics.app.error'))).toBeInTheDocument();
+    });
+
+    it('should render app metrics', () => {
+      const queryClient = createQueryClientMock();
+
+      var mockData = [
+        {
+          name: 'altinn_app_lib_processes_started',
+          dataPoints: [],
+        },
+        {
+          name: 'altinn_app_lib_processes_completed',
+          dataPoints: [],
+        },
+      ];
+
+      queryClient.setQueryData([QueryKey.AppMetrics, org, env, app, range], mockData);
+
+      renderAppMetrics(queryClient);
+
+      mockData.forEach((metric) => {
+        const metricElement = screen.getByText(textMock(`admin.metrics.${metric.name}`));
+        expect(metricElement).toBeInTheDocument();
+      });
     });
   });
 });

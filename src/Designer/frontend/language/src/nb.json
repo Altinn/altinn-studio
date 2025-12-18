@@ -39,7 +39,7 @@
   "admin.metrics.errors": "Feil fra siste",
   "admin.metrics.errors.error": "Kunne ikke hente applikasjonsfeil. Prøv igjen senere.",
   "admin.metrics.errors.link": "Se logger her",
-  "admin.metrics.errors.pending": "Laster inn applikasjonsfeil...",
+  "admin.metrics.errors.loading": "Laster inn applikasjonsfeil...",
   "admin.metrics.failed_instances_requests": "feilende instansieringer",
   "admin.metrics.failed_process_next_requests": "feilende process/next",
   "admin.metrics.heading": "Statistikk fra siste",

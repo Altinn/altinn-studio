@@ -2,13 +2,13 @@ import classes from './TimeRangeSelect.module.css';
 import { StudioSelect } from '@studio/components';
 import React from 'react';
 
-type AppsTableContentProps = {
+export type TimeRangeSelectProps = {
   label: string;
   value: number;
   onChange: (value: number) => void;
 };
 
-export const TimeRangeSelect = ({ label, value, onChange }: AppsTableContentProps) => {
+export const TimeRangeSelect = ({ label, value, onChange }: TimeRangeSelectProps) => {
   return (
     <StudioSelect
       label={label}

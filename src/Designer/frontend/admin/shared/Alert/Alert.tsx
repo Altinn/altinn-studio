@@ -6,7 +6,7 @@ import { StudioAlert, StudioLink } from '@studio/components';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-type AlertMetricProps = {
+type AlertProps = {
   color: string;
   count: string;
   title: string;
@@ -14,15 +14,7 @@ type AlertMetricProps = {
   children?: ReactElement;
 } & StudioAlertProps;
 
-export const Alert = ({
-  color,
-  count,
-  title,
-  url,
-  children,
-  className,
-  ...rest
-}: AlertMetricProps) => {
+export const Alert = ({ color, count, title, url, children, className, ...rest }: AlertProps) => {
   const { t } = useTranslation();
   return (
     <StudioAlert data-color={color} className={cn(classes.metric, className)} {...rest}>
