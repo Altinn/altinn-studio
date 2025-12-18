@@ -97,7 +97,7 @@ internal static class HandleMetrics
             metricsClientSettings.Provider
         );
 
-        string azureUrl = metricsClient.GetLogsUrl(
+        Uri azureUrl = metricsClient.GetLogsUrl(
             gatewayContext.AzureSubscriptionId,
             gatewayContext.ServiceOwner,
             gatewayContext.Environment,

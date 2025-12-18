@@ -221,24 +221,11 @@ internal sealed class AzureMonitorClient(
         );
     }
 
-    public string GetLogsUrl(
-        string subscriptionId,
-        string org,
-        string env,
-        string appName,
-        string metricName,
-        int range
-    )
+    public Uri GetLogsUrl(string subscriptionId, string org, string env, string appName, string metricName, int range)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
         var operationNames = _operationNames[metricName];
-
-        var options = new JsonSerializerOptions
-        {
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            WriteIndented = false
-        };
 
         var logsQuery = new
         {
@@ -339,8 +326,9 @@ internal sealed class AzureMonitorClient(
 
         string encodedLogsQuery = Uri.EscapeDataString(JsonSerializer.Serialize(logsQuery));
 
-        var url = $"https://portal.azure.com/#blade/AppInsightsExtension/BladeRedirect/BladeName/searchV1/ResourceId/{encodedApplicationInsightsId}/BladeInputs/{encodedLogsQuery}";
+        var url =
+            $"https://portal.azure.com/#blade/AppInsightsExtension/BladeRedirect/BladeName/searchV1/ResourceId/{encodedApplicationInsightsId}/BladeInputs/{encodedLogsQuery}";
 
-        return url;
+        return new Uri(url);
     }
 }
