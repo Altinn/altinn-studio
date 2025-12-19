@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Azure;
 using Azure.Monitor.Query.Logs;
 using Azure.Monitor.Query.Logs.Models;
@@ -234,105 +233,21 @@ internal sealed class AzureMonitorClient(
             throw new ArgumentException($"Unknown metric name: {metricName}", nameof(metricName));
         }
 
-        var logsQuery = new
-        {
-            tables = new[] { "requests" },
-            timeContextWhereClause = $"| where timestamp >= ago({range}m)",
-            filterWhereClause = $"| where success == false | where client_Type != 'Browser' | where toint(resultCode) >= 500 | where cloud_RoleName == '{appName.Replace("'", "''")}' | where operation_Name in ('{string.Join("', '", operationNames)}') | order by timestamp desc",
-            originalParams = new
-            {
-                eventTypes = new[]
-                {
-                    new
-                    {
-                        value = "request",
-                        tableName = "requests",
-                        label = "Request",
-                    },
-                },
-                timeContext = new { durationMs = range * 60 * 1000 },
-                filter = new object[]
-                {
-                    new
-                    {
-                        dimension = new
-                        {
-                            displayName = "Successful request",
-                            tables = new[] { "requests" },
-                            name = "request/success",
-                            draftKey = "request/success",
-                        },
-                        values = new[] { "False" },
-                        @operator = new
-                        {
-                            label = "=",
-                            value = "==",
-                            isSelected = true,
-                        },
-                    },
-                    new
-                    {
-                        dimension = new
-                        {
-                            displayName = "Request Response code",
-                            tables = new[] { "requests" },
-                            name = "request/resultCode",
-                            draftKey = "request/resultCode",
-                        },
-                        values = new[] { "500" },
-                        @operator = new
-                        {
-                            label = ">=",
-                            value = ">=",
-                            isSelected = true,
-                        },
-                    },
-                    new
-                    {
-                        dimension = new
-                        {
-                            displayName = "Cloud role name",
-                            tables = new[] { "requests" },
-                            name = "cloud/roleName",
-                            draftKey = "cloud/roleName",
-                        },
-                        values = new[] { appName },
-                        @operator = new
-                        {
-                            label = "=",
-                            value = "==",
-                            isSelected = true,
-                        },
-                    },
-                    new
-                    {
-                        dimension = new
-                        {
-                            displayName = "Operation name",
-                            tables = new[] { "requests" },
-                            name = "operation/name",
-                            draftKey = "operation/name",
-                        },
-                        values = operationNames,
-                        @operator = new
-                        {
-                            label = "=",
-                            value = "==",
-                            isSelected = true,
-                        },
-                    },
-                },
-                searchPhrase = new { originalPhrase = "", _tokens = Array.Empty<string>() },
-                sort = "desc",
-            },
-        };
+        string jsonPath = Path.Combine(AppContext.BaseDirectory, "Clients", "MetricsClient", "logsQueryTemplate.json");
+        string jsonTemplate = File.ReadAllText(jsonPath);
+        string json = jsonTemplate
+            .Replace("{range}", range.ToString())
+            .Replace("{durationMs}", (range * 60 * 1000).ToString())
+            .Replace("{appName}", appName.Replace("'", "''"))
+            .Replace("{operation_Names}", string.Join(", ", operationNames.Select(n => $"'{n}'")))
+            .Replace("{operationNames}", string.Join(",", operationNames.Select(n => $"\"{n}\"")));
+        var minifiedJson = System.Text.Json.Nodes.JsonNode.Parse(json)?.ToJsonString() ?? string.Empty;
+
+        string encodedLogsQuery = Uri.EscapeDataString(minifiedJson);
 
         string encodedApplicationInsightsId = Uri.EscapeDataString(
             $"/subscriptions/{subscriptionId}/resourceGroups/monitor-{org}-{env}-rg/providers/Microsoft.Insights/components/{org}-{env}-ai"
         );
-
-        string encodedLogsQuery = Uri.EscapeDataString(JsonSerializer.Serialize(logsQuery));
-
         var url =
             $"https://portal.azure.com/#blade/AppInsightsExtension/BladeRedirect/BladeName/searchV1/ResourceId/{encodedApplicationInsightsId}/BladeInputs/{encodedLogsQuery}";
 

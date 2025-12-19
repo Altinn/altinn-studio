@@ -72,6 +72,8 @@ builder.Services.AddKeyedTransient<IAlertsClient>(
         return new GrafanaClient(factory.CreateClient("grafana"));
     }
 );
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<GrafanaAuthenticationHandler>();
 builder
     .Services.AddHttpClient(
         "grafana",

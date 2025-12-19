@@ -8,6 +8,10 @@ internal sealed class GrafanaClient(HttpClient httpClient) : IAlertsClient
     public async Task<IEnumerable<GrafanaAlertRule>> GetAlertRulesAsync(CancellationToken cancellationToken)
     {
         string requestUrl = "/api/v1/provisioning/alert-rules";
-        return await httpClient.GetFromJsonAsync<List<GrafanaAlertRule>>(requestUrl, cancellationToken) ?? [];
+        return await httpClient.GetFromJsonAsync(
+                requestUrl,
+                AppJsonSerializerContext.Default.IEnumerableGrafanaAlertRule,
+                cancellationToken
+            ) ?? [];
     }
 }

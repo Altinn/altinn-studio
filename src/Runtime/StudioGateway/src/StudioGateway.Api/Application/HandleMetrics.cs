@@ -84,7 +84,7 @@ internal static class HandleMetrics
         return Results.Ok(metrics);
     }
 
-    internal static async Task<IResult> GetAppErrorMetricsLogsAsync(
+    internal static IResult GetAppErrorMetricsLogsAsync(
         GatewayContext gatewayContext,
         IServiceProvider serviceProvider,
         MetricsClientSettings metricsClientSettings,
