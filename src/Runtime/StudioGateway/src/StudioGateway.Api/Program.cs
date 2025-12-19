@@ -72,16 +72,17 @@ builder.Services.AddKeyedTransient<IAlertsClient>(
         return new GrafanaClient(factory.CreateClient("grafana"));
     }
 );
-builder.Services.AddHttpClient(
-    "grafana",
-    (serviceProvider, httpClient) =>
-    {
-        var grafanaSettings = serviceProvider.GetRequiredService<GrafanaSettings>();
+builder
+    .Services.AddHttpClient(
+        "grafana",
+        (serviceProvider, httpClient) =>
+        {
+            var grafanaSettings = serviceProvider.GetRequiredService<GrafanaSettings>();
 
-        httpClient.BaseAddress = new Uri(grafanaSettings.Url);
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", grafanaSettings.Token);
-    }
-);
+            httpClient.BaseAddress = new Uri(grafanaSettings.Url);
+        }
+    )
+    .AddHttpMessageHandler<GrafanaAuthenticationHandler>();
 builder.Services.AddKeyedTransient<IMetricsClient, AzureMonitorClient>("azuremonitor");
 builder.Services.AddHealthChecks();
 builder.Services.AddOpenApi(

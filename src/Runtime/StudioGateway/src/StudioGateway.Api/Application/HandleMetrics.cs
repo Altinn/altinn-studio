@@ -106,7 +106,7 @@ internal static class HandleMetrics
             range
         );
 
-        return Results.Ok(new { url = azureUrl });
+        return Results.Ok(new AzureUrl(azureUrl));
     }
 
     internal static async Task<IResult> GetAppHealthMetricsAsync(

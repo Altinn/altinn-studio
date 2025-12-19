@@ -25,6 +25,13 @@ internal sealed class PodsClient(IKubernetes client, GatewayContext gatewayConte
         }
 
         var selector = deployment.Spec.Selector.MatchLabels;
+        if (deployment.Spec?.Selector?.MatchLabels == null || deployment.Spec.Selector.MatchLabels.Count == 0)
+        {
+            throw new InvalidOperationException(
+                $"Deployment {org}-{app}-deployment-v2 has no label selector configured."
+            );
+        }
+
         string labelSelector = string.Join(",", selector.Select(kv => $"{kv.Key}={kv.Value}"));
 
         var pods = await client.CoreV1.ListNamespacedPodAsync(
