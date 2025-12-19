@@ -7,4 +7,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 public interface IRuntimeGatewayClient
 {
     Task<bool> IsAppDeployedWithGitOpsAsync(string org, string app, AltinnEnvironment environment, CancellationToken cancellationToken);
+
+    Task TriggerReconcileAsync(string org, string app, AltinnEnvironment environment, bool isNewApp, bool isUndeploy, CancellationToken cancellationToken);
 }
