@@ -1,9 +1,17 @@
+using System.Net.Http.Headers;
+using Azure.Core;
+using Azure.Identity;
+using Azure.Monitor.Query.Logs;
+using Azure.ResourceManager;
+using k8s;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using StudioGateway.Api;
 using StudioGateway.Api.Authentication;
+using StudioGateway.Api.Clients.AlertsClient;
 using StudioGateway.Api.Clients.Designer;
 using StudioGateway.Api.Clients.K8s;
+using StudioGateway.Api.Clients.MetricsClient;
 using StudioGateway.Api.Endpoints.Internal;
 using StudioGateway.Api.Endpoints.Local;
 using StudioGateway.Api.Endpoints.Public;
@@ -12,6 +20,18 @@ using StudioGateway.Api.Settings;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
+builder.Services.AddSingleton<TokenCredential, DefaultAzureCredential>();
+builder.Services.AddSingleton(sp =>
+{
+    var credential = sp.GetRequiredService<TokenCredential>();
+    return new LogsQueryClient(credential);
+});
+builder.Services.AddSingleton(sp =>
+{
+    var credential = sp.GetRequiredService<TokenCredential>();
+    return new ArmClient(credential);
+});
+
 builder.Configuration.AddJsonFile(
     "/app/secrets/maskinporten-client-for-designer.json",
     optional: true,
@@ -19,12 +39,16 @@ builder.Configuration.AddJsonFile(
 );
 builder.Configuration.AddJsonFile("/app/secrets/grafana-token.json", optional: true, reloadOnChange: true);
 builder.Services.Configure<GrafanaSettings>(builder.Configuration.GetSection("Grafana"));
-
 builder.Services.Configure<GatewayContext>(builder.Configuration.GetSection("Gateway"));
+builder.Services.Configure<AlertsClientSettings>(builder.Configuration.GetSection("AlertsClientSettings"));
+builder.Services.Configure<MetricsClientSettings>(builder.Configuration.GetSection("MetricsClientSettings"));
 
 // Register class itself as scoped to avoid using IOptions interfaces throughout the codebase
 // Avoided singleton registration to support dynamic reloading of configuration
-builder.Services.TryAddScoped<GatewayContext>(sp => sp.GetRequiredService<IOptionsSnapshot<GatewayContext>>().Value);
+builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<GrafanaSettings>>().Value);
+builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<GatewayContext>>().Value);
+builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<AlertsClientSettings>>().Value);
+builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<MetricsClientSettings>>().Value);
 
 builder.ConfigureKestrelPorts();
 builder.AddHostingConfiguration();
@@ -36,6 +60,31 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
+builder.Services.AddSingleton(sp =>
+{
+    return new Kubernetes(KubernetesClientConfiguration.BuildDefaultConfig());
+});
+builder.Services.AddKeyedTransient<IAlertsClient>(
+    "grafana",
+    (serviceProvider, key) =>
+    {
+        var factory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+        return new GrafanaClient(factory.CreateClient("grafana"));
+    }
+);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<GrafanaAuthenticationHandler>();
+builder
+    .Services.AddHttpClient(
+        "grafana",
+        (serviceProvider, httpClient) =>
+        {
+            var grafanaUrl = builder.Configuration.GetSection("Grafana:Url")?.Value ?? string.Empty;
+            httpClient.BaseAddress = new Uri(grafanaUrl);
+        }
+    )
+    .AddHttpMessageHandler<GrafanaAuthenticationHandler>();
+builder.Services.AddKeyedTransient<IMetricsClient, AzureMonitorClient>("azuremonitor");
 builder.Services.AddHealthChecks();
 builder.Services.AddOpenApi(
     "public-v1",

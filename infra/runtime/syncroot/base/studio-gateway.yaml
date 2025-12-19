@@ -9,6 +9,7 @@ metadata:
   name: runtime-environment
   namespace: runtime-gateway
 data:
+  azure_subscription_id: ${AZURE_SUBSCRIPTION_ID}
   upgrade_channel: ${UPGRADE_CHANNEL}
   environment: ${ENVIRONMENT}
   serviceowner: ${SERVICEOWNER_ID}
