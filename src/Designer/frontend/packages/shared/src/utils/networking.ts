@@ -1,7 +1,7 @@
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
 
-export async function get<T = any>(url: string, options?: AxiosRequestConfig): Promise<T> {
+export async function get<T = any>(url: string, options?: AxiosRequestConfig): Promise<T | null> {
   const response: AxiosResponse = await axios.get<T>(url, options || undefined);
   return response.data ? response.data : null;
 }
@@ -10,7 +10,7 @@ export async function post<T = void, D = any>(
   url: string,
   data?: D,
   options?: AxiosRequestConfig,
-): Promise<T> {
+): Promise<T | null> {
   const response: AxiosResponse = await axios.post<T>(url, data || null, options || undefined);
   return response.data ? response.data : null;
 }
