@@ -26,7 +26,7 @@ jobs:
             - If blocked: Update status or move back to "In Progress"
             - If not needed: Close this PR
 
-            cc: @lassopicasso @JamalAlabdullah
+            cc: @JamalAlabdullah
           stale-pr-label: 'stale-review'
           exempt-pr-labels: 'blocked'
           remove-stale-when-updated: true
