@@ -1,0 +1,17 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/validation/validation.schema.v1.json",
+  "validations": {
+    "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value": [
+      {
+        "message": ["concat", "Det er teit å endre fra 88889. ", ["linkToComponent", "Trykk for å endre det", "currentValue"]],
+        "severity": "error",
+        "condition": [
+          "and",
+          ["equals", ["dataModel", "useBothRepGroups"], true],
+          ["equals", ["dataModel", ["argv", 0]], 88889]
+        ]
+      }
+    ]
+  },
+  "definitions": {}
+}
