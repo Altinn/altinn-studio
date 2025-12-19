@@ -34,7 +34,7 @@ jobs:
   construct-environments-array:
     uses: ./.github/workflows/template-construct-environments.yaml
     with:
-      environments: ${{ github.event.inputs.environments || 'staging,preapproved-prod' }}
+      environments: ${{ github.event.inputs.environments || 'staging' }}
 
   determine-tag:
     needs: get-short-sha

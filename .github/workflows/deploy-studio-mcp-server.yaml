@@ -26,7 +26,7 @@ jobs:
   construct-environments-array:
     uses: ./.github/workflows/template-construct-environments.yaml
     with:
-      environments: ${{ github.event.inputs.environments || 'dev,staging,preapproved-prod' }}
+      environments: ${{ github.event.inputs.environments || 'dev,staging' }}
 
   push-artifact:
     name: Push mcp server as OCI artifact
