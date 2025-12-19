@@ -17,15 +17,15 @@ using Xunit;
 
 namespace Designer.Tests.Services
 {
-    public class SourceControlSITest : IDisposable
+    public class SourceControlServiceTest : IDisposable
     {
 
         private Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private Mock<IGiteaClient> _giteaClientMock;
-        private Mock<ILogger<SourceControlSI>> _loggerMock;
+        private Mock<ILogger<SourceControlService>> _loggerMock;
         private ServiceRepositorySettings _settings;
         private Mock<HttpContext> _httpContextMock;
-        private SourceControlSI _sourceControlService;
+        private SourceControlService _sourceControlService;
 
         private readonly string _org = "ttd";
         private readonly string _developer = "testUser";
@@ -35,7 +35,7 @@ namespace Designer.Tests.Services
             // Setup mocks
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             _giteaClientMock = new Mock<IGiteaClient>();
-            _loggerMock = new Mock<ILogger<SourceControlSI>>();
+            _loggerMock = new Mock<ILogger<SourceControlService>>();
             _httpContextMock = new Mock<HttpContext>();
             _httpContextMock.Setup(x => x.User).Returns(new ClaimsPrincipal(new ClaimsIdentity(
             [
@@ -55,7 +55,7 @@ namespace Designer.Tests.Services
                 .Returns(_httpContextMock.Object);
 
             // Create the service under test
-            _sourceControlService = new SourceControlSI(
+            _sourceControlService = new SourceControlService(
                 _settings,
                 _httpContextAccessorMock.Object,
                 _giteaClientMock.Object,
@@ -257,7 +257,7 @@ namespace Designer.Tests.Services
             mock.Setup(m => m.DeleteRepository(org, app))
                 .ReturnsAsync(true);
 
-            SourceControlSI sut = GetServiceForTest(developer, mock);
+            SourceControlService sut = GetServiceForTest(developer, mock);
 
             // Act
             await sut.DeleteRepository(org, app);
@@ -282,7 +282,7 @@ namespace Designer.Tests.Services
                 It.Is<CreatePullRequestOption>(o => o.Base == target && o.Head == source)))
                 .ReturnsAsync(true);
 
-            SourceControlSI sut = GetServiceForTest("testUser", mock);
+            SourceControlService sut = GetServiceForTest("testUser", mock);
 
             // Act
             await sut.CreatePullRequest("ttd", "apps-test", target, source, "title");
@@ -305,7 +305,7 @@ namespace Designer.Tests.Services
             return c;
         }
 
-        private static SourceControlSI GetServiceForTest(string developer, Mock<IGiteaClient> giteaMock = null)
+        private static SourceControlService GetServiceForTest(string developer, Mock<IGiteaClient> giteaMock = null)
         {
             HttpContext ctx = GetHttpContextForTestUser(developer);
 
@@ -314,17 +314,17 @@ namespace Designer.Tests.Services
 
             giteaMock ??= new Mock<IGiteaClient>();
 
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoryServiceTests).Assembly.Location).LocalPath);
             var repoSettings = new ServiceRepositorySettings()
             {
                 RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories") + Path.DirectorySeparatorChar
             };
 
-            SourceControlSI service = new(
+            SourceControlService service = new(
                 repoSettings,
                 httpContextAccessorMock.Object,
                 giteaMock.Object,
-                new Mock<ILogger<SourceControlSI>>().Object);
+                new Mock<ILogger<SourceControlService>>().Object);
 
             return service;
         }
