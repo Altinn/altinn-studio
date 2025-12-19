@@ -240,7 +240,7 @@ internal sealed class AzureMonitorClient(
             .Replace("{durationMs}", (range * 60 * 1000).ToString())
             .Replace("{appName}", appName.Replace("'", "''"))
             .Replace("{operation_Names}", string.Join(", ", operationNames.Select(n => $"'{n}'")))
-            .Replace("{operationNames}", string.Join(",", operationNames.Select(n => $"\"{n}\"")));
+            .Replace("\"{operationNames}\"", string.Join(",", operationNames.Select(n => $"\"{n}\"")));
         var minifiedJson = System.Text.Json.Nodes.JsonNode.Parse(json)?.ToJsonString() ?? string.Empty;
 
         string encodedLogsQuery = Uri.EscapeDataString(minifiedJson);
