@@ -123,12 +123,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 catch (CheckoutConflictException e)
                 {
-                    _logger.LogError($"SourceControlSI // PullRemoteChanges // CheckoutConflictException occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
+                    _logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // CheckoutConflictException occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
                     status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError($"SourceControlSI // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
+                    _logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
                     throw;
                 }
             }
