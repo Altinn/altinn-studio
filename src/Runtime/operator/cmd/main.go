@@ -27,9 +27,13 @@ import (
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal"
 	"altinn.studio/operator/internal/controller/azurekeyvaultsync"
+	"altinn.studio/operator/internal/controller/cnpgsync"
 	"altinn.studio/operator/internal/controller/maskinporten"
 	"altinn.studio/operator/internal/controller/secretsync"
 	"altinn.studio/operator/internal/telemetry"
+	cnpgv1 "github.com/cloudnative-pg/cloudnative-pg/api/v1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	// +kubebuilder:scaffold:imports
 )
@@ -43,6 +47,9 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(resourcesv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(grafanav1beta1.AddToScheme(scheme))
+	utilruntime.Must(helmv2.AddToScheme(scheme))
+	utilruntime.Must(sourcev1.AddToScheme(scheme))
+	utilruntime.Must(cnpgv1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -184,6 +191,13 @@ func main() {
 			span.End()
 			os.Exit(1)
 		}
+	}
+
+	cnpgSyncController := cnpgsync.NewReconciler(rt, mgr.GetClient())
+	if err = mgr.Add(cnpgSyncController); err != nil {
+		setupLog.Error(err, "unable to add CnpgSync controller to manager")
+		span.End()
+		os.Exit(1)
 	}
 
 	if err = mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

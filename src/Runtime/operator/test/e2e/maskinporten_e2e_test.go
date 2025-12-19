@@ -146,9 +146,9 @@ var _ = Describe("controller", Ordered, func() {
 				Do(ctx).
 				Error()
 
-			By("clearing any existing secret data")
-			patch := []byte(`{"data": null}`)
-			_ = k8sClient.Core.Patch(types.MergePatchType).
+			By("clearing maskinporten-settings.json from secret")
+			patch := []byte(`[{"op": "remove", "path": "/data/maskinporten-settings.json"}]`)
+			_ = k8sClient.Core.Patch(types.JSONPatchType).
 				Resource("secrets").
 				Namespace(clientNamespace).
 				Name(secretName).

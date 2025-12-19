@@ -1,0 +1,12 @@
+
+[cnpgsync should create Database for app - 1]
+{
+ "cluster": {
+  "name": "pg-apps-cluster"
+ },
+ "databaseReclaimPolicy": "delete",
+ "ensure": "present",
+ "name": "localtestapp",
+ "owner": "localtestapp"
+}
+---
