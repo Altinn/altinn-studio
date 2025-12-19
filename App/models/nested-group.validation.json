@@ -11,6 +11,17 @@
           ["equals", ["dataModel", ["argv", 0]], 88889]
         ]
       }
+    ],
+    "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value": [
+      {
+        "message": ["concat", "Det er teit å endre til 55554. ", ["linkToComponent", "Trykk for å gjøre noe helt annet", "reduxOptions-expressions-radiobuttons"]],
+        "severity": "error",
+        "condition": [
+          "and",
+          ["equals", ["dataModel", "useBothRepGroups"], true],
+          ["equals", ["dataModel", ["argv", 0]], 55554]
+        ]
+      }
     ]
   },
   "definitions": {}
