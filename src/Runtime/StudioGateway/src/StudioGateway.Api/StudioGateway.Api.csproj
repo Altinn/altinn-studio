@@ -6,12 +6,13 @@
     <RootNamespace>StudioGateway.Api</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <PublishAot>true</PublishAot>
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Azure.Identity" />
-    <PackageReference Include="Azure.Monitor.Query" />
+    <PackageReference Include="Azure.Monitor.Query.Logs" />
     <PackageReference Include="Azure.ResourceManager" />
     <PackageReference Include="Azure.ResourceManager.OperationalInsights" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />

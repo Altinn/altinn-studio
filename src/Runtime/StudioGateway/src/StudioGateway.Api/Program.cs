@@ -1,7 +1,7 @@
 using System.Net.Http.Headers;
 using Azure.Core;
 using Azure.Identity;
-using Azure.Monitor.Query;
+using Azure.Monitor.Query.Logs;
 using Azure.ResourceManager;
 using k8s;
 using Microsoft.Extensions.DependencyInjection.Extensions;

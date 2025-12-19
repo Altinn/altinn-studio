@@ -5,9 +5,9 @@ namespace StudioGateway.Api.Clients.Designer;
 internal sealed class DesignerClient(IHttpClientFactory httpClientFactory, GatewayContext gatewayContext)
 {
     /// <inheritdoc />
-    public async Task NotifyAlertsUpdatedAsync(string environnement, CancellationToken cancellationToken)
+    public async Task NotifyAlertsUpdatedAsync(string environement, CancellationToken cancellationToken)
     {
-        var httpClient = httpClientFactory.CreateClient(environnement);
+        var httpClient = httpClientFactory.CreateClient(environement);
         string org = gatewayContext.ServiceOwner;
         string env = gatewayContext.Environment;
         Uri requestUrl = new($"admin/alerts/{org}/{env}", UriKind.Relative);

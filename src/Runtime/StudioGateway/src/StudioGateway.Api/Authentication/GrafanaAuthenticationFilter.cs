@@ -11,8 +11,11 @@ internal sealed class GrafanaAuthenticationFilter(GrafanaSettings grafanaSetting
         if (!request.Headers.TryGetValue("Authorization", out var authHeader))
             return Results.Unauthorized();
 
-        var token = authHeader.ToString().Replace("Bearer ", "").Trim();
+        var authValue = authHeader.ToString().Trim();
+        if (!authValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            return Results.Unauthorized();
 
+        var token = authValue.Substring(7).Trim();
         if (token != grafanaSettings.Token)
             return Results.Unauthorized();
 

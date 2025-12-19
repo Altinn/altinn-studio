@@ -17,7 +17,12 @@ internal sealed class PodsClient(IKubernetes client, GatewayContext gatewayConte
             cancellationToken: cancellationToken
         );
 
-        int desiredReplicas = deployment.Spec.Replicas ?? 1;
+        int desiredReplicas = deployment.Spec.Replicas ?? 0;
+
+        if (desiredReplicas == 0)
+        {
+            return 100;
+        }
 
         var selector = deployment.Spec.Selector.MatchLabels;
         string labelSelector = string.Join(",", selector.Select(kv => $"{kv.Key}={kv.Value}"));

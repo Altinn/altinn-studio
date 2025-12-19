@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Azure;
-using Azure.Monitor.Query;
-using Azure.Monitor.Query.Models;
+using Azure.Monitor.Query.Logs;
+using Azure.Monitor.Query.Logs.Models;
 using Azure.ResourceManager;
 using Azure.ResourceManager.OperationalInsights;
 using Azure.ResourceManager.Resources;
@@ -69,6 +69,7 @@ internal sealed class AzureMonitorClient(
 
     public async Task<IEnumerable<FailedRequest>> GetFailedRequestsAsync(int range, CancellationToken cancellationToken)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
         var logAnalyticsWorkspaceId = await GetApplicationLogAnalyticsWorkspaceIdAsync();
@@ -79,13 +80,13 @@ internal sealed class AzureMonitorClient(
                 | where Success == false
                 | where ClientType != 'Browser'
                 | where toint(ResultCode) >= 500
-                | where OperationName in ('{_operationNames.Values.SelectMany(value => value).Aggregate((a, b) => a + "','" + b)}')
+                | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
                 | summarize Count = count() by AppRoleName, OperationName";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
             logAnalyticsWorkspaceId,
             query,
-            new QueryTimeRange(TimeSpan.FromMinutes(range)),
+            new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
             cancellationToken: cancellationToken
         );
 
@@ -117,6 +118,7 @@ internal sealed class AzureMonitorClient(
         CancellationToken cancellationToken
     )
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
         var logAnalyticsWorkspaceId = await GetApplicationLogAnalyticsWorkspaceIdAsync();
@@ -130,14 +132,14 @@ internal sealed class AzureMonitorClient(
                 | where ClientType != 'Browser'
                 | where toint(ResultCode) >= 500
                 | where AppRoleName == '{app.Replace("'", "''")}'
-                | where OperationName in ('{_operationNames.Values.SelectMany(value => value).Aggregate((a, b) => a + "','" + b)}')
+                | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
                 | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
             logAnalyticsWorkspaceId,
             query,
-            new QueryTimeRange(TimeSpan.FromMinutes(range)),
+            new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
             cancellationToken: cancellationToken
         );
 
@@ -173,6 +175,7 @@ internal sealed class AzureMonitorClient(
         CancellationToken cancellationToken
     )
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
         var logAnalyticsWorkspaceId = await GetApplicationLogAnalyticsWorkspaceIdAsync();
@@ -185,14 +188,14 @@ internal sealed class AzureMonitorClient(
             $@"
                 AppMetrics
                 | where AppRoleName == '{app.Replace("'", "''")}'
-                | where Name in ('{names.Aggregate((a, b) => a + "','" + b)}')
+                | where Name in ('{string.Join("','", names)}')
                 | summarize Count = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
             logAnalyticsWorkspaceId,
             query,
-            new QueryTimeRange(TimeSpan.FromMinutes(range)),
+            new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
             cancellationToken: cancellationToken
         );
 
@@ -223,15 +226,19 @@ internal sealed class AzureMonitorClient(
 
     public Uri GetLogsUrl(string subscriptionId, string org, string env, string appName, string metricName, int range)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
-        var operationNames = _operationNames[metricName];
+        if (!_operationNames.TryGetValue(metricName, out var operationNames))
+        {
+            throw new ArgumentException($"Unknown metric name: {metricName}", nameof(metricName));
+        }
 
         var logsQuery = new
         {
             tables = new[] { "requests" },
-            timeContextWhereClause = $"| where timestamp >= ago({range}m))",
-            filterWhereClause = $"| where success == false | where client_Type != 'Browser' | where toint(resultCode) >= 500 | where cloud_RoleName == {appName} | where operation_Name in ('{string.Join("','", operationNames)}') | order by timestamp desc",
+            timeContextWhereClause = $"| where timestamp >= ago({range}m)",
+            filterWhereClause = $"| where success == false | where client_Type != 'Browser' | where toint(resultCode) >= 500 | where cloud_RoleName == '{appName.Replace("'", "''")}' | where operation_Name in ('{string.Join("', '", operationNames)}') | order by timestamp desc",
             originalParams = new
             {
                 eventTypes = new[]
