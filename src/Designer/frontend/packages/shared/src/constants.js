@@ -27,3 +27,4 @@ export const MAXIMUM_SUPPORTED_FRONTEND_VERSION = 4;
 export const MINIMUM_SUPPORTED_BACKEND_VERSION = 7;
 export const MAXIMUM_SUPPORTED_BACKEND_VERSION = 8;
 export const CODE_LIST_FOLDER = 'CodeLists';
+export const PUBLISHED_CODE_LIST_FOLDER = 'code_lists';
