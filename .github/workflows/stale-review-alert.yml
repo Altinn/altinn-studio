@@ -1,0 +1,32 @@
+name: Alert on Stale Reviews
+
+on:
+  schedule:
+    - cron: '0 9 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  check-stale-reviews:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for stale PRs in review
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          only-pr-labels: 'in-review'
+          days-before-stale: 7
+          days-before-close: -1
+          stale-pr-message: |
+            ⚠️ **Review Reminder**
+
+            This PR has been waiting for review for over **7 days**.
+
+            **Action needed:**
+            - If ready: Please request/ping reviewers
+            - If blocked: Update status or move back to "In Progress"
+            - If not needed: Close this PR
+
+            cc: @lassopicasso @JamalAlabdullah
+          stale-pr-label: 'stale-review'
+          exempt-pr-labels: 'blocked'
+          remove-stale-when-updated: true
