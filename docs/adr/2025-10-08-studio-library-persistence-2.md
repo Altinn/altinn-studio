@@ -1,6 +1,6 @@
 # Studio library persistence
 
-- Status: Replaces 007-studio-library-persistence
+- Status: Replaces 2025-09-04-studio-library-persistence
 - Deciders: Team Altinn Studio
 - Date: 08.10.2025
 
