@@ -1,64 +1,60 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { AxiosError } from 'axios';
 import { StudioDropdown, StudioSpinner } from '@studio/components';
 import { BranchingIcon, PlusIcon } from '@studio/icons';
 import { useBranchesQuery } from 'app-shared/hooks/queries/useBranchesQuery';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
-import { useCheckoutWithUncommittedChangesHandling } from 'app-shared/hooks/mutations/useCheckoutWithUncommittedChangesHandling';
-import { useCreateBranchMutation } from 'app-shared/hooks/mutations/useCreateBranchMutation';
 import { UncommittedChangesDialog } from 'app-shared/components/UncommittedChangesDialog';
 import { CreateBranchDialog } from 'app-shared/components/CreateBranchDialog';
 import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 import classes from './BranchDropdown.module.css';
+import { useCreateAndCheckoutBranch } from '../../hooks/useCreateNewBranch/useCreateAndCheckoutBranch';
+import { useCheckoutBranchAndReload } from '../../hooks/useCheckoutBranchAndReload';
+import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
 
 export const BranchDropdown = () => {
   const { t } = useTranslation();
   const { owner: org, repoName: app } = useGiteaHeaderContext();
 
+  // Call all API hooks in component to display the loading spinner
   const { data: currentBranchInfo, isLoading: isLoadingCurrentBranch } = useCurrentBranchQuery(
     org,
     app,
   );
   const { data: allBranches, isLoading: isLoadingAllBranches } = useBranchesQuery(org, app);
-
-  // Disse tre hookene må sees over/lages/finne riktig eksisterende hook
-  // Tanken er at de kan wrappe rundt andre hooks for å gi ut riktige verdier
   const {
-    createNewBranch,
+    createAndCheckoutBranch,
     isLoading: isLoadingCreateNewBranch,
-    uncommittedChangesErrorCreate,
-  } = useCreateNewBranch();
-  const { discardChanges, isLoading: isLoadingDiscardChanges } = useDiscardChangesMutation();
+    uncommittedChangesError: uncommittedChangesErrorCreate,
+    createError,
+  } = useCreateAndCheckoutBranch(org, app);
+  const discardChangesMutation = useDiscardChangesMutation(org, app);
   const {
     checkoutBranchAndReload,
     isLoading: isLoadingBranchCheckout,
     uncommittedChangesErrorCheckout,
-  } = useCheckoutBranchAndReload();
-
+  } = useCheckoutBranchAndReload(org, app);
   const uncommittedChangesError = getFirstUncommittedChangesError([
     uncommittedChangesErrorCreate,
     uncommittedChangesErrorCheckout,
   ]);
 
-  const [targetBranch, setTargetBranch] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showUncommittedChangesDialog, setShowUncommittedChangesDialog] =
     useState(!!uncommittedChangesError);
 
-  const handleDiscardAndSwitch = () => {
+  const handleDiscardAndSwitch = (targetBranch: string) => {
     if (!window.confirm(t('branching.uncommitted_changes_dialog.confirm_discard'))) {
       return;
     }
 
-    discardChanges();
-    checkoutBranchAndReload();
+    discardChangesMutation.mutate();
+    checkoutBranchAndReload(targetBranch);
   };
 
-  const onClickBranch = (branch: string) => {
-    setTargetBranch(branch);
-    checkoutBranchAndReload();
+  const onClickBranch = (targetBranch: string) => {
+    checkoutBranchAndReload(targetBranch);
   };
 
   const currentBranch = currentBranchInfo.branchName;
@@ -67,7 +63,7 @@ export const BranchDropdown = () => {
     isLoadingCurrentBranch ||
     isLoadingAllBranches ||
     isLoadingCreateNewBranch ||
-    isLoadingDiscardChanges;
+    discardChangesMutation.isPending;
 
   if (isLoading) {
     return (
@@ -118,10 +114,9 @@ export const BranchDropdown = () => {
         isOpen={showCreateDialog}
         onClose={() => setShowCreateDialog(false)}
         currentBranch={currentBranch}
-        onCreateBranch={createNewBranch}
+        onCreateBranch={createAndCheckoutBranch}
         isLoading={isLoading}
-        newBranchName={targetBranch}
-        setNewBranchName={setTargetBranch}
+        createError={createError}
       />
     </>
   );

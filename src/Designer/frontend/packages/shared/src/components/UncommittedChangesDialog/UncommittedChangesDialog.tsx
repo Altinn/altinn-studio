@@ -77,7 +77,7 @@ export const UncommittedChangesDialog = ({
             variant='secondary'
             color='danger'
             onClick={handleDiscardAndSwitch}
-            disabled={isProcessing}
+            disabled={isLoading}
           >
             {discardButtonText}
           </StudioButton>

@@ -15,9 +15,8 @@ export interface CreateBranchDialogProps {
   onClose: () => void;
   currentBranch: string;
   onCreateBranch: (name: string) => void;
+  createError: string;
   isLoading: boolean;
-  newBranchName: string;
-  setNewBranchName: (name: string) => void;
 }
 
 export const CreateBranchDialog = ({
@@ -25,16 +24,16 @@ export const CreateBranchDialog = ({
   onClose,
   currentBranch,
   onCreateBranch,
+  createError,
   isLoading,
-  newBranchName,
-  setNewBranchName,
 }: CreateBranchDialogProps) => {
   const { t } = useTranslation();
-  const [nameError, setNameError] = useState<string | null>(null);
+  const [newBranchName, setNewBranchName] = useState('');
+  const [error, setError] = useState<string | null>(createError);
 
   const handleClose = () => {
     setNewBranchName('');
-    setNameError('');
+    setError('');
     onClose();
   };
 
@@ -42,11 +41,11 @@ export const CreateBranchDialog = ({
     const validationResult = BranchNameValidator.validate(newBranchName);
 
     if (!validationResult.isValid) {
-      setNameError(t(validationResult.errorKey));
+      setError(t(validationResult.errorKey));
       return;
     }
 
-    setNameError(null);
+    setError(null);
     onCreateBranch(newBranchName);
   };
 
@@ -73,7 +72,7 @@ export const CreateBranchDialog = ({
           value={newBranchName}
           onChange={(e) => setNewBranchName(e.target.value)}
           placeholder={t('branching.new_branch_dialog.branch_name_placeholder')}
-          error={nameError}
+          error={error}
           disabled={isLoading}
         />
         <StudioParagraph>{t('branching.new_branch_dialog.hint')}</StudioParagraph>
