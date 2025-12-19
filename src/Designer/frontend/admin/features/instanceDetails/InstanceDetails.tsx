@@ -22,7 +22,7 @@ export const InstanceDetails = () => {
           </StudioBreadcrumbs.Item>
           <StudioBreadcrumbs.Item>
             <StudioBreadcrumbs.Link asChild>
-              <Link to={`/${org}/apps/${env}/${app}/instances`}>{app}</Link>
+              <Link to={`/${org}/apps/${env}/${app}`}>{app}</Link>
             </StudioBreadcrumbs.Link>
           </StudioBreadcrumbs.Item>
           <StudioBreadcrumbs.Item>
