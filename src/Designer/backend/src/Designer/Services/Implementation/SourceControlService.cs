@@ -21,7 +21,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// <summary>
     /// Implementation of the source control service.
     /// </summary>
-    public class SourceControlSI : ISourceControl
+    public class SourceControlService : ISourceControl
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -30,17 +30,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private const string DefaultBranch = General.DefaultBranch;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SourceControlSI"/> class.
+        /// Initializes a new instance of the <see cref="SourceControlService"/> class.
         /// </summary>
         /// <param name="repositorySettings">The settings for the service repository.</param>
         /// <param name="httpContextAccessor">the http context accessor.</param>
         /// <param name="giteaClient">The gitea client.</param>
         /// <param name="logger">the log handler.</param>
-        public SourceControlSI(
+        public SourceControlService(
             ServiceRepositorySettings repositorySettings,
             IHttpContextAccessor httpContextAccessor,
             IGiteaClient giteaClient,
-            ILogger<SourceControlSI> logger)
+            ILogger<SourceControlService> logger)
         {
             _settings = repositorySettings;
             _httpContextAccessor = httpContextAccessor;
