@@ -4,6 +4,7 @@ using StudioGateway.Api.Clients.Designer.Contracts;
 using StudioGateway.Api.Endpoints.Internal.Contracts;
 using StudioGateway.Api.Endpoints.Local;
 using StudioGateway.Api.Endpoints.Public;
+using StudioGateway.Contracts.Alerts;
 using StudioGateway.Contracts.Deploy;
 using StudioGateway.Contracts.Metrics;
 
@@ -16,6 +17,7 @@ namespace StudioGateway.Api;
 [JsonSerializable(typeof(DeployEventRequest))]
 [JsonSerializable(typeof(IsAppDeployedResponse))]
 [JsonSerializable(typeof(IEnumerable<GrafanaAlertRule>))]
+[JsonSerializable(typeof(IEnumerable<AlertRule>))]
 [JsonSerializable(typeof(IEnumerable<ErrorMetric>))]
 [JsonSerializable(typeof(IEnumerable<AppMetric>))]
 [JsonSerializable(typeof(IEnumerable<AppErrorMetric>))]

@@ -79,9 +79,8 @@ builder
         "grafana",
         (serviceProvider, httpClient) =>
         {
-            var grafanaSettings = serviceProvider.GetRequiredService<GrafanaSettings>();
-
-            httpClient.BaseAddress = new Uri(grafanaSettings.Url);
+            var grafanaUrl = builder.Configuration.GetSection("Grafana:Url")?.Value ?? string.Empty;
+            httpClient.BaseAddress = new Uri(grafanaUrl);
         }
     )
     .AddHttpMessageHandler<GrafanaAuthenticationHandler>();
