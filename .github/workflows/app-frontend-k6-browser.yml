@@ -38,7 +38,7 @@ jobs:
       - name: Build localtest
         uses: ./.github/actions/app-build-localtest
         with:
-          docker-profile: test-apps
+          docker-profile: 'test-apps'
 
   k6-browser:
     name: K6 Browser
@@ -52,9 +52,10 @@ jobs:
         with:
           run-frontend: true
           run-localtest: true
-          docker-profile: test-apps
+          docker-profile: 'test-apps'
 
-      - uses: grafana/setup-k6-action@ffe7d7290dfa715e48c2ccc924d068444c94bde2
+      - name: Setup k6 with browser support
+        uses: grafana/setup-k6-action@ffe7d7290dfa715e48c2ccc924d068444c94bde2
         with:
           browser: true
 
