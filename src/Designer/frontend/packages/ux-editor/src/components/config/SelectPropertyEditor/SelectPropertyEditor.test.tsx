@@ -41,6 +41,9 @@ const defaultProps: SelectPropertyEditorProps = {
   children,
   value,
   property,
+  onSave: jest.fn(),
+  onCancel: jest.fn(),
+  isSaveDisabled: false,
 };
 
 const renderSelectPropertyEditor = (props: Partial<SelectPropertyEditorProps> = {}) => {
