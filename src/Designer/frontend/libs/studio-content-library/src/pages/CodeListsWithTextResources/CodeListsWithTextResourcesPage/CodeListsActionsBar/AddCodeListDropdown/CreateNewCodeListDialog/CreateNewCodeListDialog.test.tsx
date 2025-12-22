@@ -158,6 +158,8 @@ const queryDialog = (): HTMLDialogElement | null => {
 
 const defaultProps: CreateNewCodeListDialogProps = {
   onCreateCodeList,
+  onCreateTextResource: jest.fn(),
+  onUpdateTextResource: jest.fn(),
   codeListNames: [existingCodeListTitle],
   textResources: textResourcesNb,
 };

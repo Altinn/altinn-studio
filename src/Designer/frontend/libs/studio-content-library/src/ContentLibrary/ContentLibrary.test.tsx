@@ -59,7 +59,7 @@ describe('ContentLibrary', () => {
 });
 
 const renderContentLibrary = (
-  currentPage: PageName = undefined,
+  currentPage: PageName = PageName.LandingPage,
   props?: Partial<ContentLibraryProps>,
 ): void => {
   renderWithProviders(
