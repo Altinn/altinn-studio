@@ -39,6 +39,12 @@ export const options: Options = {
       options: {
         browser: {
           type: 'chromium',
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+          ],
         },
       },
     },
