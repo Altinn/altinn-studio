@@ -45,29 +45,12 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v4
 
-      - name: Download built frontend
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
-        with:
-          name: app-frontend-dist
-          path: src/App/frontend/dist
-
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
-          run-frontend: false
+          run-frontend: true
           run-localtest: true
           docker-profile: test-apps
-
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: '22'
-          cache: 'yarn'
-          cache-dependency-path: src/App/frontend/yarn.lock
-
-      - name: Install dependencies
-        working-directory: src/App/frontend
-        run: yarn install --immutable
 
       - name: Run Lighthouse CI
         id: lighthouse-ci
