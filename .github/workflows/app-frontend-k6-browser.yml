@@ -52,7 +52,7 @@ jobs:
 
       - name: Install bash and dependencies
         run: |
-          apk add --no-cache bash curl
+          apk add --no-cache bash curl docker
 
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
