@@ -72,4 +72,4 @@ jobs:
         run: k6 run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
         timeout-minutes: 10
         env:
-          K6_BROWSER_ARGS: "--disable-web-security --disable-features=VizDisplayCompositor,ExtensionManifestV2Unsupported,ExtensionManifestV2Disabled --allow-running-insecure-content --disable-blink-features=AutomationControlled --unsafely-treat-insecure-origin-as-secure=http://local.altinn.cloud,http://localhost"
+          K6_BROWSER_ARGS: '--no-sandbox'
