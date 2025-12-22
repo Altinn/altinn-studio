@@ -39,6 +39,13 @@ export const options: Options = {
       options: {
         browser: {
           type: 'chromium',
+          args: [
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor',
+            '--allow-running-insecure-content',
+            '--ignore-certificate-errors',
+            '--disable-site-isolation-trials',
+          ],
         },
       },
     },
