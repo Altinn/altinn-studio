@@ -2,11 +2,15 @@ import React from 'react';
 import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigArrayProperties, type ConfigArrayPropertiesProps } from './ConfigArrayProperties';
 import { componentMocks } from '../../../testing/componentMocks';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 describe('ConfigArrayProperties', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should call handleComponentUpdate and setSelectedValue when array property is updated', async () => {
     const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
@@ -17,16 +21,20 @@ describe('ConfigArrayProperties', () => {
     await user.click(arrayPropertyButton);
     await selectOption('option1');
 
-    await waitFor(() => {
-      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          [supportedKey]: ['option1'],
-        }),
-      );
+    await saveChanges();
+    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        [supportedKey]: ['option1'],
+      }),
+    );
+
+    const selectedValueDisplay = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.supportedArrayProperty'),
     });
-    const selectedValueDisplay = screen.getByRole('option', {
-      name: textMock('ux_editor.component_properties.enum_option1'),
-    });
+    const buttonContent = within(selectedValueDisplay).getByText(
+      textMock('ux_editor.component_properties.enum_option1'),
+    );
+    expect(buttonContent).toBeInTheDocument();
     expect(selectedValueDisplay).toBeInTheDocument();
   });
 
@@ -109,10 +117,19 @@ const selectOption = async (optionText: string) => {
     name: textMock(`ux_editor.component_properties.${supportedKey}`),
   });
   await user.click(combobox);
+
   const option = screen.getByRole('option', {
     name: textMock(`ux_editor.component_properties.enum_${optionText}`),
   });
   await user.click(option);
+  await user.click(document.body);
+};
+
+const saveChanges = async () => {
+  const user = userEvent.setup();
+  const saveButton = screen.getByRole('button', { name: textMock('general.save') });
+  await waitFor(() => expect(saveButton).toBeEnabled());
+  await user.click(saveButton);
 };
 
 const renderConfigArrayProperties = ({

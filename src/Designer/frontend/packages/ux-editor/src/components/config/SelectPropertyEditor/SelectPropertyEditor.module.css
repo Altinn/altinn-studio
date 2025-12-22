@@ -1,31 +1,13 @@
-.container {
-  display: grid;
-  gap: var(--fds-spacing-2);
-  padding-bottom: var(--fds-spacing-1);
-  align-items: center;
-}
-
-.viewMode {
-  margin-top: var(--fds-spacing-1);
-  margin-bottom: var(--fds-spacing-1);
-}
-
-.editSelectProperty {
+.editMode {
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: var(--fds-spacing-4);
-  margin-bottom: var(--fds-spacing-3);
+  margin-block: var(--ds-size-2);
+  gap: var(--ds-size-3);
 }
 
 .selectProperty {
   flex: 1;
 }
 
-.viewSelectProperty {
-  padding-left: 0;
-}
-
-.closeButton {
-  margin-top: var(--ds-size-9);
+.actionButtons {
+  margin-top: var(--ds-size-8);
 }
