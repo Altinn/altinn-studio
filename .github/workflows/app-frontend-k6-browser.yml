@@ -43,6 +43,7 @@ jobs:
   k6-browser:
     name: K6 Browser
     runs-on: ubuntu-latest
+    container: grafana/k6:master-with-browser
     needs: [build-frontend, build-localtest]
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -53,11 +54,6 @@ jobs:
           run-frontend: true
           run-localtest: true
           docker-profile: 'test-apps'
-
-      - name: Setup k6 with browser support
-        uses: grafana/setup-k6-action@ffe7d7290dfa715e48c2ccc924d068444c94bde2
-        with:
-          browser: true
 
       - name: Test network connectivity
         run: |
@@ -72,4 +68,4 @@ jobs:
         run: k6 run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
         timeout-minutes: 10
         env:
-          K6_BROWSER_ARGS: '--no-sandbox --disable-web-security --unsafely-treat-insecure-origin-as-secure=http://local.altinn.cloud'
+          K6_BROWSER_ARGS: '--disable-web-security --unsafely-treat-insecure-origin-as-secure=http://local.altinn.cloud'
