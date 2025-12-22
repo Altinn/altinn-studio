@@ -1,8 +1,7 @@
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
-import { FormItem } from '../../../types/FormItem';
 import { componentComparison } from './ConfigPropertiesUtils';
 
-describe('ConfigStringPropertiesUtils', () => {
+describe('ConfigPropertiesUtils', () => {
   const componentA = componentMocks.Input;
   const updatedComponentA = {
     ...componentMocks.Input,

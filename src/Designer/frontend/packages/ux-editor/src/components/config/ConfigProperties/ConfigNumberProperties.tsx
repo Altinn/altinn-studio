@@ -51,7 +51,7 @@ export const ConfigNumberProperties = ({
           isSaveDisabled={componentComparison({ initialComponent, currentComponent })}
         >
           <EditNumberValue
-            component={initialComponent}
+            component={currentComponent}
             handleComponentChange={setCurrentComponent}
             propertyKey={propertyKey}
             enumValues={schema.properties[propertyKey]?.enum}
