@@ -9,7 +9,7 @@ type InfoBoxProps = {
   pageName: PageName;
 };
 
-export function InfoBox({ pageName }: InfoBoxProps): React.ReactElement {
+export function InfoBox({ pageName }: InfoBoxProps): React.ReactNode {
   const { t } = useTranslation();
 
   const infoBoxConfigForPage = infoBoxConfigs[pageName];
