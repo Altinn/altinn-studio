@@ -54,6 +54,11 @@ jobs:
         run: |
           apk add --no-cache bash curl docker
 
+      - name: Test Docker setup
+        run: |
+          docker --version
+          docker compose version || echo "Docker compose not available"
+
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
