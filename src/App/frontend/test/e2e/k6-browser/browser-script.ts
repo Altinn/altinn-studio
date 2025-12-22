@@ -39,13 +39,6 @@ export const options: Options = {
       options: {
         browser: {
           type: 'chromium',
-          args: [
-            '--disable-web-security',
-            '--disable-features=VizDisplayCompositor,ExtensionManifestV2Unsupported,ExtensionManifestV2Disabled',
-            '--allow-running-insecure-content',
-            '--disable-blink-features=AutomationControlled',
-            '--unsafely-treat-insecure-origin-as-secure=http://local.altinn.cloud,http://localhost',
-          ],
         },
       },
     },

@@ -69,24 +69,7 @@ jobs:
           nslookup local.altinn.cloud || echo "DNS lookup failed"
 
       - name: Run k6 browser test
-        run: |
-          # Start k6 in background to inspect Chrome process
-          k6 run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts &
-          K6_PID=$!
-          
-          # Wait a moment for Chrome to start
-          sleep 5
-          
-          # Check if Chrome processes are running and their flags
-          echo "=== Chrome processes ==="
-          ps aux | grep -E "(chrome|chromium)" | head -5
-          
-          echo "=== Chrome command line flags ==="
-          for pid in $(pgrep -f chrome); do
-            echo "Process $pid:"
-            cat /proc/$pid/cmdline 2>/dev/null | tr '\0' ' ' | grep -o -- '--[^ ]*' | head -10 || echo "Could not read cmdline"
-          done
-          
-          # Wait for k6 to complete
-          wait $K6_PID
+        run: k6 run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
         timeout-minutes: 10
+        env:
+          K6_BROWSER_ARGS: "--disable-web-security --disable-features=VizDisplayCompositor,ExtensionManifestV2Unsupported,ExtensionManifestV2Disabled --allow-running-insecure-content --disable-blink-features=AutomationControlled --unsafely-treat-insecure-origin-as-secure=http://local.altinn.cloud,http://localhost"
