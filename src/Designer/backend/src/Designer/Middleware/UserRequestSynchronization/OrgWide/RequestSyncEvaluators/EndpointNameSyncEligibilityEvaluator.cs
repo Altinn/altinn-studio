@@ -23,6 +23,12 @@ public class EndpointNameSyncEligibilityEvaluator : IOrgWideSyncEligibilityEvalu
                 nameof(DeploymentsController.Create),
                 nameof(DeploymentsController.Undeploy)
             )
+        },
+        {
+            TrimmedControllerName(nameof(AppsSyncRootController)),
+            GenerateFrozenSet(
+                nameof(AppsSyncRootController.PublishSyncRoot)
+            )
         }
     }.ToFrozenDictionary();
 

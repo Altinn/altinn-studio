@@ -4,30 +4,21 @@ import { StudioButton, StudioDialog, StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LocalChanges } from './LocalChanges/LocalChanges';
 import { MonitorIcon } from '@studio/icons';
+import classes from './LocalChangesModal.module.css';
 
-export type LocalChangesModalProps = {
-  triggerClassName?: string;
-};
-
-export const LocalChangesModal = ({ triggerClassName }: LocalChangesModalProps): ReactNode => {
+export const LocalChangesModal = (): ReactNode => {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>();
   const openDialog = () => dialogRef.current?.showModal();
 
   return (
     <>
-      <StudioButton
-        className={triggerClassName}
-        icon={<MonitorIcon />}
-        onClick={openDialog}
-        variant='tertiary'
-        data-size='sm'
-      >
+      <StudioButton icon={<MonitorIcon />} onClick={openDialog} variant='tertiary'>
         {t('sync_header.local_changes')}
       </StudioButton>
-      <StudioDialog ref={dialogRef} closedby='any'>
+      <StudioDialog ref={dialogRef} closedby='any' className={classes.dialog}>
         <StudioDialog.Block>
-          <StudioHeading level={2}>{t('sync_header.local_changes')}</StudioHeading>
+          <StudioHeading level={1}>{t('sync_header.local_changes')}</StudioHeading>
         </StudioDialog.Block>
         <StudioDialog.Block>
           <LocalChanges />

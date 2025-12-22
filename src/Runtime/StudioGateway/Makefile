@@ -1,4 +1,4 @@
-.PHONY: help start start-minimal start-standard stop test build clean tidy
+.PHONY: help start start-minimal start-standard stop test test-e2e build clean tidy
 .DEFAULT_GOAL := help
 
 CACHE_DIR := .cache
@@ -20,7 +20,10 @@ start-standard: ## Start with standard variant
 stop: ## Stop the runtime fixture/cluster
 	@go run ./cmd/tester stop
 
-test: ## Run integration tests (starts cluster if needed, keeps running)
+test: ## Run unit tests
+	@echo "No unit tests yet"
+
+test-e2e: ## Run e2e tests (starts cluster if needed, keeps running)
 	@go run ./cmd/tester test
 
 build: ## Build Go and .NET projects

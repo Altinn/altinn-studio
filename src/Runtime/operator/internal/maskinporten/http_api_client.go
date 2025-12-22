@@ -19,10 +19,12 @@ import (
 	"altinn.studio/operator/internal/operatorcontext"
 	"altinn.studio/operator/internal/telemetry"
 	"github.com/cenkalti/backoff/v4"
+	"github.com/go-logr/logr"
 	"github.com/jonboulle/clockwork"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type WellKnownResponse struct {
@@ -53,6 +55,7 @@ type HttpApiClient struct {
 	accessToken   caching.CachedAtom[TokenResponse]
 	tracer        trace.Tracer
 	clock         clockwork.Clock
+	logger        logr.Logger
 
 	// Service owner + environment
 	clientNameFullPrefix string
@@ -79,6 +82,7 @@ func NewHttpApiClient(
 		hydrated:      false,
 		tracer:        otel.Tracer(telemetry.ServiceName),
 		clock:         clock,
+		logger:        log.Log.WithName("maskinporten-client"),
 
 		clientNameFullPrefix:         getClientNameFullPrefix(opCtx),
 		clientNameServiceOwnerPrefix: getClientNameServiceOwnerPrefix(opCtx),
@@ -164,7 +168,7 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, c.handleErrorResponse(resp)
+		return nil, c.handleErrorResponse(req, resp)
 	}
 
 	dtos, err := deserialize[[]ClientResponse](resp)
@@ -177,6 +181,10 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 	}
 
 	result := make([]ClientResponse, 0, 16)
+	skippedClients := 0
+	skippedServiceOwners := make(map[string]struct{})
+	skippedEnvironments := make(map[string]struct{})
+
 	for _, cl := range dtos {
 		if cl.ClientId == "" {
 			return nil, fmt.Errorf("found client with empty ID")
@@ -185,21 +193,29 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 			// If this operator is running as digdir, the supplier client is also defined there
 			// so we need to skip it (we should never change or process the supplier client from here)
 			// TODO: unless we want to rotate JWKS automatically from the operator? o_O
+			skippedClients++
 			continue
 		}
 		if cl.ClientName == nil {
 			return nil, fmt.Errorf("client with ID %s has no name", cl.ClientId)
 		}
 		if !strings.HasPrefix(*cl.ClientName, c.clientNameFullPrefix) {
-			if !strings.HasPrefix(*cl.ClientName, c.clientNameServiceOwnerPrefix) {
-				// Client for a completely different serviceowner, we need to error, something unexpected happened
-				return nil, fmt.Errorf("client with ID %s has invalid name (expected our prefix): %s", cl.ClientId, *cl.ClientName)
+			skippedClients++
+			if so, env, ok := parseClientNamePrefix(*cl.ClientName); ok {
+				skippedServiceOwners[so] = struct{}{}
+				skippedEnvironments[env] = struct{}{}
 			}
-			// Client for same serviceowner, different environment - skip (e.g. ttd at22, at23, at24 which use the same Maskinporten env)
 			continue
 		}
 
 		result = append(result, cl)
+	}
+
+	if skippedClients > 0 {
+		c.logger.Info("skipped unrelated clients",
+			"count", skippedClients,
+			"skippedServiceOwners", mapKeys(skippedServiceOwners),
+			"skippedEnvironments", mapKeys(skippedEnvironments))
 	}
 
 	return result, nil
@@ -265,7 +281,7 @@ func (c *HttpApiClient) getClientJwks(ctx context.Context, clientId string) (*cr
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, c.handleErrorResponse(resp)
+		return nil, c.handleErrorResponse(req, resp)
 	}
 
 	jwks, err := deserialize[crypto.Jwks](resp)
@@ -325,7 +341,7 @@ func (c *HttpApiClient) CreateClient(
 
 	// NOTE: as of writing, actual response code does not match OpenAPI spec
 	if resp.StatusCode != 201 {
-		return nil, c.handleErrorResponse(resp)
+		return nil, c.handleErrorResponse(req, resp)
 	}
 
 	result, err := deserialize[ClientResponse](resp)
@@ -398,7 +414,7 @@ func (c *HttpApiClient) UpdateClient(
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, c.handleErrorResponse(resp)
+		return nil, c.handleErrorResponse(req, resp)
 	}
 
 	dto, err := deserialize[ClientResponse](resp)
@@ -448,7 +464,7 @@ func (c *HttpApiClient) CreateClientJwks(ctx context.Context, clientId string, j
 	}
 
 	if resp.StatusCode != 201 {
-		return c.handleErrorResponse(resp)
+		return c.handleErrorResponse(req, resp)
 	}
 
 	return nil
@@ -475,7 +491,7 @@ func (c *HttpApiClient) DeleteClient(ctx context.Context, clientId string) error
 
 	// NOTE: as of writing, actual response code does not match OpenAPI spec
 	if resp.StatusCode != 204 {
-		return c.handleErrorResponse(resp)
+		return c.handleErrorResponse(req, resp)
 	}
 
 	// Close the response body for successful responses
@@ -543,7 +559,7 @@ func (c *HttpApiClient) accessTokenFetcher(ctx context.Context) (*TokenResponse,
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, c.handleErrorResponse(resp)
+		return nil, c.handleErrorResponse(req, resp)
 	}
 
 	tokenResp, err := deserialize[TokenResponse](resp)
@@ -579,7 +595,7 @@ func (c *HttpApiClient) wellKnownFetcher(ctx context.Context) (*WellKnownRespons
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, c.handleErrorResponse(resp)
+		return nil, c.handleErrorResponse(req, resp)
 	}
 
 	wellKnownResp, err := deserialize[WellKnownResponse](resp)
@@ -604,18 +620,15 @@ func deserialize[T any](resp *http.Response) (T, error) {
 }
 
 // handleErrorResponse attempts to parse a structured API error response, falling back to raw body if parsing fails
-func (c *HttpApiClient) handleErrorResponse(resp *http.Response) error {
+func (c *HttpApiClient) handleErrorResponse(req *http.Request, resp *http.Response) error {
 	defer func() { _ = resp.Body.Close() }()
 
-	// Try to parse as structured API error response
-	// var apiError ApiErrorResponse
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("HTTP %d: failed to read response body: %w", resp.StatusCode, err)
+		return fmt.Errorf("%s %s: HTTP %d: failed to read response body: %w", req.Method, req.URL.Path, resp.StatusCode, err)
 	}
 
-	// Fallback to raw body if structured parsing failed or no error message found
-	return fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(body))
+	return fmt.Errorf("%s %s: HTTP %d: %s", req.Method, req.URL.Path, resp.StatusCode, string(body))
 }
 
 // retryableHTTPDo performs an HTTP request with retry logic.
@@ -637,7 +650,7 @@ func (c *HttpApiClient) retryableHTTPDo(req *http.Request) (*http.Response, erro
 			return err // Network error, retry.
 		}
 		if resp.StatusCode >= 500 { // Retrying on 5xx server errors.
-			return c.handleErrorResponse(resp)
+			return c.handleErrorResponse(req, resp)
 		}
 		return nil // No retry needed - success or client side error
 	}
@@ -654,4 +667,30 @@ func (c *HttpApiClient) retryableHTTPDo(req *http.Request) (*http.Response, erro
 	}
 
 	return resp, nil
+}
+
+const clientNameBasePrefix = "altinnstudiooperator-"
+
+// parseClientNamePrefix extracts service owner and environment from a client name.
+// Client names follow pattern: altinnstudiooperator-{serviceOwner}-{environment}-{appId}
+func parseClientNamePrefix(clientName string) (serviceOwner, environment string, ok bool) {
+	if !strings.HasPrefix(clientName, clientNameBasePrefix) {
+		return "", "", false
+	}
+
+	remainder := strings.TrimPrefix(clientName, clientNameBasePrefix)
+	parts := strings.SplitN(remainder, "-", 3)
+	if len(parts) < 2 {
+		return "", "", false
+	}
+
+	return parts[0], parts[1], true
+}
+
+func mapKeys(m map[string]struct{}) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }

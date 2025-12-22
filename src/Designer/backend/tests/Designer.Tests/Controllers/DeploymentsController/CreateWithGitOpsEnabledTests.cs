@@ -58,7 +58,8 @@ public class CreateWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<CreateW
                             "BaseUri": "{{mockServerFixture.MockApi.Url}}/",
                             "BuildDefinitionId": 1,
                             "DeployDefinitionId": 2,
-                            "DecommissionDefinitionId": 3
+                            "DecommissionDefinitionId": 3,
+                            "GitOpsManagerDefinitionId": 4
                         }
                       },
                       "PlatformSettings": {

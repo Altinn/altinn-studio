@@ -198,7 +198,8 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainer
 		},
 		Deployments: []harness.Deployment{
 			{
-				Name: "operator",
+				Name:           "operator",
+				WaitForIngress: true, // depends on Traefik CRDs (IngressRoute)
 				Kustomize: &harness.KustomizeDeploy{
 					SyncRootDir:       "config/local-syncroot-minimal",
 					KustomizationName: "operator-app",

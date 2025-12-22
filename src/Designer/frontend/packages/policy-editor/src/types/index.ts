@@ -23,6 +23,7 @@ export interface PolicySubject {
   name: string;
   description: string;
   urn: string;
+  code?: string;
   legacyRoleCode?: string;
   legacyUrn?: string;
   provider: {

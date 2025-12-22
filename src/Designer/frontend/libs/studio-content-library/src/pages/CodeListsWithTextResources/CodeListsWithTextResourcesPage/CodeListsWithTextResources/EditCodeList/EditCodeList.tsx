@@ -25,11 +25,11 @@ import classes from './EditCodeList.module.css';
 export type EditCodeListProps = {
   codeList: CodeListWithTextResources;
   codeListTitle: string;
-  onCreateTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
-  onUpdateTextResource?: (textResource: TextResource) => void;
+  onUpdateTextResource: (textResource: TextResource) => void;
   codeListNames: string[];
   codeListSources: CodeListIdSource[];
   textResources?: TextResource[];
@@ -45,7 +45,7 @@ export function EditCodeList({
   onUpdateTextResource,
   codeListNames,
   codeListSources,
-  textResources,
+  textResources = [],
 }: EditCodeListProps): React.ReactElement {
   const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
 

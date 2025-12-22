@@ -16,4 +16,10 @@ public record AltinnOrgEditingContext : AltinnOrgContext
     {
         return new AltinnOrgEditingContext(org, developerName);
     }
+
+    public static AltinnOrgEditingContext FromAltinnRepoEditingContext(
+        AltinnRepoEditingContext altinnRepoEditingContext)
+    {
+        return new AltinnOrgEditingContext(altinnRepoEditingContext.Org, altinnRepoEditingContext.Developer);
+    }
 }

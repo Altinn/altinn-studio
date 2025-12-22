@@ -23,56 +23,56 @@ internal static class BackendUpgrade
     /// <returns></returns>
     public static Command GetUpgradeCommand(Option<string> projectFolderOption)
     {
-        var projectFileOption = new Option<string>(
-            name: "--project",
-            description: "The project file to read relative to --folder",
-            getDefaultValue: () => "App/App.csproj"
-        );
-        var processFileOption = new Option<string>(
-            name: "--process",
-            description: "The process file to read relative to --folder",
-            getDefaultValue: () => "App/config/process/process.bpmn"
-        );
-        var appSettingsFolderOption = new Option<string>(
-            name: "--appsettings-folder",
-            description: "The folder where the appsettings.*.json files are located",
-            getDefaultValue: () => "App"
-        );
-        var targetVersionOption = new Option<string>(
-            name: "--target-version",
-            description: "The target version to upgrade to",
-            getDefaultValue: () => "8.7.0"
-        );
-        var targetFrameworkOption = new Option<string>(
-            name: "--target-framework",
-            description: "The target dotnet framework version to upgrade to",
-            getDefaultValue: () => "net8.0"
-        );
-        var skipCsprojUpgradeOption = new Option<bool>(
-            name: "--skip-csproj-upgrade",
-            description: "Skip csproj file upgrade",
-            getDefaultValue: () => false
-        );
-        var skipDockerUpgradeOption = new Option<bool>(
-            name: "--skip-dockerfile-upgrade",
-            description: "Skip Dockerfile upgrade",
-            getDefaultValue: () => false
-        );
-        var skipCodeUpgradeOption = new Option<bool>(
-            name: "--skip-code-upgrade",
-            description: "Skip code upgrade",
-            getDefaultValue: () => false
-        );
-        var skipProcessUpgradeOption = new Option<bool>(
-            name: "--skip-process-upgrade",
-            description: "Skip process file upgrade",
-            getDefaultValue: () => false
-        );
-        var skipAppSettingsUpgradeOption = new Option<bool>(
-            name: "--skip-appsettings-upgrade",
-            description: "Skip appsettings file upgrade",
-            getDefaultValue: () => false
-        );
+        var projectFileOption = new Option<string>(name: "--project")
+        {
+            Description = "The project file to read relative to --folder",
+            DefaultValueFactory = _ => "App/App.csproj",
+        };
+        var processFileOption = new Option<string>(name: "--process")
+        {
+            Description = "The process file to read relative to --folder",
+            DefaultValueFactory = _ => "App/config/process/process.bpmn",
+        };
+        var appSettingsFolderOption = new Option<string>(name: "--appsettings-folder")
+        {
+            Description = "The folder where the appsettings.*.json files are located",
+            DefaultValueFactory = _ => "App",
+        };
+        var targetVersionOption = new Option<string>(name: "--target-version")
+        {
+            Description = "The target version to upgrade to",
+            DefaultValueFactory = _ => "8.7.0",
+        };
+        var targetFrameworkOption = new Option<string>(name: "--target-framework")
+        {
+            Description = "The target dotnet framework version to upgrade to",
+            DefaultValueFactory = _ => "net8.0",
+        };
+        var skipCsprojUpgradeOption = new Option<bool>(name: "--skip-csproj-upgrade")
+        {
+            Description = "Skip csproj file upgrade",
+            DefaultValueFactory = _ => false,
+        };
+        var skipDockerUpgradeOption = new Option<bool>(name: "--skip-dockerfile-upgrade")
+        {
+            Description = "Skip Dockerfile upgrade",
+            DefaultValueFactory = _ => false,
+        };
+        var skipCodeUpgradeOption = new Option<bool>(name: "--skip-code-upgrade")
+        {
+            Description = "Skip code upgrade",
+            DefaultValueFactory = _ => false,
+        };
+        var skipProcessUpgradeOption = new Option<bool>(name: "--skip-process-upgrade")
+        {
+            Description = "Skip process file upgrade",
+            DefaultValueFactory = _ => false,
+        };
+        var skipAppSettingsUpgradeOption = new Option<bool>(name: "--skip-appsettings-upgrade")
+        {
+            Description = "Skip appsettings file upgrade",
+            DefaultValueFactory = _ => false,
+        };
         var upgradeCommand = new Command("backend", "Upgrade an app from app-lib-dotnet v7 to v8")
         {
             projectFolderOption,
@@ -88,19 +88,19 @@ internal static class BackendUpgrade
             skipAppSettingsUpgradeOption,
         };
         int returnCode = 0;
-        upgradeCommand.SetHandler(async context =>
+        upgradeCommand.SetAction(async result =>
         {
-            var projectFolder = context.ParseResult.GetValueForOption(projectFolderOption);
-            var projectFile = context.ParseResult.GetValueForOption(projectFileOption);
-            var processFile = context.ParseResult.GetValueForOption(processFileOption);
-            var appSettingsFolder = context.ParseResult.GetValueForOption(appSettingsFolderOption);
-            var targetVersion = context.ParseResult.GetValueForOption(targetVersionOption);
-            var targetFramework = context.ParseResult.GetValueForOption(targetFrameworkOption);
-            var skipCodeUpgrade = context.ParseResult.GetValueForOption(skipCodeUpgradeOption);
-            var skipProcessUpgrade = context.ParseResult.GetValueForOption(skipProcessUpgradeOption);
-            var skipCsprojUpgrade = context.ParseResult.GetValueForOption(skipCsprojUpgradeOption);
-            var skipDockerUpgrade = context.ParseResult.GetValueForOption(skipDockerUpgradeOption);
-            var skipAppSettingsUpgrade = context.ParseResult.GetValueForOption(skipAppSettingsUpgradeOption);
+            var projectFolder = result.GetValue(projectFolderOption);
+            var projectFile = result.GetValue(projectFileOption);
+            var processFile = result.GetValue(processFileOption);
+            var appSettingsFolder = result.GetValue(appSettingsFolderOption);
+            var targetVersion = result.GetValue(targetVersionOption);
+            var targetFramework = result.GetValue(targetFrameworkOption);
+            var skipCodeUpgrade = result.GetValue(skipCodeUpgradeOption);
+            var skipProcessUpgrade = result.GetValue(skipProcessUpgradeOption);
+            var skipCsprojUpgrade = result.GetValue(skipCsprojUpgradeOption);
+            var skipDockerUpgrade = result.GetValue(skipDockerUpgradeOption);
+            var skipAppSettingsUpgrade = result.GetValue(skipAppSettingsUpgradeOption);
 
             if (projectFolder is null or "CurrentDirectory")
                 projectFolder = Directory.GetCurrentDirectory();

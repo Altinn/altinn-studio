@@ -7,6 +7,7 @@ export { useSelectedFormLayoutWithName } from './useSelectedFormLayoutWithName';
 export { useText } from './useText';
 export { useTextResourcesSelector } from './useTextResourcesSelector';
 export { useComponentPropertyLabel } from './useComponentPropertyLabel';
+export { useComponentPropertyDescription } from './useComponentPropertyDescription';
 export { useAppContext } from './useAppContext';
 export { useGetLayoutSetByName } from './useGetLayoutSetByName';
 export { useComponentPropertyHelpText } from './useComponentPropertyHelpText';

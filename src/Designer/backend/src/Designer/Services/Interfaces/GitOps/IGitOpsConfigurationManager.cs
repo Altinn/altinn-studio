@@ -10,6 +10,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces.GitOps;
 public interface IGitOpsConfigurationManager
 {
     /// <summary>
+    /// Checks if the GitOps configuration repository exists for the specified organization.
+    /// </summary>
+    /// <param name="context">The <see cref="AltinnOrgEditingContext"/> representing the organization editing context.</param>
+    /// <returns>True if the GitOps configuration repository exists; otherwise, false.</returns>
+    Task<bool> GitOpsConfigurationExistsAsync(AltinnOrgEditingContext context);
+
+    /// <summary>
     /// Ensures that the GitOps configuration exists for the specified organization.
     /// </summary>
     /// <param name="context">The <see cref="AltinnOrgEditingContext"/> representing the organization editing context.</param>

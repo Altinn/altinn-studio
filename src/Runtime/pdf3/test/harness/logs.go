@@ -6,10 +6,10 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os/exec"
 	"strings"
 	"sync"
 
+	"altinn.studio/runtime-fixture/pkg/kubernetes"
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
 
@@ -55,80 +55,34 @@ func (lc *LogsCollector) Start() error {
 	return nil
 }
 
-// startStreaming starts a kubectl logs -f command and streams output to the buffer
+// startStreaming starts streaming logs to the buffer using the kubernetes client
 func (lc *LogsCollector) startStreaming(ctx context.Context, labelSelector, containerName string, buffer *bytes.Buffer, mu *sync.Mutex) error {
-	// Get kubectl binary path from installer
-	toolInfo, err := lc.runtime.Installer.GetToolInfo("kubectl")
+	stream, err := lc.runtime.KubernetesClient.StreamLogs(ctx, kubernetes.StreamLogOptions{
+		Namespace:     "runtime-pdf3",
+		LabelSelector: labelSelector,
+		ContainerName: containerName,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to get kubectl tool info: %w", err)
+		return fmt.Errorf("failed to start log streaming: %w", err)
 	}
 
-	args := []string{
-		"logs",
-		"-f",
-		"-c", containerName,
-		"--prefix=true",
-		"--ignore-errors=true",
-		"-n", "runtime-pdf3",
-		"-l", labelSelector,
-	}
-
-	cmd := exec.CommandContext(ctx, toolInfo.Path, args...)
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return fmt.Errorf("failed to create stdout pipe: %w", err)
-	}
-
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return fmt.Errorf("failed to create stderr pipe: %w", err)
-	}
-
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to start kubectl logs: %w", err)
-	}
-
-	// Stream stdout to buffer
 	go func() {
-		reader := bufio.NewReader(stdout)
+		defer func() {
+			_ = stream.Close()
+		}()
+		reader := bufio.NewReader(stream)
 		for {
 			line, err := reader.ReadString('\n')
 			if err != nil {
 				if err != io.EOF {
-					fmt.Printf("Error reading stdout: %v\n", err)
+					mu.Lock()
+					_, _ = fmt.Fprintf(buffer, "[%s stream] error: %v\n", containerName, err)
+					mu.Unlock()
 				}
 				return
 			}
 			mu.Lock()
 			buffer.WriteString(line)
-			mu.Unlock()
-		}
-	}()
-
-	// Stream stderr to buffer
-	go func() {
-		reader := bufio.NewReader(stderr)
-		for {
-			line, err := reader.ReadString('\n')
-			if err != nil {
-				if err != io.EOF {
-					fmt.Printf("Error reading stderr: %v\n", err)
-				}
-				return
-			}
-			mu.Lock()
-			buffer.WriteString(line)
-			mu.Unlock()
-		}
-	}()
-
-	// Wait for command to finish in background
-	go func() {
-		err := cmd.Wait()
-		if err != nil {
-			mu.Lock()
-			_, _ = fmt.Fprintf(buffer, "[%s stream] kubectl exited: %v\n", containerName, err)
 			mu.Unlock()
 		}
 	}()

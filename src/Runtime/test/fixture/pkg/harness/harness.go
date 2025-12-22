@@ -69,6 +69,10 @@ type HelmChart struct {
 type Deployment struct {
 	Name string // descriptive name for logging
 
+	// WaitForIngress blocks until ingress/CRDs are ready before deploying.
+	// Use for deployments that depend on Traefik CRDs (e.g., IngressRoute).
+	WaitForIngress bool
+
 	// One of: Kustomize or Helm (mutually exclusive)
 	Kustomize *KustomizeDeploy
 	Helm      *HelmDeploy
@@ -269,26 +273,40 @@ func runAsync(cfg Config, runtime *kind.KindContainerRuntime, asyncOpts *AsyncOp
 		}
 	}
 
-	// Execute deployments sequentially
+	// Execute deployments sequentially, respecting WaitForIngress flag
+	var ingressWaiters []Deployment
 	for _, dep := range cfg.Deployments {
+		if dep.WaitForIngress {
+			ingressWaiters = append(ingressWaiters, dep)
+			continue
+		}
 		if err := executeDeploy(cfg, runtime, dep); err != nil {
 			return nil, fmt.Errorf("deployment %q failed: %w", dep.Name, err)
 		}
 	}
 
-	// Wait for ingress ready and signal
-	fmt.Println("Waiting for ingress...")
-	select {
-	case err := <-ingressReady:
-		if err != nil {
-			return nil, fmt.Errorf("ingress setup failed: %w", err)
+	// Wait for ingress ready
+	if len(ingressWaiters) > 0 || asyncOpts.IngressReady != nil {
+		fmt.Println("Waiting for ingress...")
+		select {
+		case err := <-ingressReady:
+			if err != nil {
+				return nil, fmt.Errorf("ingress setup failed: %w", err)
+			}
+		case <-time.After(3 * time.Minute):
+			return nil, errors.New("timeout waiting for ingress")
 		}
-	case <-time.After(3 * time.Minute):
-		return nil, errors.New("timeout waiting for ingress")
 	}
 
 	if asyncOpts.IngressReady != nil {
 		asyncOpts.IngressReady <- nil
+	}
+
+	// Execute deployments that were waiting for ingress
+	for _, dep := range ingressWaiters {
+		if err := executeDeploy(cfg, runtime, dep); err != nil {
+			return nil, fmt.Errorf("deployment %q failed: %w", dep.Name, err)
+		}
 	}
 
 	fmt.Println("=== Runtime Setup Complete ===")

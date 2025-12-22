@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -16,7 +15,6 @@ import (
 	"altinn.studio/runtime-fixture/pkg/harness"
 	"altinn.studio/runtime-fixture/pkg/kubernetes"
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
-	"altinn.studio/runtime-fixture/pkg/tools"
 )
 
 func main() {
@@ -149,6 +147,7 @@ func runStart() {
 	options := kind.KindContainerRuntimeOptions{
 		IncludeMonitoring: *includeMonitoring,
 		IncludeTestserver: true,
+		IncludeLinkerd:    true,
 	}
 
 	_, err := setupRuntime(variant, options)
@@ -224,6 +223,7 @@ func runTest() {
 	} else {
 		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal, kind.KindContainerRuntimeOptions{
 			IncludeTestserver: true,
+			IncludeLinkerd:    true,
 		})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
@@ -277,21 +277,6 @@ func runTest() {
 		if runBoth || *runSimple {
 			fmt.Println("Running simple integration tests...")
 			if err := runTests(projectRoot, "./test/integration/simple/..."); err != nil {
-				if exitErr, ok := err.(*exec.ExitError); ok {
-					testExitCode = exitErr.ExitCode()
-				} else {
-					testExitCode = 1
-				}
-				// Exit immediately on failure when looping
-				if *iterations > 1 {
-					fmt.Println("")
-					fmt.Printf("FAILED on iteration %d of %d\n", i, *iterations)
-					break
-				}
-			}
-
-			fmt.Println("Running unit tests...")
-			if err := runTests(projectRoot, "./internal/..."); err != nil {
 				if exitErr, ok := err.(*exec.ExitError); ok {
 					testExitCode = exitErr.ExitCode()
 				} else {
@@ -401,6 +386,15 @@ func collectLogs(runtime *kind.KindContainerRuntime, logsDir string, sinceSecond
 	return nil
 }
 
+// findK6 locates k6 in PATH
+func findK6() (string, error) {
+	path, err := exec.LookPath("k6")
+	if err != nil {
+		return "", fmt.Errorf("k6 not found in PATH. Install via: https://grafana.com/docs/k6/latest/set-up/install-k6/")
+	}
+	return path, nil
+}
+
 // findChromePath locates the chrome-headless-shell executable in .cache
 func findChromePath(projectRoot string) (string, error) {
 	pattern := filepath.Join(projectRoot, ".cache", "chrome-headless-shell", "*", "chrome-headless-shell-linux64", "chrome-headless-shell")
@@ -458,13 +452,9 @@ func runLoadtestEnv() {
 
 	fmt.Println("=== PDF3 Load Test ===")
 
-	installer, err := tools.NewInstaller(filepath.Join(projectRoot, ".cache"), false, true)
+	k6Path, err := findK6()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error constructing tools installer: %v\n", err)
-		os.Exit(1)
-	}
-	if _, err := installer.Install(context.Background(), "k6"); err != nil {
-		fmt.Fprintf(os.Stderr, "Error installing tools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -492,13 +482,6 @@ func runLoadtestEnv() {
 	env = append(env, fmt.Sprintf("K6_BROWSER_EXECUTABLE_PATH=%s", chromePath))
 	env = append(env, "K6_WEB_DASHBOARD=true")
 
-	// Get k6 binary path from installer
-	k6Tool, err := installer.GetToolInfo("k6")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get k6 tool info: %v\n", err)
-		os.Exit(1)
-	}
-
 	// Read k6 test script
 	testScriptPath := filepath.Join(projectRoot, "test", "load", "test-env.js")
 	testScript, err := os.Open(testScriptPath)
@@ -510,7 +493,7 @@ func runLoadtestEnv() {
 
 	// Run k6 binary with test script piped to stdin
 	fmt.Println("\n=== Running k6 Load Test ===")
-	cmd := exec.Command(k6Tool.Path, "run", "-")
+	cmd := exec.Command(k6Path, "run", "-")
 	cmd.Stdin = testScript
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -557,6 +540,7 @@ func runLoadtestLocal() {
 	} else {
 		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantStandard, kind.KindContainerRuntimeOptions{
 			IncludeTestserver: true,
+			IncludeLinkerd:    true,
 		})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
@@ -564,10 +548,9 @@ func runLoadtestLocal() {
 		}
 	}
 
-	// Install k6 for loadtest
-	fmt.Println("\n=== Installing k6 ===")
-	if _, err := runtime.Installer.Install(context.Background(), "k6"); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to install k6: %v\n", err)
+	k6Path, err := findK6()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -609,13 +592,6 @@ func runLoadtestLocal() {
 
 	fmt.Println("✓ All deployments ready")
 
-	// Get k6 binary path from installer
-	k6Tool, err := runtime.Installer.GetToolInfo("k6")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get k6 tool info: %v\n", err)
-		os.Exit(1)
-	}
-
 	// Read k6 test script
 	testScriptPath := filepath.Join(projectRoot, "test", "load", "test-local.js")
 	testScript, err := os.Open(testScriptPath)
@@ -627,7 +603,7 @@ func runLoadtestLocal() {
 
 	// Run k6 binary with test script piped to stdin
 	fmt.Println("\n=== Running k6 Load Test ===")
-	cmd := exec.Command(k6Tool.Path, "run", "-")
+	cmd := exec.Command(k6Path, "run", "-")
 	cmd.Stdin = testScript
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

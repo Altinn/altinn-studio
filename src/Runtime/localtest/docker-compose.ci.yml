@@ -1,0 +1,28 @@
+services:
+  localtest_loadbalancer:
+    build:
+      cache_from:
+        - type=registry,ref=ghcr.io/altinn/altinn-studio/localtest-loadbalancer-cache:latest
+      cache_to:
+        - type=registry,ref=ghcr.io/altinn/altinn-studio/localtest-loadbalancer-cache:latest,mode=max
+
+  altinn_pdf3:
+    build:
+      cache_from:
+        - type=registry,ref=ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest
+      cache_to:
+        - type=registry,ref=ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest,mode=max
+
+  altinn_localtest:
+    build:
+      cache_from:
+        - type=registry,ref=ghcr.io/altinn/altinn-studio/localtest-main-cache:latest
+      cache_to:
+        - type=registry,ref=ghcr.io/altinn/altinn-studio/localtest-main-cache:latest,mode=max
+
+  altinn_test_apps:
+    build:
+      cache_from:
+        - type=registry,ref=ghcr.io/altinn/altinn-studio/localtest-test-apps-cache:latest
+      cache_to:
+        - type=registry,ref=ghcr.io/altinn/altinn-studio/localtest-test-apps-cache:latest,mode=max

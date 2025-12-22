@@ -32,19 +32,7 @@ describe('ConfigStringProperties', () => {
   });
 
   it('should render property text for the "displayMode" property', () => {
-    renderConfigStringProperties({
-      props: {
-        schema: {
-          properties: {
-            displayMode: {
-              type: 'string',
-              enum: ['option1', 'option2'],
-            },
-          },
-        },
-        stringPropertyKeys: ['displayMode'],
-      },
-    });
+    renderConfigStringProperties({ props: { stringPropertyKeys: ['displayMode'] } });
     expect(
       screen.getByRole('button', {
         name: textMock('ux_editor.component_properties.displayMode'),
@@ -55,6 +43,16 @@ describe('ConfigStringProperties', () => {
   it('should not render anything when stringPropertyKeys is empty', () => {
     renderConfigStringProperties({});
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('should render EditStringValue components when keepEditOpen is true', () => {
+    renderConfigStringProperties({
+      props: {
+        stringPropertyKeys: ['sortOrder', 'displayMode'],
+        keepEditOpen: true,
+      },
+    });
+    expect(screen.getAllByRole('textbox').length).toBe(2);
   });
 });
 

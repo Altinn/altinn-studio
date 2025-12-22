@@ -1,12 +1,14 @@
 .modalContainer {
-  margin: var(--fds-spacing-2);
+  margin: var(--ds-size-2);
   cursor: auto;
 }
 
 .link {
-  margin-bottom: var(--fds-spacing-4);
+  margin-bottom: var(--ds-size-2);
+  padding: 0%;
 }
 
 .button {
-  margin-top: var(--fds-spacing-4);
+  justify-content: center;
+  margin-top: var(--ds-size-4);
 }

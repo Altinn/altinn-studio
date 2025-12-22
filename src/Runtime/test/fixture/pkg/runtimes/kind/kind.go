@@ -1,35 +1,26 @@
 package kind
 
 import (
-	"context"
 	_ "embed"
 	"fmt"
 	"net/http"
 	"os"
-	"path/filepath"
-	"strings"
 	"time"
 
 	"altinn.studio/runtime-fixture/pkg/cache"
 	"altinn.studio/runtime-fixture/pkg/container"
 	"altinn.studio/runtime-fixture/pkg/flux"
-	"altinn.studio/runtime-fixture/pkg/kindcli"
+	"altinn.studio/runtime-fixture/pkg/helm"
+	"altinn.studio/runtime-fixture/pkg/kindclient"
 	"altinn.studio/runtime-fixture/pkg/kubernetes"
+	"altinn.studio/runtime-fixture/pkg/oci"
 	"altinn.studio/runtime-fixture/pkg/runtimes"
-	"altinn.studio/runtime-fixture/pkg/tools"
+	"altinn.studio/runtime-fixture/pkg/runtimes/kind/manifests"
+	"sigs.k8s.io/kind/pkg/apis/config/v1alpha4"
 )
-
-//go:embed config/kind.config.standard.yaml
-var kindConfigStandard []byte
-
-//go:embed config/kind.config.minimal.yaml
-var kindConfigMinimal []byte
 
 //go:embed config/certs/ca.crt
 var certCACrt []byte
-
-//go:embed config/certs/ca.key
-var certCAKey []byte
 
 //go:embed config/certs/issuer.crt
 var certIssuerCrt []byte
@@ -37,14 +28,17 @@ var certIssuerCrt []byte
 //go:embed config/certs/issuer.key
 var certIssuerKey []byte
 
-//go:embed config/testserver.yaml
-var testserverManifest []byte
+//go:embed config/testserver/nginx.conf
+var testserverNginxConf []byte
 
-//go:embed config/base-infrastructure.yaml
-var baseInfrastructureManifest []byte
+//go:embed config/testserver/jumpbox-nginx.conf
+var jumpboxNginxConf []byte
 
-//go:embed config/monitoring-infrastructure.yaml
-var monitoringInfrastructureManifest []byte
+//go:embed config/testserver/index.html
+var testserverIndexHtml []byte
+
+//go:embed config/testserver/eur1.html
+var testserverEur1Html []byte
 
 type KindContainerRuntimeVariant int
 
@@ -64,6 +58,16 @@ type KindContainerRuntimeOptions struct {
 	// When false (default), no testserver is deployed.
 	// When true, the testserver (nginx with test pages) is deployed for integration testing.
 	IncludeTestserver bool
+
+	// IncludeLinkerd controls whether Linkerd service mesh is deployed.
+	// When false (default), no linkerd resources are provisioned.
+	// When true, linkerd-crds and linkerd-control-plane are deployed.
+	IncludeLinkerd bool
+
+	// IncludeFluxNotificationController controls whether the Flux notification-controller is installed.
+	// When false (default), notification-controller is not deployed (saves startup time).
+	// When true, notification-controller is deployed (needed for StudioGateway alerts).
+	IncludeFluxNotificationController bool
 }
 
 // DefaultOptions returns the default options for the Kind runtime
@@ -71,24 +75,23 @@ func DefaultOptions() KindContainerRuntimeOptions {
 	return KindContainerRuntimeOptions{
 		IncludeMonitoring: false,
 		IncludeTestserver: false,
+		IncludeLinkerd:    false,
 	}
 }
 
 type KindContainerRuntime struct {
-	variant        KindContainerRuntimeVariant
-	options        KindContainerRuntimeOptions
-	cachePath      string
-	clusterName    string
-	configPath     string
-	certsPath      string
-	testserverPath string
-
-	Installer *tools.Installer
+	variant     KindContainerRuntimeVariant
+	options     KindContainerRuntimeOptions
+	cachePath   string
+	clusterName string
+	kindConfig  *v1alpha4.Cluster
 
 	ContainerClient  container.ContainerClient
 	FluxClient       *flux.FluxClient
-	KindClient       *kindcli.KindClient
+	HelmClient       *helm.Client
+	KindClient       *kindclient.KindClient
 	KubernetesClient *kubernetes.KubernetesClient
+	OCIClient        *oci.Client
 
 	RegistryStartedEvent chan<- error
 	IngressReadyEvent    chan<- error
@@ -112,34 +115,7 @@ func New(variant KindContainerRuntimeVariant, cachePath string, options KindCont
 		return nil, err
 	}
 
-	var configContent []byte
-
-	switch variant {
-	case KindContainerRuntimeVariantStandard:
-		configContent = kindConfigStandard
-	case KindContainerRuntimeVariantMinimal:
-		configContent = kindConfigMinimal
-	default:
-		return nil, fmt.Errorf("unknown variant: %d", variant)
-	}
-
-	// Write embedded config to disk
-	if err := os.WriteFile(r.configPath, configContent, 0644); err != nil {
-		return nil, fmt.Errorf("failed to write kind config: %w", err)
-	}
-
-	// Write embedded certificates to disk
-	if err := r.writeCertificates(); err != nil {
-		return nil, fmt.Errorf("failed to write certificates: %w", err)
-	}
-
-	// Write testserver manifest to disk (only if needed)
-	if options.IncludeTestserver {
-		if err := os.WriteFile(r.testserverPath, testserverManifest, 0644); err != nil {
-			return nil, fmt.Errorf("failed to write testserver manifest: %w", err)
-		}
-	}
-
+	// Note: kubernetes/flux clients are initialized in Run() after cluster creation
 	return r, nil
 }
 
@@ -154,9 +130,9 @@ func Load(variant KindContainerRuntimeVariant, cachePath string, options KindCon
 		return nil, err
 	}
 
-	// Set kubectl context to match the loaded cluster
-	if err := r.setKubectlContext(); err != nil {
-		return nil, fmt.Errorf("failed to set kubectl context: %w", err)
+	// Initialize kubernetes/flux clients now that we know the cluster name
+	if err := r.initializeClients(); err != nil {
+		return nil, err
 	}
 
 	return r, nil
@@ -189,9 +165,9 @@ func LoadCurrent(cachePath string) (*KindContainerRuntime, error) {
 		return nil, err
 	}
 
-	// Set kubectl context to match the loaded cluster
-	if err := r.setKubectlContext(); err != nil {
-		return nil, fmt.Errorf("failed to set kubectl context: %w", err)
+	// Initialize kubernetes/flux clients now that we know the cluster name
+	if err := r.initializeClients(); err != nil {
+		return nil, err
 	}
 
 	return r, nil
@@ -209,63 +185,64 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 		}
 	}
 
-	// Initialiize clients
+	// Initialize clients
 	containerClient, err := container.Detect()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to detect container runtime: %w", err)
 	}
-	installer, err := tools.NewInstaller(cachePath, false, true)
-	if err != nil {
-		return nil, nil, err
-	}
 
-	// Install only the tools needed for KindContainerRuntime (not k6, which is only needed for loadtest)
-	if _, err := installer.Install(context.Background(), "kind,kubectl,helm,flux,golangci-lint"); err != nil {
-		return nil, nil, fmt.Errorf("failed to ensure CLIs: %w", err)
-	}
-
-	fluxClient, err := installer.GetFluxClient()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	kubernetesClient, err := installer.GetKubernetesClient()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	kindClient, err := installer.GetKindClient()
-	if err != nil {
-		return nil, nil, err
-	}
+	kindClient := kindclient.New()
 	clusters, err := kindClient.GetClusters()
 	if err != nil {
 		return nil, nil, fmt.Errorf("couldn't get current clusters: %w", err)
 	}
 
+	// plainHTTP for local registry without TLS
+	helmClient, err := helm.NewClient(true)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create helm client: %w", err)
+	}
+
+	ociClient := oci.NewClient()
+
 	return &KindContainerRuntime{
 		cachePath: cachePath,
 
-		Installer: installer,
-
-		ContainerClient:  containerClient,
-		FluxClient:       fluxClient,
-		KindClient:       kindClient,
-		KubernetesClient: kubernetesClient,
+		ContainerClient: containerClient,
+		HelmClient:      helmClient,
+		KindClient:      kindClient,
+		OCIClient:       ociClient,
 	}, clusters, nil
 }
 
-func newInternal(r *KindContainerRuntime, clusters []string, variant KindContainerRuntimeVariant, cachePath string, isLoad bool) error {
+// initializeClients creates the KubernetesClient and FluxClient for the runtime.
+// Must be called after clusterName is set.
+func (r *KindContainerRuntime) initializeClients() error {
+	contextName := r.GetContextName()
+
+	kubernetesClient, err := kubernetes.New(contextName)
+	if err != nil {
+		return fmt.Errorf("failed to create kubernetes client: %w", err)
+	}
+
+	fluxClient, err := flux.New(kubernetesClient)
+	if err != nil {
+		return fmt.Errorf("failed to create flux client: %w", err)
+	}
+
+	r.KubernetesClient = kubernetesClient
+	r.FluxClient = fluxClient
+	return nil
+}
+
+func newInternal(r *KindContainerRuntime, clusters []string, variant KindContainerRuntimeVariant, _ string, isLoad bool) error {
 	var clusterName string
-	var configDir string
 
 	switch variant {
 	case KindContainerRuntimeVariantStandard:
 		clusterName = "runtime-fixture-kind-standard"
-		configDir = filepath.Join(cachePath, "config", "kind-standard")
 	case KindContainerRuntimeVariantMinimal:
 		clusterName = "runtime-fixture-kind-minimal"
-		configDir = filepath.Join(cachePath, "config", "kind-minimal")
 	default:
 		return fmt.Errorf("unknown variant: %d", variant)
 	}
@@ -279,49 +256,18 @@ func newInternal(r *KindContainerRuntime, clusters []string, variant KindContain
 		}
 	}
 
-	if isLoad {
-		if !foundCluster {
-			return fmt.Errorf("KindContainerRuntime cluster variant wasn't found running")
-		}
-		if _, err := os.Stat(configDir); err != nil {
-			return fmt.Errorf("cache config directory stat error: %w", err)
-		}
-	} else {
-		err := cache.EnsureDirExists(configDir)
-		if err != nil {
-			return err
-		}
+	if isLoad && !foundCluster {
+		return fmt.Errorf("KindContainerRuntime cluster variant wasn't found running")
 	}
 
 	r.variant = variant
 	r.clusterName = clusterName
-	r.configPath = filepath.Join(configDir, "kind.config.yaml")
-	r.certsPath = filepath.Join(configDir, "certs")
-	r.testserverPath = filepath.Join(configDir, "testserver.yaml")
 
-	return nil
-}
-
-// writeCertificates writes embedded certificates to the certs directory
-func (r *KindContainerRuntime) writeCertificates() error {
-	// Create certs directory
-	if err := os.MkdirAll(r.certsPath, 0755); err != nil {
-		return fmt.Errorf("failed to create certs directory: %w", err)
-	}
-
-	// Write certificates
-	certs := map[string][]byte{
-		"ca.crt":     certCACrt,
-		"ca.key":     certCAKey,
-		"issuer.crt": certIssuerCrt,
-		"issuer.key": certIssuerKey,
-	}
-
-	for filename, content := range certs {
-		path := filepath.Join(r.certsPath, filename)
-		if err := os.WriteFile(path, content, 0644); err != nil {
-			return fmt.Errorf("failed to write %s: %w", filename, err)
-		}
+	switch variant {
+	case KindContainerRuntimeVariantStandard:
+		r.kindConfig = manifests.BuildStandardConfig(clusterName)
+	case KindContainerRuntimeVariantMinimal:
+		r.kindConfig = manifests.BuildMinimalConfig(clusterName)
 	}
 
 	return nil
@@ -388,17 +334,15 @@ func (r *KindContainerRuntime) Run() error {
 		fmt.Printf("✓ Cluster %s already exists\n", r.clusterName)
 	}
 
-	// Step 4: Set kubectl context
-	fmt.Println("\n4. Setting kubectl context...")
-	start = time.Now()
-	if err := r.setKubectlContext(); err != nil {
-		return fmt.Errorf("failed to set kubectl context: %w", err)
+	// Initialize kubernetes/flux clients now that cluster exists
+	if r.KubernetesClient == nil {
+		if err := r.initializeClients(); err != nil {
+			return fmt.Errorf("failed to initialize clients: %w", err)
+		}
 	}
-	fmt.Println("✓ Kubectl context set")
-	logDuration("Set kubectl context", start)
 
-	// Step 5: Configure registry
-	fmt.Println("\n5. Configuring up container registry...")
+	// Step 4: Configure registry
+	fmt.Println("\n4. Configuring container registry...")
 	start = time.Now()
 	if err := r.configureRegistry(); err != nil {
 		return fmt.Errorf("failed to configure registry: %w", err)
@@ -416,19 +360,17 @@ func (r *KindContainerRuntime) Run() error {
 
 // installInfra sets up all components for the Standard variant
 func (r *KindContainerRuntime) installInfra() error {
-	// Step 6: Install Flux
-	fmt.Println("\n6. Installing Flux...")
+	// Step 5: Install Flux
+	fmt.Println("\n5. Installing Flux...")
 	start := time.Now()
-	// TODO: find a way to customize controllers for vertical scaling
-	// e.g. concurrency and requeueuing
 	if err := r.installFluxToCluster(); err != nil {
 		return fmt.Errorf("failed to install flux: %w", err)
 	}
 	fmt.Println("✓ Flux installed")
 	logDuration("Install Flux", start)
 
-	// Step 7: Deploy base infrastructure
-	fmt.Println("\n7. Deploying base infrastructure...")
+	// Step 6: Deploy base infrastructure
+	fmt.Println("\n6. Deploying base infrastructure...")
 	start = time.Now()
 	if err := r.applyBaseInfrastructure(); err != nil {
 		return fmt.Errorf("failed to deploy base infrastructure: %w", err)
@@ -436,8 +378,8 @@ func (r *KindContainerRuntime) installInfra() error {
 	fmt.Println("✓ Base infrastructure deployed")
 	logDuration("Deploy base infrastructure", start)
 
-	// Step 8: Wait for Flux controllers
-	fmt.Println("\n8. Waiting for Flux controllers...")
+	// Step 7: Wait for Flux controllers
+	fmt.Println("\n7. Waiting for Flux controllers...")
 	start = time.Now()
 	if err := r.waitForFluxControllers(); err != nil {
 		return fmt.Errorf("failed waiting for flux controllers: %w", err)
@@ -445,8 +387,8 @@ func (r *KindContainerRuntime) installInfra() error {
 	fmt.Println("✓ Flux controllers ready")
 	logDuration("Wait for Flux controllers", start)
 
-	// Step 9: Reconcile base infra
-	fmt.Println("\n9. Reconciling base infra...")
+	// Step 8: Reconcile base infra
+	fmt.Println("\n8. Reconciling base infra...")
 	start = time.Now()
 	if err := r.reconcileBaseInfra(); err != nil {
 		return fmt.Errorf("failed to reconcile base infra: %w", err)
@@ -454,15 +396,22 @@ func (r *KindContainerRuntime) installInfra() error {
 	fmt.Println("✓ Base infra ready")
 	logDuration("Reconcile base infra", start)
 
-	// Step 10: Apply testserver manifest (only if enabled)
+	// Step 9: Apply testserver manifest (only if enabled)
 	if r.options.IncludeTestserver {
-		fmt.Println("\n10. Applying testserver manifest...")
+		fmt.Println("\n9. Applying testserver manifest...")
 		start = time.Now()
-		testserverYaml := string(testserverManifest)
+		replicas := int32(3)
 		if r.variant == KindContainerRuntimeVariantMinimal {
-			testserverYaml = strings.ReplaceAll(testserverYaml, "replicas: 3", "replicas: 1")
+			replicas = 1
 		}
-		if _, err := r.KubernetesClient.ApplyManifest(testserverYaml); err != nil {
+		testserverObjs := manifests.BuildTestserver(
+			testserverNginxConf,
+			testserverIndexHtml,
+			testserverEur1Html,
+			jumpboxNginxConf,
+			replicas,
+		)
+		if _, err := r.KubernetesClient.ApplyObjects(testserverObjs...); err != nil {
 			return fmt.Errorf("failed to apply testserver manifest: %w", err)
 		}
 		fmt.Println("✓ Testserver manifest applied")

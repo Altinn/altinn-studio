@@ -76,5 +76,49 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
         {
             return input.Replace("\r", "").Replace("\n", "");
         }
+
+        public static void ValidPathSegment(this string segment, string variableName)
+        {
+            if (string.IsNullOrWhiteSpace(segment))
+            {
+                throw new ArgumentException($"'{variableName}' cannot be null or whitespace.", variableName);
+            }
+
+            ValidateSafePathSegment(segment, variableName);
+            ValidateLegalSegmentForLibraryElement(segment, variableName);
+        }
+
+        public static void ValidateSafePathSegment(this string segment, string variableName)
+        {
+            if (segment.Contains("..") || segment.Contains('/') || segment.Contains('\\'))
+            {
+                throw new ArgumentException($"'{variableName}' contains invalid path traversal or separator characters.", variableName);
+            }
+        }
+
+        public static void ValidateLegalSegmentForLibraryElement(this string segment, string variableName)
+        {
+            foreach (char ch in segment)
+            {
+                bool isValidChar = char.IsLetterOrDigit(ch) || ch == '-' || ch == '_';
+                if (isValidChar is false)
+                {
+                    throw new ArgumentException($"'{variableName}' contains invalid character '{ch}'. Only letters, numbers, dash '-' and underscore '_' are allowed.", variableName);
+                }
+            }
+        }
+
+        public static void ValidatePath(this string path, string variableName)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentException($"'{variableName}' cannot be null or whitespace.", variableName);
+            }
+
+            if (GetInvalidFileNameChars().Any(path.Contains))
+            {
+                throw new ArgumentException("Invalid path.", variableName);
+            }
+        }
     }
 }

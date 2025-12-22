@@ -4,8 +4,8 @@ metadata:
   name: operator-config
 data:
   config.env: |
-    maskinporten_api.authority_url=https://maskinporten.dev
-    maskinporten_api.self_service_url=https://api.samarbeid.digdir.dev
+    maskinporten_api.authority_url=https://test.maskinporten.no
+    maskinporten_api.self_service_url=https://api.test.samarbeid.digdir.no
     maskinporten_api.scope=idporten:dcr.altinn
     org_registry.url=https://altinncdn.no/orgs/altinn-orgs.json
     maskinporten_controller.requeue_after=24h

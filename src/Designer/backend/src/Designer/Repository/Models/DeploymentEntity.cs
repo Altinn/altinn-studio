@@ -99,6 +99,7 @@ namespace Altinn.Studio.Designer.Repository.Models
     public enum DeployEventType
     {
         PipelineScheduled,
+        DeprecatedPipelineScheduled,
         PipelineSucceeded,
         PipelineFailed,
         InstallSucceeded,

@@ -1,0 +1,62 @@
+﻿{
+  ttd/code_lists/countries/_latest.json:
+{
+  "codes": [
+    {
+      "value": "value1",
+      "label": {
+        "nb": "tekst",
+        "en": "text"
+      },
+      "description": {
+        "nb": "Dette er en tekst",
+        "en": "This is a text"
+      },
+      "helpText": {
+        "nb": "Velg dette valget for å få en tekst",
+        "en": "Choose this option to get a text"
+      },
+      "tags": [
+        "test-data"
+      ]
+    }
+  ],
+  "version": "ttd/code_lists/1.json",
+  "source": {
+    "name": "test-data-files"
+  },
+  "tagNames": [
+    "test-data-category"
+  ]
+},
+  ttd/code_lists/countries/1.json:
+{
+  "codes": [
+    {
+      "value": "value1",
+      "label": {
+        "nb": "tekst",
+        "en": "text"
+      },
+      "description": {
+        "nb": "Dette er en tekst",
+        "en": "This is a text"
+      },
+      "helpText": {
+        "nb": "Velg dette valget for å få en tekst",
+        "en": "Choose this option to get a text"
+      },
+      "tags": [
+        "test-data"
+      ]
+    }
+  ],
+  "version": "ttd/code_lists/1.json",
+  "source": {
+    "name": "test-data-files"
+  },
+  "tagNames": [
+    "test-data-category"
+  ]
+}
+}

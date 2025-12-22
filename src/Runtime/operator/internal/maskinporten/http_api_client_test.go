@@ -353,6 +353,205 @@ func TestCreateReq(t *testing.T) {
 	g.Expect(req.Header.Get("Authorization")).To(Equal(expectedHeader))
 }
 
+func getMaskinportenApiClientsFixture(
+	g *WithT,
+	serviceOwnerId string,
+	environment string,
+	clientsResponse string,
+) (*httptest.Server, *config.ConfigMonitor, *operatorcontext.Context) {
+	accessToken := uuid.NewString()
+
+	server, configMonitor, _ := getMaskinportenApiFixture(
+		g,
+		func(cfg *config.Config) (apis []testApi) {
+			return []testApi{
+				okWellKnownHandler(g, cfg),
+				{"/token", http.StatusOK, fmt.Sprintf(`{"access_token":"%s","token_type":"Bearer","expires_in":3600}`, accessToken)},
+				{"/api/v1/altinn/admin/clients", http.StatusOK, clientsResponse},
+			}
+		},
+	)
+
+	// Create operator context with specified service owner
+	opCtx := &operatorcontext.Context{
+		ServiceOwner: operatorcontext.ServiceOwner{
+			Id:    serviceOwnerId,
+			OrgNo: "123456789",
+		},
+		Environment: environment,
+		RunId:       uuid.NewString(),
+		Context:     context.Background(),
+	}
+
+	// Update config with server URL for self-service
+	modifiedConfig := *configMonitor.Get()
+	modifiedConfig.MaskinportenApi.SelfServiceUrl = server.URL
+	testConfigMonitor := config.NewConfigMonitorForTesting(&modifiedConfig)
+
+	return server, testConfigMonitor, opCtx
+}
+
+func TestGetAllClients_IncludesMatchingClients(t *testing.T) {
+	g := NewWithT(t)
+	ctx := context.Background()
+	clock := clockwork.NewFakeClock()
+
+	clientsResponse := `[
+		{"client_id": "client1", "client_name": "altinnstudiooperator-ttd-at22-app1"},
+		{"client_id": "client2", "client_name": "altinnstudiooperator-ttd-at22-app2"}
+	]`
+
+	server, configMonitor, opCtx := getMaskinportenApiClientsFixture(g, "ttd", "at22", clientsResponse)
+	defer server.Close()
+
+	apiClient, err := NewHttpApiClient(configMonitor, opCtx, clock)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	clients, err := apiClient.GetAllClients(ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(clients).To(HaveLen(2))
+	g.Expect(clients[0].ClientId).To(Equal("client1"))
+	g.Expect(clients[1].ClientId).To(Equal("client2"))
+}
+
+func TestGetAllClients_SkipsSameServiceOwnerDifferentEnvironment(t *testing.T) {
+	g := NewWithT(t)
+	ctx := context.Background()
+	clock := clockwork.NewFakeClock()
+
+	clientsResponse := `[
+		{"client_id": "client1", "client_name": "altinnstudiooperator-ttd-at22-app1"},
+		{"client_id": "client2", "client_name": "altinnstudiooperator-ttd-at23-app2"},
+		{"client_id": "client3", "client_name": "altinnstudiooperator-ttd-at24-app3"}
+	]`
+
+	server, configMonitor, opCtx := getMaskinportenApiClientsFixture(g, "ttd", "at22", clientsResponse)
+	defer server.Close()
+
+	apiClient, err := NewHttpApiClient(configMonitor, opCtx, clock)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	clients, err := apiClient.GetAllClients(ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(clients).To(HaveLen(1))
+	g.Expect(clients[0].ClientId).To(Equal("client1"))
+}
+
+func TestGetAllClients_SkipsDifferentServiceOwner(t *testing.T) {
+	g := NewWithT(t)
+	ctx := context.Background()
+	clock := clockwork.NewFakeClock()
+
+	clientsResponse := `[
+		{"client_id": "client1", "client_name": "altinnstudiooperator-ttd-at22-app1"},
+		{"client_id": "client2", "client_name": "altinnstudiooperator-digdir-at22-app2"},
+		{"client_id": "client3", "client_name": "altinnstudiooperator-someother-at22-app3"}
+	]`
+
+	server, configMonitor, opCtx := getMaskinportenApiClientsFixture(g, "ttd", "at22", clientsResponse)
+	defer server.Close()
+
+	apiClient, err := NewHttpApiClient(configMonitor, opCtx, clock)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	clients, err := apiClient.GetAllClients(ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(clients).To(HaveLen(1))
+	g.Expect(clients[0].ClientId).To(Equal("client1"))
+}
+
+func TestGetAllClients_ErrorsOnEmptyClientId(t *testing.T) {
+	g := NewWithT(t)
+	ctx := context.Background()
+	clock := clockwork.NewFakeClock()
+
+	clientsResponse := `[{"client_id": "", "client_name": "altinnstudiooperator-ttd-at22-app1"}]`
+
+	server, configMonitor, opCtx := getMaskinportenApiClientsFixture(g, "ttd", "at22", clientsResponse)
+	defer server.Close()
+
+	apiClient, err := NewHttpApiClient(configMonitor, opCtx, clock)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	clients, err := apiClient.GetAllClients(ctx)
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(err.Error()).To(ContainSubstring("empty ID"))
+	g.Expect(clients).To(BeNil())
+}
+
+func TestGetAllClients_ErrorsOnNullClientName(t *testing.T) {
+	g := NewWithT(t)
+	ctx := context.Background()
+	clock := clockwork.NewFakeClock()
+
+	clientsResponse := `[{"client_id": "client1"}]`
+
+	server, configMonitor, opCtx := getMaskinportenApiClientsFixture(g, "ttd", "at22", clientsResponse)
+	defer server.Close()
+
+	apiClient, err := NewHttpApiClient(configMonitor, opCtx, clock)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	clients, err := apiClient.GetAllClients(ctx)
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(err.Error()).To(ContainSubstring("has no name"))
+	g.Expect(clients).To(BeNil())
+}
+
+func TestGetAllClients_DigdirSkipsSupplierClient(t *testing.T) {
+	g := NewWithT(t)
+	ctx := context.Background()
+	clock := clockwork.NewFakeClock()
+
+	supplierClientId := "supplier-client-123"
+	clientsResponse := fmt.Sprintf(`[
+		{"client_id": "%s", "client_name": "altinnstudiooperator-digdir-prod-supplier"},
+		{"client_id": "client1", "client_name": "altinnstudiooperator-digdir-prod-app1"}
+	]`, supplierClientId)
+
+	server, configMonitor, opCtx := getMaskinportenApiClientsFixture(g, "digdir", "prod", clientsResponse)
+	defer server.Close()
+
+	// Set the supplier client ID in config
+	modifiedConfig := *configMonitor.Get()
+	modifiedConfig.MaskinportenApi.ClientId = supplierClientId
+	testConfigMonitor := config.NewConfigMonitorForTesting(&modifiedConfig)
+
+	apiClient, err := NewHttpApiClient(testConfigMonitor, opCtx, clock)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	clients, err := apiClient.GetAllClients(ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(clients).To(HaveLen(1))
+	g.Expect(clients[0].ClientId).To(Equal("client1"))
+}
+
+func TestGetAllClients_MixedScenario(t *testing.T) {
+	g := NewWithT(t)
+	ctx := context.Background()
+	clock := clockwork.NewFakeClock()
+
+	clientsResponse := `[
+		{"client_id": "match1", "client_name": "altinnstudiooperator-ttd-at22-app1"},
+		{"client_id": "match2", "client_name": "altinnstudiooperator-ttd-at22-app2"},
+		{"client_id": "sameowner-diffenv", "client_name": "altinnstudiooperator-ttd-at23-app3"},
+		{"client_id": "diffowner1", "client_name": "altinnstudiooperator-digdir-at22-app4"},
+		{"client_id": "diffowner2", "client_name": "altinnstudiooperator-nav-at22-app5"}
+	]`
+
+	server, configMonitor, opCtx := getMaskinportenApiClientsFixture(g, "ttd", "at22", clientsResponse)
+	defer server.Close()
+
+	apiClient, err := NewHttpApiClient(configMonitor, opCtx, clock)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	clients, err := apiClient.GetAllClients(ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(clients).To(HaveLen(2))
+	g.Expect(clients[0].ClientId).To(Equal("match1"))
+	g.Expect(clients[1].ClientId).To(Equal("match2"))
+}
+
 func TestRetryableHTTPDoPreservesBodyOnRetry(t *testing.T) {
 	g := NewWithT(t)
 	clock := clockwork.NewFakeClock()

@@ -33,6 +33,12 @@ namespace Altinn.Studio.Designer.Filters.Git
             {
                 context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, GitErrorCodes.GiteaSessionExpired, HttpStatusCode.Unauthorized)) { StatusCode = (int)HttpStatusCode.Unauthorized };
             }
+
+            if (context.Exception is Exceptions.UncommittedChangesException uncommittedChangesException)
+            {
+                context.Result = new ObjectResult(uncommittedChangesException.ErrorDetails) { StatusCode = (int)HttpStatusCode.Conflict };
+                context.ExceptionHandled = true;
+            }
         }
     }
 }

@@ -85,17 +85,5 @@
       "enabled": false
     }
   ],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "description": "Update tools in .tool-versions with inline renovate comments",
-      "managerFilePatterns": ["/\\.tool-versions$/"],
-      "matchStrings": [
-        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n[^\\s]+\\s+(?<currentValue>\\S+)"
-      ],
-      "extractVersionTemplate": "^(?<version>v.*)$",
-      "versioningTemplate": "semver"
-    }
-  ],
   "schedule": []
 }

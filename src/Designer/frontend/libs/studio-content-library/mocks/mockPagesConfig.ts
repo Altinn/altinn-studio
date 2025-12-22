@@ -13,10 +13,12 @@ export const mockPagesConfig: PagesConfig = {
     props: {
       codeListDataList: codeListsDataMock,
       onCreateCodeList: () => {},
+      onCreateTextResource: () => {},
       onDeleteCodeList: () => {},
       onUpdateCodeListId: () => {},
       onUpdateCodeList: () => {},
       onUploadCodeList: () => {},
+      onUpdateTextResource: () => {},
       codeListsUsages: [],
       textResources,
     },

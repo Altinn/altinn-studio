@@ -95,7 +95,7 @@ export const LocalChangesActionButton = ({
       case 'link': {
         return (
           <div className={classes.linkAndIconWrapper}>
-            <Link href={action.href}>
+            <Link href={action.href} className={classes.link}>
               {icon}
               {text}
             </Link>
@@ -105,6 +105,7 @@ export const LocalChangesActionButton = ({
       case 'button': {
         return (
           <StudioButton
+            className={classes.button}
             variant='secondary'
             data-color={color}
             onClick={action.onClick}

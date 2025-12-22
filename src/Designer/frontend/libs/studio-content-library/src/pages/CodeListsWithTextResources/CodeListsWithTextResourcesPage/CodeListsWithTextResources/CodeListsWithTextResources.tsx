@@ -11,14 +11,14 @@ import { StudioDetails, StudioCard, StudioAlert } from '@studio/components';
 
 export type CodeListsWithTextResourcesProps = {
   codeListDataList: CodeListDataWithTextResources[];
-  onCreateTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
-  onUpdateTextResource?: (textResource: TextResource) => void;
+  onUpdateTextResource: (textResource: TextResource) => void;
   codeListInEditMode: string | undefined;
   codeListNames: string[];
-  codeListsUsages: CodeListReference[];
+  codeListsUsages?: CodeListReference[];
   textResources?: TextResource[];
 };
 
@@ -124,7 +124,7 @@ function CodeListDetailsContent({
 }: CodeListDetailsContentProps): React.ReactElement {
   return (
     <StudioDetails.Content>
-      {codeListData.hasError ? (
+      {codeListData.hasError || !codeListData.data ? (
         <InvalidCodeListAlert />
       ) : (
         <EditCodeList

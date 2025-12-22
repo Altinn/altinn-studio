@@ -16,4 +16,8 @@
     <PackageReference Include="KubernetesClient.Aot" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\StudioGateway.Contracts\StudioGateway.Contracts.csproj" />
+  </ItemGroup>
+
 </Project>

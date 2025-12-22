@@ -19,4 +19,6 @@ public record AltinnEnvironment
     {
         return new AltinnEnvironment(name);
     }
+
+    public static AltinnEnvironment Prod => new("prod");
 }

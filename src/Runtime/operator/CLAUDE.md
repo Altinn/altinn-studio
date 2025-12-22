@@ -9,6 +9,7 @@ This is a Kubernetes operator for Altinn 3, built with Go and Kubebuilder. The p
 ## Development Commands
 
 ### Building and Testing
+
 ```bash
 make                    # Build the project
 make test              # Run unit tests (no k8s required)
@@ -17,12 +18,15 @@ make lint-fix          # Run linter with auto-fixes
 ```
 
 ### Snapshot Testing
+
 The project uses go-snaps for snapshot tests. Update snapshots with:
+
 ```bash
 UPDATE_SNAPS=true make test
 ```
 
 ### Development Dependencies
+
 ```bash
 docker compose up -d --build  # Start local fake APIs (required for `make test` to work)
 ```
@@ -30,17 +34,19 @@ docker compose up -d --build  # Start local fake APIs (required for `make test` 
 ## Architecture
 
 ### Core Components
+
 - **MaskinportenClient CRD**: Custom resource for managing Maskinporten OAuth clients
 - **Controller**: Reconciles MaskinportenClient resources with actual Maskinporten API
 - **Internal packages**:
-  - `maskinporten/`: HTTP client for Maskinporten API integration
-  - `config/`: Configuration management using koanf
-  - `telemetry/`: OpenTelemetry instrumentation
-  - `caching/`: Caching mechanisms
-  - `crypto/`: Cryptographic operations
-  - `operatorcontext/`: Operator context management
+    - `maskinporten/`: HTTP client for Maskinporten API integration
+    - `config/`: Configuration management using koanf
+    - `telemetry/`: OpenTelemetry instrumentation
+    - `caching/`: Caching mechanisms
+    - `crypto/`: Cryptographic operations
+    - `operatorcontext/`: Operator context management
 
 ### Directory Structure
+
 - `api/v1alpha1/`: Kubernetes API definitions and CRD types
 - `internal/controller/`: Controller reconciliation logic
 - `config/`: Kubernetes manifests and Kustomize configurations
@@ -48,6 +54,7 @@ docker compose up -d --build  # Start local fake APIs (required for `make test` 
 - `cmd/main.go`: Operator entry point
 
 ### Key Technologies
+
 - Kubebuilder framework for operator scaffolding
 - Controller-runtime for Kubernetes controller patterns
 - OpenTelemetry for observability

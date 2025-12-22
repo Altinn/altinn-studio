@@ -50,6 +50,8 @@ describe('CodeListsActionsBar', () => {
 const defaultCodeListActionBarProps: CodeListsActionsBarProps = {
   onUploadCodeList: onUploadCodeListMock,
   onCreateCodeList: jest.fn(),
+  onCreateTextResource: jest.fn(),
+  onUpdateTextResource: jest.fn(),
   codeListNames: [codeListName1, codeListName2],
   onSetSearchString: onSetSearchStringMock,
 };

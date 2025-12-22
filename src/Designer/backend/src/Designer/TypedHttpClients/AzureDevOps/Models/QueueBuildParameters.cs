@@ -5,6 +5,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
 {
     /// <summary>
     /// Parameters for build when queueing
+    /// Used for calling release pipeline, deploy pipeline and gitops deployment pipeline
+    /// After deploying and removing feature branch, this class should be split into multiple classes to be
+    /// more explicit for each pipeline.
     /// </summary>
     public class QueueBuildParameters
     {

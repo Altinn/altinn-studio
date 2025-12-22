@@ -16,7 +16,7 @@ public static class VersionCommand
     public static Command GetVersionCommand(string executableName)
     {
         var versionCommand = new Command("version", $"Print version of {executableName} cli");
-        versionCommand.SetHandler(() =>
+        versionCommand.SetAction(_ =>
         {
             var version =
                 Assembly

@@ -6,7 +6,13 @@ import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
-import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import {
+  FailedEventType,
+  EventType,
+  SucceededEventType,
+  type PipelineDeployment,
+} from 'app-shared/types/api/PipelineDeployment';
+import { deployEvent } from 'app-shared/mocks/mocks';
 
 const pipelineDeployment: PipelineDeployment = {
   id: '1',
@@ -24,6 +30,7 @@ const pipelineDeployment: PipelineDeployment = {
     started: '',
     finished: '',
   },
+  events: [],
 };
 
 const defaultProps: DeploymentEnvironmentLogListProps = {
@@ -70,91 +77,215 @@ describe('DeploymentEnvironmentLogList', () => {
     expect(screen.getByText(pipelineDeployment.createdBy)).toBeInTheDocument();
   });
 
-  it('renders when deployment is in progress', () => {
-    render({
-      pipelineDeploymentList: [
-        {
-          ...pipelineDeployment,
-          build: {
-            ...pipelineDeployment.build,
-            result: BuildResult.none,
-          },
-        },
-      ],
-    });
-    expect(
-      screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.none')),
-    ).toBeInTheDocument();
-  });
+  describe('renders different deployment statuses', () => {
+    describe('when events are absent', () => {
+      it('renders when deployment is in progress', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              build: {
+                ...pipelineDeployment.build,
+                result: BuildResult.none,
+              },
+            },
+          ],
+        });
+        expect(
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.none')),
+        ).toBeInTheDocument();
+      });
 
-  it('renders when deployment failed', () => {
-    render({
-      pipelineDeploymentList: [
-        {
-          ...pipelineDeployment,
-          build: {
-            ...pipelineDeployment.build,
-            result: BuildResult.failed,
-          },
-        },
-      ],
-    });
-    expect(
-      screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
-    ).toBeInTheDocument();
-  });
+      it('renders when deployment failed', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              build: {
+                ...pipelineDeployment.build,
+                result: BuildResult.failed,
+              },
+            },
+          ],
+        });
+        expect(
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
+        ).toBeInTheDocument();
+      });
 
-  it('renders when deployment canceled', () => {
-    render({
-      pipelineDeploymentList: [
-        {
-          ...pipelineDeployment,
-          build: {
-            ...pipelineDeployment.build,
-            result: BuildResult.canceled,
-          },
-        },
-      ],
-    });
-    expect(
-      screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.canceled')),
-    ).toBeInTheDocument();
-  });
+      it('renders when deployment canceled', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              build: {
+                ...pipelineDeployment.build,
+                result: BuildResult.canceled,
+              },
+            },
+          ],
+        });
+        expect(
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.canceled')),
+        ).toBeInTheDocument();
+      });
 
-  it('renders when deployment succeeded', () => {
-    render({
-      pipelineDeploymentList: [
-        {
-          ...pipelineDeployment,
-          build: {
-            ...pipelineDeployment.build,
-            result: BuildResult.succeeded,
-          },
-        },
-      ],
-    });
-    expect(
-      screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
-    ).toBeInTheDocument();
-  });
+      it('renders when deployment succeeded', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              build: {
+                ...pipelineDeployment.build,
+                result: BuildResult.succeeded,
+              },
+            },
+          ],
+        });
+        expect(
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
+        ).toBeInTheDocument();
+      });
 
-  it('renders when deployment partially succeeded', () => {
-    render({
-      pipelineDeploymentList: [
-        {
-          ...pipelineDeployment,
-          build: {
-            ...pipelineDeployment.build,
-            result: BuildResult.partiallySucceeded,
-          },
-        },
-      ],
+      it('renders when deployment partially succeeded', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              build: {
+                ...pipelineDeployment.build,
+                result: BuildResult.partiallySucceeded,
+              },
+            },
+          ],
+        });
+        expect(
+          screen.getByText(
+            textMock('app_deployment.pipeline_deployment.build_result.partiallySucceeded'),
+          ),
+        ).toBeInTheDocument();
+      });
     });
-    expect(
-      screen.getByText(
-        textMock('app_deployment.pipeline_deployment.build_result.partiallySucceeded'),
-      ),
-    ).toBeInTheDocument();
+
+    describe('when events are present', () => {
+      it('renders when deployment is in progress', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              events: [{ ...deployEvent, eventType: EventType.PipelineScheduled }],
+            },
+          ],
+        });
+        expect(
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.none')),
+        ).toBeInTheDocument();
+      });
+
+      it('renders when deployment failed', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              events: [{ ...deployEvent, eventType: FailedEventType.InstallFailed }],
+            },
+          ],
+        });
+        expect(
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
+        ).toBeInTheDocument();
+      });
+
+      it('renders when deployment succeeded', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              events: [{ ...deployEvent, eventType: SucceededEventType.InstallSucceeded }],
+            },
+          ],
+        });
+        expect(
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
+        ).toBeInTheDocument();
+      });
+
+      it('renders when deprecated undeploy pipeline failed', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              events: [
+                { ...deployEvent, eventType: EventType.DeprecatedPipelineScheduled },
+                { ...deployEvent, eventType: EventType.PipelineFailed },
+              ],
+            },
+          ],
+        });
+        expect(
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
+        ).toBeInTheDocument();
+      });
+
+      it('renders when deprecated undeploy pipeline succeeded', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              events: [
+                { ...deployEvent, eventType: EventType.DeprecatedPipelineScheduled },
+                { ...deployEvent, eventType: EventType.PipelineSucceeded },
+              ],
+            },
+          ],
+        });
+        expect(
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
+        ).toBeInTheDocument();
+      });
+
+      it('renders when created event date > 15m and pipeline failed', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              events: [
+                { ...deployEvent, eventType: EventType.PipelineScheduled },
+                {
+                  ...deployEvent,
+                  eventType: EventType.PipelineFailed,
+                  created: '2025-12-12T09:26:10.730806+00:00',
+                },
+              ],
+            },
+          ],
+        });
+        expect(
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
+        ).toBeInTheDocument();
+      });
+
+      it('renders when created event date > 15m and pipeline succeeded', () => {
+        render({
+          pipelineDeploymentList: [
+            {
+              ...pipelineDeployment,
+              events: [
+                { ...deployEvent, eventType: EventType.PipelineScheduled },
+                {
+                  ...deployEvent,
+                  eventType: EventType.PipelineSucceeded,
+                  created: '2025-12-12T09:26:10.730806+00:00',
+                },
+              ],
+            },
+          ],
+        });
+        expect(
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
+        ).toBeInTheDocument();
+      });
+    });
   });
 
   it('does not render build log link when started date is null', () => {

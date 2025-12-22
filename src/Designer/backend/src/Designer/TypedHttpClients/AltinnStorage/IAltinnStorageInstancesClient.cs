@@ -27,4 +27,13 @@ public interface IAltinnStorageInstancesClient
         DateOnly? createdBeforeFilter,
         CancellationToken ct
     );
+
+    /// <inheritdoc cref="GetInstanceDetails"/>
+    Task<SimpleInstanceDetails> GetInstanceDetails(
+        string org,
+        string env,
+        string app,
+        string instanceId,
+        CancellationToken ct
+    );
 }

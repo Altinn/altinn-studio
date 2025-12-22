@@ -4,5 +4,6 @@ export type CodeListItem = {
   readonly description?: MultiLanguageText;
   readonly helpText?: MultiLanguageText;
   readonly label?: MultiLanguageText;
+  readonly tags?: string[];
   readonly value: string;
 };

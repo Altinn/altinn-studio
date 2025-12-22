@@ -23,6 +23,11 @@ namespace Altinn.Studio.Designer.Models
         public bool IsPoa { get; set; }
 
         /// <summary>
+        /// If template is active and can be set in consent resource
+        /// </summary>
+        public bool IsActive { get; set; }
+
+        /// <summary>
         /// If custom message is set when sending consent request
         /// </summary>
         public bool IsMessageSetInRequest { get; set; }

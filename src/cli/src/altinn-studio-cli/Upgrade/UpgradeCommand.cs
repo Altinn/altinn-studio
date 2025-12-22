@@ -15,14 +15,17 @@ public static class UpgradeCommand
     /// <returns></returns>
     public static Command GetUpgradeCommand()
     {
-        var projectFolderOption = new Option<string>(
-            name: "--folder",
-            description: "The project folder to read",
-            getDefaultValue: () => "CurrentDirectory"
-        );
-        var upgradeCommand = new Command("upgrade", "Upgrade an app") { projectFolderOption };
-        upgradeCommand.AddCommand(FrontendUpgrade.GetUpgradeCommand(projectFolderOption));
-        upgradeCommand.AddCommand(BackendUpgrade.GetUpgradeCommand(projectFolderOption));
+        var projectFolderOption = new Option<string>(name: "--folder")
+        {
+            Description = "The project folder to read",
+            DefaultValueFactory = _ => "CurrentDirectory",
+        };
+        var upgradeCommand = new Command("upgrade", "Upgrade an app")
+        {
+            projectFolderOption,
+            FrontendUpgrade.GetUpgradeCommand(projectFolderOption),
+            BackendUpgrade.GetUpgradeCommand(projectFolderOption),
+        };
         return upgradeCommand;
     }
 }

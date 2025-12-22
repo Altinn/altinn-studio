@@ -24,22 +24,10 @@ func (r *KindContainerRuntime) clusterExists() (bool, error) {
 func (r *KindContainerRuntime) createCluster() error {
 	fmt.Printf("Creating kind cluster %s...\n", r.clusterName)
 
-	if err := r.KindClient.CreateCluster(r.configPath); err != nil {
+	if err := r.KindClient.CreateCluster(r.clusterName, r.kindConfig); err != nil {
 		return fmt.Errorf("failed to create cluster: %w", err)
 	}
 
 	fmt.Printf("Cluster %s created successfully\n", r.clusterName)
-	return nil
-}
-
-// setKubectlContext sets the kubectl context to the kind cluster
-func (r *KindContainerRuntime) setKubectlContext() error {
-	contextName := fmt.Sprintf("kind-%s", r.clusterName)
-	fmt.Printf("Setting kubectl context to %s...\n", contextName)
-
-	if err := r.KubernetesClient.ConfigUseContext(contextName); err != nil {
-		return err
-	}
-
 	return nil
 }

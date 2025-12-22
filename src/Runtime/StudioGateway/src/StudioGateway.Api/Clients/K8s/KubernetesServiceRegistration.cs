@@ -12,7 +12,7 @@ internal static class KubernetesServiceRegistration
             return new k8s.Kubernetes(config);
         });
 
-        services.AddSingleton<HelmReleaseService>();
+        services.AddSingleton<HelmReleaseClient>();
 
         return services;
     }

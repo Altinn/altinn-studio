@@ -8,6 +8,7 @@ import type { SchemaConfigProps } from './types';
 export interface ConfigArrayPropertiesProps extends SchemaConfigProps {
   arrayPropertyKeys: string[];
   className?: string;
+  keepEditOpen?: boolean;
 }
 
 export const ConfigArrayProperties = ({
@@ -16,6 +17,7 @@ export const ConfigArrayProperties = ({
   arrayPropertyKeys,
   handleComponentUpdate,
   className,
+  keepEditOpen = false,
 }: ConfigArrayPropertiesProps) => {
   const componentPropertyLabel = useComponentPropertyLabel();
 
@@ -30,6 +32,21 @@ export const ConfigArrayProperties = ({
     },
     [component, selectedDataType],
   );
+
+  if (keepEditOpen) {
+    return arrayPropertyKeys.map((propertyKey) => (
+      <EditStringValue
+        component={component}
+        handleComponentChange={(updatedComponent) => {
+          handleComponentUpdate(updatedComponent);
+        }}
+        propertyKey={propertyKey}
+        key={propertyKey}
+        enumValues={schema.properties[propertyKey]?.items?.enum}
+        multiple={true}
+      />
+    ));
+  }
 
   return (
     <>

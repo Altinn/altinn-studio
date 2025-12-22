@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next';
 import type { Environment } from 'app-shared/types/Environment';
 import { Heading } from '@digdir/designsystemet-react';
 import { DateUtils } from '@studio/pure-functions';
-import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
-import { BuildResult } from 'app-shared/types/Build';
+import { getDeployStatus, type PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import { PROD_ENV_TYPE } from 'app-shared/constants';
+import { BuildResult } from 'app-shared/types/Build';
 
 export interface DeploymentLogListProps {
   orgEnvironmentList: Environment[];
@@ -21,8 +21,7 @@ export const DeploymentLogList = ({
 
   const succeededPipelineDeploymentList = pipelineDeploymentList.filter(
     (pipelineDeployment: PipelineDeployment) =>
-      pipelineDeployment.build.result === BuildResult.succeeded &&
-      pipelineDeployment.build.finished !== null,
+      getDeployStatus(pipelineDeployment) === BuildResult.succeeded,
   );
   const hasSucceededDeployments = succeededPipelineDeploymentList.length > 0;
 

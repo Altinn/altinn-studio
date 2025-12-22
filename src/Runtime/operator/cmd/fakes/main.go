@@ -630,18 +630,20 @@ func handleOrgRegistry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fakeOrgs := map[string]orgs.Org{
-		"ttd": {
-			Name:  orgs.OrgName{En: "Test Department", Nb: "Testdepartementet", Nn: "Testdepartementet"},
-			OrgNr: "405003309", // NOTE: this matches the org nr in the registry testdata in localtest, keep in sync
-		},
-		"digdir": {
-			Name: orgs.OrgName{
-				En: "Norwegian Digitalisation Agency",
-				Nb: "Digitaliseringsdirektoratet",
-				Nn: "Digitaliseringsdirektoratet",
+	fakeOrgs := map[string]map[string]orgs.Org{
+		"orgs": {
+			"ttd": {
+				Name:  orgs.OrgName{En: "Test Department", Nb: "Testdepartementet", Nn: "Testdepartementet"},
+				OrgNr: "405003309", // NOTE: this matches the org nr in the registry testdata in localtest, keep in sync
 			},
-			OrgNr: "991825827",
+			"digdir": {
+				Name: orgs.OrgName{
+					En: "Norwegian Digitalisation Agency",
+					Nb: "Digitaliseringsdirektoratet",
+					Nn: "Digitaliseringsdirektoratet",
+				},
+				OrgNr: "991825827",
+			},
 		},
 	}
 

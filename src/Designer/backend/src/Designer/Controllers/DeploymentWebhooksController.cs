@@ -97,10 +97,12 @@ public class DeploymentWebhooksController : ControllerBase
 
         if (isUninstallEvent)
         {
-            var deployment = await _deploymentRepository.GetPendingDecommission(org, app, request.Environment);
+            // Gateway currently gets the environment set to prod when in the production environment
+            var environment = request.Environment.Equals("prod", StringComparison.OrdinalIgnoreCase) ? "production" : request.Environment;
+            var deployment = await _deploymentRepository.GetPendingDecommission(org, app, environment);
             if (deployment == null)
             {
-                return new DeploymentResolveResult(null, null, NotFound($"No pending decommission deployment found for {org}/{app} in {request.Environment}"));
+                return new DeploymentResolveResult(null, null, NotFound($"No pending decommission deployment found for {org}/{app} in {environment}"));
             }
 
             return new DeploymentResolveResult(deployment, deployment.Build.Id, null);

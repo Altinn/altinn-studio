@@ -325,6 +325,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/commit")]
         public async Task<ActionResult> Commit(string org, string repository, [FromBody] CommitInfo commitInfo)
         {
+            // TODO: This method is never used, should it be removed?
             await Task.CompletedTask;
             try
             {
@@ -346,6 +347,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/push")]
         public async Task<ActionResult> Push(string org, string repository)
         {
+            // TODO: This method is never used, should it be removed?
             bool pushSuccess = await _sourceControl.Push(org, repository);
             return pushSuccess ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
         }
@@ -399,6 +401,92 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
+        }
+
+        /// <summary>
+        /// Creates a new branch in the repository
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="request">The branch creation request</param>
+        /// <returns>The created branch</returns>
+        [HttpPost]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches")]
+        public async Task<ActionResult<Branch>> CreateBranch(string org, string repository, [FromBody] CreateBranchRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.BranchName))
+            {
+                return BadRequest("Branch name is required");
+            }
+
+            try
+            {
+                Guard.AssertValidRepoBranchName(request.BranchName);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{request.BranchName} is an invalid branch name.");
+            }
+
+            var branch = await _sourceControl.CreateBranch(org, repository, request.BranchName);
+            return Ok(branch);
+        }
+
+        /// <summary>
+        /// Gets information about the current branch
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <returns>Information about the current branch</returns>
+        [HttpGet]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/current-branch")]
+        public ActionResult<CurrentBranchInfo> GetCurrentBranch(string org, string repository)
+        {
+            var branchInfo = _sourceControl.GetCurrentBranch(org, repository);
+            return Ok(branchInfo);
+        }
+
+        /// <summary>
+        /// Checks out a specific branch
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="request">The checkout request</param>
+        /// <returns>The updated repository status</returns>
+        [HttpPost]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/checkout")]
+        public async Task<ActionResult<RepoStatus>> CheckoutBranch(string org, string repository, [FromBody] CheckoutBranchRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.BranchName))
+            {
+                return BadRequest("Branch name is required");
+            }
+
+            try
+            {
+                Guard.AssertValidRepoBranchName(request.BranchName);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{request.BranchName} is an invalid branch name.");
+            }
+
+            var repoStatus = await _sourceControl.CheckoutBranchWithValidation(org, repository, request.BranchName);
+            return Ok(repoStatus);
+        }
+
+        /// <summary>
+        /// Discards all local changes in the repository
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <returns>The updated repository status</returns>
+        [HttpPost]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/discard-changes")]
+        public ActionResult<RepoStatus> DiscardLocalChanges(string org, string repository)
+        {
+            var repoStatus = _sourceControl.DiscardLocalChanges(org, repository);
+            return Ok(repoStatus);
         }
 
         /// <summary>

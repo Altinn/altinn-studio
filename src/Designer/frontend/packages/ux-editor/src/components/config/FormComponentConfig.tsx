@@ -5,7 +5,6 @@ import { usePropertyTypes } from './ConfigProperties/usePropertyTypes';
 import {
   ConfigGridProperties,
   ConfigBooleanProperties,
-  ConfigObjectProperties,
   ConfigArrayProperties,
   ConfigStringProperties,
   ConfigNumberProperties,
@@ -14,11 +13,13 @@ import type { FormItem } from '../../types/FormItem';
 import classes from './FormComponentConfig.module.css';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { ConfigObjectProperty } from './ConfigProperties/ConfigObjectProperty/ConfigObjectProperty';
 
 export interface IEditFormComponentProps {
   editFormId: string;
   component: FormItem;
   handleComponentUpdate: (component: FormItem, mutateOptions?: UpdateFormMutateOptions) => void;
+  keepEditOpen?: boolean;
 }
 
 export interface FormComponentConfigProps extends IEditFormComponentProps {
@@ -30,6 +31,7 @@ export const FormComponentConfig = ({
   editFormId,
   component,
   handleComponentUpdate,
+  keepEditOpen,
 }: FormComponentConfigProps) => {
   // Add any properties that have a custom implementation to this list so they are not duplicated in the generic view
   const customProperties = [
@@ -90,6 +92,7 @@ export const FormComponentConfig = ({
           component={component}
           handleComponentUpdate={handleComponentUpdate}
           className={classes.elementWrapper}
+          keepEditOpen={keepEditOpen}
         />
       )}
 
@@ -101,6 +104,7 @@ export const FormComponentConfig = ({
           component={component}
           handleComponentUpdate={handleComponentUpdate}
           className={classes.elementWrapper}
+          keepEditOpen={keepEditOpen}
         />
       )}
 
@@ -112,20 +116,25 @@ export const FormComponentConfig = ({
           component={component}
           handleComponentUpdate={handleComponentUpdate}
           className={classes.elementWrapper}
+          keepEditOpen={keepEditOpen}
         />
       )}
 
       {/** Object properties  */}
-      {objectKeys.length > 0 && (
-        <ConfigObjectProperties
-          editFormId={editFormId}
-          objectPropertyKeys={objectKeys}
-          schema={schema}
-          component={component}
-          handleComponentUpdate={handleComponentUpdate}
-          className={classes.elementWrapper}
-        />
-      )}
+      {objectKeys.length > 0 &&
+        objectKeys.map((objectPropertyKey) => {
+          return (
+            <ConfigObjectProperty
+              key={objectPropertyKey}
+              editFormId={editFormId}
+              objectPropertyKey={objectPropertyKey}
+              schema={schema}
+              component={component}
+              handleComponentUpdate={handleComponentUpdate}
+              className={classes.elementWrapper}
+            />
+          );
+        })}
     </>
   );
 };

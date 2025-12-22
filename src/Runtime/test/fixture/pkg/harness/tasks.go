@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"time"
 
 	"altinn.studio/runtime-fixture/pkg/flux"
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
 )
 
 // buildAndPushImage builds a container image and pushes it to the registry
@@ -58,7 +61,7 @@ func pushArtifact(_ context.Context, cfg Config, runtime *kind.KindContainerRunt
 		revision = "local"
 	}
 
-	if err := runtime.FluxClient.PushArtifact(art.URL, artPath, source, revision); err != nil {
+	if err := runtime.OCIClient.PushArtifact(art.URL, artPath, source, revision); err != nil {
 		return fmt.Errorf("failed to push artifact %s: %w", art.Name, err)
 	}
 
@@ -85,12 +88,6 @@ func downloadAndPushHelmChart(_ context.Context, cfg Config, runtime *kind.KindC
 	}
 	logDuration(fmt.Sprintf("Downloaded %s", chart.Name), start)
 
-	// Get helm binary
-	helmInfo, err := runtime.Installer.GetToolInfo("helm")
-	if err != nil {
-		return fmt.Errorf("failed to get helm tool info: %w", err)
-	}
-
 	// Package chart
 	fmt.Printf("Packaging helm chart %s...\n", chart.Name)
 	start = time.Now()
@@ -100,28 +97,17 @@ func downloadAndPushHelmChart(_ context.Context, cfg Config, runtime *kind.KindC
 		return fmt.Errorf("failed to create helm packages dir: %w", err)
 	}
 
-	cmd := exec.Command(helmInfo.Path, "package", chartPath, "-d", tmpDir)
-	output, err := cmd.CombinedOutput()
+	chartFile, err := runtime.HelmClient.PackageChart(chartPath, tmpDir)
 	if err != nil {
-		return fmt.Errorf("failed to package chart %s: %w\nOutput: %s", chart.Name, err, string(output))
+		return fmt.Errorf("failed to package chart %s: %w", chart.Name, err)
 	}
 	logDuration(fmt.Sprintf("Packaged %s", chart.Name), start)
-
-	// Find packaged chart file
-	chartBaseName := filepath.Base(chart.ChartPath)
-	files, err := filepath.Glob(filepath.Join(tmpDir, chartBaseName+"-*.tgz"))
-	if err != nil || len(files) == 0 {
-		return fmt.Errorf("failed to find packaged chart for %s", chart.Name)
-	}
-	chartFile := files[0]
 
 	// Push to OCI
 	fmt.Printf("Pushing helm chart %s to OCI...\n", chart.Name)
 	start = time.Now()
-	cmd = exec.Command(helmInfo.Path, "push", chartFile, chart.OCIRef)
-	output, err = cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed to push chart %s: %w\nOutput: %s", chart.Name, err, string(output))
+	if err := runtime.HelmClient.PushChart(chartFile, chart.OCIRef); err != nil {
+		return fmt.Errorf("failed to push chart %s: %w", chart.Name, err)
 	}
 	logDuration(fmt.Sprintf("Pushed helm chart %s", chart.Name), start)
 
@@ -132,36 +118,65 @@ func downloadAndPushHelmChart(_ context.Context, cfg Config, runtime *kind.KindC
 }
 
 func cloneOrUpdateRepo(dir, repoURL, branch string) error {
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		// Clone
-		cmd := exec.Command("git", "clone", "--depth", "1", "--branch", branch, repoURL, dir)
-		output, err := cmd.CombinedOutput()
+	refName := plumbing.NewBranchReferenceName(branch)
+
+	repo, err := git.PlainOpen(dir)
+	if err != nil {
+		// Directory doesn't exist or isn't a repo - clone it
+		_, err = git.PlainClone(dir, false, &git.CloneOptions{
+			URL:           repoURL,
+			ReferenceName: refName,
+			SingleBranch:  true,
+			Depth:         1,
+		})
 		if err != nil {
-			return fmt.Errorf("git clone failed: %w\nOutput: %s", err, string(output))
+			return fmt.Errorf("git clone failed: %w", err)
 		}
 		return nil
 	}
 
-	// Update existing
-	cmd := exec.Command("git", "-C", dir, "fetch", "origin", branch)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		// Fetch failed, try re-clone
+	// Repo exists - fetch and reset
+	refSpec := config.RefSpec("+refs/heads/" + branch + ":refs/remotes/origin/" + branch)
+	err = repo.Fetch(&git.FetchOptions{
+		RemoteName: "origin",
+		RefSpecs:   []config.RefSpec{refSpec},
+		Depth:      1,
+		Force:      true,
+	})
+	if err != nil && err != git.NoErrAlreadyUpToDate {
+		// Fetch failed - remove and re-clone
 		if removeErr := os.RemoveAll(dir); removeErr != nil {
-			return fmt.Errorf("failed to remove dir for re-clone: %w (fetch error: %s)", removeErr, string(output))
+			return fmt.Errorf("failed to remove dir for re-clone: %w (fetch error: %v)", removeErr, err)
 		}
-		cmd = exec.Command("git", "clone", "--depth", "1", "--branch", branch, repoURL, dir)
-		output, err = cmd.CombinedOutput()
+		_, err = git.PlainClone(dir, false, &git.CloneOptions{
+			URL:           repoURL,
+			ReferenceName: refName,
+			SingleBranch:  true,
+			Depth:         1,
+		})
 		if err != nil {
-			return fmt.Errorf("git clone failed after fetch failure: %w\nOutput: %s", err, string(output))
+			return fmt.Errorf("git clone failed after fetch failure: %w", err)
 		}
 		return nil
 	}
 
-	cmd = exec.Command("git", "-C", dir, "reset", "--hard", "origin/"+branch)
-	output, err = cmd.CombinedOutput()
+	// Resolve origin/branch reference
+	ref, err := repo.Reference(plumbing.NewRemoteReferenceName("origin", branch), true)
 	if err != nil {
-		return fmt.Errorf("git reset failed: %w\nOutput: %s", err, string(output))
+		return fmt.Errorf("failed to resolve origin/%s: %w", branch, err)
+	}
+
+	w, err := repo.Worktree()
+	if err != nil {
+		return fmt.Errorf("failed to get worktree: %w", err)
+	}
+
+	err = w.Reset(&git.ResetOptions{
+		Commit: ref.Hash(),
+		Mode:   git.HardReset,
+	})
+	if err != nil {
+		return fmt.Errorf("git reset failed: %w", err)
 	}
 
 	return nil

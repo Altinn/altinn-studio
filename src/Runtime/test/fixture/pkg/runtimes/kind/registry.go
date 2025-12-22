@@ -6,7 +6,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+var isCI = os.Getenv("CI") != ""
 
 const (
 	registryName = "kind-registry"
@@ -210,19 +215,16 @@ func (r *KindContainerRuntime) configureRegistryInNodes() error {
 		return err
 	}
 
-	// Configure docker.io mirror
-	if err := r.configureRegistryMirror(nodes, "docker.io", registryDockerName, "https://registry-1.docker.io"); err != nil {
-		return err
-	}
-
-	// Configure registry.k8s.io mirror
-	if err := r.configureRegistryMirror(nodes, "registry.k8s.io", registryK8sName, "https://registry.k8s.io"); err != nil {
-		return err
-	}
-
-	// Configure ghcr.io mirror
-	if err := r.configureRegistryMirror(nodes, "ghcr.io", registryGhcrName, "https://ghcr.io"); err != nil {
-		return err
+	if !isCI {
+		if err := r.configureRegistryMirror(nodes, "docker.io", registryDockerName, "https://registry-1.docker.io"); err != nil {
+			return err
+		}
+		if err := r.configureRegistryMirror(nodes, "registry.k8s.io", registryK8sName, "https://registry.k8s.io"); err != nil {
+			return err
+		}
+		if err := r.configureRegistryMirror(nodes, "ghcr.io", registryGhcrName, "https://ghcr.io"); err != nil {
+			return err
+		}
 	}
 
 	fmt.Printf("✓ Configured registry mirrors in %d nodes\n", len(nodes))
@@ -267,18 +269,23 @@ func (r *KindContainerRuntime) configureRegistryMirror(nodes []string, registry,
 func (r *KindContainerRuntime) createRegistryConfigMap() (bool, error) {
 	fmt.Println("Creating local-registry-hosting ConfigMap...")
 
-	configMapYAML := fmt.Sprintf(`apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: local-registry-hosting
-  namespace: kube-public
-data:
-  localRegistryHosting.v1: |
-    host: "localhost:%s"
-    help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
-`, registryPort)
+	cm := &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "ConfigMap",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "local-registry-hosting",
+			Namespace: "kube-public",
+		},
+		Data: map[string]string{
+			"localRegistryHosting.v1": fmt.Sprintf(`host: "localhost:%s"
+help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
+`, registryPort),
+		},
+	}
 
-	output, err := r.KubernetesClient.ApplyManifest(configMapYAML)
+	output, err := r.KubernetesClient.ApplyObjects(cm)
 	if err != nil {
 		return false, fmt.Errorf("failed to create registry ConfigMap: %w", err)
 	}
@@ -310,9 +317,10 @@ func (r *KindContainerRuntime) startRegistry() error {
 		fmt.Printf("Registry %s already running\n", registryName)
 	}
 
-	// Start proxy registries for pull-through caching
-	if err := r.startProxyRegistries(); err != nil {
-		return fmt.Errorf("failed to start proxy registries: %w", err)
+	if !isCI {
+		if err := r.startProxyRegistries(); err != nil {
+			return fmt.Errorf("failed to start proxy registries: %w", err)
+		}
 	}
 
 	return nil
@@ -332,9 +340,10 @@ func (r *KindContainerRuntime) configureRegistry() error {
 		return err
 	}
 
-	// Connect proxy registries to kind network
-	if err := r.connectProxyRegistriesToKindNetwork(); err != nil {
-		return err
+	if !isCI {
+		if err := r.connectProxyRegistriesToKindNetwork(); err != nil {
+			return err
+		}
 	}
 
 	// Configure registry in kind nodes

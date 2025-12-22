@@ -12,15 +12,17 @@ import {
   codeList2Data,
   codeListDataList,
 } from '../../../test-data/codeListDataList';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils, Guard } from '@studio/pure-functions';
 import { label1ResourceNb, textResources } from '../../../test-data/textResources';
 import type { TextResource } from '../../../types/TextResource';
 import type { TextResourceWithLanguage } from '../../../types/TextResourceWithLanguage';
 
 const onCreateCodeList = jest.fn();
+const onCreateTextResource = jest.fn();
 const onDeleteCodeList = jest.fn();
 const onUpdateCodeListId = jest.fn();
 const onUpdateCodeList = jest.fn();
+const onUpdateTextResource = jest.fn();
 const onUploadCodeList = jest.fn();
 const defaultCodeListPageProps: CodeListsWithTextResourcesPageProps = {
   codeListDataList,
@@ -28,6 +30,8 @@ const defaultCodeListPageProps: CodeListsWithTextResourcesPageProps = {
   onUpdateCodeListId,
   onUpdateCodeList,
   onCreateCodeList,
+  onCreateTextResource,
+  onUpdateTextResource,
   onUploadCodeList,
   codeListsUsages: [],
   textResources,
@@ -182,13 +186,11 @@ describe('CodeListsWithTextResourcesPage', () => {
 
   it('Calls onUpdateTextResource with the new text resource and the default language when a text resource is changed', async () => {
     const user = userEvent.setup();
-    const onUpdateTextResource = jest.fn();
     const newLabel = 'Ny ledetekst';
 
     renderCodeListsWithTextResourcesPage({
       textResources,
-      codeListDataList: codeListDataList,
-      onUpdateTextResource,
+      codeListDataList,
     });
     const labelField = await openAndGetFirstLabelField(user, codeList1Data.title);
     await user.type(labelField, newLabel);
@@ -205,13 +207,11 @@ describe('CodeListsWithTextResourcesPage', () => {
 
   it('Calls onCreateTextResource with the new text resource and the default language when a text resource is added', async () => {
     const user = userEvent.setup();
-    const onCreateTextResource = jest.fn();
     const newDescription = 'Ny beskrivelse';
 
     renderCodeListsWithTextResourcesPage({
       textResources,
-      codeListDataList: codeListDataList,
-      onCreateTextResource,
+      codeListDataList,
     });
     const emptyDescriptionField = await openAndGetFirstDescriptionField(user, codeList2Data.title);
     await user.type(emptyDescriptionField, newDescription);
@@ -240,10 +240,9 @@ describe('CodeListsWithTextResourcesPage', () => {
 
   it('Calls onUpdateTextResource with the new text resource and the default language when a text resource is changed in the create dialog', async () => {
     const user = userEvent.setup();
-    const onUpdateTextResource = jest.fn();
     const newLabel = 'Ny ledetekst';
 
-    renderCodeListsWithTextResourcesPage({ textResources, onUpdateTextResource });
+    renderCodeListsWithTextResourcesPage({ textResources });
     const dialog = await openCreateDialog(user);
     await addCodeListItem(user, dialog);
     await openSearchModeForFirstLabel(user, dialog);
@@ -264,10 +263,9 @@ describe('CodeListsWithTextResourcesPage', () => {
 
   it('Calls onCreateTextResource with the new text resource and the default language when a text resource is added in the create dialog', async () => {
     const user = userEvent.setup();
-    const onCreateTextResource = jest.fn();
     const newLabel = 'Ny ledetekst';
 
-    renderCodeListsWithTextResourcesPage({ textResources, onCreateTextResource });
+    renderCodeListsWithTextResourcesPage({ textResources });
     const dialog = await openCreateDialog(user);
     await addCodeListItem(user, dialog);
     await user.type(getFirstLabelField(dialog), newLabel);
@@ -336,15 +334,18 @@ const getFirstDescriptionField = (area: HTMLElement): HTMLElement => {
   return within(area).getByRole('textbox', { name: descriptionFieldLabel });
 };
 
-const getCodeListDetails = (codeListTitle: string): HTMLElement =>
+const getCodeListDetails = (codeListTitle: string): HTMLElement => {
   // The following code accesses a node directly with parentElement. This is not recommended, hence the Eslint rule, but there is no other way to access the details element.
   // Todo: Use getByRole('group') when the role becomes correctly assigned to the component: https://github.com/digdir/designsystemet/issues/3941
-  getCodeListHeading(codeListTitle).parentElement; // eslint-disable-line testing-library/no-node-access
+  const { parentElement } = getCodeListHeading(codeListTitle); // eslint-disable-line testing-library/no-node-access
+  Guard.againstNull(parentElement);
+  return parentElement;
+};
 
 const getCodeListHeading = (codeListTitle: string): HTMLElement =>
   screen.getByRole('button', { name: codeListTitle });
 
-const queryCodeListHeading = (codeListTitle: string): HTMLElement =>
+const queryCodeListHeading = (codeListTitle: string): HTMLElement | null =>
   screen.queryByRole('button', { name: codeListTitle });
 
 const renderCodeListsWithTextResourcesPage = (
