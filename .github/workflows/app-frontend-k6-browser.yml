@@ -53,7 +53,7 @@ jobs:
       - name: Install bash and dependencies
         run: |
           apk update
-          apk add --no-cache bash curl docker docker-cli-compose
+          apk add --no-cache bash curl docker docker-cli-compose yarn
 
       - name: Test Docker setup
         run: |
