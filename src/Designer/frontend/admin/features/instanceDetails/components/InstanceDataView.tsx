@@ -1,22 +1,21 @@
 import { useAppInstanceDetailsQuery } from 'admin/hooks/queries/useAppInstanceDetailsQuery';
-import type { Instance } from 'admin/types/Instance';
 import {
   StudioField,
   StudioLabel,
   StudioSpinner,
   StudioDetails,
   StudioTag,
-  StudioLink,
   StudioError,
   StudioTabs,
 } from '@studio/components';
+import type { PropsWithChildren } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
-import { Button } from '@digdir/designsystemet-react';
-import { instanceDataElementPath } from 'admin/utils/apiPaths';
-import { ProcessHistory } from './ProcessHistory';
-import { InstanceEvents } from './InstanceEvents';
+// import { ProcessHistory } from './ProcessHistory';
+// import { InstanceEvents } from './InstanceEvents';
+import type { SimpleInstanceDetails } from 'admin/types/SimpleInstanceDetails';
+import { InstanceStatus } from 'admin/features/instances/components/InstanceStatus';
 
 type InstanceDataViewProps = {
   org: string;
@@ -40,22 +39,21 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
 };
 
 type InstanceDataViewWithDataProps = InstanceDataViewProps & {
-  instance: Instance;
+  instance: SimpleInstanceDetails;
 };
 
 enum InstanceDataViewTabs {
   Info = 'info',
-  DataModel = 'dataModel',
   Process = 'process',
   Events = 'events',
   Logs = 'logs',
 }
 
 const InstanceDataViewWithData = ({
-  org,
-  env,
-  app,
-  id,
+  // org,
+  // env,
+  // app,
+  // id,
   instance,
 }: InstanceDataViewWithDataProps) => {
   const { t } = useTranslation();
@@ -66,70 +64,55 @@ const InstanceDataViewWithData = ({
         <StudioTabs.Tab value={InstanceDataViewTabs.Info}>
           {t('Informasjon om instansen')}
         </StudioTabs.Tab>
-        <StudioTabs.Tab value={InstanceDataViewTabs.DataModel}>{t('Datamodeller')}</StudioTabs.Tab>
+        {/*
         <StudioTabs.Tab value={InstanceDataViewTabs.Process}>{t('Prosess')}</StudioTabs.Tab>
         <StudioTabs.Tab value={InstanceDataViewTabs.Events}>{t('Events')}</StudioTabs.Tab>
         <StudioTabs.Tab value={InstanceDataViewTabs.Logs}>{t('Logger')}</StudioTabs.Tab>
+           */}
       </StudioTabs.List>
       <StudioTabs.Panel value={InstanceDataViewTabs.Info}>
-        <LabelValue label={t('Instans ID')} value={instance.id} />
-        <LabelValue label={t('Opprettet')} value={formatDateAndTime(instance.created)} />
-        <LabelValue label={t('Opprettet av')} value={instance.createdBy} />
-        <LabelValue label={t('Sist endret')} value={formatDateAndTime(instance.lastChanged)} />
-        <LabelValue label={t('Sist endret av')} value={instance.lastChangedBy} />
-        {instance.instanceOwner.organisationNumber && (
-          <LabelValue label={t('Organisasjon')} value={instance.instanceOwner.organisationNumber} />
+        <LabelValue label={t('Instans ID')}>{instance.id}</LabelValue>
+        {(instance.currentTaskName || instance.currentTaskId) && (
+          <LabelValue label={t('Prosessteg')}>
+            {instance.currentTaskName ?? instance.currentTaskId}
+          </LabelValue>
         )}
-        {instance.instanceOwner.personNumber && (
-          <LabelValue label={t('Person')} value={instance.instanceOwner.personNumber} />
+        <LabelValue label={t('Status')}>{<InstanceStatus instance={instance} />}</LabelValue>
+        <LabelValue label={t('Opprettet')}>{formatDateAndTime(instance.createdAt)}</LabelValue>
+        <LabelValue label={t('Sist endret')}>
+          {formatDateAndTime(instance.lastChangedAt)}
+        </LabelValue>
+        {!!instance.data?.length && (
+          <LabelValue label={t('Dataelementer')}>
+            {instance.data?.map((dataElement) => (
+              <StudioDetails key={dataElement.id}>
+                <StudioDetails.Summary>
+                  {dataElement.id} <StudioTag>{dataElement.dataType}</StudioTag>
+                </StudioDetails.Summary>
+                <StudioDetails.Content>
+                  <LabelValue label={t('Data element ID')}>{dataElement.id}</LabelValue>
+                  <LabelValue label={t('Data type')}>{dataElement.dataType}</LabelValue>
+                  <LabelValue label={t('Opprettet')}>
+                    {formatDateAndTime(dataElement.createdAt)}
+                  </LabelValue>
+                  <LabelValue label={t('Sist endret')}>
+                    {formatDateAndTime(dataElement.lastChangedAt)}
+                  </LabelValue>
+                  <LabelValue label={t('Låst')}>{dataElement.locked ? 'Ja' : 'Nei'}</LabelValue>
+                  <LabelValue label={t('Størrelse')}>{dataElement.size / 1e3 + ' kb'}</LabelValue>
+                  <LabelValue label={t('Content type')}>{dataElement.contentType}</LabelValue>
+                  {dataElement.fileScanResult && dataElement.fileScanResult !== 'NotApplicable' && (
+                    <LabelValue label={t('File scan result')}>
+                      {dataElement.fileScanResult}
+                    </LabelValue>
+                  )}
+                </StudioDetails.Content>
+              </StudioDetails>
+            ))}
+          </LabelValue>
         )}
       </StudioTabs.Panel>
-      <StudioTabs.Panel value={InstanceDataViewTabs.DataModel}>
-        {instance.data.map((dataElement) => (
-          <StudioDetails key={dataElement.id}>
-            <StudioDetails.Summary>
-              {dataElement.id} <StudioTag>{dataElement.dataType}</StudioTag>
-            </StudioDetails.Summary>
-            <StudioDetails.Content>
-              <LabelValue label={t('Data element ID')} value={dataElement.id} />
-              <LabelValue label={t('Data type')} value={dataElement.dataType} />
-              <LabelValue label={t('Opprettet')} value={formatDateAndTime(dataElement.created)} />
-              <LabelValue label={t('Opprettet av')} value={dataElement.createdBy} />
-              <LabelValue
-                label={t('Sist endret')}
-                value={formatDateAndTime(dataElement.lastChanged)}
-              />
-              <LabelValue label={t('Sist endret av')} value={dataElement.lastChangedBy} />
-              <LabelValue label={t('Låst')} value={dataElement.locked ? 'Ja' : 'Nei'} />
-              {!!dataElement.tags?.length && (
-                <LabelValue label={t('Tagger')} value={dataElement.tags.join(', ')} />
-              )}
-              <LabelValue label={t('Størrelse')} value={dataElement.size / 1e3 + ' kb'} />
-              {dataElement.filename && (
-                <LabelValue label={t('Filnavn')} value={dataElement.filename} />
-              )}
-              <LabelValue label={t('Content type')} value={dataElement.contentType} />
-              {dataElement.fileScanResult && dataElement.fileScanResult !== 'NotApplicable' && (
-                <LabelValue label={t('File scan result')} value={dataElement.fileScanResult} />
-              )}
-              {dataElement.fileScanDetails && (
-                <LabelValue label={t('File scan details')} value={dataElement.fileScanDetails} />
-              )}
-              <Button asChild>
-                <StudioLink
-                  icon='☠️ '
-                  target='_blank'
-                  rel='noreferrer'
-                  href={instanceDataElementPath(org, env, app, id, dataElement.id)}
-                  style={{ color: 'white' }}
-                >
-                  Last ned innhold
-                </StudioLink>
-              </Button>
-            </StudioDetails.Content>
-          </StudioDetails>
-        ))}
-      </StudioTabs.Panel>
+      {/*
       <StudioTabs.Panel value={InstanceDataViewTabs.Process}>
         <ProcessHistory org={org} env={env} app={app} instanceId={id} />
       </StudioTabs.Panel>
@@ -137,17 +120,18 @@ const InstanceDataViewWithData = ({
         <InstanceEvents org={org} env={env} app={app} instanceId={id} />
       </StudioTabs.Panel>
       <StudioTabs.Panel value={InstanceDataViewTabs.Logs}></StudioTabs.Panel>
+        */}
     </StudioTabs>
   );
 };
 
-const LabelValue = ({ label, value }: { label: string; value: string }) => {
+const LabelValue = ({ label, children }: PropsWithChildren<{ label: string }>) => {
   const labelId = `label-${label}`;
   return (
     <StudioField>
       <StudioLabel id={labelId}>{label}</StudioLabel>
       <br />
-      <span aria-labelledby={labelId}>{value}</span>
+      <span aria-labelledby={labelId}>{children}</span>
     </StudioField>
   );
 };

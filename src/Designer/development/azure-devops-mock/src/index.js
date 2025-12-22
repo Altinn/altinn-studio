@@ -7,6 +7,7 @@ import {
   storageApplicationMetadataRoute,
   storageTextsRoute,
   storageInstancesRoute,
+  storageInstanceDetailsRoute,
 } from './routes/storage.js';
 import { environmentsRoute } from './routes/environments.js';
 import { appProcessRoute } from './routes/apps.js';
@@ -27,6 +28,7 @@ app.get('/apps/:org/:env/:org/:app/api/v1/meta/process', appProcessRoute);
 app.get('/storage/api/v1/applications/:org/:app', storageApplicationMetadataRoute);
 app.get('/storage/api/v1/applications/:org/:app/texts/:lang', storageTextsRoute);
 app.get('/storage/api/v1/studio/instances/:org/:app', storageInstancesRoute);
+app.get('/storage/api/v1/studio/instances/:org/:app/:instanceId', storageInstanceDetailsRoute);
 app.post('/_apis/build/builds/', buildsRoute);
 
 app.all('*', function (req, res) {

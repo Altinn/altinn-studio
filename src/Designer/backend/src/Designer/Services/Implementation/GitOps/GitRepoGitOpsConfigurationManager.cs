@@ -139,10 +139,8 @@ public class GitRepoGitOpsConfigurationManager(
         string repoName,
         AltinnEnvironment environment)
     {
-        string envKusomizationContent = await repository.ReadTextByRelativePathAsync(ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment.Name));
-
-        string expectedResourcePath = ManifestsPathHelper.EnvironmentManifests.KustomizationAppResource(repoName);
-        return envKusomizationContent.Contains(expectedResourcePath, StringComparison.InvariantCulture);
+        var existingApps = await GetExistingAppsFromEnvironmentKustomization(repository, environment);
+        return existingApps.Contains(AltinnRepoName.FromName(repoName));
     }
 
     public async Task AddAppToGitOpsConfigurationAsync(AltinnRepoEditingContext context, AltinnEnvironment environment)
