@@ -17,8 +17,8 @@ import { StudioDialog, StudioHeading, StudioButton, StudioTextfield } from '@stu
 
 export type CreateNewCodeListDialogProps = {
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
-  onCreateTextResource?: (textResource: TextResource) => void;
-  onUpdateTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource: (textResource: TextResource) => void;
+  onUpdateTextResource: (textResource: TextResource) => void;
   codeListNames: string[];
   textResources: TextResource[];
 };
@@ -75,8 +75,8 @@ type CreateNewCodeListProps = {
   codeList: CodeListWithTextResources;
   codeListNames: string[];
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
-  onCreateTextResource?: (textResource: TextResource) => void;
-  onUpdateTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource: (textResource: TextResource) => void;
+  onUpdateTextResource: (textResource: TextResource) => void;
   onCloseModal: () => void;
   textResources: TextResource[];
 };
