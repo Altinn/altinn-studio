@@ -26,50 +26,19 @@ export const SelectPropertyEditor = ({
   isSaveDisabled,
 }: SelectPropertyEditorProps) => {
   const [editMode, setEditMode] = useState(false);
+  const { t } = useTranslation();
 
-  if (editMode) {
+  if (!editMode) {
     return (
-      <SelectPropertyEditMode
-        setEditMode={setEditMode}
-        onSave={onSave}
-        onCancel={onCancel}
+      <StudioProperty.Button
+        onClick={() => setEditMode(true)}
+        property={property}
+        title={title}
+        value={value}
         className={className}
-        isSaveDisabled={isSaveDisabled}
-      >
-        {children}
-      </SelectPropertyEditMode>
+      />
     );
   }
-
-  return (
-    <StudioProperty.Button
-      onClick={() => setEditMode(true)}
-      property={property}
-      title={title}
-      value={value}
-      className={className}
-    />
-  );
-};
-
-type SelectPropertyEditModeProps = {
-  children: React.ReactNode;
-  setEditMode: (editMode: boolean) => void;
-  className?: string;
-  onSave: () => void;
-  onCancel: () => void;
-  isSaveDisabled: boolean;
-};
-
-const SelectPropertyEditMode = ({
-  children,
-  setEditMode,
-  className,
-  onSave,
-  onCancel,
-  isSaveDisabled,
-}: SelectPropertyEditModeProps) => {
-  const { t } = useTranslation();
 
   const handleSave = () => {
     setEditMode(false);
