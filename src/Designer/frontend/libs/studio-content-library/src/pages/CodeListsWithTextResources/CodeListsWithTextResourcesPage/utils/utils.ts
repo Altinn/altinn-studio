@@ -6,8 +6,8 @@ import type { TextResourceWithLanguage } from '../../../../types/TextResourceWit
 import { CodeListUsageTaskType } from '../../../../types/CodeListUsageTaskType';
 
 export const getCodeListSourcesById = (
-  codeListsUsages: CodeListReference[] | undefined,
-  codeListTitle: string,
+  codeListsUsages?: CodeListReference[],
+  codeListTitle?: string,
 ): CodeListIdSource[] => {
   const codeListUsages: CodeListReference | undefined = codeListsUsages?.find(
     (codeListUsage) => codeListUsage.codeListId === codeListTitle,

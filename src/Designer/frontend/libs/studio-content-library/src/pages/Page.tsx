@@ -1,12 +1,13 @@
 import type { PageName } from '../types/PageName';
 import React from 'react';
 import type { ComponentProps } from 'react';
-import type { PagePropsMap } from '../types/PagesProps';
+import type { PagePropsMap, PagesConfig } from '../types/PagesProps';
 import { useTranslation } from 'react-i18next';
 import { pageRouterQueryParamKey } from '../utils/router/QueryParamsRouter';
 import { StudioContentMenu } from '@studio/components';
 import { Link } from 'react-router-dom';
 import type { ContentLibraryConfig } from '../types/ContentLibraryConfig';
+import { Guard } from '@studio/pure-functions';
 
 export abstract class Page<Name extends PageName> {
   abstract readonly name: Name;
@@ -22,9 +23,9 @@ export abstract class Page<Name extends PageName> {
   }
 
   extractProps(config: ContentLibraryConfig): PagePropsMap<Name> {
-    /* istanbul ignore else */
-    if (config.pages[this.name]) return config.pages[this.name].props;
-    else throw new Error(`No configuration found for ${this.name}.`);
+    Guard.againstMissingProperty<PagesConfig, Name>(config.pages, this.name);
+    const pageConfig = config.pages[this.name] as Required<PagesConfig>[Name];
+    return pageConfig.props as PagePropsMap<Name>;
   }
 
   abstract renderPageComponent(props: PagePropsMap<Name>): React.ReactElement;

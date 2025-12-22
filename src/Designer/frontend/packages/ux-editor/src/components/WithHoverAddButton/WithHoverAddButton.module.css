@@ -1,3 +1,7 @@
 .hoverCallToAction {
   height: 0;
 }
+
+.lastChild {
+  margin-bottom: var(--ds-size-9);
+}
