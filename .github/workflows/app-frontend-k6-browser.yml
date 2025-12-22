@@ -54,6 +54,13 @@ jobs:
           run-localtest: true
           docker-profile: 'test-apps'
 
+      - name: Remove system Chrome
+        run: |
+          sudo apt-get remove -y google-chrome-stable || true
+          sudo apt-get autoremove -y
+          echo "Chrome removed, checking if still present..."
+          google-chrome --version || echo "Chrome successfully removed"
+
       - name: Setup k6 with browser support
         uses: grafana/setup-k6-action@ffe7d7290dfa715e48c2ccc924d068444c94bde2
         with:
