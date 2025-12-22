@@ -177,6 +177,7 @@ public class FullTests(ITestOutputHelper output)
         driver = driver.AddAdditionalTexts([
             new AdditionalTextImplementation(applicationMetadata, "C:\\temp\\config\\applicationmetadata.json"),
         ]);
+        driver = driver.WithUpdatedAnalyzerConfigOptions(new TestAnalyzerConfigOptionsProvider(isAltinnApp: true));
         var results = driver.RunGenerators(compilation);
 
         var runResult = results.GetRunResult();
