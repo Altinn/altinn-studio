@@ -45,13 +45,6 @@ runs:
 
         echo "profile-args=$profile_args" >> $GITHUB_OUTPUT
 
-    - name: Configure DNS for local.altinn.cloud
-      if: ${{ inputs.run-localtest == 'true' }}
-      run: |
-        echo "127.0.0.1 local.altinn.cloud" | sudo tee -a /etc/hosts
-        echo "Added local.altinn.cloud to /etc/hosts"
-      shell: bash
-
     - name: Set up Docker Buildx
       if: ${{ inputs.run-localtest == 'true' }}
       uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
