@@ -51,7 +51,7 @@ export const SelectPropertyEditor = ({
   };
 
   return (
-    <div className={cn(classes.viewMode, className)}>
+    <div className={cn(classes.editMode, className)}>
       <div className={classes.selectProperty}>{children}</div>
       <StudioFormActions
         className={classes.actionButtons}
