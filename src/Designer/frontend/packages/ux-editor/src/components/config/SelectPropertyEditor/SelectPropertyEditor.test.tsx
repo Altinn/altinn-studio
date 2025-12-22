@@ -17,12 +17,12 @@ describe('SelectPropertyEditor', () => {
     expect(screen.getByText('Test children')).toBeInTheDocument();
   });
 
-  it('should hide the children when the close button is clicked', async () => {
+  it('should hide the children when the cancel button is clicked', async () => {
     const user = userEvent.setup();
     renderSelectPropertyEditor();
     await user.click(screen.getByText('Test property'));
     expect(screen.getByText('Test children')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+    await user.click(screen.getByRole('button', { name: textMock('general.cancel') }));
     expect(screen.queryByText('Test children')).not.toBeInTheDocument();
   });
 
