@@ -21,7 +21,8 @@ export class UiEditorPage extends BasePage {
   }
 
   public async verifyUiEditorPage(layoutSet?: string, layout?: string | null): Promise<void> {
-    const baseRoute = this.getRoute('editorUi');
+    const baseRoute =
+      layoutSet !== undefined ? `/${this.org}/${this.app}/ui-editor` : this.getRoute('editorUi');
     const pageUrl = new URL(
       baseRoute + (layoutSet ? `/layoutSet/${layoutSet}` : ''),
       this.page.url(),
