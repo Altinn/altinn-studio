@@ -4,9 +4,9 @@ import { PencilWritingIcon } from '@studio/icons';
 import { StudioButton, StudioRedirectBox } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
-import getLayoutSetPath from '@altinn/ux-editor/utils/routeUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Link } from 'react-router-dom';
+import { useLayoutSetPath } from 'app-shared/hooks/queries/useLayoutSetPath';
 
 export const RedirectToCreatePageButton = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -19,7 +19,7 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
         title={t('process_editor.configuration_panel_custom_receipt_navigate_to_design_title')}
       >
         <StudioButton variant='tertiary' icon={<PencilWritingIcon />}>
-          <Link to={getLayoutSetPath(org, app, existingCustomReceiptLayoutSetId)}>
+          <Link to={useLayoutSetPath(org, app, existingCustomReceiptLayoutSetId)}>
             {t('process_editor.configuration_panel_custom_receipt_navigate_to_design_link')}
           </Link>
         </StudioButton>

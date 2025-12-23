@@ -18,7 +18,7 @@ import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSe
 import { getLayoutSetIdForTask, isDefaultReceiptTask } from '../Settings/SettingsUtils';
 import { EditNameAction } from './EditNameAction';
 import { Link } from 'react-router-dom';
-import getLayoutSetPath from '../../utils/routeUtils';
+import { useLayoutSetPath } from 'app-shared/hooks/queries/useLayoutSetPath';
 
 export type TaskActionProps = {
   task: TaskNavigationGroup;
@@ -38,6 +38,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
   const { mutate: updateTaskNavigationGroup } = useTaskNavigationGroupMutation(org, app);
   const { data: taskNavigationGroups } = useTaskNavigationGroupQuery(org, app);
   const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
+  const layoutSetPath = useLayoutSetPath(org, app, getLayoutSetIdForTask(task, layoutSets));
   const [isOpen, setIsOpen] = React.useState(false);
 
   const addTaskToNavigationGroup = () => {
@@ -123,9 +124,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
               icon={<ArrowRightIcon />}
               disabled={isDefaultReceiptTask(task, layoutSets)}
             >
-              <Link to={getLayoutSetPath(org, app, getLayoutSetIdForTask(task, layoutSets))}>
-                {t('ux_editor.task_table.menu_task_redirect')}
-              </Link>
+              <Link to={layoutSetPath}>{t('ux_editor.task_table.menu_task_redirect')}</Link>
             </StudioButton>
           </div>
         )}

@@ -13,6 +13,9 @@ import {
 import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const invalidFormatLayoutSetName: string = 'Receipt/';
 const emptyLayoutSetName: string = '';
@@ -171,15 +174,18 @@ describe('CustomReceipt', () => {
 });
 
 const renderCustomReceipt = (bpmnApiContextProps: Partial<BpmnApiContextProps> = {}) => {
+  const queryClient = createQueryClientMock();
   return render(
     <TestAppRouter>
-      <BpmnApiContext.Provider value={{ ...defaultBpmnContextProps, ...bpmnApiContextProps }}>
-        <BpmnContext.Provider value={mockBpmnContextValue}>
-          <BpmnConfigPanelFormContextProvider>
-            <CustomReceipt />
-          </BpmnConfigPanelFormContextProvider>
-        </BpmnContext.Provider>
-      </BpmnApiContext.Provider>
+      <ServicesContextProvider {...queriesMock} client={queryClient}>
+        <BpmnApiContext.Provider value={{ ...defaultBpmnContextProps, ...bpmnApiContextProps }}>
+          <BpmnContext.Provider value={mockBpmnContextValue}>
+            <BpmnConfigPanelFormContextProvider>
+              <CustomReceipt />
+            </BpmnConfigPanelFormContextProvider>
+          </BpmnContext.Provider>
+        </BpmnApiContext.Provider>
+      </ServicesContextProvider>
     </TestAppRouter>,
   );
 };

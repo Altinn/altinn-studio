@@ -8,7 +8,9 @@ export const useLayoutSetPath = (org, app, layoutSetId: string) => {
 
   if (!pagesQueryPending && pagesModel) {
     const page1 = findFirstPage(pagesModel);
-    return `/${org}/${app}/ui-editor/layoutSet/${layoutSetId}?layout=${page1}`;
+    if (page1) {
+      return `/${org}/${app}/ui-editor/layoutSet/${layoutSetId}?layout=${page1}`;
+    }
   }
 
   return `/${org}/${app}/ui-editor/layoutSet/${layoutSetId}`;
