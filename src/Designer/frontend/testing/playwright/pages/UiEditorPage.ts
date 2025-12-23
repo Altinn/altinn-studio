@@ -21,14 +21,20 @@ export class UiEditorPage extends BasePage {
   }
 
   public async verifyUiEditorPage(layoutSet?: string, layout?: string | null): Promise<void> {
-    const baseRoute =
-      layoutSet !== undefined ? `/${this.org}/${this.app}/ui-editor` : this.getRoute('editorUi');
-    const pageUrl = new URL(
-      baseRoute + (layoutSet ? `/layoutSet/${layoutSet}` : ''),
-      this.page.url(),
-    );
-    if (layout) pageUrl.searchParams.append('layout', layout);
-    await this.page.waitForURL(pageUrl.toString());
+    const baseRoute = this.getRoute('editorUi');
+    if (!layoutSet) {
+      await this.page.waitForURL(baseRoute);
+      return;
+    }
+    const routeWithLayoutSet = `${baseRoute}/layoutSet/${layoutSet}`;
+    if (layout) {
+      const pageUrl = new URL(routeWithLayoutSet, this.page.url());
+      pageUrl.searchParams.append('layout', layout);
+      await this.page.waitForURL(pageUrl.toString());
+      return;
+    }
+    const escapedRoute = routeWithLayoutSet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    await this.page.waitForURL(new RegExp(`^${escapedRoute}(\\?.*)?$`));
   }
 
   public async clickOnPageAccordion(pageName: string): Promise<void> {
