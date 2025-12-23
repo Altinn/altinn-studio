@@ -33,8 +33,7 @@ export class UiEditorPage extends BasePage {
       await this.page.waitForURL(pageUrl.toString());
       return;
     }
-    const escapedRoute = routeWithLayoutSet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    await this.page.waitForURL(new RegExp(`^${escapedRoute}(\\?.*)?$`));
+    await this.page.waitForURL(routeWithLayoutSet);
   }
 
   public async clickOnPageAccordion(pageName: string): Promise<void> {
