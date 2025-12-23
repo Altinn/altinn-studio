@@ -31,7 +31,7 @@ export class UiEditorPage extends BasePage {
       const escapedRoute = routeWithLayoutSet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const escapedLayout = layout.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const urlPattern = new RegExp(`^${escapedRoute}(\\?layout=${escapedLayout})?$`);
-      await this.page.waitForURL(urlPattern);
+      await expect(this.page).toHaveURL(urlPattern);
       return;
     }
     await expect(this.page).toHaveURL(routeWithLayoutSet);
