@@ -47,6 +47,9 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
+      - name: Mask system Chrome
+        run: sudo mv /usr/bin/google-chrome /usr/bin/google-chrome-backup || true
+
       - name: Setup k6 with browser support
         uses: grafana/setup-k6-action@ffe7d7290dfa715e48c2ccc924d068444c94bde2
         with:
