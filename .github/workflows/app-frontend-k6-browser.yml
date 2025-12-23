@@ -54,7 +54,7 @@ jobs:
         uses: grafana/setup-k6-action@ffe7d7290dfa715e48c2ccc924d068444c94bde2
         with:
           browser: true
-          k6-version: '1.3.0'
+          k6-version: '1.4.2'
 
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
@@ -86,7 +86,7 @@ jobs:
           debug: true
         env:
           K6_BROWSER_HEADLESS: 'true'
-          K6_BROWSER_ARGS: '--no-sandbox --disable-features=VizDisplayCompositor --host-resolver-rules="MAP local.altinn.cloud 127.0.0.1"'
+          K6_BROWSER_ARGS: '--no-sandbox --disable-features=VizDisplayCompositor --host-resolver-rules="MAP local.altinn.cloud 127.0.0.1" --enable-logging=stderr --v=2'
           K6_BROWSER_DEBUG: 'true'
 
       # - name: Run k6 browser test
