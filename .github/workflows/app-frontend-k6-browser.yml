@@ -71,5 +71,5 @@ jobs:
       - name: Run k6 browser test
         run: k6 run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
         timeout-minutes: 10
-        env:
-          K6_BROWSER_ARGS: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer --disable-blink-features=ComputePressure'
+        # env:
+        #   K6_BROWSER_ARGS: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer --disable-blink-features=ComputePressure'
