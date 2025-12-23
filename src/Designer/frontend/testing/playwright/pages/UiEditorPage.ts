@@ -23,17 +23,16 @@ export class UiEditorPage extends BasePage {
   public async verifyUiEditorPage(layoutSet?: string, layout?: string | null): Promise<void> {
     const baseRoute = this.getRoute('editorUi');
     if (!layoutSet) {
-      await this.page.waitForURL(baseRoute);
+      await expect(this.page).toHaveURL(baseRoute);
       return;
     }
     const routeWithLayoutSet = `${baseRoute}/layoutSet/${layoutSet}`;
     if (layout) {
-      const pageUrl = new URL(routeWithLayoutSet, this.page.url());
-      pageUrl.searchParams.append('layout', layout);
-      await this.page.waitForURL(pageUrl.toString());
+      const expectedUrl = `${routeWithLayoutSet}?layout=${layout}`;
+      await expect(this.page).toHaveURL(expectedUrl);
       return;
     }
-    await this.page.waitForURL(routeWithLayoutSet);
+    await expect(this.page).toHaveURL(routeWithLayoutSet);
   }
 
   public async clickOnPageAccordion(pageName: string): Promise<void> {
