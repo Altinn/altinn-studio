@@ -71,6 +71,8 @@ jobs:
           curl -v http://localhost:5101/ || echo "Failed to connect to localhost:5101"
           echo "Testing DNS resolution of local.altinn.cloud..."
           nslookup local.altinn.cloud || echo "DNS lookup failed"
+          echo "Testing connectivity to local.altinn.cloud..."
+          curl -v http://local.altinn.cloud/ || echo "Failed to connect to local.altinn.cloud"
 
       - name: Check RAM usage
         run: free -h
