@@ -71,11 +71,11 @@ jobs:
 
       - name: Run k6 browser test
         run: |
-          docker run --rm --network host \
+          docker run --rm --network host --privileged \
             -v ${{ github.workspace }}:/github/workspace \
             -w /github/workspace \
             -e K6_BROWSER_HEADLESS=true \
             -e "K6_BROWSER_ARGS=--no-sandbox --host-resolver-rules=\"MAP local.altinn.cloud 127.0.0.1\"" \
             grafana/k6:master-with-browser \
-            run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
+            sh -c "mkdir -p /sys/devices/system/cpu/cpu0/cpufreq && echo 2000000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq && echo 2000000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq && k6 run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts"
         timeout-minutes: 10
