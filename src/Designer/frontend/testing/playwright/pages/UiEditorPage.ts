@@ -28,8 +28,10 @@ export class UiEditorPage extends BasePage {
     }
     const routeWithLayoutSet = `${baseRoute}/layoutSet/${layoutSet}`;
     if (layout) {
-      const expectedUrl = `${routeWithLayoutSet}?layout=${layout}`;
-      await expect(this.page).toHaveURL(expectedUrl);
+      const escapedRoute = routeWithLayoutSet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedLayout = layout.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const urlPattern = new RegExp(`^${escapedRoute}(\\?layout=${escapedLayout})?$`);
+      await this.page.waitForURL(urlPattern);
       return;
     }
     await expect(this.page).toHaveURL(routeWithLayoutSet);
