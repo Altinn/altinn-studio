@@ -11,7 +11,6 @@ module.exports = {
   ci: {
     collect: {
       headful: false,
-      startServerCommand: 'yarn run serve 8080',
       url: [`${BASE_URL}/${APP_PATH}/#/`],
       startServerReadyPattern: 'Available on:\\n\\s*http://127\\.0\\.0\\.1:8080',
       puppeteerScript: './scripts/lighthouse/puppeteer-script.js',
