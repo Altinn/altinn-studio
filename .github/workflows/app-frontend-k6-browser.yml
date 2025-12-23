@@ -68,9 +68,14 @@ jobs:
           echo "Testing DNS resolution of local.altinn.cloud..."
           nslookup local.altinn.cloud || echo "DNS lookup failed"
 
+      - name: Check RAM usage
+        run: free -h
+
       - name: Run k6 browser test
         run: xvfb-run --auto-servernum k6 run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
         timeout-minutes: 10
         env:
           K6_LOG_LEVEL: debug
+          K6_BROWSER_HEADLESS: 'true'
+          K6_BROWSER_IGNORE_DEFAULT_ARGS: 'headless'
           K6_BROWSER_ARGS: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --headless=new --disable-web-security --disable-software-rasterizer'
