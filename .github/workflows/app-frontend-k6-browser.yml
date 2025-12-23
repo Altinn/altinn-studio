@@ -81,6 +81,8 @@ jobs:
           path: |
             ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
           debug: true
+        env:
+          K6_BROWSER_ARGS: '--no-sandbox --host-resolver-rules="MAP local.altinn.cloud 127.0.0.1"'
 
       # - name: Run k6 browser test
       #   run: xvfb-run --auto-servernum k6 run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
