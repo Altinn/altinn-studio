@@ -74,6 +74,10 @@ jobs:
       - name: Check RAM usage
         run: free -h
 
+      - name: Look for/create frequency scaling files
+        run: |
+          bash .github/scripts/look_for_freq_scaling_files.sh
+
       - name: Run k6 browser test
         uses: grafana/run-k6-action@a15e2072ede004e8d46141e33d7f7dad8ad08d9d
         timeout-minutes: 10
