@@ -77,6 +77,20 @@ jobs:
       - name: Check RAM usage
         run: free -h
 
+      - name: Create CPU frequency files for k6
+        run: |
+          docker run --rm --privileged -v /sys:/host-sys alpine sh -c "
+            mkdir -p /host-sys/devices/system/cpu/cpu0/cpufreq &&
+            echo '2000000' > /host-sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq &&
+            echo '2000000' > /host-sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq &&
+            chmod 644 /host-sys/devices/system/cpu/cpu0/cpufreq/*
+          "
+
+      - name: Verify files created
+        run: |
+          ls -la /sys/devices/system/cpu/cpu0/cpufreq/ || echo "Still missing"
+          cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq || echo "Can't read file"
+
       - name: Run k6 browser test
         uses: grafana/run-k6-action@a15e2072ede004e8d46141e33d7f7dad8ad08d9d
         timeout-minutes: 10
