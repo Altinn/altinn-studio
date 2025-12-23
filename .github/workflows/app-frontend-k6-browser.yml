@@ -73,4 +73,4 @@ jobs:
         timeout-minutes: 10
         env:
           K6_LOG_LEVEL: debug
-          K6_BROWSER_ARGS: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --headless=new'
+          K6_BROWSER_ARGS: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --headless=new --disable-web-security --disable-software-rasterizer'
