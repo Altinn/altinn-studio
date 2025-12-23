@@ -69,7 +69,7 @@ jobs:
           nslookup local.altinn.cloud || echo "DNS lookup failed"
 
       - name: Run k6 browser test
-        run: k6 run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
+        run: xvfb-run k6 run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
         timeout-minutes: 10
         env:
           K6_BROWSER_IGNORE_DEFAULT_ARGS: 'headless'
