@@ -12,6 +12,7 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { existingCustomReceiptLayoutSetId } = useBpmnApiContext();
+  const layoutSetPath = useLayoutSetPath(org, app, existingCustomReceiptLayoutSetId);
 
   return (
     <div className={classes.goToCreatePageWrapper}>
@@ -19,7 +20,7 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
         title={t('process_editor.configuration_panel_custom_receipt_navigate_to_design_title')}
       >
         <StudioButton variant='tertiary' icon={<PencilWritingIcon />}>
-          <Link to={useLayoutSetPath(org, app, existingCustomReceiptLayoutSetId)}>
+          <Link to={layoutSetPath}>
             {t('process_editor.configuration_panel_custom_receipt_navigate_to_design_link')}
           </Link>
         </StudioButton>
