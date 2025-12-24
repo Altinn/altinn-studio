@@ -38,7 +38,13 @@ export class UiEditorPage extends BasePage {
   }
 
   public async clickOnPageAccordion(pageName: string): Promise<void> {
-    await this.page.getByRole('button', { name: pageName, exact: true }).click();
+    const urlObj = new URL(this.page.url());
+    const layoutParam = urlObj.searchParams.get('layout');
+    const isAlreadyOpen = layoutParam === pageName;
+
+    if (!isAlreadyOpen) {
+      await this.page.getByRole('button', { name: pageName, exact: true }).click();
+    }
   }
 
   public async clickOnComponentTextConfigAccordion(): Promise<void> {
