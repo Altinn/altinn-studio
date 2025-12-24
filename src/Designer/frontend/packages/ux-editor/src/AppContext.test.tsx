@@ -13,6 +13,15 @@ import { layout1NameMock } from './testing/layoutMock';
 import { app, layoutSet, org } from '@studio/testing/testids';
 import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
 import { AppRouter } from './testing/mocks';
+import { useSearchParams } from 'react-router-dom';
+import { ItemType } from './components/Properties/ItemType';
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useSearchParams: jest.fn(),
+}));
+
+const mockUseSearchParams = useSearchParams as unknown as jest.Mock;
 
 const mockSelectedFormLayoutSetName = layoutSet;
 const mockSelectedFormLayoutName = layout1NameMock;
@@ -91,24 +100,86 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
 };
 
 describe('AppContext', () => {
+  beforeEach(() => {
+    mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()]);
+  });
+
   afterEach(jest.clearAllMocks);
 
   it('sets selectedFormLayoutName correctly', async () => {
+    const setSearchParamsMock = jest.fn();
+    mockUseSearchParams.mockReturnValue([new URLSearchParams(), setSearchParamsMock]);
     renderAppContext(({ selectedFormLayoutName, setSelectedFormLayoutName }: AppContextProps) => (
       <>
         <Button onClick={() => setSelectedFormLayoutName(mockSelectedFormLayoutName)} />
         <div data-testid='selectedFormLayoutName'>{selectedFormLayoutName}</div>
       </>
     ));
-
-    expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual('');
-
     await clickButton();
+    await waitFor(() => expect(setSearchParamsMock).toHaveBeenCalledTimes(1));
+  });
 
+  it('sets selectedItem from layout query parameter when no override is set', async () => {
+    const layoutFromUrl = 'Side1';
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams(`layout=${layoutFromUrl}`),
+      jest.fn(),
+    ]);
+    renderAppContext(({ selectedItem }: AppContextProps) => (
+      <div data-testid='selectedItemId'>{selectedItem ? selectedItem.id : ''}</div>
+    ));
     await waitFor(async () =>
-      expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual(
-        mockSelectedFormLayoutName,
-      ),
+      expect((await screen.findByTestId('selectedItemId')).textContent).toEqual(layoutFromUrl),
+    );
+  });
+
+  it('gives priority to component selection over layout query parameter', async () => {
+    const layoutFromUrl = 'Side1';
+    const componentId = 'component-1';
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams(`layout=${layoutFromUrl}`),
+      jest.fn(),
+    ]);
+    renderAppContext(({ selectedItem, setSelectedItem }: AppContextProps) => (
+      <>
+        <Button
+          onClick={() =>
+            setSelectedItem({
+              type: ItemType.Component,
+              id: componentId,
+            })
+          }
+        />
+        <div data-testid='selectedItemId'>{selectedItem ? selectedItem.id : ''}</div>
+      </>
+    ));
+    expect((await screen.findByTestId('selectedItemId')).textContent).toEqual(layoutFromUrl);
+    await clickButton();
+    await waitFor(async () =>
+      expect((await screen.findByTestId('selectedItemId')).textContent).toEqual(componentId),
+    );
+  });
+
+  it('uses page override when no layout query parameter is set', async () => {
+    const pageId = 'override-page';
+    mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()]);
+    renderAppContext(({ selectedItem, setSelectedItem }: AppContextProps) => (
+      <>
+        <Button
+          onClick={() =>
+            setSelectedItem({
+              type: ItemType.Page,
+              id: pageId,
+            })
+          }
+        />
+        <div data-testid='selectedItemId'>{selectedItem ? selectedItem.id : ''}</div>
+      </>
+    ));
+    expect((await screen.findByTestId('selectedItemId')).textContent).toEqual('');
+    await clickButton();
+    await waitFor(async () =>
+      expect((await screen.findByTestId('selectedItemId')).textContent).toEqual(pageId),
     );
   });
 
