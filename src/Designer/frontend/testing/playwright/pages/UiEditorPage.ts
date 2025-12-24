@@ -28,13 +28,13 @@ export class UiEditorPage extends BasePage {
     }
     const routeWithLayoutSet = `${baseRoute}/layoutSet/${layoutSet}`;
     if (layout) {
-      const escapedRoute = routeWithLayoutSet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const escapedLayout = layout.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const urlPattern = new RegExp(`^${escapedRoute}(\\?layout=${escapedLayout})?$`);
-      await expect(this.page).toHaveURL(urlPattern);
+      const expectedUrl = `${routeWithLayoutSet}?layout=${layout}`;
+      await expect(this.page).toHaveURL(expectedUrl);
       return;
     }
-    await expect(this.page).toHaveURL(routeWithLayoutSet);
+    const escapedRoute = routeWithLayoutSet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const urlPattern = new RegExp(`^${escapedRoute}(\\?layout=[^&]+)?$`);
+    await expect(this.page).toHaveURL(urlPattern);
   }
 
   public async clickOnPageAccordion(pageName: string): Promise<void> {
