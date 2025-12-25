@@ -1,6 +1,6 @@
 {
   "name": "@studio/browser-storage",
-  "packageManager": "yarn@4.9.4",
+  "packageManager": "yarn@4.12.0",
   "version": "0.1.0",
   "main": "./src/index.ts",
   "scripts": {
