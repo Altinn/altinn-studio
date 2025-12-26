@@ -7,55 +7,40 @@ import {
   StudioHeading,
   StudioAlert,
 } from '@studio/components';
-import { useCheckoutBranchMutation } from '../../hooks/mutations/useCheckoutBranchMutation';
-import { useDiscardChangesMutation } from '../../hooks/mutations/useDiscardChangesMutation';
 import type { UncommittedChangesError } from '../../types/api/BranchTypes';
 import classes from './UncommittedChangesDialog.module.css';
 
 export interface UncommittedChangesDialogProps {
+  isOpen: boolean;
   error: UncommittedChangesError;
-  targetBranch: string;
   onClose: () => void;
-  org: string;
-  app: string;
+  onDiscardAndSwitch: (targetBranch: string) => void;
+  isLoading: boolean;
 }
 
 export const UncommittedChangesDialog = ({
+  isOpen,
   error,
-  targetBranch,
   onClose,
-  org,
-  app,
+  onDiscardAndSwitch,
+  isLoading,
 }: UncommittedChangesDialogProps) => {
   const { t } = useTranslation();
-
-  const discardMutation = useDiscardChangesMutation(org, app, {
-    onSuccess: () => {
-      checkoutMutation.mutate(targetBranch);
-    },
-  });
-
-  const checkoutMutation = useCheckoutBranchMutation(org, app, {
-    onSuccess: () => {
-      location.reload();
-    },
-  });
 
   const handleDiscardAndSwitch = () => {
     if (!window.confirm(t('branching.uncommitted_changes_dialog.confirm_discard'))) {
       return;
     }
 
-    discardMutation.mutate();
+    onDiscardAndSwitch(error.targetBranch);
   };
 
-  const isProcessing = discardMutation.isPending || checkoutMutation.isPending;
-  const discardButtonText = isProcessing
+  const discardButtonText = isLoading
     ? t('branching.uncommitted_changes_dialog.discarding')
     : t('branching.uncommitted_changes_dialog.discard_and_switch');
 
   return (
-    <StudioDialog open={true} onClose={onClose} data-color-scheme='light'>
+    <StudioDialog open={isOpen} onClose={onClose} data-color-scheme='light'>
       <StudioDialog.Block>
         <StudioHeading>{t('branching.uncommitted_changes_dialog.heading')}</StudioHeading>
       </StudioDialog.Block>
@@ -63,7 +48,7 @@ export const UncommittedChangesDialog = ({
         <StudioAlert data-color='warning'>
           <Trans
             i18nKey='branching.uncommitted_changes_dialog.alert'
-            values={{ currentBranch: error.currentBranch, targetBranch }}
+            values={{ currentBranch: error.currentBranch, targetBranch: error.targetBranch }}
             components={{ strong: <strong /> }}
             shouldUnescape
           />
@@ -92,7 +77,7 @@ export const UncommittedChangesDialog = ({
             variant='secondary'
             color='danger'
             onClick={handleDiscardAndSwitch}
-            disabled={isProcessing}
+            disabled={isLoading}
           >
             {discardButtonText}
           </StudioButton>
