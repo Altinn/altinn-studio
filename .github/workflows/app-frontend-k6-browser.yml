@@ -71,6 +71,7 @@ jobs:
       - name: Run k6 browser test
         run: |
           docker run --rm --network host --privileged \
+            --user $(id -u):$(id -g) \
             -v ${{ github.workspace }}:/github/workspace \
             -w /github/workspace \
             -e K6_BROWSER_HEADLESS=true \
