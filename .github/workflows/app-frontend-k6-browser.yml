@@ -68,6 +68,9 @@ jobs:
       - name: Check RAM usage
         run: free -h
 
+      - name: Create screenshots directory
+        run: sudo mkdir -p screenshots && sudo chown runner:runner screenshots && chmod 755 screenshots
+
       - name: Run k6 browser test
         run: |
           docker run --rm --network host --privileged \
