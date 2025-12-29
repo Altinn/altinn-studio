@@ -77,6 +77,7 @@ jobs:
             -e K6_NO_USAGE_REPORT=true \
             -e K6_QUIET=true \
             -e K6_NO_SUMMARY=true \
+            --entrypoint sh \
             grafana/k6:master-with-browser \
             -c "mkdir -p screenshots && k6 run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts"
         timeout-minutes: 10
