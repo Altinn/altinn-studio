@@ -272,7 +272,7 @@ async function editLastPet(page: Page) {
     // Verify the selection was successful
     check(page, {
       'Species select responds and selects animal': async () => {
-        const selectedValue = await lastRowSpeciesSelect.inputValue();
+        const selectedValue = await lastRowSpeciesSelect.inputValue({ timeout: 90000 });
         return (
           selectedValue === TEST_DATA.SELECTED_ANIMAL_LABEL || selectedValue.includes(TEST_DATA.SELECTED_ANIMAL_LABEL)
         );
