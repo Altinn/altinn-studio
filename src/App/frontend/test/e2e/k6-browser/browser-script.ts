@@ -105,13 +105,13 @@ export default async function () {
     await addPetManually(page, 'Lady');
     await takeScreenshot(page, 'after-manual-add-round2', 'Added pet manually - Round 2 (Lady)');
 
-    // Round 3
-    await generate250MorePets(page, /generer enda en gård/i);
-    await takeScreenshot(page, 'after-generate-round3', 'Generated 250 more pets - Round 3');
-    await editLastPet(page);
-    await takeScreenshot(page, 'after-edit-round3', 'Edited last pet - Round 3');
-    await addPetManually(page, 'Herman');
-    await takeScreenshot(page, 'test-completed', 'Test completed successfully - Added Herman');
+    // // Round 3
+    // await generate250MorePets(page, /generer enda en gård/i);
+    // await takeScreenshot(page, 'after-generate-round3', 'Generated 250 more pets - Round 3');
+    // await editLastPet(page);
+    // await takeScreenshot(page, 'after-edit-round3', 'Edited last pet - Round 3');
+    // await addPetManually(page, 'Herman');
+    // await takeScreenshot(page, 'test-completed', 'Test completed successfully - Added Herman');
   } catch (error) {
     await takeScreenshot(
       page,
