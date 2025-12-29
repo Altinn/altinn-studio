@@ -106,5 +106,5 @@ jobs:
         if: always()
         with:
           name: k6-browser-screenshots
-          path: /github/workspace/screenshots/
+          path: screenshots
           retention-days: 30
