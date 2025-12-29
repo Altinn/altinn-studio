@@ -71,9 +71,19 @@ jobs:
       - name: Create screenshots directory
         run: sudo mkdir -p screenshots && sudo chown runner:runner screenshots && chmod 755 screenshots
 
+      - name: Debug container user and permissions
+        run: |
+          docker run --rm --network host --privileged \
+            -v ${{ github.workspace }}:/github/workspace \
+            -w /github/workspace \
+            --entrypoint="" \
+            grafana/k6:master-with-browser \
+            sh -c "whoami && id && ls -la screenshots/"
+
       - name: Run k6 browser test
         run: |
           docker run --rm --network host --privileged \
+            --user $(id -u):$(id -g) \
             -v ${{ github.workspace }}:/github/workspace \
             -w /github/workspace \
             -e K6_BROWSER_HEADLESS=true \
