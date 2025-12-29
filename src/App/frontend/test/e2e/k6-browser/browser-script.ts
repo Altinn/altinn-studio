@@ -156,9 +156,16 @@ async function localtestLogin(page: Page) {
     });
 
     await page.getByRole('button', { name: /proceed to app/i }).click();
-    await page.waitForNavigation();
 
-    if ((await page.getByRole('heading', { level: 2 }).textContent()) === MESSAGES.RESTART_FORM) {
+    await page.waitForNavigation();
+    await page.getByText('Vent litt').waitFor({ state: 'detached' });
+
+    const restartFormHeaderIsVisible = await page
+      .getByRole('heading', { level: 2, name: MESSAGES.RESTART_FORM })
+      .isVisible()
+      .catch(() => false);
+
+    if (restartFormHeaderIsVisible) {
       await page.getByRole('button', { name: /start på nytt/i }).click();
     }
   } catch (error) {
