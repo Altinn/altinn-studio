@@ -7,6 +7,7 @@ import { Trend } from 'k6/metrics';
 import { Options } from 'k6/options';
 
 const BASE_URL = __ENV.BASE_URL || 'http://local.altinn.cloud';
+const SCREENSHOTS_DIR = '/screenshots';
 
 // Test data constants
 const TEST_DATA = {
@@ -51,6 +52,22 @@ const speciesSelectOpenTimeMetric = new Trend('species_select_open_time', true);
 const speciesSelectTotalTimeMetric = new Trend('species_select_total_time', true);
 const manualRowAdditionTimeMetric = new Trend('manual_row_addition_time', true);
 
+function takeScreenshot(page: Page, name: string, description?: string): void {
+  try {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `${timestamp}_${name}.png`;
+
+    page.screenshot({
+      path: `${SCREENSHOTS_DIR}/${filename}`,
+      fullPage: true,
+    });
+
+    console.log(`Screenshot saved: ${filename}${description ? ` - ${description}` : ''}`);
+  } catch (error) {
+    console.log(`Failed to take screenshot ${name}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
 export function setup() {
   let res = http.get(BASE_URL);
   if (res.status !== 200) {
@@ -64,26 +81,43 @@ export default async function () {
   try {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto(BASE_URL);
+    takeScreenshot(page, 'initial-page-load', 'Initial page load');
 
     await localtestLogin(page);
+    takeScreenshot(page, 'after-login', 'Successfully logged in to localtest');
 
     await goToCorrectPage(page);
+    takeScreenshot(page, 'after-navigation', 'Successfully navigated to pets page');
 
     // Round 1
     await generate250MorePets(page, /hent mine husdyr \(250!\)/i);
+    takeScreenshot(page, 'after-generate-round1', 'Generated 250 pets - Round 1');
     await editLastPet(page);
+    takeScreenshot(page, 'after-edit-round1', 'Edited last pet - Round 1');
     await addPetManually(page, 'Fido');
+    takeScreenshot(page, 'after-manual-add-round1', 'Added pet manually - Round 1 (Fido)');
 
     // Round 2
     await generate250MorePets(page, /generer enda en gård/i);
+    takeScreenshot(page, 'after-generate-round2', 'Generated 250 more pets - Round 2');
     await editLastPet(page);
+    takeScreenshot(page, 'after-edit-round2', 'Edited last pet - Round 2');
     await addPetManually(page, 'Lady');
+    takeScreenshot(page, 'after-manual-add-round2', 'Added pet manually - Round 2 (Lady)');
 
     // Round 3
     await generate250MorePets(page, /generer enda en gård/i);
+    takeScreenshot(page, 'after-generate-round3', 'Generated 250 more pets - Round 3');
     await editLastPet(page);
+    takeScreenshot(page, 'after-edit-round3', 'Edited last pet - Round 3');
     await addPetManually(page, 'Herman');
+    takeScreenshot(page, 'test-completed', 'Test completed successfully - Added Herman');
   } catch (error) {
+    takeScreenshot(
+      page,
+      'main-test-error',
+      `Browser iteration failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
     fail(`Browser iteration failed: ${error instanceof Error ? error.message : String(error)}`);
   } finally {
     await page.close();
@@ -128,6 +162,11 @@ async function localtestLogin(page: Page) {
       await page.getByRole('button', { name: /start på nytt/i }).click();
     }
   } catch (error) {
+    takeScreenshot(
+      page,
+      'localtest-login-error',
+      `Localtest login failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
     console.log(`Localtest login failed: ${error instanceof Error ? error.message : String(error)}`);
     throw error; // Re-throw to fail the test
   }
@@ -148,6 +187,11 @@ async function goToCorrectPage(page: Page) {
 
     await page.getByRole('button', { name: /3\. kjæledyr/i }).click();
   } catch (error) {
+    takeScreenshot(
+      page,
+      'go-to-correct-page-error',
+      `Going to correct page failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
     console.log(`Going to correct page failed: ${error instanceof Error ? error.message : String(error)}`);
     throw error; // Re-throw to fail the test
   }
@@ -170,6 +214,11 @@ async function generate250MorePets(screen: Page, buttonName: RegExp) {
 
     add250RepeatingGroupRowsMetric.add(endTime - startTime);
   } catch (error) {
+    takeScreenshot(
+      screen,
+      'generate-more-pets-error',
+      `Generating more pets failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
     console.log(`Generating more pets failed: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
@@ -223,6 +272,11 @@ async function editLastPet(page: Page) {
       },
     });
   } catch (error) {
+    takeScreenshot(
+      page,
+      'edit-last-pet-error',
+      `Edit last pet test failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
     console.log(`Edit last pet test failed: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
@@ -275,6 +329,11 @@ async function addPetManually(page: Page, petName: string) {
 
     manualRowAdditionTimeMetric.add(endTime - startTime);
   } catch (error) {
+    takeScreenshot(
+      page,
+      'add-pet-manually-error',
+      `Adding pet manually failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
     console.log(`Adding pet manually failed: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }

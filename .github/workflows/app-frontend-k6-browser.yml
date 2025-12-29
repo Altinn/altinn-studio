@@ -71,6 +71,7 @@ jobs:
 
       - name: Run k6 browser test
         run: |
+          mkdir -p ${{ github.workspace }}/screenshots
           docker run --rm --network host --privileged \
             -v ${{ github.workspace }}:/github/workspace \
             -w /github/workspace \
@@ -83,3 +84,11 @@ jobs:
             grafana/k6:master-with-browser \
             run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
         timeout-minutes: 10
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: k6-browser-screenshots
+          path: screenshots/
+          retention-days: 30
