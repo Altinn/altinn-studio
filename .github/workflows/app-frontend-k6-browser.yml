@@ -90,9 +90,6 @@ jobs:
       - name: See github workspace directory contents
         run: ls -la ${{ github.workspace }}
 
-      - name: See local screenshots contents
-        run: ls -la screenshots/
-
       - name: Check screenshots directory ownership
         run: ls -la | grep screenshots
 
