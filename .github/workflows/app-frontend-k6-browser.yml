@@ -76,7 +76,6 @@ jobs:
             -e K6_BROWSER_HEADLESS=true \
             -e K6_NO_USAGE_REPORT=true \
             -e K6_QUIET=true \
-            -e K6_NO_THRESHOLDS=true \
             -e K6_NO_SUMMARY=true \
             grafana/k6:master-with-browser \
             run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
