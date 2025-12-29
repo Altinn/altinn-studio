@@ -68,9 +68,6 @@ jobs:
       - name: Check RAM usage
         run: free -h
 
-      - name: Create screenshots directory
-        run: sudo mkdir -p screenshots
-
       - name: Run k6 browser test
         run: |
           docker run --rm --network host --privileged \
@@ -82,7 +79,7 @@ jobs:
             -e K6_NO_THRESHOLDS=true \
             -e K6_NO_SUMMARY=true \
             grafana/k6:master-with-browser \
-            run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
+            -c "mkdir -p screenshots && k6 run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts"
         timeout-minutes: 10
 
       - name: Print working directory
@@ -96,6 +93,12 @@ jobs:
 
       - name: See local screenshots contents
         run: ls -la screenshots/
+
+      - name: Check screenshots directory ownership
+        run: ls -la | grep screenshots
+
+      - name: List screenshots files with details
+        run: find screenshots/ -type f -exec ls -la {} \; || echo "No files found in screenshots directory"
 
       - name: List k6-browser contents
         run: ls -la ./src/App/frontend/test/e2e/k6-browser/
