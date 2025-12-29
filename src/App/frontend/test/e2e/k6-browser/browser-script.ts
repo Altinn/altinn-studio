@@ -52,12 +52,12 @@ const speciesSelectOpenTimeMetric = new Trend('species_select_open_time', true);
 const speciesSelectTotalTimeMetric = new Trend('species_select_total_time', true);
 const manualRowAdditionTimeMetric = new Trend('manual_row_addition_time', true);
 
-function takeScreenshot(page: Page, name: string, description?: string): void {
+async function takeScreenshot(page: Page, name: string, description?: string) {
   try {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `${timestamp}_${name}.png`;
 
-    page.screenshot({
+    await page.screenshot({
       path: `${SCREENSHOTS_DIR}/${filename}`,
       fullPage: true,
     });
@@ -81,39 +81,39 @@ export default async function () {
   try {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto(BASE_URL);
-    takeScreenshot(page, 'initial-page-load', 'Initial page load');
+    await takeScreenshot(page, 'initial-page-load', 'Initial page load');
 
     await localtestLogin(page);
-    takeScreenshot(page, 'after-login', 'Successfully logged in to localtest');
+    await takeScreenshot(page, 'after-login', 'Successfully logged in to localtest');
 
     await goToCorrectPage(page);
-    takeScreenshot(page, 'after-navigation', 'Successfully navigated to pets page');
+    await takeScreenshot(page, 'after-navigation', 'Successfully navigated to pets page');
 
     // Round 1
     await generate250MorePets(page, /hent mine husdyr \(250!\)/i);
-    takeScreenshot(page, 'after-generate-round1', 'Generated 250 pets - Round 1');
+    await takeScreenshot(page, 'after-generate-round1', 'Generated 250 pets - Round 1');
     await editLastPet(page);
-    takeScreenshot(page, 'after-edit-round1', 'Edited last pet - Round 1');
+    await takeScreenshot(page, 'after-edit-round1', 'Edited last pet - Round 1');
     await addPetManually(page, 'Fido');
-    takeScreenshot(page, 'after-manual-add-round1', 'Added pet manually - Round 1 (Fido)');
+    await takeScreenshot(page, 'after-manual-add-round1', 'Added pet manually - Round 1 (Fido)');
 
     // Round 2
     await generate250MorePets(page, /generer enda en gård/i);
-    takeScreenshot(page, 'after-generate-round2', 'Generated 250 more pets - Round 2');
+    await takeScreenshot(page, 'after-generate-round2', 'Generated 250 more pets - Round 2');
     await editLastPet(page);
-    takeScreenshot(page, 'after-edit-round2', 'Edited last pet - Round 2');
+    await takeScreenshot(page, 'after-edit-round2', 'Edited last pet - Round 2');
     await addPetManually(page, 'Lady');
-    takeScreenshot(page, 'after-manual-add-round2', 'Added pet manually - Round 2 (Lady)');
+    await takeScreenshot(page, 'after-manual-add-round2', 'Added pet manually - Round 2 (Lady)');
 
     // Round 3
     await generate250MorePets(page, /generer enda en gård/i);
-    takeScreenshot(page, 'after-generate-round3', 'Generated 250 more pets - Round 3');
+    await takeScreenshot(page, 'after-generate-round3', 'Generated 250 more pets - Round 3');
     await editLastPet(page);
-    takeScreenshot(page, 'after-edit-round3', 'Edited last pet - Round 3');
+    await takeScreenshot(page, 'after-edit-round3', 'Edited last pet - Round 3');
     await addPetManually(page, 'Herman');
-    takeScreenshot(page, 'test-completed', 'Test completed successfully - Added Herman');
+    await takeScreenshot(page, 'test-completed', 'Test completed successfully - Added Herman');
   } catch (error) {
-    takeScreenshot(
+    await takeScreenshot(
       page,
       'main-test-error',
       `Browser iteration failed: ${error instanceof Error ? error.message : String(error)}`,
@@ -169,7 +169,7 @@ async function localtestLogin(page: Page) {
       await page.getByRole('button', { name: /start på nytt/i }).click();
     }
   } catch (error) {
-    takeScreenshot(
+    await takeScreenshot(
       page,
       'localtest-login-error',
       `Localtest login failed: ${error instanceof Error ? error.message : String(error)}`,
@@ -194,7 +194,7 @@ async function goToCorrectPage(page: Page) {
 
     await page.getByRole('button', { name: /3\. kjæledyr/i }).click();
   } catch (error) {
-    takeScreenshot(
+    await takeScreenshot(
       page,
       'go-to-correct-page-error',
       `Going to correct page failed: ${error instanceof Error ? error.message : String(error)}`,
@@ -221,7 +221,7 @@ async function generate250MorePets(screen: Page, buttonName: RegExp) {
 
     add250RepeatingGroupRowsMetric.add(endTime - startTime);
   } catch (error) {
-    takeScreenshot(
+    await takeScreenshot(
       screen,
       'generate-more-pets-error',
       `Generating more pets failed: ${error instanceof Error ? error.message : String(error)}`,
@@ -279,7 +279,7 @@ async function editLastPet(page: Page) {
       },
     });
   } catch (error) {
-    takeScreenshot(
+    await takeScreenshot(
       page,
       'edit-last-pet-error',
       `Edit last pet test failed: ${error instanceof Error ? error.message : String(error)}`,
@@ -336,7 +336,7 @@ async function addPetManually(page: Page, petName: string) {
 
     manualRowAdditionTimeMetric.add(endTime - startTime);
   } catch (error) {
-    takeScreenshot(
+    await takeScreenshot(
       page,
       'add-pet-manually-error',
       `Adding pet manually failed: ${error instanceof Error ? error.message : String(error)}`,
