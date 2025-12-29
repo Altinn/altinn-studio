@@ -69,7 +69,7 @@ jobs:
         run: free -h
 
       - name: Create screenshots directory
-        run: sudo mkdir -p screenshots && sudo chown runner:runner screenshots && chmod 755 screenshots
+        run: sudo mkdir -p screenshots && sudo chmod 777 screenshots
 
       - name: Debug container user and permissions
         run: |
@@ -83,7 +83,6 @@ jobs:
       - name: Run k6 browser test
         run: |
           docker run --rm --network host --privileged \
-            --user $(id -u):$(id -g) \
             -v ${{ github.workspace }}:/github/workspace \
             -w /github/workspace \
             -e K6_BROWSER_HEADLESS=true \
@@ -94,6 +93,9 @@ jobs:
             grafana/k6:master-with-browser \
             run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
         timeout-minutes: 10
+
+      - name: Fix screenshots ownership for artifact upload
+        run: sudo chown -R runner:runner screenshots/ || echo "No screenshots to fix ownership"
 
       - name: Print working directory
         run: pwd
