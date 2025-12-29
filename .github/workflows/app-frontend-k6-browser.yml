@@ -89,6 +89,9 @@ jobs:
       - name: See local filesystem contents
         run: ls -la
 
+      - name: See github workspace directory contents
+        run: ls -la ${{ github.workspace }}
+
       - name: See local screenshots contents
         run: ls -la screenshots/
 
