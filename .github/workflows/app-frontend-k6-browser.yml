@@ -86,6 +86,9 @@ jobs:
             run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
         timeout-minutes: 10
 
+      - name: Print working directory
+        run: pwd
+
       - name: See local filesystem contents
         run: ls -la
 
