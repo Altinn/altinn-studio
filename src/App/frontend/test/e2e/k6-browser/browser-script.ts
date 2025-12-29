@@ -7,7 +7,7 @@ import { Trend } from 'k6/metrics';
 import { Options } from 'k6/options';
 
 const BASE_URL = __ENV.BASE_URL || 'http://local.altinn.cloud';
-const SCREENSHOTS_DIR = '/tmp';
+const SCREENSHOTS_DIR = '/github/workspace/tmp';
 
 // Test data constants
 const TEST_DATA = {
