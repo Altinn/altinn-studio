@@ -65,20 +65,8 @@ jobs:
           echo "Testing connectivity to local.altinn.cloud..."
           curl -v http://local.altinn.cloud/ || echo "Failed to connect to local.altinn.cloud"
 
-      - name: Check RAM usage
-        run: free -h
-
       - name: Create screenshots directory
         run: sudo mkdir -p screenshots && sudo chmod 777 screenshots
-
-      - name: Debug container user and permissions
-        run: |
-          docker run --rm --network host --privileged \
-            -v ${{ github.workspace }}:/github/workspace \
-            -w /github/workspace \
-            --entrypoint="" \
-            grafana/k6:master-with-browser \
-            sh -c "whoami && id && ls -la screenshots/"
 
       - name: Run k6 browser test
         run: |
@@ -96,24 +84,6 @@ jobs:
 
       - name: Fix screenshots ownership for artifact upload
         run: sudo chown -R runner:runner screenshots/ || echo "No screenshots to fix ownership"
-
-      - name: Print working directory
-        run: pwd
-
-      - name: See local filesystem contents
-        run: ls -la
-
-      - name: See github workspace directory contents
-        run: ls -la ${{ github.workspace }}
-
-      - name: Check screenshots directory ownership
-        run: ls -la | grep screenshots
-
-      - name: List screenshots files with details
-        run: find screenshots/ -type f -exec ls -la {} \; || echo "No files found in screenshots directory"
-
-      - name: List k6-browser contents
-        run: ls -la ./src/App/frontend/test/e2e/k6-browser/
 
       - name: Upload screenshots
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
