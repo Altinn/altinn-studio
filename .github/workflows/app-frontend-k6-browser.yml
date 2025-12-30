@@ -74,7 +74,7 @@ jobs:
             -v ${{ github.workspace }}:/github/workspace \
             -w /github/workspace \
             -e K6_BROWSER_TIMEOUT=120000 \
-            -e K6_BROWSER_ARGS="--no-sandbox --disable-dev-shm-usage" \
+            -e K6_BROWSER_ARGS="--no-sandbox" \
             grafana/k6:latest-with-browser \
             run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
         timeout-minutes: 10
