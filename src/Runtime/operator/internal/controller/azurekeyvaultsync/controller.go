@@ -33,6 +33,8 @@ type KeyVaultSecretMapping struct {
 	// BuildOutput transforms resolved secrets into the JSON structure.
 	// If nil, secrets are serialized as map[string]string.
 	BuildOutput func(secrets map[string]string) any
+	// Raw skips JSON encoding. BuildOutput must return a string.
+	Raw bool
 }
 
 func DefaultMappings(runtime rt.Runtime) []KeyVaultSecretMapping {
@@ -62,6 +64,16 @@ func DefaultMappings(runtime rt.Runtime) []KeyVaultSecretMapping {
 						"Jwk":      secrets[jwkKey],
 					},
 				}
+			},
+		},
+		{
+			Name:      "azure-monitor-secret",
+			Namespace: "runtime-obs",
+			FileName:  "connection-string",
+			Secrets:   []string{"PlatformAzureMonitor--ConnectionString"},
+			Raw:       true,
+			BuildOutput: func(secrets map[string]string) any {
+				return secrets["PlatformAzureMonitor--ConnectionString"]
 			},
 		},
 	}
@@ -235,16 +247,27 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 		secretData[kvSecretName] = value
 	}
 
-	var output any = secretData
-	if mapping.BuildOutput != nil {
-		output = mapping.BuildOutput(secretData)
+	var outputBytes []byte
+	if mapping.Raw {
+		rawStr, ok := mapping.BuildOutput(secretData).(string)
+		if !ok {
+			return fmt.Errorf("raw mapping requires BuildOutput to return string")
+		}
+		outputBytes = []byte(rawStr)
+	} else {
+		var output any = secretData
+		if mapping.BuildOutput != nil {
+			output = mapping.BuildOutput(secretData)
+		}
+		var marshalErr error
+		outputBytes, marshalErr = json.Marshal(output)
+		if marshalErr != nil {
+			span.RecordError(marshalErr)
+			return fmt.Errorf("failed to marshal secrets to JSON: %w", marshalErr)
+		}
 	}
 
-	jsonBytes, err := json.Marshal(output)
-	if err != nil {
-		span.RecordError(err)
-		return fmt.Errorf("failed to marshal secrets to JSON: %w", err)
-	}
+	var err error
 
 	secret := &corev1.Secret{}
 	secretKey := client.ObjectKey{Name: mapping.Name, Namespace: mapping.Namespace}
@@ -260,7 +283,7 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 				},
 			},
 			Data: map[string][]byte{
-				mapping.FileName: jsonBytes,
+				mapping.FileName: outputBytes,
 			},
 		}
 		if err := c.k8sClient.Create(ctx, secret); err != nil {
@@ -280,7 +303,7 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 	if secret.Data == nil {
 		secret.Data = make(map[string][]byte)
 	}
-	secret.Data[mapping.FileName] = jsonBytes
+	secret.Data[mapping.FileName] = outputBytes
 
 	if err := c.k8sClient.Update(ctx, secret); err != nil {
 		span.RecordError(err)
