@@ -70,7 +70,8 @@ jobs:
 
       - name: Run k6 browser test
         run: |
-          docker run --rm --network host --privileged \
+          docker run --rm -i --security-opt seccomp=./src/App/frontend/test/e2e/k6-browser/chrome.json \
+            --network host --cap-add=SYS_ADMIN \
             -v ${{ github.workspace }}:/github/workspace \
             -w /github/workspace \
             -e K6_BROWSER_TIMEOUT=120000 \
