@@ -7,7 +7,7 @@ import { Trend } from 'k6/metrics';
 import { Options } from 'k6/options';
 
 const BASE_URL = __ENV.BASE_URL || 'http://local.altinn.cloud';
-const SCREENSHOTS_DIR = 'screenshots';
+const SCREENSHOTS_DIR = 'k6-browser-screenshots';
 
 // Test data constants
 const TEST_DATA = {
@@ -87,27 +87,19 @@ export default async function () {
     await takeScreenshot(page, 'after-login', 'Successfully logged in to localtest');
 
     await goToCorrectPage(page);
-    await takeScreenshot(page, 'after-navigation', 'Successfully navigated to pets page');
 
     // Round 1
     await generate250MorePets(page, /hent mine husdyr \(250!\)/i);
-    await takeScreenshot(page, 'after-generate-round1', 'Generated 250 pets - Round 1');
     await editLastPet(page);
-    await takeScreenshot(page, 'after-edit-round1', 'Edited last pet - Round 1');
     await addPetManually(page, 'Fido');
-    await takeScreenshot(page, 'after-manual-add-round1', 'Added pet manually - Round 1 (Fido)');
 
     // Round 2
     await generate250MorePets(page, /generer enda en gård/i);
-    await takeScreenshot(page, 'after-generate-round2', 'Generated 250 more pets - Round 2');
     await editLastPet(page);
-    await takeScreenshot(page, 'after-edit-round2', 'Edited last pet - Round 2');
     await addPetManually(page, 'Lady');
-    await takeScreenshot(page, 'after-manual-add-round2', 'Added pet manually - Round 2 (Lady)');
 
     // // Round 3
     // await generate250MorePets(page, /generer enda en gård/i);
-    // await takeScreenshot(page, 'after-generate-round3', 'Generated 250 more pets - Round 3');
     // await editLastPet(page);
     // await takeScreenshot(page, 'after-edit-round3', 'Edited last pet - Round 3');
     // await addPetManually(page, 'Herman');

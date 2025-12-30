@@ -66,7 +66,7 @@ jobs:
           curl -v http://local.altinn.cloud/ || echo "Failed to connect to local.altinn.cloud"
 
       - name: Create screenshots directory
-        run: sudo mkdir -p screenshots && sudo chmod 777 screenshots
+        run: sudo mkdir -p k6-browser-screenshots && sudo chmod 777 k6-browser-screenshots
 
       - name: Run k6 browser test
         run: |
@@ -83,12 +83,12 @@ jobs:
         timeout-minutes: 10
 
       - name: Fix screenshots ownership for artifact upload
-        run: sudo chown -R runner:runner screenshots/ || echo "No screenshots to fix ownership"
+        run: sudo chown -R runner:runner k6-browser-screenshots/ || echo "No screenshots to fix ownership"
 
       - name: Upload screenshots
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: k6-browser-screenshots
-          path: screenshots
+          path: k6-browser-screenshots
           retention-days: 30

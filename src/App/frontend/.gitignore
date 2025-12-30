@@ -414,3 +414,6 @@ CLAUDE.local.md
 
 # Lighthouse CI generated files
 .lighthouseci/
+
+# k6 browser test screenshots
+k6-browser-screenshots/
