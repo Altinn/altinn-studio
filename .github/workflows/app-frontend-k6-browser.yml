@@ -73,7 +73,6 @@ jobs:
           docker run --rm --network host --privileged \
             -v ${{ github.workspace }}:/github/workspace \
             -w /github/workspace \
-            -e K6_BROWSER_HEADLESS=true \
             -e K6_BROWSER_TIMEOUT=120000 \
             -e K6_BROWSER_ARGS="--no-sandbox --disable-dev-shm-usage --disable-gpu" \
             grafana/k6:latest-with-browser \
