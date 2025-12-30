@@ -76,7 +76,6 @@ jobs:
             -e K6_BROWSER_HEADLESS=true \
             -e K6_BROWSER_TIMEOUT=120000 \
             -e K6_BROWSER_ARGS="--no-sandbox --disable-dev-shm-usage --disable-gpu" \
-            -e K6_NO_SUMMARY=true \
             grafana/k6:latest-with-browser \
             run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
         timeout-minutes: 10
