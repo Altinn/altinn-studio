@@ -54,17 +54,6 @@ jobs:
           run-localtest: true
           docker-profile: 'test-apps'
 
-      - name: Test network connectivity
-        run: |
-          echo "Testing connectivity to localhost:80..."
-          curl -v http://localhost:80/ || echo "Failed to connect to localhost:80"
-          echo "Testing connectivity to localhost:5101..."
-          curl -v http://localhost:5101/ || echo "Failed to connect to localhost:5101"
-          echo "Testing DNS resolution of local.altinn.cloud..."
-          nslookup local.altinn.cloud || echo "DNS lookup failed"
-          echo "Testing connectivity to local.altinn.cloud..."
-          curl -v http://local.altinn.cloud/ || echo "Failed to connect to local.altinn.cloud"
-
       - name: Create screenshots directory
         run: sudo mkdir -p k6-browser-screenshots && sudo chmod 777 k6-browser-screenshots
 
