@@ -12,7 +12,6 @@ import type {
   CodeListData as LibraryCodeListData,
   ContentLibraryConfig,
   PagesConfig,
-  ResourceContentLibraryImpl,
   TextResources,
   TextResourceWithLanguage,
 } from '@studio/content-library';
@@ -52,18 +51,10 @@ const sharedResourcesByPathQueryKey: string[] = [
 // Mocks:
 jest.mock('@studio/content-library', () => ({
   ...jest.requireActual('@studio/content-library'),
-  ResourceContentLibraryImpl: mockContentLibrary,
+  ContentLibrary: (props) => MockContentLibrary(props),
 }));
 
-function mockContentLibrary(
-  ...args: ConstructorParameters<typeof ResourceContentLibraryImpl>
-): Partial<ResourceContentLibraryImpl> {
-  mockConstructor(...args);
-  return { getContentResourceLibrary };
-}
-
-const mockConstructor = jest.fn();
-const getContentResourceLibrary = jest
+const MockContentLibrary = jest
   .fn()
   .mockImplementation(() => <div data-testid={resourceLibraryTestId} />);
 const resourceLibraryTestId = 'resource-library';
@@ -71,7 +62,7 @@ const resourceLibraryTestId = 'resource-library';
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 describe('OrgContentLibraryPage', () => {
-  beforeEach(mockConstructor.mockClear);
+  beforeEach(MockContentLibrary.mockClear);
 
   it('Renders the content library', () => {
     renderOrgContentLibraryWithData();
@@ -433,5 +424,5 @@ function retrievePagesConfig(): PagesConfig {
 }
 
 function retrieveConfig(): ContentLibraryConfig {
-  return mockConstructor.mock.calls[0][0];
+  return MockContentLibrary.mock.calls[0][0];
 }
