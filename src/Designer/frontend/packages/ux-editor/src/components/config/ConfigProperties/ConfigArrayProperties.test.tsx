@@ -7,7 +7,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 describe('ConfigArrayProperties', () => {
-  beforeEach(() => {
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
@@ -122,6 +122,7 @@ const selectOption = async (optionText: string) => {
     name: textMock(`ux_editor.component_properties.enum_${optionText}`),
   });
   await user.click(option);
+  await waitFor(() => expect(option).toHaveAttribute('aria-selected', 'true'));
   await user.click(document.body);
 };
 
