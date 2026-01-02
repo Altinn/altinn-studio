@@ -36,7 +36,7 @@ export const UncommittedChangesDialog = ({
   };
 
   const discardButtonText = isLoading
-    ? t('branching.uncommitted_changes_dialog.discarding')
+    ? t('general.loading')
     : t('branching.uncommitted_changes_dialog.discard_and_switch');
 
   return (

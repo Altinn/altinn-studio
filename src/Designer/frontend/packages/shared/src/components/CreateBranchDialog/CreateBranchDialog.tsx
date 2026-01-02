@@ -13,8 +13,8 @@ import { BranchNameValidator } from 'app-shared/utils/BranchNameValidator';
 export interface CreateBranchDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  currentBranch: string;
   onCreateBranch: (name: string) => void;
+  currentBranch: string;
   createError: string;
   isLoading: boolean;
 }
@@ -22,8 +22,8 @@ export interface CreateBranchDialogProps {
 export const CreateBranchDialog = ({
   isOpen,
   onClose,
-  currentBranch,
   onCreateBranch,
+  currentBranch,
   createError,
   isLoading,
 }: CreateBranchDialogProps) => {
@@ -51,7 +51,7 @@ export const CreateBranchDialog = ({
   };
 
   const createButtonText = isLoading
-    ? t('branching.new_branch_dialog.creating')
+    ? t('general.loading')
     : t('branching.new_branch_dialog.create');
 
   return (
@@ -73,7 +73,7 @@ export const CreateBranchDialog = ({
           value={newBranchName}
           onChange={(e) => setNewBranchName(e.target.value)}
           placeholder={t('branching.new_branch_dialog.branch_name_placeholder')}
-          error={createError || validationError}
+          error={validationError || createError}
           disabled={isLoading}
         />
         <StudioParagraph>{t('branching.new_branch_dialog.hint')}</StudioParagraph>
