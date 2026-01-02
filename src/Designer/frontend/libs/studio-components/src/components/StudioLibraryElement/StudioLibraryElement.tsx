@@ -63,7 +63,7 @@ function PublishedTag({ text, version }: PublishedTagProps): React.ReactNode {
   if (!version) return null;
   else
     return (
-      <StudioTag data-color='success' className={classes.publishedTag}>
+      <StudioTag data-color='success'>
         <CheckmarkCircleIcon />
         {text}
       </StudioTag>

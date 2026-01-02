@@ -23,10 +23,6 @@
   font-style: italic;
 }
 
-.publishedTag {
-  grid-area: published-tag;
-}
-
 .details {
   color: var(--ds-color-neutral-text-subtle);
 }
