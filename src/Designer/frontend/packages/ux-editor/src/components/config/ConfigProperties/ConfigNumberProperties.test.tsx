@@ -38,9 +38,9 @@ describe('ConfigNumberProperties', () => {
   it('should close the select editor when clicking cancel button', async () => {
     renderConfigNumberProperties();
     await openConfigAndVerify(defaultProperty);
+    expect(getPropertyByRole('combobox', defaultProperty)).toBeInTheDocument();
     await cancelConfigChanges();
-    const combobox = getPropertyByRole('combobox', defaultProperty);
-    expect(combobox).not.toBeInTheDocument();
+    expect(getPropertyByRole('combobox', defaultProperty)).not.toBeInTheDocument();
   });
 
   it('should call handleComponentUpdate when saving a new value', async () => {

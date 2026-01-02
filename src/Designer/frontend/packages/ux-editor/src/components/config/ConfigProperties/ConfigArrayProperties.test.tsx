@@ -13,10 +13,6 @@ import {
 } from './testConfigUtils';
 
 describe('ConfigArrayProperties', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should call handleComponentUpdate and setSelectedValue when array property is updated', async () => {
     const handleComponentUpdateMock = jest.fn();
     renderConfigArrayProperties({ props: { handleComponentUpdate: handleComponentUpdateMock } });
@@ -88,6 +84,7 @@ describe('ConfigArrayProperties', () => {
   it('should close the select editor when clicking cancel button', async () => {
     renderConfigArrayProperties({});
     await openConfigAndVerify(supportedKey);
+    expect(getPropertyByRole('combobox', supportedKey)).toBeInTheDocument();
     await cancelConfigChanges();
     expect(getPropertyByRole('combobox', supportedKey)).not.toBeInTheDocument();
   });
