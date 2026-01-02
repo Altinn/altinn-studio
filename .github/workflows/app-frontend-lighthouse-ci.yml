@@ -4,13 +4,18 @@ on:
     branches:
       - 'main'
     paths:
-      - 'src/App/frontend/**'
       - '.github/workflows/app-frontend-lighthouse-ci.yml'
       - './.github/actions/**'
+      - 'src/App/frontend/**'
+      - 'src/Runtime/localtest/**'
+      - 'src/test/apps/component-library/**'
   pull_request:
     paths:
-      - 'src/App/frontend/**'
       - '.github/workflows/app-frontend-lighthouse-ci.yml'
+      - './.github/actions/**'
+      - 'src/App/frontend/**'
+      - 'src/Runtime/localtest/**'
+      - 'src/test/apps/component-library/**'
   workflow_dispatch:
 jobs:
   build-frontend:
