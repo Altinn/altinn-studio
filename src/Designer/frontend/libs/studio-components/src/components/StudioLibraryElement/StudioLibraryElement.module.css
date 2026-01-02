@@ -1,0 +1,37 @@
+.anchor {
+  display: flex;
+  flex-direction: column;
+}
+
+.header,
+.details {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+}
+
+.header {
+  gap: var(--ds-size-3);
+}
+
+.name {
+  font-size: 1.25em;
+}
+
+.name.unnamed {
+  color: var(--ds-color-neutral-text-subtle);
+  font-style: italic;
+}
+
+.publishedTag {
+  grid-area: published-tag;
+}
+
+.details {
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.details > :not(:last-child)::after {
+  content: '•';
+  margin-inline: var(--ds-size-2);
+}
