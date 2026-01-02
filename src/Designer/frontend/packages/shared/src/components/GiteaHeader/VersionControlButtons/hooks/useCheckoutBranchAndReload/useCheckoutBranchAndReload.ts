@@ -5,7 +5,7 @@ import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
 export interface UseCheckoutBranchAndReloadResult {
   checkoutBranchAndReload: (branchName: string) => void;
   isLoading: boolean;
-  uncommittedChangesErrorCheckout: UncommittedChangesError | null;
+  uncommittedChangesError: UncommittedChangesError | null;
 }
 
 export function useCheckoutBranchAndReload(
@@ -30,6 +30,6 @@ export function useCheckoutBranchAndReload(
   return {
     checkoutBranchAndReload,
     isLoading: checkoutMutation.isPending,
-    uncommittedChangesErrorCheckout: uncommittedChangesError,
+    uncommittedChangesError,
   };
 }

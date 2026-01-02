@@ -20,7 +20,7 @@ export const BranchDropdown = () => {
     org,
     app,
   );
-  const { data: allBranches, isLoading: isLoadingAllBranches } = useBranchesQuery(org, app);
+  const { data: branchList, isLoading: isLoadingBranchList } = useBranchesQuery(org, app);
   const {
     createAndCheckoutBranch,
     isLoading: isLoadingCreateNewBranch,
@@ -31,7 +31,7 @@ export const BranchDropdown = () => {
   const {
     checkoutBranchAndReload,
     isLoading: isLoadingBranchCheckout,
-    uncommittedChangesErrorCheckout,
+    uncommittedChangesError: uncommittedChangesErrorCheckout,
   } = useCheckoutBranchAndReload(org, app);
   const { showUncommittedChangesDialog, setShowUncommittedChangesDialog, uncommittedChangesError } =
     useUncommittedChangesDialog([uncommittedChangesErrorCreate, uncommittedChangesErrorCheckout]);
@@ -44,11 +44,11 @@ export const BranchDropdown = () => {
     });
   };
 
-  const currentBranch = currentBranchInfo?.branchName || 'master';
+  const currentBranch = currentBranchInfo?.branchName;
   const isLoading =
     isLoadingBranchCheckout ||
     isLoadingCurrentBranch ||
-    isLoadingAllBranches ||
+    isLoadingBranchList ||
     isLoadingCreateNewBranch ||
     discardChangesMutation.isPending;
 
@@ -72,11 +72,11 @@ export const BranchDropdown = () => {
         triggerButtonClassName={classes.branchButton}
       >
         <StudioDropdown.List>
-          {allBranches?.map((branch) => (
+          {branchList?.map((branch) => (
             <StudioDropdown.Item key={branch.name}>
               <StudioDropdown.Button
                 onClick={() => checkoutBranchAndReload(branch.name)}
-                disabled={branch.name === currentBranch || isLoading}
+                disabled={branch.name === currentBranch}
               >
                 {branch.name}
               </StudioDropdown.Button>
@@ -90,6 +90,14 @@ export const BranchDropdown = () => {
           </StudioDropdown.Item>
         </StudioDropdown.List>
       </StudioDropdown>
+      <CreateBranchDialog
+        isOpen={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        currentBranch={currentBranch}
+        onCreateBranch={createAndCheckoutBranch}
+        isLoading={isLoading}
+        createError={createError}
+      />
       {uncommittedChangesError && (
         <UncommittedChangesDialog
           isOpen={showUncommittedChangesDialog}
@@ -99,14 +107,6 @@ export const BranchDropdown = () => {
           isLoading={isLoading}
         />
       )}
-      <CreateBranchDialog
-        isOpen={showCreateDialog}
-        onClose={() => setShowCreateDialog(false)}
-        currentBranch={currentBranch}
-        onCreateBranch={createAndCheckoutBranch}
-        isLoading={isLoading}
-        createError={createError}
-      />
     </>
   );
 };
