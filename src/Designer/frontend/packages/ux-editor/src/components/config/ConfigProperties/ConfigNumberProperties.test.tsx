@@ -21,13 +21,6 @@ describe('ConfigNumberProperties', () => {
     expect(getPropertyByRole('button', 'preselectedOptionIndex_button')).toBeInTheDocument();
   });
 
-  it('should render number properties with enum values', async () => {
-    renderConfigNumberProperties({
-      numberPropertyKeys: [defaultProperty],
-    });
-    await openConfigAndVerify(defaultProperty);
-  });
-
   it('should render EditNumberValue components when keepEditOpen is true', () => {
     renderConfigNumberProperties({
       keepEditOpen: true,
@@ -35,7 +28,7 @@ describe('ConfigNumberProperties', () => {
     expect(getPropertyByRole('combobox', defaultProperty)).toBeInTheDocument();
   });
 
-  it('should close the select editor when clicking cancel button', async () => {
+  it('should be able to toggle number property config', async () => {
     renderConfigNumberProperties();
     await openConfigAndVerify(defaultProperty);
     await cancelConfigAndVerify();
@@ -48,8 +41,10 @@ describe('ConfigNumberProperties', () => {
       handleComponentUpdate,
       schema: {
         ...InputSchema,
-        someNumberProperty: {
-          type: 'number',
+        properties: {
+          someNumberProperty: {
+            type: 'number',
+          },
         },
       },
     });
