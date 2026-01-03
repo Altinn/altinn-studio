@@ -15,10 +15,11 @@ export const saveConfigChanges = async () => {
   await user.click(saveButton);
 };
 
-export const cancelConfigChanges = async () => {
+export const cancelConfigAndVerify = async () => {
   const user = userEvent.setup();
   const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
   await user.click(cancelButton);
+  expect(cancelButton).not.toBeInTheDocument();
 };
 
 export const openConfigAndVerify = async (property: string) => {

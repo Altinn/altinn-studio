@@ -5,7 +5,7 @@ import { componentMocks } from '../../../testing/componentMocks';
 import InputSchema from '../../../testing/schemas/json/component/Input.schema.v1.json';
 import userEvent from '@testing-library/user-event';
 import {
-  cancelConfigChanges,
+  cancelConfigAndVerify,
   getPropertyByRole,
   openConfigAndVerify,
   saveConfigChanges,
@@ -38,9 +38,7 @@ describe('ConfigNumberProperties', () => {
   it('should close the select editor when clicking cancel button', async () => {
     renderConfigNumberProperties();
     await openConfigAndVerify(defaultProperty);
-    expect(getPropertyByRole('combobox', defaultProperty)).toBeInTheDocument();
-    await cancelConfigChanges();
-    expect(getPropertyByRole('combobox', defaultProperty)).not.toBeInTheDocument();
+    await cancelConfigAndVerify();
   });
 
   it('should call handleComponentUpdate when saving a new value', async () => {

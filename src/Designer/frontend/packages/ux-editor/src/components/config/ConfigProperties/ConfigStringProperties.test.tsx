@@ -5,7 +5,7 @@ import { componentMocks } from '../../../testing/componentMocks';
 import InputSchema from '../../../testing/schemas/json/component/Input.schema.v1.json';
 import { screen } from '@testing-library/react';
 import {
-  cancelConfigChanges,
+  cancelConfigAndVerify,
   getPropertyByRole,
   openConfigAndVerify,
   saveConfigChanges,
@@ -54,9 +54,7 @@ describe('ConfigStringProperties', () => {
   it('should close the select editor when clicking cancel button', async () => {
     renderConfigStringProperties();
     await openConfigAndVerify(defaultProperty);
-    expect(getPropertyByRole('textbox', defaultProperty)).toBeInTheDocument();
-    await cancelConfigChanges();
-    expect(getPropertyByRole('textbox', defaultProperty)).not.toBeInTheDocument();
+    await cancelConfigAndVerify();
   });
 });
 

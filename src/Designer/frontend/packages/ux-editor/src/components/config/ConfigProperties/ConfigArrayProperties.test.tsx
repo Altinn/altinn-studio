@@ -6,7 +6,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import {
-  cancelConfigChanges,
+  cancelConfigAndVerify,
   getPropertyByRole,
   openConfigAndVerify,
   saveConfigChanges,
@@ -84,9 +84,7 @@ describe('ConfigArrayProperties', () => {
   it('should close the select editor when clicking cancel button', async () => {
     renderConfigArrayProperties({});
     await openConfigAndVerify(supportedKey);
-    expect(getPropertyByRole('combobox', supportedKey)).toBeInTheDocument();
-    await cancelConfigChanges();
-    expect(getPropertyByRole('combobox', supportedKey)).not.toBeInTheDocument();
+    await cancelConfigAndVerify();
   });
 });
 
