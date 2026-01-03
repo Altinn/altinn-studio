@@ -4,19 +4,56 @@ import { componentMocks } from '../../../testing/componentMocks';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { getPropertyByRole } from './testConfigUtils';
+import { cancelConfigAndVerify, openConfigAndVerify, saveConfigChanges } from './testConfigUtils';
 
 describe('ConfigGridProperties', () => {
-  it('should toggle close button and grid with text when the open and close buttons are clicked', async () => {
-    const user = userEvent.setup();
+  it('should be able to toggle config for grid property', async () => {
     renderConfigGridProperties();
-    const openGridButton = getPropertyByRole('button', 'grid');
-    await user.click(openGridButton);
-    expect(screen.getByText(textMock('ux_editor.component_properties.grid'))).toBeInTheDocument();
-    const widthText = screen.getByText(textMock('ux_editor.modal_properties_grid'));
-    expect(widthText).toBeInTheDocument();
-    await closeCard('grid');
-    expect(widthText).not.toBeInTheDocument();
+    await openConfigAndVerify('grid');
+    await cancelConfigAndVerify();
+  });
+
+  it('should call handleComponentUpdate when saving a new grid value', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdate = jest.fn();
+    renderConfigGridProperties({ props: { handleComponentUpdate } });
+    await openConfigAndVerify('grid');
+    const switchDefaultGrid = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.modal_properties_grid_use_default'),
+    });
+    expect(switchDefaultGrid).toBeChecked();
+    await user.click(switchDefaultGrid);
+    expect(switchDefaultGrid).not.toBeChecked();
+
+    await saveConfigChanges();
+    expect(handleComponentUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        grid: { xs: 12 },
+      }),
+    );
+  });
+
+  it('should call handleComponentUpdate when deleting grid value', async () => {
+    const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const componentWithGrid = {
+      ...componentMocks.Input,
+      grid: { xs: 6 as const, md: 4 as const },
+    };
+
+    const handleComponentUpdate = jest.fn();
+    renderConfigGridProperties({ props: { component: componentWithGrid, handleComponentUpdate } });
+    await openConfigAndVerify('grid');
+
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete'),
+    });
+    await user.click(deleteButton);
+    expect(handleComponentUpdate).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        grid: expect.anything(),
+      }),
+    );
   });
 
   type RenderConfigGridPropertiesProps = {
@@ -31,12 +68,3 @@ describe('ConfigGridProperties', () => {
     return render(<ConfigGridProperties {...defaultProps} {...props} />);
   };
 });
-
-const closeCard = async (propertyKey: string) => {
-  const user = userEvent.setup();
-  const closeButton = await screen.findByRole('button', {
-    name: textMock('general.close'),
-  });
-  await user.click(closeButton);
-  expect(getPropertyByRole('button', propertyKey)).toBeInTheDocument();
-};

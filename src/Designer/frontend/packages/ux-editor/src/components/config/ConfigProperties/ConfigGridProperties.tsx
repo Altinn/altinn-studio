@@ -1,55 +1,80 @@
 import React, { useState } from 'react';
 import { useText } from '../../../hooks';
 import { EditGrid } from '../editModal/EditGrid';
-import { StudioButton, StudioProperty, StudioCard, StudioHeading } from '@studio/components';
-import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
-import { Heading } from '@digdir/designsystemet-react';
-import classes from './ConfigGridProperties.module.css';
+import { StudioProperty, StudioConfigCard } from '@studio/components';
+import { PlusCircleIcon } from '@studio/icons';
 import cn from 'classnames';
 import type { BaseConfigProps } from './types';
+import { componentComparison, getDisplayValue } from './ConfigPropertiesUtils';
 
 export interface ConfigGridPropertiesProps extends BaseConfigProps {
   className?: string;
 }
 
 export const ConfigGridProperties = ({
-  component,
+  component: initialComponent,
   handleComponentUpdate,
   className,
 }: ConfigGridPropertiesProps) => {
   const [showGrid, setShowGrid] = useState(false);
+  const [currentComponent, setCurrentComponent] = useState(initialComponent);
   const t = useText();
+  const propertyKey = 'grid';
+  const hasGridValues = currentComponent?.grid && Object.keys(currentComponent.grid).length > 0;
+
+  if (!showGrid) {
+    return (
+      <StudioProperty.Button
+        className={cn(className)}
+        icon={!hasGridValues && <PlusCircleIcon />}
+        onClick={() => setShowGrid(true)}
+        property={t('ux_editor.component_properties.grid')}
+        value={getDisplayValue({ component: initialComponent, propertyKey })}
+      />
+    );
+  }
+
+  const handleCancel = () => {
+    setCurrentComponent(initialComponent);
+    setShowGrid(false);
+  };
+
+  const handleSave = () => {
+    handleComponentUpdate(currentComponent);
+    setShowGrid(false);
+  };
+
+  const handleDelete = () => {
+    const updatedComponent = { ...currentComponent };
+    delete updatedComponent.grid;
+    handleComponentUpdate(updatedComponent);
+    setShowGrid(false);
+  };
 
   return (
-    <>
-      {showGrid ? (
-        <StudioCard className={cn(classes.objectPropertyContainer, className)}>
-          <StudioHeading className={classes.gridHeader}>
-            <div className={classes.flexContainer}>
-              <Heading size='xs'>{t('ux_editor.component_properties.grid')}</Heading>
-              <StudioButton
-                data-size='small' // can be removed once parent component hierarchy is also from @studio/components
-                icon={<XMarkIcon />}
-                onClick={() => setShowGrid(false)}
-                title={t('general.close')}
-                variant='secondary'
-              />
-            </div>
-          </StudioHeading>
-          <EditGrid
-            key={component.id}
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-          />
-        </StudioCard>
-      ) : (
-        <StudioProperty.Button
-          className={cn(classes.gridButton, className)}
-          icon={<PlusCircleIcon />}
-          onClick={() => setShowGrid(true)}
-          property={t('ux_editor.component_properties.grid')}
+    <StudioConfigCard>
+      <StudioConfigCard.Header
+        cardLabel={t('ux_editor.component_properties.grid')}
+        deleteAriaLabel={t('general.delete')}
+        onDelete={handleDelete}
+        confirmDeleteMessage={t('ux_editor.properties_text.value_confirm_delete')}
+        isDeleteDisabled={!hasGridValues}
+      />
+      <StudioConfigCard.Body>
+        <EditGrid
+          key={currentComponent.id}
+          component={currentComponent}
+          handleComponentChange={setCurrentComponent}
         />
-      )}
-    </>
+      </StudioConfigCard.Body>
+      <StudioConfigCard.Footer
+        saveLabel={t('general.save')}
+        cancelLabel={t('general.cancel')}
+        onCancel={handleCancel}
+        onSave={handleSave}
+        isLoading={false}
+        isDisabled={!hasGridValues || componentComparison({ initialComponent, currentComponent })}
+      />
+    </StudioConfigCard>
   );
 };
