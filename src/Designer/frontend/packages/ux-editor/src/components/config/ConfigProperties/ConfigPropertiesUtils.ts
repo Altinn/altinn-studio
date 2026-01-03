@@ -23,7 +23,7 @@ export const getDisplayValue = ({
 }: DisplayValueProps): string | undefined => {
   const value = component[propertyKey];
 
-  if (!value) {
+  if (value === null || value === undefined) {
     return undefined;
   }
 
