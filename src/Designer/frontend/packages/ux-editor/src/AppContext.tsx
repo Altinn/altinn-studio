@@ -64,26 +64,14 @@ export const AppContextProvider = ({
   const { layoutSet } = useUxEditorParams();
   const { isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
   const [searchParams] = useSearchParams();
-  const layoutParamFromUrl = searchParams.get('layout');
+  const layout = searchParams.get('layout');
 
   const { selectedFormLayoutName, setSelectedFormLayoutName } =
     useSelectedFormLayoutName(layoutSet);
 
-  const [selectedItemOverride, setSelectedItemOverride] = useState<SelectedItem | null>(null);
-
-  const selectedItem = useMemo(() => {
-    if (selectedItemOverride !== null && selectedItemOverride.type !== ItemType.Page) {
-      return selectedItemOverride;
-    }
-    if (layoutParamFromUrl) return { type: ItemType.Page, id: layoutParamFromUrl } as SelectedItem;
-
-    if (selectedItemOverride !== null && selectedItemOverride.type === ItemType.Page) {
-      return selectedItemOverride;
-    }
-    return null;
-  }, [layoutParamFromUrl, selectedItemOverride]);
-
-  const setSelectedItem = setSelectedItemOverride;
+  const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(
+    layout ? { type: ItemType.Page, id: layout } : null,
+  );
 
   const refetch = useCallback(
     async (queryKey: QueryKey, resetQueries: boolean = false): Promise<void> => {

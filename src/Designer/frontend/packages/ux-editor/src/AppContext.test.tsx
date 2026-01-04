@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import type { AppContextProps, WindowWithQueryClient } from './AppContext';
+import type { AppContextProps, SelectedItem, WindowWithQueryClient } from './AppContext';
 import { AppContextProvider } from './AppContext';
 import userEvent from '@testing-library/user-event';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -58,6 +58,30 @@ const clickButton = async () => {
   const button = screen.getByTestId(buttonTestId);
   await user.click(button);
 };
+
+const ItemSelector = ({
+  setSelectedItem,
+  selectedItem,
+  type,
+  id,
+}: {
+  setSelectedItem: AppContextProps['setSelectedItem'];
+  selectedItem: SelectedItem | null;
+  type: ItemType.Component | ItemType.Page;
+  id: string;
+}) => (
+  <>
+    <Button
+      onClick={() =>
+        setSelectedItem({
+          type,
+          id,
+        } as SelectedItem)
+      }
+    />
+    <div data-testid='selectedItemId'>{selectedItem ? String(selectedItem.id) : ''}</div>
+  </>
+);
 
 const renderAppContext = (children: (appContext: AppContextProps) => React.ReactNode) => {
   const queryClient = createQueryClientMock();
@@ -119,7 +143,7 @@ describe('AppContext', () => {
     await waitFor(() => expect(setSearchParamsMock).toHaveBeenCalledTimes(1));
   });
 
-  it('sets selectedItem from layout query parameter when no override is set', async () => {
+  it('initializes selectedItem from layout query parameter', async () => {
     const layoutFromUrl = 'Side1';
     mockUseSearchParams.mockReturnValue([
       new URLSearchParams(`layout=${layoutFromUrl}`),
@@ -133,7 +157,7 @@ describe('AppContext', () => {
     );
   });
 
-  it('gives priority to component selection over layout query parameter', async () => {
+  it('setSelectedItem updates selectedItem at runtime', async () => {
     const layoutFromUrl = 'Side1';
     const componentId = 'component-1';
     mockUseSearchParams.mockReturnValue([
@@ -141,17 +165,12 @@ describe('AppContext', () => {
       jest.fn(),
     ]);
     renderAppContext(({ selectedItem, setSelectedItem }: AppContextProps) => (
-      <>
-        <Button
-          onClick={() =>
-            setSelectedItem({
-              type: ItemType.Component,
-              id: componentId,
-            })
-          }
-        />
-        <div data-testid='selectedItemId'>{selectedItem ? selectedItem.id : ''}</div>
-      </>
+      <ItemSelector
+        setSelectedItem={setSelectedItem}
+        selectedItem={selectedItem}
+        type={ItemType.Component}
+        id={componentId}
+      />
     ));
     expect((await screen.findByTestId('selectedItemId')).textContent).toEqual(layoutFromUrl);
     await clickButton();
@@ -160,21 +179,16 @@ describe('AppContext', () => {
     );
   });
 
-  it('uses page override when no layout query parameter is set', async () => {
+  it('initializes selectedItem as null when no layout query parameter is set', async () => {
     const pageId = 'override-page';
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()]);
     renderAppContext(({ selectedItem, setSelectedItem }: AppContextProps) => (
-      <>
-        <Button
-          onClick={() =>
-            setSelectedItem({
-              type: ItemType.Page,
-              id: pageId,
-            })
-          }
-        />
-        <div data-testid='selectedItemId'>{selectedItem ? selectedItem.id : ''}</div>
-      </>
+      <ItemSelector
+        setSelectedItem={setSelectedItem}
+        selectedItem={selectedItem}
+        type={ItemType.Page}
+        id={pageId}
+      />
     ));
     expect((await screen.findByTestId('selectedItemId')).textContent).toEqual('');
     await clickButton();

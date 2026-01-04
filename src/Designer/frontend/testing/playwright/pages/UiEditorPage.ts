@@ -22,19 +22,12 @@ export class UiEditorPage extends BasePage {
 
   public async verifyUiEditorPage(layoutSet?: string, layout?: string | null): Promise<void> {
     const baseRoute = this.getRoute('editorUi');
-    if (!layoutSet) {
-      await expect(this.page).toHaveURL(baseRoute);
-      return;
-    }
-    const routeWithLayoutSet = `${baseRoute}/layoutSet/${layoutSet}`;
-    if (layout) {
-      const expectedUrl = `${routeWithLayoutSet}?layout=${layout}`;
-      await expect(this.page).toHaveURL(expectedUrl);
-      return;
-    }
-    const escapedRoute = routeWithLayoutSet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const urlPattern = new RegExp(`^https?://[^/]+${escapedRoute}(\\?layout=[^&]+)?$`);
-    await expect(this.page).toHaveURL(urlPattern);
+    const pageUrl = new URL(
+      baseRoute + (layoutSet ? `/layoutSet/${layoutSet}` : ''),
+      this.page.url(),
+    );
+    if (layout) pageUrl.searchParams.append('layout', layout);
+    await this.page.waitForURL(pageUrl.toString());
   }
 
   public async clickOnPageAccordion(pageName: string): Promise<void> {
