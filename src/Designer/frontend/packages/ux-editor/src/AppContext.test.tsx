@@ -139,6 +139,9 @@ describe('AppContext', () => {
         <div data-testid='selectedFormLayoutName'>{selectedFormLayoutName}</div>
       </>
     ));
+
+    expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual('');
+
     await clickButton();
     await waitFor(() => expect(setSearchParamsMock).toHaveBeenCalledTimes(1));
   });
