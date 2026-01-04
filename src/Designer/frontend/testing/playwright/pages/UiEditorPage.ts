@@ -30,8 +30,7 @@ export class UiEditorPage extends BasePage {
       pageUrl.searchParams.append('layout', layout);
       await this.page.waitForURL(pageUrl.toString());
     } else {
-      pageUrl.searchParams.append('layout', 'Side1');
-      await this.page.waitForURL(pageUrl.toString());
+      await this.page.waitForURL(`${pageUrl.origin}${pageUrl.pathname}**`);
     }
   }
 
