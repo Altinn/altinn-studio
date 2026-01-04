@@ -15,10 +15,6 @@ const pagesModelWithPages: PagesModel = {
   pages: [{ id: 'page1' }, { id: 'page2' }, { id: 'page3' }],
 };
 
-const pagesModelWithSinglePage: PagesModel = {
-  pages: [{ id: 'page1' }],
-};
-
 const pagesModelWithGroups: PagesModel = {
   groups: [
     { order: [{ id: 'group1-page1' }, { id: 'group1-page2' }] },
@@ -41,7 +37,7 @@ describe('useLayoutSetPath', () => {
 
   it('returns path with layout param when first page exists', async () => {
     const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.Pages, org, app, layoutSetId], pagesModelWithSinglePage);
+    queryClient.setQueryData([QueryKey.Pages, org, app, layoutSetId], pagesModelWithPages);
     const { result } = renderUseLayoutSetPath(queryClient);
     expect(result.current).toBe(`/${org}/${app}/ui-editor/layoutSet/${layoutSetId}?layout=page1`);
   });
