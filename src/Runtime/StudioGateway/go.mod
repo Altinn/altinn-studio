@@ -2,7 +2,7 @@ module altinn.studio/gateway
 
 go 1.25.6
 
-require altinn.studio/runtime-fixture v0.0.0
+require altinn.studio/devenv v0.0.0
 
 require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
@@ -128,4 +128,4 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace altinn.studio/runtime-fixture => ../test/fixture
+replace altinn.studio/devenv => ../devenv

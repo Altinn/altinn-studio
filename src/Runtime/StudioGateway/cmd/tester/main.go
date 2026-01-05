@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"altinn.studio/runtime-fixture/pkg/harness"
-	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
+	"altinn.studio/devenv/pkg/harness"
+	"altinn.studio/devenv/pkg/runtimes/kind"
 )
 
 var (

@@ -1,4 +1,4 @@
-module altinn.studio/runtime-fixture
+module altinn.studio/devenv
 
 go 1.25.6
 

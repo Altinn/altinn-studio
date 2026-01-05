@@ -18,7 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 
-	"altinn.studio/runtime-fixture/pkg/kubernetes"
+	"altinn.studio/devenv/pkg/kubernetes"
 )
 
 var (
