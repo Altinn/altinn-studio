@@ -20,6 +20,7 @@ import { useReduceQueries } from 'admin/hooks/useReduceQueries';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { Tag } from '@digdir/designsystemet-react';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
+import { FileIcon, FileTextIcon, ReceiptIcon } from '@studio/icons';
 
 type InstanceDataViewProps = {
   org: string;
@@ -203,11 +204,22 @@ const DataElementGroup = ({
           : `${dataType} (${count})`
         : dataType;
 
+  // POC distinguish between different "types" of data types. e.g. data models, pdf receipts, attachments. In the future, signature and payments objects? Need info from bpmn to determine this.
+  const Icon =
+    dataType === 'ref-data-as-pdf'
+      ? ReceiptIcon
+      : dataTypeDef?.appLogic?.classRef
+        ? FileTextIcon
+        : FileIcon;
+
   return (
     <StudioField style={{ marginBottom: '1rem' }}>
       <StudioLabel id={labelId}>
         <span style={{ display: 'flex', justifyContent: 'space-between' }}>
-          {label}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Icon style={{ fontSize: '22px' }} />
+            {label}
+          </div>
           {dataTypeDef?.taskId && (
             <Tag size='sm' color='first'>
               {dataTypeDef.taskId}
