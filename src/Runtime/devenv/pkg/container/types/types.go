@@ -5,6 +5,9 @@ import "errors"
 // ErrContainerNotFound is returned when a container does not exist.
 var ErrContainerNotFound = errors.New("container not found")
 
+// ErrNetworkNotFound is returned when a network does not exist.
+var ErrNetworkNotFound = errors.New("network not found")
+
 // Runtime name constants returned by ContainerClient.Name()
 const (
 	RuntimeNameDockerEngineAPI = "Docker Engine API"
@@ -34,10 +37,12 @@ type ContainerConfig struct {
 	Env           []string // KEY=VALUE pairs
 	Ports         []PortMapping
 	Volumes       []VolumeMount
-	Network       string // initial network to attach
-	RestartPolicy string // "no", "always", "on-failure", "unless-stopped"
+	ExtraHosts    []string // "hostname:ip" pairs (e.g., "host.docker.internal:172.17.0.1")
+	Networks      []string // networks to attach (first is primary)
+	RestartPolicy string   // "no", "always", "on-failure", "unless-stopped"
 	Detach        bool
 	Labels        map[string]string
+	User          string // "uid:gid" to run as (e.g., "1000:1000")
 }
 
 // ImageInfo contains metadata about an image
@@ -52,4 +57,29 @@ type ContainerState struct {
 	Running  bool
 	Paused   bool
 	ExitCode int
+}
+
+// ContainerInfo contains detailed information about a container.
+type ContainerInfo struct {
+	ID      string
+	Name    string
+	Image   string // image reference used to create the container
+	ImageID string // resolved image ID (sha256:...)
+	Labels  map[string]string
+	State   ContainerState
+}
+
+// NetworkConfig defines options for creating a network.
+type NetworkConfig struct {
+	Name   string
+	Driver string // "bridge", "host", "none" (default: "bridge")
+	Labels map[string]string
+}
+
+// NetworkInfo contains information about a network.
+type NetworkInfo struct {
+	ID     string
+	Name   string
+	Driver string
+	Labels map[string]string
 }

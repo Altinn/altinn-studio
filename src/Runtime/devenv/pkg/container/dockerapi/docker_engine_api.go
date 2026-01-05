@@ -182,6 +182,15 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		Env:          cfg.Env,
 		ExposedPorts: exposedPorts,
 		Labels:       cfg.Labels,
+		User:         cfg.User,
+	}
+
+	// Determine primary network and additional networks
+	var primaryNetwork string
+	var additionalNetworks []string
+	if len(cfg.Networks) > 0 {
+		primaryNetwork = cfg.Networks[0]
+		additionalNetworks = cfg.Networks[1:]
 	}
 
 	// Host config
@@ -189,13 +198,22 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		PortBindings:  portBindings,
 		Binds:         binds,
 		RestartPolicy: restartPolicy,
-		NetworkMode:   container.NetworkMode(cfg.Network),
+		NetworkMode:   container.NetworkMode(primaryNetwork),
 	}
 
 	// Create the container
 	resp, err := c.cli.ContainerCreate(ctx, containerCfg, hostCfg, nil, nil, cfg.Name)
 	if err != nil {
 		return "", fmt.Errorf("failed to create container: %w", err)
+	}
+
+	// Connect to additional networks before starting
+	for _, net := range additionalNetworks {
+		if err := c.cli.NetworkConnect(ctx, net, resp.ID, nil); err != nil {
+			// Clean up on failure
+			_ = c.cli.ContainerRemove(ctx, resp.ID, container.RemoveOptions{Force: true})
+			return "", fmt.Errorf("failed to connect to network %s: %w", net, err)
+		}
 	}
 
 	// Start the container if detached
@@ -438,7 +456,49 @@ func (c *Client) NetworkInspect(ctx context.Context, nameOrID string) (types.Net
 // NetworkRemove removes a network
 func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 	if err := c.cli.NetworkRemove(ctx, nameOrID); err != nil {
+		if cerrdefs.IsNotFound(err) {
+			return types.ErrNetworkNotFound
+		}
 		return fmt.Errorf("failed to remove network: %w", err)
 	}
 	return nil
+}
+
+// ContainerLogs returns a stream of container logs.
+func (c *Client) ContainerLogs(ctx context.Context, nameOrID string, follow bool, tail string) (io.ReadCloser, error) {
+	opts := container.LogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Follow:     follow,
+		Timestamps: false,
+	}
+	if tail != "" {
+		opts.Tail = tail
+	}
+
+	logs, err := c.cli.ContainerLogs(ctx, nameOrID, opts)
+	if err != nil {
+		if cerrdefs.IsNotFound(err) {
+			return nil, types.ErrContainerNotFound
+		}
+		return nil, fmt.Errorf("failed to get container logs: %w", err)
+	}
+	return logs, nil
+}
+
+// ContainerWait blocks until the container exits and returns the exit code.
+func (c *Client) ContainerWait(ctx context.Context, nameOrID string) (int, error) {
+	statusCh, errCh := c.cli.ContainerWait(ctx, nameOrID, container.WaitConditionNotRunning)
+
+	select {
+	case err := <-errCh:
+		if err != nil {
+			return -1, fmt.Errorf("wait container: %w", err)
+		}
+		return -1, nil
+	case status := <-statusCh:
+		return int(status.StatusCode), nil
+	case <-ctx.Done():
+		return -1, ctx.Err()
+	}
 }
