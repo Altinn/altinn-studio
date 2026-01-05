@@ -1,14 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace StudioGateway.Api.Clients.AlertsClient.Contracts;
 
-[SuppressMessage(
-    "Microsoft.Performance",
-    "CA1515:AvoidUninstantiatedPublicTypes",
-    Justification = "Exposed externally"
-)]
-public class GrafanaAlertRule
+internal sealed class GrafanaAlertRule
 {
     [JsonPropertyName("id")]
     public int Id { get; set; }
@@ -47,12 +41,7 @@ public class GrafanaAlertRule
     public bool IsPaused { get; set; }
 }
 
-[SuppressMessage(
-    "Microsoft.Performance",
-    "CA1515:AvoidUninstantiatedPublicTypes",
-    Justification = "Exposed externally"
-)]
-public class GrafanaAnnotations
+internal sealed class GrafanaAnnotations
 {
     [JsonPropertyName("__dashboardUid__")]
     public string? DashboardUid { get; set; }
@@ -64,12 +53,7 @@ public class GrafanaAnnotations
     public string? Summary { get; set; }
 }
 
-[SuppressMessage(
-    "Microsoft.Performance",
-    "CA1515:AvoidUninstantiatedPublicTypes",
-    Justification = "Exposed externally"
-)]
-public class GrafanaLabels
+internal sealed class GrafanaLabels
 {
     [JsonPropertyName("RuleId")]
     public string? RuleId { get; set; }
