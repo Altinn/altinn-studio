@@ -42,7 +42,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
       return <StudioSpinner aria-label={t('general.loading')} />;
     case 'error':
       return <StudioError>{t('general.page_error_title')}</StudioError>;
-    case 'success':
+    case 'success': {
       const [instanceDetails, appMetadata] = data;
 
       return (
@@ -55,6 +55,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
           appMetadata={appMetadata}
         />
       );
+    }
   }
 };
 
