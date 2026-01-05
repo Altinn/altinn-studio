@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/WorkflowEngine.Api/WorkflowEngine.Api.csproj" />
+  <Project Path="src/WorkflowEngine.Data/WorkflowEngine.Data.csproj" />
+  <Project Path="src/WorkflowEngine.Models/WorkflowEngine.Models.csproj" />
+</Solution>

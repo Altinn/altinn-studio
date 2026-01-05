@@ -1,0 +1,53 @@
+services:
+  workflow-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: workflow-engine-api
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16
+    container_name: workflow-engine-postgres
+    environment:
+      POSTGRES_DB: altinn_processengine
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - workflow-engine-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: workflow-engine-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@altinn.no
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - workflow-engine-network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./.docker/servers.json:/pgadmin4/servers.json
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+
+networks:
+  workflow-engine-network:
+    driver: bridge
