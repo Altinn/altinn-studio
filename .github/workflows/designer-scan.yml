@@ -1,6 +1,7 @@
 name: Designer Scan
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '14 8 * * 1,4'
 
