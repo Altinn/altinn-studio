@@ -852,7 +852,7 @@ export const FD = {
 
       const paths: string[] = [];
       collectMatchingFieldPaths(formData, reference.field.split('.'), '', 0, paths);
-      return paths.length === 0 ? [reference.field] : paths.sort();
+      return paths.sort();
     });
   },
 
