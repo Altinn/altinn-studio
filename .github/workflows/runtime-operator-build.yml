@@ -5,7 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/Runtime/operator/**'
-      - 'src/Runtime/test/fixture/**'
+      - 'src/Runtime/devenv/**'
       - '.github/workflows/runtime-operator-build.yml'
       - 'src/App/azure-pipelines/deploy-app.yaml'
   workflow_dispatch:

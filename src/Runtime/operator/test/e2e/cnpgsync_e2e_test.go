@@ -19,9 +19,9 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 
+	"altinn.studio/devenv/pkg/runtimes/kind"
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/test/utils"
-	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
 
 var passwordRegex = regexp.MustCompile(`Password=[^;]+`)

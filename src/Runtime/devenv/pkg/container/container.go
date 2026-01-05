@@ -5,8 +5,8 @@ import (
 	"io"
 	"os/exec"
 
-	"altinn.studio/runtime-fixture/pkg/container/docker"
-	"altinn.studio/runtime-fixture/pkg/container/podman"
+	"altinn.studio/devenv/pkg/container/docker"
+	"altinn.studio/devenv/pkg/container/podman"
 )
 
 // ContainerClient provides a common interface for docker and podman operations

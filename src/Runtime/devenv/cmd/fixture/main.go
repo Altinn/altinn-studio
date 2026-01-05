@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
+	"altinn.studio/devenv/pkg/runtimes/kind"
 )
 
 const defaultCacheDir = ".cache"

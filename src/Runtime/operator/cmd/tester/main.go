@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/devenv/pkg/harness"
+	"altinn.studio/devenv/pkg/kubernetes"
+	"altinn.studio/devenv/pkg/runtimes/kind"
 	"altinn.studio/operator/internal/config"
-	"altinn.studio/runtime-fixture/pkg/container"
-	"altinn.studio/runtime-fixture/pkg/harness"
-	"altinn.studio/runtime-fixture/pkg/kubernetes"
-	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
 
 func main() {
