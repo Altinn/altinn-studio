@@ -3,9 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 
@@ -22,6 +24,24 @@ class AppResourcesService : IAppResourcesService
     {
         _httpClient = httpClient;
         _environmentsService = environmentsService;
+    }
+
+    public async Task<ApplicationMetadata> GetApplicationMetadata(
+        string org,
+        string env,
+        string app,
+        CancellationToken ct
+    )
+    {
+        var appClusterUri = await _environmentsService.GetAppClusterUri(org, env);
+        using var response = await _httpClient.GetAsync(
+            $"{appClusterUri}/{org}/{app}/api/v1/applicationmetadata",
+            ct
+        );
+
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<ApplicationMetadata>(ct);
     }
 
     public async Task<IEnumerable<ProcessTask>> GetProcessTasks(

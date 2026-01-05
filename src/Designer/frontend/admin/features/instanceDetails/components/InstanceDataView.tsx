@@ -15,6 +15,11 @@ import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
 // import { InstanceEvents } from './InstanceEvents';
 import type { SimpleDataElement, SimpleInstanceDetails } from 'admin/types/SimpleInstanceDetails';
 import { InstanceStatus } from 'admin/features/instances/components/InstanceStatus';
+import { useAppMetadataQuery } from 'admin/hooks/queries/useAppMetadataQuery';
+import { useReduceQueries } from 'admin/hooks/useReduceQueries';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import { Tag } from '@digdir/designsystemet-react';
+import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 
 type InstanceDataViewProps = {
   org: string;
@@ -24,8 +29,12 @@ type InstanceDataViewProps = {
 };
 
 export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) => {
-  const { data, status } = useAppInstanceDetailsQuery(org, env, app, id);
   const { t } = useTranslation();
+
+  const { data, status } = useReduceQueries(
+    useAppInstanceDetailsQuery(org, env, app, id),
+    useAppMetadataQuery(org, env, app),
+  );
 
   switch (status) {
     case 'pending':
@@ -33,12 +42,24 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
     case 'error':
       return <StudioError>{t('general.page_error_title')}</StudioError>;
     case 'success':
-      return <InstanceDataViewWithData org={org} env={env} app={app} id={id} instance={data} />;
+      const [instanceDetails, appMetadata] = data;
+
+      return (
+        <InstanceDataViewWithData
+          org={org}
+          env={env}
+          app={app}
+          id={id}
+          instance={instanceDetails}
+          appMetadata={appMetadata}
+        />
+      );
   }
 };
 
 type InstanceDataViewWithDataProps = InstanceDataViewProps & {
   instance: SimpleInstanceDetails;
+  appMetadata: ApplicationMetadata;
 };
 
 enum InstanceDataViewTabs {
@@ -55,11 +76,13 @@ const InstanceDataViewWithData = ({
   // app,
   // id,
   instance,
+  appMetadata,
 }: InstanceDataViewWithDataProps) => {
   const { t } = useTranslation();
+  const [tab, setTab] = useQueryParamState<string>('section', InstanceDataViewTabs.Info);
 
   return (
-    <StudioTabs defaultValue={InstanceDataViewTabs.Info}>
+    <StudioTabs value={tab} onChange={setTab}>
       <StudioTabs.List>
         <StudioTabs.Tab value={InstanceDataViewTabs.Info}>
           {t('Informasjon om instansen')}
@@ -85,7 +108,7 @@ const InstanceDataViewWithData = ({
         </LabelValue>
       </StudioTabs.Panel>
       <StudioTabs.Panel value={InstanceDataViewTabs.Data}>
-        <DataElements dataElements={instance.data} />
+        <DataElementGroups dataElements={instance.data} appMetadata={appMetadata} />
       </StudioTabs.Panel>
       {/*
       <StudioTabs.Panel value={InstanceDataViewTabs.Process}>
@@ -111,39 +134,88 @@ const LabelValue = ({ label, children }: PropsWithChildren<{ label: string }>) =
   );
 };
 
-type DataElementGroups = Record<string, SimpleDataElement[]>;
-
-const DataElements = ({ dataElements }: { dataElements?: SimpleDataElement[] }) => {
-  const { t } = useTranslation();
-
+const DataElementGroups = ({
+  dataElements,
+  appMetadata,
+}: {
+  dataElements?: SimpleDataElement[];
+  appMetadata: ApplicationMetadata;
+}) => {
   if (!dataElements) {
     return null;
   }
 
-  const dataElementGroups: DataElementGroups = dataElements.reduce((dataTypes, dataElement) => {
-    dataTypes[dataElement.dataType] ??= [];
-    dataTypes[dataElement.dataType].push(dataElement);
-    return dataTypes;
-  }, {});
-
-  const sortedDataElementGroups: DataElementGroups = Object.fromEntries(
-    Object.entries(dataElementGroups).sort(([a], [b]) => {
-      if (a === 'ref-data-as-pdf') {
-        return 1;
-      }
-      if (b === 'ref-data-as-pdf') {
-        return -1;
-      }
-      return a.localeCompare(b);
-    }),
+  const dataElementGroups: Record<string, SimpleDataElement[]> = dataElements.reduce(
+    (dataTypes, dataElement) => {
+      dataTypes[dataElement.dataType] ??= [];
+      dataTypes[dataElement.dataType].push(dataElement);
+      return dataTypes;
+    },
+    {},
   );
 
-  return Object.entries(sortedDataElementGroups).map(([dataType, elements]) => (
-    <LabelValue
+  const sortedDataElementGroups = Object.entries(dataElementGroups).sort(([a], [b]) => {
+    if (a === 'ref-data-as-pdf') {
+      return 1;
+    }
+    if (b === 'ref-data-as-pdf') {
+      return -1;
+    }
+    return a.localeCompare(b);
+  });
+
+  return sortedDataElementGroups.map(([dataType, elements]) => (
+    <DataElementGroup
       key={dataType}
-      label={dataType === 'ref-data-as-pdf' ? t('Generert PDF') : dataType}
-    >
-      {elements.map((dataElement) => (
+      dataType={dataType}
+      dataElements={elements}
+      appMetadata={appMetadata}
+    />
+  ));
+};
+
+const DataElementGroup = ({
+  dataType,
+  dataElements,
+  appMetadata,
+}: {
+  dataType: string;
+  dataElements: SimpleDataElement[];
+  appMetadata: ApplicationMetadata;
+}) => {
+  const { t } = useTranslation();
+
+  const dataTypeDef = appMetadata.dataTypes?.find((dt) => dt.id === dataType);
+
+  // For datamodels there is usually exactly one element, looks weird to show the number in those cases
+  const shouldShowCount = !(dataTypeDef?.minCount === 1 && dataTypeDef.maxCount === 1);
+  const shouldShowMaxCount = !!dataTypeDef?.maxCount;
+  const count = dataElements.length;
+  const max = dataTypeDef?.maxCount;
+
+  const labelId = `label-${dataType}`;
+  const label =
+    dataType === 'ref-data-as-pdf'
+      ? `${t('Generert PDF')} (${count})`
+      : shouldShowCount
+        ? shouldShowMaxCount
+          ? `${dataType} (${count}/${max})`
+          : `${dataType} (${count})`
+        : dataType;
+
+  return (
+    <StudioField style={{ marginBottom: '1rem' }}>
+      <StudioLabel id={labelId}>
+        <span style={{ display: 'flex', justifyContent: 'space-between' }}>
+          {label}
+          {dataTypeDef?.taskId && (
+            <Tag size='sm' color='first'>
+              {dataTypeDef.taskId}
+            </Tag>
+          )}
+        </span>
+      </StudioLabel>
+      {dataElements.map((dataElement) => (
         <StudioDetails key={dataElement.id}>
           <StudioDetails.Summary>{dataElement.id}</StudioDetails.Summary>
           <StudioDetails.Content>
@@ -164,6 +236,6 @@ const DataElements = ({ dataElements }: { dataElements?: SimpleDataElement[] }) 
           </StudioDetails.Content>
         </StudioDetails>
       ))}
-    </LabelValue>
-  ));
+    </StudioField>
+  );
 };
