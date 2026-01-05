@@ -76,8 +76,9 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		args = append(args, fmt.Sprintf("--restart=%s", cfg.RestartPolicy))
 	}
 
-	if cfg.Network != "" {
-		args = append(args, "--network", cfg.Network)
+	// Handle networks
+	for _, net := range cfg.Networks {
+		args = append(args, "--network", net)
 	}
 
 	for _, p := range cfg.Ports {
@@ -102,6 +103,14 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 
 	for k, v := range cfg.Labels {
 		args = append(args, "--label", fmt.Sprintf("%s=%s", k, v))
+	}
+
+	for _, host := range cfg.ExtraHosts {
+		args = append(args, "--add-host", host)
+	}
+
+	if cfg.User != "" {
+		args = append(args, "--user", cfg.User)
 	}
 
 	args = append(args, cfg.Image)
@@ -257,4 +266,269 @@ func (c *Client) ImageInspect(ctx context.Context, image string) (types.ImageInf
 	}
 
 	return types.ImageInfo{ID: info[0].ID, Size: info[0].Size}, nil
+}
+
+// ImagePull pulls an image from a registry
+func (c *Client) ImagePull(ctx context.Context, image string) error {
+	cmd := exec.CommandContext(ctx, "podman", "pull", image)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("podman pull failed: %w\nOutput: %s", err, string(output))
+	}
+	return nil
+}
+
+// ContainerInspect returns detailed information about a container
+func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.ContainerInfo, error) {
+	cmd := exec.CommandContext(ctx, "podman", "inspect", nameOrID)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		lower := strings.ToLower(string(output))
+		if strings.Contains(lower, "no such container") || strings.Contains(lower, "no such object") {
+			return types.ContainerInfo{}, types.ErrContainerNotFound
+		}
+		return types.ContainerInfo{}, fmt.Errorf("failed to inspect container: %w: %s", err, string(output))
+	}
+
+	var info []struct {
+		ID          string `json:"Id"`
+		Name        string `json:"Name"`
+		Image       string `json:"Image"`
+		ImageDigest string `json:"ImageDigest"`
+		Config      struct {
+			Labels map[string]string `json:"Labels"`
+		} `json:"Config"`
+		State struct {
+			Status   string `json:"Status"`
+			Running  bool   `json:"Running"`
+			Paused   bool   `json:"Paused"`
+			ExitCode int    `json:"ExitCode"`
+		} `json:"State"`
+	}
+	if err := json.Unmarshal(output, &info); err != nil {
+		return types.ContainerInfo{}, fmt.Errorf("failed to parse container inspect output: %w", err)
+	}
+
+	if len(info) == 0 {
+		return types.ContainerInfo{}, types.ErrContainerNotFound
+	}
+
+	return types.ContainerInfo{
+		ID:      info[0].ID,
+		Name:    info[0].Name,
+		Image:   info[0].Image,
+		ImageID: info[0].ImageDigest,
+		Labels:  info[0].Config.Labels,
+		State: types.ContainerState{
+			Status:   info[0].State.Status,
+			Running:  info[0].State.Running,
+			Paused:   info[0].State.Paused,
+			ExitCode: info[0].State.ExitCode,
+		},
+	}, nil
+}
+
+// ContainerStart starts an existing container
+func (c *Client) ContainerStart(ctx context.Context, nameOrID string) error {
+	cmd := exec.CommandContext(ctx, "podman", "start", nameOrID)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("podman start failed: %w\nOutput: %s", err, string(output))
+	}
+	return nil
+}
+
+// ContainerStop stops a running container
+func (c *Client) ContainerStop(ctx context.Context, nameOrID string, timeout *int) error {
+	args := []string{"stop"}
+	if timeout != nil {
+		args = append(args, "-t", fmt.Sprintf("%d", *timeout))
+	}
+	args = append(args, nameOrID)
+
+	cmd := exec.CommandContext(ctx, "podman", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("podman stop failed: %w\nOutput: %s", err, string(output))
+	}
+	return nil
+}
+
+// ContainerRemove removes a container
+func (c *Client) ContainerRemove(ctx context.Context, nameOrID string, force bool) error {
+	args := []string{"rm"}
+	if force {
+		args = append(args, "-f")
+	}
+	args = append(args, nameOrID)
+
+	cmd := exec.CommandContext(ctx, "podman", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("podman rm failed: %w\nOutput: %s", err, string(output))
+	}
+	return nil
+}
+
+// NetworkCreate creates a new network
+func (c *Client) NetworkCreate(ctx context.Context, cfg types.NetworkConfig) (string, error) {
+	args := []string{"network", "create"}
+
+	driver := cfg.Driver
+	if driver != "" {
+		args = append(args, "-d", driver)
+	}
+
+	for k, v := range cfg.Labels {
+		args = append(args, "--label", fmt.Sprintf("%s=%s", k, v))
+	}
+
+	args = append(args, cfg.Name)
+
+	cmd := exec.CommandContext(ctx, "podman", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("podman network create failed: %w\nOutput: %s", err, string(output))
+	}
+
+	// Return network ID (first line of output)
+	networkID := strings.TrimSpace(string(output))
+	if idx := strings.Index(networkID, "\n"); idx != -1 {
+		networkID = networkID[:idx]
+	}
+	return networkID, nil
+}
+
+// NetworkInspect returns information about a network
+func (c *Client) NetworkInspect(ctx context.Context, nameOrID string) (types.NetworkInfo, error) {
+	cmd := exec.CommandContext(ctx, "podman", "network", "inspect", nameOrID)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		lower := strings.ToLower(string(output))
+		if strings.Contains(lower, "no such network") || strings.Contains(lower, "network not found") {
+			return types.NetworkInfo{}, types.ErrNetworkNotFound
+		}
+		return types.NetworkInfo{}, fmt.Errorf("failed to inspect network: %w: %s", err, string(output))
+	}
+
+	var info []struct {
+		ID     string            `json:"id"`
+		Name   string            `json:"name"`
+		Driver string            `json:"driver"`
+		Labels map[string]string `json:"labels"`
+	}
+	if err := json.Unmarshal(output, &info); err != nil {
+		return types.NetworkInfo{}, fmt.Errorf("failed to parse network inspect output: %w", err)
+	}
+
+	if len(info) == 0 {
+		return types.NetworkInfo{}, types.ErrNetworkNotFound
+	}
+
+	return types.NetworkInfo{
+		ID:     info[0].ID,
+		Name:   info[0].Name,
+		Driver: info[0].Driver,
+		Labels: info[0].Labels,
+	}, nil
+}
+
+// NetworkRemove removes a network
+func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
+	cmd := exec.CommandContext(ctx, "podman", "network", "rm", nameOrID)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		outputStr := string(output)
+		if strings.Contains(outputStr, "network not found") {
+			return types.ErrNetworkNotFound
+		}
+		return fmt.Errorf("podman network rm failed: %w\nOutput: %s", err, outputStr)
+	}
+	return nil
+}
+
+// ContainerLogs returns a stream of container logs.
+func (c *Client) ContainerLogs(
+	ctx context.Context,
+	nameOrID string,
+	follow bool,
+	tail string,
+) (io.ReadCloser, error) {
+	args := []string{"logs"}
+	if follow {
+		args = append(args, "-f")
+	}
+	if tail != "" {
+		args = append(args, "--tail", tail)
+	}
+	args = append(args, nameOrID)
+
+	cmd := exec.CommandContext(ctx, "podman", args...)
+
+	// Create a pipe and redirect both stdout and stderr to it
+	pr, pw := io.Pipe()
+	cmd.Stdout = pw
+	cmd.Stderr = pw
+
+	if err := cmd.Start(); err != nil {
+		pw.Close()
+		pr.Close()
+		lower := strings.ToLower(err.Error())
+		if strings.Contains(lower, "no such container") {
+			return nil, types.ErrContainerNotFound
+		}
+		return nil, fmt.Errorf("failed to start logs command: %w", err)
+	}
+
+	// Close the write end when the command exits
+	go func() {
+		_ = cmd.Wait()
+		pw.Close()
+	}()
+
+	return &cmdLogReader{cmd: cmd, reader: pr}, nil
+}
+
+// cmdLogReader wraps a pipe reader and cleans up the command on close.
+type cmdLogReader struct {
+	cmd    *exec.Cmd
+	reader *io.PipeReader
+	closed bool
+}
+
+func (r *cmdLogReader) Read(p []byte) (int, error) {
+	return r.reader.Read(p)
+}
+
+func (r *cmdLogReader) Close() error {
+	if r.closed {
+		return nil
+	}
+	r.closed = true
+
+	// Close reader first to unblock any pending reads
+	r.reader.Close()
+
+	// Kill the process if still running
+	if r.cmd.Process != nil {
+		_ = r.cmd.Process.Kill()
+		_ = r.cmd.Wait()
+	}
+	return nil
+}
+
+// ContainerWait blocks until the container exits and returns the exit code.
+func (c *Client) ContainerWait(ctx context.Context, nameOrID string) (int, error) {
+	cmd := exec.CommandContext(ctx, "podman", "wait", nameOrID)
+	output, err := cmd.Output()
+	if err != nil {
+		return -1, fmt.Errorf("wait container: %w", err)
+	}
+
+	var exitCode int
+	if _, err := fmt.Sscanf(strings.TrimSpace(string(output)), "%d", &exitCode); err != nil {
+		return -1, fmt.Errorf("parse exit code: %w", err)
+	}
+
+	return exitCode, nil
 }

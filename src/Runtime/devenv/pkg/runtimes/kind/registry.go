@@ -77,7 +77,7 @@ func (r *KindContainerRuntime) createRegistry(ctx context.Context) error {
 		Image:         "registry:2",
 		Detach:        true,
 		RestartPolicy: "always",
-		Network:       "bridge",
+		Networks:      []string{"bridge"},
 		Ports: []container.PortMapping{
 			{
 				HostIP:        "127.0.0.1",
@@ -117,7 +117,7 @@ func (r *KindContainerRuntime) createProxyRegistry(ctx context.Context, name, ho
 		Image:         "registry:2",
 		Detach:        true,
 		RestartPolicy: "always",
-		Network:       "bridge",
+		Networks:      []string{"bridge"},
 		Ports: []container.PortMapping{
 			{
 				HostIP:        "127.0.0.1",
