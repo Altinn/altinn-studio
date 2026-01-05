@@ -156,14 +156,11 @@ const DataElementGroups = ({
     {},
   );
 
-  const sortedDataElementGroups = Object.entries(dataElementGroups).sort(([a], [b]) => {
-    if (a === 'ref-data-as-pdf') {
-      return 1;
-    }
-    if (b === 'ref-data-as-pdf') {
-      return -1;
-    }
-    return a.localeCompare(b);
+  const sortedDataElementGroups = Object.entries(dataElementGroups).sort(([_a, aE], [_b, bE]) => {
+    const a = Math.max(...aE.map((e) => new Date(e.lastChangedAt ?? '').getTime()));
+    const b = Math.max(...bE.map((e) => new Date(e.lastChangedAt ?? '').getTime()));
+
+    return a - b;
   });
 
   return sortedDataElementGroups.map(([dataType, elements]) => (
