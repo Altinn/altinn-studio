@@ -17,10 +17,10 @@ import { TaskKeys } from 'src/hooks/useNavigatePage';
 export const App = () => (
   <Routes>
     <Route
-      path='/instance-selection'
+      path='/:org/:app/instance-selection'
       element={<InstanceSelectionWrapper />}
     />
-    <Route path='/party-selection'>
+    <Route path='/:org/:app/party-selection'>
       <Route
         index
         element={<PartySelection />}
@@ -32,7 +32,7 @@ export const App = () => (
     </Route>
     <Route element={<Entrypoint />}>
       <Route
-        path=':pageKey'
+        path='/:org/:app/:pageKey'
         element={
           <PresentationComponent>
             <Form />
@@ -46,7 +46,7 @@ export const App = () => (
     </Route>
 
     <Route
-      path='/instance/:instanceOwnerPartyId/:instanceGuid'
+      path='/:org/:app/instance/:instanceOwnerPartyId/:instanceGuid'
       element={
         <InstanceProvider>
           <Outlet />
@@ -112,12 +112,12 @@ export const App = () => (
     {/**
      * Redirects from legacy URLs to new URLs
      */}
-    <Route path='/partyselection'>
+    <Route path='/:org/:app/partyselection'>
       <Route
         index
         element={
           <Navigate
-            to='/party-selection/'
+            to='/:org/:app/party-selection/' // TODO: This probably doesn't work?
             replace={true}
           />
         }
@@ -127,7 +127,7 @@ export const App = () => (
         path='*'
         element={
           <Navigate
-            to='/party-selection/'
+            to='/:org/:app/party-selection/' // TODO: This probably doesn't work?
             replace={true}
           />
         }

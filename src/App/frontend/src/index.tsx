@@ -4,7 +4,7 @@ import 'core-js';
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { createHashRouter, RouterProvider, useLocation } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, useLocation } from 'react-router-dom';
 import { Slide, ToastContainer } from 'react-toastify';
 
 import '@digdir/designsystemet-css';
@@ -57,10 +57,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <ViewportWrapper>
               <UiConfigProvider>
                 <RouterProvider
-                  router={createHashRouter(
+                  router={createBrowserRouter(
                     [
                       {
-                        path: '*',
+                        path: ':org/:app/*',
                         element: (
                           <NavigationEffectProvider>
                             <ErrorBoundary>

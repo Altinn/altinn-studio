@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useParams } from 'react-router-dom';
 
 import { Loader } from 'src/core/loading/Loader';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
@@ -17,10 +17,12 @@ import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import type { ShowTypes } from 'src/features/applicationMetadata/types';
 
 const ShowOrInstantiate: React.FC<{ show: ShowTypes }> = ({ show }) => {
+  const { org, app } = useParams<{ org: string; app: string }>();
+
   if (show === 'select-instance') {
     return (
       <Navigate
-        to='/instance-selection'
+        to={`${org}/${app}/instance-selection`}
         replace={true}
       />
     );
