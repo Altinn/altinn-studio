@@ -68,10 +68,16 @@ type (
 	ContainerConfig = types.ContainerConfig
 	ImageInfo       = types.ImageInfo
 	ContainerState  = types.ContainerState
+	ContainerInfo   = types.ContainerInfo
+	NetworkConfig   = types.NetworkConfig
+	NetworkInfo     = types.NetworkInfo
 )
 
 // ErrContainerNotFound is returned when a container does not exist.
 var ErrContainerNotFound = types.ErrContainerNotFound
+
+// ErrNetworkNotFound is returned when a network does not exist.
+var ErrNetworkNotFound = types.ErrNetworkNotFound
 
 const (
 	RuntimeNameDockerEngineAPI = types.RuntimeNameDockerEngineAPI
@@ -107,6 +113,44 @@ type ContainerClient interface {
 
 	// ImageInspect returns metadata about an image
 	ImageInspect(ctx context.Context, image string) (types.ImageInfo, error)
+
+	// ImagePull pulls an image from a registry
+	ImagePull(ctx context.Context, image string) error
+
+	// ContainerInspect returns detailed information about a container.
+	// Returns ErrContainerNotFound if the container does not exist.
+	ContainerInspect(ctx context.Context, nameOrID string) (types.ContainerInfo, error)
+
+	// ContainerStart starts an existing container
+	ContainerStart(ctx context.Context, nameOrID string) error
+
+	// ContainerStop stops a running container.
+	// The timeout parameter specifies seconds to wait before killing.
+	// If timeout is nil, a default timeout is used.
+	ContainerStop(ctx context.Context, nameOrID string, timeout *int) error
+
+	// ContainerRemove removes a container.
+	// If force is true, the container is killed before removal.
+	ContainerRemove(ctx context.Context, nameOrID string, force bool) error
+
+	// NetworkCreate creates a new network.
+	// Returns the network ID.
+	NetworkCreate(ctx context.Context, cfg types.NetworkConfig) (string, error)
+
+	// NetworkInspect returns information about a network.
+	// Returns ErrNetworkNotFound if the network does not exist.
+	NetworkInspect(ctx context.Context, nameOrID string) (types.NetworkInfo, error)
+
+	// NetworkRemove removes a network.
+	NetworkRemove(ctx context.Context, nameOrID string) error
+
+	// ContainerLogs returns a stream of container logs.
+	// If follow is true, the stream will continue until the context is cancelled.
+	// If tail is non-empty, it limits the number of lines from the end (e.g., "100" or "all").
+	ContainerLogs(ctx context.Context, nameOrID string, follow bool, tail string) (io.ReadCloser, error)
+
+	// ContainerWait blocks until the container exits and returns the exit code.
+	ContainerWait(ctx context.Context, nameOrID string) (exitCode int, err error)
 
 	// Name returns the runtime name ("docker" or "podman")
 	Name() string
