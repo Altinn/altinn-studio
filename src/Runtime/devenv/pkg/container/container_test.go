@@ -117,11 +117,11 @@ func TestContainerNetworks(t *testing.T) {
 	defer removeContainer(ctx, containerName)
 
 	_, err := cli.CreateContainer(ctx, ContainerConfig{
-		Name:    containerName,
-		Image:   testImage,
-		Detach:  true,
-		Command: []string{"sleep", "30"},
-		Network: "bridge",
+		Name:     containerName,
+		Image:    testImage,
+		Detach:   true,
+		Command:  []string{"sleep", "30"},
+		Networks: []string{"bridge"},
 	})
 	if err != nil {
 		t.Fatalf("CreateContainer failed: %v", err)
