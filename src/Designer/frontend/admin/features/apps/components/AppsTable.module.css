@@ -2,6 +2,10 @@
   max-width: 400px;
 }
 
+.errorAlert {
+  margin: var(--ds-size-6) 0;
+}
+
 .errorMetricsHeaderCell {
   display: flex;
   justify-content: end;

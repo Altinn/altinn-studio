@@ -7,16 +7,17 @@ import {
   StudioSearch,
   StudioError,
   StudioTabs,
+  StudioAlert,
 } from '@studio/components';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import { useErrorMetricsQuery } from 'admin/hooks/queries/useErrorMetricsQuery';
 import { TimeRangeSelect } from 'admin/shared/TimeRangeSelect/TimeRangeSelect';
-import { toast } from 'react-toastify';
 import { appErrorMetricsLogsPath } from 'admin/utils/apiPaths';
 import { Alert } from 'admin/shared/Alert/Alert';
+import { isAxiosError } from 'axios';
 
 export type AppsTableProps = {
   org: string;
@@ -94,21 +95,17 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
   const {
     data: errorMetrics,
     isPending: errorMetricsIsPending,
+    error,
     isError: errorMetricsIsError,
   } = useErrorMetricsQuery(org, env, range!, {
     hideDefaultError: true,
   });
 
-  useEffect(() => {
-    if (errorMetricsIsError) {
-      toast.error(t('admin.metrics.errors.error'));
-    }
-  }, [errorMetricsIsError, t]);
-
   const renderErrorsMetricsHeaderCell = () => {
     return (
       <>
         {errorMetricsIsPending && <StudioSpinner aria-label={t('admin.metrics.errors.loading')} />}
+
         <TimeRangeSelect
           label={t('admin.metrics.errors')}
           value={range!}
@@ -120,6 +117,16 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
 
   return (
     <>
+      {errorMetricsIsError &&
+        (isAxiosError(error) && error.response?.status === 403 ? (
+          <StudioAlert data-color='warning' className={classes.errorAlert}>
+            {t('admin.metrics.errors.forbidden', { env: t(`admin.environment.${env}`) })}
+          </StudioAlert>
+        ) : (
+          <StudioAlert data-color='danger' className={classes.errorAlert}>
+            {t('admin.metrics.errors.error')}
+          </StudioAlert>
+        ))}
       <StudioSearch
         className={classes.appSearch}
         value={search ?? ''}

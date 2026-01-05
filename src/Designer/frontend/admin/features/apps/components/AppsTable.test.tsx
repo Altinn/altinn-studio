@@ -10,7 +10,6 @@ import { app, org } from '@studio/testing/testids';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import axios from 'axios';
-import { toast } from 'react-toastify';
 import userEvent from '@testing-library/user-event';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 
@@ -21,8 +20,10 @@ const defaultProps: AppsTableProps = {
   org,
 };
 
-jest.mock('react-toastify');
-jest.mock('axios');
+jest.mock('axios', () => ({
+  ...jest.requireActual('axios'),
+  get: jest.fn(),
+}));
 jest.mock('admin/hooks/useQueryParamState');
 
 const mockSetRange = jest.fn();
@@ -58,7 +59,7 @@ describe('AppsTable', () => {
       expect(screen.getByLabelText(textMock('admin.metrics.errors.loading'))).toBeInTheDocument();
     });
 
-    it('should render error state', async () => {
+    it('should render error state with danger alert for non-403 errors', async () => {
       const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
       (axios.get as jest.Mock).mockRejectedValue(axiosError);
 
@@ -83,7 +84,39 @@ describe('AppsTable', () => {
         ).not.toBeInTheDocument();
       });
 
-      expect(toast.error).toHaveBeenCalledWith(textMock('admin.metrics.errors.error'));
+      expect(screen.getByText(textMock('admin.metrics.errors.error'))).toBeInTheDocument();
+    });
+
+    it('should render warning alert for 403 forbidden errors', async () => {
+      const axiosError = createApiErrorMock(ServerCodes.Forbidden);
+      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+
+      const queryClient = createQueryClientMock();
+
+      queryClient.setQueryData([QueryKey.PublishedApps, org], {
+        production: [
+          {
+            app,
+            env,
+            org,
+            version: '1',
+          },
+        ],
+      });
+
+      renderAppsTable(queryClient);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByLabelText(textMock('admin.metrics.errors.loading')),
+        ).not.toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText(
+          textMock('admin.metrics.errors.forbidden', { env: textMock(`admin.environment.${env}`) }),
+        ),
+      ).toBeInTheDocument();
     });
 
     it('should render error metrics', () => {

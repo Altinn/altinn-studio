@@ -38,6 +38,7 @@
   "admin.metrics.app.loading": "Laster inn applikasjonsmetrikker for denne appen...",
   "admin.metrics.errors": "Feil fra siste",
   "admin.metrics.errors.error": "Kunne ikke hente applikasjonsfeil. Prøv igjen senere.",
+  "admin.metrics.errors.forbidden": "Du har ikke tilgang til å se applikasjonsfeil i {{env}}.",
   "admin.metrics.errors.link": "Se logger her",
   "admin.metrics.errors.loading": "Laster inn applikasjonsfeil...",
   "admin.metrics.failed_instances_requests": "feilende instansieringer",
