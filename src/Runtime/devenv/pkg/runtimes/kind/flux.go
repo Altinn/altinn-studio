@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"altinn.studio/runtime-fixture/pkg/flux"
-	"altinn.studio/runtime-fixture/pkg/kubernetes"
-	"altinn.studio/runtime-fixture/pkg/runtimes/kind/manifests"
+	"altinn.studio/devenv/pkg/flux"
+	"altinn.studio/devenv/pkg/kubernetes"
+	"altinn.studio/devenv/pkg/runtimes/kind/manifests"
 )
 
 // isFluxInstalled checks if Flux is already installed in the cluster
