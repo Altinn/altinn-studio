@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"altinn.studio/runtime-fixture/pkg/flux"
-	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
+	"altinn.studio/devenv/pkg/flux"
+	"altinn.studio/devenv/pkg/runtimes/kind"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"

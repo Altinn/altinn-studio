@@ -3,7 +3,7 @@ module altinn.studio/operator
 go 1.25.5
 
 require (
-	altinn.studio/runtime-fixture v0.0.0
+	altinn.studio/devenv v0.0.0
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.20.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets v1.4.0
@@ -203,4 +203,4 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace altinn.studio/runtime-fixture => ../test/fixture
+replace altinn.studio/devenv => ../devenv
