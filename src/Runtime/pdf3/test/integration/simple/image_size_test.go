@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"altinn.studio/pdf3/test/harness"
-	"altinn.studio/runtime-fixture/pkg/container"
+	"altinn.studio/devenv/pkg/container"
 )
 
 // imageInfo represents the structure returned by docker/podman image inspect

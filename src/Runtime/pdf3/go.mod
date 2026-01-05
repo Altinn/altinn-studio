@@ -7,7 +7,7 @@ require github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674
 require github.com/google/uuid v1.6.0
 
 require (
-	altinn.studio/runtime-fixture v0.0.0
+	altinn.studio/devenv v0.0.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.63.0
 	go.opentelemetry.io/otel v1.40.0
@@ -151,4 +151,4 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace altinn.studio/runtime-fixture => ../test/fixture
+replace altinn.studio/devenv => ../devenv
