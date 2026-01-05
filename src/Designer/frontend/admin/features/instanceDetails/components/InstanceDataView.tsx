@@ -4,7 +4,6 @@ import {
   StudioLabel,
   StudioSpinner,
   StudioDetails,
-  StudioTag,
   StudioError,
   StudioTabs,
 } from '@studio/components';
@@ -14,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
 // import { ProcessHistory } from './ProcessHistory';
 // import { InstanceEvents } from './InstanceEvents';
-import type { SimpleInstanceDetails } from 'admin/types/SimpleInstanceDetails';
+import type { SimpleDataElement, SimpleInstanceDetails } from 'admin/types/SimpleInstanceDetails';
 import { InstanceStatus } from 'admin/features/instances/components/InstanceStatus';
 
 type InstanceDataViewProps = {
@@ -44,6 +43,7 @@ type InstanceDataViewWithDataProps = InstanceDataViewProps & {
 
 enum InstanceDataViewTabs {
   Info = 'info',
+  Data = 'data',
   Process = 'process',
   Events = 'events',
   Logs = 'logs',
@@ -64,6 +64,7 @@ const InstanceDataViewWithData = ({
         <StudioTabs.Tab value={InstanceDataViewTabs.Info}>
           {t('Informasjon om instansen')}
         </StudioTabs.Tab>
+        <StudioTabs.Tab value={InstanceDataViewTabs.Data}>{t('Dataelementer')}</StudioTabs.Tab>
         {/*
         <StudioTabs.Tab value={InstanceDataViewTabs.Process}>{t('Prosess')}</StudioTabs.Tab>
         <StudioTabs.Tab value={InstanceDataViewTabs.Events}>{t('Events')}</StudioTabs.Tab>
@@ -82,35 +83,9 @@ const InstanceDataViewWithData = ({
         <LabelValue label={t('Sist endret')}>
           {formatDateAndTime(instance.lastChangedAt)}
         </LabelValue>
-        {!!instance.data?.length && (
-          <LabelValue label={t('Dataelementer')}>
-            {instance.data?.map((dataElement) => (
-              <StudioDetails key={dataElement.id}>
-                <StudioDetails.Summary>
-                  {dataElement.id} <StudioTag>{dataElement.dataType}</StudioTag>
-                </StudioDetails.Summary>
-                <StudioDetails.Content>
-                  <LabelValue label={t('Data element ID')}>{dataElement.id}</LabelValue>
-                  <LabelValue label={t('Data type')}>{dataElement.dataType}</LabelValue>
-                  <LabelValue label={t('Opprettet')}>
-                    {formatDateAndTime(dataElement.createdAt)}
-                  </LabelValue>
-                  <LabelValue label={t('Sist endret')}>
-                    {formatDateAndTime(dataElement.lastChangedAt)}
-                  </LabelValue>
-                  <LabelValue label={t('Låst')}>{dataElement.locked ? 'Ja' : 'Nei'}</LabelValue>
-                  <LabelValue label={t('Størrelse')}>{dataElement.size / 1e3 + ' kb'}</LabelValue>
-                  <LabelValue label={t('Content type')}>{dataElement.contentType}</LabelValue>
-                  {dataElement.fileScanResult && dataElement.fileScanResult !== 'NotApplicable' && (
-                    <LabelValue label={t('File scan result')}>
-                      {dataElement.fileScanResult}
-                    </LabelValue>
-                  )}
-                </StudioDetails.Content>
-              </StudioDetails>
-            ))}
-          </LabelValue>
-        )}
+      </StudioTabs.Panel>
+      <StudioTabs.Panel value={InstanceDataViewTabs.Data}>
+        <DataElements dataElements={instance.data} />
       </StudioTabs.Panel>
       {/*
       <StudioTabs.Panel value={InstanceDataViewTabs.Process}>
@@ -134,4 +109,61 @@ const LabelValue = ({ label, children }: PropsWithChildren<{ label: string }>) =
       <span aria-labelledby={labelId}>{children}</span>
     </StudioField>
   );
+};
+
+type DataElementGroups = Record<string, SimpleDataElement[]>;
+
+const DataElements = ({ dataElements }: { dataElements?: SimpleDataElement[] }) => {
+  const { t } = useTranslation();
+
+  if (!dataElements) {
+    return null;
+  }
+
+  const dataElementGroups: DataElementGroups = dataElements.reduce((dataTypes, dataElement) => {
+    dataTypes[dataElement.dataType] ??= [];
+    dataTypes[dataElement.dataType].push(dataElement);
+    return dataTypes;
+  }, {});
+
+  const sortedDataElementGroups: DataElementGroups = Object.fromEntries(
+    Object.entries(dataElementGroups).sort(([a], [b]) => {
+      if (a === 'ref-data-as-pdf') {
+        return 1;
+      }
+      if (b === 'ref-data-as-pdf') {
+        return -1;
+      }
+      return a.localeCompare(b);
+    }),
+  );
+
+  return Object.entries(sortedDataElementGroups).map(([dataType, elements]) => (
+    <LabelValue
+      key={dataType}
+      label={dataType === 'ref-data-as-pdf' ? t('Generert PDF') : dataType}
+    >
+      {elements.map((dataElement) => (
+        <StudioDetails key={dataElement.id}>
+          <StudioDetails.Summary>{dataElement.id}</StudioDetails.Summary>
+          <StudioDetails.Content>
+            <LabelValue label={t('Data element ID')}>{dataElement.id}</LabelValue>
+            <LabelValue label={t('Data type')}>{dataElement.dataType}</LabelValue>
+            <LabelValue label={t('Opprettet')}>
+              {formatDateAndTime(dataElement.createdAt)}
+            </LabelValue>
+            <LabelValue label={t('Sist endret')}>
+              {formatDateAndTime(dataElement.lastChangedAt)}
+            </LabelValue>
+            <LabelValue label={t('Låst')}>{dataElement.locked ? 'Ja' : 'Nei'}</LabelValue>
+            <LabelValue label={t('Størrelse')}>{dataElement.size / 1e3 + ' kb'}</LabelValue>
+            <LabelValue label={t('Content type')}>{dataElement.contentType}</LabelValue>
+            {dataElement.fileScanResult && dataElement.fileScanResult !== 'NotApplicable' && (
+              <LabelValue label={t('File scan result')}>{dataElement.fileScanResult}</LabelValue>
+            )}
+          </StudioDetails.Content>
+        </StudioDetails>
+      ))}
+    </LabelValue>
+  ));
 };
