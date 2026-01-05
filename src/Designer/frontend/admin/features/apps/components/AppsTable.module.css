@@ -27,3 +27,8 @@
 .errorMetric {
   padding: var(--ds-size-2) var(--ds-size-2) var(--ds-size-2) var(--ds-size-11);
 }
+
+.count {
+  font-size: 1rem;
+  font-weight: bold;
+}

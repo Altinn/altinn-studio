@@ -8,11 +8,11 @@ import { useTranslation } from 'react-i18next';
 
 type AlertProps = {
   color: string;
-  count: string;
-  title: string;
+  count?: string;
+  title: ReactElement | string;
   url?: string;
   children?: ReactElement;
-} & StudioAlertProps;
+} & Omit<StudioAlertProps, 'children' | 'title'>;
 
 export const Alert = ({ color, count, title, url, children, className, ...rest }: AlertProps) => {
   const { t } = useTranslation();
@@ -25,7 +25,7 @@ export const Alert = ({ color, count, title, url, children, className, ...rest }
     >
       <div className={classes.heading}>
         <span className={classes.title}>
-          <span className={classes.count}>{count}</span>
+          {count && <span className={classes.count}>{count}</span>}
           {title}
         </span>
         {url && (

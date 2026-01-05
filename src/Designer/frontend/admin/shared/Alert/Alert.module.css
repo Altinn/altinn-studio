@@ -1,11 +1,12 @@
 .metric {
   border: none;
-  padding: var(--ds-size-4) var(--ds-size-8) var(--ds-size-6) var(--ds-size-15);
+  padding: var(--ds-size-4) var(--ds-size-8) var(--ds-size-6) var(--ds-size-10);
   white-space: nowrap;
 }
 
 .metric:before {
-  margin-top: 4px;
+  margin-top: 3px;
+  margin-left: -20px;
 }
 
 .heading {
