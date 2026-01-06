@@ -107,6 +107,21 @@ const InstanceDataViewWithData = ({
         )}
         <LabelValue label={t('Status')}>{<InstanceStatus instance={instance} />}</LabelValue>
         <LabelValue label={t('Opprettet')}>{formatDateAndTime(instance.createdAt)}</LabelValue>
+        {instance.archivedAt && (
+          <LabelValue label={t('admin.instances.status.completed')}>
+            {formatDateAndTime(instance.archivedAt)}
+          </LabelValue>
+        )}
+        {instance.confirmedAt && (
+          <LabelValue label={t('admin.instances.status.confirmed')}>
+            {formatDateAndTime(instance.confirmedAt)}
+          </LabelValue>
+        )}
+        {instance.softDeletedAt && (
+          <LabelValue label={t('admin.instances.status.deleted')}>
+            {formatDateAndTime(instance.softDeletedAt)}
+          </LabelValue>
+        )}
         <LabelValue label={t('Sist endret')}>
           {formatDateAndTime(instance.lastChangedAt)}
         </LabelValue>
