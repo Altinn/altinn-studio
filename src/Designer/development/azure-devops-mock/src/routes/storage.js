@@ -51,7 +51,7 @@ const randomInstances = Array.from({ length: 1000 }).map(() => {
     fileScanResult: 'NotApplicable',
     hardDeletedAt,
     createdAt,
-    lastChangedAt: getRandomDate(createdAt.getTime(), completedAt.getTime()),
+    lastChangedAt: getRandomDate(createdAt.getTime(), (archivedAt ?? lastChangedAt).getTime()),
   });
 
   const generatePdfDataElement = () => ({
@@ -63,11 +63,11 @@ const randomInstances = Array.from({ length: 1000 }).map(() => {
     isRead: true,
     fileScanResult: 'NotApplicable',
     hardDeletedAt,
-    createdAt: completedAt,
-    lastChangedAt: completedAt,
+    createdAt: archivedAt,
+    lastChangedAt: archivedAt,
   });
 
-  const data = completedAt
+  const data = archivedAt
     ? [generateDataElement(), generatePdfDataElement()]
     : [generateDataElement()];
 

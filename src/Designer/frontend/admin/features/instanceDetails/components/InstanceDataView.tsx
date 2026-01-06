@@ -238,7 +238,7 @@ const DataElementGroup = ({
               {formatDateAndTime(dataElement.lastChangedAt)}
             </LabelValue>
             <LabelValue label={t('Låst')}>{dataElement.locked ? 'Ja' : 'Nei'}</LabelValue>
-            <LabelValue label={t('Størrelse')}>{dataElement.size / 1e3 + ' kb'}</LabelValue>
+            <LabelValue label={t('Størrelse')}>{dataElement.size / 1e3 + ' KB'}</LabelValue>
             <LabelValue label={t('Content type')}>{dataElement.contentType}</LabelValue>
             {dataElement.fileScanResult && dataElement.fileScanResult !== 'NotApplicable' && (
               <LabelValue label={t('File scan result')}>{dataElement.fileScanResult}</LabelValue>
