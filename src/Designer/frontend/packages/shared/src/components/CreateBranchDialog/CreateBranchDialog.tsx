@@ -45,7 +45,6 @@ export const CreateBranchDialog = ({
       return;
     }
 
-    setValidationError(null);
     onCreateBranch(newBranchName);
     handleClose();
   };
