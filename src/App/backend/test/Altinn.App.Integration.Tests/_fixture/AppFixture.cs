@@ -435,7 +435,7 @@ public sealed partial class AppFixture : IAsyncDisposable
             logger.LogInformation("Building app container image");
 
             var appDirectory = GetAppDir(name);
-            await Task.WhenAll(SyncPackages(name), SyncShared(name));
+            await Task.WhenAll(SyncPackages(name), SyncShared(name), SyncFrontend(name));
 
             var appBuilder = new ImageFromDockerfileBuilder()
                 .WithName($"applib-{name}:latest")
@@ -846,6 +846,29 @@ public sealed partial class AppFixture : IAsyncDisposable
         {
             var fileName = Path.GetFileName(file);
             var destFile = Path.Join(appSharedDirectory, fileName);
+            await using var source = File.OpenRead(file);
+            await using var destination = File.Create(destFile);
+            await source.CopyToAsync(destination);
+        }
+    }
+
+    private static async Task SyncFrontend(string name)
+    {
+        var appDirectory = GetAppDir(name);
+        var frontendSourceDirectory = Path.Join(_rootDirectory, "App", "frontend", "dist");
+        var appFrontendDirectory = Path.Join(appDirectory, "wwwroot", "altinn-app-frontend");
+        if (Directory.Exists(appFrontendDirectory))
+            Directory.Delete(appFrontendDirectory, true);
+        Directory.CreateDirectory(appFrontendDirectory);
+
+        List<string> filesToCopy = ["altinn-app-frontend.js", "altinn-app-frontend.css"];
+        foreach (var file in Directory.GetFiles(frontendSourceDirectory))
+        {
+            if (!filesToCopy.Contains(Path.GetFileName(file)))
+                continue;
+
+            var fileName = Path.GetFileName(file);
+            var destFile = Path.Join(appFrontendDirectory, fileName);
             await using var source = File.OpenRead(file);
             await using var destination = File.Create(destFile);
             await source.CopyToAsync(destination);

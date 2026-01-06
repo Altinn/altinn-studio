@@ -389,5 +389,6 @@ BenchmarkDotNet.Artifacts/
 # Integration test harness related files
 test/Altinn.App.Integration.Tests/_testapps/*/_packages/
 test/Altinn.App.Integration.Tests/_testapps/*/_shared/
+test/Altinn.App.Integration.Tests/_testapps/*/**/wwwroot/altinn-app-frontend/
 
 **/_snapshots/_local/
