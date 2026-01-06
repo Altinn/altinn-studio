@@ -13,7 +13,7 @@ import {
   branchesMock,
   currentBranchInfoMock,
   uncommittedChangesErrorMock,
-} from '../../test/mocks/branchSelectorMocks';
+} from '../../test/mocks/branchingMocks';
 import { useCheckoutBranchAndReload } from '../../hooks/useCheckoutBranchAndReload';
 import { useCreateAndCheckoutBranch } from '../../hooks/useCreateNewBranch/useCreateAndCheckoutBranch';
 import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
@@ -272,7 +272,7 @@ describe('BranchDropdown', () => {
       expect(uncommittedChangesDialog).not.toBeInTheDocument();
     });
 
-    it('Should call discardChangesMutation when clicking discard button in UncommittedChangesDialog', async () => {
+    it('Should call discardChangesMutation and checkoutBranchAndReload when clicking discard button in UncommittedChangesDialog', async () => {
       const user = userEvent.setup();
       mockUseCheckoutBranchAndReload.mockReturnValue({
         checkoutBranchAndReload,

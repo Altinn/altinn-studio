@@ -45,16 +45,18 @@ describe('CreateBranchDialog', () => {
     expect(createButton).toBeInTheDocument();
   });
 
-  it('should call onCreateBranch when pressing create button', async () => {
+  it('should call onCreateBranch with branch name when pressing create button', async () => {
     const user = userEvent.setup();
     renderCreateBranchDialog();
 
     const textField = getBranchNameTextfield();
     const createButton = queryCreateButton();
-    await user.type(textField, 'branch-name');
+    const newBranchName = 'branch-name';
+    await user.type(textField, newBranchName);
     await user.click(createButton);
 
     expect(onCreateBranch).toHaveBeenCalledTimes(1);
+    expect(onCreateBranch).toHaveBeenCalledWith(newBranchName);
   });
 
   it('should call onClose when pressing cancel button', async () => {

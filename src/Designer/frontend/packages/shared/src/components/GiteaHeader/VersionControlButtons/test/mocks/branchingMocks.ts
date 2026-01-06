@@ -1,6 +1,7 @@
 import type {
   Branch,
   CurrentBranchInfo,
+  RepoStatus,
   UncommittedChangesError,
 } from 'app-shared/types/api/BranchTypes';
 
@@ -28,15 +29,36 @@ export const branchesMock: Array<Branch> = [
   },
 ];
 
+export const mockBranch: Branch = {
+  name: 'feature/new-branch',
+  commit: {
+    id: 'commit-id-123',
+    message: 'test commit',
+  },
+};
+
+export const mockRepoStatus: RepoStatus = {
+  repositoryStatus: 'Ok',
+  aheadBy: 0,
+  behindBy: 0,
+  contentStatus: [],
+  hasMergeConflict: false,
+  currentBranch: 'feature/new-branch',
+};
+
 export const uncommittedChangesErrorMock: UncommittedChangesError = {
   error: 'UncommittedChanges',
-  message: 'There are uncommitted changes',
+  message: 'You have uncommitted changes',
   uncommittedFiles: [
     {
-      filePath: 'test-file.txt',
+      filePath: 'test.txt',
       status: 'Modified',
     },
+    {
+      filePath: 'another.ts',
+      status: 'Added',
+    },
   ],
-  currentBranch: 'master',
-  targetBranch: 'feature-branch',
+  currentBranch: 'main',
+  targetBranch: 'feature/new-branch',
 };
