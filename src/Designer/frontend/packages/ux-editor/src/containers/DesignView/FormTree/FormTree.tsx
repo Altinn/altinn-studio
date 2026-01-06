@@ -32,7 +32,7 @@ export const FormTree = ({ layout, duplicateComponents }: FormTreeProps) => {
   return (
     <StudioDragAndDropTree.Root
       onSelect={handleSelect}
-      emptyMessage={t('ux_editor.container_empty')}
+      emptyMessage={!isAddComponentModalEnabled && t('ux_editor.container_empty')}
       selectedId={formId}
     >
       {renderItemList(layout, duplicateComponents, BASE_CONTAINER_ID, isAddComponentModalEnabled)}

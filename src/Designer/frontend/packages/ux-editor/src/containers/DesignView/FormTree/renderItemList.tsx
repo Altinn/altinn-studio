@@ -21,6 +21,7 @@ export const renderItemList = (
           key={id}
           containerId={parentId}
           saveAtIndexPosition={getSavePositionByIndex(index)}
+          isLastChild={index === childIds.length - 1}
         />
       ))}
       {/* Spacer component to make space for the HoverAddButton in containers*/}
