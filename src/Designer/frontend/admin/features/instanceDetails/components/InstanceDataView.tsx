@@ -22,6 +22,8 @@ import { Tag } from '@digdir/designsystemet-react';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import { FileIcon, FileTextIcon, ReceiptIcon } from '@studio/icons';
 
+import classes from './InstanceDataView.module.css';
+
 type InstanceDataViewProps = {
   org: string;
   env: string;
@@ -211,11 +213,11 @@ const DataElementGroup = ({
         : FileIcon;
 
   return (
-    <StudioField style={{ marginBottom: '1rem' }}>
+    <StudioField className={classes['data-element-field']}>
       <StudioLabel id={labelId}>
-        <span style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Icon style={{ fontSize: '22px' }} />
+        <span className={classes['data-element-label-wrapper']}>
+          <div className={classes['data-element-label-title']}>
+            <Icon className={classes['data-element-icon']} />
             {label}
           </div>
           {dataTypeDef?.taskId && (
