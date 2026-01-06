@@ -44,10 +44,13 @@ jobs:
         working-directory: ${{ matrix.os.workingDir }}
         run: |
           dotnet tool restore
-      - name: Build
+      - name: Build backend
         working-directory: ${{ matrix.os.workingDir }}
         run: |
           dotnet build solutions/All.sln -v m
+      - name: Build frontend
+        uses: ./.github/actions/app-build-frontend
+
       - name: Test
         if: matrix.os.id != 'ubuntu-latest'
         working-directory: ${{ matrix.os.workingDir }}
