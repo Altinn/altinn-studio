@@ -133,7 +133,7 @@ public class ApplicationsController : ControllerBase
     }
 
     [HttpGet("{org}/{env}/{app}/process-datatypes")]
-    public async Task<ActionResult<IEnumerable<ProcessDataType>>> GetProcessDataTypeMetadata(
+    public async Task<ActionResult<IEnumerable<ProcessDataType>>> GetProcessDataTypes(
         string org,
         string env,
         string app,
@@ -142,7 +142,7 @@ public class ApplicationsController : ControllerBase
     {
         try
         {
-            return Ok(await _appResourcesService.GetProcessDataTypeMetadata(org, env, app, ct));
+            return Ok(await _appResourcesService.GetProcessDataTypes(org, env, app, ct));
         }
         catch (HttpRequestException ex)
         {

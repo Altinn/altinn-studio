@@ -83,7 +83,7 @@ class AppResourcesService : IAppResourcesService
             });
     }
 
-    public async Task<IEnumerable<ProcessDataType>> GetProcessDataTypeMetadata(
+    public async Task<IEnumerable<ProcessDataType>> GetProcessDataTypes(
         string org,
         string env,
         string app,
