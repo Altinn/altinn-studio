@@ -15,26 +15,31 @@ namespace Altinn.App.Models
     [XmlElement("userLanguage", Order = 1)]
     [JsonProperty("userLanguage")]
     [JsonPropertyName("userLanguage")]
+    [Required]
     public string userLanguage { get; set; }
 
     [XmlElement("materialType", Order = 2)]
     [JsonProperty("materialType")]
     [JsonPropertyName("materialType")]
+    [Required]
     public string materialType { get; set; }
 
     [XmlElement("theaterType", Order = 3)]
     [JsonProperty("theaterType")]
     [JsonPropertyName("theaterType")]
+    [Required]
     public string theaterType { get; set; }
 
     [XmlElement("title", Order = 4)]
     [JsonProperty("title")]
     [JsonPropertyName("title")]
+    [Required]
     public string title { get; set; }
 
     [XmlElement("subtitle", Order = 5)]
     [JsonProperty("subtitle")]
     [JsonPropertyName("subtitle")]
+    [Required]
     public string subtitle { get; set; }
 
     [XmlElement("persons", Order = 6)]
@@ -50,12 +55,14 @@ namespace Altinn.App.Models
     [XmlElement("submitter", Order = 8)]
     [JsonProperty("submitter")]
     [JsonPropertyName("submitter")]
+    [Required]
     public string submitter { get; set; }
 
     [RegularExpression(@"^(19|20)[0-9]{2}$")]
     [XmlElement("publishYear", Order = 9)]
     [JsonProperty("publishYear")]
     [JsonPropertyName("publishYear")]
+    [Required]
     public string publishYear { get; set; }
 
     [XmlElement("meantForPress", Order = 10)]
@@ -68,26 +75,31 @@ namespace Altinn.App.Models
     [XmlElement("language", Order = 11)]
     [JsonProperty("language")]
     [JsonPropertyName("language")]
+    [Required]
     public string language { get; set; }
 
     [XmlElement("edition", Order = 12)]
     [JsonProperty("edition")]
     [JsonPropertyName("edition")]
+    [Required]
     public string edition { get; set; }
 
     [XmlElement("publishPlace", Order = 13)]
     [JsonProperty("publishPlace")]
     [JsonPropertyName("publishPlace")]
+    [Required]
     public string publishPlace { get; set; }
 
     [XmlElement("numberOfPages", Order = 14)]
     [JsonProperty("numberOfPages")]
     [JsonPropertyName("numberOfPages")]
+    [Required]
     public string numberOfPages { get; set; }
 
     [XmlElement("premiereDateAndPlace", Order = 15)]
     [JsonProperty("premiereDateAndPlace")]
     [JsonPropertyName("premiereDateAndPlace")]
+    [Required]
     public string premiereDateAndPlace { get; set; }
 
     [XmlElement("hasISBN", Order = 16)]
@@ -101,11 +113,13 @@ namespace Altinn.App.Models
     [XmlElement("isbn", Order = 17)]
     [JsonProperty("isbn")]
     [JsonPropertyName("isbn")]
+    [Required]
     public string isbn { get; set; }
 
     [XmlElement("originalTitle", Order = 18)]
     [JsonProperty("originalTitle")]
     [JsonPropertyName("originalTitle")]
+    [Required]
     public string originalTitle { get; set; }
 
     [XmlElement("isSeries", Order = 19)]
@@ -119,41 +133,49 @@ namespace Altinn.App.Models
     [XmlElement("issn", Order = 20)]
     [JsonProperty("issn")]
     [JsonPropertyName("issn")]
+    [Required]
     public string issn { get; set; }
 
     [XmlElement("seriesTitle", Order = 21)]
     [JsonProperty("seriesTitle")]
     [JsonPropertyName("seriesTitle")]
+    [Required]
     public string seriesTitle { get; set; }
 
     [XmlElement("numberInSeries", Order = 22)]
     [JsonProperty("numberInSeries")]
     [JsonPropertyName("numberInSeries")]
+    [Required]
     public string numberInSeries { get; set; }
 
     [XmlElement("summary", Order = 23)]
     [JsonProperty("summary")]
     [JsonPropertyName("summary")]
+    [Required]
     public string summary { get; set; }
 
     [XmlElement("missionClient", Order = 24)]
     [JsonProperty("missionClient")]
     [JsonPropertyName("missionClient")]
+    [Required]
     public string missionClient { get; set; }
 
     [XmlElement("missionExecutor", Order = 25)]
     [JsonProperty("missionExecutor")]
     [JsonPropertyName("missionExecutor")]
+    [Required]
     public string missionExecutor { get; set; }
 
     [XmlElement("documentType", Order = 26)]
     [JsonProperty("documentType")]
     [JsonPropertyName("documentType")]
+    [Required]
     public string documentType { get; set; }
 
     [XmlElement("scale", Order = 27)]
     [JsonProperty("scale")]
     [JsonPropertyName("scale")]
+    [Required]
     public string scale { get; set; }
 
     [XmlElement("hasISMN", Order = 28)]
@@ -167,6 +189,7 @@ namespace Altinn.App.Models
     [XmlElement("ismn", Order = 29)]
     [JsonProperty("ismn")]
     [JsonPropertyName("ismn")]
+    [Required]
     public string ismn { get; set; }
 
     [Range(Double.MinValue,Double.MaxValue)]
@@ -187,6 +210,7 @@ namespace Altinn.App.Models
     [XmlElement("comment", Order = 32)]
     [JsonProperty("comment")]
     [JsonPropertyName("comment")]
+    [Required]
     public string comment { get; set; }
 
     [XmlElement("publishers", Order = 33)]
@@ -209,16 +233,19 @@ namespace Altinn.App.Models
     [XmlElement("role", Order = 1)]
     [JsonProperty("role")]
     [JsonPropertyName("role")]
+    [Required]
     public string role { get; set; }
 
     [XmlElement("firstname", Order = 2)]
     [JsonProperty("firstname")]
     [JsonPropertyName("firstname")]
+    [Required]
     public string firstname { get; set; }
 
     [XmlElement("lastname", Order = 3)]
     [JsonProperty("lastname")]
     [JsonPropertyName("lastname")]
+    [Required]
     public string lastname { get; set; }
 
   }
@@ -236,11 +263,13 @@ namespace Altinn.App.Models
     [XmlElement("orgName", Order = 1)]
     [JsonProperty("orgName")]
     [JsonPropertyName("orgName")]
+    [Required]
     public string orgName { get; set; }
 
     [XmlElement("orgRole", Order = 2)]
     [JsonProperty("orgRole")]
     [JsonPropertyName("orgRole")]
+    [Required]
     public string orgRole { get; set; }
 
   }
@@ -258,6 +287,7 @@ namespace Altinn.App.Models
     [XmlElement("publisherName", Order = 1)]
     [JsonProperty("publisherName")]
     [JsonPropertyName("publisherName")]
+    [Required]
     public string publisherName { get; set; }
 
   }

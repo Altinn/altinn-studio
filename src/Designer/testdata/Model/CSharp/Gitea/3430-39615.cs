@@ -85,6 +85,7 @@ namespace Altinn.App.Models
     [MinLength(9)]
     [MaxLength(9)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -98,6 +99,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -111,6 +113,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(175)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -143,6 +146,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(70)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -172,6 +176,7 @@ namespace Altinn.App.Models
   public class ArsregnskapSysteminnsending35139
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -259,6 +264,7 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -271,6 +277,7 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -283,6 +290,7 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^[0-9]{4}$")]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -319,6 +327,7 @@ namespace Altinn.App.Models
   public class Morselskap4168
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -330,6 +339,7 @@ namespace Altinn.App.Models
   public class KonsernregnskapVedlegg25943
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -341,6 +351,7 @@ namespace Altinn.App.Models
   public class UtenlandskKonsern36640
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -412,6 +423,7 @@ namespace Altinn.App.Models
   public class RegnskapsreglerSmaForetak8079
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -423,6 +435,7 @@ namespace Altinn.App.Models
   public class RegnskapsoppsettIFRS25021
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -434,6 +447,7 @@ namespace Altinn.App.Models
   public class ForenkletIFRS36639
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -445,6 +459,7 @@ namespace Altinn.App.Models
   public class RegnskapsoppsettKonsernIFRS25944
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -456,6 +471,7 @@ namespace Altinn.App.Models
   public class ForenkletIFRSKonsern36641
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -467,6 +483,7 @@ namespace Altinn.App.Models
   public class ArsregnskapIkkeRevisjonBesluttet34669
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -478,6 +495,7 @@ namespace Altinn.App.Models
   public class ArsregnskapUtarbeidelseAvAutorisertRegnskapsforer34670
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -489,6 +507,7 @@ namespace Altinn.App.Models
   public class TjenestebistandEksternAutorisertRegnskapsforer34671
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -519,6 +538,7 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -532,6 +552,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(70)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
