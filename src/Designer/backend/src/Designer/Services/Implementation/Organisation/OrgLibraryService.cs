@@ -40,33 +40,38 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         cancellationToken.ThrowIfCancellationRequested();
 
         string repository = GetStaticContentRepo(org);
-        List<FileSystemObject> directoryContent = await GetDirectoryContent(org, path, reference, cancellationToken);
-
         ConcurrentBag<LibraryFile> libraryFiles = [];
-
         ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
-        await Parallel.ForEachAsync(directoryContent, options,
-            async (FileSystemObject fileMetadata, CancellationToken token) =>
-            {
-                string fileExtension = Path.GetExtension(fileMetadata.Name);
-                switch (fileExtension)
-                {
-                    case JsonExtension:
-                        (FileSystemObject? file, ProblemDetails? problem) = await giteaClient.GetFileAndErrorAsync(org, repository, fileMetadata.Path, reference, token);
-                        LibraryFile jsonFileResult = PrepareJsonFileOrProblem(fileMetadata, file, problem);
-                        libraryFiles.Add(jsonFileResult);
-                        break;
-                    default:
-                        LibraryFile otherFile = PrepareOtherFile(fileMetadata);
-                        libraryFiles.Add(otherFile);
-                        break;
-                }
-            }
-        );
-
         string baseCommitSha = await giteaClient.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
 
-        return new GetSharedResourcesResponse(Files: [.. libraryFiles], CommitSha: baseCommitSha);
+        try
+        {
+            List<FileSystemObject> directoryContent = await GetDirectoryContent(org, path, reference, cancellationToken);
+            await Parallel.ForEachAsync(directoryContent, options,
+                async (FileSystemObject fileMetadata, CancellationToken token) =>
+                {
+                    string fileExtension = Path.GetExtension(fileMetadata.Name);
+                    switch (fileExtension)
+                    {
+                        case JsonExtension:
+                            (FileSystemObject? file, ProblemDetails? problem) = await giteaClient.GetFileAndErrorAsync(org, repository, fileMetadata.Path, reference, token);
+                            LibraryFile jsonFileResult = PrepareJsonFileOrProblem(fileMetadata, file, problem);
+                            libraryFiles.Add(jsonFileResult);
+                            break;
+                        default:
+                            LibraryFile otherFile = PrepareOtherFile(fileMetadata);
+                            libraryFiles.Add(otherFile);
+                            break;
+                    }
+                }
+            );
+
+            return new GetSharedResourcesResponse(Files: [.. libraryFiles], CommitSha: baseCommitSha);
+        }
+        catch (Exception ex) when (ex is DirectoryNotFoundException)
+        {
+            return new GetSharedResourcesResponse(Files: [], CommitSha: baseCommitSha);
+        }
     }
 
     /// <inheritdoc />
