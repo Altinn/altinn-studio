@@ -20,6 +20,7 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: ./.github/actions/app-build-frontend
   analyze:
+    needs: build-frontend
     strategy:
       matrix:
         os:
