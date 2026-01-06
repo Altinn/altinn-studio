@@ -67,6 +67,7 @@ export enum QueryKey {
   AppInstances = 'AppInstances',
   AppInstanceDetails = 'AppInstanceDetails',
   AppProcessTasks = 'AppProcessTasks',
+  AppProcessDataTypeMetadata = 'AppProcessDataTypeMetadata',
   ProcessHistory = 'ProcessHistory',
   InstanceEvents = 'InstanceEvents',
   PublishedApps = 'PublishedApps',

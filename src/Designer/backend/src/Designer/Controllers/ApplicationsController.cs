@@ -131,4 +131,30 @@ public class ApplicationsController : ControllerBase
             return StatusCode(502);
         }
     }
+
+    [HttpGet("{org}/{env}/{app}/process-datatypes-metadata")]
+    public async Task<ActionResult<Dictionary<string, string>>> GetProcessDataTypeMetadata(
+        string org,
+        string env,
+        string app,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            return Ok(await _appResourcesService.GetProcessDataTypeMetadata(org, env, app, ct));
+        }
+        catch (HttpRequestException ex)
+        {
+            return StatusCode((int?)ex.StatusCode ?? 500);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(499);
+        }
+    }
 }

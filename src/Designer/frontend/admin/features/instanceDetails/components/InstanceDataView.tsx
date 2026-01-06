@@ -20,9 +20,20 @@ import { useReduceQueries } from 'admin/hooks/useReduceQueries';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { Tag } from '@digdir/designsystemet-react';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
-import { FileIcon, FileTextIcon, ReceiptIcon } from '@studio/icons';
+import {
+  FileTextIcon,
+  PaperclipIcon,
+  PaymentDetailsIcon,
+  PencilLineIcon,
+  PersonPencilIcon,
+  ReceiptIcon,
+} from '@studio/icons';
 
 import classes from './InstanceDataView.module.css';
+import {
+  type ProcessDataType,
+  useProcessDataTypeMetadataQuery,
+} from 'admin/hooks/queries/useProcessDataTypeMetadataQuery';
 
 type InstanceDataViewProps = {
   org: string;
@@ -37,6 +48,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
   const { data, status } = useReduceQueries(
     useAppInstanceDetailsQuery(org, env, app, id),
     useAppMetadataQuery(org, env, app),
+    useProcessDataTypeMetadataQuery(org, env, app),
   );
 
   switch (status) {
@@ -45,7 +57,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
     case 'error':
       return <StudioError>{t('general.page_error_title')}</StudioError>;
     case 'success': {
-      const [instanceDetails, appMetadata] = data;
+      const [instanceDetails, appMetadata, processDataTypeMetadata] = data;
 
       return (
         <InstanceDataViewWithData
@@ -55,6 +67,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
           id={id}
           instance={instanceDetails}
           appMetadata={appMetadata}
+          processDataTypeMetadata={processDataTypeMetadata}
         />
       );
     }
@@ -64,6 +77,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
 type InstanceDataViewWithDataProps = InstanceDataViewProps & {
   instance: SimpleInstanceDetails;
   appMetadata: ApplicationMetadata;
+  processDataTypeMetadata: Record<string, ProcessDataType>;
 };
 
 enum InstanceDataViewTabs {
@@ -81,6 +95,7 @@ const InstanceDataViewWithData = ({
   // id,
   instance,
   appMetadata,
+  processDataTypeMetadata,
 }: InstanceDataViewWithDataProps) => {
   const { t } = useTranslation();
   const [tab, setTab] = useQueryParamState<string>('section', InstanceDataViewTabs.Info);
@@ -127,7 +142,11 @@ const InstanceDataViewWithData = ({
         </LabelValue>
       </StudioTabs.Panel>
       <StudioTabs.Panel value={InstanceDataViewTabs.Data}>
-        <DataElementGroups dataElements={instance.data} appMetadata={appMetadata} />
+        <DataElementGroups
+          dataElements={instance.data}
+          appMetadata={appMetadata}
+          processDataTypeMetadata={processDataTypeMetadata}
+        />
       </StudioTabs.Panel>
       {/*
       <StudioTabs.Panel value={InstanceDataViewTabs.Process}>
@@ -156,9 +175,11 @@ const LabelValue = ({ label, children }: PropsWithChildren<{ label: string }>) =
 const DataElementGroups = ({
   dataElements,
   appMetadata,
+  processDataTypeMetadata,
 }: {
   dataElements?: SimpleDataElement[];
   appMetadata: ApplicationMetadata;
+  processDataTypeMetadata: Record<string, ProcessDataType>;
 }) => {
   if (!dataElements) {
     return null;
@@ -173,12 +194,21 @@ const DataElementGroups = ({
     {},
   );
 
-  const sortedDataElementGroups = Object.entries(dataElementGroups).sort(([_a, aE], [_b, bE]) => {
-    const a = Math.max(...aE.map((e) => new Date(e.lastChangedAt ?? 0).getTime()));
-    const b = Math.max(...bE.map((e) => new Date(e.lastChangedAt ?? 0).getTime()));
-
-    return a - b;
-  });
+  const sortedDataElementGroups = Object.entries(dataElementGroups)
+    .toSorted(
+      ([_a, aE], [_b, bE]) =>
+        Math.max(...aE.map((e) => new Date(e.createdAt ?? 0).getTime())) -
+        Math.max(...bE.map((e) => new Date(e.createdAt ?? 0).getTime())),
+    )
+    .map(
+      ([dataType, elements]) =>
+        [
+          dataType,
+          elements.toSorted(
+            (a, b) => new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime(),
+          ),
+        ] as const,
+    );
 
   return sortedDataElementGroups.map(([dataType, elements]) => (
     <DataElementGroup
@@ -186,53 +216,105 @@ const DataElementGroups = ({
       dataType={dataType}
       dataElements={elements}
       appMetadata={appMetadata}
+      processDataTypeMetadata={processDataTypeMetadata}
     />
   ));
 };
+
+type DataTypeType =
+  | 'datamodel'
+  | 'pdfReceipt'
+  | 'signature'
+  | 'signeeStates'
+  | 'paymentInfo'
+  | 'default';
+
+const DataTypeIcons: { [k in DataTypeType]: React.FC } = {
+  datamodel: () => <FileTextIcon title='Datamodell' className={classes['data-element-icon']} />,
+  pdfReceipt: () => <ReceiptIcon title='PDF kvittering' className={classes['data-element-icon']} />,
+  signature: () => <PencilLineIcon title='Signatur' className={classes['data-element-icon']} />,
+  signeeStates: () => (
+    <PersonPencilIcon title='Signatarer' className={classes['data-element-icon']} />
+  ),
+  paymentInfo: () => (
+    <PaymentDetailsIcon title='Betaling' className={classes['data-element-icon']} />
+  ),
+  default: () => <PaperclipIcon title='Vedlegg' className={classes['data-element-icon']} />,
+};
+
+function getDataTypeType(
+  dataType: string,
+  appMetadata: ApplicationMetadata,
+  processDataTypeMetadata: Record<string, ProcessDataType>,
+): DataTypeType {
+  if (
+    dataType === 'ref-data-as-pdf' ||
+    ['signingPdfDataType', 'paymentReceiptPdfDataType'].includes(processDataTypeMetadata[dataType])
+  ) {
+    return 'pdfReceipt';
+  }
+  if (processDataTypeMetadata[dataType] === 'signatureDataType') {
+    return 'signature';
+  }
+  if (processDataTypeMetadata[dataType] === 'signeeStatesDataTypeId') {
+    return 'signeeStates';
+  }
+  if (processDataTypeMetadata[dataType] === 'paymentDataType') {
+    return 'paymentInfo';
+  }
+  if (appMetadata.dataTypes?.find((d) => d.id === dataType)?.appLogic?.classRef) {
+    return 'datamodel';
+  }
+  return 'default';
+}
+
+function getDataTypeLabel(
+  dataType: string,
+  count: number,
+  appMetadata: ApplicationMetadata,
+): string {
+  if (dataType === 'ref-data-as-pdf') {
+    return count > 1 ? `Generert PDF (${count})` : 'Generert PDF';
+  }
+
+  const dataTypeDef = appMetadata.dataTypes?.find((dt) => dt.id === dataType);
+
+  if (!dataTypeDef || (dataTypeDef.minCount === 1 && dataTypeDef.maxCount === 1)) {
+    return dataType;
+  }
+
+  if (!!dataTypeDef.maxCount) {
+    return `${dataType} (${count}/${dataTypeDef.maxCount})`;
+  }
+
+  return `${dataType} (${count})`;
+}
 
 const DataElementGroup = ({
   dataType,
   dataElements,
   appMetadata,
+  processDataTypeMetadata,
 }: {
   dataType: string;
   dataElements: SimpleDataElement[];
   appMetadata: ApplicationMetadata;
+  processDataTypeMetadata: Record<string, ProcessDataType>;
 }) => {
   const { t } = useTranslation();
+  const labelId = `label-${dataType}`;
 
   const dataTypeDef = appMetadata.dataTypes?.find((dt) => dt.id === dataType);
-
-  // For datamodels there is usually exactly one element, looks weird to show the number in those cases
-  const shouldShowCount = !(dataTypeDef?.minCount === 1 && dataTypeDef.maxCount === 1);
-  const shouldShowMaxCount = !!dataTypeDef?.maxCount;
-  const count = dataElements.length;
-  const max = dataTypeDef?.maxCount;
-
-  const labelId = `label-${dataType}`;
-  const label =
-    dataType === 'ref-data-as-pdf'
-      ? `${t('Generert PDF')} (${count})`
-      : shouldShowCount
-        ? shouldShowMaxCount
-          ? `${dataType} (${count}/${max})`
-          : `${dataType} (${count})`
-        : dataType;
-
-  // POC distinguish between different "types" of data types. e.g. data models, pdf receipts, attachments. In the future, signature and payments objects? Need info from bpmn to determine this.
-  const Icon =
-    dataType === 'ref-data-as-pdf'
-      ? ReceiptIcon
-      : dataTypeDef?.appLogic?.classRef
-        ? FileTextIcon
-        : FileIcon;
+  const label = getDataTypeLabel(dataType, dataElements.length, appMetadata);
+  const type = getDataTypeType(dataType, appMetadata, processDataTypeMetadata);
+  const Icon = DataTypeIcons[type];
 
   return (
     <StudioField className={classes['data-element-field']}>
       <StudioLabel id={labelId}>
         <span className={classes['data-element-label-wrapper']}>
           <div className={classes['data-element-label-title']}>
-            <Icon className={classes['data-element-icon']} />
+            <Icon />
             {label}
           </div>
           {dataTypeDef?.taskId && (

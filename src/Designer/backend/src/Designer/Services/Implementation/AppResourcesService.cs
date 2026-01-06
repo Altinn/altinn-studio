@@ -19,6 +19,15 @@ class AppResourcesService : IAppResourcesService
     private readonly IEnvironmentsService _environmentsService;
 
     private readonly XNamespace _bpmnNs = "http://www.omg.org/spec/BPMN/20100524/MODEL";
+    private readonly XNamespace _altinnNs = "http://altinn.no/process";
+    private readonly List<string> _dataTypeProcessTags = new()
+    {
+        "signatureDataType",
+        "signeeStatesDataTypeId",
+        "signingPdfDataType",
+        "paymentDataType",
+        "paymentReceiptPdfDataType",
+    };
 
     public AppResourcesService(HttpClient httpClient, IEnvironmentsService environmentsService)
     {
@@ -72,5 +81,35 @@ class AppResourcesService : IAppResourcesService
                     ),
                 Name = (string)e.Attribute("name"),
             });
+    }
+
+    public async Task<Dictionary<string, string>> GetProcessDataTypeMetadata(
+        string org,
+        string env,
+        string app,
+        CancellationToken ct
+    )
+    {
+        var appClusterUri = await _environmentsService.GetAppClusterUri(org, env);
+        using var response = await _httpClient.GetAsync(
+            $"{appClusterUri}/{org}/{app}/api/v1/meta/process",
+            ct
+        );
+
+        response.EnsureSuccessStatusCode();
+        string responseString = await response.Content.ReadAsStringAsync(ct);
+        var processXml = XDocument.Parse(responseString);
+
+        var result = new Dictionary<string, string>();
+
+        foreach (var tag in _dataTypeProcessTags)
+        {
+            foreach (var element in processXml.Descendants(_altinnNs + tag))
+            {
+                result[element.Value] = tag;
+            }
+        }
+
+        return result;
     }
 }
