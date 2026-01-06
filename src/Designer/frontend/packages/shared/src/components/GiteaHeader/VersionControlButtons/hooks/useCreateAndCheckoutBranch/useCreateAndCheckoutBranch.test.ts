@@ -14,9 +14,9 @@ import {
 import { org, app } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-describe('useCreateAndCheckoutBranch', () => {
-  const branchName = 'feature/new-branch';
+const branchName = 'feature/new-branch';
 
+describe('useCreateAndCheckoutBranch', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });

@@ -8,7 +8,7 @@ import { UncommittedChangesDialog } from 'app-shared/components/UncommittedChang
 import { CreateBranchDialog } from 'app-shared/components/CreateBranchDialog';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 import classes from './BranchDropdown.module.css';
-import { useCreateAndCheckoutBranch } from '../../hooks/useCreateNewBranch/useCreateAndCheckoutBranch';
+import { useCreateAndCheckoutBranch } from '../../hooks/useCreateAndCheckoutBranch';
 import { useCheckoutBranchAndReload } from '../../hooks/useCheckoutBranchAndReload';
 import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
 import { useUncommittedChangesDialog } from '../../hooks/useUncommittedChangesDialog';

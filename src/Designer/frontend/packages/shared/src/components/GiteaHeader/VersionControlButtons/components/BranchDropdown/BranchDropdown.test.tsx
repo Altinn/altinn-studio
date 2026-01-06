@@ -15,11 +15,11 @@ import {
   uncommittedChangesErrorMock,
 } from '../../test/mocks/branchingMocks';
 import { useCheckoutBranchAndReload } from '../../hooks/useCheckoutBranchAndReload';
-import { useCreateAndCheckoutBranch } from '../../hooks/useCreateNewBranch/useCreateAndCheckoutBranch';
+import { useCreateAndCheckoutBranch } from '../../hooks/useCreateAndCheckoutBranch';
 import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
 
 jest.mock('../../hooks/useCheckoutBranchAndReload');
-jest.mock('../../hooks/useCreateNewBranch/useCreateAndCheckoutBranch');
+jest.mock('../../hooks/useCreateAndCheckoutBranch');
 jest.mock('app-shared/hooks/mutations/useDiscardChangesMutation');
 
 const mockUseCheckoutBranchAndReload = jest.mocked(useCheckoutBranchAndReload);
