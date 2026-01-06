@@ -599,7 +599,11 @@ func (r *CnpgSyncReconciler) buildHelmValues() *apiextensionsv1.JSON {
 			},
 		},
 	}
-	raw, _ := json.Marshal(values)
+	raw, err := json.Marshal(values)
+	if err != nil {
+		r.logger.Error(err, "failed to marshal helm values, using empty object")
+		return &apiextensionsv1.JSON{Raw: []byte("{}")}
+	}
 	return &apiextensionsv1.JSON{Raw: raw}
 }
 
@@ -1027,8 +1031,7 @@ func (r *CnpgSyncReconciler) ensureManagedRole(ctx context.Context, appId string
 			}
 			cluster.Spec.Managed.Roles = append(cluster.Spec.Managed.Roles, role)
 		}
-		r.logger.Info("conflict updating cluster after retries, will retry later", "appId", appId)
-		return false, nil
+		return false, fmt.Errorf("failed to add managed role after %d attempts due to conflicts", maxUpdateRetries)
 	}
 
 	// Check if role is reconciled
@@ -1059,6 +1062,7 @@ func (r *CnpgSyncReconciler) ensureDatabase(ctx context.Context, appId string) (
 				Namespace: cnpgNamespace,
 				Labels: map[string]string{
 					"app.kubernetes.io/managed-by": "altinn-studio-operator",
+					"altinn.studio/app-id":         appId,
 				},
 			},
 			Spec: cnpgv1.DatabaseSpec{
@@ -1217,7 +1221,10 @@ func (r *CnpgSyncReconciler) cleanupRemovedApps(ctx context.Context) error {
 	}
 
 	for _, db := range dbList.Items {
-		appId := db.Spec.Owner
+		appId := db.Labels["altinn.studio/app-id"]
+		if appId == "" {
+			continue // Skip databases without the app-id label
+		}
 		if targetSet[appId] {
 			continue
 		}
@@ -1333,8 +1340,7 @@ func (r *CnpgSyncReconciler) removeManagedRole(ctx context.Context, appId string
 		}
 		cluster.Spec.Managed.Roles = newRoles
 	}
-	r.logger.Info("conflict removing role after retries, will retry later", "appId", appId)
-	return nil
+	return fmt.Errorf("failed to remove managed role after %d attempts due to conflicts", maxUpdateRetries)
 }
 
 func (r *CnpgSyncReconciler) deletePasswordSecretIfExists(ctx context.Context, appId string) error {
@@ -1398,6 +1404,5 @@ func (r *CnpgSyncReconciler) removePostgresqlJsonFromAppSecret(ctx context.Conte
 		}
 		delete(appSecret.Data, postgresqlJsonKey)
 	}
-	r.logger.Info("conflict updating app secret after retries, will retry later", "appId", appId)
-	return nil
+	return fmt.Errorf("failed to remove postgresql.json from app secret after %d attempts due to conflicts", maxUpdateRetries)
 }
