@@ -390,8 +390,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            bool layoutIsInitialForPaymentTask = layoutSetPayload.TaskType == TaskType.Payment;
-            LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(editingContext, layoutSetPayload.LayoutSetConfig, layoutIsInitialForPaymentTask, cancellationToken);
+            LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(editingContext, layoutSetPayload.LayoutSetConfig, layoutSetPayload.TaskType, cancellationToken);
             await _mediator.Publish(new LayoutSetCreatedEvent
             {
                 EditingContext = editingContext,
