@@ -229,7 +229,6 @@ public class SigningControllerTests
                 s.GetSigneeContexts(
                     It.IsAny<InstanceDataUnitOfWork>(),
                     _altinnTaskExtension.SignatureConfiguration!,
-                    null,
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -333,7 +332,6 @@ public class SigningControllerTests
                 s.GetSigneeContexts(
                     It.IsAny<InstanceDataUnitOfWork>(),
                     _altinnTaskExtension.SignatureConfiguration!,
-                    null,
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -415,7 +413,6 @@ public class SigningControllerTests
                 s.GetSigneeContexts(
                     It.IsAny<InstanceDataUnitOfWork>(),
                     _altinnTaskExtension.SignatureConfiguration!,
-                    null,
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -494,7 +491,6 @@ public class SigningControllerTests
                 s.GetSigneeContexts(
                     It.IsAny<InstanceDataUnitOfWork>(),
                     _altinnTaskExtension.SignatureConfiguration!,
-                    null,
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -949,7 +945,6 @@ public class SigningControllerTests
                 s.GetSigneeContexts(
                     It.IsAny<InstanceDataUnitOfWork>(),
                     altinnTaskExtensionTask2.SignatureConfiguration!,
-                    "task2",
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -979,7 +974,6 @@ public class SigningControllerTests
                 s.GetSigneeContexts(
                     It.IsAny<InstanceDataUnitOfWork>(),
                     altinnTaskExtensionTask2.SignatureConfiguration!,
-                    "task2",
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once

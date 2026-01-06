@@ -161,7 +161,6 @@ internal sealed class SigningService(
     public async Task<List<SigneeContext>> GetSigneeContexts(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
-        string? taskIdOverride = null,
         CancellationToken ct = default
     )
     {
@@ -179,7 +178,7 @@ internal sealed class SigningService(
         );
 
         signeeContexts = await _signDocumentManager.SynchronizeSigneeContextsWithSignDocuments(
-            taskIdOverride ?? instanceDataAccessor.Instance.Process.CurrentTask.ElementId,
+            instanceDataAccessor.TaskId ?? instanceDataAccessor.Instance.Process.CurrentTask.ElementId,
             signeeContexts,
             signDocuments,
             ct

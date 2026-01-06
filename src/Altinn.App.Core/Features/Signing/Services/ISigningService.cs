@@ -33,7 +33,6 @@ internal interface ISigningService
     Task<List<SigneeContext>> GetSigneeContexts(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
-        string? taskIdOverride = null,
         CancellationToken ct = default
     );
 

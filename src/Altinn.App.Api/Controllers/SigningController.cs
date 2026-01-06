@@ -107,7 +107,6 @@ public class SigningController : ControllerBase
         List<SigneeContext> signeeContexts = await _signingService.GetSigneeContexts(
             instanceDataAccessor,
             signingConfiguration,
-            taskId,
             ct
         );
 

@@ -397,7 +397,6 @@ public class SignatureHashValidatorTests
                 x.GetSigneeContexts(
                     It.Is<IInstanceDataAccessor>(d => d == _dataAccessorMock.Object),
                     It.Is<AltinnSignatureConfiguration>(c => c == signingConfiguration),
-                    null,
                     It.IsAny<CancellationToken>()
                 )
             )
