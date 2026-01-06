@@ -1,14 +1,16 @@
-import { StudioConfigCard } from '@studio/components';
+import type { StudioTextResourceActionTexts } from '@studio/components';
+import { StudioTextResourceAction } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import React, { useEffect, useMemo, useState } from 'react';
-import { TextResourceEditor, TextResourceTab } from '../../TextResourceEditor';
+import React, { useCallback } from 'react';
 import type { TranslationKey } from '@altinn-studio/language/type';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { type GenerateTextResourceIdOptions } from '../../../TextResource';
 import { useUpsertTextResourceMutation } from '../../../../../hooks/mutations/useUpsertTextResourceMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useTextResourceValue } from '../../../hooks/useTextResourceValue';
 import { generateId } from './TextResourceActionUtils';
+import { useTextResourcesSelector } from 'app-shared/hooks';
+import type { ITextResource } from 'app-shared/types/global';
+import { allTextResourceIdsWithTextSelector } from 'app-shared/selectors/textResourceSelectors';
 
 export type TextResourceActionProps = {
   label: TranslationKey | string;
@@ -30,76 +32,48 @@ export const TextResourceAction = ({
   handleRemoveTextResource,
 }: TextResourceActionProps) => {
   const { t } = useTranslation();
-  const defaultId = useMemo(() => generateId(generateIdOptions), [generateIdOptions]);
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: upsertTextResourceMutation } = useUpsertTextResourceMutation(org, app);
-  const [activeTab, setActiveTab] = useState<TextResourceTab>(TextResourceTab.Type);
-  const [currentTextResourceId, setCurrentTextResourceId] = useState<string>(
-    textResourceId || defaultId,
+  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
+    allTextResourceIdsWithTextSelector(DEFAULT_LANGUAGE),
   );
-  const initialValue = useTextResourceValue(textResourceId);
-  const textValue = useTextResourceValue(currentTextResourceId);
-  const [textResourceValue, setTextResourceValue] = useState(textValue);
 
-  useEffect(() => {
-    setTextResourceValue(textValue);
-  }, [textValue]);
-
-  const handleReferenceChange = (id: string) => {
-    setCurrentTextResourceId(id || defaultId);
-  };
-
-  const handleSave = () => {
-    handleIdChange(currentTextResourceId);
+  const handleValueChange = (id: string, value: string) => {
     upsertTextResourceMutation({
-      textId: currentTextResourceId,
+      textId: id,
       language: DEFAULT_LANGUAGE,
-      translation: textResourceValue,
+      translation: value,
     });
-    setIsOpen(false);
   };
 
-  const handleCancel = () => {
-    setIsOpen(false);
+  const texts: StudioTextResourceActionTexts = {
+    cardLabel: `${label} (${t('language.' + DEFAULT_LANGUAGE)})`,
+    deleteAriaLabel: t('general.delete'),
+    confirmDeleteMessage: t('ux_editor.text_resource_bindings.delete_confirm_question'),
+    saveLabel: t('general.save'),
+    cancelLabel: t('general.cancel'),
+    pickerLabel: t('ux_editor.search_text_resources_label'),
+    valueEditorAriaLabel: t('ux_editor.text_resource_binding_text'),
+    valueEditorIdLabel: t('ux_editor.text_resource_binding_id'),
+    noTextResourceOptionLabel: t('ux_editor.search_text_resources_none'),
+    disabledSearchAlertText: t(
+      'ux_editor.modal_properties_textResourceBindings_page_name_search_disabled',
+    ),
+    tabLabelType: t('ux_editor.text_resource_binding_write'),
+    tabLabelSearch: t('ux_editor.text_resource_binding_search'),
   };
-
-  const handleDelete = () => {
-    handleRemoveTextResource?.();
-    setIsOpen(false);
-  };
-
-  const shouldShowButtons = !(activeTab === TextResourceTab.Search && disableSearch);
-  const isSaveButtonDisabled = !textResourceValue?.trim() || textResourceValue === initialValue;
 
   return (
-    <StudioConfigCard>
-      <StudioConfigCard.Header
-        cardLabel={`${label} (${t('language.' + DEFAULT_LANGUAGE)})`}
-        deleteAriaLabel={t('general.delete')}
-        confirmDeleteMessage={t('ux_editor.text_resource_bindings.delete_confirm_question')}
-        onDelete={handleDelete}
-        isDeleteDisabled={!textResourceId}
-      />
-      <StudioConfigCard.Body>
-        <TextResourceEditor
-          textResourceId={currentTextResourceId}
-          onTextChange={setTextResourceValue}
-          onReferenceChange={handleReferenceChange}
-          disableSearch={disableSearch}
-          textResourceValue={textResourceValue}
-          onTabChange={setActiveTab}
-        />
-      </StudioConfigCard.Body>
-      {shouldShowButtons && (
-        <StudioConfigCard.Footer
-          saveLabel={t('general.save')}
-          cancelLabel={t('general.cancel')}
-          onCancel={handleCancel}
-          onSave={handleSave}
-          isLoading={false}
-          isDisabled={isSaveButtonDisabled}
-        />
-      )}
-    </StudioConfigCard>
+    <StudioTextResourceAction
+      textResources={textResources}
+      textResourceId={textResourceId}
+      generateId={useCallback(() => generateId(generateIdOptions), [generateIdOptions])}
+      disableSearch={disableSearch}
+      setIsOpen={setIsOpen}
+      handleIdChange={handleIdChange}
+      handleValueChange={handleValueChange}
+      handleRemoveTextResource={handleRemoveTextResource}
+      texts={texts}
+    />
   );
 };

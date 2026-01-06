@@ -1,1 +1,1 @@
-export * from './TextResourceValueEditor';
+export * from './TextResourceAction';

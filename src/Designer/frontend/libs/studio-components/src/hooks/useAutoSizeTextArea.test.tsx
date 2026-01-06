@@ -4,13 +4,13 @@ import {
   DEFAULT_MAX_HEIGHT_PX_TEXTAREA,
   DEFAULT_MIN_HEIGHT_PX_TEXTAREA,
   useAutoSizeTextArea,
-} from 'app-shared/hooks/useAutoSizeTextArea';
+} from './useAutoSizeTextArea';
 import { render, screen } from '@testing-library/react';
 
 describe('useAutoSizeTextArea', () => {
   it('should set a default min height of the textarea where the scroll is not visible', () => {
     const testLabel = 'LabelForAShortText';
-    const TestComponent = ({ value }: { value: string }) => {
+    const TestComponent = ({ value }: { value: string }): React.ReactElement => {
       const textareaRef = useAutoSizeTextArea(value);
       return (
         <StudioTextarea label={testLabel} value={value} onChange={() => {}} ref={textareaRef} />
@@ -35,7 +35,7 @@ describe('useAutoSizeTextArea', () => {
       },
     });
 
-    const TestComponent = ({ value }: { value: string }) => {
+    const TestComponent = ({ value }: { value: string }): React.ReactElement => {
       const textareaRef = useAutoSizeTextArea(value);
       return (
         <StudioTextarea label={testLabel} value={value} onChange={() => {}} ref={textareaRef} />
@@ -59,7 +59,7 @@ describe('useAutoSizeTextArea', () => {
       },
     });
 
-    const TestComponent = ({ value }: { value: string }) => {
+    const TestComponent = ({ value }: { value: string }): React.ReactElement => {
       const textareaRef = useAutoSizeTextArea(value);
 
       return (
@@ -84,7 +84,7 @@ describe('useAutoSizeTextArea', () => {
         return newMinHeight - 1;
       },
     });
-    const TestComponent = ({ value }: { value: string }) => {
+    const TestComponent = ({ value }: { value: string }): React.ReactElement => {
       const textareaRef = useAutoSizeTextArea(value, { minHeightInPx: newMinHeight });
       return (
         <StudioTextarea label={testLabel} value={value} onChange={() => {}} ref={textareaRef} />
@@ -107,7 +107,7 @@ describe('useAutoSizeTextArea', () => {
         return newMaxHeight;
       },
     });
-    const TestComponent = ({ value }: { value: string }) => {
+    const TestComponent = ({ value }: { value: string }): React.ReactElement => {
       const textareaRef = useAutoSizeTextArea(value, { maxHeightInPx: newMaxHeight });
       return (
         <StudioTextarea label={testLabel} value={value} onChange={() => {}} ref={textareaRef} />

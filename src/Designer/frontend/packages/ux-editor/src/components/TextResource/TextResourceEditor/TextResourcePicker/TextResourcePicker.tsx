@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ITextResource } from 'app-shared/types/global';
-import { useTextResourcesSelector } from '../../../../hooks';
-import { allTextResourceIdsWithTextSelector } from '../../../../selectors/textResourceSelectors';
+import { useTextResourcesSelector } from 'app-shared/hooks';
+import { allTextResourceIdsWithTextSelector } from 'app-shared/selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useTranslation } from 'react-i18next';
 import { StudioSelect } from '@studio/components';
