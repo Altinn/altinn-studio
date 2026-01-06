@@ -1,12 +1,10 @@
 using WorkflowEngine.Models;
 
-namespace Altinn.App.ProcessEngine.Extensions;
+namespace WorkflowEngine.Api.Extensions;
 
 internal static class ProcessEngineResponseExtensions
 {
-    public static bool IsAccepted(this ProcessEngineResponse response) =>
-        response.Status == ProcessEngineRequestStatus.Accepted;
+    public static bool IsAccepted(this Response response) => response.Status == RequestStatus.Accepted;
 
-    public static bool IsRejected(this ProcessEngineResponse response) =>
-        response.Status == ProcessEngineRequestStatus.Rejected;
+    public static bool IsRejected(this Response response) => response.Status == RequestStatus.Rejected;
 }

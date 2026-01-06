@@ -1,44 +1,37 @@
 using WorkflowEngine.Models;
 
-namespace Altinn.App.ProcessEngine;
+namespace WorkflowEngine.Api;
 
 internal partial class ProcessEngine
 {
-    public async Task<ProcessEngineResponse> EnqueueJob(
-        ProcessEngineJobRequest jobRequest,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<Response> EnqueueJob(Request request, CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Enqueuing job {JobIdentifier}", jobRequest.Key);
+        _logger.LogDebug("Enqueuing job {JobIdentifier}", request.Key);
 
-        if (!jobRequest.IsValid())
-            return ProcessEngineResponse.Rejected($"Invalid request: {jobRequest}");
+        if (!request.IsValid())
+            return Response.Rejected($"Invalid request: {request}");
 
-        if (HasDuplicateJob(jobRequest.Key))
-            return ProcessEngineResponse.Rejected(
-                "Duplicate request. A job with the same identifier is already being processed"
-            );
+        if (HasDuplicateJob(request.Key))
+            return Response.Rejected("Duplicate request. A job with the same identifier is already being processed");
 
-        if (HasQueuedJobForInstance(jobRequest.InstanceInformation))
-            return ProcessEngineResponse.Rejected(
+        if (HasQueuedJobForInstance(request.InstanceInformation))
+            return Response.Rejected(
                 "A job for this instance is already processing. Concurrency is currently not supported"
             );
 
         if (_mainLoopTask is null)
-            return ProcessEngineResponse.Rejected("Process engine is not running. Did you call Start()?");
+            return Response.Rejected("Process engine is not running. Did you call Start()?");
 
         var enabled = await _isEnabledHistory.Latest() ?? await ShouldRun(cancellationToken);
         if (!enabled)
-            return ProcessEngineResponse.Rejected(
-                "Process engine is currently inactive. Did you call the right instance?"
-            );
+            return Response.Rejected("Process engine is currently inactive. Did you call the right instance?");
 
         await AcquireQueueSlot(cancellationToken);
 
-        _logger.LogTrace("Enqueuing job request {Request}", jobRequest);
-        _inbox[jobRequest.Key] = await _repository.AddJob(jobRequest, cancellationToken);
+        _logger.LogTrace("Enqueuing job request {Request}", request);
+        _inbox[request.Key] = await _repository.AddJob(request, cancellationToken);
 
-        return ProcessEngineResponse.Accepted();
+        return Response.Accepted();
     }
 
     public bool HasDuplicateJob(string jobIdentifier)
@@ -51,12 +44,12 @@ internal partial class ProcessEngine
         return _inbox.Values.Any(x => x.InstanceInformation.Equals(instanceInformation));
     }
 
-    public ProcessEngineJob? GetJobForInstance(InstanceInformation instanceInformation)
+    public Workflow? GetJobForInstance(InstanceInformation instanceInformation)
     {
         return _inbox.Values.FirstOrDefault(x => x.InstanceInformation.Equals(instanceInformation));
     }
 
-    private async Task PopulateJobsFromStorage(CancellationToken cancellationToken)
+    private async System.Threading.Tasks.Task PopulateJobsFromStorage(CancellationToken cancellationToken)
     {
         // Disabled for now. We don't necessarily want to resume jobs after restart while testing.
         return;
@@ -65,7 +58,7 @@ internal partial class ProcessEngine
 
         try
         {
-            IReadOnlyList<ProcessEngineJob> incompleteJobs = await _repository.GetIncompleteJobs(cancellationToken);
+            IReadOnlyList<Workflow> incompleteJobs = await _repository.GetIncompleteJobs(cancellationToken);
 
             foreach (var job in incompleteJobs)
             {
@@ -86,35 +79,39 @@ internal partial class ProcessEngine
         }
     }
 
-    private async Task UpdateJobInStorage(ProcessEngineJob job, CancellationToken cancellationToken)
+    private async System.Threading.Tasks.Task UpdateJobInStorage(Workflow workflow, CancellationToken cancellationToken)
     {
-        // TODO: Should we update the `Instance` with something here too? Like if the job has failed, etc
-        _logger.LogDebug("Updating job in storage: {Job}", job);
+        // TODO: Should we update the `Instance` with something here too? Like if the workflow has failed, etc
+        _logger.LogDebug("Updating workflow in storage: {Workflow}", workflow);
 
         try
         {
-            await _repository.UpdateJob(job, cancellationToken);
-            _logger.LogTrace("Job {JobIdentifier} updated in database", job.Key);
+            await _repository.UpdateJob(workflow, cancellationToken);
+            _logger.LogTrace("Workflow {JobIdentifier} updated in database", workflow.Key);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to update job {JobIdentifier} in database after all retries", job.Key);
+            _logger.LogError(
+                ex,
+                "Failed to update workflow {JobIdentifier} in database after all retries",
+                workflow.Key
+            );
             // Continue processing even if database update fails
         }
     }
 
-    private async Task UpdateTaskInStorage(ProcessEngineTask task, CancellationToken cancellationToken)
+    private async System.Threading.Tasks.Task UpdateTaskInStorage(Step step, CancellationToken cancellationToken)
     {
-        _logger.LogDebug("Updating task in storage: {Task}", task);
+        _logger.LogDebug("Updating step in storage: {Step}", step);
 
         try
         {
-            await _repository.UpdateTask(task, cancellationToken);
-            _logger.LogTrace("Task {TaskIdentifier} updated in database", task.Key);
+            await _repository.UpdateTask(step, cancellationToken);
+            _logger.LogTrace("Step {TaskIdentifier} updated in database", step.Key);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to update task {TaskIdentifier} in database after all retries", task.Key);
+            _logger.LogError(ex, "Failed to update step {TaskIdentifier} in database after all retries", step.Key);
             // Continue processing even if database update fails
         }
     }

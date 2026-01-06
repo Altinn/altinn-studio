@@ -1,38 +1,39 @@
-namespace Altinn.App.ProcessEngine.Extensions;
+using WorkflowEngine.Models;
+using TaskStatus = WorkflowEngine.Models.TaskStatus;
+
+namespace WorkflowEngine.Api.Extensions;
 
 internal static class ProcessEngineTaskExtensions
 {
-    public static ProcessEngineTaskStatus ExecutionStatus(this ProcessEngineTask task) =>
-        task.ExecutionTask.ProcessEngineStatus();
+    public static TaskStatus ExecutionStatus(this Step step) => step.ExecutionTask.Status();
 
-    public static ProcessEngineTaskStatus DatabaseUpdateStatus(this ProcessEngineTask task) =>
-        task.DatabaseTask.ProcessEngineStatus();
+    public static TaskStatus DatabaseUpdateStatus(this Step step) => step.DatabaseTask.Status();
 
-    public static void CleanupDatabaseTask(this ProcessEngineTask task)
+    public static void CleanupDatabaseTask(this Step step)
     {
-        task.DatabaseTask?.Dispose();
-        task.DatabaseTask = null;
+        step.DatabaseTask?.Dispose();
+        step.DatabaseTask = null;
     }
 
-    public static void CleanupExecutionTask(this ProcessEngineTask task)
+    public static void CleanupExecutionTask(this Step step)
     {
-        task.ExecutionTask?.Dispose();
-        task.ExecutionTask = null;
+        step.ExecutionTask?.Dispose();
+        step.ExecutionTask = null;
     }
 
-    public static bool IsReadyForExecution(this ProcessEngineTask task, DateTimeOffset now)
+    public static bool IsReadyForExecution(this Step step, DateTimeOffset now)
     {
-        if (task.BackoffUntil.HasValue && task.BackoffUntil > now)
+        if (step.BackoffUntil.HasValue && step.BackoffUntil > now)
             return false;
 
-        if (task.StartTime.HasValue && task.StartTime > now)
+        if (step.StartTime.HasValue && step.StartTime > now)
             return false;
 
         return true;
     }
 
-    public static bool IsReadyForExecution(this ProcessEngineTask task, TimeProvider timeProvider) =>
-        IsReadyForExecution(task, timeProvider.GetUtcNow());
+    public static bool IsReadyForExecution(this Step step, TimeProvider timeProvider) =>
+        IsReadyForExecution(step, timeProvider.GetUtcNow());
 
-    public static bool IsDone(this ProcessEngineTask task) => task.Status.IsDone();
+    public static bool IsDone(this Step step) => step.Status.IsDone();
 }

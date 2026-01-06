@@ -13,10 +13,11 @@
 
   <ItemGroup>
     <ProjectReference Include="../WorkflowEngine.Models/WorkflowEngine.Models.csproj" />
+    <ProjectReference Include="../WorkflowEngine.Data/WorkflowEngine.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
   </ItemGroup>
-  
+
 </Project>

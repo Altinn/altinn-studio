@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace Altinn.App.ProcessEngine.Extensions;
+namespace WorkflowEngine.Api.Extensions;
 
 internal static partial class StringExtensions
 {

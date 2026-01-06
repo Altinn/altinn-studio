@@ -15,7 +15,7 @@ internal sealed class ProcessEngineDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configure Job entity
+        // Configure Workflow entity
         modelBuilder.Entity<ProcessEngineJobEntity>(entity =>
         {
             // Indexes
@@ -36,7 +36,7 @@ internal sealed class ProcessEngineDbContext : DbContext
             entity.Property(e => e.UpdatedAt).ValueGeneratedOnAddOrUpdate();
         });
 
-        // Configure Task entity
+        // Configure Step entity
         modelBuilder.Entity<ProcessEngineTaskEntity>(entity =>
         {
             entity.HasIndex(e => e.Status);

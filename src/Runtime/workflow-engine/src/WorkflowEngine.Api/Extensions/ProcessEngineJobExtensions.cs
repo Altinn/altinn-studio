@@ -1,39 +1,41 @@
 using WorkflowEngine.Models;
+using TaskStatus = WorkflowEngine.Models.TaskStatus;
 
-namespace Altinn.App.ProcessEngine.Extensions;
+namespace WorkflowEngine.Api.Extensions;
 
 internal static class ProcessEngineJobExtensions
 {
-    public static bool IsDone(this ProcessEngineJob job) => job.Status.IsDone();
-
-    public static ProcessEngineTaskStatus DatabaseUpdateStatus(this ProcessEngineJob job) =>
-        job.DatabaseTask.ProcessEngineStatus();
-
-    public static void CleanupDatabaseTask(this ProcessEngineJob job)
+    extension(Workflow workflow)
     {
-        job.DatabaseTask?.Dispose();
-        job.DatabaseTask = null;
-    }
+        public bool IsDone() => workflow.Status.IsDone();
 
-    public static IEnumerable<ProcessEngineTask> OrderedTasks(this ProcessEngineJob job) =>
-        job.Tasks.OrderBy(t => t.ProcessingOrder);
+        public TaskStatus DatabaseUpdateStatus() => workflow.DatabaseTask.Status();
 
-    public static IEnumerable<ProcessEngineTask> OrderedIncompleteTasks(this ProcessEngineJob job) =>
-        job.Tasks.Where(x => !x.IsDone()).OrderBy(x => x.ProcessingOrder);
+        public void CleanupDatabaseTask()
+        {
+            workflow.DatabaseTask?.Dispose();
+            workflow.DatabaseTask = null;
+        }
 
-    public static ProcessEngineItemStatus OverallStatus(this ProcessEngineJob job)
-    {
-        if (job.Tasks.All(t => t.Status == ProcessEngineItemStatus.Completed))
-            return ProcessEngineItemStatus.Completed;
+        public IEnumerable<Step> OrderedTasks() => workflow.Steps.OrderBy(t => t.ProcessingOrder);
 
-        if (job.Tasks.Any(t => t.Status == ProcessEngineItemStatus.Failed))
-            return ProcessEngineItemStatus.Failed;
+        public IEnumerable<Step> OrderedIncompleteTasks() =>
+            workflow.Steps.Where(x => !x.IsDone()).OrderBy(x => x.ProcessingOrder);
 
-        if (job.Tasks.Any(t => t.Status == ProcessEngineItemStatus.Canceled))
-            return ProcessEngineItemStatus.Canceled;
+        public PersistentItemStatus OverallStatus()
+        {
+            if (workflow.Steps.All(t => t.Status == PersistentItemStatus.Completed))
+                return PersistentItemStatus.Completed;
 
-        return job.Tasks.Any(t => t.Status != ProcessEngineItemStatus.Enqueued)
-            ? ProcessEngineItemStatus.Processing
-            : ProcessEngineItemStatus.Enqueued;
+            if (workflow.Steps.Any(t => t.Status == PersistentItemStatus.Failed))
+                return PersistentItemStatus.Failed;
+
+            if (workflow.Steps.Any(t => t.Status == PersistentItemStatus.Canceled))
+                return PersistentItemStatus.Canceled;
+
+            return workflow.Steps.Any(t => t.Status != PersistentItemStatus.Enqueued)
+                ? PersistentItemStatus.Processing
+                : PersistentItemStatus.Enqueued;
+        }
     }
 }

@@ -4,8 +4,8 @@ namespace WorkflowEngine.Data;
 
 public interface IProcessEngineRepository
 {
-    Task<IReadOnlyList<ProcessEngineJob>> GetIncompleteJobs(CancellationToken cancellationToken = default);
-    Task<ProcessEngineJob> AddJob(ProcessEngineJobRequest jobRequest, CancellationToken cancellationToken = default);
-    Task UpdateJob(ProcessEngineJob job, CancellationToken cancellationToken = default);
-    Task UpdateTask(ProcessEngineTask task, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Workflow>> GetIncompleteJobs(CancellationToken cancellationToken = default);
+    Task<Workflow> AddJob(Request request, CancellationToken cancellationToken = default);
+    System.Threading.Tasks.Task UpdateJob(Workflow workflow, CancellationToken cancellationToken = default);
+    System.Threading.Tasks.Task UpdateTask(Step step, CancellationToken cancellationToken = default);
 }

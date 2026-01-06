@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Entities;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Extensions;
 
 namespace WorkflowEngine.Data;
 
@@ -13,11 +14,11 @@ internal sealed class ProcessEnginePgRepository : IProcessEngineRepository
     private readonly ProcessEngineDbContext _context;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<ProcessEnginePgRepository> _logger;
-    private readonly IOptionsMonitor<ProcessEngineSettings> _settings;
+    private readonly IOptionsMonitor<WorkflowEngineSettings> _settings;
 
     public ProcessEnginePgRepository(
         ProcessEngineDbContext context,
-        IOptionsMonitor<ProcessEngineSettings> settings,
+        IOptionsMonitor<WorkflowEngineSettings> settings,
         ILogger<ProcessEnginePgRepository> logger,
         TimeProvider? timeProvider = null
     )
@@ -28,17 +29,15 @@ internal sealed class ProcessEnginePgRepository : IProcessEngineRepository
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
-    public async Task<IReadOnlyList<ProcessEngineJob>> GetIncompleteJobs(
-        CancellationToken cancellationToken = default
-    ) =>
+    public async Task<IReadOnlyList<Workflow>> GetIncompleteJobs(CancellationToken cancellationToken = default) =>
         await ExecuteWithRetry(
             async ct =>
             {
                 var incompleteStatuses = new[]
                 {
-                    ProcessEngineItemStatus.Enqueued,
-                    ProcessEngineItemStatus.Processing,
-                    ProcessEngineItemStatus.Requeued,
+                    PersistentItemStatus.Enqueued,
+                    PersistentItemStatus.Processing,
+                    PersistentItemStatus.Requeued,
                 };
 
                 var jobs = await _context
@@ -52,14 +51,11 @@ internal sealed class ProcessEnginePgRepository : IProcessEngineRepository
             cancellationToken
         );
 
-    public async Task<ProcessEngineJob> AddJob(
-        ProcessEngineJobRequest jobRequest,
-        CancellationToken cancellationToken = default
-    ) =>
+    public async Task<Workflow> AddJob(Request request, CancellationToken cancellationToken = default) =>
         await ExecuteWithRetry(
             async ct =>
             {
-                var job = ProcessEngineJob.FromRequest(jobRequest);
+                var job = Workflow.FromRequest(request);
                 var entity = ProcessEngineJobEntity.FromDomainModel(job);
 
                 var dbRecord = _context.Jobs.Add(entity);
@@ -70,33 +66,19 @@ internal sealed class ProcessEnginePgRepository : IProcessEngineRepository
             cancellationToken
         );
 
-    public async Task UpdateJob(ProcessEngineJob job, CancellationToken cancellationToken = default) =>
+    public async System.Threading.Tasks.Task UpdateJob(
+        Workflow workflow,
+        CancellationToken cancellationToken = default
+    ) =>
         await ExecuteWithRetry(
             async ct =>
             {
                 await _context
-                    .Jobs.Where(t => t.Id == job.DatabaseId)
-                    .ExecuteUpdateAsync(
-                        setters =>
-                            setters.SetProperty(t => t.Status, job.Status).SetProperty(t => t.UpdatedAt, DateTime.Now),
-                        ct
-                    );
-            },
-            cancellationToken
-        );
-
-    public async Task UpdateTask(ProcessEngineTask task, CancellationToken cancellationToken = default) =>
-        await ExecuteWithRetry(
-            async ct =>
-            {
-                await _context
-                    .Tasks.Where(t => t.Id == task.DatabaseId)
+                    .Jobs.Where(t => t.Id == workflow.DatabaseId)
                     .ExecuteUpdateAsync(
                         setters =>
                             setters
-                                .SetProperty(t => t.Status, task.Status)
-                                .SetProperty(t => t.BackoffUntil, task.BackoffUntil)
-                                .SetProperty(t => t.RequeueCount, task.RequeueCount)
+                                .SetProperty(t => t.Status, workflow.Status)
                                 .SetProperty(t => t.UpdatedAt, DateTime.Now),
                         ct
                     );
@@ -104,8 +86,27 @@ internal sealed class ProcessEnginePgRepository : IProcessEngineRepository
             cancellationToken
         );
 
-    private async Task ExecuteWithRetry(
-        Func<CancellationToken, Task> operation,
+    public async System.Threading.Tasks.Task UpdateTask(Step step, CancellationToken cancellationToken = default) =>
+        await ExecuteWithRetry(
+            async ct =>
+            {
+                await _context
+                    .Tasks.Where(t => t.Id == step.DatabaseId)
+                    .ExecuteUpdateAsync(
+                        setters =>
+                            setters
+                                .SetProperty(t => t.Status, step.Status)
+                                .SetProperty(t => t.BackoffUntil, step.BackoffUntil)
+                                .SetProperty(t => t.RequeueCount, step.RequeueCount)
+                                .SetProperty(t => t.UpdatedAt, DateTime.Now),
+                        ct
+                    );
+            },
+            cancellationToken
+        );
+
+    private async System.Threading.Tasks.Task ExecuteWithRetry(
+        Func<CancellationToken, System.Threading.Tasks.Task> operation,
         CancellationToken cancellationToken = default,
         [CallerMemberName] string operationName = ""
     ) =>

@@ -1,14 +1,18 @@
-namespace Altinn.App.ProcessEngine.Extensions;
+using WorkflowEngine.Models;
+using Task = System.Threading.Tasks.Task;
+using TaskStatus = WorkflowEngine.Models.TaskStatus;
+
+namespace WorkflowEngine.Api.Extensions;
 
 internal static class TaskExtensions
 {
-    public static ProcessEngineTaskStatus ProcessEngineStatus(this Task? task)
+    public static TaskStatus Status(this Task? task)
     {
         return task switch
         {
-            null => ProcessEngineTaskStatus.None,
-            { IsCompleted: false } => ProcessEngineTaskStatus.Started,
-            { IsCompleted: true } => ProcessEngineTaskStatus.Finished,
+            null => TaskStatus.None,
+            { IsCompleted: false } => TaskStatus.Started,
+            { IsCompleted: true } => TaskStatus.Finished,
         };
     }
 }

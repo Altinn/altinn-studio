@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using WorkflowEngine.Data.Abstractions;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
 [Table("process_engine_jobs")]
-internal sealed class ProcessEngineJobEntity : IWithCommonJobMeta
+internal sealed class ProcessEngineJobEntity : IHasCommonMetadata
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -14,7 +15,7 @@ internal sealed class ProcessEngineJobEntity : IWithCommonJobMeta
     [MaxLength(500)]
     public required string Key { get; set; }
 
-    public ProcessEngineItemStatus Status { get; set; }
+    public PersistentItemStatus Status { get; set; }
 
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public DateTimeOffset CreatedAt { get; set; }
@@ -40,28 +41,28 @@ internal sealed class ProcessEngineJobEntity : IWithCommonJobMeta
 
     public ICollection<ProcessEngineTaskEntity> Tasks { get; set; } = [];
 
-    public static ProcessEngineJobEntity FromDomainModel(ProcessEngineJob job) =>
+    public static ProcessEngineJobEntity FromDomainModel(Workflow workflow) =>
         new()
         {
-            Id = job.DatabaseId,
-            Key = job.Key,
-            Status = job.Status,
-            ActorUserIdOrOrgNumber = job.Actor.UserIdOrOrgNumber,
-            ActorLanguage = job.Actor.Language,
-            InstanceOrg = job.InstanceInformation.Org,
-            InstanceApp = job.InstanceInformation.App,
-            InstanceOwnerPartyId = job.InstanceInformation.InstanceOwnerPartyId,
-            InstanceGuid = job.InstanceInformation.InstanceGuid,
-            Tasks = job.Tasks.Select(ProcessEngineTaskEntity.FromDomainModel).ToList(),
+            Id = workflow.DatabaseId,
+            Key = workflow.Key,
+            Status = workflow.Status,
+            ActorUserIdOrOrgNumber = workflow.Actor.UserIdOrOrgNumber,
+            ActorLanguage = workflow.Actor.Language,
+            InstanceOrg = workflow.InstanceInformation.Org,
+            InstanceApp = workflow.InstanceInformation.App,
+            InstanceOwnerPartyId = workflow.InstanceInformation.InstanceOwnerPartyId,
+            InstanceGuid = workflow.InstanceInformation.InstanceGuid,
+            Tasks = workflow.Steps.Select(ProcessEngineTaskEntity.FromDomainModel).ToList(),
         };
 
-    public ProcessEngineJob ToDomainModel() =>
+    public Workflow ToDomainModel() =>
         new()
         {
             DatabaseId = Id,
             Key = Key,
             Status = Status,
-            Actor = new ProcessEngineActor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
+            Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
             InstanceInformation = new InstanceInformation
             {
                 Org = InstanceOrg,
@@ -69,6 +70,6 @@ internal sealed class ProcessEngineJobEntity : IWithCommonJobMeta
                 InstanceOwnerPartyId = InstanceOwnerPartyId,
                 InstanceGuid = InstanceGuid,
             },
-            Tasks = Tasks.Select(t => t.ToDomainModel()).ToList(),
+            Steps = Tasks.Select(t => t.ToDomainModel()).ToList(),
         };
 }

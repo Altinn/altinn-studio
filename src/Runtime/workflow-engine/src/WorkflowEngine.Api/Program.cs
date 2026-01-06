@@ -1,9 +1,12 @@
+using Altinn.App.ProcessEngine.Extensions;
+using WorkflowEngine.Api.Extensions;
+using WorkflowEngine.Data.Extensions;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-builder.ConfigureKestrelPorts();
-builder.AddHostingConfiguration();
-builder.AddMaskinportenAuthentication();
+builder.Services.AddApiKeyAuthentication();
+builder.Services.AddDbRepository();
 
 var app = builder.Build();
 

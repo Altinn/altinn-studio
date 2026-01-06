@@ -1,27 +1,26 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using Altinn.App.ProcessEngine.Data;
-using Altinn.App.ProcessEngine.Exceptions;
-using Altinn.App.ProcessEngine.Extensions;
 using Microsoft.Extensions.Options;
+using WorkflowEngine.Api.Exceptions;
+using WorkflowEngine.Api.Extensions;
+using WorkflowEngine.Data;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Extensions;
+using TaskStatus = WorkflowEngine.Models.TaskStatus;
 
-namespace Altinn.App.ProcessEngine;
+namespace WorkflowEngine.Api;
 
 internal interface IProcessEngine
 {
-    ProcessEngineSettings Settings { get; }
-    ProcessEngineHealthStatus Status { get; }
+    WorkflowEngineSettings Settings { get; }
+    EngineHealthStatus Status { get; }
     int InboxCount { get; }
-    Task Start(CancellationToken cancellationToken = default);
-    Task Stop();
-    Task<ProcessEngineResponse> EnqueueJob(
-        ProcessEngineJobRequest jobRequest,
-        CancellationToken cancellationToken = default
-    );
+    System.Threading.Tasks.Task Start(CancellationToken cancellationToken = default);
+    System.Threading.Tasks.Task Stop();
+    Task<Response> EnqueueJob(Request request, CancellationToken cancellationToken = default);
     bool HasDuplicateJob(string jobIdentifier);
     bool HasQueuedJobForInstance(InstanceInformation instanceInformation);
-    ProcessEngineJob? GetJobForInstance(InstanceInformation instanceInformation);
+    Workflow? GetJobForInstance(InstanceInformation instanceInformation);
 }
 
 internal partial class ProcessEngine : IProcessEngine, IDisposable
@@ -30,25 +29,25 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<ProcessEngine> _logger;
     private readonly IProcessEngineTaskHandler _taskHandler;
-    private readonly Buffer<bool> _isEnabledHistory = new();
+    private readonly ConcurrentBuffer<bool> _isEnabledHistory = new();
     private readonly SemaphoreSlim _cleanupLock = new(1, 1);
-    private readonly ProcessEngineRetryStrategy _statusCheckBackoffStrategy = ProcessEngineRetryStrategy.Exponential(
+    private readonly RetryStrategy _statusCheckBackoffStrategy = RetryStrategy.Exponential(
         baseInterval: TimeSpan.FromSeconds(1),
         maxDelay: TimeSpan.FromMinutes(1)
     );
 
-    private ConcurrentDictionary<string, ProcessEngineJob> _inbox;
+    private ConcurrentDictionary<string, Workflow> _inbox;
     private CancellationTokenSource? _cancellationTokenSource;
-    private Task? _mainLoopTask;
+    private System.Threading.Tasks.Task? _mainLoopTask;
     private SemaphoreSlim _inboxCapacityLimit;
     private volatile bool _cleanupRequired;
     private bool _disposed;
-    private readonly IOptionsMonitor<ProcessEngineSettings> _settings;
+    private readonly IOptionsMonitor<WorkflowEngineSettings> _settings;
 
     private IProcessEngineRepository _repository => _serviceProvider.GetRequiredService<IProcessEngineRepository>();
-    public ProcessEngineHealthStatus Status { get; private set; }
+    public EngineHealthStatus Status { get; private set; }
     public int InboxCount => _inbox.Count;
-    public ProcessEngineSettings Settings => _settings.CurrentValue;
+    public WorkflowEngineSettings Settings => _settings.CurrentValue;
 
     public ProcessEngine(IServiceProvider serviceProvider)
     {
@@ -56,7 +55,7 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
         _logger = serviceProvider.GetRequiredService<ILogger<ProcessEngine>>();
         _taskHandler = serviceProvider.GetRequiredService<IProcessEngineTaskHandler>();
         _timeProvider = serviceProvider.GetService<TimeProvider>() ?? TimeProvider.System;
-        _settings = serviceProvider.GetRequiredService<IOptionsMonitor<ProcessEngineSettings>>();
+        _settings = serviceProvider.GetRequiredService<IOptionsMonitor<WorkflowEngineSettings>>();
 
         InitializeInbox();
     }
@@ -67,10 +66,10 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
         _logger.LogTrace("Checking if process engine should run");
 
         // TODO: Replace this with actual check
-        bool placeholderEnabledResponse = await Task.Run(
+        bool placeholderEnabledResponse = await System.Threading.Tasks.Task.Run(
             async () =>
             {
-                await Task.Delay(100, cancellationToken);
+                await System.Threading.Tasks.Task.Delay(100, cancellationToken);
                 return true;
             },
             cancellationToken
@@ -92,18 +91,18 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
             var backoffDelay = _statusCheckBackoffStrategy.CalculateDelay(iteration);
 
             _logger.LogInformation("Process engine is disabled. Backing off for {BackoffDelay}", backoffDelay);
-            await Task.Delay(backoffDelay, cancellationToken);
+            await System.Threading.Tasks.Task.Delay(backoffDelay, cancellationToken);
         }
 
         // Update status
         if (placeholderEnabledResponse)
         {
-            Status &= ~ProcessEngineHealthStatus.Disabled;
+            Status &= ~EngineHealthStatus.Disabled;
             _logger.LogTrace("Process engine is enabled");
         }
         else
         {
-            Status |= ProcessEngineHealthStatus.Disabled;
+            Status |= EngineHealthStatus.Disabled;
             _logger.LogTrace("Process engine is disabled");
         }
         return placeholderEnabledResponse;
@@ -117,19 +116,19 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
         if (haveJobs)
         {
             _logger.LogTrace("We have jobs to process: {InboxCount}", InboxCount);
-            Status &= ~ProcessEngineHealthStatus.Idle;
+            Status &= ~EngineHealthStatus.Idle;
         }
         else
         {
             _logger.LogTrace("No jobs to process, taking a short nap");
-            Status |= ProcessEngineHealthStatus.Idle;
-            await Task.Delay(250, cancellationToken);
+            Status |= EngineHealthStatus.Idle;
+            await System.Threading.Tasks.Task.Delay(250, cancellationToken);
         }
 
         return haveJobs;
     }
 
-    private async Task MainLoop(CancellationToken cancellationToken)
+    private async System.Threading.Tasks.Task MainLoop(CancellationToken cancellationToken)
     {
         _logger.LogTrace(
             "Entering MainLoop. Inbox count: {InboxCount}. Queue slots available: {AvailableQueueSlots}",
@@ -157,61 +156,64 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
         );
     }
 
-    private async Task ProcessJob(ProcessEngineJob job, CancellationToken cancellationToken)
+    private async System.Threading.Tasks.Task ProcessJob(Workflow workflow, CancellationToken cancellationToken)
     {
-        _logger.LogDebug("Processing job: {Job}", job);
+        _logger.LogDebug("Processing workflow: {Workflow}", workflow);
 
-        switch (job.DatabaseUpdateStatus())
+        switch (workflow.DatabaseUpdateStatus())
         {
             // Process the tasks
-            case ProcessEngineTaskStatus.None:
-                await ProcessTasks(job, cancellationToken);
+            case TaskStatus.None:
+                await ProcessTasks(workflow, cancellationToken);
 
-                ProcessEngineItemStatus updatedJobStatus = job.OverallStatus();
-                if (job.Status != updatedJobStatus)
+                PersistentItemStatus updatedJobStatus = workflow.OverallStatus();
+                if (workflow.Status != updatedJobStatus)
                 {
-                    job.Status = updatedJobStatus;
-                    job.DatabaseTask = UpdateJobInStorage(job, cancellationToken);
+                    workflow.Status = updatedJobStatus;
+                    workflow.DatabaseTask = UpdateJobInStorage(workflow, cancellationToken);
                 }
                 return;
 
             // Waiting on database operation to finish
-            case ProcessEngineTaskStatus.Started:
-                _logger.LogDebug("Job {Job} is waiting for database operation to complete", job);
+            case TaskStatus.Started:
+                _logger.LogDebug("Workflow {Workflow} is waiting for database operation to complete", workflow);
                 return;
 
             // Database operation is finished
-            case ProcessEngineTaskStatus.Finished:
-                _logger.LogDebug("Job {Job} database operation has completed. Cleaning up", job);
-                job.CleanupDatabaseTask();
+            case TaskStatus.Finished:
+                _logger.LogDebug("Workflow {Workflow} database operation has completed. Cleaning up", workflow);
+                workflow.CleanupDatabaseTask();
                 break;
 
             default:
-                throw new ProcessEngineException($"Unknown database update status: {job.DatabaseUpdateStatus()}");
+                throw new WorkflowEngineException($"Unknown database update status: {workflow.DatabaseUpdateStatus()}");
         }
 
-        // Job still has work pending (requeued tasks, etc)
-        if (!job.IsDone())
+        // Workflow still has work pending (requeued tasks, etc)
+        if (!workflow.IsDone())
         {
-            _logger.LogDebug("Job {Job} is still has tasks processing. Leaving in queue for next iteration", job);
+            _logger.LogDebug(
+                "Workflow {Workflow} is still has tasks processing. Leaving in queue for next iteration",
+                workflow
+            );
             return;
         }
 
-        // Job is done (success or permanent failure). Remove and release queue slot
-        RemoveJobAndReleaseQueueSlot(job);
-        _logger.LogDebug("Job {Job} is done", job);
+        // Workflow is done (success or permanent failure). Remove and release queue slot
+        RemoveJobAndReleaseQueueSlot(workflow);
+        _logger.LogDebug("Workflow {Workflow} is done", workflow);
     }
 
-    private async Task ProcessTasks(ProcessEngineJob job, CancellationToken cancellationToken)
+    private async System.Threading.Tasks.Task ProcessTasks(Workflow workflow, CancellationToken cancellationToken)
     {
-        foreach (ProcessEngineTask task in job.OrderedIncompleteTasks())
+        foreach (Step task in workflow.OrderedIncompleteTasks())
         {
-            _logger.LogDebug("Processing task: {Task}", task);
+            _logger.LogDebug("Processing step: {Step}", task);
 
             // Not time to process yet
             if (!task.IsReadyForExecution(_timeProvider))
             {
-                _logger.LogTrace("Task {Task} not ready for execution", task);
+                _logger.LogTrace("Step {Step} not ready for execution", task);
                 return;
             }
 
@@ -224,28 +226,28 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
             switch (currentState)
             {
                 // Waiting for database operation to complete
-                case { DatabaseUpdateStatus: ProcessEngineTaskStatus.Started }:
-                    _logger.LogDebug("Task {Task} is waiting for database operation to complete", task);
+                case { DatabaseUpdateStatus: TaskStatus.Started }:
+                    _logger.LogDebug("Step {Step} is waiting for database operation to complete", task);
                     return;
 
                 // Database operation completed
-                case { DatabaseUpdateStatus: ProcessEngineTaskStatus.Finished }:
-                    _logger.LogDebug("Task {Task} database operation has completed. Cleaning up", task);
+                case { DatabaseUpdateStatus: TaskStatus.Finished }:
+                    _logger.LogDebug("Step {Step} database operation has completed. Cleaning up", task);
                     task.CleanupDatabaseTask();
                     return;
 
-                // Waiting for execution task to complete
-                case { ExecutionStatus: ProcessEngineTaskStatus.Started }:
-                    _logger.LogDebug("Task {Task} is waiting for execution to complete", task);
+                // Waiting for execution step to complete
+                case { ExecutionStatus: TaskStatus.Started }:
+                    _logger.LogDebug("Step {Step} is waiting for execution to complete", task);
                     return;
 
-                // Execution task completed
-                case { ExecutionStatus: ProcessEngineTaskStatus.Finished }:
-                    _logger.LogDebug("Task {Task} execution has completed. Need to update database", task);
+                // Execution step completed
+                case { ExecutionStatus: TaskStatus.Finished }:
+                    _logger.LogDebug("Step {Step} execution has completed. Need to update database", task);
                     Debug.Assert(task.ExecutionTask is not null); // TODO: This is annoying
 
                     // Unwrap result and handle outcome
-                    ProcessEngineExecutionResult result = await task.ExecutionTask;
+                    ExecutionResult result = await task.ExecutionTask;
                     UpdateTaskStatusAndRetryDecision(task, result);
 
                     // Cleanup and update database
@@ -253,43 +255,43 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
                     task.DatabaseTask = UpdateTaskInStorage(task, cancellationToken);
                     return;
 
-                // Task is new
+                // Step is new
                 default:
-                    _logger.LogDebug("Task {Task} is new. Starting execution", task);
-                    task.ExecutionTask = _taskHandler.Execute(job, task, cancellationToken);
+                    _logger.LogDebug("Step {Step} is new. Starting execution", task);
+                    task.ExecutionTask = _taskHandler.Execute(workflow, task, cancellationToken);
                     return;
             }
         }
 
         return;
 
-        void UpdateTaskStatusAndRetryDecision(ProcessEngineTask task, ProcessEngineExecutionResult result)
+        void UpdateTaskStatusAndRetryDecision(Step step, ExecutionResult result)
         {
             if (result.IsSuccess())
             {
-                task.Status = ProcessEngineItemStatus.Completed;
-                _logger.LogDebug("Task {Task} completed successfully", task);
+                step.Status = PersistentItemStatus.Completed;
+                _logger.LogDebug("Step {Step} completed successfully", step);
                 return;
             }
 
-            _logger.LogDebug("Task {Task} failed", task);
-            var retryStrategy = task.RetryStrategy ?? Settings.DefaultTaskRetryStrategy;
+            _logger.LogDebug("Step {Step} failed", step);
+            var retryStrategy = step.RetryStrategy ?? Settings.DefaultTaskRetryStrategy;
 
-            if (retryStrategy.CanRetry(task.RequeueCount + 1))
+            if (retryStrategy.CanRetry(step.RequeueCount + 1))
             {
-                task.RequeueCount++;
-                task.Status = ProcessEngineItemStatus.Requeued;
-                task.BackoffUntil = _timeProvider.GetUtcNow().Add(retryStrategy.CalculateDelay(task.RequeueCount));
-                _logger.LogDebug("Requeuing task {Task} (Retry count: {Retries})", task, task.RequeueCount);
+                step.RequeueCount++;
+                step.Status = PersistentItemStatus.Requeued;
+                step.BackoffUntil = _timeProvider.GetUtcNow().Add(retryStrategy.CalculateDelay(step.RequeueCount));
+                _logger.LogDebug("Requeuing step {Step} (Retry count: {Retries})", step, step.RequeueCount);
             }
             else
             {
-                task.Status = ProcessEngineItemStatus.Failed;
-                task.BackoffUntil = null;
+                step.Status = PersistentItemStatus.Failed;
+                step.BackoffUntil = null;
                 _logger.LogError(
-                    "Failing task {Task}. No more retries available after {Retries} attempts",
-                    task,
-                    task.RequeueCount
+                    "Failing step {Step}. No more retries available after {Retries} attempts",
+                    step,
+                    step.RequeueCount
                 );
             }
         }

@@ -9,28 +9,28 @@ namespace WorkflowEngine.Data;
 /// </summary>
 internal sealed class ProcessEngineInMemoryRepository : IProcessEngineRepository
 {
-    public async Task<IReadOnlyList<ProcessEngineJob>> GetIncompleteJobs(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Workflow>> GetIncompleteJobs(CancellationToken cancellationToken = default)
     {
         await SimulateDatabaseDelay(cancellationToken);
         return [];
     }
 
-    public async Task<ProcessEngineJob> AddJob(
-        ProcessEngineJobRequest jobRequest,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<Workflow> AddJob(Request request, CancellationToken cancellationToken = default)
     {
         await SimulateDatabaseDelay(cancellationToken);
-        return ProcessEngineJob.FromRequest(jobRequest);
+        return Workflow.FromRequest(request);
     }
 
-    public async Task UpdateJob(ProcessEngineJob job, CancellationToken cancellationToken = default) =>
-        await SimulateDatabaseDelay(cancellationToken);
+    public async System.Threading.Tasks.Task UpdateJob(
+        Workflow workflow,
+        CancellationToken cancellationToken = default
+    ) => await SimulateDatabaseDelay(cancellationToken);
 
-    public async Task UpdateTask(ProcessEngineTask task, CancellationToken cancellationToken = default) =>
+    public async System.Threading.Tasks.Task UpdateTask(Step step, CancellationToken cancellationToken = default) =>
         await SimulateDatabaseDelay(cancellationToken);
 
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness")]
-    private static async Task SimulateDatabaseDelay(CancellationToken cancellationToken = default) =>
-        await Task.Delay(Random.Shared.Next(50, 500), cancellationToken);
+    private static async System.Threading.Tasks.Task SimulateDatabaseDelay(
+        CancellationToken cancellationToken = default
+    ) => await System.Threading.Tasks.Task.Delay(Random.Shared.Next(50, 500), cancellationToken);
 }

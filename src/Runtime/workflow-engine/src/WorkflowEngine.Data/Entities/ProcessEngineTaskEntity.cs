@@ -1,12 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
+using WorkflowEngine.Data.Abstractions;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
 [Table("process_engine_tasks")]
-internal sealed class ProcessEngineTaskEntity : IWithCommonJobMeta
+internal sealed class ProcessEngineTaskEntity : IHasCommonMetadata
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -15,7 +16,7 @@ internal sealed class ProcessEngineTaskEntity : IWithCommonJobMeta
     [MaxLength(500)]
     public required string Key { get; set; }
 
-    public ProcessEngineItemStatus Status { get; set; }
+    public PersistentItemStatus Status { get; set; }
 
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public DateTimeOffset CreatedAt { get; set; }
@@ -48,33 +49,31 @@ internal sealed class ProcessEngineTaskEntity : IWithCommonJobMeta
     public long JobId { get; set; }
     public ProcessEngineJobEntity? Job { get; set; }
 
-    public static ProcessEngineTaskEntity FromDomainModel(ProcessEngineTask task) =>
+    public static ProcessEngineTaskEntity FromDomainModel(Step step) =>
         new()
         {
-            Id = task.DatabaseId,
-            Key = task.Key,
-            Status = task.Status,
-            ProcessingOrder = task.ProcessingOrder,
-            StartTime = task.StartTime,
-            BackoffUntil = task.BackoffUntil,
-            RequeueCount = task.RequeueCount,
-            ActorUserIdOrOrgNumber = task.Actor.UserIdOrOrgNumber,
-            ActorLanguage = task.Actor.Language,
-            CommandJson = JsonSerializer.Serialize(task.Command),
-            RetryStrategyJson = task.RetryStrategy != null ? JsonSerializer.Serialize(task.RetryStrategy) : null,
+            Id = step.DatabaseId,
+            Key = step.Key,
+            Status = step.Status,
+            ProcessingOrder = step.ProcessingOrder,
+            StartTime = step.StartTime,
+            BackoffUntil = step.BackoffUntil,
+            RequeueCount = step.RequeueCount,
+            ActorUserIdOrOrgNumber = step.Actor.UserIdOrOrgNumber,
+            ActorLanguage = step.Actor.Language,
+            CommandJson = JsonSerializer.Serialize(step.Command),
+            RetryStrategyJson = step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy) : null,
         };
 
-    public ProcessEngineTask ToDomainModel()
+    public Step ToDomainModel()
     {
         var command =
-            JsonSerializer.Deserialize<ProcessEngineCommand>(CommandJson)
+            JsonSerializer.Deserialize<Command>(CommandJson)
             ?? throw new InvalidOperationException("Failed to deserialize CommandJson");
         var retryStrategy =
-            RetryStrategyJson != null
-                ? JsonSerializer.Deserialize<ProcessEngineRetryStrategy>(RetryStrategyJson)
-                : null;
+            RetryStrategyJson != null ? JsonSerializer.Deserialize<RetryStrategy>(RetryStrategyJson) : null;
 
-        return new ProcessEngineTask
+        return new Step
         {
             DatabaseId = Id,
             Key = Key,
@@ -83,7 +82,7 @@ internal sealed class ProcessEngineTaskEntity : IWithCommonJobMeta
             StartTime = StartTime,
             BackoffUntil = BackoffUntil,
             RequeueCount = RequeueCount,
-            Actor = new ProcessEngineActor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
+            Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
             Command = command,
             RetryStrategy = retryStrategy,
         };

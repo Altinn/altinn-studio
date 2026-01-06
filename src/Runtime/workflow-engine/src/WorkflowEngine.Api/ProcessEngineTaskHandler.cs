@@ -1,27 +1,22 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
-using Altinn.App.ProcessEngine.Constants;
-using Altinn.App.ProcessEngine.Extensions;
 using Microsoft.Extensions.Options;
+using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 
-namespace Altinn.App.ProcessEngine;
+namespace WorkflowEngine.Api;
 
 internal interface IProcessEngineTaskHandler
 {
-    Task<ProcessEngineExecutionResult> Execute(
-        ProcessEngineJob job,
-        ProcessEngineTask task,
-        CancellationToken cancellationToken
-    );
+    Task<ExecutionResult> Execute(Workflow workflow, Step step, CancellationToken cancellationToken);
 }
 
 internal class ProcessEngineTaskHandler : IProcessEngineTaskHandler
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly TimeProvider _timeProvider;
-    private readonly ProcessEngineSettings _settings;
+    private readonly WorkflowEngineSettings _settings;
     private readonly ILogger<ProcessEngineTaskHandler> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
 
@@ -30,41 +25,37 @@ internal class ProcessEngineTaskHandler : IProcessEngineTaskHandler
         _serviceProvider = serviceProvider;
         _httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
         _timeProvider = serviceProvider.GetService<TimeProvider>() ?? TimeProvider.System;
-        _settings = serviceProvider.GetRequiredService<IOptions<ProcessEngineSettings>>().Value;
+        _settings = serviceProvider.GetRequiredService<IOptions<WorkflowEngineSettings>>().Value;
         _logger = serviceProvider.GetRequiredService<ILogger<ProcessEngineTaskHandler>>();
     }
 
-    public async Task<ProcessEngineExecutionResult> Execute(
-        ProcessEngineJob job,
-        ProcessEngineTask task,
-        CancellationToken cancellationToken
-    )
+    public async Task<ExecutionResult> Execute(Workflow workflow, Step step, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Executing task {Task} for job {Job}", task, job);
+        _logger.LogInformation("Executing step {Step} for workflow {Workflow}", step, workflow);
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(task.Command.MaxExecutionTime ?? _settings.DefaultTaskExecutionTimeout);
+        cts.CancelAfter(step.Command.MaxExecutionTime ?? _settings.DefaultTaskExecutionTimeout);
 
         var stopwatch = Stopwatch.StartNew();
         try
         {
-            var result = task.Command switch
+            var result = step.Command switch
             {
-                ProcessEngineCommand.AppCommand cmd => await AppCommand(cmd, job, task, cts.Token),
-                ProcessEngineCommand.Timeout cmd => await Timeout(cmd, job, task, cts.Token),
-                ProcessEngineCommand.Webhook cmd => await Webhook(cmd, job, task, cts.Token),
-                ProcessEngineCommand.Delegate cmd => await Delegate(cmd, job, task, cts.Token),
-                ProcessEngineCommand.Noop => ProcessEngineExecutionResult.Success(),
-                ProcessEngineCommand.Throw => throw new InvalidOperationException("Intentional error thrown"),
-                _ => throw new ArgumentException($"Unknown instruction: {task.Command}"),
+                Command.AppCommand cmd => await AppCommand(cmd, workflow, step, cts.Token),
+                Command.Timeout cmd => await Timeout(cmd, workflow, step, cts.Token),
+                Command.Webhook cmd => await Webhook(cmd, workflow, step, cts.Token),
+                Command.Delegate cmd => await Delegate(cmd, workflow, step, cts.Token),
+                Command.Noop => ExecutionResult.Success(),
+                Command.Throw => throw new InvalidOperationException("Intentional error thrown"),
+                _ => throw new ArgumentException($"Unknown instruction: {step.Command}"),
             };
 
             if (result.IsSuccess())
-                _logger.LogInformation("Task {Task} executed with success in {Elapsed}", task, stopwatch.Elapsed);
+                _logger.LogInformation("Step {Step} executed with success in {Elapsed}", step, stopwatch.Elapsed);
             else
                 _logger.LogError(
-                    "Task {Task} executed with error in {Elapsed}: {Message}",
-                    task,
+                    "Step {Step} executed with error in {Elapsed}: {Message}",
+                    step,
                     stopwatch.Elapsed,
                     result.Message ?? "no details specified"
                 );
@@ -75,13 +66,13 @@ internal class ProcessEngineTaskHandler : IProcessEngineTaskHandler
         {
             _logger.LogError(
                 e,
-                "Execution of task {Task} failed after {Elapsed}: {Message}",
-                task,
+                "Execution of step {Step} failed after {Elapsed}: {Message}",
+                step,
                 stopwatch.Elapsed,
                 e.Message
             );
 
-            return ProcessEngineExecutionResult.Error(e.Message);
+            return ExecutionResult.Error(e.Message);
         }
         finally
         {
@@ -89,26 +80,26 @@ internal class ProcessEngineTaskHandler : IProcessEngineTaskHandler
         }
     }
 
-    private async Task<ProcessEngineExecutionResult> AppCommand(
-        ProcessEngineCommand.AppCommand command,
-        ProcessEngineJob job,
-        ProcessEngineTask task,
+    private async Task<ExecutionResult> AppCommand(
+        Command.AppCommand command,
+        Workflow workflow,
+        Step step,
         CancellationToken cancellationToken
     )
     {
         // TODO: Remove this. Demo purpose only
         if (command.CommandKey.StartsWith("*", StringComparison.OrdinalIgnoreCase))
         {
-            return ProcessEngineExecutionResult.Success();
+            return ExecutionResult.Success();
         }
 
-        using var httpClient = GetAuthorizedAppClient(job.InstanceInformation);
+        using var httpClient = GetAuthorizedAppClient(workflow.InstanceInformation);
         httpClient.Timeout = command.MaxExecutionTime ?? _settings.DefaultTaskExecutionTimeout;
 
-        var payload = new ProcessEngineAppCallbackPayload
+        var payload = new AppCallbackPayload
         {
             CommandKey = command.CommandKey,
-            Actor = task.Actor,
+            Actor = step.Actor,
             Metadata = command.Metadata,
         };
         using var response = await httpClient.PostAsync(
@@ -118,27 +109,27 @@ internal class ProcessEngineTaskHandler : IProcessEngineTaskHandler
         );
 
         return response.IsSuccessStatusCode
-            ? ProcessEngineExecutionResult.Success()
-            : ProcessEngineExecutionResult.Error(
+            ? ExecutionResult.Success()
+            : ExecutionResult.Error(
                 $"AppCommand execution failed with status code {response.StatusCode}: {await response.GetContentOrDefault("<no body content>", cancellationToken)}"
             );
     }
 
-    private static async Task<ProcessEngineExecutionResult> Timeout(
-        ProcessEngineCommand.Timeout command,
-        ProcessEngineJob job,
-        ProcessEngineTask task,
+    private static async Task<ExecutionResult> Timeout(
+        Command.Timeout command,
+        Workflow workflow,
+        Step step,
         CancellationToken cancellationToken
     )
     {
-        await Task.Delay(command.Duration, cancellationToken);
-        return ProcessEngineExecutionResult.Success();
+        await System.Threading.Tasks.Task.Delay(command.Duration, cancellationToken);
+        return ExecutionResult.Success();
     }
 
-    private async Task<ProcessEngineExecutionResult> Webhook(
-        ProcessEngineCommand.Webhook command,
-        ProcessEngineJob job,
-        ProcessEngineTask task,
+    private async Task<ExecutionResult> Webhook(
+        Command.Webhook command,
+        Workflow workflow,
+        Step step,
         CancellationToken cancellationToken
     )
     {
@@ -159,8 +150,8 @@ internal class ProcessEngineTaskHandler : IProcessEngineTaskHandler
         }
 
         var result = response.IsSuccessStatusCode
-            ? ProcessEngineExecutionResult.Success()
-            : ProcessEngineExecutionResult.Error(
+            ? ExecutionResult.Success()
+            : ExecutionResult.Error(
                 $"Webhook execution failed: {await response.Content.ReadAsStringAsync(cancellationToken)}"
             );
         response.Dispose();
@@ -168,22 +159,22 @@ internal class ProcessEngineTaskHandler : IProcessEngineTaskHandler
         return result;
     }
 
-    private async Task<ProcessEngineExecutionResult> Delegate(
-        ProcessEngineCommand.Delegate command,
-        ProcessEngineJob job,
-        ProcessEngineTask task,
+    private async Task<ExecutionResult> Delegate(
+        Command.Delegate command,
+        Workflow workflow,
+        Step step,
         CancellationToken cancellationToken
     )
     {
         try
         {
-            await command.Action(job, task, cancellationToken);
-            return ProcessEngineExecutionResult.Success();
+            await command.Action(workflow, step, cancellationToken);
+            return ExecutionResult.Success();
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Delegate execution of task {Task} failed: {Message}", task, e.Message);
-            return ProcessEngineExecutionResult.Error(e.Message);
+            _logger.LogError(e, "Delegate execution of step {Step} failed: {Message}", step, e.Message);
+            return ExecutionResult.Error(e.Message);
         }
     }
 

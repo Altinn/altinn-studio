@@ -1,7 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using WorkflowEngine.Models;
+using Task = System.Threading.Tasks.Task;
 
-namespace Altinn.App.ProcessEngine;
+namespace WorkflowEngine.Api;
 
 internal partial class ProcessEngine
 {
@@ -12,7 +13,7 @@ internal partial class ProcessEngine
         if (_cancellationTokenSource is not null || _mainLoopTask is not null)
             await Stop();
 
-        Status |= ProcessEngineHealthStatus.Running;
+        Status |= EngineHealthStatus.Running;
         _cleanupRequired = true;
         _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
@@ -26,9 +27,9 @@ internal partial class ProcessEngine
                         try
                         {
                             await MainLoop(_cancellationTokenSource.Token);
-                            Status &= ~ProcessEngineHealthStatus.Unhealthy;
-                            Status |= ProcessEngineHealthStatus.Healthy;
-                            Status |= ProcessEngineHealthStatus.Running;
+                            Status &= ~EngineHealthStatus.Unhealthy;
+                            Status |= EngineHealthStatus.Healthy;
+                            Status |= EngineHealthStatus.Running;
                         }
                         catch (OperationCanceledException) when (_cancellationTokenSource.IsCancellationRequested) { }
                         catch (Exception e)
@@ -39,14 +40,14 @@ internal partial class ProcessEngine
                                 e.Message
                             );
 
-                            Status |= ProcessEngineHealthStatus.Unhealthy;
+                            Status |= EngineHealthStatus.Unhealthy;
                         }
                     }
                 }
                 finally
                 {
                     await Cleanup();
-                    Status &= ~ProcessEngineHealthStatus.Running;
+                    Status &= ~EngineHealthStatus.Running;
                 }
             },
             _cancellationTokenSource.Token
@@ -57,7 +58,7 @@ internal partial class ProcessEngine
     {
         _logger.LogInformation("Stopping process engine");
 
-        if (!Status.HasFlag(ProcessEngineHealthStatus.Running))
+        if (!Status.HasFlag(EngineHealthStatus.Running))
             return;
 
         try
@@ -71,8 +72,8 @@ internal partial class ProcessEngine
         catch (OperationCanceledException) { }
         finally
         {
-            Status &= ~ProcessEngineHealthStatus.Running;
-            Status |= ProcessEngineHealthStatus.Stopped;
+            Status &= ~EngineHealthStatus.Running;
+            Status |= EngineHealthStatus.Stopped;
         }
     }
 
@@ -82,19 +83,19 @@ internal partial class ProcessEngine
         await _inboxCapacityLimit.WaitAsync(cancellationToken);
 
         if (InboxCount >= Settings.QueueCapacity)
-            Status |= ProcessEngineHealthStatus.QueueFull;
+            Status |= EngineHealthStatus.QueueFull;
         else
-            Status &= ~ProcessEngineHealthStatus.QueueFull;
+            Status &= ~EngineHealthStatus.QueueFull;
 
         _logger.LogTrace("Status after acquiring slot: {Status}", Status);
     }
 
-    private void RemoveJobAndReleaseQueueSlot(ProcessEngineJob job)
+    private void RemoveJobAndReleaseQueueSlot(Workflow workflow)
     {
         _logger.LogTrace("Releasing queue slot");
-        bool removed = _inbox.TryRemove(job.Key, out _);
+        bool removed = _inbox.TryRemove(workflow.Key, out _);
         if (!removed)
-            throw new InvalidOperationException($"Unable to release queue slot {job.Key}");
+            throw new InvalidOperationException($"Unable to release queue slot {workflow.Key}");
 
         _inboxCapacityLimit.Release();
     }

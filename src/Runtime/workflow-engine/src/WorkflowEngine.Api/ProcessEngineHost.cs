@@ -1,7 +1,7 @@
-﻿using Altinn.App.ProcessEngine.Exceptions;
-using Altinn.App.ProcessEngine.Extensions;
+﻿using Altinn.App.ProcessEngine.Extensions;
+using WorkflowEngine.Api.Exceptions;
 
-namespace Altinn.App.ProcessEngine;
+namespace WorkflowEngine.Api;
 
 internal sealed class ProcessEngineHost(IServiceProvider serviceProvider) : BackgroundService
 {
@@ -60,7 +60,7 @@ internal sealed class ProcessEngineHost(IServiceProvider serviceProvider) : Back
             if (failCount >= maxFailsAllowed)
             {
                 _logger.LogCritical("The process engine has failed {FailCount} times. Shutting down host.", failCount);
-                throw new ProcessEngineCriticalException(
+                throw new WorkflowEngineCriticalException(
                     "Critical failure in ProcessEngineHost. Forcing application shutdown."
                 );
             }
