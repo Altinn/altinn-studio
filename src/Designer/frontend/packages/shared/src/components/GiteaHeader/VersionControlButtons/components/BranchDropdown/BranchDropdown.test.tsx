@@ -272,7 +272,7 @@ describe('BranchDropdown', () => {
       expect(uncommittedChangesDialog).not.toBeInTheDocument();
     });
 
-    it('Should call discardChangesMutation and checkoutBranchAndReload when clicking discard button in UncommittedChangesDialog', async () => {
+    it('Should call discardChangesMutation when clicking discard button in UncommittedChangesDialog', async () => {
       const user = userEvent.setup();
       mockUseCheckoutBranchAndReload.mockReturnValue({
         checkoutBranchAndReload,

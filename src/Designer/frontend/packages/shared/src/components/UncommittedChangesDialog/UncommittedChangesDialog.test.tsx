@@ -117,7 +117,7 @@ describe('UncommittedChangesDialog', () => {
     expect(onDiscardAndSwitch).not.toHaveBeenCalled();
   });
 
-  it('should show alter button label when isLoading is true', async () => {
+  it('should alter button label when isLoading is true', async () => {
     renderUncommittedChangesDialog({ isLoading: true });
 
     const loadingButton = getLoadingButton();

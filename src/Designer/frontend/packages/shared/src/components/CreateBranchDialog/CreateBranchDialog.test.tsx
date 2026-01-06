@@ -110,7 +110,7 @@ const defaultProps: CreateBranchDialogProps = {
   isOpen: true,
   onClose,
   currentBranch: 'master',
-  createError: null,
+  createError: '',
   isLoading: false,
   onCreateBranch,
 };
