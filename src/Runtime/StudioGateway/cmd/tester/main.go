@@ -70,10 +70,12 @@ func runStart(args []string) {
 		os.Exit(1)
 	}
 
-	if err := setupRuntime(variant); err != nil {
+	result, err := setupRuntime(variant)
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start runtime: %v\n", err)
 		os.Exit(1)
 	}
+	defer func() { _ = result.Runtime.Close() }()
 
 	writeStdoutln("\n=== Runtime is Running ===")
 	writeStdoutln("Use 'make stop' to stop the cluster")
@@ -93,6 +95,7 @@ func runStop() {
 		fmt.Fprintf(os.Stderr, "Failed to load runtime: %v\n", err)
 		os.Exit(1)
 	}
+	defer func() { _ = result.Runtime.Close() }()
 
 	if err := result.Runtime.Stop(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to stop runtime: %v\n", err)
@@ -112,15 +115,17 @@ func runTest() {
 	writeStdoutln("=== StudioGateway Test Orchestrator ===")
 
 	isCI := os.Getenv("CI") != ""
+	var result *harness.Result
 	if isCI {
-		_, err = harness.LoadExisting(filepath.Join(root, cachePath))
+		result, err = harness.LoadExisting(filepath.Join(root, cachePath))
 	} else {
-		err = setupRuntime(kind.KindContainerRuntimeVariantMinimal)
+		result, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal)
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
 		os.Exit(1)
 	}
+	defer func() { _ = result.Runtime.Close() }()
 
 	writeStdoutln("=== Environment Ready, Running Tests ===")
 
@@ -152,10 +157,10 @@ func runTest() {
 	writeStdoutln("\n=== All Tests PASSED ===")
 }
 
-func setupRuntime(variant kind.KindContainerRuntimeVariant) error {
+func setupRuntime(variant kind.KindContainerRuntimeVariant) (*harness.Result, error) {
 	root, err := findProjectRoot()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	cfg := harness.Config{
@@ -222,7 +227,7 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) error {
 		},
 	}
 
-	_, err = harness.RunAsync(
+	result, err := harness.RunAsync(
 		cfg,
 		harness.AsyncOptions{
 			RegistryReady: nil,
@@ -230,10 +235,10 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) error {
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("run runtime setup: %w", err)
+		return nil, fmt.Errorf("run runtime setup: %w", err)
 	}
 
-	return nil
+	return result, nil
 }
 
 func findProjectRoot() (string, error) {

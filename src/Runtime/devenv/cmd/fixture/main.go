@@ -82,6 +82,7 @@ func run(action, variant, cacheDir string, verbose bool) error {
 	if err != nil {
 		return fmt.Errorf("failed to create container runtime: %w", err)
 	}
+	defer func() { _ = runtime.Close() }()
 
 	// Execute the action
 	switch action {
