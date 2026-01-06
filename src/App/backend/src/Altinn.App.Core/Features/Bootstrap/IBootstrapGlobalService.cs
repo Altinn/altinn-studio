@@ -7,7 +7,6 @@ public interface IBootstrapGlobalService
     Task<BootstrapGlobalResponse> GetGlobalState(
         string org,
         string app,
-        string? language = null,
-        CancellationToken cancellationToken = default
+        string? language = null
     );
 }

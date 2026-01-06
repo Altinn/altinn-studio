@@ -1,11 +1,9 @@
-using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
-using Altinn.App.Core.Features.Testing;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
@@ -97,7 +95,6 @@ public class HomeController : Controller
         [FromQuery] bool forceNew = false
     )
     {
-        // Use InitialDataService to get ALL data with mock integration
         var initialData = await _bootstrapGlobalService.GetGlobalState(org, app);
         ApplicationMetadata? application = initialData.ApplicationMetadata;
 
@@ -168,8 +165,6 @@ public class HomeController : Controller
             var statelessAppData = await _bootstrapGlobalService.GetGlobalState(
                 org,
                 app,
-                null,
-                details.UserParty.PartyId,
                 language
             );
             var statelessAppHtml = GenerateHtml(org, app, statelessAppData);
@@ -201,15 +196,12 @@ public class HomeController : Controller
             throw new UnauthorizedAccessException("You need to be logged in to see this page.");
         }
 
-        var details = await auth.LoadDetails(validateSelectedParty: false);
         var language =
             Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader(); // <-- unngå nettleser språk, bruk profil
 
         var initialData = await _bootstrapGlobalService.GetGlobalState(
             org,
             app,
-            null,
-            details.Profile.PartyId,
             language
         );
         var html = GenerateHtml(org, app, initialData);
@@ -944,212 +936,6 @@ public class HomeController : Controller
         Response.Headers["Content-Security-Policy"] = $"default-src 'self'; script-src 'nonce-{nonce}';";
 
         return htmlContent;
-    }
-
-    private string GenerateHtmlWithInstances(string org, string app, string dataJson)
-    {
-        // Check if frontendVersion cookie is set and use it as base URL
-        var cdnUrl =
-            _generalSettings.FrontendBaseUrl?.TrimEnd('/') ?? "https://altinncdn.no/toolkits/altinn-app-frontend";
-        var useCustomFrontendVersion = false;
-        if (HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var frontendVersionCookie))
-        {
-            if (!string.IsNullOrEmpty(frontendVersionCookie))
-            {
-                cdnUrl = frontendVersionCookie.TrimEnd('/');
-                useCustomFrontendVersion = true;
-            }
-        }
-
-        // Don't append version if using custom frontend URL
-        var appVersion = useCustomFrontendVersion ? "" : "4";
-        var versionPath = string.IsNullOrEmpty(appVersion) ? "" : $"{appVersion}/";
-
-        var customCss = GetCustomCss(org, app);
-        var customJs = GetCustomJs(org, app);
-
-        // Build optional sections
-        var customCssTag = !string.IsNullOrEmpty(customCss) ? $"\n  <style>{customCss}</style>" : "";
-        var customJsTag = !string.IsNullOrEmpty(customJs) ? $"\n  <script>{customJs}</script>" : "";
-
-        var htmlContent = $$"""
-                            <!DOCTYPE html>
-                            <html lang="no">
-                            <head>
-                              <meta charset="utf-8">
-                              <meta http-equiv="X-UA-Compatible" content="IE=edge">
-                              <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-                              <title>{{org}} - {{app}}</title>
-                              <link rel="icon" href="https://altinncdn.no/favicon.ico">
-                              <link rel="stylesheet" type="text/css" href="{{cdnUrl}}/{{versionPath}}altinn-app-frontend.css">{{customCssTag}}
-                            </head>
-                            <body>
-                              <div id="root"></div>
-                              <script>
-                                window.AltinnAppData = {{dataJson}};
-                                window.org = '{{org}}';
-                                window.app = '{{app}}';
-                              </script>
-                              <script src="{{cdnUrl}}/{{versionPath}}altinn-app-frontend.js"></script>{{customJsTag}}
-                            </body>
-                            </html>
-                            """;
-
-        return htmlContent;
-    }
-
-    /// <summary>
-    /// Merges mock data with real user details for testing purposes.
-    /// Only active in development/test environments when mock data headers are present.
-    /// </summary>
-    private Authenticated.User.Details MergeDetailsWithMockData(Authenticated.User.Details realDetails)
-    {
-        // Try to get mock data from HttpContext.Items first (set by MockDataMiddleware)
-        Dictionary<string, object>? mockData = null;
-
-        if (
-            HttpContext.Items.TryGetValue("MockData", out var mockDataObj)
-            && mockDataObj is Dictionary<string, object> itemsMockData
-        )
-        {
-            mockData = itemsMockData;
-        }
-        // If not in Items, try to parse directly from header
-        else if (HttpContext.Request.Headers.TryGetValue("X-Mock-Data", out var headerValue))
-        {
-            try
-            {
-                mockData = JsonSerializer.Deserialize<Dictionary<string, object>>(headerValue.ToString());
-            }
-            catch (JsonException)
-            {
-                // Invalid JSON, ignore and return real details
-                return realDetails;
-            }
-        }
-
-        if (mockData == null)
-        {
-            return realDetails; // No mock data available
-        }
-
-        // Check if there's userDetails mock data
-        if (!mockData.TryGetValue("userDetails", out var userDetailsMock))
-        {
-            return realDetails; // No userDetails mock, return real details
-        }
-
-        try
-        {
-            var userDetailsJson = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(userDetailsMock));
-            var result = realDetails;
-
-            // Apply simple property overrides using 'with' syntax
-            if (userDetailsJson.TryGetProperty("representsSelf", out var rs))
-            {
-                result = result with { RepresentsSelf = rs.GetBoolean() };
-            }
-
-            if (userDetailsJson.TryGetProperty("canRepresent", out var cr))
-            {
-                result = result with { CanRepresent = cr.GetBoolean() };
-            }
-
-            // Handle complex collections first (so we have the merged parties list)
-            var parties = realDetails.Parties.ToList();
-            if (mockData.TryGetValue("parties", out var partiesMock))
-            {
-                parties = ParseMockParties(partiesMock, parties);
-                result = result with { Parties = parties };
-            }
-
-            // Handle partiesAllowedToInstantiate from userDetails
-            if (userDetailsJson.TryGetProperty("partiesAllowedToInstantiate", out var paiMock))
-            {
-                _logger?.LogDebug(
-                    "Found partiesAllowedToInstantiate in mock data. ValueKind: {ValueKind}, RawText: {RawText}",
-                    paiMock.ValueKind,
-                    paiMock.GetRawText()
-                );
-                var partiesAllowed = ParseMockParties(paiMock, new List<Altinn.Platform.Register.Models.Party>());
-                _logger?.LogDebug("Parsed {Count} parties for partiesAllowedToInstantiate", partiesAllowed.Count);
-                result = result with { PartiesAllowedToInstantiate = partiesAllowed };
-            }
-
-            // Handle userProfile mock data merge
-            if (mockData.TryGetValue("userProfile", out var userProfileMock))
-            {
-                var mockDataHelper = new MockDataHelper();
-                var mergedProfile = mockDataHelper.MergeUserProfile(result.Profile, userProfileMock);
-                result = result with { Profile = mergedProfile };
-            }
-
-            // Handle party ID overrides using the merged parties list
-            if (userDetailsJson.TryGetProperty("selectedPartyId", out var spId))
-            {
-                var selectedParty =
-                    parties.FirstOrDefault(p => p.PartyId == spId.GetInt32()) ?? realDetails.SelectedParty;
-                result = result with { SelectedParty = selectedParty };
-            }
-
-            if (userDetailsJson.TryGetProperty("userPartyId", out var upId))
-            {
-                var userParty = parties.FirstOrDefault(p => p.PartyId == upId.GetInt32()) ?? realDetails.UserParty;
-                result = result with { UserParty = userParty };
-            }
-
-            return result;
-        }
-        catch (Exception)
-        {
-            // If parsing fails, return real details to avoid breaking functionality
-            return realDetails;
-        }
-    }
-
-    private List<Altinn.Platform.Register.Models.Party> ParseMockParties(
-        object partiesMock,
-        List<Altinn.Platform.Register.Models.Party> baseParties
-    )
-    {
-        try
-        {
-            var mockPartiesJson = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(partiesMock));
-            if (mockPartiesJson.ValueKind != JsonValueKind.Array)
-                return baseParties;
-
-            var result = baseParties.ToList();
-            foreach (var mockPartyElement in mockPartiesJson.EnumerateArray())
-            {
-                if (!mockPartyElement.TryGetProperty("partyId", out var mockPartyIdProp))
-                    continue;
-
-                var mockPartyId = mockPartyIdProp.GetInt32();
-                var existingIndex = result.FindIndex(p => p.PartyId == mockPartyId);
-
-                var mockParty = new Altinn.Platform.Register.Models.Party
-                {
-                    PartyId = mockPartyId,
-                    Name = mockPartyElement.TryGetProperty("name", out var nameProp)
-                        ? nameProp.GetString() ?? $"Party {mockPartyId}"
-                        : $"Party {mockPartyId}",
-                    PartyTypeName = mockPartyElement.TryGetProperty("partyTypeName", out var typeProp)
-                        ? (Altinn.Platform.Register.Enums.PartyType)typeProp.GetInt32()
-                        : Altinn.Platform.Register.Enums.PartyType.Person,
-                };
-
-                if (existingIndex >= 0)
-                    result[existingIndex] = mockParty;
-                else
-                    result.Add(mockParty);
-            }
-
-            return result;
-        }
-        catch (Exception)
-        {
-            return baseParties;
-        }
     }
 
     [HttpGet]
