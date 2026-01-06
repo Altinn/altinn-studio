@@ -29,7 +29,7 @@ export const instancesListPath = (
 export const appMetadataPath = (org: string, env: string, app: string) =>
   `${adminApiBasePath}/applications/${org}/${env}/${app}/applicationmetadata`; // Get
 export const processDataTypeMetadataPath = (org: string, env: string, app: string) =>
-  `${adminApiBasePath}/applications/${org}/${env}/${app}/process-datatypes-metadata`; // Get
+  `${adminApiBasePath}/applications/${org}/${env}/${app}/process-datatypes`; // Get
 export const appProcessTasksPath = (org: string, env: string, app: string) =>
   `${adminApiBasePath}/applications/${org}/${env}/${app}/process-tasks`; // Get
 export const instanceDetailsPath = (org: string, env: string, app: string, instanceId: string) =>

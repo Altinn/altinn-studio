@@ -23,7 +23,7 @@ public interface IAppResourcesService
         CancellationToken ct
     );
 
-    public Task<Dictionary<string, string>> GetProcessDataTypeMetadata(
+    public Task<IEnumerable<ProcessDataType>> GetProcessDataTypeMetadata(
         string org,
         string env,
         string app,

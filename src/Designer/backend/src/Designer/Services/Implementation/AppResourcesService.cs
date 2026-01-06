@@ -83,7 +83,7 @@ class AppResourcesService : IAppResourcesService
             });
     }
 
-    public async Task<Dictionary<string, string>> GetProcessDataTypeMetadata(
+    public async Task<IEnumerable<ProcessDataType>> GetProcessDataTypeMetadata(
         string org,
         string env,
         string app,
@@ -100,16 +100,30 @@ class AppResourcesService : IAppResourcesService
         string responseString = await response.Content.ReadAsStringAsync(ct);
         var processXml = XDocument.Parse(responseString);
 
-        var result = new Dictionary<string, string>();
+        var processDataTypes = new List<ProcessDataType>();
 
-        foreach (var tag in _dataTypeProcessTags)
+        foreach (var taskElement in processXml.Descendants(_bpmnNs + "task"))
         {
-            foreach (var element in processXml.Descendants(_altinnNs + tag))
+            foreach (var tag in _dataTypeProcessTags)
             {
-                result[element.Value] = tag;
+                foreach (var element in taskElement.Descendants(_altinnNs + tag))
+                {
+                    processDataTypes.Add(
+                        new()
+                        {
+                            DataTypeId = element.Value,
+                            TaskId =
+                                (string)taskElement.Attribute("id")
+                                ?? throw new InvalidOperationException(
+                                    $"Missing process task id in app {org}/{env}/{app}."
+                                ),
+                            Tag = tag,
+                        }
+                    );
+                }
             }
         }
 
-        return result;
+        return processDataTypes;
     }
 }

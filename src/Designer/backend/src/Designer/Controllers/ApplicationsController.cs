@@ -132,8 +132,8 @@ public class ApplicationsController : ControllerBase
         }
     }
 
-    [HttpGet("{org}/{env}/{app}/process-datatypes-metadata")]
-    public async Task<ActionResult<Dictionary<string, string>>> GetProcessDataTypeMetadata(
+    [HttpGet("{org}/{env}/{app}/process-datatypes")]
+    public async Task<ActionResult<IEnumerable<ProcessDataType>>> GetProcessDataTypeMetadata(
         string org,
         string env,
         string app,
@@ -155,6 +155,17 @@ public class ApplicationsController : ControllerBase
         catch (OperationCanceledException)
         {
             return StatusCode(499);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(
+                ex,
+                "Invalid process task data for app {Org}/{Env}/{App}.",
+                org,
+                env,
+                app
+            );
+            return StatusCode(502);
         }
     }
 }

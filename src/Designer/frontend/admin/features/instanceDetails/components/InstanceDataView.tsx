@@ -32,8 +32,8 @@ import {
 import classes from './InstanceDataView.module.css';
 import {
   type ProcessDataType,
-  useProcessDataTypeMetadataQuery,
-} from 'admin/hooks/queries/useProcessDataTypeMetadataQuery';
+  useProcessDataTypesQuery,
+} from 'admin/hooks/queries/useProcessDataTypesQuery';
 
 type InstanceDataViewProps = {
   org: string;
@@ -48,7 +48,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
   const { data, status } = useReduceQueries(
     useAppInstanceDetailsQuery(org, env, app, id),
     useAppMetadataQuery(org, env, app),
-    useProcessDataTypeMetadataQuery(org, env, app),
+    useProcessDataTypesQuery(org, env, app),
   );
 
   switch (status) {
@@ -57,7 +57,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
     case 'error':
       return <StudioError>{t('general.page_error_title')}</StudioError>;
     case 'success': {
-      const [instanceDetails, appMetadata, processDataTypeMetadata] = data;
+      const [instanceDetails, appMetadata, processDataTypes] = data;
 
       return (
         <InstanceDataViewWithData
@@ -67,7 +67,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
           id={id}
           instance={instanceDetails}
           appMetadata={appMetadata}
-          processDataTypeMetadata={processDataTypeMetadata}
+          processDataTypes={processDataTypes}
         />
       );
     }
@@ -77,7 +77,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
 type InstanceDataViewWithDataProps = InstanceDataViewProps & {
   instance: SimpleInstanceDetails;
   appMetadata: ApplicationMetadata;
-  processDataTypeMetadata: Record<string, ProcessDataType>;
+  processDataTypes: ProcessDataType[];
 };
 
 enum InstanceDataViewTabs {
@@ -95,7 +95,7 @@ const InstanceDataViewWithData = ({
   // id,
   instance,
   appMetadata,
-  processDataTypeMetadata,
+  processDataTypes,
 }: InstanceDataViewWithDataProps) => {
   const { t } = useTranslation();
   const [tab, setTab] = useQueryParamState<string>('section', InstanceDataViewTabs.Info);
@@ -145,7 +145,7 @@ const InstanceDataViewWithData = ({
         <DataElementGroups
           dataElements={instance.data}
           appMetadata={appMetadata}
-          processDataTypeMetadata={processDataTypeMetadata}
+          processDataTypes={processDataTypes}
         />
       </StudioTabs.Panel>
       {/*
@@ -175,11 +175,11 @@ const LabelValue = ({ label, children }: PropsWithChildren<{ label: string }>) =
 const DataElementGroups = ({
   dataElements,
   appMetadata,
-  processDataTypeMetadata,
+  processDataTypes,
 }: {
   dataElements?: SimpleDataElement[];
   appMetadata: ApplicationMetadata;
-  processDataTypeMetadata: Record<string, ProcessDataType>;
+  processDataTypes: ProcessDataType[];
 }) => {
   if (!dataElements) {
     return null;
@@ -216,7 +216,7 @@ const DataElementGroups = ({
       dataType={dataType}
       dataElements={elements}
       appMetadata={appMetadata}
-      processDataTypeMetadata={processDataTypeMetadata}
+      processDataTypes={processDataTypes}
     />
   ));
 };
@@ -245,21 +245,24 @@ const DataTypeIcons: { [k in DataTypeType]: React.FC } = {
 function getDataTypeType(
   dataType: string,
   appMetadata: ApplicationMetadata,
-  processDataTypeMetadata: Record<string, ProcessDataType>,
+  processDataTypes: ProcessDataType[],
 ): DataTypeType {
+  const tag = processDataTypes.find((pdt) => pdt.dataTypeId === dataType)?.tag;
+
   if (
     dataType === 'ref-data-as-pdf' ||
-    ['signingPdfDataType', 'paymentReceiptPdfDataType'].includes(processDataTypeMetadata[dataType])
+    tag === 'signingPdfDataType' ||
+    tag === 'paymentReceiptPdfDataType'
   ) {
     return 'pdfReceipt';
   }
-  if (processDataTypeMetadata[dataType] === 'signatureDataType') {
+  if (tag === 'signatureDataType') {
     return 'signature';
   }
-  if (processDataTypeMetadata[dataType] === 'signeeStatesDataTypeId') {
+  if (tag === 'signeeStatesDataTypeId') {
     return 'signeeStates';
   }
-  if (processDataTypeMetadata[dataType] === 'paymentDataType') {
+  if (tag === 'paymentDataType') {
     return 'paymentInfo';
   }
   if (appMetadata.dataTypes?.find((d) => d.id === dataType)?.appLogic?.classRef) {
@@ -290,24 +293,36 @@ function getDataTypeLabel(
   return `${dataType} (${count})`;
 }
 
+function getTaskId(
+  dataType: string,
+  appMetadata: ApplicationMetadata,
+  processDataTypes: ProcessDataType[],
+): string | null {
+  return (
+    appMetadata.dataTypes?.find((dt) => dt.id === dataType)?.taskId ??
+    processDataTypes.find((pdt) => pdt.dataTypeId === dataType)?.taskId ??
+    null
+  );
+}
+
 const DataElementGroup = ({
   dataType,
   dataElements,
   appMetadata,
-  processDataTypeMetadata,
+  processDataTypes,
 }: {
   dataType: string;
   dataElements: SimpleDataElement[];
   appMetadata: ApplicationMetadata;
-  processDataTypeMetadata: Record<string, ProcessDataType>;
+  processDataTypes: ProcessDataType[];
 }) => {
   const { t } = useTranslation();
   const labelId = `label-${dataType}`;
 
-  const dataTypeDef = appMetadata.dataTypes?.find((dt) => dt.id === dataType);
-  const label = getDataTypeLabel(dataType, dataElements.length, appMetadata);
-  const type = getDataTypeType(dataType, appMetadata, processDataTypeMetadata);
+  const type = getDataTypeType(dataType, appMetadata, processDataTypes);
   const Icon = DataTypeIcons[type];
+  const label = getDataTypeLabel(dataType, dataElements.length, appMetadata);
+  const taskId = getTaskId(dataType, appMetadata, processDataTypes);
 
   return (
     <StudioField className={classes['data-element-field']}>
@@ -317,9 +332,9 @@ const DataElementGroup = ({
             <Icon />
             {label}
           </div>
-          {dataTypeDef?.taskId && (
+          {taskId && (
             <Tag size='sm' color='first'>
-              {dataTypeDef.taskId}
+              {taskId}
             </Tag>
           )}
         </span>
