@@ -2,7 +2,7 @@ import React from 'react';
 import { useRouterContext } from '../contexts/RouterContext';
 import classes from './ContentLibrary.module.css';
 import { LibraryHeader } from './LibraryHeader';
-import { StudioHeading } from '@studio/components-legacy';
+import { StudioHeading } from '@studio/components';
 import { PageName } from '../types/PageName';
 import { LibraryBody } from './LibraryBody';
 import type { ContentLibraryConfig } from '../types/ContentLibraryConfig';
@@ -25,7 +25,12 @@ function ContentLibraryForPage<T extends PageName>({
   currentPage,
 }: ContentLibraryForPageProps<T>): React.ReactElement {
   const page = getPage<T>(currentPage);
-  if (!page || !page.isConfigured(config)) return <StudioHeading>404 Page Not Found</StudioHeading>; // Show the NotFound page from app-dev instead
+  if (!page || !page.isConfigured(config))
+    return (
+      <StudioHeading data-size='xl' level={1}>
+        404 Page Not Found
+      </StudioHeading>
+    ); // Show the NotFound page from app-dev instead
 
   return (
     <div className={classes.libraryBackground}>
