@@ -37,21 +37,18 @@ public sealed partial class AppFixture : IAsyncDisposable
     private static readonly bool _forceRebuild = !string.IsNullOrWhiteSpace(
         Environment.GetEnvironmentVariable("TEST_FORCE_REBUILD")
     );
-    private static readonly string _localtestBranch =
-        Environment.GetEnvironmentVariable("TEST_LOCALTEST_BRANCH") ?? "main";
     private static readonly string _projectDirectory = ModuleInitializer.GetProjectDirectory();
+    private static readonly string _rootDirectory = ModuleInitializer.GetRootDirectory();
 
     private static long _fixtureInstance = -1;
-    private static readonly SemaphoreSlim _localtestCloneLock = new(1, 1);
     private static readonly SemaphoreSlim _localtestBuildLock = new(1, 1);
     private static readonly SemaphoreSlim _appBuildLock = new(1, 1);
     private static readonly SemaphoreSlim _pdfServiceLock = new(1, 1);
     private static readonly SemaphoreSlim _packLibrariesLock = new(1, 1);
     private static IFutureDockerImage? _localtestContainerImage;
-    private static Dictionary<string, IFutureDockerImage> _appContainerImages = new();
+    private static readonly Dictionary<string, IFutureDockerImage> _appContainerImages = [];
     private static IContainer? _pdfServiceContainer;
-    private static bool _librariesPacked = false;
-    private static bool _localtestRepositoryCloned = false;
+    private static bool _librariesPacked;
 
     private static long NextFixtureInstance() => Interlocked.Increment(ref _fixtureInstance);
 
@@ -134,15 +131,12 @@ public sealed partial class AppFixture : IAsyncDisposable
         try
         {
             // Build images and start PDF service in parallel for better performance
-            // Cloning localtest repo has to occur before building the localtest image since
-            // the image build relies on the repository being present.
             // Packing has to occur before building the app image since
             // the app image rely on local nupkg's to be present.
             // The rest can happen in parallel
             var hostIp = await ContainerRuntimeService.GetHostIP(cancellationToken);
             logger.LogInformation("Detected host IP for container communication: {HostIP}", hostIp);
 
-            await EnsureLocaltestRepositoryCloned(logger, cancellationToken);
             var localtestImageTask = EnsureLocaltestImageBuilt(logger, testContainersLogger, cancellationToken);
             var pdfServiceTask = EnsurePdfServiceStarted(logger, testContainersLogger, hostIp, cancellationToken);
             await EnsureLibrariesPacked(logger, cancellationToken);
@@ -386,99 +380,6 @@ public sealed partial class AppFixture : IAsyncDisposable
         };
     }
 
-    private static async Task EnsureLocaltestRepositoryCloned(ILogger logger, CancellationToken cancellationToken)
-    {
-        if (_localtestRepositoryCloned)
-            return;
-
-        await _localtestCloneLock.WaitAsync(cancellationToken);
-        try
-        {
-            if (_localtestRepositoryCloned)
-                return;
-
-            var localtestDirectory = Path.Join(_projectDirectory, "_localtest");
-
-            if (Directory.Exists(Path.Join(localtestDirectory, ".git")))
-            {
-                logger.LogInformation("Updating existing app-localtest repository: {Branch}", _localtestBranch);
-
-                var currentBranch = await new Command(
-                    "git",
-                    "branch --show-current",
-                    localtestDirectory,
-                    CancellationToken: cancellationToken
-                ).Select(r => r.StdOut.Trim());
-
-                if (currentBranch != _localtestBranch)
-                {
-                    // Different branch requested, easier to delete and re-clone
-                    logger.LogInformation(
-                        "Branch changed from {CurrentBranch} to {NewBranch}, re-cloning",
-                        currentBranch,
-                        _localtestBranch
-                    );
-                    Directory.Delete(localtestDirectory, true);
-                    Directory.CreateDirectory(localtestDirectory);
-
-                    await new Command(
-                        "git",
-                        $"clone --depth=1 https://github.com/Altinn/app-localtest --branch {_localtestBranch} {localtestDirectory}",
-                        _projectDirectory,
-                        CancellationToken: cancellationToken
-                    );
-                }
-                else
-                {
-                    // Same branch, just update
-                    await new Command(
-                        "git",
-                        $"fetch origin {_localtestBranch}",
-                        localtestDirectory,
-                        CancellationToken: cancellationToken
-                    );
-                    await new Command(
-                        "git",
-                        $"reset --hard origin/{_localtestBranch}",
-                        localtestDirectory,
-                        CancellationToken: cancellationToken
-                    );
-                }
-            }
-            else
-            {
-                logger.LogInformation("Cloning app-localtest repository: {Branch}", _localtestBranch);
-
-                // Ensure parent directory exists
-                if (Directory.Exists(localtestDirectory))
-                    Directory.Delete(localtestDirectory, true);
-                Directory.CreateDirectory(localtestDirectory);
-
-                // Clone the repository
-                await new Command(
-                    "git",
-                    $"clone --depth=1 https://github.com/Altinn/app-localtest --branch {_localtestBranch} {localtestDirectory}",
-                    _projectDirectory,
-                    CancellationToken: cancellationToken
-                );
-            }
-
-            var sha = await new Command(
-                "git",
-                "rev-parse --short HEAD",
-                localtestDirectory,
-                CancellationToken: cancellationToken
-            ).Select(r => r.StdOut.Trim());
-
-            _localtestRepositoryCloned = true;
-            logger.LogInformation("app-localtest repository ready - {Branch} / {Sha}", _localtestBranch, sha);
-        }
-        finally
-        {
-            _localtestCloneLock.Release();
-        }
-    }
-
     private static async Task<IFutureDockerImage> EnsureLocaltestImageBuilt(
         ILogger logger,
         ILogger testContainersLogger,
@@ -495,7 +396,7 @@ public sealed partial class AppFixture : IAsyncDisposable
                 return _localtestContainerImage;
 
             logger.LogInformation("Building localtest container image");
-            var localtestDirectory = Path.Join(_projectDirectory, "_localtest");
+            var localtestDirectory = Path.Join(_rootDirectory, "Runtime", "localtest");
             var localtestBuilder = new ImageFromDockerfileBuilder()
                 .WithName($"applib-localtest:latest")
                 .WithDockerfileDirectory(localtestDirectory)

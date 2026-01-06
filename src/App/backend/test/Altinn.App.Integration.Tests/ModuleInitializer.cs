@@ -40,4 +40,17 @@ internal static class ModuleInitializer
         Assert.True(Directory.Exists(directory), $"Project directory does not exist: {directory}");
         return directory;
     }
+
+    internal static string GetRootDirectory()
+    {
+        var rootDirectory = Path.Join(GetProjectDirectory(), "..", "..", "..", "..");
+        var info = new DirectoryInfo(rootDirectory);
+        if (!info.Exists)
+        {
+            throw new DirectoryNotFoundException(
+                $"The directory {rootDirectory} does not exist. Please check the path."
+            );
+        }
+        return info.FullName;
+    }
 }
