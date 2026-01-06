@@ -65,10 +65,12 @@ func runStart() {
 		os.Exit(1)
 	}
 
-	if _, err := setupRuntime(variant); err != nil {
+	result, err := setupRuntime(variant)
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start runtime: %v\n", err)
 		os.Exit(1)
 	}
+	defer func() { _ = result.Runtime.Close() }()
 
 	fmt.Println("\n=== Runtime is Running ===")
 	fmt.Println("Use 'make stop' to stop the cluster")
@@ -88,6 +90,7 @@ func runStop() {
 		fmt.Fprintf(os.Stderr, "Failed to load runtime: %v\n", err)
 		os.Exit(1)
 	}
+	defer func() { _ = result.Runtime.Close() }()
 
 	if err := result.Runtime.Stop(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to stop runtime: %v\n", err)
@@ -106,15 +109,17 @@ func runTest() {
 
 	fmt.Println("=== StudioGateway Test Orchestrator ===")
 
+	var result *harness.Result
 	if isCI {
-		_, err = harness.LoadExisting(filepath.Join(root, cachePath))
+		result, err = harness.LoadExisting(filepath.Join(root, cachePath))
 	} else {
-		_, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal)
+		result, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal)
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
 		os.Exit(1)
 	}
+	defer func() { _ = result.Runtime.Close() }()
 
 	fmt.Println("=== Environment Ready, Running Tests ===")
 
