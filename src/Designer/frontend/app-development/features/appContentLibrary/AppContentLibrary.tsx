@@ -23,9 +23,9 @@ import type { AxiosError } from 'axios';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
 import {
   useAddOptionListMutation,
-  useUpdateOptionListMutation,
-  useUpdateOptionListIdMutation,
   useDeleteOptionListMutation,
+  useUpdateOptionListIdMutation,
+  useUpdateOptionListMutation,
   useUpsertTextResourceMutation,
 } from 'app-shared/hooks/mutations';
 import { mapToCodeListUsages } from './utils/mapToCodeListUsages';
@@ -37,6 +37,8 @@ import { convertTextResourceToMutationArgs } from './utils/convertTextResourceTo
 import { useGetAvailableOrgResourcesQuery } from '../../hooks/queries/useGetAvailableOrgResourcesQuery';
 import { useImportCodeListFromOrgToAppMutation } from 'app-development/hooks/mutations/useImportCodeListFromOrgToAppMutation';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
+import { RoutePaths } from '../../enums/RoutePaths';
+import { useContentLibraryRouter } from 'app-shared/hooks/useContentLibraryRouter';
 
 export default function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -97,6 +99,7 @@ function AppContentLibraryWithData({
   const { mutate: updateTextResource } = useUpsertTextResourceMutation(org, app);
   const { mutate: importCodeListFromOrg } = useImportCodeListFromOrgToAppMutation(org, app);
   const { t } = useTranslation();
+  const router = useContentLibraryRouter(`/${org}/${app}/${RoutePaths.ContentLibrary}`);
 
   const handleUpload = useUploadOptionList(org, app);
 
@@ -132,6 +135,7 @@ function AppContentLibraryWithData({
 
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
     heading: t('app_content_library.library_heading'),
+    router,
     pages: {
       codeListsWithTextResources: {
         props: {

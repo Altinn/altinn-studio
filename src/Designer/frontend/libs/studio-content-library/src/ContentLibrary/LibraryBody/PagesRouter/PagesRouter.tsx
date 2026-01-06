@@ -1,5 +1,4 @@
 import React from 'react';
-import { useRouterContext } from '../../../contexts/RouterContext';
 import type { PageName } from '../../../types/PageName';
 import { StudioContentMenu } from '@studio/components';
 import type { ContentLibraryConfig } from '../../../types/ContentLibraryConfig';
@@ -11,15 +10,11 @@ type PagesRouterProps = {
 };
 
 export function PagesRouter({ config }: PagesRouterProps): React.ReactElement {
-  const { navigate, currentPage } = useRouterContext();
-
-  const handleNavigation = (pageToNavigateTo: PageName) => {
-    navigate(pageToNavigateTo);
-  };
+  const { navigate, location, renderLink } = config.router;
 
   return (
-    <StudioContentMenu selectedTabId={currentPage} onChangeTab={handleNavigation}>
-      {configuredPages(config).map((page) => page.renderTab())}
+    <StudioContentMenu selectedTabId={location} onChangeTab={navigate}>
+      {configuredPages(config).map((page) => page.renderTab(renderLink))}
     </StudioContentMenu>
   );
 }

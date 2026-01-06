@@ -3,7 +3,6 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PagesRouter } from './PagesRouter';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { RouterContext } from '../../../contexts/RouterContext';
 import { PageName } from '../../../types/PageName';
 import { renderWithProviders } from '../../../../test-utils/renderWithProviders';
 import type { ContentLibraryConfig } from '../../../types/ContentLibraryConfig';
@@ -40,13 +39,12 @@ const renderPagesRouter = (
   config: ContentLibraryConfig = {
     heading: 'Test library',
     pages: mockPagesConfig,
+    router: {
+      location: PageName.CodeListsWithTextResources,
+      navigate: navigateMock,
+      renderLink: (_, props) => <a {...props} />,
+    },
   },
 ) => {
-  renderWithProviders(
-    <RouterContext.Provider
-      value={{ currentPage: PageName.CodeListsWithTextResources, navigate: navigateMock }}
-    >
-      <PagesRouter config={config} />
-    </RouterContext.Provider>,
-  );
+  renderWithProviders(<PagesRouter config={config} />);
 };
