@@ -1,7 +1,7 @@
 package simple
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"math"
 	"testing"
@@ -10,28 +10,13 @@ import (
 	"altinn.studio/devenv/pkg/container"
 )
 
-// imageInfo represents the structure returned by docker/podman image inspect
-type imageInfo struct {
-	Size int64 `json:"Size"`
-}
-
 // getImageSize queries the container runtime for image size in bytes
 func getImageSize(t *testing.T, cli container.ContainerClient, image string) (int64, error) {
-	output, err := cli.ImageInspect(image, "")
+	info, err := cli.ImageInspect(context.Background(), image)
 	if err != nil {
 		return 0, err
 	}
-
-	var info []imageInfo
-	if err := json.Unmarshal([]byte(output), &info); err != nil {
-		return 0, fmt.Errorf("failed to parse image inspect output: %w", err)
-	}
-
-	if len(info) == 0 {
-		return 0, fmt.Errorf("no image info returned for %s", image)
-	}
-
-	return info[0].Size, nil
+	return info.Size, nil
 }
 
 // roundToNearestMiB converts bytes to MiB and rounds to nearest integer

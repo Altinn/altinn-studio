@@ -16,7 +16,7 @@ import (
 )
 
 // buildAndPushImage builds a container image and pushes it to the registry
-func buildAndPushImage(_ context.Context, cfg Config, runtime *kind.KindContainerRuntime, img Image) error {
+func buildAndPushImage(ctx context.Context, cfg Config, runtime *kind.KindContainerRuntime, img Image) error {
 	fmt.Printf("Building image %s...\n", img.Name)
 	start := time.Now()
 
@@ -27,14 +27,14 @@ func buildAndPushImage(_ context.Context, cfg Config, runtime *kind.KindContaine
 		buildContext = filepath.Join(cfg.ProjectRoot, buildContext)
 	}
 
-	if err := runtime.ContainerClient.Build(buildContext, img.Dockerfile, img.Tag); err != nil {
+	if err := runtime.ContainerClient.Build(ctx, buildContext, img.Dockerfile, img.Tag); err != nil {
 		return fmt.Errorf("failed to build image %s: %w", img.Name, err)
 	}
 	logDuration(fmt.Sprintf("Built %s", img.Name), start)
 
 	fmt.Printf("Pushing image %s...\n", img.Name)
 	start = time.Now()
-	if err := runtime.ContainerClient.Push(img.Tag); err != nil {
+	if err := runtime.ContainerClient.Push(ctx, img.Tag); err != nil {
 		return fmt.Errorf("failed to push image %s: %w", img.Name, err)
 	}
 	logDuration(fmt.Sprintf("Pushed %s", img.Name), start)
