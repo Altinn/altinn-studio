@@ -1,6 +1,6 @@
 import React from 'react';
 import { StudioSpinner, StudioError } from '@studio/components';
-import { useAppProcessTasks } from 'admin/hooks/queries/useAppProcessTasks';
+import { useAppProcessTasksQuery } from 'admin/hooks/queries/useAppProcessTasksQuery';
 import { useTranslation } from 'react-i18next';
 import type { ProcessTask } from 'admin/types/ProcessTask';
 import { StatusFilter } from './StatusFilter';
@@ -14,7 +14,7 @@ type ProcessTaskPickerProps = {
 };
 
 export const ProcessTaskFilter = ({ org, env, app, value, setValue }: ProcessTaskPickerProps) => {
-  const { data, status } = useAppProcessTasks(org, env, app);
+  const { data, status } = useAppProcessTasksQuery(org, env, app);
   const { t } = useTranslation();
 
   switch (status) {
