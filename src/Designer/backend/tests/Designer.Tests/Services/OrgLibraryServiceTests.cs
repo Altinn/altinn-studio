@@ -113,7 +113,7 @@ public class OrgLibraryServiceTests
 
         OrgLibraryService orgLibraryService = Setup(overrideGitea: giteaClient);
 
-        // Act and Assert
+        // Act
         GetSharedResourcesResponse response = await orgLibraryService.GetSharedResourcesByPath(Org, Path);
 
         // Assert
