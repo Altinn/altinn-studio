@@ -174,8 +174,8 @@ const DataElementGroups = ({
   );
 
   const sortedDataElementGroups = Object.entries(dataElementGroups).sort(([_a, aE], [_b, bE]) => {
-    const a = Math.max(...aE.map((e) => new Date(e.lastChangedAt ?? '').getTime()));
-    const b = Math.max(...bE.map((e) => new Date(e.lastChangedAt ?? '').getTime()));
+    const a = Math.max(...aE.map((e) => new Date(e.lastChangedAt ?? 0).getTime()));
+    const b = Math.max(...bE.map((e) => new Date(e.lastChangedAt ?? 0).getTime()));
 
     return a - b;
   });
@@ -255,7 +255,7 @@ const DataElementGroup = ({
               {formatDateAndTime(dataElement.lastChangedAt)}
             </LabelValue>
             <LabelValue label={t('Låst')}>{dataElement.locked ? 'Ja' : 'Nei'}</LabelValue>
-            <LabelValue label={t('Størrelse')}>{dataElement.size / 1e3 + ' KB'}</LabelValue>
+            <LabelValue label={t('Størrelse')}>{(dataElement.size ?? 0) / 1e3 + ' KB'}</LabelValue>
             <LabelValue label={t('Content type')}>{dataElement.contentType}</LabelValue>
             {dataElement.fileScanResult && dataElement.fileScanResult !== 'NotApplicable' && (
               <LabelValue label={t('File scan result')}>{dataElement.fileScanResult}</LabelValue>
