@@ -231,6 +231,7 @@ func runTest() {
 		}
 	}
 	defer func() {
+		defer func() { _ = runtime.Close() }()
 		if *keepRunning {
 			fmt.Println("\n=== Keeping cluster running (--keep-running flag set) ===")
 			return
@@ -555,6 +556,7 @@ func runLoadtestLocal() {
 	}
 
 	defer func() {
+		defer func() { _ = runtime.Close() }()
 		if *keepRunning {
 			fmt.Println("\n=== Keeping cluster running (--keep-running flag set) ===")
 			return

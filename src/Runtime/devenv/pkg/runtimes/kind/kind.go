@@ -1,6 +1,7 @@
 package kind
 
 import (
+	"context"
 	_ "embed"
 	"fmt"
 	"net/http"
@@ -184,7 +185,7 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 	}
 
 	// Initialize clients
-	containerClient, err := container.Detect()
+	containerClient, err := container.Detect(context.Background())
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to detect container runtime: %w", err)
 	}
@@ -451,6 +452,15 @@ func (r *KindContainerRuntime) Stop() error {
 	// }
 
 	fmt.Printf("✓ Cluster %s deleted successfully\n", r.clusterName)
+	return nil
+}
+
+// Close releases resources held by the runtime (e.g., container client connections).
+// This should be called when the runtime is no longer needed.
+func (r *KindContainerRuntime) Close() error {
+	if r.ContainerClient != nil {
+		return r.ContainerClient.Close()
+	}
 	return nil
 }
 
