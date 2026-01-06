@@ -93,6 +93,7 @@ internal sealed class SigningTaskValidator : IValidator
         List<SigneeContext> signeeContextsResult = await _signingService.GetSigneeContexts(
             dataAccessor,
             signingConfiguration,
+            null,
             CancellationToken.None
         );
 

@@ -238,6 +238,7 @@ public sealed class SigningServiceTests : IDisposable
         List<SigneeContext> result = await _signingService.GetSigneeContexts(
             cachedInstanceMutator.Object,
             signatureConfiguration,
+            null,
             CancellationToken.None
         );
 

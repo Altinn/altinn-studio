@@ -72,7 +72,12 @@ public class SigningTaskValidatorTest
         _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(appMetadata);
         _signingServiceMock
             .Setup(ss =>
-                ss.GetSigneeContexts(It.IsAny<IInstanceDataAccessor>(), signingConfiguration, CancellationToken.None)
+                ss.GetSigneeContexts(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    signingConfiguration,
+                    null,
+                    CancellationToken.None
+                )
             )
             .ReturnsAsync(signeeContexts);
 
@@ -126,7 +131,12 @@ public class SigningTaskValidatorTest
         _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(appMetadata);
         _signingServiceMock
             .Setup(ss =>
-                ss.GetSigneeContexts(It.IsAny<IInstanceDataAccessor>(), signingConfiguration, CancellationToken.None)
+                ss.GetSigneeContexts(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    signingConfiguration,
+                    null,
+                    CancellationToken.None
+                )
             )
             .ReturnsAsync(signeeContexts);
 
@@ -177,7 +187,12 @@ public class SigningTaskValidatorTest
         _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(appMetadata);
         _signingServiceMock
             .Setup(ss =>
-                ss.GetSigneeContexts(It.IsAny<IInstanceDataAccessor>(), signingConfiguration, CancellationToken.None)
+                ss.GetSigneeContexts(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    signingConfiguration,
+                    null,
+                    CancellationToken.None
+                )
             )
             .ThrowsAsync(exception);
 

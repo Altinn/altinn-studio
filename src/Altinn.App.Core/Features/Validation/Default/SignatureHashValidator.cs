@@ -72,6 +72,7 @@ internal sealed class SignatureHashValidator(
         List<SigneeContext> signeeContextsResults = await signingService.GetSigneeContexts(
             dataAccessor,
             signingConfiguration,
+            null,
             cancellationToken
         );
 
