@@ -2,17 +2,10 @@ using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap.Models;
-using Altinn.App.Core.Features.Testing;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
-using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Profile;
-using Altinn.App.Core.Internal.Registers;
-using Altinn.Platform.Profile.Enums;
-using Altinn.Platform.Register.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
@@ -32,6 +25,7 @@ internal sealed class BootstrapGlobalService : IBootstrapGlobalService
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
+
     public BootstrapGlobalService(
         IAppMetadata appMetadata,
         IAppResources appResources,
@@ -51,11 +45,7 @@ internal sealed class BootstrapGlobalService : IBootstrapGlobalService
         _frontEndSettings = frontEndSettings.Value;
     }
 
-    public async Task<BootstrapGlobalResponse> GetGlobalState(
-        string org,
-        string app,
-        string? language = null
-    )
+    public async Task<BootstrapGlobalResponse> GetGlobalState(string org, string app, string? language = null)
     {
         var response = new BootstrapGlobalResponse();
         var tasks = new List<Task>();

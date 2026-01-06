@@ -4,9 +4,5 @@ namespace Altinn.App.Core.Features.Bootstrap;
 
 public interface IBootstrapGlobalService
 {
-    Task<BootstrapGlobalResponse> GetGlobalState(
-        string org,
-        string app,
-        string? language = null
-    );
+    Task<BootstrapGlobalResponse> GetGlobalState(string org, string app, string? language = null);
 }

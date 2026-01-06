@@ -279,41 +279,4 @@ internal sealed class BootstrapInstanceService : IBootstrapInstanceService
             // Log error but don't fail the entire request
         }
     }
-
-    /// <summary>
-    /// Merges mock data with real data using the provided merge function.
-    /// </summary>
-    /// <typeparam name="T">The type of object to merge.</typeparam>
-    /// <param name="realData">The real data from the service.</param>
-    /// <param name="mockDataKey">The key to look for in the mock data dictionary.</param>
-    /// <param name="mergeFunction">The function to use for merging.</param>
-    /// <returns>The merged object, or the original object if no mock data is available.</returns>
-    private T? MergeWithMockData<T>(T? realData, string mockDataKey, Func<T, object?, T>? mergeFunction)
-        where T : class
-    {
-        if (realData == null || mergeFunction == null)
-            return realData;
-
-        var mockData = GetMockData();
-        if (mockData?.TryGetValue(mockDataKey, out var mockValue) == true)
-        {
-            return mergeFunction(realData, mockValue);
-        }
-
-        return realData;
-    }
-
-    /// <summary>
-    /// Retrieves mock data from the HTTP context if available.
-    /// </summary>
-    /// <returns>A dictionary containing mock data, or null if no mock data is available.</returns>
-    private Dictionary<string, object>? GetMockData()
-    {
-        var httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext?.Items.TryGetValue("MockData", out var mockData) == true)
-        {
-            return mockData as Dictionary<string, object>;
-        }
-        return null;
-    }
 }
