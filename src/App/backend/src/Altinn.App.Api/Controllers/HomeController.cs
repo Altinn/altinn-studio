@@ -127,9 +127,7 @@ public class HomeController : Controller
             );
         }
 
-        var realDetails = await auth.LoadDetails(validateSelectedParty: false);
-
-        var details = MergeDetailsWithMockData(realDetails);
+        var details = await auth.LoadDetails(validateSelectedParty: false);
 
         if (details.PartiesAllowedToInstantiate.Count == 0)
         {
@@ -155,6 +153,7 @@ public class HomeController : Controller
             {
                 return Redirect($"/{org}/{app}/party-selection/explained");
             }
+
             if (!details.Profile.ProfileSettingPreference.DoNotPromptForParty)
             {
                 return Redirect($"/{org}/{app}/party-selection/explained");
@@ -163,7 +162,9 @@ public class HomeController : Controller
 
         if (application != null && IsStatelessApp(application))
         {
-            var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+            var language =
+                Request.Query["lang"].FirstOrDefault() ??
+                GetLanguageFromHeader(); // <-- unngå nettleser språk, bruk profil
             var statelessAppData = await _bootstrapGlobalService.GetGlobalState(
                 org,
                 app,
@@ -200,9 +201,9 @@ public class HomeController : Controller
             throw new UnauthorizedAccessException("You need to be logged in to see this page.");
         }
 
-        var realDetails = await auth.LoadDetails(validateSelectedParty: false);
-        var details = MergeDetailsWithMockData(realDetails);
-        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+        var details = await auth.LoadDetails(validateSelectedParty: false);
+        var language =
+            Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader(); // <-- unngå nettleser språk, bruk profil
 
         var initialData = await _bootstrapGlobalService.GetGlobalState(
             org,
@@ -230,25 +231,8 @@ public class HomeController : Controller
             throw new UnauthorizedAccessException("You need to be logged in to see this page.");
         }
 
-        var realDetails = await auth.LoadDetails(validateSelectedParty: false);
-        var details = MergeDetailsWithMockData(realDetails);
         var initialData = await _bootstrapGlobalService.GetGlobalState(org, app);
-        var application = initialData.ApplicationMetadata;
 
-        string layoutSetsString = _appResources.GetLayoutSets();
-        LayoutSets? layoutSets = null;
-        if (!string.IsNullOrEmpty(layoutSetsString))
-        {
-            layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
-        }
-
-        var data = new
-        {
-            applicationMetadata = application,
-            userProfile = details.Profile,
-            partiesAllowedToInstantiate = details.PartiesAllowedToInstantiate,
-            layoutSets,
-        };
         var html = GenerateHtml(org, app, initialData);
         return Content(html, "text/html; charset=utf-8");
     }
@@ -265,27 +249,6 @@ public class HomeController : Controller
     )
     {
         return await PartySelection(org, app);
-    }
-
-    /// <summary>
-    /// Redirects from party-only URL to most recent instance for that party.
-    /// </summary>
-    /// <param name="org">The application owner short name.</param>
-    /// <param name="app">The name of the app</param>
-    /// <param name="partyId">The party identifier.</param>
-    [HttpGet]
-    [Route("{org}/{app}/instance/{partyId}")]
-    public async Task<IActionResult> InstanceByParty(
-        [FromRoute] string org,
-        [FromRoute] string app,
-        [FromRoute] int partyId
-    )
-    {
-        string layoutSetsString = _appResources.GetLayoutSets();
-        string layoutSetsJson = string.IsNullOrEmpty(layoutSetsString) ? "null" : layoutSetsString;
-
-        var html = GenerateInstanceCreationHtml(org, app, partyId, layoutSetsJson);
-        return Content(html, "text/html; charset=utf-8");
     }
 
     /// <summary>
@@ -306,8 +269,11 @@ public class HomeController : Controller
     {
         Instance instance = await _instanceClient.GetInstance(app, org, partyId, instanceGuid);
 
+        // Her burde vi snakke sammen med flyt:
+        // forslag: hvis ikke currentTask, sjekk om ProcessEnd => hvis ja vis kvitering, hvis ikke: feilmelding/404?
         if (instance.Process?.CurrentTask?.ElementId == null)
         {
+            // TODO: burde vise appen sin kvittering.
             return BadRequest("Instance has no active task");
         }
 
@@ -322,6 +288,7 @@ public class HomeController : Controller
             var layoutSettings = _appResources.GetLayoutSettingsForSet(layoutSet.Id);
             if (layoutSettings?.Pages?.Order != null && layoutSettings.Pages.Order.Count > 0)
             {
+                // TODO: vi må tenke på Groups også (ny navigasjon). Vi skal vise den første siden som ikke er hidden. (expression)
                 firstPageId = layoutSettings.Pages.Order[0];
             }
         }
@@ -334,6 +301,7 @@ public class HomeController : Controller
         }
         else
         {
+            // Hvordan håndterer frontend catch av 404?
             return NotFound("no initial page id");
         }
 
@@ -362,12 +330,7 @@ public class HomeController : Controller
         [FromRoute] Guid instanceGuid
     )
     {
-        if (!await UserCanSeeStatelessApp())
-        {
-            return Unauthorized();
-        }
-
-        // Generate and set XSRF token cookie for frontend
+        // Generate and set XSRF token cookie for frontend (Hva brukes denne til i frontend som gjør at den må være HttpOnly: false?)
         var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
         if (tokens.RequestToken != null)
         {
@@ -381,17 +344,10 @@ public class HomeController : Controller
             );
         }
 
-        string instanceId = $"{partyId}/{instanceGuid}";
-        Instance instance = await _instanceClient.GetInstance(app, org, partyId, instanceGuid);
-
-        // Verify process actually ended (optional safety check)
-        if (instance.Process?.Ended.HasValue != true)
-        {
-            _logger.LogWarning("ProcessEnd route accessed but process not ended for instance {InstanceId}", instanceId);
-        }
-
-        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-        var initialData = await _bootstrapGlobalService.GetGlobalState(org, app, instanceId, partyId, language);
+        var language =
+            Request.Query["lang"].FirstOrDefault() ??
+            GetLanguageFromHeader(); // <-- samme som lenger opp, ikke bruk nettleser men profil
+        var initialData = await _bootstrapGlobalService.GetGlobalState(org, app, language);
 
         var html = GenerateHtml(org, app, initialData);
         return Content(html, "text/html; charset=utf-8");
@@ -416,12 +372,7 @@ public class HomeController : Controller
         [FromRoute] string taskId
     )
     {
-        // Check authentication before proceeding
-        if (!await UserCanSeeStatelessApp())
-        {
-            return Unauthorized();
-        }
-
+        // Snake med FLYT om hvordan nytt API (om det blir nytt) hvordan dette burde håndteres.
         // Generate and set XSRF token cookie for frontend
         var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
         if (tokens.RequestToken != null)
@@ -480,7 +431,7 @@ public class HomeController : Controller
         // Frontend will handle navigation appropriately
         string instanceId = $"{partyId}/{instanceGuid}";
         var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-        var initialGlobalData = await _bootstrapGlobalService.GetGlobalState(org, app, instanceId, partyId, language);
+        var initialGlobalData = await _bootstrapGlobalService.GetGlobalState(org, app, language);
         var initialInstanceData = await _bootstrapInstanceService.GetInitialData(
             org,
             app,
@@ -513,49 +464,40 @@ public class HomeController : Controller
         [FromRoute] string pageId
     )
     {
-        if (await UserCanSeeStatelessApp())
+        var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+        if (tokens.RequestToken != null)
         {
-            // Generate and set XSRF token cookie for frontend
-            var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
-            if (tokens.RequestToken != null)
-            {
-                HttpContext.Response.Cookies.Append(
-                    "XSRF-TOKEN",
-                    tokens.RequestToken,
-                    new CookieOptions
-                    {
-                        HttpOnly = false, // Make this cookie readable by Javascript.
-                    }
-                );
-            }
-
-            // Construct instance ID from route parameters if available
-            string instanceId = $"{partyId}/{instanceGuid}";
-
-            var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-
-            var initialGlobalData = await _bootstrapGlobalService.GetGlobalState(
-                org,
-                app,
-                instanceId,
-                partyId,
-                language
+            HttpContext.Response.Cookies.Append(
+                "XSRF-TOKEN",
+                tokens.RequestToken,
+                new CookieOptions
+                {
+                    HttpOnly = false, // Make this cookie readable by Javascript.
+                }
             );
-
-            var initialInstanceData = await _bootstrapInstanceService.GetInitialData(
-                org,
-                app,
-                instanceId,
-                partyId,
-                language
-            );
-
-            Debugger.Break();
-
-            var html = GenerateHtml(org, app, initialGlobalData, initialInstanceData);
-            return Content(html, "text/html; charset=utf-8");
         }
-        return BadRequest();
+
+        // Construct instance ID from route parameters if available
+        string instanceId = $"{partyId}/{instanceGuid}";
+
+        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+
+        var initialGlobalData = await _bootstrapGlobalService.GetGlobalState(
+            org,
+            app,
+            language
+        );
+
+        var initialInstanceData = await _bootstrapInstanceService.GetInitialData(
+            org,
+            app,
+            instanceId,
+            partyId,
+            language
+        );
+
+        var html = GenerateHtml(org, app, initialGlobalData, initialInstanceData);
+        return Content(html, "text/html; charset=utf-8");
     }
 
     /// <summary>
@@ -564,10 +506,12 @@ public class HomeController : Controller
     /// <param name="DataModelName">The data model identifier.</param>
     /// <param name="AppId">The application identifier.</param>
     /// <param name="PrefillFields">Dictionary of fields to prefill.</param>
-    public record QueryParamInit(
-        [property: JsonPropertyName("dataModelName")] string DataModelName,
+    private record QueryParamInit(
+        [property: JsonPropertyName("dataModelName")]
+        string DataModelName,
         [property: JsonPropertyName("appId")] string AppId,
-        [property: JsonPropertyName("prefillFields")] Dictionary<string, string> PrefillFields
+        [property: JsonPropertyName("prefillFields")]
+        Dictionary<string, string> PrefillFields
     );
 
     /// <summary>
@@ -621,25 +565,25 @@ public class HomeController : Controller
         string nonce = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16));
 
         var htmlContent = $$"""
-            <!DOCTYPE html>
-            <html lang='en'>
-            <head>
-                <meta charset='UTF-8'>
-                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-                <title>Set Query Params</title>
-            </head>
-            <body>
-                <script nonce='{{nonce}}'>
-                  const prefillData = {{JsonSerializer.Serialize(prefillData)}}.map(entry => ({
-                            ...entry,
-                            created: new Date().toISOString()
-                        }));
-                    sessionStorage.setItem('queryParams', JSON.stringify(prefillData));
-                    window.location.href = `${window.location.origin}/{{application.AppIdentifier.Org}}/{{application.AppIdentifier.App}}`;
-                </script>
-            </body>
-            </html>
-            """;
+                            <!DOCTYPE html>
+                            <html lang='en'>
+                            <head>
+                                <meta charset='UTF-8'>
+                                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                                <title>Set Query Params</title>
+                            </head>
+                            <body>
+                                <script nonce='{{nonce}}'>
+                                  const prefillData = {{JsonSerializer.Serialize(prefillData)}}.map(entry => ({
+                                            ...entry,
+                                            created: new Date().toISOString()
+                                        }));
+                                    sessionStorage.setItem('queryParams', JSON.stringify(prefillData));
+                                    window.location.href = `${window.location.origin}/{{application.AppIdentifier.Org}}/{{application.AppIdentifier.App}}`;
+                                </script>
+                            </body>
+                            </html>
+                            """;
 
         Response.Headers["Content-Security-Policy"] = $"default-src 'self'; script-src 'nonce-{nonce}';";
 
@@ -690,6 +634,7 @@ public class HomeController : Controller
         {
             return false;
         }
+
         DataType? dataType = GetStatelessDataType(application);
 
         if (dataType != null && dataType.AppLogic.AllowAnonymousOnStateless)
@@ -767,6 +712,7 @@ public class HomeController : Controller
                 }
             }
         }
+
         return "nb"; // Default to Norwegian Bokmål
     }
 
@@ -808,28 +754,28 @@ public class HomeController : Controller
         var customJsTag = !string.IsNullOrEmpty(customJs) ? $"\n  <script>{customJs}</script>" : "";
 
         var htmlContent = $$"""
-            <!DOCTYPE html>
-            <html lang="no">
-            <head>
-              <meta charset="utf-8">
-              <meta http-equiv="X-UA-Compatible" content="IE=edge">
-              <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-              <title>{{org}} - {{app}}</title>
-              <link rel="icon" href="https://altinncdn.no/favicon.ico">
-              <link rel="stylesheet" type="text/css" href="{{cdnUrl}}/{{versionPath}}altinn-app-frontend.css">{{customCssTag}}
-            </head>
-            <body>
-              <div id="root"></div>
-              <script>
-                window.AltinnAppGlobalData = {{initialGlobalDataJson}};
-                window.AltinnAppInstanceData = {{initialInstanceDataJson}};
-                window.org = '{{org}}';
-                window.app = '{{app}}';
-              </script>
-              <script src="{{cdnUrl}}/{{versionPath}}altinn-app-frontend.js"></script>{{customJsTag}}
-            </body>
-            </html>
-            """;
+                            <!DOCTYPE html>
+                            <html lang="no">
+                            <head>
+                              <meta charset="utf-8">
+                              <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                              <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+                              <title>{{org}} - {{app}}</title>
+                              <link rel="icon" href="https://altinncdn.no/favicon.ico">
+                              <link rel="stylesheet" type="text/css" href="{{cdnUrl}}/{{versionPath}}altinn-app-frontend.css">{{customCssTag}}
+                            </head>
+                            <body>
+                              <div id="root"></div>
+                              <script>
+                                window.AltinnAppGlobalData = {{initialGlobalDataJson}};
+                                window.AltinnAppInstanceData = {{initialInstanceDataJson}};
+                                window.org = '{{org}}';
+                                window.app = '{{app}}';
+                              </script>
+                              <script src="{{cdnUrl}}/{{versionPath}}altinn-app-frontend.js"></script>{{customJsTag}}
+                            </body>
+                            </html>
+                            """;
 
         return htmlContent;
     }
@@ -848,6 +794,7 @@ public class HomeController : Controller
         {
             // Log error but don't fail
         }
+
         return null;
     }
 
@@ -865,6 +812,7 @@ public class HomeController : Controller
         {
             // Log error but don't fail
         }
+
         return null;
     }
 
@@ -880,118 +828,118 @@ public class HomeController : Controller
         string nonce = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16));
 
         var htmlContent = $$"""
-            <!DOCTYPE html>
-            <html lang='no'>
-            <head>
-                <meta charset='UTF-8'>
-                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-                <title>Creating instance - {{org}}/{{app}}</title>
-                <style>
-                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; }
-                    .container { display: flex; justify-content: center; align-items: center; height: 100vh; }
-                    .content { text-align: center; max-width: 600px; padding: 20px; }
-                    .error { color: #d32f2f; }
-                </style>
-            </head>
-            <body>
-                <div id='root'>
-                    <div class='container'>
-                        <div class='content'>
-                            <h1>Creating instance...</h1>
-                            <p>Please wait while we set up your form.</p>
-                        </div>
-                    </div>
-                </div>
-                <script nonce='{{nonce}}'>
-                    window.AltinnLayoutSets = {{layoutSetsJson}};
-                    window.org = '{{org}}';
-                    window.app = '{{app}}';
+                            <!DOCTYPE html>
+                            <html lang='no'>
+                            <head>
+                                <meta charset='UTF-8'>
+                                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                                <title>Creating instance - {{org}}/{{app}}</title>
+                                <style>
+                                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; }
+                                    .container { display: flex; justify-content: center; align-items: center; height: 100vh; }
+                                    .content { text-align: center; max-width: 600px; padding: 20px; }
+                                    .error { color: #d32f2f; }
+                                </style>
+                            </head>
+                            <body>
+                                <div id='root'>
+                                    <div class='container'>
+                                        <div class='content'>
+                                            <h1>Creating instance...</h1>
+                                            <p>Please wait while we set up your form.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <script nonce='{{nonce}}'>
+                                    window.AltinnLayoutSets = {{layoutSetsJson}};
+                                    window.org = '{{org}}';
+                                    window.app = '{{app}}';
 
-                    (async function() {
-                      try {
-                        // Debug: Log all cookies
-                        console.log('All cookies:', document.cookie);
+                                    (async function() {
+                                      try {
+                                        // Debug: Log all cookies
+                                        console.log('All cookies:', document.cookie);
 
-                        const xsrfToken = document.cookie
-                          .split('; ')
-                          .find(row => row.startsWith('XSRF-TOKEN='))
-                          ?.split('=')[1];
+                                        const xsrfToken = document.cookie
+                                          .split('; ')
+                                          .find(row => row.startsWith('XSRF-TOKEN='))
+                                          ?.split('=')[1];
 
-                        console.log('XSRF Token found:', xsrfToken ? 'yes' : 'no');
+                                        console.log('XSRF Token found:', xsrfToken ? 'yes' : 'no');
 
-                        if (!xsrfToken) {
-                          const errorParams = new URLSearchParams({
-                            errorType: 'xsrf_token_missing',
-                            statusCode: '403'
-                          });
-                          window.location.href = '/{{org}}/{{app}}/error?' + errorParams.toString();
-                          return;
-                        }
+                                        if (!xsrfToken) {
+                                          const errorParams = new URLSearchParams({
+                                            errorType: 'xsrf_token_missing',
+                                            statusCode: '403'
+                                          });
+                                          window.location.href = '/{{org}}/{{app}}/error?' + errorParams.toString();
+                                          return;
+                                        }
 
-                        console.log('Attempting to create instance...');
-                        const response = await fetch('/{{org}}/{{app}}/instances?instanceOwnerPartyId={{partyId}}', {
-                          method: 'POST',
-                          headers: {
-                            'X-XSRF-TOKEN': xsrfToken,
-                            'Content-Type': 'application/json'
-                          }
-                        });
+                                        console.log('Attempting to create instance...');
+                                        const response = await fetch('/{{org}}/{{app}}/instances?instanceOwnerPartyId={{partyId}}', {
+                                          method: 'POST',
+                                          headers: {
+                                            'X-XSRF-TOKEN': xsrfToken,
+                                            'Content-Type': 'application/json'
+                                          }
+                                        });
 
-                        if (!response.ok) {
-                          const contentType = response.headers.get('content-type');
-                          let errorDetail;
-                          if (contentType && contentType.includes('application/json')) {
-                            errorDetail = await response.json();
-                            console.error('Error response (JSON):', errorDetail);
-                          } else {
-                            errorDetail = await response.text();
-                            console.error('Error response (text):', errorDetail);
-                          }
+                                        if (!response.ok) {
+                                          const contentType = response.headers.get('content-type');
+                                          let errorDetail;
+                                          if (contentType && contentType.includes('application/json')) {
+                                            errorDetail = await response.json();
+                                            console.error('Error response (JSON):', errorDetail);
+                                          } else {
+                                            errorDetail = await response.text();
+                                            console.error('Error response (text):', errorDetail);
+                                          }
 
-                          const errorParams = new URLSearchParams({
-                            errorType: response.status >= 500 ? 'server_error' : 'instance_creation_failed',
-                            statusCode: response.status.toString(),
-                            showContactInfo: 'true'
-                          });
-                          window.location.href = '/{{org}}/{{app}}/error?' + errorParams.toString();
-                          return;
-                        }
+                                          const errorParams = new URLSearchParams({
+                                            errorType: response.status >= 500 ? 'server_error' : 'instance_creation_failed',
+                                            statusCode: response.status.toString(),
+                                            showContactInfo: 'true'
+                                          });
+                                          window.location.href = '/{{org}}/{{app}}/error?' + errorParams.toString();
+                                          return;
+                                        }
 
-                        const instance = await response.json();
-                        const [partyId, instanceGuid] = instance.id.split('/');
-                        const taskId = instance.process.currentTask.elementId;
+                                        const instance = await response.json();
+                                        const [partyId, instanceGuid] = instance.id.split('/');
+                                        const taskId = instance.process.currentTask.elementId;
 
-                        let firstPageId = null;
-                        if (window.AltinnLayoutSets && window.AltinnLayoutSets.sets) {
-                          const layoutSet = window.AltinnLayoutSets.sets.find(set =>
-                            set.tasks && set.tasks.includes(taskId)
-                          );
-                          if (layoutSet && layoutSet.id) {
-                            const settingsResponse = await fetch('/{{org}}/{{app}}/api/layoutsettings/' + layoutSet.id);
-                            if (settingsResponse.ok) {
-                              const settings = await settingsResponse.json();
-                              if (settings.pages && settings.pages.order && settings.pages.order.length > 0) {
-                                firstPageId = settings.pages.order[0];
-                              }
-                            }
-                          }
-                        }
+                                        let firstPageId = null;
+                                        if (window.AltinnLayoutSets && window.AltinnLayoutSets.sets) {
+                                          const layoutSet = window.AltinnLayoutSets.sets.find(set =>
+                                            set.tasks && set.tasks.includes(taskId)
+                                          );
+                                          if (layoutSet && layoutSet.id) {
+                                            const settingsResponse = await fetch('/{{org}}/{{app}}/api/layoutsettings/' + layoutSet.id);
+                                            if (settingsResponse.ok) {
+                                              const settings = await settingsResponse.json();
+                                              if (settings.pages && settings.pages.order && settings.pages.order.length > 0) {
+                                                firstPageId = settings.pages.order[0];
+                                              }
+                                            }
+                                          }
+                                        }
 
-                        const redirectUrl = '/{{org}}/{{app}}/instance/' + partyId + '/' + instanceGuid + '/' + taskId + '/' + (firstPageId || '');
-                        window.location.href = redirectUrl;
-                      } catch (error) {
-                        console.error('Error creating instance:', error);
-                        const errorParams = new URLSearchParams({
-                          errorType: 'network_error',
-                          showContactInfo: 'false'
-                        });
-                        window.location.href = '/{{org}}/{{app}}/error?' + errorParams.toString();
-                      }
-                    })();
-                </script>
-            </body>
-            </html>
-            """;
+                                        const redirectUrl = '/{{org}}/{{app}}/instance/' + partyId + '/' + instanceGuid + '/' + taskId + '/' + (firstPageId || '');
+                                        window.location.href = redirectUrl;
+                                      } catch (error) {
+                                        console.error('Error creating instance:', error);
+                                        const errorParams = new URLSearchParams({
+                                          errorType: 'network_error',
+                                          showContactInfo: 'false'
+                                        });
+                                        window.location.href = '/{{org}}/{{app}}/error?' + errorParams.toString();
+                                      }
+                                    })();
+                                </script>
+                            </body>
+                            </html>
+                            """;
 
         Response.Headers["Content-Security-Policy"] = $"default-src 'self'; script-src 'nonce-{nonce}';";
 
@@ -1025,27 +973,27 @@ public class HomeController : Controller
         var customJsTag = !string.IsNullOrEmpty(customJs) ? $"\n  <script>{customJs}</script>" : "";
 
         var htmlContent = $$"""
-            <!DOCTYPE html>
-            <html lang="no">
-            <head>
-              <meta charset="utf-8">
-              <meta http-equiv="X-UA-Compatible" content="IE=edge">
-              <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-              <title>{{org}} - {{app}}</title>
-              <link rel="icon" href="https://altinncdn.no/favicon.ico">
-              <link rel="stylesheet" type="text/css" href="{{cdnUrl}}/{{versionPath}}altinn-app-frontend.css">{{customCssTag}}
-            </head>
-            <body>
-              <div id="root"></div>
-              <script>
-                window.AltinnAppData = {{dataJson}};
-                window.org = '{{org}}';
-                window.app = '{{app}}';
-              </script>
-              <script src="{{cdnUrl}}/{{versionPath}}altinn-app-frontend.js"></script>{{customJsTag}}
-            </body>
-            </html>
-            """;
+                            <!DOCTYPE html>
+                            <html lang="no">
+                            <head>
+                              <meta charset="utf-8">
+                              <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                              <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+                              <title>{{org}} - {{app}}</title>
+                              <link rel="icon" href="https://altinncdn.no/favicon.ico">
+                              <link rel="stylesheet" type="text/css" href="{{cdnUrl}}/{{versionPath}}altinn-app-frontend.css">{{customCssTag}}
+                            </head>
+                            <body>
+                              <div id="root"></div>
+                              <script>
+                                window.AltinnAppData = {{dataJson}};
+                                window.org = '{{org}}';
+                                window.app = '{{app}}';
+                              </script>
+                              <script src="{{cdnUrl}}/{{versionPath}}altinn-app-frontend.js"></script>{{customJsTag}}
+                            </body>
+                            </html>
+                            """;
 
         return htmlContent;
     }
@@ -1195,6 +1143,7 @@ public class HomeController : Controller
                 else
                     result.Add(mockParty);
             }
+
             return result;
         }
         catch (Exception)
@@ -1219,16 +1168,11 @@ public class HomeController : Controller
             throw new UnauthorizedAccessException("You need to be logged in to see this page.");
         }
 
-        var realDetails = await auth.LoadDetails(validateSelectedParty: false);
-
-        var details = MergeDetailsWithMockData(realDetails);
-
+        var details = await auth.LoadDetails(validateSelectedParty: false);
         var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
         var globalState = await _bootstrapGlobalService.GetGlobalState(
             org,
             app,
-            null,
-            details.UserParty.PartyId,
             language
         );
 

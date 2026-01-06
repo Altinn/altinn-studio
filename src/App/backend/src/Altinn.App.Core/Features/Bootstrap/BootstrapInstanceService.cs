@@ -76,7 +76,7 @@ internal sealed class BootstrapInstanceService : IBootstrapInstanceService
     public async Task<BootstrapInstanceResponse> GetInitialData(
         string org,
         string app,
-        string? instanceId = null,
+        string instanceId,
         int? partyId = null,
         string? language = null,
         CancellationToken cancellationToken = default
@@ -87,6 +87,7 @@ internal sealed class BootstrapInstanceService : IBootstrapInstanceService
         // Get instance data if applicable
         Instance? instance = null;
 
+        // TODO: hva skal skje om det ikke finnes en instans, error?
         if (!string.IsNullOrEmpty(instanceId))
         {
             var instanceGuid = ParseInstanceGuid(instanceId);
@@ -109,67 +110,12 @@ internal sealed class BootstrapInstanceService : IBootstrapInstanceService
         // Set frontend settings
         FrontEndSettings frontEndSettings = _frontEndSettings;
 
-        // Adding key from _appSettings to be backwards compatible.
-        if (
-            !frontEndSettings.ContainsKey(nameof(_appSettings.AppOidcProvider))
-            && !string.IsNullOrEmpty(_appSettings.AppOidcProvider)
-        )
-        {
-            frontEndSettings.Add(nameof(_appSettings.AppOidcProvider), _appSettings.AppOidcProvider);
-        }
-
         response.FrontendSettings = frontEndSettings;
-
-        response.PlatformSettings = new FrontendPlatformSettings
-        {
-            ApiEndpoint = _platformSettings.ApiEndpoint,
-            AuthenticationEndpoint = _platformSettings.ApiAuthenticationEndpoint,
-            StorageApiEndpoint = _platformSettings.ApiStorageEndpoint,
-            ProfileApiEndpoint = _platformSettings.ApiProfileEndpoint,
-            AuthorizationApiEndpoint = _platformSettings.ApiAuthorizationEndpoint,
-        };
 
         // Set feature flags from frontend settings
         response.FeatureFlags = GetFeatureFlags();
 
         return response;
-    }
-
-    private async Task GetInstance(string org, string app, string instanceId, BootstrapInstanceResponse response)
-    {
-        try
-        {
-            var instanceOwnerPartyId = ParseInstanceOwnerPartyId(instanceId);
-            var instanceGuid = ParseInstanceGuid(instanceId);
-
-            if (instanceOwnerPartyId.HasValue && instanceGuid.HasValue)
-            {
-                response.Instance = await _instanceClient.GetInstance(
-                    app,
-                    org,
-                    instanceOwnerPartyId.Value,
-                    instanceGuid.Value
-                );
-
-                // Get process state if instance has a process
-                if (response.Instance?.Process != null)
-                {
-                    var user = _httpContextAccessor.HttpContext?.User;
-                    if (user != null)
-                    {
-                        response.ProcessState = await _processStateService.GetAuthorizedProcessState(
-                            response.Instance,
-                            response.Instance.Process,
-                            user
-                        );
-                    }
-                }
-            }
-        }
-        catch
-        {
-            // Log error but don't fail the entire request
-        }
     }
 
     private Task GetLayoutData(string org, string app, BootstrapInstanceResponse response, string? taskId)
@@ -256,6 +202,7 @@ internal sealed class BootstrapInstanceService : IBootstrapInstanceService
         return await _applicationLanguage.GetApplicationLanguages();
     }
 
+    // TODO fjerne støtte for Feature Flag i første v10? Re-implementere flag ved behov, om behovet kommer.
     private Dictionary<string, bool> GetFeatureFlags()
     {
         var flags = new Dictionary<string, bool>();

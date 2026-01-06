@@ -85,8 +85,6 @@ internal sealed class BootstrapGlobalService : IBootstrapGlobalService
     public async Task<BootstrapGlobalResponse> GetGlobalState(
         string org,
         string app,
-        string? instanceId = null,
-        int? partyId = null,
         string? language = null,
         CancellationToken cancellationToken = default
     )
@@ -136,6 +134,7 @@ internal sealed class BootstrapGlobalService : IBootstrapGlobalService
         var textResourcesTask = GetTextResources(org, app, language, response);
         tasks.Add(textResourcesTask);
 
+        await Task.WhenAll(tasks);
         return response;
     }
 
