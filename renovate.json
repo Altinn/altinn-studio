@@ -16,6 +16,16 @@
   ],
   "separateMinorPatch": true,
   "separateMultipleMajor": true,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["src/cli/studioctl/internal/config/config\\.yaml$"],
+      "matchStrings": [
+        "image:\\s*(?<depName>[^\\s]+)\\n\\s*tag:\\s*[\"']?(?<currentValue>[^\"'\\s]+)"
+      ],
+      "datasourceTemplate": "docker"
+    }
+  ],
   "packageRules": [
     {
       "description": "Disable minimum release age checks for digest updates",
@@ -50,6 +60,11 @@
       "matchFileNames": ["src/Runtime/pdf3/**"],
       "additionalBranchPrefix": "pdf3/",
       "commitMessageSuffix": " (pdf3)"
+    },
+    {
+      "matchFileNames": ["src/cli/studioctl/internal/config/config.yaml"],
+      "additionalBranchPrefix": "studioctl/",
+      "commitMessageSuffix": " (studioctl)"
     },
     {
       "matchFileNames": ["src/App/**"],
