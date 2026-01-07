@@ -32,7 +32,7 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
   const rows = RepGroupHooks.useVisibleRows(targetBaseComponentId);
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const { textResourceBindings, dataModelBindings, minCount } = useItemWhenType(
+  const { textResourceBindings, dataModelBindings, minCount, tableColumns } = useItemWhenType(
     targetBaseComponentId,
     'RepeatingGroup',
   );
@@ -40,6 +40,13 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
   const parent = useLayoutLookups().componentToParent[targetBaseComponentId];
   const isNested = parent?.type === 'node';
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
+
+  const hiddenColumns = tableColumns
+    ? Object.entries(tableColumns)
+        .filter(([_, settings]) => settings.hidden === true)
+        .map(([id]) => id)
+    : [];
+  const visibleChildIds = childIds.filter((id) => !hiddenColumns.includes(id));
 
   const required = minCount !== undefined && minCount > 0;
   const { className } = useSummarySoftHidden(hideEmptyFields && rows.length === 0 && !required);
@@ -107,7 +114,7 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
                   spacing={6}
                   alignItems='flex-start'
                 >
-                  {childIds.map((baseId) => (
+                  {visibleChildIds.map((baseId) => (
                     <ComponentSummary
                       key={baseId}
                       targetBaseComponentId={baseId}

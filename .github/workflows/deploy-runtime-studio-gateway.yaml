@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - src/Runtime/StudioGateway/**
+      - infra/runtime/syncroot/base/studio-gateway.yaml
+      - infra/runtime/flux-config/**
       - .github/workflows/deploy-runtime-studio-gateway.yaml
   workflow_dispatch:
     inputs:

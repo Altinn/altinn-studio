@@ -24,7 +24,7 @@ import {
   toDisplayAttachments,
 } from 'src/utils/attachmentsUtils';
 import { getPageTitle } from 'src/utils/getPageTitle';
-import { returnUrlToArchive } from 'src/utils/urls/urlHelper';
+import { getDialogIdFromDataValues, returnUrlToArchive } from 'src/utils/urls/urlHelper';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 
@@ -89,12 +89,14 @@ export const ReceiptContainer = () => {
     instanceOrg,
     instanceOwner,
     dataElements = [],
+    dataValues,
   } = useInstanceDataQuery({
     select: (instance) => ({
       lastChanged: instance.lastChanged,
       instanceOrg: instance.org,
       instanceOwner: instance.instanceOwner,
       dataElements: instance.data,
+      dataValues: instance.dataValues,
     }),
   }).data ?? {};
   const langTools = useLanguage();
@@ -112,6 +114,8 @@ export const ReceiptContainer = () => {
     }
     return undefined;
   }, [lastChanged]);
+
+  const dialogId = useMemo(() => getDialogIdFromDataValues(dataValues), [dataValues]);
 
   const attachmentWithDataType = getAttachmentsWithDataType({
     attachments: dataElements,
@@ -181,7 +185,7 @@ export const ReceiptContainer = () => {
           collapsibleTitle={<Lang id='receipt.attachments' />}
           instanceMetaDataObject={instanceMetaObject}
           subtitle={<Lang id='receipt.subtitle' />}
-          subtitleurl={returnUrlToArchive(window.location.host)}
+          subtitleurl={returnUrlToArchive(window.location.host, instanceOwnerParty?.partyId, dialogId)}
           title={<Lang id='receipt.title' />}
           titleSubmitted={<Lang id='receipt.title_submitted' />}
           pdf={pdfDisplayAttachments}
