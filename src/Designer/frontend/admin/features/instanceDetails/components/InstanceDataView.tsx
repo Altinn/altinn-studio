@@ -34,6 +34,8 @@ import {
   type ProcessDataType,
   useProcessDataTypesQuery,
 } from 'admin/hooks/queries/useProcessDataTypesQuery';
+import { useAppProcessTasksQuery } from 'admin/hooks/queries/useAppProcessTasksQuery';
+import { type ProcessTask } from 'admin/types/ProcessTask';
 
 type InstanceDataViewProps = {
   org: string;
@@ -49,6 +51,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
     useAppInstanceDetailsQuery(org, env, app, id),
     useAppMetadataQuery(org, env, app),
     useProcessDataTypesQuery(org, env, app),
+    useAppProcessTasksQuery(org, env, app),
   );
 
   switch (status) {
@@ -57,7 +60,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
     case 'error':
       return <StudioError>{t('general.page_error_title')}</StudioError>;
     case 'success': {
-      const [instanceDetails, appMetadata, processDataTypes] = data;
+      const [instanceDetails, appMetadata, processDataTypes, processTasks] = data;
 
       return (
         <InstanceDataViewWithData
@@ -68,6 +71,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
           instance={instanceDetails}
           appMetadata={appMetadata}
           processDataTypes={processDataTypes}
+          processTasks={processTasks}
         />
       );
     }
@@ -78,6 +82,7 @@ type InstanceDataViewWithDataProps = InstanceDataViewProps & {
   instance: SimpleInstanceDetails;
   appMetadata: ApplicationMetadata;
   processDataTypes: ProcessDataType[];
+  processTasks: ProcessTask[];
 };
 
 enum InstanceDataViewTabs {
@@ -96,6 +101,7 @@ const InstanceDataViewWithData = ({
   instance,
   appMetadata,
   processDataTypes,
+  processTasks,
 }: InstanceDataViewWithDataProps) => {
   const { t } = useTranslation();
   const [tab, setTab] = useQueryParamState<string>('section', InstanceDataViewTabs.Info);
@@ -146,6 +152,7 @@ const InstanceDataViewWithData = ({
           dataElements={instance.data}
           appMetadata={appMetadata}
           processDataTypes={processDataTypes}
+          processTasks={processTasks}
         />
       </StudioTabs.Panel>
       {/*
@@ -176,10 +183,12 @@ const DataElementGroups = ({
   dataElements,
   appMetadata,
   processDataTypes,
+  processTasks,
 }: {
   dataElements?: SimpleDataElement[];
   appMetadata: ApplicationMetadata;
   processDataTypes: ProcessDataType[];
+  processTasks: ProcessTask[];
 }) => {
   if (!dataElements) {
     return null;
@@ -217,6 +226,7 @@ const DataElementGroups = ({
       dataElements={elements}
       appMetadata={appMetadata}
       processDataTypes={processDataTypes}
+      processTasks={processTasks}
     />
   ));
 };
@@ -310,11 +320,13 @@ const DataElementGroup = ({
   dataElements,
   appMetadata,
   processDataTypes,
+  processTasks,
 }: {
   dataType: string;
   dataElements: SimpleDataElement[];
   appMetadata: ApplicationMetadata;
   processDataTypes: ProcessDataType[];
+  processTasks: ProcessTask[];
 }) => {
   const { t } = useTranslation();
   const labelId = `label-${dataType}`;
@@ -323,6 +335,7 @@ const DataElementGroup = ({
   const Icon = DataTypeIcons[type];
   const label = getDataTypeLabel(dataType, dataElements.length, appMetadata);
   const taskId = getTaskId(dataType, appMetadata, processDataTypes);
+  const taskName = processTasks.find((task) => task.id === taskId)?.name;
 
   return (
     <StudioField className={classes['data-element-field']}>
@@ -334,7 +347,7 @@ const DataElementGroup = ({
           </div>
           {taskId && (
             <Tag size='sm' color='first'>
-              {taskId}
+              {taskName ?? taskId}
             </Tag>
           )}
         </span>
