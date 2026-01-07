@@ -33,12 +33,6 @@ public class BootstrapGlobalResponse
     public UserProfile? UserProfile { get; set; }
 
     /// <summary>
-    /// User profile information.
-    /// </summary>
-    [JsonPropertyName("frontendSettings")]
-    public FrontEndSettings? FrontEndSettings { get; set; }
-
-    /// <summary>
     /// Text resources for the current language.
     /// </summary>
     [JsonPropertyName("textResources")]
