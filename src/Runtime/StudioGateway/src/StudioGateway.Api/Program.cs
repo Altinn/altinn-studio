@@ -41,7 +41,8 @@ builder.Configuration.AddJsonFile("/app/secrets/grafana-token.json", optional: t
 builder
     .Services.AddOptions<GrafanaSettings>()
     .Bind(builder.Configuration.GetSection("Grafana"))
-    .Validate(settings => !string.IsNullOrWhiteSpace(settings.Token), "Grafana settings validation failed. Grafana Token is required.")
+    .Validate(settings => !string.IsNullOrWhiteSpace(settings.Token), "Grafana Token is required.")
+    .Validate(settings => settings.Url != null, "Grafana Url is required.")
     .ValidateOnStart();
 builder.Services.Configure<GatewayContext>(builder.Configuration.GetSection("Gateway"));
 builder.Services.Configure<AlertsClientSettings>(builder.Configuration.GetSection("AlertsClientSettings"));
