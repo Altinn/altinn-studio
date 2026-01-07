@@ -4,7 +4,8 @@
 }
 .headerStyling {
   justify-content: flex-end;
+  align-items: center;
   display: flex;
   flex-direction: row;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
 }

@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
 // Configuration
-const { BASE_URL, TEST_USER_ID, AUTH_LEVEL } = require('./lighthouse-config-constants');
+const { BASE_URL, TEST_USER_ID, AUTH_LEVEL, APP_PATH } = require('./lighthouse-config-constants');
 
 /**
  * Puppeteer script for Lighthouse CI to handle authentication flow
@@ -10,6 +10,14 @@ const { BASE_URL, TEST_USER_ID, AUTH_LEVEL } = require('./lighthouse-config-cons
  */
 module.exports = async (browser) => {
   const page = await browser.newPage();
+
+  // Set the frontend version cookie
+  await browser.setCookie({
+    name: 'frontendVersion',
+    value: 'http://localhost:8080/',
+    url: BASE_URL,
+    httpOnly: true,
+  });
 
   await page.goto(BASE_URL, { waitUntil: 'networkidle0' });
   console.log('📝 Filling login form...');
@@ -21,6 +29,12 @@ module.exports = async (browser) => {
 
   await page.select('select#AuthenticationLevel', AUTH_LEVEL);
   console.log(`✅ Selected auth level: ${AUTH_LEVEL}`);
+
+  const appSelect = await page.$('select#AppPathSelection');
+  if (appSelect) {
+    await appSelect.select(APP_PATH);
+    console.log(`✅ Selected app path: ${APP_PATH}`);
+  }
 
   console.log('🚀 Submitting login form...');
   await Promise.all([

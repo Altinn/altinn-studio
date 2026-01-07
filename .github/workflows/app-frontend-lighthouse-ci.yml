@@ -4,92 +4,71 @@ on:
     branches:
       - 'main'
     paths:
-      - 'src/App/frontend/**'
       - '.github/workflows/app-frontend-lighthouse-ci.yml'
+      - './.github/actions/**'
+      - 'src/App/frontend/**'
+      - 'src/Runtime/localtest/**'
+      - 'src/test/apps/component-library/**'
   pull_request:
     paths:
-      - 'src/App/frontend/**'
       - '.github/workflows/app-frontend-lighthouse-ci.yml'
+      - './.github/actions/**'
+      - 'src/App/frontend/**'
+      - 'src/Runtime/localtest/**'
+      - 'src/test/apps/component-library/**'
   workflow_dispatch:
 jobs:
+  build-frontend:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - name: Build frontend
+        uses: ./.github/actions/app-build-frontend
+
+  build-localtest:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - name: Build localtest
+        uses: ./.github/actions/app-build-localtest
+        with:
+          docker-profile: 'test-apps'
+
   lighthouse:
     name: Lighthouse CI
     runs-on: ubuntu-latest
+    needs: [build-frontend, build-localtest]
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+      - name: Download built frontend
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
-          dotnet-version: '8.0.x'
+          name: app-frontend-dist
+          path: src/App/frontend/dist
+
+      - name: Run Local Environment
+        uses: ./.github/actions/app-run-local-env
+        with:
+          run-frontend: false
+          run-localtest: true
+          docker-profile: test-apps
 
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '20.x'
+          node-version: '22'
+          cache: 'yarn'
+          cache-dependency-path: src/App/frontend/yarn.lock
 
-      - name: Installing Frontend Dependencies
-        uses: ./.github/actions/yarn-install
-        with:
-          working-directory: src/App/frontend
+      - name: Install dependencies
+        working-directory: src/App/frontend
+        run: yarn install --immutable
 
-      - name: Build localtest
-        working-directory: src/Runtime/localtest
-        run: docker compose build
-
-      - name: Build component-library and frontend
-        working-directory: '.'
-        run: |
-          # Build frontend in background
-          cd src/App/frontend
-          yarn run build & YARN_BUILD_PID=$!
-
-          # Return to workspace root
-          cd $GITHUB_WORKSPACE
-
-          # Build component-library app in foreground
-          cd src/test/apps/component-library/App
-          dotnet build --restore
-
-          wait $YARN_BUILD_PID || exit 1
-
-      - name: Start localtest and component-library
-        run: |
-          # Start the app in background
-          cd src/test/apps/component-library/App
-          nohup dotnet run --no-build > $GITHUB_WORKSPACE/app.log 2>&1 & APP_PID=$!
-
-          # Return to workspace root
-          cd $GITHUB_WORKSPACE
-
-          # Start localtest
-          echo "Starting localtest..."
-          cd src/Runtime/localtest && docker compose up -d
-
-          # Wait for localtest readiness
-          echo "Waiting for localtest at http://local.altinn.cloud/"
-          if timeout 120 bash -c 'until curl -f http://local.altinn.cloud/ > /dev/null 2>&1; do sleep 2; done'; then
-            echo "✅ localtest is ready!"
-          else
-            echo "❌ localtest failed to start within 2 minutes."
-            exit 1
-          fi
-
-          # Wait for app readiness
-          echo "Waiting for app to start listening on port 5005..."
-          if timeout 120 bash -c 'until grep -q "Now listening on: http://\[::]:" $GITHUB_WORKSPACE/app.log 2>/dev/null; do sleep 1; done'; then
-            echo "✅ App is ready!"
-          else
-            echo "❌ App failed to start within 2 minutes."
-            echo "=== App log ==="
-            cat $GITHUB_WORKSPACE/app.log
-            kill $APP_PID 2>/dev/null || true
-            exit 1
-          fi
-
-        env:
-          TEST_DOMAIN: local.altinn.cloud
-          ALTINN3LOCAL_PORT: 80
       - name: Run Lighthouse CI
         id: lighthouse-ci
         working-directory: src/App/frontend
@@ -114,3 +93,8 @@ jobs:
               repo: context.repo.repo,
               body: '🔍 **Lighthouse Report**\n\n📊 [View Performance Report](${{ env.REPORT_URL }})'
             });
+
+      - name: Stop localtest
+        if: always()
+        working-directory: src/Runtime/localtest
+        run: docker compose down

@@ -26,38 +26,52 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
     private const string JsonExtension = ".json";
 
     /// <inheritdoc />
+    public async Task<string> GetLatestCommitOnBranch(string org, string branchName = General.DefaultBranch, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string repository = GetStaticContentRepo(org);
+        return await giteaClient.GetLatestCommitOnBranch(org, repository, branchName, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<GetSharedResourcesResponse> GetSharedResourcesByPath(string org, string? path = null, string? reference = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         string repository = GetStaticContentRepo(org);
-        List<FileSystemObject> directoryContent = await GetDirectoryContent(org, path, reference, cancellationToken);
-
         ConcurrentBag<LibraryFile> libraryFiles = [];
-
         ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
-        await Parallel.ForEachAsync(directoryContent, options,
-            async (FileSystemObject fileMetadata, CancellationToken token) =>
-            {
-                string fileExtension = Path.GetExtension(fileMetadata.Name);
-                switch (fileExtension)
-                {
-                    case JsonExtension:
-                        (FileSystemObject? file, ProblemDetails? problem) = await giteaClient.GetFileAndErrorAsync(org, repository, fileMetadata.Path, reference, token);
-                        LibraryFile jsonFileResult = PrepareJsonFileOrProblem(fileMetadata, file, problem);
-                        libraryFiles.Add(jsonFileResult);
-                        break;
-                    default:
-                        LibraryFile otherFile = PrepareOtherFile(fileMetadata);
-                        libraryFiles.Add(otherFile);
-                        break;
-                }
-            }
-        );
-
         string baseCommitSha = await giteaClient.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
 
-        return new GetSharedResourcesResponse(Files: [.. libraryFiles], CommitSha: baseCommitSha);
+        try
+        {
+            List<FileSystemObject> directoryContent = await GetDirectoryContent(org, path, reference, cancellationToken);
+            await Parallel.ForEachAsync(directoryContent, options,
+                async (FileSystemObject fileMetadata, CancellationToken token) =>
+                {
+                    string fileExtension = Path.GetExtension(fileMetadata.Name);
+                    switch (fileExtension)
+                    {
+                        case JsonExtension:
+                            (FileSystemObject? file, ProblemDetails? problem) = await giteaClient.GetFileAndErrorAsync(org, repository, fileMetadata.Path, reference, token);
+                            LibraryFile jsonFileResult = PrepareJsonFileOrProblem(fileMetadata, file, problem);
+                            libraryFiles.Add(jsonFileResult);
+                            break;
+                        default:
+                            LibraryFile otherFile = PrepareOtherFile(fileMetadata);
+                            libraryFiles.Add(otherFile);
+                            break;
+                    }
+                }
+            );
+
+            return new GetSharedResourcesResponse(Files: [.. libraryFiles], CommitSha: baseCommitSha);
+        }
+        catch (Exception ex) when (ex is DirectoryNotFoundException)
+        {
+            return new GetSharedResourcesResponse(Files: [], CommitSha: baseCommitSha);
+        }
     }
 
     /// <inheritdoc />
@@ -78,6 +92,11 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repositoryName, developer);
 
         string latestCommitSha = await giteaClient.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
+
+        sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
+        await sourceControl.PullRemoteChanges(editingContext.Org, editingContext.Repo);
+        await sourceControl.FetchGitNotes(editingContext);
+
         if (latestCommitSha == request.BaseCommitSha)
         {
             await HandleCommit(editingContext, request, cancellationToken);
@@ -95,8 +114,6 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
 
     internal async Task HandleCommit(AltinnRepoEditingContext editingContext, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default)
     {
-        sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
-        await sourceControl.PullRemoteChanges(editingContext.Org, editingContext.Repo);
         await UpdateFiles(editingContext, request, cancellationToken);
         sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
     }

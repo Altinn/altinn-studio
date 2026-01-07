@@ -80,17 +80,21 @@ type SecretState struct {
 }
 
 type SecretStateContent struct {
-	ClientId  string       `json:"clientId"`
-	Authority string       `json:"authority"`
-	Jwks      *crypto.Jwks `json:"jwks"`
-	Jwk       *crypto.Jwk  `json:"jwk"`
+	ClientId  string       `json:"ClientId"`
+	Authority string       `json:"Authority"`
+	Jwks      *crypto.Jwks `json:"Jwks"`
+	Jwk       *crypto.Jwk  `json:"Jwk"`
 }
 
 func (c *SecretStateContent) SerializeTo(secret *corev1.Secret) error {
 	if secret == nil {
 		return fmt.Errorf("cant serialize to nil secret")
 	}
-	data, err := json.Marshal(c)
+	// Wrap in MaskinportenSettings for .NET configuration binding
+	wrapper := map[string]any{
+		"MaskinportenSettings": c,
+	}
+	data, err := json.Marshal(wrapper)
 	if err != nil {
 		return err
 	}
@@ -118,13 +122,14 @@ func DeserializeSecretStateContent(secret *corev1.Secret) (*SecretStateContent, 
 		return nil, nil
 	}
 
-	content := &SecretStateContent{}
-	err := json.Unmarshal(data, content)
-	if err != nil {
+	// Unwrap from MaskinportenSettings wrapper
+	var wrapper struct {
+		MaskinportenSettings *SecretStateContent `json:"MaskinportenSettings"`
+	}
+	if err := json.Unmarshal(data, &wrapper); err != nil {
 		return nil, err
 	}
-
-	return content, nil
+	return wrapper.MaskinportenSettings, nil
 }
 
 func NewClientState(

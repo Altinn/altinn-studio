@@ -6,6 +6,8 @@ import {
   appVersionPath,
   belongsToOrg,
   branchStatusPath,
+  branchesPath,
+  currentBranchPath,
   dataModelMetadataPath,
   dataModelPath,
   dataModelsJsonPath,
@@ -79,6 +81,7 @@ import {
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { Branch, CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
 import type { DataModelMetadataJson, DataModelMetadataXsd } from 'app-shared/types/DataModelMetadata';
 import type { Environment } from 'app-shared/types/Environment';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
@@ -94,7 +97,8 @@ import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { orgListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import type { PolicyAction, PolicySubject } from '@altinn/policy-editor';
+import type { PolicyAction } from '../types/PolicyAction';
+import type { PolicySubject } from '../types/PolicySubject';
 import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse, AccessListMembersResponse, DelegationCountOverview, ConsentTemplate } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -212,3 +216,7 @@ export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeLi
 export const getOrgTextLanguages = (org: string): Promise<string[] | null> => get<string[] | null>(orgTextLanguagesPath(org));
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
 export const getPublishedResources = (org: string, path?: string): Promise<string[]> => get<string[]>(publishedResourcesPath(org, path));
+
+// Branches
+export const getBranches = (org: string, app: string) => get<Branch[]>(branchesPath(org, app));
+export const getCurrentBranch = (org: string, app: string) => get<CurrentBranchInfo>(currentBranchPath(org, app));

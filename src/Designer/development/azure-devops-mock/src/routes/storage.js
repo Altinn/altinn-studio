@@ -41,6 +41,36 @@ const randomInstances = Array.from({ length: 1000 }).map(() => {
 
   const lastChangedAt = getMaxDate(createdAt, archivedAt, confirmedAt, softDeletedAt);
 
+  const generateDataElement = () => ({
+    id: uuid(),
+    dataType: 'model',
+    contentType: 'application/xml',
+    size: Math.round(Math.random() * 1000),
+    locked: !isActive,
+    isRead,
+    fileScanResult: 'NotApplicable',
+    hardDeletedAt,
+    createdAt,
+    lastChangedAt: getRandomDate(createdAt.getTime(), (archivedAt ?? lastChangedAt).getTime()),
+  });
+
+  const generatePdfDataElement = () => ({
+    id: uuid(),
+    dataType: 'ref-data-as-pdf',
+    contentType: 'application/pdf',
+    size: Math.round(Math.random() * 1000),
+    locked: false,
+    isRead: true,
+    fileScanResult: 'NotApplicable',
+    hardDeletedAt,
+    createdAt: archivedAt,
+    lastChangedAt: archivedAt,
+  });
+
+  const data = archivedAt
+    ? [generateDataElement(), generatePdfDataElement()]
+    : [generateDataElement()];
+
   return {
     id,
     isRead,
@@ -53,6 +83,7 @@ const randomInstances = Array.from({ length: 1000 }).map(() => {
     hardDeletedAt,
     createdAt,
     lastChangedAt,
+    data,
   };
 });
 
@@ -133,7 +164,7 @@ export const storageInstancesRoute = (req, res) => {
     )
     .toSorted((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
     .slice(skip, skip + size)
-    .map((i) => ({ org, app, ...i }));
+    .map(({ data, ...i }) => ({ org, app, ...i }));
 
   const count = instances.length;
   const next = count === size ? (skip + size).toString() : null;
@@ -143,4 +174,16 @@ export const storageInstancesRoute = (req, res) => {
     next,
     instances,
   });
+};
+
+export const storageInstanceDetailsRoute = (req, res) => {
+  const { org, app, instanceId } = req.params;
+  const instance = randomInstances.find((i) => i.id === instanceId);
+
+  if (!instance) {
+    res.sendStatus(404);
+    return;
+  }
+
+  res.json({ org, app, ...instance });
 };

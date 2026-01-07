@@ -10,8 +10,8 @@ import type { ExternalResource } from 'app-shared/types/ExternalResource';
 
 export type CodeListsActionsBarProps = {
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
-  onCreateTextResource?: (textResource: TextResource) => void;
-  onUpdateTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource: (textResource: TextResource) => void;
+  onUpdateTextResource: (textResource: TextResource) => void;
   onUploadCodeList: (updatedCodeList: File) => void;
   codeListNames: string[];
   onSetSearchString: (searchString: string) => void;

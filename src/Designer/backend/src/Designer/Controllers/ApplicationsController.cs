@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -65,6 +66,32 @@ public class ApplicationsController : ControllerBase
         {
             _logger.LogError(ex, "Invalid deployment data for org {Org}.", org);
             return StatusCode(502);
+        }
+    }
+
+    [HttpGet("{org}/{env}/{app}/applicationmetadata")]
+    public async Task<ActionResult<ApplicationMetadata>> GetApplicationMetadata(
+        string org,
+        string env,
+        string app,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            return Ok(await _appResourcesService.GetApplicationMetadata(org, env, app, ct));
+        }
+        catch (HttpRequestException ex)
+        {
+            return StatusCode((int?)ex.StatusCode ?? 500);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(499);
         }
     }
 

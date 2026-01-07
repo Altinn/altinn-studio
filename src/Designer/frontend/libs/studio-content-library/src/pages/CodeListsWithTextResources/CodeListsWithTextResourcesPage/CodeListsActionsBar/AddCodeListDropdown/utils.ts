@@ -3,7 +3,7 @@ import { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 import { StringUtils } from '@studio/pure-functions';
 
 export const getCodeListIdsFromExternalResources = (
-  externalResources: ExternalResource[],
+  externalResources?: ExternalResource[],
 ): string[] => {
   if (!externalResources) {
     return [];
