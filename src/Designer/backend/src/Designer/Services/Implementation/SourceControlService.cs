@@ -21,7 +21,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// <summary>
     /// Implementation of the source control service.
     /// </summary>
-    public class SourceControlSI : ISourceControl
+    public class SourceControlService : ISourceControl
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -30,17 +30,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private const string DefaultBranch = General.DefaultBranch;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SourceControlSI"/> class.
+        /// Initializes a new instance of the <see cref="SourceControlService"/> class.
         /// </summary>
         /// <param name="repositorySettings">The settings for the service repository.</param>
         /// <param name="httpContextAccessor">the http context accessor.</param>
         /// <param name="giteaClient">The gitea client.</param>
         /// <param name="logger">the log handler.</param>
-        public SourceControlSI(
+        public SourceControlService(
             ServiceRepositorySettings repositorySettings,
             IHttpContextAccessor httpContextAccessor,
             IGiteaClient giteaClient,
-            ILogger<SourceControlSI> logger)
+            ILogger<SourceControlService> logger)
         {
             _settings = repositorySettings;
             _httpContextAccessor = httpContextAccessor;
@@ -124,12 +124,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 catch (CheckoutConflictException e)
                 {
-                    _logger.LogError($"SourceControlSI // PullRemoteChanges // CheckoutConflictException occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
+                    _logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // CheckoutConflictException occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
                     status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError($"SourceControlSI // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
+                    _logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
                     throw;
                 }
             }
