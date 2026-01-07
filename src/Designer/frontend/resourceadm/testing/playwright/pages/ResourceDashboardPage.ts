@@ -33,8 +33,8 @@ export class ResourceDashboardPage extends ResourceEnvironment {
     await this.createResourceButton.click();
   }
 
-  public async writeResourceId(username: string): Promise<void> {
-    await this.resourceIdField.fill(username);
+  public async writeResourceId(id: string): Promise<void> {
+    await this.resourceIdField.fill(`${this.org}-${id}`);
   }
 
   public async clickOnCreateResourceButton(): Promise<void> {
