@@ -279,7 +279,7 @@ function getDataTypeLabel(
   appMetadata: ApplicationMetadata,
 ): string {
   if (dataType === 'ref-data-as-pdf') {
-    return count > 1 ? `Generert PDF (${count})` : 'Generert PDF';
+    return `Generert PDF (${count})`;
   }
 
   const dataTypeDef = appMetadata.dataTypes?.find((dt) => dt.id === dataType);
