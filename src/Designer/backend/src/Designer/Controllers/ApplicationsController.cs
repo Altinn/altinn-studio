@@ -69,7 +69,7 @@ public class ApplicationsController : ControllerBase
         }
     }
 
-    [HttpGet("{org}/{env}/{app}/applicationmetadata")]
+    [HttpGet("{org}/{env}/{app}/application-metadata")]
     public async Task<ActionResult<ApplicationMetadata>> GetApplicationMetadata(
         string org,
         string env,
@@ -95,8 +95,8 @@ public class ApplicationsController : ControllerBase
         }
     }
 
-    [HttpGet("{org}/{env}/{app}/process-tasks")]
-    public async Task<ActionResult<IEnumerable<ProcessTask>>> GetProcessTasks(
+    [HttpGet("{org}/{env}/{app}/process-metadata")]
+    public async Task<ActionResult<IEnumerable<ProcessTaskMetadata>>> GetProcessMetadata(
         string org,
         string env,
         string app,
@@ -105,7 +105,7 @@ public class ApplicationsController : ControllerBase
     {
         try
         {
-            return Ok(await _appResourcesService.GetProcessTasks(org, env, app, ct));
+            return Ok(await _appResourcesService.GetProcessMetadata(org, env, app, ct));
         }
         catch (HttpRequestException ex)
         {

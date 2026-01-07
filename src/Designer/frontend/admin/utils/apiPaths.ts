@@ -27,9 +27,9 @@ export const instancesListPath = (
   return `${adminApiBasePath}/instances/${org}/${env}/${app}${queryString}`; // Get
 };
 export const appMetadataPath = (org: string, env: string, app: string) =>
-  `${adminApiBasePath}/applications/${org}/${env}/${app}/applicationmetadata`; // Get
-export const appProcessTasksPath = (org: string, env: string, app: string) =>
-  `${adminApiBasePath}/applications/${org}/${env}/${app}/process-tasks`; // Get
+  `${adminApiBasePath}/applications/${org}/${env}/${app}/application-metadata`; // Get
+export const processMetadataPath = (org: string, env: string, app: string) =>
+  `${adminApiBasePath}/applications/${org}/${env}/${app}/process-metadata`; // Get
 export const instanceDetailsPath = (org: string, env: string, app: string, instanceId: string) =>
   `${adminApiBasePath}/instances/${org}/${env}/${app}/${instanceId}`; // Get
 export const instanceProcessHistoryPath = (

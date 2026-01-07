@@ -1,9 +1,9 @@
 import React from 'react';
 import { StudioSpinner, StudioError } from '@studio/components';
-import { useAppProcessTasksQuery } from 'admin/hooks/queries/useAppProcessTasksQuery';
 import { useTranslation } from 'react-i18next';
-import type { ProcessTask } from 'admin/types/ProcessTask';
 import { StatusFilter } from './StatusFilter';
+import type { ProcessTaskMetadata } from 'admin/hooks/queries/useProcessMetadataQuery';
+import { useProcessMetadataQuery } from 'admin/hooks/queries/useProcessMetadataQuery';
 
 type ProcessTaskPickerProps = {
   org: string;
@@ -14,7 +14,7 @@ type ProcessTaskPickerProps = {
 };
 
 export const ProcessTaskFilter = ({ org, env, app, value, setValue }: ProcessTaskPickerProps) => {
-  const { data, status } = useAppProcessTasksQuery(org, env, app);
+  const { data, status } = useProcessMetadataQuery(org, env, app);
   const { t } = useTranslation();
 
   switch (status) {
@@ -28,7 +28,7 @@ export const ProcessTaskFilter = ({ org, env, app, value, setValue }: ProcessTas
 };
 
 type ProcessTaskPickerWithDataProps = {
-  processTasks: ProcessTask[];
+  processTasks: ProcessTaskMetadata[];
   value: string | undefined;
   setValue: (value: string | undefined) => void;
 };
