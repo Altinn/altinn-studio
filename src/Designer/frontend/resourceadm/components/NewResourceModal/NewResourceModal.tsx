@@ -40,7 +40,12 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
       useCreateResourceMutation(org);
 
     const idErrorMessage = getResourceIdentifierErrorMessage(id, org, resourceIdExists);
-    const hasValidValues = id.length >= 4 && !idErrorMessage && !isCreatingResource;
+    const hasValidValues =
+      id.length >= 4 &&
+      !idErrorMessage &&
+      !isCreatingResource &&
+      id.startsWith(`${org}-`) &&
+      id !== `${org}-`;
 
     /**
      * Creates a new resource in backend, and navigates if success
