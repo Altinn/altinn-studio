@@ -35,9 +35,14 @@ jobs:
       - name: Build
         working-directory: src/cli
         run: |
-          dotnet build -v m
+          make build
 
       - name: Test
         working-directory: src/cli
         run: |
-          dotnet test -v m
+          make test
+
+      - name: Lint
+        working-directory: src/cli
+        run: |
+          make lint
