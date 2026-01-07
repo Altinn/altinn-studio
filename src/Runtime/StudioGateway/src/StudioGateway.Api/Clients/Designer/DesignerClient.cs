@@ -3,7 +3,10 @@ using StudioGateway.Api.Settings;
 
 namespace StudioGateway.Api.Clients.Designer;
 
-internal sealed class DesignerClient(IHttpClientFactory httpClientFactory, IOptionsMonitor<GatewayContext> gatewayContextMonitor)
+internal sealed class DesignerClient(
+    IHttpClientFactory httpClientFactory,
+    IOptionsMonitor<GatewayContext> gatewayContextMonitor
+)
 {
     private GatewayContext _gatewayContext => gatewayContextMonitor.CurrentValue;
 

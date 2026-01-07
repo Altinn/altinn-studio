@@ -2,7 +2,6 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.Query.Logs;
 using Azure.ResourceManager;
-using k8s;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using StudioGateway.Api;
@@ -41,12 +40,19 @@ builder.Configuration.AddJsonFile("/app/secrets/grafana-token.json", optional: t
 builder
     .Services.AddOptions<GrafanaSettings>()
     .Bind(builder.Configuration.GetSection("Grafana"))
-    .Validate(settings => !string.IsNullOrWhiteSpace(settings.Token), "Grafana Token is required.")
-    .Validate(settings => settings.Url != null, "Grafana Url is required.")
+    .Validate(settings => !string.IsNullOrWhiteSpace(settings.Token), "Grafana.Token is required.")
+    .Validate(settings => settings.Url != null, "Grafana.Url is required.")
+    .ValidateOnStart();
+builder
+    .Services.AddOptions<AlertsClientSettings>()
+    .Bind(builder.Configuration.GetSection("AlertsClientSettings"))
+    .ValidateOnStart();
+
+builder
+    .Services.AddOptions<MetricsClientSettings>()
+    .Bind(builder.Configuration.GetSection("MetricsClientSettings"))
     .ValidateOnStart();
 builder.Services.Configure<GatewayContext>(builder.Configuration.GetSection("Gateway"));
-builder.Services.Configure<AlertsClientSettings>(builder.Configuration.GetSection("AlertsClientSettings"));
-builder.Services.Configure<MetricsClientSettings>(builder.Configuration.GetSection("MetricsClientSettings"));
 
 // Register class itself as scoped to avoid using IOptions interfaces throughout the codebase
 // Avoided singleton registration to support dynamic reloading of configuration
@@ -66,18 +72,18 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
 builder.Services.AddKeyedTransient<IAlertsClient>(
-    "grafana",
+    AlertsClientSettings.AlertsClientProvider.Grafana.ToString(),
     (serviceProvider, key) =>
     {
         var factory = serviceProvider.GetRequiredService<IHttpClientFactory>();
-        return new GrafanaClient(factory.CreateClient("grafana"));
+        return new GrafanaClient(factory.CreateClient(AlertsClientSettings.AlertsClientProvider.Grafana.ToString()));
     }
 );
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<GrafanaAuthenticationHandler>();
 builder
     .Services.AddHttpClient(
-        "grafana",
+        AlertsClientSettings.AlertsClientProvider.Grafana.ToString(),
         (serviceProvider, httpClient) =>
         {
             var settings = serviceProvider.GetRequiredService<IOptionsMonitor<GrafanaSettings>>().CurrentValue;
@@ -85,7 +91,9 @@ builder
         }
     )
     .AddHttpMessageHandler<GrafanaAuthenticationHandler>();
-builder.Services.AddKeyedTransient<IMetricsClient, AzureMonitorClient>("azuremonitor");
+builder.Services.AddKeyedTransient<IMetricsClient, AzureMonitorClient>(
+    MetricsClientSettings.MetricsClientProvider.AzureMonitor.ToString()
+);
 builder.Services.AddHealthChecks();
 builder.Services.AddOpenApi(
     "public-v1",

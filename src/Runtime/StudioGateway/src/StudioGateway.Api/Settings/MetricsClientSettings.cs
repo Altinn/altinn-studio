@@ -2,5 +2,10 @@ namespace StudioGateway.Api.Settings;
 
 internal sealed class MetricsClientSettings
 {
-    public required string Provider { get; set; }
+    internal enum MetricsClientProvider
+    {
+        AzureMonitor,
+    }
+
+    public required MetricsClientProvider Provider { get; set; }
 }

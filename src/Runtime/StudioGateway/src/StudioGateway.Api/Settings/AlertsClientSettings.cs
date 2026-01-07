@@ -2,5 +2,10 @@ namespace StudioGateway.Api.Settings;
 
 internal sealed class AlertsClientSettings
 {
-    public required string Provider { get; set; }
+    internal enum AlertsClientProvider
+    {
+        Grafana,
+    }
+
+    public required AlertsClientProvider Provider { get; set; }
 }
