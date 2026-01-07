@@ -31,6 +31,7 @@ builder.Services.AddSingleton(sp =>
     return new ArmClient(credential);
 });
 
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Configuration.AddJsonFile(
     "/app/secrets/maskinporten-client-for-designer.json",
     optional: true,

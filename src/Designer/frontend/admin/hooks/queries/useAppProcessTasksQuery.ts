@@ -5,7 +5,7 @@ import axios from 'axios';
 import { appProcessTasksPath } from 'admin/utils/apiPaths';
 import type { ProcessTask } from 'admin/types/ProcessTask';
 
-export const useAppProcessTasks = (
+export const useAppProcessTasksQuery = (
   org: string,
   env: string,
   app: string,

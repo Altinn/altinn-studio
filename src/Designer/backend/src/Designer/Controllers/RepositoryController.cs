@@ -325,6 +325,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/commit")]
         public async Task<ActionResult> Commit(string org, string repository, [FromBody] CommitInfo commitInfo)
         {
+            // TODO: This method is never used, should it be removed?
             await Task.CompletedTask;
             try
             {
@@ -346,6 +347,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/push")]
         public async Task<ActionResult> Push(string org, string repository)
         {
+            // TODO: This method is never used, should it be removed?
             bool pushSuccess = await _sourceControl.Push(org, repository);
             return pushSuccess ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
         }

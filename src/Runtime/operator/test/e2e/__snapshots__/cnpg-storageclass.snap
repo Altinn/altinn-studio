@@ -1,0 +1,10 @@
+
+[cnpgsync should create StorageClass - 1]
+{
+ "allowVolumeExpansion": true,
+ "parameters": null,
+ "provisioner": "rancher.io/local-path",
+ "reclaimPolicy": "Delete",
+ "volumeBindingMode": "WaitForFirstConsumer"
+}
+---

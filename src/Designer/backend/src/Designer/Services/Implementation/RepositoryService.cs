@@ -34,7 +34,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// <summary>
     /// Implementation of the repository service needed for creating and updating apps in AltinnCore.
     /// </summary>
-    public class RepositorySI : IRepository
+    public class RepositoryService : IRepository
     {
         // Using Norwegian name of initial page to be consistent
         // with automatic naming from frontend when adding new page
@@ -56,7 +56,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly JsonSerializerOptions _serializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RepositorySI"/> class
+        /// Initializes a new instance of the <see cref="RepositoryService"/> class
         /// </summary>
         /// <param name="repositorySettings">The settings for the app repository</param>
         /// <param name="generalSettings">The current general settings</param>
@@ -69,13 +69,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="appDevelopmentService">The service for handling files concerning app-development</param>
         /// <param name="textsService">The service for handling texts</param>
         /// <param name="resourceRegistryService">The service for publishing resource in the ResourceRegistry</param>
-        public RepositorySI(
+        public RepositoryService(
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
             IHttpContextAccessor httpContextAccessor,
             IGiteaClient giteaClient,
             ISourceControl sourceControl,
-            ILogger<RepositorySI> logger,
+            ILogger<RepositoryService> logger,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             IApplicationMetadataService applicationMetadataService,
             IAppDevelopmentService appDevelopmentService,

@@ -13,7 +13,9 @@ internal static class KubernetesServiceRegistration
         });
 
         services.AddSingleton<HelmReleaseClient>();
-        services.AddScoped<PodsClient>();
+        services.AddSingleton<PodsClient>();
+        services.AddSingleton<OciRepositoryClient>();
+        services.AddSingleton<KustomizationClient>();
 
         return services;
     }

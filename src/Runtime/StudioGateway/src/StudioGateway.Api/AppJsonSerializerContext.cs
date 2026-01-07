@@ -23,4 +23,5 @@ namespace StudioGateway.Api;
 [JsonSerializable(typeof(IEnumerable<AppErrorMetric>))]
 [JsonSerializable(typeof(List<AppHealthMetric>))]
 [JsonSerializable(typeof(AzureUrl))]
+[JsonSerializable(typeof(TriggerReconcileRequest))]
 internal sealed partial class AppJsonSerializerContext : JsonSerializerContext { }
