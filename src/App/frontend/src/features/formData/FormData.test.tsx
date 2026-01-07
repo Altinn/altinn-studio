@@ -12,13 +12,12 @@ import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplication
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, statelessDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
-import { DynamicsProvider } from 'src/features/form/dynamics/DynamicsContext';
 import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD, FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { fetchApplicationMetadata } from 'src/http-client/queries';
+import { fetchApplicationMetadata } from 'src/queries/queries';
 import {
   makeFormDataMethodProxies,
   renderWithInstanceAndLayout,
@@ -133,11 +132,9 @@ async function statelessRender(props: RenderProps) {
       renderer: () => (
         <DataModelsProvider>
           <LayoutSettingsProvider>
-            <DynamicsProvider>
-              <FormDataWriteProxyProvider value={formDataProxies}>
-                <FormDataWriteProvider>{props.renderer}</FormDataWriteProvider>
-              </FormDataWriteProxyProvider>
-            </DynamicsProvider>
+            <FormDataWriteProxyProvider value={formDataProxies}>
+              <FormDataWriteProvider>{props.renderer}</FormDataWriteProvider>
+            </FormDataWriteProxyProvider>
           </LayoutSettingsProvider>
         </DataModelsProvider>
       ),

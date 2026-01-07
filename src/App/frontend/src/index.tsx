@@ -24,7 +24,6 @@ import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { ComponentRouting } from 'src/components/wrappers/ProcessWrapper';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
-import { createDynamicsLoader } from 'src/features/form/dynamics/dynamicsLoader';
 import { FormProvider } from 'src/features/form/FormContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { createInstanceLoader } from 'src/features/instance/instanceLoader';
@@ -135,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
                           },
                           {
                             path: ':taskId',
-                            loader: createDynamicsLoader(),
                             element: <Outlet />,
                             children: [
                               {
