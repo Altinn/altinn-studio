@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
+import { useInstanceDataQuery } from 'src/domain/Instance/useInstanceQuery';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { LangAsParagraph } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -16,7 +16,7 @@ export function Feedback() {
   const appOwner = useAppOwner();
   const { langAsString } = useLanguage();
   const optimisticallyUpdateProcess = useOptimisticallyUpdateProcess();
-  const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
+  const reFetchInstanceData = useInstanceDataQuery().refetch;
 
   const callback = useCallback(async () => {
     const result = await reFetchProcessData();

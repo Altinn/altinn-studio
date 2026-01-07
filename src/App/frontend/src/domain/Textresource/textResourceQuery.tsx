@@ -1,15 +1,13 @@
 import { useEffect } from 'react';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
-import { delayedContext } from 'src/core/contexts/delayedContext';
-import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useQueryWithStaleData } from 'src/core/queries/useQueryWithStaleData';
-import { useCurrentLanguage, useIsCurrentLanguageResolved } from 'src/features/language/LanguageProvider';
 import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsMap';
-import type { ITextResourceResult, TextResourceMap } from 'src/features/language/textResources/index';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
+import type { ITextResourceResult, TextResourceMap } from 'src/features/language/textResources';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
-const convertResult = (result: ITextResourceResult): TextResourceMap => {
+export const convertResult = (result: ITextResourceResult): TextResourceMap => {
   const { resources } = result;
   return resourcesAsMap(resources);
 };
@@ -17,10 +15,8 @@ const convertResult = (result: ITextResourceResult): TextResourceMap => {
 const useTextResourcesQuery = () => {
   const { fetchTextResources } = useAppQueries();
   const selectedLanguage = useCurrentLanguage();
-
   // This makes sure to await potential profile fetching before fetching text resources
-  const enabled = useIsCurrentLanguageResolved();
-
+  const enabled = true; //useIsCurrentLanguageResolved();
   const utils = {
     ...useQueryWithStaleData<TextResourceMap, HttpClientError>({
       enabled,
@@ -37,15 +33,6 @@ const useTextResourcesQuery = () => {
   return utils;
 };
 
-const { Provider, useCtx, useHasProvider } = delayedContext(() =>
-  createQueryContext<TextResourceMap, false>({
-    name: 'TextResources',
-    required: false,
-    default: {},
-    query: useTextResourcesQuery,
-  }),
-);
-
-export const TextResourcesProvider = Provider;
-export const useTextResources = () => useCtx();
-export const useHasTextResources = () => useHasProvider();
+export const useTextResources = () => useTextResourcesQuery().data as TextResourceMap;
+export const useIsTextResourcesLoading = () => useTextResourcesQuery().isLoading;
+export const useHasTextResources = () => true;

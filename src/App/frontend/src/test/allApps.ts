@@ -9,7 +9,8 @@ import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/get
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
-import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { IFormDynamics } from 'src/features/form/dynamics';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { ILayoutFile, ILayoutSet, ILayoutSets, ILayoutSettings } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
@@ -69,80 +70,6 @@ export class ExternalApp {
     return fs.readdirSync(this.rootDir + path);
   }
 
-  getBackendVersion(): string | undefined {
-    let appFile = '';
-    try {
-      appFile = this.readFile('/App/App.csproj');
-    } catch (_e) {
-      return undefined;
-    }
-
-    const version = appFile.match(/<PackageReference Include="Altinn.App.Api(.Experimental)?" Version="([^"]*)"/i);
-    if (!version) {
-      return undefined;
-    }
-
-    const v = version[2];
-    if (v.match(/^\d+/)) {
-      return v;
-    }
-
-    // Some use variables, like <PackageReference Include="Altinn.App.Api" Version="$(AltinnAppApiVersion)" />
-    // In these cases we need to find the variable and replace it with the actual value
-    const propertyName = version[2].match(/\$\(([^)]*)\)/)?.[1];
-    const property = propertyName && appFile.match(`<${propertyName}>([^<]*)</${propertyName}>`);
-    if (!property) {
-      return undefined;
-    }
-
-    return property[1];
-  }
-
-  getBackendMajorVersion(): number | undefined {
-    const version = this.getBackendVersion();
-    if (!version) {
-      return undefined;
-    }
-    return parseInt(version.split('.')[0], 10);
-  }
-
-  getFrontendVersion(): string | undefined {
-    let indexFile = '';
-    try {
-      indexFile = this.readFile('/App/views/Home/Index.cshtml');
-    } catch (_e) {
-      return undefined;
-    }
-
-    const cleaned = indexFile.replace(/<!--[\s\S]*?-->/g, '').replace(/@[\s\S]*?@/g, '');
-    const scriptTags = cleaned.match(/<script src="(.*?)"/g);
-    if (!scriptTags) {
-      return undefined;
-    }
-
-    for (const tag of scriptTags) {
-      const url = tag.split('src=')[1].replace(/"/g, '');
-      if (!url.startsWith('https://altinncdn.no')) {
-        continue;
-      }
-      const version = url.match(/altinn-app-frontend\/(\d[^/]*)/);
-      if (!version) {
-        continue;
-      }
-      return version[1];
-    }
-
-    return undefined;
-  }
-
-  getFrontendMajorVersion(): number | undefined {
-    const version = this.getFrontendVersion();
-    if (!version) {
-      return undefined;
-    }
-    return parseInt(version.split('.')[0], 10);
-  }
-
   isValid(): boolean {
     if (!this.dirExists('/App')) {
       return false;
@@ -195,8 +122,8 @@ export class ExternalApp {
     return this;
   }
 
-  getAppMetadata(): IncomingApplicationMetadata {
-    const appMetaData = this.readJson<IncomingApplicationMetadata>('/App/config/applicationmetadata.json');
+  getAppMetadata(): ApplicationMetadata {
+    const appMetaData = this.readJson<ApplicationMetadata>('/App/config/applicationmetadata.json');
     if (this.compat) {
       appMetaData.altinnNugetVersion = '8.5.0.157';
       appMetaData.partyTypesAllowed = {
@@ -229,6 +156,23 @@ export class ExternalApp {
     }
 
     return out;
+  }
+
+  getRuleHandler(layoutSetId: string): string {
+    const path = `/App/ui/${layoutSetId}/RuleHandler.js`;
+    if (!this.fileExists(path)) {
+      return '';
+    }
+    return this.readFile(path);
+  }
+
+  getRuleConfiguration(layoutSetId: string): { data: IFormDynamics } | null {
+    const path = `/App/ui/${layoutSetId}/RuleConfiguration.json`;
+    if (!this.fileExists(path) || this.fileSize(path) === 0) {
+      return null;
+    }
+
+    return this.readJson<{ data: IFormDynamics }>(path);
   }
 
   getRawLayoutSets(): ILayoutSets {
@@ -390,6 +334,14 @@ export class ExternalAppLayoutSet {
     }
 
     return model;
+  }
+
+  getRuleHandler() {
+    return this.app.getRuleHandler(this.id);
+  }
+
+  getRuleConfiguration() {
+    return this.app.getRuleConfiguration(this.id);
   }
 
   simulateInstance(): IInstance {

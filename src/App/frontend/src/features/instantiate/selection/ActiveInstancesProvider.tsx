@@ -9,7 +9,7 @@ import { createQueryContext } from 'src/core/contexts/queryContext';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 
-const useActiveInstancesQuery = () => {
+export const useActiveInstancesQuery = () => {
   const { fetchActiveInstances } = useAppQueries();
   const selectedParty = useSelectedParty();
 

@@ -3,10 +3,10 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import type { AxiosResponse } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { useResolvedQueryParameters } from 'src/features/options/evalQueryParameters';
 import { getOptionsUrl } from 'src/utils/urls/appUrlHelper';

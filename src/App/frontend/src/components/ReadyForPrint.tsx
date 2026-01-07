@@ -28,6 +28,8 @@ export function ReadyForPrint({ type }: { type: ReadyType }) {
   const hasLoaders = useHasElementsByAttribute(loadingAttribute);
   const hasErrors = useHasElementsByAttribute(errorAttribute);
 
+  // const is = useIsPdf();
+
   React.useLayoutEffect(() => {
     if (assetsLoaded) {
       return;

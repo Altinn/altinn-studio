@@ -5,7 +5,7 @@ const path = require('node:path');
 const { defineReactCompilerLoaderOption, reactCompilerLoader } = require('react-compiler-webpack');
 
 module.exports = {
-  entry: './nextsrc/index.tsx',
+  entry: './src/index.tsx',
   target: 'web',
   output: {
     filename: 'altinn-app-frontend.js',

@@ -1,13 +1,14 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
 import { Lang } from 'src/features/language/Lang';
-import { MINIMUM_APPLICATION_VERSION_NAME } from 'src/utils/versioning/versions';
+import { isMinimumApplicationVersion, MINIMUM_APPLICATION_VERSION_NAME } from 'src/utils/versioning/versions';
 
 export function VersionErrorOrChildren({ children }: PropsWithChildren) {
-  const { isValidVersion } = useApplicationMetadata();
+  const applicationMetadata = getApplicationMetadata();
+  const isValidVersion = isMinimumApplicationVersion(applicationMetadata.altinnNugetVersion);
 
   return isValidVersion ? (
     children

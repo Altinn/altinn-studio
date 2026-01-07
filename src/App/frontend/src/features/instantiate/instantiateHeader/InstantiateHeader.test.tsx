@@ -4,9 +4,9 @@ import { screen } from '@testing-library/react';
 
 import { getOrganisationMock } from 'src/__mocks__/getOrganisationMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import { InstantiateHeader } from 'src/features/instantiate/instantiateHeader/InstantiateHeader';
+import { PartySelectionHeader } from 'src/features/instantiate/instantiateHeader/PartySelectionHeader';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { InstantiateHeaderProps } from 'src/features/instantiate/instantiateHeader/InstantiateHeader';
+import type { InstantiateHeaderProps } from 'src/features/instantiate/instantiateHeader/PartySelectionHeader';
 
 describe('InstantiateHeader', () => {
   it('should not show organisation name when profile has party, and party has organisation with name', async () => {
@@ -54,6 +54,6 @@ const render = async (props: Partial<InstantiateHeaderProps> = {}) => {
   };
 
   await renderWithoutInstanceAndLayout({
-    renderer: () => <InstantiateHeader {...allProps} />,
+    renderer: () => <PartySelectionHeader {...allProps} />,
   });
 };

@@ -9,8 +9,8 @@ import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
 import { LayoutStyle } from 'src/layout/common.generated';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { AppQueries } from 'src/http-client/types';
 import type { IRawOption } from 'src/layout/common.generated';
-import type { AppQueries } from 'src/queries/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const twoOptions: IRawOption[] = [

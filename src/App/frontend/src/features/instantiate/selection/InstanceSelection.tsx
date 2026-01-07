@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import { PencilIcon } from '@navikt/aksel-icons';
@@ -9,21 +8,18 @@ import { Pagination } from 'src/app-components/Pagination/Pagination';
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import {
-  ActiveInstancesProvider,
-  useActiveInstances,
-} from 'src/features/instantiate/selection/ActiveInstancesProvider';
+import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useActiveInstancesQuery } from 'src/features/instantiate/selection/ActiveInstancesProvider';
 import classes from 'src/features/instantiate/selection/InstanceSelection.module.css';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
+import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
-import { focusMainContent } from 'src/hooks/useNavigatePage';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
 import type { ISimpleInstance } from 'src/types';
@@ -42,26 +38,27 @@ function getDateDisplayString(timeStamp: string) {
 }
 
 export const InstanceSelectionWrapper = () => (
-  <ActiveInstancesProvider>
-    <PresentationComponent showNavigation={false}>
+  <OrgsProvider>
+    <PresentationComponent>
       <InstanceSelection />
     </PresentationComponent>
-  </ActiveInstancesProvider>
+  </OrgsProvider>
 );
 
-function InstanceSelection() {
-  const _instances = useActiveInstances();
-  const applicationMetadata = useApplicationMetadata();
-  const instanceSelectionOptions = applicationMetadata?.onEntry.instanceSelection;
+export function InstanceSelection() {
+  const { data } = useActiveInstancesQuery();
+
+  const _instances = data ?? [];
+
+  const applicationMetadata = getApplicationMetadata();
+  const instanceSelectionOptions = applicationMetadata?.onEntry?.instanceSelection;
   const selectedIndex = instanceSelectionOptions?.defaultSelectedOption;
   const { langAsString } = useLanguage();
   const mobileView = useIsMobileOrTablet();
   const rowsPerPageOptions = instanceSelectionOptions?.rowsPerPageOptions ?? [10, 25, 50];
   const instantiation = useInstantiation();
   const selectedParty = useSelectedParty();
-  const setNavigationEffect = useSetNavigationEffect();
-  const { performProcess, isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
-  const navigate = useNavigate();
+  const { isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
 
   const appName = useAppName();
   const appOwner = useAppOwner();
@@ -75,6 +72,8 @@ function InstanceSelection() {
 
   const instances = instanceSelectionOptions?.sortDirection === 'desc' ? [..._instances].reverse() : _instances;
   const paginatedInstances = instances.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+
+  const { doInstantiate } = useAppMutations();
 
   function handleRowsPerPageChanged(newRowsPerPage: number) {
     setRowsPerPage(newRowsPerPage);
@@ -117,8 +116,8 @@ function InstanceSelection() {
                     variant='tertiary'
                     color='second'
                     icon={true}
-                    onClick={(ev) => openInstance(instance.id, ev, navigate, setNavigationEffect)}
-                    onMouseDown={(ev) => openInstance(instance.id, ev, navigate, setNavigationEffect)}
+                    onClick={(ev) => openInstance(instance.id, ev)}
+                    onMouseDown={(ev) => openInstance(instance.id, ev)}
                     aria-label={`${langAsString('instance_selection.continue')}`}
                   >
                     <PencilIcon fontSize='1rem' />
@@ -185,7 +184,7 @@ function InstanceSelection() {
                   <Button
                     variant='tertiary'
                     color='second'
-                    onClick={(ev) => openInstance(instance.id, ev, navigate, setNavigationEffect)}
+                    onClick={(ev) => openInstance(instance.id, ev)}
                   >
                     <Lang id='instance_selection.continue' />
                     <PencilIcon
@@ -259,21 +258,12 @@ function InstanceSelection() {
               disabled={isAnyProcessing}
               isLoading={isLoading}
               size='md'
-              onClick={() =>
-                performProcess(async () => {
-                  if (selectedParty) {
-                    await instantiation.instantiate(selectedParty.partyId, {
-                      force: true,
-                      onSuccess: (data) =>
-                        setNavigationEffect({
-                          targetLocation: `/instance/${data.id}`,
-                          matchStart: true,
-                          callback: focusMainContent,
-                        }),
-                    });
-                  }
-                })
-              }
+              onClick={async () => {
+                if (selectedParty) {
+                  const data = await doInstantiate(selectedParty.partyId);
+                  window.location.href = `/${window.org}/${window.app}/instance/${data.id}`;
+                }
+              }}
               id='new-instance-button'
             >
               <Lang id='instance_selection.new_instance' />
@@ -308,14 +298,9 @@ const openInTab = (url: string, originalEvent: React.MouseEvent<HTMLButtonElemen
 
 /**
  * Opens the instance in a new tab if the user holds down ctrl or meta (cmd) while clicking, otherwise
- * behaves like a normal link.
+ * navigates to the instance with a full page reload.
  */
-const openInstance = (
-  instanceId: string,
-  originalEvent: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-  navigate: ReturnType<typeof useNavigate>,
-  setNavigationEffect: ReturnType<typeof useSetNavigationEffect>,
-) => {
+const openInstance = (instanceId: string, originalEvent: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
   if (originalEvent.ctrlKey || originalEvent.metaKey || originalEvent.button === 1) {
     originalEvent.stopPropagation();
     originalEvent.preventDefault();
@@ -327,10 +312,5 @@ const openInstance = (
     return;
   }
 
-  setNavigationEffect({
-    targetLocation: `/instance/${instanceId}`,
-    matchStart: true,
-    callback: focusMainContent,
-  });
-  navigate(`/instance/${instanceId}`);
+  window.location.href = `/${window.org}/${window.app}/instance/${instanceId}`;
 };

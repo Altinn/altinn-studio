@@ -5,8 +5,8 @@ import type { MutateOptions } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
-import { instanceQueries } from 'src/features/instance/InstanceContext';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { instanceQueries } from 'src/domain/Instance/useInstanceQuery';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import type { IInstance } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 

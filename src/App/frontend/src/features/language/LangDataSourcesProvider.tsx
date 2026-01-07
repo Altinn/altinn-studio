@@ -1,73 +1,83 @@
-import { useEffect } from 'react';
-import type { PropsWithChildren } from 'react';
+// export type LimitedTextResourceVariablesDataSources = Omit<
+//   TextResourceVariablesDataSources,
+//   'node' | 'defaultDataType' | 'formDataTypes' | 'formDataSelector' | 'transposeSelector'
+// >;
+// export interface LangDataSources extends LimitedTextResourceVariablesDataSources {
+//   textResources: TextResourceMap;
+//   selectedLanguage: string;
+//   language: FixedLanguageList;
+// }
+//
+// interface Context {
+//   dataSources: LangDataSources | undefined;
+//   setDataSources: React.Dispatch<React.SetStateAction<LangDataSources | undefined>>;
+// }
 
-import { ContextNotProvided } from 'src/core/contexts/context';
-import { useLaxApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
-import { useDataModelReaders } from 'src/features/formData/FormDataReaders';
-import { useInstanceDataSources } from 'src/features/instance/InstanceContext';
-import { useLangToolsDataSources, useSetLangToolsDataSources } from 'src/features/language/LangToolsStore';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
-import { type FixedLanguageList, getLanguageFromCode } from 'src/language/languages';
-import type { TextResourceMap } from 'src/features/language/textResources';
-import type { TextResourceVariablesDataSources } from 'src/features/language/useLanguage';
-import type { IApplicationSettings } from 'src/types/shared';
+// const { Provider, useCtx } = createContext<Context>({
+//   name: 'LangDataSourcesProvider',
+//   required: true,
+// });
 
-export type LimitedTextResourceVariablesDataSources = Omit<
-  TextResourceVariablesDataSources,
-  'node' | 'defaultDataType' | 'formDataTypes' | 'formDataSelector' | 'transposeSelector'
->;
-export interface LangDataSources extends LimitedTextResourceVariablesDataSources {
-  textResources: TextResourceMap;
-  selectedLanguage: string;
-  language: FixedLanguageList;
-}
+// export const LangDataSourcesProvider = ({ children }: PropsWithChildren) => {
+//   const textResources = useTextResources();
+//   const selectedAppLanguage = useCurrentLanguage();
+//   const dataModels = useDataModelReaders();
+//   const applicationSettings = useLaxApplicationSettings();
+//   const instanceDataSources = useInstanceDataSources();
+//   const [dataSources, setDataSources] = useStateDeepEqual<LangDataSources | undefined>(undefined);
+//
+//   // This LangDataSourcesProvider is re-rendered very often, and will always 'move' around in the DOM tree wherever
+//   // RenderStart is rendered. This means that we cannot rely on the memoization of the data sources, as the hooks
+//   // will all run as if they were new hooks. That's why we take extra care to only update the data sources if
+//   // something has changed.
+//   useEffect(() => {
+//     setDataSources((prev) => {
+//       if (
+//         prev?.selectedLanguage === selectedAppLanguage &&
+//         prev?.textResources === textResources &&
+//         prev?.dataModels === dataModels &&
+//         prev?.applicationSettings === applicationSettings &&
+//         prev?.instanceDataSources === instanceDataSources
+//       ) {
+//         return prev;
+//       }
+//
+//       return {
+//         textResources,
+//         language: getLanguageFromCode(selectedAppLanguage),
+//         selectedLanguage: selectedAppLanguage,
+//         dataModels,
+//         applicationSettings,
+//         instanceDataSources,
+//         customTextParameters: null,
+//         dataSources,
+//       };
+//     });
+//   }, [
+//     textResources,
+//     selectedAppLanguage,
+//     dataModels,
+//     applicationSettings,
+//     instanceDataSources,
+//     setDataSources,
+//     dataSources,
+//   ]);
+//
+//   if (!dataSources) {
+//     // We cannot render <Loader /> here, as that would lead to an infinite loop
+//     return null;
+//   }
+//
+//   return (
+//     <Provider
+//       value={{
+//         dataSources,
+//         setDataSources,
+//       }}
+//     >
+//       {children}
+//     </Provider>
+//   );
+// };
 
-const emptyObject = {};
-
-export const LangDataSourcesProvider = ({ children }: PropsWithChildren) => {
-  const textResources = useTextResources();
-  const selectedAppLanguage = useCurrentLanguage();
-  const dataModels = useDataModelReaders();
-  const _applicationSettings = useLaxApplicationSettings();
-  const applicationSettings: IApplicationSettings =
-    _applicationSettings === ContextNotProvided ? emptyObject : _applicationSettings;
-  const instanceDataSources = useInstanceDataSources();
-  const setDataSources = useSetLangToolsDataSources();
-
-  // This LangDataSourcesProvider is re-rendered very often, and will always 'move' around in the DOM tree wherever
-  // RenderStart is rendered. This means that we cannot rely on the memoization of the data sources, as the hooks
-  // will all run as if they were new hooks. That's why we take extra care to only update the data sources if
-  // something has changed.
-  useEffect(() => {
-    setDataSources((prev) => {
-      if (
-        prev?.selectedLanguage === selectedAppLanguage &&
-        prev?.textResources === textResources &&
-        prev?.dataModels === dataModels &&
-        prev?.applicationSettings === applicationSettings &&
-        prev?.instanceDataSources === instanceDataSources
-      ) {
-        return prev;
-      }
-
-      return {
-        textResources,
-        language: getLanguageFromCode(selectedAppLanguage),
-        selectedLanguage: selectedAppLanguage,
-        dataModels,
-        applicationSettings,
-        instanceDataSources,
-        customTextParameters: null,
-      };
-    });
-  }, [textResources, selectedAppLanguage, dataModels, applicationSettings, instanceDataSources, setDataSources]);
-
-  const current = useLangToolsDataSources();
-  if (!current) {
-    // We cannot render <Loader /> here, as that would lead to an infinite loop
-    return null;
-  }
-
-  return children;
-};
+//export const useLangToolsDataSources = () => useCtx().dataSources;

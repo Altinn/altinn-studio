@@ -55,14 +55,19 @@ export const getStatelessDataModelUrl = (dataType: string) =>
   `${appPath}/v1/data?dataType=${dataType}&includeRowId=true`;
 
 export const getStatefulDataModelUrl = (instanceId: string, dataElementId: string) =>
+  // debugger;
   `${appPath}/instances/${instanceId}/data/${dataElementId}?includeRowId=true`;
 
-export const getMultiPatchUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/data`;
+export const getMultiPatchUrl = (instanceId: string) =>
+  //debugger;
+  `${appPath}/instances/${instanceId}/data`;
 
 export const getDataElementIdUrl = (instanceId: string, dataElementId: string) =>
+  //debugger;
   `${appPath}/instances/${instanceId}/data/${dataElementId}`;
 
 export const getDataModelTypeUrl = (instanceId: string, dataType: string) =>
+  //debugger;
   `${appPath}/instances/${instanceId}/data?dataType=${dataType}`;
 
 export const getDataElementUrl = (instanceId: string, dataElementId: string, language: string) =>
@@ -166,7 +171,9 @@ export const getCustomValidationConfigUrl = (dataTypeId: string) => `${appPath}/
 export const getLayoutSettingsUrl = (layoutSetId: string) => `${appPath}/api/layoutsettings/${layoutSetId}`;
 export const getLayoutSetsUrl = () => `${appPath}/api/layoutsets`;
 export const getFooterLayoutUrl = () => `${appPath}/api/v1/footer`;
+export const getFetchFormDynamicsUrl = (layoutSetId: string) => `${appPath}/api/ruleconfiguration/${layoutSetId}`;
 export const getLayoutsUrl = (layoutSetId: string) => `${appPath}/api/layouts/${layoutSetId}`;
+export const getRulehandlerUrl = (layoutSet: string) => `${appPath}/api/rulehandler/${layoutSet}`;
 export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;
 export const getInstanceUiUrl = (instanceId: string) => `${appPath}#/instance/${instanceId}`;
 
