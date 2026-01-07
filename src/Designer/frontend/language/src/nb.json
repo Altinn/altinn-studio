@@ -1711,6 +1711,7 @@
   "ux_editor.component_properties.select_pdf": "Inkluder skjemagenerert pdf",
   "ux_editor.component_properties.sender": "Den som har sendt inn skjemaet",
   "ux_editor.component_properties.severity": "Alvorlighetsgrad",
+  "ux_editor.component_properties.show": "Vis",
   "ux_editor.component_properties.showAddButton": "Vis Legg til-knapp",
   "ux_editor.component_properties.showAsCard": "Vis som kort",
   "ux_editor.component_properties.showBackButton": "Vis Tilbake-knapp",
