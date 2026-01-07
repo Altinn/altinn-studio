@@ -300,7 +300,7 @@ func (s *ClientState) Reconcile(
 		assert.That(len(jwks.Keys) > 0, "JWKS must have at least one key", "appId", s.AppId)
 		secretStateContent := &SecretStateContent{
 			ClientId:  "", // set via the callback below
-			Authority: ensureTrailingSlash(configValue.MaskinportenApi.AuthorityUrl),
+			Authority: EnsureTrailingSlash(configValue.MaskinportenApi.AuthorityUrl),
 			Jwks:      jwks,
 			Jwk:       jwks.Keys[0],
 		}
@@ -335,13 +335,13 @@ func (s *ClientState) Reconcile(
 			assert.That(len(jwks.Keys) > 0, "JWKS must have at least one key", "appId", s.AppId)
 			secretStateContent := &SecretStateContent{
 				ClientId:  s.Api.ClientId,
-				Authority: ensureTrailingSlash(configValue.MaskinportenApi.AuthorityUrl),
+				Authority: EnsureTrailingSlash(configValue.MaskinportenApi.AuthorityUrl),
 				Jwks:      jwks,
 				Jwk:       jwks.Keys[0],
 			}
 			commands = append(commands, NewUpdateSecretContentCommand(secretStateContent))
 		} else {
-			authorityChanged := ensureTrailingSlash(configValue.MaskinportenApi.AuthorityUrl) != s.Secret.Content.Authority
+			authorityChanged := EnsureTrailingSlash(configValue.MaskinportenApi.AuthorityUrl) != s.Secret.Content.Authority
 			scopesChanged := !scopesEqual(s.Crd.Spec.Scopes, s.Api.Req.Scopes)
 			forceRotate := s.Crd.Annotations[AnnotationRotateJwk] == "true"
 
@@ -412,7 +412,7 @@ func (s *ClientState) Reconcile(
 
 				secretStateContent := &SecretStateContent{
 					ClientId:  s.Api.ClientId,
-					Authority: ensureTrailingSlash(configValue.MaskinportenApi.AuthorityUrl),
+					Authority: EnsureTrailingSlash(configValue.MaskinportenApi.AuthorityUrl),
 					Jwks:      jwks,
 					Jwk:       jwks.Keys[0],
 				}
@@ -437,10 +437,10 @@ func scopesEqual(a, b []string) bool {
 	return reflect.DeepEqual(a, b)
 }
 
-// ensureTrailingSlash ensures the URL ends with a trailing slash.
+// EnsureTrailingSlash ensures the URL ends with a trailing slash.
 // Maskinporten requires the audience claim to match the issuer exactly,
 // which includes the trailing slash.
-func ensureTrailingSlash(url string) string {
+func EnsureTrailingSlash(url string) string {
 	if strings.HasSuffix(url, "/") {
 		return url
 	}

@@ -292,10 +292,11 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 			w.Header().Add("Content-Type", "application/json")
 			encoder := json.NewEncoder(w)
 			issuer := state.GetExpectedAudience() // Issuer must have trailing slash
+			baseUrl := strings.TrimSuffix(issuer, "/")
 			err := encoder.Encode(maskinporten.WellKnownResponse{
-				Issuer:                            issuer,
-				TokenEndpoint:                     strings.TrimSuffix(issuer, "/") + "/token",
-				JwksURI:                           strings.TrimSuffix(issuer, "/") + "/jwks",
+				Issuer:        issuer,
+				TokenEndpoint: baseUrl + "/token",
+				JwksURI:       baseUrl + "/jwks",
 				TokenEndpointAuthMethodsSupported: []string{"private_key_jwt"},
 				GrantTypesSupported:               []string{"urn:ietf:params:oauth:grant-type:jwt-bearer"},
 				TokenEndpointAuthSigningAlgValuesSupported: crypto.SignatureAlgorithmsStr,
