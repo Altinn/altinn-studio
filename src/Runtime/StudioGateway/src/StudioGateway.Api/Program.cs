@@ -1,4 +1,3 @@
-using System.Net.Http.Headers;
 using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.Query.Logs;
@@ -38,7 +37,11 @@ builder.Configuration.AddJsonFile(
     reloadOnChange: true
 );
 builder.Configuration.AddJsonFile("/app/secrets/grafana-token.json", optional: true, reloadOnChange: true);
-builder.Services.Configure<GrafanaSettings>(builder.Configuration.GetSection("Grafana"));
+builder
+    .Services.AddOptions<GrafanaSettings>()
+    .Bind(builder.Configuration.GetSection("Grafana"))
+    .Validate(settings => !string.IsNullOrWhiteSpace(settings.Token), "Grafana settings validation failed. Grafana Token is required.")
+    .ValidateOnStart();
 builder.Services.Configure<GatewayContext>(builder.Configuration.GetSection("Gateway"));
 builder.Services.Configure<AlertsClientSettings>(builder.Configuration.GetSection("AlertsClientSettings"));
 builder.Services.Configure<MetricsClientSettings>(builder.Configuration.GetSection("MetricsClientSettings"));
@@ -79,8 +82,8 @@ builder
         "grafana",
         (serviceProvider, httpClient) =>
         {
-            var grafanaUrl = builder.Configuration.GetSection("Grafana:Url")?.Value ?? string.Empty;
-            httpClient.BaseAddress = new Uri(grafanaUrl);
+            var settings = serviceProvider.GetRequiredService<IOptionsMonitor<GrafanaSettings>>().CurrentValue;
+            httpClient.BaseAddress = settings.Url;
         }
     )
     .AddHttpMessageHandler<GrafanaAuthenticationHandler>();

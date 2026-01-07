@@ -35,7 +35,7 @@ internal static class DesignerClientRegistration
                 });
         }
 
-        services.AddScoped<DesignerClient>();
+        services.AddSingleton<DesignerClient>();
 
         return services;
     }
