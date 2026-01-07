@@ -20,8 +20,8 @@ public interface IBootstrapInstanceService
     Task<BootstrapInstanceResponse> GetInitialData(
         string org,
         string app,
-        string? instanceId = null,
-        int? partyId = null,
+        string instanceId,
+        int partyId,
         string? language = null,
         CancellationToken cancellationToken = default
     );

@@ -48,15 +48,14 @@ public class HomeController : Controller
     /// <param name="appResources">The application resources service</param>
     /// <param name="appMetadata">The application metadata service</param>
     /// <param name="bootstrapInstanceService">The initial data service</param>
+    /// <param name="bootstrapGlobalService"></param>
     /// <param name="generalSettings">The general settings</param>
     /// <param name="authenticationContext">The authentication context service</param>
     /// <param name="instanceClient">The instance client service</param>
     /// <param name="logger">The logger</param>
     public HomeController(
         IAntiforgery antiforgery,
-        IOptions<PlatformSettings> platformSettings,
         IWebHostEnvironment env,
-        IOptions<AppSettings> appSettings,
         IAppResources appResources,
         IAppMetadata appMetadata,
         IBootstrapInstanceService bootstrapInstanceService,
@@ -571,8 +570,8 @@ public class HomeController : Controller
     public async Task<IActionResult> DebugInitialData(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromQuery] string? instanceId = null,
-        [FromQuery] int? partyId = null,
+        [FromQuery] string instanceId,
+        [FromQuery] int partyId,
         [FromQuery] string? language = null
     )
     {

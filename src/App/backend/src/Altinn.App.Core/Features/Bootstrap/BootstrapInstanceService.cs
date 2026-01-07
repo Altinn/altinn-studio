@@ -1,282 +1,151 @@
-using System.Diagnostics;
-using System.Globalization;
 using System.Text.Json;
-using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
-using Altinn.App.Core.Internal.Language;
-using Altinn.App.Core.Internal.Process;
-using Altinn.App.Core.Internal.Profile;
-using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Profile.Enums;
-using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Features.Bootstrap;
 
 /// <summary>
 /// Service responsible for aggregating all initial data required for application bootstrap.
 /// </summary>
-internal sealed class BootstrapInstanceService : IBootstrapInstanceService
+internal sealed class BootstrapInstanceService(IAppResources appResources, IInstanceClient instanceClient)
+    : IBootstrapInstanceService
 {
-    private readonly IAppResources _appResources;
-    private readonly IInstanceClient _instanceClient;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IAuthenticationContext _authenticationContext;
-    private readonly IProcessStateService _processStateService;
-    private readonly IApplicationLanguage _applicationLanguage;
-    private readonly AppSettings _appSettings;
-    private readonly PlatformSettings _platformSettings;
-    private readonly GeneralSettings _generalSettings;
-    private readonly FrontEndSettings _frontEndSettings;
-
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="BootstrapInstanceService"/> class.
-    /// </summary>
-    public BootstrapInstanceService(
-        IAppMetadata appMetadata,
-        IAppResources appResources,
-        IInstanceClient instanceClient,
-        IProfileClient profileClient,
-        IRegisterClient registerClient,
-        IHttpContextAccessor httpContextAccessor,
-        IAuthenticationContext authenticationContext,
-        IProcessStateService processStateService,
-        IApplicationLanguage applicationLanguage,
-        IOptions<AppSettings> appSettings,
-        IOptions<PlatformSettings> platformSettings,
-        IOptions<GeneralSettings> generalSettings,
-        IOptions<FrontEndSettings> frontEndSettings
-    )
-    {
-        _appResources = appResources;
-        _instanceClient = instanceClient;
-        _httpContextAccessor = httpContextAccessor;
-        _authenticationContext = authenticationContext;
-        _processStateService = processStateService;
-        _applicationLanguage = applicationLanguage;
-        _appSettings = appSettings.Value;
-        _platformSettings = platformSettings.Value;
-        _generalSettings = generalSettings.Value;
-        _frontEndSettings = frontEndSettings.Value;
-    }
 
     /// <inheritdoc />
     public async Task<BootstrapInstanceResponse> GetInitialData(
         string org,
         string app,
         string instanceId,
-        int? partyId = null,
+        int partyId,
         string? language = null,
         CancellationToken cancellationToken = default
     )
     {
-        var response = new BootstrapInstanceResponse();
-        var tasks = new List<Task>();
-        // Get instance data if applicable
-        Instance? instance = null;
+        // Get instance if instanceId is provided
+        var instance = !string.IsNullOrEmpty(instanceId) ? await GetInstance(org, app, instanceId) : null;
 
-        // TODO: hva skal skje om det ikke finnes en instans, error?
-        if (!string.IsNullOrEmpty(instanceId))
+        var taskId = instance?.Process?.CurrentTask?.ElementId;
+
+        // Start tasks in parallel
+        var footerLayoutTask = GetFooterLayout();
+
+        // Get layout data (synchronous operations)
+        var layoutSets = GetLayoutSets();
+        var layout = GetLayoutForTask(taskId);
+
+        // Await async task
+        var footerLayout = await footerLayoutTask;
+
+        // Build response immutably
+        return new BootstrapInstanceResponse
         {
-            var instanceGuid = ParseInstanceGuid(instanceId);
-            var instanceOwnerPartyId = ParseInstanceOwnerPartyId(instanceId);
-            instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId.Value, instanceGuid.Value);
-            response.Instance = instance;
-        }
-
-        // Get layout sets and initial layout
-        var layoutTask = GetLayoutData(org, app, response, instance?.Process?.CurrentTask?.ElementId);
-        tasks.Add(layoutTask);
-
-        // Get footer layout
-        var footerTask = GetFooterLayout(response);
-        tasks.Add(footerTask);
-
-        // Wait for all tasks to complete
-        await Task.WhenAll(tasks);
-
-        // Set frontend settings
-        FrontEndSettings frontEndSettings = _frontEndSettings;
-
-        response.FrontendSettings = frontEndSettings;
-
-        // Set feature flags from frontend settings
-        response.FeatureFlags = GetFeatureFlags();
-
-        return response;
+            Instance = instance,
+            LayoutSets = layoutSets,
+            Layout = layout,
+            FooterLayout = footerLayout,
+        };
     }
 
-    private Task GetLayoutData(string org, string app, BootstrapInstanceResponse response, string? taskId)
+    private async Task<Instance?> GetInstance(string org, string app, string instanceId)
+    {
+        var instanceOwnerPartyId = ParseInstanceOwnerPartyId(instanceId);
+        var instanceGuid = ParseInstanceGuid(instanceId);
+
+        if (!instanceOwnerPartyId.HasValue || !instanceGuid.HasValue)
+        {
+            return null;
+        }
+
+        return await instanceClient.GetInstance(app, org, instanceOwnerPartyId.Value, instanceGuid.Value);
+    }
+
+    private LayoutSets? GetLayoutSets()
     {
         try
         {
-            // Get layout sets
-            var layoutSetsJson = _appResources.GetLayoutSets();
-            if (!string.IsNullOrEmpty(layoutSetsJson))
-            {
-                response.LayoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsJson, _jsonSerializerOptions);
-            }
-
-            // Get layout settings
-            var layoutSettingsJson = _appResources.GetLayoutSettingsString();
-            if (!string.IsNullOrEmpty(layoutSettingsJson))
-            {
-                response.LayoutSettings = JsonSerializer.Deserialize<object>(
-                    layoutSettingsJson,
-                    _jsonSerializerOptions
-                );
-            }
-
-            // Get initial layout if available
-            // var initialLayoutSetId = (
-            //     !string.IsNullOrEmpty(taskId)
-            //         ? response.LayoutSets?.Sets?.FirstOrDefault(s => s.Id == taskId)
-            //         : response.LayoutSets?.Sets?.FirstOrDefault()
-            // )?.Id;
-            //
-            //
-
-            if (!string.IsNullOrEmpty(taskId))
-            {
-                var currentLayoutSet = _appResources.GetLayoutSetForTask(taskId);
-                if (currentLayoutSet != null)
-                {
-                    var layoutJson = _appResources.GetLayoutsForSet(currentLayoutSet.Id);
-                    if (!string.IsNullOrEmpty(layoutJson))
-                    {
-                        response.Layout = JsonSerializer.Deserialize<object>(layoutJson, _jsonSerializerOptions);
-                    }
-                }
-            }
-
-            // Debugger.Break();
-            // if (!string.IsNullOrEmpty(initialLayoutSetId))
-            // {
-            //     var layoutJson = _appResources.GetLayoutsForSet(initialLayoutSetId);
-            //     if (!string.IsNullOrEmpty(layoutJson))
-            //     {
-            //         response.Layout = JsonSerializer.Deserialize<object>(layoutJson, _jsonSerializerOptions);
-            //     }
-            // }
+            var layoutSetsJson = appResources.GetLayoutSets();
+            return string.IsNullOrEmpty(layoutSetsJson)
+                ? null
+                : JsonSerializer.Deserialize<LayoutSets>(layoutSetsJson, _jsonSerializerOptions);
         }
         catch
         {
-            // Log error but don't fail the entire request
+            return null;
         }
-
-        return Task.CompletedTask;
     }
 
-    private string GetLanguageFromContext()
+    private object? GetLayoutSettings()
     {
-        var acceptLanguageHeader = _httpContextAccessor.HttpContext?.Request.Headers["Accept-Language"].ToString();
-        if (!string.IsNullOrEmpty(acceptLanguageHeader))
+        try
         {
-            var languages = acceptLanguageHeader.Split(',');
-            foreach (var lang in languages)
+            var layoutSettingsJson = appResources.GetLayoutSettingsString();
+            return string.IsNullOrEmpty(layoutSettingsJson)
+                ? null
+                : JsonSerializer.Deserialize<object>(layoutSettingsJson, _jsonSerializerOptions);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private object? GetLayoutForTask(string? taskId)
+    {
+        if (string.IsNullOrEmpty(taskId))
+        {
+            return null;
+        }
+
+        try
+        {
+            var currentLayoutSet = appResources.GetLayoutSetForTask(taskId);
+            if (currentLayoutSet == null)
             {
-                var cleanLang = lang.Split(';')[0].Trim().Substring(0, 2).ToLower(CultureInfo.InvariantCulture);
-                if (_generalSettings.LanguageCodes?.Contains(cleanLang) == true)
-                {
-                    return cleanLang;
-                }
+                return null;
             }
+
+            var layoutJson = appResources.GetLayoutsForSet(currentLayoutSet.Id);
+            return string.IsNullOrEmpty(layoutJson)
+                ? null
+                : JsonSerializer.Deserialize<object>(layoutJson, _jsonSerializerOptions);
         }
-        return "nb"; // Default to Norwegian Bokmål
-    }
-
-    private async Task<List<Altinn.App.Core.Models.ApplicationLanguage>> GetAvailableLanguages()
-    {
-        return await _applicationLanguage.GetApplicationLanguages();
-    }
-
-    // TODO fjerne støtte for Feature Flag i første v10? Re-implementere flag ved behov, om behovet kommer.
-    private Dictionary<string, bool> GetFeatureFlags()
-    {
-        var flags = new Dictionary<string, bool>();
-
-        // Add feature flags from FrontEndSettings
-        if (_frontEndSettings != null)
+        catch
         {
-            // Add any frontend feature flags here
-            // For example:
-            // flags["enableNewFeature"] = _frontEndSettings.EnableNewFeature;
+            return null;
         }
-
-        return flags;
     }
 
-    private static Task<bool> IsStatelessApp(ApplicationMetadata? applicationMetadata)
+    private async Task<object?> GetFooterLayout()
     {
-        if (applicationMetadata?.OnEntry == null)
+        try
         {
-            return Task.FromResult(false);
+            var footerJson = await appResources.GetFooter();
+            return string.IsNullOrEmpty(footerJson)
+                ? null
+                : JsonSerializer.Deserialize<object>(footerJson, _jsonSerializerOptions);
         }
-
-        var onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
-        return Task.FromResult(!onEntryWithInstance.Contains(applicationMetadata.OnEntry.Show));
+        catch
+        {
+            return null;
+        }
     }
 
     private static int? ParseInstanceOwnerPartyId(string instanceId)
     {
         var parts = instanceId.Split('/');
-        if (parts.Length >= 1 && int.TryParse(parts[0], out var partyId))
-        {
-            return partyId;
-        }
-        return null;
+        return parts.Length >= 1 && int.TryParse(parts[0], out var partyId) ? partyId : null;
     }
 
     private static Guid? ParseInstanceGuid(string instanceId)
     {
         var parts = instanceId.Split('/');
-        if (parts.Length >= 2 && Guid.TryParse(parts[1], out var guid))
-        {
-            return guid;
-        }
-        return null;
-    }
-
-    private async Task<bool> CanPartyInstantiate(int partyId)
-    {
-        var currentAuth = _authenticationContext.Current;
-
-        if (currentAuth is not Authenticated.User auth)
-        {
-            throw new UnauthorizedAccessException(
-                "User must be authenticated as a regular user to check instantiation permissions"
-            );
-        }
-
-        var details = await auth.LoadDetails(validateSelectedParty: false);
-        return details.CanInstantiateAsParty(partyId);
-    }
-
-    private async Task GetFooterLayout(BootstrapInstanceResponse response)
-    {
-        try
-        {
-            var footerJson = await _appResources.GetFooter();
-            if (!string.IsNullOrEmpty(footerJson))
-            {
-                response.FooterLayout = JsonSerializer.Deserialize<object>(footerJson, _jsonSerializerOptions);
-            }
-        }
-        catch
-        {
-            // Log error but don't fail the entire request
-        }
+        return parts.Length >= 2 && Guid.TryParse(parts[1], out var guid) ? guid : null;
     }
 }

@@ -18,8 +18,7 @@ internal sealed class BootstrapGlobalService(
     IProfileClient profileClient,
     IHttpContextAccessor httpContextAccessor,
     IApplicationLanguage applicationLanguage,
-    IOptions<GeneralSettings> generalSettings,
-    IOptions<FrontEndSettings> frontEndSettings
+    IOptions<GeneralSettings> generalSettings
 ) : IBootstrapGlobalService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
