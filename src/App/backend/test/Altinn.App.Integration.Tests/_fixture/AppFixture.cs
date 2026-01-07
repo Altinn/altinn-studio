@@ -435,7 +435,7 @@ public sealed partial class AppFixture : IAsyncDisposable
             logger.LogInformation("Building app container image");
 
             var appDirectory = GetAppDir(name);
-            await Task.WhenAll(SyncPackages(name), SyncShared(name), SyncFrontend(name));
+            await Task.WhenAll(SyncPackages(name), SyncShared(name), SyncFrontend(name, logger));
 
             var appBuilder = new ImageFromDockerfileBuilder()
                 .WithName($"applib-{name}:latest")
@@ -852,7 +852,7 @@ public sealed partial class AppFixture : IAsyncDisposable
         }
     }
 
-    private static async Task SyncFrontend(string name)
+    private static async Task SyncFrontend(string name, ILogger logger)
     {
         var appDirectory = GetAppDir(name);
         var frontendSourceDirectory = Path.Join(_rootDirectory, "App", "frontend", "dist");
@@ -861,15 +861,19 @@ public sealed partial class AppFixture : IAsyncDisposable
             Directory.Delete(appFrontendDirectory, true);
         Directory.CreateDirectory(appFrontendDirectory);
 
-        List<string> filesToCopy = ["altinn-app-frontend.js", "altinn-app-frontend.css"];
-        foreach (var file in Directory.GetFiles(frontendSourceDirectory))
+        List<string> fileNamesToCopy = ["altinn-app-frontend.js", "altinn-app-frontend.css"];
+        var directoryFiles = Directory.GetFiles(frontendSourceDirectory);
+        foreach (var fileName in fileNamesToCopy)
         {
-            if (!filesToCopy.Contains(Path.GetFileName(file)))
-                continue;
+            string sourceFile =
+                directoryFiles.FirstOrDefault(df => Path.GetFileName(df) == fileName)
+                ?? throw new FileNotFoundException(
+                    $"Expected frontend file '{fileName}' not found in '{frontendSourceDirectory}'. Make sure the frontend has been built (cd src/App/frontend && yarn run build) before running these tests."
+                );
 
-            var fileName = Path.GetFileName(file);
             var destFile = Path.Join(appFrontendDirectory, fileName);
-            await using var source = File.OpenRead(file);
+            logger.LogInformation("Copying {SourceFile} to {DestFile}", sourceFile, destFile);
+            await using var source = File.OpenRead(sourceFile);
             await using var destination = File.Create(destFile);
             await source.CopyToAsync(destination);
         }
