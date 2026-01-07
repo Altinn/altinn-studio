@@ -3,6 +3,7 @@ package fakes
 import (
 	"encoding/json"
 	"log"
+	"strings"
 	"sync"
 
 	"altinn.studio/operator/internal/config"
@@ -34,6 +35,16 @@ func (s *State) GetDb() *Db {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	return s.db
+}
+
+// GetExpectedAudience returns the authority URL with trailing slash.
+// Maskinporten requires the audience claim to match the issuer exactly.
+func (s *State) GetExpectedAudience() string {
+	url := s.cfg.MaskinportenApi.AuthorityUrl
+	if strings.HasSuffix(url, "/") {
+		return url
+	}
+	return url + "/"
 }
 
 func (s *State) initDb() *Db {

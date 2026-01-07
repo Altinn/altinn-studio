@@ -234,6 +234,15 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 				log.Printf("invalid issuer: %s\n", clientId)
 				return
 			}
+
+			// Validate audience - must match our issuer (with trailing slash)
+			expectedAudience := state.GetExpectedAudience()
+			hasValidAudience := slices.Contains(claims.Audience, expectedAudience)
+			if !hasValidAudience {
+				w.WriteHeader(400)
+				log.Printf("invalid audience claim: expected %s, got %v (MP-110)\n", expectedAudience, claims.Audience)
+				return
+			}
 			if claims.Scope == "" {
 				w.WriteHeader(400)
 				log.Printf("missing scope\n")
@@ -282,10 +291,11 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 			}
 			w.Header().Add("Content-Type", "application/json")
 			encoder := json.NewEncoder(w)
+			issuer := state.GetExpectedAudience() // Issuer must have trailing slash
 			err := encoder.Encode(maskinporten.WellKnownResponse{
-				Issuer:                            "http://localhost:8050",
-				TokenEndpoint:                     "http://localhost:8050/token",
-				JwksURI:                           "http://localhost:8050/jwks",
+				Issuer:                            issuer,
+				TokenEndpoint:                     strings.TrimSuffix(issuer, "/") + "/token",
+				JwksURI:                           strings.TrimSuffix(issuer, "/") + "/jwks",
 				TokenEndpointAuthMethodsSupported: []string{"private_key_jwt"},
 				GrantTypesSupported:               []string{"urn:ietf:params:oauth:grant-type:jwt-bearer"},
 				TokenEndpointAuthSigningAlgValuesSupported: crypto.SignatureAlgorithmsStr,
