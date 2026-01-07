@@ -1,19 +1,9 @@
-export type Action =
-  | 'read'
-  | 'write'
-  | 'delete'
-  | 'confirm'
-  | 'sign'
-  | 'instantiate'
-  | 'reject'
-  | 'pay'
-  | 'complete';
-
 export type PolicyRule = {
   ruleId: string;
   description: string;
   subject: Array<string>;
-  actions: Action[];
+  actions: string[];
+  accessPackages?: string[];
   resources: Array<string[]>;
 };
 
