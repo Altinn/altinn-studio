@@ -1,0 +1,34 @@
+# Container images for studioctl
+# This file is embedded in the binary and copied to ~/.altinn-studio/config.yaml during install
+# Renovate will automatically update image tags in the repository version
+
+images:
+  core:
+    localtest:
+      image: ghcr.io/altinn/altinn-studio/runtime-localtest
+      tag: latest
+    pdf3:
+      image: ghcr.io/altinn/altinn-studio/runtime-pdf3-worker
+      tag: latest
+
+  monitoring:
+    tempo:
+      image: grafana/tempo
+      tag: "2.4.1"
+    mimir:
+      image: grafana/mimir
+      tag: "2.12.0"
+    loki:
+      image: grafana/loki
+      tag: "3.0.0"
+    otel-collector:
+      image: otel/opentelemetry-collector-contrib
+      tag: "0.98.0"
+    grafana:
+      image: grafana/grafana
+      tag: "10.4.2"
+
+  utility:
+    busybox:
+      image: busybox
+      tag: stable
