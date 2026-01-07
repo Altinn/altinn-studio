@@ -31,11 +31,9 @@ import {
 
 import classes from './InstanceDataView.module.css';
 import {
-  type ProcessDataType,
-  useProcessDataTypesQuery,
-} from 'admin/hooks/queries/useProcessDataTypesQuery';
-import { useAppProcessTasksQuery } from 'admin/hooks/queries/useAppProcessTasksQuery';
-import { type ProcessTask } from 'admin/types/ProcessTask';
+  type ProcessTaskMetadata,
+  useProcessMetadataQuery,
+} from 'admin/hooks/queries/useProcessMetadataQuery';
 
 type InstanceDataViewProps = {
   org: string;
@@ -50,8 +48,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
   const { data, status } = useReduceQueries(
     useAppInstanceDetailsQuery(org, env, app, id),
     useAppMetadataQuery(org, env, app),
-    useProcessDataTypesQuery(org, env, app),
-    useAppProcessTasksQuery(org, env, app),
+    useProcessMetadataQuery(org, env, app),
   );
 
   switch (status) {
@@ -60,7 +57,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
     case 'error':
       return <StudioError>{t('general.page_error_title')}</StudioError>;
     case 'success': {
-      const [instanceDetails, appMetadata, processDataTypes, processTasks] = data;
+      const [instanceDetails, appMetadata, processMetadata] = data;
 
       return (
         <InstanceDataViewWithData
@@ -70,8 +67,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
           id={id}
           instance={instanceDetails}
           appMetadata={appMetadata}
-          processDataTypes={processDataTypes}
-          processTasks={processTasks}
+          processMetadata={processMetadata}
         />
       );
     }
@@ -81,8 +77,7 @@ export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) =
 type InstanceDataViewWithDataProps = InstanceDataViewProps & {
   instance: SimpleInstanceDetails;
   appMetadata: ApplicationMetadata;
-  processDataTypes: ProcessDataType[];
-  processTasks: ProcessTask[];
+  processMetadata: ProcessTaskMetadata[];
 };
 
 enum InstanceDataViewTabs {
@@ -100,8 +95,7 @@ const InstanceDataViewWithData = ({
   // id,
   instance,
   appMetadata,
-  processDataTypes,
-  processTasks,
+  processMetadata,
 }: InstanceDataViewWithDataProps) => {
   const { t } = useTranslation();
   const [tab, setTab] = useQueryParamState<string>('section', InstanceDataViewTabs.Info);
@@ -151,8 +145,7 @@ const InstanceDataViewWithData = ({
         <DataElementGroups
           dataElements={instance.data}
           appMetadata={appMetadata}
-          processDataTypes={processDataTypes}
-          processTasks={processTasks}
+          processMetadata={processMetadata}
         />
       </StudioTabs.Panel>
       {/*
@@ -182,13 +175,11 @@ const LabelValue = ({ label, children }: PropsWithChildren<{ label: string }>) =
 const DataElementGroups = ({
   dataElements,
   appMetadata,
-  processDataTypes,
-  processTasks,
+  processMetadata,
 }: {
   dataElements?: SimpleDataElement[];
   appMetadata: ApplicationMetadata;
-  processDataTypes: ProcessDataType[];
-  processTasks: ProcessTask[];
+  processMetadata: ProcessTaskMetadata[];
 }) => {
   if (!dataElements) {
     return null;
@@ -225,8 +216,7 @@ const DataElementGroups = ({
       dataType={dataType}
       dataElements={elements}
       appMetadata={appMetadata}
-      processDataTypes={processDataTypes}
-      processTasks={processTasks}
+      processMetadata={processMetadata}
     />
   ));
 };
@@ -255,9 +245,11 @@ const DataTypeIcons: { [k in DataTypeType]: React.FC } = {
 function getDataTypeType(
   dataType: string,
   appMetadata: ApplicationMetadata,
-  processDataTypes: ProcessDataType[],
+  processMetadata: ProcessTaskMetadata[],
 ): DataTypeType {
-  const tag = processDataTypes.find((pdt) => pdt.dataTypeId === dataType)?.tag;
+  const tag = processMetadata
+    .flatMap((pm) => pm.dataTypeTags)
+    .find((dtt) => dtt.dataTypeId === dataType)?.tag;
 
   if (
     dataType === 'ref-data-as-pdf' ||
@@ -303,39 +295,40 @@ function getDataTypeLabel(
   return `${dataType} (${count})`;
 }
 
-function getTaskId(
+function getTaskName(
   dataType: string,
   appMetadata: ApplicationMetadata,
-  processDataTypes: ProcessDataType[],
-): string | null {
-  return (
-    appMetadata.dataTypes?.find((dt) => dt.id === dataType)?.taskId ??
-    processDataTypes.find((pdt) => pdt.dataTypeId === dataType)?.taskId ??
-    null
+  processMetadata: ProcessTaskMetadata[],
+): string | undefined {
+  const taskId = appMetadata.dataTypes?.find((dt) => dt.id === dataType)?.taskId;
+  if (taskId) {
+    return processMetadata.find((task) => task.id === taskId)?.name ?? taskId;
+  }
+
+  const processTaskMetadata = processMetadata.find((pm) =>
+    pm.dataTypeTags.find((dtt) => dtt.dataTypeId === dataType),
   );
+  return processTaskMetadata?.name ?? processTaskMetadata?.id;
 }
 
 const DataElementGroup = ({
   dataType,
   dataElements,
   appMetadata,
-  processDataTypes,
-  processTasks,
+  processMetadata,
 }: {
   dataType: string;
   dataElements: SimpleDataElement[];
   appMetadata: ApplicationMetadata;
-  processDataTypes: ProcessDataType[];
-  processTasks: ProcessTask[];
+  processMetadata: ProcessTaskMetadata[];
 }) => {
   const { t } = useTranslation();
   const labelId = `label-${dataType}`;
 
-  const type = getDataTypeType(dataType, appMetadata, processDataTypes);
+  const type = getDataTypeType(dataType, appMetadata, processMetadata);
   const Icon = DataTypeIcons[type];
   const label = getDataTypeLabel(dataType, dataElements.length, appMetadata);
-  const taskId = getTaskId(dataType, appMetadata, processDataTypes);
-  const taskName = processTasks.find((task) => task.id === taskId)?.name;
+  const taskName = getTaskName(dataType, appMetadata, processMetadata);
 
   return (
     <StudioField className={classes['data-element-field']}>
@@ -345,9 +338,9 @@ const DataElementGroup = ({
             <Icon />
             {label}
           </div>
-          {taskId && (
+          {taskName && (
             <Tag size='sm' color='first'>
-              {taskName ?? taskId}
+              {taskName}
             </Tag>
           )}
         </span>

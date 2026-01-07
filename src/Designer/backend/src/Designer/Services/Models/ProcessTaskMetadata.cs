@@ -1,12 +1,16 @@
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Services.Models;
 
-public class ProcessTask
+public class ProcessTaskMetadata
 {
     [JsonPropertyName("id")]
     public required string Id { get; set; }
 
     [JsonPropertyName("name")]
     public string? Name { get; set; }
+
+    [JsonPropertyName("dataTypeTags")]
+    public List<ProcessDataTypeTag> DataTypeTags { get; set; } = new();
 }

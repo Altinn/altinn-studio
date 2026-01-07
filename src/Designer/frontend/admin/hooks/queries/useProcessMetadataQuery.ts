@@ -2,11 +2,16 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import axios from 'axios';
-import { processDataTypeMetadataPath } from 'admin/utils/apiPaths';
+import { processMetadataPath } from 'admin/utils/apiPaths';
 
-export type ProcessDataType = {
+export type ProcessTaskMetadata = {
+  id: string;
+  name?: string;
+  dataTypeTags: ProcessDataTypeTag[];
+};
+
+export type ProcessDataTypeTag = {
   dataTypeId: string;
-  taskId: string;
   tag:
     | 'signatureDataType'
     | 'signeeStatesDataTypeId'
@@ -15,16 +20,16 @@ export type ProcessDataType = {
     | 'paymentReceiptPdfDataType';
 };
 
-export const useProcessDataTypesQuery = (
+export const useProcessMetadataQuery = (
   org: string,
   env: string,
   app: string,
-): UseQueryResult<ProcessDataType[]> => {
-  return useQuery<ProcessDataType[]>({
-    queryKey: [QueryKey.AppProcessDataTypes, org, env, app],
+): UseQueryResult<ProcessTaskMetadata[]> => {
+  return useQuery<ProcessTaskMetadata[]>({
+    queryKey: [QueryKey.AppProcessMetadata, org, env, app],
     queryFn: async ({ signal }) =>
       (
-        await axios.get<ProcessDataType[]>(processDataTypeMetadataPath(org, env, app), {
+        await axios.get<ProcessTaskMetadata[]>(processMetadataPath(org, env, app), {
           signal,
         })
       ).data,
