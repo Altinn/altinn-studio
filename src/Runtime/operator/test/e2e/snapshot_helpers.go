@@ -124,13 +124,17 @@ func AssertConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *cor
 		if settingsJSON, ok := secret.Data["maskinporten-settings.json"]; ok {
 			var settings map[string]any
 			if json.Unmarshal(settingsJSON, &settings) == nil {
+				// Navigate into MaskinportenSettings wrapper
+				if wrapper, ok := settings["MaskinportenSettings"].(map[string]any); ok {
+					settings = wrapper
+				}
 				// Verify clientId matches
-				if secretClientId, ok := settings["clientId"].(string); ok {
+				if secretClientId, ok := settings["ClientId"].(string); ok {
 					gomega.Expect(secretClientId).To(gomega.Equal(consistencyState.ClientID),
 						"Secret clientId doesn't match CR clientId")
 				}
 				// Verify key IDs in jwks match CR
-				if jwks, ok := settings["jwks"].(map[string]any); ok {
+				if jwks, ok := settings["Jwks"].(map[string]any); ok {
 					if keys, ok := jwks["keys"].([]any); ok {
 						var secretKeyIds []string
 						for _, key := range keys {
@@ -315,10 +319,16 @@ func SanitizeJwk(keyMap map[string]any) {
 
 // SanitizeSecretContent sanitizes the maskinporten-settings.json content
 func SanitizeSecretContent(data map[string]any) {
-	if data["clientId"] != nil {
-		data["clientId"] = sanitizedClientId
+	// Navigate into MaskinportenSettings wrapper if present
+	settings := data
+	if wrapper, ok := data["MaskinportenSettings"].(map[string]any); ok {
+		settings = wrapper
 	}
-	if jwks, ok := data["jwks"].(map[string]any); ok {
+
+	if settings["ClientId"] != nil {
+		settings["ClientId"] = sanitizedClientId
+	}
+	if jwks, ok := settings["Jwks"].(map[string]any); ok {
 		if keys, ok := jwks["keys"].([]any); ok {
 			for _, key := range keys {
 				if keyMap, ok := key.(map[string]any); ok {
@@ -327,8 +337,8 @@ func SanitizeSecretContent(data map[string]any) {
 			}
 		}
 	}
-	if data["jwk"] != nil {
-		if jwk, ok := data["jwk"].(map[string]any); ok {
+	if settings["Jwk"] != nil {
+		if jwk, ok := settings["Jwk"].(map[string]any); ok {
 			SanitizeJwk(jwk)
 		}
 	}
