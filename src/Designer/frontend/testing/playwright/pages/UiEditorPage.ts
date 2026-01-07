@@ -26,22 +26,12 @@ export class UiEditorPage extends BasePage {
       baseRoute + (layoutSet ? `/layoutSet/${layoutSet}` : ''),
       this.page.url(),
     );
-    if (layout) {
-      pageUrl.searchParams.append('layout', layout);
-      await this.page.waitForURL(pageUrl.toString());
-    } else {
-      await this.page.waitForURL(`${pageUrl.origin}${pageUrl.pathname}**`);
-    }
+    if (layout) pageUrl.searchParams.append('layout', layout);
+    await this.page.waitForURL(pageUrl.toString());
   }
 
   public async clickOnPageAccordion(pageName: string): Promise<void> {
-    const urlObj = new URL(this.page.url());
-    const layoutParam = urlObj.searchParams.get('layout');
-    const isAlreadyOpen = layoutParam === pageName;
-
-    if (!isAlreadyOpen) {
-      await this.page.getByRole('button', { name: pageName, exact: true }).click();
-    }
+    await this.page.getByRole('button', { name: pageName, exact: true }).click();
   }
 
   public async clickOnComponentTextConfigAccordion(): Promise<void> {
