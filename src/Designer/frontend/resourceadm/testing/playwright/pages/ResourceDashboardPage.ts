@@ -5,7 +5,7 @@ import { ResourceEnvironment } from '../helpers/ResourceEnvironment';
 import type { Environment } from '../helpers/ResourceEnvironment';
 
 export class ResourceDashboardPage extends ResourceEnvironment {
-  private readonly resourceNameField: Locator;
+  private readonly resourceIdField: Locator;
   private readonly createResourceButton: Locator;
   private readonly confirmCreateButton: Locator;
 
@@ -14,8 +14,8 @@ export class ResourceDashboardPage extends ResourceEnvironment {
     environment?: Environment,
   ) {
     super(environment);
-    this.resourceNameField = this.page.getByLabel(
-      textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
+    this.resourceIdField = this.page.getByLabel(
+      textMock('resourceadm.dashboard_resource_name_and_id_resource_id'),
     );
     this.createResourceButton = this.page.getByRole('button', {
       name: textMock('resourceadm.dashboard_create_resource'),
@@ -33,8 +33,8 @@ export class ResourceDashboardPage extends ResourceEnvironment {
     await this.createResourceButton.click();
   }
 
-  public async writeResourceName(username: string): Promise<void> {
-    await this.resourceNameField.fill(username);
+  public async writeResourceId(username: string): Promise<void> {
+    await this.resourceIdField.fill(username);
   }
 
   public async clickOnCreateResourceButton(): Promise<void> {
@@ -43,7 +43,11 @@ export class ResourceDashboardPage extends ResourceEnvironment {
 
   public async verifyResourcePage(resourceId: string): Promise<void> {
     await this.page.waitForURL(
-      url(Routes.resourcePage, { org: this.org, repo: this.repo, resourceId: resourceId }),
+      url(Routes.resourcePage, {
+        org: this.org,
+        repo: this.repo,
+        resourceId: `${this.org}-${resourceId}`,
+      }),
     );
   }
 }
