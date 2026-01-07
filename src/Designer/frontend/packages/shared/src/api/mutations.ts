@@ -78,7 +78,7 @@ import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPaylo
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { CreateDataModelPayload } from 'app-shared/types/api/CreateDataModelPayload';
-import type { Policy } from '@altinn/policy-editor';
+import type { Policy } from '../types/Policy';
 import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers, HeaderEtag, MigrateDelegationsRequest } from 'app-shared/types/ResourceAdm';
 import type { Branch, RepoStatus } from 'app-shared/types/api/BranchTypes';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
