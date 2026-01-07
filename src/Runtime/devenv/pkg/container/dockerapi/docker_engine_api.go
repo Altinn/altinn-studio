@@ -197,6 +197,7 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 	hostCfg := &container.HostConfig{
 		PortBindings:  portBindings,
 		Binds:         binds,
+		ExtraHosts:    cfg.ExtraHosts,
 		RestartPolicy: restartPolicy,
 		NetworkMode:   container.NetworkMode(primaryNetwork),
 	}
