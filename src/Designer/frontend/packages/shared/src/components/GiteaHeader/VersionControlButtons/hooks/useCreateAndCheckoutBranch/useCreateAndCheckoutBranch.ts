@@ -5,20 +5,23 @@ import type { AxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
 import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
 
+export interface UseCreateAndCheckoutBranchOptions {
+  onUncommittedChanges?: (error: UncommittedChangesError) => void;
+}
+
 export interface UseCreateAndCheckoutBranchResult {
   createAndCheckoutBranch: (branchName: string) => void;
   isLoading: boolean;
-  uncommittedChangesError: UncommittedChangesError | null;
   createError: string;
 }
 
 export function useCreateAndCheckoutBranch(
   org: string,
   app: string,
+  options: UseCreateAndCheckoutBranchOptions = {},
 ): UseCreateAndCheckoutBranchResult {
+  const { onUncommittedChanges } = options;
   const { t } = useTranslation();
-  const [uncommittedChangesError, setUncommittedChangesError] =
-    useState<UncommittedChangesError | null>(null);
   const [createError, setCreateError] = useState('');
 
   const createMutation = useCreateBranchMutation(org, app, {
@@ -35,9 +38,7 @@ export function useCreateAndCheckoutBranch(
   });
 
   const checkoutMutation = useCheckoutWithUncommittedChangesHandling(org, app, {
-    onUncommittedChanges: (error) => {
-      setUncommittedChangesError(error);
-    },
+    onUncommittedChanges,
     onOtherError: () => {
       setCreateError(t('branching.new_branch_dialog.error_generic'));
     },
@@ -45,14 +46,12 @@ export function useCreateAndCheckoutBranch(
 
   const createAndCheckoutBranch = (branchName: string) => {
     setCreateError('');
-    setUncommittedChangesError(null);
     createMutation.mutate(branchName);
   };
 
   return {
     createAndCheckoutBranch,
     isLoading: createMutation.isPending || checkoutMutation.isPending,
-    uncommittedChangesError,
     createError,
   };
 }

@@ -1,6 +1,4 @@
 import { act, waitFor } from '@testing-library/react';
-import type { RenderHookResult } from '@testing-library/react';
-import type { UseCheckoutBranchAndReloadResult } from './useCheckoutBranchAndReload';
 import { useCheckoutBranchAndReload } from './useCheckoutBranchAndReload';
 import type { AxiosError } from 'axios';
 import type { RepoStatus } from 'app-shared/types/api/BranchTypes';
@@ -34,39 +32,24 @@ describe('useCheckoutBranchAndReload', () => {
 
     const { result } = renderUseCheckoutBranchAndReload({ checkoutBranch });
 
-    result.current.checkoutBranchAndReload(branchName);
+    result.current.mutate(branchName);
 
     await waitFor(() => expect(checkoutBranch).toHaveBeenCalledWith(org, app, branchName));
     await waitFor(() => expect(window.location.reload).toHaveBeenCalled());
-    expect(result.current.uncommittedChangesError).toBe(null);
   });
 
-  it('should reset uncommittedChangesError when retrying after failure', async () => {
-    const checkoutBranch = jest
-      .fn()
-      .mockRejectedValueOnce(createAxiosError(409, uncommittedChangesErrorMock))
-      .mockResolvedValueOnce(mockRepoStatus);
-
-    const { result } = renderUseCheckoutBranchAndReload({ checkoutBranch });
-
-    act(() => result.current.checkoutBranchAndReload(branchName));
-    await waitFor(() => expect(result.current.uncommittedChangesError).not.toBe(null));
-
-    act(() => result.current.checkoutBranchAndReload('another-branch'));
-    await waitFor(() => expect(result.current.uncommittedChangesError).toBe(null));
-  });
-
-  it('should handle uncommitted changes error', async () => {
+  it('should call onUncommittedChanges callback when uncommitted changes error occurs', async () => {
     const checkoutBranch = jest
       .fn()
       .mockRejectedValue(createAxiosError(409, uncommittedChangesErrorMock));
+    const onUncommittedChanges = jest.fn();
 
-    const { result } = renderUseCheckoutBranchAndReload({ checkoutBranch });
+    const { result } = renderUseCheckoutBranchAndReload({ checkoutBranch }, onUncommittedChanges);
 
-    result.current.checkoutBranchAndReload(branchName);
+    result.current.mutate(branchName);
 
     await waitFor(() =>
-      expect(result.current.uncommittedChangesError).toEqual(uncommittedChangesErrorMock),
+      expect(onUncommittedChanges).toHaveBeenCalledWith(uncommittedChangesErrorMock),
     );
     expect(window.location.reload).not.toHaveBeenCalled();
   });
@@ -76,11 +59,10 @@ describe('useCheckoutBranchAndReload', () => {
 
     const { result } = renderUseCheckoutBranchAndReload({ checkoutBranch });
 
-    result.current.checkoutBranchAndReload(branchName);
+    result.current.mutate(branchName);
 
     await waitFor(() => expect(checkoutBranch).toHaveBeenCalled());
     expect(window.location.reload).not.toHaveBeenCalled();
-    expect(result.current.uncommittedChangesError).toBe(null);
   });
 
   it('should track loading state during checkout', async () => {
@@ -93,22 +75,25 @@ describe('useCheckoutBranchAndReload', () => {
 
     const { result } = renderUseCheckoutBranchAndReload({ checkoutBranch });
 
-    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isPending).toBe(false);
 
-    act(() => result.current.checkoutBranchAndReload(branchName));
+    act(() => result.current.mutate(branchName));
 
-    await waitFor(() => expect(result.current.isLoading).toBe(true));
+    await waitFor(() => expect(result.current.isPending).toBe(true));
 
     resolveCheckout(mockRepoStatus);
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await waitFor(() => expect(result.current.isPending).toBe(false));
   });
 });
 
 const renderUseCheckoutBranchAndReload = (
   queries: Partial<ServicesContextProps> = {},
-): RenderHookResult<UseCheckoutBranchAndReloadResult, void> =>
-  renderHookWithProviders(() => useCheckoutBranchAndReload(org, app), { queries });
+  onUncommittedChanges?: (error: any) => void,
+) =>
+  renderHookWithProviders(() => useCheckoutBranchAndReload(org, app, { onUncommittedChanges }), {
+    queries,
+  });
 
 const createAxiosError = (status: number, data?: unknown): AxiosError => ({
   response: { status, data, statusText: 'Error', headers: {}, config: {} as any },

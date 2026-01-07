@@ -11,7 +11,6 @@ import type { UncommittedChangesError } from '../../types/api/BranchTypes';
 import classes from './UncommittedChangesDialog.module.css';
 
 export interface UncommittedChangesDialogProps {
-  isOpen: boolean;
   error: UncommittedChangesError;
   onClose: () => void;
   onDiscardAndSwitch: (targetBranch: string) => void;
@@ -19,7 +18,6 @@ export interface UncommittedChangesDialogProps {
 }
 
 export const UncommittedChangesDialog = ({
-  isOpen,
   error,
   onClose,
   onDiscardAndSwitch,
@@ -40,7 +38,7 @@ export const UncommittedChangesDialog = ({
     : t('branching.uncommitted_changes_dialog.discard_and_switch');
 
   return (
-    <StudioDialog open={isOpen} onClose={onClose} data-color-scheme='light'>
+    <StudioDialog open={true} onClose={onClose} data-color-scheme='light'>
       <StudioDialog.Block>
         <StudioHeading>{t('branching.uncommitted_changes_dialog.heading')}</StudioHeading>
       </StudioDialog.Block>

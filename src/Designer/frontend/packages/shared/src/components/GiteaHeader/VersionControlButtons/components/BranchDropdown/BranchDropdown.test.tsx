@@ -26,21 +26,19 @@ const mockUseCheckoutBranchAndReload = jest.mocked(useCheckoutBranchAndReload);
 const mockUseCreateAndCheckoutBranch = jest.mocked(useCreateAndCheckoutBranch);
 const mockUseDiscardChangesMutation = jest.mocked(useDiscardChangesMutation);
 
-const checkoutBranchAndReload = jest.fn();
+const checkoutMutate = jest.fn();
 const createAndCheckoutBranch = jest.fn();
 const discardChangesMutate = jest.fn();
 
 describe('BranchDropdown', () => {
   beforeEach(() => {
     mockUseCheckoutBranchAndReload.mockReturnValue({
-      checkoutBranchAndReload,
-      isLoading: false,
-      uncommittedChangesError: null,
-    });
+      mutate: checkoutMutate,
+      isPending: false,
+    } as any);
     mockUseCreateAndCheckoutBranch.mockReturnValue({
       createAndCheckoutBranch,
       isLoading: false,
-      uncommittedChangesError: null,
       createError: null,
     });
     mockUseDiscardChangesMutation.mockReturnValue({
@@ -81,10 +79,9 @@ describe('BranchDropdown', () => {
     queryClient.setQueryData([QueryKey.Branches, org, app], branchesMock);
 
     mockUseCheckoutBranchAndReload.mockReturnValue({
-      checkoutBranchAndReload,
-      isLoading: true,
-      uncommittedChangesError: null,
-    });
+      mutate: checkoutMutate,
+      isPending: true,
+    } as any);
 
     renderBranchDropdown(queryClient);
     const loadingSpinner = getLoadingSpinner();
@@ -176,7 +173,7 @@ describe('BranchDropdown', () => {
     const featureBranchButton = getFeatureBranchButton();
     await user.click(featureBranchButton);
 
-    expect(checkoutBranchAndReload).toHaveBeenCalledWith('feature-branch');
+    expect(checkoutMutate).toHaveBeenCalledWith('feature-branch');
   });
 
   describe('CreateBranchDialog', () => {
@@ -238,34 +235,70 @@ describe('BranchDropdown', () => {
   });
 
   describe('UncommittedChangesDialog', () => {
-    it('Should display UncommittedChangesDialog when useCheckoutBranchAndReload returns uncommittedChangesError', async () => {
-      mockUseCheckoutBranchAndReload.mockReturnValue({
-        checkoutBranchAndReload,
-        isLoading: false,
-        uncommittedChangesError: uncommittedChangesErrorMock,
+    it('Should display UncommittedChangesDialog when checkout triggers uncommitted changes error', async () => {
+      const user = userEvent.setup();
+      let capturedCallback: ((error: any) => void) | undefined;
+
+      mockUseCheckoutBranchAndReload.mockImplementation((org, app, options) => {
+        capturedCallback = options?.onUncommittedChanges;
+        return {
+          mutate: jest.fn(() => {
+            capturedCallback?.(uncommittedChangesErrorMock);
+          }),
+          isPending: false,
+        } as any;
       });
 
       renderBranchDropdownWithData();
+
+      const dropdownTrigger = getDropdownTrigger();
+      await user.click(dropdownTrigger);
+
+      const featureBranchButton = getFeatureBranchButton();
+      await user.click(featureBranchButton);
 
       const uncommittedChangesDialog = screen.getByRole('dialog');
       expect(uncommittedChangesDialog).toBeInTheDocument();
     });
 
-    it('Should display UncommittedChangesDialog when useCreateAndCheckoutBranch returns uncommittedChangesError', async () => {
-      mockUseCreateAndCheckoutBranch.mockReturnValue({
-        createAndCheckoutBranch,
-        isLoading: false,
-        uncommittedChangesError: uncommittedChangesErrorMock,
-        createError: null,
+    it('Should display UncommittedChangesDialog when create and checkout triggers uncommitted changes error', async () => {
+      const user = userEvent.setup();
+      let capturedCallback: ((error: any) => void) | undefined;
+
+      mockUseCreateAndCheckoutBranch.mockImplementation((org, app, options) => {
+        capturedCallback = options?.onUncommittedChanges;
+        return {
+          createAndCheckoutBranch: jest.fn(() => {
+            capturedCallback?.(uncommittedChangesErrorMock);
+          }),
+          isLoading: false,
+          createError: null,
+        };
       });
 
       renderBranchDropdownWithData();
+
+      const dropdownTrigger = getDropdownTrigger();
+      await user.click(dropdownTrigger);
+
+      const newBranchDialogTrigger = getNewBranchDialogTrigger();
+      await user.click(newBranchDialogTrigger);
+
+      const branchNameInput = screen.getByLabelText(
+        textMock('branching.new_branch_dialog.branch_name_label'),
+      );
+      await user.type(branchNameInput, 'new-feature');
+
+      const createButton = screen.getByRole('button', {
+        name: textMock('branching.new_branch_dialog.create'),
+      });
+      await user.click(createButton);
 
       const uncommittedChangesDialog = screen.getByRole('dialog');
       expect(uncommittedChangesDialog).toBeInTheDocument();
     });
 
-    it('Should not display UncommittedChangesDialog when uncommittedChangesError is null', () => {
+    it('Should not display UncommittedChangesDialog when no uncommitted changes error', () => {
       renderBranchDropdownWithData();
 
       const uncommittedChangesDialog = screen.queryByRole('dialog');
@@ -274,14 +307,26 @@ describe('BranchDropdown', () => {
 
     it('Should call discardChangesMutation when clicking discard button in UncommittedChangesDialog', async () => {
       const user = userEvent.setup();
-      mockUseCheckoutBranchAndReload.mockReturnValue({
-        checkoutBranchAndReload,
-        isLoading: false,
-        uncommittedChangesError: uncommittedChangesErrorMock,
+      let capturedCallback: ((error: any) => void) | undefined;
+
+      mockUseCheckoutBranchAndReload.mockImplementation((org, app, options) => {
+        capturedCallback = options?.onUncommittedChanges;
+        return {
+          mutate: jest.fn(() => {
+            capturedCallback?.(uncommittedChangesErrorMock);
+          }),
+          isPending: false,
+        } as any;
       });
       jest.spyOn(window, 'confirm').mockReturnValue(true);
 
       renderBranchDropdownWithData();
+
+      const dropdownTrigger = getDropdownTrigger();
+      await user.click(dropdownTrigger);
+
+      const featureBranchButton = getFeatureBranchButton();
+      await user.click(featureBranchButton);
 
       const uncommittedChangesDialog = screen.getByRole('dialog');
       expect(uncommittedChangesDialog).toBeInTheDocument();
@@ -294,15 +339,27 @@ describe('BranchDropdown', () => {
       expect(discardChangesMutate).toHaveBeenCalled();
     });
 
-    it('Should set showUncommittedChangesDialog to false when closing UncommittedChangesDialog', async () => {
+    it('Should clear uncommitted changes error when closing UncommittedChangesDialog', async () => {
       const user = userEvent.setup();
-      mockUseCheckoutBranchAndReload.mockReturnValue({
-        checkoutBranchAndReload,
-        isLoading: false,
-        uncommittedChangesError: uncommittedChangesErrorMock,
+      let capturedCallback: ((error: any) => void) | undefined;
+
+      mockUseCheckoutBranchAndReload.mockImplementation((org, app, options) => {
+        capturedCallback = options?.onUncommittedChanges;
+        return {
+          mutate: jest.fn(() => {
+            capturedCallback?.(uncommittedChangesErrorMock);
+          }),
+          isPending: false,
+        } as any;
       });
 
       renderBranchDropdownWithData();
+
+      const dropdownTrigger = getDropdownTrigger();
+      await user.click(dropdownTrigger);
+
+      const featureBranchButton = getFeatureBranchButton();
+      await user.click(featureBranchButton);
 
       const uncommittedChangesDialog = screen.getByRole('dialog');
       expect(uncommittedChangesDialog).toBeInTheDocument();

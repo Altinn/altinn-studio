@@ -32,7 +32,6 @@ describe('useCreateAndCheckoutBranch', () => {
     await waitFor(() => expect(createBranch).toHaveBeenCalledWith(org, app, branchName));
     await waitFor(() => expect(checkoutBranch).toHaveBeenCalledWith(org, app, branchName));
     expect(result.current.createError).toBe('');
-    expect(result.current.uncommittedChangesError).toBe(null);
   });
 
   it('should reset errors when retrying after failure', async () => {
@@ -91,18 +90,22 @@ describe('useCreateAndCheckoutBranch', () => {
     expect(checkoutBranch).not.toHaveBeenCalled();
   });
 
-  it('should handle uncommitted changes error during checkout', async () => {
+  it('should call onUncommittedChanges callback when checkout has uncommitted changes error', async () => {
     const createBranch = jest.fn().mockResolvedValue(mockBranch);
     const checkoutBranch = jest
       .fn()
       .mockRejectedValue(createAxiosError(409, uncommittedChangesErrorMock));
+    const onUncommittedChanges = jest.fn();
 
-    const { result } = renderUseCreateAndCheckoutBranch({ createBranch, checkoutBranch });
+    const { result } = renderUseCreateAndCheckoutBranch(
+      { createBranch, checkoutBranch },
+      onUncommittedChanges,
+    );
 
     result.current.createAndCheckoutBranch(branchName);
 
     await waitFor(() =>
-      expect(result.current.uncommittedChangesError).toEqual(uncommittedChangesErrorMock),
+      expect(onUncommittedChanges).toHaveBeenCalledWith(uncommittedChangesErrorMock),
     );
     expect(result.current.createError).toBe('');
   });
@@ -120,7 +123,6 @@ describe('useCreateAndCheckoutBranch', () => {
         textMock('branching.new_branch_dialog.error_generic'),
       ),
     );
-    expect(result.current.uncommittedChangesError).toBe(null);
   });
 
   it('should track loading state during mutations', async () => {
@@ -148,8 +150,11 @@ describe('useCreateAndCheckoutBranch', () => {
 
 const renderUseCreateAndCheckoutBranch = (
   queries: Partial<ServicesContextProps> = {},
+  onUncommittedChanges?: (error: any) => void,
 ): RenderHookResult<UseCreateAndCheckoutBranchResult, void> =>
-  renderHookWithProviders(() => useCreateAndCheckoutBranch(org, app), { queries });
+  renderHookWithProviders(() => useCreateAndCheckoutBranch(org, app, { onUncommittedChanges }), {
+    queries,
+  });
 
 const createAxiosError = (status: number, data?: unknown): AxiosError => ({
   response: { status, data, statusText: 'Error', headers: {}, config: {} as any },
