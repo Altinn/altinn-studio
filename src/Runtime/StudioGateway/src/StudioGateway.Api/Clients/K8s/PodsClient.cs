@@ -1,13 +1,16 @@
 using k8s;
+using Microsoft.Extensions.Options;
 using StudioGateway.Api.Settings;
 
 namespace StudioGateway.Api.Clients.K8s;
 
-internal sealed class PodsClient(IKubernetes client, GatewayContext gatewayContext)
+internal sealed class PodsClient(IKubernetes client, IOptionsMonitor<GatewayContext> gatewayContextMonitor)
 {
+    private GatewayContext _gatewayContext => gatewayContextMonitor.CurrentValue;
+
     public async Task<double> GetReadyPodsCountAsync(string app, CancellationToken cancellationToken)
     {
-        string org = gatewayContext.ServiceOwner;
+        string org = _gatewayContext.ServiceOwner;
 
         var namespaceName = "default";
 
