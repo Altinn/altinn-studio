@@ -149,8 +149,6 @@
   "resourceadm.dashboard_num_resources": "Alle ressurser ({{num}})",
   "resourceadm.dashboard_organizationdata_error_body": "Det oppsto en feil da vi skulle hente organisasjoner som kreves for å kjøre appen.",
   "resourceadm.dashboard_organizationdata_error_header": "Fikk ikke til å laste inn organisasjoner",
-  "resourceadm.dashboard_resource_id_cannot_be_app": "Ressurs id kan ikke starte med \"app_\".",
-  "resourceadm.dashboard_resource_id_cannot_be_se": "Ressurs id kan ikke starte med \"se_\".",
   "resourceadm.dashboard_resource_name_and_id_change": "Endre {{objectType}}",
   "resourceadm.dashboard_resource_name_and_id_checkmark_icon": "Bruk ny {{objectType}}",
   "resourceadm.dashboard_resource_name_and_id_delete_icon": "Slett ny {{objectType}}",

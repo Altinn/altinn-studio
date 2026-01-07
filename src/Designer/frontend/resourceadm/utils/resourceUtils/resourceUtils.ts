@@ -11,7 +11,6 @@ import type {
   ConsentMetadata,
   AccessList,
 } from 'app-shared/types/ResourceAdm';
-import { isAppPrefix, isSePrefix } from '../stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import type { Policy, PolicyRule, PolicySubject } from '@altinn/policy-editor/types';
 import type { TFunction } from 'i18next';
@@ -136,13 +135,7 @@ export const getResourceIdentifierErrorMessage = (
   org: string,
   isConflict?: boolean,
 ) => {
-  const hasAppPrefix = isAppPrefix(identifier);
-  const hasSePrefix = isSePrefix(identifier);
-  if (hasAppPrefix) {
-    return 'resourceadm.dashboard_resource_id_cannot_be_app';
-  } else if (hasSePrefix) {
-    return 'resourceadm.dashboard_resource_id_cannot_be_se';
-  } else if (isConflict) {
+  if (isConflict) {
     return 'resourceadm.dashboard_resource_name_and_id_error';
   } else if (!identifier.startsWith(`${org}-`)) {
     return 'resourceadm.dashboard_resource_id_must_start_with_org';
