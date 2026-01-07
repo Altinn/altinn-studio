@@ -11,9 +11,9 @@ internal sealed class DesignerClient(
     private GatewayContext _gatewayContext => gatewayContextMonitor.CurrentValue;
 
     /// <inheritdoc />
-    public async Task NotifyAlertsUpdatedAsync(string environement, CancellationToken cancellationToken)
+    public async Task NotifyAlertsUpdatedAsync(string environment, CancellationToken cancellationToken)
     {
-        var httpClient = httpClientFactory.CreateClient(environement);
+        var httpClient = httpClientFactory.CreateClient(environment);
         string org = _gatewayContext.ServiceOwner;
         string env = _gatewayContext.Environment;
         Uri requestUrl = new($"admin/alerts/{org}/{env}", UriKind.Relative);
