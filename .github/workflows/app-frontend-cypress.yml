@@ -1,6 +1,20 @@
 name: App Frontend - Cypress
 
 on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'src/App/backend/**'
+      - 'src/App/codelists/**'
+      - 'src/App/fileanalyzers/**'
+      - 'src/Runtime/localtest/**'
+      - 'src/Runtime/pdf3/**'
+      - 'src/App/frontend/src/**'
+      - 'src/App/frontend/test/**'
+      - 'src/App/frontend/yarn.lock'
+      - 'src/test/apps/**'
+      - '.github/workflows/app-frontend-cypress.yml'
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:

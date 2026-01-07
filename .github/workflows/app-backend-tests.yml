@@ -1,6 +1,12 @@
 name: App Backend - Build and test
 
 on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'src/App/backend/**'
+      - '.github/workflows/app-backend-tests.yml'
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
