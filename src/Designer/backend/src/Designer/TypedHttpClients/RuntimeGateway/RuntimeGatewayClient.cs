@@ -28,7 +28,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
 
     public async Task<bool> IsAppDeployedWithGitOpsAsync(string org, string app, AltinnEnvironment environment, CancellationToken cancellationToken)
     {
-        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         var originEnvironment = GetOriginEnvironment();
         var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{originEnvironment}/deployed";
@@ -130,6 +130,20 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
 
         return await client.GetFromJsonAsync<IEnumerable<AppHealthMetric>>(requestUrl, cancellationToken) ?? [];
     }
+
+    public async Task TriggerReconcileAsync(string org, string app, AltinnEnvironment environment, bool isNewApp, bool isUndeploy, CancellationToken cancellationToken)
+    {
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        var originEnvironment = GetOriginEnvironment();
+        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{originEnvironment}/reconcile";
+
+        var request = new TriggerReconcileRequest(isNewApp, isUndeploy);
+        var response = await HttpClientJsonExtensions.PostAsJsonAsync(client, requestUrl, request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
+    private record TriggerReconcileRequest(bool IsNewApp, bool IsUndeploy);
 
     private string GetOriginEnvironment()
     {

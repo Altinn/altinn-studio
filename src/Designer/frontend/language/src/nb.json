@@ -886,7 +886,7 @@
   "overview.download_repo_full": "Jeg vil ha en zip-fil med hele repoet",
   "overview.download_repo_heading": "Last ned alle endringer?",
   "overview.fetch_title_error_message": "Kunne ikke laste inn tittelen for denne appen. Prøv igjen senere.",
-  "overview.go_to_publish": "Gå til <0>Publiser</0>.",
+  "overview.go_to_publish": "<0>Gå til Publiser</0>.",
   "overview.header_loading": "Laster inn navnet på appen",
   "overview.navigation_title": "Bygg appen med våre verktøy",
   "overview.news_date": "Publisert {{date}}",

@@ -16,4 +16,5 @@ public interface IRuntimeGatewayClient
     Task<IEnumerable<AppErrorMetric>> GetAppErrorMetricsAsync(string org, AltinnEnvironment environment, string app, int range, CancellationToken cancellationToken);
     Task<string> GetAppErrorMetricsLogsAsync(string org, AltinnEnvironment environment, string app, string metric, int range, CancellationToken cancellationToken);
     Task<IEnumerable<AppHealthMetric>> GetAppHealthMetricsAsync(string org, AltinnEnvironment environment, string app, CancellationToken cancellationToken);
+    Task TriggerReconcileAsync(string org, string app, AltinnEnvironment environment, bool isNewApp, bool isUndeploy, CancellationToken cancellationToken);
 }
