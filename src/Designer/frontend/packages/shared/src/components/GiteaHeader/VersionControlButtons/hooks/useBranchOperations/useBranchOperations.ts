@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCreateAndCheckoutBranch } from './useCreateAndCheckoutBranch';
+import { useCreateAndCheckoutBranch } from '../useCreateAndCheckoutBranch';
 import { useCheckoutWithUncommittedChangesHandling } from 'app-shared/hooks/mutations/useCheckoutWithUncommittedChangesHandling';
 import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
 import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
