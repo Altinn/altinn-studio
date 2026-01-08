@@ -43,7 +43,7 @@
             <altinn:signeeStatesDataTypeId>signeeStates-founders</altinn:signeeStatesDataTypeId>
             <altinn:signeeProviderId>founders</altinn:signeeProviderId>
             <altinn:signingPdfDataType>signatures-founders-pdf</altinn:signingPdfDataType>
-            <altinn:correspondenceResource>apps-correspondence-integrasjon3</altinn:correspondenceResource>
+            <altinn:correspondenceResource>apps-correspondence-integrasjon4</altinn:correspondenceResource>
             <altinn:runDefaultValidator>true</altinn:runDefaultValidator>
           </altinn:signatureConfig>
         </altinn:taskExtension>
