@@ -2,10 +2,11 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../../../../../infra/runtime/syncroot/base/studio-gateway.yaml
-  - ../../../../../../infra/runtime/syncroot/base/flux-notifications.yaml
+  - ../../../../../../infra/runtime/syncroot/base/apps-syncroot.yaml
+  - ../../../../../../infra/runtime/flux-config/flux-config.yaml
   - ../fake-oidc
 patches:
-  # Use local OCI registry
+  # Use local OCI registry for studio-gateway
   - patch: |-
       apiVersion: source.toolkit.fluxcd.io/v1
       kind: OCIRepository
@@ -39,6 +40,28 @@ patches:
         upgrade_channel: local
         environment: local
         serviceowner: ttd
+  # Patch apps-syncroot OCIRepository for local registry
+  - patch: |-
+      apiVersion: source.toolkit.fluxcd.io/v1
+      kind: OCIRepository
+      metadata:
+        name: apps-syncroot-repo
+        namespace: default
+      spec:
+        insecure: true
+        provider: generic
+        ref:
+          tag: local
+        url: oci://kind-registry:5000/apps-syncroot-repo
+  # Patch apps-syncroot Kustomization for local path
+  - patch: |-
+      apiVersion: kustomize.toolkit.fluxcd.io/v1
+      kind: Kustomization
+      metadata:
+        name: syncroot-apps-kustomization
+        namespace: default
+      spec:
+        path: ./local
   # Set local metadata for flux notifications
   - patch: |-
       apiVersion: notification.toolkit.fluxcd.io/v1beta3

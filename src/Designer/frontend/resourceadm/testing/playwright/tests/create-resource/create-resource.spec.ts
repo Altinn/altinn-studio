@@ -16,7 +16,7 @@ test('should be able to create a new resource', async ({ page }): Promise<void> 
   const resourceDashboardPage = new ResourceDashboardPage(page);
   await resourceDashboardPage.goto();
   await resourceDashboardPage.clickOnCreateNewResourceButton();
-  await resourceDashboardPage.writeResourceName(testResourceId);
+  await resourceDashboardPage.writeResourceId(testResourceId);
   await resourceDashboardPage.clickOnCreateResourceButton();
   await resourceDashboardPage.verifyResourcePage(testResourceId);
 });

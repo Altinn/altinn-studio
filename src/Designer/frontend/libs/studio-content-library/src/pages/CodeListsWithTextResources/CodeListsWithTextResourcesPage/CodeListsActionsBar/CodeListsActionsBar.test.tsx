@@ -1,5 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CodeListsActionsBarProps } from './CodeListsActionsBar';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
@@ -56,6 +57,6 @@ const defaultCodeListActionBarProps: CodeListsActionsBarProps = {
   onSetSearchString: onSetSearchStringMock,
 };
 
-const renderCodeListsActionsBar = () => {
+const renderCodeListsActionsBar = (): RenderResult => {
   return renderWithProviders(<CodeListsActionsBar {...defaultCodeListActionBarProps} />);
 };

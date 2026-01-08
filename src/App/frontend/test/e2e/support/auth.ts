@@ -1,13 +1,12 @@
 import type { CyHttpMessages, RouteHandler } from 'cypress/types/net-stubbing';
 
-import { reverseName } from 'test/e2e/support/utils';
-
 import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IProcess, ITask } from 'src/types/shared';
 
 export type CyUser = 'default' | 'manager' | 'accountant' | 'auditor' | 'selfIdentified';
 
 type UserInfo = {
+  firstName: string;
   displayName: string;
   userName: string;
   userPassword: string;
@@ -16,30 +15,35 @@ type UserInfo = {
 
 export const cyUserCredentials: { [K in CyUser]: UserInfo } = {
   default: {
+    firstName: Cypress.env('defaultFirstName'),
     displayName: Cypress.env('defaultFullName'),
     userName: Cypress.env('defaultUserName'),
     userPassword: Cypress.env('defaultUserPwd'),
     localPartyId: Cypress.env('defaultPartyId'),
   },
   manager: {
+    firstName: Cypress.env('managerFirstName'),
     displayName: Cypress.env('managerFullName'),
     userName: Cypress.env('managerUserName'),
     userPassword: Cypress.env('managerUserPwd'),
     localPartyId: Cypress.env('managerPartyId'),
   },
   accountant: {
+    firstName: Cypress.env('accountantFirstName'),
     displayName: Cypress.env('accountantFullName'),
     userName: Cypress.env('accountantUserName'),
     userPassword: Cypress.env('accountantUserPwd'),
     localPartyId: Cypress.env('accountantPartyId'),
   },
   auditor: {
+    firstName: Cypress.env('auditorFirstName'),
     displayName: Cypress.env('auditorFullName'),
     userName: Cypress.env('auditorUserName'),
     userPassword: Cypress.env('auditorUserPwd'),
     localPartyId: Cypress.env('auditorPartyId'),
   },
   selfIdentified: {
+    firstName: Cypress.env('selfIdentifiedFirstName'),
     displayName: Cypress.env('selfIdentifiedFullName'),
     userName: Cypress.env('selfIdentifiedUserName'),
     userPassword: Cypress.env('selfIdentifiedUserPwd'),
@@ -175,12 +179,12 @@ function localLogin({ authenticationLevel, appName, ...rest }: LocalLoginParams)
   cy.intercept({ method: 'POST', url: '/Home/LogInTestUser', times: 1 }, (req) => {
     req.on('response', (res) => {
       expect(res.statusCode).to.eq(302);
-      res.send(200, '');
+      res.send(200, '<h3>Empty page loaded, proceeding to app</h3>');
     });
   }).as('login');
 
   cy.findByRole('button', { name: 'Proceed to app' }).click();
-  waitForLogin();
+  cy.findByRole('heading', { name: 'Empty page loaded, proceeding to app' }).should('exist');
 }
 
 function loginSelfIdentifiedTt02Login(user: string, pwd: string) {
@@ -198,13 +202,13 @@ function loginSelfIdentifiedTt02Login(user: string, pwd: string) {
     (req) => {
       req.on('response', (res) => {
         expect(res.statusCode).to.eq(302);
-        res.send(200, '');
+        res.send(200, '<h3>Empty page loaded, proceeding to app</h3>');
       });
     },
   ).as('login');
 
   cy.findByRole('button', { name: /Logg inn/i }).click();
-  waitForLogin();
+  cy.findByRole('heading', { name: 'Empty page loaded, proceeding to app' }).should('exist');
 }
 
 function cyUserTt02Login(user: string, pwd: string) {
@@ -278,12 +282,10 @@ export function tenorUserLogin(props: TenorLoginParams) {
 }
 
 function tenorTt02Login({ appName, tenorUser }: Omit<TenorLoginParams, 'authenticationLevel'>) {
-  cy.clearCookies();
   cy.visit(`https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}/ttd/${appName}`);
 
   cy.findByRole('link', { name: /testid lag din egen testbruker/i }).click();
   cy.findByRole('textbox', { name: /personidentifikator \(syntetisk\)/i }).type(tenorUser.ssn);
-  cy.findByRole('button', { name: /autentiser/i }).click();
 
   cy.get<AppResponseRef>('@appResponse').then((ref) => {
     ref.current = (res) => {
@@ -291,10 +293,36 @@ function tenorTt02Login({ appName, tenorUser }: Omit<TenorLoginParams, 'authenti
       // app multiple times after logging in. Normally, a click on the party below would go straight to opening the
       // app we're testing.
       ref.current = undefined;
-      res.send(200, '');
+
+      // We need to override set-cookie to keep the XSRF token cookie, as these cookies will be forgotten in the next
+      // request unless we override the SameSite and Secure attributes.
+      const setCookieHeader = res.headers['set-cookie'];
+      if (setCookieHeader) {
+        const cookies = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
+        const isHttps = Cypress.config('baseUrl')?.startsWith('https');
+        res.headers['set-cookie'] = cookies.map((cookie) => {
+          let modifiedCookie = cookie;
+
+          // Set or replace SameSite attribute
+          if (/samesite\s*=\s*\w+/i.test(modifiedCookie)) {
+            modifiedCookie = modifiedCookie.replace(/samesite\s*=\s*\w+/gi, 'SameSite=None');
+          } else {
+            modifiedCookie = `${modifiedCookie}; SameSite=None`;
+          }
+
+          // Add Secure attribute if over HTTPS and not already present
+          if (isHttps && !/;\s*secure/i.test(modifiedCookie)) {
+            modifiedCookie = `${modifiedCookie}; Secure`;
+          }
+
+          return modifiedCookie;
+        });
+      }
+
+      res.send(200, '<h3>Empty page loaded, proceeding to app</h3>');
     };
   });
 
-  cy.findByText(new RegExp(reverseName(tenorUser.name), 'i')).click();
-  cy.wait('@app');
+  cy.findByRole('button', { name: /autentiser/i }).click();
+  cy.findByRole('heading', { name: 'Empty page loaded, proceeding to app' }).should('exist');
 }
