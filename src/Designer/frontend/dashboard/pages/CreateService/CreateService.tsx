@@ -56,6 +56,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
         org,
         repository: repoName,
         dataModellingPreference: dataModellingPreference,
+        customTemplatePath: 'templates/test',
       },
       {
         onSuccess: (): void => {

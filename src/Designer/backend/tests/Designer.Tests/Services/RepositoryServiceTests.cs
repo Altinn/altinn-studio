@@ -320,6 +320,160 @@ namespace Designer.Tests.Services
             mock.VerifyAll();
         }
 
+        [Fact]
+        public async Task CreateService_WithCustomTemplatePath_AppliesCustomTemplateOverlay()
+        {
+            // Arrange
+            string org = "ttd";
+            string repositoryName = TestDataHelper.GenerateTestRepoName();
+            string developer = "testUser";
+
+            var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            var repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repositoryName, developer);
+            var repositoryRemoteDirectory = TestDataHelper.GetTestDataRemoteRepository(org, repositoryName);
+            
+            // Create a temporary custom template directory
+            var customTemplateDirectory = Path.Combine(Path.GetTempPath(), "custom_template_test_" + Guid.NewGuid().ToString("N")[..8]);
+            Directory.CreateDirectory(customTemplateDirectory);
+
+            // Create custom template files
+            var customAppDir = Path.Combine(customTemplateDirectory, "App");
+            Directory.CreateDirectory(customAppDir);
+            File.WriteAllText(Path.Combine(customAppDir, "Program.cs"), "// Custom Program.cs content");
+            File.WriteAllText(Path.Combine(customTemplateDirectory, "CustomFile.txt"), "Custom file content");
+
+            var repositoryService = GetServiceForTest(developer);
+
+            try
+            {
+                var serviceConfig = new ServiceConfiguration() 
+                { 
+                    RepositoryName = repositoryName, 
+                    ServiceName = repositoryName,
+                    CustomTemplatePath = customTemplateDirectory
+                };
+
+                await repositoryService.CreateService(org, serviceConfig);
+
+                // Verify custom files were applied
+                var customFileInRepo = Path.Combine(repositoryDirectory, "CustomFile.txt");
+                var customProgramInRepo = Path.Combine(repositoryDirectory, "App", "Program.cs");
+
+                Assert.True(File.Exists(customFileInRepo), "Custom file should exist in repository");
+                Assert.True(File.Exists(customProgramInRepo), "Custom Program.cs should exist in repository");
+                Assert.Equal("Custom file content", File.ReadAllText(customFileInRepo));
+                Assert.Equal("// Custom Program.cs content", File.ReadAllText(customProgramInRepo));
+            }
+            finally
+            {
+                // Cleanup
+                Thread.Sleep(400);
+                if (Directory.Exists(repositoryDirectory))
+                {
+                    Directory.Delete(repositoryDirectory, true);
+                }
+                if (Directory.Exists(repositoryRemoteDirectory))
+                {
+                    Directory.Delete(repositoryRemoteDirectory, true);
+                }
+                if (Directory.Exists(customTemplateDirectory))
+                {
+                    Directory.Delete(customTemplateDirectory, true);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task CreateService_WithoutCustomTemplatePath_UsesStandardTemplateOnly()
+        {
+            // Arrange
+            string org = "ttd";
+            string repositoryName = TestDataHelper.GenerateTestRepoName();
+            string developer = "testUser";
+
+            var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            var repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repositoryName, developer);
+            var repositoryRemoteDirectory = TestDataHelper.GetTestDataRemoteRepository(org, repositoryName);
+
+            var repositoryService = GetServiceForTest(developer);
+
+            try
+            {
+                var serviceConfig = new ServiceConfiguration() 
+                { 
+                    RepositoryName = repositoryName, 
+                    ServiceName = repositoryName,
+                    CustomTemplatePath = null
+                };
+
+                await repositoryService.CreateService(org, serviceConfig);
+
+                // Verify standard files exist but no custom files
+                var appSlnFile = Path.Combine(repositoryDirectory, "App.sln");
+                var customFile = Path.Combine(repositoryDirectory, "CustomFile.txt");
+
+                Assert.True(File.Exists(appSlnFile), "Standard App.sln should exist");
+                Assert.False(File.Exists(customFile), "No custom files should exist");
+            }
+            finally
+            {
+                // Cleanup
+                Thread.Sleep(400);
+                if (Directory.Exists(repositoryDirectory))
+                {
+                    Directory.Delete(repositoryDirectory, true);
+                }
+                if (Directory.Exists(repositoryRemoteDirectory))
+                {
+                    Directory.Delete(repositoryRemoteDirectory, true);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task CreateService_WithNonExistentCustomTemplatePath_DoesNotApplyCustomTemplate()
+        {
+            // Arrange
+            string org = "ttd";
+            string repositoryName = TestDataHelper.GenerateTestRepoName();
+            string developer = "testUser";
+
+            var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            var repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repositoryName, developer);
+            var repositoryRemoteDirectory = TestDataHelper.GetTestDataRemoteRepository(org, repositoryName);
+
+            var repositoryService = GetServiceForTest(developer);
+
+            try
+            {
+                var serviceConfig = new ServiceConfiguration() 
+                { 
+                    RepositoryName = repositoryName, 
+                    ServiceName = repositoryName,
+                    CustomTemplatePath = "/non/existent/path"
+                };
+
+                await repositoryService.CreateService(org, serviceConfig);
+
+                // Verify standard files exist but no custom template was applied
+                var appSlnFile = Path.Combine(repositoryDirectory, "App.sln");
+                Assert.True(File.Exists(appSlnFile), "Standard template should still be applied");
+            }
+            finally
+            {
+                // Cleanup
+                Thread.Sleep(400);
+                if (Directory.Exists(repositoryDirectory))
+                {
+                    Directory.Delete(repositoryDirectory, true);
+                }
+                if (Directory.Exists(repositoryRemoteDirectory))
+                {
+                    Directory.Delete(repositoryRemoteDirectory, true);
+                }
+            }
+        }
+
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
             List<Claim> claims = new();

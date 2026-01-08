@@ -285,6 +285,56 @@ public partial class AltinnOrgGitRepository : AltinnGitRepository
         return string.IsNullOrEmpty(fileName) ? LanguageResourceFolderName : Path.Join(LanguageResourceFolderName, fileName);
     }
 
+    /// <summary>
+    /// Gets all files from a custom template directory in the repository.
+    /// </summary>
+    /// <param name="templatePath">The relative path to the custom template directory</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>A dictionary of file paths to file content</returns>
+    public async Task<Dictionary<string, string>> GetCustomTemplateFiles(string templatePath, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!DirectoryExistsByRelativePath(templatePath))
+        {
+            throw new NotFoundException($"Custom template directory '{templatePath}' not found.");
+        }
+
+        var templateFiles = new Dictionary<string, string>();
+        await GetCustomTemplateFilesRecursive(templatePath, templatePath, templateFiles, cancellationToken);
+        
+        return templateFiles;
+    }
+
+    /// <summary>
+    /// Recursively gets all files from a directory and its subdirectories.
+    /// </summary>
+    /// <param name="currentPath">Current directory being processed</param>
+    /// <param name="basePath">Base template path for relative path calculation</param>
+    /// <param name="templateFiles">Dictionary to store the results</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    private async Task GetCustomTemplateFilesRecursive(string currentPath, string basePath, Dictionary<string, string> templateFiles, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Get all files in the current directory
+        string[] files = GetFilesByRelativeDirectory(currentPath);
+        foreach (string file in files)
+        {
+            string relativePath = Path.GetRelativePath(GetAbsoluteFileOrDirectoryPathSanitized(basePath), file);
+            string fileContent = await ReadTextByRelativePathAsync(Path.GetRelativePath(RepositoryDirectory, file), cancellationToken);
+            templateFiles[relativePath] = fileContent;
+        }
+
+        // Get all subdirectories and process them recursively
+        string[] directories = GetDirectoriesByRelativeDirectory(currentPath);
+        foreach (string directory in directories)
+        {
+            string subDirPath = Path.Combine(currentPath, directory);
+            await GetCustomTemplateFilesRecursive(subDirPath, basePath, templateFiles, cancellationToken);
+        }
+    }
+
     [GeneratedRegex(@"^resource\.(?<lang>[A-Za-z]{2,3})$")]
     private static partial Regex LanguageCodeRegex();
 }
