@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Text.Json;
@@ -550,10 +551,16 @@ public class MaskinportenClientTests
         var result2 = await client.GetAudienceFromWellKnown();
 
         // Wait for background refresh to complete
-        await Task.Delay(50);
-
-        // Third call gets the refreshed value
-        var result3 = await client.GetAudienceFromWellKnown();
+        string result3 = issuer1;
+        var timeout = TimeSpan.FromSeconds(5);
+        var stopwatch = Stopwatch.StartNew();
+        while (stopwatch.Elapsed < timeout)
+        {
+            result3 = await client.GetAudienceFromWellKnown();
+            if (result3 == issuer2)
+                break;
+            await Task.Delay(10);
+        }
 
         // Assert
         Assert.Equal(issuer1, result1);
