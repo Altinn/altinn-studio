@@ -1,0 +1,32 @@
+
+[cnpgsync should create CNPG HelmRelease and become ready - 1]
+{
+ "chart": {
+  "spec": {
+   "chart": "cloudnative-pg",
+   "reconcileStrategy": "ChartVersion",
+   "sourceRef": {
+    "kind": "HelmRepository",
+    "name": "cnpg",
+    "namespace": "runtime-cnpg"
+   },
+   "version": "0.27.0"
+  }
+ },
+ "interval": "1h0m0s",
+ "values": {
+  "config": {
+   "clusterWide": false
+  },
+  "image": {
+   "repository": "ghcr.io/cloudnative-pg/cloudnative-pg"
+  },
+  "resources": {
+   "requests": {
+    "cpu": "50m",
+    "memory": "64Mi"
+   }
+  }
+ }
+}
+---

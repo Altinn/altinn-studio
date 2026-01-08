@@ -1,0 +1,18 @@
+.data-element-field {
+  margin-bottom: 1rem;
+}
+
+.data-element-label-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.data-element-label-title {
+  display: flex;
+  align-items: center;
+}
+
+.data-element-icon {
+  font-size: 22px;
+  margin-right: 0.25rem;
+}
