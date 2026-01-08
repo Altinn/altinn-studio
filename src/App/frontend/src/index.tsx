@@ -79,10 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       <ErrorBoundary>
                         <VersionErrorOrChildren>
                           <OrgsProvider>
-                            {/*<KeepAliveProvider>*/}
-                            {/*  <ProcessingProvider>*/}
                             <Outlet />
-                            {/*</ProcessingProvider>*/}
                             <ToastContainer
                               position='top-center'
                               theme='colored'
