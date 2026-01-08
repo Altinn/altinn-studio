@@ -1,7 +1,13 @@
+using System.Text.RegularExpressions;
+
 namespace StudioGateway.Api.Tests;
 
-internal static class FluxApi
+internal static partial class FluxApi
 {
+    // Pattern for RFC3339 timestamp with 7-digit fractional seconds (matches OciRepositoryClient.TimestampFormat)
+    [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{7}Z$")]
+    public static partial Regex TimestampPattern();
+
     public const string FluxSystemNamespace = "flux-system";
 
     // HelmRelease
@@ -11,6 +17,14 @@ internal static class FluxApi
     // HelmRepository
     public const string HelmRepoGroup = "source.toolkit.fluxcd.io";
     public const string HelmRepoPlural = "helmrepositories";
+
+    // OCIRepository
+    public const string OciRepoGroup = "source.toolkit.fluxcd.io";
+    public const string OciRepoPlural = "ocirepositories";
+
+    // Kustomization
+    public const string KustomizationGroup = "kustomize.toolkit.fluxcd.io";
+    public const string KustomizationPlural = "kustomizations";
 
     // Notification
     public const string NotificationGroup = "notification.toolkit.fluxcd.io";

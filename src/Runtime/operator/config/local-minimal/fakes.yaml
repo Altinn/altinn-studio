@@ -39,6 +39,9 @@ spec:
       - name: fakes
         image: localhost:5001/runtime-operator-fakes:latest
         imagePullPolicy: Always
+        env:
+        - name: OPERATOR_CONFIG_FILE
+          value: /config/config.env
         ports:
         - name: maskinporten
           containerPort: 8050
@@ -70,6 +73,14 @@ spec:
           limits:
             cpu: 100m
             memory: 64Mi
+        volumeMounts:
+        - name: operator-config
+          mountPath: /config
+          readOnly: true
+      volumes:
+      - name: operator-config
+        configMap:
+          name: operator-operator-config
 ---
 apiVersion: traefik.io/v1alpha1
 kind: Middleware

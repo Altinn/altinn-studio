@@ -168,17 +168,15 @@ function OrgContentLibraryWithContextAndData({
     heading: t('org_content_library.library_heading'),
     pages: {
       codeListsWithTextResources: {
-        props: {
-          codeListDataList,
-          onCreateCodeList: handleCreate,
-          onCreateTextResource: handleUpdateTextResource,
-          onDeleteCodeList: deleteCodeList,
-          onUpdateCodeListId: handleUpdateCodeListId,
-          onUpdateCodeList: handleUpdate,
-          onUpdateTextResource: handleUpdateTextResource,
-          onUploadCodeList: handleUpload,
-          textResources,
-        },
+        codeListDataList,
+        onCreateCodeList: handleCreate,
+        onCreateTextResource: handleUpdateTextResource,
+        onDeleteCodeList: deleteCodeList,
+        onUpdateCodeListId: handleUpdateCodeListId,
+        onUpdateCodeList: handleUpdate,
+        onUpdateTextResource: handleUpdateTextResource,
+        onUploadCodeList: handleUpload,
+        textResources,
       },
       ...pagesFromFeatureFlags,
     },
@@ -197,13 +195,13 @@ function usePagesFromFeatureFlags(orgName: string): Partial<PagesConfig> {
   const codeListsProps = useCodeListsProps(orgName);
 
   if (displayNewCodeListPage) {
-    return { codeLists: { props: codeListsProps } };
+    return { codeLists: codeListsProps };
   } else {
     return {};
   }
 }
 
-function useCodeListsProps(orgName: string): PagesConfig['codeLists']['props'] {
+function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
   const { data } = useSharedCodeListsQuery(orgName);
   const { mutate } = useUpdateSharedResourcesMutation(orgName, CODE_LIST_FOLDER);
   const { mutate: publish } = usePublishCodeListMutation(orgName);

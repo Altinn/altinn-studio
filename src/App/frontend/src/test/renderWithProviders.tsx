@@ -140,6 +140,7 @@ const defaultQueryMocks: AppQueries = {
   fetchPostPlace: async () => ({ valid: true, result: 'OSLO' }),
   fetchLayoutSettings: async () => ({ pages: { order: [] } }),
   fetchLayouts: () => Promise.reject(new Error('fetchLayouts not mocked')),
+  fetchLayoutsForInstance: () => Promise.reject(new Error('fetchLayoutsForInstance not mocked')),
   fetchBackendValidations: async () => [],
   fetchPaymentInformation: async () => paymentResponsePayload,
   fetchOrderDetails: async () => orderDetailsResponsePayload,
@@ -644,8 +645,7 @@ export const renderWithInstanceAndLayout = async ({
 };
 
 export interface RenderGenericComponentTestProps<T extends CompTypes, InInstance extends boolean = true>
-  extends Omit<ExtendedRenderOptions, 'renderer'>,
-    Omit<InstanceRouterProps, 'routerRef'> {
+  extends Omit<ExtendedRenderOptions, 'renderer'>, Omit<InstanceRouterProps, 'routerRef'> {
   type: T;
   renderer: (props: PropsFromGenericComponent<T>) => React.ReactElement;
   component?: Partial<CompExternalExact<T>>;

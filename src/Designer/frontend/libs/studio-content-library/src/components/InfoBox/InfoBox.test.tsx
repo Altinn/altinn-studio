@@ -31,6 +31,6 @@ describe('InfoBox', () => {
   });
 });
 
-const renderInfoBox = (pageName: PageName = pageNameMock) => {
+const renderInfoBox = (pageName: PageName = pageNameMock): void => {
   render(<InfoBox pageName={pageName} />);
 };

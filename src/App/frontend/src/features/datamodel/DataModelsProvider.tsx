@@ -4,7 +4,6 @@ import type { PropsWithChildren } from 'react';
 import { useMutationState } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import { createStore } from 'zustand';
-import type { JSONSchema7 } from 'json-schema';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
@@ -32,7 +31,7 @@ import { MissingRolesError } from 'src/features/instantiate/containers/MissingRo
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { HttpStatusCodes } from 'src/utils/network/networking';
-import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
+import type { DataModelSchemaResult } from 'src/features/datamodel/useDataModelSchemaQuery';
 import type { IExpressionValidations } from 'src/features/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 
@@ -43,8 +42,7 @@ interface DataModelsState {
   writableDataTypes: string[] | null;
   initialData: { [dataType: string]: object };
   dataElementIds: { [dataType: string]: string | null };
-  schemas: { [dataType: string]: JSONSchema7 };
-  schemaLookup: { [dataType: string]: SchemaLookupTool };
+  schemaResults: { [dataType: string]: DataModelSchemaResult };
   expressionValidationConfigs: { [dataType: string]: IExpressionValidations | null };
   error: Error | null;
 }
@@ -58,7 +56,7 @@ interface DataModelsMethods {
   ) => void;
   setInitialData: (dataType: string, initialData: object) => void;
   setDataElementId: (dataType: string, dataElementId: string | null) => void;
-  setDataModelSchema: (dataType: string, schema: JSONSchema7, lookupTool: SchemaLookupTool) => void;
+  setDataModelSchema: (dataType: string, result: DataModelSchemaResult) => void;
   setExpressionValidationConfig: (dataType: string, config: IExpressionValidations | null) => void;
   setError: (error: Error) => void;
 }
@@ -71,8 +69,7 @@ function initialCreateStore() {
     writableDataTypes: null,
     initialData: {},
     dataElementIds: {},
-    schemas: {},
-    schemaLookup: {},
+    schemaResults: {},
     expressionValidationConfigs: {},
     error: null,
 
@@ -100,15 +97,11 @@ function initialCreateStore() {
         },
       }));
     },
-    setDataModelSchema: (dataType, schema, lookupTool) => {
+    setDataModelSchema: (dataType, result) => {
       set((state) => ({
-        schemas: {
-          ...state.schemas,
-          [dataType]: schema,
-        },
-        schemaLookup: {
-          ...state.schemaLookup,
-          [dataType]: lookupTool,
+        schemaResults: {
+          ...state.schemaResults,
+          [dataType]: result,
         },
       }));
     },
@@ -132,11 +125,12 @@ function initialCreateStore() {
   }));
 }
 
-const { Provider, useSelector, useLaxSelector, useSelectorAsRef, useStaticSelector } = createZustandContext({
-  name: 'DataModels',
-  required: true,
-  initialCreateStore,
-});
+const { Provider, useSelector, useShallowSelector, useLaxSelector, useSelectorAsRef, useStaticSelector } =
+  createZustandContext({
+    name: 'DataModels',
+    required: true,
+    initialCreateStore,
+  });
 
 export function DataModelsProvider({ children }: PropsWithChildren) {
   return (
@@ -238,8 +232,15 @@ function DataModelsLoader() {
 }
 
 function BlockUntilLoaded({ children }: PropsWithChildren) {
-  const { layoutSetId, allDataTypes, writableDataTypes, initialData, schemas, expressionValidationConfigs, error } =
-    useSelector((state) => state);
+  const {
+    layoutSetId,
+    allDataTypes,
+    writableDataTypes,
+    initialData,
+    schemaResults,
+    expressionValidationConfigs,
+    error,
+  } = useSelector((state) => state);
   const actualCurrentTask = useCurrentLayoutSetId();
   const isPDF = useIsPdf();
 
@@ -282,7 +283,7 @@ function BlockUntilLoaded({ children }: PropsWithChildren) {
       return <Loader reason='initial-data' />;
     }
 
-    if (!Object.keys(schemas).includes(dataType)) {
+    if (!Object.keys(schemaResults).includes(dataType)) {
       return <Loader reason='data-model-schema' />;
     }
   }
@@ -345,7 +346,7 @@ function LoadSchema({ dataType }: LoaderProps) {
 
   useEffect(() => {
     if (data) {
-      setDataModelSchema(dataType, data.schema, data.lookupTool);
+      setDataModelSchema(dataType, data);
     }
   }, [data, dataType, setDataModelSchema]);
 
@@ -389,19 +390,26 @@ export const DataModels = {
   useLaxReadableDataTypes: () => useLaxSelector((state) => state.allDataTypes ?? emptyArray),
   useWritableDataTypes: () => useSelector((state) => state.writableDataTypes ?? emptyArray),
 
-  useDataModelSchema: (dataType: string) => useSelector((state) => state.schemas[dataType]),
-  useSchemaLookup: () => useSelector((state) => state.schemaLookup),
+  useDataModelSchema: (dataType: string) => useSelector((state) => state.schemaResults[dataType]),
+
+  useSchemaLookup: () =>
+    useShallowSelector((state) =>
+      Object.fromEntries(
+        Object.entries(state.schemaResults).map(([dataType, result]) => [dataType, result.lookupTool]),
+      ),
+    ),
 
   useLookupBinding: () => {
     // Using a static selector to avoid re-rendering. While the state can update later, we don't need
     // to re-run data model validations, etc.
-    const { schemaLookup, allDataTypes } = useStaticSelector((state) => state);
+    const { schemaResults, allDataTypes } = useStaticSelector((state) => state);
     return useMemo(() => {
-      if (allDataTypes?.every((dt) => schemaLookup[dt])) {
-        return (reference: IDataModelReference) => schemaLookup[reference.dataType].getSchemaForPath(reference.field);
+      if (allDataTypes?.every((dt) => schemaResults[dt])) {
+        return (reference: IDataModelReference) =>
+          schemaResults[reference.dataType].lookupTool.getSchemaForPath(reference.field);
       }
       return undefined;
-    }, [allDataTypes, schemaLookup]);
+    }, [allDataTypes, schemaResults]);
   },
 
   useExpressionValidationConfig: (dataType: string) =>
