@@ -44,6 +44,12 @@ export function LargeRowSummaryContainer({
   const isHidden = useIsHiddenMulti(children);
   const idMutator = useComponentIdMutator();
 
+  const hiddenColumns = item.tableColumns
+    ? Object.entries(item.tableColumns)
+        .filter(([_, settings]) => settings.hidden === true)
+        .map(([id]) => id)
+    : [];
+
   if (typeof depth !== 'number') {
     return null;
   }
@@ -74,7 +80,7 @@ export function LargeRowSummaryContainer({
         className={classes.largeGroupContainer}
       >
         {children.map((baseId) => {
-          if (inExcludedChildren(idMutator(baseId), baseId) || isHidden[baseId]) {
+          if (inExcludedChildren(idMutator(baseId), baseId) || isHidden[baseId] || hiddenColumns.includes(baseId)) {
             return null;
           }
 
