@@ -9,13 +9,14 @@ import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import classes from 'src/components/presentation/BackNavigationButton.module.css';
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
+import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
-import { getMessageBoxUrl } from 'src/utils/urls/urlHelper';
+import { getDialogIdFromDataValues, getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 
 export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
   const { langAsString } = useLanguage();
@@ -27,7 +28,9 @@ export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
   const { exitSubform } = useNavigatePage();
   const { performProcess, isAnyProcessing, isThisProcessing: isExitingSubform } = useIsProcessing();
 
-  const messageBoxUrl = getMessageBoxUrl(party?.partyId);
+  const dataValues = useInstanceDataQuery({ select: (instance) => instance.dataValues }).data;
+  const dialogId = getDialogIdFromDataValues(dataValues);
+  const messageBoxUrl = getMessageBoxUrl(party?.partyId, dialogId);
 
   if (isFetchingReturnUrl) {
     return (

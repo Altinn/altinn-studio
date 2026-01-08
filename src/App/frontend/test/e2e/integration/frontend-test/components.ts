@@ -372,7 +372,15 @@ describe('UI Components', () => {
     cy.visualTesting('components:read-only');
   });
 
-  it('description and helptext for options in radio and checkbox groups', () => {
+  it('description and helptext for components and options in radio and checkboxes', () => {
+    cy.interceptLayout('changename', (component) => {
+      if (component.type === 'RadioButtons' && component.id === 'reason') {
+        component.textResourceBindings!.help = 'Denne står på reason-komponenten';
+      }
+      if (component.type === 'Checkboxes' && component.id === 'confirmChangeName') {
+        component.textResourceBindings!.help = 'Denne står på confirmChangeName-komponenten';
+      }
+    });
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('Per');
     cy.get(appFrontend.changeOfName.newFirstName).blur();
@@ -382,16 +390,37 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.newLastName).blur();
 
     cy.get(appFrontend.changeOfName.confirmChangeName).findByText('Dette er en beskrivelse.').should('be.visible');
-    cy.get(appFrontend.helpText.alert).eq(1).should('not.be.visible');
-    cy.get(appFrontend.changeOfName.confirmChangeName).findByRole('button').click();
-    cy.get(appFrontend.helpText.alert).eq(1).should('be.visible');
+    cy.get(appFrontend.helpText.alertOpen).should('have.length', 0);
+    cy.get(appFrontend.changeOfName.confirmChangeName).findAllByRole('button').should('have.length', 2);
+    cy.get(appFrontend.changeOfName.confirmChangeName).findAllByRole('button').eq(0).click();
+    cy.get(appFrontend.helpText.alertOpen).should('have.length', 1);
+    cy.get(appFrontend.helpText.alertOpen).should('contain.text', 'Denne står på confirmChangeName-komponenten');
+    cy.get(appFrontend.helpText.alertOpen)
+      .find('span')
+      .should((helpText) => expect(helpText).to.have.css('font-weight', '400'));
+    cy.get(appFrontend.changeOfName.confirmChangeName).findAllByRole('button').eq(1).click();
+    cy.get(appFrontend.helpText.alertOpen).should('have.length', 1);
+    cy.get(appFrontend.helpText.alertOpen).should('contain.text', 'Dette er en hjelpetekst');
+    cy.get(appFrontend.helpText.alertOpen)
+      .find('span')
+      .should((helpText) => expect(helpText).to.have.css('font-weight', '400'));
 
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
-    cy.get(appFrontend.changeOfName.reasons).should('be.visible');
+    cy.get(appFrontend.helpText.alertOpen).should('have.length', 0);
 
     cy.get(appFrontend.changeOfName.reasons).findByText('Dette er en beskrivelse.').should('be.visible');
-    cy.get(appFrontend.changeOfName.reasons).findByRole('button').click();
-    cy.get(appFrontend.helpText.alert).eq(2).should('be.visible');
+    cy.get(appFrontend.changeOfName.reasons).findAllByRole('button').eq(0).click();
+    cy.get(appFrontend.helpText.alertOpen).should('have.length', 1);
+    cy.get(appFrontend.helpText.alertOpen).should('contain.text', 'Denne står på reason-komponenten');
+    cy.get(appFrontend.helpText.alertOpen)
+      .find('span')
+      .should((helpText) => expect(helpText).to.have.css('font-weight', '400'));
+    cy.get(appFrontend.changeOfName.reasons).findAllByRole('button').eq(1).click();
+    cy.get(appFrontend.helpText.alertOpen).should('have.length', 1);
+    cy.get(appFrontend.helpText.alertOpen).should('contain.text', 'Dette er en hjelpetekst');
+    cy.get(appFrontend.helpText.alertOpen)
+      .find('span')
+      .should((helpText) => expect(helpText).to.have.css('font-weight', '400'));
   });
 
   it('should display alert on changing radio button', () => {

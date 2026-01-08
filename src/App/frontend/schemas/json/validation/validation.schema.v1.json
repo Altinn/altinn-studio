@@ -50,7 +50,7 @@
         "message": {
           "title": "Validation message",
           "description": "The message to display when the validation fails.",
-          "type": "string"
+          "$ref": "../layout/expression.schema.v1.json#/definitions/string"
         },
         "condition": {
           "title": "Expression returning a boolean value",

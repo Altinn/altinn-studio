@@ -1,6 +1,7 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { cyMockResponses, CyPartyMocks, removeAllButOneOrg } from 'test/e2e/pageobjects/party-mocks';
+import { cyUserCredentials } from 'test/e2e/support/auth';
 
 import type { IParty } from 'src/types/shared';
 
@@ -247,8 +248,11 @@ describe('Party selection', () => {
 
   it('Should be possible to select another party if instantiation fails, and go back to party selection and instantiate again', () => {
     cy.allowFailureOnEnd();
+    const user = cyUserCredentials.accountant.firstName;
     cyMockResponses({
-      allowedToInstantiate: removeAllButOneOrg,
+      allowedToInstantiate: (parties) =>
+        // Removing all other users as well, since one of the users are not allowed to instantiate on tt02
+        removeAllButOneOrg(parties).filter((party) => party.orgNumber || party.name.includes(user)),
       doNotPromptForParty: false,
     });
     cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'accountant' });
