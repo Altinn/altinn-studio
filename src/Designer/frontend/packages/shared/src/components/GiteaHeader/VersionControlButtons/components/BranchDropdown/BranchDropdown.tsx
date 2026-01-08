@@ -8,6 +8,7 @@ import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 import classes from './BranchDropdown.module.css';
 import { useBranchData } from '../../hooks/useBranchData';
 import { useBranchOperations } from '../../hooks/useBranchOperations';
+import type { Branch } from 'app-shared/types/api/BranchTypes';
 
 export const BranchDropdown = () => {
   const { t } = useTranslation();
@@ -76,7 +77,7 @@ export const BranchDropdown = () => {
 };
 
 interface BranchListItemsProps {
-  branchList: Array<{ name: string }> | undefined;
+  branchList: Array<Branch> | undefined;
   currentBranch: string | undefined;
   onBranchClick: (branchName: string) => void;
   onCreateBranchClick: () => void;

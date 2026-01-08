@@ -1,9 +1,10 @@
 import { useBranchesQuery } from 'app-shared/hooks/queries/useBranchesQuery';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
+import type { Branch } from 'app-shared/types/api/BranchTypes';
 
 export interface UseBranchDataResult {
   currentBranch: string | undefined;
-  branchList: Array<{ name: string }> | undefined;
+  branchList: Array<Branch> | undefined;
   isLoading: boolean;
 }
 

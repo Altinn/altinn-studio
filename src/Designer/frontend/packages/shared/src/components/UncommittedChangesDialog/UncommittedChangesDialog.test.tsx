@@ -104,6 +104,7 @@ describe('UncommittedChangesDialog', () => {
     await user.click(discardChangesButton);
 
     expect(onDiscardAndSwitch).toHaveBeenCalledTimes(1);
+    expect(onDiscardAndSwitch).toHaveBeenCalledWith(error.targetBranch);
   });
 
   it('should not call onDiscardAndSwitch when canceling the browser alert', async () => {
