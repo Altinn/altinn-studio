@@ -1,9 +1,5 @@
 using System.Text.Json.Serialization;
-using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Features.Bootstrap.Models;
@@ -17,23 +13,17 @@ public sealed class BootstrapInstanceResponse
     /// Current instance data if applicable.
     /// </summary>
     [JsonPropertyName("instance")]
-    public Instance? Instance { get; set; }
+    public Instance Instance { get; set; }
 
     /// <summary>
     /// Layout sets if available.
     /// </summary>
     [JsonPropertyName("layoutSets")]
-    public LayoutSets? LayoutSets { get; set; }
+    public LayoutSets LayoutSets { get; set; }
 
     /// <summary>
     /// Initial layout if applicable.
     /// </summary>
     [JsonPropertyName("layout")]
-    public object? Layout { get; set; }
-
-    /// <summary>
-    /// Footer layout configuration.
-    /// </summary>
-    [JsonPropertyName("footerLayout")]
-    public object? FooterLayout { get; set; }
+    public object Layout { get; set; }
 }

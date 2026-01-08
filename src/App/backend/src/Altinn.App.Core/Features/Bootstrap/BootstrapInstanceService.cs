@@ -19,29 +19,16 @@ internal sealed class BootstrapInstanceService(IAppResources appResources, IInst
     };
 
     /// <inheritdoc />
-    public async Task<BootstrapInstanceResponse> GetInitialData(
-        string org,
-        string app,
-        string instanceId,
-        int partyId,
-        string? language = null,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<BootstrapInstanceResponse> GetInitialData(string org, string app, string instanceId)
     {
         // Get instance if instanceId is provided
         var instance = !string.IsNullOrEmpty(instanceId) ? await GetInstance(org, app, instanceId) : null;
 
         var taskId = instance?.Process?.CurrentTask?.ElementId;
 
-        // Start tasks in parallel
-        var footerLayoutTask = GetFooterLayout();
-
         // Get layout data (synchronous operations)
         var layoutSets = GetLayoutSets();
         var layout = GetLayoutForTask(taskId);
-
-        // Await async task
-        var footerLayout = await footerLayoutTask;
 
         // Build response immutably
         return new BootstrapInstanceResponse
@@ -49,7 +36,6 @@ internal sealed class BootstrapInstanceService(IAppResources appResources, IInst
             Instance = instance,
             LayoutSets = layoutSets,
             Layout = layout,
-            FooterLayout = footerLayout,
         };
     }
 

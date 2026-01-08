@@ -410,13 +410,7 @@ public class HomeController : Controller
         string instanceId = $"{partyId}/{instanceGuid}";
         var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
         var initialGlobalData = await _bootstrapGlobalService.GetGlobalState(org, app, language);
-        var initialInstanceData = await _bootstrapInstanceService.GetInitialData(
-            org,
-            app,
-            instanceId,
-            partyId,
-            language
-        );
+        var initialInstanceData = await _bootstrapInstanceService.GetInitialData(org, app, instanceId);
 
         var html = GenerateHtml(org, app, initialGlobalData, initialInstanceData);
         return Content(html, "text/html; charset=utf-8");
@@ -462,13 +456,7 @@ public class HomeController : Controller
 
         var initialGlobalData = await _bootstrapGlobalService.GetGlobalState(org, app, language);
 
-        var initialInstanceData = await _bootstrapInstanceService.GetInitialData(
-            org,
-            app,
-            instanceId,
-            partyId,
-            language
-        );
+        var initialInstanceData = await _bootstrapInstanceService.GetInitialData(org, app, instanceId);
 
         var html = GenerateHtml(org, app, initialGlobalData, initialInstanceData);
         return Content(html, "text/html; charset=utf-8");
@@ -577,7 +565,7 @@ public class HomeController : Controller
     {
         try
         {
-            var initialData = await _bootstrapInstanceService.GetInitialData(org, app, instanceId, partyId, language);
+            var initialData = await _bootstrapInstanceService.GetInitialData(org, app, instanceId);
             return Json(initialData);
         }
         catch (Exception ex)

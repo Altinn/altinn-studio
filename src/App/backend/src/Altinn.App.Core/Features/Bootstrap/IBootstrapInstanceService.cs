@@ -17,12 +17,5 @@ public interface IBootstrapInstanceService
     /// <param name="language">The language code for text resources.</param>
     /// <param name="cancellationToken">Cancellation token for the async operation.</param>
     /// <returns>A task that represents the asynchronous operation, containing the aggregated initial data.</returns>
-    Task<BootstrapInstanceResponse> GetInitialData(
-        string org,
-        string app,
-        string instanceId,
-        int partyId,
-        string? language = null,
-        CancellationToken cancellationToken = default
-    );
+    Task<BootstrapInstanceResponse> GetInitialData(string org, string app, string instanceId);
 }
