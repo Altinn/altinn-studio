@@ -135,26 +135,22 @@ function AppContentLibraryWithData({
         heading={t('app_content_library.library_heading')}
         pages={{
           codeListsWithTextResources: {
-            props: {
-              codeListDataList,
-              onCreateCodeList: handleCreate,
-              onDeleteCodeList: deleteOptionList,
-              onUpdateCodeListId: handleUpdateCodeListId,
-              onUpdateCodeList: handleUpdate,
-              onCreateTextResource: handleUpdateTextResource,
-              onUpdateTextResource: handleUpdateTextResource,
-              onUploadCodeList: handleUpload,
-              codeListsUsages,
-              textResources,
-              externalResources: availableOrgResources,
-              onImportCodeListFromOrg: handleImportCodeListFromOrg,
-            },
+            codeListDataList,
+            onCreateCodeList: handleCreate,
+            onDeleteCodeList: deleteOptionList,
+            onUpdateCodeListId: handleUpdateCodeListId,
+            onUpdateCodeList: handleUpdate,
+            onCreateTextResource: handleUpdateTextResource,
+            onUpdateTextResource: handleUpdateTextResource,
+            onUploadCodeList: handleUpload,
+            codeListsUsages,
+            textResources,
+            externalResources: availableOrgResources,
+            onImportCodeListFromOrg: handleImportCodeListFromOrg,
           },
           images: {
-            props: {
-              images: [],
-              onUpdateImage: () => {},
-            },
+            images: [],
+            onUpdateImage: () => {},
           },
         }}
       />

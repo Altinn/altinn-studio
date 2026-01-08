@@ -1,16 +1,16 @@
 import React, { forwardRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from '../../hooks/mutations';
 import type { NewResource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioButton, StudioDialog, StudioParagraph } from '@studio/components';
+import { StudioButton, StudioDialog, StudioParagraph, StudioTextfield } from '@studio/components';
 import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
 import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
+import { formatIdString } from '../../utils/stringUtils';
 
 export type NewResourceModalProps = {
   onClose: () => void;
@@ -32,17 +32,20 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
 
     const { org, app } = useUrlParams();
 
-    const [id, setId] = useState('');
-    const [title, setTitle] = useState('');
+    const [id, setId] = useState(`${org}-`);
     const [resourceIdExists, setResourceIdExists] = useState(false);
 
     // Mutation function to create new resource
     const { mutate: createNewResource, isPending: isCreatingResource } =
       useCreateResourceMutation(org);
 
-    const idErrorMessage = getResourceIdentifierErrorMessage(id, resourceIdExists);
+    const idErrorMessage = getResourceIdentifierErrorMessage(id, org, resourceIdExists);
     const hasValidValues =
-      id.length >= 4 && title.length !== 0 && !idErrorMessage && !isCreatingResource;
+      id.length >= 4 &&
+      !idErrorMessage &&
+      !isCreatingResource &&
+      id.startsWith(`${org}-`) &&
+      id !== `${org}-`;
 
     /**
      * Creates a new resource in backend, and navigates if success
@@ -51,7 +54,7 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
       const idAndTitle: NewResource = {
         identifier: id,
         title: {
-          nb: title,
+          nb: '',
           nn: '',
           en: '',
         },
@@ -80,8 +83,7 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
      */
     const handleClose = () => {
       onClose();
-      setId('');
-      setTitle('');
+      setId(`${org}-`);
       setResourceIdExists(false);
     };
 
@@ -103,20 +105,18 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
             </>
           }
         >
-          <StudioParagraph>
+          <StudioParagraph spacing>
             {t('resourceadm.dashboard_create_modal_resource_name_and_id_text')}
           </StudioParagraph>
-          <ResourceNameAndId
-            idLabel={t('resourceadm.dashboard_resource_name_and_id_resource_id')}
-            titleLabel={t('resourceadm.dashboard_resource_name_and_id_resource_name')}
-            id={id}
-            title={title}
-            onIdChange={(newId: string) => {
+          <StudioTextfield
+            label={t('resourceadm.dashboard_resource_name_and_id_resource_id')}
+            value={id}
+            onChange={(event) => {
               setResourceIdExists(false);
+              const newId = formatIdString(event.target.value);
               setId(newId);
             }}
-            onTitleChange={(newTitle: string) => setTitle(newTitle)}
-            conflictErrorMessage={idErrorMessage ? t(idErrorMessage) : ''}
+            error={idErrorMessage ? t(idErrorMessage, { orgPrefix: `${org}-` }) : ''}
           />
         </ResourceAdmDialogContent>
       </StudioDialog>
