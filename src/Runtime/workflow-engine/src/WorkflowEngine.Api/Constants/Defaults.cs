@@ -1,4 +1,5 @@
 using WorkflowEngine.Models;
+using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Api.Constants;
 
@@ -7,9 +8,13 @@ namespace WorkflowEngine.Api.Constants;
 /// </summary>
 internal static class Defaults
 {
+    private const string NeedsConfiguration =
+        "this default value will never be used, but is required by the nullability annotations";
+
     public static readonly WorkflowEngineSettings WorkflowEngineSettings = new()
     {
-        ApiKey = Guid.NewGuid().ToString(),
+        DatabaseConnectionString = NeedsConfiguration,
+        ApiKey = NeedsConfiguration,
         QueueCapacity = 10000,
         DefaultTaskExecutionTimeout = TimeSpan.FromSeconds(100),
         DefaultTaskRetryStrategy = RetryStrategy.Exponential(

@@ -29,7 +29,7 @@ internal partial class ProcessEngine
         await AcquireQueueSlot(cancellationToken);
 
         _logger.LogTrace("Enqueuing job request {Request}", request);
-        _inbox[request.Key] = await _repository.AddJob(request, cancellationToken);
+        _inbox[request.Key] = await _repository.AddWorkflow(request, cancellationToken);
 
         return Response.Accepted();
     }
@@ -49,7 +49,7 @@ internal partial class ProcessEngine
         return _inbox.Values.FirstOrDefault(x => x.InstanceInformation.Equals(instanceInformation));
     }
 
-    private async System.Threading.Tasks.Task PopulateJobsFromStorage(CancellationToken cancellationToken)
+    private async Task PopulateJobsFromStorage(CancellationToken cancellationToken)
     {
         // Disabled for now. We don't necessarily want to resume jobs after restart while testing.
         return;
@@ -58,7 +58,7 @@ internal partial class ProcessEngine
 
         try
         {
-            IReadOnlyList<Workflow> incompleteJobs = await _repository.GetIncompleteJobs(cancellationToken);
+            IReadOnlyList<Workflow> incompleteJobs = await _repository.GetIncompleteWorkflows(cancellationToken);
 
             foreach (var job in incompleteJobs)
             {
@@ -79,14 +79,14 @@ internal partial class ProcessEngine
         }
     }
 
-    private async System.Threading.Tasks.Task UpdateJobInStorage(Workflow workflow, CancellationToken cancellationToken)
+    private async Task UpdateJobInStorage(Workflow workflow, CancellationToken cancellationToken)
     {
         // TODO: Should we update the `Instance` with something here too? Like if the workflow has failed, etc
         _logger.LogDebug("Updating workflow in storage: {Workflow}", workflow);
 
         try
         {
-            await _repository.UpdateJob(workflow, cancellationToken);
+            await _repository.UpdateWorkflow(workflow, cancellationToken);
             _logger.LogTrace("Workflow {JobIdentifier} updated in database", workflow.Key);
         }
         catch (Exception ex)
@@ -100,13 +100,13 @@ internal partial class ProcessEngine
         }
     }
 
-    private async System.Threading.Tasks.Task UpdateTaskInStorage(Step step, CancellationToken cancellationToken)
+    private async Task UpdateTaskInStorage(Step step, CancellationToken cancellationToken)
     {
         _logger.LogDebug("Updating step in storage: {Step}", step);
 
         try
         {
-            await _repository.UpdateTask(step, cancellationToken);
+            await _repository.UpdateStep(step: step, cancellationToken);
             _logger.LogTrace("Step {TaskIdentifier} updated in database", step.Key);
         }
         catch (Exception ex)

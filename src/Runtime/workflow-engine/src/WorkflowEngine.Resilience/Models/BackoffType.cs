@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using WorkflowEngine.Resilience.JsonConverters;
 
-namespace WorkflowEngine.Resilience;
+namespace WorkflowEngine.Resilience.Models;
 
 /// <summary>
 /// Defines backoff types for retry strategies.

@@ -33,7 +33,8 @@ internal static class ServiceCollectionExtensions
             services
                 .AddOptions<WorkflowEngineSettings>()
                 .BindConfiguration(configSectionPath)
-                .PostConfigure(SetProcessEngineSettingsDefaults);
+                .PostConfigure(SetProcessEngineSettingsDefaults)
+                .Validate(ValidateProcessEngineSettings);
 
             return services;
         }
@@ -46,7 +47,8 @@ internal static class ServiceCollectionExtensions
             services
                 .AddOptions<WorkflowEngineSettings>()
                 .Configure(configureOptions)
-                .PostConfigure(SetProcessEngineSettingsDefaults);
+                .PostConfigure(SetProcessEngineSettingsDefaults)
+                .Validate(ValidateProcessEngineSettings);
             return services;
         }
 
@@ -92,12 +94,42 @@ internal static class ServiceCollectionExtensions
         /// </summary>
         private static void SetProcessEngineSettingsDefaults(WorkflowEngineSettings config)
         {
-            config.ApiKey ??= Defaults.WorkflowEngineSettings.ApiKey;
-            config.QueueCapacity ??= Defaults.WorkflowEngineSettings.QueueCapacity;
-            config.DefaultTaskExecutionTimeout ??= Defaults.WorkflowEngineSettings.DefaultTaskExecutionTimeout;
+            // Note: Don't offer to set API key or connection string defaults here, it should always be explicitly set in the config.
+
+            if (config.QueueCapacity <= 0)
+                config.QueueCapacity = Defaults.WorkflowEngineSettings.QueueCapacity;
+
+            if (config.DefaultTaskExecutionTimeout <= TimeSpan.Zero)
+                config.DefaultTaskExecutionTimeout = Defaults.WorkflowEngineSettings.DefaultTaskExecutionTimeout;
+
+            config.DefaultTaskRetryStrategy ??= Defaults.WorkflowEngineSettings.DefaultTaskRetryStrategy;
             config.DefaultTaskRetryStrategy ??= Defaults.WorkflowEngineSettings.DefaultTaskRetryStrategy;
             config.DatabaseRetryStrategy ??= Defaults.WorkflowEngineSettings.DatabaseRetryStrategy;
             config.AppCommandEndpoint ??= Defaults.WorkflowEngineSettings.AppCommandEndpoint;
+        }
+
+        /// <summary>
+        /// Ensures that all <see cref="WorkflowEngineSettings"/> properties fall back to <see cref="Defaults"/> if not provided
+        /// </summary>
+        private static bool ValidateProcessEngineSettings(WorkflowEngineSettings config)
+        {
+            if (string.IsNullOrEmpty(config.DatabaseConnectionString))
+                return false;
+
+            if (string.IsNullOrEmpty(config.ApiKey))
+                return false;
+
+            if (config.QueueCapacity <= 0)
+                return false;
+
+            if (config.DefaultTaskExecutionTimeout <= TimeSpan.Zero)
+                return false;
+
+            bool validAppCommandUri = Uri.TryCreate(config.AppCommandEndpoint, UriKind.Absolute, out _);
+            if (!validAppCommandUri)
+                return false;
+
+            return true;
         }
     }
 }

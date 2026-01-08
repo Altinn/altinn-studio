@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using WorkflowEngine.Data.Context;
+using WorkflowEngine.Data.Repository;
 
 namespace WorkflowEngine.Data.Extensions;
 
@@ -14,14 +16,14 @@ public static class ServiceCollectionExtensions
         {
             ArgumentException.ThrowIfNullOrEmpty(connectionString);
 
-            services.AddTransient<IProcessEngineRepository, ProcessEnginePgRepository>();
-            services.AddDbContext<ProcessEngineDbContext>(
+            services.AddTransient<IWorkflowEngineRepository, WorkflowEnginePgRepository>();
+            services.AddDbContext<WorkflowEngineDbContext>(
                 options =>
                     options.UseNpgsql(
                         connectionString,
                         npgsqlOptions =>
                         {
-                            npgsqlOptions.MigrationsAssembly(typeof(ProcessEngineDbContext).Assembly.FullName);
+                            npgsqlOptions.MigrationsAssembly(typeof(WorkflowEngineDbContext).Assembly.FullName);
                             npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "public");
                         }
                     ),
@@ -37,7 +39,7 @@ public static class ServiceCollectionExtensions
         /// </summary>
         public IServiceCollection AddInMemoryRepository()
         {
-            services.AddSingleton<IProcessEngineRepository, ProcessEngineInMemoryRepository>();
+            services.AddSingleton<IWorkflowEngineRepository, WorkflowEngineInMemoryRepository>();
             return services;
         }
     }

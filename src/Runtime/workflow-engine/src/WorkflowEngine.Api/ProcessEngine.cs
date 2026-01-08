@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using WorkflowEngine.Api.Exceptions;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data;
+using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Extensions;
 using TaskStatus = WorkflowEngine.Models.TaskStatus;
@@ -15,8 +16,8 @@ internal interface IProcessEngine
     WorkflowEngineSettings Settings { get; }
     EngineHealthStatus Status { get; }
     int InboxCount { get; }
-    System.Threading.Tasks.Task Start(CancellationToken cancellationToken = default);
-    System.Threading.Tasks.Task Stop();
+    Task Start(CancellationToken cancellationToken = default);
+    Task Stop();
     Task<Response> EnqueueJob(Request request, CancellationToken cancellationToken = default);
     bool HasDuplicateJob(string jobIdentifier);
     bool HasQueuedJobForInstance(InstanceInformation instanceInformation);
@@ -38,13 +39,13 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
 
     private ConcurrentDictionary<string, Workflow> _inbox;
     private CancellationTokenSource? _cancellationTokenSource;
-    private System.Threading.Tasks.Task? _mainLoopTask;
+    private Task? _mainLoopTask;
     private SemaphoreSlim _inboxCapacityLimit;
     private volatile bool _cleanupRequired;
     private bool _disposed;
     private readonly IOptionsMonitor<WorkflowEngineSettings> _settings;
 
-    private IProcessEngineRepository _repository => _serviceProvider.GetRequiredService<IProcessEngineRepository>();
+    private IWorkflowEngineRepository _repository => _serviceProvider.GetRequiredService<IWorkflowEngineRepository>();
     public EngineHealthStatus Status { get; private set; }
     public int InboxCount => _inbox.Count;
     public WorkflowEngineSettings Settings => _settings.CurrentValue;
@@ -66,10 +67,10 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
         _logger.LogTrace("Checking if process engine should run");
 
         // TODO: Replace this with actual check
-        bool placeholderEnabledResponse = await System.Threading.Tasks.Task.Run(
+        bool placeholderEnabledResponse = await Task.Run(
             async () =>
             {
-                await System.Threading.Tasks.Task.Delay(100, cancellationToken);
+                await Task.Delay(100, cancellationToken);
                 return true;
             },
             cancellationToken
@@ -91,7 +92,7 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
             var backoffDelay = _statusCheckBackoffStrategy.CalculateDelay(iteration);
 
             _logger.LogInformation("Process engine is disabled. Backing off for {BackoffDelay}", backoffDelay);
-            await System.Threading.Tasks.Task.Delay(backoffDelay, cancellationToken);
+            await Task.Delay(backoffDelay, cancellationToken);
         }
 
         // Update status
@@ -122,13 +123,13 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
         {
             _logger.LogTrace("No jobs to process, taking a short nap");
             Status |= EngineHealthStatus.Idle;
-            await System.Threading.Tasks.Task.Delay(250, cancellationToken);
+            await Task.Delay(250, cancellationToken);
         }
 
         return haveJobs;
     }
 
-    private async System.Threading.Tasks.Task MainLoop(CancellationToken cancellationToken)
+    private async Task MainLoop(CancellationToken cancellationToken)
     {
         _logger.LogTrace(
             "Entering MainLoop. Inbox count: {InboxCount}. Queue slots available: {AvailableQueueSlots}",
@@ -156,7 +157,7 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
         );
     }
 
-    private async System.Threading.Tasks.Task ProcessJob(Workflow workflow, CancellationToken cancellationToken)
+    private async Task ProcessJob(Workflow workflow, CancellationToken cancellationToken)
     {
         _logger.LogDebug("Processing workflow: {Workflow}", workflow);
 
@@ -204,7 +205,7 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
         _logger.LogDebug("Workflow {Workflow} is done", workflow);
     }
 
-    private async System.Threading.Tasks.Task ProcessTasks(Workflow workflow, CancellationToken cancellationToken)
+    private async Task ProcessTasks(Workflow workflow, CancellationToken cancellationToken)
     {
         foreach (Step task in workflow.OrderedIncompleteTasks())
         {

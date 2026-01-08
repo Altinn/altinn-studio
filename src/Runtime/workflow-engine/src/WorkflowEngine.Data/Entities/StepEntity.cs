@@ -7,7 +7,7 @@ using WorkflowEngine.Models;
 namespace WorkflowEngine.Data.Entities;
 
 [Table("process_engine_tasks")]
-internal sealed class ProcessEngineTaskEntity : IHasCommonMetadata
+internal sealed class StepEntity : IHasCommonMetadata
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -47,9 +47,9 @@ internal sealed class ProcessEngineTaskEntity : IHasCommonMetadata
     // Foreign key and navigation property
     [ForeignKey(nameof(Job))]
     public long JobId { get; set; }
-    public ProcessEngineJobEntity? Job { get; set; }
+    public WorkflowEntity? Job { get; set; }
 
-    public static ProcessEngineTaskEntity FromDomainModel(Step step) =>
+    public static StepEntity FromDomainModel(Step step) =>
         new()
         {
             Id = step.DatabaseId,

@@ -122,7 +122,7 @@ internal class ProcessEngineTaskHandler : IProcessEngineTaskHandler
         CancellationToken cancellationToken
     )
     {
-        await System.Threading.Tasks.Task.Delay(command.Duration, cancellationToken);
+        await Task.Delay(command.Duration, cancellationToken);
         return ExecutionResult.Success();
     }
 

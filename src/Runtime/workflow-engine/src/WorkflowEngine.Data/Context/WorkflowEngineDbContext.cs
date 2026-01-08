@@ -1,22 +1,22 @@
 using Microsoft.EntityFrameworkCore;
 using WorkflowEngine.Data.Entities;
 
-namespace WorkflowEngine.Data;
+namespace WorkflowEngine.Data.Context;
 
-internal sealed class ProcessEngineDbContext : DbContext
+internal sealed class WorkflowEngineDbContext : DbContext
 {
-    public ProcessEngineDbContext(DbContextOptions<ProcessEngineDbContext> options)
+    public WorkflowEngineDbContext(DbContextOptions<WorkflowEngineDbContext> options)
         : base(options) { }
 
-    public DbSet<ProcessEngineJobEntity> Jobs { get; set; }
-    public DbSet<ProcessEngineTaskEntity> Tasks { get; set; }
+    public DbSet<WorkflowEntity> Jobs { get; set; }
+    public DbSet<StepEntity> Steps { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         // Configure Workflow entity
-        modelBuilder.Entity<ProcessEngineJobEntity>(entity =>
+        modelBuilder.Entity<WorkflowEntity>(entity =>
         {
             // Indexes
             entity.HasIndex(e => e.Status);
@@ -37,7 +37,7 @@ internal sealed class ProcessEngineDbContext : DbContext
         });
 
         // Configure Step entity
-        modelBuilder.Entity<ProcessEngineTaskEntity>(entity =>
+        modelBuilder.Entity<StepEntity>(entity =>
         {
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.BackoffUntil);

@@ -121,6 +121,9 @@ dotnet_diagnostic.CA2007.severity = none
 # CA1062: Validate arguments of public methods
 dotnet_diagnostic.CA1062.severity = suggestion
 
+# S3251: Supply an implementation for this partial method
+dotnet_diagnostic.S3251.severity = none
+
 
 [*.{yml,yaml}]
 indent_size = 2

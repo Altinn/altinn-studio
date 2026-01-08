@@ -1,0 +1,6 @@
+[Extensions/RetryStrategyExtensions.cs]
+# CA2208: Instantiate argument exceptions correctly
+dotnet_diagnostic.CA2208.severity = none
+
+# S3928: Parameter names used into ArgumentException constructors should match an existing one
+dotnet_diagnostic.S3928.severity = none

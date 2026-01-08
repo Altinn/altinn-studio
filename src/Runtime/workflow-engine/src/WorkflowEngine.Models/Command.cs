@@ -82,7 +82,7 @@ public abstract record Command
     /// <param name="Action">The delegate method</param>
     /// <param name="MaxExecutionTime">The maximum allowed execution time for the command.</param>
     internal sealed record Delegate(
-        Func<Workflow, Step, CancellationToken, System.Threading.Tasks.Task> Action,
+        Func<Workflow, Step, CancellationToken, Task> Action,
         TimeSpan? MaxExecutionTime = null
     ) : Command("delegate", MaxExecutionTime);
 

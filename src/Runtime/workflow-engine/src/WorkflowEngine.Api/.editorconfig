@@ -2,3 +2,13 @@
 
 # CA1515: Consider making public types internal
 dotnet_diagnostic.CA1515.severity = none
+
+
+[Extensions/ServiceCollectionExtensions.cs]
+
+# We will be null-checking some configuration objects. Resharper does not approve.
+resharper_condition_is_always_true_or_false_according_to_nullable_api_contract_highlighting = none
+resharper_null_coalescing_condition_is_always_not_null_according_to_api_contract_highlighting = none
+
+# Roslyn is confused
+dotnet_diagnostic.S1144.severity = none

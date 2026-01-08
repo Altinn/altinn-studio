@@ -4,10 +4,6 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <NoWarn>$(NoWarn);CA2007</NoWarn>
-    <!--
-      CA2007: ConfigureAwait(false) is not needed here
-    -->
   </PropertyGroup>
 
   <ItemGroup>

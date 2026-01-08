@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace WorkflowEngine.Resilience;
+namespace WorkflowEngine.Resilience.Models;
 
 /// <summary>
 /// Defines a retry strategy for process engine tasks.
