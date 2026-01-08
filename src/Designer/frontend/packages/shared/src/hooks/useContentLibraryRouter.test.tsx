@@ -1,10 +1,11 @@
-import { render, renderHook, screen } from '@testing-library/react';
+import { act, render, renderHook, screen } from '@testing-library/react';
 import type { RenderHookResult, RenderOptions } from '@testing-library/react';
 import { useContentLibraryRouter } from 'app-shared/hooks/useContentLibraryRouter';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import React from 'react';
 import { PageName } from '@studio/content-library';
 import type { ContentLibraryRouter } from '@studio/content-library';
+import userEvent from '@testing-library/user-event';
 
 // Test data:
 const basePath = '/content-library';
@@ -15,7 +16,7 @@ describe('useContentLibraryRouter', () => {
     expect(result.current.location).toBe(PageName.LandingPage);
   });
 
-  it('Extracts tha page name from the path when valid', () => {
+  it('Extracts the page name from the path when valid', () => {
     const { result } = renderUseContentLibraryRouter(`${basePath}/${PageName.CodeLists}`);
     expect(result.current.location).toBe(PageName.CodeLists);
   });
@@ -25,12 +26,25 @@ describe('useContentLibraryRouter', () => {
     expect(result.current.location).toBe(PageName.LandingPage);
   });
 
-  it('Returns a function for rendering a link component', () => {
-    const { result } = renderUseContentLibraryRouter();
+  it('Returns a function that renders a link component to some given page', async () => {
+    const captureLocation = jest.fn();
     const linkText = 'Code lists';
-    const view = result.current.renderLink(PageName.CodeLists, { children: linkText });
-    render(view, { wrapper: wrapper() });
-    expect(screen.getByRole('link', { name: linkText })).toBeInTheDocument();
+    const TestComponent = (): React.ReactElement => {
+      const { renderLink, location } = useContentLibraryRouter(basePath);
+      captureLocation(location);
+      return renderLink(PageName.CodeLists, { children: linkText });
+    };
+
+    render(<TestComponent />, { wrapper: wrapper() });
+    await userEvent.click(screen.getByRole('link', { name: linkText }));
+
+    expect(captureLocation).toHaveBeenLastCalledWith(PageName.CodeLists);
+  });
+
+  it('Returns a function that navigates to a specific page', () => {
+    const { result } = renderUseContentLibraryRouter();
+    act(() => result.current.navigate(PageName.CodeLists));
+    expect(result.current.location).toBe(PageName.CodeLists);
   });
 });
 
