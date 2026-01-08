@@ -20,6 +20,10 @@ namespace Altinn.App.Models
     [BindNever]
     public decimal spesifikasjonsnummer {get; set;} = 12392;
 
+    [XmlAttribute("useBothRepGroups")]
+    [JsonProperty("useBothRepGroups")]
+    public bool useBothRepGroups {get; set;}
+
     [XmlAttribute("hideRowValue")]
     [JsonProperty("hideRowValue")]
     public int hideRowValue {get; set;}
