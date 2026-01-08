@@ -37,6 +37,10 @@
   max-width: 700px;
 }
 
+.helpTextContent span {
+  font-weight: 400;
+}
+
 .helpText-focus:focus-visible {
   outline: var(--ds-border-width-focus) solid var(--ds-color-neutral-text-default);
   outline-offset: var(--ds-border-width-focus);

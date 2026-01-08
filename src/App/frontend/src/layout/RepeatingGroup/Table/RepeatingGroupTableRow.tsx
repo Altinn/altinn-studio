@@ -43,6 +43,7 @@ export interface IRepeatingGroupTableRowProps {
   mobileView: boolean;
   displayEditColumn: boolean;
   displayDeleteColumn: boolean;
+  hiddenColumns: string[];
 }
 
 function getTableTitle(textResourceBindings: ITextResourceBindings) {
@@ -83,6 +84,7 @@ export function RepeatingGroupTableRow({
   mobileView,
   displayEditColumn,
   displayDeleteColumn,
+  hiddenColumns,
 }: IRepeatingGroupTableRowProps): JSX.Element | null {
   const mobileViewSmall = useIsMobile();
   const { refSetter } = useRepeatingGroupsFocusContext();
@@ -94,6 +96,7 @@ export function RepeatingGroupTableRow({
   const langTools = useLanguage();
   const { langAsString } = langTools;
   const { edit: editForGroup, tableColumns: columnSettings } = useItemWhenType(baseComponentId, 'RepeatingGroup');
+  const compactButtons = Boolean(editForGroup?.compactButtons);
   const rowExpressions = RepGroupHooks.useRowWithExpressions(baseComponentId, { uuid });
   const editForRow = rowExpressions?.edit;
   const trbForRow = rowExpressions?.textResourceBindings;
@@ -102,10 +105,12 @@ export function RepeatingGroupTableRow({
 
   const layoutLookups = useLayoutLookups();
   const rawTableIds = useTableComponentIds(baseComponentId);
-  const tableItems = rawTableIds.map((baseId) => ({
-    baseId,
-    type: layoutLookups.getComponent(baseId).type,
-  }));
+  const tableItems = rawTableIds
+    .filter((id) => !hiddenColumns.includes(id))
+    .map((baseId) => ({
+      baseId,
+      type: layoutLookups.getComponent(baseId).type,
+    }));
   const isEditingRow = RepGroupContext.useIsEditingRow(uuid);
   const isDeletingRow = RepGroupContext.useIsDeletingRow(uuid);
 
@@ -115,6 +120,7 @@ export function RepeatingGroupTableRow({
     : getEditButtonText(isEditingRow, langTools, trbForRow);
 
   const deleteButtonText = langAsString('general.delete');
+  const togleDeletebuttonText = isEditingRow || !mobileViewSmall ? deleteButtonText : null;
 
   return (
     <Table.Row
@@ -234,6 +240,7 @@ export function RepeatingGroupTableRow({
                   onClick={() => toggleEditing({ index, uuid })}
                   editButtonText={editButtonText}
                   rowHasErrors={rowHasErrors}
+                  compactButtons={compactButtons}
                 />
               </div>
             </Table.Cell>
@@ -254,7 +261,7 @@ export function RepeatingGroupTableRow({
                   alertOnDeleteProps={alertOnDelete}
                   langAsString={langAsString}
                 >
-                  {deleteButtonText}
+                  {compactButtons ? (isEditingRow ? deleteButtonText : null) : deleteButtonText}
                 </DeleteElement>
               </div>
             </Table.Cell>
@@ -275,6 +282,7 @@ export function RepeatingGroupTableRow({
                 onClick={() => toggleEditing({ index, uuid })}
                 editButtonText={editButtonText}
                 rowHasErrors={rowHasErrors}
+                compactButtons={compactButtons}
               />
             )}
             {editForRow?.deleteButton !== false && (
@@ -289,7 +297,7 @@ export function RepeatingGroupTableRow({
                   alertOnDeleteProps={alertOnDelete}
                   langAsString={langAsString}
                 >
-                  {isEditingRow || !mobileViewSmall ? deleteButtonText : null}
+                  {compactButtons ? (isEditingRow ? deleteButtonText : null) : togleDeletebuttonText}
                 </DeleteElement>
               </>
             )}
@@ -327,6 +335,7 @@ function EditElement({
   onClick,
   rowHasErrors,
   uuid,
+  compactButtons,
 }: {
   ariaExpanded: boolean;
   indexedId: string;
@@ -335,8 +344,10 @@ function EditElement({
   onClick: () => void;
   editButtonText: string;
   rowHasErrors: boolean;
+  compactButtons: boolean;
 }) {
   const ariaLabel = useAriaLabel(editButtonText);
+  const showText = compactButtons ? ariaExpanded : ariaExpanded || !mobileViewSmall;
   return (
     <Button
       aria-expanded={ariaExpanded}
@@ -348,7 +359,7 @@ function EditElement({
       aria-label={ariaLabel}
       className={classes.tableButton}
     >
-      {(ariaExpanded || !mobileViewSmall) && editButtonText}
+      {showText && editButtonText}
       {rowHasErrors ? (
         <span style={{ color: '#C30000' }}>
           <XMarkOctagonFillIcon

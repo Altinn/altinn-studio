@@ -50,7 +50,7 @@ describe('Expression validation', () => {
     cy.findByRole('textbox', { name: /telefonnummer/i }).type('98765432');
     cy.get(appFrontend.errorReport).should('not.exist');
 
-    cy.dsSelect(appFrontend.expressionValidationTest.bosted, 'Oslo');
+    cy.dsSelect(appFrontend.expressionValidationTest.bosted, /Oslo/);
 
     cy.findByRole('button', { name: /neste/i }).click();
     cy.navPage('Skjul felter').should('have.attr', 'aria-current', 'page');

@@ -371,7 +371,15 @@ const common = {
           .optional()
           .setDeprecated('Will be removed in the next major version. Use `queryParameters` with expressions instead.'),
       ),
-      new CG.prop('queryParameters', CG.common('IQueryParameters').optional()),
+      new CG.prop(
+        'queryParameters',
+        CG.common('IQueryParameters')
+          .optional()
+          .setTitle('Query parameters')
+          .setDescription(
+            'A mapping of query string parameters to values. Will be appended to the URL when fetching options.',
+          ),
+      ),
       new CG.prop(
         'options',
         new CG.arr(CG.common('IRawOption'))
@@ -457,6 +465,16 @@ const common = {
       ),
       new CG.prop('alignText', CG.common('ITableColumnsAlignText').optional()),
       new CG.prop('textOverflow', CG.common('ITableColumnsTextOverflow').optional()),
+      new CG.prop(
+        'hidden',
+        new CG.expr(ExprVal.Boolean)
+          .optional({ default: false })
+          .setTitle('Hidden column?')
+          .setDescription(
+            'Expression or boolean indicating whether each column should be hidden. An expression will be evaluated per ' +
+              'column, and if it evaluates to true, the column will be hidden.',
+          ),
+      ),
     )
       .setTitle('Column options')
       .setDescription('Options for the row/column')
