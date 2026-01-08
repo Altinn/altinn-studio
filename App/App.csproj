@@ -5,10 +5,10 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.9.0-pr.3851.test.456e0f37">
+    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.9.0-pr.3902.test.39b1dc17">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
-    <PackageReference Include="Altinn.App.Core.Experimental" Version="8.9.0-pr.3851.test.456e0f37" />
+    <PackageReference Include="Altinn.App.Core.Experimental" Version="8.9.0-pr.3902.test.39b1dc17" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
