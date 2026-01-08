@@ -75,14 +75,14 @@ export const BranchDropdown = () => {
   );
 };
 
-export interface BranchListItemsProps {
+interface BranchListItemsProps {
   branchList: Array<{ name: string }> | undefined;
   currentBranch: string | undefined;
   onBranchClick: (branchName: string) => void;
   onCreateBranchClick: () => void;
 }
 
-export const BranchListItems = ({
+const BranchListItems = ({
   branchList,
   currentBranch,
   onBranchClick,

@@ -130,7 +130,6 @@ describe('UncommittedChangesDialog', () => {
 });
 
 const defaultProps: UncommittedChangesDialogProps = {
-  isOpen: true,
   error,
   onClose,
   onDiscardAndSwitch,

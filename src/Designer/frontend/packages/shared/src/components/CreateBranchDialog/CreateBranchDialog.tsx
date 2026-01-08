@@ -46,7 +46,6 @@ export const CreateBranchDialog = ({
     }
 
     onCreateBranch(newBranchName);
-    handleClose();
   };
 
   const createButtonText = isLoading
