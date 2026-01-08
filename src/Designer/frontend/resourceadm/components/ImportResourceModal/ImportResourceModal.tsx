@@ -24,6 +24,7 @@ import {
   getResourceIdentifierErrorMessage,
 } from '../../utils/resourceUtils';
 import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
+import { getValidIdentifierPrefixes } from '../../utils/resourceUtils/resourceUtils';
 
 export type ImportResourceModalProps = {
   onClose: () => void;
@@ -62,7 +63,12 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
 
     const idErrorMessage = getResourceIdentifierErrorMessage(id, org, resourceIdExists);
     const hasValidValues =
-      selectedEnv && selectedService && id.length >= 4 && !idErrorMessage && !isImportingResource;
+      selectedEnv &&
+      selectedService &&
+      id.length >= 4 &&
+      !idErrorMessage &&
+      !isImportingResource &&
+      getValidIdentifierPrefixes(org).every((prefix) => id !== prefix);
 
     const environmentOptions = getAvailableEnvironments(org);
 
@@ -162,7 +168,13 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
                         setResourceIdExists(false);
                         setId(formatIdString(event.target.value));
                       }}
-                      error={idErrorMessage ? t(idErrorMessage, { orgPrefix: `${org}-` }) : ''}
+                      error={
+                        idErrorMessage
+                          ? t(idErrorMessage, {
+                              orgPrefix: `${getValidIdentifierPrefixes(org).join(` ${t('expression.or')} `)}`,
+                            })
+                          : ''
+                      }
                     />
                   </div>
                 )}

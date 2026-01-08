@@ -11,6 +11,7 @@ import { StudioButton, StudioDialog, StudioParagraph, StudioTextfield } from '@s
 import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
 import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
 import { formatIdString } from '../../utils/stringUtils';
+import { getValidIdentifierPrefixes } from '../../utils/resourceUtils/resourceUtils';
 
 export type NewResourceModalProps = {
   onClose: () => void;
@@ -44,8 +45,7 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
       id.length >= 4 &&
       !idErrorMessage &&
       !isCreatingResource &&
-      id.startsWith(`${org}-`) &&
-      id !== `${org}-`;
+      getValidIdentifierPrefixes(org).every((prefix) => id !== prefix);
 
     /**
      * Creates a new resource in backend, and navigates if success
@@ -116,7 +116,13 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
               const newId = formatIdString(event.target.value);
               setId(newId);
             }}
-            error={idErrorMessage ? t(idErrorMessage, { orgPrefix: `${org}-` }) : ''}
+            error={
+              idErrorMessage
+                ? t(idErrorMessage, {
+                    orgPrefix: `${getValidIdentifierPrefixes(org).join(` ${t('expression.or')} `)}`,
+                  })
+                : ''
+            }
           />
         </ResourceAdmDialogContent>
       </StudioDialog>
