@@ -10,7 +10,10 @@ type LibraryBodyProps<T extends PageName> = {
   page: Page<T>;
 };
 
-export function LibraryBody<T extends PageName>({ config, page }: LibraryBodyProps<T>) {
+export function LibraryBody<T extends PageName>({
+  config,
+  page,
+}: LibraryBodyProps<T>): React.ReactElement {
   return (
     <div className={classes.libraryContent}>
       <PagesRouter config={config} />
@@ -24,6 +27,6 @@ type PageViewProps<T extends PageName> = {
   page: Page<T>;
 };
 
-function PageView<T extends PageName>({ config, page }: PageViewProps<T>) {
+function PageView<T extends PageName>({ config, page }: PageViewProps<T>): React.ReactElement {
   return <div className={classes.component}>{page.renderPage(config)}</div>;
 }

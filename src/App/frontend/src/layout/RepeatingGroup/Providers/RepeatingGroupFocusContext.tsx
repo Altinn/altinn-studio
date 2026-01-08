@@ -148,8 +148,9 @@ function useNavigateToRepeatingGroupPageAndFocusRow() {
     const { depth } = splitDashedKey(targetIndexedId);
     const row = rows.find((r) => r.index === depth.at(negativeRowIndex));
 
-    if (pagination) {
-      row && changePageToRow(row);
+    if (pagination && row) {
+      changePageToRow(row);
+      openForEditing(row);
       return;
     }
     if (edit?.mode === 'showAll' || edit?.mode === 'onlyTable') {

@@ -65,7 +65,7 @@
     "timestamp": "2024-01-01T00:00:00Z"
    }
   ],
-  "authority": "http://fakes:8050",
+  "authority": "http://fakes:8050/",
   "clientId": "<sanitized-client-id>",
   "conditions": [
    {

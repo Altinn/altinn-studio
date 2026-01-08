@@ -1,10 +1,12 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { cyMockResponses, removeAllButOneOrg } from 'test/e2e/pageobjects/party-mocks';
+import { cyUserCredentials } from 'test/e2e/support/auth';
 
 const appFrontend = new AppFrontend();
 
 describe('Stateless party selection', () => {
   it('should show party selection before starting instance', () => {
+    const user = cyUserCredentials.accountant.firstName;
     cyMockResponses({
       partyTypesAllowed: {
         person: true,
@@ -12,7 +14,9 @@ describe('Stateless party selection', () => {
         bankruptcyEstate: false,
         organisation: false,
       },
-      allowedToInstantiate: removeAllButOneOrg,
+      allowedToInstantiate: (parties) =>
+        // Removing all other users as well, since one of the users are not allowed to instantiate on tt02
+        removeAllButOneOrg(parties).filter((party) => party.orgNumber || party.name.includes(user)),
       doNotPromptForParty: false,
     });
 

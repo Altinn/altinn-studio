@@ -13,7 +13,7 @@ type PagesRouterProps = {
 export function PagesRouter({ config }: PagesRouterProps): React.ReactElement {
   const { navigate, currentPage } = useRouterContext();
 
-  const handleNavigation = (pageToNavigateTo: PageName) => {
+  const handleNavigation = (pageToNavigateTo: PageName): void => {
     navigate(pageToNavigateTo);
   };
 
