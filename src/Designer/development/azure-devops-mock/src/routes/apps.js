@@ -146,7 +146,7 @@ export const appProcessRoute = async (_, res) => {
             <bpmn:outgoing>SequenceFlow_4</bpmn:outgoing>
         </bpmn:serviceTask>
         <bpmn:endEvent id="EndEvent_1">
-          <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
+          <bpmn:incoming>SequenceFlow_4</bpmn:incoming>
         </bpmn:endEvent>
         <bpmn:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
         <bpmn:sequenceFlow id="SequenceFlow_2" sourceRef="Task_1" targetRef="Task_2" />
