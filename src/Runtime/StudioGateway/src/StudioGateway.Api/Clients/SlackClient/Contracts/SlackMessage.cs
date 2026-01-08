@@ -8,5 +8,6 @@ internal sealed class SlackMessage
     public string Text { get; set; } = "";
 
     [JsonPropertyName("blocks")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IEnumerable<SlackBlock>? Blocks { get; set; }
 }

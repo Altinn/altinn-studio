@@ -11,7 +11,9 @@ internal static class SlackClientRegistration
             .AddHttpClient<ISlackClient, SlackClient>(
                 (serviceProvider, httpClient) =>
                 {
-                    var slackSettings = serviceProvider.GetRequiredService<IOptionsMonitor<SlackSettings>>().CurrentValue;
+                    var slackSettings = serviceProvider
+                        .GetRequiredService<IOptionsMonitor<SlackSettings>>()
+                        .CurrentValue;
                     httpClient.BaseAddress = slackSettings.WebhookUrl;
                 }
             )
