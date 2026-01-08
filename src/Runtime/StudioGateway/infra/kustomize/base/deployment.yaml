@@ -145,3 +145,8 @@ spec:
                   items:
                     - key: secrets.json
                       path: grafana-token.json
+              - secret:
+                  name: slack-webhook
+                  items:
+                    - key: secrets.json
+                      path: slack-webhook.json

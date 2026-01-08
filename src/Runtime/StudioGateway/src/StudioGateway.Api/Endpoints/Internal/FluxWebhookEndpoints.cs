@@ -1,5 +1,7 @@
 using StudioGateway.Api.Clients.Designer.Contracts;
 using StudioGateway.Api.Clients.K8s;
+using StudioGateway.Api.Clients.SlackClient;
+using StudioGateway.Api.Clients.SlackClient.Contracts;
 using StudioGateway.Api.Endpoints.Internal.Contracts;
 using StudioGateway.Api.Hosting;
 
@@ -8,6 +10,16 @@ namespace StudioGateway.Api.Endpoints.Internal;
 internal static class FluxWebhookEndpoints
 {
     private sealed record HelmReleaseInfo(string Org, string App, string SourceEnvironment, string? BuildId);
+
+    private static class FluxFinalEventReasons
+    {
+        public const string InstallSucceeded = "InstallSucceeded";
+        public const string InstallFailed = "InstallFailed";
+        public const string UpgradeSucceeded = "UpgradeSucceeded";
+        public const string UpgradeFailed = "UpgradeFailed";
+        public const string UninstallSucceeded = "UninstallSucceeded";
+        public const string UninstallFailed = "UninstallFailed";
+    }
 
     public static WebApplication MapFluxWebhookEndpoint(this WebApplication app)
     {
@@ -26,6 +38,7 @@ internal static class FluxWebhookEndpoints
         HelmReleaseClient helmReleaseClient,
         IHttpClientFactory httpClientFactory,
         IHostEnvironment hostEnvironment,
+        ISlackClient slackClient,
         ILogger<Program> logger,
         CancellationToken cancellationToken
     )
@@ -100,6 +113,16 @@ internal static class FluxWebhookEndpoints
         {
             logger.LogError(ex, "Failed to send deploy event for {Name}", helmReleaseName);
         }
+
+        await SendSlackNotificationAsync(
+            slackClient,
+            fluxEvent,
+            info,
+            targetEnvironment,
+            helmReleaseName,
+            logger,
+            cancellationToken
+        );
 
         return Results.Ok();
     }
@@ -176,11 +199,102 @@ internal static class FluxWebhookEndpoints
     private static bool IsRelevantEventReason(string? reason)
     {
         return reason
-            is "InstallSucceeded"
-                or "InstallFailed"
-                or "UpgradeSucceeded"
-                or "UpgradeFailed"
-                or "UninstallSucceeded"
-                or "UninstallFailed";
+            is FluxFinalEventReasons.InstallSucceeded
+                or FluxFinalEventReasons.InstallFailed
+                or FluxFinalEventReasons.UpgradeSucceeded
+                or FluxFinalEventReasons.UpgradeFailed
+                or FluxFinalEventReasons.UninstallSucceeded
+                or FluxFinalEventReasons.UninstallFailed;
+    }
+
+    private static async Task SendSlackNotificationAsync(
+        ISlackClient slackClient,
+        FluxEvent fluxEvent,
+        HelmReleaseInfo info,
+        string targetEnvironment,
+        string helmReleaseName,
+        ILogger logger,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            var emoji = GetDeployEmoji(fluxEvent.Reason);
+            var status = GetDeployStatus(fluxEvent.Reason);
+
+            var message = new SlackMessage
+            {
+                Text = $"{emoji} `{info.Org}` - `{targetEnvironment}` - `{info.App}` - *{status}*",
+                Blocks =
+                [
+                    new SlackBlock
+                    {
+                        Type = "section",
+                        Text = new SlackText { Type = "mrkdwn", Text = $"{emoji} *{status}*" },
+                    },
+                    new SlackBlock
+                    {
+                        Type = "context",
+                        Elements =
+                        [
+                            new SlackText { Type = "mrkdwn", Text = $"Org: `{info.Org}`" },
+                            new SlackText { Type = "mrkdwn", Text = $"Env: `{targetEnvironment}`" },
+                            new SlackText { Type = "mrkdwn", Text = $"App: `{info.App}`" },
+                            new SlackText { Type = "mrkdwn", Text = $"Studio env: `{info.SourceEnvironment}`" },
+                            new SlackText
+                            {
+                                Type = "mrkdwn",
+                                Text =
+                                    info.BuildId != null
+                                        ? $"Build: <https://dev.azure.com/brreg/altinn-studio/_build/results?buildId={info.BuildId}&view=logs|{info.BuildId}>"
+                                        : "Build: `N/A`",
+                            },
+                        ],
+                    },
+                ],
+            };
+
+            await slackClient.SendMessageAsync(message, cancellationToken);
+            logger.LogInformation(
+                "Successfully sent Slack notification for {Name} to {Environment}",
+                helmReleaseName,
+                targetEnvironment
+            );
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "Failed to send Slack notification for {Name} to {Environment}",
+                helmReleaseName,
+                targetEnvironment
+            );
+        }
+    }
+
+    private static string GetDeployEmoji(string reason)
+    {
+        return reason switch
+        {
+            FluxFinalEventReasons.InstallSucceeded
+            or FluxFinalEventReasons.UpgradeSucceeded
+            or FluxFinalEventReasons.UninstallSucceeded => ":white_check_mark:",
+            FluxFinalEventReasons.InstallFailed
+            or FluxFinalEventReasons.UpgradeFailed
+            or FluxFinalEventReasons.UninstallFailed => ":x:",
+            _ => ":information_source:",
+        };
+    }
+
+    private static string GetDeployStatus(string reason)
+    {
+        return reason switch
+        {
+            FluxFinalEventReasons.InstallSucceeded or FluxFinalEventReasons.UpgradeSucceeded => "Deploy succeeded",
+            FluxFinalEventReasons.UninstallSucceeded => "Undeploy succeeded",
+            FluxFinalEventReasons.InstallFailed or FluxFinalEventReasons.UpgradeFailed => "Deploy failed",
+            FluxFinalEventReasons.UninstallFailed => "Undeploy failed",
+            _ => reason,
+        };
     }
 }

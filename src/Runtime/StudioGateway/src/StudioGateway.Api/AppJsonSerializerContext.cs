@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using StudioGateway.Api.Clients.Designer.Contracts;
+using StudioGateway.Api.Clients.SlackClient.Contracts;
 using StudioGateway.Api.Endpoints.Internal.Contracts;
 using StudioGateway.Api.Endpoints.Local;
 using StudioGateway.Api.Endpoints.Public;
@@ -14,4 +15,7 @@ namespace StudioGateway.Api;
 [JsonSerializable(typeof(DeployEventRequest))]
 [JsonSerializable(typeof(IsAppDeployedResponse))]
 [JsonSerializable(typeof(TriggerReconcileRequest))]
+[JsonSerializable(typeof(SlackMessage))]
+[JsonSerializable(typeof(SlackBlock))]
+[JsonSerializable(typeof(SlackText))]
 internal sealed partial class AppJsonSerializerContext : JsonSerializerContext { }
