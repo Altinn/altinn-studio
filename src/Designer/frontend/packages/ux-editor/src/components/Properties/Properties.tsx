@@ -22,12 +22,12 @@ const PropertiesSelectedConfig = () => {
   const { selectedItem, selectedFormLayoutName } = useAppContext();
   const { t } = useTranslation();
 
-  const pageFromUrl: SelectedItem | null = selectedFormLayoutName
-    ? { type: ItemType.Page, id: selectedFormLayoutName }
-    : selectedItem;
-
   const currentSelectedItem: SelectedItem | null =
-    selectedItem?.type !== ItemType.Page ? selectedItem : pageFromUrl;
+    selectedItem?.type === ItemType.Component || selectedItem?.type === ItemType.Group
+      ? selectedItem
+      : selectedFormLayoutName
+        ? { type: ItemType.Page, id: selectedFormLayoutName }
+        : selectedItem;
 
   switch (currentSelectedItem?.type) {
     case ItemType.Component:
