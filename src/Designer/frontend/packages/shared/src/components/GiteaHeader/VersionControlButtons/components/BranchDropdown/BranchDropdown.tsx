@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioDropdown, StudioSpinner } from '@studio/components';
-import { BranchingIcon } from '@studio/icons';
+import { BranchingIcon, PlusIcon } from '@studio/icons';
 import { UncommittedChangesDialog } from 'app-shared/components/UncommittedChangesDialog';
 import { CreateBranchDialog } from 'app-shared/components/CreateBranchDialog';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 import classes from './BranchDropdown.module.css';
-import { useBranchData } from './hooks/useBranchData';
-import { useBranchOperations } from './hooks/useBranchOperations';
-import { BranchListItems } from './components/BranchListItems';
+import { useBranchData } from '../../hooks/useBranchData';
+import { useBranchOperations } from '../../hooks/useBranchOperations';
 
 export const BranchDropdown = () => {
   const { t } = useTranslation();
@@ -72,6 +71,43 @@ export const BranchDropdown = () => {
           isLoading={isLoading}
         />
       )}
+    </>
+  );
+};
+
+export interface BranchListItemsProps {
+  branchList: Array<{ name: string }> | undefined;
+  currentBranch: string | undefined;
+  onBranchClick: (branchName: string) => void;
+  onCreateBranchClick: () => void;
+}
+
+export const BranchListItems = ({
+  branchList,
+  currentBranch,
+  onBranchClick,
+  onCreateBranchClick,
+}: BranchListItemsProps) => {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      {branchList?.map((branch) => (
+        <StudioDropdown.Item key={branch.name}>
+          <StudioDropdown.Button
+            onClick={() => onBranchClick(branch.name)}
+            disabled={branch.name === currentBranch}
+          >
+            {branch.name}
+          </StudioDropdown.Button>
+        </StudioDropdown.Item>
+      ))}
+      <StudioDropdown.Item>
+        <StudioDropdown.Button onClick={onCreateBranchClick}>
+          <PlusIcon />
+          {t('branching.new_branch_dialog.trigger')}
+        </StudioDropdown.Button>
+      </StudioDropdown.Item>
     </>
   );
 };

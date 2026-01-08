@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useCreateAndCheckoutBranch } from '../../../hooks/useCreateAndCheckoutBranch';
-import { useCheckoutBranchAndReload } from '../../../hooks/useCheckoutBranchAndReload';
+import { useCreateAndCheckoutBranch } from './useCreateAndCheckoutBranch';
+import { useCheckoutWithUncommittedChangesHandling } from 'app-shared/hooks/mutations/useCheckoutWithUncommittedChangesHandling';
 import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
 import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
 
@@ -26,7 +26,7 @@ export function useBranchOperations(org: string, app: string): UseBranchOperatio
     onUncommittedChanges: setUncommittedChangesError,
   });
 
-  const checkoutMutation = useCheckoutBranchAndReload(org, app, {
+  const checkoutMutation = useCheckoutWithUncommittedChangesHandling(org, app, {
     onUncommittedChanges: setUncommittedChangesError,
   });
 

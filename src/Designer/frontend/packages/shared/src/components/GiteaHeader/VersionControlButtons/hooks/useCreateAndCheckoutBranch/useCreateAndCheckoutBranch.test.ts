@@ -17,8 +17,21 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 const branchName = 'feature/new-branch';
 
 describe('useCreateAndCheckoutBranch', () => {
+  const originalLocation = window.location;
+
+  beforeEach(() => {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { reload: jest.fn() },
+    });
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: originalLocation,
+    });
   });
 
   it('should create and checkout branch successfully', async () => {

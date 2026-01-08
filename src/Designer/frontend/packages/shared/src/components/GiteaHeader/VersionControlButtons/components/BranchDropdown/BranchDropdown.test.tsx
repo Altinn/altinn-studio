@@ -14,17 +14,19 @@ import {
   currentBranchInfoMock,
   uncommittedChangesErrorMock,
 } from '../../test/mocks/branchingMocks';
-import { useCheckoutBranchAndReload } from '../../hooks/useCheckoutBranchAndReload';
 import { useCreateAndCheckoutBranch } from '../../hooks/useCreateAndCheckoutBranch';
 import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
+import { useCheckoutWithUncommittedChangesHandling } from 'app-shared/hooks/mutations/useCheckoutWithUncommittedChangesHandling';
 
-jest.mock('../../hooks/useCheckoutBranchAndReload');
 jest.mock('../../hooks/useCreateAndCheckoutBranch');
 jest.mock('app-shared/hooks/mutations/useDiscardChangesMutation');
+jest.mock('app-shared/hooks/mutations/useCheckoutWithUncommittedChangesHandling');
 
-const mockUseCheckoutBranchAndReload = jest.mocked(useCheckoutBranchAndReload);
 const mockUseCreateAndCheckoutBranch = jest.mocked(useCreateAndCheckoutBranch);
 const mockUseDiscardChangesMutation = jest.mocked(useDiscardChangesMutation);
+const mockUseCheckoutWithUncommittedChangesHandling = jest.mocked(
+  useCheckoutWithUncommittedChangesHandling,
+);
 
 const checkoutMutate = jest.fn();
 const createAndCheckoutBranch = jest.fn();
@@ -32,7 +34,7 @@ const discardChangesMutate = jest.fn();
 
 describe('BranchDropdown', () => {
   beforeEach(() => {
-    mockUseCheckoutBranchAndReload.mockReturnValue({
+    mockUseCheckoutWithUncommittedChangesHandling.mockReturnValue({
       mutate: checkoutMutate,
       isPending: false,
     } as any);
@@ -78,7 +80,7 @@ describe('BranchDropdown', () => {
     queryClient.setQueryData([QueryKey.CurrentBranch, org, app], currentBranchInfoMock);
     queryClient.setQueryData([QueryKey.Branches, org, app], branchesMock);
 
-    mockUseCheckoutBranchAndReload.mockReturnValue({
+    mockUseCheckoutWithUncommittedChangesHandling.mockReturnValue({
       mutate: checkoutMutate,
       isPending: true,
     } as any);
@@ -239,7 +241,7 @@ describe('BranchDropdown', () => {
       const user = userEvent.setup();
       let capturedCallback: ((error: any) => void) | undefined;
 
-      mockUseCheckoutBranchAndReload.mockImplementation((org, app, options) => {
+      mockUseCheckoutWithUncommittedChangesHandling.mockImplementation((_org, _app, options) => {
         capturedCallback = options?.onUncommittedChanges;
         return {
           mutate: jest.fn(() => {
@@ -309,7 +311,7 @@ describe('BranchDropdown', () => {
       const user = userEvent.setup();
       let capturedCallback: ((error: any) => void) | undefined;
 
-      mockUseCheckoutBranchAndReload.mockImplementation((org, app, options) => {
+      mockUseCheckoutWithUncommittedChangesHandling.mockImplementation((_org, _app, options) => {
         capturedCallback = options?.onUncommittedChanges;
         return {
           mutate: jest.fn(() => {
@@ -343,7 +345,7 @@ describe('BranchDropdown', () => {
       const user = userEvent.setup();
       let capturedCallback: ((error: any) => void) | undefined;
 
-      mockUseCheckoutBranchAndReload.mockImplementation((org, app, options) => {
+      mockUseCheckoutWithUncommittedChangesHandling.mockImplementation((_org, _app, options) => {
         capturedCallback = options?.onUncommittedChanges;
         return {
           mutate: jest.fn(() => {
