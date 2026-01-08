@@ -107,7 +107,7 @@ function interceptAndAddInstanceSubstatus() {
 function testReceipt() {
   cy.get(appFrontend.receipt.container).should('be.visible');
   cy.findByText('Skjemaet er sendt inn').should('be.visible');
-  cy.findByRole('link', { name: 'Kopi av din kvittering er sendt til ditt arkiv' }).should('be.visible');
+  cy.findByRole('link', { name: 'Din kvittering er lagret og tilgjengelig i din innboks' }).should('be.visible');
 
   cy.findAllByRole('link', { name: 'Nedlasting frontend-test.pdf' }).should('have.length', 5);
   cy.findAllByRole('link', { name: /^Nedlasting attachment-in-.*?\.pdf$/ }).should('have.length', 4);

@@ -13,7 +13,7 @@ type MenuProps = {
 export function Menu({ config }: MenuProps): React.ReactElement {
   const { navigate, currentPage } = useRouterContext();
 
-  const handleNavigation = (pageToNavigateTo: PageName) => {
+  const handleNavigation = (pageToNavigateTo: PageName): void => {
     navigate(pageToNavigateTo);
   };
 

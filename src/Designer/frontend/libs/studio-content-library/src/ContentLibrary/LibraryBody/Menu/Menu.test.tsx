@@ -41,7 +41,7 @@ const renderMenu = (
     heading: 'Test library',
     pages: mockPagesConfig,
   },
-) => {
+): void => {
   renderWithProviders(
     <RouterContext.Provider
       value={{ currentPage: PageName.CodeListsWithTextResources, navigate: navigateMock }}

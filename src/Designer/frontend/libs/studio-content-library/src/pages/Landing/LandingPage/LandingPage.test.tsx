@@ -21,6 +21,6 @@ describe('LandingPage', () => {
   });
 });
 
-const renderLandingPage = () => {
+const renderLandingPage = (): void => {
   render(<LandingPage />);
 };
