@@ -5449,6 +5449,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "taskId",
+            "in": "query",
+            "description": "If data should be loaded from a different task than the current one.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -5564,6 +5572,14 @@
             "name": "language",
             "in": "query",
             "description": "The currently used language by the user (or null if not available)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskId",
+            "in": "query",
+            "description": "If data should be loaded from a different task than the current one.",
             "schema": {
               "type": "string"
             }
@@ -5712,6 +5728,14 @@
             "name": "language",
             "in": "query",
             "description": "The currently used language by the user (or null if not available)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskId",
+            "in": "query",
+            "description": "If data should be loaded from a different task than the current one.",
             "schema": {
               "type": "string"
             }
@@ -7123,10 +7147,6 @@
           },
           "disallowUserDelete": {
             "type": "boolean"
-          },
-          "allowInSubform": {
-            "type": "boolean",
-            "deprecated": true
           },
           "shadowFields": {
             "$ref": "#/components/schemas/ShadowFields"

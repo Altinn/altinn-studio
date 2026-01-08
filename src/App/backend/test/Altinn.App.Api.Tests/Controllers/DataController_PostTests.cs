@@ -133,17 +133,15 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
                 language.Should().BeNull(); // No language is set
                 var data = changes.BinaryDataChanges.Should().ContainSingle().Which;
                 data.CurrentBinaryData.ToArray().Should().BeEquivalentTo(binaryData);
-                instanceDataMutator.AbandonAllChanges(
-                    [
-                        new()
-                        {
-                            DataElementId = data.DataElement?.Id,
-                            Severity = ValidationIssueSeverity.Error,
-                            Code = "ABANDONED",
-                            Description = "BinaryData is incorrect",
-                        },
-                    ]
-                );
+                instanceDataMutator.AbandonAllChanges([
+                    new()
+                    {
+                        DataElementId = data.DataElement?.Id,
+                        Severity = ValidationIssueSeverity.Error,
+                        Code = "ABANDONED",
+                        Description = "BinaryData is incorrect",
+                    },
+                ]);
                 return Task.CompletedTask;
             },
             Times.Exactly(1)

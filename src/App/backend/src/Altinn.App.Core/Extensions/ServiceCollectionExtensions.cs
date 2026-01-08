@@ -377,6 +377,7 @@ public static class ServiceCollectionExtensions
 
         services.AddTransient<IServiceTask, PdfServiceTask>();
         services.AddTransient<IServiceTask, EFormidlingServiceTask>();
+        services.AddTransient<IServiceTask, SubformPdfServiceTask>();
     }
 
     private static void AddActionServices(IServiceCollection services)

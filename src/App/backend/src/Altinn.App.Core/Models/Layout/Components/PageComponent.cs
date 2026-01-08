@@ -34,7 +34,7 @@ public sealed class PageComponent : Base.BaseComponent
         }
         var hidden = ParseHiddenExpression(dataElement);
 
-        List<Base.BaseComponent> componentList = [];
+        List<Base.BaseLayoutComponent> componentList = [];
 
         foreach (var componentElement in componentsElement.EnumerateArray())
         {
@@ -59,7 +59,7 @@ public sealed class PageComponent : Base.BaseComponent
                 );
             }
 
-            Base.BaseComponent component = type.ToLowerInvariant() switch
+            Base.BaseLayoutComponent component = type.ToLowerInvariant() switch
             {
                 "group" when maxCount == 1 => NonRepeatingGroupComponent.Parse(componentElement, pageId, layoutId),
                 "group" => RepeatingGroupComponent.Parse(componentElement, pageId, layoutId, maxCount),
@@ -70,17 +70,18 @@ public sealed class PageComponent : Base.BaseComponent
                 "tabs" => TabsComponent.Parse(componentElement, pageId, layoutId),
                 "cards" => CardsComponent.Parse(componentElement, pageId, layoutId),
                 "likert" => LikertComponent.Parse(componentElement, pageId, layoutId),
-                "checkboxes" => OptionsComponent.Parse(componentElement, pageId, layoutId),
-                "radiobuttons" => OptionsComponent.Parse(componentElement, pageId, layoutId),
-                "dropdown" => OptionsComponent.Parse(componentElement, pageId, layoutId),
-                "multipleselect" => OptionsComponent.Parse(componentElement, pageId, layoutId),
+                "checkboxes" or "radiobuttons" or "dropdown" or "multipleselect" => OptionsComponent.Parse(
+                    componentElement,
+                    pageId,
+                    layoutId
+                ),
                 _ => UnknownComponent.Parse(componentElement, pageId, layoutId),
             };
 
             componentList.Add(component);
         }
 
-        var pageComponentLookup = new Dictionary<string, Base.BaseComponent>(StringComparer.Ordinal);
+        var pageComponentLookup = new Dictionary<string, Base.BaseLayoutComponent>(StringComparer.Ordinal);
         foreach (var c in componentList)
         {
             if (!pageComponentLookup.TryAdd(c.Id, c))
@@ -119,10 +120,12 @@ public sealed class PageComponent : Base.BaseComponent
     /// <summary>
     /// List of the components that are part of this page.
     /// </summary>
-    public required IReadOnlyList<Base.BaseComponent> Components { get; init; }
+    public required IReadOnlyList<Base.BaseLayoutComponent> Components { get; init; }
 
-    /// <inheritdoc />
-    public override async Task<ComponentContext> GetContext(
+    /// <summary>
+    /// Get the context for this page component
+    /// </summary>
+    public async Task<ComponentContext> GetContextForPage(
         LayoutEvaluatorState state,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
@@ -138,17 +141,5 @@ public sealed class PageComponent : Base.BaseComponent
         }
 
         return new ComponentContext(state, this, rowIndexes, defaultDataElementIdentifier, childContexts);
-    }
-
-    /// <summary>
-    /// For PageComponent, you need to call RunClaimChidren to claim children for all components on the page.
-    /// </summary>
-    /// <exception cref="NotImplementedException"></exception>
-    public override void ClaimChildren(
-        Dictionary<string, Base.BaseComponent> unclaimedComponents,
-        Dictionary<string, string> claimedComponents
-    )
-    {
-        throw new NotImplementedException();
     }
 }

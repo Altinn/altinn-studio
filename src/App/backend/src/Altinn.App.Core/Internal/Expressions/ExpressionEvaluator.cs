@@ -16,6 +16,7 @@ public static class ExpressionEvaluator
     /// <summary>
     /// Shortcut for evaluating a boolean expression on a given property on a <see cref="Models.Layout.Components.Base.BaseComponent" />
     /// </summary>
+    [Obsolete("Use ComponentContext.IsHidden or ComponentContext.EvaluateExpression instead")]
     public static async Task<bool> EvaluateBooleanExpression(
         LayoutEvaluatorState state,
         ComponentContext context,
@@ -26,9 +27,12 @@ public static class ExpressionEvaluator
         try
         {
             ArgumentNullException.ThrowIfNull(context.Component);
+            if (property is "hidden")
+            {
+                return await context.IsHidden(evaluateRemoveWhenHidden: false);
+            }
             var expr = property switch
             {
-                "hidden" => context.Component.Hidden,
                 "required" => context.Component.Required,
                 "removeWhenHidden" => context.Component.RemoveWhenHidden,
                 _ => throw new ExpressionEvaluatorTypeErrorException($"unknown boolean expression property {property}"),
@@ -36,16 +40,7 @@ public static class ExpressionEvaluator
 
             var result = await EvaluateExpression_internal(state, expr, context);
 
-            return result.ValueKind switch
-            {
-                JsonValueKind.True => true,
-                JsonValueKind.False => false,
-                JsonValueKind.Null => defaultReturn,
-                JsonValueKind.Undefined => defaultReturn,
-                _ => throw new ExpressionEvaluatorTypeErrorException(
-                    $"Return was not boolean. Was {result} of type {result.ValueKind}"
-                ),
-            };
+            return result.ToBoolLoose(defaultReturn);
         }
         catch (Exception e)
         {
@@ -203,6 +198,10 @@ public static class ExpressionEvaluator
         ModelBinding key = args switch
         {
             [{ ValueKind: JsonValueKind.String } field] => new ModelBinding { Field = field.String },
+            [{ ValueKind: JsonValueKind.String } field, { ValueKind: JsonValueKind.Null }] => new ModelBinding
+            {
+                Field = field.String,
+            },
             [{ ValueKind: JsonValueKind.String } field, { ValueKind: JsonValueKind.String } dataType] =>
                 new ModelBinding { Field = field.String, DataType = dataType.String },
             [{ ValueKind: JsonValueKind.Null }] => throw new ExpressionEvaluatorTypeErrorException(
@@ -732,37 +731,7 @@ public static class ExpressionEvaluator
 
     private static bool PrepareBooleanArg(ExpressionValue arg)
     {
-        return arg.ValueKind switch
-        {
-            JsonValueKind.Null => false,
-            JsonValueKind.True => true,
-            JsonValueKind.False => false,
-
-            JsonValueKind.String => arg.String switch
-            {
-                "true" => true,
-                "false" => false,
-                "1" => true,
-                "0" => false,
-                _ => ParseNumber(arg.String, throwException: false) switch
-                {
-                    1 => true,
-                    0 => false,
-                    _ => throw new ExpressionEvaluatorTypeErrorException(
-                        $"Expected boolean, got value \"{arg.String}\""
-                    ),
-                },
-            },
-            JsonValueKind.Number => arg.Number switch
-            {
-                1 => true,
-                0 => false,
-                _ => throw new ExpressionEvaluatorTypeErrorException($"Expected boolean, got value {arg.Number}"),
-            },
-            _ => throw new ExpressionEvaluatorTypeErrorException(
-                "Unknown data type encountered in expression: " + arg.ValueKind
-            ),
-        };
+        return arg.ToBoolLoose(null);
     }
 
     private static bool? And(ExpressionValue[] args)
@@ -893,7 +862,7 @@ public static class ExpressionEvaluator
 
     private static readonly Regex _numberRegex = new Regex(@"^-?\d+(\.\d+)?$");
 
-    private static double? ParseNumber(string s, bool throwException = true)
+    internal static double? ParseNumber(string s, bool throwException = true)
     {
         if (_numberRegex.IsMatch(s) && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
         {

@@ -236,6 +236,19 @@ public static class FormDataWrapperUtils
             return true;
         }
 
+        // Skip properties with [JsonIgnore]
+        if (SourceReaderUtils.HasJsonIgnoreAttribute(property))
+        {
+            return true;
+        }
+
+        // Skip properties with [BindNever]
+        // TODO: Theese could be made "read-only", but skipping them for now as there has not been a use-case yet
+        if (SourceReaderUtils.HasBindNeverAttribute(property))
+        {
+            return true;
+        }
+
         return false;
     }
 }
