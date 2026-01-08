@@ -1,6 +1,7 @@
 import { isDataModelReference } from 'src/utils/databindings';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { ILayouts } from 'src/layout/layout';
+import type { IData } from 'src/types/shared';
 
 export class MissingDataTypeException extends Error {
   public readonly dataType: string;
@@ -101,18 +102,14 @@ function addDataTypesFromExpressionsRecursive(obj: unknown, dataTypes: Set<strin
  * Assumes the first dataElement of the correct type is the one to use,
  * we also assume this when creating the url for loading and saving data models @see useDataModelUrl, getFirstDataElementId
  */
-export function isDataTypeWritable(
-  dataType: string | undefined,
-  isStateless: boolean,
-  dataElements: (readonly [string, boolean])[],
-) {
+export function isDataTypeWritable(dataType: string | undefined, isStateless: boolean, dataElements: IData[]) {
   if (!dataType) {
     return false;
   }
   if (isStateless) {
     return true;
   }
-  const dataElement = dataElements.find(([dt]) => dt === dataType);
+  const dataElement = dataElements.find((dt) => dt.dataType === dataType);
   return !!dataElement && !dataElement[1];
 }
 
@@ -162,13 +159,14 @@ export function isQueryParamPrefillArray(obj: unknown): obj is QueryParamPrefill
 export function getValidPrefillDataFromQueryParams(
   metaData: ApplicationMetadata,
   dataType: string,
+  isStatelessApp: boolean,
 ): string | undefined {
   const rawParams = sessionStorage.getItem('queryParams');
   if (!rawParams) {
     return undefined;
   }
 
-  if (!metaData.isStatelessApp) {
+  if (!isStatelessApp) {
     throw new Error('You can only use query parameter prefill in a stateless task. Please read documentation.');
   }
 

@@ -3,7 +3,7 @@ import React from 'react';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { Lang } from 'src/features/language/Lang';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useParentCard } from 'src/layout/Cards/CardContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';

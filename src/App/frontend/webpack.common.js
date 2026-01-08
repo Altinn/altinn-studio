@@ -14,6 +14,7 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
     alias: {
       src: path.resolve(__dirname, './src'),
+      nextsrc: path.resolve(__dirname, './nextsrc'),
       axios: require.resolve('./node_modules/axios/dist/browser/axios.cjs'),
     },
   },

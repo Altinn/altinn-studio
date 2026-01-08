@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
@@ -9,7 +9,7 @@ import type { NodeValidationProps } from 'src/layout/layout';
 export function SubformValidator(props: NodeValidationProps<'Subform'>) {
   const { intermediateItem, externalItem } = props;
   const { langAsString } = useLanguage();
-  const applicationMetadata = useApplicationMetadata();
+  const applicationMetadata = getApplicationMetadata();
 
   const targetType = useDataTypeFromLayoutSet(externalItem.layoutSet);
   const dataType = applicationMetadata.dataTypes.find(

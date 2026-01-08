@@ -9,8 +9,8 @@ import { ReceiptComponentSimple } from 'src/components/organisms/AltinnReceiptSi
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner, useAppReceiver } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
+import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useInstanceDataQuery } from 'src/domain/Instance/useInstanceQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
@@ -83,20 +83,10 @@ export function DefaultReceipt() {
 }
 
 export const ReceiptContainer = () => {
-  const applicationMetadata = useApplicationMetadata();
-  const {
-    lastChanged,
-    instanceOrg,
-    instanceOwner,
-    dataElements = [],
-  } = useInstanceDataQuery({
-    select: (instance) => ({
-      lastChanged: instance.lastChanged,
-      instanceOrg: instance.org,
-      instanceOwner: instance.instanceOwner,
-      dataElements: instance.data,
-    }),
-  }).data ?? {};
+  const applicationMetadata = getApplicationMetadata();
+  const instance = useInstanceDataQuery().data;
+  const { lastChanged, org: instanceOrg, instanceOwner, data: dataElements = [] } = instance ?? {};
+
   const langTools = useLanguage();
   const receiver = useAppReceiver();
   const instanceOwnerParty = useInstanceOwnerParty();
@@ -151,7 +141,7 @@ export const ReceiptContainer = () => {
     if (!lastChangedDateTime) {
       return 'lastChangedDateTime';
     }
-    if (!instanceOwnerParty) {
+    if (!instanceOwner) {
       return 'instanceOwnerParty';
     }
     return undefined;

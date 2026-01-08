@@ -5,7 +5,7 @@ import { getDateConstraint, getDateFormat } from 'src/app-components/Datepicker/
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Label } from 'src/app-components/Label/Label';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';

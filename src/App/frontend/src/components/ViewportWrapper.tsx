@@ -1,7 +1,7 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useIsMobile, useIsTablet } from 'src/hooks/useDeviceWidths';
 import { rightToLeftISOLanguageCodes } from 'src/language/languages';
 

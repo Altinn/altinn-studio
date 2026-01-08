@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Configuration;
@@ -7,7 +8,6 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace App.IntegrationTests.Mocks.Services;

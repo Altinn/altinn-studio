@@ -284,9 +284,7 @@ describe('UI Components', () => {
     }).as('zipCodeApi');
 
     cy.get(appFrontend.changeOfName.address.street_name).type('Sesame Street 1A');
-    cy.get(appFrontend.changeOfName.address.street_name).blur();
     cy.get(appFrontend.changeOfName.address.zip_code).type('0123');
-    cy.get(appFrontend.changeOfName.address.zip_code).blur();
     cy.get(appFrontend.changeOfName.address.post_place).should('have.value', 'KARDEMOMME BY');
     cy.get('@zipCodeApi').its('request.url').should('include', '0123');
   });

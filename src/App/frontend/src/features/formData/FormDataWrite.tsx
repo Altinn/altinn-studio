@@ -9,7 +9,7 @@ import type { AxiosRequestConfig } from 'axios';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
@@ -19,7 +19,7 @@ import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
 import { useLaxInstanceId, useOptimisticallyUpdateCachedInstance } from 'src/features/instance/InstanceContext';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import {
   backendValidationIssueGroupListToObject,
@@ -95,7 +95,7 @@ function useFormDataSaveMutation() {
   const dataModelsRef = useAsRef(useSelector((state) => state.dataModels));
   const saveFinished = useSelector((s) => s.saveFinished);
   const cancelSave = useSelector((s) => s.cancelSave);
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStatelessApp();
   const debounce = useSelector((s) => s.debounce);
   const selectedPartyId = useSelectedParty()?.partyId;
   const waitFor = useWaitForState<

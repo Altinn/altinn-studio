@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useLayoutEffect, useMemo } from 'react';
 
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
@@ -85,7 +85,7 @@ interface CommonProps {
 function AddPage({ name }: CommonProps) {
   const addPage = NodesInternal.useAddPage();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     addPage(name);
   }, [addPage, name]);
 

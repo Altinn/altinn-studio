@@ -2,6 +2,7 @@ import type { QueryClient } from '@tanstack/react-query';
 
 import type { IAttachmentsMap } from 'src/features/attachments';
 import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
+import type { IRuleObject } from 'src/types';
 
 ///<reference types="cypress-iframe" />
 
@@ -37,6 +38,9 @@ declare global {
 
     // Allows forcing node properties validation always-on or always-off (defaults to auto-detection)
     forceNodePropertiesValidation: undefined | 'on' | 'off';
+
+    conditionalRuleHandlerObject: IRuleObject;
+    ruleHandlerObject: IRuleObject;
 
     /**
      * In React components, hierarchy generators, or other places that are run continuously, use window.logErrorOnce() instead

@@ -32,9 +32,22 @@ const render = async (instances = mockActiveInstances) =>
 const { setScreenWidth } = mockMediaQuery(992);
 
 describe('InstanceSelection', () => {
+  let originalLocation: Location;
+
   beforeEach(() => {
     // Set screen size to desktop
     setScreenWidth(1200);
+
+    // Save the original location and create a mock
+    originalLocation = window.location;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (window as any).location;
+    window.location = { ...originalLocation, href: '', toString: () => '' } as string & Location;
+  });
+
+  afterEach(() => {
+    // Restore original location
+    window.location = originalLocation as string & Location;
   });
 
   it('should show full size table for larger devices', async () => {
@@ -76,7 +89,7 @@ describe('InstanceSelection', () => {
   });
 
   it('should trigger openInstance on editButton click', async () => {
-    const { mutations, routerRef } = await render();
+    const { mutations } = await render();
     const row = screen.getByRole('row', {
       name: /10\/05\/2021 navn navnesen fortsett her/i,
     });
@@ -86,14 +99,14 @@ describe('InstanceSelection', () => {
     });
 
     await userEvent.click(button);
-    expect(routerRef.current!.state.location.pathname).toBe('/ttd/test/instance/some-id');
+    expect(window.location.href).toBe('/ttd/test/instance/some-id');
     expect(mutations.doInstantiate.mock).toHaveBeenCalledTimes(0);
   });
 
   it('should trigger openInstance on editButton click during mobile view', async () => {
     // Set screen size to mobile
     setScreenWidth(600);
-    const { mutations, routerRef } = await render();
+    const { mutations } = await render();
 
     const row = screen.getByRole('row', {
       name: /Sist endret: 05\/13\/2021 Endret av: Kåre Nordmannsen/i,
@@ -104,7 +117,7 @@ describe('InstanceSelection', () => {
     });
 
     await userEvent.click(button);
-    expect(routerRef.current!.state.location.pathname).toBe('/ttd/test/instance/some-other-id');
+    expect(window.location.href).toBe('/ttd/test/instance/some-other-id');
     expect(mutations.doInstantiate.mock).toHaveBeenCalledTimes(0);
   });
 });

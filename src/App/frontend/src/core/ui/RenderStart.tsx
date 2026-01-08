@@ -1,13 +1,8 @@
-import React, { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { loadingAttribute, useHasElementsByAttribute } from 'src/components/ReadyForPrint';
-import { useIsLoading } from 'src/core/loading/LoadingContext';
 import { DevTools } from 'src/features/devtools/DevTools';
-import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
-import { LangDataSourcesProvider } from 'src/features/language/LangDataSourcesProvider';
-import { useNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
+import { DataModelFetcher } from 'src/features/formData/SpecificDataModelFetcher';
 
 interface Props extends PropsWithChildren {
   devTools?: boolean;
@@ -21,33 +16,10 @@ interface Props extends PropsWithChildren {
  */
 export function RenderStart({ children, devTools = true, dataModelFetcher = true }: Props) {
   return (
-    <LangDataSourcesProvider>
-      <RunNavigationEffect />
+    <>
       {children}
       {devTools && <DevTools />}
       {dataModelFetcher && <DataModelFetcher />}
-    </LangDataSourcesProvider>
+    </>
   );
-}
-
-function RunNavigationEffect() {
-  const isLoading = useIsLoading();
-  const hasLoaders = useHasElementsByAttribute(loadingAttribute);
-  const navigationEffect = useNavigationEffect();
-  const location = useLocation().pathname;
-
-  const targetLocation = navigationEffect?.targetLocation?.split('?')[0];
-  const shouldRun =
-    !isLoading &&
-    !hasLoaders &&
-    targetLocation &&
-    (location === targetLocation || (navigationEffect?.matchStart && location.startsWith(targetLocation)));
-
-  useEffect(() => {
-    if (shouldRun && navigationEffect) {
-      navigationEffect.callback();
-    }
-  }, [navigationEffect, shouldRun]);
-
-  return null;
 }

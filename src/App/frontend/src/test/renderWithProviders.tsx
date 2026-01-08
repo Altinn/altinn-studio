@@ -20,22 +20,11 @@ import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
-import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
-import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
-import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
-import { LanguageProvider } from 'src/features/language/LanguageProvider';
-import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
-import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
-import { PartyProvider } from 'src/features/party/PartiesProvider';
-import { ProfileProvider } from 'src/features/profile/ProfileProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { PageNavigationRouter } from 'src/test/routerUtils';
 import type { IFooterLayout } from 'src/features/footer/types';
@@ -316,33 +305,13 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <LanguageProvider>
-        <LangToolsStoreProvider>
-          <UiConfigProvider>
-            <PageNavigationProvider>
-              <Router>
-                <NavigationEffectProvider>
-                  <ApplicationMetadataProvider>
-                    <GlobalFormDataReadersProvider>
-                      <OrgsProvider>
-                        <ApplicationSettingsProvider>
-                          <LayoutSetsProvider>
-                            <ProfileProvider>
-                              <PartyProvider>
-                                <TextResourcesProvider>{children}</TextResourcesProvider>
-                              </PartyProvider>
-                            </ProfileProvider>
-                          </LayoutSetsProvider>
-                        </ApplicationSettingsProvider>
-                      </OrgsProvider>
-                    </GlobalFormDataReadersProvider>
-                  </ApplicationMetadataProvider>
-                </NavigationEffectProvider>
-              </Router>
-            </PageNavigationProvider>
-          </UiConfigProvider>
-        </LangToolsStoreProvider>
-      </LanguageProvider>
+      <UiConfigProvider>
+        <PageNavigationProvider>
+          <Router>
+            <OrgsProvider>{children}</OrgsProvider>
+          </Router>
+        </PageNavigationProvider>
+      </UiConfigProvider>
     </AppQueriesProvider>
   );
 }
@@ -353,11 +322,9 @@ interface InstanceProvidersProps extends PropsWithChildren {
 
 function InstanceFormAndLayoutProviders({ children, formDataProxies }: InstanceProvidersProps) {
   return (
-    <InstanceProvider>
-      <FormDataWriteProxyProvider value={formDataProxies}>
-        <FormProvider>{children}</FormProvider>
-      </FormDataWriteProxyProvider>
-    </InstanceProvider>
+    <FormDataWriteProxyProvider value={formDataProxies}>
+      <FormProvider>{children}</FormProvider>
+    </FormDataWriteProxyProvider>
   );
 }
 
@@ -367,11 +334,7 @@ function MinimalProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <LangToolsStoreProvider>
-        <Router>
-          <NavigationEffectProvider>{children}</NavigationEffectProvider>
-        </Router>
-      </LangToolsStoreProvider>
+      <Router>{children}</Router>
     </AppQueriesProvider>
   );
 }
