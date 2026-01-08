@@ -6,8 +6,8 @@ import type { IParty } from 'src/types/shared';
 export function signingTestLogin(user: CyUser) {
   const appFrontend = new AppFrontend();
   cy.waitUntilSaved();
-  cy.url().then((url) => {
-    const instanceSuffix = new URL(url).hash;
+  cy.location('pathname').then((pathname) => {
+    const instanceSuffix = `/instance/${pathname.split('/instance/')[1]}`;
     const partyId = Cypress.env('signingPartyId');
 
     if (partyId) {

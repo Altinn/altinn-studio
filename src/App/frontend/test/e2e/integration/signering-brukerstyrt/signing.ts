@@ -1,5 +1,5 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { type TenorOrg, type TenorUser } from 'test/e2e/support/auth';
+import { type TenorOrg, type TenorUser, tenorUserLogin } from 'test/e2e/support/auth';
 import { reverseName } from 'test/e2e/support/utils';
 
 const appFrontend = new AppFrontend();
@@ -37,6 +37,7 @@ describe('Signing', () => {
       tenorUser: tenorUsers.humanAndrefiolin,
       authenticationLevel: '2',
     });
+
 
     // Step 2: Fill in the form and specify other valid users as signees
 
@@ -156,11 +157,11 @@ describe('Signing', () => {
       cy.findByText(/takk for at du signerte! du kan sende inn skjemaet når alle parter har signert/i);
     });
 
-    cy.hash().then((hash) => {
+    cy.location('href').then((href) => {
       cy.startAppInstance(appFrontend.apps.signeringBrukerstyrt, {
-        tenorUser: tenorUsers.humanAndrefiolin,
+        tenorUser: tenorUsers.standhaftigBjornunge,
         authenticationLevel: '2',
-        urlSuffix: `/${hash}`,
+        urlSuffix: `/instance/${href.split('/instance/')[1]}`,
       });
     });
 
