@@ -41,28 +41,35 @@ const randomInstances = Array.from({ length: 1000 }).map(() => {
 
   const lastChangedAt = getMaxDate(createdAt, archivedAt, confirmedAt, softDeletedAt);
 
-  function generateDataElement() {
-    const id = uuid();
-    const _lastChangedAt = getRandomDate(createdAt.getTime(), lastChangedAt.getTime());
-    const dataType = 'model';
-    const contentType = 'application/xml';
-    const size = Math.round(Math.random() * 1000);
-    const locked = !isActive;
-    const fileScanResult = 'NotApplicable';
+  const generateDataElement = () => ({
+    id: uuid(),
+    dataType: 'model',
+    contentType: 'application/xml',
+    size: Math.round(Math.random() * 1000),
+    locked: !isActive,
+    isRead,
+    fileScanResult: 'NotApplicable',
+    hardDeletedAt,
+    createdAt,
+    lastChangedAt: getRandomDate(createdAt.getTime(), (archivedAt ?? lastChangedAt).getTime()),
+  });
 
-    return {
-      id,
-      dataType,
-      contentType,
-      size,
-      locked,
-      isRead,
-      fileScanResult,
-      hardDeletedAt,
-      createdAt,
-      lastChangedAt: _lastChangedAt,
-    };
-  }
+  const generatePdfDataElement = () => ({
+    id: uuid(),
+    dataType: 'ref-data-as-pdf',
+    contentType: 'application/pdf',
+    size: Math.round(Math.random() * 1000),
+    locked: false,
+    isRead: true,
+    fileScanResult: 'NotApplicable',
+    hardDeletedAt,
+    createdAt: archivedAt,
+    lastChangedAt: archivedAt,
+  });
+
+  const data = archivedAt
+    ? [generateDataElement(), generatePdfDataElement()]
+    : [generateDataElement()];
 
   return {
     id,
@@ -76,7 +83,7 @@ const randomInstances = Array.from({ length: 1000 }).map(() => {
     hardDeletedAt,
     createdAt,
     lastChangedAt,
-    data: [generateDataElement()],
+    data,
   };
 });
 
