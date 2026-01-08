@@ -22,9 +22,9 @@ import { formatIdString } from '../../utils/stringUtils';
 import {
   getAvailableEnvironments,
   getResourceIdentifierErrorMessage,
+  getValidIdentifierPrefixes,
 } from '../../utils/resourceUtils';
 import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
-import { getValidIdentifierPrefixes } from '../../utils/resourceUtils/resourceUtils';
 
 export type ImportResourceModalProps = {
   onClose: () => void;

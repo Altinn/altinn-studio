@@ -8,10 +8,12 @@ import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { StudioButton, StudioDialog, StudioParagraph, StudioTextfield } from '@studio/components';
-import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
+import {
+  getResourceIdentifierErrorMessage,
+  getValidIdentifierPrefixes,
+} from '../../utils/resourceUtils';
 import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
 import { formatIdString } from '../../utils/stringUtils';
-import { getValidIdentifierPrefixes } from '../../utils/resourceUtils/resourceUtils';
 
 export type NewResourceModalProps = {
   onClose: () => void;
