@@ -1,11 +1,9 @@
-using System.Linq.Expressions;
 using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using KS.Fiks.Arkiv.Models.V1.Meldingstyper;
@@ -14,10 +12,8 @@ using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Client.Send;
 using KS.Fiks.IO.Crypto.Models;
 using KS.Fiks.IO.Send.Client.Models;
-using Ks.Fiks.Maskinporten.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 using MessageReceivedCallback = System.Func<
@@ -37,19 +33,23 @@ public class FiksArkivHostTest
         var (clientFactoryMock, createdClients) = GetFixIOClientFactoryMock();
         using var cts = new CancellationTokenSource();
 
-        await using var fixture = TestFixture.Create(
-            services =>
-            {
-                services.AddFiksArkiv();
-                services.AddSingleton(loggerMock.Object);
-                services.AddSingleton(clientFactoryMock.Object);
-            },
-            mockFiksIOClientFactory: false
-        );
+        {
+            await using var fixture = TestFixture.Create(
+                services =>
+                {
+                    services.AddFiksArkiv();
+                    services.AddSingleton(loggerMock.Object);
+                    services.AddSingleton(clientFactoryMock.Object);
+                },
+                mockFiksIOClientFactory: false
+            );
 
-        // Act
-        await fixture.FiksArkivHost.StartAsync(cts.Token);
-        await cts.CancelAsync();
+            // Act
+            await fixture.FiksArkivHost.StartAsync(cts.Token);
+            await cts.CancelAsync();
+        }
+
+        await Task.Delay(50); // TODO: hopes and prayers that scheduled continuations have now run
 
         // Assert
         Assert.Single(createdClients);

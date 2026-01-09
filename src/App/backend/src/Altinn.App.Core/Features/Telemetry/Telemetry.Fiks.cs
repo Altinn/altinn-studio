@@ -22,7 +22,7 @@ partial class Telemetry
                 {
                     foreach (var result in FiksResultExtensions.GetValues())
                     {
-                        m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast()));
+                        m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
                     }
                 }
             );
@@ -85,10 +85,12 @@ partial class Telemetry
     }
 
     internal void RecordFiksMessageSent(FiksResult result) =>
-        _counters[MetricNameMessageSent].Add(1, new Tag(InternalLabels.Result, result.ToStringFast()));
+        _counters[MetricNameMessageSent]
+            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
 
     internal void RecordFiksMessageReceived(FiksResult result) =>
-        _counters[MetricNameMessageReceived].Add(1, new Tag(InternalLabels.Result, result.ToStringFast()));
+        _counters[MetricNameMessageReceived]
+            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
 
     internal static class Fiks
     {
@@ -97,7 +99,7 @@ partial class Telemetry
         internal static readonly string MetricNameMessageSent = Metrics.CreateLibName("fiks_messages_sent");
         internal static readonly string MetricNameMessageReceived = Metrics.CreateLibName("fiks_messages_received");
 
-        [EnumExtensions]
+        [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
         internal enum FiksResult
         {
             [Display(Name = "success")]

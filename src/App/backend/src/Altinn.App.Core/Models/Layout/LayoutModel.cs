@@ -43,7 +43,7 @@ public sealed class LayoutModel
         var pageContexts = new List<ComponentContext>();
         foreach (var page in _defaultLayoutSet.Pages)
         {
-            pageContexts.Add(await page.GetContext(state, defaultElementId.Value, null, _layoutsLookup));
+            pageContexts.Add(await page.GetContextForPage(state, defaultElementId.Value, null, _layoutsLookup));
         }
 
         return pageContexts;

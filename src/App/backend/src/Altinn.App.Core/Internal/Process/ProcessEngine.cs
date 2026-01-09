@@ -281,11 +281,10 @@ public class ProcessEngine : IProcessEngine
                 );
 
                 var serviceTaskRequiresContinue =
-                    serviceTaskResult
-                        is ServiceTaskFailedResult
-                        {
-                            ErrorHandling.Strategy: ServiceTaskErrorStrategy.ContinueProcessNext
-                        };
+                    serviceTaskResult is ServiceTaskFailedResult
+                    {
+                        ErrorHandling.Strategy: ServiceTaskErrorStrategy.ContinueProcessNext
+                    };
 
                 if (!serviceTaskProcessChangeResult.Success && !serviceTaskRequiresContinue)
                 {

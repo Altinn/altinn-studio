@@ -89,6 +89,16 @@ public abstract class Authenticated
     }
 
     /// <summary>
+    /// Type to indicate that the current request is authenticated, but we don't know the type of the authentication.
+    /// It may be custom for the app.
+    /// </summary>
+    public sealed class Unknown : Authenticated
+    {
+        internal Unknown(ref ParseContext context)
+            : base(ref context) { }
+    }
+
+    /// <summary>
     /// The logged in client is a user (e.g. Altinn portal/ID-porten)
     /// </summary>
     public sealed class User : Authenticated
@@ -890,6 +900,22 @@ public abstract class Authenticated
         else if (context.OrgNoClaim.Exists)
         {
             return NewOrg(ref context);
+        }
+
+        if (!context.UserIdClaim.Exists)
+        {
+            // No user claims, no org claims, no system user claims.
+            // If token issuer is known (ID-porten/Maskinporten) and has Altinn Studio instance scopes but we couldn't parse it,
+            // it's likely a raw token that needs to be exchanged - throw an exception.
+            // Otherwise it could be custom app authentication - return Unknown.
+            if (context.TokenIssuer != TokenIssuer.Unknown && context.Scopes.HasAltinnInstanceScope())
+            {
+                throw new AuthenticationContextException(
+                    $"Unrecognized token from {context.TokenIssuer}. Raw tokens from ID-porten and Maskinporten must be exchanged through Altinn Authentication before use."
+                );
+            }
+
+            return new Unknown(ref context);
         }
 
         return NewUser(ref context);

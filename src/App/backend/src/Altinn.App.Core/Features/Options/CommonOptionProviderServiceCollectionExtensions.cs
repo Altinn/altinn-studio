@@ -1,7 +1,12 @@
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Options.Altinn2Provider;
+using Altinn.App.Core.Features.Options.Altinn3LibraryProvider;
 using Altinn.App.Core.Models;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Features.Options;
 
@@ -42,8 +47,8 @@ public static class CommonOptionProviderServiceCollectionExtensions
     )
     {
         if (
-            !serviceCollection.Any(serviceDescriptor =>
-                serviceDescriptor.ServiceType == typeof(Altinn2MetadataApiClient)
+            serviceCollection.All(serviceDescriptor =>
+                serviceDescriptor.ServiceType != typeof(Altinn2MetadataApiClient)
             )
         )
         {
@@ -58,6 +63,46 @@ public static class CommonOptionProviderServiceCollectionExtensions
             filter,
             metadataApiId,
             codeListVersion
+        ));
+        return serviceCollection;
+    }
+
+    /// <summary>
+    /// Extention method for IServiceCollection to add the AddAltinn3CodeList() method
+    /// <code>
+    /// services.AddAltinn3CodeList(
+    ///     optionId: "someNewCodeList-1",
+    ///     org: "ttd",
+    ///     codeListId: "someNewCodeList",
+    ///     version: "1"
+    /// );
+    /// </code>
+    /// </summary>
+    /// <param name="serviceCollection">The service collection to add altinn 3 codelists to</param>
+    /// <param name="optionId">
+    ///    The id/name that is used in the <c>optionsId</c> parameter in the SelectionComponents (Checkboxes, RadioButtons, Dropdown ...)
+    /// </param>
+    /// <param name="org">The organization that has this code list</param>
+    /// <param name="codeListId">Id of the code list in the code list repository.</param>
+    /// <param name="version">Version of the code list in the code list repository. Defaults to latest if not provided.</param>
+    /// <returns></returns>
+    public static IServiceCollection AddAltinn3CodeList(
+        this IServiceCollection serviceCollection,
+        string optionId,
+        string org,
+        string codeListId,
+        string? version = null
+    )
+    {
+        serviceCollection.AddSingleton<IAppOptionsProvider>(sp => new Altinn3LibraryOptionsProvider(
+            optionId,
+            org,
+            codeListId,
+            version,
+            sp.GetRequiredService<HybridCache>(),
+            sp.GetRequiredService<IHttpClientFactory>(),
+            sp.GetRequiredService<ILogger<Altinn3LibraryOptionsProvider>>(),
+            sp.GetRequiredService<IOptions<PlatformSettings>>()
         ));
         return serviceCollection;
     }

@@ -103,6 +103,7 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
             "deltar" when nextOffset is -1 && literalIndex is -1 => model.Deltar,
             "adresse" when literalIndex is -1 => GetRecursive(model.Adresse, path, nextOffset),
             "tidligere-adresse" => GetRecursive(model.TidligereAdresse, path, literalIndex, nextOffset),
+            "oldXmlValue" when literalIndex is -1 => GetRecursive(model.OldXmlValue, path, nextOffset),
             // _ => throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"{path} is not a valid path."),
             _ => null,
         };
@@ -169,6 +170,25 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         }
 
         return GetRecursive(model[literalIndex], path, offset);
+    }
+
+    private static object? GetRecursive(
+        global::Altinn.App.SourceGenerator.Tests.OldXmlValue? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset
+    )
+    {
+        if (model is null || offset == -1)
+        {
+            return model;
+        }
+
+        return ParseSegment(path, offset, out int nextOffset, out int literalIndex) switch
+        {
+            "value" when nextOffset is -1 && literalIndex is -1 => model.valueNullable,
+            // _ => throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"{path} is not a valid path."),
+            _ => null,
+        };
     }
 
     #endregion Getters
@@ -390,6 +410,20 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                     );
                 }
                 return;
+            case "oldXmlValue":
+                segment.CopyTo(buffer.Slice(bufferOffset));
+                bufferOffset += 11;
+                if (pathOffset != -1)
+                {
+                    AddIndexToPathRecursive_Altinn_App_SourceGenerator_Tests_OldXmlValue(
+                        path,
+                        pathOffset,
+                        rowIndexes,
+                        buffer,
+                        ref bufferOffset
+                    );
+                }
+                return;
             default:
                 bufferOffset = 0;
                 return;
@@ -476,6 +510,31 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         }
     }
 
+    private void AddIndexToPathRecursive_Altinn_App_SourceGenerator_Tests_OldXmlValue(
+        global::System.ReadOnlySpan<char> path,
+        int pathOffset,
+        global::System.ReadOnlySpan<int> rowIndexes,
+        global::System.Span<char> buffer,
+        ref int bufferOffset
+    )
+    {
+        if (bufferOffset > 0)
+        {
+            buffer[bufferOffset++] = '.';
+        }
+        var segment = ParseSegment(path, pathOffset, out pathOffset, out int literalIndex);
+        switch (segment)
+        {
+            case "value":
+                segment.CopyTo(buffer.Slice(bufferOffset));
+                bufferOffset += 5;
+                return;
+            default:
+                bufferOffset = 0;
+                return;
+        }
+    }
+
     #endregion AddIndexToPath
     #region Copy
 
@@ -541,6 +600,7 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
             Deltar = data.Deltar,
             Adresse = CopyRecursive(data.Adresse),
             TidligereAdresse = CopyRecursive(data.TidligereAdresse),
+            OldXmlValue = CopyRecursive(data.OldXmlValue),
         };
     }
 
@@ -600,6 +660,22 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         }
 
         return result;
+    }
+
+    [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("data")]
+    private static global::Altinn.App.SourceGenerator.Tests.OldXmlValue? CopyRecursive(
+        global::Altinn.App.SourceGenerator.Tests.OldXmlValue? data
+    )
+    {
+        if (data is null)
+        {
+            return null;
+        }
+
+        return new()
+        {
+            valueNullable = data.valueNullable,
+        };
     }
 
     #endregion Copy
@@ -721,6 +797,12 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
             case "tidligere-adresse":
                 RemoveRecursive(model.TidligereAdresse, path, nextOffset, literalIndex, rowRemovalOption);
                 break;
+            case "oldXmlValue" when (nextOffset is -1) && (literalIndex is -1):
+                model.OldXmlValue = default;
+                break;
+            case "oldXmlValue":
+                RemoveRecursive(model.OldXmlValue, path, nextOffset, rowRemovalOption);
+                break;
             default:
                 // throw new ArgumentException("{path} is not a valid path.");
                 return;
@@ -822,6 +904,28 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         else
         {
             RemoveRecursive(model[index], path, offset, rowRemovalOption);
+        }
+    }
+
+    private static void RemoveRecursive(
+        global::Altinn.App.SourceGenerator.Tests.OldXmlValue? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        global::Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption
+    )
+    {
+        if (model is null)
+        {
+            return;
+        }
+        switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
+        {
+            case "value" when (nextOffset is -1) && (literalIndex is -1):
+                model.valueNullable = default;
+                break;
+            default:
+                // throw new ArgumentException("{path} is not a valid path.");
+                return;
         }
     }
 
@@ -1100,6 +1204,20 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
 //               "TypeName": "string",
 //               "IsJsonValueType": true,
 //               "ListType": "global::System.Collections.Generic.List<string>",
+//             }
+//           ]
+//         },
+//         {
+//           "JsonName": "oldXmlValue",
+//           "CSharpName": "OldXmlValue",
+//           "TypeName": "global::Altinn.App.SourceGenerator.Tests.OldXmlValue",
+//           "IsJsonValueType": false,
+//           "Properties": [
+//             {
+//               "JsonName": "value",
+//               "CSharpName": "valueNullable",
+//               "TypeName": "decimal",
+//               "IsJsonValueType": true,
 //             }
 //           ]
 //         }

@@ -170,7 +170,7 @@ public class ExpressionValueTests
     {
         ExpressionValue undefinedValue = default;
         Assert.Equal(JsonValueKind.Undefined, undefinedValue.ValueKind);
-        Assert.Throws<InvalidOperationException>(() => undefinedValue.ToString());
+        Assert.Equal("undefined", undefinedValue.ToString());
         Assert.Throws<InvalidOperationException>(() => undefinedValue.ToObject());
         Assert.Throws<InvalidCastException>(() => undefinedValue.Bool);
         Assert.Throws<InvalidCastException>(() => undefinedValue.Number);

@@ -6,11 +6,14 @@ using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -383,6 +386,11 @@ public class PdfServiceTests
             Id = $"509378/{Guid.NewGuid()}",
             AppId = "digdir/not-really-an-app",
             Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+            Data = new()
+            {
+                new() { Id = Guid.NewGuid().ToString(), DataType = "Model" },
+            },
         };
 
         // Act
@@ -440,6 +448,11 @@ public class PdfServiceTests
             Id = $"509378/{Guid.NewGuid()}",
             AppId = "digdir/not-really-an-app",
             Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+            Data = new()
+            {
+                new() { Id = Guid.NewGuid().ToString(), DataType = "Model" },
+            },
         };
 
         // Act
@@ -474,6 +487,39 @@ public class PdfServiceTests
         TelemetrySink? telemetrySink = null
     )
     {
+        // Setup a mock service provider with InstanceDataUnitOfWorkInitializer
+        var mockServiceProvider = new Mock<IServiceProvider>();
+        var mockInstanceClient = new Mock<IInstanceClient>();
+        var mockAppMetadata = new Mock<IAppMetadata>();
+
+        // Setup GetApplicationMetadata to return an ApplicationMetadata with DataTypes initialized
+        var dataType = new DataType() { Id = "Model" };
+        var applicationMetadata = new ApplicationMetadata("digdir/not-really-an-app") { DataTypes = [dataType] };
+        mockAppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+
+        // Setup GetLayoutModelForTask to return a valid LayoutModel
+        var layoutSetComponent = new LayoutSetComponent(new List<PageComponent>(), "layout", dataType);
+        var layoutModel = new LayoutModel([layoutSetComponent], null);
+        var mockAppResourcesForInitializer = appResources ?? _appResources;
+        mockAppResourcesForInitializer.Setup(x => x.GetLayoutModelForTask(It.IsAny<string>())).Returns(layoutModel);
+
+        var initializer = new InstanceDataUnitOfWorkInitializer(
+            dataClient?.Object ?? _dataClient.Object,
+            mockInstanceClient.Object,
+            mockAppMetadata.Object,
+            new TranslationService(
+                new AppIdentifier("digdir", "not-really-an-app"),
+                appResources?.Object ?? _appResources.Object,
+                FakeLoggerXunit.Get<TranslationService>(_outputHelper)
+            ),
+            null!, // ModelSerializationService not needed for these tests
+            appResources?.Object ?? _appResources.Object,
+            Options.Create(new FrontEndSettings()),
+            null
+        );
+
+        mockServiceProvider.Setup(x => x.GetService(typeof(InstanceDataUnitOfWorkInitializer))).Returns(initializer);
+
         return new PdfService(
             dataClient?.Object ?? _dataClient.Object,
             httpContentAccessor?.Object ?? _httpContextAccessor.Object,
@@ -487,6 +533,7 @@ public class PdfServiceTests
                 appResources?.Object ?? _appResources.Object,
                 FakeLoggerXunit.Get<TranslationService>(_outputHelper)
             ),
+            mockServiceProvider.Object,
             telemetrySink?.Object
         );
     }

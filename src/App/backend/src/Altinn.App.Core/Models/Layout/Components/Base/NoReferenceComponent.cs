@@ -6,13 +6,13 @@ namespace Altinn.App.Core.Models.Layout.Components.Base;
 /// <summary>
 /// Simple base component that does not have any references to other components.
 /// </summary>
-public abstract class NoReferenceComponent : BaseComponent
+public abstract class NoReferenceComponent : BaseLayoutComponent
 {
     /// <summary>
     /// No children to claim for NoReferenceComponent
     /// </summary>
     public override void ClaimChildren(
-        Dictionary<string, BaseComponent> unclaimedComponents,
+        Dictionary<string, BaseLayoutComponent> unclaimedComponents,
         Dictionary<string, string> claimedComponents
     ) { }
 

@@ -8,7 +8,11 @@
     <IsTestProject>true</IsTestProject>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>gen</CompilerGeneratedFilesOutputPath>
+    <IsAltinnApp>true</IsAltinnApp>
   </PropertyGroup>
+  <ItemGroup>
+    <CompilerVisibleProperty Include="IsAltinnApp" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.collector" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />

@@ -148,17 +148,15 @@ public class DataController : ControllerBase
             // Old clients will expect BadRequest to have a list of issues or a string
             // not problem details.
             return BadRequest(
-                await GetErrorDetails(
-                    [
-                        new ValidationIssueWithSource
-                        {
-                            Description = response.Error.Detail,
-                            Code = response.Error.Title,
-                            Severity = ValidationIssueSeverity.Error,
-                            Source = response.Error.Type ?? "DataController",
-                        },
-                    ]
-                )
+                await GetErrorDetails([
+                    new ValidationIssueWithSource
+                    {
+                        Description = response.Error.Detail,
+                        Code = response.Error.Title,
+                        Severity = ValidationIssueSeverity.Error,
+                        Source = response.Error.Type ?? "DataController",
+                    },
+                ])
             );
         }
 

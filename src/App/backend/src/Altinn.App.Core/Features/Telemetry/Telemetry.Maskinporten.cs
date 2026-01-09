@@ -71,7 +71,7 @@ partial class Telemetry
             "maskinporten_altinn_exchange_requests"
         );
 
-        [EnumExtensions]
+        [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
         internal enum RequestResult
         {
             [Display(Name = "cached")]

@@ -171,4 +171,30 @@ public readonly struct Scopes : IEquatable<Scopes>
 
         return false;
     }
+
+    /// <summary>
+    /// Checks if any of the scopes are Altinn Studio instance-related scopes.
+    /// These are scopes that indicate the token is intended for Altinn Studio app/instance operations.
+    /// </summary>
+    /// <returns>True if any Altinn Studio instance scope is present</returns>
+    public bool HasAltinnInstanceScope()
+    {
+        if (string.IsNullOrWhiteSpace(_scope))
+            return false;
+
+        foreach (var scope in this)
+        {
+            if (
+                scope.Equals("altinn:instances.read", StringComparison.Ordinal)
+                || scope.Equals("altinn:instances.write", StringComparison.Ordinal)
+                || scope.Equals("altinn:serviceowner/instances.read", StringComparison.Ordinal)
+                || scope.Equals("altinn:serviceowner/instances.write", StringComparison.Ordinal)
+            )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

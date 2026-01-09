@@ -6,32 +6,25 @@ namespace Altinn.App.Core.Models.Layout.Components.Base;
 /// <summary>
 /// Utility class for components that references other components without any repeating logic, such as Grid, Accordion, or Tabs.
 /// </summary>
-public abstract class SimpleReferenceComponent : BaseComponent
+public abstract class ReferenceComponent : BaseLayoutComponent
 {
     /// <summary>
     /// Collection of IDs for children that should be claimed.
     /// </summary>
     public required IReadOnlyCollection<string> ChildReferences { get; init; }
 
-    private IReadOnlyDictionary<string, BaseComponent>? _claimedChildrenLookup;
+    private Dictionary<string, BaseLayoutComponent>? _claimedChildrenLookup;
 
     // used for some tests to ensure hierarchy is correct
     internal IEnumerable<BaseComponent>? AllChildren => _claimedChildrenLookup?.Values;
 
     /// <inheritdoc />
     public override void ClaimChildren(
-        Dictionary<string, BaseComponent> unclaimedComponents,
+        Dictionary<string, BaseLayoutComponent> unclaimedComponents,
         Dictionary<string, string> claimedComponents
     )
     {
-        if (ChildReferences is null)
-        {
-            throw new InvalidOperationException(
-                $"{GetType().Name} inherits from {nameof(SimpleReferenceComponent)} and must initialize {nameof(ChildReferences)} in its constructor."
-            );
-        }
-
-        var components = new Dictionary<string, BaseComponent>();
+        var components = new Dictionary<string, BaseLayoutComponent>();
         foreach (var componentId in ChildReferences)
         {
             if (unclaimedComponents.Remove(componentId, out var component))
@@ -66,11 +59,28 @@ public abstract class SimpleReferenceComponent : BaseComponent
     ///
     /// Will be populated after the <see cref="ClaimChildren"/> method is called.
     /// </summary>
-    public IReadOnlyDictionary<string, BaseComponent> ClaimedChildrenLookup =>
-        _claimedChildrenLookup
-        ?? throw new InvalidOperationException(
-            "ClaimChildren has not been called. This is a bug in the component initialization process."
-        );
+    private protected async Task<ComponentContext> GetClaimedChildComponentContext(
+        string componentId,
+        LayoutEvaluatorState state,
+        DataElementIdentifier defaultDataElementIdentifier,
+        int[]? rowIndexes,
+        Dictionary<string, LayoutSetComponent> layoutsLookup
+    )
+    {
+        if (_claimedChildrenLookup is null)
+        {
+            throw new InvalidOperationException(
+                $"{GetType().Name} inherits from {nameof(ReferenceComponent)} and must have {nameof(ClaimChildren)} called before generating contexts."
+            );
+        }
+
+        if (!_claimedChildrenLookup.TryGetValue(componentId, out var component))
+        {
+            throw new ArgumentException($"Child component with ID '{componentId}' is not claimed.");
+        }
+
+        return await component.GetContext(state, defaultDataElementIdentifier, rowIndexes, layoutsLookup);
+    }
 
     /// <inheritdoc />
     public override async Task<ComponentContext> GetContext(
@@ -83,23 +93,22 @@ public abstract class SimpleReferenceComponent : BaseComponent
         if (ChildReferences is null)
         {
             throw new InvalidOperationException(
-                $"{GetType().Name} inherits from {nameof(SimpleReferenceComponent)} and must initialize {nameof(ChildReferences)} in its constructor."
+                $"{GetType().Name} inherits from {nameof(ReferenceComponent)} and must initialize {nameof(ChildReferences)} in its constructor."
             );
         }
 
         List<ComponentContext> childContexts = [];
         foreach (var childId in ChildReferences)
         {
-            if (ClaimedChildrenLookup.TryGetValue(childId, out var childComponent))
-            {
-                childContexts.Add(
-                    await childComponent.GetContext(state, defaultDataElementIdentifier, rowIndexes, layoutsLookup)
-                );
-            }
-            else
-            {
-                throw new ArgumentException($"Child component with ID '{childId}' is not claimed.");
-            }
+            childContexts.Add(
+                await GetClaimedChildComponentContext(
+                    childId,
+                    state,
+                    defaultDataElementIdentifier,
+                    rowIndexes,
+                    layoutsLookup
+                )
+            );
         }
 
         return new ComponentContext(state, this, rowIndexes, defaultDataElementIdentifier, childContexts);

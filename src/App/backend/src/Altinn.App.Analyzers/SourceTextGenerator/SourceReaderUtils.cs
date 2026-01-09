@@ -1,6 +1,6 @@
 namespace Altinn.App.Analyzers.SourceTextGenerator;
 
-internal static class SourceReaderUtils
+public static class SourceReaderUtils
 {
     public static ITypeSymbol UnwrapNullable(ITypeSymbol symbol)
     {
@@ -87,5 +87,51 @@ internal static class SourceReaderUtils
         }
 
         return (unwrappedTypeSymbol, null);
+    }
+
+    public static bool HasJsonIgnoreAttribute(IPropertySymbol property)
+    {
+        foreach (var attributeData in property.GetAttributes())
+        {
+            if (
+                attributeData.AttributeClass is { Name: "JsonIgnoreAttribute" } attr
+                && attr.ContainingNamespace?.ToDisplayString() == "System.Text.Json.Serialization"
+            )
+            {
+                // Check for named arguments (e.g., Condition = ...)
+                foreach (var namedArg in attributeData.NamedArguments)
+                {
+                    if (namedArg.Key == "Condition")
+                    {
+                        // If Condition is specified, only return true if it's Always (value 1)
+                        // Never = 0, WhenWritingDefault = 2, WhenWritingNull = 3
+                        if (namedArg.Value.Value is int conditionValue)
+                        {
+                            return conditionValue == 1; // JsonIgnoreCondition.Always
+                        }
+                    }
+                }
+
+                return true; // No Condition specified, so ignore unconditionally
+            }
+        }
+
+        return false;
+    }
+
+    public static bool HasBindNeverAttribute(IPropertySymbol property)
+    {
+        foreach (var attributeData in property.GetAttributes())
+        {
+            if (
+                attributeData.AttributeClass is { Name: "BindNeverAttribute" } attr
+                && attr.ContainingNamespace?.ToDisplayString() == "Microsoft.AspNetCore.Mvc.ModelBinding"
+            )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

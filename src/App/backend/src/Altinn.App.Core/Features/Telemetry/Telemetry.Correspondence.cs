@@ -43,7 +43,7 @@ partial class Telemetry
     {
         internal static readonly string MetricNameOrder = Metrics.CreateLibName("correspondence_orders");
 
-        [EnumExtensions]
+        [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
         internal enum CorrespondenceResult
         {
             [Display(Name = "success")]

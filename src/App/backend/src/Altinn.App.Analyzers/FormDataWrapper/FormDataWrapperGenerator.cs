@@ -9,8 +9,13 @@ public class FormDataWrapperGenerator : IIncrementalGenerator
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        var isAltinnApp = context.AnalyzerConfigOptionsProvider.Select(static (provider, _) => provider.IsAltinnApp());
+
         var rootClasses = context
             .AdditionalTextsProvider.Where(FormDataWrapperUtils.IsApplicationMetadataFile)
+            .Combine(isAltinnApp)
+            .Where(static tuple => tuple.Right)
+            .Select(static (tuple, _) => tuple.Left)
             .SelectMany(ExtractRootClassesFromAppMetadata);
 
         var modelPathNodesProvider = rootClasses.Combine(context.CompilationProvider).Select(CreateNodeTree);
