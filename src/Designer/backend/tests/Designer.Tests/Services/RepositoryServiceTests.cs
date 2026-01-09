@@ -29,7 +29,7 @@ using Xunit;
 
 namespace Designer.Tests.Services
 {
-    public class RepositorySITests
+    public class RepositoryServiceTests
     {
         [Fact]
         public void GetContents_FindsFolder_ReturnsListOfFileSystemObjects()
@@ -54,7 +54,7 @@ namespace Designer.Tests.Services
 
             int expectedCount = 2;
 
-            RepositorySI sut = GetServiceForTest("testUser");
+            RepositoryService sut = GetServiceForTest("testUser");
 
             // Act
             List<FileSystemObject> actual = sut.GetContents("ttd", "apps-test");
@@ -81,7 +81,7 @@ namespace Designer.Tests.Services
 
             int expectedCount = 1;
 
-            RepositorySI sut = GetServiceForTest("testUser");
+            RepositoryService sut = GetServiceForTest("testUser");
 
             // Act
             List<FileSystemObject> actual = sut.GetContents("ttd", "apps-test", "App/appsettings.json");
@@ -95,7 +95,7 @@ namespace Designer.Tests.Services
         public void GetContents_LocalCloneOfRepositoryNotAvailable_ReturnsNull()
         {
             // Arrange
-            RepositorySI sut = GetServiceForTest("testUser");
+            RepositoryService sut = GetServiceForTest("testUser");
 
             // Act
             List<FileSystemObject> actual = sut.GetContents("ttd", "test-apps");
@@ -143,7 +143,7 @@ namespace Designer.Tests.Services
             string sourceRepository = "apps-test";
             string targetRepository = "existing-repo";
 
-            RepositorySI sut = GetServiceForTest(developer);
+            RepositoryService sut = GetServiceForTest(developer);
 
             // Act
             Repository actual = await sut.CopyRepository(org, sourceRepository, targetRepository, developer);
@@ -171,7 +171,7 @@ namespace Designer.Tests.Services
                 PrepareRemoteTestData(org, workingRemoteRepositoryName);
                 TestDataHelper.CleanUpRemoteRepository(org, targetRepositoryName);
 
-                RepositorySI sut = GetServiceForTest(developer);
+                RepositoryService sut = GetServiceForTest(developer);
 
                 // Act
                 await sut.CopyRepository(org, workingRemoteRepositoryName, targetRepositoryName, developer);
@@ -207,7 +207,7 @@ namespace Designer.Tests.Services
                 workingRemoteDirPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, origRemoteRepo, workingSourceRepoName);
                 PrepareRemoteTestData(org, workingSourceRepoName);
 
-                RepositorySI sut = GetServiceForTest(developer);
+                RepositoryService sut = GetServiceForTest(developer);
 
                 // Act
                 await sut.CopyRepository(org, workingSourceRepoName, targetRepository, developer);
@@ -262,7 +262,7 @@ namespace Designer.Tests.Services
 
                 Assert.True(File.Exists(configPath), $"Før kopiering: config.json mangler i root: {configPath}");
 
-                RepositorySI sut = GetServiceForTest(developer);
+                RepositoryService sut = GetServiceForTest(developer);
 
                 // Act
                 await sut.CopyRepository(org, sourceWithConfig, targetRepository, developer);
@@ -311,7 +311,7 @@ namespace Designer.Tests.Services
             mock.Setup(m => m.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
-            RepositorySI sut = GetServiceForTest(developer, mock.Object);
+            RepositoryService sut = GetServiceForTest(developer, mock.Object);
 
             // Act
             await sut.DeleteRepository(org, repository);
@@ -360,7 +360,7 @@ namespace Designer.Tests.Services
             }
         }
 
-        private static RepositorySI GetServiceForTest(string developer, ISourceControl sourceControlMock = null)
+        private static RepositoryService GetServiceForTest(string developer, ISourceControl sourceControlMock = null)
         {
             HttpContext ctx = GetHttpContextForTestUser(developer);
 
@@ -369,7 +369,7 @@ namespace Designer.Tests.Services
 
             sourceControlMock ??= new ISourceControlMock();
 
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoryServiceTests).Assembly.Location).LocalPath);
             ServiceRepositorySettings repoSettings = new()
             {
                 RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories") + Path.DirectorySeparatorChar
@@ -406,13 +406,13 @@ namespace Designer.Tests.Services
 
             ResourceRegistryService resourceRegistryService = new();
 
-            RepositorySI service = new(
+            RepositoryService service = new(
                 repoSettings,
                 generalSettings,
                 httpContextAccessorMock.Object,
                 new IGiteaClientMock(),
                 sourceControlMock,
-                new Mock<ILogger<RepositorySI>>().Object,
+                new Mock<ILogger<RepositoryService>>().Object,
                 altinnGitRepositoryFactory,
                 applicationInformationService,
                 appDevelopmentService,

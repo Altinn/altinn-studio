@@ -1,3 +1,68 @@
+export const appMetadataRoute = async (req, res) => {
+  const { org, app } = req.params;
+
+  res.json({
+    id: `${org}/${app}`,
+    altinnNugetVersion: '8.5.3.108',
+    org,
+    title: { nb: app },
+    dataTypes: [
+      {
+        id: 'model',
+        description: null,
+        allowedContentTypes: ['application/xml'],
+        allowedContributers: null,
+        appLogic: {
+          autoCreate: true,
+          classRef: 'Altinn.App.Models.Model',
+          schemaRef: null,
+          allowAnonymousOnStateless: false,
+          autoDeleteOnProcessEnd: false,
+          shadowFields: null,
+        },
+        taskId: 'Task_1',
+        maxSize: null,
+        maxCount: 1,
+        minCount: 1,
+        grouping: null,
+        enablePdfCreation: false,
+        enableFileScan: false,
+        validationErrorOnPendingFileScan: false,
+        enabledFileAnalysers: [],
+        enabledFileValidators: [],
+      },
+      {
+        id: 'ref-data-as-pdf',
+        description: null,
+        allowedContentTypes: ['application/pdf'],
+        allowedContributers: null,
+        appLogic: null,
+        taskId: null,
+        maxSize: null,
+        maxCount: 0,
+        minCount: 0,
+        grouping: null,
+        enablePdfCreation: false,
+        enableFileScan: false,
+        validationErrorOnPendingFileScan: false,
+        enabledFileAnalysers: [],
+        enabledFileValidators: [],
+      },
+    ],
+    partyTypesAllowed: {
+      bankruptcyEstate: false,
+      organisation: false,
+      person: false,
+      subUnit: false,
+    },
+    autoDeleteOnProcessEnd: false,
+    created: '2024-02-06T15:18:12.2060944Z',
+    createdBy: 'studio',
+    lastChanged: '2024-02-06T15:18:12.2062288Z',
+    lastChangedBy: 'studio',
+  });
+};
+
 export const appProcessRoute = async (req, res) => {
   res.setHeader('content-type', 'text/xml');
   res.send(`<?xml version="1.0" encoding="utf-8"?>
