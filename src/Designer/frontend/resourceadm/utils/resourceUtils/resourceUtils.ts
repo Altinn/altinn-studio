@@ -11,11 +11,15 @@ import type {
   ConsentMetadata,
   AccessList,
 } from 'app-shared/types/ResourceAdm';
-import { isAppPrefix, isSePrefix } from '../stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import type { Policy, PolicyRule, PolicySubject } from '@altinn/policy-editor/types';
-import { emptyPolicyRule, organizationSubject } from '@altinn/policy-editor/utils';
 import type { TFunction } from 'i18next';
+import {
+  accessListSubjectSource,
+  emptyPolicyRule,
+  organizationSubject,
+  policySubjectOrg,
+} from '@altinn/policy-editor/utils';
 
 /**
  * The map of resource type
@@ -126,15 +130,15 @@ export const mapKeywordStringToKeywordTypeArray = (keywrodString: string): Resou
     .map((val) => ({ language: 'nb', word: val.trim() }));
 };
 
-export const getResourceIdentifierErrorMessage = (identifier: string, isConflict?: boolean) => {
-  const hasAppPrefix = isAppPrefix(identifier);
-  const hasSePrefix = isSePrefix(identifier);
-  if (hasAppPrefix) {
-    return 'resourceadm.dashboard_resource_id_cannot_be_app';
-  } else if (hasSePrefix) {
-    return 'resourceadm.dashboard_resource_id_cannot_be_se';
-  } else if (isConflict) {
+export const getResourceIdentifierErrorMessage = (
+  identifier: string,
+  org: string,
+  isConflict?: boolean,
+) => {
+  if (isConflict) {
     return 'resourceadm.dashboard_resource_name_and_id_error';
+  } else if (!identifier.startsWith(`${org}-`)) {
+    return 'resourceadm.dashboard_resource_id_must_start_with_org';
   }
   return '';
 };
@@ -368,7 +372,8 @@ export const validateResource = (
       links.forEach((link) => {
         const urlMatch = link.match(/\[[^\]]+\]\(([^)]+)\)/);
         const linkUrl = urlMatch?.[1];
-        const isLinkUrlValid = !!linkUrl && /^https?:\/\//.test(linkUrl);
+        const isLinkUrlValid =
+          !!linkUrl && (/^https?:\/\//.test(linkUrl) || /^{[a-z]+}/.test(linkUrl));
         if (!isLinkUrlValid) {
           errors.push({
             field: 'consentText',
@@ -393,7 +398,7 @@ export const validateResource = (
     });
   }
   resourceData.contactPoints?.map((x, index) => {
-    if (x.category === '' && x.email === '' && x.telephone === '' && x.contactPage === '') {
+    if (!x.category && !x.email && !x.telephone && !x.contactPage) {
       errors.push({
         field: 'contactPoints',
         index: index,
@@ -498,7 +503,7 @@ const getUnknownMetadataValues = (
 const getConsentResourceDefaultRules = (resourceId: string): PolicyRule[] => {
   const requestConsentRule = {
     ...emptyPolicyRule,
-    subject: [organizationSubject.subjectId],
+    subject: [organizationSubject.urn],
     actions: ['requestconsent'],
     ruleId: '1',
     resources: [[`urn:altinn:resource:${resourceId}`]],
@@ -547,22 +552,37 @@ export const getResourcePolicyRules = (
   return policyData;
 };
 
+export const createAccessListSubject = (accessList: AccessList, org: string): PolicySubject => {
+  const urn = `${accessListSubjectSource}:${org}:${accessList.identifier}`;
+  return {
+    id: accessList.identifier,
+    description: accessList.description,
+    legacyUrn: urn,
+    urn: urn,
+    name: accessList.name,
+    legacyRoleCode: accessList.identifier,
+    provider: {
+      id: '',
+      code: 'sys-accesslist',
+      name: '',
+    },
+  };
+};
+
 export const getResourceSubjects = (
   accessLists: AccessList[],
   subjectData: PolicySubject[],
   org: string,
-  isConsentResource: boolean,
+  resourceType: ResourceTypeOption,
 ) => {
-  if (isConsentResource) {
+  if (resourceType === 'Consent') {
     const accessListSubjects: PolicySubject[] = (accessLists ?? []).map((accessList) => {
-      return {
-        subjectId: `${accessList.identifier}`,
-        subjectSource: `altinn:access-list:${org}`,
-        subjectTitle: accessList.name,
-        subjectDescription: accessList.description,
-      };
+      return createAccessListSubject(accessList, org);
     });
     return [...subjectData, ...accessListSubjects, organizationSubject];
+  }
+  if (resourceType === 'CorrespondenceService') {
+    return [...subjectData, policySubjectOrg];
   }
   return subjectData;
 };

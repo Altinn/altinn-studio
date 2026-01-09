@@ -28,15 +28,6 @@ public interface IOrgCodeListService
     public Task<List<OptionListData>> GetCodeLists(string org, string developer, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all code lists from the org repository.
-    /// </summary>
-    /// <param name="org">Organisation</param>
-    /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>The code list with origin commit SHA.</returns>
-    public Task<GetCodeListResponse> GetCodeListsNew(string org, string? reference = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Creates a new code list in the org repository.
     /// If the file already exists, it will be overwritten.
     /// </summary>
@@ -57,15 +48,6 @@ public interface IOrgCodeListService
     /// <param name="codeList">The code list contents</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public Task<List<OptionListData>> UpdateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Applies batched create/update/delete to the org repo. For deletions, pass a wrapper with CodeList = null.
-    /// </summary>
-    /// <param name="org">Organisation</param>
-    /// <param name="developer">Username of developer</param>
-    /// <param name="request">The update request containing org, developer, code list wrappers, commit message, and reference.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task UpdateCodeListsNew(string org, string developer, UpdateCodeListRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new code list in the org repository.
@@ -110,5 +92,6 @@ public interface IOrgCodeListService
     /// <param name="org">Organisation</param>
     /// <param name="request">The publish code list request</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    Task PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default);
+    /// <returns>The current version string of the published code list.</returns>
+    Task<string> PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default);
 }

@@ -1,9 +1,9 @@
-# Build stage
-FROM golang:1.25-trixie@sha256:27e1c927a07ed2c7295d39941d6d881424739dbde9ae3055d0d3013699ed35e8 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.25.5-trixie@sha256:5d35fb8d28b9095d123b7d96095bbf3750ff18be0a87e5a21c9cffc4351fbf96 AS builder
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /app
 
-# Copy go mod files first for better dependency caching
 COPY go.mod go.sum ./
 
 # Remove the test fixture dependency from go.mod as it's not needed for building binaries
@@ -13,13 +13,10 @@ RUN sed -i '/altinn.studio\/runtime-fixture v/d' go.mod && \
 
 RUN go mod download
 
-# Copy source code
 COPY . .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/worker
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a -installsuffix cgo -o main ./cmd/worker
 
-# Runtime stage
 FROM docker.io/chromedp/headless-shell:stable@sha256:de5b057849de96955de7662023420a46355abfbb24d57aa01282ec7c811aacab
 
 USER root
@@ -36,15 +33,16 @@ RUN echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula sele
 
 WORKDIR /app
 
-# Copy the binary from builder stage
 COPY --from=builder /app/main .
 
-# Create output directory and pre-download Chrome
 RUN mkdir -p ./output
 
 EXPOSE 5031
 
+RUN mkdir -p /tmp/user-home && \
+    chown -R nobody:nogroup /tmp/user-home
+
+ENV HOME=/tmp/user-home
 USER nobody
 
-# Run the service
 ENTRYPOINT ["./main"]

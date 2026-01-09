@@ -186,8 +186,24 @@ spec:
               containerPort: 5030
               protocol: TCP
           env:
-          - name: WORKER_HTTP_ADDR
+          - name: PDF3_WORKER_HTTP_ADDR
             value: http://pdf3-worker:80
+          - name: PDF3_UPGRADE_CHANNEL
+            valueFrom:
+              # Configmap is created in syncroot
+              configMapKeyRef:
+                name: runtime-environment
+                key: upgrade_channel
+          - name: PDF3_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                name: runtime-environment
+                key: environment
+          - name: PDF3_SERVICEOWNER
+            valueFrom:
+              configMapKeyRef:
+                name: runtime-environment
+                key: serviceowner
           # Startup probe allows up to 90 seconds (30 * 3s) for the container to start
           # This prevents the liveness probe from killing slow-starting containers
           # Once startup succeeds, liveness/readiness probes take over

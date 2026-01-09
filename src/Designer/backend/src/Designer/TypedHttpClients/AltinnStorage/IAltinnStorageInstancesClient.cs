@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage.Models;
@@ -18,8 +19,21 @@ public interface IAltinnStorageInstancesClient
         string app,
         string? continuationToken,
         string? currentTaskFilter,
-        bool? processIsCompleteFilter,
-        string? archiveReference,
+        bool? isArchivedFilter,
+        string? archiveReferenceFilter,
+        bool? confirmedFilter,
+        bool? isSoftDeletedFilter,
+        bool? isHardDeletedFilter,
+        DateOnly? createdBeforeFilter,
+        CancellationToken ct
+    );
+
+    /// <inheritdoc cref="GetInstanceDetails"/>
+    Task<SimpleInstanceDetails> GetInstanceDetails(
+        string org,
+        string env,
+        string app,
+        string instanceId,
         CancellationToken ct
     );
 }

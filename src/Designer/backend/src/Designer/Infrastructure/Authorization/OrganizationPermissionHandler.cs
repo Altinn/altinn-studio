@@ -1,4 +1,3 @@
-#nullable disable
 using System.Net;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -14,7 +13,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
     public class OrganizationPermissionHandler
         : AuthorizationHandler<OrganizationPermissionRequirement>
     {
-        private readonly HttpContext _httpContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserOrganizationService _userOrganizationService;
 
         public OrganizationPermissionHandler(
@@ -22,7 +21,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             IUserOrganizationService userOrganizationService
         )
         {
-            _httpContext = httpContextAccessor.HttpContext;
+            _httpContextAccessor = httpContextAccessor;
             _userOrganizationService = userOrganizationService;
         }
 
@@ -32,15 +31,16 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             OrganizationPermissionRequirement requirement
         )
         {
-            if (_httpContext == null)
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext == null)
             {
                 return;
             }
 
-            string org = _httpContext.GetRouteValue("org")?.ToString();
+            string? org = httpContext.GetRouteValue("org")?.ToString();
             if (string.IsNullOrWhiteSpace(org))
             {
-                _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return;
             }
 

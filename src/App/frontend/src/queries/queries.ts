@@ -21,12 +21,9 @@ import {
   getDataElementIdUrl,
   getDataElementUrl,
   getDataModelTypeUrl,
-  getDataValidationUrl,
-  getFetchFormDynamicsUrl,
-  getFileTagUrl,
   getFileUploadUrl,
-  getFileUploadUrlOld,
   getFooterLayoutUrl,
+  getInstanceLayoutsUrl,
   getInstantiateUrl,
   getJsonSchemaUrl,
   getLayoutSetsUrl,
@@ -38,7 +35,6 @@ import {
   getProcessNextUrl,
   getProcessStateUrl,
   getRedirectUrl,
-  getRulehandlerUrl,
   getSetSelectedPartyUrl,
   getUpdateFileTagsUrl,
   getValidationUrl,
@@ -54,13 +50,7 @@ import type { IncomingApplicationMetadata } from 'src/features/applicationMetada
 import type { DataPostResponse } from 'src/features/attachments';
 import type { IDataList } from 'src/features/dataLists';
 import type { IFooterLayout } from 'src/features/footer/types';
-import type { IFormDynamics } from 'src/features/form/dynamics';
-import type {
-  IDataModelMultiPatchRequest,
-  IDataModelMultiPatchResponse,
-  IDataModelPatchRequest,
-  IDataModelPatchResponse,
-} from 'src/features/formData/types';
+import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import type { Instantiation } from 'src/features/instantiate/useInstantiation';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
@@ -98,20 +88,6 @@ export const doInstantiate = async (partyId: number, language?: string): Promise
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
   httpPut<IProcess>(getProcessNextUrl(instanceId, language), action ? { action } : null);
 
-export const doAttachmentUploadOld = async (instanceId: string, dataTypeId: string, file: File): Promise<IData> => {
-  const url = getFileUploadUrlOld(instanceId, dataTypeId);
-  const contentType = getFileContentType(file);
-
-  const config: AxiosRequestConfig = {
-    headers: {
-      'Content-Type': contentType,
-      'Content-Disposition': `attachment; filename=${customEncodeURI(file.name)}`,
-    },
-  };
-
-  return (await httpPost<IData>(url, config, file)).data;
-};
-
 export const doAttachmentUpload = async (
   instanceId: string,
   dataTypeId: string,
@@ -129,35 +105,6 @@ export const doAttachmentUpload = async (
   };
 
   return (await httpPost<DataPostResponse>(url, config, file)).data;
-};
-
-export const doAttachmentRemoveTag = async (
-  instanceId: string,
-  dataElementId: string,
-  tagToRemove: string,
-): Promise<void> => {
-  await httpDelete(getFileTagUrl(instanceId, dataElementId, tagToRemove));
-};
-
-export const doAttachmentAddTag = async (
-  instanceId: string,
-  dataElementId: string,
-  tagToAdd: string,
-): Promise<void> => {
-  const response = await httpPost(
-    getFileTagUrl(instanceId, dataElementId, undefined),
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-    JSON.stringify(tagToAdd),
-  );
-  if (response.status !== 201) {
-    throw new Error('Failed to add tag to attachment');
-  }
-
-  return;
 };
 
 export type SetTagsRequest = {
@@ -248,10 +195,6 @@ export const doSubformEntryDelete = async (instanceId: string, dataElementId: st
   }
 };
 
-// When saving data for normal/stateful apps
-export const doPatchFormData = (url: string, data: IDataModelPatchRequest) =>
-  httpPatch<IDataModelPatchResponse>(url, data);
-
 // New multi-patch endpoint for stateful apps
 export const doPatchMultipleFormData = (url: string, data: IDataModelMultiPatchRequest) =>
   httpPatch<IDataModelMultiPatchResponse>(url, data);
@@ -292,6 +235,9 @@ export const fetchLayoutSets = (): Promise<ILayoutSets> => httpGet(getLayoutSets
 
 export const fetchLayouts = (layoutSetId: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(layoutSetId));
 
+export const fetchLayoutsForInstance = (layoutSetId: string, instanceId: string): Promise<ILayoutCollection> =>
+  httpGet(getInstanceLayoutsUrl(layoutSetId, instanceId));
+
 export const fetchLayoutSettings = (layoutSetId: string): Promise<ILayoutSettings> =>
   httpGet(getLayoutSettingsUrl(layoutSetId));
 
@@ -327,12 +273,6 @@ export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promis
 export const fetchPdfFormat = (instanceId: string, dataElementId: string): Promise<IPdfFormat> =>
   httpGet(getPdfFormatUrl(instanceId, dataElementId));
 
-export const fetchDynamics = (layoutSetId: string): Promise<{ data: IFormDynamics } | null> =>
-  httpGet(getFetchFormDynamicsUrl(layoutSetId));
-
-export const fetchRuleHandler = (layoutSetId: string): Promise<string | null> =>
-  httpGet(getRulehandlerUrl(layoutSetId));
-
 export const fetchTextResources = (selectedLanguage: string): Promise<ITextResourceResult> =>
   httpGet(textResourcesUrl(selectedLanguage));
 
@@ -347,12 +287,6 @@ export const fetchBackendValidations = (
   language: string,
   onlyIncrementalValidators?: boolean,
 ): Promise<BackendValidationIssue[]> => httpGet(getValidationUrl(instanceId, language, onlyIncrementalValidators));
-
-export const fetchBackendValidationsForDataElement = (
-  instanceId: string,
-  currentDataElementID: string,
-  language: string,
-): Promise<BackendValidationIssue[]> => httpGet(getDataValidationUrl(instanceId, currentDataElementID, language));
 
 export const fetchLayoutSchema = async (): Promise<JSONSchema7 | undefined> => {
   // Hacky (and only) way to get the correct CDN url

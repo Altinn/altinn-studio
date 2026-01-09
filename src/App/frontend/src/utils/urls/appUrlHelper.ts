@@ -33,20 +33,10 @@ export const getOrderDetailsUrl = (instanceId: string, language?: string) => {
   const queryString = getQueryStringFromObject({ language });
   return `${origin}/${org}/${app}/instances/${instanceId}/payment/order-details${queryString}`;
 };
-export const getFileUploadUrlOld = (instanceId: string, attachmentDataType: string) =>
-  `${appPath}/instances/${instanceId}/data?dataType=${attachmentDataType}`;
 
 export const getFileUploadUrl = (instanceId: string, attachmentDataType: string, language?: string) => {
   const queryString = getQueryStringFromObject({ language });
   return `${appPath}/instances/${instanceId}/data/${attachmentDataType}${queryString}`;
-};
-
-export const getFileTagUrl = (instanceId: string, dataElementId: string, tag: string | undefined) => {
-  if (tag) {
-    return `${appPath}/instances/${instanceId}/data/${dataElementId}/tags/${tag}`;
-  }
-
-  return `${appPath}/instances/${instanceId}/data/${dataElementId}/tags`;
 };
 
 export const getUpdateFileTagsUrl = (instanceId: string, dataGuid: string) => {
@@ -95,14 +85,6 @@ export const getValidationUrl = (instanceId: string, language: string, onlyIncre
     onlyIncrementalValidators: onlyIncrementalValidators?.toString(),
   });
   return `${appPath}/instances/${instanceId}/validate${queryString}`;
-};
-
-/**
- * @deprecated use getValidationUrl instead
- */
-export const getDataValidationUrl = (instanceId: string, dataElementId: string, language: string) => {
-  const queryString = getQueryStringFromObject({ language });
-  return `${appPath}/instances/${instanceId}/data/${dataElementId}/validate${queryString}`;
 };
 
 export const getPdfFormatUrl = (instanceId: string, dataElementId: string) =>
@@ -184,9 +166,9 @@ export const getCustomValidationConfigUrl = (dataTypeId: string) => `${appPath}/
 export const getLayoutSettingsUrl = (layoutSetId: string) => `${appPath}/api/layoutsettings/${layoutSetId}`;
 export const getLayoutSetsUrl = () => `${appPath}/api/layoutsets`;
 export const getFooterLayoutUrl = () => `${appPath}/api/v1/footer`;
-export const getFetchFormDynamicsUrl = (layoutSetId: string) => `${appPath}/api/ruleconfiguration/${layoutSetId}`;
 export const getLayoutsUrl = (layoutSetId: string) => `${appPath}/api/layouts/${layoutSetId}`;
-export const getRulehandlerUrl = (layoutSet: string) => `${appPath}/api/rulehandler/${layoutSet}`;
+export const getInstanceLayoutsUrl = (layoutSetId: string, instanceId: string) =>
+  `${appPath}/instances/${instanceId}/layouts/${layoutSetId}`;
 export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;
 export const getInstanceUiUrl = (instanceId: string) => `${appPath}#/instance/${instanceId}`;
 

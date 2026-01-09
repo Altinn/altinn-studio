@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Altinn.ApiClients.Maskinporten.Extensions;
 using Altinn.Common.AccessToken.Configuration;
+using Altinn.Studio.Designer.Clients.Implementations;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Configuration.Marker;
@@ -14,6 +16,7 @@ using Altinn.Studio.Designer.Hubs;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.Infrastructure.Maskinporten;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Extensions;
 using Altinn.Studio.Designer.Scheduling;
@@ -183,7 +186,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureResourceRegistryIntegrationSettings(configuration.GetSection("ResourceRegistryIntegrationSettings"));
     services.ConfigureMaskinportenIntegrationSettings(configuration.GetSection("MaskinportenClientSettings"));
 
-    services.Configure<SharedContentClientSettings>(configuration.GetSection("SharedContentClientSettings"));
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));
@@ -228,6 +230,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.RegisterTypedHttpClients(configuration);
     services.AddAnsattPortenAuthenticationAndAuthorization(configuration);
+    services.AddMaskinportenAuthentication(configuration);
     services.ConfigureAuthentication(configuration, env);
 
     services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
@@ -270,6 +273,12 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
             options.KnownNetworks.Clear();
             options.KnownProxies.Clear();
         });
+
+        services.AddTransient<ISharedContentClient, AzureSharedContentClient>();
+    }
+    else
+    {
+        services.AddTransient<ISharedContentClient, LocalFileSharedContentClient>();
     }
 
     services.AddQuartzJobScheduling(configuration);

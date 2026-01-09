@@ -7,20 +7,30 @@ export const instancesListPath = (
   app: string,
   continuationToken?: string,
   currentTask?: string,
-  processIsComplete?: boolean,
+  isArchived?: boolean,
   archiveReference?: string,
+  confirmed?: boolean,
+  isSoftDeleted?: boolean,
+  isHardDeleted?: boolean,
+  createdBefore?: string,
 ) => {
   const queryString = getQueryStringFromObject({
     continuationToken,
     currentTask,
-    processIsComplete: typeof processIsComplete === 'boolean' ? String(processIsComplete) : null,
+    isArchived: typeof isArchived === 'boolean' ? String(isArchived) : null,
     archiveReference,
+    confirmed: typeof confirmed === 'boolean' ? String(confirmed) : null,
+    isSoftDeleted: typeof isSoftDeleted === 'boolean' ? String(isSoftDeleted) : null,
+    isHardDeleted: typeof isHardDeleted === 'boolean' ? String(isHardDeleted) : null,
+    createdBefore,
   });
   return `${adminApiBasePath}/instances/${org}/${env}/${app}${queryString}`; // Get
 };
-export const appProcessTasksPath = (org: string, env: string, app: string) =>
-  `${adminApiBasePath}/applications/${org}/${env}/${app}/process-tasks`; // Get
-export const instancePath = (org: string, env: string, app: string, instanceId: string) =>
+export const appMetadataPath = (org: string, env: string, app: string) =>
+  `${adminApiBasePath}/applications/${org}/${env}/${app}/application-metadata`; // Get
+export const processMetadataPath = (org: string, env: string, app: string) =>
+  `${adminApiBasePath}/applications/${org}/${env}/${app}/process-metadata`; // Get
+export const instanceDetailsPath = (org: string, env: string, app: string, instanceId: string) =>
   `${adminApiBasePath}/instances/${org}/${env}/${app}/${instanceId}`; // Get
 export const instanceProcessHistoryPath = (
   org: string,

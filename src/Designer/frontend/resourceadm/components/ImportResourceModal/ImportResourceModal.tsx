@@ -60,7 +60,7 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
     const { mutate: importResourceFromAltinn2Mutation, isPending: isImportingResource } =
       useImportResourceFromAltinn2Mutation(org);
 
-    const idErrorMessage = getResourceIdentifierErrorMessage(id, resourceIdExists);
+    const idErrorMessage = getResourceIdentifierErrorMessage(id, org, resourceIdExists);
     const hasValidValues =
       selectedEnv && selectedService && id.length >= 4 && !idErrorMessage && !isImportingResource;
 
@@ -146,7 +146,7 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
                   selectedService={selectedService}
                   onSelectService={(altinn2LinkService: Altinn2LinkService) => {
                     setSelectedService(altinn2LinkService);
-                    setId(formatIdString(altinn2LinkService.serviceName));
+                    setId(`${org}-${formatIdString(altinn2LinkService.serviceName)}`);
                   }}
                 />
                 {selectedService && (
@@ -162,7 +162,7 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
                         setResourceIdExists(false);
                         setId(formatIdString(event.target.value));
                       }}
-                      error={idErrorMessage ? t(idErrorMessage) : ''}
+                      error={idErrorMessage ? t(idErrorMessage, { orgPrefix: `${org}-` }) : ''}
                     />
                   </div>
                 )}

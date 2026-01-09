@@ -12,7 +12,6 @@ import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
-import { useRuleConnections } from 'src/features/form/dynamics/DynamicsContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import { createFormDataWriteStore } from 'src/features/formData/FormDataWriteStateMachine';
@@ -30,11 +29,9 @@ import {
 import { useIsUpdatingInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
-import { doPatchMultipleFormData } from 'src/queries/queries';
 import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
 import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
-import type { IRuleConnections } from 'src/features/form/dynamics';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import type {
   DataModelState,
@@ -57,7 +54,6 @@ interface FormDataContextInitialProps {
   initialDataModels: { [dataType: string]: DataModelState };
   autoSaving: boolean;
   proxies: FormDataWriteProxies;
-  ruleConnections: IRuleConnections | null;
   schemaLookup: { [dataType: string]: SchemaLookupTool };
   changeInstance: ChangeInstanceData;
 }
@@ -82,17 +78,16 @@ const {
     initialDataModels,
     autoSaving,
     proxies,
-    ruleConnections,
     schemaLookup,
     changeInstance,
   }: FormDataContextInitialProps) =>
-    createFormDataWriteStore(initialDataModels, autoSaving, proxies, ruleConnections, schemaLookup, changeInstance),
+    createFormDataWriteStore(initialDataModels, autoSaving, proxies, schemaLookup, changeInstance),
 });
 
 const saveFormDataMutationKey = ['saveFormData'] as const;
 
 function useFormDataSaveMutation() {
-  const { doPatchFormData, doPostStatelessFormData } = useAppMutations();
+  const { doPostStatelessFormData, doPatchMultipleFormData } = useAppMutations();
   const getDataModelUrl = useGetDataModelUrl();
   const instanceId = useLaxInstanceId();
   const multiPatchUrl = instanceId ? getMultiPatchUrl(instanceId) : undefined;
@@ -189,17 +184,7 @@ function useFormDataSaveMutation() {
         return;
       }
 
-      if (isStateless) {
-        return saveStateless();
-      }
-
-      const dataTypes = Object.keys(dataModelsRef.current);
-      const shouldUseMultiPatch = dataTypes.length > 1;
-      if (shouldUseMultiPatch) {
-        return performMultiPatch();
-      }
-
-      return preformOldPatch();
+      return isStateless ? saveStateless() : performMultiPatch();
 
       async function waitForDataModelChanges() {
         // While we could get the next model from a ref, we want to make sure we get the latest model after debounce
@@ -275,7 +260,7 @@ function useFormDataSaveMutation() {
 
         const patches: IPatchListItem[] = [];
 
-        for (const dataType of dataTypes) {
+        for (const dataType of Object.keys(dataModelsRef.current)) {
           const { dataElementId } = dataModelsRef.current[dataType];
           if (dataElementId && next[dataType] !== prev[dataType]) {
             const patch = createPatch({ prev: prev[dataType], next: next[dataType] });
@@ -314,36 +299,6 @@ function useFormDataSaveMutation() {
           savedData: next,
         };
       }
-
-      async function preformOldPatch() {
-        const dataType = dataTypes[0];
-        const patch = createPatch({ prev: prev[dataType], next: next[dataType] });
-        if (patch.length === 0) {
-          return;
-        }
-
-        const dataElementId = dataModelsRef.current[dataType].dataElementId;
-        if (!dataElementId) {
-          throw new Error(`Cannot patch data, dataElementId for dataType '${dataType}' could not be determined`);
-        }
-        const url = getDataModelUrl({ dataElementId });
-        if (!url) {
-          throw new Error(`Cannot patch data, url for dataType '${dataType}' could not be determined`);
-        }
-        const { newDataModel, validationIssues, instance } = (
-          await doPatchFormData(url, {
-            patch,
-            // Ignore validations that require layout parsing in the backend which will slow down requests significantly
-            ignoredValidators: IgnoredValidators,
-          })
-        ).data;
-        return {
-          newDataModels: [{ dataType, data: newDataModel, dataElementId }],
-          validationIssues,
-          instance,
-          savedData: next,
-        };
-      }
     },
     onError: () => {
       cancelSave();
@@ -370,7 +325,6 @@ function useIsSavingFormData() {
 
 export function FormDataWriteProvider({ children }: PropsWithChildren) {
   const proxies = useFormDataWriteProxies();
-  const ruleConnections = useRuleConnections();
   const allDataTypes = DataModels.useReadableDataTypes();
   const writableDataTypes = DataModels.useWritableDataTypes();
   const defaultDataType = DataModels.useDefaultDataType();
@@ -405,7 +359,6 @@ export function FormDataWriteProvider({ children }: PropsWithChildren) {
       initialDataModels={initialDataModels}
       autoSaving={!autoSaveBehavior || autoSaveBehavior === 'onChangeFormData'}
       proxies={proxies}
-      ruleConnections={ruleConnections}
       schemaLookup={schemaLookup}
       changeInstance={changeInstance}
     >
@@ -852,7 +805,7 @@ export const FD = {
 
       const paths: string[] = [];
       collectMatchingFieldPaths(formData, reference.field.split('.'), '', 0, paths);
-      return paths.length === 0 ? [reference.field] : paths.sort();
+      return paths.sort();
     });
   },
 

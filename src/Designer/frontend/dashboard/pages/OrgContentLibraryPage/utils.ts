@@ -6,10 +6,16 @@ import type {
 import type { UpdateOrgTextResourcesMutationArgs } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
+import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
+import type {
+  UpdateSharedResourcesRequest,
+  FileMetadata,
+} from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
-import type { UpdateOrgCodeListsPayload } from 'app-shared/types/api/UpdateOrgCodeListsPayload';
-import type { DeletableCodeListData } from 'app-shared/types/DeletableCodeListData';
+import { CODE_LIST_FOLDER } from 'app-shared/constants';
+import { FileNameUtils, Guard } from '@studio/pure-functions';
+import type { BackendLibraryFile, FileKind, LibraryFile } from 'app-shared/types/LibraryFile';
+import { isCodeListValid } from './validators/isCodelistValid';
 
 export function textResourceWithLanguageToMutationArgs({
   language,
@@ -27,48 +33,152 @@ export function textResourcesWithLanguageToLibraryTextResources({
 }
 
 export function backendCodeListsToLibraryCodeLists(
-  codeLists: CodeListsNewResponse,
+  response: SharedResourcesResponse,
 ): LibraryCodeListData[] {
-  return codeLists.codeListWrappers.filter(isWithoutError).map(({ codeList, title }) => ({
-    name: title,
-    codes: codeList.codes,
-  }));
+  return response.files.map(backendCodeListToLibraryCodeList);
 }
 
-function isWithoutError(codeListData: CodeListDataNew): codeListData is ValidCodeListData {
-  return codeListData.codeList && !codeListData.hasError;
+function backendCodeListToLibraryCodeList(backendFile: BackendLibraryFile): LibraryCodeListData {
+  const libraryFile = addFileKind(backendFile);
+  const fileWithExtension = FileNameUtils.extractFileName(libraryFile.path);
+  Guard.againstNonJsonTypes(fileWithExtension);
+  const fileName = FileNameUtils.removeExtension(fileWithExtension);
+  return tryConvertFile(libraryFile, fileName);
 }
 
-type ValidCodeListData = Required<Omit<CodeListDataNew, 'hasError'>>;
+function addFileKind(file: BackendLibraryFile): LibraryFile {
+  /* istanbul ignore else */
+  if (isOfKind('content', file)) {
+    return { ...file, kind: 'content' };
+  } else if (isOfKind('url', file)) {
+    return { ...file, kind: 'url' };
+  } else if (isOfKind('problem', file)) {
+    return { ...file, kind: 'problem' };
+  } else {
+    throw Error('Could not determine file kind.');
+  }
+}
+
+function isOfKind<Kind extends FileKind>(
+  kind: Kind,
+  backendFile: BackendLibraryFile,
+): backendFile is BackendLibraryFile<Kind> {
+  switch (kind) {
+    case 'content':
+      return (
+        'content' in backendFile &&
+        backendFile.content !== undefined &&
+        backendFile.content !== null
+      );
+    case 'url':
+      return 'url' in backendFile && backendFile.url !== undefined && backendFile.url !== null;
+    case 'problem':
+      return (
+        'problem' in backendFile &&
+        backendFile.problem !== undefined &&
+        backendFile.problem !== null
+      );
+  }
+}
+function tryConvertFile(file: LibraryFile, fileName: string) {
+  switch (file.kind) {
+    case 'content':
+      return convertToLibraryCodeListData(file, fileName);
+    case 'problem':
+      return displayProblem(fileName);
+    case 'url':
+      return throwForUrl();
+  }
+}
+
+function throwForUrl(): LibraryCodeListData {
+  throw Error('Code list files should be json files.');
+}
+
+function displayProblem(fileName: string): LibraryCodeListData {
+  // TODO: We should show the user that a codelist is corrupted
+  return { name: fileName, codes: [] };
+}
+
+function convertToLibraryCodeListData(
+  file: LibraryFile<'content'>,
+  fileName: string,
+): LibraryCodeListData {
+  try {
+    const decoded = atobUTF8(file.content);
+    const parsed = JSON.parse(decoded);
+    const codeList = parsed.codes || parsed; // Support both formats
+    return {
+      name: fileName,
+      codes: isCodeListValid(codeList) ? codeList : [],
+    };
+  } catch {
+    // TODO: We should show the user that a codelist is corrupted
+    return { name: fileName, codes: [] };
+  }
+}
+
+function atobUTF8(data: string): string {
+  const decodedData = atob(data);
+  const utf8data = new Uint8Array(decodedData.length);
+  const decoder = new TextDecoder('utf-8');
+  [...decodedData].forEach((char, i) => (utf8data[i] = char.charCodeAt(0)));
+
+  return decoder.decode(utf8data);
+}
+
+export function btoaUTF8(data: string): string {
+  const encoder = new TextEncoder();
+  const utf8data = encoder.encode(data);
+  const binary = utf8data.reduce((acc, byte) => acc + String.fromCharCode(byte), '');
+
+  return btoa(binary);
+}
 
 export function libraryCodeListsToUpdatePayload(
-  currentData: CodeListsNewResponse,
+  currentData: SharedResourcesResponse,
   updatedCodeLists: LibraryCodeListData[],
   commitMessage: string,
-): UpdateOrgCodeListsPayload {
-  const updatedLists = mapUpdatedLists(updatedCodeLists);
-  const deletedLists = extractDeletedLists(currentData.codeListWrappers, updatedCodeLists);
+): UpdateSharedResourcesRequest {
+  const files: FileMetadata[] = mapFiles(updatedCodeLists);
+  const updatedNames = new Set(updatedCodeLists.map((cl) => cl.name));
+  const deletedFiles = filterFilesToDelete(currentData, updatedNames);
+
   return {
-    codeListWrappers: updatedLists.concat(deletedLists),
+    files: [...files, ...deletedFiles],
     baseCommitSha: currentData.commitSha,
     commitMessage,
   };
 }
 
-function mapUpdatedLists(updatedCodeLists: LibraryCodeListData[]): DeletableCodeListData[] {
-  return updatedCodeLists.map(({ name, codes }) => ({
-    title: name,
-    codeList: { codes },
+function mapFiles(updatedCodeLists: LibraryCodeListData[]): FileMetadata[] {
+  return updatedCodeLists.map((codeList) => ({
+    path: `${CODE_LIST_FOLDER}/${codeList.name}.json`,
+    content: JSON.stringify(codeList.codes, null, 2),
   }));
 }
 
-function extractDeletedLists(
-  currentCodeLists: CodeListDataNew[],
-  updatedCodeLists: LibraryCodeListData[],
-): DeletableCodeListData[] {
-  const updatedTitles = updatedCodeLists.map((cl) => cl.name);
-  return currentCodeLists
-    .filter(isWithoutError)
-    .filter((cl) => !updatedTitles.includes(cl.title))
-    .map((cl) => ({ title: cl.title, codeList: null }));
+function filterFilesToDelete(currentData: SharedResourcesResponse, updatedNames: Set<string>) {
+  return currentData.files
+    .map(addFileKind)
+    .filter((file) => isDeleted(file, updatedNames))
+    .map((file) => ({
+      path: file.path,
+      content: null,
+    }));
+}
+
+function isDeleted(file: LibraryFile, updatedNames: Set<string>): boolean {
+  const fileName = FileNameUtils.extractFileName(FileNameUtils.removeExtension(file.path));
+  return file.kind !== 'problem' && !updatedNames.has(fileName);
+}
+
+export function libraryCodeListDataToBackendCodeListData({
+  name,
+  codes,
+}: LibraryCodeListData): Required<Pick<CodeListDataNew, 'title' | 'codeList'>> {
+  return {
+    title: name,
+    codeList: { codes },
+  };
 }

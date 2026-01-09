@@ -3,6 +3,16 @@ kind: Namespace
 metadata:
   name: runtime-gateway
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: runtime-environment
+  namespace: runtime-gateway
+data:
+  upgrade_channel: ${UPGRADE_CHANNEL}
+  environment: ${ENVIRONMENT}
+  serviceowner: ${SERVICEOWNER_ID}
+---
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
@@ -26,11 +36,14 @@ spec:
   interval: 5m
   retryInterval: 5m
   timeout: 1m
-  prune: false
+  prune: true
   force: false
   wait: true
-  path: ./
+  path: ./${ENVIRONMENT}
   sourceRef:
     kind: OCIRepository
     name: studio-gateway-repo
     namespace: runtime-gateway
+  postBuild:
+    substitute:
+      SERVICEOWNER_ID: ${SERVICEOWNER_ID}

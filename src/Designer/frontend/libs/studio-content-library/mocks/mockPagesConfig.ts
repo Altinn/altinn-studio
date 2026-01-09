@@ -10,27 +10,24 @@ export const codeListsDataMock: CodeListDataWithTextResources[] = [codeListData]
 
 export const mockPagesConfig: PagesConfig = {
   codeListsWithTextResources: {
-    props: {
-      codeListDataList: codeListsDataMock,
-      onCreateCodeList: () => {},
-      onDeleteCodeList: () => {},
-      onUpdateCodeListId: () => {},
-      onUpdateCodeList: () => {},
-      onUploadCodeList: () => {},
-      codeListsUsages: [],
-      textResources,
-    },
+    codeListDataList: codeListsDataMock,
+    onCreateCodeList: () => {},
+    onCreateTextResource: () => {},
+    onDeleteCodeList: () => {},
+    onUpdateCodeListId: () => {},
+    onUpdateCodeList: () => {},
+    onUploadCodeList: () => {},
+    onUpdateTextResource: () => {},
+    codeListsUsages: [],
+    textResources,
   },
   codeLists: {
-    props: {
-      codeLists: [],
-      onSave: () => {},
-    },
+    codeLists: [],
+    onPublish: () => {},
+    onSave: () => {},
   },
   images: {
-    props: {
-      images: [{ title: 'image', imageSrc: 'www.external-image-url.com' }],
-      onUpdateImage: () => {},
-    },
+    images: [{ title: 'image', imageSrc: 'www.external-image-url.com' }],
+    onUpdateImage: () => {},
   },
 };

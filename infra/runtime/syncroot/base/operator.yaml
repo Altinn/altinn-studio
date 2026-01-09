@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: runtime-operator
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: runtime-environment
+  namespace: runtime-operator
+data:
+  upgrade_channel: ${UPGRADE_CHANNEL}
+  environment: ${ENVIRONMENT}
+  serviceowner: ${SERVICEOWNER_ID}
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: operator-app-repo
+  namespace: runtime-operator
+spec:
+  interval: 5m
+  provider: azure
+  ref:
+    tag: ${UPGRADE_CHANNEL}
+  timeout: 5m
+  url: oci://altinncr.azurecr.io/studio-apps/runtime-operator-repo
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: operator-app
+  namespace: runtime-operator
+spec:
+  targetNamespace: runtime-operator
+  interval: 5m
+  retryInterval: 5m
+  timeout: 1m
+  prune: true
+  force: false
+  wait: true
+  path: ./${ENVIRONMENT}
+  postBuild:
+    substitute:
+      OPERATOR_ENTRA_CLIENT_ID: ${STUDIO_OPERATOR_CLIENT_ID}
+  sourceRef:
+    kind: OCIRepository
+    name: operator-app-repo
+    namespace: runtime-operator

@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
@@ -33,7 +34,7 @@ namespace Altinn.Studio.Designer.Controllers
     [Route("designer/api/repos")]
     public class RepositoryController : ControllerBase
     {
-        private readonly IGitea _giteaApi;
+        private readonly IGiteaClient _giteaClient;
         private readonly ISourceControl _sourceControl;
         private readonly IRepository _repository;
         private readonly IHubContext<SyncHub, ISyncClient> _syncHub;
@@ -44,13 +45,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <remarks>
         /// Initializes a new instance of the <see cref="RepositoryController"/> class.
         /// </remarks>
-        /// <param name="giteaWrapper">the gitea wrapper</param>
+        /// <param name="giteaClient">the gitea client</param>
         /// <param name="sourceControl">the source control</param>
         /// <param name="repository">the repository control</param>
         /// <param name="syncHub">websocket syncHub</param>
-        public RepositoryController(IGitea giteaWrapper, ISourceControl sourceControl, IRepository repository, IHubContext<SyncHub, ISyncClient> syncHub)
+        public RepositoryController(IGiteaClient giteaClient, ISourceControl sourceControl, IRepository repository, IHubContext<SyncHub, ISyncClient> syncHub)
         {
-            _giteaApi = giteaWrapper;
+            _giteaClient = giteaClient;
             _sourceControl = sourceControl;
             _repository = repository;
             _syncHub = syncHub;
@@ -68,7 +69,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<SearchResults> Search([FromQuery] string keyword, [FromQuery] int uId, [FromQuery] string sortBy, [FromQuery] string order, [FromQuery] int page, [FromQuery] int limit)
         {
             SearchOptions searchOptions = new SearchOptions { Keyword = keyword, UId = uId, SortBy = sortBy, Order = order, Page = page, Limit = limit };
-            SearchResults repositories = await _giteaApi.SearchRepo(searchOptions);
+            SearchResults repositories = await _giteaClient.SearchRepo(searchOptions);
             return repositories;
         }
 
@@ -119,7 +120,7 @@ namespace Altinn.Studio.Designer.Controllers
 
         private async Task<(bool IsValid, IActionResult ErrorResponse)> IsValidCopyAppRequestAsync(string org, string sourceRepository, string targetRepository, string targetOrg)
         {
-            if (!string.IsNullOrWhiteSpace(targetOrg) && !AltinnRegexes.AltinnOrganizationNameRegex().IsMatch(org))
+            if (!string.IsNullOrWhiteSpace(targetOrg) && !AltinnRegexes.AltinnOrganizationNameRegex().IsMatch(targetOrg))
             {
                 return (false, BadRequest($"{targetOrg} is not a valid name for an organization."));
             }
@@ -143,7 +144,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             string repoToCheck = targetOrg ?? org;
 
-            var existingRepo = await _giteaApi.GetRepository(repoToCheck, targetRepository);
+            var existingRepo = await _giteaClient.GetRepository(repoToCheck, targetRepository);
 
             if (existingRepo != null)
             {
@@ -161,7 +162,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("org/{org}")]
         public Task<IList<RepositoryModel>> OrgRepos(string org)
         {
-            return _giteaApi.GetOrgRepos(org);
+            return _giteaClient.GetOrgRepos(org);
         }
 
         /// <summary>
@@ -206,7 +207,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/metadata")]
         public async Task<RepositoryModel> GetRepository(string org, string repository)
         {
-            RepositoryModel returnRepository = await _giteaApi.GetRepository(org, repository);
+            RepositoryModel returnRepository = await _giteaClient.GetRepository(org, repository);
             return returnRepository;
         }
 
@@ -324,6 +325,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/commit")]
         public async Task<ActionResult> Commit(string org, string repository, [FromBody] CommitInfo commitInfo)
         {
+            // TODO: This method is never used, should it be removed?
             await Task.CompletedTask;
             try
             {
@@ -345,6 +347,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/push")]
         public async Task<ActionResult> Push(string org, string repository)
         {
+            // TODO: This method is never used, should it be removed?
             bool pushSuccess = await _sourceControl.Push(org, repository);
             return pushSuccess ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
         }
@@ -372,7 +375,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches/branch")]
         public async Task<Branch> Branch(string org, string repository, [FromQuery] string branch)
-            => await _giteaApi.GetBranch(org, repository, branch);
+            => await _giteaClient.GetBranch(org, repository, branch);
 
 
         /// <summary>
@@ -387,7 +390,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
-                List<Branch> branches = await _giteaApi.GetBranches(org, repository);
+                List<Branch> branches = await _giteaClient.GetBranches(org, repository);
                 if (branches == null || branches.Count == 0)
                 {
                     return NoContent();
@@ -398,6 +401,92 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
+        }
+
+        /// <summary>
+        /// Creates a new branch in the repository
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="request">The branch creation request</param>
+        /// <returns>The created branch</returns>
+        [HttpPost]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches")]
+        public async Task<ActionResult<Branch>> CreateBranch(string org, string repository, [FromBody] CreateBranchRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.BranchName))
+            {
+                return BadRequest("Branch name is required");
+            }
+
+            try
+            {
+                Guard.AssertValidRepoBranchName(request.BranchName);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{request.BranchName} is an invalid branch name.");
+            }
+
+            var branch = await _sourceControl.CreateBranch(org, repository, request.BranchName);
+            return Ok(branch);
+        }
+
+        /// <summary>
+        /// Gets information about the current branch
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <returns>Information about the current branch</returns>
+        [HttpGet]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/current-branch")]
+        public ActionResult<CurrentBranchInfo> GetCurrentBranch(string org, string repository)
+        {
+            var branchInfo = _sourceControl.GetCurrentBranch(org, repository);
+            return Ok(branchInfo);
+        }
+
+        /// <summary>
+        /// Checks out a specific branch
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="request">The checkout request</param>
+        /// <returns>The updated repository status</returns>
+        [HttpPost]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/checkout")]
+        public async Task<ActionResult<RepoStatus>> CheckoutBranch(string org, string repository, [FromBody] CheckoutBranchRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.BranchName))
+            {
+                return BadRequest("Branch name is required");
+            }
+
+            try
+            {
+                Guard.AssertValidRepoBranchName(request.BranchName);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{request.BranchName} is an invalid branch name.");
+            }
+
+            var repoStatus = await _sourceControl.CheckoutBranchWithValidation(org, repository, request.BranchName);
+            return Ok(repoStatus);
+        }
+
+        /// <summary>
+        /// Discards all local changes in the repository
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <returns>The updated repository status</returns>
+        [HttpPost]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/discard-changes")]
+        public ActionResult<RepoStatus> DiscardLocalChanges(string org, string repository)
+        {
+            var repoStatus = _sourceControl.DiscardLocalChanges(org, repository);
+            return Ok(repoStatus);
         }
 
         /// <summary>

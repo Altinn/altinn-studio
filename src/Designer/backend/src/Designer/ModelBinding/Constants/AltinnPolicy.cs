@@ -28,12 +28,19 @@ namespace Altinn.Studio.Designer.ModelBinding.Constants
 
         /// <summary>
         /// MustBelongToOrganization
+        /// User must be a member of an organization.
         /// </summary>
         public const string MustBelongToOrganization = "MustBelongToOrganization";
 
         /// <summary>
         /// MustHaveOrganizationPermission
+        /// User must have permission in the relevant organization.
         /// </summary>
         public const string MustHaveOrganizationPermission = "MustHaveOrganizationPermission";
+
+        /// <summary>
+        /// MustHaveAdminPermission
+        /// </summary>
+        public const string MustHaveAdminPermission = "MustHaveAdminPermission";
     }
 }

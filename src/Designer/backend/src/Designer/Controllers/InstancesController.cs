@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
+using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -33,15 +34,19 @@ public class InstancesController : ControllerBase
     }
 
     [HttpGet("{org}/{env}/{app}")]
-    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
+    [Authorize(Policy = AltinnPolicy.MustHaveAdminPermission)]
     public async Task<ActionResult<InstancesResponse>> GetInstances(
         string org,
         string env,
         string app,
         [FromQuery] string? continuationToken,
         [FromQuery] string? currentTask,
-        [FromQuery] bool? processIsComplete,
+        [FromQuery] bool? isArchived,
         [FromQuery] string? archiveReference,
+        [FromQuery] bool? confirmed,
+        [FromQuery] bool? isSoftDeleted,
+        [FromQuery] bool? isHardDeleted,
+        [FromQuery] DateOnly? createdBefore,
         CancellationToken ct
     )
     {
@@ -63,8 +68,12 @@ public class InstancesController : ControllerBase
                 app,
                 continuationToken,
                 currentTask,
-                processIsComplete,
+                isArchived,
                 archiveReference,
+                confirmed,
+                isSoftDeleted,
+                isHardDeleted,
+                createdBefore,
                 ct
             );
             return new InstancesResponse()
@@ -72,6 +81,30 @@ public class InstancesController : ControllerBase
                 Instances = queryResponse.Instances,
                 ContinuationToken = queryResponse.Next,
             };
+        }
+        catch (HttpRequestWithStatusException ex)
+        {
+            return StatusCode((int)ex.StatusCode);
+        }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(StatusCodes.Status499ClientClosedRequest);
+        }
+    }
+
+    [HttpGet("{org}/{env}/{app}/{instanceId}")]
+    [Authorize(Policy = AltinnPolicy.MustHaveAdminPermission)]
+    public async Task<ActionResult<SimpleInstanceDetails>> GetInstanceDetails(
+        string org,
+        string env,
+        string app,
+        string instanceId,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            return await _instancesClient.GetInstanceDetails(org, env, app, instanceId, ct);
         }
         catch (HttpRequestWithStatusException ex)
         {

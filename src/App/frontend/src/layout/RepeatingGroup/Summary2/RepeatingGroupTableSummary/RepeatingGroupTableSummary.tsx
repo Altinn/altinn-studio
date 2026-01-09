@@ -113,6 +113,12 @@ function HeaderCell({
   columnSettings: ITableColumnFormatting;
 }) {
   const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
+
+  const isHidden = columnSettings[baseComponentId]?.hidden === true;
+  if (isHidden) {
+    return null;
+  }
+
   return (
     <Table.HeaderCell style={style}>
       <RepeatingGroupTableTitle
@@ -134,6 +140,7 @@ function DataRow({ row, baseComponentId, pdfModeActive, columnSettings }: DataRo
   const layoutLookups = useLayoutLookups();
   const ids = useTableComponentIds(baseComponentId);
   const children = RepGroupHooks.useChildIds(baseComponentId);
+  const visibleIds = ids.filter((id) => columnSettings[id]?.hidden !== true);
 
   if (!row) {
     return null;
@@ -141,7 +148,7 @@ function DataRow({ row, baseComponentId, pdfModeActive, columnSettings }: DataRo
 
   return (
     <Table.Row>
-      {ids.map((id) =>
+      {visibleIds.map((id) =>
         layoutLookups.getComponent(id).type === 'Custom' ? (
           <Table.Cell key={id}>
             <ComponentSummary targetBaseComponentId={id} />

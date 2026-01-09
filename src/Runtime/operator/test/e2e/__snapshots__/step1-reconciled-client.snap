@@ -1,0 +1,81 @@
+
+[controller Operator should reconcile MaskinportenClient - 1]
+{
+ "apiVersion": "resources.altinn.studio/v1alpha1",
+ "kind": "MaskinportenClient",
+ "metadata": {
+  "creationTimestamp": "2024-01-01T00:00:00Z",
+  "finalizers": [
+   "altinn.studio/maskinporten-finalizer"
+  ],
+  "generation": 1,
+  "labels": {
+   "app": "ttd-localtestapp-deployment"
+  },
+  "name": "ttd-localtestapp",
+  "namespace": "default",
+  "resourceVersion": "<sanitized-resource-version>",
+  "uid": "<sanitized-uid>"
+ },
+ "spec": {
+  "scopes": [
+   "altinn:serviceowner/instances.read",
+   "altinn:serviceowner/instances.write"
+  ]
+ },
+ "status": {
+  "actionHistory": [
+   {
+    "command": "AddFinalizerCommand",
+    "result": "added",
+    "timestamp": "2024-01-01T00:00:00Z"
+   },
+   {
+    "command": "CreateClientInApiCommand",
+    "details": "clientId: <sanitized-client-id>, scopes: 2",
+    "result": "created",
+    "timestamp": "2024-01-01T00:00:00Z"
+   },
+   {
+    "command": "UpdateSecretContentCommand",
+    "details": "keys: 1",
+    "result": "synced",
+    "timestamp": "2024-01-01T00:00:00Z"
+   }
+  ],
+  "authority": "http://fakes:8050/",
+  "clientId": "<sanitized-client-id>",
+  "conditions": [
+   {
+    "lastTransitionTime": "2024-01-01T00:00:00Z",
+    "message": "Client created with ID <sanitized-client-id>",
+    "observedGeneration": 1,
+    "reason": "Created",
+    "status": "True",
+    "type": "ClientRegistered"
+   },
+   {
+    "lastTransitionTime": "2024-01-01T00:00:00Z",
+    "message": "Secret updated with 1 keys",
+    "observedGeneration": 1,
+    "reason": "Updated",
+    "status": "True",
+    "type": "SecretSynced"
+   },
+   {
+    "lastTransitionTime": "2024-01-01T00:00:00Z",
+    "message": "Reconciled 3 resources",
+    "observedGeneration": 1,
+    "reason": "Reconciled",
+    "status": "True",
+    "type": "Ready"
+   }
+  ],
+  "keyIds": [
+   "<key-uuid>.0"
+  ],
+  "lastSynced": "2024-01-01T00:00:00Z",
+  "observedGeneration": 1
+ }
+}
+---

@@ -38,7 +38,7 @@ import { useGetAvailableOrgResourcesQuery } from '../../hooks/queries/useGetAvai
 import { useImportCodeListFromOrgToAppMutation } from 'app-development/hooks/mutations/useImportCodeListFromOrgToAppMutation';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 
-export function AppContentLibrary(): React.ReactElement {
+export default function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const { data: optionListDataList, status: optionListDataListStatus } = useOptionListsQuery(
@@ -134,26 +134,22 @@ function AppContentLibraryWithData({
     heading: t('app_content_library.library_heading'),
     pages: {
       codeListsWithTextResources: {
-        props: {
-          codeListDataList,
-          onCreateCodeList: handleCreate,
-          onDeleteCodeList: deleteOptionList,
-          onUpdateCodeListId: handleUpdateCodeListId,
-          onUpdateCodeList: handleUpdate,
-          onCreateTextResource: handleUpdateTextResource,
-          onUpdateTextResource: handleUpdateTextResource,
-          onUploadCodeList: handleUpload,
-          codeListsUsages,
-          textResources,
-          externalResources: availableOrgResources,
-          onImportCodeListFromOrg: handleImportCodeListFromOrg,
-        },
+        codeListDataList,
+        onCreateCodeList: handleCreate,
+        onDeleteCodeList: deleteOptionList,
+        onUpdateCodeListId: handleUpdateCodeListId,
+        onUpdateCodeList: handleUpdate,
+        onCreateTextResource: handleUpdateTextResource,
+        onUpdateTextResource: handleUpdateTextResource,
+        onUploadCodeList: handleUpload,
+        codeListsUsages,
+        textResources,
+        externalResources: availableOrgResources,
+        onImportCodeListFromOrg: handleImportCodeListFromOrg,
       },
       images: {
-        props: {
-          images: [],
-          onUpdateImage: () => {},
-        },
+        images: [],
+        onUpdateImage: () => {},
       },
     },
   });

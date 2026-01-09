@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Helpers;
@@ -25,11 +23,8 @@ namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 public class OrgCodeListService : IOrgCodeListService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
-    private readonly IGitea _gitea;
-    private readonly ISourceControl _sourceControl;
     private readonly ISharedContentClient _sharedContentClient;
 
-    private const string DefaultCommitMessage = "Update code lists.";
     private const string Repo = "content";
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
@@ -45,14 +40,10 @@ public class OrgCodeListService : IOrgCodeListService
     /// Constructor
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-    /// <param name="gitea">IGitea</param>
-    /// <param name="sourceControl">the source control</param>
     /// <param name="sharedContentClient">the shared content client</param>
-    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGitea gitea, ISourceControl sourceControl, ISharedContentClient sharedContentClient)
+    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ISharedContentClient sharedContentClient)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
-        _gitea = gitea;
-        _sourceControl = sourceControl;
         _sharedContentClient = sharedContentClient;
     }
 
@@ -90,30 +81,7 @@ public class OrgCodeListService : IOrgCodeListService
 
         return codeLists;
     }
-    /// <inheritdoc />
-    public async Task<GetCodeListResponse> GetCodeListsNew(string org, string? reference = null, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        Guard.AssertValidateOrganization(org);
 
-        string repository = GetStaticContentRepo(org);
-        List<FileSystemObject> files = await _gitea.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
-        string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
-
-        List<CodeListWrapper> codeListWrappers = [];
-        foreach (FileSystemObject file in files)
-        {
-            string title = Path.GetFileNameWithoutExtension(file.Name);
-            if (TryParseFile(file.Content, out CodeList? codeList))
-            {
-                codeListWrappers.Add(WrapCodeList(codeList, title, hasError: false));
-                continue;
-            }
-            codeListWrappers.Add(WrapCodeList(codeList, title, hasError: true));
-        }
-        GetCodeListResponse response = new(codeListWrappers, latestCommitSha);
-        return response;
-    }
     /// <inheritdoc />
     public async Task<List<OptionListData>> CreateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
     {
@@ -141,36 +109,7 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task UpdateCodeListsNew(string org, string developer, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        Guard.AssertValidateOrganization(org);
-
-        ValidateCodeListTitles(request.CodeListWrappers);
-        ValidateCommitMessage(request.CommitMessage);
-        string repositoryName = GetStaticContentRepo(org);
-
-        await _sourceControl.CloneIfNotExists(org, repositoryName);
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repositoryName, developer);
-
-        string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
-        if (latestCommitSha == request.BaseCommitSha)
-        {
-            await HandleCommit(editingContext, request, cancellationToken);
-        }
-        else
-        {
-            await HandleDivergentCommit(editingContext, request, cancellationToken);
-        }
-        bool pushOk = await _sourceControl.Push(org, repositoryName);
-        if (!pushOk)
-        {
-            throw new InvalidOperationException($"Push failed for {org}/{repositoryName}. Remote rejected the update.");
-        }
-    }
-
-    /// <inheritdoc />
-    public async Task PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default)
+    public async Task<string> PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         Guard.AssertValidateOrganization(org);
@@ -179,68 +118,10 @@ public class OrgCodeListService : IOrgCodeListService
         CodeList codeList = request.CodeList;
         if (InputValidator.IsInvalidCodeListTitle(codeListId))
         {
-            throw new IllegalFileNameException("The code list title contains invalid characters.");
+            throw new IllegalCodeListTitleException("The code list title contains invalid characters.");
         }
 
-        await _sharedContentClient.PublishCodeList(org, codeListId, codeList, cancellationToken);
-    }
-
-    internal async Task HandleCommit(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
-    {
-        _sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
-        foreach (CodeListWrapper wrapper in request.CodeListWrappers)
-        {
-            await UpdateCodeListFile(editingContext.Org, editingContext.Developer, wrapper.Title, wrapper.CodeList, cancellationToken);
-        }
-        _sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
-    }
-
-    internal async Task HandleDivergentCommit(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
-    {
-        string branchName = editingContext.Developer;
-        _sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
-        _sourceControl.CreateLocalBranch(editingContext, branchName, request.BaseCommitSha);
-        _sourceControl.CheckoutRepoOnBranch(editingContext, branchName);
-
-        foreach (CodeListWrapper wrapper in request.CodeListWrappers)
-        {
-            await UpdateCodeListFile(editingContext.Org, editingContext.Developer, wrapper.Title, wrapper.CodeList, cancellationToken);
-        }
-
-        _sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
-        _sourceControl.RebaseOntoDefaultBranch(editingContext);
-        _sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
-        _sourceControl.MergeBranchIntoHead(editingContext, branchName);
-        _sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
-    }
-
-    internal async Task UpdateCodeListFile(string org, string developer, string codeListId, CodeList? codeList, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetStaticContentRepo(org);
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
-
-        await altinnOrgGitRepository.UpdateCodeListNew(codeListId, codeList, cancellationToken);
-    }
-
-    internal static void ValidateCodeListTitles(List<CodeListWrapper> codeListWrappers)
-    {
-        if (codeListWrappers.Exists(clw => InputValidator.IsInvalidCodeListTitle(clw.Title)))
-        {
-            throw new IllegalFileNameException("One or more code list titles contains invalid characters.");
-        }
-    }
-
-    internal static void ValidateCommitMessage(string? commitMessage)
-    {
-        if (string.IsNullOrWhiteSpace(commitMessage))
-        {
-            return;
-        }
-        if (InputValidator.IsValidGiteaCommitMessage(commitMessage) is false)
-        {
-            throw new IllegalCommitMessageException("The commit message is invalid. It must be between 1 and 5120 characters and not contain null characters.");
-        }
+        return await _sharedContentClient.PublishCodeList(org, codeListId, codeList, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -336,48 +217,6 @@ public class OrgCodeListService : IOrgCodeListService
     {
         var validationContext = new ValidationContext(option);
         Validator.ValidateObject(option, validationContext, validateAllProperties: true);
-    }
-
-    /// <summary>
-    /// Converts a <see cref="CodeList"/> to a <see cref="CodeListWrapper"/>
-    /// </summary>
-    /// <param name="codeList">The code list</param>
-    /// <param name="title">The title of the code list</param>
-    /// <param name="hasError">Has error</param>
-    /// <returns><see cref="CodeListWrapper"/></returns>
-    private static CodeListWrapper WrapCodeList(CodeList? codeList, string title, bool hasError)
-    {
-        return new CodeListWrapper(
-            Title: title,
-            CodeList: codeList,
-            HasError: hasError
-        );
-    }
-
-    /// <summary>
-    /// Tries to parse file content string into a <see cref="CodeList"/> object.
-    /// </summary>
-    /// <param name="fileContent">The file content as a string.</param>
-    /// <param name="codeList">The parsed code list, or null if parsing failed.</param>
-    private static bool TryParseFile(string? fileContent, out CodeList? codeList)
-    {
-        if (string.IsNullOrEmpty(fileContent))
-        {
-            codeList = null;
-            return false;
-        }
-        try
-        {
-            byte[] contentAsBytes = Convert.FromBase64String(fileContent);
-            string decodedContent = Encoding.UTF8.GetString(contentAsBytes);
-            codeList = JsonSerializer.Deserialize<CodeList>(decodedContent, s_jsonOptions);
-            return codeList is not null;
-        }
-        catch (Exception ex) when (ex is ValidationException or JsonException or ArgumentNullException or FormatException)
-        {
-            codeList = null;
-            return false;
-        }
     }
 
     /// <summary>

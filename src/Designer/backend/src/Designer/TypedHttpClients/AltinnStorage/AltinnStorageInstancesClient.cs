@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -41,8 +42,12 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
         string app,
         string? continuationToken,
         string? currentTaskFilter,
-        bool? processIsCompleteFilter,
-        string? archiveReference,
+        bool? isArchivedFilter,
+        string? archiveReferenceFilter,
+        bool? confirmedFilter,
+        bool? isSoftDeletedFilter,
+        bool? isHardDeletedFilter,
+        DateOnly? createdBeforeFilter,
         CancellationToken ct
     )
     {
@@ -61,18 +66,51 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
             uri = QueryHelpers.AddQueryString(uri, "process.currentTask", currentTaskFilter);
         }
 
-        if (processIsCompleteFilter != null)
+        if (isArchivedFilter != null)
         {
             uri = QueryHelpers.AddQueryString(
                 uri,
-                "process.isComplete",
-                processIsCompleteFilter.Value.ToString().ToLowerInvariant()
+                "status.isArchived",
+                isArchivedFilter.Value.ToString().ToLowerInvariant()
             );
         }
 
-        if (!string.IsNullOrEmpty(archiveReference))
+        if (!string.IsNullOrEmpty(archiveReferenceFilter))
         {
-            uri = QueryHelpers.AddQueryString(uri, "archiveReference", archiveReference);
+            uri = QueryHelpers.AddQueryString(uri, "archiveReference", archiveReferenceFilter);
+        }
+
+        if (confirmedFilter != null)
+        {
+            uri = QueryHelpers.AddQueryString(
+                uri,
+                "confirmed",
+                confirmedFilter.Value.ToString().ToLowerInvariant()
+            );
+        }
+
+        if (isSoftDeletedFilter != null)
+        {
+            uri = QueryHelpers.AddQueryString(
+                uri,
+                "status.isSoftDeleted",
+                isSoftDeletedFilter.Value.ToString().ToLowerInvariant()
+            );
+        }
+
+        if (isHardDeletedFilter != null)
+        {
+            uri = QueryHelpers.AddQueryString(
+                uri,
+                "status.isHardDeleted",
+                isHardDeletedFilter.Value.ToString().ToLowerInvariant()
+            );
+        }
+
+        if (createdBeforeFilter != null)
+        {
+            var dateString = createdBeforeFilter.Value.ToString("yyyy-MM-dd");
+            uri = QueryHelpers.AddQueryString(uri, "created", $"lt:{dateString}");
         }
 
         using var response = await _httpClient.GetAsync(uri, ct);
@@ -88,5 +126,30 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
         }
 
         return queryResponse;
+    }
+
+    public async Task<SimpleInstanceDetails> GetInstanceDetails(
+        string org,
+        string env,
+        string app,
+        string instanceId,
+        CancellationToken ct
+    )
+    {
+        var platformUri = await _environmentsService.CreatePlatformUri(env);
+        var uri =
+            $"{platformUri}{_platformSettings.ApiStorageInstancesUri}{org}/{app}/{instanceId}";
+
+        using var response = await _httpClient.GetAsync(uri, ct);
+        response.EnsureSuccessStatusCode();
+
+        var instanceDetails = await response.Content.ReadFromJsonAsync<SimpleInstanceDetails>(ct);
+
+        if (instanceDetails == null)
+        {
+            throw new JsonException("Could not deserialize Instance response");
+        }
+
+        return instanceDetails;
     }
 }

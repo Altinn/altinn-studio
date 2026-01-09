@@ -22,7 +22,10 @@ public class GeneratePetsAction : IUserAction
         {
             GeneratePets(data);
         }
-        else if (context.ButtonId == "generateWholeFarm")
+        else if (
+            context.ButtonId == "generateWholeFarm"
+            || context.ButtonId == "generateAnotherFarm"
+        )
         {
             GenerateFarmAnimals(data);
         }
@@ -39,77 +42,86 @@ public class GeneratePetsAction : IUserAction
             data.PetsUseOptionComponent = null;
         }
 
-        return UserActionResult.SuccessResult(new List<ClientAction>());
+        return UserActionResult.SuccessResult([]);
     }
 
-    private void GeneratePets(NestedGroup data)
+    private static void GeneratePets(NestedGroup data)
     {
         // These pets have to be deterministically generated (no randomness), so we can test this using Cypress
-        data.Pets = new List<Pet>();
-        data.Pets.Add(new Pet()
-        {
-            Age = 15,
-            Name = "Preben Potet",
-            Species = "Dog",
-            UniqueId = Guid.NewGuid().ToString(),
-        });
-        data.Pets.Add(new Pet()
-        {
-            Age = 1,
-            Name = "Reidar Reddik",
-            Species = "Cat",
-            UniqueId = Guid.NewGuid().ToString(),
-        });
-        data.Pets.Add(new Pet()
-        {
-            Age = 3,
-            Name = "Siri Spinat",
-            Species = "Fish",
-            UniqueId = Guid.NewGuid().ToString(),
-        });
-        data.Pets.Add(new Pet()
-        {
-            Age = 7,
-            Name = "Kåre Kålrot",
-            Species = "Hamster",
-            UniqueId = Guid.NewGuid().ToString(),
-        });
-        data.Pets.Add(new Pet()
-        {
-            Age = 2,
-            Name = "Birte Blomkål",
-            Species = "Rabbit",
-            UniqueId = Guid.NewGuid().ToString(),
-        });
-        data.Pets.Add(new Pet()
-        {
-            // This has the same species and name as the one above, which gives a validation error
-            Age = 3,
-            Name = "Birte Blomkål",
-            Species = "Rabbit",
-            UniqueId = Guid.NewGuid().ToString(),
-        });
+        data.Pets =
+        [
+            new Pet()
+            {
+                Age = 15,
+                Name = "Preben Potet",
+                Species = "Dog",
+                UniqueId = Guid.NewGuid().ToString(),
+            },
+            new Pet()
+            {
+                Age = 1,
+                Name = "Reidar Reddik",
+                Species = "Cat",
+                UniqueId = Guid.NewGuid().ToString(),
+            },
+            new Pet()
+            {
+                Age = 3,
+                Name = "Siri Spinat",
+                Species = "Fish",
+                UniqueId = Guid.NewGuid().ToString(),
+            },
+            new Pet()
+            {
+                Age = 7,
+                Name = "Kåre Kålrot",
+                Species = "Hamster",
+                UniqueId = Guid.NewGuid().ToString(),
+            },
+            new Pet()
+            {
+                Age = 2,
+                Name = "Birte Blomkål",
+                Species = "Rabbit",
+                UniqueId = Guid.NewGuid().ToString(),
+            },
+            new Pet()
+            {
+                // This has the same species and name as the one above, which gives a validation error
+                Age = 3,
+                Name = "Birte Blomkål",
+                Species = "Rabbit",
+                UniqueId = Guid.NewGuid().ToString(),
+            },
+        ];
         data.NumPets = data.Pets.Count;
     }
 
-    private void GenerateFarmAnimals(NestedGroup data)
+    private static void GenerateFarmAnimals(NestedGroup data)
     {
-        var numAnimals = 250; // This will be painful!
-        data.Pets = new List<Pet>();
+        var existingNumAnimals = data.Pets.Count;
+        var additionalAnimals = 250;
 
-        for (int i = 0; i < numAnimals; i++)
+        var newPets = new Pet[additionalAnimals];
+
+        for (int i = 0; i < additionalAnimals; i++)
         {
-            var species = i % 2 == 0 ? "Cow" : "Sheep";
-            var name = species == "Cow" ? "Dagros #" : "Dolly #";
-            name += i.ToString().PadLeft(3, '0');
-            data.Pets.Add(new Pet()
+            var animalIndex = existingNumAnimals + i;
+            var species = animalIndex % 2 == 0 ? "Cow" : "Sheep";
+            var name =
+                (species == "Cow" ? "Dagros #" : "Dolly #")
+                + animalIndex.ToString().PadLeft(3, '0');
+
+            newPets[i] = new Pet
             {
-                Age = i % 10 + 1,
+                Age = animalIndex % 10 + 1,
                 Name = name,
                 Species = species,
                 UniqueId = Guid.NewGuid().ToString(),
-            });
+            };
         }
+
+        data.Pets.AddRange(newPets);
         data.NumPets = data.Pets.Count;
     }
 }
