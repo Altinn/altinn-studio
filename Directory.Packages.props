@@ -17,7 +17,7 @@
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.dotTrace" Version="0.15.8" />
     <PackageVersion Include="Buildalyzer.Workspaces" Version="7.1.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
-    <PackageVersion Include="CSharpier.MsBuild" Version="1.2.1" />
+    <PackageVersion Include="CSharpier.MsBuild" Version="1.2.5" />
     <PackageVersion Include="Docker.DotNet" Version="3.125.15" />
     <PackageVersion Include="FluentAssertions" Version="7.2.0" />
     <PackageVersion Include="JsonPatch.Net" Version="3.3.0" />
@@ -39,7 +39,7 @@
     <PackageVersion Include="Microsoft.OpenApi.Readers" Version="1.6.28" />
     <PackageVersion Include="MinVer" Version="6.1.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
-    <PackageVersion Include="NetEscapades.EnumGenerators" Version="1.0.0-beta16" />
+    <PackageVersion Include="NetEscapades.EnumGenerators" Version="1.0.0-beta19" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Nullable.Extended.Analyzer" Version="1.15.6581" />
     <PackageVersion Include="OpenTelemetry" Version="1.14.0" />
@@ -77,7 +77,7 @@
     <!-- End JWTCookieAuthentication deps -->
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="KS.Fiks.Arkiv.Models.V1" Version="1.0.8" />
+    <PackageVersion Include="KS.Fiks.Arkiv.Models.V1" Version="1.0.9" />
     <PackageVersion Include="KS.Fiks.IO.Client" Version="6.1.2" />
     <PackageVersion Include="Polly.Extensions" Version="8.6.5" />
     <PackageVersion Include="Polly.Testing" Version="8.6.5" />
