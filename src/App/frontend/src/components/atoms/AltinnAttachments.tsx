@@ -17,7 +17,7 @@ import type { IDisplayAttachment } from 'src/types/shared';
 interface IAltinnAttachmentsProps {
   attachments?: IDisplayAttachment[];
   id?: string;
-  title?: React.ReactNode;
+  title?: React.ReactElement;
   showLinks: boolean | undefined;
   showDescription?: boolean;
 }
@@ -39,7 +39,7 @@ export function AltinnAttachments({
       id={id}
       data-testid='attachment-list'
     >
-      <MainAttachmentHeader title={title} />
+      {title}
       <List.Unordered
         className={classes.attachmentList}
         data-size='sm'

@@ -17,6 +17,7 @@ import {
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataType } from 'src/types/shared';
+import { MainAttachmentHeader } from 'src/components/atoms/AttachmentHeader';
 
 const emptyDataTypeArray: IDataType[] = [];
 
@@ -67,7 +68,7 @@ export function AttachmentListComponent({ baseComponentId }: PropsFromGenericCom
 
   const displayAttachments = toDisplayAttachments([...pdfAttachments, ...filteredAttachments]);
 
-  const title = textResourceBindings?.title ? <Lang id={textResourceBindings?.title} /> : undefined;
+  const title = <MainAttachmentHeader title={<Lang id={textResourceBindings?.title} />} />;
 
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
