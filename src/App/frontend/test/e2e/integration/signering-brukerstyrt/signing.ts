@@ -1,5 +1,5 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { type TenorOrg, type TenorUser, tenorUserLogin } from 'test/e2e/support/auth';
+import { type TenorOrg, type TenorUser } from 'test/e2e/support/auth';
 import { reverseName } from 'test/e2e/support/utils';
 
 const appFrontend = new AppFrontend();
@@ -37,7 +37,6 @@ describe('Signing', () => {
       tenorUser: tenorUsers.humanAndrefiolin,
       authenticationLevel: '2',
     });
-
 
     // Step 2: Fill in the form and specify other valid users as signees
 

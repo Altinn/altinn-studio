@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { AltinnAttachments } from 'src/components/atoms/AltinnAttachments';
+import { MainAttachmentHeader } from 'src/components/atoms/AttachmentHeader';
 import { AttachmentGroupings } from 'src/components/organisms/AttachmentGroupings';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
@@ -17,7 +18,6 @@ import {
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataType } from 'src/types/shared';
-import { MainAttachmentHeader } from 'src/components/atoms/AttachmentHeader';
 
 const emptyDataTypeArray: IDataType[] = [];
 
