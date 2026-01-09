@@ -1,0 +1,177 @@
+
+[cnpgsync should create Cluster - 1]
+{
+ "affinity": {
+  "enablePodAntiAffinity": false
+ },
+ "bootstrap": {
+  "initdb": {
+   "dataChecksums": true,
+   "database": "app",
+   "encoding": "UTF8",
+   "localeCType": "nb_NO.UTF8",
+   "localeCollate": "nb_NO.UTF8",
+   "owner": "app"
+  }
+ },
+ "enablePDB": false,
+ "enableSuperuserAccess": true,
+ "env": [
+  {
+   "name": "TZ",
+   "value": "Europe/Oslo"
+  }
+ ],
+ "imageCatalogRef": {
+  "apiGroup": "postgresql.cnpg.io",
+  "kind": "ImageCatalog",
+  "major": 18,
+  "name": "pg-images"
+ },
+ "instances": 1,
+ "logLevel": "info",
+ "managed": {
+  "roles": [
+   {
+    "connectionLimit": 40,
+    "ensure": "present",
+    "inherit": true,
+    "login": true,
+    "name": "localtestapp",
+    "passwordSecret": {
+     "name": "pg-apps-cluster-localtestapp-password"
+    }
+   }
+  ]
+ },
+ "monitoring": {
+  "customQueriesConfigMap": [
+   {
+    "key": "queries",
+    "name": "cnpg-default-monitoring"
+   }
+  ],
+  "disableDefaultQueries": false
+ },
+ "postgresGID": 26,
+ "postgresUID": 26,
+ "postgresql": {
+  "parameters": {
+   "archive_mode": "on",
+   "archive_timeout": "5min",
+   "auto_explain.log_min_duration": "10s",
+   "autovacuum_vacuum_cost_limit": "2400",
+   "checkpoint_completion_target": "0.9",
+   "checkpoint_flush_after": "2MB",
+   "checkpoint_timeout": "15min",
+   "client_connection_check_interval": "10000",
+   "default_statistics_target": "100",
+   "default_toast_compression": "lz4",
+   "dynamic_shared_memory_type": "posix",
+   "effective_cache_size": "768MB",
+   "effective_io_concurrency": "128",
+   "full_page_writes": "on",
+   "huge_pages": "off",
+   "log_autovacuum_min_duration": "1s",
+   "log_checkpoints": "on",
+   "log_destination": "csvlog",
+   "log_directory": "/controller/log",
+   "log_filename": "postgres",
+   "log_lock_waits": "on",
+   "log_min_duration_statement": "1000",
+   "log_rotation_age": "0",
+   "log_rotation_size": "0",
+   "log_statement": "ddl",
+   "log_temp_files": "1024",
+   "log_truncate_on_rotation": "false",
+   "logging_collector": "on",
+   "maintenance_io_concurrency": "128",
+   "maintenance_work_mem": "64MB",
+   "max_connections": "63",
+   "max_parallel_workers": "32",
+   "max_replication_slots": "32",
+   "max_wal_size": "1GB",
+   "max_worker_processes": "32",
+   "min_wal_size": "512MB",
+   "pg_stat_statements.max": "1000",
+   "pg_stat_statements.track": "all",
+   "random_page_cost": "1.1",
+   "shared_buffers": "256MB",
+   "shared_memory_type": "mmap",
+   "shared_preload_libraries": "",
+   "ssl_max_protocol_version": "TLSv1.3",
+   "ssl_min_protocol_version": "TLSv1.3",
+   "superuser_reserved_connections": "3",
+   "tcp_keepalives_count": "6",
+   "tcp_keepalives_idle": "60",
+   "tcp_keepalives_interval": "10",
+   "timezone": "Europe/Oslo",
+   "wal_buffers": "7864kB",
+   "wal_compression": "lz4",
+   "wal_keep_size": "512MB",
+   "wal_level": "logical",
+   "wal_log_hints": "on",
+   "wal_receiver_timeout": "5s",
+   "wal_sender_timeout": "5s",
+   "wal_writer_flush_after": "2MB",
+   "work_mem": "2427kB"
+  },
+  "syncReplicaElectionConstraint": {
+   "enabled": false
+  }
+ },
+ "primaryUpdateMethod": "restart",
+ "primaryUpdateStrategy": "unsupervised",
+ "probes": {
+  "liveness": {
+   "isolationCheck": {
+    "connectionTimeout": 1000,
+    "enabled": true,
+    "requestTimeout": 1000
+   }
+  }
+ },
+ "replicationSlots": {
+  "highAvailability": {
+   "enabled": true,
+   "slotPrefix": "_cnpg_"
+  },
+  "synchronizeReplicas": {
+   "enabled": true
+  },
+  "updateInterval": 30
+ },
+ "resources": {
+  "requests": {
+   "cpu": "100m",
+   "memory": "1Gi"
+  }
+ },
+ "smartShutdownTimeout": 180,
+ "startDelay": 3600,
+ "stopDelay": 1800,
+ "storage": {
+  "resizeInUseVolumes": true,
+  "size": "4Gi",
+  "storageClass": "cnpg-premium-v2"
+ },
+ "switchoverDelay": 3600,
+ "topologySpreadConstraints": [
+  {
+   "labelSelector": {
+    "matchLabels": {
+     "cnpg.io/cluster": "pg-apps-cluster"
+    }
+   },
+   "maxSkew": 1,
+   "topologyKey": "topology.kubernetes.io/zone",
+   "whenUnsatisfiable": "DoNotSchedule"
+  }
+ ],
+ "walStorage": {
+  "resizeInUseVolumes": true,
+  "size": "2Gi",
+  "storageClass": "cnpg-premium-v2"
+ }
+}
+---
