@@ -137,10 +137,21 @@ export const getResourceIdentifierErrorMessage = (
 ) => {
   if (isConflict) {
     return 'resourceadm.dashboard_resource_name_and_id_error';
-  } else if (!identifier.startsWith(`${org}-`)) {
+  } else if (!hasOrgPrefixInIdentifier(identifier, org)) {
     return 'resourceadm.dashboard_resource_id_must_start_with_org';
   }
   return '';
+};
+
+export const getValidIdentifierPrefixes = (org: string): string[] => {
+  if (org === 'skd') {
+    return ['skd-', 'ske-'];
+  }
+  return [`${org}-`];
+};
+
+export const hasOrgPrefixInIdentifier = (identifier: string, org: string): boolean => {
+  return getValidIdentifierPrefixes(org).some((prefix) => identifier.startsWith(prefix));
 };
 
 /**
