@@ -386,10 +386,9 @@ src/Altinn.Apps/AppTemplates/AspNet/App/Properties/launchSettings.json
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
 
-# Integration test harnes related files
-# app-localtest source used for integration tests
-test/Altinn.App.Integration.Tests/_localtest/
+# Integration test harness related files
 test/Altinn.App.Integration.Tests/_testapps/*/_packages/
 test/Altinn.App.Integration.Tests/_testapps/*/_shared/
+test/Altinn.App.Integration.Tests/_testapps/*/**/wwwroot/altinn-app-frontend/
 
 **/_snapshots/_local/

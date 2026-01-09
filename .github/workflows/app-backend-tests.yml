@@ -13,7 +13,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build-frontend:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: ./.github/actions/app-build-frontend
   analyze:
+    needs: build-frontend
     strategy:
       matrix:
         os:
@@ -44,10 +51,18 @@ jobs:
         working-directory: ${{ matrix.os.workingDir }}
         run: |
           dotnet tool restore
-      - name: Build
+      - name: Build backend
         working-directory: ${{ matrix.os.workingDir }}
         run: |
           dotnet build solutions/All.sln -v m
+
+      - name: Download built frontend
+        if: matrix.os.id == 'ubuntu-latest'
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: app-frontend-dist
+          path: src/App/frontend/dist
+
       - name: Test
         if: matrix.os.id != 'ubuntu-latest'
         working-directory: ${{ matrix.os.workingDir }}

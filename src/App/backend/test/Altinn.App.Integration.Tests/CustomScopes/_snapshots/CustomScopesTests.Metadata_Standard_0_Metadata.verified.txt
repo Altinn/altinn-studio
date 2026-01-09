@@ -257,24 +257,6 @@
         }
       },
       {
-        endpoint: GET {org}/{app}/api/ruleconfiguration/{id},
-        metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
-        }
-      },
-      {
-        endpoint: GET {org}/{app}/api/rulehandler/{id},
-        metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
-        }
-      },
-      {
         endpoint: GET {org}/{app}/api/v1/applicationlanguages,
         metadata: {
           errorMessageTextResourceKeyUser: null,
