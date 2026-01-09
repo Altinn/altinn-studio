@@ -3,33 +3,6 @@ networks:
     external: false
 
 services:
-  localtest_loadbalancer:
-    container_name: localtest-loadbalancer
-    image: localtest-loadbalancer:latest
-    build:
-      context: ./loadbalancer
-      args:
-        NGINX_VERSION: 1.25.3
-    restart: always
-    networks:
-      - altinntestlocal_network
-    ports:
-      - '${ALTINN3LOCAL_PORT:-80}:80'
-    environment:
-      - NGINX_HOST=localhost
-      - NGINX_PORT=80
-      - TEST_DOMAIN=${TEST_DOMAIN:-local.altinn.cloud}
-      - HOST_DOMAIN=host.docker.internal
-      - INTERNAL_DOMAIN=host.docker.internal
-      - ALTINN3LOCAL_PORT=${ALTINN3LOCAL_PORT:-80}
-      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
-      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
-    volumes:
-      - ./loadbalancer/templates:/etc/nginx/templates/:ro
-      - ./loadbalancer/www:/www/:ro
-
   altinn_pdf3:
     container_name: localtest-pdf3
     image: localtest-pdf3:latest
@@ -56,6 +29,7 @@ services:
     networks:
       - altinntestlocal_network
     ports:
+      - '${ALTINN3LOCAL_PORT:-80}:5101'
       - '5101:5101'
     build:
       context: .
