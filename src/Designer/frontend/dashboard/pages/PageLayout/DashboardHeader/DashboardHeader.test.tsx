@@ -3,7 +3,7 @@ import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardHeader } from './DashboardHeader';
 import { SelectedContextType } from '../../../enums/SelectedContextType';
-import { useLocation, useParams } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { StringUtils } from '@studio/pure-functions';
 import { Subroute } from '../../../enums/Subroute';
@@ -25,10 +25,6 @@ const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
-  useParams: jest.fn().mockReturnValue({
-    subroute: 'app-dashboard',
-    selectedContext: 'self',
-  }),
   useLocation: jest.fn().mockReturnValue({ pathname: 'app-dashboard/self' }),
 }));
 
@@ -38,22 +34,12 @@ describe('DashboardHeader', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render the user name as the profile button when in self context', () => {
-    (useParams as jest.Mock).mockReturnValue({
-      selectedContext: SelectedContextType.Self,
-    });
-
-    renderDashboardHeader();
-
+    renderDashboardHeader({ selectedContext: SelectedContextType.Self });
     expect(screen.getByRole('button', { name: userMock.full_name })).toBeInTheDocument();
   });
 
   it('should render the organization name when selected context is an organization', () => {
-    (useParams as jest.Mock).mockReturnValue({
-      selectedContext: mockOrgTtd,
-    });
-
-    renderDashboardHeader();
-
+    renderDashboardHeader({ selectedContext: mockOrgTtd });
     expect(
       screen.getByRole('button', {
         name: textMock('shared.header_user_for_org', {
@@ -66,11 +52,7 @@ describe('DashboardHeader', () => {
 
   it('should show the profile menu with all its menuitem when the avatar is clicked', async () => {
     const user = userEvent.setup();
-    (useParams as jest.Mock).mockReturnValue({
-      selectedContext: SelectedContextType.Self,
-    });
-
-    renderDashboardHeader();
+    renderDashboardHeader({ selectedContext: SelectedContextType.Self });
 
     const avatarButton = screen.getByRole('button', { name: userMock.full_name });
     await user.click(avatarButton);
@@ -115,7 +97,7 @@ describe('DashboardHeader', () => {
     });
     expect(libraryMenuItem).toHaveAttribute(
       'href',
-      `${Subroute.OrgLibrary}/${SelectedContextType.Self}`,
+      `/${Subroute.OrgLibrary}/${SelectedContextType.Self}`,
     );
   });
 
@@ -126,18 +108,16 @@ describe('DashboardHeader', () => {
     });
     expect(appsMenuItem).toHaveAttribute(
       'href',
-      `${Subroute.AppDashboard}/${SelectedContextType.Self}`,
+      `/${Subroute.AppDashboard}/${SelectedContextType.Self}`,
     );
   });
 
   it('should navigate to the correct organization context when an org is selected', async () => {
     const user = userEvent.setup();
-    (useParams as jest.Mock).mockReturnValue({
+    renderDashboardHeader({
       selectedContext: SelectedContextType.Self,
       subroute: Subroute.AppDashboard,
     });
-
-    renderDashboardHeader();
 
     const avatarButton = screen.getByRole('button', { name: userMock.full_name });
     await user.click(avatarButton);
@@ -151,12 +131,10 @@ describe('DashboardHeader', () => {
 
   it('should navigate to the "All" context when the "All" menu item is clicked', async () => {
     const user = userEvent.setup();
-    (useParams as jest.Mock).mockReturnValue({
+    renderDashboardHeader({
       selectedContext: SelectedContextType.Self,
       subroute: Subroute.AppDashboard,
     });
-
-    renderDashboardHeader();
 
     const avatarButton = screen.getByRole('button', { name: userMock.full_name });
     await user.click(avatarButton);
@@ -172,12 +150,10 @@ describe('DashboardHeader', () => {
 
   it('should navigate to the "Self" context when the "Self" menu item is clicked', async () => {
     const user = userEvent.setup();
-    (useParams as jest.Mock).mockReturnValue({
+    renderDashboardHeader({
       selectedContext: SelectedContextType.All,
       subroute: Subroute.AppDashboard,
     });
-
-    renderDashboardHeader();
 
     const avatarButton = screen.getByRole('button', { name: userMock.full_name });
     await user.click(avatarButton);
@@ -192,73 +168,83 @@ describe('DashboardHeader', () => {
   });
 
   it('should not render the submenu when there is a merge conflict', () => {
-    (useParams as jest.Mock).mockReturnValue({
-      selectedContext: mockOrgTtd,
-      subroute: Subroute.OrgLibrary,
-    });
     (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
 
     const getRepoStatus = jest
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: true }));
 
-    renderDashboardHeader({ getRepoStatus });
+    renderDashboardHeader(
+      {
+        selectedContext: mockOrgTtd,
+        subroute: Subroute.OrgLibrary,
+      },
+      { getRepoStatus },
+    );
     expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
   it('should not render the submenu when there is a repo error', () => {
-    (useParams as jest.Mock).mockReturnValue({
-      selectedContext: mockOrgTtd,
-      subroute: Subroute.OrgLibrary,
-    });
     (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
 
     const getRepoStatus = jest.fn().mockImplementation(() => Promise.reject(new Error('error')));
 
-    renderDashboardHeader({ getRepoStatus });
+    renderDashboardHeader(
+      {
+        selectedContext: mockOrgTtd,
+        subroute: Subroute.OrgLibrary,
+      },
+      { getRepoStatus },
+    );
     expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
   it('should not render the submenu when the page is not orgLibrary', () => {
-    (useParams as jest.Mock).mockReturnValue({
-      selectedContext: mockOrgTtd,
-      subroute: Subroute.AppDashboard,
-    });
     (useLocation as jest.Mock).mockReturnValue({ pathname: 'notOrgLibraryPath' });
 
     const getRepoStatus = jest
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
-    renderDashboardHeader({ getRepoStatus });
+    renderDashboardHeader(
+      {
+        selectedContext: mockOrgTtd,
+        subroute: Subroute.AppDashboard,
+      },
+      { getRepoStatus },
+    );
     expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
   it('should not render the submenu when the selected context is not org', () => {
-    (useParams as jest.Mock).mockReturnValue({
-      selectedContext: SelectedContextType.Self,
-      subroute: Subroute.OrgLibrary,
-    });
     (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
     const getRepoStatus = jest
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
-    renderDashboardHeader({ getRepoStatus });
+    renderDashboardHeader(
+      {
+        selectedContext: SelectedContextType.Self,
+        subroute: Subroute.OrgLibrary,
+      },
+      { getRepoStatus },
+    );
     expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
   it('should render the submenu when showSubMenu is true, there is no repo error and page is orgLibrary', async () => {
-    (useParams as jest.Mock).mockReturnValue({
-      selectedContext: mockOrgTtd,
-      subroute: Subroute.OrgLibrary,
-    });
     (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
     const getRepoStatus = jest
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
-    renderDashboardHeader({ getRepoStatus });
+    renderDashboardHeader(
+      {
+        selectedContext: mockOrgTtd,
+        subroute: Subroute.OrgLibrary,
+      },
+      { getRepoStatus },
+    );
 
     await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
     expect(getFetchChangesButton()).toBeInTheDocument();
@@ -293,12 +279,23 @@ describe('DashboardHeader', () => {
   });
 });
 
-const renderDashboardHeader = (queries: Partial<ServicesContextProps> = {}) => {
+type Params = {
+  subroute?: string;
+  selectedContext?: string;
+};
+
+const renderDashboardHeader = (
+  { subroute = Subroute.AppDashboard, selectedContext = SelectedContextType.Self }: Params = {},
+  queries: Partial<ServicesContextProps> = {},
+) => {
+  const initialEntry = `/${subroute}/${selectedContext}`;
   return renderWithProviders(
     <HeaderContextProvider {...headerContextValueMock}>
-      <DashboardHeader />
+      <Routes>
+        <Route path='/:subroute/:selectedContext' element={<DashboardHeader />} />
+      </Routes>
     </HeaderContextProvider>,
-    { queries: { ...queries, ...queriesMock } },
+    { queries: { ...queries, ...queriesMock }, initialEntries: [initialEntry] },
   );
 };
 

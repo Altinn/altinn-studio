@@ -5,7 +5,9 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
+using System.Xml.XPath;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
@@ -16,9 +18,8 @@ class AppResourcesService : IAppResourcesService
 {
     private readonly HttpClient _httpClient;
     private readonly IEnvironmentsService _environmentsService;
+    private readonly XmlNamespaceManager _xmlNs;
 
-    private readonly XNamespace _bpmnNs = "http://www.omg.org/spec/BPMN/20100524/MODEL";
-    private readonly XNamespace _altinnNs = "http://altinn.no/process";
     private readonly List<string> _dataTypeProcessTags = new()
     {
         "signatureDataType",
@@ -32,6 +33,10 @@ class AppResourcesService : IAppResourcesService
     {
         _httpClient = httpClient;
         _environmentsService = environmentsService;
+
+        _xmlNs = new XmlNamespaceManager(new NameTable());
+        _xmlNs.AddNamespace("bpmn", "http://www.omg.org/spec/BPMN/20100524/MODEL");
+        _xmlNs.AddNamespace("altinn", "http://altinn.no/process");
     }
 
     public async Task<ApplicationMetadata> GetApplicationMetadata(
@@ -71,7 +76,12 @@ class AppResourcesService : IAppResourcesService
 
         var processMetadata = new List<ProcessTaskMetadata>();
 
-        foreach (var taskElement in processXml.Descendants(_bpmnNs + "task"))
+        foreach (
+            var taskElement in processXml.XPathSelectElements(
+                ".//bpmn:task | .//bpmn:serviceTask",
+                _xmlNs
+            )
+        )
         {
             var processTaskMetadata = new ProcessTaskMetadata()
             {
@@ -86,7 +96,7 @@ class AppResourcesService : IAppResourcesService
 
             foreach (var tag in _dataTypeProcessTags)
             {
-                foreach (var element in taskElement.Descendants(_altinnNs + tag))
+                foreach (var element in taskElement.XPathSelectElements($".//altinn:{tag}", _xmlNs))
                 {
                     processTaskMetadata.DataTypeTags.Add(
                         new() { DataTypeId = element.Value, Tag = tag }
