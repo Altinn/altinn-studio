@@ -72,7 +72,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
 builder.Services.AddKeyedTransient<IAlertsClient>(
-    AlertsClientSettings.AlertsClientProvider.Grafana.ToString(),
+    AlertsClientSettings.AlertsClientProvider.Grafana,
     (serviceProvider, key) =>
     {
         var factory = serviceProvider.GetRequiredService<IHttpClientFactory>();
@@ -92,7 +92,7 @@ builder
     )
     .AddHttpMessageHandler<GrafanaAuthenticationHandler>();
 builder.Services.AddKeyedTransient<IMetricsClient, AzureMonitorClient>(
-    MetricsClientSettings.MetricsClientProvider.AzureMonitor.ToString()
+    MetricsClientSettings.MetricsClientProvider.AzureMonitor
 );
 builder.Services.AddHealthChecks();
 builder.Services.AddOpenApi(
