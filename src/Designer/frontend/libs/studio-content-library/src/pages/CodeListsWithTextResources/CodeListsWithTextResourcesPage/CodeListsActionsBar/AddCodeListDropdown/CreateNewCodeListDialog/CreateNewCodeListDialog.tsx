@@ -36,7 +36,7 @@ function CreateNewCodeListDialog(
   const { t } = useTranslation();
   const newCodeList: CodeListWithTextResources = [];
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = (): void => {
     ref.current?.close();
   };
 
@@ -89,7 +89,7 @@ function CreateNewCodeList({
   onUpdateTextResource,
   onCloseModal,
   textResources,
-}: CreateNewCodeListProps) {
+}: CreateNewCodeListProps): React.ReactElement {
   const { t } = useTranslation();
   const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
   const getInvalidInputFileNameErrorMessage = useInputCodeListNameErrorMessage();
@@ -102,13 +102,13 @@ function CreateNewCodeList({
   const [currentCodeListWithMetadata, setCurrentCodeListWithMetadata] =
     useState<CodeListWithMetadata>(initialCodeListWithMetadata);
 
-  const handleSaveCodeList = () => {
+  const handleSaveCodeList = (): void => {
     onCreateCodeList(currentCodeListWithMetadata);
     onCloseModal();
     setCurrentCodeListWithMetadata(initialCodeListWithMetadata);
   };
 
-  const handleCodeListTitleChange = (updatedTitle: string) => {
+  const handleCodeListTitleChange = (updatedTitle: string): void => {
     const fileNameError = FileNameUtils.findFileNameError(updatedTitle, codeListNames);
     const errorMessage = getInvalidInputFileNameErrorMessage(fileNameError);
     setCodeListTitleError(errorMessage ?? '');
@@ -121,7 +121,7 @@ function CreateNewCodeList({
     }
   };
 
-  const handleUpdateCodeList = (updatedCodeList: CodeListWithTextResources) => {
+  const handleUpdateCodeList = (updatedCodeList: CodeListWithTextResources): void => {
     setIsCodeListValid(true);
     const updatedCodeListWithMetadata = updateCodeListInCodeListWithMetadata(
       currentCodeListWithMetadata,
@@ -130,7 +130,7 @@ function CreateNewCodeList({
     setCurrentCodeListWithMetadata(updatedCodeListWithMetadata);
   };
 
-  const handleInvalidCodeList = () => {
+  const handleInvalidCodeList = (): void => {
     setIsCodeListValid(false);
   };
 

@@ -16,11 +16,11 @@ function ImportFromOrgLibraryDialog(
 ): ReactElement {
   const { t } = useTranslation();
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = (): void => {
     ref.current?.close();
   };
 
-  const handleImportCodeListFromOrg = (codeListId: string) => {
+  const handleImportCodeListFromOrg = (codeListId: string): void => {
     onImportCodeListFromOrg(codeListId);
     handleCloseDialog();
   };
@@ -60,12 +60,12 @@ function ImportCodeList({
 
   const [selectedCodeListId, setSelectedCodeListId] = useState<string>('');
 
-  const handleSelectCodeListId = (event: ChangeEvent<HTMLSelectElement>) => {
+  const handleSelectCodeListId = (event: ChangeEvent<HTMLSelectElement>): void => {
     const codeListId: string = event.target.value;
     setSelectedCodeListId(codeListId);
   };
 
-  const handleImportCodeList = () => {
+  const handleImportCodeList = (): void => {
     setSelectedCodeListId('');
     onImportCodeListFromOrg(selectedCodeListId);
   };
