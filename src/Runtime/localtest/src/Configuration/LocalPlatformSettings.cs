@@ -84,5 +84,11 @@ namespace LocalTest.Configuration
         public string InstanceDelegationsDataFolder { get; set; } = "instanceDelegations";
 
         public string LocalGrafanaUrl { get; set; }
+
+        public string LocalPdfServiceUrl { get; set; }
+
+        public string LocalReceiptUrl { get; set; }
+
+        public string LocalAccessManagementUrl { get; set; }
     }
 }
