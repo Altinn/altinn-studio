@@ -6,7 +6,7 @@ import { LibraryBody } from './LibraryBody';
 import type { ContentLibraryConfig } from '../types/ContentLibraryConfig';
 import { getPage } from '../pages';
 
-export type ContentLibraryProps = ContentLibraryConfig;
+export type ContentLibraryProps = Readonly<ContentLibraryConfig>;
 
 export function ContentLibrary(config: ContentLibraryProps): React.ReactElement {
   const page = getPage(config.router.location);

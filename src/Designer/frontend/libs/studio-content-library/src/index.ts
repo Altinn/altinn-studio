@@ -1,4 +1,4 @@
-export { ResourceContentLibraryImpl } from './config/ContentResourceLibraryImpl';
+export * from './ContentLibrary';
 export type { ContentLibraryConfig } from './types/ContentLibraryConfig';
 export type {
   CodeListWithMetadata,

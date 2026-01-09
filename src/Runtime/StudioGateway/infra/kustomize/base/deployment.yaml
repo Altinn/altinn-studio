@@ -92,6 +92,11 @@ spec:
                 configMapKeyRef:
                   name: runtime-environment
                   key: environment
+            - name: Gateway__AzureSubscriptionId
+              valueFrom:
+                configMapKeyRef:
+                  name: runtime-environment
+                  key: azure_subscription_id
             - name: Gateway__UpgradeChannel
               valueFrom:
                 configMapKeyRef:

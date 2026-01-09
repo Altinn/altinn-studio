@@ -13,7 +13,6 @@ import type {
   CodeListWithMetadata,
   ContentLibraryConfig,
   PagesConfig,
-  ResourceContentLibraryImpl,
   TextResourceWithLanguage,
 } from '@studio/content-library';
 import { PageName } from '@studio/content-library';
@@ -26,18 +25,10 @@ import { RoutePaths } from '../../enums/RoutePaths';
 // Mocks:
 jest.mock('@studio/content-library', () => ({
   ...jest.requireActual('@studio/content-library'),
-  ResourceContentLibraryImpl: mockContentLibrary,
+  ContentLibrary: (props) => MockContentLibrary(props),
 }));
 
-function mockContentLibrary(
-  ...args: ConstructorParameters<typeof ResourceContentLibraryImpl>
-): Partial<ResourceContentLibraryImpl> {
-  mockConstructor(...args);
-  return { getContentResourceLibrary };
-}
-
-const mockConstructor = jest.fn();
-const getContentResourceLibrary = jest
+const MockContentLibrary = jest
   .fn()
   .mockImplementation(() => <div data-testid={resourceLibraryTestId} />);
 const resourceLibraryTestId = 'resource-library';
@@ -267,5 +258,5 @@ function retrievePagesConfig(): PagesConfig {
 }
 
 function retrieveConfig(): ContentLibraryConfig {
-  return mockConstructor.mock.calls[0][0];
+  return MockContentLibrary.mock.calls[0][0];
 }

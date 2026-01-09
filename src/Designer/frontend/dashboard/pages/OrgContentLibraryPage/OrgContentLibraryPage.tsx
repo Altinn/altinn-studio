@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import React, { useMemo, useCallback } from 'react';
-import { ResourceContentLibraryImpl } from '@studio/content-library';
+import { ContentLibrary } from '@studio/content-library';
 import type {
   CodeListWithMetadata,
   PagesConfig,
@@ -166,28 +166,26 @@ function OrgContentLibraryWithContextAndData({
     createCodeList({ title, data: codeList });
   };
 
-  const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
-    heading: t('org_content_library.library_heading'),
-    router,
-    pages: {
-      codeListsWithTextResources: {
-        codeListDataList,
-        onCreateCodeList: handleCreate,
-        onCreateTextResource: handleUpdateTextResource,
-        onDeleteCodeList: deleteCodeList,
-        onUpdateCodeListId: handleUpdateCodeListId,
-        onUpdateCodeList: handleUpdate,
-        onUpdateTextResource: handleUpdateTextResource,
-        onUploadCodeList: handleUpload,
-        textResources,
-      },
-      ...pagesFromFeatureFlags,
-    },
-  });
-
   return (
     <div>
-      {getContentResourceLibrary()}
+      <ContentLibrary
+        heading={t('org_content_library.library_heading')}
+        router={router}
+        pages={{
+          codeListsWithTextResources: {
+            codeListDataList,
+            onCreateCodeList: handleCreate,
+            onCreateTextResource: handleUpdateTextResource,
+            onDeleteCodeList: deleteCodeList,
+            onUpdateCodeListId: handleUpdateCodeListId,
+            onUpdateCodeList: handleUpdate,
+            onUpdateTextResource: handleUpdateTextResource,
+            onUploadCodeList: handleUpload,
+            textResources,
+          },
+          ...pagesFromFeatureFlags,
+        }}
+      />
       <FeedbackForm />
     </div>
   );
