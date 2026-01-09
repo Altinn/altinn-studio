@@ -28,5 +28,10 @@ namespace Altinn.Studio.Designer.Configuration
         /// Gets or sets the description of the
         /// </summary>
         public string ServiceDescription { get; set; }
+
+        /// <summary>
+        /// Gets or sets the path to custom template files to overlay on the standard template
+        /// </summary>
+        public string CustomTemplatePath { get; set; }
     }
 }

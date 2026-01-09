@@ -4,4 +4,5 @@ export interface AddRepoParams {
   org: string;
   repository: string;
   dataModellingPreference: DataModelFormat;
+  customTemplatePath?: string;
 }

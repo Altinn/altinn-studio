@@ -113,18 +113,79 @@ namespace Altinn.Studio.Designer.Services.Implementation
             Directory.CreateDirectory(orgPath);
             Directory.CreateDirectory(appPath);
 
-            // Creates all the files
+            // Creates all the files from standard template
             CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.DeploymentLocation, _settings.GetDeploymentFolderName());
             CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.AppLocation, _settings.GetAppFolderName());
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerfileFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.AppSlnFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.GitIgnoreFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerIgnoreFileName);
+
+
             UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName);
             return true;
         }
 
         #endregion
+
+        /// <summary>
+        /// Applies custom template files as an overlay on the standard template.
+        /// Custom files will override corresponding files in the standard template.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="customTemplatePath">Path to the custom template files in the content repository</param>
+        /// <param name="developer">Developer username</param>
+        private async Task ApplyCustomTemplateOverlay(string org, string app, string customTemplatePath, string developer)
+        {
+            try
+            {
+                // Get the content repository for the organization
+                string contentRepo = GetStaticContentRepo(org);
+                AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, contentRepo, developer);
+
+                // Fetch custom template files from git repository
+                var templateFiles = await altinnOrgGitRepository.GetCustomTemplateFiles(customTemplatePath);
+
+                // Apply template files to the app
+                string appPath = _settings.GetServicePath(org, app, developer);
+                foreach (var templateFile in templateFiles)
+                {
+                    string destinationPath = Path.Combine(appPath, templateFile.Key);
+                    string destinationDirectory = Path.GetDirectoryName(destinationPath);
+
+                    // Ensure the destination directory exists
+                    if (!string.IsNullOrEmpty(destinationDirectory))
+                    {
+                        Directory.CreateDirectory(destinationDirectory);
+                    }
+
+                    // Write the file content
+                    await File.WriteAllTextAsync(destinationPath, templateFile.Value, Encoding.UTF8);
+                }
+            }
+            catch (LibGit2Sharp.NotFoundException)
+            {
+                _logger.LogWarning("Custom template path '{CustomTemplatePath}' not found in content repository for organization '{Org}'", customTemplatePath, org);
+                // Continue without applying custom template - this is not a critical error
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error applying custom template overlay from path '{CustomTemplatePath}' for organization '{Org}'", customTemplatePath, org);
+                // Continue without applying custom template - this is not a critical error
+            }
+        }
+
+        /// <summary>
+        /// Get the name of the static content repository for the given org.
+        /// </summary>
+        /// <param name="org"></param>
+        /// <returns>The full repository name.</returns>
+        private static string GetStaticContentRepo(string org)
+        {
+            const string repo = "content";
+            return $"{org}-{repo}";
+        }
 
         /// <summary>
         /// Returns the path to the app folder
@@ -250,6 +311,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
                 await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer);
+
+                // Apply custom template overlay if provided
+                if (!string.IsNullOrEmpty(serviceConfig.CustomTemplatePath))
+                {
+                    await ApplyCustomTemplateOverlay(org, serviceConfig.RepositoryName, serviceConfig.CustomTemplatePath, developer);
+                }
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
