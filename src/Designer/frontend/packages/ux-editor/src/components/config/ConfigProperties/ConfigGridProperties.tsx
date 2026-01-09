@@ -5,7 +5,7 @@ import { StudioProperty, StudioConfigCard } from '@studio/components';
 import { PlusCircleIcon } from '@studio/icons';
 import cn from 'classnames';
 import type { BaseConfigProps } from './types';
-import { componentComparison, getDisplayValue } from './ConfigPropertiesUtils';
+import { componentComparison, getDisplayValue, propHasValues } from './ConfigPropertiesUtils';
 
 export interface ConfigGridPropertiesProps extends BaseConfigProps {
   className?: string;
@@ -20,13 +20,13 @@ export const ConfigGridProperties = ({
   const [currentComponent, setCurrentComponent] = useState(initialComponent);
   const t = useText();
   const propertyKey = 'grid';
-  const hasGridValues = currentComponent?.grid && Object.keys(currentComponent.grid).length > 0;
+  const hasInitialGridValues = propHasValues(initialComponent[propertyKey]);
 
   if (!showGrid) {
     return (
       <StudioProperty.Button
         className={cn(className)}
-        icon={!hasGridValues && <PlusCircleIcon />}
+        icon={!hasInitialGridValues && <PlusCircleIcon />}
         onClick={() => setShowGrid(true)}
         property={t('ux_editor.component_properties.grid')}
         value={getDisplayValue({ component: initialComponent, propertyKey })}
@@ -48,6 +48,7 @@ export const ConfigGridProperties = ({
     const updatedComponent = { ...currentComponent };
     delete updatedComponent.grid;
     handleComponentUpdate(updatedComponent);
+    setCurrentComponent(updatedComponent);
     setShowGrid(false);
   };
 
@@ -58,7 +59,7 @@ export const ConfigGridProperties = ({
         deleteAriaLabel={t('general.delete')}
         onDelete={handleDelete}
         confirmDeleteMessage={t('ux_editor.properties_text.value_confirm_delete')}
-        isDeleteDisabled={!hasGridValues}
+        isDeleteDisabled={!hasInitialGridValues}
       />
       <StudioConfigCard.Body>
         <EditGrid
@@ -73,7 +74,7 @@ export const ConfigGridProperties = ({
         onCancel={handleCancel}
         onSave={handleSave}
         isLoading={false}
-        isDisabled={!hasGridValues || componentComparison({ initialComponent, currentComponent })}
+        isDisabled={componentComparison({ initialComponent, currentComponent })}
       />
     </StudioConfigCard>
   );
