@@ -13,14 +13,24 @@ internal static class ServiceCollectionExtensions
         /// <summary>
         /// Adds the workflow engine host and required services.
         /// </summary>
-        public IServiceCollection AddWorkflowEngineHost()
+        public IServiceCollection AddWorkflowEngineHost(
+            string engineConfigSection = "EngineSettings",
+            string apiConfigSection = "ApiSettings",
+            string appCommandConfigSection = "AppCommandSettings"
+        )
         {
-            if (!services.IsConfigured<WorkflowEngineSettings>())
-                services.ConfigureWorkflowEngine("WorkflowEngineSettings");
+            if (!services.IsConfigured<EngineSettings>())
+                services.ConfigureEngine(engineConfigSection);
 
-            services.AddSingleton<IProcessEngine, ProcessEngine>();
-            services.AddSingleton<IProcessEngineTaskHandler, ProcessEngineTaskHandler>();
-            services.AddHostedService<ProcessEngineHost>();
+            if (!services.IsConfigured<ApiSettings>())
+                services.ConfigureApi(apiConfigSection);
+
+            if (!services.IsConfigured<AppCommandSettings>())
+                services.ConfigureAppCommand(appCommandConfigSection);
+
+            services.AddSingleton<IEngine, Engine>();
+            services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
+            services.AddHostedService<EngineHost>();
 
             return services;
         }
@@ -28,13 +38,13 @@ internal static class ServiceCollectionExtensions
         /// <summary>
         /// Configures the process engine settings by binding to a configuration section.
         /// </summary>
-        public IServiceCollection ConfigureWorkflowEngine(string configSectionPath)
+        public IServiceCollection ConfigureEngine(string configSectionPath)
         {
             services
-                .AddOptions<WorkflowEngineSettings>()
+                .AddOptions<EngineSettings>()
                 .BindConfiguration(configSectionPath)
-                .PostConfigure(SetProcessEngineSettingsDefaults)
-                .Validate(ValidateProcessEngineSettings);
+                .PostConfigure(SetEngineSettingsDefaults)
+                .Validate(ValidateEngineSettings);
 
             return services;
         }
@@ -42,13 +52,47 @@ internal static class ServiceCollectionExtensions
         /// <summary>
         /// Configures the process engine settings using a delegate.
         /// </summary>
-        public IServiceCollection ConfigureWorkflowEngine(Action<WorkflowEngineSettings> configureOptions)
+        public IServiceCollection ConfigureEngine(Action<EngineSettings> configureOptions)
         {
             services
-                .AddOptions<WorkflowEngineSettings>()
+                .AddOptions<EngineSettings>()
                 .Configure(configureOptions)
-                .PostConfigure(SetProcessEngineSettingsDefaults)
-                .Validate(ValidateProcessEngineSettings);
+                .PostConfigure(SetEngineSettingsDefaults)
+                .Validate(ValidateEngineSettings);
+            return services;
+        }
+
+        public IServiceCollection ConfigureApi(string configSectionPath)
+        {
+            services.AddOptions<ApiSettings>().BindConfiguration(configSectionPath).Validate(ValidateApiSettings);
+            return services;
+        }
+
+        public IServiceCollection ConfigureApi(Action<ApiSettings> configureOptions)
+        {
+            services.AddOptions<ApiSettings>().Configure(configureOptions).Validate(ValidateApiSettings);
+            return services;
+        }
+
+        public IServiceCollection ConfigureAppCommand(string configSectionPath)
+        {
+            services
+                .AddOptions<AppCommandSettings>()
+                .BindConfiguration(configSectionPath)
+                .PostConfigure(SetAppCommandDefaults)
+                .Validate(ValidateAppCommandSettings);
+
+            return services;
+        }
+
+        public IServiceCollection ConfigureAppCommand(Action<AppCommandSettings> configureOptions)
+        {
+            services
+                .AddOptions<AppCommandSettings>()
+                .Configure(configureOptions)
+                .PostConfigure(SetAppCommandDefaults)
+                .Validate(ValidateAppCommandSettings);
+
             return services;
         }
 
@@ -90,43 +134,60 @@ internal static class ServiceCollectionExtensions
         }
 
         /// <summary>
-        /// Ensures that all <see cref="WorkflowEngineSettings"/> properties fall back to <see cref="Defaults"/> if not provided
+        /// Ensures that all <see cref="EngineSettings"/> properties fall back to <see cref="Defaults"/> if not provided
         /// </summary>
-        private static void SetProcessEngineSettingsDefaults(WorkflowEngineSettings config)
+        private static void SetEngineSettingsDefaults(EngineSettings config)
         {
-            // Note: Don't offer to set API key or connection string defaults here, it should always be explicitly set in the config.
-
             if (config.QueueCapacity <= 0)
-                config.QueueCapacity = Defaults.WorkflowEngineSettings.QueueCapacity;
+                config.QueueCapacity = Defaults.EngineSettings.QueueCapacity;
 
             if (config.DefaultTaskExecutionTimeout <= TimeSpan.Zero)
-                config.DefaultTaskExecutionTimeout = Defaults.WorkflowEngineSettings.DefaultTaskExecutionTimeout;
+                config.DefaultTaskExecutionTimeout = Defaults.EngineSettings.DefaultTaskExecutionTimeout;
 
-            config.DefaultTaskRetryStrategy ??= Defaults.WorkflowEngineSettings.DefaultTaskRetryStrategy;
-            config.DefaultTaskRetryStrategy ??= Defaults.WorkflowEngineSettings.DefaultTaskRetryStrategy;
-            config.DatabaseRetryStrategy ??= Defaults.WorkflowEngineSettings.DatabaseRetryStrategy;
-            config.AppCommandEndpoint ??= Defaults.WorkflowEngineSettings.AppCommandEndpoint;
+            config.DefaultTaskRetryStrategy ??= Defaults.EngineSettings.DefaultTaskRetryStrategy;
+            config.DefaultTaskRetryStrategy ??= Defaults.EngineSettings.DefaultTaskRetryStrategy;
+            config.DatabaseRetryStrategy ??= Defaults.EngineSettings.DatabaseRetryStrategy;
         }
 
         /// <summary>
-        /// Ensures that all <see cref="WorkflowEngineSettings"/> properties fall back to <see cref="Defaults"/> if not provided
+        /// Ensures that all <see cref="EngineSettings"/> properties fall back to <see cref="Defaults"/> if not provided
         /// </summary>
-        private static bool ValidateProcessEngineSettings(WorkflowEngineSettings config)
+        private static bool ValidateEngineSettings(EngineSettings config)
         {
-            if (string.IsNullOrEmpty(config.DatabaseConnectionString))
-                return false;
-
-            if (string.IsNullOrEmpty(config.ApiKey))
-                return false;
-
             if (config.QueueCapacity <= 0)
                 return false;
 
             if (config.DefaultTaskExecutionTimeout <= TimeSpan.Zero)
                 return false;
 
-            bool validAppCommandUri = Uri.TryCreate(config.AppCommandEndpoint, UriKind.Absolute, out _);
+            return true;
+        }
+
+        private static void SetAppCommandDefaults(AppCommandSettings config)
+        {
+            // Note: Don't offer to set API key here, it should always be explicitly set in the config.
+            config.CommandEndpoint ??= Defaults.AppCommandSettings.CommandEndpoint;
+        }
+
+        private static bool ValidateAppCommandSettings(AppCommandSettings config)
+        {
+            if (string.IsNullOrEmpty(config.ApiKey))
+                return false;
+
+            bool validAppCommandUri = Uri.TryCreate(config.CommandEndpoint, UriKind.Absolute, out _);
             if (!validAppCommandUri)
+                return false;
+
+            return true;
+        }
+
+        private static bool ValidateApiSettings(ApiSettings config)
+        {
+            if (!config.ApiKeys.Any())
+                return false;
+
+            // Require API keys to be of somewhat reasonable length. Preferably GUIDs, but not strictly enforced.
+            if (config.ApiKeys.Any(x => string.IsNullOrEmpty(x) || x.Length < 15))
                 return false;
 
             return true;

@@ -2,6 +2,11 @@ using System.Text.Json.Serialization;
 
 namespace WorkflowEngine.Models;
 
+// CA1056: URI properties should not be strings
+// CA1054: URI parameters should not be strings
+#pragma warning disable CA1054
+#pragma warning disable CA1056
+
 /// <summary>
 /// Describes a command to be executed by the process engine.
 /// </summary>
@@ -44,19 +49,19 @@ public abstract record Command
     /// <summary>
     /// Debug: A command that throws an exception when executed.
     /// </summary>
-    internal sealed record Throw() : Command("throw");
+    public sealed record Throw() : Command("throw");
 
     /// <summary>
     /// Debug: A command that performs no operation, simply returns a completed task.
     /// </summary>
-    internal sealed record Noop() : Command("noop");
+    public sealed record Noop() : Command("noop");
 
     /// <summary>
     /// Debug: A command that performs a timeout/delay when executed.
     /// </summary>
     /// <param name="Duration">The timeout duration.</param>
     /// <param name="MaxExecutionTime">The maximum allowed execution time for the command.</param>
-    internal sealed record Timeout(
+    public sealed record Timeout(
         [property: JsonPropertyName("duration")] TimeSpan Duration,
         TimeSpan? MaxExecutionTime = null
     ) : Command("timeout", MaxExecutionTime);
@@ -69,7 +74,7 @@ public abstract record Command
     /// <param name="Payload">An optional payload string. If provided, a POST request will be issued. Otherwise, GET.</param>
     /// <param name="ContentType">The value to send along with the request in the Content-Type header.</param>
     /// <param name="MaxExecutionTime">The maximum allowed execution time for the command.</param>
-    internal sealed record Webhook(
+    public sealed record Webhook(
         [property: JsonPropertyName("uri")] string Uri,
         [property: JsonPropertyName("payload")] string? Payload = null,
         [property: JsonPropertyName("contentType")] string? ContentType = null,
@@ -81,7 +86,7 @@ public abstract record Command
     /// </summary>
     /// <param name="Action">The delegate method</param>
     /// <param name="MaxExecutionTime">The maximum allowed execution time for the command.</param>
-    internal sealed record Delegate(
+    public sealed record Delegate(
         Func<Workflow, Step, CancellationToken, Task> Action,
         TimeSpan? MaxExecutionTime = null
     ) : Command("delegate", MaxExecutionTime);

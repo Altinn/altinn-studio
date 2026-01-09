@@ -5,7 +5,7 @@ using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
-[Table("process_engine_jobs")]
+[Table("workflow_engine_jobs")]
 internal sealed class WorkflowEntity : IHasCommonMetadata
 {
     [Key]

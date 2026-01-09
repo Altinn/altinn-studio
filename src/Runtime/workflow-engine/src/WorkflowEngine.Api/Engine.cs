@@ -2,34 +2,33 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Api.Exceptions;
-using WorkflowEngine.Api.Extensions;
-using WorkflowEngine.Data;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Extensions;
+using WorkflowEngine.Resilience.Extensions;
+using WorkflowEngine.Resilience.Models;
 using TaskStatus = WorkflowEngine.Models.TaskStatus;
 
 namespace WorkflowEngine.Api;
 
-internal interface IProcessEngine
+internal interface IEngine
 {
-    WorkflowEngineSettings Settings { get; }
     EngineHealthStatus Status { get; }
     int InboxCount { get; }
     Task Start(CancellationToken cancellationToken = default);
     Task Stop();
-    Task<Response> EnqueueJob(Request request, CancellationToken cancellationToken = default);
-    bool HasDuplicateJob(string jobIdentifier);
-    bool HasQueuedJobForInstance(InstanceInformation instanceInformation);
-    Workflow? GetJobForInstance(InstanceInformation instanceInformation);
+    Task<Response> EnqueueWorkflow(Request request, CancellationToken cancellationToken = default);
+    bool HasDuplicateWorkflow(string jobIdentifier);
+    bool HasQueuedWorkflowForInstance(InstanceInformation instanceInformation);
+    Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation);
 }
 
-internal partial class ProcessEngine : IProcessEngine, IDisposable
+internal partial class Engine : IEngine, IDisposable
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly TimeProvider _timeProvider;
-    private readonly ILogger<ProcessEngine> _logger;
-    private readonly IProcessEngineTaskHandler _taskHandler;
+    private readonly ILogger<Engine> _logger;
+    private readonly IWorkflowExecutor _taskHandler;
     private readonly ConcurrentBuffer<bool> _isEnabledHistory = new();
     private readonly SemaphoreSlim _cleanupLock = new(1, 1);
     private readonly RetryStrategy _statusCheckBackoffStrategy = RetryStrategy.Exponential(
@@ -43,30 +42,30 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
     private SemaphoreSlim _inboxCapacityLimit;
     private volatile bool _cleanupRequired;
     private bool _disposed;
-    private readonly IOptionsMonitor<WorkflowEngineSettings> _settings;
+    private readonly IOptionsMonitor<EngineSettings> _settings;
 
-    private IWorkflowEngineRepository _repository => _serviceProvider.GetRequiredService<IWorkflowEngineRepository>();
+    // TODO: Avoid newing-up repository for each call? Could be more optimized for Postgres to scope it per batch of actions...
+    private IEngineRepository _repository => _serviceProvider.GetRequiredService<IEngineRepository>();
     public EngineHealthStatus Status { get; private set; }
     public int InboxCount => _inbox.Count;
-    public WorkflowEngineSettings Settings => _settings.CurrentValue;
 
-    public ProcessEngine(IServiceProvider serviceProvider)
+    public Engine(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        _logger = serviceProvider.GetRequiredService<ILogger<ProcessEngine>>();
-        _taskHandler = serviceProvider.GetRequiredService<IProcessEngineTaskHandler>();
+        _logger = serviceProvider.GetRequiredService<ILogger<Engine>>();
+        _taskHandler = serviceProvider.GetRequiredService<IWorkflowExecutor>();
         _timeProvider = serviceProvider.GetService<TimeProvider>() ?? TimeProvider.System;
-        _settings = serviceProvider.GetRequiredService<IOptionsMonitor<WorkflowEngineSettings>>();
+        _settings = serviceProvider.GetRequiredService<IOptionsMonitor<EngineSettings>>();
 
         InitializeInbox();
     }
 
     private async Task<bool> ShouldRun(CancellationToken cancellationToken)
     {
-        // E.g. "do we hold the lock?"
-        _logger.LogTrace("Checking if process engine should run");
+        _logger.CheckShouldRun();
 
         // TODO: Replace this with actual check
+        // TODO: This may longer be required. Discuss more in depth later.
         bool placeholderEnabledResponse = await Task.Run(
             async () =>
             {
@@ -83,7 +82,7 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
 
         // Populate queue if we just transitioned from disabled to enabled
         if (latest is true && previous is false)
-            await PopulateJobsFromStorage(cancellationToken);
+            await PopulateWorkflowsFromStorage(cancellationToken);
 
         // Progressive backoff we have been disabled for two or more consecutive checks
         if (latest is false && previous is false)
@@ -91,7 +90,7 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
             int iteration = await _isEnabledHistory.ConsecutiveCount(x => !x);
             var backoffDelay = _statusCheckBackoffStrategy.CalculateDelay(iteration);
 
-            _logger.LogInformation("Process engine is disabled. Backing off for {BackoffDelay}", backoffDelay);
+            _logger.EngineIsDisabledBackingOff(backoffDelay);
             await Task.Delay(backoffDelay, cancellationToken);
         }
 
@@ -99,122 +98,115 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
         if (placeholderEnabledResponse)
         {
             Status &= ~EngineHealthStatus.Disabled;
-            _logger.LogTrace("Process engine is enabled");
+            _logger.EngineIsEnabled();
         }
         else
         {
             Status |= EngineHealthStatus.Disabled;
-            _logger.LogTrace("Process engine is disabled");
+            _logger.EngineIsDisabled();
         }
         return placeholderEnabledResponse;
     }
 
-    private async Task<bool> HaveJobs(CancellationToken cancellationToken)
+    private async Task<bool> HaveWork(CancellationToken cancellationToken)
     {
-        _logger.LogTrace("Checking if we have jobs to process");
-        bool haveJobs = InboxCount > 0;
+        _logger.CheckHaveWork();
+        bool havePending = InboxCount > 0;
 
-        if (haveJobs)
+        if (havePending)
         {
-            _logger.LogTrace("We have jobs to process: {InboxCount}", InboxCount);
+            _logger.HaveWork(InboxCount);
             Status &= ~EngineHealthStatus.Idle;
         }
         else
         {
-            _logger.LogTrace("No jobs to process, taking a short nap");
+            _logger.NoWork();
             Status |= EngineHealthStatus.Idle;
             await Task.Delay(250, cancellationToken);
         }
 
-        return haveJobs;
+        return havePending;
     }
 
     private async Task MainLoop(CancellationToken cancellationToken)
     {
-        _logger.LogTrace(
-            "Entering MainLoop. Inbox count: {InboxCount}. Queue slots available: {AvailableQueueSlots}",
-            InboxCount,
-            _inboxCapacityLimit.CurrentCount
-        );
+        _logger.EnteringMainLoop(InboxCount, _inboxCapacityLimit.CurrentCount);
 
         // Should we run?
         if (!await ShouldRun(cancellationToken))
             return;
 
         // Do we have jobs to process?
-        if (!await HaveJobs(cancellationToken))
+        if (!await HaveWork(cancellationToken))
             return;
 
         // Process jobs in parallel
-        _logger.LogTrace("Processing jobs. Queue size: {InboxCount}", InboxCount);
+        _logger.ProcessingAllWorkflowsInQueue(InboxCount);
         await Parallel.ForEachAsync(
             _inbox.Values.ToList(), // Copy so we can modify the original collection during iteration
             cancellationToken,
             async (job, ct) =>
             {
-                await ProcessJob(job, ct);
+                await ProcessWorkflow(job, ct);
             }
         );
     }
 
-    private async Task ProcessJob(Workflow workflow, CancellationToken cancellationToken)
+    private async Task ProcessWorkflow(Workflow workflow, CancellationToken cancellationToken)
     {
-        _logger.LogDebug("Processing workflow: {Workflow}", workflow);
+        _logger.ProcessingWorkflow(workflow);
 
         switch (workflow.DatabaseUpdateStatus())
         {
             // Process the tasks
             case TaskStatus.None:
-                await ProcessTasks(workflow, cancellationToken);
+                await ProcessSteps(workflow, cancellationToken);
 
                 PersistentItemStatus updatedJobStatus = workflow.OverallStatus();
                 if (workflow.Status != updatedJobStatus)
                 {
                     workflow.Status = updatedJobStatus;
-                    workflow.DatabaseTask = UpdateJobInStorage(workflow, cancellationToken);
+                    workflow.DatabaseTask = UpdateWorkflowInStorage(workflow, cancellationToken);
                 }
                 return;
 
             // Waiting on database operation to finish
             case TaskStatus.Started:
-                _logger.LogDebug("Workflow {Workflow} is waiting for database operation to complete", workflow);
+                _logger.WaitingForWorkflowDbTask(workflow);
                 return;
 
             // Database operation is finished
             case TaskStatus.Finished:
-                _logger.LogDebug("Workflow {Workflow} database operation has completed. Cleaning up", workflow);
+                _logger.CleaningUpWorkflowDbTask(workflow);
                 workflow.CleanupDatabaseTask();
                 break;
 
             default:
-                throw new WorkflowEngineException($"Unknown database update status: {workflow.DatabaseUpdateStatus()}");
+                throw new EngineException($"Unknown database update status: {workflow.DatabaseUpdateStatus()}");
         }
 
-        // Workflow still has work pending (requeued tasks, etc)
+        // Workflow still has work pending (requeued steps, etc)
         if (!workflow.IsDone())
         {
-            _logger.LogDebug(
-                "Workflow {Workflow} is still has tasks processing. Leaving in queue for next iteration",
-                workflow
-            );
+            _logger.PendingStepsRemain(workflow);
             return;
         }
 
         // Workflow is done (success or permanent failure). Remove and release queue slot
         RemoveJobAndReleaseQueueSlot(workflow);
-        _logger.LogDebug("Workflow {Workflow} is done", workflow);
+        _logger.WorkflowCompleted(workflow);
     }
 
-    private async Task ProcessTasks(Workflow workflow, CancellationToken cancellationToken)
+    private async Task ProcessSteps(Workflow workflow, CancellationToken cancellationToken)
     {
         foreach (Step task in workflow.OrderedIncompleteTasks())
         {
-            _logger.LogDebug("Processing step: {Step}", task);
+            _logger.ProcessingStep(task);
 
             // Not time to process yet
             if (!task.IsReadyForExecution(_timeProvider))
             {
-                _logger.LogTrace("Step {Step} not ready for execution", task);
+                _logger.NotReadyForExecution(task);
                 return;
             }
 
@@ -228,23 +220,23 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
             {
                 // Waiting for database operation to complete
                 case { DatabaseUpdateStatus: TaskStatus.Started }:
-                    _logger.LogDebug("Step {Step} is waiting for database operation to complete", task);
+                    _logger.WaitingForStepDbTask(task);
                     return;
 
                 // Database operation completed
                 case { DatabaseUpdateStatus: TaskStatus.Finished }:
-                    _logger.LogDebug("Step {Step} database operation has completed. Cleaning up", task);
+                    _logger.CleaningUpStepDbTask(task);
                     task.CleanupDatabaseTask();
                     return;
 
                 // Waiting for execution step to complete
                 case { ExecutionStatus: TaskStatus.Started }:
-                    _logger.LogDebug("Step {Step} is waiting for execution to complete", task);
+                    _logger.WaitingForStepExecutionTask(task);
                     return;
 
                 // Execution step completed
                 case { ExecutionStatus: TaskStatus.Finished }:
-                    _logger.LogDebug("Step {Step} execution has completed. Need to update database", task);
+                    _logger.StepExecutionCompleted(task);
                     Debug.Assert(task.ExecutionTask is not null); // TODO: This is annoying
 
                     // Unwrap result and handle outcome
@@ -258,7 +250,7 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
 
                 // Step is new
                 default:
-                    _logger.LogDebug("Step {Step} is new. Starting execution", task);
+                    _logger.ExecutingStep(task);
                     task.ExecutionTask = _taskHandler.Execute(workflow, task, cancellationToken);
                     return;
             }
@@ -271,29 +263,25 @@ internal partial class ProcessEngine : IProcessEngine, IDisposable
             if (result.IsSuccess())
             {
                 step.Status = PersistentItemStatus.Completed;
-                _logger.LogDebug("Step {Step} completed successfully", step);
+                _logger.StepCompletedSuccessfully(step);
                 return;
             }
 
-            _logger.LogDebug("Step {Step} failed", step);
-            var retryStrategy = step.RetryStrategy ?? Settings.DefaultTaskRetryStrategy;
+            _logger.StepFailed(step);
+            var retryStrategy = step.RetryStrategy ?? _settings.CurrentValue.DefaultTaskRetryStrategy;
 
             if (retryStrategy.CanRetry(step.RequeueCount + 1))
             {
                 step.RequeueCount++;
                 step.Status = PersistentItemStatus.Requeued;
                 step.BackoffUntil = _timeProvider.GetUtcNow().Add(retryStrategy.CalculateDelay(step.RequeueCount));
-                _logger.LogDebug("Requeuing step {Step} (Retry count: {Retries})", step, step.RequeueCount);
+                _logger.SlatingStepForRetry(step, step.RequeueCount);
             }
             else
             {
                 step.Status = PersistentItemStatus.Failed;
                 step.BackoffUntil = null;
-                _logger.LogError(
-                    "Failing step {Step}. No more retries available after {Retries} attempts",
-                    step,
-                    step.RequeueCount
-                );
+                _logger.FailingStep(step, step.RequeueCount);
             }
         }
     }

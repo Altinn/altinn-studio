@@ -1,3 +1,5 @@
+using WorkflowEngine.Resilience.Models;
+
 namespace WorkflowEngine.Models;
 
 public sealed record Step : PersistentItem
@@ -26,9 +28,13 @@ public sealed record Step : PersistentItem
 
     public override string ToString() => $"[{nameof(Step)}.{Command.GetType().Name}] {Key} ({Status})";
 
-    public new void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        ExecutionTask?.Dispose();
-        DatabaseTask?.Dispose();
+        if (disposing)
+        {
+            ExecutionTask?.Dispose();
+            DatabaseTask?.Dispose();
+            base.Dispose(disposing);
+        }
     }
 }

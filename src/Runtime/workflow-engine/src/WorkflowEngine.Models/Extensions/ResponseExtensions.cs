@@ -1,8 +1,6 @@
-using WorkflowEngine.Models;
+namespace WorkflowEngine.Models.Extensions;
 
-namespace WorkflowEngine.Api.Extensions;
-
-internal static class ProcessEngineResponseExtensions
+public static class ResponseExtensions
 {
     public static bool IsAccepted(this Response response) => response.Status == RequestStatus.Accepted;
 

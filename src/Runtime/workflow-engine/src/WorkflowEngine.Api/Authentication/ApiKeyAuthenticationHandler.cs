@@ -13,8 +13,7 @@ internal class ApiKeyAuthenticationHandler : AuthenticationHandler<Authenticatio
     public const string HeaderName = "X-Api-Key";
 
     private readonly IServiceProvider _serviceProvider;
-    private WorkflowEngineSettings _settings =>
-        _serviceProvider.GetRequiredService<IOptions<WorkflowEngineSettings>>().Value;
+    private ApiSettings _settings => _serviceProvider.GetRequiredService<IOptions<ApiSettings>>().Value;
 
     public ApiKeyAuthenticationHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
@@ -32,8 +31,8 @@ internal class ApiKeyAuthenticationHandler : AuthenticationHandler<Authenticatio
         if (!Request.Headers.TryGetValue(HeaderName, out var apiKeyHeader))
             return Task.FromResult(AuthenticateResult.Fail("Missing API Key"));
 
-        if (apiKeyHeader[0] != _settings.ApiKey)
-            return Task.FromResult(AuthenticateResult.Fail("Invalid API Key"));
+        if (!_settings.ApiKeys.Contains(apiKeyHeader[0]))
+            return Task.FromResult(AuthenticateResult.Fail($"Invalid API Key: {apiKeyHeader[0]}"));
 
         var claims = new[] { new Claim(ClaimTypes.Name, "ApiKeyUser") };
         var identity = new ClaimsIdentity(claims, SchemeName);

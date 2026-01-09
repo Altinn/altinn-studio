@@ -1,8 +1,6 @@
-using WorkflowEngine.Models;
+namespace WorkflowEngine.Models.Extensions;
 
-namespace WorkflowEngine.Api.Extensions;
-
-internal static class WorkflowEngineExecutionStatusExtensions
+public static class ExecutionStatusExtensions
 {
     extension(ExecutionResult result)
     {

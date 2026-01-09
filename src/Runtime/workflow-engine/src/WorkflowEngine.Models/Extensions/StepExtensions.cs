@@ -1,9 +1,6 @@
-using WorkflowEngine.Models;
-using TaskStatus = WorkflowEngine.Models.TaskStatus;
+namespace WorkflowEngine.Models.Extensions;
 
-namespace WorkflowEngine.Api.Extensions;
-
-internal static class ProcessEngineTaskExtensions
+public static class StepExtensions
 {
     public static TaskStatus ExecutionStatus(this Step step) => step.ExecutionTask.Status();
 

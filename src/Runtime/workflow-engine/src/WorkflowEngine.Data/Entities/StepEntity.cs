@@ -3,10 +3,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using WorkflowEngine.Data.Abstractions;
 using WorkflowEngine.Models;
+using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
-[Table("process_engine_tasks")]
+[Table("workflow_engine_tasks")]
 internal sealed class StepEntity : IHasCommonMetadata
 {
     [Key]

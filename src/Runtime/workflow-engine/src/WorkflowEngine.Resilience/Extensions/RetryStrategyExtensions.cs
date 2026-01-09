@@ -67,6 +67,8 @@ public static class RetryStrategyExtensions
             [CallerMemberName] string operationName = ""
         )
         {
+            logger?.StartingExecution(operationName);
+
             var attempt = 1;
             timeProvider ??= TimeProvider.System;
 
@@ -77,13 +79,13 @@ public static class RetryStrategyExtensions
                     var result = await operation(cancellationToken);
 
                     if (attempt > 1)
-                        logger?.SuccessfulExecution(operationName, attempt);
+                        logger?.ExecutionSucceeded(operationName, attempt);
 
                     return result;
                 }
                 catch (Exception ex)
                 {
-                    logger?.FailedExecution(operationName, attempt, ex.Message, ex);
+                    logger?.ExecutionFailed(operationName, attempt, ex.Message, ex);
 
                     if (errorHandler?.Invoke(ex) is RetryDecision.Abort)
                     {
@@ -117,14 +119,17 @@ public static class RetryStrategyExtensions
 
 public static partial class RetryStrategyExtensionsLogging
 {
-    [LoggerMessage(LogLevel.Debug, "Database operation '{OperationName}' succeeded on attempt {Attempt}")]
-    public static partial void SuccessfulExecution(this ILogger logger, string operationName, int attempt);
+    [LoggerMessage(LogLevel.Debug, "Starting execution of operation '{OperationName}'")]
+    public static partial void StartingExecution(this ILogger logger, string operationName);
+
+    [LoggerMessage(LogLevel.Debug, "Operation '{OperationName}' succeeded on attempt {Attempt}")]
+    public static partial void ExecutionSucceeded(this ILogger logger, string operationName, int attempt);
 
     [LoggerMessage(
         LogLevel.Error,
-        "Database operation '{OperationName}' failed with error on attempt {Attempt}: {ErrorMessage}"
+        "Operation '{OperationName}' failed with error on attempt {Attempt}: {ErrorMessage}"
     )]
-    public static partial void FailedExecution(
+    public static partial void ExecutionFailed(
         this ILogger logger,
         string operationName,
         int attempt,
@@ -140,7 +145,7 @@ public static partial class RetryStrategyExtensionsLogging
 
     [LoggerMessage(
         LogLevel.Warning,
-        "Database operation '{OperationName}' failed on attempt {Attempt} of {MaxAttempts}, retrying in {Delay}ms"
+        "Operation '{OperationName}' failed on attempt {Attempt} of {MaxAttempts}, retrying in {Delay}ms"
     )]
     public static partial void RetryDelay(
         this ILogger logger,

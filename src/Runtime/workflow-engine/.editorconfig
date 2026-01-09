@@ -111,31 +111,81 @@ csharp_style_namespace_declarations = file_scoped:error
 
 # S2325: Methods and properties that don't access instance data should be static
 dotnet_diagnostic.S2325.severity = none
-
 # CA1034: Nested types should not be visible
 dotnet_diagnostic.CA1034.severity = none
-
 # CA2007: Do not directly await a Task without ConfigureAwait
 dotnet_diagnostic.CA2007.severity = none
-
 # CA1062: Validate arguments of public methods
 dotnet_diagnostic.CA1062.severity = suggestion
-
 # S3251: Supply an implementation for this partial method
 dotnet_diagnostic.S3251.severity = none
+# S3267: Loops should be simplified with "LINQ" expressions
+dotnet_diagnostic.S3267.severity = none
 
 
-[*.{yml,yaml}]
+## WorkflowEngine.Data ##
+
+[src/WorkflowEngine.Data/Repository/IEngineRepository.cs]
+# CA1716: Identifiers should not match keywords
+# Not applicable for the word in question here -> 'step'
+# https://github.com/dotnet/roslyn-analyzers/issues/1858
+dotnet_diagnostic.CA1716.severity = none
+
+[src/WorkflowEngine.Data/Repository/EngineInMemoryRepository.cs]
+# CA5394: Do not use insecure randomness
+dotnet_diagnostic.CA5394.severity = none
+
+
+## WorkflowEngine.Api ##
+
+[src/WorkflowEngine.Api/**.cs]
+# CA1515: Consider making public types internal
+dotnet_diagnostic.CA1515.severity = none
+
+[src/WorkflowEngine.Api/Extensions/ServiceCollectionExtensions.cs]
+# We will be null-checking some configuration objects. Resharper does not approve.
+resharper_condition_is_always_true_or_false_according_to_nullable_api_contract_highlighting = none
+resharper_null_coalescing_condition_is_always_not_null_according_to_api_contract_highlighting = none
+# Roslyn is confused
+dotnet_diagnostic.S1144.severity = none
+
+[src/WorkflowEngine.Api/WorkflowExecutor.cs]
+# CA1305: Specify IFormatProvider
+dotnet_diagnostic.CA1305.severity = none
+# CA1031: Do not catch general exception types
+dotnet_diagnostic.CA1031.severity = none
+
+
+## WorkflowEngine.Resilience ##
+
+[src/WorkflowEngine.Resilience/Extensions/RetryStrategyExtensions.cs]
+# CA2208: Instantiate argument exceptions correctly
+dotnet_diagnostic.CA2208.severity = none
+# S3928: Parameter names used into ArgumentException constructors should match an existing one
+dotnet_diagnostic.S3928.severity = none
+
+
+## WorkflowEngine.Models ##
+
+[src/WorkflowEngine.Models/Step.cs]
+
+# CA1716: Identifiers should not match keywords
+# Not applicable for the word in question here -> 'step'
+# https://github.com/dotnet/roslyn-analyzers/issues/1858
+dotnet_diagnostic.CA1716.severity = none
+
+
+[*.{yml,yaml,json}]
 indent_size = 2
 end_of_line = lf
 
- # Verify settings
- # https://github.com/VerifyTests/Verify?tab=readme-ov-file#editorconfig-settings
+# Verify settings
+# https://github.com/VerifyTests/Verify?tab=readme-ov-file#editorconfig-settings
 
- [*.{received,verified}.{json,txt,xml}]
- end_of_line = lf
- indent_size = unset
- indent_style = unset
- insert_final_newline = false
- tab_width = unset
- trim_trailing_whitespace = false
+[*.{received,verified}.{json,txt,xml}]
+end_of_line = lf
+indent_size = unset
+indent_style = unset
+insert_final_newline = false
+tab_width = unset
+trim_trailing_whitespace = false

@@ -1,8 +1,6 @@
-using WorkflowEngine.Models;
+namespace WorkflowEngine.Models.Extensions;
 
-namespace WorkflowEngine.Api.Extensions;
-
-internal static class WorkflowEngineItemStatusExtensions
+public static class WorkflowEngineItemStatusExtensions
 {
     extension(PersistentItemStatus status)
     {

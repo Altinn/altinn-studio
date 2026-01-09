@@ -45,5 +45,5 @@ public sealed record InstanceInformation
 
     /// <inheritdoc />
     public override int GetHashCode() =>
-        HashCode.Combine(Org.ToLowerInvariant(), App.ToLowerInvariant(), InstanceOwnerPartyId, InstanceGuid);
+        HashCode.Combine(Org.ToUpperInvariant(), App.ToUpperInvariant(), InstanceOwnerPartyId, InstanceGuid);
 };

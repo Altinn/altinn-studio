@@ -6,7 +6,7 @@ namespace WorkflowEngine.Data.Repository;
 /// In-memory repository for ProcessEngine operations.
 /// Simulates database latency for performance testing.
 /// </summary>
-internal sealed class WorkflowEngineInMemoryRepository : IWorkflowEngineRepository
+internal sealed class EngineInMemoryRepository : IEngineRepository
 {
     public async Task<IReadOnlyList<Workflow>> GetIncompleteWorkflows(CancellationToken cancellationToken = default)
     {

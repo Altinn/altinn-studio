@@ -1,14 +1,18 @@
 using System.Diagnostics.CodeAnalysis;
+using WorkflowEngine.Api.Exceptions;
 using WorkflowEngine.Models;
 using Task = System.Threading.Tasks.Task;
 
 namespace WorkflowEngine.Api;
 
-internal partial class ProcessEngine
+// CA1031: Do not catch general exception types
+#pragma warning disable CA1031
+
+internal partial class Engine
 {
     public async Task Start(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Starting process engine");
+        _logger.StartingEngine();
 
         if (_cancellationTokenSource is not null || _mainLoopTask is not null)
             await Stop();
@@ -31,15 +35,13 @@ internal partial class ProcessEngine
                             Status |= EngineHealthStatus.Healthy;
                             Status |= EngineHealthStatus.Running;
                         }
-                        catch (OperationCanceledException) when (_cancellationTokenSource.IsCancellationRequested) { }
-                        catch (Exception e)
+                        catch (OperationCanceledException) when (_cancellationTokenSource.IsCancellationRequested)
                         {
-                            _logger.LogError(
-                                e,
-                                "The process engine encountered an unhandled exception: {Message}",
-                                e.Message
-                            );
-
+                            // Graceful shutdown
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.UnhandledMainloopException(ex.Message, ex);
                             Status |= EngineHealthStatus.Unhealthy;
                         }
                     }
@@ -56,7 +58,7 @@ internal partial class ProcessEngine
 
     public async Task Stop()
     {
-        _logger.LogInformation("Stopping process engine");
+        _logger.StoppingEngine();
 
         if (!Status.HasFlag(EngineHealthStatus.Running))
             return;
@@ -69,7 +71,10 @@ internal partial class ProcessEngine
             if (_mainLoopTask?.IsCompleted is false)
                 await _mainLoopTask;
         }
-        catch (OperationCanceledException) { }
+        catch (OperationCanceledException)
+        {
+            // Graceful shutdown
+        }
         finally
         {
             Status &= ~EngineHealthStatus.Running;
@@ -79,23 +84,23 @@ internal partial class ProcessEngine
 
     private async Task AcquireQueueSlot(CancellationToken cancellationToken = default)
     {
-        _logger.LogTrace("Acquiring queue slot");
+        _logger.AcquiringQueueSlot();
         await _inboxCapacityLimit.WaitAsync(cancellationToken);
 
-        if (InboxCount >= Settings.QueueCapacity)
+        if (InboxCount >= _settings.CurrentValue.QueueCapacity)
             Status |= EngineHealthStatus.QueueFull;
         else
             Status &= ~EngineHealthStatus.QueueFull;
 
-        _logger.LogTrace("Status after acquiring slot: {Status}", Status);
+        _logger.StatusAfterAcquiringSlot(Status);
     }
 
     private void RemoveJobAndReleaseQueueSlot(Workflow workflow)
     {
-        _logger.LogTrace("Releasing queue slot");
+        _logger.ReleasingQueueSlot();
         bool removed = _inbox.TryRemove(workflow.Key, out _);
         if (!removed)
-            throw new InvalidOperationException($"Unable to release queue slot {workflow.Key}");
+            throw new EngineException($"Unable to release queue slot {workflow.Key}");
 
         _inboxCapacityLimit.Release();
     }
@@ -104,7 +109,10 @@ internal partial class ProcessEngine
     private void InitializeInbox()
     {
         _inbox = [];
-        _inboxCapacityLimit = new SemaphoreSlim(Settings.QueueCapacity, Settings.QueueCapacity);
+        _inboxCapacityLimit = new SemaphoreSlim(
+            _settings.CurrentValue.QueueCapacity,
+            _settings.CurrentValue.QueueCapacity
+        );
     }
 
     private async Task Cleanup()
@@ -136,7 +144,13 @@ internal partial class ProcessEngine
 
     public void Dispose()
     {
-        if (_disposed)
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed || !disposing)
             return;
 
         _disposed = true;

@@ -3,9 +3,9 @@ using WorkflowEngine.Data.Entities;
 
 namespace WorkflowEngine.Data.Context;
 
-internal sealed class WorkflowEngineDbContext : DbContext
+internal sealed class EngineDbContext : DbContext
 {
-    public WorkflowEngineDbContext(DbContextOptions<WorkflowEngineDbContext> options)
+    public EngineDbContext(DbContextOptions<EngineDbContext> options)
         : base(options) { }
 
     public DbSet<WorkflowEntity> Jobs { get; set; }

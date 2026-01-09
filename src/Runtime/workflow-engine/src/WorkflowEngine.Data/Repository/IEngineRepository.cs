@@ -2,7 +2,7 @@ using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Repository;
 
-public interface IWorkflowEngineRepository
+public interface IEngineRepository
 {
     Task<IReadOnlyList<Workflow>> GetIncompleteWorkflows(CancellationToken cancellationToken = default);
     Task<Workflow> AddWorkflow(Request request, CancellationToken cancellationToken = default);

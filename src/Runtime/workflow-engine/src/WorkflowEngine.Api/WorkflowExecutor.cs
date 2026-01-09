@@ -1,40 +1,39 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Options;
+using WorkflowEngine.Api.Authentication;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Extensions;
 
 namespace WorkflowEngine.Api;
 
-internal interface IProcessEngineTaskHandler
+internal interface IWorkflowExecutor
 {
     Task<ExecutionResult> Execute(Workflow workflow, Step step, CancellationToken cancellationToken);
 }
 
-internal class ProcessEngineTaskHandler : IProcessEngineTaskHandler
+internal class WorkflowExecutor : IWorkflowExecutor
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly TimeProvider _timeProvider;
-    private readonly WorkflowEngineSettings _settings;
-    private readonly ILogger<ProcessEngineTaskHandler> _logger;
+    private readonly EngineSettings _engineSettings;
+    private readonly AppCommandSettings _appCommandSettings;
+    private readonly ILogger<WorkflowExecutor> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
 
-    public ProcessEngineTaskHandler(IServiceProvider serviceProvider)
+    public WorkflowExecutor(IServiceProvider serviceProvider)
     {
-        _serviceProvider = serviceProvider;
         _httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
-        _timeProvider = serviceProvider.GetService<TimeProvider>() ?? TimeProvider.System;
-        _settings = serviceProvider.GetRequiredService<IOptions<WorkflowEngineSettings>>().Value;
-        _logger = serviceProvider.GetRequiredService<ILogger<ProcessEngineTaskHandler>>();
+        _engineSettings = serviceProvider.GetRequiredService<IOptions<EngineSettings>>().Value;
+        _appCommandSettings = serviceProvider.GetRequiredService<IOptions<AppCommandSettings>>().Value;
+        _logger = serviceProvider.GetRequiredService<ILogger<WorkflowExecutor>>();
     }
 
     public async Task<ExecutionResult> Execute(Workflow workflow, Step step, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Executing step {Step} for workflow {Workflow}", step, workflow);
+        _logger.ExecutingStep(step, workflow);
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(step.Command.MaxExecutionTime ?? _settings.DefaultTaskExecutionTimeout);
+        cts.CancelAfter(step.Command.MaxExecutionTime ?? _engineSettings.DefaultTaskExecutionTimeout);
 
         var stopwatch = Stopwatch.StartNew();
         try
@@ -51,27 +50,15 @@ internal class ProcessEngineTaskHandler : IProcessEngineTaskHandler
             };
 
             if (result.IsSuccess())
-                _logger.LogInformation("Step {Step} executed with success in {Elapsed}", step, stopwatch.Elapsed);
+                _logger.SuccessfulExecution(step, stopwatch.Elapsed);
             else
-                _logger.LogError(
-                    "Step {Step} executed with error in {Elapsed}: {Message}",
-                    step,
-                    stopwatch.Elapsed,
-                    result.Message ?? "no details specified"
-                );
+                _logger.FailedExecution(step, stopwatch.Elapsed, result.Message ?? "no details specified");
 
             return result;
         }
         catch (Exception e)
         {
-            _logger.LogError(
-                e,
-                "Execution of step {Step} failed after {Elapsed}: {Message}",
-                step,
-                stopwatch.Elapsed,
-                e.Message
-            );
-
+            _logger.UnhandledExecutionError(step, stopwatch.Elapsed, e.Message, e);
             return ExecutionResult.Error(e.Message);
         }
         finally
@@ -87,14 +74,8 @@ internal class ProcessEngineTaskHandler : IProcessEngineTaskHandler
         CancellationToken cancellationToken
     )
     {
-        // TODO: Remove this. Demo purpose only
-        if (command.CommandKey.StartsWith("*", StringComparison.OrdinalIgnoreCase))
-        {
-            return ExecutionResult.Success();
-        }
-
         using var httpClient = GetAuthorizedAppClient(workflow.InstanceInformation);
-        httpClient.Timeout = command.MaxExecutionTime ?? _settings.DefaultTaskExecutionTimeout;
+        httpClient.Timeout = command.MaxExecutionTime ?? _engineSettings.DefaultTaskExecutionTimeout;
 
         var payload = new AppCallbackPayload
         {
@@ -102,9 +83,10 @@ internal class ProcessEngineTaskHandler : IProcessEngineTaskHandler
             Actor = step.Actor,
             Metadata = command.Metadata,
         };
+        using var jsonPayload = JsonContent.Create(payload);
         using var response = await httpClient.PostAsync(
-            command.CommandKey,
-            JsonContent.Create(payload),
+            command.CommandKey.ToUri(UriKind.Relative),
+            jsonPayload,
             cancellationToken
         );
 
@@ -142,11 +124,11 @@ internal class ProcessEngineTaskHandler : IProcessEngineTaskHandler
             content.Headers.ContentType = command.ContentType is not null
                 ? new MediaTypeHeaderValue(command.ContentType)
                 : null;
-            response = await httpClient.PostAsync(command.Uri, content, cancellationToken);
+            response = await httpClient.PostAsync(command.Uri.ToUri(UriKind.Absolute), content, cancellationToken);
         }
         else
         {
-            response = await httpClient.GetAsync(command.Uri, cancellationToken);
+            response = await httpClient.GetAsync(command.Uri.ToUri(UriKind.Absolute), cancellationToken);
         }
 
         var result = response.IsSuccessStatusCode
@@ -171,24 +153,53 @@ internal class ProcessEngineTaskHandler : IProcessEngineTaskHandler
             await command.Action(workflow, step, cancellationToken);
             return ExecutionResult.Success();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError(e, "Delegate execution of step {Step} failed: {Message}", step, e.Message);
-            return ExecutionResult.Error(e.Message);
+            _logger.LogDelegateExecutionOfStepStepFailedMessage(step, ex.Message, ex);
+            return ExecutionResult.Error(ex.Message);
         }
     }
 
-    [SuppressMessage(
-        "Globalization",
-        "CA1305:Specify IFormatProvider",
-        Justification = "Method explicitly uses InvariantCulture"
-    )]
     internal HttpClient GetAuthorizedAppClient(InstanceInformation instanceInformation)
     {
         var client = _httpClientFactory.CreateClient();
-        client.DefaultRequestHeaders.Add(AuthConstants.ApiKeyHeaderName, _settings.ApiKey);
-        client.BaseAddress = new Uri(_settings.AppCommandEndpoint.FormatWith(instanceInformation).TrimEnd('/') + "/");
+        client.DefaultRequestHeaders.Add(ApiKeyAuthenticationHandler.HeaderName, _appCommandSettings.ApiKey);
+        client.BaseAddress = new Uri(_appCommandSettings.CommandEndpoint.FormatWith(instanceInformation));
 
         return client;
     }
+}
+
+internal static partial class WorkflowExecutorLogs
+{
+    [LoggerMessage(LogLevel.Information, "Executing step {Step} for workflow {Workflow}")]
+    public static partial void ExecutingStep(this ILogger<WorkflowExecutor> logger, Step step, Workflow workflow);
+
+    [LoggerMessage(LogLevel.Information, "Step {Step} executed with success in {Elapsed}")]
+    public static partial void SuccessfulExecution(this ILogger<WorkflowExecutor> logger, Step step, TimeSpan elapsed);
+
+    [LoggerMessage(LogLevel.Error, "Step {Step} executed with error in {Elapsed}: {Message}")]
+    public static partial void FailedExecution(
+        this ILogger<WorkflowExecutor> logger,
+        Step step,
+        TimeSpan elapsed,
+        string message
+    );
+
+    [LoggerMessage(LogLevel.Error, "Execution of step {Step} failed after {Elapsed}: {Message}")]
+    public static partial void UnhandledExecutionError(
+        this ILogger<WorkflowExecutor> logger,
+        Step step,
+        TimeSpan elapsed,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Error, "Delegate execution of step {Step} failed: {Message}")]
+    public static partial void LogDelegateExecutionOfStepStepFailedMessage(
+        this ILogger<WorkflowExecutor> logger,
+        Step step,
+        string message,
+        Exception ex
+    );
 }

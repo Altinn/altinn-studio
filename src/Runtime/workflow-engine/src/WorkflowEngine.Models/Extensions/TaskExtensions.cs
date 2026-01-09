@@ -1,9 +1,6 @@
-using Task = System.Threading.Tasks.Task;
-using TaskStatus = WorkflowEngine.Models.TaskStatus;
+namespace WorkflowEngine.Models.Extensions;
 
-namespace WorkflowEngine.Api.Extensions;
-
-internal static class TaskExtensions
+public static class TaskExtensions
 {
     public static TaskStatus Status(this Task? task)
     {

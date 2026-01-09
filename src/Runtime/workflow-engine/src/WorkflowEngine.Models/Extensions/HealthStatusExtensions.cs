@@ -1,9 +1,7 @@
-using WorkflowEngine.Models;
-
-namespace WorkflowEngine.Api.Extensions;
+namespace WorkflowEngine.Models.Extensions;
 
 // TODO: Definitely write some tests for these guys
-internal static class WorkflowEngineHealthStatusExtensions
+public static class HealthStatusExtensions
 {
     extension(EngineHealthStatus status)
     {

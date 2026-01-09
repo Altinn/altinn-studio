@@ -6,7 +6,7 @@ public abstract record PersistentItem : IDisposable
     public required string Key { get; init; }
     public PersistentItemStatus Status { get; set; }
 
-    public Step? DatabaseTask { get; set; }
+    public Task? DatabaseTask { get; set; }
 
     // TODO: Write a test for equality for inheritors. A bit suss on the persistence of these overrides during inheritance
     public virtual bool Equals(PersistentItem? other) =>

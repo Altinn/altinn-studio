@@ -16,17 +16,9 @@ public static class ServiceCollectionExtensions
         {
             ArgumentException.ThrowIfNullOrEmpty(connectionString);
 
-            services.AddTransient<IWorkflowEngineRepository, WorkflowEnginePgRepository>();
-            services.AddDbContext<WorkflowEngineDbContext>(
-                options =>
-                    options.UseNpgsql(
-                        connectionString,
-                        npgsqlOptions =>
-                        {
-                            npgsqlOptions.MigrationsAssembly(typeof(WorkflowEngineDbContext).Assembly.FullName);
-                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "public");
-                        }
-                    ),
+            services.AddTransient<IEngineRepository, EnginePgRepository>();
+            services.AddDbContext<EngineDbContext>(
+                options => options.UseNpgsql(connectionString),
                 contextLifetime: ServiceLifetime.Transient,
                 optionsLifetime: ServiceLifetime.Singleton
             );
@@ -39,7 +31,7 @@ public static class ServiceCollectionExtensions
         /// </summary>
         public IServiceCollection AddInMemoryRepository()
         {
-            services.AddSingleton<IWorkflowEngineRepository, WorkflowEngineInMemoryRepository>();
+            services.AddSingleton<IEngineRepository, EngineInMemoryRepository>();
             return services;
         }
     }

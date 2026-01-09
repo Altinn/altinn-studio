@@ -1,12 +1,17 @@
-using Altinn.App.ProcessEngine.Extensions;
+using WorkflowEngine.Api.Exceptions;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
+var dbConnectionString =
+    builder.Configuration.GetConnectionString("WorkflowEngine")
+    ?? throw new EngineConfigurationException(
+        "Database connection string 'WorkflowEngine' is required, but has not been configured."
+    );
 
 builder.Services.AddOpenApi();
 builder.Services.AddApiKeyAuthentication();
-builder.Services.AddDbRepository();
+builder.Services.AddDbRepository(dbConnectionString);
 
 var app = builder.Build();
 

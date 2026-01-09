@@ -11,21 +11,21 @@ using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Data.Repository;
 
-internal sealed class WorkflowEnginePgRepository : IWorkflowEngineRepository
+internal sealed class EnginePgRepository : IEngineRepository
 {
-    private readonly WorkflowEngineDbContext _context;
+    private readonly EngineDbContext _context;
     private readonly TimeProvider _timeProvider;
-    private readonly ILogger<WorkflowEnginePgRepository> _logger;
-    private readonly IOptionsMonitor<WorkflowEngineSettings> _settings;
+    private readonly ILogger<EnginePgRepository> _logger;
+    private readonly IOptionsMonitor<EngineSettings> _settings;
 
     private RetryStrategy _dbRetryStrategy => _settings.CurrentValue.DatabaseRetryStrategy;
     private static List<PersistentItemStatus> _incompleteItemStatuses =>
         [PersistentItemStatus.Enqueued, PersistentItemStatus.Processing, PersistentItemStatus.Requeued];
 
-    public WorkflowEnginePgRepository(
-        WorkflowEngineDbContext context,
-        IOptionsMonitor<WorkflowEngineSettings> settings,
-        ILogger<WorkflowEnginePgRepository> logger,
+    public EnginePgRepository(
+        EngineDbContext context,
+        IOptionsMonitor<EngineSettings> settings,
+        ILogger<EnginePgRepository> logger,
         TimeProvider? timeProvider = null
     )
     {

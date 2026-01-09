@@ -1,9 +1,6 @@
-using WorkflowEngine.Models;
-using TaskStatus = WorkflowEngine.Models.TaskStatus;
+namespace WorkflowEngine.Models.Extensions;
 
-namespace WorkflowEngine.Api.Extensions;
-
-internal static class ProcessEngineJobExtensions
+public static class WorkflowExtensions
 {
     extension(Workflow workflow)
     {

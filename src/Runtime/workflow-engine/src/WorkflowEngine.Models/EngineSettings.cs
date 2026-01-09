@@ -4,22 +4,10 @@ using WorkflowEngine.Resilience.Models;
 namespace WorkflowEngine.Models;
 
 /// <summary>
-/// Settings for the Process Engine.
+/// Configuration settings for the workflow engine.
 /// </summary>
-public sealed record WorkflowEngineSettings
+public sealed record EngineSettings
 {
-    /// <summary>
-    /// The connection string used to connect to the database.
-    /// </summary>
-    [JsonPropertyName("databaseConnectionString")]
-    public required string DatabaseConnectionString { get; set; }
-
-    /// <summary>
-    /// The API key used to authenticate requests from the App to the Process Engine and from the Process Engine back to the App.
-    /// </summary>
-    [JsonPropertyName("apiKey")]
-    public required string ApiKey { get; set; }
-
     /// <summary>
     /// The total number of concurrent tasks that can be processed by the engine.
     /// </summary>
@@ -43,10 +31,4 @@ public sealed record WorkflowEngineSettings
     /// </summary>
     [JsonPropertyName("databaseRetryStrategy")]
     public required RetryStrategy DatabaseRetryStrategy { get; set; }
-
-    /// <summary>
-    /// The full endpoint URL for application callbacks. String template supports all properties from <see cref="InstanceInformation"/>.
-    /// </summary>
-    [JsonPropertyName("appCommandEndpoint")]
-    public required string AppCommandEndpoint { get; set; }
 }

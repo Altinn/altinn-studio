@@ -8,13 +8,8 @@ namespace WorkflowEngine.Api.Constants;
 /// </summary>
 internal static class Defaults
 {
-    private const string NeedsConfiguration =
-        "this default value will never be used, but is required by the nullability annotations";
-
-    public static readonly WorkflowEngineSettings WorkflowEngineSettings = new()
+    public static readonly EngineSettings EngineSettings = new()
     {
-        DatabaseConnectionString = NeedsConfiguration,
-        ApiKey = NeedsConfiguration,
         QueueCapacity = 10000,
         DefaultTaskExecutionTimeout = TimeSpan.FromSeconds(100),
         DefaultTaskRetryStrategy = RetryStrategy.Exponential(
@@ -27,7 +22,12 @@ internal static class Defaults
             maxRetries: 50,
             maxDelay: TimeSpan.FromSeconds(10)
         ),
-        AppCommandEndpoint =
+    };
+
+    public static readonly AppCommandSettings AppCommandSettings = new()
+    {
+        ApiKey = "injected-at-runtime",
+        CommandEndpoint =
             "http://local.altinn.cloud/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/process-engine-callbacks",
     };
 }
