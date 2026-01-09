@@ -29,9 +29,10 @@ describe('ConfigNumberProperties', () => {
   });
 
   it('should be able to toggle number property config', async () => {
+    const user = userEvent.setup();
     renderConfigNumberProperties();
-    await openConfigAndVerify(defaultProperty);
-    await cancelConfigAndVerify();
+    await openConfigAndVerify({ user, property: defaultProperty });
+    await cancelConfigAndVerify(user);
   });
 
   it('should call handleComponentUpdate when saving a new value', async () => {
@@ -49,10 +50,10 @@ describe('ConfigNumberProperties', () => {
       },
     });
 
-    await openConfigAndVerify(defaultProperty);
+    await openConfigAndVerify({ user, property: defaultProperty });
     const textBox = getPropertyByRole('textbox', defaultProperty);
     await user.type(textBox, '2');
-    await saveConfigChanges();
+    await saveConfigChanges(user);
 
     expect(handleComponentUpdate).toHaveBeenCalledWith({
       ...componentMocks.Input,

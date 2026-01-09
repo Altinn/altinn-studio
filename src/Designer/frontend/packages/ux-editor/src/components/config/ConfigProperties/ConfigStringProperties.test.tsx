@@ -37,12 +37,12 @@ describe('ConfigStringProperties', () => {
     const user = userEvent.setup();
     const handleComponentUpdate = jest.fn();
     renderConfigStringProperties({ handleComponentUpdate });
-    await openConfigAndVerify(defaultProperty);
+    await openConfigAndVerify({ user, property: defaultProperty });
 
     const textBox = getPropertyByRole('textbox', defaultProperty);
     await user.clear(textBox);
     await user.type(textBox, 'descending');
-    await saveConfigChanges();
+    await saveConfigChanges(user);
 
     expect(handleComponentUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -52,9 +52,10 @@ describe('ConfigStringProperties', () => {
   });
 
   it('should close the select editor when clicking cancel button', async () => {
+    const user = userEvent.setup();
     renderConfigStringProperties();
-    await openConfigAndVerify(defaultProperty);
-    await cancelConfigAndVerify();
+    await openConfigAndVerify({ user, property: defaultProperty });
+    await cancelConfigAndVerify(user);
   });
 });
 
