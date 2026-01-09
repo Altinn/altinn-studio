@@ -72,7 +72,6 @@ describe('Frontend urlHelper.ts', () => {
     const resetWindow = (
       location: Partial<Location> = {
         origin: 'https://ttd.apps.altinn.no',
-        hash: '#/datamodelling',
         pathname: '/ttd/jesttest/',
         host: 'https://ttd.apps.altinn.no',
         href: 'https://ttd.apps.altinn.no/ttd/test',
@@ -143,7 +142,6 @@ describe('Frontend urlHelper.ts', () => {
         window.location = {
           ...oldWindowLocation,
           origin: 'https://ttd.apps.altinn.no',
-          hash: '#/datamodelling',
           pathname: '/ttd/jesttest/',
           host: 'https://ttd.apps.too.many.domains.altinn.no',
           href: 'https://ttd.apps.altinn.no/ttd/test',

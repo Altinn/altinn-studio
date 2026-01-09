@@ -243,20 +243,20 @@ function HandleNavigationFocusComponent() {
   const exitSubform = useQueryKey(SearchParams.ExitSubform)?.toLocaleLowerCase() === 'true';
   const validate = useQueryKey(SearchParams.Validate)?.toLocaleLowerCase() === 'true';
   const navigate = useNavigate();
-  const searchStringRef = useAsRef(useLocation().search);
+  const locationRef = useAsRef(useLocation());
 
   React.useEffect(() => {
     (async () => {
       // Replace URL if we have query params
       if (exitSubform || validate) {
-        const location = new URLSearchParams(searchStringRef.current);
-        location.delete(SearchParams.ExitSubform);
-        const baseHash = window.location.hash.slice(1).split('?')[0];
-        const nextLocation = location.size > 0 ? `${baseHash}?${location.toString()}` : baseHash;
+        const searchParams = new URLSearchParams(locationRef.current.search);
+        searchParams.delete(SearchParams.ExitSubform);
+        const basePath = locationRef.current.pathname;
+        const nextLocation = searchParams.size > 0 ? `${basePath}?${searchParams.toString()}` : basePath;
         navigate(nextLocation, { replace: true });
       }
     })();
-  }, [navigate, searchStringRef, exitSubform, validate, onFormSubmitValidation]);
+  }, [navigate, locationRef, exitSubform, validate, onFormSubmitValidation]);
 
   return null;
 }

@@ -99,7 +99,7 @@ describe('AltinnCollapsibleAttachments', () => {
       render(
         <AltinnCollapsibleAttachments
           attachments={[]}
-          title='Test Title'
+          title={<>Test Title</>}
           showLinks={true}
           showDescription={false}
         />,
@@ -114,7 +114,7 @@ describe('AltinnCollapsibleAttachments', () => {
       render(
         <AltinnCollapsibleAttachments
           attachments={undefined}
-          title='Test Title'
+          title={<>Test Title</>}
           showLinks={true}
           showDescription={false}
         />,
@@ -130,7 +130,7 @@ describe('AltinnCollapsibleAttachments', () => {
       render(
         <AltinnCollapsibleAttachments
           attachments={mockAttachments}
-          title='My Attachments'
+          title={<>My Attachments</>}
           showLinks={true}
           showDescription={false}
         />,
@@ -144,7 +144,7 @@ describe('AltinnCollapsibleAttachments', () => {
       render(
         <AltinnCollapsibleAttachments
           attachments={mockAttachments}
-          title='My Attachments'
+          title={<>My Attachments</>}
           showLinks={true}
           showDescription={false}
         />,
@@ -160,7 +160,7 @@ describe('AltinnCollapsibleAttachments', () => {
       render(
         <AltinnCollapsibleAttachments
           attachments={mockAttachments}
-          title='My Attachments'
+          title={<>My Attachments</>}
           showLinks={true}
           showDescription={false}
         />,
@@ -187,7 +187,7 @@ describe('AltinnCollapsibleAttachments', () => {
       render(
         <AltinnCollapsibleAttachments
           attachments={mockAttachments}
-          title='My Attachments'
+          title={<>My Attachments</>}
           showLinks={true}
           showDescription={false}
         />,
@@ -208,7 +208,7 @@ describe('AltinnCollapsibleAttachments', () => {
       render(
         <AltinnCollapsibleAttachments
           attachments={mockAttachments}
-          title='My Attachments'
+          title={<>My Attachments</>}
           showLinks={true}
           showDescription={false}
         />,
@@ -222,7 +222,7 @@ describe('AltinnCollapsibleAttachments', () => {
       render(
         <AltinnCollapsibleAttachments
           attachments={mockAttachments}
-          title='My Attachments'
+          title={<>My Attachments</>}
           showLinks={true}
           showDescription={false}
         />,
@@ -274,7 +274,7 @@ describe('AltinnCollapsibleAttachments', () => {
       render(
         <AltinnCollapsibleAttachments
           attachments={mockAttachments}
-          title='Print Title'
+          title={<>Print Title</>}
           showLinks={true}
           showDescription={false}
         />,
@@ -293,7 +293,7 @@ describe('AltinnCollapsibleAttachments', () => {
       render(
         <AltinnCollapsibleAttachments
           attachments={mockAttachments}
-          title='My Attachments'
+          title={<>My Attachments</>}
           showLinks={true}
           showDescription={false}
         />,

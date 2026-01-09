@@ -285,7 +285,7 @@ namespace LocalTest.Controllers
                         token
                     );
 
-                    return Redirect($"/{app.Id}/#/instance/{newInstance.Id}");
+                    return Redirect($"/{app.Id}/instance/{newInstance.Id}");
                 }
             }
 

@@ -156,11 +156,11 @@ describe('Signing', () => {
       cy.findByText(/takk for at du signerte! du kan sende inn skjemaet når alle parter har signert/i);
     });
 
-    cy.hash().then((hash) => {
+    cy.location('href').then((href) => {
       cy.startAppInstance(appFrontend.apps.signeringBrukerstyrt, {
-        tenorUser: tenorUsers.humanAndrefiolin,
+        tenorUser: tenorUsers.standhaftigBjornunge,
         authenticationLevel: '2',
-        urlSuffix: `/${hash}`,
+        urlSuffix: `/instance/${href.split('/instance/')[1]}`,
       });
     });
 

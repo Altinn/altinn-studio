@@ -99,7 +99,7 @@ public class PdfServiceTests
         );
 
         Stream pdf = await pdfGeneratorClient.GeneratePdf(
-            new Uri(@"https://org.apps.hostName/appId/#/instance/instanceId"),
+            new Uri(@"https://org.apps.hostName/appId/instance/instanceId"),
             CancellationToken.None
         );
 
@@ -130,7 +130,7 @@ public class PdfServiceTests
 
         var func = async () =>
             await pdfGeneratorClient.GeneratePdf(
-                new Uri(@"https://org.apps.hostName/appId/#/instance/instanceId"),
+                new Uri(@"https://org.apps.hostName/appId/instance/instanceId"),
                 CancellationToken.None
             );
 

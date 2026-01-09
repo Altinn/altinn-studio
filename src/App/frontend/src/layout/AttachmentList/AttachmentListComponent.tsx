@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { AltinnAttachments } from 'src/components/atoms/AltinnAttachments';
+import { MainAttachmentHeader } from 'src/components/atoms/AttachmentHeader';
 import { AttachmentGroupings } from 'src/components/organisms/AttachmentGroupings';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
@@ -67,7 +68,7 @@ export function AttachmentListComponent({ baseComponentId }: PropsFromGenericCom
 
   const displayAttachments = toDisplayAttachments([...pdfAttachments, ...filteredAttachments]);
 
-  const title = textResourceBindings?.title ? <Lang id={textResourceBindings?.title} /> : undefined;
+  const title = <MainAttachmentHeader title={<Lang id={textResourceBindings?.title} />} />;
 
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>

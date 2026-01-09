@@ -21,9 +21,9 @@ internal class UrlHelper
     /// <returns>The url for the app</returns>
     public string GetInstanceUrl(AppIdentifier app, InstanceIdentifier instance)
     {
-        string baseUrl = _settings.FormattedExternalAppBaseUrlWithTrailingPound(app);
+        string baseUrl = _settings.FormattedExternalAppBaseUrl(app);
 
-        string url = $"{baseUrl}/instance/{instance.InstanceOwnerPartyId}/{instance.InstanceGuid}";
+        string url = $"{baseUrl}instance/{instance.InstanceOwnerPartyId}/{instance.InstanceGuid}";
 
         return url;
     }

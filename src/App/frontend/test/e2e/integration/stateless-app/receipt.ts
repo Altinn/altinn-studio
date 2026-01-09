@@ -15,6 +15,7 @@ describe('Receipt', () => {
 
     cy.get('#firmanavn').type('Foo bar AS');
     cy.get('#orgnr').type('12345678901');
+    cy.waitUntilSaved();
 
     // Making sure a manual navigation to the previous task still works and gives you a message
     cy.url().then((url) => cy.visit(url.replace(/\/Task_2\/1$/, '/Task_1')));
@@ -35,6 +36,7 @@ describe('Receipt', () => {
     cy.get(appFrontend.feedback).should('contain.text', `Navn: ${userFirstName}`);
     cy.get(appFrontend.feedback).should('contain.text', 'ID: 1364');
 
+    cy.injectAxe();
     cy.visualTesting('stateless:feedback');
 
     cy.reloadAndWait();

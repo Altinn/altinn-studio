@@ -188,7 +188,7 @@ function testInstanceData() {
     const instanceId = maybeInstanceId ? maybeInstanceId[1] : 'instance-id-not-found';
 
     const host = Cypress.env('type') === 'localtest' ? urlParsed.origin : 'https://ttd.apps.tt02.altinn.no';
-    const instanceUrl = [host, urlParsed.pathname, `/instances/`, instanceId].join('');
+    const instanceUrl = `${host}/ttd/${appFrontend.apps.frontendTest}/instances/${instanceId}`;
 
     cy.request({ url: instanceUrl }).then((response) => {
       const instanceData = response.body as IInstance;

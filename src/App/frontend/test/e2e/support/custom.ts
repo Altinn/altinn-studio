@@ -300,7 +300,7 @@ Cypress.Commands.add('clearSelectionAndWait', (viewport) => {
   });
 });
 
-Cypress.Commands.add('getCurrentPageId', () => cy.location('hash').then((hash) => hash.split('/').slice(-1)[0]));
+Cypress.Commands.add('getCurrentPageId', () => cy.location('pathname').then((pathname) => pathname.split('/').at(-1)));
 
 const defaultSnapshotOptions: SnapshotOptions = {
   wcag: true,
@@ -652,9 +652,6 @@ Cypress.Commands.add(
     // Store initial viewport size for later
     cy.getCurrentViewportSize().as('testPdfViewportSize');
 
-    // Make sure instantiation is completed before we get the url
-    cy.location('hash', { log: false }).should('contain', '#/instance/').as('hashBeforePdf');
-
     // Make sure we blur any selected component before reload to trigger save
     cy.get('body').click({ log: false });
 
@@ -734,9 +731,13 @@ Cypress.Commands.add(
       });
       cy.get('body').invoke('css', 'margin', '');
 
-      cy.get('@hashBeforePdf').then((hashBeforePdf) => {
-        cy.window().then((win) => {
-          win.location.hash = hashBeforePdf.toString();
+      // Exit pdf by removing pdf queryparam
+      cy.location('search').then((search) => {
+        const params = new URLSearchParams(search);
+        params.delete('pdf');
+        const newSearch = params.toString();
+        cy.location('pathname').then((pathname) => {
+          cy.visit(pathname + (newSearch ? `?${newSearch}` : ''));
         });
       });
 
