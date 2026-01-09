@@ -10,9 +10,10 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { getValidIdentifierPrefixes } from '../../utils/resourceUtils';
 
 const mockButtonText: string = 'Mock Button';
-const org = 'orgname';
+const org = 'skd';
 
 const mockOnClose = jest.fn();
 
@@ -84,6 +85,22 @@ describe('NewResourceModal', () => {
     expect(createButton).toHaveAttribute('aria-disabled', 'false');
   });
 
+  test('that create button should be enabled when the form is valid and "skd" uses prefix "ske"', async () => {
+    const user = userEvent.setup();
+    await renderAndOpenModal();
+
+    const idInput = screen.getByLabelText(
+      textMock('resourceadm.dashboard_resource_name_and_id_resource_id'),
+    );
+    await user.clear(idInput);
+    await user.type(idInput, 'ske-test');
+
+    const createButton = screen.getByRole('button', {
+      name: textMock('resourceadm.dashboard_create_modal_create_button'),
+    });
+    expect(createButton).toHaveAttribute('aria-disabled', 'false');
+  });
+
   test('should navigate after creating new resource', async () => {
     const user = userEvent.setup();
     await renderAndOpenModal();
@@ -124,7 +141,9 @@ describe('NewResourceModal', () => {
     await waitFor(() => {
       expect(
         screen.getByText(
-          textMock('resourceadm.dashboard_resource_name_and_id_error', { orgPrefix: `${org}-` }),
+          textMock('resourceadm.dashboard_resource_name_and_id_error', {
+            orgPrefix: `${getValidIdentifierPrefixes(org).join(` ${textMock('expression.or')} `)}`,
+          }),
         ),
       ).toBeInTheDocument();
     });
