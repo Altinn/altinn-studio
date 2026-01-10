@@ -1,0 +1,12 @@
+.select {
+  display: inline-flex;
+  flex-direction: row;
+  gap: var(--ds-size-4);
+  white-space: nowrap;
+  align-items: center;
+}
+
+.select * {
+  font-weight: unset;
+  margin: 0;
+}

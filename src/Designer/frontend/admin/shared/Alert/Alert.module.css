@@ -1,0 +1,54 @@
+.metric {
+  border: none;
+  padding: var(--ds-size-4) var(--ds-size-8) var(--ds-size-6) var(--ds-size-10);
+  white-space: nowrap;
+}
+
+.metric:before {
+  margin-top: 3px;
+  margin-left: -20px;
+}
+
+.heading {
+  display: flex;
+  gap: var(--ds-size-4);
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 10px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  white-space: nowrap;
+}
+
+.count {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.link {
+  margin-left: var(--ds-size-2);
+  padding: var(--ds-size-1) var(--ds-size-2);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.metric[data-color='danger'] .link {
+  background-color: var(--ds-color-danger-surface-hover);
+}
+
+.metric[data-color='success'] .link {
+  background-color: var(--ds-color-success-surface-hover);
+}
+
+.metric[data-color='info'] .link {
+  background-color: var(--ds-color-info-surface-hover);
+}
+
+.chart {
+  height: 150px;
+  width: 100%;
+}

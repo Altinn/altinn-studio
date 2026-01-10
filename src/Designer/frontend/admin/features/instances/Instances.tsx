@@ -1,8 +1,8 @@
 import React from 'react';
 import classes from './Instances.module.css';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { InstancesTable } from './components/InstancesTable';
-import { StudioBreadcrumbs } from '@studio/components';
+import { StudioCard, StudioHeading } from '@studio/components';
 import { ArchiveReferenceSearch } from './components/ArchiveReferenceSearch';
 import { StatusFilter } from './components/StatusFilter';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
@@ -50,30 +50,10 @@ export const Instances = () => {
   );
 
   return (
-    <div>
-      <StudioBreadcrumbs>
-        <StudioBreadcrumbs.Link>{app}</StudioBreadcrumbs.Link>
-        <StudioBreadcrumbs.List>
-          <StudioBreadcrumbs.Item>
-            <StudioBreadcrumbs.Link asChild>
-              <Link to={`/${org}/apps`}>{t('admin.apps.title')}</Link>
-            </StudioBreadcrumbs.Link>
-          </StudioBreadcrumbs.Item>
-          <StudioBreadcrumbs.Item>
-            <StudioBreadcrumbs.Link asChild>
-              <Link to={`/${org}/apps/${env}/${app}`}>{app}</Link>
-            </StudioBreadcrumbs.Link>
-          </StudioBreadcrumbs.Item>
-          <StudioBreadcrumbs.Item>
-            <StudioBreadcrumbs.Link asChild>
-              <Link to=''>{t('admin.instances.title')}</Link>
-            </StudioBreadcrumbs.Link>
-          </StudioBreadcrumbs.Item>
-        </StudioBreadcrumbs.List>
-      </StudioBreadcrumbs>
-      <h1>
-        {env} / {app} / {t('admin.instances.title')}
-      </h1>
+    <StudioCard>
+      <StudioHeading className={classes.heading} data-size='sm'>
+        {t('admin.instances.title')}
+      </StudioHeading>
       <div className={classes.filterWrapper}>
         <ArchiveReferenceSearch value={archiveReference} setValue={setArchiveReference} />
         <ProcessTaskFilter
@@ -119,6 +99,6 @@ export const Instances = () => {
         isSoftDeleted={isSoftDeleted}
         createdBefore={getCurrentDateOnlyStringMinusDays(createdBeforeDays)}
       />
-    </div>
+    </StudioCard>
   );
 };
