@@ -2,7 +2,7 @@ FROM gitea/act_runner:0.2.13@sha256:8477d5b61b655caad4449888bae39f1f34bebd27db56
 
 FROM ghcr.io/renovatebot/renovate:42.34.1@sha256:76265a40295d41facff1967a60e893fbce7de39e4975bc2b63884a8482170e39 AS renovate
 
-FROM gitea/runner-images:ubuntu-latest@sha256:b9664fce18708fd10af52aa0f43f9fdd273b13adce43e3bff894698c8e3d75c7 AS final
+FROM gitea/runner-images:ubuntu-latest@sha256:f4fa3a5b7f9405646193002f568211bfd77f9025c42ef853818368b5faf3a00c AS final
 
 # Install required packages for the runner
 RUN apt update && \
