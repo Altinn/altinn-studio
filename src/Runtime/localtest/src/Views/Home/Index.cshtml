@@ -80,7 +80,7 @@
       @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin", enctype = "multipart/form-data" }))
       {
         @Html.AntiForgeryToken();
-        @if(Model.TestApps != null && Model.TestApps.Count() > 1)
+        @if(Model.TestApps != null)
         {
           <div class="form-group">
             <label for="AppPathSelection">Select app to test</label>
