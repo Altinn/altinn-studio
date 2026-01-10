@@ -79,7 +79,22 @@
           "description": "Which pages should be validated when the next button is clicked.",
           "enum": ["current", "currentAndPrevious", "all"]
         },
-        "show": { "$ref": "#/definitions/AllowedValidationMasks" }
+        "show": {
+          "title": "Validation types",
+          "description": "List of validation types to show",
+          "type": "array",
+          "items": {
+            "enum": [
+              "Schema",
+              "Component",
+              "Expression",
+              "CustomBackend",
+              "Required",
+              "AllExceptRequired",
+              "All"
+            ]
+          }
+        }
       },
       "required": ["page", "show"],
       "additionalProperties": false
@@ -93,7 +108,22 @@
           "description": "Which pages should be validated when the next button is clicked.",
           "enum": ["current", "currentAndPrevious", "all"]
         },
-        "show": { "$ref": "#/definitions/AllowedValidationMasks" }
+        "show": {
+          "title": "Validation types",
+          "description": "List of validation types to show",
+          "type": "array",
+          "items": {
+            "enum": [
+              "Schema",
+              "Component",
+              "Expression",
+              "CustomBackend",
+              "Required",
+              "AllExceptRequired",
+              "All"
+            ]
+          }
+        }
       },
       "required": ["page", "show"],
       "additionalProperties": false
