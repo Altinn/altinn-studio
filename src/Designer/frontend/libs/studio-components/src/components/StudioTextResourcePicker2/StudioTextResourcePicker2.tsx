@@ -23,7 +23,7 @@ export const StudioTextResourcePicker2 = ({
       onChange={(event) =>
         onReferenceChange(event.target.value === '' ? undefined : event.target.value)
       }
-      value={textResourceId}
+      value={textResourceId ?? ''}
     >
       <StudioSelect.Option value=''>{noTextResourceOptionLabel}</StudioSelect.Option>
       {textResources.map((option) => (

@@ -1,3 +1,4 @@
+import type { RefCallback } from 'react';
 import { useEffect, useState } from 'react';
 import { useOnWindowSizeChange } from './useOnWindowSizeChange';
 
@@ -15,8 +16,8 @@ export const useAutoSizeTextArea = (
     minHeightInPx = DEFAULT_MIN_HEIGHT_PX_TEXTAREA,
     maxHeightInPx = DEFAULT_MAX_HEIGHT_PX_TEXTAREA,
   }: MinAndMaxHeightOptions = {},
-): React.Dispatch<React.SetStateAction<HTMLTextAreaElement>> => {
-  const [textAreaRef, setTextAreaRef] = useState<HTMLTextAreaElement>(null);
+): RefCallback<HTMLTextAreaElement> => {
+  const [textAreaRef, setTextAreaRef] = useState<HTMLTextAreaElement | null>(null);
   const { windowSize } = useOnWindowSizeChange();
 
   useEffect(() => {

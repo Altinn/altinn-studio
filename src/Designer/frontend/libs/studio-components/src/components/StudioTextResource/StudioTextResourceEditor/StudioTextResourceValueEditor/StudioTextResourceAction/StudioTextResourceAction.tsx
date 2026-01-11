@@ -82,7 +82,7 @@ export const StudioTextResourceAction = ({
     if (currentTextResourceId !== textResourceId) {
       handleIdChange(currentTextResourceId);
     }
-    if (currentTextResourceValue !== initialValue) {
+    if (currentTextResourceValue && currentTextResourceValue !== initialValue) {
       handleValueChange(currentTextResourceId, currentTextResourceValue);
     }
     setIsOpen(false);
