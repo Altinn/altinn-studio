@@ -39,11 +39,17 @@ internal static class HandleAlerts
     }
 
     internal static async Task<IResult> NotifyAlertsUpdatedAsync(
+        HttpRequest request,
         DesignerClient designerClient,
         CancellationToken cancellationToken,
         string environment = "prod"
     )
     {
+        request.EnableBuffering();
+        using var reader = new StreamReader(request.Body);
+        string body = await reader.ReadToEndAsync(cancellationToken);
+        Console.WriteLine($"Grafana alert payload: {body}");
+
         await designerClient.NotifyAlertsUpdatedAsync(environment, cancellationToken);
         return Results.Ok();
     }
