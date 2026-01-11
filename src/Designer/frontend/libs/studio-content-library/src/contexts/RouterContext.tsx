@@ -13,7 +13,9 @@ export type RouterContextProviderProps = {
   children: React.ReactNode;
 };
 
-export const RouterContextProvider = ({ children }: RouterContextProviderProps) => {
+export const RouterContextProvider = ({
+  children,
+}: RouterContextProviderProps): React.ReactElement => {
   const { navigate, currentPage } = useNavigation();
 
   return (

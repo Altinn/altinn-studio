@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PagesRouter } from './PagesRouter';
+import { Menu } from './Menu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RouterContext } from '../../../contexts/RouterContext';
 import { PageName } from '../../../types/PageName';
@@ -11,9 +11,9 @@ import { mockPagesConfig } from '../../../../mocks/mockPagesConfig';
 
 const navigateMock = jest.fn();
 
-describe('PagesRouter', () => {
+describe('Menu', () => {
   it('renders the pages as navigation titles', () => {
-    renderPagesRouter();
+    renderMenu();
     const codeListNavTitle = screen.getByRole('tab', {
       name: textMock('app_content_library.code_lists_with_text_resources.page_name'),
     });
@@ -26,7 +26,7 @@ describe('PagesRouter', () => {
 
   it('calls navigate from RouterContext when clicking on a page that is not selected', async () => {
     const user = userEvent.setup();
-    renderPagesRouter();
+    renderMenu();
     const imagesNavTitle = screen.getByRole('tab', {
       name: textMock('app_content_library.images.page_name'),
     });
@@ -36,17 +36,17 @@ describe('PagesRouter', () => {
   });
 });
 
-const renderPagesRouter = (
+const renderMenu = (
   config: ContentLibraryConfig = {
     heading: 'Test library',
     pages: mockPagesConfig,
   },
-) => {
+): void => {
   renderWithProviders(
     <RouterContext.Provider
       value={{ currentPage: PageName.CodeListsWithTextResources, navigate: navigateMock }}
     >
-      <PagesRouter config={config} />
+      <Menu config={config} />
     </RouterContext.Provider>,
   );
 };

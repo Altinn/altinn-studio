@@ -9,10 +9,11 @@ internal static class KubernetesServiceRegistration
         services.AddSingleton<IKubernetes>(_ =>
         {
             var config = KubernetesClientConfiguration.InClusterConfig();
-            return new k8s.Kubernetes(config);
+            return new Kubernetes(config);
         });
 
         services.AddSingleton<HelmReleaseClient>();
+        services.AddSingleton<PodsClient>();
         services.AddSingleton<OciRepositoryClient>();
         services.AddSingleton<KustomizationClient>();
 

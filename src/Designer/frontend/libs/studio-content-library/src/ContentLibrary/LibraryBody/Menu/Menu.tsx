@@ -6,14 +6,14 @@ import type { ContentLibraryConfig } from '../../../types/ContentLibraryConfig';
 import type { Page } from '../../../pages/Page';
 import { pages } from '../../../pages';
 
-type PagesRouterProps = {
+type MenuProps = {
   config: ContentLibraryConfig;
 };
 
-export function PagesRouter({ config }: PagesRouterProps): React.ReactElement {
+export function Menu({ config }: MenuProps): React.ReactElement {
   const { navigate, currentPage } = useRouterContext();
 
-  const handleNavigation = (pageToNavigateTo: PageName) => {
+  const handleNavigation = (pageToNavigateTo: PageName): void => {
     navigate(pageToNavigateTo);
   };
 
