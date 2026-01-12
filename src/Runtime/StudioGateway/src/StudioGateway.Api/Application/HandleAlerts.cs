@@ -42,7 +42,9 @@ internal static class HandleAlerts
 
     internal static async Task<IResult> NotifyAlertsUpdatedAsync(
         GatewayContext gatewayContext,
+        IServiceProvider serviceProvider,
         ISlackClient slackClient,
+        MetricsClientSettings metricsClientSettings,
         DesignerClient designerClient,
         AlertPayload alertPayload,
         ILogger<Program> logger,
@@ -58,13 +60,17 @@ internal static class HandleAlerts
         await Task.WhenAll(
             alertsByName.Select(group =>
                 SendSlackNotificationAsync(
+                    gatewayContext,
+                    serviceProvider,
                     slackClient,
+                    metricsClientSettings,
                     logger,
                     gatewayContext.ServiceOwner,
                     gatewayContext.Environment,
                     group.Select(a => a.Labels.GetValueOrDefault("cloud_RoleName", "unknown")).ToList(),
                     environment,
                     group.Key,
+                    group.First().Labels["RuleId"],
                     group.First().GeneratorURL,
                     cancellationToken
                 )
@@ -77,13 +83,17 @@ internal static class HandleAlerts
     }
 
     private static async Task SendSlackNotificationAsync(
+        GatewayContext gatewayContext,
+        IServiceProvider serviceProvider,
         ISlackClient slackClient,
+        MetricsClientSettings metricsClientSettings,
         ILogger logger,
         string org,
         string env,
         List<string> apps,
         string studioEnv,
         string status,
+        string ruleId,
         string url,
         CancellationToken cancellationToken
     )
@@ -113,6 +123,12 @@ internal static class HandleAlerts
                             new SlackText { Type = "mrkdwn", Text = $"Apps: {appsList}" },
                             new SlackText { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
                             new SlackText { Type = "mrkdwn", Text = $"<{url}|Grafana>" },
+                            new SlackText
+                            {
+                                Type = "mrkdwn",
+                                Text =
+                                    $"<{HandleMetrics.GetAppErrorMetricsLogsAsync(gatewayContext, serviceProvider, metricsClientSettings, appsList, ruleId, 5)}|Application Insights>",
+                            },
                         ],
                     },
                 ],
