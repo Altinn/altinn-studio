@@ -1,3 +1,5 @@
+using System.Net;
+using System.Text.Json;
 using k8s;
 
 namespace StudioGateway.Api.Clients.K8s;
@@ -12,17 +14,21 @@ internal sealed class HelmReleaseClient(IKubernetes kubernetes)
     private const string HelmReleasePlural = "helmreleases";
 
     /// <summary>
-    /// Checks if a HelmRelease exists
+    /// Gets a single HelmRelease
     /// </summary>
     /// <param name="name">Name of the HelmRelease</param>
     /// <param name="namespace">Namespace of the HelmRelease</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>True if the HelmRelease exists, false otherwise</returns>
-    public async Task<bool> ExistsAsync(string name, string @namespace, CancellationToken cancellationToken = default)
+    /// <returns>HelmRelease if exists, or null if not found</returns>
+    public async Task<HelmRelease?> GetAsync(
+        string name,
+        string @namespace,
+        CancellationToken cancellationToken = default
+    )
     {
         try
         {
-            await kubernetes.CustomObjects.GetNamespacedCustomObjectAsync(
+            var obj = await kubernetes.CustomObjects.GetNamespacedCustomObjectAsync(
                 HelmReleaseGroup,
                 HelmReleaseVersion,
                 @namespace,
@@ -30,53 +36,19 @@ internal sealed class HelmReleaseClient(IKubernetes kubernetes)
                 name,
                 cancellationToken
             );
-            return true;
+
+            if (obj is not JsonElement element)
+            {
+                throw new InvalidOperationException(
+                    $"Expected JsonElement when retrieving HelmRelease '{name}' in namespace '{@namespace}', but got '{obj?.GetType().FullName ?? "null"}'."
+                );
+            }
+
+            return new HelmRelease(element);
         }
-        catch (k8s.Autorest.HttpOperationException ex)
-            when (ex.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        catch (k8s.Autorest.HttpOperationException ex) when (ex.Response.StatusCode == HttpStatusCode.NotFound)
         {
-            return false;
+            return null;
         }
-    }
-
-    /// <summary>
-    /// Gets the labels from a HelmRelease.
-    /// Use <see cref="ExistsAsync"/> first to check if the HelmRelease exists.
-    /// </summary>
-    /// <param name="name">Name of the HelmRelease</param>
-    /// <param name="namespace">Namespace of the HelmRelease</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Dictionary of labels (empty if none)</returns>
-    public async Task<Dictionary<string, string>> GetLabelsAsync(
-        string name,
-        string @namespace,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var helmRelease = await kubernetes.CustomObjects.GetNamespacedCustomObjectAsync(
-            HelmReleaseGroup,
-            HelmReleaseVersion,
-            @namespace,
-            HelmReleasePlural,
-            name,
-            cancellationToken
-        );
-
-        if (
-            helmRelease is not System.Text.Json.JsonElement element
-            || !element.TryGetProperty("metadata", out var metadata)
-            || !metadata.TryGetProperty("labels", out var labels)
-        )
-            return [];
-
-        var result = new Dictionary<string, string>();
-        foreach (var property in labels.EnumerateObject())
-        {
-            var value = property.Value.GetString();
-            if (value is not null)
-                result[property.Name] = value;
-        }
-
-        return result;
     }
 }

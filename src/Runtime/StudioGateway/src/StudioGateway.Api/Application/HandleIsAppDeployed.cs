@@ -15,7 +15,7 @@ internal static class HandleIsAppDeployed
     )
     {
         var helmReleaseName = HelmReleaseNameHelper.Generate(gatewayContext.ServiceOwner, app, originEnvironment);
-        var exists = await helmReleaseClient.ExistsAsync(helmReleaseName, "default", cancellationToken);
-        return Results.Ok(new IsAppDeployedResponse(exists));
+        var helmRelease = await helmReleaseClient.GetAsync(helmReleaseName, "default", cancellationToken);
+        return Results.Ok(new IsAppDeployedResponse(helmRelease != null));
     }
 }

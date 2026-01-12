@@ -2,7 +2,7 @@ using System;
 using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 
-namespace Altinn.Studio.Designer.Models;
+namespace Altinn.Studio.Designer.Models.Dto;
 
 public class PublishedApplication
 {

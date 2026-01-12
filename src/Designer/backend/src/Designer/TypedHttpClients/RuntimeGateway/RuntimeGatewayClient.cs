@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -20,6 +21,20 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         _httpClientFactory = httpClientFactory;
         _generalSettings = generalSettings;
         _environmentsService = environmentsService;
+    }
+
+    public async Task<AppDeployment> GetAppDeployment(string org, string app, AltinnEnvironment environment, CancellationToken cancellationToken)
+    {
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        var originEnvironment = GetOriginEnvironment();
+        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{originEnvironment}";
+
+        var response = await client.GetFromJsonAsync<AppDeployment>(requestUrl, cancellationToken);
+        return response
+            ?? throw new InvalidOperationException(
+                "Received empty or null response body when deserializing AppDeployment."
+            );
     }
 
     public async Task<bool> IsAppDeployedWithGitOpsAsync(string org, string app, AltinnEnvironment environment, CancellationToken cancellationToken)

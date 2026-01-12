@@ -1,4 +1,3 @@
-#nullable disable
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -69,9 +68,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
             });
 
-            KubernetesDeployment[] kubernetesDeployments = await Task.WhenAll(getDeploymentTasks);
-
-            return kubernetesDeployments.Where(d => d is not null).ToList();
+            KubernetesDeployment?[] kubernetesDeployments = await Task.WhenAll(getDeploymentTasks);
+            return kubernetesDeployments.OfType<KubernetesDeployment>().ToList();
         }
 
         public async Task<Dictionary<string, List<KubernetesDeployment>>> GetAsync(

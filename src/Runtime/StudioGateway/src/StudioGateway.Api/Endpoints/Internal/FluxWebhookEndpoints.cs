@@ -112,14 +112,10 @@ internal static class FluxWebhookEndpoints
         CancellationToken cancellationToken
     )
     {
-        var exists = await helmReleaseClient.ExistsAsync(helmReleaseName, helmReleaseNamespace, cancellationToken);
-        if (exists)
+        var helmRelease = await helmReleaseClient.GetAsync(helmReleaseName, helmReleaseNamespace, cancellationToken);
+        if (helmRelease != null)
         {
-            var labels = await helmReleaseClient.GetLabelsAsync(
-                helmReleaseName,
-                helmReleaseNamespace,
-                cancellationToken
-            );
+            var labels = helmRelease.GetLabels();
 
             string[] requiredLabels =
             [
