@@ -51,7 +51,7 @@ internal static class HandleAlerts
     )
     {
         var alertsByName = alertPayload
-            .Alerts.Where(a => a.Labels.ContainsKey("alertname"))
+            .Alerts.Where(a => a.Status == "firing" && a.Labels.ContainsKey("alertname"))
             .GroupBy(a => a.Labels["alertname"])
             .ToList();
 
