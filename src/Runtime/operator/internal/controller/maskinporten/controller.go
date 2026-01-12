@@ -14,6 +14,7 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -188,6 +189,39 @@ func (r *MaskinportenClientReconciler) randomizeDuration(d time.Duration, perc f
 	max := int64(float64(d) * (perc / 100.0))
 	min := -max
 	return d + time.Duration(r.random.Int64N(max-min)+min)
+}
+
+const maxSecretUpdateRetries = 3
+
+// updateSecretWithRetry updates a secret with retry on conflict.
+// This handles race conditions when multiple controllers write to the same secret.
+func (r *MaskinportenClientReconciler) updateSecretWithRetry(
+	ctx context.Context,
+	secret *corev1.Secret,
+	updateFn func(*corev1.Secret) error,
+) error {
+	logger := log.FromContext(ctx)
+	for attempt := range maxSecretUpdateRetries {
+		updatedSecret := secret.DeepCopy()
+		if err := updateFn(updatedSecret); err != nil {
+			return err
+		}
+		err := r.Update(ctx, updatedSecret)
+		if err == nil {
+			return nil
+		}
+		if !apierrors.IsConflict(err) {
+			return err
+		}
+		logger.Info("conflict updating secret, retrying",
+			"attempt", attempt+1,
+			"secretName", secret.Name,
+		)
+		if err := r.Get(ctx, client.ObjectKeyFromObject(secret), secret); err != nil {
+			return fmt.Errorf("refresh secret: %w", err)
+		}
+	}
+	return fmt.Errorf("failed to update secret after %d attempts", maxSecretUpdateRetries)
 }
 
 const maxActionHistorySize = 10
@@ -659,13 +693,10 @@ func (r *MaskinportenClientReconciler) reconcile(
 				currentState.Secret.Manifest != nil,
 				"Secret.Manifest must exist for UpdateSecretContentCommand",
 			)
-			updatedSecret := currentState.Secret.Manifest.DeepCopy()
-			if err := data.SecretContent.SerializeTo(updatedSecret); err != nil {
-				builders[i].WithUpdateSecretContentResult(&maskinporten.UpdateSecretContentCommandResult{Err: err})
-				firstErr = err
-				continue
-			}
-			if err := r.Update(ctx, updatedSecret); err != nil {
+			err := r.updateSecretWithRetry(ctx, currentState.Secret.Manifest, func(s *corev1.Secret) error {
+				return data.SecretContent.SerializeTo(s)
+			})
+			if err != nil {
 				builders[i].WithUpdateSecretContentResult(&maskinporten.UpdateSecretContentCommandResult{Err: err})
 				firstErr = err
 				continue
@@ -700,10 +731,11 @@ func (r *MaskinportenClientReconciler) reconcile(
 				currentState.Secret.Manifest != nil,
 				"Secret.Manifest must exist for DeleteSecretContentCommand",
 			)
-			updatedSecret := currentState.Secret.Manifest.DeepCopy()
-			maskinporten.DeleteSecretStateContent(updatedSecret)
-
-			if err := r.Update(ctx, updatedSecret); err != nil {
+			err := r.updateSecretWithRetry(ctx, currentState.Secret.Manifest, func(s *corev1.Secret) error {
+				maskinporten.DeleteSecretStateContent(s)
+				return nil
+			})
+			if err != nil {
 				builders[i].WithDeleteSecretContentResult(&maskinporten.DeleteSecretContentCommandResult{Err: err})
 				firstErr = err
 				continue

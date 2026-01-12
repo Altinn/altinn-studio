@@ -23,7 +23,7 @@ export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
   const { title } = textResourceBindings ?? {};
   const isMobile = useIsMobile();
 
-  const { schemaLookup } = DataModels.useFullStateRef().current;
+  const schemaLookup = DataModels.useSchemaLookup();
 
   if (!dataModelBindings) {
     return null;

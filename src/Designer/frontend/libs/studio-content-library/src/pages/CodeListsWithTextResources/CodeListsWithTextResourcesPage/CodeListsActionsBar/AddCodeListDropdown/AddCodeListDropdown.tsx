@@ -43,22 +43,23 @@ export function AddCodeListDropdown({
 
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
 
-  const onSubmit = (file: File) => {
+  const onSubmit = (file: File): void => {
     const fileNameError = FileNameUtils.findFileNameError(
       FileNameUtils.removeExtension(file.name),
       codeListNames,
     );
     if (fileNameError) {
-      return toast.error(getInvalidUploadFileNameErrorMessage(fileNameError));
+      toast.error(getInvalidUploadFileNameErrorMessage(fileNameError));
+    } else {
+      onUploadCodeList(file);
     }
-    onUploadCodeList(file);
   };
 
-  const handleOpenAddCodeListDialog = () => {
+  const handleOpenAddCodeListDialog = (): void => {
     addCodeListRef.current?.showModal();
   };
 
-  const handleOpenImportCodeListDialog = () => {
+  const handleOpenImportCodeListDialog = (): void => {
     importCodeListRef.current?.showModal();
   };
 

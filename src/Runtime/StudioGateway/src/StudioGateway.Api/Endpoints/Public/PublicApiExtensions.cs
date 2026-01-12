@@ -4,7 +4,10 @@ internal static class PublicApiExtensions
 {
     public static WebApplication AddPublicApis(this WebApplication app)
     {
-        app.MapHealthEndpoints().MapDeployEndpoints();
+        app.MapHealthEndpoints();
+        app.MapDeployEndpoints();
+        app.MapAlertsEndpoints();
+        app.MapMetricsEndpoints();
         return app;
     }
 }

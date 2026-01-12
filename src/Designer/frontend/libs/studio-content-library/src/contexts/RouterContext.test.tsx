@@ -7,7 +7,7 @@ import { PageName } from '../types/PageName';
 
 jest.mock('../hooks/useNavigation');
 
-const MockComponent = () => {
+const MockComponent = (): React.ReactElement => {
   const { currentPage, navigate } = useRouterContext();
 
   return (
@@ -58,7 +58,7 @@ describe('RouterContext', () => {
 
   it('should throw an error when useRouterContext is used outside of a RouterContextProvider', () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const TestComponent = () => {
+    const TestComponent = (): React.ReactElement => {
       useRouterContext();
       return <div>Test</div>;
     };
