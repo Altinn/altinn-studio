@@ -39,6 +39,7 @@ public class HomeController : Controller
     /// <param name="appSettings">The application settings</param>
     /// <param name="appResources">The application resources service</param>
     /// <param name="appMetadata">The application metadata service</param>
+    /// <param name="generalSettings">General settings service</param>
     public HomeController(
         IAntiforgery antiforgery,
         IOptions<PlatformSettings> platformSettings,
@@ -94,7 +95,7 @@ public class HomeController : Controller
         {
             ViewBag.org = org;
             ViewBag.app = app;
-            return PartialView("Index");
+            return Content(GenerateHtml(org, app), "text/html; charset=utf-8");
         }
 
         string scheme = _env.IsDevelopment() ? "http" : "https";
@@ -113,6 +114,45 @@ public class HomeController : Controller
         }
 
         return Redirect(redirectUrl);
+    }
+
+    private string GenerateHtml(string org, string app)
+    {
+        var cdnUrl = "https://altinncdn.no/toolkits/altinn-app-frontend";
+
+        var specifyFrontendVersion = true;
+
+        if (HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var frontendVersionCookie))
+        {
+            cdnUrl = frontendVersionCookie.TrimEnd('/');
+            specifyFrontendVersion = false;
+        }
+
+        // Don't append version if using custom frontend URL
+        var appVersion = specifyFrontendVersion ? "4/" : "";
+        var htmlContent = $$"""
+            <!DOCTYPE html>
+            <html lang="no">
+            <head>
+              <meta charset="utf-8">
+              <meta http-equiv="X-UA-Compatible" content="IE=edge">
+              <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+              <title>{{org}} - {{app}}</title>
+              <link rel="icon" href="https://altinncdn.no/favicon.ico">
+              <link rel="stylesheet" type="text/css" href="{{cdnUrl}}/{{appVersion}}altinn-app-frontend.css">
+            </head>
+            <body>
+              <div id="root"></div>
+              <script>
+                window.org = '{{org}}';
+                window.app = '{{app}}';
+              </script>
+              <script src="{{cdnUrl}}/{{appVersion}}altinn-app-frontend.js"></script>
+            </body>
+            </html>
+            """;
+
+        return htmlContent;
     }
 
     /// <summary>
