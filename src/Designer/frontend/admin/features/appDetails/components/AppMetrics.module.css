@@ -1,0 +1,20 @@
+.container {
+  flex: 1;
+}
+
+.metric {
+  max-width: 360px;
+}
+
+.heading {
+  margin-bottom: var(--ds-size-8);
+}
+
+.content {
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: row;
+  gap: var(--ds-size-4);
+  flex-wrap: wrap;
+  align-items: start;
+}
