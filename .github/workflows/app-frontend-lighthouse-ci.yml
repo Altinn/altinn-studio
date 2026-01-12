@@ -55,7 +55,7 @@ jobs:
       - name: Run Lighthouse CI
         id: lighthouse-ci
         env:
-          ENV: 'CI'
+          ENV: 'CI' # Signals to src/App/frontend/lighthouserc.js that we're running in CI
         working-directory: src/App/frontend
         run: |
           set -e # exit on any failure
