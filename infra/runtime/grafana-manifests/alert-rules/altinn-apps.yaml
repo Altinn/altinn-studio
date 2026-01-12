@@ -10,7 +10,7 @@ spec:
       dashboards: external-grafana
   interval: 5m
   rules:
-    - uid: failed-process-next-requests
+    - uid: failed_process_next_requests
       title: Feilende process/next
       condition: C
       data:
@@ -102,10 +102,10 @@ spec:
         __panelId__: "14"
         summary: '`{{ index $labels "cloud_RoleName" }}` har hatt feilende process/next siste 5 minutter'
       labels:
-        RuleId: failed-process-next-requests
+        RuleId: failed_process_next_requests
         Type: Altinn
       isPaused: false
-    - uid: failed-instances-post-requests
+    - uid: failed-instances-requests
       title: Feilende instansieringer
       condition: C
       data:
@@ -199,6 +199,6 @@ spec:
         __panelId__: "14"
         summary: '`{{ index $labels "cloud_RoleName" }}` har hatt feilende instansieringer siste 5 minutter'
       labels:
-        RuleId: failed-instances-post-requests
+        RuleId: failed_instances_requests
         Type: Altinn
       isPaused: false
