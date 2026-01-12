@@ -127,8 +127,7 @@ public class HomeController : Controller
             cdnUrl = frontendVersionCookie.TrimEnd('/');
             specifyFrontendVersion = false;
         }
-
-        // Don't append version if using custom frontend URL
+        
         var appVersion = specifyFrontendVersion ? "4/" : "";
         var htmlContent = $$"""
             <!DOCTYPE html>
