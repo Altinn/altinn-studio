@@ -1,4 +1,5 @@
 using Azure;
+using Azure.Identity;
 using Azure.Monitor.Query.Logs;
 using Azure.Monitor.Query.Logs.Models;
 using Azure.ResourceManager;
@@ -60,9 +61,8 @@ internal sealed partial class AzureMonitorClient(
         var workspace = await rg.Value.GetOperationalInsightsWorkspaces().GetAsync(workspaceName);
 
         _workspaceId =
-            workspace.Value.Data.CustomerId?.ToString() ?? throw new InvalidOperationException(
-                "Log Analytics Workspace ID not found."
-            );
+            workspace.Value.Data.CustomerId?.ToString()
+            ?? throw new InvalidOperationException("Log Analytics Workspace ID not found.");
 
         return _workspaceId;
     }
@@ -113,11 +113,10 @@ internal sealed partial class AzureMonitorClient(
                     };
                 });
         }
-        catch (RequestFailedException ex)
+        // This is a temporary code until access to Azure Monitor is resolved (https://github.com/Altinn/altinn-platform/issues/2758)
+        catch (CredentialUnavailableException ex)
         {
-            logger.LogError(ex, "Failed to get failed requests from Azure Monitor");
-
-            // This is a temporary code until access to Azure Monitor is resolved (https://github.com/Altinn/altinn-platform/issues/2758)
+            logger.LogError(ex, "Failed to fetch failed requests: Azure Monitor credentials unavailable");
             return [];
         }
     }
@@ -171,7 +170,11 @@ internal sealed partial class AzureMonitorClient(
                     return new AppFailedRequest
                     {
                         Name = row.Key,
-                        DataPoints = row.Select(e => new DataPoint { DateTimeOffset = e.DateTimeOffset, Count = e.Count }),
+                        DataPoints = row.Select(e => new DataPoint
+                        {
+                            DateTimeOffset = e.DateTimeOffset,
+                            Count = e.Count,
+                        }),
                     };
                 });
 
@@ -180,11 +183,10 @@ internal sealed partial class AzureMonitorClient(
                 ?? new AppFailedRequest { Name = name.Key, DataPoints = [] }
             );
         }
-        catch (RequestFailedException ex)
+        // This is a temporary code until access to Azure Monitor is resolved (https://github.com/Altinn/altinn-platform/issues/2758)
+        catch (CredentialUnavailableException ex)
         {
-            logger.LogError(ex, "Failed to get failed requests for app {App} from Azure Monitor", app);
-
-            // This is a temporary code until access to Azure Monitor is resolved (https://github.com/Altinn/altinn-platform/issues/2758)
+            logger.LogError(ex, "Failed to fetch failed requests for app {App}: Azure Monitor credentials unavailable", app);
             return _operationNames.Select(name => new AppFailedRequest { Name = name.Key, DataPoints = [] });
         }
     }
@@ -237,7 +239,11 @@ internal sealed partial class AzureMonitorClient(
                     return new AppMetric
                     {
                         Name = row.Key,
-                        DataPoints = row.Select(e => new DataPoint { DateTimeOffset = e.DateTimeOffset, Count = e.Count }),
+                        DataPoints = row.Select(e => new DataPoint
+                        {
+                            DateTimeOffset = e.DateTimeOffset,
+                            Count = e.Count,
+                        }),
                     };
                 });
 
@@ -245,11 +251,10 @@ internal sealed partial class AzureMonitorClient(
                 metrics.FirstOrDefault(metric => metric.Name == name) ?? new AppMetric { Name = name, DataPoints = [] }
             );
         }
-        catch (RequestFailedException ex)
+        // This is a temporary code until access to Azure Monitor is resolved (https://github.com/Altinn/altinn-platform/issues/2758)
+        catch (CredentialUnavailableException ex)
         {
-            logger.LogError(ex, "Failed to get metrics for app {App} from Azure Monitor", app);
-
-            // This is a temporary code until access to Azure Monitor is resolved (https://github.com/Altinn/altinn-platform/issues/2758)
+            logger.LogError(ex, "Failed to fetch app metrics for app {App}: Azure Monitor credentials unavailable", app);
             return names.Select(name => new AppMetric { Name = name, DataPoints = [] });
         }
     }
