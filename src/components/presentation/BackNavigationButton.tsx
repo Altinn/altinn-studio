@@ -18,7 +18,7 @@ import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { getDialogIdFromDataValues, getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 
-export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
+export function BackNavigationButton(props: { className?: string }) {
   const { langAsString } = useLanguage();
   const isMobile = useIsMobile();
   const party = useSelectedParty();
@@ -50,7 +50,6 @@ export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
         isLoading={isExitingSubform}
         variant='tertiary'
         size='sm'
-        {...props}
         className={cn(classes.button, props.className)}
       >
         {!isExitingSubform && (
@@ -73,7 +72,6 @@ export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
         asChild
         variant='tertiary'
         size='sm'
-        {...props}
         className={cn(classes.button, props.className)}
       >
         <a href={returnUrl}>
@@ -93,7 +91,6 @@ export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
         asChild
         variant='tertiary'
         size='sm'
-        {...props}
         className={cn(classes.button, props.className)}
       >
         <a href={messageBoxUrl}>
