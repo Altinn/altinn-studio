@@ -107,7 +107,7 @@ internal static class HandleAlerts
                             new SlackText { Type = "mrkdwn", Text = $"Env: `{env}`" },
                             new SlackText { Type = "mrkdwn", Text = $"Apps: {appsList}" },
                             new SlackText { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
-                            new SlackText { Type = "mrkdwn", Text = $"{url}|Grafana>" },
+                            new SlackText { Type = "mrkdwn", Text = $"<{url}|Grafana>" },
                         ],
                     },
                 ],
