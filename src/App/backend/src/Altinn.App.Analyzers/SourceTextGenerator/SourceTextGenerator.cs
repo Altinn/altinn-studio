@@ -53,9 +53,6 @@ public static class SourceTextGenerator
         builder.Append("\r\n    #region Getters\r\n");
         GetterGenerator.Generate(builder, rootNode);
         builder.Append("\r\n    #endregion Getters\r\n");
-        builder.Append("    #region Setters\r\n");
-        SetterGenerator.Generate(builder, rootNode);
-        builder.Append("\r\n    #endregion Setters\r\n");
         builder.Append("    #region AddIndexToPath\r\n");
         AddIndexToPathGenerator.Generate(builder, rootNode);
         builder.Append("\r\n    #endregion AddIndexToPath\r\n");
@@ -71,96 +68,6 @@ public static class SourceTextGenerator
 
         builder.Append(
             $$"""
-                private static bool TrySetValue<T>(global::System.Action<T> setter, object? value)
-                {
-                    if (value is null)
-                    {
-                        if (typeof(T).IsValueType && global::System.Nullable.GetUnderlyingType(typeof(T)) is null)
-                        {
-                            return false;
-                        }
-                        setter(default(T)!);
-                        return true;
-                    }
-
-                    if (value is T typedValue)
-                    {
-                        setter(typedValue);
-                        return true;
-                    }
-
-                    try
-                    {
-                        var targetType = typeof(T);
-                        var underlyingType = global::System.Nullable.GetUnderlyingType(targetType);
-                        if (underlyingType is not null)
-                        {
-                            targetType = underlyingType;
-                        }
-
-                        if (targetType == typeof(string))
-                        {
-                            setter((T)(object)value.ToString()!);
-                            return true;
-                        }
-
-                        if (targetType == typeof(int))
-                        {
-                            setter((T)(object)global::System.Convert.ToInt32(value, global::System.Globalization.CultureInfo.InvariantCulture));
-                            return true;
-                        }
-
-                        if (targetType == typeof(long))
-                        {
-                            setter((T)(object)global::System.Convert.ToInt64(value, global::System.Globalization.CultureInfo.InvariantCulture));
-                            return true;
-                        }
-
-                        if (targetType == typeof(decimal))
-                        {
-                            setter((T)(object)global::System.Convert.ToDecimal(value, global::System.Globalization.CultureInfo.InvariantCulture));
-                            return true;
-                        }
-
-                        if (targetType == typeof(double))
-                        {
-                            setter((T)(object)global::System.Convert.ToDouble(value, global::System.Globalization.CultureInfo.InvariantCulture));
-                            return true;
-                        }
-
-                        if (targetType == typeof(float))
-                        {
-                            setter((T)(object)global::System.Convert.ToSingle(value, global::System.Globalization.CultureInfo.InvariantCulture));
-                            return true;
-                        }
-
-                        if (targetType == typeof(bool))
-                        {
-                            setter((T)(object)global::System.Convert.ToBoolean(value, global::System.Globalization.CultureInfo.InvariantCulture));
-                            return true;
-                        }
-
-                        if (targetType == typeof(global::System.DateTime))
-                        {
-                            setter((T)(object)global::System.Convert.ToDateTime(value, global::System.Globalization.CultureInfo.InvariantCulture));
-                            return true;
-                        }
-
-                        if (targetType.IsEnum)
-                        {
-                            setter((T)global::System.Enum.Parse(targetType, value.ToString() ?? string.Empty));
-                            return true;
-                        }
-
-                        setter((T)global::System.Convert.ChangeType(value, targetType, global::System.Globalization.CultureInfo.InvariantCulture));
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
-                }
-
                 public static global::System.ReadOnlySpan<char> ParseSegment(global::System.ReadOnlySpan<char> path, int offset, out int nextOffset, out int literalIndex)
                 {
                     if (offset < 0 || offset > path.Length)
