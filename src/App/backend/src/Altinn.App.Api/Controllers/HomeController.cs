@@ -127,7 +127,6 @@ public class HomeController : Controller
             cdnUrl = frontendVersionCookie.TrimEnd('/');
             specifyFrontendVersion = false;
         }
-        
         var appVersion = specifyFrontendVersion ? "4/" : "";
         var htmlContent = $$"""
             <!DOCTYPE html>
