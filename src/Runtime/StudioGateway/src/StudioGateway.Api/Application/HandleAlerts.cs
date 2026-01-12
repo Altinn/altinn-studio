@@ -45,27 +45,31 @@ internal static class HandleAlerts
         ISlackClient slackClient,
         DesignerClient designerClient,
         AlertPayload alertPayload,
-        ILogger logger,
+        ILogger<Program> logger,
         CancellationToken cancellationToken,
         string environment = "prod"
     )
     {
-        var alertsByName = alertPayload.Alerts
-            .Where(a => a.Labels.ContainsKey("alertname"))
+        var alertsByName = alertPayload
+            .Alerts.Where(a => a.Labels.ContainsKey("alertname"))
             .GroupBy(a => a.Labels["alertname"])
             .ToList();
 
-        await Task.WhenAll(alertsByName.Select(group => SendSlackNotificationAsync(
-                slackClient,
-                logger,
-                gatewayContext.ServiceOwner,
-                gatewayContext.Environment,
-                group.Select(a => a.Labels.GetValueOrDefault("cloud_RoleName", "unknown")).ToList(),
-                environment,
-                group.Key,
-                group.First().GeneratorURL,
-                cancellationToken)
-        ));
+        await Task.WhenAll(
+            alertsByName.Select(group =>
+                SendSlackNotificationAsync(
+                    slackClient,
+                    logger,
+                    gatewayContext.ServiceOwner,
+                    gatewayContext.Environment,
+                    group.Select(a => a.Labels.GetValueOrDefault("cloud_RoleName", "unknown")).ToList(),
+                    environment,
+                    group.Key,
+                    group.First().GeneratorURL,
+                    cancellationToken
+                )
+            )
+        );
 
         await designerClient.NotifyAlertsUpdatedAsync(environment, cancellationToken);
 
