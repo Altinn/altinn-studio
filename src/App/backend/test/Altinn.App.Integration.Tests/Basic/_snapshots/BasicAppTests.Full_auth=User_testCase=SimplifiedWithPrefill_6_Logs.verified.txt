@@ -31,6 +31,9 @@
 [basic/default] [INFO] IProcessTaskStart.Start
 [basic/default] [INFO] IInstantiationProcessor.DataCreation
 [basic/default] [INFO] IDataProcessor.ProcessDataRead
+[basic/default] [INFO] IValidator.Validate
+[basic/default] [INFO] IFormDataValidator.ValidateFormData
+[basic/default] [INFO] IExternalApiClient.GetExternalApiDataAsync
 fail: Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask.EndTaskEventHandler[0]
       Error executing pdf service task. Unlocking data again.
       Altinn.App.Core.Internal.Pdf.PdfGenerationException: Pdf generation failed
