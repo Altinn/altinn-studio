@@ -856,6 +856,11 @@ public sealed partial class AppFixture : IAsyncDisposable
     {
         var appDirectory = GetAppDir(name);
         var frontendBuildDir = Path.Join(_repoSourceDirectory, "App", "frontend", "dist");
+        if (!Directory.Exists(frontendBuildDir))
+            throw new DirectoryNotFoundException(
+                $"Expected frontend build directory '{frontendBuildDir}' to exist, but no directory was found. Make sure the frontend has been built (cd src/App/frontend && yarn run build) before running these tests."
+            );
+
         var appStaticFrontendDir = Path.Join(appDirectory, "wwwroot", "altinn-app-frontend");
         if (Directory.Exists(appStaticFrontendDir))
             Directory.Delete(appStaticFrontendDir, true);
