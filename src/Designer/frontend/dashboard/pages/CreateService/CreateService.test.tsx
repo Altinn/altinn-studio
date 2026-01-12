@@ -8,11 +8,11 @@ import type { Organization } from 'app-shared/types/Organization';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { repository, user as userMock } from 'app-shared/mocks/mocks';
-import { useParams } from 'react-router-dom';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { Subroute } from '../../enums/Subroute';
 import { SelectedContextType } from '../../enums/SelectedContextType';
+import { Route, Routes } from 'react-router-dom';
 
 const orgMock: Organization = {
   avatar_url: '',
@@ -23,8 +23,6 @@ const orgMock: Organization = {
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useNavigate: jest.fn(),
-  useParams: jest.fn().mockReturnValue(''),
 }));
 
 const mockUserLogin: string = 'test';
@@ -41,16 +39,31 @@ type RenderWithMockServicesProps = {
   services?: Partial<ServicesContextProps>;
   organizations?: Organization[];
   user?: User;
+  params?: {
+    subroute: string;
+    selectedContext?: string;
+  };
 };
 
 const renderWithMockServices = ({
   services,
   organizations,
   user,
+  params = { subroute: Subroute.AppDashboard },
 }: RenderWithMockServicesProps = {}) => {
+  const initialEntry = `/${params.subroute}/${params.selectedContext || ''}`;
   render(
-    <MockServicesContextWrapper client={null} customServices={services}>
-      <CreateService organizations={organizations || []} user={user || mockUser} />
+    <MockServicesContextWrapper
+      client={null}
+      customServices={services}
+      initialEntries={[initialEntry]}
+    >
+      <Routes>
+        <Route
+          path=':subroute?/:selectedContext?'
+          element={<CreateService organizations={organizations || []} user={user || mockUser} />}
+        />
+      </Routes>
     </MockServicesContextWrapper>,
   );
 };
@@ -80,9 +93,6 @@ describe('CreateService', () => {
 
   it('should show error messages when clicking create and no owner or name is filled in', async () => {
     const user = userEvent.setup();
-    const selectedContext = SelectedContextType.None;
-    const subroute = Subroute.AppDashboard;
-    (useParams as jest.Mock).mockReturnValue({ selectedContext, subroute });
     renderWithMockServices({ user: { ...mockUser, login: '' } });
 
     const createBtn: HTMLElement = screen.getByRole('button', {
@@ -310,9 +320,8 @@ describe('CreateService', () => {
   it('should set cancel link to /self when selected context is self', async () => {
     const selectedContext = SelectedContextType.Self;
     const subroute = Subroute.AppDashboard;
-    (useParams as jest.Mock).mockReturnValue({ selectedContext, subroute });
 
-    renderWithMockServices();
+    renderWithMockServices({ params: { subroute, selectedContext } });
     const cancelLink: HTMLElement = screen.getByRole('link', {
       name: textMock('general.cancel'),
     });
@@ -323,9 +332,8 @@ describe('CreateService', () => {
   it('should set cancel link to /all when selected context is all', async () => {
     const selectedContext = SelectedContextType.All;
     const subroute = Subroute.AppDashboard;
-    (useParams as jest.Mock).mockReturnValue({ selectedContext, subroute });
 
-    renderWithMockServices();
+    renderWithMockServices({ params: { subroute, selectedContext } });
     const cancelLink: HTMLElement = screen.getByRole('link', {
       name: textMock('general.cancel'),
     });
@@ -336,9 +344,8 @@ describe('CreateService', () => {
   it('should set cancel link to /org when selected context is org', async () => {
     const selectedContext = 'ttd';
     const subroute = Subroute.AppDashboard;
-    (useParams as jest.Mock).mockReturnValue({ selectedContext, subroute });
 
-    renderWithMockServices();
+    renderWithMockServices({ params: { subroute, selectedContext } });
     const cancelLink: HTMLElement = screen.getByRole('link', {
       name: textMock('general.cancel'),
     });

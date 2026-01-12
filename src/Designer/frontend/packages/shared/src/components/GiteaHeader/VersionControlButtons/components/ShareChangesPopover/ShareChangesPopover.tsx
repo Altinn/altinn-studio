@@ -28,7 +28,6 @@ export const ShareChangesPopover = () => {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [hasChangesToPush, setHasChangesToPush] = useState(true);
 
-  const fetchCompleted: boolean = !isLoading && !hasChangesToPush;
   const displayNotification: boolean =
     repoStatus?.contentStatus && repoStatus?.contentStatus?.length > 0 && !hasMergeConflict;
 
@@ -62,9 +61,6 @@ export const ShareChangesPopover = () => {
 
   return (
     <StudioPopover.TriggerContext>
-      {/* Used StudioPopover insted of StudioPageHeader because StudioPageHeader has not replaced with v1 yet,
-       and the component maybe needs some style before migration to v1.
-       */}
       <StudioPopover.Trigger
         className={classes.pushButton}
         onClick={handleOpenPopover}
@@ -82,7 +78,7 @@ export const ShareChangesPopover = () => {
         onClose={handleClosePopover}
         placement='bottom-end'
         data-color-scheme='light'
-        className={fetchCompleted ? classes.popoverContentCenter : classes.popoverContent}
+        className={classes.popoverContent}
       >
         {popoverOpen && (
           <>
@@ -92,7 +88,9 @@ export const ShareChangesPopover = () => {
             {!isLoading && hasChangesToPush && fileChanges && (
               <CommitAndPushContent onClosePopover={handleClosePopover} fileChanges={fileChanges} />
             )}
-            {fetchCompleted && <GiteaFetchCompleted heading={t('sync_header.nothing_to_push')} />}
+            {!isLoading && !hasChangesToPush && (
+              <GiteaFetchCompleted heading={t('sync_header.nothing_to_push')} />
+            )}
           </>
         )}
       </StudioPopover>

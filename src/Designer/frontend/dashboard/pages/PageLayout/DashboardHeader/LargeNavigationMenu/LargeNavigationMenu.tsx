@@ -30,7 +30,7 @@ function NavigationMenuItem({ menuItem }: NavigationMenuItemProps): ReactElement
   const selectedContext: string = useSelectedContext();
   const { t } = useTranslation();
   const location = useLocation();
-  const path: string = `${menuItem.link}/${selectedContext}`;
+  const path: string = `/${menuItem.link}/${selectedContext}`;
   const currentRoutePath: string = UrlUtils.extractSecondLastRouterParam(location.pathname);
 
   return (

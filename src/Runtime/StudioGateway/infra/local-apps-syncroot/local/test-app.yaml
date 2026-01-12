@@ -1,0 +1,32 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: test-app
+  namespace: default
+spec:
+  interval: 5m
+  insecure: true
+  provider: generic
+  ref:
+    tag: local
+  timeout: 5m
+  url: oci://kind-registry:5000/configs/test-app
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: test-app
+  namespace: default
+spec:
+  targetNamespace: default
+  interval: 5m
+  retryInterval: 5m
+  timeout: 1m
+  prune: true
+  force: false
+  wait: true
+  path: ./local
+  sourceRef:
+    kind: OCIRepository
+    name: test-app
+    namespace: default

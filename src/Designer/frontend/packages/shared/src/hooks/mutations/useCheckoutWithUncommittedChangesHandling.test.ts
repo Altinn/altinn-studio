@@ -8,7 +8,6 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
   const org = 'test-org';
   const app = 'test-app';
   const mockOnUncommittedChanges = jest.fn();
-  const mockOnSuccess = jest.fn();
   const mockOnOtherError = jest.fn();
 
   const mockRepoStatus: RepoStatus = {
@@ -20,12 +19,25 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
     currentBranch: 'main',
   };
 
+  const originalLocation = window.location;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { reload: jest.fn() },
+    });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: originalLocation,
+    });
   });
 
   describe('successful checkout', () => {
-    it('should call onSuccess when checkout succeeds', async () => {
+    it('should reload page when checkout succeeds', async () => {
       const checkoutBranch = jest
         .fn()
         .mockImplementation(() => Promise.resolve<RepoStatus>(mockRepoStatus));
@@ -34,7 +46,6 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
         () =>
           useCheckoutWithUncommittedChangesHandling(org, app, {
             onUncommittedChanges: mockOnUncommittedChanges,
-            onSuccess: mockOnSuccess,
             onOtherError: mockOnOtherError,
           }),
         {
@@ -47,12 +58,12 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
       });
 
       await waitFor(() => expect(checkoutBranch).toHaveBeenCalledWith(org, app, 'feature/test'));
-      await waitFor(() => expect(mockOnSuccess).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(window.location.reload).toHaveBeenCalled());
       expect(mockOnUncommittedChanges).not.toHaveBeenCalled();
       expect(mockOnOtherError).not.toHaveBeenCalled();
     });
 
-    it('should work without optional onSuccess callback', async () => {
+    it('should work without optional onOtherError callback', async () => {
       const checkoutBranch = jest
         .fn()
         .mockImplementation(() => Promise.resolve<RepoStatus>(mockRepoStatus));
@@ -72,6 +83,7 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
       });
 
       await waitFor(() => expect(checkoutBranch).toHaveBeenCalledWith(org, app, 'feature/test'));
+      await waitFor(() => expect(window.location.reload).toHaveBeenCalled());
       expect(mockOnUncommittedChanges).not.toHaveBeenCalled();
     });
   });
@@ -106,7 +118,6 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
         () =>
           useCheckoutWithUncommittedChangesHandling(org, app, {
             onUncommittedChanges: mockOnUncommittedChanges,
-            onSuccess: mockOnSuccess,
             onOtherError: mockOnOtherError,
           }),
         {
@@ -123,8 +134,8 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
         expect(mockOnUncommittedChanges).toHaveBeenCalledWith(mockUncommittedChangesError),
       );
       expect(mockOnUncommittedChanges).toHaveBeenCalledTimes(1);
-      expect(mockOnSuccess).not.toHaveBeenCalled();
       expect(mockOnOtherError).not.toHaveBeenCalled();
+      expect(window.location.reload).not.toHaveBeenCalled();
     });
 
     it('should call onOtherError when 409 has no data', async () => {
@@ -164,6 +175,7 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
       await waitFor(() => expect(checkoutBranch).toHaveBeenCalledWith(org, app, 'feature/test'));
       await waitFor(() => expect(mockOnOtherError).toHaveBeenCalledWith(error409WithoutData));
       expect(mockOnUncommittedChanges).not.toHaveBeenCalled();
+      expect(window.location.reload).not.toHaveBeenCalled();
     });
 
     it('should call onOtherError when error has no response', async () => {
@@ -197,6 +209,7 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
       await waitFor(() => expect(checkoutBranch).toHaveBeenCalledWith(org, app, 'feature/test'));
       await waitFor(() => expect(mockOnOtherError).toHaveBeenCalledWith(error409WithoutResponse));
       expect(mockOnUncommittedChanges).not.toHaveBeenCalled();
+      expect(window.location.reload).not.toHaveBeenCalled();
     });
   });
 
@@ -237,6 +250,7 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
       await waitFor(() => expect(mockOnOtherError).toHaveBeenCalledWith(error500));
       expect(mockOnOtherError).toHaveBeenCalledTimes(1);
       expect(mockOnUncommittedChanges).not.toHaveBeenCalled();
+      expect(window.location.reload).not.toHaveBeenCalled();
     });
 
     it('should call onOtherError for 404 errors', async () => {
@@ -274,6 +288,7 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
       await waitFor(() => expect(checkoutBranch).toHaveBeenCalledWith(org, app, 'feature/test'));
       await waitFor(() => expect(mockOnOtherError).toHaveBeenCalledWith(error404));
       expect(mockOnUncommittedChanges).not.toHaveBeenCalled();
+      expect(window.location.reload).not.toHaveBeenCalled();
     });
 
     it('should work without optional onOtherError callback', async () => {
@@ -308,6 +323,7 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
       });
 
       await waitFor(() => expect(checkoutBranch).toHaveBeenCalledWith(org, app, 'feature/test'));
+      expect(window.location.reload).not.toHaveBeenCalled();
       // Should not throw even though onOtherError is not provided
     });
   });

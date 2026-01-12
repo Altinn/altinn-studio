@@ -39,7 +39,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
   const accessibleTitle = elementAsString(title);
   const isMobile = useIsMobile();
   const data = formData.tableData;
-  const { schemaLookup } = DataModels.useFullStateRef().current;
+  const schemaLookup = DataModels.useSchemaLookup();
   const [showEdit, setShowEdit] = useState(false);
   const [editItemIndex, setEditItemIndex] = useState<number>(-1);
   const setMultiLeafValues = FD.useSetMultiLeafValues();

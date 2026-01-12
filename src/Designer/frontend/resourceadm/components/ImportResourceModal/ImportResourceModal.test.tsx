@@ -185,40 +185,7 @@ describe('ImportResourceModal', () => {
     );
     await user.type(idField, '?/test');
 
-    expect(idField).toHaveValue(`${mockAltinn2LinkService.serviceName.toLowerCase()}--test`);
-  });
-
-  it('displays error message when resource identifier starts with _app', async () => {
-    const user = userEvent.setup();
-    await renderAndOpenModal(user);
-
-    const environmentSelect = screen.getByLabelText(
-      textMock('resourceadm.dashboard_import_modal_select_env'),
-    );
-    await user.selectOptions(environmentSelect, textMock('resourceadm.deploy_at22_env'));
-
-    // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
-    // (sometimes the spinner disappears) too quick and the test will fail
-    await waitFor(() => {
-      expect(
-        screen.getByLabelText(textMock('resourceadm.dashboard_import_modal_select_service')),
-      ).toBeInTheDocument();
-    });
-
-    const serviceSelect = screen.getByLabelText(
-      textMock('resourceadm.dashboard_import_modal_select_service'),
-    );
-    await user.selectOptions(serviceSelect, mockOption);
-
-    const idField = await screen.findByLabelText(
-      textMock('resourceadm.dashboard_resource_name_and_id_resource_id'),
-    );
-    await user.clear(idField);
-    await user.type(idField, 'app_');
-
-    expect(
-      screen.getByText(textMock('resourceadm.dashboard_resource_id_cannot_be_app')),
-    ).toBeInTheDocument();
+    expect(idField).toHaveValue(`ttd-${mockAltinn2LinkService.serviceName.toLowerCase()}--test`);
   });
 
   it('displays conflict message if identifier is in use', async () => {
@@ -254,7 +221,9 @@ describe('ImportResourceModal', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(textMock('resourceadm.dashboard_resource_name_and_id_error')),
+        screen.getByText(
+          textMock('resourceadm.dashboard_resource_name_and_id_error', { orgPrefix: 'ttd-' }),
+        ),
       ).toBeInTheDocument();
     });
   });

@@ -1,14 +1,38 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http.Headers;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Features.Maskinporten.Models;
 using App;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
+
+const string secretPath = "/mnt/app-secrets/maskinporten-settings.json";
+const string secretDir = "/mnt/app-secrets";
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add maskinporten-settings.json to configuration (same pattern as real apps)
+// Always register the file provider - optional:true handles missing file,
+// and reloadOnChange:true picks up the file when operator creates it
+if (Directory.Exists(secretDir))
+{
+    builder.Configuration.AddJsonFile(
+        provider: new PhysicalFileProvider(secretDir),
+        path: "maskinporten-settings.json",
+        optional: true,
+        reloadOnChange: true
+    );
+}
+
+// Bind MaskinportenSettings from configuration section (same as real apps)
+builder.Services
+    .AddOptions<MaskinportenSettings>()
+    .BindConfiguration("MaskinportenSettings")
+    .ValidateDataAnnotations();
 
 builder.Services.AddHostedService<Worker>();
 builder.Services.AddHttpClient();
@@ -17,7 +41,11 @@ var app = builder.Build();
 
 app.MapGet("/health", () => TypedResults.Ok());
 
-app.MapGet("/ttd/localtestapp/token", async (HttpContext context, IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory) =>
+app.MapGet("/ttd/localtestapp/token", async (
+    HttpContext context,
+    IHttpClientFactory httpClientFactory,
+    IOptionsMonitor<MaskinportenSettings> optionsMonitor,
+    ILoggerFactory loggerFactory) =>
 {
     var logger = loggerFactory.CreateLogger("App");
     logger.LogInformation("Received token request with scope: {scope}", context.Request.Query["scope"].ToString());
@@ -30,47 +58,30 @@ app.MapGet("/ttd/localtestapp/token", async (HttpContext context, IHttpClientFac
 
     try
     {
-        // Read the maskinporten-settings.json from mounted secret
-        const string secretPath = "/mnt/app-secrets/maskinporten-settings.json";
-        if (!File.Exists(secretPath))
-        {
-            return Results.Json(new { success = false, error = $"Secret file not found at {secretPath}" });
-        }
-
-        var settingsJson = await File.ReadAllTextAsync(secretPath);
-        var settings = JsonSerializer.Deserialize<MaskinportenSettings>(settingsJson);
-        if (settings == null)
-        {
-            return Results.Json(new { success = false, error = "Failed to deserialize settings" });
-        }
+        var settings = optionsMonitor.CurrentValue;
 
         if (string.IsNullOrEmpty(settings.ClientId))
         {
             return Results.Json(new { success = false, error = "ClientId is empty in settings" });
         }
 
-        if (settings.Jwk == null)
+        if (string.IsNullOrEmpty(settings.Authority))
         {
-            return Results.Json(new { success = false, error = "JWK is null in settings" });
+            return Results.Json(new { success = false, error = "Authority is empty in settings" });
         }
 
-        // Create RSA key from JWK
-        var rsa = RSA.Create();
-        var rsaParams = new RSAParameters
+        // Get JsonWebKey from settings (uses Jwk or JwkBase64)
+        JsonWebKey jwk;
+        try
         {
-            Modulus = Base64UrlDecode(settings.Jwk.N),
-            Exponent = Base64UrlDecode(settings.Jwk.E),
-            D = Base64UrlDecode(settings.Jwk.D),
-            P = Base64UrlDecode(settings.Jwk.P),
-            Q = Base64UrlDecode(settings.Jwk.Q),
-            DP = Base64UrlDecode(settings.Jwk.Dp),
-            DQ = Base64UrlDecode(settings.Jwk.Dq),
-            InverseQ = Base64UrlDecode(settings.Jwk.Qi)
-        };
-        rsa.ImportParameters(rsaParams);
+            jwk = settings.GetJsonWebKey();
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new { success = false, error = $"Failed to get JWK: {ex.Message}" });
+        }
 
-        var securityKey = new RsaSecurityKey(rsa) { KeyId = settings.Jwk.Kid };
-        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.RsaSha256);
+        var credentials = new SigningCredentials(jwk, SecurityAlgorithms.RsaSha512);
 
         // Create JWT assertion
         var now = DateTime.UtcNow;
@@ -129,67 +140,42 @@ app.MapGet("/ttd/localtestapp/token", async (HttpContext context, IHttpClientFac
     }
 });
 
-app.Run();
-
-static byte[] Base64UrlDecode(string? input)
+app.MapGet("/ttd/localtestapp/dbcheck", async (ILoggerFactory loggerFactory) =>
 {
-    if (string.IsNullOrEmpty(input))
-        return Array.Empty<byte>();
+    var logger = loggerFactory.CreateLogger("App");
+    logger.LogInformation("Received dbcheck request");
 
-    // Convert base64url to base64
-    var base64 = input.Replace('-', '+').Replace('_', '/');
-    switch (base64.Length % 4)
+    try
     {
-        case 2: base64 += "=="; break;
-        case 3: base64 += "="; break;
+        const string postgresSecretPath = "/mnt/app-secrets/postgresql.json";
+        if (!File.Exists(postgresSecretPath))
+        {
+            return Results.Json(new { success = false, error = $"Secret file not found at {postgresSecretPath}" });
+        }
+
+        var json = await File.ReadAllTextAsync(postgresSecretPath);
+        var root = JsonSerializer.Deserialize<PostgresJsonRoot>(json);
+        if (root?.PostgreSQL?.ConnectionString == null)
+        {
+            return Results.Json(new { success = false, error = "Failed to parse ConnectionString" });
+        }
+
+        await using var conn = new NpgsqlConnection(root.PostgreSQL.ConnectionString);
+        await conn.OpenAsync();
+        await using var cmd = new NpgsqlCommand("SELECT 1", conn);
+        var result = await cmd.ExecuteScalarAsync();
+
+        logger.LogInformation("Database check succeeded, result: {result}", result);
+        return Results.Json(new { success = true, result });
     }
-    return Convert.FromBase64String(base64);
-}
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Database check failed");
+        return Results.Json(new { success = false, error = ex.Message });
+    }
+});
 
-public class MaskinportenSettings
-{
-    [JsonPropertyName("clientId")]
-    public string? ClientId { get; set; }
-
-    [JsonPropertyName("authority")]
-    public string? Authority { get; set; }
-
-    [JsonPropertyName("jwk")]
-    public JwkKey? Jwk { get; set; }
-}
-
-public class JwkKey
-{
-    [JsonPropertyName("kty")]
-    public string? Kty { get; set; }
-
-    [JsonPropertyName("kid")]
-    public string? Kid { get; set; }
-
-    [JsonPropertyName("n")]
-    public string? N { get; set; }
-
-    [JsonPropertyName("e")]
-    public string? E { get; set; }
-
-    [JsonPropertyName("d")]
-    public string? D { get; set; }
-
-    [JsonPropertyName("p")]
-    public string? P { get; set; }
-
-    [JsonPropertyName("q")]
-    public string? Q { get; set; }
-
-    [JsonPropertyName("dp")]
-    public string? Dp { get; set; }
-
-    [JsonPropertyName("dq")]
-    public string? Dq { get; set; }
-
-    [JsonPropertyName("qi")]
-    public string? Qi { get; set; }
-}
+app.Run();
 
 public class TokenResponse
 {
@@ -213,4 +199,16 @@ public class FakeTokenClaims
 
     [JsonPropertyName("client_id")]
     public string? ClientId { get; set; }
+}
+
+public class PostgresJsonRoot
+{
+    [JsonPropertyName("PostgreSQL")]
+    public PostgresConfig? PostgreSQL { get; set; }
+}
+
+public class PostgresConfig
+{
+    [JsonPropertyName("ConnectionString")]
+    public string? ConnectionString { get; set; }
 }

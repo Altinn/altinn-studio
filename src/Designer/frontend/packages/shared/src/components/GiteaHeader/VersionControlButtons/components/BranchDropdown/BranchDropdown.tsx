@@ -2,55 +2,39 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioDropdown, StudioSpinner } from '@studio/components';
 import { BranchingIcon, PlusIcon } from '@studio/icons';
-import { useBranchesQuery } from 'app-shared/hooks/queries/useBranchesQuery';
-import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
-import { useCheckoutWithUncommittedChangesHandling } from 'app-shared/hooks/mutations/useCheckoutWithUncommittedChangesHandling';
 import { UncommittedChangesDialog } from 'app-shared/components/UncommittedChangesDialog';
 import { CreateBranchDialog } from 'app-shared/components/CreateBranchDialog';
-import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 import classes from './BranchDropdown.module.css';
+import { useBranchData } from '../../hooks/useBranchData';
+import { useBranchOperations } from '../../hooks/useBranchOperations';
+import type { Branch } from 'app-shared/types/api/BranchTypes';
 
 export const BranchDropdown = () => {
   const { t } = useTranslation();
   const { owner: org, repoName: app } = useGiteaHeaderContext();
-
-  const { data: branches, isLoading: branchesLoading } = useBranchesQuery(org, app);
-  const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
-
-  const [uncommittedChangesError, setUncommittedChangesError] =
-    useState<UncommittedChangesError | null>(null);
-  const [targetBranchForSwitch, setTargetBranchForSwitch] = useState<string | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
-  const checkoutMutation = useCheckoutWithUncommittedChangesHandling(org, app, {
-    onUncommittedChanges: (error) => {
-      setUncommittedChangesError(error);
-    },
-    onSuccess: async () => location.reload(),
-  });
+  const { currentBranch, branchList, isLoading: isLoadingData } = useBranchData(org, app);
+  const {
+    checkoutExistingBranch,
+    checkoutNewBranch,
+    discardChangesAndCheckout,
+    clearUncommittedChangesError,
+    uncommittedChangesError,
+    createError,
+    isLoading: isLoadingOperations,
+  } = useBranchOperations(org, app);
 
-  const handleBranchSelect = (branchName: string) => {
-    if (!branchName || branchName === currentBranchInfo?.branchName) return;
+  const isLoading = isLoadingData || isLoadingOperations;
 
-    setTargetBranchForSwitch(branchName);
-    checkoutMutation.mutate(branchName);
-  };
-
-  const handleCloseDialog = () => {
-    setUncommittedChangesError(null);
-    setTargetBranchForSwitch(null);
-  };
-
-  if (branchesLoading) {
+  if (isLoading) {
     return (
       <div className={classes.loading}>
         <StudioSpinner aria-label={t('general.loading')} />
       </div>
     );
   }
-
-  const currentBranch = currentBranchInfo?.branchName || 'master';
 
   return (
     <>
@@ -64,42 +48,67 @@ export const BranchDropdown = () => {
         triggerButtonClassName={classes.branchButton}
       >
         <StudioDropdown.List>
-          {branches?.map((branch) => (
-            <StudioDropdown.Item key={branch.name}>
-              <StudioDropdown.Button
-                onClick={() => handleBranchSelect(branch.name)}
-                disabled={branch.name === currentBranch || checkoutMutation.isPending}
-              >
-                {branch.name}
-              </StudioDropdown.Button>
-            </StudioDropdown.Item>
-          ))}
-          <StudioDropdown.Item>
-            <StudioDropdown.Button onClick={() => setShowCreateDialog(true)}>
-              <PlusIcon />
-              {t('branching.new_branch_dialog.trigger')}
-            </StudioDropdown.Button>
-          </StudioDropdown.Item>
+          <BranchListItems
+            branchList={branchList}
+            currentBranch={currentBranch}
+            onBranchClick={checkoutExistingBranch}
+            onCreateBranchClick={() => setShowCreateDialog(true)}
+          />
         </StudioDropdown.List>
       </StudioDropdown>
-
-      {uncommittedChangesError && targetBranchForSwitch && (
-        <UncommittedChangesDialog
-          error={uncommittedChangesError}
-          targetBranch={targetBranchForSwitch}
-          onClose={handleCloseDialog}
-          org={org}
-          app={app}
-        />
-      )}
-
       <CreateBranchDialog
         isOpen={showCreateDialog}
         onClose={() => setShowCreateDialog(false)}
-        org={org}
-        app={app}
         currentBranch={currentBranch}
+        onCreateBranch={checkoutNewBranch}
+        isLoading={isLoading}
+        createError={createError}
       />
+      {uncommittedChangesError && (
+        <UncommittedChangesDialog
+          onClose={clearUncommittedChangesError}
+          onDiscardAndSwitch={discardChangesAndCheckout}
+          error={uncommittedChangesError}
+          isLoading={isLoading}
+        />
+      )}
+    </>
+  );
+};
+
+interface BranchListItemsProps {
+  branchList: Array<Branch> | undefined;
+  currentBranch: string | undefined;
+  onBranchClick: (branchName: string) => void;
+  onCreateBranchClick: () => void;
+}
+
+const BranchListItems = ({
+  branchList,
+  currentBranch,
+  onBranchClick,
+  onCreateBranchClick,
+}: BranchListItemsProps) => {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      {branchList?.map((branch) => (
+        <StudioDropdown.Item key={branch.name}>
+          <StudioDropdown.Button
+            onClick={() => onBranchClick(branch.name)}
+            disabled={branch.name === currentBranch}
+          >
+            {branch.name}
+          </StudioDropdown.Button>
+        </StudioDropdown.Item>
+      ))}
+      <StudioDropdown.Item>
+        <StudioDropdown.Button onClick={onCreateBranchClick}>
+          <PlusIcon />
+          {t('branching.new_branch_dialog.trigger')}
+        </StudioDropdown.Button>
+      </StudioDropdown.Item>
     </>
   );
 };
