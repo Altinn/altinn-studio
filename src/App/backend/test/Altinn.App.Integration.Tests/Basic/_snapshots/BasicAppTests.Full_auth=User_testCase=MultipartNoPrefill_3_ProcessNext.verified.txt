@@ -4,12 +4,12 @@
     Content: {
       Headers: {
         Content-Type: [
-          application/problem+json; charset=utf-8
+          application/json; charset=utf-8
         ]
       }
     },
-    StatusCode: InternalServerError,
-    ReasonPhrase: Internal Server Error,
+    StatusCode: OK,
+    ReasonPhrase: OK,
     Headers: {
       Date: <date>,
       Server: [
@@ -53,7 +53,12 @@
         ]
       }
     },
-    IsSuccessStatusCode: false
+    IsSuccessStatusCode: true
   },
-  Response: {}
+  Response: {
+    Started: DateTime_1,
+    StartEvent: StartEvent_1,
+    Ended: DateTime_2,
+    EndEvent: EndEvent_1
+  }
 }

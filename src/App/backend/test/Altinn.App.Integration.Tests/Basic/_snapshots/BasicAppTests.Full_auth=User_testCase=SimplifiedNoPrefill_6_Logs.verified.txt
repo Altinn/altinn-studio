@@ -26,6 +26,11 @@
 [basic/default] [INFO] IDataElementValidator.ValidateDataElement
 [basic/default] [INFO] IFormDataValidator.ValidateFormData
 [basic/default] [INFO] IProcessTaskEnd.End
+[basic/default] [INFO] IInstantiationValidator.Validate
+[basic/default] [INFO] IDataWriteProcessor.ProcessDataWrite
+[basic/default] [INFO] IProcessTaskStart.Start
+[basic/default] [INFO] IInstantiationProcessor.DataCreation
+[basic/default] [INFO] IDataProcessor.ProcessDataRead
 fail: Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask.EndTaskEventHandler[0]
       Error executing pdf service task. Unlocking data again.
       Altinn.App.Core.Internal.Pdf.PdfGenerationException: Pdf generation failed
@@ -35,6 +40,7 @@ fail: Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask.EndTaskEventHan
          at Altinn.App.Core.Internal.Pdf.PdfService.GenerateAndStorePdf(Instance instance, String taskId, CancellationToken ct) in /_/src/App/backend/src/Altinn.App.Core/Internal/Pdf/PdfService.cs:line 65
          at Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.Legacy.PdfServiceTaskLegacy.Execute(String taskId, Instance instance) in /_/src/App/backend/src/Altinn.App.Core/Internal/Process/ProcessTasks/ServiceTasks/Legacy/PdfServiceTaskLegacy.cs:line 53
          at Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask.EndTaskEventHandler.Execute(IProcessTask processTask, String taskId, Instance instance) in /_/src/App/backend/src/Altinn.App.Core/Internal/Process/EventHandlers/ProcessTask/EndTaskEventHandler.cs:line 53
+[basic/default] [INFO] ### Response: Process.NextElement - ObjectResult, StatusCode: 500
 fail: Altinn.App.Api.Controllers.ProcessController[0]
       Process next failed.
       Altinn.App.Core.Internal.Pdf.PdfGenerationException: Pdf generation failed
@@ -51,7 +57,6 @@ fail: Altinn.App.Api.Controllers.ProcessController[0]
          at Altinn.App.Core.Internal.Process.ProcessEngine.ProcessNext(ProcessNextRequest request, CancellationToken ct) in /_/src/App/backend/src/Altinn.App.Core/Internal/Process/ProcessEngine.cs:line 359
          at Altinn.App.Core.Internal.Process.ProcessEngine.Next(ProcessNextRequest request, CancellationToken ct) in /_/src/App/backend/src/Altinn.App.Core/Internal/Process/ProcessEngine.cs:line 198
          at Altinn.App.Api.Controllers.ProcessController.NextElement(String org, String app, Int32 instanceOwnerPartyId, Guid instanceGuid, CancellationToken ct, String elementId, String language, ProcessNext processNext) in /_/src/App/backend/src/Altinn.App.Api/Controllers/ProcessController.cs:line 280
-[basic/default] [INFO] ### Response: Process.NextElement - ObjectResult, StatusCode: 500
 [basic/default] [INFO] ### Request: Instances.Get - User: User/1337/501337, AuthLevel: 2, AuthMethod: BankID
 [basic/default] [INFO] ### Response: Instances.Get - OkObjectResult, StatusCode: 200
 [basic/default] [INFO] ### Request: ApplicationMetadata.GetAction - User: None/none, AuthLevel: 0, AuthMethod: none
