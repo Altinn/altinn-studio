@@ -28,7 +28,6 @@ internal sealed class InlineContentExtractor
     private async Task<List<string>> ExtractInlineCss()
     {
         var createdFiles = new List<string>();
-
         if (_analysisResult.CustomCss.InlineStyles.Count == 0)
         {
             return createdFiles;
@@ -40,7 +39,7 @@ internal sealed class InlineContentExtractor
         for (int i = 0; i < _analysisResult.CustomCss.InlineStyles.Count; i++)
         {
             var content = _analysisResult.CustomCss.InlineStyles[i];
-            var fileName = i == 0 ? "styles.css" : $"styles-{i}.css";
+            var fileName = _analysisResult.CustomCss.InlineStyles.Count == 1 ? "styles.css" : $"styles-{i}.css";
             var filePath = Path.Combine(cssDir, fileName);
 
             await File.WriteAllTextAsync(filePath, content);
@@ -53,7 +52,6 @@ internal sealed class InlineContentExtractor
     private async Task<List<string>> ExtractInlineJs()
     {
         var createdFiles = new List<string>();
-
         if (_analysisResult.CustomJavaScript.InlineScripts.Count == 0)
         {
             return createdFiles;
@@ -65,7 +63,7 @@ internal sealed class InlineContentExtractor
         for (int i = 0; i < _analysisResult.CustomJavaScript.InlineScripts.Count; i++)
         {
             var content = _analysisResult.CustomJavaScript.InlineScripts[i];
-            var fileName = i == 0 ? "script.js" : $"script-{i}.js";
+            var fileName = _analysisResult.CustomJavaScript.InlineScripts.Count == 1 ? "script.js" : $"script-{i}.js";
             var filePath = Path.Combine(jsDir, fileName);
 
             await File.WriteAllTextAsync(filePath, content);

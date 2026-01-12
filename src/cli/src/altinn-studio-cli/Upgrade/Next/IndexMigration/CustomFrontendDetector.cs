@@ -20,9 +20,7 @@ internal sealed class CustomFrontendDetector
     /// <returns>Detection result with custom frontend flag</returns>
     public CustomFrontendResult Detect()
     {
-        // Check if the standard altinn-app-frontend.js script is present
         var scriptTags = _document.QuerySelectorAll("script");
-
         var hasStandardFrontend = scriptTags.Any(scriptTag =>
         {
             var src = scriptTag.GetAttribute("src");

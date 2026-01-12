@@ -8,12 +8,6 @@ namespace Altinn.Studio.Cli.Upgrade.Next.IndexMigration;
 internal sealed class FrontendConfiguration
 {
     /// <summary>
-    /// JSON schema reference
-    /// </summary>
-    [JsonPropertyName("$schema")]
-    public string Schema { get; init; } = "https://altinncdn.no/schemas/json/frontend/frontend.schema.v1.json";
-
-    /// <summary>
     /// External stylesheet URLs
     /// </summary>
     [JsonPropertyName("stylesheets")]

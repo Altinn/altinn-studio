@@ -30,9 +30,7 @@ internal sealed class CustomCssDetector
     {
         var inlineStyles = new List<string>();
 
-        // Find all <style> tags
         var styleTags = _document.QuerySelectorAll("style");
-
         foreach (var styleTag in styleTags)
         {
             var content = styleTag.TextContent?.Trim();
@@ -49,14 +47,10 @@ internal sealed class CustomCssDetector
     {
         var externalStylesheets = new List<string>();
 
-        // Find all <link rel="stylesheet"> tags
         var linkTags = _document.QuerySelectorAll("link[rel='stylesheet']");
-
         foreach (var linkTag in linkTags)
         {
             var href = linkTag.GetAttribute("href");
-
-            // Skip standard altinn-app-frontend.css
             if (!string.IsNullOrWhiteSpace(href) && !href.Contains("altinn-app-frontend.css"))
             {
                 externalStylesheets.Add(href);

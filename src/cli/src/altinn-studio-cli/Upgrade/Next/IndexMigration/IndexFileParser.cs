@@ -22,30 +22,20 @@ internal sealed class IndexFileParser
     /// Parses the Index.cshtml file
     /// </summary>
     /// <returns>True if parsing was successful, false otherwise</returns>
-    public async Task<bool> Parse()
+    public async Task Parse()
     {
-        try
+        if (!File.Exists(_filePath))
         {
-            if (!File.Exists(_filePath))
-            {
-                _parseWarnings.Add($"File not found: {_filePath}");
-                return false;
-            }
-
-            var htmlContent = await File.ReadAllTextAsync(_filePath);
-
-            // AngleSharp is tolerant of Razor syntax in text nodes and attribute values
-            // We parse directly without preprocessing since we're only detecting structural elements
-            var parser = new HtmlParser();
-            _document = await parser.ParseDocumentAsync(htmlContent);
-
-            return true;
+            _parseWarnings.Add($"File not found: {_filePath}");
+            return;
         }
-        catch (Exception ex)
-        {
-            _parseWarnings.Add($"Failed to parse Index.cshtml: {ex.Message}");
-            return false;
-        }
+
+        var htmlContent = await File.ReadAllTextAsync(_filePath);
+
+        // AngleSharp is tolerant of Razor syntax in text nodes and attribute values
+        // We parse directly without preprocessing since we're only detecting structural elements
+        var parser = new HtmlParser();
+        _document = await parser.ParseDocumentAsync(htmlContent);
     }
 
     /// <summary>

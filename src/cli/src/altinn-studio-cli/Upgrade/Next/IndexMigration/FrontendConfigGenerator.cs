@@ -7,6 +7,12 @@ namespace Altinn.Studio.Cli.Upgrade.Next.IndexMigration;
 /// </summary>
 internal sealed class FrontendConfigGenerator
 {
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
+    {
+        WriteIndented = true,
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+    };
+
     private readonly IndexAnalysisResult _analysisResult;
 
     public FrontendConfigGenerator(IndexAnalysisResult analysisResult)
@@ -48,13 +54,7 @@ internal sealed class FrontendConfigGenerator
             Directory.CreateDirectory(directory);
         }
 
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-        };
-
-        var json = JsonSerializer.Serialize(config, options);
+        var json = JsonSerializer.Serialize(config, s_jsonOptions);
         await File.WriteAllTextAsync(outputPath, json);
     }
 }

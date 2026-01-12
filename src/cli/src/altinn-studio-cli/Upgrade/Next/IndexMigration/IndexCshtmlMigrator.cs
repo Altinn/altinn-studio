@@ -34,17 +34,7 @@ internal sealed class IndexCshtmlMigrator
 
             // Parse Index.cshtml
             var parser = new IndexFileParser(_indexCshtmlPath);
-            var parseSuccess = await parser.Parse();
-
-            if (!parseSuccess)
-            {
-                Console.WriteLine("Failed to parse Index.cshtml:");
-                foreach (var warning in parser.GetParseWarnings())
-                {
-                    Console.WriteLine($"  - {warning}");
-                }
-                return 1;
-            }
+            await parser.Parse();
 
             var document = parser.GetDocument();
             if (document == null)
@@ -88,10 +78,6 @@ internal sealed class IndexCshtmlMigrator
 
     private int PrintAnalysisReport(IndexAnalysisResult result)
     {
-        Console.WriteLine("Analyzing Index.cshtml...");
-        Console.WriteLine();
-
-        // Report CSS customizations
         if (result.CustomCss.InlineStyles.Count > 0)
         {
             Console.WriteLine($"Found {result.CustomCss.InlineStyles.Count} inline CSS block(s)");
@@ -106,7 +92,6 @@ internal sealed class IndexCshtmlMigrator
             }
         }
 
-        // Report JavaScript customizations
         if (result.CustomJavaScript.InlineScripts.Count > 0)
         {
             Console.WriteLine($"Found {result.CustomJavaScript.InlineScripts.Count} inline JavaScript block(s)");
@@ -121,17 +106,11 @@ internal sealed class IndexCshtmlMigrator
             }
         }
 
-        // Report custom frontend
         if (result.CustomFrontend.IsCustomFrontend)
         {
             Console.WriteLine("Custom frontend: Yes (standard Altinn app-frontend not detected)");
         }
-        else
-        {
-            Console.WriteLine("Custom frontend: No (standard Altinn app-frontend detected)");
-        }
 
-        // Report warnings
         if (result.Warnings.Count > 0)
         {
             Console.WriteLine();
@@ -142,15 +121,6 @@ internal sealed class IndexCshtmlMigrator
             }
         }
 
-        // Report if no customizations found
-        if (result.CustomizationCount == 0)
-        {
-            Console.WriteLine();
-            Console.WriteLine("No customizations detected - using standard Altinn template");
-        }
-
-        Console.WriteLine();
-        Console.WriteLine("Analysis complete");
         return 0;
     }
 

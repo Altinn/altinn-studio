@@ -30,8 +30,6 @@ internal sealed class CustomJavaScriptDetector
     {
         var inlineScripts = new List<string>();
         var externalScripts = new List<string>();
-
-        // Find all <script> tags
         var scriptTags = _document.QuerySelectorAll("script");
 
         foreach (var scriptTag in scriptTags)
@@ -42,20 +40,15 @@ internal sealed class CustomJavaScriptDetector
             // External script
             if (!string.IsNullOrWhiteSpace(src))
             {
-                // Skip standard altinn-app-frontend.js
                 if (!src.Contains("altinn-app-frontend.js"))
                 {
                     externalScripts.Add(src);
                 }
             }
             // Inline script
-            else if (!string.IsNullOrWhiteSpace(content))
+            else if (!string.IsNullOrWhiteSpace(content) && !IsStandardScript(content))
             {
-                // Skip standard initialization script
-                if (!IsStandardScript(content))
-                {
-                    inlineScripts.Add(content);
-                }
+                inlineScripts.Add(content);
             }
         }
 

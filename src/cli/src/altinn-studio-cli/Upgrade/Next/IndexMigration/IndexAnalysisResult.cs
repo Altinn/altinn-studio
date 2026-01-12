@@ -3,7 +3,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.IndexMigration;
 /// <summary>
 /// Result of CSS customization detection
 /// </summary>
-internal record CustomCssResult
+internal sealed record CustomCssResult
 {
     /// <summary>
     /// Whether custom CSS was detected
@@ -24,7 +24,7 @@ internal record CustomCssResult
 /// <summary>
 /// Result of JavaScript customization detection
 /// </summary>
-internal record CustomJavaScriptResult
+internal sealed record CustomJavaScriptResult
 {
     /// <summary>
     /// Whether custom JavaScript was detected
@@ -45,7 +45,7 @@ internal record CustomJavaScriptResult
 /// <summary>
 /// Result of custom frontend detection
 /// </summary>
-internal record CustomFrontendResult
+internal sealed record CustomFrontendResult
 {
     /// <summary>
     /// Whether a custom frontend was detected (absence of standard Altinn app-frontend scripts)
@@ -56,7 +56,7 @@ internal record CustomFrontendResult
 /// <summary>
 /// Main result of Index.cshtml analysis
 /// </summary>
-internal record IndexAnalysisResult
+internal sealed record IndexAnalysisResult
 {
     /// <summary>
     /// Whether the analysis was successful
@@ -67,11 +67,6 @@ internal record IndexAnalysisResult
     /// Path to the analyzed file
     /// </summary>
     public string FilePath { get; init; } = string.Empty;
-
-    /// <summary>
-    /// List of errors encountered during analysis
-    /// </summary>
-    public List<string> Errors { get; init; } = [];
 
     /// <summary>
     /// List of warnings from analysis
@@ -92,33 +87,6 @@ internal record IndexAnalysisResult
     /// Custom frontend detection result
     /// </summary>
     public CustomFrontendResult CustomFrontend { get; init; } = new();
-
-    /// <summary>
-    /// Number of detected customization categories
-    /// </summary>
-    public int CustomizationCount =>
-        (CustomCss.HasCustomCss ? 1 : 0)
-        + (CustomJavaScript.HasCustomJavaScript ? 1 : 0)
-        + (CustomFrontend.IsCustomFrontend ? 1 : 0);
-
-    /// <summary>
-    /// Whether all customizations can be migrated automatically
-    /// (always true in this implementation - even custom frontends are migrated)
-    /// </summary>
-    public bool CanMigrateAutomatically => true;
-
-    /// <summary>
-    /// Creates a failed analysis result
-    /// </summary>
-    public static IndexAnalysisResult Failed(string filePath, List<string> errors)
-    {
-        return new IndexAnalysisResult
-        {
-            Success = false,
-            FilePath = filePath,
-            Errors = errors,
-        };
-    }
 
     /// <summary>
     /// Creates a successful analysis result
