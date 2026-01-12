@@ -80,6 +80,7 @@
           "enum": ["current", "currentAndPrevious", "all"]
         },
         "show": {
+          "$comment": "Manually added because the automated script does not dereference this. Do not remove or replace this with a '$ref' without a solution to frontend ref following.",
           "title": "Validation types",
           "description": "List of validation types to show",
           "type": "array",
@@ -109,6 +110,7 @@
           "enum": ["current", "currentAndPrevious", "all"]
         },
         "show": {
+          "$comment": "Manually added because the automated script does not dereference this. Do not remove or replace this with a '$ref' without a solution to frontend ref following.",
           "title": "Validation types",
           "description": "List of validation types to show",
           "type": "array",
