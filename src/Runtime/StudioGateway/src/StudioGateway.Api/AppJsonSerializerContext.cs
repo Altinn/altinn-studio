@@ -19,6 +19,7 @@ namespace StudioGateway.Api;
 [JsonSerializable(typeof(IsAppDeployedResponse))]
 [JsonSerializable(typeof(IEnumerable<GrafanaAlertRule>))]
 [JsonSerializable(typeof(IEnumerable<AlertRule>))]
+[JsonSerializable(typeof(IEnumerable<AlertPayload>))]
 [JsonSerializable(typeof(IEnumerable<ErrorMetric>))]
 [JsonSerializable(typeof(IEnumerable<AppMetric>))]
 [JsonSerializable(typeof(IEnumerable<AppErrorMetric>))]

@@ -8,7 +8,6 @@ namespace StudioGateway.Api.Application;
 internal static class HandleMetrics
 {
     internal static async Task<IResult> GetErrorMetricsAsync(
-        GatewayContext gatewayContext,
         IServiceProvider serviceProvider,
         MetricsClientSettings metricsClientSettings,
         int range,
