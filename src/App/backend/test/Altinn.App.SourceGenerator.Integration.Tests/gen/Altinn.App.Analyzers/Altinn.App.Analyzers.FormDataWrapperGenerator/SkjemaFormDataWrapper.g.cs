@@ -171,292 +171,6 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
     }
 
     #endregion Getters
-    #region Setters
-
-    /// <inheritdoc />
-    public bool Set(global::System.ReadOnlySpan<char> path, object? value)
-    {
-        if (path.IsEmpty)
-        {
-            return false;
-        }
-
-        return SetRecursive(_dataModel, path, 0, value);
-    }
-
-    private static bool SetRecursive(
-        global::Altinn.App.SourceGenerator.Integration.Tests.Models.Skjema? model,
-        global::System.ReadOnlySpan<char> path,
-        int offset,
-        object? value
-    )
-    {
-        if (model is null || offset == -1)
-        {
-            return false;
-        }
-
-        var segment = ParseSegment(path, offset, out int nextOffset, out int literalIndex);
-        return segment switch
-        {
-            "skjemanummer" when nextOffset is -1 && literalIndex is -1 => TrySetValue<string>(val => model.Skjemanummer = val, value),
-            "skjemaversjon" when nextOffset is -1 && literalIndex is -1 => TrySetValue<string>(val => model.Skjemaversjon = val, value),
-            "skjemainnhold" => SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_Skjema_Skjemainnhold(model, path, literalIndex, nextOffset, value),
-            "eierAdresse" when literalIndex is -1 => SetRecursive_WithObjectCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_Skjema_EierAdresse(model, path, nextOffset, value),
-            _ => false,
-        };
-    }
-
-    private static bool SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_Skjema_Skjemainnhold(
-        global::Altinn.App.SourceGenerator.Integration.Tests.Models.Skjema model,
-        global::System.ReadOnlySpan<char> path,
-        int literalIndex,
-        int nextOffset,
-        object? value
-    )
-    {
-        if (model.Skjemainnhold is null)
-        {
-            try
-            {
-                model.Skjemainnhold = new global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Integration.Tests.Models.SkjemaInnhold?>();
-            }
-            catch
-            {
-                return false;
-            }
-        }
-        return SetRecursive(model.Skjemainnhold, path, literalIndex, nextOffset, value);
-    }
-
-    private static bool SetRecursive_WithObjectCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_Skjema_EierAdresse(
-        global::Altinn.App.SourceGenerator.Integration.Tests.Models.Skjema model,
-        global::System.ReadOnlySpan<char> path,
-        int nextOffset,
-        object? value
-    )
-    {
-        if (model.EierAdresse is null)
-        {
-            try
-            {
-                model.EierAdresse = global::System.Activator.CreateInstance<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Adresse>();
-            }
-            catch
-            {
-                return false;
-            }
-        }
-        return SetRecursive(model.EierAdresse, path, nextOffset, value);
-    }
-
-    private static bool SetRecursive(
-        global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Integration.Tests.Models.SkjemaInnhold?>? model,
-        global::System.ReadOnlySpan<char> path,
-        int literalIndex,
-        int offset,
-        object? value
-    )
-    {
-        if (model is null || literalIndex < 0)
-        {
-            return false;
-        }
-
-        // Create list elements if index is out of bounds
-        while (model.Count <= literalIndex)
-        {
-            try
-            {
-                model.Add(global::System.Activator.CreateInstance<global::Altinn.App.SourceGenerator.Integration.Tests.Models.SkjemaInnhold>());
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        return SetRecursive(model[literalIndex], path, offset, value);
-    }
-
-    private static bool SetRecursive(
-        global::Altinn.App.SourceGenerator.Integration.Tests.Models.SkjemaInnhold? model,
-        global::System.ReadOnlySpan<char> path,
-        int offset,
-        object? value
-    )
-    {
-        if (model is null || offset == -1)
-        {
-            return false;
-        }
-
-        var segment = ParseSegment(path, offset, out int nextOffset, out int literalIndex);
-        return segment switch
-        {
-            "altinnRowId" when nextOffset is -1 && literalIndex is -1 => TrySetValue<global::System.Guid>(val => model.AltinnRowId = val, value),
-            "navn" when nextOffset is -1 && literalIndex is -1 => TrySetValue<string>(val => model.Navn = val, value),
-            "alder" when nextOffset is -1 && literalIndex is -1 => TrySetValue<int?>(val => model.Alder = val, value),
-            "deltar" when nextOffset is -1 && literalIndex is -1 => TrySetValue<bool?>(val => model.Deltar = val, value),
-            "adresse" when literalIndex is -1 => SetRecursive_WithObjectCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaInnhold_Adresse(model, path, nextOffset, value),
-            "tidligere-adresse" => SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaInnhold_TidligereAdresse(model, path, literalIndex, nextOffset, value),
-            _ => false,
-        };
-    }
-
-    private static bool SetRecursive_WithObjectCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaInnhold_Adresse(
-        global::Altinn.App.SourceGenerator.Integration.Tests.Models.SkjemaInnhold model,
-        global::System.ReadOnlySpan<char> path,
-        int nextOffset,
-        object? value
-    )
-    {
-        if (model.Adresse is null)
-        {
-            try
-            {
-                model.Adresse = global::System.Activator.CreateInstance<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Adresse>();
-            }
-            catch
-            {
-                return false;
-            }
-        }
-        return SetRecursive(model.Adresse, path, nextOffset, value);
-    }
-
-    private static bool SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaInnhold_TidligereAdresse(
-        global::Altinn.App.SourceGenerator.Integration.Tests.Models.SkjemaInnhold model,
-        global::System.ReadOnlySpan<char> path,
-        int literalIndex,
-        int nextOffset,
-        object? value
-    )
-    {
-        if (model.TidligereAdresse is null)
-        {
-            try
-            {
-                model.TidligereAdresse = new global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Adresse>();
-            }
-            catch
-            {
-                return false;
-            }
-        }
-        return SetRecursive(model.TidligereAdresse, path, literalIndex, nextOffset, value);
-    }
-
-    private static bool SetRecursive(
-        global::Altinn.App.SourceGenerator.Integration.Tests.Models.Adresse? model,
-        global::System.ReadOnlySpan<char> path,
-        int offset,
-        object? value
-    )
-    {
-        if (model is null || offset == -1)
-        {
-            return false;
-        }
-
-        var segment = ParseSegment(path, offset, out int nextOffset, out int literalIndex);
-        return segment switch
-        {
-            "altinnRowId" when nextOffset is -1 && literalIndex is -1 => TrySetValue<global::System.Guid>(val => model.AltinnRowId = val, value),
-            "gate" when nextOffset is -1 && literalIndex is -1 => TrySetValue<string>(val => model.Gate = val, value),
-            "postnummer" when nextOffset is -1 && literalIndex is -1 => TrySetValue<int?>(val => model.Postnummer = val, value),
-            "poststed" when nextOffset is -1 && literalIndex is -1 => TrySetValue<string>(val => model.Poststed = val, value),
-            "tags" => SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_Adresse_Tags(model, path, literalIndex, nextOffset, value),
-            _ => false,
-        };
-    }
-
-    private static bool SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_Adresse_Tags(
-        global::Altinn.App.SourceGenerator.Integration.Tests.Models.Adresse model,
-        global::System.ReadOnlySpan<char> path,
-        int literalIndex,
-        int nextOffset,
-        object? value
-    )
-    {
-        if (model.Tags is null)
-        {
-            try
-            {
-                model.Tags = new global::System.Collections.Generic.List<string>();
-            }
-            catch
-            {
-                return false;
-            }
-        }
-        return SetRecursive(model.Tags, path, literalIndex, nextOffset, value);
-    }
-
-    private static bool SetRecursive(
-        global::System.Collections.Generic.List<string>? model,
-        global::System.ReadOnlySpan<char> path,
-        int literalIndex,
-        int offset,
-        object? value
-    )
-    {
-        if (model is null || literalIndex < 0)
-        {
-            return false;
-        }
-
-        // Create list elements if index is out of bounds
-        while (model.Count <= literalIndex)
-        {
-            try
-            {
-                model.Add(global::System.Activator.CreateInstance<string>());
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        if (offset == -1)
-                        {
-                            return TrySetValue<string>(val => model[literalIndex] = val, value);
-                        }
-                        return false;
-
-    }
-
-    private static bool SetRecursive(
-        global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Adresse>? model,
-        global::System.ReadOnlySpan<char> path,
-        int literalIndex,
-        int offset,
-        object? value
-    )
-    {
-        if (model is null || literalIndex < 0)
-        {
-            return false;
-        }
-
-        // Create list elements if index is out of bounds
-        while (model.Count <= literalIndex)
-        {
-            try
-            {
-                model.Add(global::System.Activator.CreateInstance<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Adresse>());
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        return SetRecursive(model[literalIndex], path, offset, value);
-    }
-
-    #endregion Setters
     #region AddIndexToPath
 
     /// <inheritdoc />
@@ -1182,96 +896,6 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
     }
 
     #endregion AltinnRowIds
-    private static bool TrySetValue<T>(global::System.Action<T> setter, object? value)
-    {
-        if (value is null)
-        {
-            if (typeof(T).IsValueType && global::System.Nullable.GetUnderlyingType(typeof(T)) is null)
-            {
-                return false;
-            }
-            setter(default(T)!);
-            return true;
-        }
-
-        if (value is T typedValue)
-        {
-            setter(typedValue);
-            return true;
-        }
-
-        try
-        {
-            var targetType = typeof(T);
-            var underlyingType = global::System.Nullable.GetUnderlyingType(targetType);
-            if (underlyingType is not null)
-            {
-                targetType = underlyingType;
-            }
-
-            if (targetType == typeof(string))
-            {
-                setter((T)(object)value.ToString()!);
-                return true;
-            }
-
-            if (targetType == typeof(int))
-            {
-                setter((T)(object)global::System.Convert.ToInt32(value, global::System.Globalization.CultureInfo.InvariantCulture));
-                return true;
-            }
-
-            if (targetType == typeof(long))
-            {
-                setter((T)(object)global::System.Convert.ToInt64(value, global::System.Globalization.CultureInfo.InvariantCulture));
-                return true;
-            }
-
-            if (targetType == typeof(decimal))
-            {
-                setter((T)(object)global::System.Convert.ToDecimal(value, global::System.Globalization.CultureInfo.InvariantCulture));
-                return true;
-            }
-
-            if (targetType == typeof(double))
-            {
-                setter((T)(object)global::System.Convert.ToDouble(value, global::System.Globalization.CultureInfo.InvariantCulture));
-                return true;
-            }
-
-            if (targetType == typeof(float))
-            {
-                setter((T)(object)global::System.Convert.ToSingle(value, global::System.Globalization.CultureInfo.InvariantCulture));
-                return true;
-            }
-
-            if (targetType == typeof(bool))
-            {
-                setter((T)(object)global::System.Convert.ToBoolean(value, global::System.Globalization.CultureInfo.InvariantCulture));
-                return true;
-            }
-
-            if (targetType == typeof(global::System.DateTime))
-            {
-                setter((T)(object)global::System.Convert.ToDateTime(value, global::System.Globalization.CultureInfo.InvariantCulture));
-                return true;
-            }
-
-            if (targetType.IsEnum)
-            {
-                setter((T)global::System.Enum.Parse(targetType, value.ToString() ?? string.Empty));
-                return true;
-            }
-
-            setter((T)global::System.Convert.ChangeType(value, targetType, global::System.Globalization.CultureInfo.InvariantCulture));
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
     public static global::System.ReadOnlySpan<char> ParseSegment(global::System.ReadOnlySpan<char> path, int offset, out int nextOffset, out int literalIndex)
     {
         if (offset < 0 || offset > path.Length)
@@ -1390,13 +1014,13 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
 //         {
 //           "JsonName": "alder",
 //           "CSharpName": "Alder",
-//           "TypeName": "int?",
+//           "TypeName": "int",
 //           "IsJsonValueType": true,
 //         },
 //         {
 //           "JsonName": "deltar",
 //           "CSharpName": "Deltar",
-//           "TypeName": "bool?",
+//           "TypeName": "bool",
 //           "IsJsonValueType": true,
 //         },
 //         {
@@ -1420,7 +1044,7 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
 //             {
 //               "JsonName": "postnummer",
 //               "CSharpName": "Postnummer",
-//               "TypeName": "int?",
+//               "TypeName": "int",
 //               "IsJsonValueType": true,
 //             },
 //             {
@@ -1460,7 +1084,7 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
 //             {
 //               "JsonName": "postnummer",
 //               "CSharpName": "Postnummer",
-//               "TypeName": "int?",
+//               "TypeName": "int",
 //               "IsJsonValueType": true,
 //             },
 //             {
@@ -1501,7 +1125,7 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
 //         {
 //           "JsonName": "postnummer",
 //           "CSharpName": "Postnummer",
-//           "TypeName": "int?",
+//           "TypeName": "int",
 //           "IsJsonValueType": true,
 //         },
 //         {
