@@ -1,0 +1,17 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Workflow Engine",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "workflow_engine",
+      "Username": "postgres",
+      "SSLMode": "prefer",
+      "SharedWithUsers": true,
+      "Shared": false,
+      "BGColor": "#ffffff",
+      "FGColor": "#000000"
+    }
+  }
+}
