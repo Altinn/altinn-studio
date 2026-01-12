@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AngleSharp" />
     <PackageReference Include="Jint" />
     <PackageReference Include="LibGit2Sharp" />
     <PackageReference Include="Microsoft.Build.Locator" />

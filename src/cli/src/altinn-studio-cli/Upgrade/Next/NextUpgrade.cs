@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
+using Altinn.Studio.Cli.Upgrade.Next.IndexMigration;
 using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration;
 using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingRules;
 using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.DataProcessingRules;
@@ -38,6 +39,11 @@ internal static class NextUpgrade
             Description = "Skip csproj file upgrade",
             DefaultValueFactory = _ => false,
         };
+        var analyzeIndexOnlyOption = new Option<bool>("--analyze-index-only")
+        {
+            Description = "Only analyze Index.cshtml without performing any upgrade or migration",
+            DefaultValueFactory = _ => false,
+        };
 
         var upgradeCommand = new Command("next")
         {
@@ -47,6 +53,7 @@ internal static class NextUpgrade
         upgradeCommand.Add(projectFileOption);
         upgradeCommand.Add(targetFrameworkOption);
         upgradeCommand.Add(skipCsprojUpgradeOption);
+        upgradeCommand.Add(analyzeIndexOnlyOption);
 
         int returnCode = 0;
         upgradeCommand.SetAction(
@@ -56,6 +63,7 @@ internal static class NextUpgrade
                 var projectFile = parseResult.GetValue(projectFileOption);
                 var targetFramework = parseResult.GetValue(targetFrameworkOption);
                 var skipCsprojUpgrade = parseResult.GetValue(skipCsprojUpgradeOption);
+                var analyzeIndexOnly = parseResult.GetValue(analyzeIndexOnlyOption);
 
                 if (projectFolder is null or "CurrentDirectory")
                     projectFolder = Directory.GetCurrentDirectory();
@@ -109,6 +117,13 @@ internal static class NextUpgrade
                     );
                 }
 
+                // Early exit for analyze-index-only mode
+                if (analyzeIndexOnly)
+                {
+                    returnCode = await AnalyzeIndexCshtml(projectFolder);
+                    Environment.Exit(returnCode);
+                }
+
                 // Job 1: Convert to project references and upgrade target framework
                 if (!skipCsprojUpgrade && returnCode == 0)
                 {
@@ -137,6 +152,12 @@ internal static class NextUpgrade
                 if (returnCode == 0)
                 {
                     returnCode = await CleanupLegacyRuleFiles(projectFolder);
+                }
+
+                // Job 6: Migrate Index.cshtml to frontend.json configuration
+                if (returnCode == 0)
+                {
+                    returnCode = await MigrateIndexCshtml(projectFolder);
                 }
 
                 if (returnCode == 0)
@@ -363,6 +384,40 @@ internal static class NextUpgrade
         catch (Exception ex)
         {
             await Console.Error.WriteLineAsync($"Error cleaning up legacy rule files: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Analyze Index.cshtml without performing migration
+    /// </summary>
+    static async Task<int> AnalyzeIndexCshtml(string projectFolder)
+    {
+        try
+        {
+            var migrator = new IndexCshtmlMigrator(projectFolder);
+            return await migrator.Analyze(analyzeOnly: true);
+        }
+        catch (Exception ex)
+        {
+            await Console.Error.WriteLineAsync($"Error analyzing Index.cshtml: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Job 6: Migrate Index.cshtml to frontend.json configuration
+    /// </summary>
+    static async Task<int> MigrateIndexCshtml(string projectFolder)
+    {
+        try
+        {
+            var migrator = new IndexCshtmlMigrator(projectFolder);
+            return await migrator.Analyze(analyzeOnly: false);
+        }
+        catch (Exception ex)
+        {
+            await Console.Error.WriteLineAsync($"Error migrating Index.cshtml: {ex.Message}");
             return 1;
         }
     }
