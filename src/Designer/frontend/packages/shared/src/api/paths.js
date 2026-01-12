@@ -93,8 +93,9 @@ export const validateImageFromExternalUrlPath = (org, app, url) => `${apiBasePat
 export const getImageFileNamesPath = (org, app) => `${apiBasePath}/${org}/${app}/images/fileNames`; // Get
 
 // Library - org-level
+export const orgLibraryPath = (org, path, reference) => `${apiBasePath}/${org}/shared-resources?${s({ path, reference })}`; // Get
+export const orgLibraryUpdatePath = (org) => `${apiBasePath}/${org}/shared-resources`; // Put
 export const orgCodeListsPath = (org) => `${apiBasePath}/${org}/code-lists`; // Get
-export const orgCodeListsNewPath = (org) => `${apiBasePath}/${org}/code-lists/new`; // Get, Put
 export const orgCodeListPath = (org, codeListId) => `${apiBasePath}/${org}/code-lists/${codeListId}`; // Post, Put, Delete
 export const orgCodeListPublishPath = (org) => `${apiBasePath}/${org}/code-lists/new/publish`; // Post
 export const orgCodeListUpdateIdPath = (org, codeListId) => `${apiBasePath}/${org}/code-lists/change-name/${codeListId}`;
@@ -121,6 +122,10 @@ export const undeployAppFromEnvPath = (org, app) => `${apiBasePath}/${org}/${app
 
 // Repositories
 export const branchStatusPath = (org, app, branch) => `${apiBasePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
+export const branchesPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/branches`; // Get, Post
+export const checkoutBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/checkout`; // Post
+export const currentBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/current-branch`; // Get
+export const discardChangesPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/discard-changes`; // Post
 export const copyAppPath = (org, sourceRepository, targetRepository, targetOrg) =>
   `${apiBasePath}/repos/repo/${org}/copy-app?${s({
     sourceRepository,

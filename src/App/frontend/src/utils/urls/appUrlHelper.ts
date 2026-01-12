@@ -167,6 +167,8 @@ export const getLayoutSettingsUrl = (layoutSetId: string) => `${appPath}/api/lay
 export const getLayoutSetsUrl = () => `${appPath}/api/layoutsets`;
 export const getFooterLayoutUrl = () => `${appPath}/api/v1/footer`;
 export const getLayoutsUrl = (layoutSetId: string) => `${appPath}/api/layouts/${layoutSetId}`;
+export const getInstanceLayoutsUrl = (layoutSetId: string, instanceId: string) =>
+  `${appPath}/instances/${instanceId}/layouts/${layoutSetId}`;
 export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;
 export const getInstanceUiUrl = (instanceId: string) => `${appPath}#/instance/${instanceId}`;
 

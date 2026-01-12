@@ -99,7 +99,7 @@ public class DeploymentPipelinePollingJob : IJob
         await _deployEventRepository.AddAsync(org, buildId, new DeployEvent
         {
             EventType = eventType,
-            Message = $"Pipeline {buildId} {build.Result}",
+            Message = $"Pipeline {buildId} {build.Result.ToEnumMemberAttributeValue()}",
             Timestamp = _timeProvider.GetUtcNow(),
             Origin = DeployEventOrigin.PollingJob
         });

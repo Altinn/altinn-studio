@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Http.Resilience;
 using StudioGateway.Api.Authentication;
 
 namespace StudioGateway.Api.Clients.Designer;
@@ -35,6 +34,8 @@ internal static class DesignerClientRegistration
                         );
                 });
         }
+
+        services.AddSingleton<DesignerClient>();
 
         return services;
     }

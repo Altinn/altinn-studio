@@ -26,38 +26,58 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
     private const string JsonExtension = ".json";
 
     /// <inheritdoc />
+    public async Task<string> GetLatestCommitOnBranch(string org, string branchName = General.DefaultBranch, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string repository = GetStaticContentRepo(org);
+        return await giteaClient.GetLatestCommitOnBranch(org, repository, branchName, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<GetSharedResourcesResponse> GetSharedResourcesByPath(string org, string? path = null, string? reference = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         string repository = GetStaticContentRepo(org);
-        List<FileSystemObject> directoryContent = await GetDirectoryContent(org, path, reference, cancellationToken);
-
         ConcurrentBag<LibraryFile> libraryFiles = [];
-
         ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
-        await Parallel.ForEachAsync(directoryContent, options,
-            async (FileSystemObject fileMetadata, CancellationToken token) =>
-            {
-                string fileExtension = Path.GetExtension(fileMetadata.Name);
-                switch (fileExtension)
-                {
-                    case JsonExtension:
-                        (FileSystemObject? file, ProblemDetails? problem) = await giteaClient.GetFileAndErrorAsync(org, repository, fileMetadata.Path, reference, token);
-                        LibraryFile jsonFileResult = PrepareJsonFileOrProblem(fileMetadata, file, problem);
-                        libraryFiles.Add(jsonFileResult);
-                        break;
-                    default:
-                        LibraryFile otherFile = PrepareOtherFile(fileMetadata);
-                        libraryFiles.Add(otherFile);
-                        break;
-                }
-            }
-        );
-
         string baseCommitSha = await giteaClient.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
 
-        return new GetSharedResourcesResponse(Files: [.. libraryFiles], CommitSha: baseCommitSha);
+        try
+        {
+            List<FileSystemObject> directoryContent = await GetDirectoryContent(org, path, reference, cancellationToken);
+            await Parallel.ForEachAsync(directoryContent, options,
+                async (FileSystemObject fileMetadata, CancellationToken token) =>
+                {
+                    string fileExtension = Path.GetExtension(fileMetadata.Name);
+                    switch (fileExtension)
+                    {
+                        case JsonExtension:
+                            (FileSystemObject? file, ProblemDetails? problem) = await giteaClient.GetFileAndErrorAsync(org, repository, fileMetadata.Path, reference, token);
+                            LibraryFile jsonFileResult = PrepareJsonFileOrProblem(fileMetadata, file, problem);
+                            libraryFiles.Add(jsonFileResult);
+                            break;
+                        default:
+                            LibraryFile otherFile = PrepareOtherFile(fileMetadata);
+                            libraryFiles.Add(otherFile);
+                            break;
+                    }
+                }
+            );
+
+            return new GetSharedResourcesResponse(Files: [.. libraryFiles], CommitSha: baseCommitSha);
+        }
+        catch (Exception ex) when (ex is DirectoryNotFoundException)
+        {
+            return new GetSharedResourcesResponse(Files: [], CommitSha: baseCommitSha);
+        }
+    }
+
+    /// <inheritdoc />
+    public Task<List<string>> GetPublishedResourcesForOrg(string org, string path, CancellationToken cancellationToken = default)
+    {
+        return sharedContentClient.GetPublishedResourcesForOrg(org, path, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -72,6 +92,11 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repositoryName, developer);
 
         string latestCommitSha = await giteaClient.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
+
+        sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
+        await sourceControl.PullRemoteChanges(editingContext.Org, editingContext.Repo);
+        await sourceControl.FetchGitNotes(editingContext);
+
         if (latestCommitSha == request.BaseCommitSha)
         {
             await HandleCommit(editingContext, request, cancellationToken);
@@ -89,8 +114,6 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
 
     internal async Task HandleCommit(AltinnRepoEditingContext editingContext, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default)
     {
-        sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
-        await sourceControl.PullRemoteChanges(editingContext.Org, editingContext.Repo);
         await UpdateFiles(editingContext, request, cancellationToken);
         sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
     }
@@ -114,7 +137,7 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
     }
 
-    private async Task RebaseWithConflictHandling(AltinnRepoEditingContext editingContext, string branchName)
+    internal async Task RebaseWithConflictHandling(AltinnRepoEditingContext editingContext, string branchName)
     {
         RebaseResult rebaseResult = sourceControl.RebaseOntoDefaultBranch(editingContext);
         if (rebaseResult.Status == RebaseStatus.Conflicts)
@@ -177,7 +200,11 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
 
         ValidateFilePath(fileMetadata.Path);
 
-        if (fileMetadata.Encoding?.Equals("base64", StringComparison.OrdinalIgnoreCase) is true)
+        if (fileMetadata.Content is null)
+        {
+            altinnOrgGitRepository.DeleteFileByRelativePath(fileMetadata.Path);
+        }
+        else if (fileMetadata.Encoding?.Equals("base64", StringComparison.OrdinalIgnoreCase) is true)
         {
             byte[] data = Convert.FromBase64String(fileMetadata.Content);
             using MemoryStream stream = new(data);
@@ -215,7 +242,7 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         }
     }
 
-    private static LibraryFile PrepareJsonFileOrProblem(FileSystemObject fileMetadata, FileSystemObject? file, ProblemDetails? problem)
+    internal static LibraryFile PrepareJsonFileOrProblem(FileSystemObject fileMetadata, FileSystemObject? file, ProblemDetails? problem)
     {
         if (problem is null)
         {
@@ -225,7 +252,7 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         return PrepareProblem(fileMetadata, problem);
     }
 
-    private static LibraryFile PrepareProblem(FileSystemObject fileSystemObject, ProblemDetails problem)
+    internal static LibraryFile PrepareProblem(FileSystemObject fileSystemObject, ProblemDetails problem)
     {
         string contentType = Path.GetExtension(fileSystemObject.Name);
         return new LibraryFile(
@@ -235,7 +262,7 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         );
     }
 
-    private static LibraryFile PrepareJsonFile(FileSystemObject jsonFile)
+    internal static LibraryFile PrepareJsonFile(FileSystemObject jsonFile)
     {
         string contentType = Path.GetExtension(jsonFile.Name);
         return new LibraryFile(
@@ -245,7 +272,7 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         );
     }
 
-    private static LibraryFile PrepareOtherFile(FileSystemObject otherFile)
+    internal static LibraryFile PrepareOtherFile(FileSystemObject otherFile)
     {
         string contentType = Path.GetExtension(otherFile.Name);
         return new LibraryFile(
@@ -255,13 +282,8 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         );
     }
 
-    private static string GetStaticContentRepo(string org)
+    internal static string GetStaticContentRepo(string org)
     {
         return $"{org}-content";
-    }
-
-    public Task<List<string>> GetPublishedResourcesForOrg(string org, string path, CancellationToken cancellationToken = default)
-    {
-        return sharedContentClient.GetPublishedResourcesForOrg(org, path, cancellationToken);
     }
 }

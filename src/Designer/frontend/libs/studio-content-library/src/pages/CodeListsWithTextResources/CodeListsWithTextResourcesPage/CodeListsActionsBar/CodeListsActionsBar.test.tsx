@@ -1,5 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CodeListsActionsBarProps } from './CodeListsActionsBar';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
@@ -50,10 +51,12 @@ describe('CodeListsActionsBar', () => {
 const defaultCodeListActionBarProps: CodeListsActionsBarProps = {
   onUploadCodeList: onUploadCodeListMock,
   onCreateCodeList: jest.fn(),
+  onCreateTextResource: jest.fn(),
+  onUpdateTextResource: jest.fn(),
   codeListNames: [codeListName1, codeListName2],
   onSetSearchString: onSetSearchStringMock,
 };
 
-const renderCodeListsActionsBar = () => {
+const renderCodeListsActionsBar = (): RenderResult => {
   return renderWithProviders(<CodeListsActionsBar {...defaultCodeListActionBarProps} />);
 };

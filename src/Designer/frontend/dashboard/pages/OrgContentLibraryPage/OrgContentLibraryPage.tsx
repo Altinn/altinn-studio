@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import React, { useMemo, useCallback } from 'react';
-import { ResourceContentLibraryImpl } from '@studio/content-library';
+import { ContentLibrary } from '@studio/content-library';
 import type {
   CodeListWithMetadata,
   PagesConfig,
@@ -39,7 +39,7 @@ import { useOrgRepoName } from 'dashboard/hooks/useOrgRepoName';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
 import { useOrgTextResourcesQuery } from 'app-shared/hooks/queries/useOrgTextResourcesQuery';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { CODE_LIST_FOLDER, DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
@@ -47,9 +47,9 @@ import { useUpdateOrgCodeListIdMutation } from 'app-shared/hooks/mutations/useUp
 import { FeedbackForm } from './FeedbackForm';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
-import { useOrgCodeListsNewQuery } from 'app-shared/hooks/queries/useOrgCodeListsNewQuery';
-import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
-import { useOrgCodeListsMutation } from 'app-shared/hooks/mutations/useOrgCodeListsMutation';
+import { useSharedCodeListsQuery } from 'app-shared/hooks/queries/useSharedCodeListsQuery';
+import { useUpdateSharedResourcesMutation } from 'app-shared/hooks/mutations/useUpdateSharedResourcesMutation';
+import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
 import { usePublishCodeListMutation } from 'app-shared/hooks/mutations/usePublishCodeListMutation';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 
@@ -93,13 +93,12 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
     orgName,
     DEFAULT_LANGUAGE,
   );
-  const { data: codeListDataListNew, status: codeListDataListNewStatus } =
-    useOrgCodeListsNewQuery(orgName);
+  const { data: sharedCodeList, status: sharedCodeListStatus } = useSharedCodeListsQuery(orgName);
 
   const status = mergeQueryStatuses(
     codeListDataListStatus,
     textResourcesStatus,
-    codeListDataListNewStatus,
+    sharedCodeListStatus,
   );
 
   switch (status) {
@@ -111,7 +110,7 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
       return (
         <OrgContentLibraryWithContextAndData
           codeListDataList={codeListDataList}
-          codeListDataListNew={codeListDataListNew}
+          sharedResourceResponse={sharedCodeList}
           orgName={orgName}
           textResources={textResources}
         />
@@ -121,7 +120,7 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
 
 type OrgContentLibraryWithContextAndDataProps = {
   codeListDataList: CodeListsResponse;
-  codeListDataListNew: CodeListsNewResponse;
+  sharedResourceResponse: SharedResourcesResponse;
   orgName: string;
   textResources: ITextResourcesWithLanguage;
 };
@@ -165,29 +164,25 @@ function OrgContentLibraryWithContextAndData({
     createCodeList({ title, data: codeList });
   };
 
-  const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
-    heading: t('org_content_library.library_heading'),
-    pages: {
-      codeListsWithTextResources: {
-        props: {
-          codeListDataList,
-          onCreateCodeList: handleCreate,
-          onCreateTextResource: handleUpdateTextResource,
-          onDeleteCodeList: deleteCodeList,
-          onUpdateCodeListId: handleUpdateCodeListId,
-          onUpdateCodeList: handleUpdate,
-          onUpdateTextResource: handleUpdateTextResource,
-          onUploadCodeList: handleUpload,
-          textResources,
-        },
-      },
-      ...pagesFromFeatureFlags,
-    },
-  });
-
   return (
     <div>
-      {getContentResourceLibrary()}
+      <ContentLibrary
+        heading={t('org_content_library.library_heading')}
+        pages={{
+          codeListsWithTextResources: {
+            codeListDataList,
+            onCreateCodeList: handleCreate,
+            onCreateTextResource: handleUpdateTextResource,
+            onDeleteCodeList: deleteCodeList,
+            onUpdateCodeListId: handleUpdateCodeListId,
+            onUpdateCodeList: handleUpdate,
+            onUpdateTextResource: handleUpdateTextResource,
+            onUploadCodeList: handleUpload,
+            textResources,
+          },
+          ...pagesFromFeatureFlags,
+        }}
+      />
       <FeedbackForm />
     </div>
   );
@@ -198,15 +193,15 @@ function usePagesFromFeatureFlags(orgName: string): Partial<PagesConfig> {
   const codeListsProps = useCodeListsProps(orgName);
 
   if (displayNewCodeListPage) {
-    return { codeLists: { props: codeListsProps } };
+    return { codeLists: codeListsProps };
   } else {
     return {};
   }
 }
 
-function useCodeListsProps(orgName: string): PagesConfig['codeLists']['props'] {
-  const { data } = useOrgCodeListsNewQuery(orgName);
-  const { mutate } = useOrgCodeListsMutation(orgName);
+function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
+  const { data } = useSharedCodeListsQuery(orgName);
+  const { mutate } = useUpdateSharedResourcesMutation(orgName, CODE_LIST_FOLDER);
   const { mutate: publish } = usePublishCodeListMutation(orgName);
   const { t } = useTranslation();
 

@@ -19,6 +19,7 @@ export type FormItemProps = {
   saveAtIndexPosition: number;
   duplicateComponents?: string[];
   containerId?: string;
+  isLastChild?: boolean;
 };
 
 export const FormItem = ({
@@ -27,6 +28,7 @@ export const FormItem = ({
   saveAtIndexPosition,
   duplicateComponents,
   containerId,
+  isLastChild,
 }: FormItemProps): ReactElement => {
   const { t } = useTranslation();
   const shouldRenderWithHoverAddButton = useFeatureFlag(FeatureFlag.AddComponentModal);
@@ -42,6 +44,7 @@ export const FormItem = ({
         saveAtIndexPosition={saveAtIndexPosition}
         containerId={containerId || BASE_CONTAINER_ID}
         title={t('ux_editor.add_item.new_component')}
+        isLastChild={isLastChild}
       >
         <Item duplicateComponents={duplicateComponents} layout={layout} id={id} />
       </WithHoverAddButton>

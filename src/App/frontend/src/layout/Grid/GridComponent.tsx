@@ -81,9 +81,16 @@ interface GridRowsProps {
   extraCells?: GridCell[];
   isNested: boolean;
   mutableColumnSettings: ITableColumnFormatting;
+  hiddenColumnIndices?: number[];
 }
 
-export function GridRowsRenderer({ rows, extraCells = [], isNested, mutableColumnSettings }: GridRowsProps) {
+export function GridRowsRenderer({
+  rows,
+  extraCells = [],
+  isNested,
+  mutableColumnSettings,
+  hiddenColumnIndices = [],
+}: GridRowsProps) {
   const batches: { type: 'header' | 'body'; rows: GridRow[] }[] = [];
 
   for (const row of rows) {
@@ -109,6 +116,7 @@ export function GridRowsRenderer({ rows, extraCells = [], isNested, mutableColum
                 row={{ ...row, cells: [...row.cells, ...extraCells] }}
                 isNested={isNested}
                 mutableColumnSettings={mutableColumnSettings}
+                hiddenColumnIndices={hiddenColumnIndices}
               />
             ))}
           </WrapperComponent>
@@ -122,17 +130,22 @@ interface GridRowProps extends Omit<GridRowsProps, 'rows'> {
   row: GridRow;
 }
 
-function GridRowRenderer({ row, isNested, mutableColumnSettings }: GridRowProps) {
+function GridRowRenderer({ row, isNested, mutableColumnSettings, hiddenColumnIndices = [] }: GridRowProps) {
   const rowHidden = useIsGridRowHidden(row);
   if (rowHidden) {
     return null;
   }
 
+  // Create array of cells with their original indices, then filter out hidden ones
+  const cellsWithIndices = row.cells
+    .map((cell, cellIdx) => ({ cell, cellIdx }))
+    .filter(({ cellIdx }) => !hiddenColumnIndices.includes(cellIdx));
+
   return (
     <Table.Row className={row.readOnly ? css.rowReadOnly : undefined}>
-      {row.cells.map((cell, cellIdx) => {
-        const isFirst = cellIdx === 0;
-        const isLast = cellIdx === row.cells.length - 1;
+      {cellsWithIndices.map(({ cell, cellIdx }, visibleIdx) => {
+        const isFirst = visibleIdx === 0;
+        const isLast = visibleIdx === cellsWithIndices.length - 1;
         const className = cn({
           [css.fullWidthCellFirst]: isFirst && !isNested,
           [css.fullWidthCellLast]: isLast && !isNested,

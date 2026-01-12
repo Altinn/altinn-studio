@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.CodeList;
-using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
@@ -63,59 +62,6 @@ public class OrgCodeListController : ControllerBase
         {
             return NoContent();
         }
-    }
-
-    /// <summary>
-    /// Fetches the contents of all the code lists belonging to the organisation.
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation.</param>
-    /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>List of <see cref="CodeListWrapper" /> which includes all code lists belonging to the organisation.</returns>
-    [HttpGet]
-    [Route("new")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<GetCodeListResponse>> GetCodeListsNew(string org, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        GetCodeListResponse response = await _orgCodeListService.GetCodeListsNew(org, reference, cancellationToken);
-
-        return Ok(response);
-    }
-
-    /// <summary>
-    /// Creates or overwrites the code lists.
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation.</param>
-    /// <param name="requestBody">The body of the request <see cref="UpdateCodeListRequest"/></param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    [HttpPut]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [Route("new")]
-    public async Task<ActionResult> UpdateCodeListsNew(string org, [FromBody] UpdateCodeListRequest requestBody, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
-        try
-        {
-            await _orgCodeListService.UpdateCodeListsNew(org, developer, requestBody, cancellationToken);
-            return Ok();
-        }
-        catch (Exception ex) when (ex is IllegalCodeListTitleException or IllegalCommitMessageException or ArgumentException)
-        {
-            _logger.LogError(ex, "Invalid request to update codelists for org {Org}.", org);
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid request",
-                Status = StatusCodes.Status400BadRequest
-            });
-        }
-
     }
 
     /// <summary>

@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './GiteaFetchCompleted.module.css';
-import { Heading } from '@digdir/designsystemet-react';
 import { CheckmarkCircleIcon } from '@studio/icons';
+import { StudioHeading } from '@studio/components';
 
 export type GiteaFetchCompletedProps = {
   heading: string;
@@ -9,11 +9,11 @@ export type GiteaFetchCompletedProps = {
 
 export const GiteaFetchCompleted = ({ heading }: GiteaFetchCompletedProps): React.ReactElement => {
   return (
-    <>
-      <Heading size='xxsmall' level={3}>
+    <div className={classes.container}>
+      <StudioHeading data-size='2xs' spacing level={3}>
         {heading}
-      </Heading>
+      </StudioHeading>
       <CheckmarkCircleIcon className={classes.icon} />
-    </>
+    </div>
   );
 };

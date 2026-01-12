@@ -25,11 +25,11 @@ import classes from './EditCodeList.module.css';
 export type EditCodeListProps = {
   codeList: CodeListWithTextResources;
   codeListTitle: string;
-  onCreateTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
-  onUpdateTextResource?: (textResource: TextResource) => void;
+  onUpdateTextResource: (textResource: TextResource) => void;
   codeListNames: string[];
   codeListSources: CodeListIdSource[];
   textResources?: TextResource[];
@@ -45,7 +45,7 @@ export function EditCodeList({
   onUpdateTextResource,
   codeListNames,
   codeListSources,
-  textResources,
+  textResources = [],
 }: EditCodeListProps): React.ReactElement {
   const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
 
@@ -111,11 +111,11 @@ function EditCodeListTitle({
   const { t } = useTranslation();
   const getInvalidInputFileNameErrorMessage = useInputCodeListNameErrorMessage();
 
-  const handleUpdateCodeListId = (newCodeListId: string) => {
+  const handleUpdateCodeListId = (newCodeListId: string): void => {
     if (newCodeListId !== codeListTitle) onUpdateCodeListId(codeListTitle, newCodeListId);
   };
 
-  const handleValidateCodeListId = (newCodeListId: string) => {
+  const handleValidateCodeListId = (newCodeListId: string): string | undefined => {
     const invalidCodeListNames = ArrayUtils.removeItemByValue(codeListNames, codeListTitle);
     const fileNameError = FileNameUtils.findFileNameError(newCodeListId, invalidCodeListNames);
     return getInvalidInputFileNameErrorMessage(fileNameError);

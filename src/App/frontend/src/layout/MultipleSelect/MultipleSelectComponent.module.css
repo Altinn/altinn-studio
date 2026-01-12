@@ -1,0 +1,5 @@
+.optionDescription {
+  display: block;
+  margin-top: var(--ds-size-1);
+  color: var(--ds-color-neutral-text-subtle);
+}
