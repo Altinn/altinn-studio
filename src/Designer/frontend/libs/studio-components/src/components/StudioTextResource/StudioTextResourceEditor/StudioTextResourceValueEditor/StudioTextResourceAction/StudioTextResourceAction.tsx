@@ -1,11 +1,7 @@
-import type { StudioTextResourceEditorTexts } from '@studio/components';
-import {
-  StudioConfigCard,
-  StudioTextResourceEditor,
-  StudioTextResourceTab,
-} from '@studio/components';
+import type { StudioTextResourceEditorTexts, StudioTextResourceTab } from '@studio/components';
+import { StudioConfigCard, StudioTextResourceEditor } from '@studio/components';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import type { TextResource } from 'libs/studio-pure-functions/src';
+import type { TextResource } from '@studio/pure-functions';
 
 export type StudioTextResourceActionTexts = {
   cardLabel: string;
@@ -32,6 +28,7 @@ export type StudioTextResourceActionProps = {
   handleValueChange: (id: string, value: string) => void;
   handleRemoveTextResource?: () => void;
   texts: StudioTextResourceActionTexts;
+  className?: string;
 };
 
 export const StudioTextResourceAction = ({
@@ -44,6 +41,7 @@ export const StudioTextResourceAction = ({
   handleValueChange,
   handleRemoveTextResource,
   texts,
+  className,
 }: StudioTextResourceActionProps): React.ReactElement => {
   const getTextResourceValue = useCallback(
     (id?: string): string | undefined => {
@@ -113,7 +111,7 @@ export const StudioTextResourceAction = ({
     (currentTextResourceId === textResourceId && currentTextResourceValue === initialValue);
 
   return (
-    <StudioConfigCard>
+    <StudioConfigCard className={className}>
       <StudioConfigCard.Header
         cardLabel={texts.cardLabel}
         deleteAriaLabel={texts.deleteAriaLabel}
@@ -146,3 +144,5 @@ export const StudioTextResourceAction = ({
     </StudioConfigCard>
   );
 };
+
+StudioTextResourceAction.displayName = 'StudioTextResourceAction';

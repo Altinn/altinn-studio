@@ -37,6 +37,7 @@ export const TextResourceAction = ({
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     allTextResourceIdsWithTextSelector(DEFAULT_LANGUAGE),
   );
+  const generateIdCallback = useCallback(() => generateId(generateIdOptions), [generateIdOptions]);
 
   const handleValueChange = (id: string, value: string) => {
     upsertTextResourceMutation({
@@ -67,7 +68,7 @@ export const TextResourceAction = ({
     <StudioTextResourceAction
       textResources={textResources}
       textResourceId={textResourceId}
-      generateId={useCallback(() => generateId(generateIdOptions), [generateIdOptions])}
+      generateId={generateIdCallback}
       disableSearch={disableSearch}
       setIsOpen={setIsOpen}
       handleIdChange={handleIdChange}

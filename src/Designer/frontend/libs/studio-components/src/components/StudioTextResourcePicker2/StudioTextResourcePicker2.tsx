@@ -1,24 +1,31 @@
 import React from 'react';
+import type { StudioSelectProps } from '@studio/components';
 import { StudioSelect } from '@studio/components';
-import type { TextResource } from 'libs/studio-pure-functions/src/types/TextResource';
+import type { TextResource } from '@studio/pure-functions/src/types/TextResource';
+import type { Override } from '../../types/Override';
 
-export type StudioTextResourcePicker2Props = {
-  label: string;
-  noTextResourceOptionLabel: string;
-  textResources: TextResource[];
-  textResourceId?: string;
-  onReferenceChange: (id?: string) => void;
-};
+export type StudioTextResourcePicker2Props = Override<
+  {
+    label: string;
+    noTextResourceOptionLabel: string;
+    textResources: TextResource[];
+    textResourceId?: string;
+    onReferenceChange: (id?: string) => void;
+  },
+  Omit<StudioSelectProps, 'onChange' | 'value' | 'children'>
+>;
 
-export const StudioTextResourcePicker2 = ({
+export function StudioTextResourcePicker2({
   label,
   noTextResourceOptionLabel,
   textResources,
   textResourceId,
   onReferenceChange,
-}: StudioTextResourcePicker2Props): React.ReactElement => {
+  ...rest
+}: StudioTextResourcePicker2Props): React.ReactElement {
   return (
     <StudioSelect
+      {...rest}
       label={label}
       onChange={(event) =>
         onReferenceChange(event.target.value === '' ? undefined : event.target.value)
@@ -33,4 +40,6 @@ export const StudioTextResourcePicker2 = ({
       ))}
     </StudioSelect>
   );
-};
+}
+
+StudioTextResourcePicker2.displayName = 'StudioTextResourcePicker2';

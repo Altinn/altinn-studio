@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import type { Ref } from 'react';
+import React, { forwardRef, useState } from 'react';
+import type { StudioTabsProps } from '@studio/components';
 import {
   StudioTextResourcePicker2,
   StudioTextResourceValueEditor,
@@ -6,7 +8,8 @@ import {
   StudioTabs,
 } from '@studio/components';
 import classes from './StudioTextResourceEditor.module.css';
-import type { TextResource } from 'libs/studio-pure-functions/src';
+import type { TextResource } from '@studio/pure-functions';
+import type { Override } from '../../../types/Override';
 
 export type StudioTextResourceEditorTexts = {
   pickerLabel: string;
@@ -18,29 +21,36 @@ export type StudioTextResourceEditorTexts = {
   tabLabelSearch: string;
 };
 
-export interface StudioTextResourceEditorProps {
-  textResourceId: string;
-  onTextChange?: (value: string) => void;
-  onReferenceChange?: (id?: string) => void;
-  textResourceValue?: string;
-  disableSearch?: boolean;
-  onTabChange?: (tab: StudioTextResourceTab) => void;
-  textResources: TextResource[];
-  texts: StudioTextResourceEditorTexts;
-}
+export type StudioTextResourceEditorProps = Override<
+  {
+    textResourceId: string;
+    onTextChange?: (value: string) => void;
+    onReferenceChange?: (id?: string) => void;
+    textResourceValue?: string;
+    disableSearch?: boolean;
+    onTabChange?: (tab: StudioTextResourceTab) => void;
+    textResources: TextResource[];
+    texts: StudioTextResourceEditorTexts;
+  },
+  Omit<StudioTabsProps, 'value' | 'onChange' | 'children'>
+>;
 
 export type StudioTextResourceTab = 'type' | 'search';
 
-export const StudioTextResourceEditor = ({
-  textResourceId,
-  onTextChange,
-  onReferenceChange,
-  textResourceValue,
-  disableSearch = false,
-  onTabChange,
-  texts,
-  textResources,
-}: StudioTextResourceEditorProps): React.ReactElement => {
+function StudioTextResourceEditor(
+  {
+    textResourceId,
+    onTextChange,
+    onReferenceChange,
+    textResourceValue,
+    disableSearch = false,
+    onTabChange,
+    texts,
+    textResources,
+    ...rest
+  }: StudioTextResourceEditorProps,
+  ref: Ref<HTMLDivElement>,
+): React.ReactElement {
   const [activeTab, setActiveTab] = useState<StudioTextResourceTab>('type');
 
   const handleTabClick = (tab: StudioTextResourceTab): void => {
@@ -54,6 +64,8 @@ export const StudioTextResourceEditor = ({
 
   return (
     <StudioTabs
+      {...rest}
+      ref={ref}
       value={activeTab}
       className={classes.root}
       onChange={(newValue) => handleTabClick(newValue as StudioTextResourceTab)}
@@ -87,4 +99,10 @@ export const StudioTextResourceEditor = ({
       </StudioTabs.Panel>
     </StudioTabs>
   );
-};
+}
+
+const ForwardedStudioTextResourceEditor = forwardRef(StudioTextResourceEditor);
+
+ForwardedStudioTextResourceEditor.displayName = 'StudioTextResourceEditor';
+
+export { ForwardedStudioTextResourceEditor as StudioTextResourceEditor };

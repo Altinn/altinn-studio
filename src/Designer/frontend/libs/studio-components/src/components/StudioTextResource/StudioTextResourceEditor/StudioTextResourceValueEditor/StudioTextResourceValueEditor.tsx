@@ -1,23 +1,32 @@
-import React from 'react';
+import type { HTMLAttributes, Ref } from 'react';
+import React, { forwardRef } from 'react';
 import { StudioCodeFragment, StudioTextarea } from '@studio/components';
 import classes from './StudioTextResourceValueEditor.module.css';
-import { useAutoSizeTextArea } from '@studio/components/src/hooks/useAutoSizeTextArea';
+import { useAutoSizeTextArea } from '../../../../hooks/useAutoSizeTextArea';
+import type { Override } from '../../../../types/Override';
 
-export type StudioTextResourceValueEditorProps = {
-  textResourceId: string;
-  onTextChange?: (value: string) => void;
-  textResourceValue?: string;
-  ariaLabel: string;
-  idLabel: string;
-};
+export type StudioTextResourceValueEditorProps = Override<
+  {
+    textResourceId: string;
+    onTextChange?: (value: string) => void;
+    textResourceValue?: string;
+    ariaLabel: string;
+    idLabel: string;
+  },
+  Omit<HTMLAttributes<HTMLDivElement>, 'onChange' | 'children'>
+>;
 
-export const StudioTextResourceValueEditor = ({
-  textResourceId,
-  onTextChange,
-  textResourceValue,
-  ariaLabel,
-  idLabel,
-}: StudioTextResourceValueEditorProps): React.ReactElement => {
+function StudioTextResourceValueEditor(
+  {
+    textResourceId,
+    onTextChange,
+    textResourceValue,
+    ariaLabel,
+    idLabel,
+    ...rest
+  }: StudioTextResourceValueEditorProps,
+  ref: Ref<HTMLDivElement>,
+): React.ReactElement {
   const minHeightInPx = 100;
   const maxHeightInPx = 400;
   const displayValue = textResourceValue ?? '';
@@ -31,7 +40,7 @@ export const StudioTextResourceValueEditor = ({
   };
 
   return (
-    <div className={classes.root}>
+    <div {...rest} ref={ref} className={classes.root}>
       <StudioTextarea
         aria-label={ariaLabel}
         value={displayValue}
@@ -43,4 +52,10 @@ export const StudioTextResourceValueEditor = ({
       </div>
     </div>
   );
-};
+}
+
+const ForwardedStudioTextResourceValueEditor = forwardRef(StudioTextResourceValueEditor);
+
+ForwardedStudioTextResourceValueEditor.displayName = 'StudioTextResourceValueEditor';
+
+export { ForwardedStudioTextResourceValueEditor as StudioTextResourceValueEditor };
