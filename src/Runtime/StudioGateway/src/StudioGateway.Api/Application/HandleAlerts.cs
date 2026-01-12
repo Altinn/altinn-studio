@@ -51,6 +51,7 @@ internal static class HandleAlerts
     )
     {
         var alertsByName = alertPayload.Alerts
+            .Where(a => a.Labels.ContainsKey("alertname"))
             .GroupBy(a => a.Labels["alertname"])
             .ToList();
 
@@ -59,7 +60,7 @@ internal static class HandleAlerts
                 logger,
                 gatewayContext.ServiceOwner,
                 gatewayContext.Environment,
-                group.Select(a => a.Labels["cloud_RoleName"]).ToList(),
+                group.Select(a => a.Labels.GetValueOrDefault("cloud_RoleName", "unknown")).ToList(),
                 environment,
                 group.Key,
                 group.First().GeneratorURL,
