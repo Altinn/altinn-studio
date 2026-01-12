@@ -1,0 +1,61 @@
+﻿[basic/default] [INIT WARN] No scenario config directory found at /App/scenario-overrides/config
+[basic/default] [INIT INFO] Fixture configuration updated
+[basic/default] [INFO] ### Request: Instances.PostSimplified - User: ServiceOwner/405003309, AuthLevel: 3, AuthMethod: localtest
+[basic/default] [INFO] IInstantiationValidator.Validate
+[basic/default] [INFO] IProcessTaskStart.Start
+[basic/default] [INFO] IInstantiationProcessor.DataCreation
+[basic/default] [INFO] ### Response: Instances.PostSimplified - CreatedResult, StatusCode: 201
+[basic/default] [INFO] ### Request: Instances.Get - User: ServiceOwner/405003309, AuthLevel: 3, AuthMethod: localtest
+[basic/default] [INFO] ### Response: Instances.Get - OkObjectResult, StatusCode: 200
+[basic/default] [INFO] ### Request: ApplicationMetadata.GetAction - User: None/none, AuthLevel: 0, AuthMethod: none
+[basic/default] [INFO] ### Response: ApplicationMetadata.GetAction - OkObjectResult, StatusCode: 200
+[basic/default] [INFO] ### Request: Data.Get - User: ServiceOwner/405003309, AuthLevel: 3, AuthMethod: localtest
+[basic/default] [INFO] IDataProcessor.ProcessDataRead
+[basic/default] [INFO] ### Response: Data.Get - OkObjectResult, StatusCode: 200
+[basic/default] [INFO] ### Request: Data.PatchFormDataMultiple - User: ServiceOwner/405003309, AuthLevel: 3, AuthMethod: localtest
+[basic/default] [INFO] IDataProcessor.ProcessDataWrite
+[basic/default] [INFO] IDataWriteProcessor.ProcessDataWrite
+[basic/default] [INFO] IValidator.HasRelevantChanges
+[basic/default] [INFO] IValidator.Validate
+[basic/default] [INFO] IFormDataValidator.HasRelevantChanges
+[basic/default] [INFO] IFormDataValidator.ValidateFormData
+[basic/default] [INFO] ### Response: Data.PatchFormDataMultiple - OkObjectResult, StatusCode: 200
+[basic/default] [INFO] ### Request: Process.NextElement - User: ServiceOwner/405003309, AuthLevel: 3, AuthMethod: localtest
+[basic/default] [INFO] IValidator.Validate
+[basic/default] [INFO] ITaskValidator.ValidateTask
+[basic/default] [INFO] IDataElementValidator.ValidateDataElement
+[basic/default] [INFO] IFormDataValidator.ValidateFormData
+[basic/default] [INFO] IProcessTaskEnd.End
+fail: Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask.EndTaskEventHandler[0]
+      Error executing pdf service task. Unlocking data again.
+      Altinn.App.Core.Internal.Pdf.PdfGenerationException: Pdf generation failed
+         at Altinn.App.Core.Infrastructure.Clients.Pdf.PdfGeneratorClient.GeneratePdf(Uri uri, String footerContent, CancellationToken ct) in /_/src/App/backend/src/Altinn.App.Core/Infrastructure/Clients/Pdf/PdfGeneratorClient.cs:line 154
+         at Altinn.App.Core.Internal.Pdf.PdfService.GeneratePdfContent(Instance instance, String language, Boolean isPreview, List`1 autoGeneratePdfForTaskIds, CancellationToken ct) in /_/src/App/backend/src/Altinn.App.Core/Internal/Pdf/PdfService.cs:line 174
+         at Altinn.App.Core.Internal.Pdf.PdfService.GenerateAndStorePdfInternal(Instance instance, String taskId, String customFileNameTextResourceKey, List`1 autoGeneratePdfForTaskIds, CancellationToken ct) in /_/src/App/backend/src/Altinn.App.Core/Internal/Pdf/PdfService.cs:line 122
+         at Altinn.App.Core.Internal.Pdf.PdfService.GenerateAndStorePdf(Instance instance, String taskId, CancellationToken ct) in /_/src/App/backend/src/Altinn.App.Core/Internal/Pdf/PdfService.cs:line 65
+         at Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.Legacy.PdfServiceTaskLegacy.Execute(String taskId, Instance instance) in /_/src/App/backend/src/Altinn.App.Core/Internal/Process/ProcessTasks/ServiceTasks/Legacy/PdfServiceTaskLegacy.cs:line 53
+         at Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask.EndTaskEventHandler.Execute(IProcessTask processTask, String taskId, Instance instance) in /_/src/App/backend/src/Altinn.App.Core/Internal/Process/EventHandlers/ProcessTask/EndTaskEventHandler.cs:line 53
+fail: Altinn.App.Api.Controllers.ProcessController[0]
+      Process next failed.
+      Altinn.App.Core.Internal.Pdf.PdfGenerationException: Pdf generation failed
+         at Altinn.App.Core.Infrastructure.Clients.Pdf.PdfGeneratorClient.GeneratePdf(Uri uri, String footerContent, CancellationToken ct) in /_/src/App/backend/src/Altinn.App.Core/Infrastructure/Clients/Pdf/PdfGeneratorClient.cs:line 154
+         at Altinn.App.Core.Internal.Pdf.PdfService.GeneratePdfContent(Instance instance, String language, Boolean isPreview, List`1 autoGeneratePdfForTaskIds, CancellationToken ct) in /_/src/App/backend/src/Altinn.App.Core/Internal/Pdf/PdfService.cs:line 174
+         at Altinn.App.Core.Internal.Pdf.PdfService.GenerateAndStorePdfInternal(Instance instance, String taskId, String customFileNameTextResourceKey, List`1 autoGeneratePdfForTaskIds, CancellationToken ct) in /_/src/App/backend/src/Altinn.App.Core/Internal/Pdf/PdfService.cs:line 122
+         at Altinn.App.Core.Internal.Pdf.PdfService.GenerateAndStorePdf(Instance instance, String taskId, CancellationToken ct) in /_/src/App/backend/src/Altinn.App.Core/Internal/Pdf/PdfService.cs:line 65
+         at Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.Legacy.PdfServiceTaskLegacy.Execute(String taskId, Instance instance) in /_/src/App/backend/src/Altinn.App.Core/Internal/Process/ProcessTasks/ServiceTasks/Legacy/PdfServiceTaskLegacy.cs:line 53
+         at Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask.EndTaskEventHandler.Execute(IProcessTask processTask, String taskId, Instance instance) in /_/src/App/backend/src/Altinn.App.Core/Internal/Process/EventHandlers/ProcessTask/EndTaskEventHandler.cs:line 53
+         at Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask.EndTaskEventHandler.Execute(IProcessTask processTask, String taskId, Instance instance) in /_/src/App/backend/src/Altinn.App.Core/Internal/Process/EventHandlers/ProcessTask/EndTaskEventHandler.cs:line 59
+         at Altinn.App.Core.Internal.Process.ProcessEventHandlingDelegator.HandleEvents(Instance instance, Dictionary`2 prefill, List`1 events) in /_/src/App/backend/src/Altinn.App.Core/Internal/Process/ProcessEventHandlingDelegator.cs:line 84
+         at Altinn.App.Core.Internal.Process.ProcessEngine.HandleEventsAndUpdateStorage(Instance instance, Dictionary`2 prefill, List`1 events) in /_/src/App/backend/src/Altinn.App.Core/Internal/Process/ProcessEngine.cs:line 397
+         at Altinn.App.Core.Internal.Process.ProcessEngine.HandleMoveToNext(Instance instance, String action) in /_/src/App/backend/src/Altinn.App.Core/Internal/Process/ProcessEngine.cs:line 755
+         at Altinn.App.Core.Internal.Process.ProcessEngine.ProcessNext(ProcessNextRequest request, CancellationToken ct) in /_/src/App/backend/src/Altinn.App.Core/Internal/Process/ProcessEngine.cs:line 359
+         at Altinn.App.Core.Internal.Process.ProcessEngine.Next(ProcessNextRequest request, CancellationToken ct) in /_/src/App/backend/src/Altinn.App.Core/Internal/Process/ProcessEngine.cs:line 198
+         at Altinn.App.Api.Controllers.ProcessController.NextElement(String org, String app, Int32 instanceOwnerPartyId, Guid instanceGuid, CancellationToken ct, String elementId, String language, ProcessNext processNext) in /_/src/App/backend/src/Altinn.App.Api/Controllers/ProcessController.cs:line 280
+[basic/default] [INFO] ### Response: Process.NextElement - ObjectResult, StatusCode: 500
+[basic/default] [INFO] ### Request: Instances.Get - User: ServiceOwner/405003309, AuthLevel: 3, AuthMethod: localtest
+[basic/default] [INFO] ### Response: Instances.Get - OkObjectResult, StatusCode: 200
+[basic/default] [INFO] ### Request: ApplicationMetadata.GetAction - User: None/none, AuthLevel: 0, AuthMethod: none
+[basic/default] [INFO] ### Response: ApplicationMetadata.GetAction - OkObjectResult, StatusCode: 200
+[basic/default] [INFO] ### Request: Data.Get - User: ServiceOwner/405003309, AuthLevel: 3, AuthMethod: localtest
+[basic/default] [INFO] IDataProcessor.ProcessDataRead
+[basic/default] [INFO] ### Response: Data.Get - OkObjectResult, StatusCode: 200
