@@ -21,5 +21,39 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+
+# Documentation and README files
 LICENSE
 README.md
+**/README.md
+**/readme.*
+**/README.*
+docs/
+**/docs/
+
+# Test files and directories
+tests/
+**/tests/
+**/test/
+**/*test*
+**/*Test*
+**/*.Tests.*
+**/*.Test.*
+
+# Solution and project files (keep source code but ignore solution metadata)
+*.sln
+*.sln.DotSettings*
+*.slnx
+
+# Build and IDE files
+**/.DS_Store
+**/.csharpier*
+**/.editorconfig
+
+# Ignore all directory props files...
+Directory.*.props
+**/Directory.*.props
+
+# ... except Directory.Packages.props
+!Directory.Pacakges.props
+!**/Directory.Packages.props

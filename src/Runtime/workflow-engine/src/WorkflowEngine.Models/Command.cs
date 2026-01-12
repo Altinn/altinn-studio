@@ -4,8 +4,12 @@ namespace WorkflowEngine.Models;
 
 // CA1056: URI properties should not be strings
 // CA1054: URI parameters should not be strings
+// CA1716: Identifiers should not match keywords
+// CA1711: Identifiers should not have incorrect suffix
 #pragma warning disable CA1054
 #pragma warning disable CA1056
+#pragma warning disable CA1716
+#pragma warning disable CA1711
 
 /// <summary>
 /// Describes a command to be executed by the process engine.
@@ -47,26 +51,6 @@ public abstract record Command
     ) : Command(CommandKey, MaxExecutionTime);
 
     /// <summary>
-    /// Debug: A command that throws an exception when executed.
-    /// </summary>
-    public sealed record Throw() : Command("throw");
-
-    /// <summary>
-    /// Debug: A command that performs no operation, simply returns a completed task.
-    /// </summary>
-    public sealed record Noop() : Command("noop");
-
-    /// <summary>
-    /// Debug: A command that performs a timeout/delay when executed.
-    /// </summary>
-    /// <param name="Duration">The timeout duration.</param>
-    /// <param name="MaxExecutionTime">The maximum allowed execution time for the command.</param>
-    public sealed record Timeout(
-        [property: JsonPropertyName("duration")] TimeSpan Duration,
-        TimeSpan? MaxExecutionTime = null
-    ) : Command("timeout", MaxExecutionTime);
-
-    /// <summary>
     /// A command that performs a webhook callback to the specified URI with an optional payload.
     /// </summary>
     /// <remarks>Currently only used for debugging, but otherwise a potentially useful command type in general.</remarks>
@@ -82,14 +66,40 @@ public abstract record Command
     ) : Command("webhook", MaxExecutionTime);
 
     /// <summary>
-    /// Debug: A command that executes a delegate function.
+    /// Commands used for testing and debugging purposes.
     /// </summary>
-    /// <param name="Action">The delegate method</param>
-    /// <param name="MaxExecutionTime">The maximum allowed execution time for the command.</param>
-    public sealed record Delegate(
-        Func<Workflow, Step, CancellationToken, Task> Action,
-        TimeSpan? MaxExecutionTime = null
-    ) : Command("delegate", MaxExecutionTime);
+    public static class Debug
+    {
+        /// <summary>
+        /// A command that throws an exception when executed.
+        /// </summary>
+        public sealed record Throw() : Command("throw");
+
+        /// <summary>
+        /// A command that performs no operation, simply returns a completed task.
+        /// </summary>
+        public sealed record Noop() : Command("noop");
+
+        /// <summary>
+        /// A command that performs a timeout/delay when executed.
+        /// </summary>
+        /// <param name="Duration">The timeout duration.</param>
+        /// <param name="MaxExecutionTime">The maximum allowed execution time for the command.</param>
+        public sealed record Timeout(
+            [property: JsonPropertyName("duration")] TimeSpan Duration,
+            TimeSpan? MaxExecutionTime = null
+        ) : Command("timeout", MaxExecutionTime);
+
+        /// <summary>
+        /// Debug: A command that executes a delegate function.
+        /// </summary>
+        /// <param name="Action">The delegate method</param>
+        /// <param name="MaxExecutionTime">The maximum allowed execution time for the command.</param>
+        public sealed record Delegate(
+            Func<Workflow, Step, CancellationToken, Task> Action,
+            TimeSpan? MaxExecutionTime = null
+        ) : Command("delegate", MaxExecutionTime);
+    }
 
     /// <inheritdoc/>
     public sealed override string ToString() => Description ?? GetType().Name;

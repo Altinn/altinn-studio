@@ -41,11 +41,11 @@ internal class WorkflowExecutor : IWorkflowExecutor
             var result = step.Command switch
             {
                 Command.AppCommand cmd => await AppCommand(cmd, workflow, step, cts.Token),
-                Command.Timeout cmd => await Timeout(cmd, workflow, step, cts.Token),
                 Command.Webhook cmd => await Webhook(cmd, workflow, step, cts.Token),
-                Command.Delegate cmd => await Delegate(cmd, workflow, step, cts.Token),
-                Command.Noop => ExecutionResult.Success(),
-                Command.Throw => throw new InvalidOperationException("Intentional error thrown"),
+                Command.Debug.Timeout cmd => await Timeout(cmd, workflow, step, cts.Token),
+                Command.Debug.Delegate cmd => await Delegate(cmd, workflow, step, cts.Token),
+                Command.Debug.Noop => ExecutionResult.Success(),
+                Command.Debug.Throw => throw new InvalidOperationException("Intentional error thrown"),
                 _ => throw new ArgumentException($"Unknown instruction: {step.Command}"),
             };
 
@@ -98,7 +98,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
     }
 
     private static async Task<ExecutionResult> Timeout(
-        Command.Timeout command,
+        Command.Debug.Timeout command,
         Workflow workflow,
         Step step,
         CancellationToken cancellationToken
@@ -142,7 +142,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
     }
 
     private async Task<ExecutionResult> Delegate(
-        Command.Delegate command,
+        Command.Debug.Delegate command,
         Workflow workflow,
         Step step,
         CancellationToken cancellationToken

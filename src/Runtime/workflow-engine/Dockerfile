@@ -6,16 +6,17 @@ EXPOSE 8081
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["src/", "./"]
-RUN dotnet restore "WorkflowEngine.csproj"
-RUN dotnet build "WorkflowEngine.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR /code
+COPY ./ ./
+WORKDIR /code/src/WorkflowEngine.Api
+RUN dotnet restore "WorkflowEngine.Api.csproj"
+RUN dotnet build "WorkflowEngine.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "WorkflowEngine.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "WorkflowEngine.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "WorkflowEngine.dll"]
+ENTRYPOINT ["dotnet", "WorkflowEngine.Api.dll"]
