@@ -20,7 +20,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="xunit.v3" Version="3.2.1" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
-    <PackageVersion Include="CSharpier.MsBuild" Version="1.2.1" />
+    <PackageVersion Include="CSharpier.MsBuild" Version="1.2.5" />
     <PackageVersion Include="Nullable.Extended.Analyzer" Version="1.15.6581" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.16.1.129956" />
   </ItemGroup>
