@@ -9,7 +9,8 @@ namespace WorkflowEngine.Api.Authentication;
 
 internal class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    public const string SchemeName = "ApiKey";
+    public const string SchemeName = "ApiKeyScheme";
+    public const string PolicyName = "ApiKeyPolicy";
     public const string HeaderName = "X-Api-Key";
 
     private readonly IServiceProvider _serviceProvider;

@@ -110,7 +110,7 @@ internal static class ServiceCollectionExtensions
             services
                 .AddAuthorizationBuilder()
                 .AddDefaultPolicy(
-                    "ApiKeyPolicy",
+                    ApiKeyAuthenticationHandler.PolicyName,
                     policy =>
                     {
                         policy.AddAuthenticationSchemes(ApiKeyAuthenticationHandler.SchemeName);

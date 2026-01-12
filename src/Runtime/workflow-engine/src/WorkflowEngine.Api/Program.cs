@@ -1,3 +1,4 @@
+using WorkflowEngine.Api.Authentication;
 using WorkflowEngine.Api.Exceptions;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data.Extensions;
@@ -9,6 +10,7 @@ var dbConnectionString =
         "Database connection string 'WorkflowEngine' is required, but has not been configured."
     );
 
+builder.Services.AddWorkflowEngineHost();
 builder.Services.AddOpenApi();
 builder.Services.AddApiKeyAuthentication();
 builder.Services.AddDbRepository(dbConnectionString);
@@ -52,7 +54,8 @@ app.MapGet(
             return forecast;
         }
     )
-    .WithName("GetWeatherForecast");
+    .WithName("GetWeatherForecast")
+    .RequireAuthorization(ApiKeyAuthenticationHandler.PolicyName);
 
 app.Run();
 
