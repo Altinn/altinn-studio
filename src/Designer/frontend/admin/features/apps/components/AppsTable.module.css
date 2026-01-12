@@ -1,3 +1,34 @@
 .appSearch {
   max-width: 400px;
 }
+
+.errorAlert {
+  margin: var(--ds-size-6) 0;
+}
+
+.errorMetricsHeaderCell {
+  display: flex;
+  justify-content: end;
+  gap: var(--ds-size-3);
+}
+
+.errorMetricsCell {
+  height: 39px;
+}
+
+.errorMetricsCellContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+  align-items: flex-start;
+  justify-content: end;
+}
+
+.errorMetric {
+  padding: var(--ds-size-2) var(--ds-size-2) var(--ds-size-2) var(--ds-size-11);
+}
+
+.count {
+  font-size: 1rem;
+  font-weight: bold;
+}
