@@ -29,10 +29,7 @@ export interface StudioTextResourceEditorProps {
   texts: StudioTextResourceEditorTexts;
 }
 
-export enum StudioTextResourceTab {
-  Type = 'type',
-  Search = 'search',
-}
+export type StudioTextResourceTab = 'type' | 'search';
 
 export const StudioTextResourceEditor = ({
   textResourceId,
@@ -44,7 +41,7 @@ export const StudioTextResourceEditor = ({
   texts,
   textResources,
 }: StudioTextResourceEditorProps): React.ReactElement => {
-  const [activeTab, setActiveTab] = useState<StudioTextResourceTab>(StudioTextResourceTab.Type);
+  const [activeTab, setActiveTab] = useState<StudioTextResourceTab>('type');
 
   const handleTabClick = (tab: StudioTextResourceTab): void => {
     setActiveTab(tab);
@@ -62,10 +59,10 @@ export const StudioTextResourceEditor = ({
       onChange={(newValue) => handleTabClick(newValue as StudioTextResourceTab)}
     >
       <StudioTabs.List>
-        <StudioTabs.Tab value={StudioTextResourceTab.Type}>{texts.tabLabelType}</StudioTabs.Tab>
-        <StudioTabs.Tab value={StudioTextResourceTab.Search}>{texts.tabLabelSearch}</StudioTabs.Tab>
+        <StudioTabs.Tab value={'type'}>{texts.tabLabelType}</StudioTabs.Tab>
+        <StudioTabs.Tab value={'search'}>{texts.tabLabelSearch}</StudioTabs.Tab>
       </StudioTabs.List>
-      <StudioTabs.Panel value={StudioTextResourceTab.Type} className={classes.tabContent}>
+      <StudioTabs.Panel value={'type'} className={classes.tabContent}>
         <StudioTextResourceValueEditor
           textResourceId={textResourceId}
           onTextChange={onTextChange}
@@ -74,7 +71,7 @@ export const StudioTextResourceEditor = ({
           idLabel={texts.valueEditorIdLabel}
         />
       </StudioTabs.Panel>
-      <StudioTabs.Panel value={StudioTextResourceTab.Search} className={classes.tabContent}>
+      <StudioTabs.Panel value={'search'} className={classes.tabContent}>
         {disableSearch && (
           <StudioAlert data-color='info'>{texts.disabledSearchAlertText}</StudioAlert>
         )}

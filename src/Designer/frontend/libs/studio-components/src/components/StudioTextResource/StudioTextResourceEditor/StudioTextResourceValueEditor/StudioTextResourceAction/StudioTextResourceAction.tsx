@@ -46,7 +46,7 @@ export const StudioTextResourceAction = ({
   texts,
 }: StudioTextResourceActionProps): React.ReactElement => {
   const getTextResourceValue = useCallback(
-    (id?: string) => {
+    (id?: string): string | undefined => {
       if (!id) {
         return undefined;
       }
@@ -57,7 +57,7 @@ export const StudioTextResourceAction = ({
 
   const newId = useMemo(() => generateId(), [generateId]);
 
-  const [activeTab, setActiveTab] = useState<StudioTextResourceTab>(StudioTextResourceTab.Type);
+  const [activeTab, setActiveTab] = useState<StudioTextResourceTab>('type');
   const [currentTextResourceId, setCurrentTextResourceId] = useState<string>(
     textResourceId || newId,
   );
@@ -107,7 +107,7 @@ export const StudioTextResourceAction = ({
     tabLabelSearch: texts.tabLabelSearch,
   };
 
-  const shouldShowButtons = !(activeTab === StudioTextResourceTab.Search && disableSearch);
+  const shouldShowButtons = !(activeTab === 'search' && disableSearch);
   const isSaveButtonDisabled =
     !currentTextResourceValue ||
     (currentTextResourceId === textResourceId && currentTextResourceValue === initialValue);
