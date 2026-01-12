@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './LibraryBody.module.css';
-import { PagesRouter } from './PagesRouter';
+import { Menu } from './Menu';
 import type { PageName } from '../../types/PageName';
 import type { ContentLibraryConfig } from '../../types/ContentLibraryConfig';
 import type { Page } from '../../pages/Page';
@@ -16,7 +16,7 @@ export function LibraryBody<T extends PageName>({
 }: LibraryBodyProps<T>): React.ReactElement {
   return (
     <div className={classes.libraryContent}>
-      <PagesRouter config={config} />
+      <Menu config={config} />
       <PageView<T> config={config} page={page} />
     </div>
   );

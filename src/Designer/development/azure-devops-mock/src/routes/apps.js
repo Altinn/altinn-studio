@@ -122,12 +122,36 @@ export const appProcessRoute = async (_, res) => {
                 </altinn:taskExtension>
             </bpmn:extensionElements>
         </bpmn:task>
+        <bpmn:serviceTask id="Task_eFormidling" name="eFormidling">
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>eFormidling</altinn:taskType>
+                    <altinn:eFormidlingConfig>
+                        <altinn:disabled env="local">true</altinn:disabled>
+                        <altinn:receiver>991825827</altinn:receiver>
+                        <altinn:process>urn:no:difi:profile:arkivmelding:administrasjon:ver1.0</altinn:process>
+                        <altinn:standard>urn:no:difi:arkivmelding:xsd::arkivmelding</altinn:standard>
+                        <altinn:typeVersion>2.0</altinn:typeVersion>
+                        <altinn:type>arkivmelding</altinn:type>
+                        <altinn:securityLevel>3</altinn:securityLevel>
+                        <altinn:dpfShipmentType>digital</altinn:dpfShipmentType>
+                        <altinn:dataTypes>
+                            <altinn:dataType>model</altinn:dataType>
+                            <altinn:dataType>ref-data-as-pdf</altinn:dataType>
+                        </altinn:dataTypes>
+                    </altinn:eFormidlingConfig>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+            <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_4</bpmn:outgoing>
+        </bpmn:serviceTask>
         <bpmn:endEvent id="EndEvent_1">
-          <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
+          <bpmn:incoming>SequenceFlow_4</bpmn:incoming>
         </bpmn:endEvent>
         <bpmn:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
         <bpmn:sequenceFlow id="SequenceFlow_2" sourceRef="Task_1" targetRef="Task_2" />
-        <bpmn:sequenceFlow id="SequenceFlow_3" sourceRef="Task_2" targetRef="EndEvent_1" />
+        <bpmn:sequenceFlow id="SequenceFlow_3" sourceRef="Task_2" targetRef="Task_eFormidling" />
+        <bpmn:sequenceFlow id="SequenceFlow_4" sourceRef="Task_eFormidling" targetRef="EndEvent_1" />
       </bpmn:process>
     </bpmn:definitions>`);
 };

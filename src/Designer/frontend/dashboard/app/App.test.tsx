@@ -76,7 +76,7 @@ describe('App', () => {
   it('should display the library when the user clicks on the library link', async () => {
     const user = userEvent.setup();
     const queryClient = createQueryClientWithUserAndOrg();
-    const initialEntries = [`${APP_DASHBOARD_BASENAME}/${org.username}`];
+    const initialEntries = [`/${APP_DASHBOARD_BASENAME}/${org.username}`];
     renderApp({ queryClient, queries, initialEntries });
 
     await user.click(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
@@ -86,7 +86,7 @@ describe('App', () => {
   it('should display the apps overview when the user is on the library page and clicks on the apps link', async () => {
     const user = userEvent.setup();
     const queryClient = createQueryClientWithUserAndOrg();
-    const initialEntries = [`${APP_DASHBOARD_BASENAME}/${org.username}`];
+    const initialEntries = [`/${APP_DASHBOARD_BASENAME}/${org.username}`];
     renderApp({ queryClient, queries, initialEntries });
 
     await user.click(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
