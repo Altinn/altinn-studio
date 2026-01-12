@@ -77,8 +77,8 @@ export const EditNameAction = ({
   };
 
   const handleReferenceChange = (id?: string) => {
-    setTextResourceId(id);
-    setCurrentValue(getResolvedTaskName(id));
+    setTextResourceId(id ?? '');
+    setCurrentValue(getResolvedTaskName(id ?? ''));
   };
 
   const handleTextChange = (value: string) => setCurrentValue(value);

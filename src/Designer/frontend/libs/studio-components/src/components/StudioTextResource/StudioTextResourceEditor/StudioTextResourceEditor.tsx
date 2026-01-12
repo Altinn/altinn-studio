@@ -21,7 +21,7 @@ export type StudioTextResourceEditorTexts = {
 export interface StudioTextResourceEditorProps {
   textResourceId: string;
   onTextChange?: (value: string) => void;
-  onReferenceChange?: (id: string) => void;
+  onReferenceChange?: (id?: string) => void;
   textResourceValue?: string;
   disableSearch?: boolean;
   onTabChange?: (tab: StudioTextResourceTab) => void;
@@ -52,7 +52,7 @@ export const StudioTextResourceEditor = ({
   };
 
   const handleReferenceChange = (id?: string): void => {
-    onReferenceChange?.(id ?? '');
+    onReferenceChange?.(id);
   };
 
   return (
