@@ -38,7 +38,7 @@ public sealed partial class AppFixture : IAsyncDisposable
         Environment.GetEnvironmentVariable("TEST_FORCE_REBUILD")
     );
     private static readonly string _projectDirectory = ModuleInitializer.GetProjectDirectory();
-    private static readonly string _rootDirectory = ModuleInitializer.GetRootDirectory();
+    private static readonly string _repoSourceDirectory = ModuleInitializer.GetRepoSourceDirectory();
 
     private static long _fixtureInstance = -1;
     private static readonly SemaphoreSlim _localtestBuildLock = new(1, 1);
@@ -396,7 +396,7 @@ public sealed partial class AppFixture : IAsyncDisposable
                 return _localtestContainerImage;
 
             logger.LogInformation("Building localtest container image");
-            var localtestDirectory = Path.Join(_rootDirectory, "Runtime", "localtest");
+            var localtestDirectory = Path.Join(_repoSourceDirectory, "Runtime", "localtest");
             var localtestBuilder = new ImageFromDockerfileBuilder()
                 .WithName($"applib-localtest:latest")
                 .WithDockerfileDirectory(localtestDirectory)
@@ -855,23 +855,23 @@ public sealed partial class AppFixture : IAsyncDisposable
     private static async Task SyncFrontend(string name, ILogger logger)
     {
         var appDirectory = GetAppDir(name);
-        var frontendSourceDirectory = Path.Join(_rootDirectory, "App", "frontend", "dist");
-        var appFrontendDirectory = Path.Join(appDirectory, "wwwroot", "altinn-app-frontend");
-        if (Directory.Exists(appFrontendDirectory))
-            Directory.Delete(appFrontendDirectory, true);
-        Directory.CreateDirectory(appFrontendDirectory);
+        var frontendBuildDir = Path.Join(_repoSourceDirectory, "App", "frontend", "dist");
+        var appStaticFrontendDir = Path.Join(appDirectory, "wwwroot", "altinn-app-frontend");
+        if (Directory.Exists(appStaticFrontendDir))
+            Directory.Delete(appStaticFrontendDir, true);
+        Directory.CreateDirectory(appStaticFrontendDir);
 
         List<string> fileNamesToCopy = ["altinn-app-frontend.js", "altinn-app-frontend.css"];
-        var directoryFiles = Directory.GetFiles(frontendSourceDirectory);
+        var frontendBuildFiles = Directory.GetFiles(frontendBuildDir);
         foreach (var fileName in fileNamesToCopy)
         {
             string sourceFile =
-                directoryFiles.FirstOrDefault(df => Path.GetFileName(df) == fileName)
+                frontendBuildFiles.FirstOrDefault(df => Path.GetFileName(df) == fileName)
                 ?? throw new FileNotFoundException(
-                    $"Expected frontend file '{fileName}' not found in '{frontendSourceDirectory}'. Make sure the frontend has been built (cd src/App/frontend && yarn run build) before running these tests."
+                    $"Expected frontend file '{fileName}' not found in '{frontendBuildDir}'. Make sure the frontend has been built (cd src/App/frontend && yarn run build) before running these tests."
                 );
 
-            var destFile = Path.Join(appFrontendDirectory, fileName);
+            var destFile = Path.Join(appStaticFrontendDir, fileName);
             logger.LogInformation("Copying {SourceFile} to {DestFile}", sourceFile, destFile);
             await using var source = File.OpenRead(sourceFile);
             await using var destination = File.Create(destFile);

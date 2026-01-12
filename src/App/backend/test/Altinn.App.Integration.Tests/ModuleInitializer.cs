@@ -41,14 +41,14 @@ internal static class ModuleInitializer
         return directory;
     }
 
-    internal static string GetRootDirectory()
+    internal static string GetRepoSourceDirectory()
     {
-        var rootDirectory = Path.Join(GetProjectDirectory(), "..", "..", "..", "..");
-        var info = new DirectoryInfo(rootDirectory);
+        var sourceDirectory = Path.Join(GetProjectDirectory(), "..", "..", "..", "..");
+        var info = new DirectoryInfo(sourceDirectory);
         if (!info.Exists)
         {
             throw new DirectoryNotFoundException(
-                $"The directory {rootDirectory} does not exist. Please check the path."
+                $"The directory {sourceDirectory} does not exist. Please check the path."
             );
         }
         return info.FullName;
