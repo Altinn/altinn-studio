@@ -109,7 +109,7 @@ const InstancesTableWithData = ({
         {instances.map((instance) => (
           <StudioTable.Row key={instance.id}>
             <StudioTable.Cell>
-              <Link to={`${instance.id}`}>{instance.id}</Link>
+              <Link to={`instances/${instance.id}`}>{instance.id}</Link>
             </StudioTable.Cell>
             <StudioTable.Cell>
               {instance.createdAt ? formatDateAndTime(instance.createdAt) : '-'}
