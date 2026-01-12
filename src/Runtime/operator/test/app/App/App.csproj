@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Npgsql" Version="8.0.5" />
-    <PackageReference Include="Altinn.App.Core" Version="8.9.0" />
+    <PackageReference Include="Npgsql" Version="8.0.8" />
+    <PackageReference Include="Altinn.App.Core" Version="8.9.2" />
   </ItemGroup>
 </Project>

@@ -1,18 +1,19 @@
 import { screen } from '@testing-library/react';
 import type { PagesConfig } from '../types/PagesProps';
-import { ResourceContentLibraryImpl } from './ContentResourceLibraryImpl';
+import React from 'react';
+import { ContentLibraryWithProvider } from './ContentLibraryWithProvider';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../test-utils/renderWithProviders';
 import { mockPagesConfig } from '../../mocks/mockPagesConfig';
 import type { ContentLibraryConfig } from '../types/ContentLibraryConfig';
 
-describe('ContentResourceLibraryImpl', () => {
-  it('renders ContentResourceLibraryImpl with given pages', () => {
+describe('ContentLibraryWithProvider', () => {
+  it('renders content library with given pages', () => {
     const pages: PagesConfig = {
       codeListsWithTextResources: mockPagesConfig.codeListsWithTextResources,
       images: mockPagesConfig.images,
     };
-    renderContentResourceLibraryImpl({ pages, heading: 'Lorem ipsum' });
+    renderContentLibrary({ pages, heading: 'Lorem ipsum' });
     const libraryTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.landing_page.title'),
     });
@@ -25,8 +26,8 @@ describe('ContentResourceLibraryImpl', () => {
     expect(imagesMenuElement).toBeInTheDocument();
   });
 
-  it('renders ContentResourceLibraryImpl with landingPage when no pages are passed', () => {
-    renderContentResourceLibraryImpl({ pages: {}, heading: 'Lorem ipsum' });
+  it('renders content library with landing page when no pages are passed', () => {
+    renderContentLibrary({ pages: {}, heading: 'Lorem ipsum' });
     const libraryTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.landing_page.title'),
     });
@@ -42,13 +43,11 @@ describe('ContentResourceLibraryImpl', () => {
   it('Renders the given heading', () => {
     const heading = 'The test library';
     const config: ContentLibraryConfig = { pages: mockPagesConfig, heading };
-    renderContentResourceLibraryImpl(config);
+    renderContentLibrary(config);
     expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
   });
 });
 
-const renderContentResourceLibraryImpl = (config: ContentLibraryConfig): void => {
-  const contentResourceLibraryImpl = new ResourceContentLibraryImpl(config);
-  const { getContentResourceLibrary } = contentResourceLibraryImpl;
-  renderWithProviders(getContentResourceLibrary());
+const renderContentLibrary = (config: ContentLibraryConfig): void => {
+  renderWithProviders(<ContentLibraryWithProvider {...config} />);
 };
