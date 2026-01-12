@@ -1,38 +1,52 @@
 import { useEffect } from 'react';
 
 import { skipToken, useQuery } from '@tanstack/react-query';
+import type Ajv from 'ajv';
 import type { JSONSchema7 } from 'json-schema';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { dotNotationToPointer } from 'src/features/datamodel/notations';
 import { lookupBindingInSchema } from 'src/features/datamodel/SimpleSchemaTraversal';
 import { useDataModelType } from 'src/features/datamodel/useBindingSchema';
+import { createValidator } from 'src/features/validation/schemaValidation/schemaValidationUtils';
 import { getRootElementPath } from 'src/utils/schemaUtils';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { SchemaLookupResult } from 'src/features/datamodel/SimpleSchemaTraversal';
+import type { IDataType } from 'src/types/shared';
+
+export type DataModelSchemaResult = {
+  schema: JSONSchema7;
+  validator: Ajv;
+  rootElementPath: string;
+  lookupTool: SchemaLookupTool;
+};
 
 // Also used for prefetching @see formPrefetcher.ts
-export function useDataModelSchemaQueryDef(enabled: boolean, dataTypeId?: string): QueryDefinition<JSONSchema7> {
+export function useDataModelSchemaQueryDef(
+  enabled: boolean,
+  dataType?: IDataType,
+): QueryDefinition<DataModelSchemaResult> {
   const { fetchDataModelSchema } = useAppQueries();
   return {
-    queryKey: ['fetchDataModelSchemas', dataTypeId],
-    queryFn: dataTypeId ? () => fetchDataModelSchema(dataTypeId) : skipToken,
-    enabled: enabled && !!dataTypeId,
+    queryKey: ['fetchDataModelSchemas', dataType?.id],
+    queryFn: dataType
+      ? async () => {
+          const schema = await fetchDataModelSchema(dataType.id);
+          const rootElementPath = getRootElementPath(schema, dataType);
+          const lookupTool = new SchemaLookupTool(schema, rootElementPath);
+          const validator = createValidator(schema);
+          return { schema, validator, rootElementPath, lookupTool };
+        }
+      : skipToken,
+    enabled: enabled && !!dataType,
   };
 }
 
 export const useDataModelSchemaQuery = (enabled: boolean, dataTypeId: string) => {
   const dataType = useDataModelType(dataTypeId);
 
-  const queryDef = useDataModelSchemaQueryDef(enabled, dataTypeId);
-  const utils = useQuery({
-    ...queryDef,
-    select: (schema) => {
-      const rootElementPath = getRootElementPath(schema, dataType);
-      const lookupTool = new SchemaLookupTool(schema, rootElementPath);
-      return { schema, lookupTool };
-    },
-  });
+  const queryDef = useDataModelSchemaQueryDef(enabled, dataType);
+  const utils = useQuery(queryDef);
 
   useEffect(() => {
     utils.error && window.logError('Fetching data model schema failed:\n', utils.error);

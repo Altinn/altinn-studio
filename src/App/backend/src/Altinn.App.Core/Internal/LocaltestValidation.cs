@@ -66,6 +66,7 @@ internal sealed class LocaltestValidation : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         string? baseUrl = null;
+        bool writeToResultChannel = true;
         try
         {
             var settings = _generalSettings.CurrentValue;
@@ -86,37 +87,42 @@ internal sealed class LocaltestValidation : BackgroundService
                         case VersionResult.Ok { Version: var version }:
                         {
                             _logger.LogInformation("Localtest version: {Version}", version);
-                            if (version >= 2)
+
+                            if (version < 2)
                             {
-                                var port = await GetServerPort(stoppingToken);
-                                if (port.HasValue && port.Value != 5005)
-                                {
-                                    // Not on default port - registration requires version 3+
-                                    if (version >= 3)
-                                    {
-                                        await RegisterWithLocaltest(baseUrl, port.Value, stoppingToken);
-                                        // Wait for app shutdown before unregistering
-                                        await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken);
-                                    }
-                                    else
-                                    {
-                                        _logger.LogError(
-                                            "Running on port {Port} requires localtest version 3 or higher. Current version: {Version}. Update your local copy of localtest (git pull). Shutting down..",
-                                            port.Value,
-                                            version
-                                        );
-                                        Exit();
-                                    }
-                                }
-                                // Running on port 5005 or couldn't determine port - no registration needed
+                                _logger.LogError(
+                                    "Localtest version is not supported for this version of the app backend. Update your local copy of localtest (git pull)."
+                                        + " Version found: '{Version}'. Shutting down..",
+                                    version
+                                );
+                                Exit();
                                 return;
                             }
-                            _logger.LogError(
-                                "Localtest version is not supported for this version of the app backend. Update your local copy of localtest (git pull)."
-                                    + " Version found: '{Version}'. Shutting down..",
-                                version
-                            );
-                            Exit();
+
+                            var port = await GetServerPort(stoppingToken);
+                            if (port.HasValue && port.Value != 5005)
+                            {
+                                if (version < 3)
+                                {
+                                    _logger.LogError(
+                                        "Running on port {Port} requires localtest version 3 or higher. Current version: {Version}. Update your local copy of localtest (git pull). Shutting down..",
+                                        port.Value,
+                                        version
+                                    );
+                                    Exit();
+                                    return;
+                                }
+
+                                await RegisterWithLocaltest(baseUrl, port.Value, stoppingToken);
+                                // Write result to channel before infinite delay
+                                if (!_resultChannel.Writer.TryWrite(result))
+                                    _logger.LogWarning("Couldn't log result to channel");
+                                writeToResultChannel = false;
+                                // Wait for app shutdown before unregistering
+                                await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken);
+                            }
+
+                            // Version is 2 or 3+ with port 5005. No registration needed.
                             return;
                         }
                         case VersionResult.ApiNotFound:
@@ -150,7 +156,7 @@ internal sealed class LocaltestValidation : BackgroundService
                 }
                 finally
                 {
-                    if (!_resultChannel.Writer.TryWrite(result))
+                    if (writeToResultChannel && !_resultChannel.Writer.TryWrite(result))
                         _logger.LogWarning("Couldn't log result to channel");
                 }
                 await Task.Delay(TimeSpan.FromSeconds(5), _timeProvider, stoppingToken);

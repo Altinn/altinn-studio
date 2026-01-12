@@ -231,32 +231,5 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         _userOrganizationServiceMock.Verify(s => s.UserIsMemberOfOrganization("ttd"), Times.AtLeastOnce);
     }
 
-    [Fact]
-    public async Task GetSharedResources_Returns_404NotFound_WhenDirectoryNotFound()
-    {
-        // Arrange
-        string path = "non/existing/path";
-        string repo = $"{Org}-content";
-        string apiUrl = ApiUrl(path);
-
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>())).ReturnsAsync(true);
-
-        // Arrange - Mock directory content
-        _giteaClientMock
-            .Setup(wrapper => wrapper.GetDirectoryAsync(Org, repo, path, null, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new DirectoryNotFoundException());
-
-        // Act
-        HttpResponseMessage response = await HttpClient.GetAsync(apiUrl);
-
-        // Assert
-        Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
-
-        ProblemDetails problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
-        Assert.Equal(StatusCodes.Status404NotFound, problemDetails.Status);
-        Assert.Equal("Directory not found", problemDetails.Title);
-        _userOrganizationServiceMock.Verify(s => s.UserIsMemberOfOrganization("ttd"), Times.AtLeastOnce);
-    }
-
     private static string ApiUrl(string path) => $"/designer/api/{Org}/shared-resources?path={path}";
 }

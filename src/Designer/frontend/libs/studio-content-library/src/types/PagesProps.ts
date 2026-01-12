@@ -10,12 +10,6 @@ export type PagePropsMap<P extends PageName> = {
   images: ImagesPageProps;
 }[P];
 
-type GlobalPageConfig<T> = {
-  props: T;
+export type PagesConfig = {
+  [K in PageName]?: PagePropsMap<K>;
 };
-
-type AllPagesConfig = {
-  [K in PageName]: GlobalPageConfig<PagePropsMap<K>>;
-};
-
-export type PagesConfig = Partial<AllPagesConfig>;

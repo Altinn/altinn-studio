@@ -3,6 +3,7 @@ import {
   getDataListsUrl,
   getEnvironmentLoginUrl,
   getHostname,
+  getInstanceLayoutsUrl,
   getInstantiateUrl,
   getLayoutSettingsUrl,
   getLayoutsUrl,
@@ -360,6 +361,13 @@ describe('Frontend urlHelper.ts', () => {
       const result = getLayoutsUrl('custom-layout.json');
 
       expect(result).toBe('https://local.altinn.cloud/ttd/test/api/layouts/custom-layout.json');
+    });
+  });
+
+  describe('getInstanceLayoutsUrl', () => {
+    it('should include instance ID in layout URL when provided', () => {
+      const result = getInstanceLayoutsUrl('custom-layout.json', 'instanceId-1234');
+      expect(result).toBe('https://local.altinn.cloud/ttd/test/instances/instanceId-1234/layouts/custom-layout.json');
     });
   });
 

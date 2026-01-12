@@ -52,10 +52,6 @@ Altinn, and making sure they are consistent. */
 }
 /* ==== */
 
-.repeatingGroupTable > tbody > tr:hover td {
-  background-color: unset;
-}
-
 .nestedTable {
   background-color: var(--ds-color-neutral-background-default);
 }

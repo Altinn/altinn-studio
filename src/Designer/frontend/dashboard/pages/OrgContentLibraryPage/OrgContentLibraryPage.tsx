@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import React, { useMemo, useCallback } from 'react';
-import { ResourceContentLibraryImpl } from '@studio/content-library';
+import { ContentLibrary } from '@studio/content-library';
 import type {
   CodeListWithMetadata,
   PagesConfig,
@@ -174,29 +174,25 @@ function OrgContentLibraryWithContextAndData({
     createCodeList({ title, data: codeList });
   };
 
-  const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
-    heading: t('org_content_library.library_heading'),
-    pages: {
-      codeListsWithTextResources: {
-        props: {
-          codeListDataList,
-          onCreateCodeList: handleCreate,
-          onCreateTextResource: handleUpdateTextResource,
-          onDeleteCodeList: deleteCodeList,
-          onUpdateCodeListId: handleUpdateCodeListId,
-          onUpdateCodeList: handleUpdate,
-          onUpdateTextResource: handleUpdateTextResource,
-          onUploadCodeList: handleUpload,
-          textResources,
-        },
-      },
-      ...pagesFromFeatureFlags,
-    },
-  });
-
   return (
     <div>
-      {getContentResourceLibrary()}
+      <ContentLibrary
+        heading={t('org_content_library.library_heading')}
+        pages={{
+          codeListsWithTextResources: {
+            codeListDataList,
+            onCreateCodeList: handleCreate,
+            onCreateTextResource: handleUpdateTextResource,
+            onDeleteCodeList: deleteCodeList,
+            onUpdateCodeListId: handleUpdateCodeListId,
+            onUpdateCodeList: handleUpdate,
+            onUpdateTextResource: handleUpdateTextResource,
+            onUploadCodeList: handleUpload,
+            textResources,
+          },
+          ...pagesFromFeatureFlags,
+        }}
+      />
       <FeedbackForm />
     </div>
   );
@@ -207,13 +203,13 @@ function usePagesFromFeatureFlags(orgName: string): Partial<PagesConfig> {
   const codeListsProps = useCodeListsProps(orgName);
 
   if (displayNewCodeListPage) {
-    return { codeLists: { props: codeListsProps } };
+    return { codeLists: codeListsProps };
   } else {
     return {};
   }
 }
 
-function useCodeListsProps(orgName: string): PagesConfig['codeLists']['props'] {
+function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
   const { data } = useSharedCodeListsQuery(orgName);
   const { mutate } = useUpdateSharedResourcesMutation(orgName, CODE_LIST_FOLDER);
   const { mutate: publish } = usePublishCodeListMutation(orgName);

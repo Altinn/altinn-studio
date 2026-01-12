@@ -401,10 +401,6 @@ describe('PDF', () => {
       }),
     );
 
-    cy.goto('message');
-    cy.get(appFrontend.message.title).should('be.visible');
-    cy.waitUntilSaved();
-
     cy.gotoAndComplete('datalist');
 
     cy.testPdf({

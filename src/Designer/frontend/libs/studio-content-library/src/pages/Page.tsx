@@ -24,8 +24,7 @@ export abstract class Page<Name extends PageName> {
 
   extractProps(config: ContentLibraryConfig): PagePropsMap<Name> {
     Guard.againstMissingProperty<PagesConfig, Name>(config.pages, this.name);
-    const pageConfig = config.pages[this.name] as Required<PagesConfig>[Name];
-    return pageConfig.props as PagePropsMap<Name>;
+    return config.pages[this.name] as PagePropsMap<Name>;
   }
 
   abstract renderPageComponent(props: PagePropsMap<Name>): React.ReactElement;
