@@ -19,6 +19,7 @@ describe('useWebSocket', () => {
         webSocketUrls: ['ws://jest-test-mocked-url.com'],
         clientsName: clientsNameMock,
         webSocketConnector: WSConnector,
+        onWSMessageReceived: jest.fn(),
       }),
     );
     expect(WSConnector.getInstance).toHaveBeenCalledWith(
@@ -28,15 +29,15 @@ describe('useWebSocket', () => {
   });
 
   it('should provide a function to listen to messages', () => {
-    const { result } = renderHook(() =>
+    const callback = jest.fn();
+    renderHook(() =>
       useWebSocket({
         webSocketUrls: ['ws://jest-test-mocked-url.com'],
         clientsName: clientsNameMock,
         webSocketConnector: WSConnector,
+        onWSMessageReceived: callback,
       }),
     );
-    const callback = jest.fn();
-    result.current.onWSMessageReceived(callback);
     expect(
       WSConnector.getInstance(['ws://jest-test-mocked-url.com'], clientsNameMock).onMessageReceived,
     ).toHaveBeenCalledWith(callback);

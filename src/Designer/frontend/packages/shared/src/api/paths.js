@@ -207,6 +207,7 @@ export const envFilePath = () => `${basePath}/config/env.json`;
 // Event Hubs
 export const syncEventsWebSocketHub = () => '/hubs/sync';
 export const syncEntityUpdateWebSocketHub = () => '/hubs/entity-updated';
+export const syncAlertsUpdateWebSocketHub = () => '/hubs/alerts-updated';
 export const previewWebSocketHub = () => `/hubs/preview`;
 
 // Contact
