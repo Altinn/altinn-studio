@@ -223,7 +223,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public List<RepositoryContent> Status(AltinnRepoEditingContext editingContext)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             List<RepositoryContent> repoContent = [];
             string localServiceRepoFolder = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
