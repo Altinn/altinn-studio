@@ -363,15 +363,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return commits;
         }
 
-        /// <summary>
-        /// Method for storing AppToken in Developers folder. This is not the permanent solution
-        /// </summary>
-        /// <param name="token">The token</param>
-        public void StoreAppTokenForUser(string token)
+        /// <inheritdoc/>
+        public void StoreAppTokenForUser(string token, string developer)
         {
             CheckAndCreateDeveloperFolder();
 
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string path = Path.Combine(repositorySettings.RepositoryLocation, developer, "AuthToken.txt");
             File.WriteAllText(path, token);
         }

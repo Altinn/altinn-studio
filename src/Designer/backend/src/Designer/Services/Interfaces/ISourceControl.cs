@@ -33,7 +33,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Stores a App token for user
         /// </summary>
         /// <param name="token">The token from GITEA</param>
-        void StoreAppTokenForUser(string token);
+        /// <param name="developer">The developer username</param>
+        void StoreAppTokenForUser(string token, string developer);
 
         /// <summary>
         /// Add all changes in app repo and push to remote

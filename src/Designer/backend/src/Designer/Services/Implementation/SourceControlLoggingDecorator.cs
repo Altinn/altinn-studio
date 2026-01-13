@@ -278,11 +278,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void StoreAppTokenForUser(string token)
+        public void StoreAppTokenForUser(string token, string developer)
         {
             try
             {
-                _decoratedService.StoreAppTokenForUser(token);
+                _decoratedService.StoreAppTokenForUser(token, developer);
             }
             catch (Exception ex)
             {
