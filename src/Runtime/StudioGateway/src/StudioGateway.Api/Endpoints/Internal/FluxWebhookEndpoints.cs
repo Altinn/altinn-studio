@@ -253,13 +253,6 @@ internal static class FluxWebhookEndpoints
                     },
                 ],
             };
-
-            await slackClient.SendMessageAsync(message, cancellationToken);
-            logger.LogInformation(
-                "Successfully sent Slack notification for {Name} to {Environment}",
-                helmReleaseName,
-                targetEnvironment
-            );
         }
         catch (Exception ex)
         {

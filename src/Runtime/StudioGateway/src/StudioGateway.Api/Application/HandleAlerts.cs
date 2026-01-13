@@ -1,6 +1,7 @@
 using StudioGateway.Api.Clients.AlertsClient;
 using StudioGateway.Api.Clients.AlertsClient.Contracts;
 using StudioGateway.Api.Clients.Designer;
+using StudioGateway.Api.Clients.MetricsClient;
 using StudioGateway.Api.Clients.SlackClient;
 using StudioGateway.Api.Clients.SlackClient.Contracts;
 using StudioGateway.Api.Settings;
@@ -70,14 +71,21 @@ internal static class HandleAlerts
                     group.Select(a => a.Labels.GetValueOrDefault("cloud_RoleName", "unknown")).ToList(),
                     environment,
                     group.Key,
-                    group.First().Labels["RuleId"],
                     group.First().GeneratorURL,
+                    group.First().Labels.GetValueOrDefault("RuleId"),
                     cancellationToken
                 )
             )
         );
 
-        await designerClient.NotifyAlertsUpdatedAsync(environment, cancellationToken);
+        try
+        {
+            await designerClient.NotifyAlertsUpdatedAsync(environment, cancellationToken);
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "Failed to notify Designer about alerts update");
+        }
 
         return Results.Ok();
     }
@@ -93,8 +101,8 @@ internal static class HandleAlerts
         List<string> apps,
         string studioEnv,
         string status,
-        string ruleId,
-        string url,
+        string? url,
+        string? ruleId,
         CancellationToken cancellationToken
     )
     {
@@ -116,33 +124,12 @@ internal static class HandleAlerts
                     new SlackBlock
                     {
                         Type = "context",
-                        Elements =
-                        [
-                            new SlackText { Type = "mrkdwn", Text = $"Org: `{org}`" },
-                            new SlackText { Type = "mrkdwn", Text = $"Env: `{env}`" },
-                            new SlackText { Type = "mrkdwn", Text = $"Apps: {appsList}" },
-                            new SlackText { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
-                            new SlackText { Type = "mrkdwn", Text = $"<{url}|Grafana>" },
-                            new SlackText
-                            {
-                                Type = "mrkdwn",
-                                Text =
-                                    $"<{HandleMetrics.GetAppErrorMetricsLogsAsync(gatewayContext, serviceProvider, metricsClientSettings, appsList, ruleId, 5)}|Application Insights>",
-                            },
-                        ],
+                        Elements = BuildContextElements(gatewayContext, serviceProvider, metricsClientSettings, org, env, appsList, studioEnv, url, ruleId),
                     },
                 ],
             };
 
             await slackClient.SendMessageAsync(message, cancellationToken);
-            logger.LogInformation(
-                "Successfully sent Slack alert notification. Status: {Status}, Org: {Org}, Env: {Env}, Apps: {AppsList}, StudioEnv: {StudioEnv}",
-                status,
-                org,
-                env,
-                appsList,
-                studioEnv
-            );
         }
         catch (Exception ex)
         {
@@ -156,5 +143,61 @@ internal static class HandleAlerts
                 studioEnv
             );
         }
+    }
+
+    private static List<SlackText> BuildContextElements(
+        GatewayContext gatewayContext,
+        IServiceProvider serviceProvider,
+        MetricsClientSettings metricsClientSettings,
+        string org,
+        string env,
+        string appsList,
+        string studioEnv,
+        string? url,
+        string? ruleId
+    )
+    {
+        var elements = new List<SlackText>
+        {
+            new() { Type = "mrkdwn", Text = $"Org: `{org}`" },
+            new() { Type = "mrkdwn", Text = $"Env: `{env}`" },
+            new() { Type = "mrkdwn", Text = $"Apps: {appsList}" },
+            new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
+        };
+
+        if (url is not null)
+        {
+            elements.Add(new SlackText
+            {
+                Type = "mrkdwn",
+                Text = $"<{url}|Grafana>"
+            });
+        }
+
+        if (ruleId is not null)
+        {
+            IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
+                metricsClientSettings.Provider
+            );
+            Uri logsUrl = metricsClient.GetLogsUrl(
+                gatewayContext.AzureSubscriptionId,
+                gatewayContext.ServiceOwner,
+                gatewayContext.Environment,
+                appsList,
+                ruleId,
+                5
+            );
+            var encodedLogsUrl = logsUrl.ToString()
+                .Replace("<", "%3C")
+                .Replace(">", "%3E")
+                .Replace("|", "%7C");
+            elements.Add(new SlackText
+            {
+                Type = "mrkdwn",
+                Text = $"<{encodedLogsUrl}|Application Insights>",
+            });
+        }
+
+        return elements;
     }
 }
