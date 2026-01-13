@@ -117,16 +117,12 @@ public class HomeController : Controller
 
     private string GenerateHtml(string org, string app)
     {
-        var cdnUrl = "https://altinncdn.no/toolkits/altinn-app-frontend";
-
-        var specifyFrontendVersion = true;
-
+        var frontendUrl = "https://altinncdn.no/toolkits/altinn-app-frontend/4";
         if (HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var frontendVersionCookie))
         {
-            cdnUrl = frontendVersionCookie.TrimEnd('/');
-            specifyFrontendVersion = false;
+            frontendUrl = frontendVersionCookie.TrimEnd('/');
         }
-        var appVersion = specifyFrontendVersion ? "4/" : "";
+
         var htmlContent = $$"""
             <!DOCTYPE html>
             <html lang="no">
@@ -136,7 +132,7 @@ public class HomeController : Controller
               <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
               <title>{{org}} - {{app}}</title>
               <link rel="icon" href="https://altinncdn.no/favicon.ico">
-              <link rel="stylesheet" type="text/css" href="{{cdnUrl}}/{{appVersion}}altinn-app-frontend.css">
+              <link rel="stylesheet" type="text/css" href="{{frontendUrl}}/altinn-app-frontend.css">
             </head>
             <body>
               <div id="root"></div>
@@ -144,7 +140,7 @@ public class HomeController : Controller
                 window.org = '{{org}}';
                 window.app = '{{app}}';
               </script>
-              <script src="{{cdnUrl}}/{{appVersion}}altinn-app-frontend.js"></script>
+              <script src="{{frontendUrl}}/altinn-app-frontend.js"></script>
             </body>
             </html>
             """;

@@ -198,7 +198,7 @@ public sealed partial class AppFixture : IAsyncDisposable
             _appClient.DefaultRequestHeaders.Add("User-Agent", "Altinn.App.Integration.Tests");
 
             // Add frontendVersion cookie with the app's external URL
-            var appExternalUrl = $"http://host.containers.internal:{_appContainer.GetMappedPublicPort(AppPort)}";
+            var appExternalUrl = $"/ttd/{_app}/altinn-app-frontend/";
             var baseUri = _appClient.BaseAddress!;
             cookieContainer.Add(baseUri, new Cookie("frontendVersion", appExternalUrl));
         }
