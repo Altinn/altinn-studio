@@ -2,6 +2,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features.Bootstrap;
+using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -20,6 +22,7 @@ public class HomeController : Controller
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
     private readonly IAntiforgery _antiforgery;
@@ -29,10 +32,13 @@ public class HomeController : Controller
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
+    private readonly IBootstrapGlobalService _bootstrapGlobalService;
+
 
     /// <summary>
     /// Initialize a new instance of the <see cref="HomeController"/> class.
     /// </summary>
+    /// <param name="serviceProvider">The serviceProvider service.</param>
     /// <param name="antiforgery">The anti forgery service.</param>
     /// <param name="platformSettings">The platform settings.</param>
     /// <param name="env">The current environment.</param>
@@ -40,6 +46,7 @@ public class HomeController : Controller
     /// <param name="appResources">The application resources service</param>
     /// <param name="appMetadata">The application metadata service</param>
     public HomeController(
+        IServiceProvider serviceProvider,
         IAntiforgery antiforgery,
         IOptions<PlatformSettings> platformSettings,
         IWebHostEnvironment env,
@@ -54,6 +61,7 @@ public class HomeController : Controller
         _appSettings = appSettings.Value;
         _appResources = appResources;
         _appMetadata = appMetadata;
+        _bootstrapGlobalService = serviceProvider.GetRequiredService<IBootstrapGlobalService>();
     }
 
     /// <summary>
@@ -89,6 +97,10 @@ public class HomeController : Controller
                 }
             );
         }
+
+        Task<BootstrapGlobalResponse> initData = _bootstrapGlobalService.GetGlobalState();
+        // Wait for PR with replacement of index.cshtml.
+
 
         if (await ShouldShowAppView())
         {
