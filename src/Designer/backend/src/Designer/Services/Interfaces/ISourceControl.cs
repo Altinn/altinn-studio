@@ -247,8 +247,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
+        /// <param name="developer">The developer user name</param>
         /// <returns>The updated repository status</returns>
-        RepoStatus DiscardLocalChanges(string org, string repository);
+        RepoStatus DiscardLocalChanges(string org, string repository, string developer);
 
         /// <summary>
         /// Deletes a remote branch based on the specified name, if it exists.

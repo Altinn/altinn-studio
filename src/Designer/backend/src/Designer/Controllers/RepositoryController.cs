@@ -491,7 +491,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/discard-changes")]
         public ActionResult<RepoStatus> DiscardLocalChanges(string org, string repository)
         {
-            var repoStatus = _sourceControl.DiscardLocalChanges(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var repoStatus = _sourceControl.DiscardLocalChanges(org, repository, developer);
             return Ok(repoStatus);
         }
 

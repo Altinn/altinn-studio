@@ -694,9 +694,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public RepoStatus DiscardLocalChanges(string org, string repository)
+        public RepoStatus DiscardLocalChanges(string org, string repository, string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string localPath = repositorySettings.GetServicePath(org, repository, developer);
 
             using (var repo = new LibGit2Sharp.Repository(localPath))

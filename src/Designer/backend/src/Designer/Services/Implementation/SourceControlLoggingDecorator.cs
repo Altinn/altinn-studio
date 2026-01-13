@@ -460,11 +460,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public RepoStatus DiscardLocalChanges(string org, string repository)
+        public RepoStatus DiscardLocalChanges(string org, string repository, string developer)
         {
             try
             {
-                return _decoratedService.DiscardLocalChanges(org, repository);
+                return _decoratedService.DiscardLocalChanges(org, repository, developer);
             }
             catch (Exception ex)
             {
