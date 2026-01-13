@@ -121,7 +121,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public void FetchRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string logMessage = string.Empty;
             using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(authenticatedContext)))
             {
