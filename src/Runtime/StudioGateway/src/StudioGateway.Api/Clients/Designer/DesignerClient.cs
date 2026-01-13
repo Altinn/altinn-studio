@@ -16,7 +16,7 @@ internal sealed class DesignerClient(
         var httpClient = httpClientFactory.CreateClient(environment);
         string org = _gatewayContext.ServiceOwner;
         string env = _gatewayContext.Environment;
-        Uri requestUrl = new($"admin/alerts/{org}/{env}", UriKind.Relative);
+        Uri requestUrl = new($"designer/api/admin/alerts/{org}/{env}", UriKind.Relative);
 
         using HttpResponseMessage response = await httpClient.PostAsync(requestUrl, null, cancellationToken);
         response.EnsureSuccessStatusCode();
