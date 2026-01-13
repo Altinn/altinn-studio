@@ -94,7 +94,7 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         string latestCommitSha = await giteaClient.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
 
         sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
-        await sourceControl.PullRemoteChanges(editingContext.Org, editingContext.Repo);
+        await sourceControl.PullRemoteChanges(editingContext.Org, editingContext.Repo, editingContext.Developer);
         await sourceControl.FetchGitNotes(editingContext);
 
         if (latestCommitSha == request.BaseCommitSha)

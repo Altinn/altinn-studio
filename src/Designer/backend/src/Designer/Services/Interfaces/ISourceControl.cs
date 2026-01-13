@@ -69,8 +69,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">name of the repository</param>
+        /// <param name="developer">The developer making the pull</param>
         /// <returns>The repo status</returns>
-        Task<RepoStatus> PullRemoteChanges(string org, string repository);
+        Task<RepoStatus> PullRemoteChanges(string org, string repository, string developer);
 
         /// <summary>
         /// Pull remote changes

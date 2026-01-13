@@ -253,7 +253,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<RepoStatus> Pull(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            RepoStatus pullStatus = await _sourceControl.PullRemoteChanges(org, repository);
+            RepoStatus pullStatus = await _sourceControl.PullRemoteChanges(org, repository, developer);
 
             RepoStatus status = _sourceControl.RepositoryStatus(org, repository, developer);
 
@@ -306,7 +306,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (LibGit2Sharp.NonFastForwardException)
             {
-                RepoStatus repoStatus = await _sourceControl.PullRemoteChanges(commitInfo.Org, commitInfo.Repository);
+                RepoStatus repoStatus = await _sourceControl.PullRemoteChanges(commitInfo.Org, commitInfo.Repository, developer);
                 await _sourceControl.Push(commitInfo.Org, commitInfo.Repository, developer);
                 foreach (RepositoryContent repoContent in repoStatus?.ContentStatus)
                 {
