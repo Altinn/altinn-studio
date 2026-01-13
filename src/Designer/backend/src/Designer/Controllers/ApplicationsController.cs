@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
+using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -23,7 +24,7 @@ namespace Altinn.Studio.Admin.Controllers;
 [Route("designer/api/admin/[controller]")]
 public class ApplicationsController : ControllerBase
 {
-    private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;
+    private readonly IEnvironmentsService _environmentsService;
     private readonly IRuntimeGatewayClient _runtimeGatewayClient;
     private readonly IDeploymentRepository _deploymentRepository;
     private readonly IReleaseRepository _releaseRepository;
@@ -31,7 +32,7 @@ public class ApplicationsController : ControllerBase
     private readonly ILogger<ApplicationsController> _logger;
 
     public ApplicationsController(
-        IKubernetesDeploymentsService kubernetesDeploymentsService,
+        IEnvironmentsService environmentsService,
         IRuntimeGatewayClient runtimeGatewayClient,
         IDeploymentRepository deploymentRepository,
         IReleaseRepository releaseRepository,
@@ -39,7 +40,7 @@ public class ApplicationsController : ControllerBase
         ILogger<ApplicationsController> logger
     )
     {
-        _kubernetesDeploymentsService = kubernetesDeploymentsService;
+        _environmentsService = environmentsService;
         _runtimeGatewayClient = runtimeGatewayClient;
         _deploymentRepository = deploymentRepository;
         _releaseRepository = releaseRepository;
@@ -55,16 +56,53 @@ public class ApplicationsController : ControllerBase
     {
         try
         {
-            var deployments = await _kubernetesDeploymentsService.GetAsync(org, ct);
-            var applications = deployments.ToDictionary(
-                kv => kv.Key,
-                kv => kv.Value.Select(PublishedApplication.FromKubernetesDeployment).ToList()
+            IEnumerable<EnvironmentModel> environments =
+                await _environmentsService.GetOrganizationEnvironments(org);
+
+            var getDeploymentsTasks = environments.Select(async env =>
+            {
+                try
+                {
+                    var deployments = await _runtimeGatewayClient.GetAppDeployments(
+                        org,
+                        AltinnEnvironment.FromName(env.Name),
+                        ct
+                    );
+
+                    return (env, deployments.ToList());
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Could not reach environment {env.Name} for org {org}.");
+                    return (env, new List<AppDeployment>());
+                }
+            });
+
+            (EnvironmentModel, List<AppDeployment>)[] deployments = await Task.WhenAll(
+                getDeploymentsTasks
             );
+
+            var applications = deployments.ToDictionary(
+                g => g.Item1.Name,
+                g =>
+                    g.Item2.Select(deployment => new PublishedApplication()
+                    {
+                        Org = deployment.Org,
+                        App = deployment.App,
+                        Env = g.Item1.Name, // deployment.Env uses prod (not production)
+                        Version = deployment.ImageTag,
+                    })
+            );
+
             return Ok(applications);
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
-            return StatusCode((int?)ex.StatusCode ?? 500);
+            return StatusCode(502);
         }
         catch (KeyNotFoundException)
         {
@@ -112,16 +150,18 @@ public class ApplicationsController : ControllerBase
                 releaseEntityTask.Result
             );
 
-            return new PublishedApplicationDetails()
+            var application = new PublishedApplicationDetails()
             {
                 Org = runtimeAppDeployment.Org,
                 App = runtimeAppDeployment.App,
                 Version = runtimeAppDeployment.ImageTag,
-                Env = deploymentEntity.EnvName,
+                Env = deploymentEntity.EnvName, // runtimeAppDeployment.Env uses prod (not production)
                 Commit = releaseEntity.TargetCommitish,
                 CreatedAt = deploymentEntity.Created,
                 CreatedBy = deploymentEntity.CreatedBy,
             };
+
+            return Ok(application);
         }
         catch (HttpRequestException ex)
         {

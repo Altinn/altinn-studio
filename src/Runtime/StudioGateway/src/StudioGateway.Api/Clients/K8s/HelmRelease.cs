@@ -8,7 +8,22 @@ internal sealed class HelmRelease
 
     public HelmRelease(JsonElement root)
     {
-        _root = root;
+        _root = root.Clone();
+    }
+
+    public string? GetName()
+    {
+        if (
+            _root.TryGetProperty("metadata", out var metadata)
+            && metadata.TryGetProperty("name", out var name)
+            && name.ValueKind == JsonValueKind.String
+            && name.GetString() is { Length: > 0 } helmReleaseName
+        )
+        {
+            return helmReleaseName;
+        }
+
+        return null;
     }
 
     public string? GetImageTag()
@@ -30,7 +45,10 @@ internal sealed class HelmRelease
 
     public IReadOnlyDictionary<string, string> GetLabels()
     {
-        if (!_root.TryGetProperty("metadata", out var metadata) || !metadata.TryGetProperty("labels", out var labels))
+        if (
+            !_root.TryGetProperty("metadata", out var metadata)
+            || !metadata.TryGetProperty("labels", out var labels)
+        )
         {
             return new Dictionary<string, string>();
         }

@@ -8,6 +8,18 @@ internal static class DeployEndpoints
     public static WebApplication MapDeployEndpoints(this WebApplication app)
     {
         app.MapGet(
+                // TODO: This feels a bit off
+                "/runtime/gateway/api/v1/deploy/origin/{originEnvironment}/apps/",
+                HandleListAppDeployments.ListAppDeploymentsHandler
+            )
+            .RequirePublicPort()
+            .RequireAuthorization("MaskinportenScope")
+            .WithName("ListAppDeployments")
+            .WithSummary("List all App deployments.")
+            .WithDescription("Endpoint to list all app deployments.")
+            .WithTags("Deploy");
+
+        app.MapGet(
                 "/runtime/gateway/api/v1/deploy/apps/{app}/{originEnvironment}",
                 HandleGetAppDeployment.GetAppDeploymentHandler
             )
@@ -15,7 +27,7 @@ internal static class DeployEndpoints
             .RequireAuthorization("MaskinportenScope")
             .WithName("GetAppDeployment")
             .WithSummary("Get App deployment.")
-            .WithDescription("Endpoint to get details about an app deployment.")
+            .WithDescription("Endpoint to get a single app deployment.")
             .WithTags("Deploy");
 
         app.MapGet(
