@@ -1,6 +1,6 @@
 export const FeatureToggles = {
   betaPDFenabled: {
-    defaultValue: false,
+    defaultValue: true,
     title: 'Activate beta pdf rendering using Summary2',
     description: '',
     links: ['https://github.com/Altinn/app-frontend-react/issues/1502'],
