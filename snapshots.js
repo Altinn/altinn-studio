@@ -251,6 +251,7 @@ module.exports = {
       "nested-group": {
         "skjemanummer": 1603,
         "spesifikasjonsnummer": 12392,
+        "useBothRepGroups": false,
         "hideRowValue": 99999999,
         "sumAll": 0,
         "sumAboveLimit": 0,
