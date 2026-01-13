@@ -446,11 +446,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName)
+        public async Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName, string developer)
         {
             try
             {
-                return await _decoratedService.CheckoutBranchWithValidation(org, repository, branchName);
+                return await _decoratedService.CheckoutBranchWithValidation(org, repository, branchName, developer);
             }
             catch (Exception ex)
             {

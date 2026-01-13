@@ -476,7 +476,8 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest($"{request.BranchName} is an invalid branch name.");
             }
 
-            var repoStatus = await _sourceControl.CheckoutBranchWithValidation(org, repository, request.BranchName);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var repoStatus = await _sourceControl.CheckoutBranchWithValidation(org, repository, request.BranchName, developer);
             return Ok(repoStatus);
         }
 

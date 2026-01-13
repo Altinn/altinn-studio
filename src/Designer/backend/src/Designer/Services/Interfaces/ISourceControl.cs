@@ -237,9 +237,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
         /// <param name="branchName">The name of the branch to checkout</param>
+        /// <param name="developer">The developer user name</param>
         /// <returns>The updated repository status, or null if there are uncommitted changes</returns>
         /// <exception cref="Exceptions.UncommittedChangesException">Thrown when there are uncommitted changes</exception>
-        Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName);
+        Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName, string developer);
 
         /// <summary>
         /// Discards all local changes in the repository (hard reset + clean untracked files)

@@ -657,9 +657,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             };
         }
 
-        public async Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName)
+        public async Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName, string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             RepoStatus repoStatus = RepositoryStatus(org, repository, developer);
 
             bool hasUncommittedChanges = repoStatus.ContentStatus
