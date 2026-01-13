@@ -1,5 +1,5 @@
 {
-  "name": "Display value of Person Lookup component",
+  "name": "Display value of Person Lookup component with full name",
   "expression": [
     "displayValue",
     "personlookup"
@@ -19,9 +19,7 @@
             "type": "PersonLookup",
             "dataModelBindings": {
               "person_lookup_ssn": "PersonLookup.Ssn",
-              "person_lookup_name": "PersonLookup.Name",
-              "person_lookup_first_name": "PersonLookup.FirstName",
-              "person_lookup_last_name": "PersonLookup.LastName"
+              "person_lookup_name": "PersonLookup.Name"
             }
           }
         ]
@@ -31,10 +29,7 @@
   "dataModel": {
     "PersonLookup": {
       "Ssn": "44829800753",
-      "Name": "Sulten Karl Løve",
-      "FirstName": "Sulten",
-      "MiddleName": "Karl",
-      "LastName": "Løve"
+      "Name": "Sulten Karl Løve"
     }
   }
 }
