@@ -31,10 +31,7 @@ internal sealed class GroupMutator : ILayoutMutator
             )
         )
         {
-            if (component.ContainsKey("maxCount"))
-            {
-                component.Remove("maxCount");
-            }
+            component.Remove("maxCount");
             if (component.TryGetPropertyValue("panel", out var panelNode))
             {
                 // if panel has reference, delete the entire component and log warning
