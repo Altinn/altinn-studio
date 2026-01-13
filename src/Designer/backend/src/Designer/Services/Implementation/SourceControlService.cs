@@ -44,10 +44,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The result of the cloning</returns>
         public async Task<string> CloneRemoteRepository(string org, string repository)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string remoteRepo = FindRemoteRepoLocation(org, repository);
             CloneOptions cloneOptions = new();
             cloneOptions.FetchOptions.CredentialsProvider = await GetCredentialsAsync();
-            string localPath = FindLocalRepoLocation(org, repository);
+            string localPath = FindLocalRepoLocation(org, repository, developer);
             string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, localPath, cloneOptions);
 
             await FetchGitNotes(localPath);
@@ -78,7 +79,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 ContentStatus = []
             };
-            using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository, developer)))
             {
                 PullOptions pullOptions = new()
                 {
@@ -98,7 +100,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         GetDeveloperSignature(),
                         pullOptions);
 
-                    await FetchGitNotes(FindLocalRepoLocation(org, repository));
+                    await FetchGitNotes(FindLocalRepoLocation(org, repository, developer));
                     TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(head, mergeResult.Commit?.Tree);
                     foreach (TreeEntryChanges change in treeChanges.Modified)
                     {
@@ -112,12 +114,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 catch (CheckoutConflictException e)
                 {
-                    logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // CheckoutConflictException occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
+                    logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // CheckoutConflictException occured when pulling repo {FindLocalRepoLocation(org, repository, developer)}. {e}");
                     status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
                 }
                 catch (Exception e)
                 {
-                    logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
+                    logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(org, repository, developer)}. {e}");
                     throw;
                 }
             }
@@ -132,8 +134,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="repository">The name of the repository.</param>
         public async Task FetchRemoteChanges(string org, string repository)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string logMessage = string.Empty;
-            using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
+            using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository, developer)))
             {
                 FetchOptions fetchOptions = new()
                 {
@@ -385,16 +388,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        /// <summary>
-        /// Returns the local repo location
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <returns>The path to the local repository</returns>
-        public string FindLocalRepoLocation(string org, string repository)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
 
+        public string FindLocalRepoLocation(string org, string repository, string developer)
+        {
             return FindLocalRepoLocation(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer));
         }
 
@@ -406,7 +402,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task CloneIfNotExists(string org, string repository)
         {
-            string repoLocation = FindLocalRepoLocation(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            string repoLocation = FindLocalRepoLocation(org, repository, developer);
             if (!Directory.Exists(repoLocation))
             {
                 try

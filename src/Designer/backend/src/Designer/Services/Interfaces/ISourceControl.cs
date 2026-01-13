@@ -37,6 +37,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         void StoreAppTokenForUser(string token, string developer);
 
         /// <summary>
+        /// Returns the local repo location
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <param name="developer">The developer user name</param>
+        /// <returns>The path to the local repository</returns>
+        string FindLocalRepoLocation(string org, string repository, string developer);
+
+        /// <summary>
         /// Add all changes in app repo and push to remote
         /// </summary>
         /// <param name="commitInfo">the commit information for the app</param>
