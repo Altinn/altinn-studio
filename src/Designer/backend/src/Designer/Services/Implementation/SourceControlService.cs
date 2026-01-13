@@ -366,7 +366,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public void StoreAppTokenForUser(string token, string developer)
         {
-            CheckAndCreateDeveloperFolder();
+            CheckAndCreateDeveloperFolder(developer);
 
             string path = Path.Combine(repositorySettings.RepositoryLocation, developer, "AuthToken.txt");
             File.WriteAllText(path, token);
@@ -375,9 +375,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <summary>
         /// Verifies if there exist a developer folder
         /// </summary>
-        private void CheckAndCreateDeveloperFolder()
+        private void CheckAndCreateDeveloperFolder(string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string path = Path.Combine(repositorySettings.RepositoryLocation, developer);
 
             if (!Directory.Exists(path))
