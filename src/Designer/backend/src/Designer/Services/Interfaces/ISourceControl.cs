@@ -82,8 +82,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
+        /// <param name="developer">The developer making the request</param>
         /// <returns>List of commits</returns>
-        List<Designer.Models.Commit> Log(string org, string repository);
+        List<Designer.Models.Commit> Log(string org, string repository, string developer);
 
         /// <summary>
         /// Gets the latest commit for current user

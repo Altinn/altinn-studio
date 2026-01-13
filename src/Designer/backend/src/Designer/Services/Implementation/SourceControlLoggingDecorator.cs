@@ -166,11 +166,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public List<Commit> Log(string org, string repository)
+        public List<Commit> Log(string org, string repository, string developer)
         {
             try
             {
-                return _decoratedService.Log(org, repository);
+                return _decoratedService.Log(org, repository, developer);
             }
             catch (Exception ex)
             {

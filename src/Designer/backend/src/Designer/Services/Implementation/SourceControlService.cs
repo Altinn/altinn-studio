@@ -320,20 +320,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public Designer.Models.Commit GetLatestCommitForCurrentUser(string org, string repository, string developer)
         {
-            List<Designer.Models.Commit> commits = Log(org, repository);
+            List<Designer.Models.Commit> commits = Log(org, repository, developer);
             Designer.Models.Commit latestCommit = commits.FirstOrDefault(commit => commit.Author.Name == developer);
             return latestCommit;
         }
 
-        /// <summary>
-        /// List commits
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <returns>List of commits</returns>
-        public List<Designer.Models.Commit> Log(string org, string repository)
+        /// <inheritdoc/>
+        public List<Designer.Models.Commit> Log(string org, string repository, string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             List<Designer.Models.Commit> commits = [];
             string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, developer);
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
