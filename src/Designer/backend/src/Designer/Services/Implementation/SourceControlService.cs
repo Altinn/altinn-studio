@@ -36,15 +36,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private const string DefaultBranch = General.DefaultBranch;
 
-        /// <summary>
-        /// Clone remote repository
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <returns>The result of the cloning</returns>
-        public async Task<string> CloneRemoteRepository(string org, string repository)
+        /// <inheritdoc/>
+        public async Task<string> CloneRemoteRepository(string org, string repository, string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string remoteRepo = FindRemoteRepoLocation(org, repository);
             CloneOptions cloneOptions = new();
             cloneOptions.FetchOptions.CredentialsProvider = await GetCredentialsAsync();
@@ -408,7 +402,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 try
                 {
-                    await CloneRemoteRepository(org, repository);
+                    await CloneRemoteRepository(org, repository, developer);
                 }
                 catch (Exception e)
                 {

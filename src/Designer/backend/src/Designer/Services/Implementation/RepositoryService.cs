@@ -236,7 +236,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     FireDeletionOfLocalRepo(org, serviceConfig.RepositoryName, developer);
                 }
 
-                await _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName);
+                await _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName, developer);
 
                 ModelMetadata metadata = new()
                 {
@@ -322,7 +322,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (Directory.Exists(repoPath))
             {
                 FireDeletionOfLocalRepo(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-                await _sourceControl.CloneRemoteRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo);
+                await _sourceControl.CloneRemoteRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
                 return true;
             }
 

@@ -16,8 +16,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">Name of the repository</param>
+        /// <param name="developer">The developer username</param>
         /// <returns>The result of the cloning</returns>
-        Task<string> CloneRemoteRepository(string org, string repository);
+        Task<string> CloneRemoteRepository(string org, string repository, string developer);
 
         /// <summary>
         /// Clone repository to specified destination

@@ -40,11 +40,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<string> CloneRemoteRepository(string org, string repository)
+        public Task<string> CloneRemoteRepository(string org, string repository, string developer)
         {
             try
             {
-                return _decoratedService.CloneRemoteRepository(org, repository);
+                return _decoratedService.CloneRemoteRepository(org, repository, developer);
             }
             catch (Exception ex)
             {
