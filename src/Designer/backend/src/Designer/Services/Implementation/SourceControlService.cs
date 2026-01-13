@@ -163,6 +163,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> Push(AltinnRepoEditingContext editingContext)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             bool pushSuccess = true;
             string localServiceRepoFolder = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
             using LibGit2Sharp.Repository repo = new(localServiceRepoFolder);
@@ -225,6 +226,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public List<RepositoryContent> Status(AltinnRepoEditingContext editingContext)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             List<RepositoryContent> repoContent = [];
             string localServiceRepoFolder = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
@@ -247,6 +249,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public RepoStatus RepositoryStatus(AltinnRepoEditingContext editingContext)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             RepoStatus repoStatus = new()
             {
                 ContentStatus = []
@@ -319,6 +322,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public List<Designer.Models.Commit> Log(AltinnRepoEditingContext editingContext)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             List<Designer.Models.Commit> commits = [];
             string localServiceRepoFolder = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
