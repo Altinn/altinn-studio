@@ -106,14 +106,15 @@ internal static class HandleAlerts
         CancellationToken cancellationToken
     )
     {
-        var appsList = string.Join(", ", apps.Select(a => $"`{a}`"));
+        var appsPlain = string.Join(", ", apps);
+        var appsFormatted = string.Join(", ", apps.Select(a => $"`{a}`"));
         try
         {
             var emoji = ":x:";
 
             var message = new SlackMessage
             {
-                Text = $"{emoji} `{org}` - `{env}` - `{appsList}` - *{status}*",
+                Text = $"{emoji} `{org}` - `{env}` - {appsFormatted} - *{status}*",
                 Blocks =
                 [
                     new SlackBlock
@@ -124,7 +125,7 @@ internal static class HandleAlerts
                     new SlackBlock
                     {
                         Type = "context",
-                        Elements = BuildContextElements(gatewayContext, serviceProvider, metricsClientSettings, org, env, appsList, studioEnv, url, ruleId),
+                        Elements = BuildContextElements(gatewayContext, serviceProvider, metricsClientSettings, org, env, appsPlain, appsFormatted, studioEnv, url, ruleId),
                     },
                 ],
             };
@@ -139,7 +140,7 @@ internal static class HandleAlerts
                 status,
                 org,
                 env,
-                appsList,
+                appsPlain,
                 studioEnv
             );
         }
@@ -151,7 +152,8 @@ internal static class HandleAlerts
         MetricsClientSettings metricsClientSettings,
         string org,
         string env,
-        string appsList,
+        string appsPlain,
+        string appsFormatted,
         string studioEnv,
         string? url,
         string? ruleId
@@ -161,7 +163,7 @@ internal static class HandleAlerts
         {
             new() { Type = "mrkdwn", Text = $"Org: `{org}`" },
             new() { Type = "mrkdwn", Text = $"Env: `{env}`" },
-            new() { Type = "mrkdwn", Text = $"Apps: {appsList}" },
+            new() { Type = "mrkdwn", Text = $"Apps: {appsFormatted}" },
             new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
         };
 
@@ -183,7 +185,7 @@ internal static class HandleAlerts
                 gatewayContext.AzureSubscriptionId,
                 gatewayContext.ServiceOwner,
                 gatewayContext.Environment,
-                appsList,
+                appsPlain,
                 ruleId,
                 5
             );
