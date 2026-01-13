@@ -71,43 +71,5 @@ namespace Altinn.Studio.Designer.Services.Implementation
             KubernetesDeployment?[] kubernetesDeployments = await Task.WhenAll(getDeploymentTasks);
             return kubernetesDeployments.OfType<KubernetesDeployment>().ToList();
         }
-
-        public async Task<Dictionary<string, List<KubernetesDeployment>>> GetAsync(
-            string org,
-            CancellationToken ct
-        )
-        {
-            IEnumerable<EnvironmentModel> environments =
-                await _environmentsService.GetOrganizationEnvironments(org);
-
-            var getDeploymentsTasks = environments.Select(async env =>
-            {
-                try
-                {
-                    var deployments = await _kubernetesWrapperClient.GetDeploymentsAsync(
-                        org,
-                        env,
-                        ct
-                    );
-
-                    foreach (var deployment in deployments)
-                    {
-                        deployment.EnvName = env.Name;
-                    }
-
-                    return (env.Name, deployments);
-                }
-                catch (KubernetesWrapperResponseException e)
-                {
-                    _logger.LogError(e, $"Could not reach environment {env.Name} for org {org}.");
-                    return (env.Name, new List<KubernetesDeployment>());
-                }
-            });
-
-            (string, IEnumerable<KubernetesDeployment>)[] kubernetesDeployments =
-                await Task.WhenAll(getDeploymentsTasks);
-
-            return kubernetesDeployments.ToDictionary(g => g.Item1, g => g.Item2.ToList());
-        }
     }
 }
