@@ -643,6 +643,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
         public CurrentBranchInfo GetCurrentBranch(string org, string repository, string developer)
         {
             string localPath = repositorySettings.GetServicePath(org, repository, developer);
@@ -657,6 +658,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             };
         }
 
+        /// <inheritdoc/>
         public async Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName, string developer)
         {
             RepoStatus repoStatus = RepositoryStatus(org, repository, developer);
