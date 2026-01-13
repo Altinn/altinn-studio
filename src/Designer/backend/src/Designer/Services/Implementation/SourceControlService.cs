@@ -154,13 +154,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await CommitAndPushToBranch(org, repository, branchName, localPath, message, accessToken);
         }
 
-        /// <summary>
-        /// Add all changes in app repo and push to remote
-        /// </summary>
-        /// <param name="commitInfo">the commit information for the app</param>
-        public async Task PushChangesForRepository(CommitInfo commitInfo)
+        /// <inheritdoc/>
+        public async Task PushChangesForRepository(CommitInfo commitInfo, string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string localServiceRepoFolder = repositorySettings.GetServicePath(commitInfo.Org, commitInfo.Repository, developer);
 
             string branchName = commitInfo.BranchName;
@@ -216,12 +212,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="commitInfo">Information about the commit</param>
         public void Commit(CommitInfo commitInfo)
         {
-            CommitAndAddStudioNote(commitInfo.Org, commitInfo.Repository, commitInfo.Message);
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+
+            CommitAndAddStudioNote(commitInfo.Org, commitInfo.Repository, developer, commitInfo.Message);
         }
 
-        private void CommitAndAddStudioNote(string org, string repository, string message)
+        private void CommitAndAddStudioNote(string org, string repository, string developer, string message)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, developer);
             using LibGit2Sharp.Repository repo = new(localServiceRepoFolder);
             string remoteUrl = FindRemoteRepoLocation(org, repository);

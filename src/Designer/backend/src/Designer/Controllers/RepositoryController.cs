@@ -299,7 +299,7 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             try
             {
-                await _sourceControl.PushChangesForRepository(commitInfo);
+                await _sourceControl.PushChangesForRepository(commitInfo, developer);
             }
             catch (LibGit2Sharp.NonFastForwardException)
             {

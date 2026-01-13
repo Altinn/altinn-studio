@@ -208,11 +208,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task PushChangesForRepository(CommitInfo commitInfo)
+        public Task PushChangesForRepository(CommitInfo commitInfo, string developer)
         {
             try
             {
-                return _decoratedService.PushChangesForRepository(commitInfo);
+                return _decoratedService.PushChangesForRepository(commitInfo, developer);
             }
             catch (Exception ex)
             {
