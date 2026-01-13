@@ -643,9 +643,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        public CurrentBranchInfo GetCurrentBranch(string org, string repository)
+        public CurrentBranchInfo GetCurrentBranch(string org, string repository, string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string localPath = repositorySettings.GetServicePath(org, repository, developer);
 
             using LibGit2Sharp.Repository repo = new(localPath);

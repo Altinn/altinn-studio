@@ -446,7 +446,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/current-branch")]
         public ActionResult<CurrentBranchInfo> GetCurrentBranch(string org, string repository)
         {
-            var branchInfo = _sourceControl.GetCurrentBranch(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var branchInfo = _sourceControl.GetCurrentBranch(org, repository, developer);
             return Ok(branchInfo);
         }
 

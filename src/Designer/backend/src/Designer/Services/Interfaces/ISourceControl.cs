@@ -227,8 +227,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
+        /// <param name="developer">The developer user name</param>
         /// <returns>Information about the current branch</returns>
-        CurrentBranchInfo GetCurrentBranch(string org, string repository);
+        CurrentBranchInfo GetCurrentBranch(string org, string repository, string developer);
 
         /// <summary>
         /// Checks out a branch, validating that there are no uncommitted changes first

@@ -432,11 +432,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public CurrentBranchInfo GetCurrentBranch(string org, string repository)
+        public CurrentBranchInfo GetCurrentBranch(string org, string repository, string developer)
         {
             try
             {
-                return _decoratedService.GetCurrentBranch(org, repository);
+                return _decoratedService.GetCurrentBranch(org, repository, developer);
             }
             catch (Exception ex)
             {
