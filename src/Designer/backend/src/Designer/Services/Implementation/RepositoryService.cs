@@ -53,6 +53,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IAppDevelopmentService _appDevelopmentService;
         private readonly ITextsService _textsService;
         private readonly IResourceRegistry _resourceRegistryService;
+        private readonly ICustomTemplateService _templateService;
         private readonly JsonSerializerOptions _serializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
 
         /// <summary>
@@ -69,6 +70,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="appDevelopmentService">The service for handling files concerning app-development</param>
         /// <param name="textsService">The service for handling texts</param>
         /// <param name="resourceRegistryService">The service for publishing resource in the ResourceRegistry</param>
+        /// <param name="templateService">The service for managing custom templates</param>
         public RepositoryService(
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
@@ -80,7 +82,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IApplicationMetadataService applicationMetadataService,
             IAppDevelopmentService appDevelopmentService,
             ITextsService textsService,
-            IResourceRegistry resourceRegistryService)
+            IResourceRegistry resourceRegistryService,
+            ICustomTemplateService templateService)
         {
             _settings = repositorySettings;
             _generalSettings = generalSettings;
@@ -93,6 +96,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _appDevelopmentService = appDevelopmentService;
             _textsService = textsService;
             _resourceRegistryService = resourceRegistryService;
+            _templateService = templateService;
         }
 
         /// <summary>
@@ -120,7 +124,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.AppSlnFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.GitIgnoreFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerIgnoreFileName);
-            UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName);
+
+            UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName); // obsolete? 
             return true;
         }
 
@@ -214,14 +219,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return deleted;
         }
 
-        /// <summary>
-        /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
-        /// given <paramref name="serviceConfig"/>
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="serviceConfig">The ServiceConfiguration to save</param>
-        /// <returns>The repository created in gitea</returns>
-        public async Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig)
+        /// <inheritdoc/>
+        public async Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig, List<CustomTemplateReference> templates)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string repoPath = _settings.GetServicePath(org, serviceConfig.RepositoryName, developer);
@@ -250,6 +249,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
                 await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer);
+
+                // call template engine for templates.             
+                foreach (var templateRef in templates)
+                {
+                    var template = await _templateService.GetCustomTemplate(developer, templateRef.Owner, templateRef.Id);
+                    var validationResult = await CustomTemplateService.ValidateManifestJsonAsync(System.Text.Json.JsonSerializer.Serialize(template));
+
+                    if (validationResult != null)
+                    {
+                        // rull tilbake hele driten. 
+                    }
+                }
+                // validate template and roll back repo creation if invalid
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 

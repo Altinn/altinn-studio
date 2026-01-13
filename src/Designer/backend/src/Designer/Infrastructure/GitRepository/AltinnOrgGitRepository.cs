@@ -19,7 +19,9 @@ public partial class AltinnOrgGitRepository : AltinnGitRepository
     private const string CodeListWithTextResourcesFolder = "CodeListsWithTextResources/";
     private const string LanguageResourceFolderName = "Texts/";
     private const string TextResourceFileNamePattern = "resource.*.json";
-
+    private const string TemplateFolder = "Templates/";
+    private const string TemplateFileName = "template.json";
+    private const string TemplateManifestFileName = "templateManifest.json";
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         WriteIndented = true,
@@ -244,6 +246,45 @@ public partial class AltinnOrgGitRepository : AltinnGitRepository
         }
 
         DeleteFileByRelativePath(codeListFilePath);
+    }
+
+    public async Task<List<CustomTemplate>> GetTemplateManifest(CancellationToken cancellationToken = default)
+    {
+        List<CustomTemplate> templates = [];
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!DirectoryExistsByRelativePath(TemplateFolder))
+        {
+            return [];
+        }
+
+        string templateManifestPath = Path.Join(TemplateFolder, TemplateManifestFileName);
+        string fileContent = await ReadTextByRelativePathAsync(templateManifestPath, cancellationToken);
+
+        templates.AddRange(JsonSerializer.Deserialize<List<CustomTemplate>>(fileContent, s_jsonOptions) ?? []);
+
+        return templates;
+    }
+
+    public async Task<CustomTemplate> GetCustomTemplate(string templateId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string templateFilePath = Path.Join(TemplateFolder, templateId, TemplateFileName);
+
+        if (!FileExistsByRelativePath(templateFilePath))
+        {
+            throw new NotFoundException($"Template file {templateId}.json was not found.");
+        }
+
+        string fileContent = await ReadTextByRelativePathAsync(templateFilePath, cancellationToken);
+
+        var template = JsonSerializer.Deserialize<CustomTemplate>(fileContent, s_jsonOptions);
+        if (template is null)
+        {
+            throw new InvalidOperationException("Template file was empty.");
+        }
+
+        return template;
     }
 
     private void DeleteFileIfExists(string filePath)
