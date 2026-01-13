@@ -57,7 +57,7 @@ app.MapGet(
     .WithName("GetWeatherForecast")
     .RequireAuthorization(ApiKeyAuthenticationHandler.PolicyName);
 
-app.Run();
+await app.RunAsync();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {

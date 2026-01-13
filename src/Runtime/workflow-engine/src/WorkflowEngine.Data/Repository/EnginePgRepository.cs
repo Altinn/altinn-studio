@@ -163,3 +163,5 @@ internal sealed class EnginePgRepository : IEngineRepository
         return cts;
     }
 }
+
+internal static class EnginePgRepositoryLogs { }

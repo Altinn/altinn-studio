@@ -7,6 +7,6 @@ public sealed class EngineConfigurationException : EngineException
 
     public EngineConfigurationException() { }
 
-    public EngineConfigurationException(string message, Exception innerException)
+    public EngineConfigurationException(string message, Exception? innerException)
         : base(message, innerException) { }
 }

@@ -187,9 +187,12 @@ internal partial class Engine : IEngine, IDisposable
 
                 // Database operation failed
                 case TaskStatus.Failed:
-                    _logger.WorkflowDbTaskFailed(workflow, workflow.DatabaseTask?.Exception);
+                    Exception? ex = workflow.DatabaseTask?.Exception;
+                    _logger.WorkflowDbTaskFailed(workflow, ex);
+
                     workflow.CleanupDatabaseTask();
-                    throw new EngineTaskException($"Database operation failed for workflow {workflow}");
+
+                    throw new EngineTaskException($"Database operation failed for workflow {workflow}", ex);
 
                 // Database operation finished successfully
                 case TaskStatus.Finished:
@@ -258,10 +261,13 @@ internal partial class Engine : IEngine, IDisposable
 
                 // Database operation failed
                 case { DatabaseUpdateStatus: TaskStatus.Failed }:
-                    _logger.StepDbTaskFailed(step, step.DatabaseTask?.Exception);
+                    Exception? ex = step.DatabaseTask?.Exception;
+                    _logger.StepDbTaskFailed(step, ex);
+
                     step.CleanupDatabaseTask();
                     step.BackoffUntil = GetDbRetryBackoff(step);
-                    throw new EngineTaskException($"Database operation failed for step {step}");
+
+                    throw new EngineTaskException($"Database operation failed for step {step}", ex);
 
                 // Database operation completed successfully
                 case { DatabaseUpdateStatus: TaskStatus.Finished }:

@@ -25,9 +25,6 @@ internal static partial class EngineLogs
     [LoggerMessage(LogLevel.Debug, "Updating workflow in storage: {Workflow}")]
     internal static partial void UpdatingWorkflowInDb(this ILogger<Engine> logger, Workflow workflow);
 
-    [LoggerMessage(LogLevel.Trace, "Workflow {WorkflowIdentifier} updated in database")]
-    internal static partial void WorkflowUpdatedInDb(this ILogger<Engine> logger, string workflowIdentifier);
-
     [LoggerMessage(
         LogLevel.Error,
         "Failed to update workflow {WorkflowIdentifier} in database after all retries exhausted. Database down?"
@@ -40,9 +37,6 @@ internal static partial class EngineLogs
 
     [LoggerMessage(LogLevel.Debug, "Updating step in storage: {Step}")]
     internal static partial void UpdatingStepInDb(this ILogger<Engine> logger, Step step);
-
-    [LoggerMessage(LogLevel.Trace, "Step {StepIdentifier} updated in database")]
-    internal static partial void StepUpdatedInDb(this ILogger<Engine> logger, string stepIdentifier);
 
     [LoggerMessage(
         LogLevel.Error,

@@ -77,12 +77,12 @@ internal partial class Engine
 
     private async Task UpdateWorkflowInStorage(Workflow workflow, CancellationToken cancellationToken)
     {
+        // TODO: Move logging to EnginePgRepository
         _logger.UpdatingWorkflowInDb(workflow);
 
         try
         {
             await _repository.UpdateWorkflow(workflow, cancellationToken);
-            _logger.WorkflowUpdatedInDb(workflow.Key);
         }
         catch (Exception ex)
         {
@@ -98,7 +98,6 @@ internal partial class Engine
         try
         {
             await _repository.UpdateStep(step: step, cancellationToken);
-            _logger.StepUpdatedInDb(step.Key);
         }
         catch (Exception ex)
         {
