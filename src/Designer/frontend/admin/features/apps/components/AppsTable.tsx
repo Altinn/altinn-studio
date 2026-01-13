@@ -18,6 +18,7 @@ import { TimeRangeSelect } from 'admin/shared/TimeRangeSelect/TimeRangeSelect';
 import { appErrorMetricsLogsPath } from 'admin/utils/apiPaths';
 import { Alert } from 'admin/shared/Alert/Alert';
 import { isAxiosError } from 'axios';
+import { useCurrentOrg } from 'admin/layout/PageLayout';
 
 export type AppsTableProps = {
   org: string;
@@ -89,13 +90,18 @@ type AppsTableContentProps = AppsTableWithDataProps & {
 };
 
 const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTableContentProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const envTitle =
+    env === 'production'
+      ? t(`general.production_environment_alt`).toLowerCase()
+      : `${t('general.test_environment_alt').toLowerCase()} ${env?.toUpperCase()}`;
+  const orgName = useCurrentOrg().name[i18n.language];
   const defaultRange = 1440;
   const [range, setRange] = useQueryParamState<number>('range', defaultRange);
   const {
     data: errorMetrics,
     isPending: errorMetricsIsPending,
-    error,
+    error: errorMetricsError,
     isError: errorMetricsIsError,
   } = useErrorMetricsQuery(org, env, range!, {
     hideDefaultError: true,
@@ -118,14 +124,14 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
   return (
     <>
       {errorMetricsIsError &&
-        (isAxiosError(error) && error.response?.status === 403 ? (
-          <StudioAlert data-color='warning' className={classes.errorAlert}>
-            {t('admin.metrics.errors.forbidden', { env: t(`admin.environment.${env}`) })}
+        (isAxiosError(errorMetricsError) && errorMetricsError.response?.status === 403 ? (
+          <StudioAlert data-color='info' className={classes.errorAlert}>
+            {t('admin.metrics.errors.missing_rights', { envTitle, orgName })}
           </StudioAlert>
         ) : (
-          <StudioAlert data-color='danger' className={classes.errorAlert}>
+          <StudioError className={classes.errorAlert}>
             {t('admin.metrics.errors.error')}
-          </StudioAlert>
+          </StudioError>
         ))}
       <StudioSearch
         className={classes.appSearch}
