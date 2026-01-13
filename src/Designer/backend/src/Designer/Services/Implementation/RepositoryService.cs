@@ -621,7 +621,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task DeleteRepository(string org, string repository)
         {
-            await _sourceControl.DeleteRepository(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            await _sourceControl.DeleteRepository(org, repository, developer);
         }
 
         public async Task<bool> SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy)

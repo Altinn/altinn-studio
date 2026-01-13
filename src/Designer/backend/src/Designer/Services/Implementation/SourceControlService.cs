@@ -718,15 +718,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new Uri(repositorySettings.RepositoryBaseURL).Append($"{org}/{repository}.git").ToString();
         }
 
-        /// <summary>
-        /// Stages a specific file changed in working repository.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of the repository.</param>
-        /// <param name="fileName">the entire file path with filen name</param>
-        public void StageChange(string org, string repository, string fileName)
+        /// <inheritdoc/>
+        public void StageChange(string org, string repository, string fileName, string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, developer);
             using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
             {
@@ -761,9 +755,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task DeleteRepository(string org, string repository)
+        public async Task DeleteRepository(string org, string repository, string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, developer);
 
             if (Directory.Exists(localServiceRepoFolder))

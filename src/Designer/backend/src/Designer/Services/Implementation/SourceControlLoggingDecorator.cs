@@ -124,11 +124,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task DeleteRepository(string org, string repository)
+        public Task DeleteRepository(string org, string repository, string developer)
         {
             try
             {
-                return _decoratedService.DeleteRepository(org, repository);
+                return _decoratedService.DeleteRepository(org, repository, developer);
             }
             catch (Exception ex)
             {
@@ -250,11 +250,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void StageChange(string org, string repository, string fileName)
+        public void StageChange(string org, string repository, string fileName, string developer)
         {
             try
             {
-                _decoratedService.StageChange(org, repository, fileName);
+                _decoratedService.StageChange(org, repository, fileName, developer);
             }
             catch (Exception ex)
             {

@@ -145,7 +145,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository.</param>
         /// <param name="fileName">the entire file path with filen name</param>
-        void StageChange(string org, string repository, string fileName);
+        /// <param name="developer">The developer staging the change</param>
+        void StageChange(string org, string repository, string fileName, string developer);
 
         /// <summary>
         /// Ensures repository is cloned if not, it clones it.
@@ -177,8 +178,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
+        /// <param name="developer">The developer deleting the repository</param>
         /// <returns></returns>
-        Task DeleteRepository(string org, string repository);
+        Task DeleteRepository(string org, string repository, string developer);
 
         /// <summary>
         /// Checkout the repository on specified branch.

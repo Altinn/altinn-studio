@@ -514,7 +514,8 @@ namespace Altinn.Studio.Designer.Controllers
                     return ValidationProblem("One or all of the input parameters are null");
                 }
 
-                _sourceControl.StageChange(org, repository, fileName);
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                _sourceControl.StageChange(org, repository, fileName, developer);
                 return Ok();
             }
             catch (Exception)
