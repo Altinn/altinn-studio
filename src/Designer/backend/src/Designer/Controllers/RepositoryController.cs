@@ -365,7 +365,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/latest-commit")]
         public Commit GetLatestCommitFromCurrentUser(string org, string repository)
         {
-            return _sourceControl.GetLatestCommitForCurrentUser(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            return _sourceControl.GetLatestCommitForCurrentUser(org, repository, developer);
         }
 
         /// <summary>

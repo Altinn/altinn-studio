@@ -317,16 +317,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        /// <summary>
-        /// Gets the latest commit for current user
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <returns>The latest commit</returns>
-        public Designer.Models.Commit GetLatestCommitForCurrentUser(string org, string repository)
+        /// <inheritdoc/>
+        public Designer.Models.Commit GetLatestCommitForCurrentUser(string org, string repository, string developer)
         {
             List<Designer.Models.Commit> commits = Log(org, repository);
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             Designer.Models.Commit latestCommit = commits.FirstOrDefault(commit => commit.Author.Name == developer);
             return latestCommit;
         }

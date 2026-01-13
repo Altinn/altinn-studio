@@ -152,11 +152,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Commit GetLatestCommitForCurrentUser(string org, string repository)
+        public Commit GetLatestCommitForCurrentUser(string org, string repository, string developer)
         {
             try
             {
-                return _decoratedService.GetLatestCommitForCurrentUser(org, repository);
+                return _decoratedService.GetLatestCommitForCurrentUser(org, repository, developer);
             }
             catch (Exception ex)
             {
