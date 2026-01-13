@@ -58,11 +58,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">Name of the repository</param>
+        /// <param name="developer">The developer pushing the commit</param>
         /// <param name="branchName">The name of the branch to push changes to</param>
         /// <param name="localPath">Path to local clone of repository</param>
         /// <param name="message">Commit message</param>
         /// <param name="accessToken">Access token for authentication. If empty, uses session-based authentication. Should only be used for special cases like bot operations - avoid for regular user operations.</param>
-        Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message, string accessToken = "");
+        Task CommitAndPushChanges(string org, string repository, string developer, string branchName, string localPath, string message, string accessToken = "");
 
         /// <summary>
         /// Pull remote changes
@@ -156,7 +157,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
-        Task CloneIfNotExists(string org, string repository);
+        /// <param name="developer">The developer user name</param>
+        Task CloneIfNotExists(string org, string repository, string developer);
 
         /// <summary>
         /// Creates a new branch in the given repository.

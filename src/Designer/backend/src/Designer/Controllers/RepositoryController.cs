@@ -222,7 +222,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<RepoStatus> RepoStatus(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            await _sourceControl.CloneIfNotExists(org, repository);
+            await _sourceControl.CloneIfNotExists(org, repository, developer);
             await _sourceControl.FetchRemoteChanges(org, repository, developer);
             return _sourceControl.RepositoryStatus(org, repository, developer);
         }

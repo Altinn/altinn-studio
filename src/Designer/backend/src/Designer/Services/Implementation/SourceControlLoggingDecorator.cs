@@ -82,11 +82,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message, string accessToken = "")
+        public Task CommitAndPushChanges(string org, string repository, string developer, string branchName, string localPath, string message, string accessToken = "")
         {
             try
             {
-                return _decoratedService.CommitAndPushChanges(org, repository, branchName, localPath, message, accessToken);
+                return _decoratedService.CommitAndPushChanges(org, repository, developer, branchName, localPath, message, accessToken);
             }
             catch (Exception ex)
             {
@@ -292,11 +292,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task CloneIfNotExists(string org, string repository)
+        public async Task CloneIfNotExists(string org, string repository, string developer)
         {
             try
             {
-                await _decoratedService.CloneIfNotExists(org, repository);
+                await _decoratedService.CloneIfNotExists(org, repository, developer);
             }
             catch (Exception ex)
             {

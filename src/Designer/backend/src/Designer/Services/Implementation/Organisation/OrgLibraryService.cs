@@ -88,7 +88,7 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         ValidateCommitMessage(request.CommitMessage);
         string repositoryName = GetStaticContentRepo(org);
 
-        await sourceControl.CloneIfNotExists(org, repositoryName);
+        await sourceControl.CloneIfNotExists(org, repositoryName, developer);
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repositoryName, developer);
 
         string latestCommitSha = await giteaClient.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);

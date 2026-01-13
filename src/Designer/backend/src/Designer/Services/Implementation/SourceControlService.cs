@@ -140,9 +140,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message, string accessToken = "")
+        public async Task CommitAndPushChanges(string org, string repository, string developer, string branchName, string localPath, string message, string accessToken = "")
         {
-            await CommitAndPushToBranch(org, repository, branchName, localPath, message, accessToken);
+            await CommitAndPushToBranch(org, repository, developer, branchName, localPath, message, accessToken);
         }
 
         /// <inheritdoc/>
@@ -157,7 +157,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 branchName = repo.Head.FriendlyName;
             }
 
-            await CommitAndPushToBranch(commitInfo.Org, commitInfo.Repository, branchName, localServiceRepoFolder, commitInfo.Message);
+            await CommitAndPushToBranch(commitInfo.Org, commitInfo.Repository, developer, branchName, localServiceRepoFolder, commitInfo.Message);
         }
 
         /// <inheritdoc/>
@@ -388,9 +388,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task CloneIfNotExists(string org, string repository)
+        public async Task CloneIfNotExists(string org, string repository, string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string repoLocation = FindLocalRepoLocation(org, repository, developer);
             if (!Directory.Exists(repoLocation))
             {
@@ -405,9 +404,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private async Task CommitAndPushToBranch(string org, string repository, string branchName, string localPath, string message, string accessToken = "")
+        private async Task CommitAndPushToBranch(string org, string repository, string developer, string branchName, string localPath, string message, string accessToken = "")
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             using LibGit2Sharp.Repository repo = new(localPath);
             // Restrict users from empty commit
             if (repo.RetrieveStatus().IsDirty)
