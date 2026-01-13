@@ -1,7 +1,7 @@
 {
     "tables": ["requests"],
     "timeContextWhereClause": "| where timestamp >= ago({range}m)",
-    "filterWhereClause": "| where success == false | where client_Type != 'Browser' | where toint(resultCode) >= 500 | where cloud_RoleName == '{appName}' | where operation_Name in ({operation_Names}) | order by timestamp desc",
+    "filterWhereClause": "| where success == false | where client_Type != 'Browser' | where toint(resultCode) >= 500 | where cloud_RoleName in ('{appName}') | where operation_Name in ({operation_Names}) | order by timestamp desc",
     "originalParams": {
         "eventTypes": [
             {

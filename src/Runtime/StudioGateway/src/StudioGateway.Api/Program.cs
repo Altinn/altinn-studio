@@ -10,6 +10,7 @@ using StudioGateway.Api.Clients.AlertsClient;
 using StudioGateway.Api.Clients.Designer;
 using StudioGateway.Api.Clients.K8s;
 using StudioGateway.Api.Clients.MetricsClient;
+using StudioGateway.Api.Clients.SlackClient;
 using StudioGateway.Api.Endpoints.Internal;
 using StudioGateway.Api.Endpoints.Local;
 using StudioGateway.Api.Endpoints.Public;
@@ -48,6 +49,9 @@ builder
     .Bind(builder.Configuration.GetSection("AlertsClientSettings"))
     .ValidateOnStart();
 
+builder.Configuration.AddJsonFile("/app/secrets/slack-webhook.json", optional: true, reloadOnChange: true);
+builder.Services.Configure<SlackSettings>(builder.Configuration.GetSection("Slack"));
+
 builder
     .Services.AddOptions<MetricsClientSettings>()
     .Bind(builder.Configuration.GetSection("MetricsClientSettings"))
@@ -56,6 +60,7 @@ builder.Services.Configure<GatewayContext>(builder.Configuration.GetSection("Gat
 
 // Register class itself as scoped to avoid using IOptions interfaces throughout the codebase
 // Avoided singleton registration to support dynamic reloading of configuration
+builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<SlackSettings>>().Value);
 builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<GrafanaSettings>>().Value);
 builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<GatewayContext>>().Value);
 builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<AlertsClientSettings>>().Value);
@@ -119,6 +124,7 @@ builder.Services.AddOpenApi(
 );
 builder.Services.AddDesignerClients(builder.Configuration);
 builder.Services.AddKubernetesServices();
+builder.Services.AddSlackClient();
 
 var app = builder.Build();
 
