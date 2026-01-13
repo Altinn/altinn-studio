@@ -151,10 +151,12 @@ internal static class OptionsBuilderExtensions
                 if (config.QueueCapacity <= 0)
                     config.QueueCapacity = Defaults.EngineSettings.QueueCapacity;
 
-                if (config.DefaultCommandExecutionTimeout <= TimeSpan.Zero)
-                    config.DefaultCommandExecutionTimeout = Defaults.EngineSettings.DefaultCommandExecutionTimeout;
+                if (config.DefaultStepCommandTimeout <= TimeSpan.Zero)
+                    config.DefaultStepCommandTimeout = Defaults.EngineSettings.DefaultStepCommandTimeout;
 
-                config.DefaultStepRetryStrategy ??= Defaults.EngineSettings.DefaultStepRetryStrategy;
+                if (config.DatabaseCommandTimeout <= TimeSpan.Zero)
+                    config.DatabaseCommandTimeout = Defaults.EngineSettings.DatabaseCommandTimeout;
+
                 config.DefaultStepRetryStrategy ??= Defaults.EngineSettings.DefaultStepRetryStrategy;
                 config.DatabaseRetryStrategy ??= Defaults.EngineSettings.DatabaseRetryStrategy;
             });
@@ -175,8 +177,13 @@ internal static class OptionsBuilderExtensions
             );
 
             builder.Validate(
-                config => config.DefaultCommandExecutionTimeout > TimeSpan.Zero,
-                $"{ns}.{nameof(EngineSettings.DefaultCommandExecutionTimeout)} must be greater than zero."
+                config => config.DefaultStepCommandTimeout > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.DefaultStepCommandTimeout)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.DatabaseCommandTimeout > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.DatabaseCommandTimeout)} must be greater than zero."
             );
 
             return builder;
