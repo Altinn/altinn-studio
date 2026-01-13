@@ -214,13 +214,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="commitInfo">Information about the commit</param>
         public void Commit(CommitInfo commitInfo)
         {
-            // TODO: This method is never used, should it be removed?
             CommitAndAddStudioNote(commitInfo.Org, commitInfo.Repository, commitInfo.Message);
         }
 
         private void CommitAndAddStudioNote(string org, string repository, string message)
         {
-            // TODO: This method is never used, should it be removed?
             string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
             using LibGit2Sharp.Repository repo = new(localServiceRepoFolder);
             string remoteUrl = FindRemoteRepoLocation(org, repository);

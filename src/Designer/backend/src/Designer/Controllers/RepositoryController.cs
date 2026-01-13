@@ -325,7 +325,6 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/commit")]
         public async Task<ActionResult> Commit(string org, string repository, [FromBody] CommitInfo commitInfo)
         {
-            // TODO: This method is never used, should it be removed?
             await Task.CompletedTask;
             try
             {
