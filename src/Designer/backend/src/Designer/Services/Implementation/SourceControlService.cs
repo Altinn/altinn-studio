@@ -163,7 +163,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> Push(AltinnRepoEditingContext editingContext)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             bool pushSuccess = true;
             string localServiceRepoFolder = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
             using LibGit2Sharp.Repository repo = new(localServiceRepoFolder);
