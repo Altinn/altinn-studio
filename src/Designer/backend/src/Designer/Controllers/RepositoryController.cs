@@ -237,8 +237,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/diff")]
         public async Task<Dictionary<string, string>> RepoDiff(string org, string repository)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             await _sourceControl.FetchRemoteChanges(org, repository);
-            return await _sourceControl.GetChangedContent(org, repository);
+            return await _sourceControl.GetChangedContent(org, repository, developer);
         }
 
         /// <summary>

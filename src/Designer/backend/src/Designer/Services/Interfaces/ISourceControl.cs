@@ -107,8 +107,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
+        /// <param name="developer">The developer making the status request</param>
         /// <returns>A dictionary with the filePath and a string for the git diff</returns>
-        Task<Dictionary<string, string>> GetChangedContent(string org, string repository);
+        Task<Dictionary<string, string>> GetChangedContent(string org, string repository, string developer);
 
         /// <summary>
         /// Push commits to repository
