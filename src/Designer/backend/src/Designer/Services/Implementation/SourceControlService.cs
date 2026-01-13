@@ -396,6 +396,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private void CommitAndPushToBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName, string localPath, string message)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             using LibGit2Sharp.Repository repo = new(localPath);
             // Restrict users from empty commit
             if (repo.RetrieveStatus().IsDirty)
