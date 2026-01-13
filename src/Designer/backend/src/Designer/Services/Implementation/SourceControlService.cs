@@ -254,9 +254,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public RepoStatus RepositoryStatus(string org, string repository)
+        public RepoStatus RepositoryStatus(string org, string repository, string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             RepoStatus repoStatus = new()
             {
                 ContentStatus = []
@@ -683,7 +682,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-            RepoStatus repoStatus = RepositoryStatus(org, repository);
+            RepoStatus repoStatus = RepositoryStatus(org, repository, developer);
 
             bool hasUncommittedChanges = repoStatus.ContentStatus
                 .Any(c => c.FileStatus != Enums.FileStatus.Unaltered);
@@ -712,7 +711,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await FetchRemoteChanges(org, repository);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             CheckoutRepoOnBranch(editingContext, branchName);
-            return RepositoryStatus(org, repository);
+            return RepositoryStatus(org, repository, developer);
         }
 
         /// <inheritdoc/>
@@ -727,7 +726,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 repo.RemoveUntrackedFiles();
             }
 
-            return RepositoryStatus(org, repository);
+            return RepositoryStatus(org, repository, developer);
         }
 
         /// <summary>

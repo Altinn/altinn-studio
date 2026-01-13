@@ -98,8 +98,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
+        /// <param name="developer">The developer making the status request</param>
         /// <returns>The repostatus</returns>
-        RepoStatus RepositoryStatus(string org, string repository);
+        RepoStatus RepositoryStatus(string org, string repository, string developer);
 
         /// <summary>
         /// Gets a dictionary of all filePaths and corresponding contentChanges as git diff string if file has been added or modified

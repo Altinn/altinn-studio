@@ -221,9 +221,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/status")]
         public async Task<RepoStatus> RepoStatus(string org, string repository)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             await _sourceControl.CloneIfNotExists(org, repository);
             await _sourceControl.FetchRemoteChanges(org, repository);
-            return _sourceControl.RepositoryStatus(org, repository);
+            return _sourceControl.RepositoryStatus(org, repository, developer);
         }
 
         /// <summary>
@@ -250,9 +251,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/pull")]
         public async Task<RepoStatus> Pull(string org, string repository)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             RepoStatus pullStatus = await _sourceControl.PullRemoteChanges(org, repository);
 
-            RepoStatus status = _sourceControl.RepositoryStatus(org, repository);
+            RepoStatus status = _sourceControl.RepositoryStatus(org, repository, developer);
 
             if (pullStatus.RepositoryStatus != Enums.RepositoryStatus.Ok)
             {
