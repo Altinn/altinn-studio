@@ -21,32 +21,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// <summary>
     /// Implementation of the source control service.
     /// </summary>
-    public class SourceControlService : ISourceControl
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="SourceControlService"/> class.
+    /// </remarks>
+    /// <param name="repositorySettings">The settings for the service repository.</param>
+    /// <param name="httpContextAccessor">the http context accessor.</param>
+    /// <param name="giteaClient">The gitea client.</param>
+    /// <param name="logger">the log handler.</param>
+    public class SourceControlService(
+        ServiceRepositorySettings repositorySettings,
+        IHttpContextAccessor httpContextAccessor,
+        IGiteaClient giteaClient,
+        ILogger<SourceControlService> logger) : ISourceControl
     {
-        private readonly ServiceRepositorySettings _settings;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IGiteaClient _giteaClient;
-        private readonly ILogger _logger;
         private const string DefaultBranch = General.DefaultBranch;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SourceControlService"/> class.
-        /// </summary>
-        /// <param name="repositorySettings">The settings for the service repository.</param>
-        /// <param name="httpContextAccessor">the http context accessor.</param>
-        /// <param name="giteaClient">The gitea client.</param>
-        /// <param name="logger">the log handler.</param>
-        public SourceControlService(
-            ServiceRepositorySettings repositorySettings,
-            IHttpContextAccessor httpContextAccessor,
-            IGiteaClient giteaClient,
-            ILogger<SourceControlService> logger)
-        {
-            _settings = repositorySettings;
-            _httpContextAccessor = httpContextAccessor;
-            _giteaClient = giteaClient;
-            _logger = logger;
-        }
 
         /// <summary>
         /// Clone remote repository
@@ -124,12 +112,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 catch (CheckoutConflictException e)
                 {
-                    _logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // CheckoutConflictException occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
+                    logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // CheckoutConflictException occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
                     status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
+                    logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
                     throw;
                 }
             }
@@ -170,7 +158,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="commitInfo">the commit information for the app</param>
         public async Task PushChangesForRepository(CommitInfo commitInfo)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = repositorySettings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
 
             string branchName = commitInfo.BranchName;
             if (string.IsNullOrEmpty(branchName))
@@ -190,7 +178,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<bool> Push(string org, string repository)
         {
             bool pushSuccess = true;
-            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
             using LibGit2Sharp.Repository repo = new(localServiceRepoFolder);
             string remoteUrl = FindRemoteRepoLocation(org, repository);
             Remote remote = repo.Network.Remotes["origin"];
@@ -206,7 +194,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 OnPushStatusError = pushError =>
                 {
-                    _logger.LogError("Push error: {0}", pushError.Message);
+                    logger.LogError("Push error: {0}", pushError.Message);
                     pushSuccess = false;
                 }
             };
@@ -231,7 +219,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private void CommitAndAddStudioNote(string org, string repository, string message)
         {
             // TODO: This method is never used, should it be removed?
-            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
             using LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder);
             string remoteUrl = FindRemoteRepoLocation(org, repository);
             Remote remote = repo.Network.Remotes["origin"];
@@ -262,7 +250,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public List<RepositoryContent> Status(string org, string repository)
         {
             List<RepositoryContent> repoContent = new();
-            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 RepositoryStatus status = repo.RetrieveStatus(new StatusOptions());
@@ -283,7 +271,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             RepoStatus repoStatus = new();
             repoStatus.ContentStatus = new List<RepositoryContent>();
-            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 RepositoryStatus status = repo.RetrieveStatus(new StatusOptions());
@@ -317,7 +305,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<Dictionary<string, string>> GetChangedContent(string org, string repository)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
             Dictionary<string, string> fileDiffs = [];
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
@@ -349,7 +337,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public Altinn.Studio.Designer.Models.Commit GetLatestCommitForCurrentUser(string org, string repository)
         {
             List<Altinn.Studio.Designer.Models.Commit> commits = Log(org, repository);
-            var developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            var developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             Altinn.Studio.Designer.Models.Commit latestCommit = commits.FirstOrDefault(commit => commit.Author.Name == developer);
             return latestCommit;
         }
@@ -363,7 +351,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public List<Altinn.Studio.Designer.Models.Commit> Log(string org, string repository)
         {
             List<Altinn.Studio.Designer.Models.Commit> commits = new();
-            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 foreach (LibGit2Sharp.Commit c in repo.Commits.Take(50))
@@ -399,8 +387,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             CheckAndCreateDeveloperFolder();
 
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string path = Path.Combine(_settings.RepositoryLocation, developer, "AuthToken.txt");
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            string path = Path.Combine(repositorySettings.RepositoryLocation, developer, "AuthToken.txt");
             File.WriteAllText(path, token);
         }
 
@@ -409,8 +397,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         private void CheckAndCreateDeveloperFolder()
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string path = Path.Combine(_settings.RepositoryLocation, developer);
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            string path = Path.Combine(repositorySettings.RepositoryLocation, developer);
 
             if (!Directory.Exists(path))
             {
@@ -426,14 +414,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The path to the local repository</returns>
         public string FindLocalRepoLocation(string org, string repository)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
 
             return FindLocalRepoLocation(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer));
         }
 
         private string FindLocalRepoLocation(AltinnRepoEditingContext editingContext)
         {
-            return Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation, editingContext.Path);
+            return Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? repositorySettings.RepositoryLocation, editingContext.Path);
         }
 
         /// <inheritdoc />
@@ -448,7 +436,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError($"Failed to clone repository {org}/{repository} with exception: {e}");
+                    logger.LogError($"Failed to clone repository {org}/{repository} with exception: {e}");
                 }
             }
         }
@@ -566,7 +554,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (rebaseResult.Status == RebaseStatus.Conflicts)
             {
                 repo.Rebase.Abort();
-                _logger.LogError("Rebase onto latest commit on default branch resulted in conflicts for repo at {WorkingDirectory}. Rebase aborted.", repo.Info.WorkingDirectory);
+                logger.LogError("Rebase onto latest commit on default branch resulted in conflicts for repo at {WorkingDirectory}. Rebase aborted.", repo.Info.WorkingDirectory);
             }
 
             if (rebaseResult.Status == RebaseStatus.Stop)
@@ -679,8 +667,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public CurrentBranchInfo GetCurrentBranch(string org, string repository)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string localPath = _settings.GetServicePath(org, repository, developer);
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            string localPath = repositorySettings.GetServicePath(org, repository, developer);
 
             using var repo = new LibGit2Sharp.Repository(localPath);
             return new CurrentBranchInfo
@@ -694,7 +682,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public async Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             var repoStatus = RepositoryStatus(org, repository);
 
             bool hasUncommittedChanges = repoStatus.ContentStatus
@@ -730,8 +718,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public RepoStatus DiscardLocalChanges(string org, string repository)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string localPath = _settings.GetServicePath(org, repository, developer);
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            string localPath = repositorySettings.GetServicePath(org, repository, developer);
 
             using (var repo = new LibGit2Sharp.Repository(localPath))
             {
@@ -750,7 +738,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The path to the remote repo</returns>
         private string FindRemoteRepoLocation(string org, string repository)
         {
-            return new Uri(_settings.RepositoryBaseURL).Append($"{org}/{repository}.git").ToString();
+            return new Uri(repositorySettings.RepositoryBaseURL).Append($"{org}/{repository}.git").ToString();
         }
 
         /// <summary>
@@ -761,7 +749,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="fileName">the entire file path with filen name</param>
         public void StageChange(string org, string repository, string fileName)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
             using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
             {
                 FileStatus fileStatus = repo.RetrieveStatus().SingleOrDefault(file => file.FilePath == fileName).State;
@@ -778,7 +766,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<RepositoryClient.Model.Branch> CreateBranch(string org, string repository, string branchName)
         {
-            return await _giteaClient.CreateBranch(org, repository, branchName);
+            return await giteaClient.CreateBranch(org, repository, branchName);
         }
 
         /// <inheritdoc/>
@@ -791,20 +779,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Title = title
             };
 
-            return await _giteaClient.CreatePullRequest(org, repository, option);
+            return await giteaClient.CreatePullRequest(org, repository, option);
         }
 
         /// <inheritdoc/>
         public async Task DeleteRepository(string org, string repository)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
 
             if (Directory.Exists(localServiceRepoFolder))
             {
                 DirectoryHelper.DeleteFilesAndDirectory(localServiceRepoFolder);
             }
 
-            await _giteaClient.DeleteRepository(org, repository);
+            await giteaClient.DeleteRepository(org, repository);
         }
 
         private static bool LocalBranchExists(LibGit2Sharp.Repository repo, string branchName)
@@ -832,7 +820,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private LibGit2Sharp.Signature GetDeveloperSignature()
         {
-            var username = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            var username = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             return new LibGit2Sharp.Signature(username, $"{username}@noreply.altinn.studio", DateTime.Now);
         }
 
@@ -851,7 +839,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async Task<LibGit2Sharp.Handlers.CredentialsHandler> GetCredentialsAsync(string accessToken = "")
         {
             string token = string.IsNullOrEmpty(accessToken)
-                ? await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync()
+                ? await httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync()
                 : accessToken;
             return (url, user, cred) => new UsernamePasswordCredentials { Username = token, Password = string.Empty };
         }
