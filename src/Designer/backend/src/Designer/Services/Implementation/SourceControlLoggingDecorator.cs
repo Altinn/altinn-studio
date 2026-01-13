@@ -486,6 +486,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        public string FindLocalRepoLocation(string org, string repository, string developer)
+        {
+            try
+            {
+                return _decoratedService.FindLocalRepoLocation(org, repository, developer);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, nameof(FindLocalRepoLocation), org, repository);
+                throw;
+            }
+        }
+
         private void LogError(Exception ex, string method)
         {
             LogError(ex, method, string.Empty, string.Empty);
