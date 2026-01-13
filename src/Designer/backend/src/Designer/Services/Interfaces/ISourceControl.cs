@@ -39,7 +39,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Add all changes in app repo and push to remote
         /// </summary>
         /// <param name="commitInfo">the commit information for the app</param>
-        /// <param name="developer">the developer user name</param>
+        /// <param name="developer">The developer making the push</param>
         Task PushChangesForRepository(CommitInfo commitInfo, string developer);
 
         /// <summary>
@@ -113,8 +113,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository.</param>
+        /// <param name="developer">The developer making the push</param>
         /// <returns>boolean indicatng success</returns>
-        Task<bool> Push(string org, string repository);
+        Task<bool> Push(string org, string repository, string developer);
 
         /// <summary>
         /// Commit changes for repository

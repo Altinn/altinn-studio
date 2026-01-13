@@ -169,14 +169,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await CommitAndPushToBranch(commitInfo.Org, commitInfo.Repository, branchName, localServiceRepoFolder, commitInfo.Message);
         }
 
-        /// <summary>
-        /// Push commits to repository
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of the repository</param>
-        public async Task<bool> Push(string org, string repository)
+        /// <inheritdoc/>
+        public async Task<bool> Push(string org, string repository, string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             bool pushSuccess = true;
             string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, developer);
             using LibGit2Sharp.Repository repo = new(localServiceRepoFolder);

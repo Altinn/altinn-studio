@@ -194,11 +194,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<bool> Push(string org, string repository)
+        public Task<bool> Push(string org, string repository, string developer)
         {
             try
             {
-                return _decoratedService.Push(org, repository);
+                return _decoratedService.Push(org, repository, developer);
             }
             catch (Exception ex)
             {

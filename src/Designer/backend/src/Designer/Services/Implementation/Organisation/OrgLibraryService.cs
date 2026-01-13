@@ -105,7 +105,7 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         {
             await HandleDivergentCommit(editingContext, request, cancellationToken);
         }
-        bool pushOk = await sourceControl.Push(org, repositoryName);
+        bool pushOk = await sourceControl.Push(org, repositoryName, developer);
         if (!pushOk)
         {
             throw new InvalidOperationException($"Push failed for {org}/{repositoryName}. Remote rejected the update.");

@@ -304,7 +304,7 @@ namespace Altinn.Studio.Designer.Controllers
             catch (LibGit2Sharp.NonFastForwardException)
             {
                 RepoStatus repoStatus = await _sourceControl.PullRemoteChanges(commitInfo.Org, commitInfo.Repository);
-                await _sourceControl.Push(commitInfo.Org, commitInfo.Repository);
+                await _sourceControl.Push(commitInfo.Org, commitInfo.Repository, developer);
                 foreach (RepositoryContent repoContent in repoStatus?.ContentStatus)
                 {
                     Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
@@ -346,8 +346,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/push")]
         public async Task<ActionResult> Push(string org, string repository)
         {
-            // TODO: This method is never used, should it be removed?
-            bool pushSuccess = await _sourceControl.Push(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            bool pushSuccess = await _sourceControl.Push(org, repository, developer);
             return pushSuccess ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
         }
 
