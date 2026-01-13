@@ -245,7 +245,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public RepoStatus RepositoryStatus(AltinnRepoEditingContext editingContext)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             RepoStatus repoStatus = new()
             {
                 ContentStatus = []
