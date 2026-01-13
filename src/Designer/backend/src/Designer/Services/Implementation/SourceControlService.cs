@@ -97,7 +97,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     Tree head = repo.Head.Tip.Tree;
                     MergeResult mergeResult = Commands.Pull(
                         repo,
-                        GetDeveloperSignature(),
+                        GetDeveloperSignature(developer),
                         pullOptions);
 
                     await FetchGitNotes(FindLocalRepoLocation(org, repository, developer));
@@ -226,7 +226,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             Commands.Stage(repo, "*");
 
-            LibGit2Sharp.Signature signature = GetDeveloperSignature();
+            LibGit2Sharp.Signature signature = GetDeveloperSignature(developer);
             LibGit2Sharp.Commit commit = repo.Commit(message, signature, signature);
 
             NoteCollection notes = repo.Notes;
@@ -419,6 +419,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task CommitAndPushToBranch(string org, string repository, string branchName, string localPath, string message, string accessToken = "")
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             using LibGit2Sharp.Repository repo = new(localPath);
             // Restrict users from empty commit
             if (repo.RetrieveStatus().IsDirty)
@@ -436,7 +437,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 Commands.Stage(repo, "*");
 
-                LibGit2Sharp.Signature signature = GetDeveloperSignature();
+                LibGit2Sharp.Signature signature = GetDeveloperSignature(developer);
                 LibGit2Sharp.Commit commit = repo.Commit(message, signature, signature);
                 NoteCollection notes = repo.Notes;
                 notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
@@ -496,12 +497,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public void CommitToLocalRepo(AltinnRepoEditingContext editingContext, string message)
         {
             using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
+            string developer = editingContext.Developer;
 
             if (repo.RetrieveStatus().IsDirty)
             {
                 string commitMessage = message ?? string.Empty;
                 string noteMessage = "studio-commit";
-                LibGit2Sharp.Signature signature = GetDeveloperSignature();
+                LibGit2Sharp.Signature signature = GetDeveloperSignature(developer);
 
                 CommandsExtensions.StageAllChanges(repo);
                 LibGit2Sharp.Commit commit = repo.Commit(commitMessage, signature, signature);
@@ -634,7 +636,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             using LibGit2Sharp.Repository repo = new(localPath);
 
             Branch branch = repo.Branches.Single(branch => branch.FriendlyName == featureBranch);
-            LibGit2Sharp.Signature signature = GetDeveloperSignature();
+            LibGit2Sharp.Signature signature = GetDeveloperSignature(editingContext.Developer);
             MergeResult result = repo.Merge(branch, signature);
             if (result.Status == MergeStatus.Conflicts)
             {
@@ -790,9 +792,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return remoteBranch.IsRemote;
         }
 
-        private LibGit2Sharp.Signature GetDeveloperSignature()
+        private LibGit2Sharp.Signature GetDeveloperSignature(string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             return new LibGit2Sharp.Signature(developer, $"{developer}@noreply.altinn.studio", DateTime.Now);
         }
 
