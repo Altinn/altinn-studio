@@ -2,6 +2,11 @@
 // all the polyfills we need and inject them here
 import 'core-js';
 
+import { executeHashRouterRedirect } from 'src/utils/urls/hashRouterRedirect';
+if (executeHashRouterRedirect()) {
+  throw new Error('HashRouterRedirect: Redirecting to browser-router route');
+}
+
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider, useLocation } from 'react-router-dom';
