@@ -186,7 +186,11 @@ internal sealed partial class AzureMonitorClient(
         // This is a temporary code until access to Azure Monitor is resolved (https://github.com/Altinn/altinn-platform/issues/2758)
         catch (CredentialUnavailableException ex)
         {
-            logger.LogError(ex, "Failed to fetch failed requests for app {App}: Azure Monitor credentials unavailable", app);
+            logger.LogError(
+                ex,
+                "Failed to fetch failed requests for app {App}: Azure Monitor credentials unavailable",
+                app
+            );
             return _operationNames.Select(name => new AppFailedRequest { Name = name.Key, DataPoints = [] });
         }
     }
@@ -254,7 +258,11 @@ internal sealed partial class AzureMonitorClient(
         // This is a temporary code until access to Azure Monitor is resolved (https://github.com/Altinn/altinn-platform/issues/2758)
         catch (CredentialUnavailableException ex)
         {
-            logger.LogError(ex, "Failed to fetch app metrics for app {App}: Azure Monitor credentials unavailable", app);
+            logger.LogError(
+                ex,
+                "Failed to fetch app metrics for app {App}: Azure Monitor credentials unavailable",
+                app
+            );
             return names.Select(name => new AppMetric { Name = name, DataPoints = [] });
         }
     }
