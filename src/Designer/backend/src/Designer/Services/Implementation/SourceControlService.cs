@@ -231,15 +231,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         }
 
-        /// <summary>
-        /// List the GIT status of a repository
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <returns>A list of changed files in the repository</returns>
-        public List<RepositoryContent> Status(string org, string repository)
+        /// <inheritdoc/>
+        public List<RepositoryContent> Status(string org, string repository, string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             List<RepositoryContent> repoContent = [];
             string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, developer);
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))

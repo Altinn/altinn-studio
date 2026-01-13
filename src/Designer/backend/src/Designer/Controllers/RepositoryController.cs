@@ -543,6 +543,7 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult ContentsZip(string org, string repository, [FromQuery] bool full)
         {
             AltinnRepoContext appContext = AltinnRepoContext.FromOrgRepo(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             string appRoot;
             try
             {
@@ -576,7 +577,7 @@ namespace Altinn.Studio.Designer.Controllers
                 else
                 {
                     changedFiles = _sourceControl
-                        .Status(appContext.Org, appContext.Repo)
+                        .Status(appContext.Org, appContext.Repo, developer)
                         .Where(f => f.FileStatus != FileStatus.DeletedFromWorkdir)
                         .Select(f => f.FilePath);
                 }

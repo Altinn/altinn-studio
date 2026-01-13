@@ -73,8 +73,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
+        /// <param name="developer">The developer making the status request</param>
         /// <returns>List of repositories with status</returns>
-        List<RepositoryContent> Status(string org, string repository);
+        List<RepositoryContent> Status(string org, string repository, string developer);
 
         /// <summary>
         /// List commits

@@ -264,11 +264,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public List<RepositoryContent> Status(string org, string repository)
+        public List<RepositoryContent> Status(string org, string repository, string developer)
         {
             try
             {
-                return _decoratedService.Status(org, repository);
+                return _decoratedService.Status(org, repository, developer);
             }
             catch (Exception ex)
             {
