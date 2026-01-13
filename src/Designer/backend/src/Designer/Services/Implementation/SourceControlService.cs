@@ -201,14 +201,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return pushSuccess;
         }
 
-        /// <summary>
-        /// Commit changes for repository
-        /// </summary>
-        /// <param name="commitInfo">Information about the commit</param>
-        public void Commit(CommitInfo commitInfo)
+        /// <inheritdoc/>
+        public void Commit(CommitInfo commitInfo, string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-
             CommitAndAddStudioNote(commitInfo.Org, commitInfo.Repository, developer, commitInfo.Message);
         }
 

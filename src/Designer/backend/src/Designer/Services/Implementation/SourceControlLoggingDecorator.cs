@@ -68,11 +68,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void Commit(CommitInfo commitInfo)
+        public void Commit(CommitInfo commitInfo, string developer)
         {
             try
             {
-                _decoratedService.Commit(commitInfo);
+                _decoratedService.Commit(commitInfo, developer);
             }
             catch (Exception ex)
             {

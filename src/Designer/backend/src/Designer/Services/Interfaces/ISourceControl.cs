@@ -121,7 +121,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Commit changes for repository
         /// </summary>
         /// <param name="commitInfo">Information about the commit</param>
-        void Commit(CommitInfo commitInfo);
+        /// <param name="developer">The developer making the commit</param>
+        void Commit(CommitInfo commitInfo, string developer);
 
         /// <summary>
         /// Stages a specific file changed in working repository.

@@ -328,7 +328,8 @@ namespace Altinn.Studio.Designer.Controllers
             await Task.CompletedTask;
             try
             {
-                _sourceControl.Commit(commitInfo);
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                _sourceControl.Commit(commitInfo, developer);
                 return Ok();
             }
             catch (Exception)
