@@ -16,21 +16,20 @@ internal sealed class EnginePgRepository : IEngineRepository
     private readonly EngineDbContext _context;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<EnginePgRepository> _logger;
-    private readonly IOptionsMonitor<EngineSettings> _settings;
+    private readonly EngineSettings _settings;
 
-    private RetryStrategy _dbRetryStrategy => _settings.CurrentValue.DatabaseRetryStrategy;
     private static List<PersistentItemStatus> _incompleteItemStatuses =>
         [PersistentItemStatus.Enqueued, PersistentItemStatus.Processing, PersistentItemStatus.Requeued];
 
     public EnginePgRepository(
         EngineDbContext context,
-        IOptionsMonitor<EngineSettings> settings,
+        IOptions<EngineSettings> settings,
         ILogger<EnginePgRepository> logger,
         TimeProvider? timeProvider = null
     )
     {
         _context = context;
-        _settings = settings;
+        _settings = settings.Value;
         _logger = logger;
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
@@ -101,29 +100,35 @@ internal sealed class EnginePgRepository : IEngineRepository
         Func<CancellationToken, Task> operation,
         CancellationToken cancellationToken = default,
         [CallerMemberName] string operationName = ""
-    ) =>
-        await _dbRetryStrategy.Execute(
+    )
+    {
+        using CancellationTokenSource dbTokenSource = CreateDbTokenSource(cancellationToken);
+        await _settings.DatabaseRetryStrategy.Execute(
             operation,
             RetryErrorHandler,
             _timeProvider,
             _logger,
-            cancellationToken,
+            dbTokenSource.Token,
             operationName
         );
+    }
 
     private async Task<T> ExecuteWithRetry<T>(
         Func<CancellationToken, Task<T>> operation,
         CancellationToken cancellationToken = default,
         [CallerMemberName] string operationName = ""
-    ) =>
-        await _dbRetryStrategy.Execute(
+    )
+    {
+        using CancellationTokenSource dbTokenSource = CreateDbTokenSource(cancellationToken);
+        return await _settings.DatabaseRetryStrategy.Execute(
             operation,
             RetryErrorHandler,
             _timeProvider,
             _logger,
-            cancellationToken,
+            dbTokenSource.Token,
             operationName
         );
+    }
 
     private static RetryDecision RetryErrorHandler(Exception exception) =>
         exception switch
@@ -149,4 +154,12 @@ internal sealed class EnginePgRepository : IEngineRepository
             // Default to retrying for unknown exceptions (conservative approach)
             _ => RetryDecision.Retry,
         };
+
+    private CancellationTokenSource CreateDbTokenSource(CancellationToken cancellationToken)
+    {
+        CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(_settings.DatabaseCommandTimeout);
+
+        return cts;
+    }
 }

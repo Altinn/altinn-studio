@@ -15,16 +15,22 @@ public sealed record EngineSettings
     public required int QueueCapacity { get; set; }
 
     /// <summary>
-    /// The default timeout for task execution.
+    /// The default timeout for command execution. Max allowed time to wait for a command to complete.
     /// </summary>
-    [JsonPropertyName("defaultTaskExecutionTimeout")]
-    public required TimeSpan DefaultTaskExecutionTimeout { get; set; }
+    [JsonPropertyName("defaultStepCommandTimeout")]
+    public required TimeSpan DefaultStepCommandTimeout { get; set; }
 
     /// <summary>
-    /// The default retry strategy for tasks.
+    /// The default retry strategy for steps.
     /// </summary>
-    [JsonPropertyName("defaultTaskRetryStrategy")]
-    public required RetryStrategy DefaultTaskRetryStrategy { get; set; }
+    [JsonPropertyName("defaultStepRetryStrategy")]
+    public required RetryStrategy DefaultStepRetryStrategy { get; set; }
+
+    /// <summary>
+    /// The timeout for database operations. Max allowed time to wait for a database command to complete.
+    /// </summary>
+    [JsonPropertyName("databaseCommandTimeout")]
+    public required TimeSpan DatabaseCommandTimeout { get; set; }
 
     /// <summary>
     /// The retry strategy for database operations.

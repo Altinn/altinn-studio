@@ -9,9 +9,51 @@ public static class RetryStrategyExtensions
     extension(RetryStrategy strategy)
     {
         /// <summary>
-        /// Determines whether another retry can be attempted based on the current iteration and the strategy's max retries.
+        /// Determines whether another retry can be attempted based on the current iteration vs. max retries.
         /// </summary>
-        public bool CanRetry(int iteration) => !strategy.MaxRetries.HasValue || strategy.MaxRetries > iteration;
+        public bool CanRetry(int iteration)
+        {
+            if (strategy.MaxRetries > iteration)
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Determines whether another retry can be attempted based on the current iteration vs. max retries
+        /// and the elapsed time vs. max duration.
+        /// </summary>
+        public bool CanRetry(int iteration, DateTimeOffset initialStartTime, TimeProvider? timeProvider = null)
+        {
+            if (!strategy.CanRetry(iteration))
+                return false;
+
+            DateTimeOffset now = timeProvider?.GetUtcNow() ?? DateTimeOffset.UtcNow;
+            DateTimeOffset deadline = strategy.GetDeadline(initialStartTime);
+
+            if (now >= deadline)
+                return false;
+
+            TimeSpan delay = strategy.CalculateDelay(iteration);
+            DateTimeOffset nextRun = now.Add(delay);
+
+            if (nextRun >= deadline)
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Calculates the deadline for retries based on the strategy's max duration.
+        /// If the max duration is not specified, this operation returns <see cref="DateTimeOffset.MaxValue"/>.
+        /// </summary>
+        public DateTimeOffset GetDeadline(DateTimeOffset initialStartTime)
+        {
+            if (!strategy.MaxDuration.HasValue)
+                return DateTimeOffset.MaxValue;
+
+            return initialStartTime.Add(strategy.MaxDuration.Value);
+        }
 
         /// <summary>
         /// Calculates the delay before the next retry attempt based on the backoff strategy.
@@ -68,18 +110,18 @@ public static class RetryStrategyExtensions
         )
         {
             logger?.StartingExecution(operationName);
-
-            var attempt = 1;
+            ArgumentNullException.ThrowIfNull(operation);
             timeProvider ??= TimeProvider.System;
+
+            int attempt = 1;
+            DateTimeOffset startTime = timeProvider.GetUtcNow();
 
             while (true)
             {
                 try
                 {
                     var result = await operation(cancellationToken);
-
-                    if (attempt > 1)
-                        logger?.ExecutionSucceeded(operationName, attempt);
+                    logger?.ExecutionSucceeded(operationName, attempt);
 
                     return result;
                 }
@@ -87,19 +129,29 @@ public static class RetryStrategyExtensions
                 {
                     logger?.ExecutionFailed(operationName, attempt, ex.Message, ex);
 
+                    if (cancellationToken.IsCancellationRequested)
+                        throw;
+
                     if (errorHandler?.Invoke(ex) is RetryDecision.Abort)
                     {
                         logger?.UnrecoverableError(ex.GetType().Name, ex);
                         throw;
                     }
 
-                    if (!strategy.CanRetry(attempt))
+                    if (!strategy.CanRetry(attempt, startTime, timeProvider))
                     {
                         logger?.MaxRetriesReached(ex);
                         throw;
                     }
 
-                    var delay = strategy.CalculateDelay(attempt);
+                    TimeSpan delay = strategy.CalculateDelay(attempt);
+                    DateTimeOffset deadline = strategy.GetDeadline(startTime);
+                    DateTimeOffset now = timeProvider.GetUtcNow();
+                    if (now.Add(delay) >= deadline)
+                    {
+                        logger?.NextRetryUnreachable(ex);
+                        throw;
+                    }
 
                     logger?.RetryDelay(
                         operationName,
@@ -140,8 +192,17 @@ public static partial class RetryStrategyExtensionsLogging
     [LoggerMessage(LogLevel.Error, "Error {ErrorType} is unrecoverable, giving up")]
     public static partial void UnrecoverableError(this ILogger logger, string errorType, Exception ex);
 
-    [LoggerMessage(LogLevel.Error, "All available retries are exhausted, giving up")]
+    [LoggerMessage(
+        LogLevel.Error,
+        "All available retries are exhausted or the deadline for this operation has been exceeded, giving up"
+    )]
     public static partial void MaxRetriesReached(this ILogger logger, Exception ex);
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "The next retry attempt is unreachable because it will exceed the deadline for this operation, giving up"
+    )]
+    public static partial void NextRetryUnreachable(this ILogger logger, Exception ex);
 
     [LoggerMessage(
         LogLevel.Warning,

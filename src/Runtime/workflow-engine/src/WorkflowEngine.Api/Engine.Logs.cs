@@ -93,6 +93,31 @@ internal static partial class EngineLogs
     [LoggerMessage(LogLevel.Debug, "Workflow {Workflow} database operation has completed. Cleaning up")]
     internal static partial void CleaningUpWorkflowDbTask(this ILogger<Engine> logger, Workflow workflow);
 
+    [LoggerMessage(LogLevel.Error, "Workflow {Workflow} database operation has failed!")]
+    internal static partial void WorkflowDbTaskFailed(this ILogger<Engine> logger, Workflow workflow, Exception? ex);
+
+    [LoggerMessage(LogLevel.Error, "Step {Step} database operation has failed!")]
+    internal static partial void StepDbTaskFailed(this ILogger<Engine> logger, Step step, Exception? ex);
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Processing of workflow {Workflow} resulted in an unhandled exception, most likely to do with db-writes! Backing off for {Timeout}."
+    )]
+    internal static partial void WorkflowProcessingFailed(
+        this ILogger<Engine> logger,
+        Workflow workflow,
+        TimeSpan timeout,
+        Exception? ex
+    );
+
+    [LoggerMessage(LogLevel.Error, "The workflow {Workflow} has produced an unrecoverable error: {Message}.")]
+    internal static partial void WorkflowCriticalError(
+        this ILogger<Engine> logger,
+        Workflow workflow,
+        string message,
+        Exception? ex
+    );
+
     [LoggerMessage(
         LogLevel.Debug,
         "Workflow {Workflow} is still has tasks processing. Leaving in queue for next iteration"
@@ -107,6 +132,9 @@ internal static partial class EngineLogs
 
     [LoggerMessage(LogLevel.Trace, "Step {Step} not ready for execution")]
     internal static partial void NotReadyForExecution(this ILogger<Engine> logger, Step step);
+
+    [LoggerMessage(LogLevel.Trace, "Workflow {Workflow} not ready for execution")]
+    internal static partial void NotReadyForExecution(this ILogger<Engine> logger, Workflow workflow);
 
     [LoggerMessage(LogLevel.Debug, "Step {Step} is waiting for database operation to complete")]
     internal static partial void WaitingForStepDbTask(this ILogger<Engine> logger, Step step);
@@ -132,8 +160,17 @@ internal static partial class EngineLogs
     [LoggerMessage(LogLevel.Debug, "Requeuing step {Step} (Retry count: {Retries})")]
     internal static partial void SlatingStepForRetry(this ILogger<Engine> logger, Step step, int retries);
 
-    [LoggerMessage(LogLevel.Error, "Failing step {Step}. No more retries available after {Retries} attempts")]
-    internal static partial void FailingStep(this ILogger<Engine> logger, Step step, int retries);
+    [LoggerMessage(
+        LogLevel.Error,
+        "Failing step {Step}. No more retries available after {Retries} attempts (or next run scheduled beyond deadline for step completion)"
+    )]
+    internal static partial void FailingStepRetries(this ILogger<Engine> logger, Step step, int retries);
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Failing step {Step} after {Retries} attempts. The operation produced a critical error which cannot be retried"
+    )]
+    internal static partial void FailingStepCritical(this ILogger<Engine> logger, Step step, int retries);
 
     [LoggerMessage(LogLevel.Information, "Starting workflow engine")]
     internal static partial void StartingEngine(this ILogger<Engine> logger);

@@ -29,6 +29,7 @@ internal partial class Engine : IEngine, IDisposable
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<Engine> _logger;
     private readonly IWorkflowExecutor _taskHandler;
+    private readonly EngineSettings _settings;
     private readonly ConcurrentBuffer<bool> _isEnabledHistory = new();
     private readonly SemaphoreSlim _cleanupLock = new(1, 1);
     private readonly RetryStrategy _statusCheckBackoffStrategy = RetryStrategy.Exponential(
@@ -42,7 +43,6 @@ internal partial class Engine : IEngine, IDisposable
     private SemaphoreSlim _inboxCapacityLimit;
     private volatile bool _cleanupRequired;
     private bool _disposed;
-    private readonly IOptionsMonitor<EngineSettings> _settings;
 
     // TODO: Avoid newing-up repository for each call? Could be more optimized for Postgres to scope it per batch of actions...
     private IEngineRepository _repository => _serviceProvider.GetRequiredService<IEngineRepository>();
@@ -55,7 +55,7 @@ internal partial class Engine : IEngine, IDisposable
         _logger = serviceProvider.GetRequiredService<ILogger<Engine>>();
         _taskHandler = serviceProvider.GetRequiredService<IWorkflowExecutor>();
         _timeProvider = serviceProvider.GetService<TimeProvider>() ?? TimeProvider.System;
-        _settings = serviceProvider.GetRequiredService<IOptionsMonitor<EngineSettings>>();
+        _settings = serviceProvider.GetRequiredService<IOptions<EngineSettings>>().Value;
 
         InitializeInbox();
     }
@@ -156,36 +156,69 @@ internal partial class Engine : IEngine, IDisposable
     {
         _logger.ProcessingWorkflow(workflow);
 
-        switch (workflow.DatabaseUpdateStatus())
+        // Not time to process yet
+        if (!workflow.IsReadyForExecution(_timeProvider))
         {
-            // Process the tasks
-            case TaskStatus.None:
-                await ProcessSteps(workflow, cancellationToken);
-
-                PersistentItemStatus updatedJobStatus = workflow.OverallStatus();
-                if (workflow.Status != updatedJobStatus)
-                {
-                    workflow.Status = updatedJobStatus;
-                    workflow.DatabaseTask = UpdateWorkflowInStorage(workflow, cancellationToken);
-                }
-                return;
-
-            // Waiting on database operation to finish
-            case TaskStatus.Started:
-                _logger.WaitingForWorkflowDbTask(workflow);
-                return;
-
-            // Database operation is finished
-            case TaskStatus.Finished:
-                _logger.CleaningUpWorkflowDbTask(workflow);
-                workflow.CleanupDatabaseTask();
-                break;
-
-            default:
-                throw new EngineException($"Unknown database update status: {workflow.DatabaseUpdateStatus()}");
+            _logger.NotReadyForExecution(workflow);
+            return;
         }
 
-        // Workflow still has work pending (requeued steps, etc)
+        try
+        {
+            switch (workflow.DatabaseUpdateStatus())
+            {
+                // Process the steps
+                case TaskStatus.None:
+                    await ProcessSteps(workflow, cancellationToken);
+
+                    PersistentItemStatus updatedJobStatus = workflow.OverallStatus();
+                    if (workflow.Status != updatedJobStatus)
+                    {
+                        workflow.Status = updatedJobStatus;
+                        workflow.DatabaseTask = UpdateWorkflowInStorage(workflow, cancellationToken);
+                    }
+
+                    return;
+
+                // Waiting on database operation to finish
+                case TaskStatus.Started:
+                    _logger.WaitingForWorkflowDbTask(workflow);
+                    return;
+
+                // Database operation failed
+                case TaskStatus.Failed:
+                    _logger.WorkflowDbTaskFailed(workflow, workflow.DatabaseTask?.Exception);
+                    workflow.CleanupDatabaseTask();
+                    throw new EngineTaskException($"Database operation failed for workflow {workflow}");
+
+                // Database operation finished successfully
+                case TaskStatus.Finished:
+                    _logger.CleaningUpWorkflowDbTask(workflow);
+                    workflow.CleanupDatabaseTask();
+                    break;
+
+                default:
+                    throw new EngineConfigurationException(
+                        $"Unknown database update status: {workflow.DatabaseUpdateStatus()}"
+                    );
+            }
+        }
+        catch (EngineConfigurationException ex)
+        {
+            _logger.WorkflowCriticalError(workflow, ex.Message, ex);
+            workflow.Status = PersistentItemStatus.Failed;
+            await UpdateWorkflowInStorage(workflow, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            TimeSpan delay =
+                _settings.DefaultStepRetryStrategy.MaxDelay ?? _settings.DefaultStepRetryStrategy.BaseInterval;
+            workflow.BackoffUntil = _timeProvider.GetUtcNow().Add(delay);
+            _logger.WorkflowProcessingFailed(workflow, delay, ex);
+            return;
+        }
+
+        // Workflow still has pending steps
         if (!workflow.IsDone())
         {
             _logger.PendingStepsRemain(workflow);
@@ -199,66 +232,76 @@ internal partial class Engine : IEngine, IDisposable
 
     private async Task ProcessSteps(Workflow workflow, CancellationToken cancellationToken)
     {
-        foreach (Step task in workflow.OrderedIncompleteTasks())
+        foreach (Step step in workflow.OrderedIncompleteTasks())
         {
-            _logger.ProcessingStep(task);
+            _logger.ProcessingStep(step);
 
             // Not time to process yet
-            if (!task.IsReadyForExecution(_timeProvider))
+            if (!step.IsReadyForExecution(_timeProvider))
             {
-                _logger.NotReadyForExecution(task);
+                _logger.NotReadyForExecution(step);
                 return;
             }
 
             var currentState = new
             {
-                DatabaseUpdateStatus = task.DatabaseUpdateStatus(),
-                ExecutionStatus = task.ExecutionStatus(),
+                DatabaseUpdateStatus = step.DatabaseUpdateStatus(),
+                ExecutionStatus = step.ExecutionStatus(),
             };
 
             switch (currentState)
             {
                 // Waiting for database operation to complete
                 case { DatabaseUpdateStatus: TaskStatus.Started }:
-                    _logger.WaitingForStepDbTask(task);
+                    _logger.WaitingForStepDbTask(step);
                     return;
 
-                // Database operation completed
+                // Database operation failed
+                case { DatabaseUpdateStatus: TaskStatus.Failed }:
+                    _logger.StepDbTaskFailed(step, step.DatabaseTask?.Exception);
+                    step.CleanupDatabaseTask();
+                    step.BackoffUntil = GetDbRetryBackoff(step);
+                    throw new EngineTaskException($"Database operation failed for step {step}");
+
+                // Database operation completed successfully
                 case { DatabaseUpdateStatus: TaskStatus.Finished }:
-                    _logger.CleaningUpStepDbTask(task);
-                    task.CleanupDatabaseTask();
+                    _logger.CleaningUpStepDbTask(step);
+
+                    // Clean up and dispose associated tasks
+                    step.CleanupExecutionTask();
+                    step.CleanupDatabaseTask();
                     return;
 
                 // Waiting for execution step to complete
                 case { ExecutionStatus: TaskStatus.Started }:
-                    _logger.WaitingForStepExecutionTask(task);
+                    _logger.WaitingForStepExecutionTask(step);
                     return;
 
                 // Execution step completed
                 case { ExecutionStatus: TaskStatus.Finished }:
-                    _logger.StepExecutionCompleted(task);
-                    Debug.Assert(task.ExecutionTask is not null); // TODO: This is annoying
+                    _logger.StepExecutionCompleted(step);
+                    Debug.Assert(step.ExecutionTask is not null); // TODO: This is annoying
 
                     // Unwrap result and handle outcome
-                    ExecutionResult result = await task.ExecutionTask;
-                    UpdateTaskStatusAndRetryDecision(task, result);
+                    ExecutionResult result = await step.ExecutionTask;
+                    UpdateStepStatusAndRetryDecision(step, result);
 
-                    // Cleanup and update database
-                    task.CleanupExecutionTask();
-                    task.DatabaseTask = UpdateTaskInStorage(task, cancellationToken);
+                    // Update database
+                    step.DatabaseTask = UpdateTaskInStorage(step, cancellationToken);
                     return;
 
                 // Step is new
                 default:
-                    _logger.ExecutingStep(task);
-                    task.ExecutionTask = _taskHandler.Execute(workflow, task, cancellationToken);
+                    _logger.ExecutingStep(step);
+                    step.InitialStartTime ??= _timeProvider.GetUtcNow();
+                    step.ExecutionTask = _taskHandler.Execute(workflow, step, cancellationToken);
                     return;
             }
         }
 
         return;
 
-        void UpdateTaskStatusAndRetryDecision(Step step, ExecutionResult result)
+        void UpdateStepStatusAndRetryDecision(Step step, ExecutionResult result)
         {
             if (result.IsSuccess())
             {
@@ -267,22 +310,51 @@ internal partial class Engine : IEngine, IDisposable
                 return;
             }
 
-            _logger.StepFailed(step);
-            var retryStrategy = step.RetryStrategy ?? _settings.CurrentValue.DefaultTaskRetryStrategy;
-
-            if (retryStrategy.CanRetry(step.RequeueCount + 1))
-            {
-                step.RequeueCount++;
-                step.Status = PersistentItemStatus.Requeued;
-                step.BackoffUntil = _timeProvider.GetUtcNow().Add(retryStrategy.CalculateDelay(step.RequeueCount));
-                _logger.SlatingStepForRetry(step, step.RequeueCount);
-            }
-            else
+            if (result.IsCriticalError())
             {
                 step.Status = PersistentItemStatus.Failed;
                 step.BackoffUntil = null;
-                _logger.FailingStep(step, step.RequeueCount);
+                _logger.FailingStepCritical(step, step.RequeueCount);
+                return;
             }
+
+            _logger.StepFailed(step);
+            RetryStrategy retryStrategy = GetRetryStrategy(step);
+            DateTimeOffset initialStartTime = GetInitialStartTime(step);
+
+            if (retryStrategy.CanRetry(step.RequeueCount + 1, initialStartTime, _timeProvider))
+            {
+                step.RequeueCount++;
+                step.Status = PersistentItemStatus.Requeued;
+                step.BackoffUntil = GetNextRetryBackoff(step, retryStrategy);
+                _logger.SlatingStepForRetry(step, step.RequeueCount);
+                return;
+            }
+
+            step.Status = PersistentItemStatus.Failed;
+            step.BackoffUntil = null;
+            _logger.FailingStepRetries(step, step.RequeueCount);
+        }
+
+        RetryStrategy GetRetryStrategy(Step step)
+        {
+            return step.RetryStrategy ?? _settings.DefaultStepRetryStrategy;
+        }
+
+        DateTimeOffset GetInitialStartTime(Step step)
+        {
+            return step.InitialStartTime ?? _timeProvider.GetUtcNow();
+        }
+
+        DateTimeOffset GetNextRetryBackoff(Step step, RetryStrategy retryStrategy)
+        {
+            return _timeProvider.GetUtcNow().Add(retryStrategy.CalculateDelay(step.RequeueCount));
+        }
+
+        DateTimeOffset GetDbRetryBackoff(Step step)
+        {
+            var retryStrategy = GetRetryStrategy(step);
+            return _timeProvider.GetUtcNow().Add(retryStrategy.MaxDelay ?? retryStrategy.BaseInterval);
         }
     }
 }

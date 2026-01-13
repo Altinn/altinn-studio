@@ -28,6 +28,7 @@ internal static class ServiceCollectionExtensions
             if (!services.IsConfigured<AppCommandSettings>())
                 services.ConfigureAppCommand(appCommandConfigSection);
 
+            services.AddHttpClient();
             services.AddSingleton<IEngine, Engine>();
             services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
             services.AddHostedService<EngineHost>();
@@ -43,8 +44,8 @@ internal static class ServiceCollectionExtensions
             services
                 .AddOptions<EngineSettings>()
                 .BindConfiguration(configSectionPath)
-                .PostConfigure(SetEngineSettingsDefaults)
-                .Validate(ValidateEngineSettings);
+                .SetEngineSettingsDefaults()
+                .ValidateEngineSettings();
 
             return services;
         }
@@ -57,20 +58,20 @@ internal static class ServiceCollectionExtensions
             services
                 .AddOptions<EngineSettings>()
                 .Configure(configureOptions)
-                .PostConfigure(SetEngineSettingsDefaults)
-                .Validate(ValidateEngineSettings);
+                .SetEngineSettingsDefaults()
+                .ValidateEngineSettings();
             return services;
         }
 
         public IServiceCollection ConfigureApi(string configSectionPath)
         {
-            services.AddOptions<ApiSettings>().BindConfiguration(configSectionPath).Validate(ValidateApiSettings);
+            services.AddOptions<ApiSettings>().BindConfiguration(configSectionPath).ValidateApiSettings();
             return services;
         }
 
         public IServiceCollection ConfigureApi(Action<ApiSettings> configureOptions)
         {
-            services.AddOptions<ApiSettings>().Configure(configureOptions).Validate(ValidateApiSettings);
+            services.AddOptions<ApiSettings>().Configure(configureOptions).ValidateApiSettings();
             return services;
         }
 
@@ -79,8 +80,8 @@ internal static class ServiceCollectionExtensions
             services
                 .AddOptions<AppCommandSettings>()
                 .BindConfiguration(configSectionPath)
-                .PostConfigure(SetAppCommandDefaults)
-                .Validate(ValidateAppCommandSettings);
+                .SetAppCommandDefaults()
+                .ValidateAppCommandSettings();
 
             return services;
         }
@@ -90,8 +91,8 @@ internal static class ServiceCollectionExtensions
             services
                 .AddOptions<AppCommandSettings>()
                 .Configure(configureOptions)
-                .PostConfigure(SetAppCommandDefaults)
-                .Validate(ValidateAppCommandSettings);
+                .SetAppCommandDefaults()
+                .ValidateAppCommandSettings();
 
             return services;
         }
@@ -107,6 +108,7 @@ internal static class ServiceCollectionExtensions
                     ApiKeyAuthenticationHandler.SchemeName,
                     null
                 );
+
             services
                 .AddAuthorizationBuilder()
                 .AddDefaultPolicy(
@@ -132,65 +134,103 @@ internal static class ServiceCollectionExtensions
                 || d.ServiceType == typeof(IOptionsChangeTokenSource<TOptions>)
             );
         }
+    }
+}
 
+internal static class OptionsBuilderExtensions
+{
+    extension(OptionsBuilder<EngineSettings> builder)
+    {
         /// <summary>
         /// Ensures that all <see cref="EngineSettings"/> properties fall back to <see cref="Defaults"/> if not provided
         /// </summary>
-        private static void SetEngineSettingsDefaults(EngineSettings config)
+        public OptionsBuilder<EngineSettings> SetEngineSettingsDefaults()
         {
-            if (config.QueueCapacity <= 0)
-                config.QueueCapacity = Defaults.EngineSettings.QueueCapacity;
+            builder.PostConfigure(config =>
+            {
+                if (config.QueueCapacity <= 0)
+                    config.QueueCapacity = Defaults.EngineSettings.QueueCapacity;
 
-            if (config.DefaultTaskExecutionTimeout <= TimeSpan.Zero)
-                config.DefaultTaskExecutionTimeout = Defaults.EngineSettings.DefaultTaskExecutionTimeout;
+                if (config.DefaultCommandExecutionTimeout <= TimeSpan.Zero)
+                    config.DefaultCommandExecutionTimeout = Defaults.EngineSettings.DefaultCommandExecutionTimeout;
 
-            config.DefaultTaskRetryStrategy ??= Defaults.EngineSettings.DefaultTaskRetryStrategy;
-            config.DefaultTaskRetryStrategy ??= Defaults.EngineSettings.DefaultTaskRetryStrategy;
-            config.DatabaseRetryStrategy ??= Defaults.EngineSettings.DatabaseRetryStrategy;
+                config.DefaultStepRetryStrategy ??= Defaults.EngineSettings.DefaultStepRetryStrategy;
+                config.DefaultStepRetryStrategy ??= Defaults.EngineSettings.DefaultStepRetryStrategy;
+                config.DatabaseRetryStrategy ??= Defaults.EngineSettings.DatabaseRetryStrategy;
+            });
+
+            return builder;
         }
 
         /// <summary>
-        /// Ensures that all <see cref="EngineSettings"/> properties fall back to <see cref="Defaults"/> if not provided
+        /// Performs basic validation for <see cref="EngineSettings"/>
         /// </summary>
-        private static bool ValidateEngineSettings(EngineSettings config)
+        public OptionsBuilder<EngineSettings> ValidateEngineSettings()
         {
-            if (config.QueueCapacity <= 0)
-                return false;
+            const string ns = nameof(EngineSettings);
 
-            if (config.DefaultTaskExecutionTimeout <= TimeSpan.Zero)
-                return false;
+            builder.Validate(
+                config => config.QueueCapacity > 0,
+                $"{ns}.{nameof(EngineSettings.QueueCapacity)} must be greater than zero."
+            );
 
-            return true;
+            builder.Validate(
+                config => config.DefaultCommandExecutionTimeout > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.DefaultCommandExecutionTimeout)} must be greater than zero."
+            );
+
+            return builder;
+        }
+    }
+
+    extension(OptionsBuilder<AppCommandSettings> builder)
+    {
+        public OptionsBuilder<AppCommandSettings> ValidateAppCommandSettings()
+        {
+            const string ns = nameof(AppCommandSettings);
+
+            builder.Validate(
+                config => !string.IsNullOrEmpty(config.ApiKey),
+                $"{ns}.{nameof(AppCommandSettings.ApiKey)} value is missing."
+            );
+
+            builder.Validate(
+                config => Uri.TryCreate(config.CommandEndpoint, UriKind.Absolute, out _),
+                $"{ns}.{nameof(AppCommandSettings.CommandEndpoint)} does not appear to be a valid URL."
+            );
+
+            return builder;
         }
 
-        private static void SetAppCommandDefaults(AppCommandSettings config)
+        public OptionsBuilder<AppCommandSettings> SetAppCommandDefaults()
         {
             // Note: Don't offer to set API key here, it should always be explicitly set in the config.
-            config.CommandEndpoint ??= Defaults.AppCommandSettings.CommandEndpoint;
+            builder.PostConfigure(config =>
+            {
+                config.CommandEndpoint ??= Defaults.AppCommandSettings.CommandEndpoint;
+            });
+
+            return builder;
         }
+    }
 
-        private static bool ValidateAppCommandSettings(AppCommandSettings config)
+    extension(OptionsBuilder<ApiSettings> builder)
+    {
+        public OptionsBuilder<ApiSettings> ValidateApiSettings()
         {
-            if (string.IsNullOrEmpty(config.ApiKey))
-                return false;
+            const string ns = nameof(ApiSettings);
 
-            bool validAppCommandUri = Uri.TryCreate(config.CommandEndpoint, UriKind.Absolute, out _);
-            if (!validAppCommandUri)
-                return false;
+            builder.Validate(
+                config => config.ApiKeys.Any(),
+                $"{ns}.{nameof(ApiSettings.ApiKeys)} value is missing or empty."
+            );
 
-            return true;
-        }
+            builder.Validate(
+                config => config.ApiKeys.All(x => x is { Length: > 10 }),
+                $"{ns}.{nameof(ApiSettings.ApiKeys)} contains null value or key with insufficient length."
+            );
 
-        private static bool ValidateApiSettings(ApiSettings config)
-        {
-            if (!config.ApiKeys.Any())
-                return false;
-
-            // Require API keys to be of somewhat reasonable length. Preferably GUIDs, but not strictly enforced.
-            if (config.ApiKeys.Any(x => string.IsNullOrEmpty(x) || x.Length < 15))
-                return false;
-
-            return true;
+            return builder;
         }
     }
 }

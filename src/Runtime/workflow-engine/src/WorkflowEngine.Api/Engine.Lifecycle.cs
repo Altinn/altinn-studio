@@ -5,9 +5,6 @@ using Task = System.Threading.Tasks.Task;
 
 namespace WorkflowEngine.Api;
 
-// CA1031: Do not catch general exception types
-#pragma warning disable CA1031
-
 internal partial class Engine
 {
     public async Task Start(CancellationToken cancellationToken = default)
@@ -87,7 +84,7 @@ internal partial class Engine
         _logger.AcquiringQueueSlot();
         await _inboxCapacityLimit.WaitAsync(cancellationToken);
 
-        if (InboxCount >= _settings.CurrentValue.QueueCapacity)
+        if (InboxCount >= _settings.QueueCapacity)
             Status |= EngineHealthStatus.QueueFull;
         else
             Status &= ~EngineHealthStatus.QueueFull;
@@ -109,10 +106,7 @@ internal partial class Engine
     private void InitializeInbox()
     {
         _inbox = [];
-        _inboxCapacityLimit = new SemaphoreSlim(
-            _settings.CurrentValue.QueueCapacity,
-            _settings.CurrentValue.QueueCapacity
-        );
+        _inboxCapacityLimit = new SemaphoreSlim(_settings.QueueCapacity, _settings.QueueCapacity);
     }
 
     private async Task Cleanup()

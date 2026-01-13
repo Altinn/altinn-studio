@@ -5,4 +5,5 @@ public enum TaskStatus
     None,
     Started,
     Finished,
+    Failed,
 }

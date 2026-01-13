@@ -31,50 +31,69 @@ public sealed record RetryStrategy
     [JsonPropertyName("maxDelay")]
     public TimeSpan? MaxDelay { get; init; }
 
+    /// <summary>
+    /// The maximum allowed processing time, across all retries.
+    /// </summary>
+    [JsonPropertyName("maxDuration")]
+    public TimeSpan? MaxDuration { get; init; }
+
     // TODO: Consider adding jitter option
     // TODO: Consider adding short-circuit option (avoid retrying on certain error codes)
 
     /// <summary>
     /// Creates an exponential backoff retry strategy.
     /// </summary>
-    public static RetryStrategy Exponential(TimeSpan baseInterval, int? maxRetries = null, TimeSpan? maxDelay = null) =>
+    public static RetryStrategy Exponential(
+        TimeSpan baseInterval,
+        int? maxRetries = null,
+        TimeSpan? maxDelay = null,
+        TimeSpan? maxDuration = null
+    ) =>
         new()
         {
             BackoffType = BackoffType.Exponential,
             BaseInterval = baseInterval,
             MaxRetries = maxRetries,
             MaxDelay = maxDelay,
+            MaxDuration = maxDuration,
         };
 
     /// <summary>
     /// Creates a linear backoff retry strategy.
     /// </summary>
-    public static RetryStrategy Linear(TimeSpan baseInterval, int? maxRetries = null, TimeSpan? maxDelay = null) =>
+    public static RetryStrategy Linear(
+        TimeSpan baseInterval,
+        int? maxRetries = null,
+        TimeSpan? maxDelay = null,
+        TimeSpan? maxDuration = null
+    ) =>
         new()
         {
             BackoffType = BackoffType.Linear,
             BaseInterval = baseInterval,
             MaxRetries = maxRetries,
             MaxDelay = maxDelay,
+            MaxDuration = maxDuration,
         };
 
     /// <summary>
     /// Creates a constant backoff retry strategy.
     /// </summary>
-    public static RetryStrategy Constant(TimeSpan interval, int? maxRetries = null) =>
+    public static RetryStrategy Constant(TimeSpan interval, int? maxRetries = null, TimeSpan? maxDuration = null) =>
         new()
         {
             BackoffType = BackoffType.Constant,
             BaseInterval = interval,
             MaxRetries = maxRetries,
             MaxDelay = interval,
+            MaxDuration = maxDuration,
         };
 
     /// <summary>
     /// Alias for <see cref="Constant"/>
     /// </summary>
-    public static RetryStrategy Fixed(TimeSpan intervalDelay, int? maxRetries = null) =>
-        Constant(intervalDelay, maxRetries);
+    public static RetryStrategy Fixed(TimeSpan intervalDelay, int? maxRetries = null, TimeSpan? maxDuration = null) =>
+        Constant(intervalDelay, maxRetries, maxDuration);
 
     /// <summary>
     /// Creates a retry strategy with no retries.

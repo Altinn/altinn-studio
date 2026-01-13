@@ -116,11 +116,13 @@ dotnet_diagnostic.CA1034.severity = none
 # CA2007: Do not directly await a Task without ConfigureAwait
 dotnet_diagnostic.CA2007.severity = none
 # CA1062: Validate arguments of public methods
-dotnet_diagnostic.CA1062.severity = suggestion
+dotnet_diagnostic.CA1062.severity = none
 # S3251: Supply an implementation for this partial method
 dotnet_diagnostic.S3251.severity = none
 # S3267: Loops should be simplified with "LINQ" expressions
 dotnet_diagnostic.S3267.severity = none
+# CA1031: Do not catch general exception types
+dotnet_diagnostic.CA1031.severity = none
 
 
 ## WorkflowEngine.Data ##
@@ -152,8 +154,6 @@ dotnet_diagnostic.S1144.severity = none
 [src/WorkflowEngine.Api/WorkflowExecutor.cs]
 # CA1305: Specify IFormatProvider
 dotnet_diagnostic.CA1305.severity = none
-# CA1031: Do not catch general exception types
-dotnet_diagnostic.CA1031.severity = none
 
 
 ## WorkflowEngine.Resilience ##

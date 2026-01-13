@@ -8,6 +8,7 @@ public static class TaskExtensions
         {
             null => TaskStatus.None,
             { IsCompleted: false } => TaskStatus.Started,
+            { IsFaulted: true } => TaskStatus.Failed,
             { IsCompleted: true } => TaskStatus.Finished,
         };
     }

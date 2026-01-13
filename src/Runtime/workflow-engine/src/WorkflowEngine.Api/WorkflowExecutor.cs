@@ -32,10 +32,9 @@ internal class WorkflowExecutor : IWorkflowExecutor
     {
         _logger.ExecutingStep(step, workflow);
 
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(step.Command.MaxExecutionTime ?? _engineSettings.DefaultTaskExecutionTimeout);
-
+        using CancellationTokenSource cts = CreateExecutionTokenSource(step, cancellationToken);
         var stopwatch = Stopwatch.StartNew();
+
         try
         {
             var result = step.Command switch
@@ -59,7 +58,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
         catch (Exception e)
         {
             _logger.UnhandledExecutionError(step, stopwatch.Elapsed, e.Message, e);
-            return ExecutionResult.Error(e.Message);
+            return ExecutionResult.RetryableError(e);
         }
         finally
         {
@@ -75,7 +74,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
     )
     {
         using var httpClient = GetAuthorizedAppClient(workflow.InstanceInformation);
-        httpClient.Timeout = command.MaxExecutionTime ?? _engineSettings.DefaultTaskExecutionTimeout;
+        httpClient.Timeout = command.MaxExecutionTime ?? _engineSettings.DefaultStepCommandTimeout;
 
         var payload = new AppCallbackPayload
         {
@@ -92,7 +91,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
         return response.IsSuccessStatusCode
             ? ExecutionResult.Success()
-            : ExecutionResult.Error(
+            : ExecutionResult.RetryableError(
                 $"AppCommand execution failed with status code {response.StatusCode}: {await response.GetContentOrDefault("<no body content>", cancellationToken)}"
             );
     }
@@ -133,7 +132,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
         var result = response.IsSuccessStatusCode
             ? ExecutionResult.Success()
-            : ExecutionResult.Error(
+            : ExecutionResult.RetryableError(
                 $"Webhook execution failed: {await response.Content.ReadAsStringAsync(cancellationToken)}"
             );
         response.Dispose();
@@ -156,7 +155,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
         catch (Exception ex)
         {
             _logger.LogDelegateExecutionOfStepStepFailedMessage(step, ex.Message, ex);
-            return ExecutionResult.Error(ex.Message);
+            return ExecutionResult.RetryableError(ex.Message);
         }
     }
 
@@ -167,6 +166,15 @@ internal class WorkflowExecutor : IWorkflowExecutor
         client.BaseAddress = new Uri(_appCommandSettings.CommandEndpoint.FormatWith(instanceInformation));
 
         return client;
+    }
+
+    private CancellationTokenSource CreateExecutionTokenSource(Step step, CancellationToken cancellationToken)
+    {
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var timeout = step.Command.MaxExecutionTime ?? _engineSettings.DefaultStepCommandTimeout;
+        cts.CancelAfter(timeout);
+
+        return cts;
     }
 }
 

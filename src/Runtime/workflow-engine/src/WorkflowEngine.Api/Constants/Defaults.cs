@@ -11,16 +11,16 @@ internal static class Defaults
     public static readonly EngineSettings EngineSettings = new()
     {
         QueueCapacity = 10000,
-        DefaultTaskExecutionTimeout = TimeSpan.FromSeconds(100),
-        DefaultTaskRetryStrategy = RetryStrategy.Exponential(
+        DefaultStepCommandTimeout = TimeSpan.FromSeconds(100),
+        DefaultStepRetryStrategy = RetryStrategy.Exponential(
             baseInterval: TimeSpan.FromSeconds(1),
-            maxRetries: 1000,
-            maxDelay: TimeSpan.FromSeconds(60)
+            maxDelay: TimeSpan.FromMinutes(5),
+            maxDuration: TimeSpan.FromDays(1)
         ),
+        DatabaseCommandTimeout = TimeSpan.FromSeconds(30),
         DatabaseRetryStrategy = RetryStrategy.Exponential(
             baseInterval: TimeSpan.FromMilliseconds(100),
-            maxRetries: 50,
-            maxDelay: TimeSpan.FromSeconds(10)
+            maxDelay: TimeSpan.FromMinutes(2)
         ),
     };
 
