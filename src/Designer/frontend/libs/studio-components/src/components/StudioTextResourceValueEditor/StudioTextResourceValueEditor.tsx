@@ -2,8 +2,8 @@ import type { HTMLAttributes, Ref } from 'react';
 import React, { forwardRef } from 'react';
 import { StudioCodeFragment, StudioTextarea } from '@studio/components';
 import classes from './StudioTextResourceValueEditor.module.css';
-import { useAutoSizeTextArea } from '../../../../hooks/useAutoSizeTextArea';
-import type { Override } from '../../../../types/Override';
+import { useAutoSizeTextArea } from '../../hooks/useAutoSizeTextArea';
+import type { Override } from '../../types/Override';
 
 export type StudioTextResourceValueEditorProps = Override<
   {

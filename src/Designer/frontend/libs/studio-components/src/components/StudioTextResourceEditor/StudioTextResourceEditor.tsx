@@ -9,7 +9,7 @@ import {
 } from '@studio/components';
 import classes from './StudioTextResourceEditor.module.css';
 import type { TextResource } from '@studio/pure-functions';
-import type { Override } from '../../../types/Override';
+import type { Override } from '../../types/Override';
 
 export type StudioTextResourceEditorTexts = {
   pickerLabel: string;
