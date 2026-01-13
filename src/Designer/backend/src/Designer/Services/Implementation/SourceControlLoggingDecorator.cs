@@ -138,11 +138,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task FetchRemoteChanges(string org, string repository)
+        public async Task FetchRemoteChanges(string org, string repository, string developer)
         {
             try
             {
-                await _decoratedService.FetchRemoteChanges(org, repository);
+                await _decoratedService.FetchRemoteChanges(org, repository, developer);
             }
             catch (Exception ex)
             {

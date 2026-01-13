@@ -78,7 +78,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">name of the repository</param>
-        Task FetchRemoteChanges(string org, string repository);
+        /// <param name="developer">The developer making the fetch</param>
+        Task FetchRemoteChanges(string org, string repository, string developer);
 
         /// <summary>
         /// List Git status for an app repo

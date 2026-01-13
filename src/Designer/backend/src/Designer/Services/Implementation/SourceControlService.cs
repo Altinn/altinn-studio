@@ -120,14 +120,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return status;
         }
 
-        /// <summary>
-        /// Fetches the remote changes
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of the repository.</param>
-        public async Task FetchRemoteChanges(string org, string repository)
+        /// <inheritdoc/>
+        public async Task FetchRemoteChanges(string org, string repository, string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string logMessage = string.Empty;
             using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository, developer)))
             {
@@ -294,7 +289,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             Dictionary<string, string> fileDiffs = [];
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
-                await FetchRemoteChanges(org, repository);
+                await FetchRemoteChanges(org, repository, developer);
                 Branch remoteMainBranch = repo.Branches[$"refs/remotes/origin/{DefaultBranch}"];
                 if (remoteMainBranch == null || remoteMainBranch.Tip == null)
                 {
@@ -561,7 +556,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public async Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
         {
-            await FetchRemoteChanges(editingContext.Org, editingContext.Repo);
+            await FetchRemoteChanges(editingContext.Org, editingContext.Repo, editingContext.Developer);
 
             using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
 
@@ -682,7 +677,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 throw new Exceptions.UncommittedChangesException(error);
             }
 
-            await FetchRemoteChanges(org, repository);
+            await FetchRemoteChanges(org, repository, developer);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             CheckoutRepoOnBranch(editingContext, branchName);
             return RepositoryStatus(org, repository, developer);

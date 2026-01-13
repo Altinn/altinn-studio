@@ -223,7 +223,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             await _sourceControl.CloneIfNotExists(org, repository);
-            await _sourceControl.FetchRemoteChanges(org, repository);
+            await _sourceControl.FetchRemoteChanges(org, repository, developer);
             return _sourceControl.RepositoryStatus(org, repository, developer);
         }
 
@@ -238,7 +238,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<Dictionary<string, string>> RepoDiff(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            await _sourceControl.FetchRemoteChanges(org, repository);
+            await _sourceControl.FetchRemoteChanges(org, repository, developer);
             return await _sourceControl.GetChangedContent(org, repository, developer);
         }
 
