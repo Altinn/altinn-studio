@@ -18,7 +18,13 @@ public static class FeatureFlags
     /// </summary>
     public const string BetaPDFenabled = "BetaPDFenabled";
 
+    /// <summary>
     /// Enables new PDF generation
     /// </summary>
     public const string AddInstanceIdentifierToLayoutRequests = "addInstanceIdentifierToLayoutRequests";
+
+    /// <summary>
+    /// Enables experimental SimpleTable component
+    /// </summary>
+    public const string SimpleTableEnabled = "SimpleTableEnabled";
 }
