@@ -93,7 +93,7 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
       if (idErrorMessage) {
         const prefixes = getValidIdentifierPrefixes(org);
         const prefixesString = [prefixes.slice(0, -1).join(', '), prefixes.slice(-1)[0]].join(
-          prefixes.length < 2 ? '' : ` ${t('expression.or')} `,
+          ` ${t('expression.or')} `,
         );
         return t(idErrorMessage, {
           orgPrefix: prefixesString,
