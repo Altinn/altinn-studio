@@ -8,7 +8,6 @@ internal static class DeployEndpoints
     public static WebApplication MapDeployEndpoints(this WebApplication app)
     {
         app.MapGet(
-                // This feels a bit off, what should these APIs look like?
                 "/runtime/gateway/api/v1/deploy/origin/{originEnvironment}/apps/",
                 HandleListAppDeployments.ListAppDeploymentsHandler
             )
