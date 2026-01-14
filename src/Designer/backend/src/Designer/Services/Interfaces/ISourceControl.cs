@@ -14,21 +14,18 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Clone app repository to local repo
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">Name of the repository</param>
-        /// <param name="developer">The developer username</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>The result of the cloning</returns>
-        Task<string> CloneRemoteRepository(string org, string repository, string developer);
+        Task<string> CloneRemoteRepository(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Clone repository to specified destination
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">Name of the repository</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="destinationPath">Path of destination folder</param>
         /// <param name="branchName">The name of the branch to clone</param>
         /// <returns>Path of the cloned repository</returns>
-        Task<string> CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "");
+        Task<string> CloneRemoteRepository(AltinnRepoEditingContext editingContext, string destinationPath, string branchName = "");
 
         /// <summary>
         /// Stores a App token for user
@@ -40,152 +37,124 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Returns the local repo location
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <param name="developer">The developer user name</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>The path to the local repository</returns>
-        string FindLocalRepoLocation(string org, string repository, string developer);
+        string FindLocalRepoLocation(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Add all changes in app repo and push to remote
         /// </summary>
         /// <param name="commitInfo">the commit information for the app</param>
-        /// <param name="developer">The developer making the push</param>
-        Task PushChangesForRepository(CommitInfo commitInfo, string developer);
+        /// <param name="editingContext">The altinn repo editing context</param>
+        Task PushChangesForRepository(CommitInfo commitInfo, AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Commits all changes in repo and pushe them to the provided branch
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">Name of the repository</param>
-        /// <param name="developer">The developer pushing the commit</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="branchName">The name of the branch to push changes to</param>
         /// <param name="localPath">Path to local clone of repository</param>
         /// <param name="message">Commit message</param>
         /// <param name="accessToken">Access token for authentication. If empty, uses session-based authentication. Should only be used for special cases like bot operations - avoid for regular user operations.</param>
-        Task CommitAndPushChanges(string org, string repository, string developer, string branchName, string localPath, string message, string accessToken = "");
+        Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string localPath, string message, string accessToken = "");
 
         /// <summary>
         /// Pull remote changes
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">name of the repository</param>
-        /// <param name="developer">The developer making the pull</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>The repo status</returns>
-        Task<RepoStatus> PullRemoteChanges(string org, string repository, string developer);
+        Task<RepoStatus> PullRemoteChanges(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Pull remote changes
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">name of the repository</param>
-        /// <param name="developer">The developer making the fetch</param>
-        Task FetchRemoteChanges(string org, string repository, string developer);
+        /// <param name="editingContext">The altinn repo editing context</param>
+        Task FetchRemoteChanges(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// List Git status for an app repo
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <param name="developer">The developer making the status request</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>List of repositories with status</returns>
-        List<RepositoryContent> Status(string org, string repository, string developer);
+        List<RepositoryContent> Status(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// List commits
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <param name="developer">The developer making the request</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>List of commits</returns>
-        List<Designer.Models.Commit> Log(string org, string repository, string developer);
+        List<Designer.Models.Commit> Log(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Gets the latest commit for current user
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <param name="developer">The developer making the request</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>The latest commit</returns>
-        Designer.Models.Commit GetLatestCommitForCurrentUser(string org, string repository, string developer);
+        Designer.Models.Commit GetLatestCommitForCurrentUser(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Gives the complete repository status
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of repository</param>
-        /// <param name="developer">The developer making the status request</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>The repostatus</returns>
-        RepoStatus RepositoryStatus(string org, string repository, string developer);
+        RepoStatus RepositoryStatus(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Gets a dictionary of all filePaths and corresponding contentChanges as git diff string if file has been added or modified
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of repository</param>
-        /// <param name="developer">The developer making the request</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>A dictionary with the filePath and a string for the git diff</returns>
-        Task<Dictionary<string, string>> GetChangedContent(string org, string repository, string developer);
+        Task<Dictionary<string, string>> GetChangedContent(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Push commits to repository
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of the repository.</param>
-        /// <param name="developer">The developer making the push</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>boolean indicatng success</returns>
-        Task<bool> Push(string org, string repository, string developer);
+        Task<bool> Push(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Commit changes for repository
         /// </summary>
         /// <param name="commitInfo">Information about the commit</param>
-        /// <param name="developer">The developer making the commit</param>
-        void Commit(CommitInfo commitInfo, string developer);
+        /// <param name="editingContext">The altinn repo editing context</param>
+        void Commit(CommitInfo commitInfo, AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Stages a specific file changed in working repository.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of the repository.</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="fileName">the entire file path with filen name</param>
-        /// <param name="developer">The developer staging the change</param>
-        void StageChange(string org, string repository, string fileName, string developer);
+        void StageChange(AltinnRepoEditingContext editingContext, string fileName);
 
         /// <summary>
         /// Ensures repository is cloned if not, it clones it.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <param name="developer">The developer user name</param>
-        Task CloneIfNotExists(string org, string repository, string developer);
+        /// <param name="editingContext">The altinn repo editing context</param>
+        Task CloneIfNotExists(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Creates a new branch in the given repository.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of repository</param>
-        /// <param name="branchName">Name of branch</param>
-        Task<RepositoryClient.Model.Branch> CreateBranch(string org, string repository, string branchName);
+        /// <param name="editingContext">The altinn repo editing context</param>
+        /// <param name="branchName">The name of the branch to create</param>
+        Task<RepositoryClient.Model.Branch> CreateBranch(AltinnRepoEditingContext editingContext, string branchName);
 
         /// <summary>
         /// Creates a pull request for merging source into target for the provided repository.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of repository</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="target">The name of the base ref</param>
         /// <param name="source">The name of the head ref</param>
         /// <param name="title">The pull request title</param>
-        Task<bool> CreatePullRequest(string org, string repository, string target, string source, string title);
+        Task<bool> CreatePullRequest(AltinnRepoEditingContext editingContext, string target, string source, string title);
 
         /// <summary>
         /// Deletes the provided repository. Both local clone and remote repo.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of repository</param>
-        /// <param name="developer">The developer deleting the repository</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns></returns>
-        Task DeleteRepository(string org, string repository, string developer);
+        Task DeleteRepository(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Checkout the repository on specified branch.
@@ -232,31 +201,25 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Gets information about the current branch
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of repository</param>
-        /// <param name="developer">The developer user name</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>Information about the current branch</returns>
-        CurrentBranchInfo GetCurrentBranch(string org, string repository, string developer);
+        CurrentBranchInfo GetCurrentBranch(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Checks out a branch, validating that there are no uncommitted changes first
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of repository</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="branchName">The name of the branch to checkout</param>
-        /// <param name="developer">The developer user name</param>
         /// <returns>The updated repository status, or null if there are uncommitted changes</returns>
         /// <exception cref="Exceptions.UncommittedChangesException">Thrown when there are uncommitted changes</exception>
-        Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName, string developer);
+        Task<RepoStatus> CheckoutBranchWithValidation(AltinnRepoEditingContext editingContext, string branchName);
 
         /// <summary>
         /// Discards all local changes in the repository (hard reset + clean untracked files)
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of repository</param>
-        /// <param name="developer">The developer user name</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>The updated repository status</returns>
-        RepoStatus DiscardLocalChanges(string org, string repository, string developer);
+        RepoStatus DiscardLocalChanges(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Deletes a remote branch based on the specified name, if it exists.

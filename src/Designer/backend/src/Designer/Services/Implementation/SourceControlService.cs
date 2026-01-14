@@ -37,12 +37,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private const string DefaultBranch = General.DefaultBranch;
 
         /// <inheritdoc/>
-        public async Task<string> CloneRemoteRepository(string org, string repository, string developer)
+        public async Task<string> CloneRemoteRepository(AltinnRepoEditingContext editingContext)
         {
-            string remoteRepo = FindRemoteRepoLocation(org, repository);
+            string remoteRepo = FindRemoteRepoLocation(editingContext.Org, editingContext.Repo);
             CloneOptions cloneOptions = new();
             cloneOptions.FetchOptions.CredentialsProvider = await GetCredentialsAsync();
-            string localPath = FindLocalRepoLocation(org, repository, developer);
+            string localPath = FindLocalRepoLocation(editingContext);
             string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, localPath, cloneOptions);
 
             await FetchGitNotes(localPath);
@@ -50,9 +50,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<string> CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "")
+        public async Task<string> CloneRemoteRepository(AltinnRepoEditingContext editingContext, string destinationPath, string branchName = "")
         {
-            string remoteRepo = FindRemoteRepoLocation(org, repository);
+            string remoteRepo = FindRemoteRepoLocation(editingContext.Org, editingContext.Repo);
             CloneOptions cloneOptions = new();
             cloneOptions.FetchOptions.CredentialsProvider = await GetCredentialsAsync();
 
@@ -67,13 +67,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<RepoStatus> PullRemoteChanges(string org, string repository, string developer)
+        public async Task<RepoStatus> PullRemoteChanges(AltinnRepoEditingContext editingContext)
         {
             RepoStatus status = new()
             {
                 ContentStatus = []
             };
-            using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository, developer)))
+            using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(editingContext)))
             {
                 PullOptions pullOptions = new()
                 {
@@ -90,10 +90,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     Tree head = repo.Head.Tip.Tree;
                     MergeResult mergeResult = Commands.Pull(
                         repo,
-                        GetDeveloperSignature(developer),
+                        GetDeveloperSignature(editingContext.Developer),
                         pullOptions);
 
-                    await FetchGitNotes(FindLocalRepoLocation(org, repository, developer));
+                    await FetchGitNotes(FindLocalRepoLocation(editingContext));
                     TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(head, mergeResult.Commit?.Tree);
                     foreach (TreeEntryChanges change in treeChanges.Modified)
                     {
@@ -107,12 +107,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 catch (CheckoutConflictException e)
                 {
-                    logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // CheckoutConflictException occured when pulling repo {FindLocalRepoLocation(org, repository, developer)}. {e}");
+                    logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // CheckoutConflictException occured when pulling repo {FindLocalRepoLocation(editingContext)}. {e}");
                     status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
                 }
                 catch (Exception e)
                 {
-                    logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(org, repository, developer)}. {e}");
+                    logger.LogError($"{nameof(SourceControlService)} // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(editingContext)}. {e}");
                     throw;
                 }
             }
@@ -121,10 +121,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task FetchRemoteChanges(string org, string repository, string developer)
+        public async Task FetchRemoteChanges(AltinnRepoEditingContext editingContext)
         {
             string logMessage = string.Empty;
-            using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository, developer)))
+            using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(editingContext)))
             {
                 FetchOptions fetchOptions = new()
                 {
@@ -140,15 +140,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task CommitAndPushChanges(string org, string repository, string developer, string branchName, string localPath, string message, string accessToken = "")
+        public async Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string localPath, string message, string accessToken = "")
         {
-            await CommitAndPushToBranch(org, repository, developer, branchName, localPath, message, accessToken);
+            await CommitAndPushToBranch(editingContext.Org, editingContext.Repo, editingContext.Developer, branchName, localPath, message, accessToken);
         }
 
         /// <inheritdoc/>
-        public async Task PushChangesForRepository(CommitInfo commitInfo, string developer)
+        public async Task PushChangesForRepository(CommitInfo commitInfo, AltinnRepoEditingContext editingContext)
         {
-            string localServiceRepoFolder = repositorySettings.GetServicePath(commitInfo.Org, commitInfo.Repository, developer);
+            string localServiceRepoFolder = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
 
             string branchName = commitInfo.BranchName;
             if (string.IsNullOrEmpty(branchName))
@@ -157,16 +157,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 branchName = repo.Head.FriendlyName;
             }
 
-            await CommitAndPushToBranch(commitInfo.Org, commitInfo.Repository, developer, branchName, localServiceRepoFolder, commitInfo.Message);
+            await CommitAndPushToBranch(editingContext.Org, editingContext.Repo, editingContext.Developer, branchName, localServiceRepoFolder, commitInfo.Message);
         }
 
         /// <inheritdoc/>
-        public async Task<bool> Push(string org, string repository, string developer)
+        public async Task<bool> Push(AltinnRepoEditingContext editingContext)
         {
             bool pushSuccess = true;
-            string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, developer);
+            string localServiceRepoFolder = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
             using LibGit2Sharp.Repository repo = new(localServiceRepoFolder);
-            string remoteUrl = FindRemoteRepoLocation(org, repository);
+            string remoteUrl = FindRemoteRepoLocation(editingContext.Org, editingContext.Repo);
             Remote remote = repo.Network.Remotes["origin"];
 
             if (!remote.PushUrl.Equals(remoteUrl))
@@ -193,9 +193,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void Commit(CommitInfo commitInfo, string developer)
+        public void Commit(CommitInfo commitInfo, AltinnRepoEditingContext editingContext)
         {
-            CommitAndAddStudioNote(commitInfo.Org, commitInfo.Repository, developer, commitInfo.Message);
+            CommitAndAddStudioNote(editingContext.Org, editingContext.Repo, editingContext.Developer, commitInfo.Message);
         }
 
         private void CommitAndAddStudioNote(string org, string repository, string developer, string message)
@@ -223,10 +223,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public List<RepositoryContent> Status(string org, string repository, string developer)
+        public List<RepositoryContent> Status(AltinnRepoEditingContext editingContext)
         {
             List<RepositoryContent> repoContent = [];
-            string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, developer);
+            string localServiceRepoFolder = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 RepositoryStatus status = repo.RetrieveStatus(new StatusOptions());
@@ -245,13 +245,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public RepoStatus RepositoryStatus(string org, string repository, string developer)
+        public RepoStatus RepositoryStatus(AltinnRepoEditingContext editingContext)
         {
             RepoStatus repoStatus = new()
             {
                 ContentStatus = []
             };
-            string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, developer);
+            string localServiceRepoFolder = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 RepositoryStatus status = repo.RetrieveStatus(new StatusOptions());
@@ -283,13 +283,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<Dictionary<string, string>> GetChangedContent(string org, string repository, string developer)
+        public async Task<Dictionary<string, string>> GetChangedContent(AltinnRepoEditingContext editingContext)
         {
-            string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, developer);
+            string localServiceRepoFolder = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
             Dictionary<string, string> fileDiffs = [];
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
-                await FetchRemoteChanges(org, repository, developer);
+                await FetchRemoteChanges(editingContext);
                 Branch remoteMainBranch = repo.Branches[$"refs/remotes/origin/{DefaultBranch}"];
                 if (remoteMainBranch == null || remoteMainBranch.Tip == null)
                 {
@@ -309,18 +309,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Designer.Models.Commit GetLatestCommitForCurrentUser(string org, string repository, string developer)
+        public Designer.Models.Commit GetLatestCommitForCurrentUser(AltinnRepoEditingContext editingContext)
         {
-            List<Designer.Models.Commit> commits = Log(org, repository, developer);
-            Designer.Models.Commit latestCommit = commits.FirstOrDefault(commit => commit.Author.Name == developer);
+            List<Designer.Models.Commit> commits = Log(editingContext);
+            Designer.Models.Commit latestCommit = commits.FirstOrDefault(commit => commit.Author.Name == editingContext.Developer);
             return latestCommit;
         }
 
         /// <inheritdoc/>
-        public List<Designer.Models.Commit> Log(string org, string repository, string developer)
+        public List<Designer.Models.Commit> Log(AltinnRepoEditingContext editingContext)
         {
             List<Designer.Models.Commit> commits = [];
-            string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, developer);
+            string localServiceRepoFolder = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 foreach (LibGit2Sharp.Commit c in repo.Commits.Take(50))
@@ -377,29 +377,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
 
-        public string FindLocalRepoLocation(string org, string repository, string developer)
-        {
-            return FindLocalRepoLocation(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer));
-        }
-
-        private string FindLocalRepoLocation(AltinnRepoEditingContext editingContext)
+        public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext)
         {
             return Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? repositorySettings.RepositoryLocation, editingContext.Path);
         }
 
         /// <inheritdoc />
-        public async Task CloneIfNotExists(string org, string repository, string developer)
+        public async Task CloneIfNotExists(AltinnRepoEditingContext editingContext)
         {
-            string repoLocation = FindLocalRepoLocation(org, repository, developer);
+            string repoLocation = FindLocalRepoLocation(editingContext);
             if (!Directory.Exists(repoLocation))
             {
                 try
                 {
-                    await CloneRemoteRepository(org, repository, developer);
+                    await CloneRemoteRepository(editingContext);
                 }
                 catch (Exception e)
                 {
-                    logger.LogError($"Failed to clone repository {org}/{repository} with exception: {e}");
+                    logger.LogError($"Failed to clone repository {editingContext.Org}/{editingContext.Repo} with exception: {e}");
                 }
             }
         }
@@ -554,7 +549,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public async Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
         {
-            await FetchRemoteChanges(editingContext.Org, editingContext.Repo, editingContext.Developer);
+            await FetchRemoteChanges(editingContext);
 
             using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
 
@@ -632,9 +627,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public CurrentBranchInfo GetCurrentBranch(string org, string repository, string developer)
+        public CurrentBranchInfo GetCurrentBranch(AltinnRepoEditingContext editingContext)
         {
-            string localPath = repositorySettings.GetServicePath(org, repository, developer);
+            string localPath = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
 
             using LibGit2Sharp.Repository repo = new(localPath);
             return new CurrentBranchInfo
@@ -647,9 +642,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName, string developer)
+        public async Task<RepoStatus> CheckoutBranchWithValidation(AltinnRepoEditingContext editingContext, string branchName)
         {
-            RepoStatus repoStatus = RepositoryStatus(org, repository, developer);
+            RepoStatus repoStatus = RepositoryStatus(editingContext);
+
 
             bool hasUncommittedChanges = repoStatus.ContentStatus
                 .Any(c => c.FileStatus != Enums.FileStatus.Unaltered);
@@ -675,16 +671,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 throw new Exceptions.UncommittedChangesException(error);
             }
 
-            await FetchRemoteChanges(org, repository, developer);
-            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            await FetchRemoteChanges(editingContext);
             CheckoutRepoOnBranch(editingContext, branchName);
-            return RepositoryStatus(org, repository, developer);
+            return RepositoryStatus(editingContext);
         }
 
         /// <inheritdoc/>
-        public RepoStatus DiscardLocalChanges(string org, string repository, string developer)
+        public RepoStatus DiscardLocalChanges(AltinnRepoEditingContext editingContext)
         {
-            string localPath = repositorySettings.GetServicePath(org, repository, developer);
+            string localPath = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
 
             using (var repo = new LibGit2Sharp.Repository(localPath))
             {
@@ -692,7 +687,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 repo.RemoveUntrackedFiles();
             }
 
-            return RepositoryStatus(org, repository, developer);
+            return RepositoryStatus(editingContext);
         }
 
         /// <summary>
@@ -707,9 +702,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void StageChange(string org, string repository, string fileName, string developer)
+        public void StageChange(AltinnRepoEditingContext editingContext, string fileName)
         {
-            string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, developer);
+            string localServiceRepoFolder = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
             using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
             {
                 FileStatus fileStatus = repo.RetrieveStatus().SingleOrDefault(file => file.FilePath == fileName).State;
@@ -724,13 +719,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<RepositoryClient.Model.Branch> CreateBranch(string org, string repository, string branchName)
+        public async Task<RepositoryClient.Model.Branch> CreateBranch(AltinnRepoEditingContext editingContext, string branchName)
         {
-            return await giteaClient.CreateBranch(org, repository, branchName);
+            return await giteaClient.CreateBranch(editingContext.Org, editingContext.Repo, branchName);
         }
 
         /// <inheritdoc/>
-        public async Task<bool> CreatePullRequest(string org, string repository, string target, string source, string title)
+        public async Task<bool> CreatePullRequest(AltinnRepoEditingContext editingContext, string target, string source, string title)
         {
             CreatePullRequestOption option = new()
             {
@@ -739,20 +734,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Title = title
             };
 
-            return await giteaClient.CreatePullRequest(org, repository, option);
+            return await giteaClient.CreatePullRequest(editingContext.Org, editingContext.Repo, option);
         }
 
         /// <inheritdoc/>
-        public async Task DeleteRepository(string org, string repository, string developer)
+        public async Task DeleteRepository(AltinnRepoEditingContext editingContext)
         {
-            string localServiceRepoFolder = repositorySettings.GetServicePath(org, repository, developer);
+            string localServiceRepoFolder = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
 
             if (Directory.Exists(localServiceRepoFolder))
             {
                 DirectoryHelper.DeleteFilesAndDirectory(localServiceRepoFolder);
             }
 
-            await giteaClient.DeleteRepository(org, repository);
+            await giteaClient.DeleteRepository(editingContext.Org, editingContext.Repo);
         }
 
         private static bool LocalBranchExists(LibGit2Sharp.Repository repo, string branchName)
