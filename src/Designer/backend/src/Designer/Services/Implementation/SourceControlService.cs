@@ -359,7 +359,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             CheckAndCreateDeveloperFolder(developer);
 
-            string path = Path.Combine(repositorySettings.RepositoryLocation, developer, "AuthToken.txt");
+            string path = Path.Join(repositorySettings.RepositoryLocation, developer, "AuthToken.txt");
             File.WriteAllText(path, token);
         }
 
@@ -368,7 +368,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         private void CheckAndCreateDeveloperFolder(string developer)
         {
-            string path = Path.Combine(repositorySettings.RepositoryLocation, developer);
+            string path = Path.Join(repositorySettings.RepositoryLocation, developer);
 
             if (!Directory.Exists(path))
             {
@@ -379,7 +379,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext)
         {
-            return Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? repositorySettings.RepositoryLocation, editingContext.Path);
+            return Path.Join(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? repositorySettings.RepositoryLocation, editingContext.Path);
         }
 
         /// <inheritdoc />

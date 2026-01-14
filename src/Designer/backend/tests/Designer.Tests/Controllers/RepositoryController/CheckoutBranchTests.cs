@@ -129,7 +129,6 @@ namespace Designer.Tests.Controllers.RepositoryController
         {
             // Arrange
             string uri = $"{VersionPrefix}/repo/{org}/{repo}/checkout";
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
             var request = new CheckoutBranchRequest { BranchName = branchName };
             using var content = new StringContent(
