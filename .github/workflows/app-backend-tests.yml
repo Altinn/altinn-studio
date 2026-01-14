@@ -78,3 +78,5 @@ jobs:
         working-directory: ${{ matrix.os.workingDir }}
         run: |
           dotnet test solutions/All.sln --no-restore --no-build --logger "console;verbosity=detailed" --filter "Category=Integration"
+        env:
+          SKIP_FRONTEND_BUILD: true
