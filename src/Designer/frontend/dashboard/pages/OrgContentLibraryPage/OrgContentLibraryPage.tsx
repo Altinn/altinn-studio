@@ -42,6 +42,7 @@ import { useOrgTextResourcesQuery } from 'app-shared/hooks/queries/useOrgTextRes
 import {
   CODE_LIST_FOLDER,
   DEFAULT_LANGUAGE,
+  ORG_LIBRARY_BASENAME,
   PUBLISHED_CODE_LIST_FOLDER,
 } from 'app-shared/constants';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
@@ -57,6 +58,7 @@ import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourc
 import { usePublishCodeListMutation } from 'app-shared/hooks/mutations/usePublishCodeListMutation';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 import { usePublishedResourcesQuery } from 'app-shared/hooks/queries/usePublishedResourcesQuery';
+import { useContentLibraryRouter } from 'app-shared/hooks/useContentLibraryRouter';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -147,6 +149,7 @@ function OrgContentLibraryWithContextAndData({
   const { mutate: updateTextResources } = useUpdateOrgTextResourcesMutation(orgName);
   const { t } = useTranslation();
   const pagesFromFeatureFlags = usePagesFromFeatureFlags(orgName);
+  const router = useContentLibraryRouter(`/${ORG_LIBRARY_BASENAME}/${orgName}`);
 
   const handleUpload = useUploadCodeList(orgName);
 
@@ -178,6 +181,7 @@ function OrgContentLibraryWithContextAndData({
     <div>
       <ContentLibrary
         heading={t('org_content_library.library_heading')}
+        router={router}
         pages={{
           codeListsWithTextResources: {
             codeListDataList,
