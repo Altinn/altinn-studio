@@ -222,7 +222,9 @@ describe('ImportResourceModal', () => {
     await waitFor(() => {
       expect(
         screen.getByText(
-          textMock('resourceadm.dashboard_resource_name_and_id_error', { orgPrefix: 'ttd-' }),
+          textMock('resourceadm.dashboard_resource_name_and_id_error', {
+            orgPrefix: 'ttd- or ttd_',
+          }),
         ),
       ).toBeInTheDocument();
     });

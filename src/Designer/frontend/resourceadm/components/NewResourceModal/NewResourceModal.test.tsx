@@ -10,7 +10,6 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { getValidIdentifierPrefixes } from '../../utils/resourceUtils';
 
 const mockButtonText: string = 'Mock Button';
 const org = 'skd';
@@ -142,7 +141,7 @@ describe('NewResourceModal', () => {
       expect(
         screen.getByText(
           textMock('resourceadm.dashboard_resource_name_and_id_error', {
-            orgPrefix: `${getValidIdentifierPrefixes(org).join(` ${textMock('expression.or')} `)}`,
+            orgPrefix: 'skd-, skd_, ske- or ske_',
           }),
         ),
       ).toBeInTheDocument();

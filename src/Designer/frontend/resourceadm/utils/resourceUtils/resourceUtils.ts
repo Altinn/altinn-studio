@@ -97,7 +97,7 @@ const environments: Record<EnvId, Environment> = {
 
 export const getAvailableEnvironments = (org: string): Environment[] => {
   const availableEnvs = [environments['tt02'], environments['prod']];
-  if (org === 'ttd' || org === 'digdir') {
+  if (org === 'ttd' || org === 'digdir' || org === 'skd' || org === 'udi') {
     availableEnvs.push(
       environments['yt01'],
       environments['at22'],
@@ -145,9 +145,9 @@ export const getResourceIdentifierErrorMessage = (
 
 export const getValidIdentifierPrefixes = (org: string): string[] => {
   if (org === 'skd') {
-    return ['skd-', 'ske-'];
+    return ['skd-', 'skd_', 'ske-', 'ske_'];
   }
-  return [`${org}-`];
+  return [`${org}-`, `${org}_`];
 };
 
 export const hasOrgPrefixInIdentifier = (identifier: string, org: string): boolean => {
