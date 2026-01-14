@@ -47,62 +47,25 @@ internal partial class Engine
         return _inbox.Values.FirstOrDefault(x => x.InstanceInformation.Equals(instanceInformation));
     }
 
-    private async Task PopulateWorkflowsFromStorage(CancellationToken cancellationToken)
+    private async Task PopulateWorkflowsFromDb(CancellationToken cancellationToken)
     {
         // TODO: Disabled for now. We don't necessarily want to resume jobs after restart while testing.
         return;
 
-        _logger.PopulatingWorkflowsFromDb();
+        IReadOnlyList<Workflow> incompleteJobs = await _repository.GetIncompleteWorkflows(cancellationToken);
 
-        try
+        foreach (var job in incompleteJobs)
         {
-            IReadOnlyList<Workflow> incompleteJobs = await _repository.GetIncompleteWorkflows(cancellationToken);
-
-            foreach (var job in incompleteJobs)
-            {
-                // TODO: Not sure about this logic...
-                // Only add if not already in memory to avoid duplicates
-                if (_inbox.TryAdd(job.Key, job))
-                    _logger.RestoredWorkflowFromDb(job.Key);
-            }
-
-            _logger.SuccessfullyPopulatedFromDb(incompleteJobs.Count);
-        }
-        catch (Exception ex)
-        {
-            _logger.FailedToPopulateFromFromDb(ex);
-            throw;
+            // TODO: Not sure about this logic...
+            // Only add if not already in memory to avoid duplicates
+            if (_inbox.TryAdd(job.Key, job))
+                _logger.RestoredWorkflowFromDb(job.Key);
         }
     }
 
-    private async Task UpdateWorkflowInStorage(Workflow workflow, CancellationToken cancellationToken)
-    {
-        // TODO: Move logging to EnginePgRepository
-        _logger.UpdatingWorkflowInDb(workflow);
+    private Task UpdateWorkflowInDb(Workflow workflow, CancellationToken cancellationToken) =>
+        _repository.UpdateWorkflow(workflow, cancellationToken);
 
-        try
-        {
-            await _repository.UpdateWorkflow(workflow, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.FailedUpdatingWorkflowInDb(workflow.Key, ex);
-            throw;
-        }
-    }
-
-    private async Task UpdateTaskInStorage(Step step, CancellationToken cancellationToken)
-    {
-        _logger.UpdatingStepInDb(step);
-
-        try
-        {
-            await _repository.UpdateStep(step: step, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.FailedUpdatingStepInDb(step.Key, ex);
-            throw;
-        }
-    }
+    private Task UpdateStepInDb(Step step, CancellationToken cancellationToken) =>
+        _repository.UpdateStep(step: step, cancellationToken);
 }

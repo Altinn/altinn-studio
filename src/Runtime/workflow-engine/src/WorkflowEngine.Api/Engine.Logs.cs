@@ -7,46 +7,8 @@ internal static partial class EngineLogs
     [LoggerMessage(LogLevel.Debug, "Enqueuing workflow request {Request}")]
     internal static partial void EnqueuingWorkflow(this ILogger<Engine> logger, Request request);
 
-    [LoggerMessage(LogLevel.Debug, "Populating workflows from database")]
-    internal static partial void PopulatingWorkflowsFromDb(this ILogger<Engine> logger);
-
     [LoggerMessage(LogLevel.Debug, "Restored workflow {WorkflowIdentifier} from database")]
     internal static partial void RestoredWorkflowFromDb(this ILogger<Engine> logger, string workflowIdentifier);
-
-    [LoggerMessage(LogLevel.Information, "Populated {WorkflowCount} jobs from database")]
-    internal static partial void SuccessfullyPopulatedFromDb(this ILogger<Engine> logger, int workflowCount);
-
-    [LoggerMessage(
-        LogLevel.Error,
-        "Failed to populate workflows from database after all retries exhausted. Database down?"
-    )]
-    internal static partial void FailedToPopulateFromFromDb(this ILogger<Engine> logger, Exception ex);
-
-    [LoggerMessage(LogLevel.Debug, "Updating workflow in storage: {Workflow}")]
-    internal static partial void UpdatingWorkflowInDb(this ILogger<Engine> logger, Workflow workflow);
-
-    [LoggerMessage(
-        LogLevel.Error,
-        "Failed to update workflow {WorkflowIdentifier} in database after all retries exhausted. Database down?"
-    )]
-    internal static partial void FailedUpdatingWorkflowInDb(
-        this ILogger<Engine> logger,
-        string workflowIdentifier,
-        Exception ex
-    );
-
-    [LoggerMessage(LogLevel.Debug, "Updating step in storage: {Step}")]
-    internal static partial void UpdatingStepInDb(this ILogger<Engine> logger, Step step);
-
-    [LoggerMessage(
-        LogLevel.Error,
-        "Failed to update step {StepIdentifier} in database after all retries exhausted. Database down?"
-    )]
-    internal static partial void FailedUpdatingStepInDb(
-        this ILogger<Engine> logger,
-        string stepIdentifier,
-        Exception ex
-    );
 
     [LoggerMessage(LogLevel.Trace, "Checking if workflow engine should run")]
     internal static partial void CheckShouldRun(this ILogger<Engine> logger);
@@ -95,12 +57,13 @@ internal static partial class EngineLogs
 
     [LoggerMessage(
         LogLevel.Error,
-        "Processing of workflow {Workflow} resulted in an unhandled exception, most likely to do with db-writes! Backing off for {Timeout}."
+        "Processing of workflow {Workflow} resulted in an unhandled exception: {Message}. Backing off for {Timeout}."
     )]
     internal static partial void WorkflowProcessingFailed(
         this ILogger<Engine> logger,
         Workflow workflow,
         TimeSpan timeout,
+        string message,
         Exception? ex
     );
 

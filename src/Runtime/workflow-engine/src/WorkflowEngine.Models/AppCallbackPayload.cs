@@ -22,6 +22,6 @@ public sealed record AppCallbackPayload
     /// <summary>
     ///
     /// </summary>
-    [JsonPropertyName("metadata")]
-    public string? Metadata { get; init; }
+    [JsonPropertyName("payload")]
+    public string? Payload { get; init; }
 }

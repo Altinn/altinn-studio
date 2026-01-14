@@ -34,67 +34,115 @@ internal sealed class EnginePgRepository : IEngineRepository
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
-    public async Task<IReadOnlyList<Workflow>> GetIncompleteWorkflows(CancellationToken cancellationToken = default) =>
-        await ExecuteWithRetry(
-            async ct =>
-                await _context
-                    .Jobs.Include(j => j.Tasks)
-                    .Where(j => _incompleteItemStatuses.Contains(j.Status))
-                    .Select(x => x.ToDomainModel())
-                    .ToListAsync(ct),
-            cancellationToken
-        );
+    public async Task<IReadOnlyList<Workflow>> GetIncompleteWorkflows(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.FetchingIncompleteWorkflows();
 
-    public async Task<Workflow> AddWorkflow(Request request, CancellationToken cancellationToken = default) =>
-        await ExecuteWithRetry(
-            async ct =>
-            {
-                var job = Workflow.FromRequest(request);
-                var entity = WorkflowEntity.FromDomainModel(job);
+            var result = await _context
+                .Jobs.Include(j => j.Tasks)
+                .Where(j => _incompleteItemStatuses.Contains(j.Status))
+                .Select(x => x.ToDomainModel())
+                .ToListAsync(cancellationToken);
 
-                var dbRecord = _context.Jobs.Add(entity);
-                await _context.SaveChangesAsync(ct);
+            _logger.SuccessfullyFetchedIncompleteWorkflows(result.Count);
 
-                return dbRecord.Entity.ToDomainModel();
-            },
-            cancellationToken
-        );
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToFetchIncompleteWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
 
-    public async Task UpdateWorkflow(Workflow workflow, CancellationToken cancellationToken = default) =>
-        await ExecuteWithRetry(
-            async ct =>
-            {
-                await _context
-                    .Jobs.Where(t => t.Id == workflow.DatabaseId)
-                    .ExecuteUpdateAsync(
-                        setters =>
-                            setters
-                                .SetProperty(t => t.Status, workflow.Status)
-                                .SetProperty(t => t.UpdatedAt, DateTime.Now),
-                        ct
-                    );
-            },
-            cancellationToken
-        );
+    public async Task<Workflow> AddWorkflow(Request request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.AddingWorkflow(request);
 
-    public async Task UpdateStep(Step step, CancellationToken cancellationToken = default) =>
-        await ExecuteWithRetry(
-            async ct =>
-            {
-                await _context
-                    .Steps.Where(t => t.Id == step.DatabaseId)
-                    .ExecuteUpdateAsync(
-                        setters =>
-                            setters
-                                .SetProperty(t => t.Status, step.Status)
-                                .SetProperty(t => t.BackoffUntil, step.BackoffUntil)
-                                .SetProperty(t => t.RequeueCount, step.RequeueCount)
-                                .SetProperty(t => t.UpdatedAt, DateTime.Now),
-                        ct
-                    );
-            },
-            cancellationToken
-        );
+            var workflow = Workflow.FromRequest(request);
+            var entity = WorkflowEntity.FromDomainModel(workflow);
+            var dbRecord = _context.Jobs.Add(entity);
+            await _context.SaveChangesAsync(cancellationToken);
+            var result = dbRecord.Entity.ToDomainModel();
+
+            _logger.SuccessfullyAddedWorkflow(workflow);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToAddWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    public async Task UpdateWorkflow(Workflow workflow, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.UpdatingWorkflow(workflow);
+
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await _context
+                        .Jobs.Where(t => t.Id == workflow.DatabaseId)
+                        .ExecuteUpdateAsync(
+                            setters =>
+                                setters
+                                    .SetProperty(t => t.Status, workflow.Status)
+                                    .SetProperty(t => t.UpdatedAt, DateTime.Now),
+                            ct
+                        );
+                },
+                cancellationToken
+            );
+
+            _logger.SuccessfullyUpdatedWorkflow(workflow);
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToUpdateWorkflow(workflow.Key, workflow.DatabaseId, ex.Message, ex);
+            throw;
+        }
+    }
+
+    public async Task UpdateStep(Step step, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.UpdatingStep(step);
+
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await _context
+                        .Steps.Where(t => t.Id == step.DatabaseId)
+                        .ExecuteUpdateAsync(
+                            setters =>
+                                setters
+                                    .SetProperty(t => t.Status, step.Status)
+                                    .SetProperty(t => t.BackoffUntil, step.BackoffUntil)
+                                    .SetProperty(t => t.RequeueCount, step.RequeueCount)
+                                    .SetProperty(t => t.UpdatedAt, DateTime.Now),
+                            ct
+                        );
+                },
+                cancellationToken
+            );
+
+            _logger.SuccessfullyUpdatedStep(step);
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToUpdateStep(step.Key, step.DatabaseId, ex.Message, ex);
+            throw;
+        }
+    }
 
     private async Task ExecuteWithRetry(
         Func<CancellationToken, Task> operation,
@@ -151,7 +199,7 @@ internal sealed class EnginePgRepository : IEngineRepository
             ArgumentException => RetryDecision.Abort,
             InvalidOperationException => RetryDecision.Abort,
 
-            // Default to retrying for unknown exceptions (conservative approach)
+            // Default to retrying for unknown exceptions
             _ => RetryDecision.Retry,
         };
 
@@ -164,4 +212,79 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 }
 
-internal static class EnginePgRepositoryLogs { }
+internal static partial class EnginePgRepositoryLogs
+{
+    [LoggerMessage(LogLevel.Debug, "Fetching incomplete workflows from database")]
+    internal static partial void FetchingIncompleteWorkflows(this ILogger<EnginePgRepository> logger);
+
+    [LoggerMessage(LogLevel.Debug, "Fetched {WorkflowCount} workflows from database")]
+    internal static partial void SuccessfullyFetchedIncompleteWorkflows(
+        this ILogger<EnginePgRepository> logger,
+        int workflowCount
+    );
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Failed to fetch workflows from database due to task cancellation or after all retries exhausted. Database down? Error: {Message}"
+    )]
+    internal static partial void FailedToFetchIncompleteWorkflows(
+        this ILogger<EnginePgRepository> logger,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Debug, "Adding workflow to database: {Request}")]
+    internal static partial void AddingWorkflow(this ILogger<EnginePgRepository> logger, Request request);
+
+    [LoggerMessage(LogLevel.Debug, "Successfully added workflow to database: {Workflow}")]
+    internal static partial void SuccessfullyAddedWorkflow(this ILogger<EnginePgRepository> logger, Workflow workflow);
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Failed to add workflow to database due to task cancellation or after all retries exhausted. Database down? Error: {Message}"
+    )]
+    internal static partial void FailedToAddWorkflows(
+        this ILogger<EnginePgRepository> logger,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Debug, "Updating workflow in database: {Workflow}")]
+    internal static partial void UpdatingWorkflow(this ILogger<EnginePgRepository> logger, Workflow workflow);
+
+    [LoggerMessage(LogLevel.Debug, "Successfully updated workflow in database: {Workflow}")]
+    internal static partial void SuccessfullyUpdatedWorkflow(
+        this ILogger<EnginePgRepository> logger,
+        Workflow workflow
+    );
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Failed to update workflow {WorkflowIdentifier} (ID: {DatabaseId}) in database after all retries exhausted. Database down? Error: {Message}"
+    )]
+    internal static partial void FailedToUpdateWorkflow(
+        this ILogger<EnginePgRepository> logger,
+        string workflowIdentifier,
+        long databaseId,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Debug, "Updating step in database: {Step}")]
+    internal static partial void UpdatingStep(this ILogger<EnginePgRepository> logger, Step step);
+
+    [LoggerMessage(LogLevel.Debug, "Successfully updated step in database: {Step}")]
+    internal static partial void SuccessfullyUpdatedStep(this ILogger<EnginePgRepository> logger, Step step);
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Failed to update step {StepIdentifier} (ID: {DatabaseId}) in database after all retries exhausted. Database down? Error: {Message}"
+    )]
+    internal static partial void FailedToUpdateStep(
+        this ILogger<EnginePgRepository> logger,
+        string stepIdentifier,
+        long databaseId,
+        string message,
+        Exception ex
+    );
+}

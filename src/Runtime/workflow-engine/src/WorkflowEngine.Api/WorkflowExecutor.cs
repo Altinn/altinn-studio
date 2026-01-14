@@ -80,7 +80,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
         {
             CommandKey = command.CommandKey,
             Actor = step.Actor,
-            Metadata = command.Metadata,
+            Payload = command.Payload,
         };
         using var jsonPayload = JsonContent.Create(payload);
         using var response = await httpClient.PostAsync(

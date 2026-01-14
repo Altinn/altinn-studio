@@ -82,7 +82,7 @@ internal partial class Engine : IEngine, IDisposable
 
         // Populate queue if we just transitioned from disabled to enabled
         if (latest is true && previous is false)
-            await PopulateWorkflowsFromStorage(cancellationToken);
+            await PopulateWorkflowsFromDb(cancellationToken);
 
         // Progressive backoff we have been disabled for two or more consecutive checks
         if (latest is false && previous is false)
@@ -175,7 +175,7 @@ internal partial class Engine : IEngine, IDisposable
                     if (workflow.Status != updatedJobStatus)
                     {
                         workflow.Status = updatedJobStatus;
-                        workflow.DatabaseTask = UpdateWorkflowInStorage(workflow, cancellationToken);
+                        workflow.DatabaseTask = UpdateWorkflowInDb(workflow, cancellationToken);
                     }
 
                     return;
@@ -192,7 +192,10 @@ internal partial class Engine : IEngine, IDisposable
 
                     workflow.CleanupDatabaseTask();
 
-                    throw new EngineTaskException($"Database operation failed for workflow {workflow}", ex);
+                    throw new EngineTaskException(
+                        $"Database operation failed or timed out for workflow {workflow}",
+                        ex
+                    );
 
                 // Database operation finished successfully
                 case TaskStatus.Finished:
@@ -210,14 +213,16 @@ internal partial class Engine : IEngine, IDisposable
         {
             _logger.WorkflowCriticalError(workflow, ex.Message, ex);
             workflow.Status = PersistentItemStatus.Failed;
-            await UpdateWorkflowInStorage(workflow, cancellationToken);
+            await UpdateWorkflowInDb(workflow, cancellationToken);
         }
         catch (Exception ex)
         {
             TimeSpan delay =
                 _settings.DefaultStepRetryStrategy.MaxDelay ?? _settings.DefaultStepRetryStrategy.BaseInterval;
             workflow.BackoffUntil = _timeProvider.GetUtcNow().Add(delay);
-            _logger.WorkflowProcessingFailed(workflow, delay, ex);
+
+            _logger.WorkflowProcessingFailed(workflow, delay, ex.Message, ex);
+
             return;
         }
 
@@ -293,7 +298,7 @@ internal partial class Engine : IEngine, IDisposable
                     UpdateStepStatusAndRetryDecision(step, result);
 
                     // Update database
-                    step.DatabaseTask = UpdateTaskInStorage(step, cancellationToken);
+                    step.DatabaseTask = UpdateStepInDb(step, cancellationToken);
                     return;
 
                 // Step is new

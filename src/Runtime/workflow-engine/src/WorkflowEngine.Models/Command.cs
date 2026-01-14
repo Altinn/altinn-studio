@@ -42,11 +42,11 @@ public abstract record Command
     /// A command that gets handled by the calling application (via webhook).
     /// </summary>
     /// <param name="CommandKey">The command key. A unique identifier that is understood by the app's webhook receiver</param>
-    /// <param name="Metadata">Optional metadata to send back with the command. If specified this becomes a POST request. Otherwise, GET.</param>
+    /// <param name="Payload">Optional payload to send back with the command. If specified this becomes a POST request. Otherwise, GET.</param>
     /// <param name="MaxExecutionTime">The maximum allowed execution time for the command.</param>
     public sealed record AppCommand(
         [property: JsonPropertyName("commandKey")] string CommandKey,
-        [property: JsonPropertyName("metadata")] string? Metadata = null,
+        [property: JsonPropertyName("payload")] string? Payload = null,
         TimeSpan? MaxExecutionTime = null
     ) : Command(CommandKey, MaxExecutionTime);
 
