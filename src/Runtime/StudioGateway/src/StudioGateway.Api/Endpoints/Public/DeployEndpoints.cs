@@ -8,7 +8,7 @@ internal static class DeployEndpoints
     public static WebApplication MapDeployEndpoints(this WebApplication app)
     {
         app.MapGet(
-                // TODO: This feels a bit off
+                // This feels a bit off, what should these APIs look like?
                 "/runtime/gateway/api/v1/deploy/origin/{originEnvironment}/apps/",
                 HandleListAppDeployments.ListAppDeploymentsHandler
             )
@@ -49,7 +49,9 @@ internal static class DeployEndpoints
             .RequireAuthorization("MaskinportenScope")
             .WithName("TriggerReconcile")
             .WithSummary("Trigger Flux reconciliation.")
-            .WithDescription("Triggers Flux to reconcile app resources by patching OCIRepository annotation.")
+            .WithDescription(
+                "Triggers Flux to reconcile app resources by patching OCIRepository annotation."
+            )
             .WithTags("Deploy");
 
         return app;

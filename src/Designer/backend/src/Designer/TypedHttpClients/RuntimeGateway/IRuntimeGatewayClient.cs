@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
 using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Models.Metrics;
+using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 

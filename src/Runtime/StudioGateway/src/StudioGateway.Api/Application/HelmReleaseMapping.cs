@@ -2,6 +2,8 @@ using System.Diagnostics.CodeAnalysis;
 using StudioGateway.Api.Clients.K8s;
 using StudioGateway.Contracts.Deploy;
 
+namespace StudioGateway.Api.Application;
+
 internal static class HelmReleaseMapping
 {
     public static bool TryCreateAppDeployment(
