@@ -272,7 +272,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             targetOrg ??= org;
             var options = new CreateRepoOption(targetRepository);
-            AltinnRepoEditingContext altinnRepoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(targetOrg, targetRepository, developer);
+            AltinnRepoEditingContext altinnRepoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, sourceRepository, developer);
 
             RepositoryClient.Model.Repository repository = await CreateRemoteRepository(targetOrg, options);
 
@@ -288,7 +288,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 FireDeletionOfLocalRepo(targetOrg, targetRepository, developer);
             }
 
-            await _sourceControl.CloneRemoteRepository(altinnRepoEditingContext);
+            await _sourceControl.CloneRemoteRepository(altinnRepoEditingContext, targetRepositoryPath);
             var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepository, developer);
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
