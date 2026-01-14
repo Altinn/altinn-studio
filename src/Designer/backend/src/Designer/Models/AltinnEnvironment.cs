@@ -12,7 +12,7 @@ public record AltinnEnvironment
     private AltinnEnvironment(string name)
     {
         Guard.AssertValidEnvironmentName(name);
-        Name = name.Equals("production", System.StringComparison.OrdinalIgnoreCase) ? "prod" : name;
+        Name = name;
     }
 
     public static AltinnEnvironment FromName(string name)
