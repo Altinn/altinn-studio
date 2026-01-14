@@ -1,4 +1,5 @@
 import React from 'react';
+import { useEnvironmentTitle } from 'admin/hooks/useEnvironmentTitle';
 import classes from './AppMetrics.module.css';
 import { useParams } from 'react-router-dom';
 import {
@@ -15,7 +16,7 @@ import 'chartjs-adapter-date-fns';
 import { AppMetric } from './AppMetric';
 import { useAppHealthMetricsQuery } from 'admin/hooks/queries/useAppHealthMetricsQuery';
 import { AppHealthMetric } from './AppHealthMetric';
-import { TimeRangeSelect } from 'admin/shared/TimeRangeSelect/TimeRangeSelect';
+import { TimeRangeSelect } from 'admin/components/TimeRangeSelect/TimeRangeSelect';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -56,10 +57,7 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
   const { org, env, app } = useParams() as { org: string; env: string; app: string };
   const { t, i18n } = useTranslation();
 
-  const envTitle =
-    env === 'production'
-      ? t(`general.production_environment_alt`).toLowerCase()
-      : `${t('general.test_environment_alt').toLowerCase()} ${env?.toUpperCase()}`;
+  const envTitle = useEnvironmentTitle(env);
   const orgName = useCurrentOrg().name[i18n.language];
 
   const {

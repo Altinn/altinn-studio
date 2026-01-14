@@ -1,4 +1,5 @@
 import { useRunningAppsQuery } from 'admin/hooks/queries/useRunningAppsQuery';
+import { useEnvironmentTitle } from 'admin/hooks/useEnvironmentTitle';
 import classes from './AppsTable.module.css';
 import type { PublishedApplication } from 'admin/types/PublishedApplication';
 import {
@@ -14,9 +15,9 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import { useErrorMetricsQuery } from 'admin/hooks/queries/useErrorMetricsQuery';
-import { TimeRangeSelect } from 'admin/shared/TimeRangeSelect/TimeRangeSelect';
+import { TimeRangeSelect } from 'admin/components/TimeRangeSelect/TimeRangeSelect';
 import { appErrorMetricsLogsPath } from 'admin/utils/apiPaths';
-import { Alert } from 'admin/shared/Alert/Alert';
+import { Alert } from 'admin/components/Alert/Alert';
 import { isAxiosError } from 'axios';
 import { useCurrentOrg } from 'admin/layout/PageLayout';
 
@@ -91,10 +92,7 @@ type AppsTableContentProps = AppsTableWithDataProps & {
 
 const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTableContentProps) => {
   const { t, i18n } = useTranslation();
-  const envTitle =
-    env === 'production'
-      ? t(`general.production_environment_alt`).toLowerCase()
-      : `${t('general.test_environment_alt').toLowerCase()} ${env?.toUpperCase()}`;
+  const envTitle = useEnvironmentTitle(env);
   const orgName = useCurrentOrg().name[i18n.language];
   const defaultRange = 1440;
   const [range, setRange] = useQueryParamState<number>('range', defaultRange);

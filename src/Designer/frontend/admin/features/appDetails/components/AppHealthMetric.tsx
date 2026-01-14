@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppHealthMetric as HealthMetric } from 'admin/types/metrics/AppHealthMetric';
 import { Doughnut } from 'react-chartjs-2';
-import { Alert } from 'admin/shared/Alert/Alert';
+import { Alert } from 'admin/components/Alert/Alert';
 
 type AppHealthMetricProps = {
   metric: HealthMetric;
