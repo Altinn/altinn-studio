@@ -141,7 +141,7 @@ describe('NewResourceModal', () => {
       expect(
         screen.getByText(
           textMock('resourceadm.dashboard_resource_name_and_id_error', {
-            orgPrefix: 'skd-, skd_, ske- or ske_',
+            orgPrefix: `skd-, skd_, ske- ${textMock('expression.or')} ske_`,
           }),
         ),
       ).toBeInTheDocument();

@@ -223,7 +223,7 @@ describe('ImportResourceModal', () => {
       expect(
         screen.getByText(
           textMock('resourceadm.dashboard_resource_name_and_id_error', {
-            orgPrefix: 'ttd- or ttd_',
+            orgPrefix: `ttd- ${textMock('expression.or')} ttd_`,
           }),
         ),
       ).toBeInTheDocument();
