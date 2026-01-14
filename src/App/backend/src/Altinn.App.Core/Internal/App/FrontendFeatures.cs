@@ -1,5 +1,3 @@
-using System.Reflection;
-using Altinn.App.Core.Features;
 using Microsoft.FeatureManagement;
 
 namespace Altinn.App.Core.Internal.App;
@@ -9,42 +7,26 @@ namespace Altinn.App.Core.Internal.App;
 /// </summary>
 public class FrontendFeatures : IFrontendFeatures
 {
-    private readonly Dictionary<string, bool> _features = new();
+    private readonly IFeatureManager _featureManager;
 
     /// <summary>
     /// Default implementation of IFrontendFeatures
     ///  </summary>
     public FrontendFeatures(IFeatureManager featureManager)
     {
-        // _features.Add("footer", true);
-        // _features.Add("processActions", true);
-
-        var featureFlagFields = typeof(FeatureFlags).GetFields(
-            BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy
-        );
-
-        foreach (var field in featureFlagFields)
-        {
-            if (!field.IsLiteral || field.IsInitOnly || field.FieldType != typeof(string))
-            {
-                continue;
-            }
-
-            if (field.GetRawConstantValue() is not string featureName || string.IsNullOrWhiteSpace(featureName))
-            {
-                continue;
-            }
-
-            // if (expr)
-            // {
-            //
-            // }
-
-            var lowercaseName = char.ToLowerInvariant(featureName[0]) + featureName[1..];
-            _features[lowercaseName] = featureManager.IsEnabledAsync(featureName).GetAwaiter().GetResult();
-        }
+        _featureManager = featureManager;
     }
 
     /// <inheritdoc />
-    public Task<Dictionary<string, bool>> GetFrontendFeatures() => Task.FromResult(_features);
+    // public Task<Dictionary<string, bool>> GetFrontendFeatures() => Task.FromResult(_features);
+
+    public async Task<Dictionary<string, bool>> GetFrontendFeatures()
+    {
+        var result = new Dictionary<string, bool>();
+
+        await foreach (var name in _featureManager.GetFeatureNamesAsync())
+            result[name] = await _featureManager.IsEnabledAsync(name);
+
+        return result;
+    }
 }

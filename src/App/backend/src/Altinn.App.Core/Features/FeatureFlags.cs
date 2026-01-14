@@ -19,7 +19,7 @@ public static class FeatureFlags
     public const string BetaPDFenabled = "BetaPDFenabled";
 
     /// <summary>
-    /// Enables new PDF generation
+    /// Enables adding instance identifier to layout requests.
     /// </summary>
     public const string AddInstanceIdentifierToLayoutRequests = "addInstanceIdentifierToLayoutRequests";
 

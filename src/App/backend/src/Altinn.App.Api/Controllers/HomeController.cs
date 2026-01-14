@@ -29,7 +29,6 @@ public class HomeController : Controller
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
-    private readonly IFrontendFeatures _frontendFeatures;
 
     /// <summary>
     /// Initialize a new instance of the <see cref="HomeController"/> class.
@@ -57,7 +56,6 @@ public class HomeController : Controller
         _appSettings = appSettings.Value;
         _appResources = appResources;
         _appMetadata = appMetadata;
-        _frontendFeatures = frontendFeatures;
     }
 
     /// <summary>
@@ -96,8 +94,6 @@ public class HomeController : Controller
 
         if (await ShouldShowAppView())
         {
-            ViewBag.org = org;
-            ViewBag.app = app;
             return Content(GenerateHtml(org, app), "text/html; charset=utf-8");
         }
 
