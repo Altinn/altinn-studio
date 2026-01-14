@@ -40,7 +40,10 @@ jest.mock('react-router-dom', () => {
     })),
   };
 });
-jest.mock('axios');
+jest.mock('axios', () => ({
+  ...jest.requireActual('axios'),
+  get: jest.fn(),
+}));
 jest.mock('admin/hooks/useQueryParamState');
 
 const defaultProps: AppMetricsProps = {
@@ -57,6 +60,27 @@ describe('AppMetrics', () => {
 
       expect(
         screen.getByLabelText(textMock('admin.metrics.app.health.loading')),
+      ).toBeInTheDocument();
+    });
+
+    it('should render info alert when missing rights', async () => {
+      const axiosError = createApiErrorMock(ServerCodes.Forbidden);
+      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+
+      renderAppMetrics();
+
+      await waitFor(() => {
+        expect(
+          screen.queryByLabelText(textMock('admin.metrics.app.health.loading')),
+        ).not.toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText(
+          textMock('admin.metrics.app.health.missing_rights', {
+            envTitle: '[mockedtext(general.test_environment_alt)] TEST',
+          }),
+        ),
       ).toBeInTheDocument();
     });
 
@@ -133,6 +157,27 @@ describe('AppMetrics', () => {
 
       expect(
         screen.getByLabelText(textMock('admin.metrics.app.errors.loading')),
+      ).toBeInTheDocument();
+    });
+
+    it('should render info alert when missing rights', async () => {
+      const axiosError = createApiErrorMock(ServerCodes.Forbidden);
+      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+
+      renderAppMetrics();
+
+      await waitFor(() => {
+        expect(
+          screen.queryByLabelText(textMock('admin.metrics.app.errors.loading')),
+        ).not.toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText(
+          textMock('admin.metrics.app.errors.missing_rights', {
+            envTitle: '[mockedtext(general.test_environment_alt)] TEST',
+          }),
+        ),
       ).toBeInTheDocument();
     });
 
@@ -225,6 +270,27 @@ describe('AppMetrics', () => {
       renderAppMetrics();
 
       expect(screen.getByLabelText(textMock('admin.metrics.app.loading'))).toBeInTheDocument();
+    });
+
+    it('should render info alert when missing rights', async () => {
+      const axiosError = createApiErrorMock(ServerCodes.Forbidden);
+      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+
+      renderAppMetrics();
+
+      await waitFor(() => {
+        expect(
+          screen.queryByLabelText(textMock('admin.metrics.app.loading')),
+        ).not.toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText(
+          textMock('admin.metrics.app.missing_rights', {
+            envTitle: '[mockedtext(general.test_environment_alt)] TEST',
+          }),
+        ),
+      ).toBeInTheDocument();
     });
 
     it('should render error state', async () => {

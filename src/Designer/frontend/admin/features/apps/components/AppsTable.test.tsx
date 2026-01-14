@@ -12,9 +12,22 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import axios from 'axios';
 import userEvent from '@testing-library/user-event';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
+import { OrgContext } from 'admin/layout/PageLayout';
 
 const range = 1440;
 const env = 'production';
+
+const orgMock = {
+  name: {
+    en: org,
+    nb: org,
+    nn: org,
+  },
+  logo: '',
+  orgnr: '',
+  homepage: '',
+  environments: [],
+};
 
 const defaultProps: AppsTableProps = {
   org,
@@ -87,7 +100,7 @@ describe('AppsTable', () => {
       expect(screen.getByText(textMock('admin.metrics.errors.error'))).toBeInTheDocument();
     });
 
-    it('should render warning alert for 403 forbidden errors', async () => {
+    it('should render info alert when missing rights', async () => {
       const axiosError = createApiErrorMock(ServerCodes.Forbidden);
       (axios.get as jest.Mock).mockRejectedValue(axiosError);
 
@@ -114,7 +127,9 @@ describe('AppsTable', () => {
 
       expect(
         screen.getByText(
-          textMock('admin.metrics.errors.forbidden', { env: textMock(`admin.environment.${env}`) }),
+          textMock('admin.metrics.errors.missing_rights', {
+            envTitle: '[mockedtext(general.production_environment_alt)]',
+          }),
         ),
       ).toBeInTheDocument();
     });
@@ -203,9 +218,11 @@ const renderAppsTable = (
 ) => {
   render(
     <MemoryRouter>
-      <QueryClientProvider client={client}>
-        <AppsTable {...props} />
-      </QueryClientProvider>
+      <OrgContext.Provider value={orgMock}>
+        <QueryClientProvider client={client}>
+          <AppsTable {...props} />
+        </QueryClientProvider>
+      </OrgContext.Provider>
     </MemoryRouter>,
   );
 };
