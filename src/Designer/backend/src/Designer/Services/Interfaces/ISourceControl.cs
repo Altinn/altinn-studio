@@ -210,7 +210,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="branchName">The name of the branch to checkout</param>
-        /// <param name="developer">The developer user name</param>
         /// <returns>The updated repository status, or null if there are uncommitted changes</returns>
         /// <exception cref="Exceptions.UncommittedChangesException">Thrown when there are uncommitted changes</exception>
         Task<RepoStatus> CheckoutBranchWithValidation(AltinnRepoEditingContext editingContext, string branchName);
