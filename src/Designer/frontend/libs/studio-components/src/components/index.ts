@@ -47,6 +47,7 @@ export * from './StudioIconTextfield';
 export * from './StudioIconViewer';
 export * from './StudioLabel';
 export * from './StudioLabelAsParagraph';
+export * from './StudioLibraryElement';
 export * from './StudioLink';
 export * from './StudioLinkButton';
 export * from './StudioList';

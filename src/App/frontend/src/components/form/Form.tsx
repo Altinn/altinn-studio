@@ -16,6 +16,7 @@ import { useExpandedWidthLayouts, useLayoutLookups } from 'src/features/form/lay
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
@@ -64,6 +65,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   const { hasRequired, mainIds, errorReportIds, formErrors, taskErrors } = useFormState(currentPageId);
   const requiredFieldsMissing = NodesInternal.usePageHasVisibleRequiredValidations(currentPageId);
   const allAttachments = useAllAttachments();
+  const textResources = useTextResources();
 
   const hasInfectedFiles = Object.values(allAttachments || {}).some((attachments) =>
     (attachments || []).some(
@@ -78,7 +80,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
     return <NavigateToStartUrl forceCurrentTask={false} />;
   }
 
-  const hasSetCurrentPageId = langAsString(currentPageId) !== currentPageId;
+  const hasSetCurrentPageId = currentPageId in textResources;
 
   if (!hasSetCurrentPageId) {
     window.logWarnOnce(
@@ -241,20 +243,20 @@ function HandleNavigationFocusComponent() {
   const exitSubform = useQueryKey(SearchParams.ExitSubform)?.toLocaleLowerCase() === 'true';
   const validate = useQueryKey(SearchParams.Validate)?.toLocaleLowerCase() === 'true';
   const navigate = useNavigate();
-  const searchStringRef = useAsRef(useLocation().search);
+  const locationRef = useAsRef(useLocation());
 
   React.useEffect(() => {
     (async () => {
       // Replace URL if we have query params
       if (exitSubform || validate) {
-        const location = new URLSearchParams(searchStringRef.current);
-        location.delete(SearchParams.ExitSubform);
-        const baseHash = window.location.hash.slice(1).split('?')[0];
-        const nextLocation = location.size > 0 ? `${baseHash}?${location.toString()}` : baseHash;
+        const searchParams = new URLSearchParams(locationRef.current.search);
+        searchParams.delete(SearchParams.ExitSubform);
+        const basePath = locationRef.current.pathname;
+        const nextLocation = searchParams.size > 0 ? `${basePath}?${searchParams.toString()}` : basePath;
         navigate(nextLocation, { replace: true });
       }
     })();
-  }, [navigate, searchStringRef, exitSubform, validate, onFormSubmitValidation]);
+  }, [navigate, locationRef, exitSubform, validate, onFormSubmitValidation]);
 
   return null;
 }

@@ -1,3 +1,7 @@
+export type { PolicyAction } from 'app-shared/types/PolicyAction';
+export type { PolicySubject } from 'app-shared/types/PolicySubject';
+export type { Policy, PolicyRule, RequiredAuthLevel } from 'app-shared/types/Policy';
+
 export type AppPolicyActionMap = {
   [key: string]: string;
 };
@@ -16,44 +20,6 @@ export interface PolicyRuleCard {
 export interface PolicyRuleResource {
   type: string;
   id: string;
-}
-
-export interface PolicySubject {
-  id: string;
-  name: string;
-  description: string;
-  urn: string;
-  code?: string;
-  legacyRoleCode?: string;
-  legacyUrn?: string;
-  provider: {
-    id: string;
-    name: string;
-    code: string;
-  };
-}
-
-export interface PolicyAction {
-  actionId: string;
-  actionTitle: string;
-  actionDescription: string | null;
-}
-
-export interface PolicyRule {
-  ruleId: string;
-  description: string;
-  subject: string[];
-  actions: string[];
-  accessPackages?: string[];
-  resources: string[][];
-}
-
-export type RequiredAuthLevel = '0' | '3' | '4';
-
-export interface Policy {
-  rules: PolicyRule[] | null;
-  requiredAuthenticationLevelEndUser: RequiredAuthLevel;
-  requiredAuthenticationLevelOrg: string;
 }
 
 export type PolicyEditorUsage = 'app' | 'resource';
