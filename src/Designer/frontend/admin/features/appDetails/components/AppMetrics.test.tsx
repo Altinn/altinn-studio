@@ -14,6 +14,7 @@ import userEvent from '@testing-library/user-event';
 import { OrgContext } from '../../../layout/PageLayout';
 
 const env = 'test';
+const envTitle = `${textMock('general.test_environment_alt').toLowerCase()} ${env.toUpperCase()}`;
 const range = 5;
 
 const orgMock = {
@@ -76,11 +77,7 @@ describe('AppMetrics', () => {
       });
 
       expect(
-        screen.getByText(
-          textMock('admin.metrics.app.health.missing_rights', {
-            envTitle: '[mockedtext(general.test_environment_alt)] TEST',
-          }),
-        ),
+        screen.getByText(textMock('admin.metrics.app.health.missing_rights', { envTitle })),
       ).toBeInTheDocument();
     });
 
@@ -173,11 +170,7 @@ describe('AppMetrics', () => {
       });
 
       expect(
-        screen.getByText(
-          textMock('admin.metrics.app.errors.missing_rights', {
-            envTitle: '[mockedtext(general.test_environment_alt)] TEST',
-          }),
-        ),
+        screen.getByText(textMock('admin.metrics.app.errors.missing_rights', { envTitle })),
       ).toBeInTheDocument();
     });
 
@@ -285,11 +278,7 @@ describe('AppMetrics', () => {
       });
 
       expect(
-        screen.getByText(
-          textMock('admin.metrics.app.missing_rights', {
-            envTitle: '[mockedtext(general.test_environment_alt)] TEST',
-          }),
-        ),
+        screen.getByText(textMock('admin.metrics.app.missing_rights', { envTitle })),
       ).toBeInTheDocument();
     });
 
