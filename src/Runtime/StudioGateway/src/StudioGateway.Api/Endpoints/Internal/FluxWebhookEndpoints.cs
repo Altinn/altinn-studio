@@ -113,7 +113,7 @@ internal static class FluxWebhookEndpoints
     )
     {
         var helmRelease = await helmReleaseClient.GetAsync(helmReleaseName, helmReleaseNamespace, cancellationToken);
-        if (helmRelease != null)
+        if (helmRelease is not null)
         {
             var labels = helmRelease.GetLabels();
 
