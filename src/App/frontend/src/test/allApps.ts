@@ -415,12 +415,12 @@ export class ExternalAppLayoutSet {
     return firstTask ?? 'Task_1'; // Fallback to simulate Task_1 for stateless apps
   }
 
-  initialize(): { hash: string; mainSet: ExternalAppLayoutSet; subformComponent?: CompExternal<'Subform'> } {
+  initialize(): { pathname: string; mainSet: ExternalAppLayoutSet; subformComponent?: CompExternal<'Subform'> } {
     const instance = getInstanceDataMock();
     const pageSettings = this.getSettings().pages;
     const firstPage = 'order' in pageSettings ? pageSettings.order[0] : pageSettings.groups[0].order[0];
 
-    let hash = `#/instance/${instance.instanceOwner.partyId}/${instance.id}`;
+    let pathname = `/dummyOrg/dummyApp/instance/${instance.instanceOwner.partyId}/${instance.id}`;
     let mainSet: ExternalAppLayoutSet | undefined;
     let subformComponent: CompExternal<'Subform'> | undefined = undefined;
 
@@ -441,17 +441,17 @@ export class ExternalAppLayoutSet {
 
     if (!mainSet || !subformComponent) {
       // No other layout set includes us as a subform, we must be the main form.
-      hash += `/${this.getTaskId()}/${firstPage}`;
-      return { hash, mainSet: this };
+      pathname += `/${this.getTaskId()}/${firstPage}`;
+      return { pathname, mainSet: this };
     }
 
     // From here on out, we're in a subform
     const mainPages = mainSet.getSettings().pages;
     const firstMainPage = 'order' in mainPages ? mainPages.order[0] : mainPages.groups[0].order[0];
     const elementId = `fakeUuid:${this.config.dataType}:end`;
-    hash += `/${mainSet.getTaskId()}/${firstMainPage}/${subformComponent.id}/${elementId}/${firstPage}`;
+    pathname += `/${mainSet.getTaskId()}/${firstMainPage}/${subformComponent.id}/${elementId}/${firstPage}`;
 
-    return { hash, mainSet, subformComponent };
+    return { pathname, mainSet, subformComponent };
   }
 
   simulateProcessData(): IProcess {

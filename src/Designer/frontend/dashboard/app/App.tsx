@@ -89,7 +89,7 @@ function AppWithData(props: AppWithDataProps): React.ReactElement {
             element={<CreateService {...props} />}
           />
           <Route
-            path={`${ORG_LIBRARY_BASENAME}/:selectedContext?`}
+            path={`${ORG_LIBRARY_BASENAME}/:selectedContext?/:elementType?`}
             element={<OrgContentLibraryPage />}
           />
         </Route>

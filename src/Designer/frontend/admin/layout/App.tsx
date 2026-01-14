@@ -8,6 +8,7 @@ import nb from '../../language/src/nb.json';
 import en from '../../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { appContentWrapperId } from '@studio/testing/testids';
+import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
 
 i18next.use(initReactI18next).init({
   ns: 'translation',
@@ -35,7 +36,9 @@ export function App() {
   return (
     <div className={classes.container}>
       <div data-testid={appContentWrapperId} className={classes.appContainer}>
-        <Outlet />
+        <WebSocketSyncWrapper>
+          <Outlet />
+        </WebSocketSyncWrapper>
       </div>
     </div>
   );

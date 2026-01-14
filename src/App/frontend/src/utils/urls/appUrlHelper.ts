@@ -170,7 +170,7 @@ export const getLayoutsUrl = (layoutSetId: string) => `${appPath}/api/layouts/${
 export const getInstanceLayoutsUrl = (layoutSetId: string, instanceId: string) =>
   `${appPath}/instances/${instanceId}/layouts/${layoutSetId}`;
 export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;
-export const getInstanceUiUrl = (instanceId: string) => `${appPath}#/instance/${instanceId}`;
+export const getInstanceUiUrl = (instanceId: string) => `${appPath}/instance/${instanceId}`;
 
 export const appFrontendCDNPath = 'https://altinncdn.no/toolkits/altinn-app-frontend';
 export const frontendVersionsCDN = `${appFrontendCDNPath}/index.json`;
