@@ -19,9 +19,9 @@ public interface IGitOpsConfigurationManager
     /// <summary>
     /// Ensures that the GitOps configuration exists for the specified organization.
     /// </summary>
-    /// <param name="context">The <see cref="AltinnOrgEditingContext"/> representing the organization editing context.</param>
+    /// <param name="authenticatedContext">The <see cref="AltinnAuthenticatedRepoEditingContext"/> representing the authenticated repository editing context.</param>
     /// <param name="environment">The <see cref="AltinnEnvironment"/> to ensure configuration exists for.</param>
-    public Task EnsureGitOpsConfigurationExistsAsync(AltinnOrgEditingContext context, AltinnEnvironment environment);
+    public Task EnsureGitOpsConfigurationExistsAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, AltinnEnvironment environment);
 
     /// <summary>
     /// Checks if the application exists in the GitOps configuration for the given environment.
