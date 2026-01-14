@@ -45,10 +45,16 @@ public sealed partial class AppFixture : IAsyncDisposable
     private static readonly SemaphoreSlim _appBuildLock = new(1, 1);
     private static readonly SemaphoreSlim _pdfServiceLock = new(1, 1);
     private static readonly SemaphoreSlim _packLibrariesLock = new(1, 1);
+    private static readonly SemaphoreSlim _buildFrontendLock = new(1, 1);
     private static IFutureDockerImage? _localtestContainerImage;
     private static readonly Dictionary<string, IFutureDockerImage> _appContainerImages = [];
     private static IContainer? _pdfServiceContainer;
     private static bool _librariesPacked;
+    private static bool _frontendBuilt;
+    private static Exception? _frontendBuildException;
+    private static readonly bool _skipFrontendBuild = !string.IsNullOrWhiteSpace(
+        Environment.GetEnvironmentVariable("SKIP_FRONTEND_BUILD")
+    );
 
     private static long NextFixtureInstance() => Interlocked.Increment(ref _fixtureInstance);
 
@@ -132,14 +138,17 @@ public sealed partial class AppFixture : IAsyncDisposable
         {
             // Build images and start PDF service in parallel for better performance
             // Packing has to occur before building the app image since
-            // the app image rely on local nupkg's to be present.
+            // the app image rely on local nupkg's and built frontend files to be present.
             // The rest can happen in parallel
             var hostIp = await ContainerRuntimeService.GetHostIP(cancellationToken);
             logger.LogInformation("Detected host IP for container communication: {HostIP}", hostIp);
 
+            var frontendBuildTask = EnsureFrontendBuilt(logger, cancellationToken);
+            var librariesPackedTask = EnsureLibrariesPacked(logger, cancellationToken);
+            await Task.WhenAll(frontendBuildTask, librariesPackedTask);
+
             var localtestImageTask = EnsureLocaltestImageBuilt(logger, testContainersLogger, cancellationToken);
             var pdfServiceTask = EnsurePdfServiceStarted(logger, testContainersLogger, hostIp, cancellationToken);
-            await EnsureLibrariesPacked(logger, cancellationToken);
             var appImageTask = EnsureAppImageBuilt(app, logger, testContainersLogger, cancellationToken);
 
             await Task.WhenAll(localtestImageTask, pdfServiceTask, appImageTask);
@@ -358,7 +367,7 @@ public sealed partial class AppFixture : IAsyncDisposable
         { "LocalPlatformSettings__LocalAppUrl", $"http://{AppHostname}:{AppPort}" },
     };
 
-    private static Dictionary<string, string?> CreateAppEnv(long fixtureInstance, string name, string scenario)
+    private static Dictionary<string, string?> CreateAppEnv()
     {
         Assert.NotNull(_pdfServiceContainer);
         var pdfServiceUrl =
@@ -569,7 +578,7 @@ public sealed partial class AppFixture : IAsyncDisposable
 
             localtestContainer = localtestContainerBuilder.Build();
 
-            var appEnv = CreateAppEnv(fixtureInstance, name, scenario);
+            var appEnv = CreateAppEnv();
             var appContainerBuilder = new ContainerBuilder()
                 .WithName($"applib-{name}-app-{fixtureInstance:00}")
                 .WithImage(appContainerImage)
@@ -856,9 +865,18 @@ public sealed partial class AppFixture : IAsyncDisposable
     {
         var appDirectory = GetAppDir(name);
         var frontendBuildDir = Path.Join(_repoSourceDirectory, "App", "frontend", "dist");
+
+        var missingFilesErrorMessage =
+            $"The frontend should have been built automatically during test setup. \n\n"
+            + $"If you see this error, it likely means: \n"
+            + $"1. Yarn is not installed or not in PATH. \n"
+            + $"2. The frontend build failed earlier (check test output for errors). \n"
+            + $"3. SKIP_FRONTEND_BUILD was set but no pre-built files exist. \n\n"
+            + $"To fix: install yarn and run 'cd src/App/frontend && yarn build' manually or remove the environment variable SKIP_FRONTEND_BUILD.\n";
         if (!Directory.Exists(frontendBuildDir))
             throw new DirectoryNotFoundException(
-                $"Expected frontend build directory '{frontendBuildDir}' to exist, but no directory was found. Make sure the frontend has been built (cd src/App/frontend && yarn run build) before running these tests."
+                $"Expected frontend build directory '{frontendBuildDir}' to exist, but no directory was found. "
+                    + missingFilesErrorMessage
             );
 
         var appStaticFrontendDir = Path.Join(appDirectory, "wwwroot", "altinn-app-frontend");
@@ -873,7 +891,8 @@ public sealed partial class AppFixture : IAsyncDisposable
             string sourceFile =
                 frontendBuildFiles.FirstOrDefault(df => Path.GetFileName(df) == fileName)
                 ?? throw new FileNotFoundException(
-                    $"Expected frontend file '{fileName}' not found in '{frontendBuildDir}'. Make sure the frontend has been built (cd src/App/frontend && yarn run build) before running these tests."
+                    $"Expected frontend file '{fileName}' not found in '{frontendBuildDir}'. "
+                        + missingFilesErrorMessage
                 );
 
             var destFile = Path.Join(appStaticFrontendDir, fileName);
@@ -881,6 +900,140 @@ public sealed partial class AppFixture : IAsyncDisposable
             await using var source = File.OpenRead(sourceFile);
             await using var destination = File.Create(destFile);
             await source.CopyToAsync(destination);
+        }
+    }
+
+    private static async Task EnsureYarnAvailable(ILogger logger, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await new Command(
+                "yarn",
+                "--version",
+                _repoSourceDirectory,
+                logger,
+                ThrowOnNonZero: false,
+                CancellationToken: cancellationToken
+            );
+
+            if (result.IsSuccess)
+            {
+                logger.LogInformation("Yarn version: {YarnVersion}", result.StdOut.Trim());
+                return;
+            }
+
+            throw new Exception(
+                $"Yarn is not available (exit code: {result.ExitCode}). "
+                    + $"Yarn is required to build the frontend for integration tests. "
+                    + $"To fix: Install yarn by running 'npm install -g yarn' or 'corepack enable'. "
+                    + $"Alternatively, set SKIP_FRONTEND_BUILD=true to use pre-built files."
+            );
+        }
+        catch (Exception ex)
+            when (ex is not Exception exWithMessage || !exWithMessage.Message.Contains("Yarn is not available"))
+        {
+            throw new Exception(
+                $"Failed to check if yarn is available: {ex.Message}. "
+                    + $"Yarn is required to build the frontend for integration tests. "
+                    + $"To fix: Install yarn by running 'npm install -g yarn' or 'corepack enable'. "
+                    + $"Alternatively, set SKIP_FRONTEND_BUILD=true to use pre-built files.",
+                ex
+            );
+        }
+    }
+
+    private static void VerifyFrontendBuilt(ILogger logger)
+    {
+        var frontendBuildDir = Path.Join(_repoSourceDirectory, "App", "frontend", "dist");
+        if (!Directory.Exists(frontendBuildDir))
+        {
+            throw new Exception(
+                $"Frontend build completed but dist directory '{frontendBuildDir}' does not exist. "
+                    + $"This may indicate a problem with the build process."
+            );
+        }
+
+        string[] requiredFiles = ["altinn-app-frontend.js", "altinn-app-frontend.css"];
+        var missingFiles = requiredFiles.Where(file => !File.Exists(Path.Join(frontendBuildDir, file))).ToList();
+
+        if (missingFiles.Count > 0)
+        {
+            throw new Exception(
+                $"Frontend build completed but expected files not found in {frontendBuildDir}. "
+                    + $"Missing files: {string.Join(", ", missingFiles)}"
+            );
+        }
+
+        logger.LogInformation("Frontend build verified successfully");
+    }
+
+    private static async Task EnsureFrontendBuilt(ILogger logger, CancellationToken cancellationToken)
+    {
+        if (_skipFrontendBuild)
+        {
+            logger.LogInformation("Skipping frontend build (SKIP_FRONTEND_BUILD is set)");
+            return;
+        }
+
+        if (_frontendBuildException != null)
+        {
+            logger.LogError("Frontend build failed previously, re-throwing exception");
+            throw _frontendBuildException;
+        }
+
+        if (_frontendBuilt)
+        {
+            logger.LogInformation("Frontend already built in this test run, skipping build");
+            return;
+        }
+
+        await _buildFrontendLock.WaitAsync(cancellationToken);
+        try
+        {
+            if (_frontendBuildException != null)
+            {
+                logger.LogError("Frontend build failed previously, re-throwing exception");
+                throw _frontendBuildException;
+            }
+
+            if (_frontendBuilt)
+            {
+                logger.LogInformation("Frontend already built in this test run, skipping build");
+                return;
+            }
+
+            logger.LogInformation("Building frontend...");
+
+            // Check if yarn is available
+            await EnsureYarnAvailable(logger, cancellationToken);
+
+            var frontendDirectory = Path.Join(_repoSourceDirectory, "App", "frontend");
+
+            // Build the frontend
+            await new Command(
+                "yarn",
+                "build",
+                frontendDirectory,
+                logger,
+                ThrowOnNonZero: true,
+                CancellationToken: cancellationToken
+            );
+
+            VerifyFrontendBuilt(logger);
+
+            _frontendBuilt = true;
+            logger.LogInformation("Frontend built successfully");
+        }
+        catch (Exception ex)
+        {
+            // Store the exception so all other tests fail with the same error
+            _frontendBuildException = ex;
+            logger.LogError(ex, "Frontend build failed");
+            throw;
+        }
+        finally
+        {
+            _buildFrontendLock.Release();
         }
     }
 
