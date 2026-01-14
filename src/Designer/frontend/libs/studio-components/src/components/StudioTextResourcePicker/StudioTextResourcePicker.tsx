@@ -27,32 +27,37 @@ export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextR
       required,
       textResources,
       value,
+      defaultSelected,
+      onSelectedChange,
+      selected,
       ...rest
     },
     ref,
   ) => {
-    const handleSelectedChange = (items: { value: string }[]): void =>
-      onValueChange(items[0]?.value || null);
+    const handleSelectedChange = (item: { value: string }): void =>
+      onValueChange(item?.value || null);
 
     const selectedValues: string[] = useMemo(
       () => retrieveSelectedValues(textResources, value),
       [textResources, value],
     );
 
-    const selectedItems = useMemo(
-      () =>
-        selectedValues.map((id) => ({
-          value: id,
-          label: textResources.find((tr) => tr.id === id)?.value ?? id,
-        })),
-      [selectedValues, textResources],
-    );
+    const selectedItem = useMemo(() => {
+      const id = selectedValues[0];
+      return id
+        ? {
+            value: id,
+            label: textResources.find((tr) => tr.id === id)?.value ?? id,
+          }
+        : undefined;
+    }, [selectedValues, textResources]);
 
     return (
       <StudioSuggestion
         {...rest}
+        multiple={false}
         onSelectedChange={handleSelectedChange}
-        selected={selectedItems}
+        selected={selectedItem}
         ref={ref}
       >
         {!required && renderNoTextResourceOption(noTextResourceOptionLabel)}

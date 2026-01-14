@@ -43,20 +43,21 @@ export const DeployDropdown = ({
   const successfullyBuiltAppReleases: AppRelease[] = filterSucceededReleases(releases);
   const imageOptions: ImageOption[] = mapAppReleasesToImageOptions(successfullyBuiltAppReleases, t);
 
-  const selectedItems = selectedImageTag
-    ? imageOptions.filter((option) => option.value === selectedImageTag)
-    : [];
+  const selectedItem = selectedImageTag
+    ? imageOptions.find((option) => option.value === selectedImageTag)
+    : undefined;
 
-  const handleSelectedChange = (items: { value: string }[]) => {
+  const handleSelectedChange = (item: { value: string }) => {
     if (!disabled) {
-      setSelectedImageTag(items[0]?.value || '');
+      setSelectedImageTag(item?.value || '');
     }
   };
 
   return (
     <div className={classes.deployDropDown}>
       <StudioSuggestion
-        selected={selectedItems}
+        multiple={false}
+        selected={selectedItem}
         label={t('app_deployment.choose_version')}
         emptyText={t('app_deployment.no_versions')}
         filter={() => true}

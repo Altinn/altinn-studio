@@ -58,10 +58,13 @@ const defaultOptions: (StudioSuggestionOptionProps & { label: string })[] = [
 const defaultProps: StudioSuggestionProps = {
   emptyText: 'Empty text',
   label: 'Label text',
+  multiple: false as const,
 };
 
 type RenderStudioSuggestionProps = {
-  suggestionProps?: Partial<StudioSuggestionProps>;
+  suggestionProps?: Partial<
+    Omit<StudioSuggestionProps, 'multiple' | 'selected' | 'onSelectedChange' | 'defaultSelected'>
+  >;
   options?: StudioSuggestionOptionProps[];
 };
 

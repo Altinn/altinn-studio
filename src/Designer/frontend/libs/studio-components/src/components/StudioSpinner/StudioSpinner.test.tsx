@@ -33,7 +33,6 @@ describe('StudioSpinner', () => {
 const defaultProps: StudioSpinnerProps = {
   'aria-label': 'Loading',
   'data-size': 'md',
-  'aria-hidden': true,
 };
 
 const renderStudioSpinner = (props: Partial<StudioSpinnerProps>): RenderResult => {

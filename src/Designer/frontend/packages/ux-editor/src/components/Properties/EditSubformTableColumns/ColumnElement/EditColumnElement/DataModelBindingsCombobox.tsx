@@ -26,9 +26,9 @@ export const DataModelBindingsCombobox = ({
     onDataModelBindingChange(value);
   };
 
-  const selectedItems = dataModelBindingKey
-    ? [{ value: dataModelBindingKey, label: dataModelBindingKey }]
-    : [];
+  const selectedItem = dataModelBindingKey
+    ? { value: dataModelBindingKey, label: dataModelBindingKey }
+    : undefined;
 
   const getOptionLabel = (key: string) => {
     return key === 'simpleBinding'
@@ -36,12 +36,13 @@ export const DataModelBindingsCombobox = ({
       : t(`ux_editor.modal_properties_data_model_label.${key}`);
   };
 
-  const handleSelectedChange = (items: { value: string }[]) => {
-    onValueChange(items[0]?.value || '');
+  const handleSelectedChange = (item: { value: string }) => {
+    onValueChange(item?.value || '');
   };
 
   return (
     <StudioSuggestion
+      multiple={false}
       label={t(
         'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
       )}
@@ -50,7 +51,7 @@ export const DataModelBindingsCombobox = ({
       )}
       emptyText={''}
       filter={() => true}
-      selected={selectedItems}
+      selected={selectedItem}
       onSelectedChange={handleSelectedChange}
     >
       {Object.keys(dataModelBindings).map((key) => {

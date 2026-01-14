@@ -24,8 +24,7 @@ export const SelectDataTypes = ({
   const { t } = useTranslation();
   const { mutateDataTypes } = useBpmnApiContext();
 
-  const handleChangeDataModel = (newDataModelIds?: string[]) => {
-    const newDataModelId = newDataModelIds ? newDataModelIds[0] : undefined;
+  const handleChangeDataModel = (newDataModelId?: string) => {
     if (newDataModelId !== existingDataType) {
       const dataTypesChange: DataTypesChange = {
         newDataTypes: [newDataModelId],
@@ -36,9 +35,8 @@ export const SelectDataTypes = ({
     onClose();
   };
 
-  const handleSelectedChange = (items: { value: string }[]) => {
-    const selectedValues = items.map((item) => item.value);
-    handleChangeDataModel(selectedValues);
+  const handleSelectedChange = (item: { value: string }) => {
+    handleChangeDataModel(item?.value);
   };
 
   const dataModelOptionsToDisplay: string[] = existingDataType
@@ -49,17 +47,18 @@ export const SelectDataTypes = ({
     ? t('process_editor.configuration_panel_data_model_selection_description_existing_model')
     : t('process_editor.configuration_panel_data_model_selection_description');
 
-  const selectedItems =
+  const selectedItem =
     existingDataType && dataModelOptionsToDisplay.includes(existingDataType)
-      ? [{ value: existingDataType, label: existingDataType }]
-      : [];
+      ? { value: existingDataType, label: existingDataType }
+      : undefined;
 
   return (
     <div className={classes.dataTypeSelectAndButtons}>
       <StudioSuggestion
+        multiple={false}
         label={t('process_editor.configuration_panel_set_data_model_label')}
         description={descriptionText}
-        selected={selectedItems}
+        selected={selectedItem}
         emptyText={t('process_editor.configuration_panel_no_data_model_to_select')}
         className={classes.dataTypeSelect}
         filter={() => true}

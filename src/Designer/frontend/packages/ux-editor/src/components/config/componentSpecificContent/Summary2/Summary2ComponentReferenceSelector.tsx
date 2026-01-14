@@ -23,15 +23,16 @@ export const Summary2ComponentReferenceSelector = ({
   const requiredMessage = !value && t('ux_editor.component_properties.enum_Required');
   const errorMessage = invalidMessage || requiredMessage || false;
 
-  const selectedItems = value ? [{ value, label: value }] : [];
+  const selectedItem = value ? { value, label: value } : undefined;
 
-  const handleSelectedChange = (items: { value: string }[]) => onValueChange(items[0]?.value || '');
+  const handleSelectedChange = (item: { value: string }) => onValueChange(item?.value || '');
 
   return (
     <StudioSuggestion
+      multiple={false}
       label={label}
       emptyText={t('ux_editor.component_properties.target_empty')}
-      selected={selectedItems}
+      selected={selectedItem}
       onSelectedChange={handleSelectedChange}
       error={errorMessage}
     >

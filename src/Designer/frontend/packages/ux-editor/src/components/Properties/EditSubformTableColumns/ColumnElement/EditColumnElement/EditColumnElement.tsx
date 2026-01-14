@@ -149,15 +149,15 @@ export const EditColumnElementComponentSelect = ({
 }: EditColumnElementComponentSelectProps) => {
   const { t } = useTranslation();
 
-  const handleSelectedChange = (items: { value: string }[]) => {
-    const selectedValues = items.map((item) => item.value);
-    onSelectComponent(selectedValues);
+  const handleSelectedChange = (item: { value: string }) => {
+    onSelectComponent([item?.value]);
   };
 
-  const selectedItems = selectedId ? [{ value: selectedId, label: selectedId }] : [];
+  const selectedItem = selectedId ? { value: selectedId, label: selectedId } : undefined;
 
   return (
     <StudioSuggestion
+      multiple={false}
       label={t('ux_editor.properties_panel.subform_table_columns.choose_component')}
       description={t(
         'ux_editor.properties_panel.subform_table_columns.choose_component_description',
@@ -166,7 +166,7 @@ export const EditColumnElementComponentSelect = ({
         'ux_editor.properties_panel.subform_table_columns.no_components_available_message',
       )}
       filter={() => true}
-      selected={selectedItems}
+      selected={selectedItem}
       onSelectedChange={handleSelectedChange}
       id='columncomponentselect'
     >
