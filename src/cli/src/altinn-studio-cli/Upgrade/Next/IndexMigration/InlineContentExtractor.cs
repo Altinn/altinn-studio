@@ -6,12 +6,20 @@ namespace Altinn.Studio.Cli.Upgrade.Next.IndexMigration;
 internal sealed class InlineContentExtractor
 {
     private readonly string _projectFolder;
-    private readonly IndexAnalysisResult _analysisResult;
+    private readonly List<string> _inlineStyles;
+    private readonly List<string> _inlineScripts;
 
-    public InlineContentExtractor(string projectFolder, IndexAnalysisResult analysisResult)
+    public InlineContentExtractor(string projectFolder, CategorizationResult categorizationResult)
     {
         _projectFolder = projectFolder;
-        _analysisResult = analysisResult;
+        _inlineStyles = categorizationResult
+            .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.InlineStylesheet)
+            .Select(c => c.ExtractionHint)
+            .ToList();
+        _inlineScripts = categorizationResult
+            .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.InlineScript)
+            .Select(c => c.ExtractionHint)
+            .ToList();
     }
 
     /// <summary>
@@ -28,7 +36,7 @@ internal sealed class InlineContentExtractor
     private async Task<List<string>> ExtractInlineCss()
     {
         var createdFiles = new List<string>();
-        if (_analysisResult.CustomCss.InlineStyles.Count == 0)
+        if (_inlineStyles.Count == 0)
         {
             return createdFiles;
         }
@@ -36,10 +44,10 @@ internal sealed class InlineContentExtractor
         var cssDir = Path.Combine(_projectFolder, "App", "wwwroot", "custom-css");
         Directory.CreateDirectory(cssDir);
 
-        for (int i = 0; i < _analysisResult.CustomCss.InlineStyles.Count; i++)
+        for (int i = 0; i < _inlineStyles.Count; i++)
         {
-            var content = _analysisResult.CustomCss.InlineStyles[i];
-            var fileName = _analysisResult.CustomCss.InlineStyles.Count == 1 ? "styles.css" : $"styles-{i}.css";
+            var content = _inlineStyles[i];
+            var fileName = _inlineStyles.Count == 1 ? "styles.css" : $"styles-{i}.css";
             var filePath = Path.Combine(cssDir, fileName);
 
             await File.WriteAllTextAsync(filePath, content);
@@ -52,7 +60,7 @@ internal sealed class InlineContentExtractor
     private async Task<List<string>> ExtractInlineJs()
     {
         var createdFiles = new List<string>();
-        if (_analysisResult.CustomJavaScript.InlineScripts.Count == 0)
+        if (_inlineScripts.Count == 0)
         {
             return createdFiles;
         }
@@ -60,10 +68,10 @@ internal sealed class InlineContentExtractor
         var jsDir = Path.Combine(_projectFolder, "App", "wwwroot", "custom-js");
         Directory.CreateDirectory(jsDir);
 
-        for (int i = 0; i < _analysisResult.CustomJavaScript.InlineScripts.Count; i++)
+        for (int i = 0; i < _inlineScripts.Count; i++)
         {
-            var content = _analysisResult.CustomJavaScript.InlineScripts[i];
-            var fileName = _analysisResult.CustomJavaScript.InlineScripts.Count == 1 ? "script.js" : $"script-{i}.js";
+            var content = _inlineScripts[i];
+            var fileName = _inlineScripts.Count == 1 ? "script.js" : $"script-{i}.js";
             var filePath = Path.Combine(jsDir, fileName);
 
             await File.WriteAllTextAsync(filePath, content);

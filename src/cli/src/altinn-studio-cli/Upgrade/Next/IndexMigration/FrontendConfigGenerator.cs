@@ -3,21 +3,21 @@ using System.Text.Json;
 namespace Altinn.Studio.Cli.Upgrade.Next.IndexMigration;
 
 /// <summary>
-/// Generates frontend.json configuration from analysis results
+/// Generates frontend.json configuration from categorization results
 /// </summary>
 internal sealed class FrontendConfigGenerator
 {
-    private static readonly JsonSerializerOptions s_jsonOptions = new()
+    private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         WriteIndented = true,
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
     };
 
-    private readonly IndexAnalysisResult _analysisResult;
+    private readonly CategorizationResult _categorizationResult;
 
-    public FrontendConfigGenerator(IndexAnalysisResult analysisResult)
+    public FrontendConfigGenerator(CategorizationResult categorizationResult)
     {
-        _analysisResult = analysisResult;
+        _categorizationResult = categorizationResult;
     }
 
     /// <summary>
@@ -26,11 +26,17 @@ internal sealed class FrontendConfigGenerator
     /// <returns>Frontend configuration object</returns>
     public FrontendConfiguration Generate()
     {
-        return new FrontendConfiguration
-        {
-            Stylesheets = _analysisResult.CustomCss.ExternalStylesheets.ToList(),
-            Scripts = _analysisResult.CustomJavaScript.ExternalScripts.ToList(),
-        };
+        var externalStylesheets = _categorizationResult
+            .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.ExternalStylesheet)
+            .Select(c => c.ExtractionHint)
+            .ToList();
+
+        var externalScripts = _categorizationResult
+            .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.ExternalScript)
+            .Select(c => c.ExtractionHint)
+            .ToList();
+
+        return new FrontendConfiguration { Stylesheets = externalStylesheets, Scripts = externalScripts };
     }
 
     /// <summary>
@@ -54,7 +60,7 @@ internal sealed class FrontendConfigGenerator
             Directory.CreateDirectory(directory);
         }
 
-        var json = JsonSerializer.Serialize(config, s_jsonOptions);
+        var json = JsonSerializer.Serialize(config, _jsonOptions);
         await File.WriteAllTextAsync(outputPath, json);
     }
 }

@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
+using StringComparison = System.StringComparison;
 
 namespace Altinn.Studio.Cli.Upgrade.Next.IndexMigration;
 

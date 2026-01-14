@@ -185,47 +185,6 @@ internal sealed record MigrationReport
     /// Reason migration is blocked (if blocked)
     /// </summary>
     public string? BlockingReason { get; init; }
-
-    /// <summary>
-    /// Prints the report to console (only prints if there are issues)
-    /// </summary>
-    public void PrintToConsole()
-    {
-        // Only print output if there are unexpected elements (failures)
-        if (Summary.IsSafeToMigrate)
-        {
-            return;
-        }
-
-        Console.WriteLine("=== Index.cshtml Migration Analysis ===");
-        Console.WriteLine();
-        Console.WriteLine($"Standard Elements: {Summary.ExpectedCount} (framework components)");
-
-        if (Summary.KnownCustomizationCount > 0)
-        {
-            Console.WriteLine($"Known Customizations: {Summary.KnownCustomizationCount} (will be migrated)");
-        }
-
-        if (Summary.UnexpectedCount > 0)
-        {
-            Console.WriteLine($"Unexpected Elements: {Summary.UnexpectedCount}");
-        }
-
-        Console.WriteLine();
-
-        if (CustomizationsSection != null)
-        {
-            Console.WriteLine(CustomizationsSection);
-        }
-
-        if (UnexpectedSection != null)
-        {
-            Console.WriteLine(UnexpectedSection);
-        }
-
-        Console.WriteLine($"Migration BLOCKED: {BlockingReason}");
-        Console.WriteLine();
-    }
 }
 
 /// <summary>

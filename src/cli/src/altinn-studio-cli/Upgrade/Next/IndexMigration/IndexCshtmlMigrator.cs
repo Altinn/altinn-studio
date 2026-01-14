@@ -1,7 +1,7 @@
 namespace Altinn.Studio.Cli.Upgrade.Next.IndexMigration;
 
 /// <summary>
-/// Main class for Index.cshtml analysis and migration
+/// Main class for Index.cshtml migration
 /// </summary>
 internal sealed class IndexCshtmlMigrator
 {
@@ -17,130 +17,61 @@ internal sealed class IndexCshtmlMigrator
     }
 
     /// <summary>
-    /// Analyzes or migrates Index.cshtml
+    /// Migrates Index.cshtml to frontend.json configuration
     /// </summary>
-    /// <param name="analyzeOnly">If true, only analyze and report; if false, perform full migration</param>
     /// <returns>0 on success, 1 on failure</returns>
-    public async Task<int> Analyze(bool analyzeOnly)
+    public async Task<int> Migrate()
     {
-        try
+        if (!File.Exists(_indexCshtmlPath))
         {
-            // Check if Index.cshtml exists
-            if (!File.Exists(_indexCshtmlPath))
-            {
-                Console.WriteLine("Index.cshtml not found - already migrated or using different structure");
-                return 0;
-            }
-
-            // Parse Index.cshtml
-            var parser = new IndexFileParser(_indexCshtmlPath);
-            await parser.Parse();
-
-            var document = parser.GetDocument();
-            if (document == null)
-            {
-                Console.WriteLine("Failed to parse Index.cshtml - document is null");
-                return 1;
-            }
-
-            // Run new categorization system
-            var categorizer = new ElementCategorizer();
-            var categorizationResult = categorizer.Categorize(document);
-
-            // Make migration decision and generate report
-            var decisionEngine = new MigrationDecisionEngine();
-            var decision = decisionEngine.Decide(categorizationResult);
-
-            // Print report
-            decision.Report.PrintToConsole();
-
-            // If analyze-only mode, exit with appropriate code
-            if (analyzeOnly)
-            {
-                return decision.CanProceed ? 0 : 1;
-            }
-
-            // Check if migration can proceed
-            if (!decision.CanProceed)
-            {
-                Console.WriteLine();
-                Console.WriteLine("Keeping Index.cshtml due to unexpected elements");
-                return 1;
-            }
-
-            // Convert categorization result to analysis result for backward compatibility
-            var analysisResult = ConvertToAnalysisResult(categorizationResult);
-
-            // Full migration mode
-            return await PerformMigration(analysisResult);
+            Console.WriteLine("Index.cshtml not found - nothing to migrate");
+            return 0;
         }
-        catch (Exception ex)
+
+        var parser = new IndexFileParser(_indexCshtmlPath);
+        await parser.Parse();
+
+        var document = parser.GetDocument();
+        if (document == null)
         {
-            Console.WriteLine($"Error during Index.cshtml migration: {ex.Message}");
+            Console.WriteLine("Failed to parse Index.cshtml, document is null");
             return 1;
         }
+
+        var categorizer = new ElementCategorizer();
+        var categorizationResult = categorizer.Categorize(document);
+        var decisionEngine = new MigrationDecisionEngine();
+        var decision = decisionEngine.Decide(categorizationResult);
+
+        // Check if migration can proceed
+        if (!decision.CanProceed)
+        {
+            Console.WriteLine(
+                "Keeping Index.cshtml due to unexpected elements (please review it manually and delete it if you want the auto-generated one)"
+            );
+            return 1;
+        }
+
+        return await PerformMigration(categorizationResult);
     }
 
-    private int PrintAnalysisReport(IndexAnalysisResult result)
-    {
-        if (result.CustomCss.InlineStyles.Count > 0)
-        {
-            Console.WriteLine($"Found {result.CustomCss.InlineStyles.Count} inline CSS block(s)");
-        }
-
-        if (result.CustomCss.ExternalStylesheets.Count > 0)
-        {
-            Console.WriteLine($"Found {result.CustomCss.ExternalStylesheets.Count} external stylesheet(s):");
-            foreach (var stylesheet in result.CustomCss.ExternalStylesheets)
-            {
-                Console.WriteLine($"  - {stylesheet}");
-            }
-        }
-
-        if (result.CustomJavaScript.InlineScripts.Count > 0)
-        {
-            Console.WriteLine($"Found {result.CustomJavaScript.InlineScripts.Count} inline JavaScript block(s)");
-        }
-
-        if (result.CustomJavaScript.ExternalScripts.Count > 0)
-        {
-            Console.WriteLine($"Found {result.CustomJavaScript.ExternalScripts.Count} external script(s):");
-            foreach (var script in result.CustomJavaScript.ExternalScripts)
-            {
-                Console.WriteLine($"  - {script}");
-            }
-        }
-
-        if (result.CustomFrontend.IsCustomFrontend)
-        {
-            Console.WriteLine("Custom frontend: Yes (standard Altinn app-frontend not detected)");
-        }
-
-        if (result.Warnings.Count > 0)
-        {
-            Console.WriteLine();
-            Console.WriteLine("Warnings:");
-            foreach (var warning in result.Warnings)
-            {
-                Console.WriteLine($"  - {warning}");
-            }
-        }
-
-        return 0;
-    }
-
-    private async Task<int> PerformMigration(IndexAnalysisResult result)
+    private async Task<int> PerformMigration(CategorizationResult categorizationResult)
     {
         Console.WriteLine("Migrating Index.cshtml to frontend.json configuration...");
 
         var createdFiles = new List<string>();
 
+        var hasInlineContent = categorizationResult.KnownCustomizations.Any(c =>
+            c.CustomizationType == CustomizationType.InlineStylesheet
+            || c.CustomizationType == CustomizationType.InlineScript
+        );
+
         try
         {
             // Extract inline content to files
-            if (result.CustomCss.InlineStyles.Count > 0 || result.CustomJavaScript.InlineScripts.Count > 0)
+            if (hasInlineContent)
             {
-                var extractor = new InlineContentExtractor(_projectFolder, result);
+                var extractor = new InlineContentExtractor(_projectFolder, categorizationResult);
                 var (cssFiles, jsFiles) = await extractor.Extract();
 
                 createdFiles.AddRange(cssFiles);
@@ -158,7 +89,7 @@ internal sealed class IndexCshtmlMigrator
             }
 
             // Generate and write frontend.json configuration (only if there are external URLs)
-            var configGenerator = new FrontendConfigGenerator(result);
+            var configGenerator = new FrontendConfigGenerator(categorizationResult);
             var config = configGenerator.Generate();
 
             if (config.HasContent)
@@ -197,32 +128,17 @@ internal sealed class IndexCshtmlMigrator
             Console.WriteLine("Attempting to rollback created files...");
             foreach (var file in createdFiles)
             {
-                try
+                if (File.Exists(file))
                 {
-                    if (File.Exists(file))
-                    {
-                        File.Delete(file);
-                    }
-                }
-                catch
-                {
-                    // Ignore errors during rollback
+                    File.Delete(file);
                 }
             }
 
             // Attempt to delete config file if created
-            try
+            if (File.Exists(_configOutputPath))
             {
-                if (File.Exists(_configOutputPath))
-                {
-                    File.Delete(_configOutputPath);
-                }
+                File.Delete(_configOutputPath);
             }
-            catch
-            {
-                // Ignore errors during rollback
-            }
-
             return 1;
         }
     }
@@ -250,47 +166,5 @@ internal sealed class IndexCshtmlMigrator
             // Log warning but don't fail migration
             Console.WriteLine($"Warning: Failed to clean up empty directories: {ex.Message}");
         }
-    }
-
-    /// <summary>
-    /// Converts categorization result to analysis result for backward compatibility
-    /// </summary>
-    private IndexAnalysisResult ConvertToAnalysisResult(CategorizationResult categorizationResult)
-    {
-        // Extract customizations by type
-        var inlineStyles = categorizationResult
-            .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.InlineStylesheet)
-            .Select(c => c.ExtractionHint)
-            .ToList();
-
-        var externalStylesheets = categorizationResult
-            .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.ExternalStylesheet)
-            .Select(c => c.ExtractionHint)
-            .ToList();
-
-        var inlineScripts = categorizationResult
-            .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.InlineScript)
-            .Select(c => c.ExtractionHint)
-            .ToList();
-
-        var externalScripts = categorizationResult
-            .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.ExternalScript)
-            .Select(c => c.ExtractionHint)
-            .ToList();
-
-        var cssResult = new CustomCssResult { InlineStyles = inlineStyles, ExternalStylesheets = externalStylesheets };
-
-        var jsResult = new CustomJavaScriptResult { InlineScripts = inlineScripts, ExternalScripts = externalScripts };
-
-        // Custom frontend detection is not needed anymore, but keep for compatibility
-        var frontendResult = new CustomFrontendResult { IsCustomFrontend = false };
-
-        return IndexAnalysisResult.Successful(
-            _indexCshtmlPath,
-            cssResult,
-            jsResult,
-            frontendResult,
-            new List<string>() // No warnings from new system
-        );
     }
 }

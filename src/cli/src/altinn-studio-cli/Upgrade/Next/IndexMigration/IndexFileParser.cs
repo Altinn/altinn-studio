@@ -1,4 +1,3 @@
-using AngleSharp;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 
@@ -11,7 +10,6 @@ internal sealed class IndexFileParser
 {
     private readonly string _filePath;
     private IHtmlDocument? _document;
-    private readonly List<string> _parseWarnings = [];
 
     public IndexFileParser(string filePath)
     {
@@ -24,12 +22,6 @@ internal sealed class IndexFileParser
     /// <returns>True if parsing was successful, false otherwise</returns>
     public async Task Parse()
     {
-        if (!File.Exists(_filePath))
-        {
-            _parseWarnings.Add($"File not found: {_filePath}");
-            return;
-        }
-
         var htmlContent = await File.ReadAllTextAsync(_filePath);
 
         // AngleSharp is tolerant of Razor syntax in text nodes and attribute values
@@ -43,10 +35,4 @@ internal sealed class IndexFileParser
     /// </summary>
     /// <returns>The parsed document, or null if parsing failed</returns>
     public IHtmlDocument? GetDocument() => _document;
-
-    /// <summary>
-    /// Gets any warnings generated during parsing
-    /// </summary>
-    /// <returns>List of parse warnings</returns>
-    public List<string> GetParseWarnings() => _parseWarnings;
 }
