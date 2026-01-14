@@ -44,7 +44,7 @@
   "admin.metrics.errors.missing_rights": "Du har ikke rettigheter til å se applikasjonsfeil i {{envTitle}}. Be eierne i {{orgName}} om å gi deg tilgang.",
   "admin.metrics.errors.link": "Se logger her",
   "admin.metrics.errors.loading": "Laster inn applikasjonsfeil...",
-  "admin.metrics.failed_instances_requests": "feilende instansieringer",
+  "admin.metrics.failed_instance_creation_requests": "feilende instansieringer",
   "admin.metrics.failed_process_next_requests": "feilende process/next",
   "admin.metrics.heading": "Statistikk fra siste",
   "admin.metrics.ready_pods": "av podene er klare",

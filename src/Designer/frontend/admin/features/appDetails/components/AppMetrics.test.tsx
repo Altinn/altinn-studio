@@ -11,9 +11,22 @@ import axios from 'axios';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import userEvent from '@testing-library/user-event';
+import { OrgContext } from '../../../layout/PageLayout';
 
 const env = 'test';
 const range = 5;
+
+const orgMock = {
+  name: {
+    en: org,
+    nb: org,
+    nn: org,
+  },
+  logo: '',
+  orgnr: '',
+  homepage: '',
+  environments: [],
+};
 
 jest.mock('react-chartjs-2');
 jest.mock('react-router-dom', () => {
@@ -147,7 +160,7 @@ describe('AppMetrics', () => {
           dataPoints: [],
         },
         {
-          name: 'failed_instances_requests',
+          name: 'failed_instance_creation_requests',
           dataPoints: [],
         },
       ];
@@ -167,7 +180,7 @@ describe('AppMetrics', () => {
 
       const mockData = [
         {
-          name: 'failed_instances_requests',
+          name: 'failed_instance_creation_requests',
           dataPoints: [],
         },
       ];
@@ -274,9 +287,11 @@ const renderAppMetrics = (
 ) => {
   render(
     <MemoryRouter>
-      <QueryClientProvider client={client}>
-        <AppMetrics {...props} />
-      </QueryClientProvider>
+      <OrgContext.Provider value={orgMock}>
+        <QueryClientProvider client={client}>
+          <AppMetrics {...props} />
+        </QueryClientProvider>
+      </OrgContext.Provider>
     </MemoryRouter>,
   );
 };
