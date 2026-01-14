@@ -8,7 +8,6 @@ import { type IFailedAttachment, isDataPostError } from 'src/features/attachment
 import { useDeleteFailedAttachment, useFailedAttachmentsFor } from 'src/features/attachments/hooks';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { getFeature } from 'src/features/toggles';
 import { getValidationIssueMessage } from 'src/features/validation/backendValidation/backendValidationUtils';
 import classes from 'src/layout/FileUpload/Error/FailedAttachments.module.css';
 import { isRejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
@@ -74,15 +73,9 @@ function FileUploadError({ attachment, handleClose }: { attachment: IFailedAttac
 function ErrorDetails({ attachment: { data, error } }: { attachment: IFailedAttachment }) {
   const [showingMore, setShowingMore] = useState(false);
 
-  const jsonObjectInDataResponse = getFeature('jsonObjectInDataResponse');
-
   if (isAxiosError(error)) {
     const reply = error.response?.data;
-    const issues = isDataPostError(reply)
-      ? reply.uploadValidationIssues
-      : jsonObjectInDataResponse.value && Array.isArray(reply) // This is the old API response
-        ? reply
-        : null;
+    const issues = isDataPostError(reply) ? reply.uploadValidationIssues : null;
 
     if (issues && issues.length === 1) {
       const { key, customTextParameters } = getValidationIssueMessage(issues[0]);

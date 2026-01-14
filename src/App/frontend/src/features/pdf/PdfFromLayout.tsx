@@ -263,11 +263,13 @@ function PdfForNode({ baseComponentId }: { baseComponentId: string }) {
   const component = useExternalItem(baseComponentId);
   const item = useItemIfType(baseComponentId, 'Summary2');
 
+  const applicationMetadata = useApplicationMetadata();
+
   if (item?.target?.taskId) {
     return <SummaryComponent2 baseComponentId={baseComponentId} />;
   }
 
-  const betaEnabled = getFeature('betaPDFenabled');
+  const betaEnabled = getFeature('betaPDFenabled', applicationMetadata);
   if (betaEnabled.value) {
     return <ComponentSummary targetBaseComponentId={baseComponentId} />;
   }

@@ -1,10 +1,10 @@
 ﻿{
   "Id": "tdd/bestilling",
   "Features": {
-    "footer": true,
-    "processActions": true,
     "jsonObjectInDataResponse": false,
-    "betaPDFenabled": false
+    "betaPDFenabled": false,
+    "addInstanceIdentifierToLayoutRequests": false,
+    "simpleTableEnabled": false
   },
   "OnEntry": {
     "InstanceSelection": null,

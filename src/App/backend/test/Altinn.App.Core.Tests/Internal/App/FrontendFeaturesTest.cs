@@ -14,10 +14,12 @@ public class FrontendFeaturesTest
     {
         Dictionary<string, bool> expected = new Dictionary<string, bool>()
         {
-            { "footer", true },
-            { "processActions", true },
             { "jsonObjectInDataResponse", false },
+            { "betaPDFenabled", false },
+            { "addInstanceIdentifierToLayoutRequests", false },
+            { "simpleTableEnabled", false },
         };
+
         var featureManagerMock = new Mock<IFeatureManager>();
         IFrontendFeatures frontendFeatures = new FrontendFeatures(featureManagerMock.Object);
 
@@ -31,9 +33,10 @@ public class FrontendFeaturesTest
     {
         Dictionary<string, bool> expected = new Dictionary<string, bool>()
         {
-            { "footer", true },
-            { "processActions", true },
             { "jsonObjectInDataResponse", true },
+            { "betaPDFenabled", false },
+            { "addInstanceIdentifierToLayoutRequests", false },
+            { "simpleTableEnabled", false },
         };
         var featureManagerMock = new Mock<IFeatureManager>();
         featureManagerMock.Setup(f => f.IsEnabledAsync(FeatureFlags.JsonObjectInDataResponse)).ReturnsAsync(true);

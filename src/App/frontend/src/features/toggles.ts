@@ -1,3 +1,5 @@
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
+
 export const FeatureToggles = {
   betaPDFenabled: {
     defaultValue: true,
@@ -23,32 +25,27 @@ export const FeatureToggles = {
     description:
       "This is on by default, but can be disabled if you want less network traffic and don't need to run backend dynamics immediately when leaving an input field.",
   },
-  jsonObjectInDataResponse: {
-    defaultValue: false,
-    title: '',
-    description: '',
-  },
   addInstanceIdentifierToLayoutRequests: {
     defaultValue: false,
-    title: '',
-    description: '',
+    title: 'Fetch instance specific layouts',
+    description: 'This is required when using instance specific layouts',
   },
 };
 
-export type FeatureToggleSource = 'window' | 'cookie' | 'default';
+export type FeatureToggleSource = 'window' | 'cookie' | 'default' | 'applicationMetadata';
 export type IFeatureToggles = keyof typeof FeatureToggles;
 export type IFeatureTogglesOptionalMap = { [key in IFeatureToggles]?: boolean };
 export type FeatureValue = { value: boolean; source: FeatureToggleSource };
 
-export function getFeature(feature: IFeatureToggles): FeatureValue {
+export function getFeature(feature: IFeatureToggles, applicationMetaData: ApplicationMetadata): FeatureValue {
   if (
-    window.featureToggles &&
-    feature in window.featureToggles &&
-    typeof window.featureToggles[feature] === 'boolean'
+    applicationMetaData.features &&
+    feature in applicationMetaData.features &&
+    typeof applicationMetaData.features[feature] === 'boolean'
   ) {
     return {
-      value: window.featureToggles[feature] as boolean,
-      source: 'window',
+      value: applicationMetaData.features[feature] as boolean,
+      source: 'applicationMetadata',
     };
   }
 

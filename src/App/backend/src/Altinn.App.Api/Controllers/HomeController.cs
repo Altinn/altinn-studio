@@ -98,7 +98,7 @@ public class HomeController : Controller
         {
             ViewBag.org = org;
             ViewBag.app = app;
-            return Content(await GenerateHtml(org, app), "text/html; charset=utf-8");
+            return Content(GenerateHtml(org, app), "text/html; charset=utf-8");
         }
 
         string scheme = _env.IsDevelopment() ? "http" : "https";
@@ -119,16 +119,13 @@ public class HomeController : Controller
         return Redirect(redirectUrl);
     }
 
-    private async Task<string> GenerateHtml(string org, string app)
+    private string GenerateHtml(string org, string app)
     {
         var frontendUrl = "https://altinncdn.no/toolkits/altinn-app-frontend/4";
         if (HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var frontendVersionCookie))
         {
             frontendUrl = frontendVersionCookie.TrimEnd('/');
         }
-
-        var featureToggles = await _frontendFeatures.GetFrontendFeatures();
-        var featureTogglesJson = JsonSerializer.Serialize(featureToggles, _jsonSerializerOptions);
 
         var htmlContent = $$"""
             <!DOCTYPE html>
@@ -146,7 +143,6 @@ public class HomeController : Controller
               <script>
                 window.org = '{{org}}';
                 window.app = '{{app}}';
-                window.featureToggles = {{featureTogglesJson}};
               </script>
               <script src="{{frontendUrl}}/altinn-app-frontend.js"></script>
             </body>

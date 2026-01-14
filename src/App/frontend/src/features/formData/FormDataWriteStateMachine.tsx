@@ -9,6 +9,7 @@ import { convertData } from 'src/features/formData/convertData';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { getFeature } from 'src/features/toggles';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
 import type { FDLeafValue } from 'src/features/formData/FormDataWrite';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
@@ -212,8 +213,9 @@ function makeActions(
   set: (fn: (state: FormDataContext) => void) => void,
   changeInstance: ChangeInstanceData,
   schemaLookup: { [dataType: string]: SchemaLookupTool },
+  applicationMetaData: ApplicationMetadata,
 ): FormDataMethods {
-  const debounceOnBlur = getFeature('saveOnBlur').value;
+  const debounceOnBlur = getFeature('saveOnBlur', applicationMetaData).value;
 
   function setDebounceTimeout(state: FormDataContext, change: FDChange) {
     state.debounceTimeout = change.debounceTimeout ?? DEFAULT_DEBOUNCE_TIMEOUT;
@@ -587,10 +589,11 @@ export const createFormDataWriteStore = (
   proxies: FormDataWriteProxies,
   schemaLookup: { [dataType: string]: SchemaLookupTool },
   changeInstance: ChangeInstanceData,
+  applicationMetaData: ApplicationMetadata,
 ) =>
   createStore<FormDataContext>()(
     immer((set) => {
-      const actions = makeActions(set, changeInstance, schemaLookup);
+      const actions = makeActions(set, changeInstance, schemaLookup, applicationMetaData);
       for (const name of Object.keys(actions)) {
         const fnName = name as keyof FormDataMethods;
         const original = actions[fnName];

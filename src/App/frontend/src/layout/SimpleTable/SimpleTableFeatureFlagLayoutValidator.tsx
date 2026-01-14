@@ -1,9 +1,11 @@
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { getFeature } from 'src/features/toggles';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { NodeValidationProps } from 'src/layout/layout';
 
 export function SimpleTableFeatureFlagLayoutValidator({ intermediateItem }: NodeValidationProps<'SimpleTable'>) {
-  const simpleTableEnabled = getFeature('simpleTableEnabled');
+  const applicationMetadata = useApplicationMetadata();
+  const simpleTableEnabled = getFeature('simpleTableEnabled', applicationMetadata);
 
   const addError = NodesInternal.useAddError();
   if (!simpleTableEnabled.value) {

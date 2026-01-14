@@ -16,8 +16,8 @@ public class FrontendFeatures : IFrontendFeatures
     ///  </summary>
     public FrontendFeatures(IFeatureManager featureManager)
     {
-        _features.Add("footer", true);
-        _features.Add("processActions", true);
+        // _features.Add("footer", true);
+        // _features.Add("processActions", true);
 
         var featureFlagFields = typeof(FeatureFlags).GetFields(
             BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy
@@ -34,6 +34,11 @@ public class FrontendFeatures : IFrontendFeatures
             {
                 continue;
             }
+
+            // if (expr)
+            // {
+            //
+            // }
 
             var lowercaseName = char.ToLowerInvariant(featureName[0]) + featureName[1..];
             _features[lowercaseName] = featureManager.IsEnabledAsync(featureName).GetAwaiter().GetResult();
