@@ -5,6 +5,7 @@ import type { StudioAlertProps } from '@studio/components';
 import { StudioAlert, StudioLink } from '@studio/components';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
+import { ExternalLinkIcon } from '@studio/icons';
 
 type AlertProps = {
   color: string;
@@ -29,7 +30,14 @@ export const Alert = ({ color, count, title, url, children, className, ...rest }
           {title}
         </span>
         {url && (
-          <StudioLink href={url} rel='noopener noreferrer' target='_blank' className={classes.link}>
+          <StudioLink
+            href={url}
+            rel='noopener noreferrer'
+            target='_blank'
+            className={classes.link}
+            icon={<ExternalLinkIcon title={t('general.open_app_in_new_window')} />}
+            iconPlacement={'right'}
+          >
             {t('admin.metrics.errors.link')}
           </StudioLink>
         )}
