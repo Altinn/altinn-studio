@@ -10,7 +10,7 @@ using StudioGateway.Api.Settings;
 
 namespace StudioGateway.Api.Clients.MetricsClient;
 
-internal sealed partial class AzureMonitorClient(
+internal sealed class AzureMonitorClient(
     GatewayContext gatewayContext,
     ArmClient armClient,
     LogsQueryClient logsQueryClient,
@@ -31,7 +31,7 @@ internal sealed partial class AzureMonitorClient(
             ]
         },
         {
-            "failed_instances_requests",
+            "failed_instance_creation_requests",
             [
                 "POST Instances/Post [app/org]",
                 "POST Instances/PostSimplified [app/org]",

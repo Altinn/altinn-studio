@@ -11,7 +11,7 @@ spec:
   interval: 5m
   rules:
     - uid: failed_process_next_requests
-      title: Feilende process/next
+      title: Failed process/next requests
       condition: C
       data:
         - refId: A
@@ -104,8 +104,8 @@ spec:
         RuleId: failed_process_next_requests
         Type: Altinn
       isPaused: false
-    - uid: failed-instances-requests
-      title: Feilende instansieringer
+    - uid: failed-instance-creation-requests
+      title: Failed instance creation requests
       condition: C
       data:
         - refId: A
@@ -197,6 +197,6 @@ spec:
         __dashboardUid__: AltinnApps
         __panelId__: "14"
       labels:
-        RuleId: failed_instances_requests
+        RuleId: failed_instance_creation_requests
         Type: Altinn
       isPaused: false
