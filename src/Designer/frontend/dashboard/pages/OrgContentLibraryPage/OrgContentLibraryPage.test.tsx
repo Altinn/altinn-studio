@@ -84,8 +84,8 @@ describe('OrgContentLibraryPage', () => {
     renderOrgContentLibrary({ queries: { getOrgCodeLists } });
     await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
 
-    const errorMessage = textMock('dashboard.org_library.fetch_error');
-    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+    const errorMessage = await screen.findByText(textMock('dashboard.org_library.fetch_error'));
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it.each([SelectedContextType.None, SelectedContextType.All, SelectedContextType.Self])(
