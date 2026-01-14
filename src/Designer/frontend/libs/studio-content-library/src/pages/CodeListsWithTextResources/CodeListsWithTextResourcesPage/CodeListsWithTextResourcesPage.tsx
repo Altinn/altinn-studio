@@ -24,11 +24,11 @@ import type { CodeListDataWithTextResources } from '../../../types/CodeListDataW
 export type CodeListsWithTextResourcesPageProps = {
   codeListDataList: CodeListDataWithTextResources[];
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
-  onCreateTextResource?: (textResource: TextResourceWithLanguage) => void;
+  onCreateTextResource: (textResource: TextResourceWithLanguage) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
-  onUpdateTextResource?: (textResource: TextResourceWithLanguage) => void;
+  onUpdateTextResource: (textResource: TextResourceWithLanguage) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
   codeListsUsages?: CodeListReference[];
   textResources?: TextResources;
@@ -52,7 +52,7 @@ export function CodeListsWithTextResourcesPage({
 }: CodeListsWithTextResourcesPageProps): React.ReactElement {
   const { t } = useTranslation();
   const [searchString, setSearchString] = useState<string>('');
-  const [codeListInEditMode, setCodeListInEditMode] = useState<string>(undefined);
+  const [codeListInEditMode, setCodeListInEditMode] = useState<string | undefined>(undefined);
 
   const codeListIsEmpty: boolean = codeListDataList.length === 0;
 
@@ -69,7 +69,7 @@ export function CodeListsWithTextResourcesPage({
   const handleCreateTextResource = useCallback(
     (textResource: TextResource) => {
       const updatedTextResource = createTextResourceWithLanguage(language, textResource);
-      onCreateTextResource?.(updatedTextResource);
+      onCreateTextResource(updatedTextResource);
     },
     [onCreateTextResource],
   );
@@ -77,7 +77,7 @@ export function CodeListsWithTextResourcesPage({
   const handleUpdateTextResource = useCallback(
     (textResource: TextResource) => {
       const updatedTextResource = createTextResourceWithLanguage(language, textResource);
-      onUpdateTextResource?.(updatedTextResource);
+      onUpdateTextResource(updatedTextResource);
     },
     [onUpdateTextResource],
   );
@@ -87,12 +87,12 @@ export function CodeListsWithTextResourcesPage({
     'title',
   );
 
-  const handleUploadCodeList = (uploadedCodeList: File) => {
+  const handleUploadCodeList = (uploadedCodeList: File): void => {
     setCodeListInEditMode(FileNameUtils.removeExtension(uploadedCodeList.name));
     onUploadCodeList(uploadedCodeList);
   };
 
-  const handleUpdateCodeListId = (codeListId: string, newCodeListId: string) => {
+  const handleUpdateCodeListId = (codeListId: string, newCodeListId: string): void => {
     setCodeListInEditMode(newCodeListId);
     onUpdateCodeListId(codeListId, newCodeListId);
   };

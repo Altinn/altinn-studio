@@ -12,10 +12,10 @@ import type {
   CodeListData as LibraryCodeListData,
   ContentLibraryConfig,
   PagesConfig,
-  ResourceContentLibraryImpl,
   TextResources,
   TextResourceWithLanguage,
 } from '@studio/content-library';
+import { PageName } from '@studio/content-library';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
 import { codeList1Data, codeListDataList } from './test-data/codeListDataList';
@@ -61,18 +61,10 @@ const publishedCodeListsQueryKey: string[] = [
 // Mocks:
 jest.mock('@studio/content-library', () => ({
   ...jest.requireActual('@studio/content-library'),
-  ResourceContentLibraryImpl: mockContentLibrary,
+  ContentLibrary: (props) => MockContentLibrary(props),
 }));
 
-function mockContentLibrary(
-  ...args: ConstructorParameters<typeof ResourceContentLibraryImpl>
-): Partial<ResourceContentLibraryImpl> {
-  mockConstructor(...args);
-  return { getContentResourceLibrary };
-}
-
-const mockConstructor = jest.fn();
-const getContentResourceLibrary = jest
+const MockContentLibrary = jest
   .fn()
   .mockImplementation(() => <div data-testid={resourceLibraryTestId} />);
 const resourceLibraryTestId = 'resource-library';
@@ -80,11 +72,23 @@ const resourceLibraryTestId = 'resource-library';
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 describe('OrgContentLibraryPage', () => {
-  beforeEach(mockConstructor.mockClear);
+  beforeEach(MockContentLibrary.mockClear);
 
   it('Renders the content library', () => {
     renderOrgContentLibraryWithData();
     expect(screen.getByTestId(resourceLibraryTestId)).toBeInTheDocument();
+  });
+
+  it('Renders with the landing page by default', () => {
+    renderOrgContentLibraryWithData();
+    const { router } = retrieveConfig();
+    expect(router.location).toEqual(PageName.LandingPage);
+  });
+
+  it('Renders with the element type page given by the path', () => {
+    renderOrgContentLibraryWithData({ initialEntries: ['/' + orgName + '/' + PageName.CodeLists] });
+    const { router } = retrieveConfig();
+    expect(router.location).toEqual(PageName.CodeLists);
   });
 
   it('renders a spinner while waiting for repo status', () => {
@@ -119,19 +123,19 @@ describe('OrgContentLibraryPage', () => {
 
   it('Renders with the given code lists', () => {
     renderOrgContentLibraryWithData();
-    const renderedList = retrievePagesConfig().codeListsWithTextResources.props.codeListDataList;
+    const renderedList = retrievePagesConfig().codeListsWithTextResources.codeListDataList;
     expect(renderedList).toEqual(codeListDataList);
   });
 
   it('Renders with the given text resources', () => {
     renderOrgContentLibraryWithData();
-    const textResourcesData = retrievePagesConfig().codeListsWithTextResources.props.textResources;
+    const textResourcesData = retrievePagesConfig().codeListsWithTextResources.textResources;
     expect(textResourcesData).toEqual(textResources);
   });
 
   it('Renders with fallback text resources when text resources are missing', () => {
     renderOrgContentLibraryWithMissingTextResources();
-    const textResourcesData = retrievePagesConfig().codeListsWithTextResources.props.textResources;
+    const textResourcesData = retrievePagesConfig().codeListsWithTextResources.textResources;
     const expectedTextResources: TextResources = {
       [DEFAULT_LANGUAGE]: [],
     };
@@ -143,7 +147,7 @@ describe('OrgContentLibraryPage', () => {
     renderOrgContentLibraryWithData({ queries: { updateOrgCodeList } });
     const { title, data } = codeList1Data;
 
-    retrievePagesConfig().codeListsWithTextResources.props.onUpdateCodeList({
+    retrievePagesConfig().codeListsWithTextResources.onUpdateCodeList({
       title,
       codeList: data,
     });
@@ -159,10 +163,7 @@ describe('OrgContentLibraryPage', () => {
     const codeListId: string = codeList1Data.title;
     const newCodeListId: string = 'new-id';
 
-    retrievePagesConfig().codeListsWithTextResources.props.onUpdateCodeListId(
-      codeListId,
-      newCodeListId,
-    );
+    retrievePagesConfig().codeListsWithTextResources.onUpdateCodeListId(codeListId, newCodeListId);
     await waitFor(expect(updateOrgCodeListId).toHaveBeenCalled);
 
     expect(updateOrgCodeListId).toHaveBeenCalledTimes(1);
@@ -174,7 +175,7 @@ describe('OrgContentLibraryPage', () => {
     renderOrgContentLibraryWithData({ queries: { createOrgCodeList } });
     const { title, data } = codeList1Data;
 
-    retrievePagesConfig().codeListsWithTextResources.props.onCreateCodeList({
+    retrievePagesConfig().codeListsWithTextResources.onCreateCodeList({
       title,
       codeList: data,
     });
@@ -189,7 +190,7 @@ describe('OrgContentLibraryPage', () => {
     const file = new File([''], 'list.json');
     renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
-    retrievePagesConfig().codeListsWithTextResources.props.onUploadCodeList(file);
+    retrievePagesConfig().codeListsWithTextResources.onUploadCodeList(file);
     await waitFor(expect(uploadOrgCodeList).toHaveBeenCalled);
 
     expect(uploadOrgCodeList).toHaveBeenCalledTimes(1);
@@ -203,7 +204,7 @@ describe('OrgContentLibraryPage', () => {
     const file = new File([''], 'list.json');
     renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
-    retrievePagesConfig().codeListsWithTextResources.props.onUploadCodeList(file);
+    retrievePagesConfig().codeListsWithTextResources.onUploadCodeList(file);
     await waitFor(expect(uploadOrgCodeList).toHaveBeenCalled);
 
     const successMessage = textMock('dashboard.org_library.code_list_upload_success');
@@ -215,7 +216,7 @@ describe('OrgContentLibraryPage', () => {
     const file = new File([''], 'list.json');
     renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
-    retrievePagesConfig().codeListsWithTextResources.props.onUploadCodeList(file);
+    retrievePagesConfig().codeListsWithTextResources.onUploadCodeList(file);
     await waitFor(expect(uploadOrgCodeList).toHaveBeenCalled);
 
     const errorMessage = textMock('dashboard.org_library.code_list_upload_generic_error');
@@ -226,7 +227,7 @@ describe('OrgContentLibraryPage', () => {
     const deleteOrgCodeList = jest.fn();
     renderOrgContentLibraryWithData({ queries: { deleteOrgCodeList } });
 
-    retrievePagesConfig().codeListsWithTextResources.props.onDeleteCodeList(codeList1Data.title);
+    retrievePagesConfig().codeListsWithTextResources.onDeleteCodeList(codeList1Data.title);
     await waitFor(expect(deleteOrgCodeList).toHaveBeenCalled);
 
     expect(deleteOrgCodeList).toHaveBeenCalledTimes(1);
@@ -239,9 +240,7 @@ describe('OrgContentLibraryPage', () => {
     const textResourceWithLanguage: TextResourceWithLanguage = { language, textResource };
     renderOrgContentLibraryWithData();
 
-    retrievePagesConfig().codeListsWithTextResources.props.onUpdateTextResource(
-      textResourceWithLanguage,
-    );
+    retrievePagesConfig().codeListsWithTextResources.onUpdateTextResource(textResourceWithLanguage);
     await waitFor(expect(queriesMock.updateOrgTextResources).toHaveBeenCalled);
 
     expect(queriesMock.updateOrgTextResources).toHaveBeenCalledTimes(1);
@@ -319,7 +318,7 @@ describe('OrgContentLibraryPage', () => {
   it('Renders with code lists on the new code list page', () => {
     renderOrgContentLibraryWithData({ featureFlags: [FeatureFlag.NewCodeLists] });
     const pagesConfig = retrievePagesConfig();
-    const { codeLists } = pagesConfig.codeLists.props;
+    const { codeLists } = pagesConfig.codeLists;
     expect(codeLists).toHaveLength(sharedResourcesResponse.files.length);
   });
 
@@ -334,7 +333,7 @@ describe('OrgContentLibraryPage', () => {
       { name: 'list-1', codes: [{ value: '8', label: { nb: 'Åtte' } }] },
       { name: 'list-2', codes: [{ value: '9', label: { en: 'Nine' } }] },
     ];
-    retrievePagesConfig().codeLists.props.onSave(newCodeLists);
+    retrievePagesConfig().codeLists.onSave(newCodeLists);
     await waitFor(expect(updateSharedResources).toHaveBeenCalled);
 
     expect(updateSharedResources).toHaveBeenCalledTimes(1);
@@ -378,7 +377,7 @@ describe('OrgContentLibraryPage', () => {
       ],
     };
 
-    retrievePagesConfig().codeLists.props.onPublish(libraryCodeListData);
+    retrievePagesConfig().codeLists.onPublish(libraryCodeListData);
 
     await waitFor(expect(publishCodeList).toHaveBeenCalled);
     expect(publishCodeList).toHaveBeenCalledTimes(1);
@@ -433,7 +432,7 @@ function createQueryClientWithRepoStatus(): QueryClient {
 function renderOrgContentLibrary(providerData: ProviderData = {}): RenderResult {
   return renderWithProviders(
     <Routes>
-      <Route path=':selectedContext' element={<OrgContentLibraryPage />} />
+      <Route path=':selectedContext/:elementType?' element={<OrgContentLibraryPage />} />
     </Routes>,
     { ...defaultProviderData, ...providerData },
   );
@@ -444,5 +443,5 @@ function retrievePagesConfig(): PagesConfig {
 }
 
 function retrieveConfig(): ContentLibraryConfig {
-  return mockConstructor.mock.calls[0][0];
+  return MockContentLibrary.mock.calls[0][0];
 }

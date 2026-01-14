@@ -1,11 +1,11 @@
 // TODO: Extract/Centralize react-router routes (https://github.com/Altinn/altinn-studio/issues/12624)
 export const APP_DEVELOPMENT_BASENAME = '/editor';
-export const APP_DASHBOARD_BASENAME = '/app-dashboard';
+export const APP_DASHBOARD_BASENAME = 'app-dashboard';
 export const DASHBOARD_BASENAME = '/dashboard';
 export const DASHBOARD_ROOT_ROUTE = '/';
 export const ADMIN_BASENAME = '/admin';
 export const RESOURCEADM_BASENAME = '/resourceadm';
-export const ORG_LIBRARY_BASENAME = '/org-library';
+export const ORG_LIBRARY_BASENAME = 'org-library';
 export const PREVIEW_BASENAME = '/preview';
 export const STUDIO_ROOT_BASENAME = '/info';
 export const DEFAULT_LANGUAGE = 'nb';

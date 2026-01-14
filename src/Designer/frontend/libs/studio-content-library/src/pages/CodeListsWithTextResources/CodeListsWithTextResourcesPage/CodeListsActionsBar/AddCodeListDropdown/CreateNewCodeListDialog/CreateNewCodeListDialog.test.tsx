@@ -121,21 +121,21 @@ describe('CreateNewCodeListDialog', () => {
 const inputCodeListTitle = async (
   user: UserEvent,
   codeListTitle: string = newCodeListTitleMock,
-) => {
+): Promise<void> => {
   const codeListNameInput = screen.getByRole('textbox', {
     name: textMock('app_content_library.code_lists_with_text_resources.create_new_code_list_name'),
   });
   await user.type(codeListNameInput, codeListTitle);
 };
 
-const addCodeListItem = async (user: UserEvent) => {
+const addCodeListItem = async (user: UserEvent): Promise<void> => {
   const addCodeListItemButton = screen.getByRole('button', {
     name: textMock('code_list_editor.add_option'),
   });
   await user.click(addCodeListItemButton);
 };
 
-const addDuplicatedCodeListValues = async (user: UserEvent) => {
+const addDuplicatedCodeListValues = async (user: UserEvent): Promise<void> => {
   await addCodeListItem(user);
   await addCodeListItem(user);
 };
@@ -158,6 +158,8 @@ const queryDialog = (): HTMLDialogElement | null => {
 
 const defaultProps: CreateNewCodeListDialogProps = {
   onCreateCodeList,
+  onCreateTextResource: jest.fn(),
+  onUpdateTextResource: jest.fn(),
   codeListNames: [existingCodeListTitle],
   textResources: textResourcesNb,
 };
@@ -176,7 +178,7 @@ const renderCreateNewCodeListDialog = (
   return render(<Component />);
 };
 
-const useShowModal = (ref: React.RefObject<HTMLDialogElement>) => {
+const useShowModal = (ref: React.RefObject<HTMLDialogElement>): void => {
   useEffect(() => {
     ref.current?.showModal();
   }, [ref]);

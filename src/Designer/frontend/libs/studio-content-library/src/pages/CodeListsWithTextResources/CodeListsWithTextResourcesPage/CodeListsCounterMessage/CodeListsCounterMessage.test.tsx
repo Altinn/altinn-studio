@@ -29,6 +29,6 @@ describe('CodeListsCounterMessage', () => {
   });
 });
 
-const renderCodeListsCounterMessage = (codeListsCount: number) => {
+const renderCodeListsCounterMessage = (codeListsCount: number): void => {
   render(<CodeListsCounterMessage codeListsCount={codeListsCount} />);
 };

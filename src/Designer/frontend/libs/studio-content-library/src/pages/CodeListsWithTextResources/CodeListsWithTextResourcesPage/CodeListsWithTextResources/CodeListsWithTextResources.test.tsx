@@ -13,6 +13,7 @@ import { codeListsDataMock } from '../../../../../mocks/mockPagesConfig';
 import { CodeListUsageTaskType } from '../../../../types/CodeListUsageTaskType';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import { textResourcesNb } from '../../../../test-data/textResources';
+import { Guard } from '@studio/pure-functions';
 
 const onDeleteCodeListMock = jest.fn();
 const onUpdateCodeListIdMock = jest.fn();
@@ -258,7 +259,7 @@ describe('CodeListsWithTextResources', () => {
 
   it('renders error message if option list has format error', () => {
     renderCodeLists({
-      codeListDataList: [{ ...codeListsDataMock[0], hasError: true, data: null }],
+      codeListDataList: [{ ...codeListsDataMock[0], hasError: true, data: undefined }],
     });
     const errorMessage = screen.getByText(
       textMock('app_content_library.code_lists_with_text_resources.format_error'),
@@ -298,7 +299,11 @@ describe('CodeListsWithTextResources', () => {
   });
 });
 
-const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeListId: string) => {
+const changeCodeListId = async (
+  user: UserEvent,
+  oldCodeListId: string,
+  newCodeListId: string,
+): Promise<void> => {
   const codeListIdToggleTextfield = screen.getByTitle(
     textMock('app_content_library.code_lists_with_text_resources.code_list_view_id_title', {
       codeListName: oldCodeListId,
@@ -315,9 +320,11 @@ const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeL
 
 const defaultProps: CodeListsWithTextResourcesProps = {
   codeListDataList: codeListsDataMock,
+  onCreateTextResource: jest.fn(),
   onDeleteCodeList: onDeleteCodeListMock,
   onUpdateCodeListId: onUpdateCodeListIdMock,
   onUpdateCodeList: onUpdateCodeListMock,
+  onUpdateTextResource: jest.fn(),
   codeListInEditMode: undefined,
   codeListNames: [],
   codeListsUsages: [],
@@ -331,6 +338,8 @@ const renderCodeLists = (props: Partial<CodeListsWithTextResourcesProps> = {}): 
 describe('updateCodeListWithMetadata', () => {
   it('returns an updated CodeListWithMetadata object', () => {
     const updatedCodeList: StudioComponentsCodeList = [{ value: '', label: '' }];
+    Guard.againstEmptyArray(codeListsDataMock);
+    Guard.againstUndefined(codeListsDataMock[0].data);
     const updatedCodeListWithMetadata: CodeListWithMetadata = updateCodeListWithMetadata(
       { title: codeListsDataMock[0].title, codeList: codeListsDataMock[0].data },
       updatedCodeList,
@@ -343,6 +352,8 @@ describe('updateCodeListWithMetadata', () => {
 
   it('works with an empty code list', () => {
     const updatedCodeList: StudioComponentsCodeList = [];
+    Guard.againstEmptyArray(codeListsDataMock);
+    Guard.againstUndefined(codeListsDataMock[0].data);
     const updatedCodeListWithMetadata: CodeListWithMetadata = updateCodeListWithMetadata(
       { title: codeListsDataMock[0].title, codeList: codeListsDataMock[0].data },
       updatedCodeList,
@@ -355,7 +366,7 @@ describe('updateCodeListWithMetadata', () => {
   });
 });
 
-const getButton = (name: string, expanded?: boolean) =>
+const getButton = (name: string, expanded?: boolean): HTMLElement =>
   screen.getByRole('button', { name, expanded });
 
-const queryButton = (name: string) => screen.queryByRole('button', { name });
+const queryButton = (name: string): HTMLElement | null => screen.queryByRole('button', { name });
