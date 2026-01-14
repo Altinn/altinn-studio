@@ -140,9 +140,4 @@ internal sealed record CategorizationResult
     /// Whether migration can safely proceed
     /// </summary>
     public bool IsSafeToMigrate => UnexpectedElements.Count == 0;
-
-    /// <summary>
-    /// Whether there are any customizations to migrate
-    /// </summary>
-    public bool HasCustomizations => KnownCustomizations.Count > 0;
 }

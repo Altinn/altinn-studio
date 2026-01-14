@@ -48,12 +48,6 @@ internal sealed class ElementCategorizer
 
     private void CategorizeElement(IElement element, CategorizationResult result)
     {
-        // Skip ignorable nodes
-        if (IsIgnorableNode(element))
-        {
-            return;
-        }
-
         // Check if it's a standard framework element
         if (_standardMatcher.IsStandardElement(element, out var description))
         {
@@ -70,13 +64,10 @@ internal sealed class ElementCategorizer
         }
 
         // Check if it's a known customization
-        if (_customizationMatcher.IsKnownCustomization(element, out var customization))
+        if (_customizationMatcher.IsKnownCustomization(element, out var customization) && customization != null)
         {
-            if (customization != null)
-            {
-                result.KnownCustomizations.Add(customization);
-                return;
-            }
+            result.KnownCustomizations.Add(customization);
+            return;
         }
 
         // If we get here, it's unexpected
@@ -90,17 +81,6 @@ internal sealed class ElementCategorizer
                 Location = GetElementLocation(element),
             }
         );
-    }
-
-    private static bool IsIgnorableNode(IElement element)
-    {
-        var tagName = element.TagName.ToLowerInvariant();
-
-        // Text nodes and comments are handled by AngleSharp separately
-        // We only ignore specific element types that are just containers
-
-        // Don't ignore any elements - we want to categorize everything
-        return false;
     }
 
     private static string GetElementLocation(IElement element)
@@ -136,6 +116,6 @@ internal sealed class ElementCategorizer
             return html;
         }
 
-        return html.Substring(0, maxLength) + "...";
+        return string.Concat(html.AsSpan(0, maxLength), "...");
     }
 }

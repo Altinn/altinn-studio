@@ -23,12 +23,12 @@ internal sealed class StandardElementMatcher
 
         return tagName switch
         {
-            "html" => IsHtmlElement(element, out description),
-            "head" => IsHeadElement(element, out description),
+            "html" => SetDescription(out description, "HTML root element"),
+            "head" => SetDescription(out description, "HTML head element"),
             "meta" => IsStandardMetaTag(element, out description),
-            "title" => IsTitleElement(element, out description),
+            "title" => SetDescription(out description, "Page title element"),
             "link" => IsStandardLinkElement(element, out description),
-            "body" => IsBodyElement(element, out description),
+            "body" => SetDescription(out description, "HTML body element"),
             "div" => IsRootDiv(element, out description),
             "script" => IsStandardScript(element, out description),
             "style" => IsStandardStyle(element, out description),
@@ -36,21 +36,9 @@ internal sealed class StandardElementMatcher
         };
     }
 
-    private static bool IsHtmlElement(IElement element, out string description)
+    private static bool SetDescription(out string description, string value)
     {
-        description = "HTML root element";
-        return true;
-    }
-
-    private static bool IsHeadElement(IElement element, out string description)
-    {
-        description = "HTML head element";
-        return true;
-    }
-
-    private static bool IsBodyElement(IElement element, out string description)
-    {
-        description = "HTML body element";
+        description = value;
         return true;
     }
 
@@ -81,13 +69,6 @@ internal sealed class StandardElementMatcher
         }
 
         return false;
-    }
-
-    private static bool IsTitleElement(IElement element, out string description)
-    {
-        // Title element with any content (including Razor syntax like @ViewBag.Org)
-        description = "Page title element";
-        return true;
     }
 
     private static bool IsStandardLinkElement(IElement element, out string description)
@@ -246,13 +227,6 @@ internal sealed class StandardElementMatcher
         if (string.IsNullOrWhiteSpace(content))
         {
             return false;
-        }
-
-        // Check for HashRouterRedirect class (used in some template versions)
-        if (content.Contains("HashRouterRedirect", StringComparison.OrdinalIgnoreCase))
-        {
-            description = "HashRouterRedirect style";
-            return true;
         }
 
         // Check for old template height: 100% style on html/body

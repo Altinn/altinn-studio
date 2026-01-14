@@ -40,11 +40,8 @@ internal sealed class IndexCshtmlMigrator
 
         var categorizer = new ElementCategorizer();
         var categorizationResult = categorizer.Categorize(document);
-        var decisionEngine = new MigrationDecisionEngine();
-        var decision = decisionEngine.Decide(categorizationResult);
 
-        // Check if migration can proceed
-        if (!decision.CanProceed)
+        if (!categorizationResult.IsSafeToMigrate)
         {
             Console.WriteLine(
                 "Keeping Index.cshtml due to unexpected elements (please review it manually and delete it if you want the auto-generated one)"
@@ -57,8 +54,6 @@ internal sealed class IndexCshtmlMigrator
 
     private async Task<int> PerformMigration(CategorizationResult categorizationResult)
     {
-        Console.WriteLine("Migrating Index.cshtml to frontend.json configuration...");
-
         var createdFiles = new List<string>();
 
         var hasInlineContent = categorizationResult.KnownCustomizations.Any(c =>
@@ -68,7 +63,6 @@ internal sealed class IndexCshtmlMigrator
 
         try
         {
-            // Extract inline content to files
             if (hasInlineContent)
             {
                 var extractor = new InlineContentExtractor(_projectFolder, categorizationResult);
@@ -99,7 +93,6 @@ internal sealed class IndexCshtmlMigrator
                 Console.WriteLine($"Generated frontend.json with {urlCount} external URL(s)");
             }
 
-            // Delete Index.cshtml
             if (File.Exists(_indexCshtmlPath))
             {
                 // Validate file name before deletion for safety
@@ -114,18 +107,15 @@ internal sealed class IndexCshtmlMigrator
                 Console.WriteLine("Deleted Index.cshtml");
             }
 
-            // Clean up empty directories
             CleanupEmptyDirectories();
 
-            Console.WriteLine("Migration complete");
             return 0;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Migration failed: {ex.Message}");
+            Console.WriteLine($"Index.cshtml migration failed: {ex.Message}");
 
             // Attempt rollback of created files
-            Console.WriteLine("Attempting to rollback created files...");
             foreach (var file in createdFiles)
             {
                 if (File.Exists(file))
@@ -151,14 +141,12 @@ internal sealed class IndexCshtmlMigrator
             if (Directory.Exists(homeDir) && !Directory.EnumerateFileSystemEntries(homeDir).Any())
             {
                 Directory.Delete(homeDir);
-                Console.WriteLine("Cleaned up empty directory: views/Home/");
             }
 
             var viewsDir = Path.Combine(_projectFolder, "App", "views");
             if (Directory.Exists(viewsDir) && !Directory.EnumerateFileSystemEntries(viewsDir).Any())
             {
                 Directory.Delete(viewsDir);
-                Console.WriteLine("Cleaned up empty directory: views/");
             }
         }
         catch (Exception ex)

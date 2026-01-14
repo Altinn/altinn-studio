@@ -129,7 +129,7 @@ internal sealed class KnownCustomizationMatcher
             return false;
         }
 
-        // Check if it's a standard element (HashRouterRedirect style)
+        // Check if it's a standard element
         if (_standardMatcher.IsStandardElement(element, out _))
         {
             return false;

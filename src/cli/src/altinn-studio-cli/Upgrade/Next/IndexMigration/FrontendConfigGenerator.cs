@@ -46,14 +46,11 @@ internal sealed class FrontendConfigGenerator
     public async Task WriteToFile(string outputPath)
     {
         var config = Generate();
-
-        // Only write if there's content to write
         if (!config.HasContent)
         {
             return;
         }
 
-        // Ensure directory exists
         var directory = Path.GetDirectoryName(outputPath);
         if (!string.IsNullOrEmpty(directory))
         {
