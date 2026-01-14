@@ -140,7 +140,7 @@ describe('AppsTable', () => {
           count: 22.0,
         },
         {
-          name: 'failed_instances_requests',
+          name: 'failed_instance_creation_requests',
           appName: app,
           count: 5.0,
         },
@@ -180,7 +180,7 @@ describe('AppsTable', () => {
         count: 22.0,
       },
       {
-        name: 'failed_instances_requests',
+        name: 'failed_instance_creation_requests',
         appName: app,
         count: 5.0,
       },
