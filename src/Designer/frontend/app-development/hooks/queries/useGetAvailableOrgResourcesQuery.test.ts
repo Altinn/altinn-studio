@@ -29,9 +29,9 @@ describe('useGetAvailableOrgResourcesQuery', () => {
       queries: { getAvailableResourcesFromOrg },
     }).result;
 
-    await waitFor(() => result.current.isSuccess);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    await waitFor(() => expect(result.current.data).toEqual(availableCodeListsToImport));
     expect(getAvailableResourcesFromOrg).toHaveBeenCalledWith(org, undefined);
-    expect(result.current.data).toEqual(availableCodeListsToImport);
   });
 
   it('Calls getAvailableResourcesFromOrg with type parameter and returns the data', async () => {
@@ -46,8 +46,8 @@ describe('useGetAvailableOrgResourcesQuery', () => {
       },
     ).result;
 
-    await waitFor(() => result.current.isSuccess);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    await waitFor(() => expect(result.current.data).toEqual(availableCodeListsToImport));
     expect(getAvailableResourcesFromOrg).toHaveBeenCalledWith(org, LibraryContentType.CodeList);
-    expect(result.current.data).toEqual(availableCodeListsToImport);
   });
 });
