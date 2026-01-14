@@ -1,4 +1,5 @@
 import { Guard } from '@studio/pure-functions';
+import { FileNameUtils } from '@studio/pure-functions';
 
 export class PublishedElements {
   readonly #fileNames: readonly string[];
@@ -16,7 +17,7 @@ export class PublishedElements {
   }
 
   private hasVersion(version: string, elementName: string): boolean {
-    return this.#fileNames.some((n) => n.toLowerCase() === `${elementName}/${version}.json`);
+    return this.#fileNames.map(FileNameUtils.removeExtension).includes(`${elementName}/${version}`);
   }
 
   private latestVersion(elementName: string): number {
