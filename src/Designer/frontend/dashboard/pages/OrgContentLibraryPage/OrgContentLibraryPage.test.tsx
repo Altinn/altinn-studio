@@ -15,6 +15,7 @@ import type {
   TextResources,
   TextResourceWithLanguage,
 } from '@studio/content-library';
+import { PageName } from '@studio/content-library';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
 import { codeList1Data, codeListDataList } from './test-data/codeListDataList';
@@ -67,6 +68,18 @@ describe('OrgContentLibraryPage', () => {
   it('Renders the content library', () => {
     renderOrgContentLibraryWithData();
     expect(screen.getByTestId(resourceLibraryTestId)).toBeInTheDocument();
+  });
+
+  it('Renders with the landing page by default', () => {
+    renderOrgContentLibraryWithData();
+    const { router } = retrieveConfig();
+    expect(router.location).toEqual(PageName.LandingPage);
+  });
+
+  it('Renders with the element type page given by the path', () => {
+    renderOrgContentLibraryWithData({ initialEntries: ['/' + orgName + '/' + PageName.CodeLists] });
+    const { router } = retrieveConfig();
+    expect(router.location).toEqual(PageName.CodeLists);
   });
 
   it('renders a spinner while waiting for repo status', () => {
@@ -408,7 +421,7 @@ function createQueryClientWithRepoStatus(): QueryClient {
 function renderOrgContentLibrary(providerData: ProviderData = {}): RenderResult {
   return renderWithProviders(
     <Routes>
-      <Route path=':selectedContext' element={<OrgContentLibraryPage />} />
+      <Route path=':selectedContext/:elementType?' element={<OrgContentLibraryPage />} />
     </Routes>,
     { ...defaultProviderData, ...providerData },
   );

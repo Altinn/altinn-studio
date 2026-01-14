@@ -24,7 +24,7 @@ public class SelfLinkHelperTests
 
         // Assert
         Assert.Contains(host, url);
-        Assert.Contains("/#/instance/", url);
+        Assert.Contains("/instance/", url);
         Assert.Contains(partyId, url);
         Assert.Contains(instanceGuid.ToString(), url);
         Assert.Contains(appId, url);

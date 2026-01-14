@@ -5,7 +5,6 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { mockPagesConfig } from '../../mocks/mockPagesConfig';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { RouterContext } from '../contexts/RouterContext';
 import { PageName } from '../types/PageName';
 import { renderWithProviders } from '../../test-utils/renderWithProviders';
 import { getPage } from '../pages';
@@ -17,6 +16,11 @@ const navigateMock = jest.fn();
 const heading = 'The test library';
 const defaultProps: ContentLibraryProps = {
   heading,
+  router: {
+    location: PageName.LandingPage,
+    navigate: navigateMock,
+    renderLink: (_, props) => <a {...props} />,
+  },
   pages: mockPagesConfig,
 };
 
@@ -35,7 +39,7 @@ describe('ContentLibrary', () => {
     'Renders the %s when that page is selected',
     (pageName) => {
       const page = getPage(pageName);
-      renderContentLibrary(pageName);
+      renderContentLibrary({ router: { ...defaultProps.router, location: pageName } });
       const pageTitle = screen.getByRole('heading', { name: textMock(page.titleKey) });
       expect(pageTitle).toBeInTheDocument();
     },
@@ -52,19 +56,12 @@ describe('ContentLibrary', () => {
 
   it('renders 404 not found page when pageName without supported implementation is passed', () => {
     const pages: PagesConfig = { ...mockPagesConfig, [PageName.Images]: undefined };
-    renderContentLibrary(PageName.Images, { pages });
+    renderContentLibrary({ pages, router: { ...defaultProps.router, location: PageName.Images } });
     const notFoundPageTitle = screen.getByRole('heading', { name: '404 Page Not Found' });
     expect(notFoundPageTitle).toBeInTheDocument();
   });
 });
 
-const renderContentLibrary = (
-  currentPage: PageName = PageName.LandingPage,
-  props?: Partial<ContentLibraryProps>,
-): void => {
-  renderWithProviders(
-    <RouterContext.Provider value={{ currentPage, navigate: navigateMock }}>
-      <ContentLibrary {...defaultProps} {...props} />
-    </RouterContext.Provider>,
-  );
+const renderContentLibrary = (props?: Partial<ContentLibraryProps>): void => {
+  renderWithProviders(<ContentLibrary {...defaultProps} {...props} />);
 };
