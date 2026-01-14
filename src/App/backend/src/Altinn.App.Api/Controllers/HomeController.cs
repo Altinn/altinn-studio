@@ -29,6 +29,7 @@ public class HomeController : Controller
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
+    private readonly IFrontendFeatures _frontendFeatures;
 
     /// <summary>
     /// Initialize a new instance of the <see cref="HomeController"/> class.
@@ -39,13 +40,15 @@ public class HomeController : Controller
     /// <param name="appSettings">The application settings</param>
     /// <param name="appResources">The application resources service</param>
     /// <param name="appMetadata">The application metadata service</param>
+    /// <param name="frontendFeatures">The frontend features service</param>
     public HomeController(
         IAntiforgery antiforgery,
         IOptions<PlatformSettings> platformSettings,
         IWebHostEnvironment env,
         IOptions<AppSettings> appSettings,
         IAppResources appResources,
-        IAppMetadata appMetadata
+        IAppMetadata appMetadata,
+        IFrontendFeatures frontendFeatures
     )
     {
         _antiforgery = antiforgery;
@@ -54,6 +57,7 @@ public class HomeController : Controller
         _appSettings = appSettings.Value;
         _appResources = appResources;
         _appMetadata = appMetadata;
+        _frontendFeatures = frontendFeatures;
     }
 
     /// <summary>
@@ -94,7 +98,7 @@ public class HomeController : Controller
         {
             ViewBag.org = org;
             ViewBag.app = app;
-            return Content(GenerateHtml(org, app), "text/html; charset=utf-8");
+            return Content(await GenerateHtml(org, app), "text/html; charset=utf-8");
         }
 
         string scheme = _env.IsDevelopment() ? "http" : "https";
@@ -115,13 +119,16 @@ public class HomeController : Controller
         return Redirect(redirectUrl);
     }
 
-    private string GenerateHtml(string org, string app)
+    private async Task<string> GenerateHtml(string org, string app)
     {
         var frontendUrl = "https://altinncdn.no/toolkits/altinn-app-frontend/4";
         if (HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var frontendVersionCookie))
         {
             frontendUrl = frontendVersionCookie.TrimEnd('/');
         }
+
+        var featureToggles = await _frontendFeatures.GetFrontendFeatures();
+        var featureTogglesJson = JsonSerializer.Serialize(featureToggles, _jsonSerializerOptions);
 
         var htmlContent = $$"""
             <!DOCTYPE html>
@@ -139,6 +146,7 @@ public class HomeController : Controller
               <script>
                 window.org = '{{org}}';
                 window.app = '{{app}}';
+                window.featureToggles = {{featureTogglesJson}};
               </script>
               <script src="{{frontendUrl}}/altinn-app-frontend.js"></script>
             </body>

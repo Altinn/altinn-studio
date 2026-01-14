@@ -4,11 +4,11 @@ import { Alert, Button } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { isAxiosError } from 'axios';
 
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { type IFailedAttachment, isDataPostError } from 'src/features/attachments';
 import { useDeleteFailedAttachment, useFailedAttachmentsFor } from 'src/features/attachments/hooks';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { getFeature } from 'src/features/toggles';
 import { getValidationIssueMessage } from 'src/features/validation/backendValidation/backendValidationUtils';
 import classes from 'src/layout/FileUpload/Error/FailedAttachments.module.css';
 import { isRejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
@@ -72,14 +72,15 @@ function FileUploadError({ attachment, handleClose }: { attachment: IFailedAttac
 }
 
 function ErrorDetails({ attachment: { data, error } }: { attachment: IFailedAttachment }) {
-  const backendFeatures = useApplicationMetadata().features ?? {};
   const [showingMore, setShowingMore] = useState(false);
+
+  const jsonObjectInDataResponse = getFeature('jsonObjectInDataResponse');
 
   if (isAxiosError(error)) {
     const reply = error.response?.data;
     const issues = isDataPostError(reply)
       ? reply.uploadValidationIssues
-      : backendFeatures.jsonObjectInDataResponse && Array.isArray(reply) // This is the old API response
+      : jsonObjectInDataResponse.value && Array.isArray(reply) // This is the old API response
         ? reply
         : null;
 

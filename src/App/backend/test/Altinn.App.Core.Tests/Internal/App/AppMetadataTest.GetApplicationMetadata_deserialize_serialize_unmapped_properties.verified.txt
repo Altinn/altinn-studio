@@ -3,7 +3,8 @@
   "Features": {
     "footer": true,
     "processActions": true,
-    "jsonObjectInDataResponse": false
+    "jsonObjectInDataResponse": false,
+    "betaPDFenabled": false
   },
   "OnEntry": {
     "InstanceSelection": null,

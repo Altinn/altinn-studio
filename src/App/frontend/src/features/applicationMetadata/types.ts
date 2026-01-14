@@ -14,7 +14,7 @@ export interface IncomingApplicationMetadata {
   partyTypesAllowed: IPartyTypesAllowed;
   dataTypes: IDataType[];
   autoDeleteOnProcessEnd: boolean;
-  features?: Partial<IBackendFeaturesState>;
+  // features?: Partial<IBackendFeaturesState>;
   promptForParty?: 'always' | 'never';
   externalApiIds?: string[];
 

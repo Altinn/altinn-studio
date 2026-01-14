@@ -23,6 +23,16 @@ export const FeatureToggles = {
     description:
       "This is on by default, but can be disabled if you want less network traffic and don't need to run backend dynamics immediately when leaving an input field.",
   },
+  jsonObjectInDataResponse: {
+    defaultValue: false,
+    title: '',
+    description: '',
+  },
+  addInstanceIdentifierToLayoutRequests: {
+    defaultValue: false,
+    title: '',
+    description: '',
+  },
 };
 
 export type FeatureToggleSource = 'window' | 'cookie' | 'default';

@@ -1,3 +1,4 @@
+using System.Reflection;
 using Altinn.App.Core.Features;
 using Microsoft.FeatureManagement;
 
@@ -18,13 +19,18 @@ public class FrontendFeatures : IFrontendFeatures
         _features.Add("footer", true);
         _features.Add("processActions", true);
 
-        if (featureManager.IsEnabledAsync(FeatureFlags.JsonObjectInDataResponse).Result)
+        var featureFlagFields = typeof(FeatureFlags).GetFields(
+            BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy
+        );
+
+        foreach (var field in featureFlagFields)
         {
-            _features.Add("jsonObjectInDataResponse", true);
-        }
-        else
-        {
-            _features.Add("jsonObjectInDataResponse", false);
+            if (field.IsLiteral && !field.IsInitOnly && field.FieldType == typeof(string))
+            {
+                var featureName = (string)field.GetValue(null)!;
+                var lowercaseName = char.ToLowerInvariant(featureName[0]) + featureName[1..];
+                _features[lowercaseName] = featureManager.IsEnabledAsync(featureName).Result;
+            }
         }
     }
 
