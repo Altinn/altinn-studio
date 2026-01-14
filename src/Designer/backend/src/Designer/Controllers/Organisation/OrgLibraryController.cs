@@ -105,10 +105,11 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        string token = await HttpContext.GetDeveloperAppTokenAsync();
 
         try
         {
-            await orgLibraryService.UpdateSharedResourcesByPath(org, developer, requestBody, cancellationToken);
+            await orgLibraryService.UpdateSharedResourcesByPath(org, developer, token, requestBody, cancellationToken);
             return Ok();
         }
         catch (Exception ex) when (ex is InvalidOperationException or IllegalCommitMessageException)

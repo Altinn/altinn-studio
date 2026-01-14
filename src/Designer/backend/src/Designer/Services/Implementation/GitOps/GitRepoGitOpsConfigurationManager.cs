@@ -39,16 +39,16 @@ public class GitRepoGitOpsConfigurationManager(
         return repo is not null;
     }
 
-    public async Task EnsureGitOpsConfigurationExistsAsync(AltinnOrgEditingContext context, AltinnEnvironment environment)
+    public async Task EnsureGitOpsConfigurationExistsAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, AltinnEnvironment environment)
     {
-        DeleteLocalRepositoryIfExists(context);
-        await EnsureRemoteRepositoryExists(context);
+        AltinnOrgEditingContext orgContext = authenticatedContext.OrgEditingContext;
+        DeleteLocalRepositoryIfExists(orgContext);
+        await EnsureRemoteRepositoryExists(orgContext);
 
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer);
-        await sourceControl.CloneRemoteRepository(editingContext);
+        await sourceControl.CloneRemoteRepository(authenticatedContext);
 
-        await EnsureBaseManifests(context);
-        await EnsureEnvironmentManifests(context, environment);
+        await EnsureBaseManifests(orgContext);
+        await EnsureEnvironmentManifests(orgContext, environment);
     }
 
     private async Task EnsureRemoteRepositoryExists(AltinnOrgEditingContext context)
