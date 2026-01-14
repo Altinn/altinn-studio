@@ -13,7 +13,7 @@ public class FrontendFeatures : IFrontendFeatures
 
     /// <summary>
     /// Default implementation of IFrontendFeatures
-    /// </summary>
+    ///  </summary>
     public FrontendFeatures(IFeatureManager featureManager)
     {
         _features.Add("footer", true);
@@ -25,18 +25,21 @@ public class FrontendFeatures : IFrontendFeatures
 
         foreach (var field in featureFlagFields)
         {
-            if (field.IsLiteral && !field.IsInitOnly && field.FieldType == typeof(string))
+            if (!field.IsLiteral || field.IsInitOnly || field.FieldType != typeof(string))
             {
-                var featureName = (string)field.GetValue(null)!;
-                var lowercaseName = char.ToLowerInvariant(featureName[0]) + featureName[1..];
-                _features[lowercaseName] = featureManager.IsEnabledAsync(featureName).Result;
+                continue;
             }
+
+            if (field.GetRawConstantValue() is not string featureName || string.IsNullOrWhiteSpace(featureName))
+            {
+                continue;
+            }
+
+            var lowercaseName = char.ToLowerInvariant(featureName[0]) + featureName[1..];
+            _features[lowercaseName] = featureManager.IsEnabledAsync(featureName).GetAwaiter().GetResult();
         }
     }
 
     /// <inheritdoc />
-    public Task<Dictionary<string, bool>> GetFrontendFeatures()
-    {
-        return Task.FromResult(_features);
-    }
+    public Task<Dictionary<string, bool>> GetFrontendFeatures() => Task.FromResult(_features);
 }
