@@ -867,16 +867,17 @@ public sealed partial class AppFixture : IAsyncDisposable
         var frontendBuildDir = Path.Join(_repoSourceDirectory, "App", "frontend", "dist");
 
         var missingFilesErrorMessage =
-            $"The frontend should have been built automatically during test setup. \n\n"
-            + $"If you see this error, it likely means: \n"
-            + $"1. Yarn is not installed or not in PATH. \n"
-            + $"2. The frontend build failed earlier (check test output for errors). \n"
-            + $"3. SKIP_FRONTEND_BUILD was set but no pre-built files exist. \n\n"
-            + $"To fix: install yarn and run 'cd src/App/frontend && yarn build' manually or remove the environment variable SKIP_FRONTEND_BUILD.\n";
+            @"The frontend should have been built automatically during test setup.
+            If you see this error, it likely means:
+            1. Yarn is not installed or not in PATH.
+            2. The frontend build failed earlier (check test output for errors).
+            3. SKIP_FRONTEND_BUILD was set but no pre-built files exist.
+
+
+            To fix: install yarn and run 'cd src/App/frontend && yarn build' manually or remove the environment variable SKIP_FRONTEND_BUILD.";
         if (!Directory.Exists(frontendBuildDir))
             throw new DirectoryNotFoundException(
-                $"Expected frontend build directory '{frontendBuildDir}' to exist, but no directory was found. "
-                    + missingFilesErrorMessage
+                $"Expected frontend build directory '{frontendBuildDir}' to exist, but no directory was found. {missingFilesErrorMessage}"
             );
 
         var appStaticFrontendDir = Path.Join(appDirectory, "wwwroot", "altinn-app-frontend");
@@ -891,8 +892,7 @@ public sealed partial class AppFixture : IAsyncDisposable
             string sourceFile =
                 frontendBuildFiles.FirstOrDefault(df => Path.GetFileName(df) == fileName)
                 ?? throw new FileNotFoundException(
-                    $"Expected frontend file '{fileName}' not found in '{frontendBuildDir}'. "
-                        + missingFilesErrorMessage
+                    $"Expected frontend file '{fileName}' not found in '{frontendBuildDir}'. {missingFilesErrorMessage}"
                 );
 
             var destFile = Path.Join(appStaticFrontendDir, fileName);
@@ -923,21 +923,24 @@ public sealed partial class AppFixture : IAsyncDisposable
             }
 
             throw new Exception(
-                $"Yarn is not available (exit code: {result.ExitCode}). "
-                    + $"Yarn is required to build the frontend for integration tests. "
-                    + $"To fix: Install yarn by running 'npm install -g yarn' or 'corepack enable'. "
-                    + $"Alternatively, set SKIP_FRONTEND_BUILD=true to use pre-built files."
+                $"""
+                Yarn is not available (exit code: {result.ExitCode}).
+                Yarn is required to build the frontend for integration tests.
+                To fix: Install yarn by running 'npm install -g yarn' or 'corepack enable'.
+                Alternatively, set SKIP_FRONTEND_BUILD = true to use pre - built files.
+                """
             );
         }
         catch (Exception ex)
             when (ex is not Exception exWithMessage || !exWithMessage.Message.Contains("Yarn is not available"))
         {
             throw new Exception(
-                $"Failed to check if yarn is available: {ex.Message}. "
-                    + $"Yarn is required to build the frontend for integration tests. "
-                    + $"To fix: Install yarn by running 'npm install -g yarn' or 'corepack enable'. "
-                    + $"Alternatively, set SKIP_FRONTEND_BUILD=true to use pre-built files.",
-                ex
+                $"""
+                Failed to check if yarn is available: {ex.Message}.
+                Yarn is required to build the frontend for integration tests.
+                To fix: Install yarn by running 'npm install -g yarn' or 'corepack enable'.
+                Alternatively, set SKIP_FRONTEND_BUILD=true to use pre-built files.
+                """
             );
         }
     }
@@ -948,8 +951,10 @@ public sealed partial class AppFixture : IAsyncDisposable
         if (!Directory.Exists(frontendBuildDir))
         {
             throw new Exception(
-                $"Frontend build completed but dist directory '{frontendBuildDir}' does not exist. "
-                    + $"This may indicate a problem with the build process."
+                $"""
+                Frontend build completed but dist directory '{frontendBuildDir}' does not exist.
+                This may indicate a problem with the build process.
+                """
             );
         }
 
@@ -959,8 +964,10 @@ public sealed partial class AppFixture : IAsyncDisposable
         if (missingFiles.Count > 0)
         {
             throw new Exception(
-                $"Frontend build completed but expected files not found in {frontendBuildDir}. "
-                    + $"Missing files: {string.Join(", ", missingFiles)}"
+                $"""
+                Frontend build completed but expected files not found in {frontendBuildDir}.
+                Missing files: {string.Join(", ", missingFiles)}
+                """
             );
         }
 
