@@ -486,15 +486,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        public string FindLocalRepoLocation(string org, string repository, string developer)
+        public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext)
         {
             try
             {
-                return _decoratedService.FindLocalRepoLocation(org, repository, developer);
+                return _decoratedService.FindLocalRepoLocation(editingContext);
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(FindLocalRepoLocation), org, repository);
+                LogError(ex, nameof(FindLocalRepoLocation), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
