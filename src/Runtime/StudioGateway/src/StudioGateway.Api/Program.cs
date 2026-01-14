@@ -38,8 +38,7 @@ builder.Configuration.AddJsonFile(
 );
 builder.Configuration.AddJsonFile("/app/secrets/grafana-token.json", optional: true, reloadOnChange: true);
 var environment = builder.Configuration.GetSection("Gateway").GetValue<string>("Environment") ?? "";
-var hasGrafanaInstance = AltinnEnvironments.Prod.Equals(environment, StringComparison.OrdinalIgnoreCase)
-    || AltinnEnvironments.Test.Equals(environment, StringComparison.OrdinalIgnoreCase);
+var hasGrafanaInstance = AltinnEnvironments.IsProd(environment) || AltinnEnvironments.IsTest(environment);
 
 builder
     .Services.AddOptions<GrafanaSettings>()
