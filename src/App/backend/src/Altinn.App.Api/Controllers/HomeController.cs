@@ -14,6 +14,7 @@ namespace Altinn.App.Api.Controllers;
 /// <summary>
 /// Provides access to the default home view.
 /// </summary>
+[Route("{org}/{app}")]
 public class HomeController : Controller
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -62,7 +63,13 @@ public class HomeController : Controller
     /// <param name="app">The name of the app</param>
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
     [HttpGet]
-    [Route("{org}/{app}/")]
+    [Route("")]
+    [Route("instance-selection")]
+    [Route("party-selection")]
+    [Route("party-selection/{errorCode}")]
+    [Route("{pageName:int}")]
+    [Route("instance/{partyId}/{instanceGuid}")]
+    [Route("instance/{partyId}/{instanceGuid}/{*rest}")]
     public async Task<IActionResult> Index(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -130,7 +137,7 @@ public class HomeController : Controller
     [HttpGet]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "text/html")]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
-    [Route("{org}/{app}/set-query-params")]
+    [Route("set-query-params")]
     public async Task<IActionResult> SetQueryParams(string org, string app)
     {
         ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
