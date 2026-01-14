@@ -253,6 +253,8 @@ internal static class FluxWebhookEndpoints
                     },
                 ],
             };
+
+            await slackClient.SendMessageAsync(message, cancellationToken);
         }
         catch (Exception ex)
         {

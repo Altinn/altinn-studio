@@ -68,7 +68,7 @@ internal static class HandleAlerts
                     logger,
                     gatewayContext.ServiceOwner,
                     gatewayContext.Environment,
-                    group.Select(a => a.Labels.GetValueOrDefault("cloud_RoleName", "unknown")).ToList(),
+                    group.Select(a => a.Labels.GetValueOrDefault("cloud_RoleName", "unknown")).Distinct().ToList(),
                     environment,
                     group.Key,
                     group.First().GeneratorURL,
@@ -100,8 +100,8 @@ internal static class HandleAlerts
         string env,
         List<string> apps,
         string studioEnv,
-        string status,
-        string? url,
+        string alertName,
+        Uri? url,
         string? ruleId,
         CancellationToken cancellationToken
     )
@@ -114,18 +114,29 @@ internal static class HandleAlerts
 
             var message = new SlackMessage
             {
-                Text = $"{emoji} `{org}` - `{env}` - {appsFormatted} - *{status}*",
+                Text = $"{emoji} `{org}` - `{env}` - {appsFormatted} - *{alertName}*",
                 Blocks =
                 [
                     new SlackBlock
                     {
                         Type = "section",
-                        Text = new SlackText { Type = "mrkdwn", Text = $"{emoji} *{status}*" },
+                        Text = new SlackText { Type = "mrkdwn", Text = $"{emoji} *{alertName}*" },
                     },
                     new SlackBlock
                     {
                         Type = "context",
-                        Elements = BuildContextElements(gatewayContext, serviceProvider, metricsClientSettings, org, env, appsPlain, appsFormatted, studioEnv, url, ruleId),
+                        Elements = BuildContextElements(
+                            gatewayContext,
+                            serviceProvider,
+                            metricsClientSettings,
+                            org,
+                            env,
+                            appsPlain,
+                            appsFormatted,
+                            studioEnv,
+                            url,
+                            ruleId
+                        ),
                     },
                 ],
             };
@@ -136,8 +147,8 @@ internal static class HandleAlerts
         {
             logger.LogError(
                 ex,
-                "Failed to send Slack alert notification. Status: {Status}, Org: {Org}, Env: {Env}, Apps: {AppsList}, StudioEnv: {StudioEnv}",
-                status,
+                "Failed to send Slack alert notification. Alert Name: {AlertName}, Org: {Org}, Env: {Env}, Apps: {AppsList}, StudioEnv: {StudioEnv}",
+                alertName,
                 org,
                 env,
                 appsPlain,
@@ -155,7 +166,7 @@ internal static class HandleAlerts
         string appsPlain,
         string appsFormatted,
         string studioEnv,
-        string? url,
+        Uri? url,
         string? ruleId
     )
     {
@@ -169,11 +180,7 @@ internal static class HandleAlerts
 
         if (url is not null)
         {
-            elements.Add(new SlackText
-            {
-                Type = "mrkdwn",
-                Text = $"<{url}|Grafana>"
-            });
+            elements.Add(new SlackText { Type = "mrkdwn", Text = $"<{url}|Grafana>" });
         }
 
         if (ruleId is not null)
@@ -189,15 +196,8 @@ internal static class HandleAlerts
                 ruleId,
                 5
             );
-            var encodedLogsUrl = logsUrl.ToString()
-                .Replace("<", "%3C")
-                .Replace(">", "%3E")
-                .Replace("|", "%7C");
-            elements.Add(new SlackText
-            {
-                Type = "mrkdwn",
-                Text = $"<{encodedLogsUrl}|Application Insights>",
-            });
+            var encodedLogsUrl = logsUrl.ToString().Replace("<", "%3C").Replace(">", "%3E").Replace("|", "%7C");
+            elements.Add(new SlackText { Type = "mrkdwn", Text = $"<{encodedLogsUrl}|Application Insights>" });
         }
 
         return elements;
