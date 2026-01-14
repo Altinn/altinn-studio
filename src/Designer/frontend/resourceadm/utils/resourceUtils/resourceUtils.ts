@@ -97,7 +97,7 @@ const environments: Record<EnvId, Environment> = {
 
 export const getAvailableEnvironments = (org: string): Environment[] => {
   const availableEnvs = [environments['tt02'], environments['prod']];
-  if (org === 'ttd' || org === 'digdir' || org === 'skd' || org === 'udi') {
+  if (org === 'ttd' || org === 'digdir') {
     availableEnvs.push(
       environments['yt01'],
       environments['at22'],
