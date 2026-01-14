@@ -372,14 +372,6 @@ export const fetchLayoutSchema = async (): Promise<JSONSchema7 | undefined> => {
   return (await axios.get(`${schemaBaseUrl}${LAYOUT_SCHEMA_NAME}`)).data ?? undefined;
 };
 
-export const fetchPostPlace = (zipCode: string): Promise<{ result: string; valid: boolean }> =>
-  httpGet('https://api.bring.com/shippingguide/api/postalCode.json', {
-    params: {
-      clientUrl: window.location.href,
-      pnr: zipCode,
-    },
-  });
-
 export function fetchExternalApi({
   instanceId,
   externalApiId,
