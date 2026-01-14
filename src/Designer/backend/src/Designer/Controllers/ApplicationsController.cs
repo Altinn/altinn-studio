@@ -75,7 +75,7 @@ public class ApplicationsController : ControllerBase
                 {
                     throw;
                 }
-                catch (Exception e)
+                catch (HttpRequestException e)
                 {
                     _logger.LogError(e, $"Could not reach environment {env.Name} for org {org}.");
                     return (env, new List<AppDeployment>());
