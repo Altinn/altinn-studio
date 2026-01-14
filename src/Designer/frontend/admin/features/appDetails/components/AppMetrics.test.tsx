@@ -78,7 +78,9 @@ describe('AppMetrics', () => {
       });
 
       expect(
-        screen.getByText(textMock('admin.metrics.app.health.missing_rights', { envTitle, orgName })),
+        screen.getByText(
+          textMock('admin.metrics.app.health.missing_rights', { envTitle, orgName }),
+        ),
       ).toBeInTheDocument();
     });
 
@@ -171,7 +173,9 @@ describe('AppMetrics', () => {
       });
 
       expect(
-        screen.getByText(textMock('admin.metrics.app.errors.missing_rights', { envTitle, orgName })),
+        screen.getByText(
+          textMock('admin.metrics.app.errors.missing_rights', { envTitle, orgName }),
+        ),
       ).toBeInTheDocument();
     });
 
