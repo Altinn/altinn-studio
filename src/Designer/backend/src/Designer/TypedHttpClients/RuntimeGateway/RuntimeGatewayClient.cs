@@ -44,7 +44,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/alerts";
 
@@ -59,7 +59,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/errors?range={range}";
 
@@ -75,7 +75,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app?app={Uri.EscapeDataString(app)}&range={range}";
 
@@ -91,7 +91,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors?app={Uri.EscapeDataString(app)}&range={range}";
 
@@ -108,7 +108,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors/logs?app={Uri.EscapeDataString(app)}&metric={Uri.EscapeDataString(metric)}&range={range}";
 
@@ -124,7 +124,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/health?app={Uri.EscapeDataString(app)}";
 
