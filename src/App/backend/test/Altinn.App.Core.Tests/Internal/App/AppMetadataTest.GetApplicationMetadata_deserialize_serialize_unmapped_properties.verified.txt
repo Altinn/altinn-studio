@@ -1,11 +1,6 @@
 ﻿{
   "Id": "tdd/bestilling",
-  "Features": {
-    "jsonObjectInDataResponse": false,
-    "betaPDFenabled": false,
-    "addInstanceIdentifierToLayoutRequests": false,
-    "simpleTableEnabled": false
-  },
+  "Features": {},
   "OnEntry": {
     "InstanceSelection": null,
     "Show": "select-instance"
