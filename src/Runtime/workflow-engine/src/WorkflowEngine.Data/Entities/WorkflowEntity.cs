@@ -39,6 +39,8 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
 
     public Guid InstanceGuid { get; set; }
 
+    public string? TraceContext { get; set; }
+
     public ICollection<StepEntity> Tasks { get; set; } = [];
 
     public static WorkflowEntity FromDomainModel(Workflow workflow) =>
@@ -53,6 +55,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             InstanceApp = workflow.InstanceInformation.App,
             InstanceOwnerPartyId = workflow.InstanceInformation.InstanceOwnerPartyId,
             InstanceGuid = workflow.InstanceInformation.InstanceGuid,
+            TraceContext = workflow.TraceContext,
             Tasks = workflow.Steps.Select(StepEntity.FromDomainModel).ToList(),
         };
 
@@ -70,6 +73,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
                 InstanceOwnerPartyId = InstanceOwnerPartyId,
                 InstanceGuid = InstanceGuid,
             },
-            Steps = Tasks.Select(t => t.ToDomainModel()).ToList(),
+            TraceContext = TraceContext,
+            Steps = Tasks.Select(t => t.ToDomainModel(TraceContext)).ToList(),
         };
 }

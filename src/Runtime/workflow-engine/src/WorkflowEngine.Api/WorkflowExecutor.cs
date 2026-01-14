@@ -28,6 +28,8 @@ internal class WorkflowExecutor : IWorkflowExecutor
         _logger = serviceProvider.GetRequiredService<ILogger<WorkflowExecutor>>();
     }
 
+    // TODO: Inject Workflow.TraceContext into outgoing requests
+
     public async Task<ExecutionResult> Execute(Workflow workflow, Step step, CancellationToken cancellationToken)
     {
         _logger.ExecutingStep(step, workflow);

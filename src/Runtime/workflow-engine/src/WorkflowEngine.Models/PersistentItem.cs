@@ -5,6 +5,7 @@ public abstract record PersistentItem : IDisposable
     public long DatabaseId { get; set; }
     public required string Key { get; init; }
     public PersistentItemStatus Status { get; set; }
+    public string? TraceContext { get; set; }
 
     public Task? DatabaseTask { get; set; }
 

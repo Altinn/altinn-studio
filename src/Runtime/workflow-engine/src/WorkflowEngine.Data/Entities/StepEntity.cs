@@ -69,7 +69,7 @@ internal sealed class StepEntity : IHasCommonMetadata
             RetryStrategyJson = step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy) : null,
         };
 
-    public Step ToDomainModel()
+    public Step ToDomainModel(string? traceContext = null)
     {
         var command =
             JsonSerializer.Deserialize<Command>(CommandJson)
@@ -90,6 +90,7 @@ internal sealed class StepEntity : IHasCommonMetadata
             Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
             Command = command,
             RetryStrategy = retryStrategy,
+            TraceContext = traceContext,
         };
     }
 }
