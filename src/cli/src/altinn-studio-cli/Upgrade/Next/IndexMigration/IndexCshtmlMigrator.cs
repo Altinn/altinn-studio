@@ -43,28 +43,33 @@ internal sealed class IndexCshtmlMigrator
                 return 1;
             }
 
-            // Run detectors
-            var cssDetector = new CustomCssDetector(document);
-            var jsDetector = new CustomJavaScriptDetector(document);
-            var frontendDetector = new CustomFrontendDetector(document);
+            // Run new categorization system
+            var categorizer = new ElementCategorizer();
+            var categorizationResult = categorizer.Categorize(document);
 
-            var cssResult = cssDetector.Detect();
-            var jsResult = jsDetector.Detect();
-            var frontendResult = frontendDetector.Detect();
+            // Make migration decision and generate report
+            var decisionEngine = new MigrationDecisionEngine();
+            var decision = decisionEngine.Decide(categorizationResult);
 
-            var analysisResult = IndexAnalysisResult.Successful(
-                _indexCshtmlPath,
-                cssResult,
-                jsResult,
-                frontendResult,
-                parser.GetParseWarnings()
-            );
+            // Print report
+            decision.Report.PrintToConsole();
 
-            // If analyze-only mode, print report and exit
+            // If analyze-only mode, exit with appropriate code
             if (analyzeOnly)
             {
-                return PrintAnalysisReport(analysisResult);
+                return decision.CanProceed ? 0 : 1;
             }
+
+            // Check if migration can proceed
+            if (!decision.CanProceed)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Keeping Index.cshtml due to unexpected elements");
+                return 1;
+            }
+
+            // Convert categorization result to analysis result for backward compatibility
+            var analysisResult = ConvertToAnalysisResult(categorizationResult);
 
             // Full migration mode
             return await PerformMigration(analysisResult);
@@ -245,5 +250,47 @@ internal sealed class IndexCshtmlMigrator
             // Log warning but don't fail migration
             Console.WriteLine($"Warning: Failed to clean up empty directories: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Converts categorization result to analysis result for backward compatibility
+    /// </summary>
+    private IndexAnalysisResult ConvertToAnalysisResult(CategorizationResult categorizationResult)
+    {
+        // Extract customizations by type
+        var inlineStyles = categorizationResult
+            .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.InlineStylesheet)
+            .Select(c => c.ExtractionHint)
+            .ToList();
+
+        var externalStylesheets = categorizationResult
+            .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.ExternalStylesheet)
+            .Select(c => c.ExtractionHint)
+            .ToList();
+
+        var inlineScripts = categorizationResult
+            .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.InlineScript)
+            .Select(c => c.ExtractionHint)
+            .ToList();
+
+        var externalScripts = categorizationResult
+            .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.ExternalScript)
+            .Select(c => c.ExtractionHint)
+            .ToList();
+
+        var cssResult = new CustomCssResult { InlineStyles = inlineStyles, ExternalStylesheets = externalStylesheets };
+
+        var jsResult = new CustomJavaScriptResult { InlineScripts = inlineScripts, ExternalScripts = externalScripts };
+
+        // Custom frontend detection is not needed anymore, but keep for compatibility
+        var frontendResult = new CustomFrontendResult { IsCustomFrontend = false };
+
+        return IndexAnalysisResult.Successful(
+            _indexCshtmlPath,
+            cssResult,
+            jsResult,
+            frontendResult,
+            new List<string>() // No warnings from new system
+        );
     }
 }

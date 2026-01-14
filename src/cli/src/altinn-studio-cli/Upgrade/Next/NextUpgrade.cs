@@ -89,6 +89,13 @@ internal static class NextUpgrade
                     );
                 }
 
+                // Early exit for analyze-index-only mode (doesn't require project file or version checks)
+                if (analyzeIndexOnly)
+                {
+                    returnCode = await AnalyzeIndexCshtml(projectFolder);
+                    Environment.Exit(returnCode);
+                }
+
                 if (!Path.IsPathRooted(projectFolder))
                 {
                     projectFile = Path.Combine(Directory.GetCurrentDirectory(), projectFolder, projectFile);
@@ -115,13 +122,6 @@ internal static class NextUpgrade
                             + $"Please ensure both Altinn.App.Core and Altinn.App.Api are version 8.0.0 or higher (but below 9.0.0).",
                         exitCode: 2
                     );
-                }
-
-                // Early exit for analyze-index-only mode
-                if (analyzeIndexOnly)
-                {
-                    returnCode = await AnalyzeIndexCshtml(projectFolder);
-                    Environment.Exit(returnCode);
                 }
 
                 // Job 1: Convert to project references and upgrade target framework
