@@ -17,6 +17,7 @@ import { OrgContext } from 'admin/layout/PageLayout';
 const range = 1440;
 const env = 'production';
 const envTitle = textMock('general.production_environment_alt').toLowerCase();
+const orgName = org;
 
 const orgMock = {
   name: {
@@ -127,7 +128,7 @@ describe('AppsTable', () => {
       });
 
       expect(
-        screen.getByText(textMock('admin.metrics.errors.missing_rights', { envTitle })),
+        screen.getByText(textMock('admin.metrics.errors.missing_rights', { envTitle, orgName })),
       ).toBeInTheDocument();
     });
 

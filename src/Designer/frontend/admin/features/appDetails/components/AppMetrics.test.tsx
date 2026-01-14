@@ -15,6 +15,7 @@ import { OrgContext } from '../../../layout/PageLayout';
 
 const env = 'test';
 const envTitle = `${textMock('general.test_environment_alt').toLowerCase()} ${env.toUpperCase()}`;
+const orgName = org;
 const range = 5;
 
 const orgMock = {
@@ -77,7 +78,7 @@ describe('AppMetrics', () => {
       });
 
       expect(
-        screen.getByText(textMock('admin.metrics.app.health.missing_rights', { envTitle })),
+        screen.getByText(textMock('admin.metrics.app.health.missing_rights', { envTitle, orgName })),
       ).toBeInTheDocument();
     });
 
@@ -170,7 +171,7 @@ describe('AppMetrics', () => {
       });
 
       expect(
-        screen.getByText(textMock('admin.metrics.app.errors.missing_rights', { envTitle })),
+        screen.getByText(textMock('admin.metrics.app.errors.missing_rights', { envTitle, orgName })),
       ).toBeInTheDocument();
     });
 
@@ -278,7 +279,7 @@ describe('AppMetrics', () => {
       });
 
       expect(
-        screen.getByText(textMock('admin.metrics.app.missing_rights', { envTitle })),
+        screen.getByText(textMock('admin.metrics.app.missing_rights', { envTitle, orgName })),
       ).toBeInTheDocument();
     });
 
