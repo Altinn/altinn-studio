@@ -8,6 +8,7 @@ export * from './StudioActionCloseButton';
 export * from './StudioAlert';
 export * from './StudioAnimateHeight';
 export * from './StudioAvatar';
+export * from './StudioBanner';
 export * from './StudioBooleanToggleGroup';
 export * from './StudioBlobDownloader';
 export * from './StudioBreadcrumbs';
