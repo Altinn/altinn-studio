@@ -35,7 +35,6 @@ public class HomeController : Controller
     private readonly IFrontendFeatures _frontendFeatures;
     private readonly IBootstrapGlobalService _bootstrapGlobalService;
 
-
     /// <summary>
     /// Initialize a new instance of the <see cref="HomeController"/> class.
     /// </summary>
@@ -105,7 +104,6 @@ public class HomeController : Controller
         BootstrapGlobalResponse appGlobalState = await _bootstrapGlobalService.GetGlobalState();
         // Wait for PR with replacement of index.cshtml.
 
-
         if (await ShouldShowAppView())
         {
             return Content(await GenerateHtml(org, app, appGlobalState), "text/html; charset=utf-8");
@@ -139,6 +137,7 @@ public class HomeController : Controller
 
         var featureToggles = await _frontendFeatures.GetFrontendFeatures();
         var featureTogglesJson = JsonSerializer.Serialize(featureToggles, _jsonSerializerOptions);
+        var globalDataJson = JsonSerializer.Serialize(appGlobalState);
 
         var htmlContent = $$"""
             <!DOCTYPE html>
@@ -157,7 +156,7 @@ public class HomeController : Controller
                 window.org = '{{org}}';
                 window.app = '{{app}}';
                 window.featureToggles = {{featureTogglesJson}};
-                window.altinnAppGlobalData = {{appGlobalState}};
+                window.altinnAppGlobalData = {{globalDataJson}};
               </script>
               <script src="{{frontendUrl}}/altinn-app-frontend.js"></script>
             </body>

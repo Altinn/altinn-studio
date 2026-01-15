@@ -8,9 +8,6 @@ internal sealed class BootstrapGlobalService(IAppMetadata appMetadata) : IBootst
     public async Task<BootstrapGlobalResponse> GetGlobalState()
     {
         var appMetadataTask = await appMetadata.GetApplicationMetadata();
-        return new BootstrapGlobalResponse
-        {
-            ApplicationMetadata = appMetadataTask,
-        };
+        return new BootstrapGlobalResponse { ApplicationMetadata = appMetadataTask };
     }
 }
