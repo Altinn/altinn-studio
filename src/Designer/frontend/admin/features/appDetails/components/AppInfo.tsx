@@ -36,7 +36,7 @@ const AppInfoWithData = ({
 }: AppInfoWithDataProps) => {
   const { t } = useTranslation();
 
-  const shortendCommit = commit.slice(0, 7);
+  const shortenedCommit = commit.slice(0, 7);
   const commitPath = `/repos/${org}/${app}/src/commit/${commit}`;
 
   return (
@@ -47,7 +47,7 @@ const AppInfoWithData = ({
         <LabelValue label={t('Versjon')}>{version}</LabelValue>
         <LabelValue label={t('Commit')}>
           <a href={commitPath} target='_blank' rel='noreferrer'>
-            {shortendCommit}
+            {shortenedCommit}
           </a>
         </LabelValue>
         <LabelValue label={t('Publiseringsdato')}>{formatDateAndTime(createdAt)}</LabelValue>
