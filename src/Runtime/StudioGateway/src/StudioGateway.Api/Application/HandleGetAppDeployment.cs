@@ -14,17 +14,9 @@ internal static class HandleGetAppDeployment
         CancellationToken cancellationToken
     )
     {
-        var helmReleaseName = HelmReleaseNameHelper.Generate(
-            gatewayContext.ServiceOwner,
-            app,
-            originEnvironment
-        );
+        var helmReleaseName = HelmReleaseNameHelper.Generate(gatewayContext.ServiceOwner, app, originEnvironment);
 
-        var helmRelease = await helmReleaseClient.GetAsync(
-            helmReleaseName,
-            "default",
-            cancellationToken
-        );
+        var helmRelease = await helmReleaseClient.GetAsync(helmReleaseName, "default", cancellationToken);
 
         if (helmRelease is null)
             return Results.NotFound();
@@ -38,11 +30,7 @@ internal static class HandleGetAppDeployment
             )
         )
         {
-            logger.LogError(
-                "Invalid HelmRelease state for {HelmReleaseName}: {Error}",
-                helmReleaseName,
-                error
-            );
+            logger.LogError("Invalid HelmRelease state for {HelmReleaseName}: {Error}", helmReleaseName, error);
 
             return Results.Problem(
                 title: $"Invalid HelmRelease state for {helmReleaseName}",

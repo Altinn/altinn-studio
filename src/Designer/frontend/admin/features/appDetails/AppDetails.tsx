@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import classes from './AppDetails.module.css';
 import { Instances } from '../instances/Instances';
+import { AppInfo } from './components/AppInfo';
 
 export const AppsDetails = () => {
   const { t } = useTranslation();
@@ -32,6 +33,7 @@ export const AppsDetails = () => {
       <StudioHeading className={classes.heading} data-size='lg'>
         {env} / {app}
       </StudioHeading>
+      <AppInfo org={org} env={env} app={app} />
       <div className={classes.metrics}>
         <AppMetrics range={range ?? defaultRange} setRange={setRange} />
       </div>

@@ -7,7 +7,6 @@ import {
   StudioError,
   StudioTabs,
 } from '@studio/components';
-import type { PropsWithChildren } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
@@ -34,6 +33,7 @@ import {
   type ProcessTaskMetadata,
   useProcessMetadataQuery,
 } from 'admin/hooks/queries/useProcessMetadataQuery';
+import { LabelValue } from 'admin/shared/LabelValue/LabelValue';
 
 type InstanceDataViewProps = {
   org: string;
@@ -158,17 +158,6 @@ const InstanceDataViewWithData = ({
       <StudioTabs.Panel value={InstanceDataViewTabs.Logs}></StudioTabs.Panel>
         */}
     </StudioTabs>
-  );
-};
-
-const LabelValue = ({ label, children }: PropsWithChildren<{ label: string }>) => {
-  const labelId = `label-${label}`;
-  return (
-    <StudioField>
-      <StudioLabel id={labelId}>{label}</StudioLabel>
-      <br />
-      <span aria-labelledby={labelId}>{children}</span>
-    </StudioField>
   );
 };
 

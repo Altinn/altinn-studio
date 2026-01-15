@@ -136,18 +136,14 @@ public class ApplicationsController : ControllerBase
                 ct
             );
 
-            var (deploymentEntityTask, releaseEntityTask) = (
-                _deploymentRepository.Get(org, runtimeAppDeployment.BuildId),
-                _releaseRepository.GetSucceededReleaseFromDb(
-                    org,
-                    app,
-                    runtimeAppDeployment.ImageTag
-                )
+            var deploymentEntity = await _deploymentRepository.Get(
+                org,
+                runtimeAppDeployment.BuildId
             );
-            await Task.WhenAll(deploymentEntityTask, releaseEntityTask);
-            var (deploymentEntity, releaseEntity) = (
-                deploymentEntityTask.Result,
-                releaseEntityTask.Result
+            var releaseEntity = await _releaseRepository.GetSucceededReleaseFromDb(
+                org,
+                app,
+                runtimeAppDeployment.ImageTag
             );
 
             var application = new PublishedApplicationDetails()
