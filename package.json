@@ -160,7 +160,7 @@
     "jsonpointer": "5.0.1",
     "leaflet": "1.9.4",
     "lru-cache": "11.2.4",
-    "marked": "16.4.2",
+    "marked": "17.0.1",
     "marked-mangle": "1.1.12",
     "node-polyfill-webpack-plugin": "4.1.0",
     "react": "19.2.3",
