@@ -257,24 +257,6 @@
         }
       },
       {
-        endpoint: GET {org}/{app}/api/ruleconfiguration/{id},
-        metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
-        }
-      },
-      {
-        endpoint: GET {org}/{app}/api/rulehandler/{id},
-        metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
-        }
-      },
-      {
         endpoint: GET {org}/{app}/api/v1/applicationlanguages,
         metadata: {
           errorMessageTextResourceKeyUser: null,
@@ -375,6 +357,33 @@
       },
       {
         endpoint: GET {org}/{app}/api/validationconfig/{dataTypeId},
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/instance-selection,
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/instance/{partyId}/{instanceGuid},
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/instance/{partyId}/{instanceGuid}/{*rest},
         metadata: {
           errorMessageTextResourceKeyUser: null,
           errorMessageTextResourceKeyServiceOwner: null,
@@ -590,6 +599,24 @@
         }
       },
       {
+        endpoint: GET {org}/{app}/party-selection,
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/party-selection/{errorCode},
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
         endpoint: GET {org}/{app}/set-query-params,
         metadata: {
           errorMessageTextResourceKeyUser: null,
@@ -618,6 +645,15 @@
       },
       {
         endpoint: GET {org}/{app}/v1/data/anonymous,
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/{pageName:int},
         metadata: {
           errorMessageTextResourceKeyUser: null,
           errorMessageTextResourceKeyServiceOwner: null,

@@ -23,9 +23,10 @@ import (
 
 // Test constants
 const (
-	testClientId  = "test-client-id-123"
-	testAuthority = "https://test.maskinporten.no"
-	testAppId     = "testapp"
+	testClientId                    = "test-client-id-123"
+	testAuthority                   = "https://test.maskinporten.no"
+	testSecretStateContentAuthority = testAuthority + "/" // Maskinporten requires trailing slash in audience claim
+	testAppId                       = "testapp"
 )
 
 var (
@@ -263,7 +264,7 @@ func TestReconcile_ScopesChanged(t *testing.T) {
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
-		Authority: testAuthority,
+		Authority: testSecretStateContentAuthority,
 		Jwks:      jwks,
 		Jwk:       jwks.Keys[0],
 	}
@@ -346,7 +347,7 @@ func TestReconcile_ScopesAndJwksRotation(t *testing.T) {
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
-		Authority: testAuthority,
+		Authority: testSecretStateContentAuthority,
 		Jwks:      jwks,
 		Jwk:       jwks.Keys[0],
 	}
@@ -407,7 +408,7 @@ func TestReconcile_Deletion(t *testing.T) {
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
-		Authority: testAuthority,
+		Authority: testSecretStateContentAuthority,
 		Jwks:      jwks,
 		Jwk:       jwks.Keys[0],
 	}
@@ -435,7 +436,7 @@ func TestReconcile_DeletionApiAlreadyGone(t *testing.T) {
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
-		Authority: testAuthority,
+		Authority: testSecretStateContentAuthority,
 		Jwks:      jwks,
 		Jwk:       jwks.Keys[0],
 	}
@@ -509,7 +510,7 @@ func TestForcedRotation_IgnoredDuringDeletion(t *testing.T) {
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
-		Authority: testAuthority,
+		Authority: testSecretStateContentAuthority,
 		Jwks:      jwks,
 		Jwk:       jwks.Keys[0],
 	}
@@ -536,7 +537,7 @@ func TestReconcile_NoChanges(t *testing.T) {
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
-		Authority: testAuthority,
+		Authority: testSecretStateContentAuthority,
 		Jwks:      jwks,
 		Jwk:       jwks.Keys[0],
 	}
@@ -567,7 +568,7 @@ func TestReconcile_ApiJwksMismatchSecret(t *testing.T) {
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
-		Authority: testAuthority,
+		Authority: testSecretStateContentAuthority,
 		Jwks:      secretJwks,
 		Jwk:       secretJwks.Keys[0],
 	}
@@ -595,7 +596,7 @@ func TestReconcile_ApiJwksEmpty(t *testing.T) {
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
-		Authority: testAuthority,
+		Authority: testSecretStateContentAuthority,
 		Jwks:      secretJwks,
 		Jwk:       secretJwks.Keys[0],
 	}
@@ -627,7 +628,7 @@ func TestJwkRotation_NotNeededYet(t *testing.T) {
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
-		Authority: testAuthority,
+		Authority: testSecretStateContentAuthority,
 		Jwks:      jwks,
 		Jwk:       jwks.Keys[0],
 	}
@@ -656,7 +657,7 @@ func TestJwkRotation_TriggeredAtThreshold(t *testing.T) {
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
-		Authority: testAuthority,
+		Authority: testSecretStateContentAuthority,
 		Jwks:      jwks,
 		Jwk:       jwks.Keys[0],
 	}
@@ -691,7 +692,7 @@ func TestJwkRotation_SecondRotation(t *testing.T) {
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
-		Authority: testAuthority,
+		Authority: testSecretStateContentAuthority,
 		Jwks:      rotatedJwks,
 		Jwk:       rotatedJwks.Keys[0],
 	}
@@ -727,7 +728,7 @@ func TestForcedRotation_ViaAnnotation(t *testing.T) {
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
-		Authority: testAuthority,
+		Authority: testSecretStateContentAuthority,
 		Jwks:      jwks,
 		Jwk:       jwks.Keys[0],
 	}
@@ -757,7 +758,7 @@ func TestForcedRotation_AnnotationValueNotTrue(t *testing.T) {
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
-		Authority: testAuthority,
+		Authority: testSecretStateContentAuthority,
 		Jwks:      jwks,
 		Jwk:       jwks.Keys[0],
 	}
@@ -855,7 +856,7 @@ func TestReconcile_EmptyScopes(t *testing.T) {
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
-		Authority: testAuthority,
+		Authority: testSecretStateContentAuthority,
 		Jwks:      jwks,
 		Jwk:       jwks.Keys[0],
 	}
@@ -883,7 +884,7 @@ func TestReconcile_NilVsEmptyScopes(t *testing.T) {
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
-		Authority: testAuthority,
+		Authority: testSecretStateContentAuthority,
 		Jwks:      jwks,
 		Jwk:       jwks.Keys[0],
 	}

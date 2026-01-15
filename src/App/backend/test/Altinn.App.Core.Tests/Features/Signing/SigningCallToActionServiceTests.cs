@@ -361,7 +361,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         Assert.Equal("Custom inbox title", capturedPayload.CorrespondenceRequest.Content.Title);
         Assert.Equal("Custom inbox summary", capturedPayload.CorrespondenceRequest.Content.Summary);
         Assert.Equal(
-            "Custom inbox body with replacement for instance url here: [Klikk her for å åpne skjema](http://local.altinn.cloud/org/app/#/instance/123/ab0cdeb5-dc5e-4faa-966b-d18bb932ca07), and some more text after, and the deprecated [Klikk her for å åpne skjema](http://local.altinn.cloud/org/app/#/instance/123/ab0cdeb5-dc5e-4faa-966b-d18bb932ca07)",
+            "Custom inbox body with replacement for instance url here: [Klikk her for å åpne skjema](http://local.altinn.cloud/org/app/instance/123/ab0cdeb5-dc5e-4faa-966b-d18bb932ca07), and some more text after, and the deprecated [Klikk her for å åpne skjema](http://local.altinn.cloud/org/app/instance/123/ab0cdeb5-dc5e-4faa-966b-d18bb932ca07)",
             capturedPayload.CorrespondenceRequest.Content.Body
         );
         Assert.Equal("app_ttd_appname", capturedPayload.CorrespondenceRequest.ResourceId);
@@ -450,7 +450,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         Assert.Equal("TestAppName: Oppgave til signering", capturedPayload.CorrespondenceRequest.Content.Title);
         Assert.Equal("Din signatur ventes for TestAppName.", capturedPayload.CorrespondenceRequest.Content.Summary);
         Assert.Equal(
-            "Du har en oppgave som venter på din signatur. [Klikk her for å åpne skjema](http://local.altinn.cloud/org/app/#/instance/123/ab0cdeb5-dc5e-4faa-966b-d18bb932ca07)\n\nHvis du lurer på noe, kan du kontakte Service owner.",
+            "Du har en oppgave som venter på din signatur. [Klikk her for å åpne skjema](http://local.altinn.cloud/org/app/instance/123/ab0cdeb5-dc5e-4faa-966b-d18bb932ca07)\n\nHvis du lurer på noe, kan du kontakte Service owner.",
             capturedPayload.CorrespondenceRequest.Content.Body
         );
         Assert.Equal("app_ttd_appname", capturedPayload.CorrespondenceRequest.ResourceId);

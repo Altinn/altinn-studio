@@ -6,7 +6,7 @@ import { StudioProperty } from '@studio/components';
 import { EditColumnElement } from './EditColumnElement';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { textResourceByLanguageAndIdSelector } from '../../../../selectors/textResourceSelectors';
+import { textResourceByLanguageAndIdSelector } from 'app-shared/selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 export type ColumnElementProps = {

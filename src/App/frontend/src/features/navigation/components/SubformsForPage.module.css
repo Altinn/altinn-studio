@@ -5,7 +5,7 @@
 
 .subform-expand-button {
   font-family: var(--font-family);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: normal;
   color: var(--ds-color-neutral-text-subtle);
   background-color: transparent;
@@ -34,7 +34,7 @@
   margin-top: 1px;
   margin-right: -4px; /* The icon has some internal padding, this makes the edge line up better */
   color: var(--ds-color-neutral-text-subtle);
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .subform-expand-chevron-open {
@@ -57,7 +57,7 @@
 .subform-link {
   display: block;
   font-family: var(--font-family);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: normal;
   color: var(--ds-color-accent-text-subtle);
   background-color: transparent;

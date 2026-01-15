@@ -12,11 +12,15 @@
     "@tanstack/react-query-devtools": "5.84.2",
     "ajv": "8.17.1",
     "ajv-formats": "3.0.1",
+    "chart.js": "4.5.0",
+    "chartjs-adapter-date-fns": "3.0.0",
+    "date-fns": "4.1.0",
     "i18next": "25.6.3",
     "identity-obj-proxy": "3.0.0",
     "react": "18.3.1",
+    "react-chartjs-2": "5.3.0",
     "react-dom": "18.3.1",
-    "react-error-boundary": "6.0.0",
+    "react-error-boundary": "6.0.1",
     "react-i18next": "16.3.5",
     "react-router-dom": "6.30.2",
     "react-toastify": "11.0.5"
@@ -62,7 +66,7 @@
   "resolutions": {
     "@testing-library/dom": "10.4.1",
     "@babel/traverse": "7.28.5",
-    "caniuse-lite": "1.0.30001761"
+    "caniuse-lite": "1.0.30001762"
   },
   "lint-staged": {
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",

@@ -103,7 +103,7 @@ const renderImportFromOrgLibraryDialog = (
   return render(<Component />);
 };
 
-const useShowModal = (ref: React.RefObject<HTMLDialogElement>) => {
+const useShowModal = (ref: React.RefObject<HTMLDialogElement>): void => {
   useEffect(() => {
     ref.current?.showModal();
   }, [ref]);

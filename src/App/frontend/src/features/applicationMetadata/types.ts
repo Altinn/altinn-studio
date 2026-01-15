@@ -52,4 +52,5 @@ export interface IPartyTypesAllowed {
 
 export interface IBackendFeaturesState {
   jsonObjectInDataResponse: boolean; // Extended attachment validation
+  addInstanceIdentifierToLayoutRequests: boolean; // Add instance identifier to layout requests
 }
