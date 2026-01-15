@@ -98,7 +98,6 @@ export const getApplicationMetadataMock = (
   const incomingAppMetadata = getIncomingApplicationMetadataMock();
   return {
     ...incomingAppMetadata,
-    isValidVersion: true,
     isStateless: false,
     logo: incomingAppMetadata.logo,
     onEntry: { show: 'new-instance' },

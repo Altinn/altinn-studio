@@ -24,7 +24,6 @@ export interface IncomingApplicationMetadata {
 }
 
 export type ApplicationMetadata = IncomingApplicationMetadata & {
-  isValidVersion: boolean;
   isStateless: boolean;
 };
 

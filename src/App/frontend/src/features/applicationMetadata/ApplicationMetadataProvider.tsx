@@ -7,7 +7,6 @@ import type { UseQueryOptions } from '@tanstack/react-query';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { onEntryValuesThatHaveState } from 'src/features/applicationMetadata/appMetadataUtils';
-import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { fetchApplicationMetadata } from 'src/queries/queries';
 import type { ApplicationMetadata, IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
@@ -19,7 +18,6 @@ export function getApplicationMetadataQueryDef(instanceGuid: string | undefined)
     queryFn: fetchApplicationMetadata,
     select: (data) => ({
       ...data,
-      isValidVersion: true, // TODO: Add version check when we know the next version (v9 or v10?)
       isStateless: isStatelessApp(!!instanceGuid, data.onEntry.show),
     }),
   } satisfies UseQueryOptions<IncomingApplicationMetadata, Error, ApplicationMetadata>;
@@ -50,11 +48,7 @@ function isStatelessApp(hasInstanceGuid: boolean, show: ApplicationMetadata['onE
 }
 
 export function ApplicationMetadataProvider({ children }: PropsWithChildren) {
-  return (
-    <Provider>
-      <VersionErrorOrChildren>{children}</VersionErrorOrChildren>
-    </Provider>
-  );
+  return <Provider>{children}</Provider>;
 }
 
 export const useApplicationMetadata = () => useCtx();

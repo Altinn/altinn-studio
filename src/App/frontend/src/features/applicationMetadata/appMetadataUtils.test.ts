@@ -71,7 +71,6 @@ describe('appMetadata.ts', () => {
   const appMetadata: ApplicationMetadata = {
     ...incomingAppMetadata,
     isStateless: false,
-    isValidVersion: true,
     logo: incomingAppMetadata.logo,
     onEntry: { show: 'new-instance' },
   };
