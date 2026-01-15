@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react';
 import type { JSONSchema7 } from 'json-schema';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
-import { useApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import {
   getCurrentDataTypeForApplication,
   getCurrentTaskDataElementId,
@@ -30,7 +30,7 @@ export type AsSchema<T> = {
 };
 
 export function useCurrentDataModelDataElementId() {
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
   const layoutSets = useLayoutSets();
   const taskId = useProcessTaskId();
   const isStateless = useIsStateless();
@@ -133,7 +133,7 @@ export function useDataModelUrl({ dataType, dataElementId, language, prefillFrom
 export function useCurrentDataModelName() {
   const overriddenDataModelType = useTaskOverrides()?.dataModelType;
 
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
   const layoutSets = useLayoutSets();
   const taskId = useProcessTaskId();
   const isStateless = useIsStateless();
@@ -152,13 +152,13 @@ export function useCurrentDataModelName() {
 
 export function useCurrentDataModelType() {
   const name = useCurrentDataModelName();
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
 
   return application.dataTypes.find((dt) => dt.id === name);
 }
 
 export function useDataModelType(dataType: string) {
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
 
   return application.dataTypes.find((dt) => dt.id === dataType);
 }

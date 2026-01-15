@@ -136,7 +136,7 @@ public class HomeController : Controller
 
         var featureToggles = await _frontendFeatures.GetFrontendFeatures();
         var featureTogglesJson = JsonSerializer.Serialize(featureToggles, _jsonSerializerOptions);
-        var globalDataJson = JsonSerializer.Serialize(appGlobalState);
+        var globalDataJson = JsonSerializer.Serialize(appGlobalState, _jsonSerializerOptions);
 
         var htmlContent = $$"""
             <!DOCTYPE html>

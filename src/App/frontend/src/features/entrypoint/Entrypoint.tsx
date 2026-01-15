@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
 import { Loader } from 'src/core/loading/Loader';
-import { useApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
@@ -42,7 +42,7 @@ export const Entrypoint = () => {
   const {
     onEntry: { show },
     promptForParty,
-  } = useApplicationMetadata();
+  } = getApplicationMetadata();
   const isStateless = useIsStateless();
   const profile = useProfile();
   const validParties = useValidParties();

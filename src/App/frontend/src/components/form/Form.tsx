@@ -9,7 +9,7 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { NavigateToStartUrl } from 'src/components/wrappers/ProcessWrapper';
 import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
 import { useExpandedWidthLayouts, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
@@ -152,7 +152,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
 function useRedirectToStoredPage() {
   const pageKey = useCurrentView();
   const { isValidPageId, navigateToPage } = useNavigatePage();
-  const applicationMetadataId = useApplicationMetadata()?.id;
+  const applicationMetadataId = getApplicationMetadata()?.id;
 
   const instanceId = useLaxInstanceId();
   const currentViewCacheKey = instanceId ?? applicationMetadataId;

@@ -1,10 +1,10 @@
 import { useTextResourceOr } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useOrgs } from 'src/features/orgs/OrgsProvider';
 
 export function useAppLogoUrl() {
   const orgs = useOrgs();
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
   const org = application?.org;
 
   const useOrgAsSource = (application.logo?.source ?? 'org') === 'org';
@@ -15,12 +15,12 @@ export function useAppLogoUrl() {
 }
 
 export function useDisplayAppOwnerNameInHeader() {
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
   return application.logo?.displayAppOwnerNameInHeader === true;
 }
 
 export function useAppLogoSize() {
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
   const size = application.logo?.size;
 
   if (size !== 'small' && size !== 'medium' && size !== 'large') {

@@ -1,17 +1,13 @@
-import { ContextNotProvided } from 'src/core/contexts/context';
-import {
-  useIsStateless,
-  useLaxApplicationMetadata,
-} from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { getDataTypeByLayoutSetId } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useLayoutSetsQuery } from 'src/features/form/layoutSets/LayoutSetsProvider';
 
 export const useAllowAnonymous = () => {
-  const application = useLaxApplicationMetadata();
+  const application = getApplicationMetadata();
   const isStateless = useIsStateless();
   const { data: layoutSets } = useLayoutSetsQuery();
 
-  if (!layoutSets || application === ContextNotProvided || !isStateless) {
+  if (!layoutSets || !isStateless) {
     return false;
   }
 

@@ -10,7 +10,7 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import { Input } from 'src/app-components/Input/Input';
 import { AltinnParty } from 'src/components/altinnParty';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
 import classes from 'src/features/instantiate/containers/PartySelection.module.css';
 import { Lang } from 'src/features/language/Lang';
@@ -39,7 +39,7 @@ export const PartySelection = () => {
   const setUserHasSelectedParty = useSetHasSelectedParty();
 
   const partiesAllowedToInstantiate = usePartiesAllowedToInstantiate() ?? [];
-  const appMetadata = useApplicationMetadata();
+  const appMetadata = getApplicationMetadata();
 
   // Like on altinn.no, we tick the "show deleted" checkbox by default when the
   // user only has deleted parties to choose from.
@@ -217,7 +217,7 @@ export const PartySelection = () => {
 };
 
 function TemplateErrorMessage({ selectedParty }: { selectedParty: IParty | undefined }) {
-  const appMetadata = useApplicationMetadata();
+  const appMetadata = getApplicationMetadata();
   const { langAsString } = useLanguage();
 
   return (
