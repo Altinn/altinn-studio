@@ -129,7 +129,7 @@ function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
 }
 
 function PdfWrapping({ children }: PropsWithChildren) {
-  const orgLogoEnabled = Boolean(useApplicationMetadata().logoOptions);
+  const orgLogoEnabled = Boolean(useApplicationMetadata().logo);
   const appOwner = useAppOwner();
   const appName = useAppName();
   const { langAsString } = useLanguage();

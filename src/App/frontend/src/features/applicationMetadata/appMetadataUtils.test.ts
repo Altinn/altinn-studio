@@ -72,7 +72,7 @@ describe('appMetadata.ts', () => {
     ...incomingAppMetadata,
     isStateless: false,
     isValidVersion: true,
-    logoOptions: incomingAppMetadata.logo,
+    logo: incomingAppMetadata.logo,
     onEntry: { show: 'new-instance' },
   };
 

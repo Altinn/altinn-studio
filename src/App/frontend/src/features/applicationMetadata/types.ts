@@ -27,7 +27,7 @@ export type ApplicationMetadata = Omit<IncomingApplicationMetadata, 'onEntry' | 
   onEntry: IOnEntry;
   isValidVersion: boolean;
   isStateless: boolean;
-  logoOptions?: ILogoOptions;
+  logo?: ILogoOptions;
 };
 
 export interface IOnEntry {

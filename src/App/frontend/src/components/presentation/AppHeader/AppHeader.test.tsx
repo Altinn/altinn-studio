@@ -37,7 +37,7 @@ describe('presentation/AppHeader', () => {
   interface IRenderComponentProps {
     party: IParty;
     user?: IProfile;
-    logo?: ApplicationMetadata['logoOptions'];
+    logo?: ApplicationMetadata['logo'];
     showLanguageSelector?: boolean;
     languageResponse?: IAppLanguage[];
     textResources?: IRawTextResource[];

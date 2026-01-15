@@ -29,7 +29,7 @@ export const Footer = () => {
     return <DisplayError error={footerLayoutError} />;
   }
 
-  const shouldUseOrgLogo = application !== ContextNotProvided && application.logoOptions != null;
+  const shouldUseOrgLogo = application !== ContextNotProvided && application.logo != null;
 
   const footerElements = data?.footer;
   if (!footerElements && !shouldUseOrgLogo) {

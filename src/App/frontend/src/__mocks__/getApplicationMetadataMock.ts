@@ -100,7 +100,7 @@ export const getApplicationMetadataMock = (
     ...incomingAppMetadata,
     isValidVersion: true,
     isStateless: false,
-    logoOptions: incomingAppMetadata.logo,
+    logo: incomingAppMetadata.logo,
     onEntry: { show: 'new-instance' },
     ...overrides,
   };
