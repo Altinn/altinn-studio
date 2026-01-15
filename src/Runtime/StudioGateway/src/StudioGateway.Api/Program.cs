@@ -38,12 +38,15 @@ builder.Configuration.AddJsonFile(
 );
 builder.Configuration.AddJsonFile("/app/secrets/grafana-token.json", optional: true, reloadOnChange: true);
 var environment = builder.Configuration.GetSection("Gateway").GetValue<string>("Environment") ?? "";
-var hasGrafanaInstance = AltinnEnvironments.IsProd(environment) || AltinnEnvironments.IsTest(environment);
+var hasGrafanaInstance = AltinnEnvironments.IsProd(environment) || AltinnEnvironments.IsTT02(environment);
 
 builder
     .Services.AddOptions<GrafanaSettings>()
     .Bind(builder.Configuration.GetSection("Grafana"))
-    .Validate(settings => !hasGrafanaInstance || !string.IsNullOrWhiteSpace(settings.Token), "Grafana.Token is required.")
+    .Validate(
+        settings => !hasGrafanaInstance || !string.IsNullOrWhiteSpace(settings.Token),
+        "Grafana.Token is required."
+    )
     .Validate(settings => !hasGrafanaInstance || settings.Url != null, "Grafana.Url is required.")
     .ValidateOnStart();
 builder
