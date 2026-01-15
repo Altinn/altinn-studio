@@ -25,8 +25,8 @@ public class EndpointNameSyncEligibilityEvaluator : IRepoUserSyncEligibilityEval
                 nameof(RepositoryController.Pull),
                 nameof(RepositoryController.ResetLocalRepository),
                 nameof(RepositoryController.CommitAndPushRepo),
-                nameof(RepositoryController.Commit), // TODO: This method is never used, should it be removed?
-                nameof(RepositoryController.Push) // TODO: This method is never used, should it be removed?
+                nameof(RepositoryController.Commit),
+                nameof(RepositoryController.Push)
             )
         },
         {

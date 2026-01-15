@@ -107,6 +107,19 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
       );
     };
 
+    const getIdErrorMessage = (): string => {
+      if (idErrorMessage) {
+        const prefixes = getValidIdentifierPrefixes(org);
+        const prefixesString = [prefixes.slice(0, -1).join(', '), prefixes.slice(-1)[0]].join(
+          ` ${t('expression.or')} `,
+        );
+        return t(idErrorMessage, {
+          orgPrefix: prefixesString,
+        });
+      }
+      return '';
+    };
+
     return (
       <StudioDialog ref={ref} onClose={handleClose}>
         <ResourceAdmDialogContent
@@ -168,13 +181,7 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
                         setResourceIdExists(false);
                         setId(formatIdString(event.target.value));
                       }}
-                      error={
-                        idErrorMessage
-                          ? t(idErrorMessage, {
-                              orgPrefix: `${getValidIdentifierPrefixes(org).join(` ${t('expression.or')} `)}`,
-                            })
-                          : ''
-                      }
+                      error={getIdErrorMessage()}
                     />
                   </div>
                 )}
