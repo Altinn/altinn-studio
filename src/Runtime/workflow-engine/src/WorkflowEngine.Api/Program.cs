@@ -1,4 +1,5 @@
 using WorkflowEngine.Api.Authentication;
+using WorkflowEngine.Api.Endpoints;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models.Exceptions;
@@ -14,19 +15,19 @@ builder.Services.AddWorkflowEngineHost();
 builder.Services.AddOpenApi();
 builder.Services.AddApiKeyAuthentication();
 builder.Services.AddDbRepository(dbConnectionString);
+builder.Services.AddEngineHealthChecks();
 
 var app = builder.Build();
 
 // Apply database migrations
 await app.MigrateDatabaseAsync(dbConnectionString);
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.MapOpenApi();
+app.UseSwaggerUI();
+app.MapHealthEndpoints();
 
-app.UseHttpsRedirection();
+if (!builder.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
 
 var summaries = new[]
 {

@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Api.Authentication;
 using WorkflowEngine.Api.Constants;
+using WorkflowEngine.Api.Endpoints;
+using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Api.Extensions;
@@ -119,6 +121,18 @@ internal static class ServiceCollectionExtensions
                         policy.RequireAuthenticatedUser();
                     }
                 );
+
+            return services;
+        }
+
+        /// <summary>
+        /// Adds health checks.
+        /// </summary>
+        /// <returns></returns>
+        public IServiceCollection AddEngineHealthChecks()
+        {
+            services.AddHealthChecks().AddCheck<EngineHealthCheck>("Engine", tags: ["ready"]);
+            services.AddDbContextHealthCheck("Database", ["ready", "dependencies"]);
 
             return services;
         }

@@ -36,5 +36,15 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IEngineRepository, EngineInMemoryRepository>();
             return services;
         }
+
+        /// <summary>
+        /// Adds a health check for the EngineDbContext, testing database connectivity.
+        /// </summary>
+        public IServiceCollection AddDbContextHealthCheck(string name, IEnumerable<string>? tags = null)
+        {
+            services.AddHealthChecks().AddDbContextCheck<EngineDbContext>(name, tags: tags);
+
+            return services;
+        }
     }
 }
