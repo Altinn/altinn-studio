@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.FeatureManagement;
 
 namespace Altinn.App.Core.Internal.App;
@@ -25,7 +26,10 @@ public class FrontendFeatures : IFrontendFeatures
         var result = new Dictionary<string, bool>();
 
         await foreach (var name in _featureManager.GetFeatureNamesAsync())
-            result[name] = await _featureManager.IsEnabledAsync(name);
+        {
+            var camelCaseName = JsonNamingPolicy.CamelCase.ConvertName(name);
+            result[camelCaseName] = await _featureManager.IsEnabledAsync(name);
+        }
 
         return result;
     }
