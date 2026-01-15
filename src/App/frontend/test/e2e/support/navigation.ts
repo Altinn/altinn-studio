@@ -66,7 +66,7 @@ function generateEvalString(target: FrontendTestTask, extra?: Extras): string {
 
   const extras = extra ? extra({ baseUrl }) : { code: '' };
   const returnInstanceUrl = `
-    return '${baseUrl}/#/instance/' + instanceId + '${extras.urlSuffix || ''}';
+    return '${baseUrl}/instance/' + instanceId + '${extras.urlSuffix || ''}';
   `;
 
   return createInstance + skipToTask + extras.code + returnInstanceUrl;

@@ -14,9 +14,7 @@ function getCookies(): { [key: string]: string } {
 
 export function propagateTraceWhenPdf() {
   try {
-    const hash = window.location.hash;
-    const search = hash.split('?')[1] ?? '';
-    const isPdf = new URLSearchParams(search).get(SearchParams.Pdf) === '1';
+    const isPdf = new URLSearchParams(window.location.search).get(SearchParams.Pdf) === '1';
 
     if (isPdf) {
       const cookies = getCookies();
