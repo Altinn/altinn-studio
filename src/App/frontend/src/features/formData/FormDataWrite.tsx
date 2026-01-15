@@ -31,7 +31,6 @@ import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
-import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import type {
@@ -57,7 +56,6 @@ interface FormDataContextInitialProps {
   proxies: FormDataWriteProxies;
   schemaLookup: { [dataType: string]: SchemaLookupTool };
   changeInstance: ChangeInstanceData;
-  applicationMetaData: ApplicationMetadata;
 }
 
 const {
@@ -82,9 +80,8 @@ const {
     proxies,
     schemaLookup,
     changeInstance,
-    applicationMetaData,
   }: FormDataContextInitialProps) =>
-    createFormDataWriteStore(initialDataModels, autoSaving, proxies, schemaLookup, changeInstance, applicationMetaData),
+    createFormDataWriteStore(initialDataModels, autoSaving, proxies, schemaLookup, changeInstance),
 });
 
 const saveFormDataMutationKey = ['saveFormData'] as const;
@@ -336,7 +333,7 @@ export function FormDataWriteProvider({ children }: PropsWithChildren) {
   const schemaLookup = DataModels.useSchemaLookup();
   const autoSaveBehavior = usePageSettings().autoSaveBehavior;
   const changeInstance = useOptimisticallyUpdateCachedInstance();
-  const applicationMetadata = useApplicationMetadata();
+
   if (!writableDataTypes || !allDataTypes) {
     throw new Error('FormDataWriteProvider failed because data types have not been loaded, see DataModelsProvider.');
   }
@@ -364,7 +361,6 @@ export function FormDataWriteProvider({ children }: PropsWithChildren) {
       proxies={proxies}
       schemaLookup={schemaLookup}
       changeInstance={changeInstance}
-      applicationMetaData={applicationMetadata}
     >
       <FormDataEffects />
       <LockingEffects />
