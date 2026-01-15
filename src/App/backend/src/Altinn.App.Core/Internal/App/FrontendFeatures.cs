@@ -19,8 +19,6 @@ public class FrontendFeatures : IFrontendFeatures
     }
 
     /// <inheritdoc />
-    // public Task<Dictionary<string, bool>> GetFrontendFeatures() => Task.FromResult(_features);
-
     public async Task<Dictionary<string, bool>> GetFrontendFeatures()
     {
         var result = new Dictionary<string, bool>();

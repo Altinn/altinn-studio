@@ -30,6 +30,7 @@
       "DateAndFormatDate",
       "PersonLookupPage",
       "OrganisationLookupPage",
+      "SimpleTable",
       "AccordionPage",
       "AccordionGroupPage",
       "SummaryPage"
