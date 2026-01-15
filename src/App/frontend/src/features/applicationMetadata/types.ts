@@ -7,7 +7,7 @@ type ILogoOptions = {
   size?: 'small' | 'medium' | 'large';
 };
 
-export interface IncomingApplicationMetadata {
+export interface ApplicationMetadata {
   id: string;
   title: ITitle;
   org: string;
@@ -22,10 +22,6 @@ export interface IncomingApplicationMetadata {
   altinnNugetVersion?: string;
   logo?: ILogoOptions;
 }
-
-export type ApplicationMetadata = IncomingApplicationMetadata & {
-  isStateless: boolean;
-};
 
 export interface IOnEntry {
   show: ShowTypes;

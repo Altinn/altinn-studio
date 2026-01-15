@@ -5,7 +5,7 @@ import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
 import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { Lang } from 'src/features/language/Lang';
@@ -23,7 +23,7 @@ export function AppNavigation({ onNavigate }: { onNavigate?: () => void }) {
   const currentTaskId = useProcessTaskId();
   const isReceipt = useIsReceiptPage();
   const isSubform = useIsSubformPage();
-  const isStateless = useApplicationMetadata().isStateless;
+  const isStateless = useIsStateless();
 
   if (!isSubform && taskGroups.length) {
     return (

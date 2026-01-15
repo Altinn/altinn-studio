@@ -5,6 +5,7 @@ import type { IData } from 'src/types/shared';
 
 interface CommonProps {
   application: ApplicationMetadata;
+  isStateless: boolean;
   layoutSets: ILayoutSet[];
   taskId: string | undefined;
 }
@@ -74,22 +75,27 @@ export const onEntryValuesThatHaveState: ShowTypes[] = ['new-instance', 'select-
 /**
  * Get the current layout set for application if it exists
  */
-export function getCurrentLayoutSet({ application, layoutSets, taskId }: CommonProps) {
-  if (application.isStateless) {
+export function getCurrentLayoutSet({ application, isStateless, layoutSets, taskId }: CommonProps) {
+  if (isStateless) {
     // We have a stateless app with a layout set
     return layoutSets.find((set) => set.id === application.onEntry.show);
   }
 
-  const dataType = getCurrentDataTypeForApplication({ application, layoutSets, taskId });
+  const dataType = getCurrentDataTypeForApplication({ application, isStateless, layoutSets, taskId });
   return getLayoutSetForDataElement(taskId, dataType, layoutSets);
 }
 
 /**
  * Get the current data type for the application
  */
-export function getCurrentDataTypeForApplication({ application, layoutSets, taskId }: CommonProps): string | undefined {
+export function getCurrentDataTypeForApplication({
+  application,
+  isStateless,
+  layoutSets,
+  taskId,
+}: CommonProps): string | undefined {
   const showOnEntry = application.onEntry.show;
-  if (application.isStateless) {
+  if (isStateless) {
     // we have a stateless app with a layout set
     return getDataTypeByLayoutSetId({ layoutSetId: showOnEntry, layoutSets, appMetaData: application });
   }

@@ -70,7 +70,6 @@ describe('appMetadata.ts', () => {
   });
   const appMetadata: ApplicationMetadata = {
     ...incomingAppMetadata,
-    isStateless: false,
     logo: incomingAppMetadata.logo,
     onEntry: { show: 'new-instance' },
   };
@@ -102,6 +101,7 @@ describe('appMetadata.ts', () => {
     it('should return correct data type if we have an instance', () => {
       const result = getCurrentDataTypeForApplication({
         application: appMetadata,
+        isStateless: false,
         layoutSets,
         taskId: 'Task_1',
       });
@@ -111,7 +111,8 @@ describe('appMetadata.ts', () => {
 
     it('should return correct data type if we have a stateless app', () => {
       const result = getCurrentDataTypeForApplication({
-        application: { ...appMetadata, isStateless: true, onEntry: { show: 'stateless' } },
+        application: { ...appMetadata, onEntry: { show: 'stateless' } },
+        isStateless: true,
         layoutSets,
         taskId: undefined,
       });
@@ -121,7 +122,8 @@ describe('appMetadata.ts', () => {
 
     it('should return correct data type if instance not set', () => {
       const result = getCurrentDataTypeForApplication({
-        application: { ...appMetadata, isStateless: true, onEntry: { show: 'stateless' } },
+        application: { ...appMetadata, onEntry: { show: 'stateless' } },
+        isStateless: true,
         layoutSets,
         taskId: undefined,
       });
@@ -132,14 +134,20 @@ describe('appMetadata.ts', () => {
 
   describe('getCurrentLayoutSet', () => {
     it('should return correct layout set id if we have an instance', () => {
-      const result = getCurrentLayoutSet({ application: appMetadata, layoutSets, taskId: 'Task_1' });
+      const result = getCurrentLayoutSet({
+        application: appMetadata,
+        isStateless: false,
+        layoutSets,
+        taskId: 'Task_1',
+      });
       const expected = 'datamodel';
       expect(result?.id).toEqual(expected);
     });
 
     it('should return correct layout set id if we have a stateless app', () => {
       const result = getCurrentLayoutSet({
-        application: { ...appMetadata, isStateless: true, onEntry: { show: 'stateless' } },
+        application: { ...appMetadata, onEntry: { show: 'stateless' } },
+        isStateless: true,
         layoutSets,
         taskId: undefined,
       });
@@ -153,6 +161,7 @@ describe('appMetadata.ts', () => {
     it('should return current task data element id', () => {
       const result = getCurrentTaskDataElementId({
         application: appMetadata,
+        isStateless: false,
         dataElements: instance.data,
         layoutSets,
         taskId: 'Task_1',
@@ -166,6 +175,7 @@ describe('appMetadata.ts', () => {
       const layoutSets: ILayoutSet[] = [];
       const result = getCurrentDataTypeForApplication({
         application: appMetadata,
+        isStateless: false,
         layoutSets,
         taskId: 'Task_1',
       });
@@ -184,6 +194,7 @@ describe('appMetadata.ts', () => {
 
       const result = getCurrentDataTypeForApplication({
         application: appMetadata,
+        isStateless: false,
         layoutSets,
         taskId: 'Task_2',
       });
@@ -207,6 +218,7 @@ describe('appMetadata.ts', () => {
 
       const result = getCurrentDataTypeForApplication({
         application: appMetadata,
+        isStateless: false,
         layoutSets,
         taskId: 'CustomReceipt',
       });

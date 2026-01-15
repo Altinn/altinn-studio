@@ -161,6 +161,7 @@ export function isQueryParamPrefillArray(obj: unknown): obj is QueryParamPrefill
 
 export function getValidPrefillDataFromQueryParams(
   metaData: ApplicationMetadata,
+  isStateless: boolean,
   dataType: string,
 ): string | undefined {
   const rawParams = sessionStorage.getItem('queryParams');
@@ -168,7 +169,7 @@ export function getValidPrefillDataFromQueryParams(
     return undefined;
   }
 
-  if (!metaData.isStateless) {
+  if (!isStateless) {
     throw new Error('You can only use query parameter prefill in a stateless task. Please read documentation.');
   }
 

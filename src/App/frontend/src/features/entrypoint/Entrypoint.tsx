@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
 import { Loader } from 'src/core/loading/Loader';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
@@ -41,9 +41,9 @@ const ShowOrInstantiate: React.FC<{ show: ShowTypes }> = ({ show }) => {
 export const Entrypoint = () => {
   const {
     onEntry: { show },
-    isStateless: isStateless,
     promptForParty,
   } = useApplicationMetadata();
+  const isStateless = useIsStateless();
   const profile = useProfile();
   const validParties = useValidParties();
   const partyIsValid = useSelectedPartyIsValid();

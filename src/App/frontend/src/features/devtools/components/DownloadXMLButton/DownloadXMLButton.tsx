@@ -6,7 +6,7 @@ import { DownloadIcon, UploadIcon } from '@navikt/aksel-icons';
 import axios from 'axios';
 
 import { Button } from 'src/app-components/Button/Button';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useIsInFormContext } from 'src/features/form/FormContext';
 import { FD } from 'src/features/formData/FormDataWrite';
@@ -17,7 +17,7 @@ import { getStatefulDataModelUrl } from 'src/utils/urls/appUrlHelper';
 
 export function DownloadXMLButton() {
   const isInForm = useIsInFormContext();
-  const isStateless = useApplicationMetadata().isStateless;
+  const isStateless = useIsStateless();
   if (!isInForm || isStateless) {
     return null;
   }

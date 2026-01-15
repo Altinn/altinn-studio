@@ -2,30 +2,24 @@ import React, { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
-import type { UseQueryOptions } from '@tanstack/react-query';
 
+import { ContextNotProvided } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { onEntryValuesThatHaveState } from 'src/features/applicationMetadata/appMetadataUtils';
-import { useNavigationParam } from 'src/hooks/navigation';
 import { fetchApplicationMetadata } from 'src/queries/queries';
-import type { ApplicationMetadata, IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 
 // Also used for prefetching @see appPrefetcher.ts
-export function getApplicationMetadataQueryDef(instanceGuid: string | undefined) {
+export function getApplicationMetadataQueryDef() {
   return {
     queryKey: ['fetchApplicationMetadata'],
     queryFn: fetchApplicationMetadata,
-    select: (data) => ({
-      ...data,
-      isStateless: isStatelessApp(!!instanceGuid, data.onEntry.show),
-    }),
-  } satisfies UseQueryOptions<IncomingApplicationMetadata, Error, ApplicationMetadata>;
+  };
 }
 
 const useApplicationMetadataQuery = () => {
-  const instanceGuid = useNavigationParam('instanceGuid');
-  const query = useQuery(getApplicationMetadataQueryDef(instanceGuid));
+  const query = useQuery(getApplicationMetadataQueryDef());
 
   useEffect(() => {
     query.error && window.logError('Fetching application metadata failed:\n', query.error);
@@ -42,8 +36,12 @@ const { Provider, useCtx, useLaxCtx, useHasProvider } = delayedContext(() =>
   }),
 );
 
-function isStatelessApp(hasInstanceGuid: boolean, show: ApplicationMetadata['onEntry']['show']) {
-  // App can be setup as stateless but then go over to a stateful process task
+export function useIsStateless() {
+  const instancePattern = /^\/instance\/[^/]+\/[^/]+/;
+  const hasInstanceGuid = instancePattern.test(window.location.pathname);
+
+  const laxAppMetadata = useLaxApplicationMetadata();
+  const show = laxAppMetadata === ContextNotProvided ? undefined : laxAppMetadata.onEntry.show;
   return hasInstanceGuid ? false : !!show && !onEntryValuesThatHaveState.includes(show);
 }
 

@@ -9,7 +9,7 @@ import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { getFirstDataElementId } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useCustomValidationConfigQuery } from 'src/features/customValidation/useCustomValidationQuery';
 import { UpdateDataElementIdsForCypress } from 'src/features/datamodel/DataElementIdsForCypress';
@@ -149,7 +149,7 @@ function DataModelsLoader() {
   const writableDataTypes = useSelector((state) => state.writableDataTypes);
   const layouts = useLayouts();
   const defaultDataType = useCurrentDataModelName();
-  const isStateless = useApplicationMetadata().isStateless;
+  const isStateless = useIsStateless();
 
   const { data: dataElements, isFetching } = useInstanceDataQuery({
     enabled: !isStateless,
@@ -308,11 +308,12 @@ function LoadInitialData({ dataType, overrideDataElement }: LoaderProps & { over
   const dataElements = useInstanceDataElements(dataType);
   const dataElementId = overrideDataElement ?? getFirstDataElementId(dataElements, dataType);
   const metaData = useApplicationMetadata();
+  const isStateless = useIsStateless();
 
   const url = useDataModelUrl({
     dataType,
     dataElementId,
-    prefillFromQueryParams: getValidPrefillDataFromQueryParams(metaData, dataType),
+    prefillFromQueryParams: getValidPrefillDataFromQueryParams(metaData, isStateless, dataType),
   });
 
   const { data, error } = useFormDataQuery(url);
