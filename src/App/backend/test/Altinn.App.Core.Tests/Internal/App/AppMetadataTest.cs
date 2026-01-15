@@ -29,6 +29,7 @@ public class AppMetadataTest
     public async Task GetApplicationMetadata_desrializes_file_from_disk()
     {
         var featureManagerMock = new Mock<IFeatureManager>();
+        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
         FrontendFeatures frontendFeatures = new(featureManagerMock.Object);
         Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
         TelemetrySink telemetrySink = new();
@@ -82,6 +83,7 @@ public class AppMetadataTest
     public async Task GetApplicationMetadata_eformidling_desrializes_file_from_disk()
     {
         var featureManagerMock = new Mock<IFeatureManager>();
+        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
         FrontendFeatures frontendFeatures = new(featureManagerMock.Object);
         Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
 
@@ -197,6 +199,7 @@ public class AppMetadataTest
     public async Task GetApplicationMetadata_onEntry_InstanceSelection_DefaultSelectedOption_read_legacy_value_if_new_not_set()
     {
         var featureManagerMock = new Mock<IFeatureManager>();
+        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
         FrontendFeatures frontendFeatures = new(featureManagerMock.Object);
         Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
 
@@ -260,6 +263,7 @@ public class AppMetadataTest
     public async Task GetApplicationMetadata_onEntry_supports_new_option()
     {
         var featureManagerMock = new Mock<IFeatureManager>();
+        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
         IFrontendFeatures frontendFeatures = new FrontendFeatures(featureManagerMock.Object);
         Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
 
@@ -319,6 +323,7 @@ public class AppMetadataTest
     public async Task GetApplicationMetadata_onEntry_prefer_new_option()
     {
         var featureManagerMock = new Mock<IFeatureManager>();
+        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
         IFrontendFeatures frontendFeatures = new FrontendFeatures(featureManagerMock.Object);
         Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
 
@@ -382,6 +387,7 @@ public class AppMetadataTest
     public async Task GetApplicationMetadata_logo_can_instantiate_with_source_and_DisplayAppOwnerNameInHeader()
     {
         var featureManagerMock = new Mock<IFeatureManager>();
+        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
         FrontendFeatures frontendFeatures = new(featureManagerMock.Object);
         Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
 
@@ -572,6 +578,7 @@ public class AppMetadataTest
     )
     {
         var featureManagerMock = new Mock<IFeatureManager>();
+        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
 
         if (externalApiFactory is null)
         {
