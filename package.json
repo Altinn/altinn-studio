@@ -38,7 +38,7 @@
     "@babel/preset-react": "7.28.5",
     "@babel/runtime": "7.28.4",
     "@babel/runtime-corejs3": "7.28.4",
-    "@eslint/compat": "2.0.0",
+    "@eslint/compat": "2.0.1",
     "@faker-js/faker": "10.2.0",
     "@percy/cli": "1.31.7",
     "@percy/cypress": "3.1.7",
@@ -56,8 +56,8 @@
     "@types/leaflet": "1",
     "@types/marked": "6.0.0",
     "@types/mime": "4.0.0",
-    "@types/node": "24.10.4",
-    "@types/react": "19.2.7",
+    "@types/node": "24.10.7",
+    "@types/react": "19.2.8",
     "@types/react-dom": "19.2.3",
     "@types/react-router-dom": "5.3.3",
     "@types/uuid": "11.0.0",
@@ -66,7 +66,7 @@
     "axe-core": "4.11.1",
     "babel-jest": "30.2.0",
     "babel-loader": "10.0.0",
-    "caniuse-lite": "1.0.30001763",
+    "caniuse-lite": "1.0.30001764",
     "chokidar-cli": "3.0.0",
     "core-js": "3.47.0",
     "cross-env": "10.1.0",
@@ -179,7 +179,7 @@
     "typescript-eslint": "8.52.0",
     "uuid": "13.0.0",
     "zod": "4.3.5",
-    "zustand": "5.0.9"
+    "zustand": "5.0.10"
   },
   "packageManager": "yarn@4.12.0",
   "lint-staged": {
