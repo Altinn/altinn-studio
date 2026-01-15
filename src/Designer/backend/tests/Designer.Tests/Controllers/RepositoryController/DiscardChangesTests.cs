@@ -45,9 +45,10 @@ namespace Designer.Tests.Controllers.RepositoryController
                 CurrentBranch = "main",
                 ContentStatus = new List<RepositoryContent>()
             };
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
             _sourceControlMock
-                .Setup(x => x.DiscardLocalChanges(org, repo))
+                .Setup(x => x.DiscardLocalChanges(editingContext))
                 .Returns(expectedRepoStatus);
 
             // Act
@@ -59,7 +60,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             Assert.NotNull(responseContent);
             Assert.Equal(RepositoryStatus.Ok, responseContent.RepositoryStatus);
             Assert.Empty(responseContent.ContentStatus);
-            _sourceControlMock.Verify(x => x.DiscardLocalChanges(org, repo), Times.Once);
+            _sourceControlMock.Verify(x => x.DiscardLocalChanges(editingContext), Times.Once);
         }
 
         [Theory]
@@ -74,9 +75,10 @@ namespace Designer.Tests.Controllers.RepositoryController
                 CurrentBranch = "main",
                 ContentStatus = new List<RepositoryContent>()
             };
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
             _sourceControlMock
-                .Setup(x => x.DiscardLocalChanges(org, repo))
+                .Setup(x => x.DiscardLocalChanges(editingContext))
                 .Returns(expectedRepoStatus);
 
             // Act
@@ -87,7 +89,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(responseContent);
             Assert.Equal(RepositoryStatus.Ok, responseContent.RepositoryStatus);
-            _sourceControlMock.Verify(x => x.DiscardLocalChanges(org, repo), Times.Once);
+            _sourceControlMock.Verify(x => x.DiscardLocalChanges(editingContext), Times.Once);
         }
 
         [Fact]
@@ -97,9 +99,10 @@ namespace Designer.Tests.Controllers.RepositoryController
             string org = "ttd";
             string repo = "non-existing-repo";
             string uri = $"{VersionPrefix}/repo/{org}/{repo}/discard-changes";
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
             _sourceControlMock
-                .Setup(x => x.DiscardLocalChanges(org, repo))
+                .Setup(x => x.DiscardLocalChanges(editingContext))
                 .Throws(new LibGit2Sharp.RepositoryNotFoundException("Repository not found"));
 
             // Act
@@ -108,7 +111,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Assert
             // RepositoryNotFoundException is handled by global exception handler and returns NotFound
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-            _sourceControlMock.Verify(x => x.DiscardLocalChanges(org, repo), Times.Once);
+            _sourceControlMock.Verify(x => x.DiscardLocalChanges(editingContext), Times.Once);
         }
 
         [Theory]
@@ -126,9 +129,10 @@ namespace Designer.Tests.Controllers.RepositoryController
                 CurrentBranch = branchName,
                 ContentStatus = new List<RepositoryContent>()
             };
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
             _sourceControlMock
-                .Setup(x => x.DiscardLocalChanges(org, repo))
+                .Setup(x => x.DiscardLocalChanges(editingContext))
                 .Returns(expectedRepoStatus);
 
             // Act
@@ -140,7 +144,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             Assert.NotNull(responseContent);
             Assert.Equal(branchName, responseContent.CurrentBranch);
             Assert.Empty(responseContent.ContentStatus);
-            _sourceControlMock.Verify(x => x.DiscardLocalChanges(org, repo), Times.Once);
+            _sourceControlMock.Verify(x => x.DiscardLocalChanges(editingContext), Times.Once);
         }
     }
 }

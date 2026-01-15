@@ -9,25 +9,19 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 import { PreviewContext, type PreviewContextProps } from '../contexts/PreviewContext';
-import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
-import { app as testApp, org as testOrg } from '@studio/testing/testids';
 import { TestAppRouter } from '@studio/testing/testRoutingUtils';
-
-const defaultAppRouteParams: AppRouteParams = {
-  org: testOrg,
-  app: testApp,
-};
 
 export const renderWithProviders =
   (
     queries: Partial<ServicesContextProps> = {},
     queryClient?: QueryClient,
     previewContextProps: Partial<PreviewContextProps> = {},
-    appRouteParams = defaultAppRouteParams,
+    path?: string,
+    pathTemplate?: string,
   ) =>
   (component: ReactNode) => {
     const renderResult = render(
-      <TestAppRouter params={{ ...appRouteParams }}>
+      <TestAppRouter initialPath={path} pathTemplate={pathTemplate}>
         <ServicesContextProvider
           {...queriesMock}
           {...queries}
@@ -46,7 +40,7 @@ export const renderWithProviders =
     );
     const rerender = (rerenderedComponent: ReactNode) =>
       renderResult.rerender(
-        <TestAppRouter params={{ ...appRouteParams }}>
+        <TestAppRouter initialPath={path} pathTemplate={pathTemplate}>
           <ServicesContextProvider
             {...queriesMock}
             {...queries}
@@ -67,15 +61,11 @@ export const renderWithProviders =
   };
 
 export const renderHookWithProviders =
-  (
-    queries: Partial<ServicesContextProps> = {},
-    queryClient?: QueryClient,
-    appRouteParams = defaultAppRouteParams,
-  ) =>
+  (queries: Partial<ServicesContextProps> = {}, queryClient?: QueryClient) =>
   (hook: () => any) => {
     const renderHookResult = renderHook(hook, {
       wrapper: ({ children }) => (
-        <TestAppRouter params={{ ...appRouteParams }}>
+        <TestAppRouter>
           <ServicesContextProvider
             {...queriesMock}
             {...queries}
