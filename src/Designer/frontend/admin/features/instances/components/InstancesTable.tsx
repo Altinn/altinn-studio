@@ -1,4 +1,5 @@
 import { StudioButton, StudioSpinner, StudioTable, StudioError } from '@studio/components';
+import { useEnvironmentTitle } from 'admin/hooks/useEnvironmentTitle';
 import classes from './InstancesTable.module.css';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -51,16 +52,13 @@ export const InstancesTable = ({
   );
   const { t, i18n } = useTranslation();
   const orgName = useCurrentOrg().name[i18n.language];
+  const envTitle = useEnvironmentTitle(env);
 
   switch (status) {
     case 'pending':
       return <StudioSpinner aria-label={t('general.loading')} />;
     case 'error':
       if (isAxiosError(error) && error.response?.status === 403) {
-        const envTitle =
-          env === 'production'
-            ? t(`general.production_environment_alt`).toLowerCase()
-            : `${t('general.test_environment_alt').toLowerCase()} ${env?.toUpperCase()}`;
         return (
           <Alert severity='info'>
             {t('admin.instances.missing_rights', { envTitle, orgName })}

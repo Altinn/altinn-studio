@@ -1,4 +1,5 @@
 import { useRunningAppsQuery } from 'admin/hooks/queries/useRunningAppsQuery';
+import { useEnvironmentTitle } from 'admin/hooks/useEnvironmentTitle';
 import classes from './AppsTable.module.css';
 import type { PublishedApplication } from 'admin/types/PublishedApplication';
 import {
@@ -14,10 +15,11 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import { useErrorMetricsQuery } from 'admin/hooks/queries/useErrorMetricsQuery';
-import { TimeRangeSelect } from 'admin/shared/TimeRangeSelect/TimeRangeSelect';
+import { TimeRangeSelect } from 'admin/components/TimeRangeSelect/TimeRangeSelect';
 import { appErrorMetricsLogsPath } from 'admin/utils/apiPaths';
-import { Alert } from 'admin/shared/Alert/Alert';
+import { Alert } from 'admin/components/Alert/Alert';
 import { isAxiosError } from 'axios';
+import { useCurrentOrg } from 'admin/layout/PageLayout';
 
 export type AppsTableProps = {
   org: string;
@@ -89,13 +91,15 @@ type AppsTableContentProps = AppsTableWithDataProps & {
 };
 
 const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTableContentProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const envTitle = useEnvironmentTitle(env);
+  const orgName = useCurrentOrg().name[i18n.language];
   const defaultRange = 1440;
   const [range, setRange] = useQueryParamState<number>('range', defaultRange);
   const {
     data: errorMetrics,
     isPending: errorMetricsIsPending,
-    error,
+    error: errorMetricsError,
     isError: errorMetricsIsError,
   } = useErrorMetricsQuery(org, env, range!, {
     hideDefaultError: true,
@@ -118,14 +122,14 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
   return (
     <>
       {errorMetricsIsError &&
-        (isAxiosError(error) && error.response?.status === 403 ? (
-          <StudioAlert data-color='warning' className={classes.errorAlert}>
-            {t('admin.metrics.errors.forbidden', { env: t(`admin.environment.${env}`) })}
+        (isAxiosError(errorMetricsError) && errorMetricsError.response?.status === 403 ? (
+          <StudioAlert data-color='info' className={classes.errorAlert}>
+            {t('admin.metrics.errors.missing_rights', { envTitle, orgName })}
           </StudioAlert>
         ) : (
-          <StudioAlert data-color='danger' className={classes.errorAlert}>
+          <StudioError className={classes.errorAlert}>
             {t('admin.metrics.errors.error')}
-          </StudioAlert>
+          </StudioError>
         ))}
       <StudioSearch
         className={classes.appSearch}
