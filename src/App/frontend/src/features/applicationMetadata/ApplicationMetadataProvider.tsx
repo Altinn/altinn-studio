@@ -17,16 +17,11 @@ export function getApplicationMetadataQueryDef(instanceGuid: string | undefined)
   return {
     queryKey: ['fetchApplicationMetadata'],
     queryFn: fetchApplicationMetadata,
-    select: (data) => {
-      const onEntry = data.onEntry ?? { show: 'new-instance' };
-
-      return {
-        ...data,
-        isValidVersion: true, // TODO: Add version check when we know the next version (v9 or v10?)
-        onEntry,
-        isStateless: isStatelessApp(!!instanceGuid, onEntry.show),
-      };
-    },
+    select: (data) => ({
+      ...data,
+      isValidVersion: true, // TODO: Add version check when we know the next version (v9 or v10?)
+      isStateless: isStatelessApp(!!instanceGuid, data.onEntry.show),
+    }),
   } satisfies UseQueryOptions<IncomingApplicationMetadata, Error, ApplicationMetadata>;
 }
 

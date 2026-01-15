@@ -18,16 +18,14 @@ export interface IncomingApplicationMetadata {
   promptForParty?: 'always' | 'never';
   externalApiIds?: string[];
 
-  onEntry?: IOnEntry;
+  onEntry: IOnEntry;
   altinnNugetVersion?: string;
   logo?: ILogoOptions;
 }
 
-export type ApplicationMetadata = Omit<IncomingApplicationMetadata, 'onEntry' | 'logo'> & {
-  onEntry: IOnEntry;
+export type ApplicationMetadata = IncomingApplicationMetadata & {
   isValidVersion: boolean;
   isStateless: boolean;
-  logo?: ILogoOptions;
 };
 
 export interface IOnEntry {

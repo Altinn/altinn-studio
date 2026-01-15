@@ -101,11 +101,10 @@ public class HomeController : Controller
             );
         }
 
-        BootstrapGlobalResponse appGlobalState = await _bootstrapGlobalService.GetGlobalState();
         // Wait for PR with replacement of index.cshtml.
-
         if (await ShouldShowAppView())
         {
+            BootstrapGlobalResponse appGlobalState = await _bootstrapGlobalService.GetGlobalState();
             return Content(await GenerateHtml(org, app, appGlobalState), "text/html; charset=utf-8");
         }
 

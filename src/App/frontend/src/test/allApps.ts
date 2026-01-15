@@ -210,7 +210,7 @@ export class ExternalApp {
       // 1. When testing, we don't want to end up in instance selection
       // 2. We pretend stateless isn't a thing. If apps are considered stateless, we can end up with useNavigatePage()
       //    redirecting us to a page we didn't want.
-      appMetaData.onEntry = undefined;
+      appMetaData.onEntry = { show: 'new-instance' };
     }
     return appMetaData;
   }
