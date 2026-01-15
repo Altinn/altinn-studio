@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.WebUtilities;
 using StudioGateway.Api.Clients.Designer.Contracts;
 using StudioGateway.Api.Clients.K8s;
 using StudioGateway.Api.Clients.SlackClient;
 using StudioGateway.Api.Clients.SlackClient.Contracts;
 using StudioGateway.Api.Endpoints.Internal.Contracts;
 using StudioGateway.Api.Hosting;
+using StudioGateway.Api.Settings;
 
 namespace StudioGateway.Api.Endpoints.Internal;
 
@@ -34,6 +36,7 @@ internal static class FluxWebhookEndpoints
     }
 
     private static async Task<IResult> HandleFluxWebhook(
+        HttpContext httpContext,
         FluxEvent fluxEvent,
         HelmReleaseClient helmReleaseClient,
         IHttpClientFactory httpClientFactory,
@@ -118,6 +121,7 @@ internal static class FluxWebhookEndpoints
             slackClient,
             fluxEvent,
             info,
+            $"{httpContext.Request.Scheme}://{httpContext.Request.Host}",
             targetEnvironment,
             helmReleaseName,
             logger,
@@ -211,6 +215,7 @@ internal static class FluxWebhookEndpoints
         ISlackClient slackClient,
         FluxEvent fluxEvent,
         HelmReleaseInfo info,
+        string baseUrl,
         string targetEnvironment,
         string helmReleaseName,
         ILogger logger,
@@ -235,21 +240,7 @@ internal static class FluxWebhookEndpoints
                     new SlackBlock
                     {
                         Type = "context",
-                        Elements =
-                        [
-                            new SlackText { Type = "mrkdwn", Text = $"Org: `{info.Org}`" },
-                            new SlackText { Type = "mrkdwn", Text = $"Env: `{targetEnvironment}`" },
-                            new SlackText { Type = "mrkdwn", Text = $"App: `{info.App}`" },
-                            new SlackText { Type = "mrkdwn", Text = $"Studio env: `{info.SourceEnvironment}`" },
-                            new SlackText
-                            {
-                                Type = "mrkdwn",
-                                Text =
-                                    info.BuildId != null
-                                        ? $"Build: <https://dev.azure.com/brreg/altinn-studio/_build/results?buildId={info.BuildId}&view=logs|{info.BuildId}>"
-                                        : "Build: `N/A`",
-                            },
-                        ],
+                        Elements = BuildContextElements(baseUrl, info, targetEnvironment),
                     },
                 ],
             };
@@ -291,5 +282,60 @@ internal static class FluxWebhookEndpoints
             FluxFinalEventReasons.UninstallFailed => "Undeploy failed",
             _ => reason,
         };
+    }
+
+    private static List<SlackText> BuildContextElements(string baseUrl, HelmReleaseInfo info, string targetEnvironment)
+    {
+        var elements = new List<SlackText>
+        {
+            new() { Type = "mrkdwn", Text = $"Org: `{info.Org}`" },
+            new() { Type = "mrkdwn", Text = $"Env: `{targetEnvironment}`" },
+            new() { Type = "mrkdwn", Text = $"App: `{info.App}`" },
+            new() { Type = "mrkdwn", Text = $"Studio env: `{info.SourceEnvironment}`" },
+        };
+
+        if (info.BuildId is not null)
+        {
+            elements.Add(
+                new SlackText
+                {
+                    Type = "mrkdwn",
+                    Text =
+                        $"<{GrafanaPodLogsUrl(baseUrl, info.Org, targetEnvironment, info.App)}|Grafana>",
+                }
+            );
+        }
+
+        if (info.BuildId is not null)
+        {
+            elements.Add(
+                new SlackText
+                {
+                    Type = "mrkdwn",
+                    Text =
+                        $"<https://dev.azure.com/brreg/altinn-studio/_build/results?buildId={info.BuildId}&view=logs|Build log>",
+                }
+            );
+        }
+
+        return elements;
+    }
+
+    private static string GrafanaPodLogsUrl(string baseDomain, string org, string env, string app)
+    {
+        var path = "/monitor/d/ae1906c2hbjeoe/pod-console-error-logs";
+
+        var now = DateTimeOffset.UtcNow;
+        var from = now.AddMinutes(-15);
+
+        var queryParams = new Dictionary<string, string?>
+        {
+            ["var-rg"] = $"altinnapps-{org}-{(AltinnEnvironments.IsProd(env) ? "prod" : env)}-rg",
+            ["var-PodName"] = $"{org}-{app}-deployment-v2",
+            ["from"] = from.ToUnixTimeMilliseconds().ToString(),
+            ["to"] = now.ToUnixTimeMilliseconds().ToString()
+        };
+
+        return QueryHelpers.AddQueryString($"{baseDomain}{path}", queryParams);
     }
 }
