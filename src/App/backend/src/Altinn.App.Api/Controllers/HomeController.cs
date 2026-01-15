@@ -102,13 +102,13 @@ public class HomeController : Controller
             );
         }
 
-        Task<BootstrapGlobalResponse> initData = _bootstrapGlobalService.GetGlobalState();
+        BootstrapGlobalResponse appGlobalState = await _bootstrapGlobalService.GetGlobalState();
         // Wait for PR with replacement of index.cshtml.
 
 
         if (await ShouldShowAppView())
         {
-            return Content(await GenerateHtml(org, app), "text/html; charset=utf-8");
+            return Content(await GenerateHtml(org, app, appGlobalState), "text/html; charset=utf-8");
         }
 
         string scheme = _env.IsDevelopment() ? "http" : "https";
@@ -129,7 +129,7 @@ public class HomeController : Controller
         return Redirect(redirectUrl);
     }
 
-    private async Task<string> GenerateHtml(string org, string app)
+    private async Task<string> GenerateHtml(string org, string app, BootstrapGlobalResponse appGlobalState)
     {
         var frontendUrl = "https://altinncdn.no/toolkits/altinn-app-frontend/4";
         if (HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var frontendVersionCookie))
@@ -157,6 +157,7 @@ public class HomeController : Controller
                 window.org = '{{org}}';
                 window.app = '{{app}}';
                 window.featureToggles = {{featureTogglesJson}};
+                window.altinnAppGlobalData = {{appGlobalState}};
               </script>
               <script src="{{frontendUrl}}/altinn-app-frontend.js"></script>
             </body>
