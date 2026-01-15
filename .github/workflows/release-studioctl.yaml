@@ -1,0 +1,91 @@
+name: Release - studioctl (on PR merge)
+
+# Automatically triggers release when a changelog promotion PR is merged.
+# PRs must have the 'studioctl-release' label and title matching 'Release studioctl vX.Y.Z'.
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+      - 'release/studioctl/v*'
+    paths:
+      - 'src/cli/CHANGELOG.md'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and release
+    runs-on: ubuntu-latest
+    # Only run if PR was merged AND has the release label
+    if: >
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'studioctl-release')
+
+    steps:
+      - name: Extract version from PR title
+        id: version
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          echo "PR title: $TITLE"
+
+          # Extract version from title like "Release studioctl v1.2.3" or "Release studioctl v1.2.3-preview.1"
+          if [[ "$TITLE" =~ Release[[:space:]]+studioctl[[:space:]]+(v[0-9]+\.[0-9]+\.[0-9]+(-preview\.[0-9]+)?) ]]; then
+            VERSION="${BASH_REMATCH[1]}"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "tag=studioctl/$VERSION" >> $GITHUB_OUTPUT
+            echo "Extracted version: $VERSION"
+          else
+            echo "::error::Could not extract version from PR title: $TITLE"
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ github.event.pull_request.base.ref }}
+
+      - name: Checkout base branch
+        run: |
+          BASE="${{ github.event.pull_request.base.ref }}"
+          git fetch origin "$BASE"
+          git checkout -B "$BASE" "origin/$BASE"
+
+      - name: Setup Go
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5
+        with:
+          go-version-file: 'releaser/go.mod'
+          cache-dependency-path: releaser/go.sum
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run release workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          go run . workflow --tag ${{ steps.version.outputs.tag }}
+        working-directory: releaser
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **PR**: #${{ github.event.pull_request.number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag**: ${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ -d "releaser/build/release" ]]; then
+            echo "### Assets" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            ls -la releaser/build/release/ >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No assets found"
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
