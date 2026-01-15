@@ -57,7 +57,6 @@ namespace Designer.Tests.Services
             // Create the service under test
             _sourceControlService = new SourceControlService(
                 _settings,
-                _httpContextAccessorMock.Object,
                 _giteaClientMock.Object,
                 _loggerMock.Object
             );
@@ -392,7 +391,6 @@ namespace Designer.Tests.Services
 
             SourceControlService service = new(
                 repoSettings,
-                httpContextAccessorMock.Object,
                 giteaMock.Object,
                 new Mock<ILogger<SourceControlService>>().Object);
 

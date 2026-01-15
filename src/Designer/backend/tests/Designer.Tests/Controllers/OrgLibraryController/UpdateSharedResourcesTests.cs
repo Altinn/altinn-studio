@@ -47,7 +47,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
         string apiUrl = ApiUrl();
 
         _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>())).ReturnsAsync(true);
-        _orgLibraryServiceMock.Setup(s => s.UpdateSharedResourcesByPath(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<UpdateSharedResourceRequest>(), It.IsAny<CancellationToken>()))
+        _orgLibraryServiceMock.Setup(s => s.UpdateSharedResourcesByPath(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<UpdateSharedResourceRequest>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         UpdateSharedResourceRequest updateRequest = new(fileMetadata, BaseCommitSha, "Updating shared resources");
@@ -62,6 +62,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
             s => s.UpdateSharedResourcesByPath(
                 "ttd",
                 "testUser",
+                 It.IsAny<string>(),
                 It.Is<UpdateSharedResourceRequest>(r => r.BaseCommitSha == "abc123" && r.CommitMessage == "Updating shared resources" && r.Files.Count == 2),
                 It.IsAny<CancellationToken>()),
             Times.Once
@@ -93,7 +94,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
         string apiUrl = ApiUrl();
 
         _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>())).ReturnsAsync(true);
-        _orgLibraryServiceMock.Setup(s => s.UpdateSharedResourcesByPath(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<UpdateSharedResourceRequest>(), It.IsAny<CancellationToken>()))
+        _orgLibraryServiceMock.Setup(s => s.UpdateSharedResourcesByPath(It.IsAny<string>(), It.IsAny<string>(),  It.IsAny<string>(), It.IsAny<UpdateSharedResourceRequest>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException());
 
         UpdateSharedResourceRequest updateRequest = new([], "someCommitSha", "Updating shared resources");
@@ -108,6 +109,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
             s => s.UpdateSharedResourcesByPath(
                 "ttd",
                 "testUser",
+                It.IsAny<string>(),
                 It.Is<UpdateSharedResourceRequest>(r => r.BaseCommitSha == "someCommitSha" && r.CommitMessage == "Updating shared resources" && r.Files.Count == 0),
                 It.IsAny<CancellationToken>()),
             Times.Once
@@ -121,7 +123,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
         string apiUrl = ApiUrl();
 
         _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>())).ReturnsAsync(true);
-        _orgLibraryServiceMock.Setup(s => s.UpdateSharedResourcesByPath(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<UpdateSharedResourceRequest>(), It.IsAny<CancellationToken>()))
+        _orgLibraryServiceMock.Setup(s => s.UpdateSharedResourcesByPath(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<UpdateSharedResourceRequest>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new IllegalCommitMessageException("Illegal commit message"));
 
         UpdateSharedResourceRequest updateRequest = new([], "someCommitSha", "some illegal commit message");
@@ -136,6 +138,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
             s => s.UpdateSharedResourcesByPath(
                 "ttd",
                 "testUser",
+                It.IsAny<string>(),
                 It.Is<UpdateSharedResourceRequest>(r => r.BaseCommitSha == "someCommitSha" && r.CommitMessage == "some illegal commit message" && r.Files.Count == 0),
                 It.IsAny<CancellationToken>()),
             Times.Once
