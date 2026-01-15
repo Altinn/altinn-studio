@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Designer.Controllers;
 
 [ApiController]
-[Route("designer/api/admin/[controller]/{org}/{env}")]
+[Route("designer/api/v1/admin/[controller]/{org}/{env}")]
 public class AlertsController(IAlertsService alertsService) : ControllerBase
 {
     private readonly IAlertsService _alertsService = alertsService;
