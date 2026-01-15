@@ -23,6 +23,16 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
         var principal = new ClaimsPrincipal(identity);
         var ticket = new AuthenticationTicket(principal, TestAuthConstants.TestAuthenticationScheme);
 
+        //Store the access token so GetDeveloperAppTokenAsync() can retrieve it
+        ticket.Properties.StoreTokens(new[]
+        {
+            new AuthenticationToken
+            {
+                Name = "access_token",
+                Value = "test-access-token-for-git-operations"
+            }
+        });
+
         var result = AuthenticateResult.Success(ticket);
 
         return Task.FromResult(result);
