@@ -309,6 +309,7 @@ public class AppResourcesSITests
     )
     {
         var featureManagerMock = new Mock<IFeatureManager>();
+        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
         var serviceProvider = new ServiceCollection()
             .AddSingleton(Mock.Of<IExternalApiFactory>())
             .BuildStrictServiceProvider();

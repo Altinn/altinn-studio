@@ -1,10 +1,6 @@
 ﻿{
   "Id": "tdd/bestilling",
-  "Features": {
-    "footer": true,
-    "processActions": true,
-    "jsonObjectInDataResponse": false
-  },
+  "Features": {},
   "OnEntry": {
     "InstanceSelection": null,
     "Show": "select-instance"

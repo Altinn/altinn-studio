@@ -1145,7 +1145,10 @@ namespace Altinn.App.Core.Features
     }
     public static class FeatureFlags
     {
+        public const string AddInstanceIdentifierToLayoutRequests = "addInstanceIdentifierToLayoutRequests";
+        public const string BetaPDFenabled = "BetaPDFenabled";
         public const string JsonObjectInDataResponse = "JsonObjectInDataResponse";
+        public const string SimpleTableEnabled = "SimpleTableEnabled";
     }
     public interface IAppOptionsProvider
     {

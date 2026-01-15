@@ -41,7 +41,7 @@ internal static class HandleAlerts
     internal static async Task<IResult> NotifyAlertsUpdatedAsync(
         DesignerClient designerClient,
         CancellationToken cancellationToken,
-        string environment = "prod"
+        string environment = AltinnEnvironments.Prod
     )
     {
         await designerClient.NotifyAlertsUpdatedAsync(environment, cancellationToken);

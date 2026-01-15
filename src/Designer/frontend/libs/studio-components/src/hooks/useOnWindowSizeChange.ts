@@ -21,7 +21,7 @@ export const useOnWindowSizeChange = (): UseOnWindowSizeChangeResult => {
 
   useEffect(() => {
     window.addEventListener('resize', onWindowSizeChange);
-    return () => window.removeEventListener('resize', onWindowSizeChange);
+    return (): void => window.removeEventListener('resize', onWindowSizeChange);
   });
 
   return { windowSize };

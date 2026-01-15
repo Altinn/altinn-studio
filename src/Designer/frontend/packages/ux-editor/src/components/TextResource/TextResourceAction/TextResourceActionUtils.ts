@@ -1,6 +1,6 @@
-import { generateRandomId } from '../../../../../../../shared/src/utils/generateRandomId';
-import { generateTextResourceId } from '../../../../../utils/generateId';
-import type { GenerateTextResourceIdOptions } from '../../../TextResource';
+import { generateRandomId } from '../../../../../shared/src/utils/generateRandomId';
+import { generateTextResourceId } from '../../../utils/generateId';
+import type { GenerateTextResourceIdOptions } from '../TextResource';
 
 export const generateId = (options?: GenerateTextResourceIdOptions) => {
   if (!options) {

@@ -7,7 +7,7 @@ export type StudioConfigCardHeaderProps = {
   cardLabel: string;
   isDeleteDisabled?: boolean;
   deleteAriaLabel: string;
-  confirmDeleteMessage: string;
+  confirmDeleteMessage?: string;
   onDelete: () => void;
 };
 

@@ -1,11 +1,12 @@
 import React, { Fragment } from 'react';
 import { Accordion } from '@digdir/designsystemet-react';
 import { FileIcon } from '@studio/icons';
-import { useText, useTextResourcesSelector, useFormLayouts } from '../../../hooks';
+import { useText, useFormLayouts } from '../../../hooks';
+import { useTextResourcesSelector } from 'app-shared/hooks';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import { TextResource } from '../../TextResource/TextResource';
-import { textResourceByLanguageAndIdSelector } from '../../../selectors/textResourceSelectors';
+import { textResourceByLanguageAndIdSelector } from 'app-shared/selectors/textResourceSelectors';
 import type { ITextResource } from 'app-shared/types/global';
 import {
   duplicatedIdsExistsInLayout,
