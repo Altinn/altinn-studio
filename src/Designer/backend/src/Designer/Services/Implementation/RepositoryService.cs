@@ -238,7 +238,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     FireDeletionOfLocalRepo(org, serviceConfig.RepositoryName, developer);
                 }
 
-                await _sourceControl.CloneRemoteRepository(authenticatedContext);
+                _sourceControl.CloneRemoteRepository(authenticatedContext);
 
                 ModelMetadata metadata = new()
                 {
@@ -255,7 +255,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
-                await _sourceControl.PushChangesForRepository(commitInfo, authenticatedContext);
+                _sourceControl.PushChangesForRepository(commitInfo, authenticatedContext);
             }
 
             return repository;
@@ -290,7 +290,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 FireDeletionOfLocalRepo(targetOrg, targetRepository, developer);
             }
 
-            await _sourceControl.CloneRemoteRepository(authenticatedContext, targetRepositoryPath);
+            _sourceControl.CloneRemoteRepository(authenticatedContext, targetRepositoryPath);
             var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepository, developer);
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
@@ -313,7 +313,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             CommitInfo commitInfo = new() { Org = targetOrg, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
-            await _sourceControl.PushChangesForRepository(commitInfo, authenticatedContext);
+            _sourceControl.PushChangesForRepository(commitInfo, authenticatedContext);
 
             return repository;
         }
@@ -328,7 +328,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (Directory.Exists(repoPath))
             {
                 FireDeletionOfLocalRepo(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-                await _sourceControl.CloneRemoteRepository(authenticatedContext);
+                _sourceControl.CloneRemoteRepository(authenticatedContext);
                 return true;
             }
 

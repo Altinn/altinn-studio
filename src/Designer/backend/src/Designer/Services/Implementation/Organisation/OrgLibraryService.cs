@@ -90,13 +90,13 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         ValidateCommitMessage(request.CommitMessage);
         string repositoryName = GetStaticContentRepo(authenticatedContext.Org);
 
-        await sourceControl.CloneIfNotExists(authenticatedContext);
+        sourceControl.CloneIfNotExists(authenticatedContext);
 
         string latestCommitSha = await giteaClient.GetLatestCommitOnBranch(authenticatedContext.Org, repositoryName, General.DefaultBranch, cancellationToken);
 
         sourceControl.CheckoutRepoOnBranch(authenticatedContext.RepoEditingContext, General.DefaultBranch);
-        await sourceControl.PullRemoteChanges(authenticatedContext);
-        await sourceControl.FetchGitNotes(authenticatedContext);
+        sourceControl.PullRemoteChanges(authenticatedContext);
+        sourceControl.FetchGitNotes(authenticatedContext);
 
         if (latestCommitSha == request.BaseCommitSha)
         {
@@ -106,7 +106,7 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         {
             await HandleDivergentCommit(authenticatedContext, request, cancellationToken);
         }
-        bool pushOk = await sourceControl.Push(authenticatedContext);
+        bool pushOk = sourceControl.Push(authenticatedContext);
         if (!pushOk)
         {
             throw new InvalidOperationException($"Push failed for {authenticatedContext.Org}/{repositoryName}. Remote rejected the update.");
@@ -125,7 +125,7 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         string branchName = GenerateBranchNameWithHashSuffix(editingContext);
 
         sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
-        await sourceControl.DeleteRemoteBranchIfExists(authenticatedContext, branchName);
+        sourceControl.DeleteRemoteBranchIfExists(authenticatedContext, branchName);
 
         sourceControl.CreateLocalBranch(editingContext, branchName, request.BaseCommitSha);
         sourceControl.CheckoutRepoOnBranch(editingContext, branchName);
@@ -133,18 +133,18 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         await UpdateFiles(editingContext, request, cancellationToken);
         sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
 
-        await RebaseWithConflictHandling(authenticatedContext, branchName);
+        RebaseWithConflictHandling(authenticatedContext, branchName);
         sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
         sourceControl.MergeBranchIntoHead(editingContext, branchName);
         sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
     }
 
-    internal async Task RebaseWithConflictHandling(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
+    internal void RebaseWithConflictHandling(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
     {
         RebaseResult rebaseResult = sourceControl.RebaseOntoDefaultBranch(authenticatedContext.RepoEditingContext);
         if (rebaseResult.Status == RebaseStatus.Conflicts)
         {
-            await sourceControl.PublishBranch(authenticatedContext, branchName);
+            sourceControl.PublishBranch(authenticatedContext, branchName);
             throw new NonFastForwardException("Rebase onto latest commit on default branch failed during divergent commit handling.");
         }
     }

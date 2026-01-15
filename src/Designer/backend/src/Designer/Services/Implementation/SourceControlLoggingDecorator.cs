@@ -40,7 +40,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<string> CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        public string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
             try
             {
@@ -54,7 +54,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<string> CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, string destinationPath, string branchName = "")
+        public string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, string destinationPath, string branchName = "")
         {
             try
             {
@@ -82,11 +82,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string localPath, string message, string accessToken = "")
+        public void CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string localPath, string message, string accessToken = "")
         {
             try
             {
-                return _decoratedService.CommitAndPushChanges(editingContext, branchName, localPath, message, accessToken);
+                _decoratedService.CommitAndPushChanges(editingContext, branchName, localPath, message, accessToken);
             }
             catch (Exception ex)
             {
@@ -138,11 +138,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task FetchRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        public void FetchRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
             try
             {
-                await _decoratedService.FetchRemoteChanges(authenticatedContext);
+                _decoratedService.FetchRemoteChanges(authenticatedContext);
             }
             catch (Exception ex)
             {
@@ -180,7 +180,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<RepoStatus> PullRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        public RepoStatus PullRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
             try
             {
@@ -194,7 +194,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<bool> Push(AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        public bool Push(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
             try
             {
@@ -208,11 +208,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task PushChangesForRepository(CommitInfo commitInfo, AltinnRepoEditingContext editingContext)
+        public void PushChangesForRepository(CommitInfo commitInfo, AltinnRepoEditingContext editingContext)
         {
             try
             {
-                return _decoratedService.PushChangesForRepository(commitInfo, editingContext);
+                _decoratedService.PushChangesForRepository(commitInfo, editingContext);
             }
             catch (Exception ex)
             {
@@ -236,7 +236,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<Dictionary<string, string>> GetChangedContent(AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        public Dictionary<string, string> GetChangedContent(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
             try
             {
@@ -292,11 +292,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task CloneIfNotExists(AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        public void CloneIfNotExists(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
             try
             {
-                await _decoratedService.CloneIfNotExists(authenticatedContext);
+                _decoratedService.CloneIfNotExists(authenticatedContext);
             }
             catch (Exception ex)
             {
@@ -390,11 +390,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task PublishBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
+        public void PublishBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
         {
             try
             {
-                await _decoratedService.PublishBranch(authenticatedContext, branchName);
+                _decoratedService.PublishBranch(authenticatedContext, branchName);
             }
             catch (Exception ex)
             {
@@ -404,11 +404,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task FetchGitNotes(AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        public void FetchGitNotes(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
             try
             {
-                await _decoratedService.FetchGitNotes(authenticatedContext);
+                _decoratedService.FetchGitNotes(authenticatedContext);
             }
             catch (Exception ex)
             {
@@ -418,11 +418,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task DeleteRemoteBranchIfExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
+        public void DeleteRemoteBranchIfExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
         {
             try
             {
-                await _decoratedService.DeleteRemoteBranchIfExists(authenticatedContext, branchName);
+                _decoratedService.DeleteRemoteBranchIfExists(authenticatedContext, branchName);
             }
             catch (Exception ex)
             {
@@ -446,11 +446,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<RepoStatus> CheckoutBranchWithValidation(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
+        public RepoStatus CheckoutBranchWithValidation(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
         {
             try
             {
-                return await _decoratedService.CheckoutBranchWithValidation(authenticatedContext, branchName);
+                return _decoratedService.CheckoutBranchWithValidation(authenticatedContext, branchName);
             }
             catch (Exception ex)
             {
