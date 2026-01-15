@@ -125,7 +125,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.GitIgnoreFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerIgnoreFileName);
 
-            UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName); // obsolete? 
             return true;
         }
 
@@ -350,17 +349,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<RepositoryClient.Model.Repository> CreateRemoteRepository(string org, CreateRepoOption options)
         {
             return await _giteaClient.CreateRepository(org, options);
-        }
-
-        // IKKE SLETT
-        private void UpdateAuthorizationPolicyFile(string org, string app)
-        {
-            // Read the authorization policy template (XACML file).
-            string path = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string policyPath = Path.Combine(path, _generalSettings.AuthorizationPolicyTemplate);
-            string authorizationPolicyData = File.ReadAllText(policyPath, Encoding.UTF8);
-
-            File.WriteAllText(policyPath, authorizationPolicyData, Encoding.UTF8);
         }
 
         private void CopyFolderToApp(string org, string app, string sourcePath, string path)
