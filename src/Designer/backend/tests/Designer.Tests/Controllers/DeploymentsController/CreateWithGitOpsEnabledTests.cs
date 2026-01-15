@@ -86,7 +86,7 @@ public class CreateWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<CreateW
     {
         // Arrange
         _gitOpsConfigurationManagerMock.Setup(m => m.EnsureGitOpsConfigurationExistsAsync(
-            It.IsAny<AltinnOrgEditingContext>(),
+            It.IsAny<AltinnAuthenticatedRepoEditingContext>(),
             It.Is<AltinnEnvironment>(e => e.Name == envName)
         )).Returns(Task.CompletedTask);
 
@@ -131,7 +131,7 @@ public class CreateWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<CreateW
 
         // Verify GitOps methods were called correctly
         _gitOpsConfigurationManagerMock.Verify(m => m.EnsureGitOpsConfigurationExistsAsync(
-            It.IsAny<AltinnOrgEditingContext>(),
+            It.IsAny<AltinnAuthenticatedRepoEditingContext>(),
             It.Is<AltinnEnvironment>(e => e.Name == envName)
         ), Times.Once);
 
@@ -147,7 +147,7 @@ public class CreateWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<CreateW
             It.IsAny<AltinnEnvironment>()
         ), Times.Never);
 
-        _gitOpsConfigurationManagerMock.Verify(m => m.PersistGitOpsConfigurationAsync(
+        _gitOpsConfigurationManagerMock.Verify(m => m.PersistGitOpsConfiguration(
             It.IsAny<AltinnOrgEditingContext>(),
             It.IsAny<AltinnEnvironment>()
         ), Times.Never);
@@ -159,7 +159,7 @@ public class CreateWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<CreateW
     {
         // Arrange
         _gitOpsConfigurationManagerMock.Setup(m => m.EnsureGitOpsConfigurationExistsAsync(
-            It.IsAny<AltinnOrgEditingContext>(),
+            It.IsAny<AltinnAuthenticatedRepoEditingContext>(),
             It.Is<AltinnEnvironment>(e => e.Name == envName)
         )).Returns(Task.CompletedTask);
 
@@ -174,10 +174,10 @@ public class CreateWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<CreateW
             It.Is<AltinnEnvironment>(e => e.Name == envName)
         )).Returns(Task.CompletedTask);
 
-        _gitOpsConfigurationManagerMock.Setup(m => m.PersistGitOpsConfigurationAsync(
+        _gitOpsConfigurationManagerMock.Setup(m => m.PersistGitOpsConfiguration(
             It.IsAny<AltinnOrgEditingContext>(),
             It.Is<AltinnEnvironment>(e => e.Name == envName)
-        )).Returns(Task.CompletedTask);
+        ));
 
         await PrepareReleaseInDb(org, app, tagName);
         _mockServerFixture.PrepareDeploymentMockResponses(org, app, buildId);
@@ -214,7 +214,7 @@ public class CreateWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<CreateW
 
         // Verify GitOps methods were called correctly
         _gitOpsConfigurationManagerMock.Verify(m => m.EnsureGitOpsConfigurationExistsAsync(
-            It.IsAny<AltinnOrgEditingContext>(),
+            It.IsAny<AltinnAuthenticatedRepoEditingContext>(),
             It.Is<AltinnEnvironment>(e => e.Name == envName)
         ), Times.Once);
 
@@ -230,7 +230,7 @@ public class CreateWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<CreateW
             It.Is<AltinnEnvironment>(e => e.Name == envName)
         ), Times.Once);
 
-        _gitOpsConfigurationManagerMock.Verify(m => m.PersistGitOpsConfigurationAsync(
+        _gitOpsConfigurationManagerMock.Verify(m => m.PersistGitOpsConfiguration(
             It.IsAny<AltinnOrgEditingContext>(),
             It.Is<AltinnEnvironment>(e => e.Name == envName)
         ), Times.Once);
