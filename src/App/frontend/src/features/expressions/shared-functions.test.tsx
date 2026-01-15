@@ -4,7 +4,7 @@ import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 import type { AxiosResponse } from 'axios';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getSubFormLayoutSetMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
@@ -242,7 +242,7 @@ describe('Expressions shared function tests', () => {
         } as object),
       });
 
-      const applicationMetadata = getIncomingApplicationMetadataMock(
+      const applicationMetadata = getApplicationMetadataMock(
         stateless ? { onEntry: { show: 'layout-set' }, externalApiIds: ['testId'] } : {},
       );
       if (instanceDataElements) {

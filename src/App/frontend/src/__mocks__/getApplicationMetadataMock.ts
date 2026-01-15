@@ -1,6 +1,6 @@
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 
-export const getIncomingApplicationMetadataMock = (
+export const getApplicationMetadataMock = (
   overrides: Partial<ApplicationMetadata> | ((application: ApplicationMetadata) => void) = {},
 ): ApplicationMetadata => {
   const out: ApplicationMetadata = {
@@ -90,16 +90,4 @@ export const getIncomingApplicationMetadataMock = (
   }
 
   return out;
-};
-
-export const getApplicationMetadataMock = (
-  overrides: Partial<ApplicationMetadata> | ((application: ApplicationMetadata) => void) = {},
-): ApplicationMetadata => {
-  const incomingAppMetadata = getIncomingApplicationMetadataMock();
-  return {
-    ...incomingAppMetadata,
-    logo: incomingAppMetadata.logo,
-    onEntry: { show: 'new-instance' },
-    ...overrides,
-  };
 };

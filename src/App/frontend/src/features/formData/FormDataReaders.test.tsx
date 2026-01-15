@@ -4,7 +4,7 @@ import { beforeAll, expect, jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { v4 as uuidv4 } from 'uuid';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
@@ -51,7 +51,7 @@ async function render(props: TestProps) {
   const instanceId = instanceData.id;
 
   jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock((a) => {
+    getApplicationMetadataMock((a) => {
       a.dataTypes = a.dataTypes.filter((dt) => !dt.appLogic?.classRef);
       a.dataTypes.push(...generateDataTypes());
     }),

@@ -3,7 +3,7 @@ import React from 'react';
 import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
@@ -89,7 +89,7 @@ const buildInstance = (hasPdf = true) =>
 
 const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender = {}) => {
   jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock((a) => {
+    getApplicationMetadataMock((a) => {
       a.autoDeleteOnProcessEnd = autoDeleteOnProcessEnd;
     }),
   );

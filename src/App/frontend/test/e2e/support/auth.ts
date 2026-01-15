@@ -1,6 +1,6 @@
 import type { CyHttpMessages, RouteHandler } from 'cypress/types/net-stubbing';
 
-import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IProcess, ITask } from 'src/types/shared';
 
 export type CyUser = 'default' | 'manager' | 'accountant' | 'auditor' | 'selfIdentified';
@@ -265,9 +265,9 @@ type TenorLoginParams = {
 
 export function tenorUserLogin(props: TenorLoginParams) {
   cy.log(`Logging in as Tenor user: ${props.tenorUser.name}`);
-  cy.intercept<object, IncomingApplicationMetadata>('**/api/v1/applicationmetadata', (req) => {
+  cy.intercept<object, ApplicationMetadata>('**/api/v1/applicationmetadata', (req) => {
     req.reply((res) => {
-      const body = res.body as IncomingApplicationMetadata;
+      const body = res.body as ApplicationMetadata;
 
       res.headers['cache-control'] = 'no-store';
       body.promptForParty = 'never';

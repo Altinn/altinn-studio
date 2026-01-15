@@ -3,7 +3,7 @@ import React from 'react';
 import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
 import { fetchApplicationMetadata, fetchInstanceData } from 'src/queries/queries';
@@ -104,7 +104,7 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
   };
 
   jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock((appMetadata) => {
+    getApplicationMetadataMock((appMetadata) => {
       appMetadata.dataTypes.push({
         id: 'myComponent',
         allowedContentTypes: ['application/pdf'],

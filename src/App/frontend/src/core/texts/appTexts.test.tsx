@@ -3,7 +3,7 @@ import React from 'react';
 import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -31,7 +31,7 @@ interface RenderProps {
 
 async function render({ nbTitle, textResources = [], orgs = {} }: RenderProps) {
   const overrides = nbTitle ? { title: { nb: nbTitle } } : {};
-  jest.mocked(fetchApplicationMetadata).mockImplementation(async () => getIncomingApplicationMetadataMock(overrides));
+  jest.mocked(fetchApplicationMetadata).mockImplementation(async () => getApplicationMetadataMock(overrides));
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => <AppTextsRenderer />,

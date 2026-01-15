@@ -8,7 +8,7 @@ import { userEvent } from '@testing-library/user-event';
 import dot from 'dot-object';
 import type { JSONSchema7 } from 'json-schema';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, statelessDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
@@ -100,7 +100,7 @@ type MinimalRenderProps = Partial<Omit<Parameters<typeof renderWithInstanceAndLa
 type RenderProps = MinimalRenderProps & { renderer: React.ReactElement };
 async function statelessRender(props: RenderProps) {
   jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock({
+    getApplicationMetadataMock({
       onEntry: {
         show: 'stateless',
       },
@@ -158,9 +158,7 @@ async function statelessRender(props: RenderProps) {
 }
 
 async function statefulRender(props: RenderProps) {
-  jest
-    .mocked(fetchApplicationMetadata)
-    .mockImplementationOnce(() => Promise.resolve(getIncomingApplicationMetadataMock()));
+  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(() => Promise.resolve(getApplicationMetadataMock()));
   return await renderWithInstanceAndLayout({
     ...props,
     alwaysRouteToChildren: true,

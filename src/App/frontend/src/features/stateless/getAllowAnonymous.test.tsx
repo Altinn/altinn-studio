@@ -3,7 +3,7 @@ import React from 'react';
 import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { fetchApplicationMetadata } from 'src/queries/queries';
@@ -16,7 +16,7 @@ const TestComponent = () => {
 
 const render = async (stateless: boolean, allowAnonymous: boolean) => {
   jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () => ({
-    ...getIncomingApplicationMetadataMock(),
+    ...getApplicationMetadataMock(),
     ...(stateless
       ? {
           onEntry: {

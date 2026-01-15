@@ -1,4 +1,4 @@
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import {
   getCurrentDataTypeForApplication,
@@ -10,7 +10,7 @@ import type { ILayoutSet } from 'src/layout/common.generated';
 import type { IData } from 'src/types/shared';
 
 describe('appMetadata.ts', () => {
-  const incomingAppMetadata = getIncomingApplicationMetadataMock({
+  const incomingAppMetadata = getApplicationMetadataMock({
     dataTypes: [
       {
         id: 'ref-data-as-pdf',

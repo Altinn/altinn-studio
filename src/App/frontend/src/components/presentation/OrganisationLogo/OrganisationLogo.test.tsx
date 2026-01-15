@@ -3,14 +3,14 @@ import React from 'react';
 import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
 import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 
 const render = async (logo: ApplicationMetadata['logo']) => {
-  jest.mocked(fetchApplicationMetadata).mockImplementation(async () => getIncomingApplicationMetadataMock({ logo }));
+  jest.mocked(fetchApplicationMetadata).mockImplementation(async () => getApplicationMetadataMock({ logo }));
 
   return await renderWithInstanceAndLayout({
     renderer: () => <OrganisationLogo />,

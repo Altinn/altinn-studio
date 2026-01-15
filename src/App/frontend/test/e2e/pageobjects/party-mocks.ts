@@ -1,5 +1,5 @@
 import { PartyType } from 'src/types/shared';
-import type { IncomingApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/types';
 import type { ISimpleInstance } from 'src/types';
 import type { IParty } from 'src/types/shared';
 
@@ -99,8 +99,8 @@ interface Mockable {
   selectedParty?: IParty;
   allowedToInstantiate?: IParty[] | ((parties: IParty[]) => IParty[]);
   doNotPromptForParty?: boolean;
-  appPromptForPartyOverride?: IncomingApplicationMetadata['promptForParty'];
-  partyTypesAllowed?: IncomingApplicationMetadata['partyTypesAllowed'];
+  appPromptForPartyOverride?: ApplicationMetadata['promptForParty'];
+  partyTypesAllowed?: ApplicationMetadata['partyTypesAllowed'];
   activeInstances?: false | ISimpleInstance[]; // Defaults to false
   onEntryShow?: ShowTypes;
 }
@@ -147,7 +147,7 @@ export function cyMockResponses(whatToMock: Mockable) {
   ) {
     cy.intercept('GET', '**/api/v1/applicationmetadata', (req) => {
       req.on('response', (res) => {
-        const body = res.body as IncomingApplicationMetadata;
+        const body = res.body as ApplicationMetadata;
         if (whatToMock.appPromptForPartyOverride !== undefined) {
           body.promptForParty = whatToMock.appPromptForPartyOverride;
         }
