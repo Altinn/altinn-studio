@@ -3,6 +3,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.AccessManagement;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.DataLists;
 using Altinn.App.Core.Features.DataProcessing;
 using Altinn.App.Core.Features.ExternalApi;
@@ -185,6 +186,7 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IDataElementAccessChecker, DataElementAccessChecker>();
         services.TryAddTransient<IDataListsService, DataListsService>();
         services.TryAddTransient<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
+        services.TryAddTransient<IBootstrapGlobalService, BootstrapGlobalService>();
         services.TryAddTransient<LayoutEvaluatorStateInitializer>();
         services.AddSingleton<IAuthenticationTokenResolver, AuthenticationTokenResolver>();
         services.AddTransient<IDataService, DataService>();
