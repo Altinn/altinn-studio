@@ -55,7 +55,7 @@ import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import { useSharedCodeListsQuery } from 'app-shared/hooks/queries/useSharedCodeListsQuery';
 import { useUpdateSharedResourcesMutation } from 'app-shared/hooks/mutations/useUpdateSharedResourcesMutation';
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
-import { usePublishCodeListMutation } from 'app-shared/hooks/mutations/usePublishCodeListMutation';
+import { usePublishCodeList } from './usePublishCodeList';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 import { usePublishedResourcesQuery } from 'app-shared/hooks/queries/usePublishedResourcesQuery';
 import { useContentLibraryRouter } from 'app-shared/hooks/useContentLibraryRouter';
@@ -216,7 +216,7 @@ function usePagesFromFeatureFlags(orgName: string): Partial<PagesConfig> {
 function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
   const { data } = useSharedCodeListsQuery(orgName);
   const { mutate } = useUpdateSharedResourcesMutation(orgName, CODE_LIST_FOLDER);
-  const { mutate: publish } = usePublishCodeListMutation(orgName);
+  const { publish, isPublishing } = usePublishCodeList(orgName);
   const { t } = useTranslation();
   const { data: publishedCodeLists } = usePublishedResourcesQuery(
     orgName,
@@ -247,6 +247,7 @@ function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
 
   return {
     codeLists: libraryCodeLists,
+    isPublishing,
     onPublish: handlePublish,
     onSave: handleSave,
     publishedCodeLists,
