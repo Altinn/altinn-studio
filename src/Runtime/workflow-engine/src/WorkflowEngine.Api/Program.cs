@@ -1,7 +1,7 @@
 using WorkflowEngine.Api.Authentication;
-using WorkflowEngine.Api.Exceptions;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data.Extensions;
+using WorkflowEngine.Models.Exceptions;
 
 var builder = WebApplication.CreateBuilder(args);
 var dbConnectionString =
@@ -16,6 +16,9 @@ builder.Services.AddApiKeyAuthentication();
 builder.Services.AddDbRepository(dbConnectionString);
 
 var app = builder.Build();
+
+// Apply database migrations
+await app.MigrateDatabaseAsync(dbConnectionString);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

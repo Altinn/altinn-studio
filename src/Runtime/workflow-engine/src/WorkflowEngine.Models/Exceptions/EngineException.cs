@@ -1,4 +1,4 @@
-namespace WorkflowEngine.Api.Exceptions;
+namespace WorkflowEngine.Models.Exceptions;
 
 public class EngineException : Exception
 {

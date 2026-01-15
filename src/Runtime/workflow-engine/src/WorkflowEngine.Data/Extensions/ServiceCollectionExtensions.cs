@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Repository;
+using WorkflowEngine.Data.Services;
 
 namespace WorkflowEngine.Data.Extensions;
 
@@ -22,6 +23,7 @@ public static class ServiceCollectionExtensions
                 contextLifetime: ServiceLifetime.Transient,
                 optionsLifetime: ServiceLifetime.Singleton
             );
+            services.AddScoped<DbMigrationService>();
 
             return services;
         }

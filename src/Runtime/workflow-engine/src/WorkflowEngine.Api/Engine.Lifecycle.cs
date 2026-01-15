@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using WorkflowEngine.Api.Exceptions;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Exceptions;
 using Task = System.Threading.Tasks.Task;
 
 namespace WorkflowEngine.Api;

@@ -1,9 +1,9 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Microsoft.Extensions.Options;
-using WorkflowEngine.Api.Exceptions;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience.Extensions;
 using WorkflowEngine.Resilience.Models;

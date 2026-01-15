@@ -1,5 +1,5 @@
-﻿using WorkflowEngine.Api.Exceptions;
-using WorkflowEngine.Models;
+﻿using WorkflowEngine.Models;
+using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
 
 namespace WorkflowEngine.Api;

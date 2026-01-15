@@ -1,4 +1,4 @@
-namespace WorkflowEngine.Api.Exceptions;
+namespace WorkflowEngine.Models.Exceptions;
 
 public sealed class EngineConfigurationException : EngineException
 {
