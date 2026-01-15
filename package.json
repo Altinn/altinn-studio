@@ -163,7 +163,6 @@
     "marked": "16.4.2",
     "marked-mangle": "1.1.12",
     "node-polyfill-webpack-plugin": "4.1.0",
-    "norway-postal-codes": "^4.1.0",
     "react": "19.2.3",
     "react-compiler-webpack": "0.2.1",
     "react-content-loader": "7.1.1",

@@ -44,6 +44,7 @@ import {
   getUpdateFileTagsUrl,
   getValidationUrl,
   instancesControllerUrl,
+  postalCodesUrl,
   profileApiUrl,
   refreshJwtTokenUrl,
   selectedPartyUrl,
@@ -85,6 +86,7 @@ import type {
   IParty,
   IProcess,
   IProfile,
+  PostalCodesRegistry,
 } from 'src/types/shared';
 
 export const doSetSelectedParty = (partyId: number | string) =>
@@ -382,3 +384,5 @@ export function fetchExternalApi({
   const externalApiUrl = `${appPath}/instances/${instanceId}/api/external/${externalApiId}`;
   return httpGet(externalApiUrl);
 }
+
+export const fetchPostalCodes = async (): Promise<PostalCodesRegistry> => (await axios.get(postalCodesUrl)).data;

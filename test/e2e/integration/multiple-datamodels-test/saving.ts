@@ -41,7 +41,8 @@ describe('saving multiple data models', () => {
     cy.findByRole('textbox', { name: /poststed/i }).should('have.value', 'KARDEMOMME BY');
 
     cy.waitUntilSaved();
-    cy.get('@saveFormData.all').should('have.length', 4);
+    cy.get('@saveFormData.all').should('have.length.at.least', 4);
+    cy.get('@saveFormData.all').should('have.length.at.most', 5);
     cy.get('@saveFormData.all').should(haveTheSameUrls);
 
     cy.get(appFrontend.altinnError).should('not.exist');

@@ -8,16 +8,6 @@ import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-jest.mock('norway-postal-codes', () => ({
-  __esModule: true,
-  default: {
-    '0001': 'OSLO',
-    '0002': 'BERGEN',
-    '1613': 'FREDRIKSTAD',
-    '4609': 'KARDEMOMME BY',
-  },
-}));
-
 const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'Address'>> = {}) =>
   await renderGenericComponentTest({
     type: 'Address',
