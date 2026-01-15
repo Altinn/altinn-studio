@@ -51,6 +51,6 @@ public interface IGitOpsConfigurationManager
     /// </summary>
     /// <param name="context">The <see cref="AltinnOrgEditingContext"/> representing the organization editing context.</param>
     /// <param name="environment">The <see cref="AltinnEnvironment"/> to persist the configuration for.</param>
-    public Task PersistGitOpsConfigurationAsync(AltinnOrgEditingContext context, AltinnEnvironment environment);
+    public void PersistGitOpsConfiguration(AltinnOrgEditingContext context, AltinnEnvironment environment);
 }
 

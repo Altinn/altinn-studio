@@ -146,7 +146,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await _gitOpsConfigurationManager.AddAppToGitOpsConfigurationAsync(repoContext, environment);
 
-            await _gitOpsConfigurationManager.PersistGitOpsConfigurationAsync(orgContext, environment);
+            _gitOpsConfigurationManager.PersistGitOpsConfiguration(orgContext, environment);
             return true;
         }
 
@@ -255,7 +255,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             await _gitOpsConfigurationManager.RemoveAppFromGitOpsEnvironmentConfigurationAsync(authenticatedContext, environment);
-            await _gitOpsConfigurationManager.PersistGitOpsConfigurationAsync(orgContext, environment);
+            _gitOpsConfigurationManager.PersistGitOpsConfiguration(orgContext, environment);
 
             return true;
         }
