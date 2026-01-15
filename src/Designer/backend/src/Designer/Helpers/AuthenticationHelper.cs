@@ -1,6 +1,7 @@
 #nullable disable
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Helpers
@@ -20,9 +21,16 @@ namespace Altinn.Studio.Designer.Helpers
             return context.User.Identity?.Name;
         }
 
-        public static Task<string> GetDeveloperAppTokenAsync(this HttpContext context)
+        public static async Task<string> GetDeveloperAppTokenAsync(this HttpContext context)
         {
-            return context.GetTokenAsync("access_token");
+            string token = await context.GetTokenAsync(OpenIdConnectDefaults.AuthenticationScheme, "access_token");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                token = await context.GetTokenAsync(AnsattPortenConstants.AnsattportenAuthenticationScheme, "access_token");
+            }
+
+            return token;
         }
 
         public static bool IsAuthenticated(HttpContext context)
