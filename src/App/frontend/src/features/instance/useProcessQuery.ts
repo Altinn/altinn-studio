@@ -60,7 +60,7 @@ export function useTaskTypeFromBackend() {
  */
 export function useGetTaskTypeById() {
   const { data: processData } = useProcessQuery();
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useApplicationMetadata().isStateless;
   const layoutSets = useLayoutSets();
 
   return (taskId: string | undefined) => {

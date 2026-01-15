@@ -107,7 +107,7 @@ export const useStartUrl = (forcedTaskId?: string) => {
     useAllNavigationParams();
   const isSubformPage = !!mainPageKey;
   const taskType = useGetTaskTypeById()(taskId);
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useApplicationMetadata().isStateless;
 
   return useMemo(() => {
     const firstPage = order?.[0];
@@ -202,7 +202,7 @@ export function useIsValidTaskId() {
 }
 
 export function useNavigatePage() {
-  const isStatelessApp = useApplicationMetadata().isStatelessApp;
+  const isStatelessApp = useApplicationMetadata().isStateless;
   const navigate = useOurNavigate();
   const navParams = useAllNavigationParamsAsRef();
   const getTaskType = useGetTaskTypeById();

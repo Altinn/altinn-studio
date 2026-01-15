@@ -7,7 +7,7 @@ export const useAllowAnonymous = () => {
   const application = useLaxApplicationMetadata();
   const { data: layoutSets } = useLayoutSetsQuery();
 
-  if (!layoutSets || application === ContextNotProvided || !application.isStatelessApp) {
+  if (!layoutSets || application === ContextNotProvided || !application.isStateless) {
     return false;
   }
 

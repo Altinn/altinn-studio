@@ -168,7 +168,7 @@ export function getValidPrefillDataFromQueryParams(
     return undefined;
   }
 
-  if (!metaData.isStatelessApp) {
+  if (!metaData.isStateless) {
     throw new Error('You can only use query parameter prefill in a stateless task. Please read documentation.');
   }
 

@@ -41,7 +41,7 @@ const ShowOrInstantiate: React.FC<{ show: ShowTypes }> = ({ show }) => {
 export const Entrypoint = () => {
   const {
     onEntry: { show },
-    isStatelessApp: isStateless,
+    isStateless: isStateless,
     promptForParty,
   } = useApplicationMetadata();
   const profile = useProfile();

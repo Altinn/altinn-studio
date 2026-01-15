@@ -23,7 +23,7 @@ export function AppNavigation({ onNavigate }: { onNavigate?: () => void }) {
   const currentTaskId = useProcessTaskId();
   const isReceipt = useIsReceiptPage();
   const isSubform = useIsSubformPage();
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useApplicationMetadata().isStateless;
 
   if (!isSubform && taskGroups.length) {
     return (

@@ -16,7 +16,7 @@ export function useFormDataQueryDef(url: string | undefined): QueryDefinition<un
   const { fetchFormData } = useAppQueries();
   const queryKey = useFormDataQueryKey(url);
   const options = useFormDataQueryOptions();
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useApplicationMetadata().isStateless;
 
   const queryFn = url ? () => fetchFormData(url, options) : skipToken;
 
@@ -56,7 +56,7 @@ export async function invalidateFormDataQueries(queryClient: QueryClient) {
 
 export function useFormDataQueryOptions() {
   const selectedPartyId = useSelectedParty()?.partyId;
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useApplicationMetadata().isStateless;
   const options: AxiosRequestConfig = {};
   if (isStateless && selectedPartyId !== undefined) {
     options.headers = {

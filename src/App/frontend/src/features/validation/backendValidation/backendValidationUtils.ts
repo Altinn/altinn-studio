@@ -30,7 +30,7 @@ const severityMap: { [s in BackendValidationSeverity]: ValidationSeverity } = {
 export function useShouldValidateInitial(): boolean {
   const isCustomReceipt = useProcessTaskId() === TaskKeys.CustomReceipt;
   const isPDF = useIsPdf();
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useApplicationMetadata().isStateless;
   const writableDataTypes = DataModels.useWritableDataTypes();
   return !isCustomReceipt && !isPDF && !isStateless && !!writableDataTypes?.length;
 }

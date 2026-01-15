@@ -17,7 +17,7 @@ import { getStatefulDataModelUrl } from 'src/utils/urls/appUrlHelper';
 
 export function DownloadXMLButton() {
   const isInForm = useIsInFormContext();
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useApplicationMetadata().isStateless;
   if (!isInForm || isStateless) {
     return null;
   }

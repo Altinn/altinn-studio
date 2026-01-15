@@ -149,7 +149,7 @@ function DataModelsLoader() {
   const writableDataTypes = useSelector((state) => state.writableDataTypes);
   const layouts = useLayouts();
   const defaultDataType = useCurrentDataModelName();
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useApplicationMetadata().isStateless;
 
   const { data: dataElements, isFetching } = useInstanceDataQuery({
     enabled: !isStateless,

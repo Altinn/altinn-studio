@@ -70,7 +70,7 @@ describe('appMetadata.ts', () => {
   });
   const appMetadata: ApplicationMetadata = {
     ...incomingAppMetadata,
-    isStatelessApp: false,
+    isStateless: false,
     isValidVersion: true,
     logoOptions: incomingAppMetadata.logo,
     onEntry: { show: 'new-instance' },
@@ -112,7 +112,7 @@ describe('appMetadata.ts', () => {
 
     it('should return correct data type if we have a stateless app', () => {
       const result = getCurrentDataTypeForApplication({
-        application: { ...appMetadata, isStatelessApp: true, onEntry: { show: 'stateless' } },
+        application: { ...appMetadata, isStateless: true, onEntry: { show: 'stateless' } },
         layoutSets,
         taskId: undefined,
       });
@@ -122,7 +122,7 @@ describe('appMetadata.ts', () => {
 
     it('should return correct data type if instance not set', () => {
       const result = getCurrentDataTypeForApplication({
-        application: { ...appMetadata, isStatelessApp: true, onEntry: { show: 'stateless' } },
+        application: { ...appMetadata, isStateless: true, onEntry: { show: 'stateless' } },
         layoutSets,
         taskId: undefined,
       });
@@ -140,7 +140,7 @@ describe('appMetadata.ts', () => {
 
     it('should return correct layout set id if we have a stateless app', () => {
       const result = getCurrentLayoutSet({
-        application: { ...appMetadata, isStatelessApp: true, onEntry: { show: 'stateless' } },
+        application: { ...appMetadata, isStateless: true, onEntry: { show: 'stateless' } },
         layoutSets,
         taskId: undefined,
       });

@@ -24,7 +24,7 @@ export function getApplicationMetadataQueryDef(instanceGuid: string | undefined)
         ...data,
         isValidVersion: true, // TODO: Add version check when we know the next version (v9 or v10?)
         onEntry,
-        isStatelessApp: isStatelessApp(!!instanceGuid, onEntry.show),
+        isStateless: isStatelessApp(!!instanceGuid, onEntry.show),
         logoOptions: data.logo,
       };
     },
