@@ -2275,7 +2275,7 @@
   "ux_editor.text_resource_binding_edit_description": "Endre beskrivelse",
   "ux_editor.text_resource_binding_edit_help": "Endre hjelpetekst",
   "ux_editor.text_resource_binding_edit_title": "Endre ledetekst",
-  "ux_editor.text_resource_binding_id": "ID: <0>{{id}}</0>",
+  "ux_editor.text_resource_binding_id": "ID:",
   "ux_editor.text_resource_binding_search": "Søk",
   "ux_editor.text_resource_binding_search_description": "Søk etter beskrivelse",
   "ux_editor.text_resource_binding_search_help": "Søk etter hjelpetekst",

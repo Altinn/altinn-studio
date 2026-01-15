@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { TextResourceAction, type TextResourceActionProps } from './TextResourceAction';
-import { renderWithProviders } from '../../../../../testing/mocks';
+import { renderWithProviders } from '../../../testing/mocks';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
@@ -14,7 +14,7 @@ import type { TranslationKey } from '@altinn-studio/language/type';
 const newText = 'New text';
 const testId = 'test-id';
 
-jest.mock('../../../../../hooks/mutations/useUpsertTextResourceMutation', () => ({
+jest.mock('../../../hooks/mutations/useUpsertTextResourceMutation', () => ({
   useUpsertTextResourceMutation: () => ({ mutate: onSave }),
 }));
 
