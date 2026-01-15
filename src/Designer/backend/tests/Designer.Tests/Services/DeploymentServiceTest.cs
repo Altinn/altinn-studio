@@ -129,6 +129,8 @@ namespace Designer.Tests.Services
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
             // Act
             DeploymentEntity deploymentEntity =
                 await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
@@ -216,7 +218,7 @@ namespace Designer.Tests.Services
 
             // Setup GitOps configuration manager - app does not exist
             _gitOpsConfigurationManager.Setup(gm => gm.EnsureGitOpsConfigurationExistsAsync(
-                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnAuthenticatedRepoEditingContext>(),
                 It.IsAny<AltinnEnvironment>())).Returns(Task.CompletedTask);
 
             _gitOpsConfigurationManager.Setup(gm => gm.AppExistsInGitOpsConfigurationAsync(
@@ -277,6 +279,8 @@ namespace Designer.Tests.Services
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
             // Act
             await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
@@ -284,7 +288,7 @@ namespace Designer.Tests.Services
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
 
             _gitOpsConfigurationManager.Verify(gm => gm.EnsureGitOpsConfigurationExistsAsync(
-                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
+                It.Is<AltinnAuthenticatedRepoEditingContext>(ctx => ctx.Org == org),
                 It.Is<AltinnEnvironment>(env => env.Name == deploymentModel.EnvName)), Times.Once);
 
             _gitOpsConfigurationManager.Verify(gm => gm.AppExistsInGitOpsConfigurationAsync(
@@ -319,7 +323,7 @@ namespace Designer.Tests.Services
 
             // Setup GitOps configuration manager - app already exists
             _gitOpsConfigurationManager.Setup(gm => gm.EnsureGitOpsConfigurationExistsAsync(
-                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnAuthenticatedRepoEditingContext>(),
                 It.IsAny<AltinnEnvironment>())).Returns(Task.CompletedTask);
 
             _gitOpsConfigurationManager.Setup(gm => gm.AppExistsInGitOpsConfigurationAsync(
@@ -372,6 +376,8 @@ namespace Designer.Tests.Services
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
             // Act
             await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
@@ -379,7 +385,7 @@ namespace Designer.Tests.Services
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
 
             _gitOpsConfigurationManager.Verify(gm => gm.EnsureGitOpsConfigurationExistsAsync(
-                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
+                It.Is<AltinnAuthenticatedRepoEditingContext>(ctx => ctx.Org == org),
                 It.Is<AltinnEnvironment>(env => env.Name == deploymentModel.EnvName)), Times.Once);
 
             _gitOpsConfigurationManager.Verify(gm => gm.AppExistsInGitOpsConfigurationAsync(
@@ -459,6 +465,8 @@ namespace Designer.Tests.Services
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
             // Act
             await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
@@ -467,7 +475,7 @@ namespace Designer.Tests.Services
 
             // Verify NO GitOps methods are called when feature is disabled
             _gitOpsConfigurationManager.Verify(gm => gm.EnsureGitOpsConfigurationExistsAsync(
-                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnAuthenticatedRepoEditingContext>(),
                 It.IsAny<AltinnEnvironment>()), Times.Never);
 
             _gitOpsConfigurationManager.Verify(gm => gm.AppExistsInGitOpsConfigurationAsync(
@@ -585,6 +593,8 @@ namespace Designer.Tests.Services
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
             // Act
             await deploymentService.UndeployAsync(authenticatedContext, env);
 
@@ -672,6 +682,8 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings);
+
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
@@ -765,6 +777,8 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings);
+
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
@@ -863,6 +877,8 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings);
+
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
