@@ -145,9 +145,9 @@ export const getResourceIdentifierErrorMessage = (
 
 export const getValidIdentifierPrefixes = (org: string): string[] => {
   if (org === 'skd') {
-    return ['skd-', 'ske-'];
+    return ['skd-', 'skd_', 'ske-', 'ske_'];
   }
-  return [`${org}-`];
+  return [`${org}-`, `${org}_`];
 };
 
 export const hasOrgPrefixInIdentifier = (identifier: string, org: string): boolean => {

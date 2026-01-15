@@ -38,11 +38,17 @@ builder.Configuration.AddJsonFile(
     reloadOnChange: true
 );
 builder.Configuration.AddJsonFile("/app/secrets/grafana-token.json", optional: true, reloadOnChange: true);
+var environment = builder.Configuration.GetSection("Gateway").GetValue<string>("Environment") ?? "";
+var hasGrafanaInstance = AltinnEnvironments.IsProd(environment) || AltinnEnvironments.IsTT02(environment);
+
 builder
     .Services.AddOptions<GrafanaSettings>()
     .Bind(builder.Configuration.GetSection("Grafana"))
-    .Validate(settings => !string.IsNullOrWhiteSpace(settings.Token), "Grafana.Token is required.")
-    .Validate(settings => settings.Url != null, "Grafana.Url is required.")
+    .Validate(
+        settings => !hasGrafanaInstance || !string.IsNullOrWhiteSpace(settings.Token),
+        "Grafana.Token is required."
+    )
+    .Validate(settings => !hasGrafanaInstance || settings.Url != null, "Grafana.Url is required.")
     .ValidateOnStart();
 builder
     .Services.AddOptions<AlertsClientSettings>()
@@ -77,7 +83,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
 builder.Services.AddKeyedTransient<IAlertsClient>(
-    AlertsClientSettings.AlertsClientProvider.Grafana.ToString(),
+    AlertsClientSettings.AlertsClientProvider.Grafana,
     (serviceProvider, key) =>
     {
         var factory = serviceProvider.GetRequiredService<IHttpClientFactory>();
@@ -97,7 +103,7 @@ builder
     )
     .AddHttpMessageHandler<GrafanaAuthenticationHandler>();
 builder.Services.AddKeyedTransient<IMetricsClient, AzureMonitorClient>(
-    MetricsClientSettings.MetricsClientProvider.AzureMonitor.ToString()
+    MetricsClientSettings.MetricsClientProvider.AzureMonitor
 );
 builder.Services.AddHealthChecks();
 builder.Services.AddOpenApi(

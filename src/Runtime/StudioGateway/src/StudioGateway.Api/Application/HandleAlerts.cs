@@ -50,7 +50,7 @@ internal static class HandleAlerts
         AlertPayload alertPayload,
         ILogger<Program> logger,
         CancellationToken cancellationToken,
-        string environment = "prod"
+        string environment = AltinnEnvironments.Prod
     )
     {
         var alertsByName = alertPayload
