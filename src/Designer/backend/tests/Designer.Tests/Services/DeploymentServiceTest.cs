@@ -218,7 +218,7 @@ namespace Designer.Tests.Services
 
             // Setup GitOps configuration manager - app does not exist
             _gitOpsConfigurationManager.Setup(gm => gm.EnsureGitOpsConfigurationExistsAsync(
-                It.IsAny<AltinnAuthenticatedRepoEditingContext>(),
+                It.IsAny<AltinnOrgEditingContext>(),
                 It.IsAny<AltinnEnvironment>())).Returns(Task.CompletedTask);
 
             _gitOpsConfigurationManager.Setup(gm => gm.AppExistsInGitOpsConfigurationAsync(
@@ -288,7 +288,7 @@ namespace Designer.Tests.Services
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
 
             _gitOpsConfigurationManager.Verify(gm => gm.EnsureGitOpsConfigurationExistsAsync(
-                It.Is<AltinnAuthenticatedRepoEditingContext>(ctx => ctx.Org == org),
+                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
                 It.Is<AltinnEnvironment>(env => env.Name == deploymentModel.EnvName)), Times.Once);
 
             _gitOpsConfigurationManager.Verify(gm => gm.AppExistsInGitOpsConfigurationAsync(
@@ -323,7 +323,7 @@ namespace Designer.Tests.Services
 
             // Setup GitOps configuration manager - app already exists
             _gitOpsConfigurationManager.Setup(gm => gm.EnsureGitOpsConfigurationExistsAsync(
-                It.IsAny<AltinnAuthenticatedRepoEditingContext>(),
+                It.IsAny<AltinnOrgEditingContext>(),
                 It.IsAny<AltinnEnvironment>())).Returns(Task.CompletedTask);
 
             _gitOpsConfigurationManager.Setup(gm => gm.AppExistsInGitOpsConfigurationAsync(
@@ -385,7 +385,7 @@ namespace Designer.Tests.Services
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
 
             _gitOpsConfigurationManager.Verify(gm => gm.EnsureGitOpsConfigurationExistsAsync(
-                It.Is<AltinnAuthenticatedRepoEditingContext>(ctx => ctx.Org == org),
+                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
                 It.Is<AltinnEnvironment>(env => env.Name == deploymentModel.EnvName)), Times.Once);
 
             _gitOpsConfigurationManager.Verify(gm => gm.AppExistsInGitOpsConfigurationAsync(
@@ -475,7 +475,7 @@ namespace Designer.Tests.Services
 
             // Verify NO GitOps methods are called when feature is disabled
             _gitOpsConfigurationManager.Verify(gm => gm.EnsureGitOpsConfigurationExistsAsync(
-                It.IsAny<AltinnAuthenticatedRepoEditingContext>(),
+                It.IsAny<AltinnOrgEditingContext>(),
                 It.IsAny<AltinnEnvironment>()), Times.Never);
 
             _gitOpsConfigurationManager.Verify(gm => gm.AppExistsInGitOpsConfigurationAsync(
