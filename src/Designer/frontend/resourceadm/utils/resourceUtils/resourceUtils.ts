@@ -147,6 +147,9 @@ export const getValidIdentifierPrefixes = (org: string): string[] => {
   if (org === 'skd') {
     return ['skd-', 'skd_', 'ske-', 'ske_'];
   }
+  if (org === 'digdir') {
+    return ['digdir-', 'digdir_', 'altinn-', 'altinn_'];
+  }
   return [`${org}-`, `${org}_`];
 };
 
