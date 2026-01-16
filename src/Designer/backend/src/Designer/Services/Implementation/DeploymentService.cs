@@ -131,10 +131,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task<bool> AddAppToGitOpsRepoIfNotExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, AltinnRepoName app, AltinnEnvironment environment)
         {
-            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(authenticatedContext, environment);
-
             AltinnOrgEditingContext orgContext = authenticatedContext.OrgEditingContext;
             AltinnRepoEditingContext repoContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(orgContext.Org, app.Name, orgContext.Developer);
+
+            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(orgContext, environment);
 
             bool appAlreadyExists =
                 await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(orgContext, app, environment);
@@ -243,7 +243,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return false;
             }
             var environment = AltinnEnvironment.FromName(env);
-            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(authenticatedContext, environment);
+            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(orgContext, environment);
 
             var appName = AltinnRepoName.FromName(authenticatedContext.Repo);
 
