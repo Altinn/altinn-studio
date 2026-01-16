@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"altinn.studio/studioctl/internal/auth"
@@ -58,9 +59,12 @@ func TestSaveAndLoadCredentials(t *testing.T) {
 	if err != nil {
 		t.Fatalf("stat credentials file: %v", err)
 	}
-	// Check file mode (permissions)
-	if info.Mode().Perm() != perm.FilePermOwnerOnly {
-		t.Errorf("expected permissions 0600, got %o", info.Mode().Perm())
+	// Check file mode (permissions) - Unix only
+	// On Windows, permissions are enforced via ACLs, not Unix mode bits
+	if runtime.GOOS != "windows" {
+		if info.Mode().Perm() != perm.FilePermOwnerOnly {
+			t.Errorf("expected permissions 0600, got %o", info.Mode().Perm())
+		}
 	}
 
 	// Load and verify

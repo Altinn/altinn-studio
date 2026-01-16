@@ -278,5 +278,11 @@ func writeMetadataCache(path string, metadata NetworkMetadata) error {
 	if err := os.WriteFile(path, data, perm.FilePermOwnerOnly); err != nil {
 		return fmt.Errorf("write cache file: %w", err)
 	}
+
+	// On Windows, file mode is ignored; set ACLs explicitly
+	if err := perm.SecureFile(path); err != nil {
+		return fmt.Errorf("secure cache file: %w", err)
+	}
+
 	return nil
 }

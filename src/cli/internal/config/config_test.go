@@ -3,6 +3,7 @@ package config_test
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"altinn.studio/studioctl/internal/config"
@@ -195,7 +196,13 @@ func TestConfigPaths(t *testing.T) {
 		{
 			name: "AppManagerBinaryPath",
 			got:  cfg.AppManagerBinaryPath(),
-			want: filepath.Join(tempDir, "bin", "app-manager"),
+			want: func() string {
+				name := "app-manager"
+				if runtime.GOOS == "windows" {
+					name += ".exe"
+				}
+				return filepath.Join(tempDir, "bin", name)
+			}(),
 		},
 	}
 
