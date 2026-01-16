@@ -4,6 +4,18 @@
 * text=auto
 /src/App/backend/**/*.cs text eol=crlf
 
+# Go source files must use LF (required by gofmt and golangci-lint)
+*.go text eol=lf
+*.mod text eol=lf
+*.sum text eol=lf
+
+# YAML, JSON, and shell scripts should use LF
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+
 ###############################################################################
 # Set default behavior for command prompt diff.
 #
