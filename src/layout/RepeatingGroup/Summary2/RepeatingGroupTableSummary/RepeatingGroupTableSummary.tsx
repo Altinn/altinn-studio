@@ -37,7 +37,7 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
   const { textResourceBindings, dataModelBindings, tableColumns } = useItemWhenType(baseComponentId, 'RepeatingGroup');
-  const title = textResourceBindings?.title;
+  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
   const tableIds = useTableComponentIds(baseComponentId);
   const columnSettings = tableColumns ? structuredClone(tableColumns) : ({} as ITableColumnFormatting);
 

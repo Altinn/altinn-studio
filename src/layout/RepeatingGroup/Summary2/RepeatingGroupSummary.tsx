@@ -36,7 +36,7 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
     targetBaseComponentId,
     'RepeatingGroup',
   );
-  const title = textResourceBindings?.title;
+  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
   const parent = useLayoutLookups().componentToParent[targetBaseComponentId];
   const isNested = parent?.type === 'node';
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
