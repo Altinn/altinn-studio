@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Api.Authentication;
 using WorkflowEngine.Api.Constants;
-using WorkflowEngine.Api.Endpoints;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
 

@@ -11,6 +11,7 @@ var dbConnectionString =
         "Database connection string 'WorkflowEngine' is required, but has not been configured."
     );
 
+// Services
 builder.Services.AddWorkflowEngineHost();
 builder.Services.AddOpenApi();
 builder.Services.AddApiKeyAuthentication();
@@ -22,12 +23,22 @@ var app = builder.Build();
 // Apply database migrations
 await app.MigrateDatabaseAsync(dbConnectionString);
 
+// Middleware
 app.MapOpenApi();
-app.UseSwaggerUI();
-app.MapHealthEndpoints();
+app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "Workflow Engine API v1"));
+
+//
+// app.UseSwaggerUI(options =>
+// {
+//     options.SwaggerEndpoint("/openapi/public-v1.json", "Public API v1");
+//     options.SwaggerEndpoint("/openapi/internal-v1.json", "Internal API v1");
+// });
 
 if (!builder.Environment.IsDevelopment())
     app.UseHttpsRedirection();
+
+// Endpoints
+app.MapHealthEndpoints();
 
 var summaries = new[]
 {

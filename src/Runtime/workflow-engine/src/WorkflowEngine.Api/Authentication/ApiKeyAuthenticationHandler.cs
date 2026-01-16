@@ -30,7 +30,7 @@ internal class ApiKeyAuthenticationHandler : AuthenticationHandler<Authenticatio
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         if (!Request.Headers.TryGetValue(HeaderName, out var apiKeyHeader))
-            return Task.FromResult(AuthenticateResult.Fail("Missing API Key"));
+            return Task.FromResult(AuthenticateResult.NoResult());
 
         if (!_settings.ApiKeys.Contains(apiKeyHeader[0]))
             return Task.FromResult(AuthenticateResult.Fail($"Invalid API Key: {apiKeyHeader[0]}"));
