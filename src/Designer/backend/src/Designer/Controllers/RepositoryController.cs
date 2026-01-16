@@ -310,7 +310,7 @@ namespace Altinn.Studio.Designer.Controllers
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
             try
             {
-                _sourceControl.PushChangesForRepository(commitInfo, authenticatedContext);
+                _sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
             }
             catch (LibGit2Sharp.NonFastForwardException)
             {

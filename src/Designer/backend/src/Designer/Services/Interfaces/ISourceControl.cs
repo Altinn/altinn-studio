@@ -44,19 +44,18 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Add all changes in app repo and push to remote
         /// </summary>
+        /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
         /// <param name="commitInfo">the commit information for the app</param>
-        /// <param name="editingContext">The altinn repo editing context</param>
-        void PushChangesForRepository(CommitInfo commitInfo, AltinnRepoEditingContext editingContext);
+        void PushChangesForRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, CommitInfo commitInfo);
 
         /// <summary>
         /// Commits all changes in repo and pushe them to the provided branch
         /// </summary>
-        /// <param name="editingContext">The altinn repo editing context</param>
+        /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
         /// <param name="branchName">The name of the branch to push changes to</param>
         /// <param name="localPath">Path to local clone of repository</param>
         /// <param name="message">Commit message</param>
-        /// <param name="accessToken">Access token for authentication. If empty, uses session-based authentication. Should only be used for special cases like bot operations - avoid for regular user operations.</param>
-        void CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string localPath, string message, string accessToken = "");
+        void CommitAndPushChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName, string localPath, string message);
 
         /// <summary>
         /// Pull remote changes

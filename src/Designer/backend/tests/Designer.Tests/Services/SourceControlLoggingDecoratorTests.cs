@@ -272,7 +272,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
         CommitInfo commitInfo = new() { Org = NonExistantOrg, Repository = NonExistantRepo, Message = "should_not_be_commited" };
         try
         {
-            service.PushChangesForRepository(commitInfo, authenticatedContext);
+            service.PushChangesForRepository(authenticatedContext, commitInfo);
         }
         catch
         {
@@ -384,7 +384,7 @@ public class SourceControlStub : ISourceControl
     public string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedEditingContext) => throw new NotImplementedException();
     public string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, string destinationPath, string branchName = "") => throw new NotImplementedException();
     public void Commit(CommitInfo commitInfo, AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-    public void CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string localPath, string message, string accessToken = "") => throw new NotImplementedException();
+    public void CommitAndPushChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName, string localPath, string message) => throw new NotImplementedException();
     public void CommitToLocalRepo(AltinnRepoEditingContext editingContext, string message) => throw new NotImplementedException();
     public Task<Branch> CreateBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
     public void CreateLocalBranch(AltinnRepoEditingContext editingContext, string branchName, string commitSha = null) => throw new NotImplementedException();
@@ -404,7 +404,7 @@ public class SourceControlStub : ISourceControl
     public void PublishBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName) => throw new NotImplementedException();
     public RepoStatus PullRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext) => throw new NotImplementedException();
     public bool Push(AltinnAuthenticatedRepoEditingContext authenticatedContext) => throw new NotImplementedException();
-    public void PushChangesForRepository(CommitInfo commitInfo, AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
+    public void PushChangesForRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, CommitInfo commitInfo) => throw new NotImplementedException();
     public LibGit2Sharp.RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public RepoStatus RepositoryStatus(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public void StageChange(AltinnRepoEditingContext editingContext, string fileName) => throw new NotImplementedException();
