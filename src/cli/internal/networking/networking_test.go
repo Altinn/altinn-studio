@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -16,6 +17,8 @@ import (
 	"altinn.studio/studioctl/internal/perm"
 	"altinn.studio/studioctl/internal/ui"
 )
+
+const osWindows = "windows"
 
 // testOutput creates a ui.Output for testing that discards output but enables debug logging.
 func testOutput() *ui.Output {
@@ -227,13 +230,16 @@ func TestWriteMetadataCache(t *testing.T) {
 				t.Error("cache file missing pingOk field")
 			}
 
-			// Verify file permissions
-			info, err := os.Stat(cachePath)
-			if err != nil {
-				t.Fatalf("failed to stat cache file: %v", err)
-			}
-			if modePerm := info.Mode().Perm(); modePerm != perm.FilePermOwnerOnly {
-				t.Errorf("cache file permissions = %o, want 600", modePerm)
+			// Verify file permissions - Unix only
+			// On Windows, permissions are enforced via ACLs, not Unix mode bits
+			if runtime.GOOS != osWindows {
+				info, err := os.Stat(cachePath)
+				if err != nil {
+					t.Fatalf("failed to stat cache file: %v", err)
+				}
+				if modePerm := info.Mode().Perm(); modePerm != perm.FilePermOwnerOnly {
+					t.Errorf("cache file permissions = %o, want 600", modePerm)
+				}
 			}
 		})
 	}
@@ -336,6 +342,10 @@ func TestParseNetworkProbeOutput(t *testing.T) {
 }
 
 func TestResolveNetworkMetadata_Integration(t *testing.T) {
+	if runtime.GOOS == osWindows {
+		t.Skip("skipping integration test: busybox image requires Linux containers")
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
@@ -405,6 +415,10 @@ func TestResolveNetworkMetadata_Integration(t *testing.T) {
 }
 
 func TestRefreshNetworkMetadata_Integration(t *testing.T) {
+	if runtime.GOOS == osWindows {
+		t.Skip("skipping integration test: busybox image requires Linux containers")
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
