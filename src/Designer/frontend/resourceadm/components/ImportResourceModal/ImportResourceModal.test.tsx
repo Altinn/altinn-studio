@@ -223,7 +223,7 @@ describe('ImportResourceModal', () => {
       expect(
         screen.getByText(
           textMock('resourceadm.dashboard_resource_name_and_id_error', {
-            orgPrefix: `digdir-, digdir_, altin- ${textMock('expression.or')} altinn_`,
+            orgPrefix: `digdir-, digdir_, altinn- ${textMock('expression.or')} altinn_`,
           }),
         ),
       ).toBeInTheDocument();
