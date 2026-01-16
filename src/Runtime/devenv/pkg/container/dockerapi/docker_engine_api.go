@@ -193,6 +193,14 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		additionalNetworks = cfg.Networks[1:]
 	}
 
+	// Build capability list
+	capAdd := cfg.CapAdd
+	if c.isPodman {
+		// Podman has a more restrictive default capability set than Docker.
+		// Add Docker's defaults to ensure consistent behavior.
+		capAdd = types.MergeCapabilities(types.DefaultPodmanCapabilities, cfg.CapAdd)
+	}
+
 	// Host config
 	hostCfg := &container.HostConfig{
 		PortBindings:  portBindings,
@@ -200,6 +208,7 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		ExtraHosts:    cfg.ExtraHosts,
 		RestartPolicy: restartPolicy,
 		NetworkMode:   container.NetworkMode(primaryNetwork),
+		CapAdd:        capAdd,
 	}
 
 	// Create the container
