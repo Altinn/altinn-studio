@@ -255,7 +255,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
-                _sourceControl.PushChangesForRepository(commitInfo, authenticatedContext);
+                _sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
             }
 
             return repository;
@@ -313,7 +313,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             CommitInfo commitInfo = new() { Org = targetOrg, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
-            _sourceControl.PushChangesForRepository(commitInfo, authenticatedContext);
+            _sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
 
             return repository;
         }
