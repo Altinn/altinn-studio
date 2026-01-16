@@ -73,7 +73,7 @@ public class AppResourcesSITests
     }
 
     [Fact]
-    public void GetApplication_handles_onEntry_null()
+    public void GetApplication_sets_default_value_when_onEntry_null()
     {
         AppSettings appSettings = GetAppSettings("AppMetadata", "no-on-entry.applicationmetadata.json");
         var settings = Options.Create(appSettings);
@@ -92,6 +92,7 @@ public class AppResourcesSITests
             Created = DateTime.Parse("2019-09-16T22:22:22"),
             CreatedBy = "username",
             Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
+            OnEntry = new OnEntry { Show = "new-instance" },
             DataTypes =
             [
                 new()
