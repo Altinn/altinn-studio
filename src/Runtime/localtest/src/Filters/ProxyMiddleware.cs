@@ -134,15 +134,6 @@ public class ProxyMiddleware
             return false;
         }
 
-        if (path.StartsWith("/accessmanagement/", StringComparison.OrdinalIgnoreCase))
-        {
-            if (!string.IsNullOrEmpty(_settings.LocalAccessManagementUrl))
-            {
-                await ProxyRequest(context, _settings.LocalAccessManagementUrl);
-                return true;
-            }
-        }
-
         return false;
     }
 

@@ -88,7 +88,5 @@ namespace LocalTest.Configuration
         public string LocalPdfServiceUrl { get; set; }
 
         public string LocalReceiptUrl { get; set; }
-
-        public string LocalAccessManagementUrl { get; set; }
     }
 }
