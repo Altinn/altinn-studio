@@ -33,7 +33,7 @@ import {
   type ProcessTaskMetadata,
   useProcessMetadataQuery,
 } from 'admin/hooks/queries/useProcessMetadataQuery';
-import { LabelValue } from 'admin/shared/LabelValue/LabelValue';
+import { LabelValue } from 'admin/components/LabelValue/LabelValue';
 
 type InstanceDataViewProps = {
   org: string;

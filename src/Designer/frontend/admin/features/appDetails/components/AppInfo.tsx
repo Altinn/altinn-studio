@@ -1,11 +1,12 @@
 import { StudioSpinner, StudioError, StudioCard, StudioHeading } from '@studio/components';
 import { useAppDetailsQuery } from 'admin/hooks/queries/useAppDetailsQuery';
-import { LabelValue } from 'admin/shared/LabelValue/LabelValue';
 import type { PublishedApplicationDetails } from 'admin/types/PublishedApplicationDetails';
 import { useTranslation } from 'react-i18next';
+import { ExternalLinkIcon } from '@studio/icons';
 
 import classes from './AppInfo.module.css';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
+import { LabelValue } from 'admin/components/LabelValue/LabelValue';
 
 type AppInfoProps = {
   org: string;
@@ -48,6 +49,7 @@ const AppInfoWithData = ({
         <LabelValue label={t('Commit')}>
           <a href={commitPath} target='_blank' rel='noreferrer'>
             {shortenedCommit}
+            <ExternalLinkIcon className={classes.external} />
           </a>
         </LabelValue>
         <LabelValue label={t('Publiseringsdato')}>{formatDateAndTime(createdAt)}</LabelValue>
