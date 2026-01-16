@@ -113,6 +113,12 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		args = append(args, "--user", cfg.User)
 	}
 
+	// Add capabilities (merge defaults with any explicit ones)
+	caps := types.MergeCapabilities(types.DefaultPodmanCapabilities, cfg.CapAdd)
+	for _, cap := range caps {
+		args = append(args, "--cap-add", cap)
+	}
+
 	args = append(args, cfg.Image)
 	args = append(args, cfg.Command...)
 
@@ -471,8 +477,8 @@ func (c *Client) ContainerLogs(
 	cmd.Stderr = pw
 
 	if err := cmd.Start(); err != nil {
-		pw.Close()
-		pr.Close()
+		_ = pw.Close()
+		_ = pr.Close()
 		lower := strings.ToLower(err.Error())
 		if strings.Contains(lower, "no such container") {
 			return nil, types.ErrContainerNotFound
@@ -483,7 +489,7 @@ func (c *Client) ContainerLogs(
 	// Close the write end when the command exits
 	go func() {
 		_ = cmd.Wait()
-		pw.Close()
+		_ = pw.Close()
 	}()
 
 	return &cmdLogReader{cmd: cmd, reader: pr}, nil
@@ -507,7 +513,7 @@ func (r *cmdLogReader) Close() error {
 	r.closed = true
 
 	// Close reader first to unblock any pending reads
-	r.reader.Close()
+	_ = r.reader.Close()
 
 	// Kill the process if still running
 	if r.cmd.Process != nil {

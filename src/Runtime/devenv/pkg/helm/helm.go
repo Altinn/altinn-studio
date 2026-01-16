@@ -52,7 +52,7 @@ func (c *Client) PushChart(chartFile, ociRef string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open chart file: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	chart, err := loader.LoadArchive(f)
 	if err != nil {

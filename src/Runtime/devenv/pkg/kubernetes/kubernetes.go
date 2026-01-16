@@ -453,7 +453,7 @@ func (c *KubernetesClient) CollectLogs(opts LogOptions) error {
 				resultCh <- logResult{err: fmt.Errorf("failed to get logs for %s/%s: %w", podName, containerName, err)}
 				return
 			}
-			defer stream.Close()
+			defer func() { _ = stream.Close() }()
 
 			data, _ := io.ReadAll(stream)
 			rawLines := strings.Split(string(data), "\n")
@@ -727,7 +727,7 @@ func (c *KubernetesClient) StreamLogs(ctx context.Context, opts StreamLogOptions
 			if err != nil {
 				return
 			}
-			defer stream.Close()
+			defer func() { _ = stream.Close() }()
 
 			prefix := fmt.Sprintf("[%s/%s] ", podName, containerName)
 			scanner := bufio.NewScanner(stream)
@@ -742,7 +742,7 @@ func (c *KubernetesClient) StreamLogs(ctx context.Context, opts StreamLogOptions
 
 	go func() {
 		wg.Wait()
-		pw.Close()
+		_ = pw.Close()
 	}()
 
 	return pr, nil

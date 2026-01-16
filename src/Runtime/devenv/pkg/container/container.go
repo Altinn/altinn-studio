@@ -203,7 +203,17 @@ func detectRuntime(ctx context.Context) (runtimeType, error) {
 	// Try Docker Engine API (checks DOCKER_HOST or default /var/run/docker.sock)
 	if cli, err := dockerapi.New(ctx); err == nil {
 		_ = cli.Close()
-		return runtimeDocker, nil
+		// Check if docker CLI is available
+		if _, lookErr := exec.LookPath("docker"); lookErr == nil {
+			return runtimeDocker, nil
+		}
+		// Docker API works but docker CLI missing - check for podman CLI
+		// This handles podman-mac-helper scenarios where Podman provides
+		// Docker-compatible API but only podman CLI is installed
+		if _, lookErr := exec.LookPath("podman"); lookErr == nil {
+			return runtimePodmanSocket, nil
+		}
+		// Neither CLI available - fall through to other detection methods
 	}
 
 	// Try Podman sockets (Docker-compat API)
