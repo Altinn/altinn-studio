@@ -8,6 +8,31 @@ var ErrContainerNotFound = errors.New("container not found")
 // ErrNetworkNotFound is returned when a network does not exist.
 var ErrNetworkNotFound = errors.New("network not found")
 
+// DefaultPodmanCapabilities are capabilities that Docker includes by default but Podman doesn't.
+// Adding these ensures consistent behavior across runtimes.
+// See: https://github.com/containers/common/pull/1240
+var DefaultPodmanCapabilities = []string{"NET_RAW", "MKNOD", "AUDIT_WRITE"}
+
+// MergeCapabilities combines default capabilities with explicit ones, removing duplicates.
+func MergeCapabilities(defaults, explicit []string) []string {
+	seen := make(map[string]bool)
+	var result []string
+
+	for _, cap := range defaults {
+		if !seen[cap] {
+			seen[cap] = true
+			result = append(result, cap)
+		}
+	}
+	for _, cap := range explicit {
+		if !seen[cap] {
+			seen[cap] = true
+			result = append(result, cap)
+		}
+	}
+	return result
+}
+
 // Runtime name constants returned by ContainerClient.Name()
 const (
 	RuntimeNameDockerEngineAPI = "Docker Engine API"
@@ -42,7 +67,8 @@ type ContainerConfig struct {
 	RestartPolicy string   // "no", "always", "on-failure", "unless-stopped"
 	Detach        bool
 	Labels        map[string]string
-	User          string // "uid:gid" to run as (e.g., "1000:1000")
+	User          string   // "uid:gid" to run as (e.g., "1000:1000")
+	CapAdd        []string // Linux capabilities to add (e.g., "NET_RAW", "MKNOD")
 }
 
 // ImageInfo contains metadata about an image

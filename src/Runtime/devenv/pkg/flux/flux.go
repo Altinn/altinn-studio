@@ -160,7 +160,7 @@ func patchDeployments(objects []*unstructured.Unstructured, opts InstallOptions)
 		}
 
 		containers[0] = container
-		unstructured.SetNestedSlice(obj.Object, containers, "spec", "template", "spec", "containers")
+		_ = unstructured.SetNestedSlice(obj.Object, containers, "spec", "template", "spec", "containers")
 	}
 }
 
