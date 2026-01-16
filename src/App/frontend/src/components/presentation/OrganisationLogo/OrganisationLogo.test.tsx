@@ -5,12 +5,12 @@ import { screen } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
-import { fetchApplicationMetadata } from 'src/queries/queries';
+import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 
 const render = async (logo: ApplicationMetadata['logo']) => {
-  jest.mocked(fetchApplicationMetadata).mockImplementation(async () => getApplicationMetadataMock({ logo }));
+  jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock({ logo }));
 
   return await renderWithInstanceAndLayout({
     renderer: () => <OrganisationLogo />,

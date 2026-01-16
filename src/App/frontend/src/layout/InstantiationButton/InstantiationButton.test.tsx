@@ -7,19 +7,20 @@ import { userEvent } from '@testing-library/user-event';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
-import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 
 const render = async () => {
-  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
+  jest.mocked(getApplicationMetadata).mockImplementation(() =>
     getApplicationMetadataMock({
       onEntry: {
         show: 'stateless',
       },
     }),
   );
+  jest.mocked(useIsStateless).mockImplementation(() => true);
   return await renderGenericComponentTest({
     type: 'InstantiationButton',
     component: {

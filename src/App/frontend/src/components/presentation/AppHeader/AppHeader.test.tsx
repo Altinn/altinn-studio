@@ -8,7 +8,7 @@ import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadata
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AppHeader } from 'src/components/presentation/AppHeader/AppHeader';
-import { fetchApplicationMetadata } from 'src/queries/queries';
+import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
@@ -43,7 +43,7 @@ describe('presentation/AppHeader', () => {
     textResources?: IRawTextResource[];
   }
   const render = async ({ logo, showLanguageSelector = false, textResources = [] }: IRenderComponentProps) => {
-    jest.mocked(fetchApplicationMetadata).mockImplementation(async () => getApplicationMetadataMock({ logo }));
+    jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock({ logo }));
 
     return await renderWithInstanceAndLayout({
       renderer: () => (
