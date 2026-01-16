@@ -48,9 +48,9 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public void CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string localPath, string message)
+        public void CommitAndPushChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName, string localPath, string message)
         {
-            string remotePath = TestDataHelper.GetTestDataRemoteRepository(editingContext.Org, editingContext.Repo);
+            string remotePath = TestDataHelper.GetTestDataRemoteRepository(authenticatedContext.Org, authenticatedContext.Repo);
 
             if (!string.IsNullOrEmpty(branchName))
             {
@@ -115,7 +115,7 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public void PushChangesForRepository(CommitInfo commitInfo, AltinnRepoEditingContext editingContext)
+        public void PushChangesForRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, CommitInfo commitInfo)
         {
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(commitInfo.Org, commitInfo.Repository);
             string localPath = TestDataHelper.GetTestDataRepositoryDirectory(commitInfo.Org, commitInfo.Repository, _developer);
@@ -153,8 +153,6 @@ namespace Designer.Tests.Mocks
         }
 
         public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-        public void PushChangesForRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, CommitInfo commitInfo) => throw new NotImplementedException();
-        public void CommitAndPushChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName, string localPath, string message) => throw new NotImplementedException();
         public void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
         public void CommitToLocalRepo(AltinnRepoEditingContext editingContext, string message) => throw new NotImplementedException();
         public LibGit2Sharp.RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
