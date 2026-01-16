@@ -20,7 +20,11 @@ export const AppsDetails = () => {
         <StudioBreadcrumbs.List>
           <StudioBreadcrumbs.Item>
             <StudioBreadcrumbs.Link asChild>
-              <Link to={`/${org}/apps`}>{t('admin.apps.title')}</Link>
+              <Link
+                to={`/${org}/apps?environment="${env}"${range && range !== defaultRange ? '&range=' + range : ''}`}
+              >
+                {t('admin.apps.title')}
+              </Link>
             </StudioBreadcrumbs.Link>
           </StudioBreadcrumbs.Item>
           <StudioBreadcrumbs.Item>
