@@ -159,8 +159,7 @@ public class EnsureGitOpsConfigurationExistsTests : GitRepoGitOpsConfigurationMa
 
     private async Task EnsureGitOpsConfigurationExistsCalled(string environment)
     {
-        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(OrgEditingContext.Org, TestRepoName, OrgEditingContext.Developer, "dummyToken");
-        await GitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(authenticatedContext, AltinnEnvironment.FromName(environment));
+        await GitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(OrgEditingContext, AltinnEnvironment.FromName(environment));
     }
 
     private EnsureGitOpsConfigurationExistsTests LocalRepositoryDoesNotExist()
