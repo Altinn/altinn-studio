@@ -153,6 +153,8 @@ namespace Designer.Tests.Mocks
         }
 
         public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
+        public void PushChangesForRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, CommitInfo commitInfo) => throw new NotImplementedException();
+        public void CommitAndPushChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName, string localPath, string message) => throw new NotImplementedException();
         public void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
         public void CommitToLocalRepo(AltinnRepoEditingContext editingContext, string message) => throw new NotImplementedException();
         public LibGit2Sharp.RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
