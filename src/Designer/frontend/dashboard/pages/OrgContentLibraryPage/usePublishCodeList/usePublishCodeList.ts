@@ -25,12 +25,12 @@ function usePublishing(): UsePublishingResult {
 
   const onStart = useCallback(
     (codeListName: string) => setCodeListsPendingPublish((prev) => addItem(prev, codeListName)),
-    [setCodeListsPendingPublish],
+    [],
   );
 
   const onFinish = useCallback(
     (codeListName: string) => setCodeListsPendingPublish((prev) => removeItem(prev, codeListName)),
-    [setCodeListsPendingPublish],
+    [],
   );
 
   const isPublishing = useCallback(

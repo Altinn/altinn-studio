@@ -14,7 +14,7 @@ const onSave = jest.fn();
 const isPublishing = jest.fn().mockReturnValue(false);
 const defaultProps: CodeListsPageProps = {
   codeLists,
-  isPublishing,
+  isPublishing: jest.fn().mockReturnValue(false),
   onPublish,
   onSave,
   publishedCodeLists: [],

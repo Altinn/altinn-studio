@@ -5,7 +5,7 @@ import { useServicesContext } from '../../contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { PUBLISHED_CODE_LIST_FOLDER } from 'app-shared/constants';
 
-type UsePublishCodeListMutationOptions = {
+export type UsePublishCodeListMutationOptions = {
   onStart?: (codeListName: string) => void;
   onFinish?: (codeListName: string) => void;
 };
