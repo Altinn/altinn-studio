@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
@@ -23,15 +24,19 @@ internal sealed class ApiKeyOpenApiTransformer : IOpenApiDocumentTransformer
         document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
         document.Components.SecuritySchemes[ApiKeyAuthenticationHandler.SchemeName] = securityScheme;
 
+        // NOTE: This assumes that all 401-capable endpoints require API key authentication. Not ideal, but works for now.
         var pathOperations = document.Paths.Values.SelectMany(x =>
             x.Operations?.Values ?? Enumerable.Empty<OpenApiOperation>()
         );
+        var pathOperationsRequiringAuth = pathOperations.Where(operation =>
+            operation
+                .Responses?.Select(x => x.Key)
+                .Contains(StatusCodes.Status401Unauthorized.ToString(CultureInfo.InvariantCulture))
+                is true
+        );
 
-        foreach (var operation in pathOperations)
+        foreach (var operation in pathOperationsRequiringAuth)
         {
-            if (operation.Tags?.Select(x => x.Name).Contains(ApiKeyAuthenticationHandler.SchemeName) is false)
-                continue;
-
             operation.Security ??= [];
             operation.Security.Add(
                 new OpenApiSecurityRequirement

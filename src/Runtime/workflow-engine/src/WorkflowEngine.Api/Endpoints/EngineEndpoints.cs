@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Models;
@@ -7,12 +8,21 @@ namespace WorkflowEngine.Api.Endpoints;
 
 internal static class EngineEndpoints
 {
-    private const string BasePath = "/api/v1/workflow/{org}/{app}/{instanceOwnerPartyId:int}/{instanceGuid:guid}";
-
     public static WebApplication MapEngineEndpoints(this WebApplication app)
     {
-        app.MapPost($"{BasePath}/next", EngineRequestHandlers.Next).RequireApiKeyAuthorization();
-        app.MapGet($"{BasePath}/status", EngineRequestHandlers.Status).RequireApiKeyAuthorization();
+        var group = app.MapGroup("/api/v1/workflow/{org}/{app}/{instanceOwnerPartyId:int}/{instanceGuid:guid}")
+            .RequireApiKeyAuthorization()
+            .WithTags("Workflows");
+
+        group
+            .MapPost("/next", EngineRequestHandlers.Next)
+            .WithName("MoveProcessNext")
+            .WithDescription("Advances an instance to the next process step");
+
+        group
+            .MapGet("/status", EngineRequestHandlers.Status)
+            .WithName("GetWorkflowStatus")
+            .WithDescription("Gets the current status of the workflow for an instance");
 
         return app;
     }
@@ -20,57 +30,56 @@ internal static class EngineEndpoints
 
 internal static class EngineRequestHandlers
 {
-    public static async Task<IResult> Next(
-        [FromRoute] string org,
-        [FromRoute] string app,
-        [FromRoute] int instanceOwnerPartyId,
-        [FromRoute] Guid instanceGuid,
+    public static async Task<Results<Ok, NoContent, BadRequest<string>>> Next(
+        [AsParameters] InstanceRouteParams instanceParams,
         [FromBody] ProcessNextRequest request,
         [FromServices] IEngine engine,
         CancellationToken cancellationToken
     )
     {
-        var instanceInformation = new InstanceInformation
-        {
-            Org = org,
-            App = app,
-            InstanceOwnerPartyId = instanceOwnerPartyId,
-            InstanceGuid = instanceGuid,
-        };
-
-        var processEngineRequest = request.ToProcessEngineRequest(instanceInformation);
+        var processEngineRequest = request.ToProcessEngineRequest(instanceParams);
 
         if (engine.HasDuplicateWorkflow(processEngineRequest.Key))
-            return Results.NoContent(); // 204 - Duplicate request
+            return TypedResults.NoContent(); // 204 - Duplicate request
 
         var response = await engine.EnqueueWorkflow(processEngineRequest, cancellationToken);
 
-        return response.IsAccepted() ? Results.Ok() : Results.BadRequest(response.Message);
+        return response.IsAccepted() ? TypedResults.Ok() : TypedResults.BadRequest(response.Message);
     }
 
-    public static Task<IResult> Status(
-        [FromRoute] string org,
-        [FromRoute] string app,
-        [FromRoute] int instanceOwnerPartyId,
-        [FromRoute] Guid instanceGuid,
-        [FromServices] IEngine engine,
-        CancellationToken cancellationToken
+    public static Results<Ok<StatusResponse>, NoContent> Status(
+        [AsParameters] InstanceRouteParams instanceParams,
+        [FromServices] IEngine engine
     )
     {
-        var instanceInformation = new InstanceInformation
-        {
-            Org = org,
-            App = app,
-            InstanceOwnerPartyId = instanceOwnerPartyId,
-            InstanceGuid = instanceGuid,
-        };
+        var job = engine.GetWorkflowForInstance(instanceParams);
 
-        var job = engine.GetWorkflowForInstance(instanceInformation);
-        if (job is null)
-            return Task.FromResult(Results.NoContent()); // 204 - No active workflow for this instance
-
-        var response = StatusResponse.FromWorkflow(job);
-
-        return Task.FromResult(Results.Ok(response));
+        return job is null
+            ? TypedResults.NoContent() // 204 - No active workflow for this instance
+            : TypedResults.Ok(StatusResponse.FromWorkflow(job));
     }
+}
+
+internal readonly struct InstanceRouteParams
+{
+    [FromRoute]
+    public string Org { get; init; }
+
+    [FromRoute]
+    public string App { get; init; }
+
+    [FromRoute]
+    public int InstanceOwnerPartyId { get; init; }
+
+    [FromRoute]
+    public Guid InstanceGuid { get; init; }
+
+    public static implicit operator InstanceInformation(InstanceRouteParams routeParams) =>
+        new()
+        {
+            Org = routeParams.Org,
+            App = routeParams.App,
+            InstanceOwnerPartyId = routeParams.InstanceOwnerPartyId,
+            InstanceGuid = routeParams.InstanceGuid,
+        };
 }
