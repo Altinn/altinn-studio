@@ -82,15 +82,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string localPath, string message, string accessToken = "")
+        public void CommitAndPushChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName, string localPath, string message)
         {
             try
             {
-                _decoratedService.CommitAndPushChanges(editingContext, branchName, localPath, message, accessToken);
+                _decoratedService.CommitAndPushChanges(authenticatedContext, branchName, localPath, message);
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(CommitAndPushChanges), editingContext.Org, editingContext.Repo);
+                LogError(ex, nameof(CommitAndPushChanges), authenticatedContext.Org, authenticatedContext.Repo);
                 throw;
             }
         }
@@ -208,11 +208,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void PushChangesForRepository(CommitInfo commitInfo, AltinnRepoEditingContext editingContext)
+        public void PushChangesForRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, CommitInfo commitInfo)
         {
             try
             {
-                _decoratedService.PushChangesForRepository(commitInfo, editingContext);
+                _decoratedService.PushChangesForRepository(authenticatedContext, commitInfo);
             }
             catch (Exception ex)
             {
