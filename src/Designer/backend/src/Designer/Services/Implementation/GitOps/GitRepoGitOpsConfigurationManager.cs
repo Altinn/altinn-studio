@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -187,9 +188,8 @@ public class GitRepoGitOpsConfigurationManager(
     public void PersistGitOpsConfiguration(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
         var repository = gitRepositoryFactory.GetAltinnGitRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer);
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer);
-
-        sourceControl.CommitAndPushChanges(editingContext, "master", repository.RepositoryDirectory, $"Update GitOps configuration for environment {environment}", gitOpsSettings.BotPersonalAccessToken);
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer, gitOpsSettings.BotPersonalAccessToken);
+        sourceControl.CommitAndPushChanges(authenticatedContext, General.DefaultBranch, repository.RepositoryDirectory, $"Update GitOps configuration for environment {environment}");
     }
     private async Task WriteManifestsToFiles(AltinnOrgEditingContext context, Dictionary<string, string> manifests)
     {
