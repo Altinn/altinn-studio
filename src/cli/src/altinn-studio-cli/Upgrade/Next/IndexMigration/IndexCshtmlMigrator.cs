@@ -31,6 +31,20 @@ internal sealed class IndexCshtmlMigrator
         var parser = new IndexFileParser(_indexCshtmlPath);
         await parser.Parse();
 
+        // Check for Razor directives FIRST - these block migration
+        if (parser.HasRazorDirectives)
+        {
+            Console.WriteLine("Keeping Index.cshtml due to Razor directives:");
+            foreach (var directive in parser.DetectedRazorDirectives)
+            {
+                Console.WriteLine($"  - {directive}");
+            }
+            Console.WriteLine(
+                "(Razor directives like @if/@else, @Html., @{ } cannot be migrated to a static config file)"
+            );
+            return 1;
+        }
+
         var document = parser.GetDocument();
         if (document == null)
         {
@@ -49,7 +63,41 @@ internal sealed class IndexCshtmlMigrator
             return 1;
         }
 
+        // Validate framework file consistency
+        var frameworkValidationError = ValidateFrameworkFileConsistency(categorizationResult);
+        if (frameworkValidationError != null)
+        {
+            Console.WriteLine($"Keeping Index.cshtml: {frameworkValidationError}");
+            return 1;
+        }
+
         return await PerformMigration(categorizationResult);
+    }
+
+    /// <summary>
+    /// Validates that framework CSS and JS are both present or both absent.
+    /// A mismatch indicates a partial/broken template that shouldn't be migrated.
+    /// </summary>
+    private static string? ValidateFrameworkFileConsistency(CategorizationResult result)
+    {
+        var hasFrameworkJs = result.ExpectedElements.Any(e =>
+            e.Description.Contains("Altinn app frontend JS", StringComparison.OrdinalIgnoreCase)
+        );
+        var hasFrameworkCss = result.ExpectedElements.Any(e =>
+            e.Description.Contains("Altinn app frontend CSS", StringComparison.OrdinalIgnoreCase)
+        );
+
+        if (hasFrameworkJs && !hasFrameworkCss)
+        {
+            return "Framework JS (altinn-app-frontend.js) found but framework CSS (altinn-app-frontend.css) is missing - partial template detected";
+        }
+
+        if (hasFrameworkCss && !hasFrameworkJs)
+        {
+            return "Framework CSS (altinn-app-frontend.css) found but framework JS (altinn-app-frontend.js) is missing - partial template detected";
+        }
+
+        return null; // Valid: either both present or both absent
     }
 
     private async Task<int> PerformMigration(CategorizationResult categorizationResult)

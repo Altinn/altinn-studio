@@ -21,19 +21,23 @@ internal sealed class FrontendConfigGenerator
     }
 
     /// <summary>
-    /// Generates FrontendConfiguration containing only external URLs
+    /// Generates FrontendConfiguration containing external assets with their attributes
     /// </summary>
     /// <returns>Frontend configuration object</returns>
     public FrontendConfiguration Generate()
     {
         var externalStylesheets = _categorizationResult
-            .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.ExternalStylesheet)
-            .Select(c => c.ExtractionHint)
+            .KnownCustomizations.Where(c =>
+                c.CustomizationType == CustomizationType.ExternalStylesheet && c.Asset != null
+            )
+            .Select(c => c.Asset)
+            .OfType<FrontendAsset>()
             .ToList();
 
         var externalScripts = _categorizationResult
-            .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.ExternalScript)
-            .Select(c => c.ExtractionHint)
+            .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.ExternalScript && c.Asset != null)
+            .Select(c => c.Asset)
+            .OfType<FrontendAsset>()
             .ToList();
 
         return new FrontendConfiguration { Stylesheets = externalStylesheets, Scripts = externalScripts };

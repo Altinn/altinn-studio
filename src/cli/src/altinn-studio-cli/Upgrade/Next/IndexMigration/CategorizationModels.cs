@@ -98,6 +98,12 @@ internal sealed record KnownCustomization : CategorizedElement
     /// Description for reporting
     /// </summary>
     public required string Description { get; init; }
+
+    /// <summary>
+    /// For external scripts/stylesheets: The asset with all captured attributes.
+    /// Null for inline content.
+    /// </summary>
+    public FrontendAsset? Asset { get; init; }
 }
 
 /// <summary>

@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 
@@ -6,10 +7,11 @@ namespace Altinn.Studio.Cli.Upgrade.Next.IndexMigration;
 /// <summary>
 /// Parses Index.cshtml files using AngleSharp HTML parser
 /// </summary>
-internal sealed class IndexFileParser
+internal sealed partial class IndexFileParser
 {
     private readonly string _filePath;
     private IHtmlDocument? _document;
+    private string _rawContent = string.Empty;
 
     public IndexFileParser(string filePath)
     {
@@ -17,17 +19,31 @@ internal sealed class IndexFileParser
     }
 
     /// <summary>
+    /// Detected Razor directives that block migration
+    /// </summary>
+    public List<string> DetectedRazorDirectives { get; } = [];
+
+    /// <summary>
+    /// Whether Razor directives that block migration were detected
+    /// </summary>
+    public bool HasRazorDirectives => DetectedRazorDirectives.Count > 0;
+
+    /// <summary>
     /// Parses the Index.cshtml file
     /// </summary>
     /// <returns>True if parsing was successful, false otherwise</returns>
     public async Task Parse()
     {
-        var htmlContent = await File.ReadAllTextAsync(_filePath);
+        _rawContent = await File.ReadAllTextAsync(_filePath);
+
+        // Detect Razor control flow directives BEFORE parsing with AngleSharp
+        // These are invisible to the HTML parser but represent logic we can't migrate
+        DetectRazorControlFlow();
 
         // AngleSharp is tolerant of Razor syntax in text nodes and attribute values
         // We parse directly without preprocessing since we're only detecting structural elements
         var parser = new HtmlParser();
-        _document = await parser.ParseDocumentAsync(htmlContent);
+        _document = await parser.ParseDocumentAsync(_rawContent);
     }
 
     /// <summary>
@@ -35,4 +51,73 @@ internal sealed class IndexFileParser
     /// </summary>
     /// <returns>The parsed document, or null if parsing failed</returns>
     public IHtmlDocument? GetDocument() => _document;
+
+    private void DetectRazorControlFlow()
+    {
+        // Detect Razor directives that represent logic we can't migrate to a static config
+        // These patterns are checked on the raw file content since AngleSharp treats them as text nodes
+
+        // Control flow directives: @if, @else, @for, @foreach, etc.
+        var controlFlowMatches = RazorControlFlowPattern().Matches(_rawContent);
+        foreach (Match match in controlFlowMatches)
+        {
+            var directive = match.Groups["directive"].Value;
+            var context = GetMatchContext(match);
+            DetectedRazorDirectives.Add($"@{directive} at: {context}");
+        }
+
+        // Additional dangerous patterns: @Html., @await, @functions, @section, etc.
+        var dangerousMatches = RazorDangerousPattern().Matches(_rawContent);
+        foreach (Match match in dangerousMatches)
+        {
+            var directive = match.Groups["directive"].Value;
+            var context = GetMatchContext(match);
+            DetectedRazorDirectives.Add($"@{directive} at: {context}");
+        }
+
+        // Code blocks: @{ ... }
+        var codeBlockMatches = RazorCodeBlockPattern().Matches(_rawContent);
+        foreach (Match match in codeBlockMatches)
+        {
+            var context = GetMatchContext(match);
+            DetectedRazorDirectives.Add($"@{{ (code block) at: {context}");
+        }
+    }
+
+    private string GetMatchContext(Match match)
+    {
+        // Get surrounding context for error reporting
+        var start = Math.Max(0, match.Index - 10);
+        var length = Math.Min(50, _rawContent.Length - start);
+        var context = _rawContent.Substring(start, length).Replace("\n", " ").Replace("\r", "");
+        return context.Trim();
+    }
+
+    /// <summary>
+    /// Matches Razor control flow directives: @if, @else, @for, @foreach, @while, @switch, @try, @lock, @code
+    /// Does NOT match @using (import), @inject, @ViewBag, etc. which are safe/expected
+    /// </summary>
+    [GeneratedRegex(
+        @"@(?<directive>if|else|for|foreach|while|switch|try|catch|finally|lock|code)\b",
+        RegexOptions.IgnoreCase
+    )]
+    private static partial Regex RazorControlFlowPattern();
+
+    /// <summary>
+    /// Matches additional dangerous Razor patterns that block migration:
+    /// @Html. (HTML helper methods), @await (async expressions), @functions (embedded functions),
+    /// @section (named sections), @addTagHelper (tag helper registration),
+    /// @inherits (base class directive), @model (model directive)
+    /// </summary>
+    [GeneratedRegex(
+        @"@(?<directive>Html\.|await\s|functions\s*\{|section\s+\w|addTagHelper|inherits\s|model\s)",
+        RegexOptions.IgnoreCase
+    )]
+    private static partial Regex RazorDangerousPattern();
+
+    /// <summary>
+    /// Matches Razor code blocks: @{ ... }
+    /// </summary>
+    [GeneratedRegex(@"@\{")]
+    private static partial Regex RazorCodeBlockPattern();
 }

@@ -49,7 +49,9 @@ internal sealed class KnownCustomizationMatcher
             return false;
         }
 
-        // It's a custom external stylesheet
+        // It's a custom external stylesheet - capture all attributes
+        var asset = ExtractStylesheetAsset(element, href);
+
         customization = new KnownCustomization
         {
             TagName = element.TagName,
@@ -58,6 +60,7 @@ internal sealed class KnownCustomizationMatcher
             CustomizationType = CustomizationType.ExternalStylesheet,
             ExtractionHint = href,
             Description = $"External stylesheet: {href}",
+            Asset = asset,
         };
 
         return true;
@@ -78,7 +81,9 @@ internal sealed class KnownCustomizationMatcher
                 return false;
             }
 
-            // It's a custom external script
+            // It's a custom external script - capture all attributes
+            var asset = ExtractScriptAsset(element, src);
+
             customization = new KnownCustomization
             {
                 TagName = element.TagName,
@@ -87,6 +92,7 @@ internal sealed class KnownCustomizationMatcher
                 CustomizationType = CustomizationType.ExternalScript,
                 ExtractionHint = src,
                 Description = $"External script: {src}",
+                Asset = asset,
             };
 
             return true;
@@ -105,7 +111,7 @@ internal sealed class KnownCustomizationMatcher
             return false;
         }
 
-        // It's a custom inline script
+        // It's a custom inline script (no asset, will be extracted to separate file)
         customization = new KnownCustomization
         {
             TagName = element.TagName,
@@ -114,6 +120,7 @@ internal sealed class KnownCustomizationMatcher
             CustomizationType = CustomizationType.InlineScript,
             ExtractionHint = content,
             Description = $"Inline script ({content.Length} characters)",
+            Asset = null,
         };
 
         return true;
@@ -135,7 +142,7 @@ internal sealed class KnownCustomizationMatcher
             return false;
         }
 
-        // It's a custom inline style
+        // It's a custom inline style (no asset, will be extracted to separate file)
         customization = new KnownCustomization
         {
             TagName = element.TagName,
@@ -144,8 +151,40 @@ internal sealed class KnownCustomizationMatcher
             CustomizationType = CustomizationType.InlineStylesheet,
             ExtractionHint = content,
             Description = $"Inline style ({content.Length} characters)",
+            Asset = null,
         };
 
         return true;
+    }
+
+    /// <summary>
+    /// Extracts script attributes into a FrontendAsset
+    /// </summary>
+    private static FrontendAsset ExtractScriptAsset(IElement element, string src)
+    {
+        return new FrontendAsset
+        {
+            Url = src,
+            Type = element.GetAttribute("type"),
+            Async = element.HasAttribute("async") ? true : null,
+            Defer = element.HasAttribute("defer") ? true : null,
+            Nomodule = element.HasAttribute("nomodule") ? true : null,
+            Crossorigin = element.GetAttribute("crossorigin"),
+            Integrity = element.GetAttribute("integrity"),
+        };
+    }
+
+    /// <summary>
+    /// Extracts stylesheet attributes into a FrontendAsset
+    /// </summary>
+    private static FrontendAsset ExtractStylesheetAsset(IElement element, string href)
+    {
+        return new FrontendAsset
+        {
+            Url = href,
+            Crossorigin = element.GetAttribute("crossorigin"),
+            Integrity = element.GetAttribute("integrity"),
+            Media = element.GetAttribute("media"),
+        };
     }
 }

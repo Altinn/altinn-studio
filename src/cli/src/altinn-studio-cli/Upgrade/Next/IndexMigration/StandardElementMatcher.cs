@@ -1,14 +1,16 @@
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
-using StringComparison = System.StringComparison;
 
 namespace Altinn.Studio.Cli.Upgrade.Next.IndexMigration;
 
 /// <summary>
-/// Matches standard framework elements that are expected in Index.cshtml
+/// Matches standard framework elements that are expected in Index.cshtml.
+/// Uses strict whitelist matching - only exact known patterns are recognized.
 /// </summary>
-internal sealed class StandardElementMatcher
+internal sealed partial class StandardElementMatcher
 {
+    private readonly StrictScriptAnalyzer _scriptAnalyzer = new();
+
     /// <summary>
     /// Checks if an element is a standard framework element
     /// </summary>
@@ -23,13 +25,13 @@ internal sealed class StandardElementMatcher
 
         return tagName switch
         {
-            "html" => SetDescription(out description, "HTML root element"),
+            "html" => IsStandardHtmlElement(element, out description),
             "head" => SetDescription(out description, "HTML head element"),
             "meta" => IsStandardMetaTag(element, out description),
-            "title" => SetDescription(out description, "Page title element"),
+            "title" => IsStandardTitleElement(element, out description),
             "link" => IsStandardLinkElement(element, out description),
             "body" => SetDescription(out description, "HTML body element"),
-            "div" => IsRootDiv(element, out description),
+            "div" => IsStandardDiv(element, out description),
             "script" => IsStandardScript(element, out description),
             "style" => IsStandardStyle(element, out description),
             _ => false,
@@ -42,30 +44,94 @@ internal sealed class StandardElementMatcher
         return true;
     }
 
-    private static bool IsStandardMetaTag(IElement element, out string description)
+    private static bool IsStandardHtmlElement(IElement element, out string description)
     {
         description = string.Empty;
 
-        var charset = element.GetAttribute("charset");
-        if (!string.IsNullOrWhiteSpace(charset))
+        // html element should have lang attribute (typically "no" or "nb" or "en")
+        var attrs = GetAttributes(element);
+
+        // Allow: lang only, or lang + class (some templates add class)
+        if (attrs.TryGetValue("lang", out var lang) && !string.IsNullOrEmpty(lang))
         {
-            description = "Charset meta tag";
+            // Check for unexpected attributes beyond lang and class
+            var allowedAttrs = new HashSet<string> { "lang", "class" };
+            if (attrs.Keys.All(k => allowedAttrs.Contains(k)))
+            {
+                description = "HTML root element";
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsStandardTitleElement(IElement element, out string description)
+    {
+        description = string.Empty;
+
+        // Title should contain @ViewBag.Org and @ViewBag.App pattern or be simple text
+        var content = element.TextContent?.Trim();
+
+        // Standard templates have: "@ViewBag.Org- @ViewBag.App" or similar
+        // After rendering it becomes: "org- app" or similar
+        // Accept any title content as standard (title is not customized)
+        if (!string.IsNullOrEmpty(content))
+        {
+            description = "Page title element";
             return true;
         }
 
-        var name = element.GetAttribute("name");
-        var httpEquiv = element.GetAttribute("http-equiv");
+        return false;
+    }
 
-        if (name?.Equals("viewport", StringComparison.OrdinalIgnoreCase) == true)
+    private static bool IsStandardMetaTag(IElement element, out string description)
+    {
+        description = string.Empty;
+        var attrs = GetAttributes(element);
+
+        // STRICT: charset meta - must be ONLY charset="utf-8"
+        if (attrs.TryGetValue("charset", out var charset))
         {
-            description = "Viewport meta tag";
-            return true;
+            if (attrs.Count == 1 && charset.Equals("utf-8", StringComparison.OrdinalIgnoreCase))
+            {
+                description = "Charset meta tag";
+                return true;
+            }
+            return false;
         }
 
-        if (httpEquiv?.Equals("X-UA-Compatible", StringComparison.OrdinalIgnoreCase) == true)
+        // STRICT: viewport meta - must have exactly name="viewport" and content with exact value
+        if (attrs.TryGetValue("name", out var name) && name.Equals("viewport", StringComparison.OrdinalIgnoreCase))
         {
-            description = "X-UA-Compatible meta tag";
-            return true;
+            if (attrs.Count == 2 && attrs.TryGetValue("content", out var content))
+            {
+                var normalizedContent = Regex.Replace(content, @"\s+", "");
+                if (normalizedContent == "width=device-width,initial-scale=1,shrink-to-fit=no")
+                {
+                    description = "Viewport meta tag";
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // STRICT: X-UA-Compatible meta - must have exactly http-equiv and content
+        if (
+            attrs.TryGetValue("http-equiv", out var httpEquiv)
+            && httpEquiv.Equals("X-UA-Compatible", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            if (
+                attrs.Count == 2
+                && attrs.TryGetValue("content", out var content)
+                && content.Equals("IE=edge", StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                description = "X-UA-Compatible meta tag";
+                return true;
+            }
+            return false;
         }
 
         return false;
@@ -74,149 +140,73 @@ internal sealed class StandardElementMatcher
     private static bool IsStandardLinkElement(IElement element, out string description)
     {
         description = string.Empty;
+        var attrs = GetAttributes(element);
 
-        var rel = element.GetAttribute("rel");
-        var href = element.GetAttribute("href");
+        var rel = attrs.GetValueOrDefault("rel");
+        var href = attrs.GetValueOrDefault("href");
 
         if (string.IsNullOrWhiteSpace(href))
         {
             return false;
         }
 
-        // Favicon link
-        if (
-            rel?.Equals("icon", StringComparison.OrdinalIgnoreCase) == true
-            || href.Contains("favicon", StringComparison.OrdinalIgnoreCase)
-        )
+        // STRICT: Favicon link - rel="icon" and href contains "favicon"
+        if (rel?.Equals("icon", StringComparison.OrdinalIgnoreCase) == true)
         {
-            description = "Favicon link";
-            return true;
-        }
-
-        // Framework CSS
-        if (
-            rel?.Equals("stylesheet", StringComparison.OrdinalIgnoreCase) == true
-            && href.Contains("altinn-app-frontend", StringComparison.OrdinalIgnoreCase)
-            && href.EndsWith(".css", StringComparison.OrdinalIgnoreCase)
-        )
-        {
-            description = "Altinn app frontend CSS";
-            return true;
-        }
-
-        return false;
-    }
-
-    private static bool IsRootDiv(IElement element, out string description)
-    {
-        description = string.Empty;
-
-        var id = element.GetAttribute("id");
-        if (id?.Equals("root", StringComparison.OrdinalIgnoreCase) == true)
-        {
-            description = "React root div";
-            return true;
-        }
-
-        // Old template wrapper div with flex classes
-        var className = element.GetAttribute("class") ?? string.Empty;
-        if (IsOldTemplateWrapperDiv(className, element))
-        {
-            description = "Old template wrapper div";
-            return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Checks if element is the old template wrapper div with flex-column d-flex media-body classes
-    /// </summary>
-    private static bool IsOldTemplateWrapperDiv(string className, IElement element)
-    {
-        // The old template has a wrapper div with these classes
-        var hasFlexColumn = className.Contains("flex-column", StringComparison.OrdinalIgnoreCase);
-        var hasDFlex = className.Contains("d-flex", StringComparison.OrdinalIgnoreCase);
-        var hasMediaBody = className.Contains("media-body", StringComparison.OrdinalIgnoreCase);
-
-        if (!hasFlexColumn || !hasDFlex || !hasMediaBody)
-        {
+            if (href.Contains("favicon", StringComparison.OrdinalIgnoreCase))
+            {
+                description = "Favicon link";
+                return true;
+            }
             return false;
         }
 
-        // Verify this is the wrapper div by checking it's a direct child of body
-        // or contains the root div as a descendant
-        var parent = element.ParentElement;
-        if (parent?.TagName.Equals("body", StringComparison.OrdinalIgnoreCase) == true)
+        // STRICT: Framework CSS - must match altinncdn.no/.../altinn-app-frontend.css pattern
+        if (rel?.Equals("stylesheet", StringComparison.OrdinalIgnoreCase) == true)
         {
-            return true;
-        }
-
-        // Also accept if it contains a root div descendant
-        var rootDiv = element.QuerySelector("#root");
-        if (rootDiv != null)
-        {
-            return true;
+            if (FrameworkCssPattern().IsMatch(href))
+            {
+                description = "Altinn app frontend CSS";
+                return true;
+            }
+            return false;
         }
 
         return false;
     }
 
-    private static bool IsStandardScript(IElement element, out string description)
+    private bool IsStandardScript(IElement element, out string description)
     {
         description = string.Empty;
 
         var src = element.GetAttribute("src");
 
-        // External framework script
+        // External script - strict URL pattern matching
         if (!string.IsNullOrWhiteSpace(src))
         {
-            if (
-                src.Contains("altinn-app-frontend", StringComparison.OrdinalIgnoreCase)
-                && src.EndsWith(".js", StringComparison.OrdinalIgnoreCase)
-            )
+            if (FrameworkJsPattern().IsMatch(src))
             {
                 description = "Altinn app frontend JS";
                 return true;
             }
-
             return false;
         }
 
-        // Inline script - check if it's the standard app ID initialization
+        // Inline script - use strict AST-based analyzer
         var content = element.TextContent?.Trim();
         if (string.IsNullOrWhiteSpace(content))
         {
             return false;
         }
 
-        if (ContainsAppIdInitialization(content))
+        var analysis = _scriptAnalyzer.Analyze(content);
+        if (analysis.IsStandard)
         {
-            description = "Standard app ID initialization script";
-            return true;
-        }
-
-        // Check for loadScript() function call (used in old template)
-        if (IsLoadScriptCall(content))
-        {
-            description = "Old template loadScript() call";
+            description = analysis.Description;
             return true;
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Checks if script content is just a call to loadScript() (old template pattern)
-    /// </summary>
-    private static bool IsLoadScriptCall(string content)
-    {
-        // Normalize and check if it's just a loadScript() call
-        var normalized = Regex.Replace(content, @"\s+", "").Trim();
-
-        // Match loadScript(); or loadScript()
-        return normalized.Equals("loadScript();", StringComparison.OrdinalIgnoreCase)
-            || normalized.Equals("loadScript()", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsStandardStyle(IElement element, out string description)
@@ -229,94 +219,121 @@ internal sealed class StandardElementMatcher
             return false;
         }
 
-        // Check for old template height: 100% style on html/body
-        if (IsOldTemplateHeightStyle(content))
+        // STRICT: Only exact match for html, body { height: 100%; }
+        if (IsExactHeightStyle(content))
         {
-            description = "Old template height style";
+            description = "Standard height style (html, body { height: 100%; })";
             return true;
         }
 
         return false;
     }
 
-    /// <summary>
-    /// Checks if style content is the old template's html, body { height: 100%; } pattern
-    /// </summary>
-    private static bool IsOldTemplateHeightStyle(string content)
+    private static bool IsExactHeightStyle(string content)
     {
-        // Normalize whitespace for comparison
-        var normalized = Regex.Replace(content, @"\s+", " ").Trim().ToLowerInvariant();
+        // Normalize: remove all whitespace, lowercase
+        var normalized = Regex.Replace(content, @"\s+", "").ToLowerInvariant();
 
-        // Match patterns like "html, body { height: 100%; }" with flexible whitespace
-        // The pattern should only contain html/body selectors and height property
-        if (!normalized.Contains("height"))
+        // Accept only these exact normalized forms
+        var exactPatterns = new[]
         {
+            "html,body{height:100%;}",
+            "html,body{height:100%}",
+            "body,html{height:100%;}",
+            "body,html{height:100%}",
+        };
+
+        return exactPatterns.Contains(normalized);
+    }
+
+    private static bool IsStandardDiv(IElement element, out string description)
+    {
+        description = string.Empty;
+
+        var id = element.GetAttribute("id");
+        var className = element.GetAttribute("class") ?? string.Empty;
+        var normalizedClass = NormalizeClassName(className);
+
+        // STRICT: Root div - id="root" with specific allowed class combinations
+        if (id?.Equals("root", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            var allowedClasses = new[]
+            {
+                "", // no class
+                "d-flex flex-column media-body", // old template pattern
+            };
+
+            if (allowedClasses.Contains(normalizedClass))
+            {
+                description = "React root div";
+                return true;
+            }
             return false;
         }
 
-        // Check it's targeting html and/or body
-        var hasHtml = normalized.Contains("html");
-        var hasBody = normalized.Contains("body");
-
-        if (!hasHtml && !hasBody)
+        // STRICT: Wrapper div - exact class combination, direct child of body
+        if (string.IsNullOrEmpty(id) && normalizedClass == "d-flex flex-column media-body")
         {
+            var parent = element.ParentElement;
+            if (parent?.TagName.Equals("body", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                description = "Old template wrapper div";
+                return true;
+            }
             return false;
         }
 
-        // Make sure it's a simple style (only height-related properties)
-        // Remove the selectors and braces to check properties
-        var propertiesMatch = Regex.Match(normalized, @"\{([^}]+)\}");
-        if (!propertiesMatch.Success)
+        // STRICT: Plain wrapper div containing root (no id, no class)
+        if (string.IsNullOrEmpty(id) && string.IsNullOrEmpty(className))
         {
-            return false;
-        }
-
-        var properties = propertiesMatch.Groups[1].Value.Trim();
-
-        // Should only contain height property (with possible 100% or similar value)
-        // Allow for height: 100%; or height:100% patterns
-        var heightPattern = @"^\s*height\s*:\s*100\s*%?\s*;?\s*$";
-        if (Regex.IsMatch(properties, heightPattern))
-        {
-            return true;
+            var rootChild = element.QuerySelector("#root");
+            if (rootChild != null)
+            {
+                description = "Wrapper div containing root";
+                return true;
+            }
         }
 
         return false;
     }
 
-    /// <summary>
-    /// Checks if script content contains the standard app ID initialization patterns
-    /// </summary>
-    private static bool ContainsAppIdInitialization(string scriptContent)
+    private static string NormalizeClassName(string className)
     {
-        // Normalize the script content for comparison
-        var normalized = NormalizeScript(scriptContent);
+        if (string.IsNullOrWhiteSpace(className))
+            return "";
 
-        // Standard patterns that indicate app ID initialization
-        var patterns = new[] { "window.location.pathname.split", "window.org", "window.app" };
+        var classes = className
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(c => c.Trim().ToLowerInvariant())
+            .OrderBy(c => c)
+            .ToArray();
 
-        // If script contains at least 2 of these patterns, it's likely the standard initialization
-        var matchCount = patterns.Count(pattern => normalized.Contains(pattern, StringComparison.OrdinalIgnoreCase));
-
-        return matchCount >= 2;
+        return string.Join(" ", classes);
     }
 
-    /// <summary>
-    /// Normalizes script content by removing whitespace and standardizing format
-    /// </summary>
-    private static string NormalizeScript(string script)
+    private static Dictionary<string, string> GetAttributes(IElement element)
     {
-        if (string.IsNullOrWhiteSpace(script))
-        {
-            return string.Empty;
-        }
-
-        // Remove extra whitespace, collapse to single spaces
-        var normalized = Regex.Replace(script, @"\s+", " ");
-
-        // Trim
-        normalized = normalized.Trim();
-
-        return normalized;
+        return element.Attributes.ToDictionary(a => a.Name.ToLowerInvariant(), a => a.Value);
     }
+
+    // Regex patterns for strict URL matching
+
+    /// <summary>
+    /// Matches: https://altinncdn.no/toolkits/altinn-app-frontend/{version}/altinn-app-frontend.js
+    /// Version can be: 4, 4.23.5, 4.23.1-pr.xxx, [[frontendVersion]], etc.
+    /// </summary>
+    [GeneratedRegex(
+        @"^https://altinncdn\.no/toolkits/altinn-app-frontend/[^/]+/altinn-app-frontend\.js$",
+        RegexOptions.IgnoreCase
+    )]
+    private static partial Regex FrameworkJsPattern();
+
+    /// <summary>
+    /// Matches: https://altinncdn.no/toolkits/altinn-app-frontend/{version}/altinn-app-frontend.css
+    /// </summary>
+    [GeneratedRegex(
+        @"^https://altinncdn\.no/toolkits/altinn-app-frontend/[^/]+/altinn-app-frontend\.css$",
+        RegexOptions.IgnoreCase
+    )]
+    private static partial Regex FrameworkCssPattern();
 }
