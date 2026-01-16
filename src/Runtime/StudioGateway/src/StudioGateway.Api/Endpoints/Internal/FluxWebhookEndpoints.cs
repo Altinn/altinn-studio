@@ -36,7 +36,6 @@ internal static class FluxWebhookEndpoints
     }
 
     private static async Task<IResult> HandleFluxWebhook(
-        HttpContext httpContext,
         FluxEvent fluxEvent,
         HelmReleaseClient helmReleaseClient,
         IHttpClientFactory httpClientFactory,
@@ -121,7 +120,6 @@ internal static class FluxWebhookEndpoints
             slackClient,
             fluxEvent,
             info,
-            $"{httpContext.Request.Scheme}://{httpContext.Request.Host}",
             targetEnvironment,
             helmReleaseName,
             logger,
@@ -215,7 +213,6 @@ internal static class FluxWebhookEndpoints
         ISlackClient slackClient,
         FluxEvent fluxEvent,
         HelmReleaseInfo info,
-        string baseUrl,
         string targetEnvironment,
         string helmReleaseName,
         ILogger logger,
@@ -237,11 +234,7 @@ internal static class FluxWebhookEndpoints
                         Type = "section",
                         Text = new SlackText { Type = "mrkdwn", Text = $"{emoji} *{status}*" },
                     },
-                    new SlackBlock
-                    {
-                        Type = "context",
-                        Elements = BuildContextElements(baseUrl, info, targetEnvironment),
-                    },
+                    new SlackBlock { Type = "context", Elements = BuildContextElements(info, targetEnvironment) },
                 ],
             };
 
@@ -284,7 +277,7 @@ internal static class FluxWebhookEndpoints
         };
     }
 
-    private static List<SlackText> BuildContextElements(string baseUrl, HelmReleaseInfo info, string targetEnvironment)
+    private static List<SlackText> BuildContextElements(HelmReleaseInfo info, string targetEnvironment)
     {
         var elements = new List<SlackText>
         {
@@ -300,8 +293,7 @@ internal static class FluxWebhookEndpoints
                 new SlackText
                 {
                     Type = "mrkdwn",
-                    Text =
-                        $"<{GrafanaPodLogsUrl(baseUrl, info.Org, targetEnvironment, info.App)}|Grafana>",
+                    Text = $"<{GrafanaPodLogsUrl(info.Org, targetEnvironment, info.App)}|Grafana>",
                 }
             );
         }
@@ -321,8 +313,12 @@ internal static class FluxWebhookEndpoints
         return elements;
     }
 
-    private static string GrafanaPodLogsUrl(string baseDomain, string org, string env, string app)
+    private static string GrafanaPodLogsUrl(string org, string env, string app)
     {
+        var isProd = AltinnEnvironments.IsProd(env);
+
+        var baseDomain = isProd ? $"https://{org}.apps.altinn.no" : $"https://{org}.apps.tt02.altinn.no";
+
         var path = "/monitor/d/ae1906c2hbjeoe/pod-console-error-logs";
 
         var now = DateTimeOffset.UtcNow;
@@ -330,10 +326,10 @@ internal static class FluxWebhookEndpoints
 
         var queryParams = new Dictionary<string, string?>
         {
-            ["var-rg"] = $"altinnapps-{org}-{(AltinnEnvironments.IsProd(env) ? "prod" : env)}-rg",
+            ["var-rg"] = $"altinnapps-{org}-{(isProd ? "prod" : env)}-rg",
             ["var-PodName"] = $"{org}-{app}-deployment-v2",
             ["from"] = from.ToUnixTimeMilliseconds().ToString(),
-            ["to"] = now.ToUnixTimeMilliseconds().ToString()
+            ["to"] = now.ToUnixTimeMilliseconds().ToString(),
         };
 
         return QueryHelpers.AddQueryString($"{baseDomain}{path}", queryParams);
