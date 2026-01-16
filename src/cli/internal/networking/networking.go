@@ -105,15 +105,48 @@ func ResolveHostDNS(ctx context.Context) string {
 
 // networkProbeScript returns the shell script for network probing.
 // Tests gateway discovery, ping connectivity, and DNS resolution.
+//
+// Gateway discovery strategy:
+//  1. Try known host gateway DNS names (Docker, Podman, Rancher Desktop, Lima)
+//  2. Verify each with ping to get the actual IP
+//  3. Fall back to default route from /proc/net/route
+//
+// This handles macOS Podman where the default route gateway doesn't forward to host.
 func networkProbeScript() string {
+	//nolint:dupword // shell script has multiple 'fi' keywords
 	return fmt.Sprintf(`
-gateway=$(ip route | grep default | awk '{print $3}')
+set -e
+
+# Try known host gateway DNS names and verify with ping
+try_host() {
+  ip=$(ping -4 -c1 -W1 "$1" 2>/dev/null | sed -n 's/^PING [^(]*(\([0-9.]*\)).*/\1/p')
+  if [ -n "$ip" ]; then echo "$ip"; return 0; fi
+  return 1
+}
+
+gateway=""
+for name in host.docker.internal host.containers.internal host.rancher-desktop.internal host.lima.internal; do
+  if result=$(try_host "$name"); then
+    gateway="$result"
+    break
+  fi
+done
+
+# Fall back to default route gateway from /proc/net/route
+if [ -z "$gateway" ]; then
+  g=$(awk '$2=="00000000" {print $3}' /proc/net/route 2>/dev/null | head -n1)
+  if [ -n "$g" ]; then
+    gateway=$(printf "%%d.%%d.%%d.%%d\n" 0x${g:6:2} 0x${g:4:2} 0x${g:2:2} 0x${g:0:2})
+  fi
+fi
+
 echo "GATEWAY:$gateway"
-if ping -c 1 -W 2 "$gateway" >/dev/null 2>&1; then
+if [ -n "$gateway" ] && ping -c 1 -W 2 "$gateway" >/dev/null 2>&1; then
   echo "PING:OK"
 else
   echo "PING:FAIL"
 fi
+
 resolved=$(nslookup %s 2>/dev/null | awk '/^Name:/{f=1} f && /^Address/{gsub(/.*: */,""); print $1; exit}')
 if [ -n "$resolved" ]; then
   echo "DNS:$resolved"
@@ -148,6 +181,7 @@ func (n *Networking) RefreshNetworkMetadata(ctx context.Context) (NetworkMetadat
 		Detach:        false,
 		Labels:        nil,
 		User:          "",
+		CapAdd:        nil,
 	}
 
 	containerID, err := n.client.CreateContainer(ctx, cfg)
