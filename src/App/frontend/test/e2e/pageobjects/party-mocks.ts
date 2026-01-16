@@ -1,3 +1,5 @@
+import { interceptAppMetadata } from 'test/e2e/support/intercept-app-metadata';
+
 import { PartyType } from 'src/types/shared';
 import type { ApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/types';
 import type { ISimpleInstance } from 'src/types';
@@ -145,19 +147,16 @@ export function cyMockResponses(whatToMock: Mockable) {
     whatToMock.partyTypesAllowed !== undefined ||
     whatToMock.onEntryShow !== undefined
   ) {
-    cy.intercept('GET', '**/api/v1/applicationmetadata', (req) => {
-      req.on('response', (res) => {
-        const body = res.body as ApplicationMetadata;
-        if (whatToMock.appPromptForPartyOverride !== undefined) {
-          body.promptForParty = whatToMock.appPromptForPartyOverride;
-        }
-        if (whatToMock.partyTypesAllowed !== undefined) {
-          body.partyTypesAllowed = whatToMock.partyTypesAllowed;
-        }
-        if (whatToMock.onEntryShow !== undefined) {
-          body.onEntry = { show: whatToMock.onEntryShow };
-        }
-      });
+    interceptAppMetadata((metadata) => {
+      if (whatToMock.appPromptForPartyOverride !== undefined) {
+        metadata.promptForParty = whatToMock.appPromptForPartyOverride;
+      }
+      if (whatToMock.partyTypesAllowed !== undefined) {
+        metadata.partyTypesAllowed = whatToMock.partyTypesAllowed;
+      }
+      if (whatToMock.onEntryShow !== undefined) {
+        metadata.onEntry = { show: whatToMock.onEntryShow };
+      }
     });
   }
 
