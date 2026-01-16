@@ -5,14 +5,16 @@ namespace WorkflowEngine.Api.Endpoints;
 
 internal static class HealthEndpoints
 {
+    private const string BasePath = "/api/v1/health";
+
     public static WebApplication MapHealthEndpoints(this WebApplication app)
     {
         // Liveness probe - always returns 200 if the process is running
-        app.MapGet("/api/v1/health/live", () => Results.Ok(new { status = "alive" })).ExcludeFromDescription();
+        app.MapGet($"{BasePath}/live", () => Results.Ok(new { status = "alive" })).ExcludeFromDescription();
 
         // Readiness probe - checks if the engine is ready to accept work
         app.MapHealthChecks(
-            "/api/v1/health/ready",
+            $"{BasePath}/ready",
             new HealthCheckOptions
             {
                 Predicate = check => check.Tags.Contains("ready"),
@@ -21,7 +23,7 @@ internal static class HealthEndpoints
         );
 
         // Aggregate health endpoint - runs all registered health checks
-        app.MapHealthChecks("/api/v1/health", new HealthCheckOptions { ResponseWriter = HealthResponseJsonWriter });
+        app.MapHealthChecks(BasePath, new HealthCheckOptions { ResponseWriter = HealthResponseJsonWriter });
 
         return app;
     }

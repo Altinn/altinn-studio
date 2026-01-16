@@ -34,7 +34,7 @@ public sealed record ProcessNextRequest
     /// <summary>
     /// Converts this request to a <see cref="Request"/> with the provided instance information.
     /// </summary>
-    internal Request ToProcessEngineRequest(InstanceInformation instanceInformation) =>
+    public Request ToProcessEngineRequest(InstanceInformation instanceInformation) =>
         new(
             $"{instanceInformation.InstanceGuid}/next/from-{CurrentElementId}-to-{DesiredElementId}",
             instanceInformation,
