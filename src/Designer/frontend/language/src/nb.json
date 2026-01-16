@@ -73,6 +73,7 @@
   "app_content_library.code_lists.error.duplicate_name": "Det finnes kodelister med samme navn.",
   "app_content_library.code_lists.error.missing_name": "Én eller flere kodelister mangler navn.",
   "app_content_library.code_lists.errors": "Kan ikke lagre kodelistene på grunn av følgende feil:",
+  "app_content_library.code_lists.is_publishing": "Publiserer …",
   "app_content_library.code_lists.latest_version": "Siste versjon: {{version}}",
   "app_content_library.code_lists.name": "Navn",
   "app_content_library.code_lists.page_name": "Kodelister (ny)",

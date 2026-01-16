@@ -16,6 +16,7 @@ import { Publishing } from './Publishing';
 
 export type CodeListDataEditorProps = Readonly<{
   data: CodeListData;
+  isPublishing: boolean;
   onDelete: () => void;
   onPublish: (data: CodeListData) => void;
   onUpdate: (newData: CodeListData) => void;
@@ -24,6 +25,7 @@ export type CodeListDataEditorProps = Readonly<{
 
 export function CodeListDataEditor({
   data,
+  isPublishing,
   onDelete,
   onPublish,
   onUpdate,
@@ -69,6 +71,7 @@ export function CodeListDataEditor({
         <Publishing
           className={classes.publishing}
           codeListName={data.name}
+          isPending={isPublishing}
           onPublish={handlePublish}
           publishedCodeLists={publishedCodeLists}
         />

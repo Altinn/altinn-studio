@@ -14,6 +14,7 @@ const onDelete = jest.fn();
 const onPublish = jest.fn();
 const defaultProps: CodeListDataEditorProps = {
   data,
+  isPublishing: false,
   onDelete,
   onPublish,
   onUpdate,
@@ -109,6 +110,13 @@ describe('CodeListDataEditor', () => {
       version: 1,
     });
     expect(screen.getByText(expectedMessage)).toBeInTheDocument();
+  });
+
+  it('Displays the publish button in loading state while isPublishing is true', () => {
+    renderCodeListDataEditor({ isPublishing: true });
+    const buttonNameWhilePublishing = textMock('app_content_library.code_lists.is_publishing');
+    const loadingButton = screen.getByRole('button', { name: buttonNameWhilePublishing });
+    expect(loadingButton).toBeInTheDocument();
   });
 });
 
