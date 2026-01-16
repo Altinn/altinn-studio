@@ -1,4 +1,4 @@
-using WorkflowEngine.Api.Authentication;
+using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Api.Endpoints;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data.Extensions;
@@ -13,7 +13,7 @@ var dbConnectionString =
 
 // Services
 builder.Services.AddWorkflowEngineHost();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options => options.AddDocumentTransformer<ApiKeyOpenApiTransformer>());
 builder.Services.AddApiKeyAuthentication();
 builder.Services.AddDbRepository(dbConnectionString);
 builder.Services.AddEngineHealthChecks();
@@ -23,17 +23,14 @@ var app = builder.Build();
 // Apply database migrations
 await app.MigrateDatabaseAsync(dbConnectionString);
 
-// Middleware
+// OpenAPI
 app.MapOpenApi();
-app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "Workflow Engine API v1"));
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/openapi/v1.json", "Workflow Engine API v1");
+});
 
-//
-// app.UseSwaggerUI(options =>
-// {
-//     options.SwaggerEndpoint("/openapi/public-v1.json", "Public API v1");
-//     options.SwaggerEndpoint("/openapi/internal-v1.json", "Internal API v1");
-// });
-
+// Middleware
 if (!builder.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 
@@ -70,7 +67,10 @@ app.MapGet(
         }
     )
     .WithName("GetWeatherForecast")
-    .RequireAuthorization(ApiKeyAuthenticationHandler.PolicyName);
+    .WithDescription("Just a test")
+    .RequireApiKeyAuthorization();
+
+// .Produces<WeatherForecast>(StatusCodes.Status200OK, "application/json");
 
 await app.RunAsync();
 

@@ -3,9 +3,8 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Models;
-using Task = System.Threading.Tasks.Task;
 
-namespace WorkflowEngine.Api.Authentication;
+namespace WorkflowEngine.Api.Authentication.ApiKey;
 
 internal class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
@@ -33,7 +32,7 @@ internal class ApiKeyAuthenticationHandler : AuthenticationHandler<Authenticatio
             return Task.FromResult(AuthenticateResult.NoResult());
 
         if (!_settings.ApiKeys.Contains(apiKeyHeader[0]))
-            return Task.FromResult(AuthenticateResult.Fail($"Invalid API Key: {apiKeyHeader[0]}"));
+            return Task.FromResult(AuthenticateResult.Fail($"Invalid API key: {apiKeyHeader[0]}"));
 
         var claims = new[] { new Claim(ClaimTypes.Name, "ApiKeyUser") };
         var identity = new ClaimsIdentity(claims, SchemeName);
@@ -41,5 +40,14 @@ internal class ApiKeyAuthenticationHandler : AuthenticationHandler<Authenticatio
         var ticket = new AuthenticationTicket(principal, SchemeName);
 
         return Task.FromResult(AuthenticateResult.Success(ticket));
+    }
+
+    protected override Task HandleChallengeAsync(AuthenticationProperties properties)
+    {
+        Response.StatusCode = Request.Headers.ContainsKey(HeaderName)
+            ? StatusCodes.Status403Forbidden
+            : StatusCodes.Status401Unauthorized;
+
+        return Task.CompletedTask;
     }
 }

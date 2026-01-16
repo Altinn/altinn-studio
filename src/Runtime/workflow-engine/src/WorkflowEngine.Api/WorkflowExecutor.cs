@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Options;
-using WorkflowEngine.Api.Authentication;
+using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Extensions;

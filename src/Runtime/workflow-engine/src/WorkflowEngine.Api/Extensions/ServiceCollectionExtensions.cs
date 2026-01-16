@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
-using WorkflowEngine.Api.Authentication;
 using WorkflowEngine.Api.Constants;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
@@ -94,32 +92,6 @@ internal static class ServiceCollectionExtensions
                 .Configure(configureOptions)
                 .SetAppCommandDefaults()
                 .ValidateAppCommandSettings();
-
-            return services;
-        }
-
-        /// <summary>
-        /// Adds API Key authentication and sets this as the default authentication mechanism for all endpoints
-        /// </summary>
-        public IServiceCollection AddApiKeyAuthentication()
-        {
-            services
-                .AddAuthentication()
-                .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(
-                    ApiKeyAuthenticationHandler.SchemeName,
-                    null
-                );
-
-            services
-                .AddAuthorizationBuilder()
-                .AddDefaultPolicy(
-                    ApiKeyAuthenticationHandler.PolicyName,
-                    policy =>
-                    {
-                        policy.AddAuthenticationSchemes(ApiKeyAuthenticationHandler.SchemeName);
-                        policy.RequireAuthenticatedUser();
-                    }
-                );
 
             return services;
         }
