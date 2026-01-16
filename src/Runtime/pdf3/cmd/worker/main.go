@@ -40,10 +40,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	cfg := config.ReadConfig()
+	hostParams := config.ResolveHostParametersForEnvironment(cfg.Environment)
+
 	host := iruntime.NewHost(
-		5*time.Second,
-		45*time.Second,
-		3*time.Second,
+		hostParams.ReadinessDrainDelay,
+		hostParams.ShutdownPeriod,
+		hostParams.ShutdownHardPeriod,
 	)
 	defer host.Stop()
 
@@ -102,7 +105,6 @@ func main() {
 		}
 	})
 
-	cfg := config.ReadConfig()
 	// The localtest harness will run on all dev machines
 	// We can avoid some overhead by just running the single container
 	if cfg.Environment == "localtest" {
