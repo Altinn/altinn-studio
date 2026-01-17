@@ -32,13 +32,14 @@ public sealed record ProcessNextRequest
     public required IEnumerable<CommandRequest> Tasks { get; init; }
 
     /// <summary>
-    /// Converts this request to a <see cref="Request"/> with the provided instance information.
+    /// Converts this request to a <see cref="EngineRequest"/> with the provided instance information.
     /// </summary>
-    public Request ToProcessEngineRequest(InstanceInformation instanceInformation) =>
+    public EngineRequest ToProcessEngineRequest(InstanceInformation instanceInformation, string? traceContext) =>
         new(
             $"{instanceInformation.InstanceGuid}/next/from-{CurrentElementId}-to-{DesiredElementId}",
             instanceInformation,
             Actor,
-            Tasks
+            Tasks,
+            traceContext
         );
 };

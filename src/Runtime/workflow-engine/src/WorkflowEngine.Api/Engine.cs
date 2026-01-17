@@ -17,7 +17,7 @@ internal interface IEngine
     int InboxCount { get; }
     Task Start(CancellationToken cancellationToken = default);
     Task Stop();
-    Task<Response> EnqueueWorkflow(Request request, CancellationToken cancellationToken = default);
+    Task<EngineResponse> EnqueueWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default);
     bool HasDuplicateWorkflow(string jobIdentifier);
     bool HasQueuedWorkflowForInstance(InstanceInformation instanceInformation);
     Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation);

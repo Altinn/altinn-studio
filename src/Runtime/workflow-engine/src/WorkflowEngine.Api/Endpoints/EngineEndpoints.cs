@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using WorkflowEngine.Api.Authentication.ApiKey;
@@ -37,7 +38,8 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        var processEngineRequest = request.ToProcessEngineRequest(instanceParams);
+        var traceContext = Activity.Current?.Id;
+        var processEngineRequest = request.ToProcessEngineRequest(instanceParams, traceContext);
 
         if (engine.HasDuplicateWorkflow(processEngineRequest.Key))
             return TypedResults.NoContent(); // 204 - Duplicate request
@@ -47,7 +49,7 @@ internal static class EngineRequestHandlers
         return response.IsAccepted() ? TypedResults.Ok() : TypedResults.BadRequest(response.Message);
     }
 
-    public static Results<Ok<StatusResponse>, NoContent> Status(
+    public static Results<Ok<WorkflowStatusResponse>, NoContent> Status(
         [AsParameters] InstanceRouteParams instanceParams,
         [FromServices] IEngine engine
     )
@@ -56,7 +58,7 @@ internal static class EngineRequestHandlers
 
         return job is null
             ? TypedResults.NoContent() // 204 - No active workflow for this instance
-            : TypedResults.Ok(StatusResponse.FromWorkflow(job));
+            : TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(job));
     }
 }
 

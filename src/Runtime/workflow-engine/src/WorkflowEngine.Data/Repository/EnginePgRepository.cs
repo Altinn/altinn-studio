@@ -57,13 +57,13 @@ internal sealed class EnginePgRepository : IEngineRepository
         }
     }
 
-    public async Task<Workflow> AddWorkflow(Request request, CancellationToken cancellationToken = default)
+    public async Task<Workflow> AddWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger.AddingWorkflow(request);
+            _logger.AddingWorkflow(engineRequest);
 
-            var workflow = Workflow.FromRequest(request);
+            var workflow = Workflow.FromRequest(engineRequest);
             var entity = WorkflowEntity.FromDomainModel(workflow);
             var dbRecord = _context.Jobs.Add(entity);
             await _context.SaveChangesAsync(cancellationToken);
@@ -233,8 +233,8 @@ internal static partial class EnginePgRepositoryLogs
         Exception ex
     );
 
-    [LoggerMessage(LogLevel.Debug, "Adding workflow to database: {Request}")]
-    internal static partial void AddingWorkflow(this ILogger<EnginePgRepository> logger, Request request);
+    [LoggerMessage(LogLevel.Debug, "Adding workflow to database: {engineRequest}")]
+    internal static partial void AddingWorkflow(this ILogger<EnginePgRepository> logger, EngineRequest engineRequest);
 
     [LoggerMessage(LogLevel.Debug, "Successfully added workflow to database: {Workflow}")]
     internal static partial void SuccessfullyAddedWorkflow(this ILogger<EnginePgRepository> logger, Workflow workflow);

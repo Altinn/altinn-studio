@@ -5,7 +5,7 @@ namespace WorkflowEngine.Models;
 /// <summary>
 /// Response model for workflow engine status endpoint.
 /// </summary>
-public sealed record StatusResponse
+public sealed record WorkflowStatusResponse
 {
     /// <summary>
     /// The overall status of the workflow for this instance.
@@ -20,7 +20,7 @@ public sealed record StatusResponse
     [JsonPropertyName("steps")]
     public required IReadOnlyList<StepDetail> Steps { get; init; }
 
-    public static StatusResponse FromWorkflow(Workflow workflow) =>
+    public static WorkflowStatusResponse FromWorkflow(Workflow workflow) =>
         new() { OverallStatus = workflow.Status, Steps = workflow.Steps.Select(StepDetail.FromStep).ToList() };
 }
 

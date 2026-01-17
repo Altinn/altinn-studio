@@ -7,11 +7,13 @@ namespace WorkflowEngine.Models;
 /// <param name="InstanceInformation">Information about the instance this job relates to.</param>
 /// <param name="Actor">The actor this request is executed on behalf of.</param>
 /// <param name="Commands">The individual commands comprising this job.</param>
-public record Request(
+/// <param name="TraceContext">The trace context for distributed tracing.</param>
+public record EngineRequest(
     string Key,
     InstanceInformation InstanceInformation,
     Actor Actor,
-    IEnumerable<CommandRequest> Commands
+    IEnumerable<CommandRequest> Commands,
+    string? TraceContext = null
 )
 {
     /// <summary>

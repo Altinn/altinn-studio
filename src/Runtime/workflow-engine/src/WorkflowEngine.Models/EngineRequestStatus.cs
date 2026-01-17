@@ -3,7 +3,7 @@ namespace WorkflowEngine.Models;
 /// <summary>
 /// The status of a request to the process engine.
 /// </summary>
-public enum RequestStatus
+public enum EngineRequestStatus
 {
     /// <summary>
     /// The request has been accepted.

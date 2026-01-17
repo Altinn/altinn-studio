@@ -4,32 +4,37 @@ namespace WorkflowEngine.Api;
 
 internal partial class Engine
 {
-    public async Task<Response> EnqueueWorkflow(Request request, CancellationToken cancellationToken = default)
+    public async Task<EngineResponse> EnqueueWorkflow(
+        EngineRequest engineRequest,
+        CancellationToken cancellationToken = default
+    )
     {
-        _logger.EnqueuingWorkflow(request);
+        _logger.EnqueuingWorkflow(engineRequest);
 
-        if (!request.IsValid())
-            return Response.Rejected($"Invalid request: {request}");
+        if (!engineRequest.IsValid())
+            return EngineResponse.Rejected($"Invalid request: {engineRequest}");
 
-        if (HasDuplicateWorkflow(request.Key))
-            return Response.Rejected("Duplicate request. A job with the same identifier is already being processed");
+        if (HasDuplicateWorkflow(engineRequest.Key))
+            return EngineResponse.Rejected(
+                "Duplicate request. A job with the same identifier is already being processed"
+            );
 
-        if (HasQueuedWorkflowForInstance(request.InstanceInformation))
-            return Response.Rejected(
+        if (HasQueuedWorkflowForInstance(engineRequest.InstanceInformation))
+            return EngineResponse.Rejected(
                 "A job for this instance is already processing. Concurrency is currently not supported"
             );
 
         if (_mainLoopTask is null)
-            return Response.Rejected("Process engine is not running. Did you call Start()?");
+            return EngineResponse.Rejected("Process engine is not running. Did you call Start()?");
 
         var enabled = await _isEnabledHistory.Latest() ?? await ShouldRun(cancellationToken);
         if (!enabled)
-            return Response.Rejected("Process engine is currently inactive. Did you call the right instance?");
+            return EngineResponse.Rejected("Process engine is currently inactive. Did you call the right instance?");
 
         await AcquireQueueSlot(cancellationToken);
-        _inbox[request.Key] = await _repository.AddWorkflow(request, cancellationToken);
+        _inbox[engineRequest.Key] = await _repository.AddWorkflow(engineRequest, cancellationToken);
 
-        return Response.Accepted();
+        return EngineResponse.Accepted();
     }
 
     public bool HasDuplicateWorkflow(string jobIdentifier)

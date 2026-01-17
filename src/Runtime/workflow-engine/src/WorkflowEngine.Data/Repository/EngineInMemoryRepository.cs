@@ -14,10 +14,10 @@ internal sealed class EngineInMemoryRepository : IEngineRepository
         return [];
     }
 
-    public async Task<Workflow> AddWorkflow(Request request, CancellationToken cancellationToken = default)
+    public async Task<Workflow> AddWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default)
     {
         await SimulateDatabaseDelay(cancellationToken);
-        return Workflow.FromRequest(request);
+        return Workflow.FromRequest(engineRequest);
     }
 
     public async Task UpdateWorkflow(Workflow workflow, CancellationToken cancellationToken = default) =>
