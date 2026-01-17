@@ -23,7 +23,7 @@ describe('Redirect', () => {
 
   it('User is redirected to unknown error page when a network call fails', () => {
     cy.allowFailureOnEnd();
-    cy.intercept('GET', `**//profile/user`, {
+    cy.intercept('GET', `**/profile/user`, {
       statusCode: 401,
     }).as('getUser');
     cy.startAppInstance(appFrontend.apps.frontendTest);
