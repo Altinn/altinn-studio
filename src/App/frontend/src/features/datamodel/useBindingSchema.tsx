@@ -4,13 +4,10 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import {
-  getCurrentDataTypeForApplication,
-  getCurrentTaskDataElementId,
-} from 'src/features/applicationMetadata/appMetadataUtils';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId } from 'src/features/instance/instanceUtils';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
@@ -30,7 +27,6 @@ export type AsSchema<T> = {
 };
 
 export function useCurrentDataModelDataElementId() {
-  const application = getApplicationMetadata();
   const layoutSets = useLayoutSets();
   const taskId = useProcessTaskId();
   const isStateless = useIsStateless();
@@ -45,7 +41,7 @@ export function useCurrentDataModelDataElementId() {
         return overriddenDataElementId;
       }
 
-      return getCurrentTaskDataElementId({ application, isStateless, dataElements: data.data, taskId, layoutSets });
+      return getCurrentTaskDataElementId({ isStateless, dataElements: data.data, taskId, layoutSets });
     },
   }).data;
 }
@@ -133,7 +129,6 @@ export function useDataModelUrl({ dataType, dataElementId, language, prefillFrom
 export function useCurrentDataModelName() {
   const overriddenDataModelType = useTaskOverrides()?.dataModelType;
 
-  const application = getApplicationMetadata();
   const layoutSets = useLayoutSets();
   const taskId = useProcessTaskId();
   const isStateless = useIsStateless();
@@ -143,7 +138,6 @@ export function useCurrentDataModelName() {
   }
 
   return getCurrentDataTypeForApplication({
-    application,
     isStateless,
     layoutSets,
     taskId,
