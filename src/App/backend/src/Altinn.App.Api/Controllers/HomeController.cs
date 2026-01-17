@@ -38,7 +38,7 @@ public class HomeController : Controller
     /// <summary>
     /// Initialize a new instance of the <see cref="HomeController"/> class.
     /// </summary>
-    /// <param name="serviceProvider">The serviceProvider service.</param>
+    /// <param name="serviceProvider">The serviceProvider service used to inject internal services.</param>
     /// <param name="antiforgery">The anti forgery service.</param>
     /// <param name="platformSettings">The platform settings.</param>
     /// <param name="env">The current environment.</param>
@@ -101,7 +101,6 @@ public class HomeController : Controller
             );
         }
 
-        // Wait for PR with replacement of index.cshtml.
         if (await ShouldShowAppView())
         {
             BootstrapGlobalResponse appGlobalState = await _bootstrapGlobalService.GetGlobalState();
