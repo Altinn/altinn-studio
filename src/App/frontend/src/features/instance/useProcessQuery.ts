@@ -1,6 +1,6 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useIsStateless } from 'src/features/applicationMetadata';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { TaskKeys } from 'src/hooks/useNavigatePage';

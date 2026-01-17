@@ -10,7 +10,7 @@ import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadata
 import { getAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
-import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { DataPostResponse } from 'src/features/attachments';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';

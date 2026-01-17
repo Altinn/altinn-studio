@@ -1,4 +1,4 @@
-import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { useLayoutSetsQuery } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { getDataTypeByLayoutSetId } from 'src/features/instance/instanceUtils';
 

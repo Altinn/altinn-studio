@@ -5,7 +5,7 @@ import { screen } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
-import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 

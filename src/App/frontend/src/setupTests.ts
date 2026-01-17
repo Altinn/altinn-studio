@@ -113,11 +113,9 @@ testingLibraryConfigure({
   asyncUtilTimeout: env.parsed?.WAITFOR_TIMEOUT ? parseInt(env.parsed.WAITFOR_TIMEOUT, 10) : 15000,
 });
 
-jest.mock('src/features/applicationMetadata/ApplicationMetadataProvider', () => ({
+jest.mock('src/features/applicationMetadata', () => ({
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  ...jest.requireActual<typeof import('src/features/applicationMetadata/ApplicationMetadataProvider')>(
-    'src/features/applicationMetadata/ApplicationMetadataProvider',
-  ),
+  ...jest.requireActual<typeof import('src/features/applicationMetadata')>('src/features/applicationMetadata'),
   getApplicationMetadata: jest.fn(() => getApplicationMetadataMock()),
   useIsStateless: jest.fn(() => false),
 }));

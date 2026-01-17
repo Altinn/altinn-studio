@@ -7,7 +7,7 @@ import { Label, LabelInner } from 'src/components/label/Label';
 import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useDataTypeFromLayoutSet, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';

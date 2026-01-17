@@ -1,4 +1,4 @@
-import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IDataType } from 'src/types/shared';
 
 export function useAvailableDataModels() {

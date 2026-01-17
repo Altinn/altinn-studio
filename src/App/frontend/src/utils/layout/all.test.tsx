@@ -9,7 +9,7 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
-import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { quirks } from 'src/features/form/layout/quirks';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';

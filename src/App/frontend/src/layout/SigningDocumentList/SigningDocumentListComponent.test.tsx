@@ -5,7 +5,7 @@ import { screen } from '@testing-library/dom';
 import { render } from '@testing-library/react';
 import { randomUUID } from 'crypto';
 
-import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import { ITextResourceBindings } from 'src/layout/layout';
 import { type SigningDocument, useDocumentList } from 'src/layout/SigningDocumentList/api';

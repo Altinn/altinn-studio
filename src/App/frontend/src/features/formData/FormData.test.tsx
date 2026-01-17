@@ -11,7 +11,7 @@ import type { JSONSchema7 } from 'json-schema';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, statelessDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
-import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
 import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';

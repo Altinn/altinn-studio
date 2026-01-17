@@ -11,7 +11,7 @@ import { PresentationComponent } from 'src/components/presentation/Presentation'
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import {
   ActiveInstancesProvider,
   useActiveInstances,

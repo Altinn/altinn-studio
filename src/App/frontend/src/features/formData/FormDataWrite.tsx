@@ -9,7 +9,7 @@ import type { AxiosRequestConfig } from 'axios';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
-import { useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useIsStateless } from 'src/features/applicationMetadata';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';

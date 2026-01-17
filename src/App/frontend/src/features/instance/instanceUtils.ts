@@ -1,4 +1,4 @@
-import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import type { ILayoutSet } from 'src/layout/common.generated';
 import type { IData, IInstance } from 'src/types/shared';
 

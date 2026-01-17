@@ -3,7 +3,7 @@ import React from 'react';
 import { jest } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 
-import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { AttachmentListComponent } from 'src/layout/AttachmentList/AttachmentListComponent';

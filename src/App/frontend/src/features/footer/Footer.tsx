@@ -6,7 +6,7 @@ import cn from 'classnames';
 import { AltinnLogo, LogoColor } from 'src/components/logo/AltinnLogo';
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
-import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { FooterEmail } from 'src/features/footer/components/FooterEmail';
 import { FooterLink } from 'src/features/footer/components/FooterLink';
 import { FooterPhone } from 'src/features/footer/components/FooterPhone';

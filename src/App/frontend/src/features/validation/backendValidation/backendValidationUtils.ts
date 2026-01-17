@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useIsStateless } from 'src/features/applicationMetadata';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { BackendValidationSeverity, BuiltInValidationIssueSources, ValidationMask } from 'src/features/validation';

@@ -1,5 +1,5 @@
 import { useTextResourceOr } from 'src/core/texts/appTexts';
-import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useOrgs } from 'src/features/orgs/OrgsProvider';
 
 export function useAppLogoUrl() {

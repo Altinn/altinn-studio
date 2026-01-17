@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { NodesInternal } from 'src/utils/layout/NodesContext';

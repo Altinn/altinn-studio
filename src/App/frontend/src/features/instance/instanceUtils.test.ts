@@ -2,7 +2,7 @@ import { jest } from '@jest/globals';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import {
   getCurrentDataTypeForApplication,
   getCurrentTaskDataElementId,

@@ -4,7 +4,7 @@ import { Alert, Button } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { isAxiosError } from 'axios';
 
-import { getApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { type IFailedAttachment, isDataPostError } from 'src/features/attachments';
 import { useDeleteFailedAttachment, useFailedAttachmentsFor } from 'src/features/attachments/hooks';
 import { Lang } from 'src/features/language/Lang';

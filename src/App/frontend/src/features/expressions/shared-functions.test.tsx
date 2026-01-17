@@ -9,7 +9,7 @@ import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getSubFormLayoutSetMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { type FunctionTestBase, getSharedTests, type SharedTestFunctionContext } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
