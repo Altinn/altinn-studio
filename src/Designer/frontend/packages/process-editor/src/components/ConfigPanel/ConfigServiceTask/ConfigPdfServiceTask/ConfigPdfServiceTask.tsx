@@ -28,62 +28,59 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { useStickyBottomScroll } from './useStickyBottomScroll';
+import { getAvailableTasks, filterCurrentTaskIds, generateTextResourceId } from './utils';
 
 type PdfMode = 'automatic' | 'layout-based';
-
-const generateTextResourceId = (): string => `pdf-filename-${generateRandomId(8)}`;
 
 export const ConfigPdfServiceTask = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails, modelerRef } = useBpmnContext();
   const { addLayoutSet, layoutSets, allDataModelIds, deleteLayoutSet } = useBpmnApiContext();
   const { validateLayoutSetName } = useValidateLayoutSetName();
-  const taskIdsId = useId();
-  const updateTaskIds = useUpdatePdfConfigTaskIds();
   const { org, app } = useStudioEnvironmentParams();
   const navigate = useNavigate();
-
+  const taskIdsId = useId();
+  const updateTaskIds = useUpdatePdfConfigTaskIds();
   const { data: textResourcesData } = useTextResourcesQuery(org, app);
-  const textResources = textResourcesData?.[DEFAULT_LANGUAGE] ?? [];
   const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
+
+  const modelerInstance = modelerRef.current;
+  const modeling: Modeling = modelerInstance.get('modeling');
+  const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
 
   const studioModeler = new StudioModeler();
   const allTasks = studioModeler.getAllTasksByType('bpmn:Task');
-  const availableTasks = allTasks.map((task) => ({
-    id: task.id,
-    name: task.businessObject?.name || '',
-  }));
+  const availableTasks = getAvailableTasks(allTasks);
+  const availableTaskIds = availableTasks.map((task) => task.id);
 
   const pdfConfig = bpmnDetails.element.businessObject.extensionElements.values[0].pdfConfig;
-  const currentTaskIds =
-    (pdfConfig.autoPdfTaskIds?.taskIds as [{ value: string }])
-      ?.filter((taskId) => availableTasks.map((task) => task.id).includes(taskId.value))
-      .map((taskId) => taskId.value) || [];
-
+  const currentTaskIds = filterCurrentTaskIds(pdfConfig, availableTaskIds);
   const storedFilenameTextResourceId = pdfConfig.filenameTextResourceKey?.value || '';
-  const [selectedTaskIds, setSelectedTaskIds] = useState(currentTaskIds);
 
-  const [newLayoutSetName, setNewLayoutSetName] = useState('');
-  const [newLayoutSetNameError, setNewLayoutSetNameError] = useState('');
-
+  const textResources = textResourcesData?.[DEFAULT_LANGUAGE] ?? [];
   const currentLayoutSet = layoutSets.sets.find(
     (layoutSet) => layoutSet.tasks?.[0] === bpmnDetails.id,
   );
-
   const initialMode: PdfMode = currentLayoutSet ? 'layout-based' : 'automatic';
+
+  const existingDataType = currentLayoutSet?.dataType;
+  const dataModelOptionsToSelect: string[] = existingDataType
+    ? [...new Set([...allDataModelIds, existingDataType])]
+    : allDataModelIds;
+  const currentValue = existingDataType ? [existingDataType] : [];
+
+  const [selectedTaskIds, setSelectedTaskIds] = useState(currentTaskIds);
+  const [newLayoutSetName, setNewLayoutSetName] = useState('');
+  const [newLayoutSetNameError, setNewLayoutSetNameError] = useState('');
   const [pdfMode, setPdfMode] = useState<PdfMode>(initialMode);
-
-  const setValueRef = useRef<((value: string) => void) | null>(null);
-
   const [isTextResourceEditorOpen, setIsTextResourceEditorOpen] = useState(false);
   const [currentTextResourceId, setCurrentTextResourceId] = useState<string>(
     storedFilenameTextResourceId,
   );
+  const [selectedValue, setSelectedValue] = useState(currentValue);
 
-  const { ref: textResourceActionRef, onOpen: onOpenTextResourceEditor } =
-    useStickyBottomScroll<HTMLDivElement>(isTextResourceEditorOpen);
+  const setValueRef = useRef<((value: string) => void) | null>(null);
 
   const handlePdfModeChange = (value: string) => {
     const newMode = value as PdfMode;
@@ -109,13 +106,12 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
     onChange: handlePdfModeChange,
   });
 
+  const { ref: textResourceActionRef, onOpen: onOpenTextResourceEditor } =
+    useStickyBottomScroll<HTMLDivElement>(isTextResourceEditorOpen);
+
   setValueRef.current = (value: string) => {
     setValue(value);
   };
-
-  const modelerInstance = modelerRef.current;
-  const modeling: Modeling = modelerInstance.get('modeling');
-  const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
 
   const updateBpmnFilenameTextResourceKey = (textResourceId: string) => {
     if (textResourceId === pdfConfig.filenameTextResourceKey?.value) {
@@ -161,6 +157,23 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
     updateBpmnFilenameTextResourceKey('');
   };
 
+  const handleTaskIdsChange = (newTaskIds: string[]) => {
+    setSelectedTaskIds(newTaskIds);
+    updateTaskIds(newTaskIds);
+  };
+
+  const handleCreateLayoutSet = () => {
+    addLayoutSet({
+      layoutSetIdToUpdate: newLayoutSetName,
+      taskType: 'pdf',
+      layoutSetConfig: {
+        id: newLayoutSetName,
+        dataType: selectedValue[0],
+        tasks: [bpmnDetails.id],
+      },
+    });
+  };
+
   const displayTextResourceValue =
     textResources.find((tr) => tr.id === storedFilenameTextResourceId)?.value ?? '';
 
@@ -177,32 +190,6 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
     ),
     tabLabelType: t('process_editor.configuration_panel_pdf_filename_tab_write'),
     tabLabelSearch: t('process_editor.configuration_panel_pdf_filename_tab_search'),
-  };
-
-  const handleTaskIdsChange = (newTaskIds: string[]) => {
-    setSelectedTaskIds(newTaskIds);
-    updateTaskIds(newTaskIds);
-  };
-
-  const existingDataType = currentLayoutSet?.dataType;
-
-  const dataModelOptionsToSelect: string[] = existingDataType
-    ? [...new Set([...allDataModelIds, existingDataType])]
-    : allDataModelIds;
-
-  const currentValue = existingDataType ? [existingDataType] : [];
-  const [selectedValue, setSelectedValue] = useState(currentValue);
-
-  const handleCreateLayoutSet = () => {
-    addLayoutSet({
-      layoutSetIdToUpdate: newLayoutSetName,
-      taskType: 'pdf',
-      layoutSetConfig: {
-        id: newLayoutSetName,
-        dataType: selectedValue[0],
-        tasks: [bpmnDetails.id],
-      },
-    });
   };
 
   return (
