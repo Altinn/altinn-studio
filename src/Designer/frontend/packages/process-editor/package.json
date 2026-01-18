@@ -5,7 +5,7 @@
   "license": "MIT",
   "main": "index.ts",
   "private": true,
-  "packageManager": "yarn@4.9.4",
+  "packageManager": "yarn@4.12.0",
   "scripts": {
     "test": "jest"
   },
@@ -19,7 +19,7 @@
     "typescript": "5.9.3"
   },
   "dependencies": {
-    "bpmn-js": "18.7.0",
+    "bpmn-js": "18.10.1",
     "bpmn-moddle": "9.0.4"
   }
 }
