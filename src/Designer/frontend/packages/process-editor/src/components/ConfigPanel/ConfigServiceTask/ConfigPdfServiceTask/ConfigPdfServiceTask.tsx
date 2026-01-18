@@ -29,6 +29,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
+import { useStickyBottomScroll } from './useStickyBottomScroll';
 
 type PdfMode = 'automatic' | 'layout-based';
 
@@ -82,6 +83,9 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
     storedFilenameTextResourceId,
   );
 
+  const { ref: textResourceActionRef, onOpen: onOpenTextResourceEditor } =
+    useStickyBottomScroll<HTMLDivElement>(isTextResourceEditorOpen);
+
   const handlePdfModeChange = (value: string) => {
     const newMode = value as PdfMode;
 
@@ -130,7 +134,9 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
     });
   };
 
-  const handleOpenTextResourceEditor = () => {
+  const handleOpenTextResourceEditor = (event: React.MouseEvent<HTMLButtonElement>) => {
+    onOpenTextResourceEditor(event.currentTarget);
+
     if (!storedFilenameTextResourceId) {
       setCurrentTextResourceId(generateTextResourceId());
     } else {
@@ -326,16 +332,18 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
           </StudioParagraph>
 
           {isTextResourceEditorOpen ? (
-            <StudioTextResourceAction
-              textResources={textResources}
-              textResourceId={currentTextResourceId}
-              generateId={generateTextResourceId}
-              setIsOpen={setIsTextResourceEditorOpen}
-              handleIdChange={handleTextResourceIdChange}
-              handleValueChange={handleValueChange}
-              handleRemoveTextResource={handleDeleteTextResource}
-              texts={texts}
-            />
+            <div ref={textResourceActionRef}>
+              <StudioTextResourceAction
+                textResources={textResources}
+                textResourceId={currentTextResourceId}
+                generateId={generateTextResourceId}
+                setIsOpen={setIsTextResourceEditorOpen}
+                handleIdChange={handleTextResourceIdChange}
+                handleValueChange={handleValueChange}
+                handleRemoveTextResource={handleDeleteTextResource}
+                texts={texts}
+              />
+            </div>
           ) : (
             <StudioProperty.Button
               onClick={handleOpenTextResourceEditor}
