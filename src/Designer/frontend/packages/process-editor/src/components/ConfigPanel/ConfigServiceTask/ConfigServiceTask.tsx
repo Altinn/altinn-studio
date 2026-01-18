@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { ConfigContentContainer } from '../ConfigContent/ConfigContentContainer';
 import classes from './ConfigServiceTask.module.css';
-import { ConfigPdfServiceTask } from './ConfigPdfServiceTask/ConfigPdfServiceTask';
+import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
 import { EditTaskId } from '../ConfigContent/EditTaskId/EditTaskId';
 import { StudioDisplayTile } from '@studio/components';
 

@@ -39,7 +39,7 @@ class UpdateTaskIdCommandHandler implements CommandHandler {
     ) as Element[];
 
     pdfTasks.forEach((pdfTask) => {
-      const taskIds: [{ value: string }] =
+      const taskIds: { value: string }[] =
         pdfTask.businessObject.extensionElements.values[0].pdfConfig?.autoPdfTaskIds?.taskIds;
 
       if (!taskIds) {
