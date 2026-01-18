@@ -2,33 +2,37 @@ import React, { useState, useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
-import { Combobox, Label } from '@digdir/designsystemet-react';
+import { Combobox } from '@digdir/designsystemet-react';
 import {
   StudioButton,
-  StudioDisplayTile,
+  StudioCard,
   StudioList,
   StudioParagraph,
+  StudioProperty,
   StudioRadio,
   StudioRadioGroup,
-  StudioTextResourceInput,
   StudioTextfield,
+  StudioTextResourceAction,
   useStudioRadioGroup,
 } from '@studio/components';
-import type { TextResourceInputTexts } from '@studio/components';
-import { ArrowRightIcon } from '@studio/icons';
+import type { StudioTextResourceActionTexts } from '@studio/components';
+import { PencilIcon } from '@studio/icons';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import classes from './ConfigPdfServiceTask.module.css';
 import { useUpdatePdfConfigTaskIds } from '@altinn/process-editor/hooks/useUpdatePdfConfigTaskIds';
 import { useBpmnApiContext } from '@altinn/process-editor/contexts/BpmnApiContext';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { generateRandomId } from 'app-shared/utils/generateRandomId';
 
 type PdfMode = 'automatic' | 'layout-based';
+
+const generateTextResourceId = (): string => `pdf-filename-${generateRandomId(8)}`;
 
 export const ConfigPdfServiceTask = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -38,6 +42,7 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
   const taskIdsId = useId();
   const updateTaskIds = useUpdatePdfConfigTaskIds();
   const { org, app } = useStudioEnvironmentParams();
+  const navigate = useNavigate();
 
   const { data: textResourcesData } = useTextResourcesQuery(org, app);
   const textResources = textResourcesData?.[DEFAULT_LANGUAGE] ?? [];
@@ -56,23 +61,26 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
       ?.filter((taskId) => availableTasks.map((task) => task.id).includes(taskId.value))
       .map((taskId) => taskId.value) || [];
 
-  const [filenameTextResourceId, setFilenameTextResourceId] = useState<string>(
-    pdfConfig.filenameTextResourceKey?.value || '',
-  );
+  const storedFilenameTextResourceId = pdfConfig.filenameTextResourceKey?.value || '';
   const [selectedTaskIds, setSelectedTaskIds] = useState(currentTaskIds);
 
   const [newLayoutSetName, setNewLayoutSetName] = useState('');
   const [newLayoutSetNameError, setNewLayoutSetNameError] = useState('');
   const [dataModelError, setDataModelError] = useState('');
 
-  const currentLayoutSet = layoutSets.sets.filter(
-    (layoutSet) => layoutSet.tasks[0] === bpmnDetails.id,
-  )[0];
+  const currentLayoutSet = layoutSets.sets.find(
+    (layoutSet) => layoutSet.tasks?.[0] === bpmnDetails.id,
+  );
 
   const initialMode: PdfMode = currentLayoutSet ? 'layout-based' : 'automatic';
   const [pdfMode, setPdfMode] = useState<PdfMode>(initialMode);
 
   const setValueRef = useRef<((value: string) => void) | null>(null);
+
+  const [isTextResourceEditorOpen, setIsTextResourceEditorOpen] = useState(false);
+  const [currentTextResourceId, setCurrentTextResourceId] = useState<string>(
+    storedFilenameTextResourceId,
+  );
 
   const handlePdfModeChange = (value: string) => {
     const newMode = value as PdfMode;
@@ -106,9 +114,7 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
   const modeling: Modeling = modelerInstance.get('modeling');
   const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
 
-  const handleFilenameIdChange = (textResourceId: string) => {
-    setFilenameTextResourceId(textResourceId);
-
+  const updateBpmnFilenameTextResourceKey = (textResourceId: string) => {
     if (textResourceId === pdfConfig.filenameTextResourceKey?.value) {
       return;
     }
@@ -124,37 +130,48 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
     });
   };
 
-  const handleCreateTextResource = (textResource: { id: string; value: string }) => {
-    if (!textResource.value) {
-      return;
+  const handleOpenTextResourceEditor = () => {
+    if (!storedFilenameTextResourceId) {
+      setCurrentTextResourceId(generateTextResourceId());
+    } else {
+      setCurrentTextResourceId(storedFilenameTextResourceId);
     }
-    upsertTextResource({
-      textId: textResource.id,
-      language: DEFAULT_LANGUAGE,
-      translation: textResource.value,
-    });
-
-    handleFilenameIdChange(textResource.id);
+    setIsTextResourceEditorOpen(true);
   };
 
-  const handleUpdateTextResource = (textResource: { id: string; value: string }) => {
-    upsertTextResource({
-      textId: textResource.id,
-      language: DEFAULT_LANGUAGE,
-      translation: textResource.value,
-    });
-
-    handleFilenameIdChange(textResource.id);
+  const handleTextResourceIdChange = (id: string) => {
+    updateBpmnFilenameTextResourceKey(id);
+    setCurrentTextResourceId(id);
   };
 
-  const textResourceInputTexts: TextResourceInputTexts = {
-    editValue: '',
-    emptyTextResourceList: '',
-    idLabel: 'Valgt tekstnøkkel:',
-    search: '',
-    textResourcePickerLabel: '',
-    noTextResourceOptionLabel: '',
-    valueLabel: '',
+  const handleValueChange = (id: string, value: string) => {
+    upsertTextResource({
+      textId: id,
+      language: DEFAULT_LANGUAGE,
+      translation: value,
+    });
+  };
+
+  const handleDeleteTextResource = () => {
+    updateBpmnFilenameTextResourceKey('');
+  };
+
+  const displayTextResourceValue =
+    textResources.find((tr) => tr.id === storedFilenameTextResourceId)?.value ?? '';
+
+  const texts: StudioTextResourceActionTexts = {
+    cardLabel: `${t('process_editor.configuration_panel_pdf_filename_label')} (${t('language.' + DEFAULT_LANGUAGE)})`,
+    deleteAriaLabel: t('general.delete'),
+    saveLabel: t('general.save'),
+    cancelLabel: t('general.cancel'),
+    pickerLabel: t('process_editor.configuration_panel_pdf_filename_search_label'),
+    valueEditorAriaLabel: t('process_editor.configuration_panel_pdf_filename_value_label'),
+    valueEditorIdLabel: 'ID:',
+    noTextResourceOptionLabel: t(
+      'process_editor.configuration_panel_pdf_filename_no_text_resource',
+    ),
+    tabLabelType: t('process_editor.configuration_panel_pdf_filename_tab_write'),
+    tabLabelSearch: t('process_editor.configuration_panel_pdf_filename_tab_search'),
   };
 
   const handleTaskIdsChange = (newTaskIds: string[]) => {
@@ -191,10 +208,13 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
   };
 
   return (
-    <StudioList.Ordered className={classes.pdfConfig}>
+    <StudioList.Unordered className={classes.pdfConfig}>
       <StudioList.Item>
         <div className={classes.container}>
-          <StudioRadioGroup legend={t('process_editor.configuration_panel_pdf_mode')}>
+          <StudioRadioGroup
+            legend={t('process_editor.configuration_panel_pdf_mode')}
+            description={t('process_editor.configuration_panel_pdf_mode_description')}
+          >
             <StudioRadio
               label={t('process_editor.configuration_panel_pdf_mode_automatic')}
               {...getRadioProps({ value: 'automatic' })}
@@ -209,30 +229,17 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
             <>
               {currentLayoutSet ? (
                 <div>
-                  <StudioDisplayTile
-                    label={t('process_editor.configuration_panel_pdf_layout_set_label')}
-                    value={currentLayoutSet.id}
-                    showPadlock={false}
-                  />
-
-                  <StudioButton variant='tertiary' icon={<ArrowRightIcon />}>
-                    <Link to={`/${org}/${app}/ui-editor/layoutSet/${currentLayoutSet.id}`}>
-                      {t('process_editor.configuration_panel_pdf_layout_set_link', {
-                        layoutSetId: currentLayoutSet.id,
-                      })}
-                    </Link>
+                  <StudioButton
+                    onClick={() =>
+                      navigate(`/${org}/${app}/ui-editor/layoutSet/${currentLayoutSet.id}`)
+                    }
+                    icon={<PencilIcon />}
+                  >
+                    {t('process_editor.configuration_panel_pdf_layout_set_link')}
                   </StudioButton>
                 </div>
               ) : (
-                <div className={classes.createLayoutSet}>
-                  <StudioParagraph data-size='sm' className={classes.boldFont}>
-                    {t('process_editor.configuration_panel_pdf_layout_set_required_heading')}
-                  </StudioParagraph>
-
-                  <StudioParagraph data-size='sm'>
-                    {t('process_editor.configuration_panel_pdf_layout_set_required_description')}
-                  </StudioParagraph>
-
+                <StudioCard className={classes.createLayoutSet}>
                   <StudioTextfield
                     label={t('process_editor.configuration_panel_pdf_layout_set_name_label')}
                     description={t(
@@ -276,16 +283,13 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
                   >
                     {t('process_editor.configuration_panel_pdf_create_button')}
                   </StudioButton>
-                </div>
+                </StudioCard>
               )}
             </>
           )}
 
           {pdfMode === 'automatic' && (
             <div className={classes.taskIdSelectContainer}>
-              <Label size='small' htmlFor={taskIdsId}>
-                {t('process_editor.configuration_panel_set_auto_pdf_tasks')}
-              </Label>
               <div className={classes.taskIdSelectAndButtons}>
                 <Combobox
                   id={taskIdsId}
@@ -321,16 +325,26 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
             {t('process_editor.configuration_panel_pdf_filname_description')}
           </StudioParagraph>
 
-          <StudioTextResourceInput
-            currentId={filenameTextResourceId}
-            onChangeCurrentId={handleFilenameIdChange}
-            onCreateTextResource={handleCreateTextResource}
-            onUpdateTextResource={handleUpdateTextResource}
-            textResources={textResources}
-            texts={textResourceInputTexts}
-          />
+          {isTextResourceEditorOpen ? (
+            <StudioTextResourceAction
+              textResources={textResources}
+              textResourceId={currentTextResourceId}
+              generateId={generateTextResourceId}
+              setIsOpen={setIsTextResourceEditorOpen}
+              handleIdChange={handleTextResourceIdChange}
+              handleValueChange={handleValueChange}
+              handleRemoveTextResource={handleDeleteTextResource}
+              texts={texts}
+            />
+          ) : (
+            <StudioProperty.Button
+              onClick={handleOpenTextResourceEditor}
+              property={t('process_editor.configuration_panel_pdf_filename_label')}
+              value={displayTextResourceValue}
+            />
+          )}
         </div>
       </StudioList.Item>
-    </StudioList.Ordered>
+    </StudioList.Unordered>
   );
 };
