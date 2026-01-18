@@ -67,7 +67,6 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
 
   const [newLayoutSetName, setNewLayoutSetName] = useState('');
   const [newLayoutSetNameError, setNewLayoutSetNameError] = useState('');
-  const [dataModelError, setDataModelError] = useState('');
 
   const currentLayoutSet = layoutSets.sets.find(
     (layoutSet) => layoutSet.tasks?.[0] === bpmnDetails.id,
@@ -195,13 +194,6 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
   const [selectedValue, setSelectedValue] = useState(currentValue);
 
   const handleCreateLayoutSet = () => {
-    if (!newLayoutSetName || !selectedValue[0] || newLayoutSetNameError) {
-      if (!selectedValue[0]) {
-        setDataModelError(t('process_editor.configuration_panel_pdf_data_model_required'));
-      }
-      return;
-    }
-
     addLayoutSet({
       layoutSetIdToUpdate: newLayoutSetName,
       taskType: 'pdf',
@@ -266,10 +258,8 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
                       'process_editor.configuration_panel_pdf_select_data_model_description',
                     )}
                     size='small'
-                    error={dataModelError}
                     onValueChange={(newValue) => {
                       setSelectedValue(newValue);
-                      setDataModelError('');
                     }}
                   >
                     <Combobox.Empty>
