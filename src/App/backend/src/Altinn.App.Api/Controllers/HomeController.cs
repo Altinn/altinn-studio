@@ -2,6 +2,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features.Bootstrap;
+using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -20,6 +22,7 @@ public class HomeController : Controller
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
     private readonly IAntiforgery _antiforgery;
@@ -30,10 +33,12 @@ public class HomeController : Controller
     private readonly IAppMetadata _appMetadata;
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
     private readonly IFrontendFeatures _frontendFeatures;
+    private readonly IBootstrapGlobalService _bootstrapGlobalService;
 
     /// <summary>
     /// Initialize a new instance of the <see cref="HomeController"/> class.
     /// </summary>
+    /// <param name="serviceProvider">The serviceProvider service used to inject internal services.</param>
     /// <param name="antiforgery">The anti forgery service.</param>
     /// <param name="platformSettings">The platform settings.</param>
     /// <param name="env">The current environment.</param>
@@ -42,6 +47,7 @@ public class HomeController : Controller
     /// <param name="appMetadata">The application metadata service</param>
     /// <param name="frontendFeatures">The frontend features service</param>
     public HomeController(
+        IServiceProvider serviceProvider,
         IAntiforgery antiforgery,
         IOptions<PlatformSettings> platformSettings,
         IWebHostEnvironment env,
@@ -57,6 +63,7 @@ public class HomeController : Controller
         _appSettings = appSettings.Value;
         _appResources = appResources;
         _appMetadata = appMetadata;
+        _bootstrapGlobalService = serviceProvider.GetRequiredService<IBootstrapGlobalService>();
         _frontendFeatures = frontendFeatures;
     }
 
@@ -96,9 +103,8 @@ public class HomeController : Controller
 
         if (await ShouldShowAppView())
         {
-            ViewBag.org = org;
-            ViewBag.app = app;
-            return Content(await GenerateHtml(org, app), "text/html; charset=utf-8");
+            BootstrapGlobalResponse appGlobalState = await _bootstrapGlobalService.GetGlobalState();
+            return Content(await GenerateHtml(org, app, appGlobalState), "text/html; charset=utf-8");
         }
 
         string scheme = _env.IsDevelopment() ? "http" : "https";
@@ -119,7 +125,7 @@ public class HomeController : Controller
         return Redirect(redirectUrl);
     }
 
-    private async Task<string> GenerateHtml(string org, string app)
+    private async Task<string> GenerateHtml(string org, string app, BootstrapGlobalResponse appGlobalState)
     {
         var frontendUrl = "https://altinncdn.no/toolkits/altinn-app-frontend/4";
         if (HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var frontendVersionCookie))
@@ -129,6 +135,7 @@ public class HomeController : Controller
 
         var featureToggles = await _frontendFeatures.GetFrontendFeatures();
         var featureTogglesJson = JsonSerializer.Serialize(featureToggles, _jsonSerializerOptions);
+        var globalDataJson = JsonSerializer.Serialize(appGlobalState, _jsonSerializerOptions);
 
         var htmlContent = $$"""
             <!DOCTYPE html>
@@ -147,6 +154,7 @@ public class HomeController : Controller
                 window.org = '{{org}}';
                 window.app = '{{app}}';
                 window.featureToggles = {{featureTogglesJson}};
+                window.altinnAppGlobalData = {{globalDataJson}};
               </script>
               <script src="{{frontendUrl}}/altinn-app-frontend.js"></script>
             </body>
