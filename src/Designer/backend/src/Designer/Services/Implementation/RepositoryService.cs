@@ -68,19 +68,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
             string orgPath = repositorySettings.GetOrgPath(serviceMetadata.Org, developer);
             string appPath = Path.Combine(orgPath, serviceMetadata.RepositoryName);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(serviceMetadata.Org, serviceMetadata.RepositoryName, developer);
 
             Directory.CreateDirectory(orgPath);
             Directory.CreateDirectory(appPath);
 
             // Creates all the files
             // TODO: parallelize file and folder copy operations
-            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, generalSettings.DeploymentLocation, repositorySettings.GetDeploymentFolderName(), developer);
-            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, generalSettings.AppLocation, repositorySettings.GetAppFolderName(), developer);
-            CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, repositorySettings.DockerfileFileName, developer);
-            CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, repositorySettings.AppSlnFileName, developer);
-            CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, repositorySettings.GitIgnoreFileName, developer);
-            CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, repositorySettings.DockerIgnoreFileName, developer);
-            UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName, developer);
+            CopyFolderToApp(editingContext, generalSettings.DeploymentLocation, repositorySettings.GetDeploymentFolderName());
+            CopyFolderToApp(editingContext, generalSettings.AppLocation, repositorySettings.GetAppFolderName());
+            CopyFileToApp(editingContext, repositorySettings.DockerfileFileName);
+            CopyFileToApp(editingContext, repositorySettings.AppSlnFileName);
+            CopyFileToApp(editingContext, repositorySettings.GitIgnoreFileName);
+            CopyFileToApp(editingContext, repositorySettings.DockerIgnoreFileName);
+            UpdateAuthorizationPolicyFile(editingContext);
             return true;
         }
 
@@ -145,7 +146,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 CreateServiceMetadata(metadata, authenticatedContext.Developer);
                 await applicationMetadataService.CreateApplicationMetadata(authenticatedContext.Org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 await textsService.CreateLanguageResources(authenticatedContext.Org, serviceConfig.RepositoryName, authenticatedContext.Developer);
-                await CreateAltinnStudioSettings(authenticatedContext.Org, serviceConfig.RepositoryName, authenticatedContext.Developer);
+                await CreateAltinnStudioSettings(authenticatedContext);
 
                 CommitInfo commitInfo = new() { Org = authenticatedContext.Org, Repository = serviceConfig.RepositoryName, Message = "App created" };
                 sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
@@ -154,9 +155,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return repository;
         }
 
-        private async Task CreateAltinnStudioSettings(string org, string repository, string developer)
+        private async Task CreateAltinnStudioSettings(AltinnRepoEditingContext editingContext)
         {
-            AltinnGitRepository altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+            AltinnGitRepository altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(editingContext.Org, editingContext.Repo, editingContext.Developer);
             AltinnStudioSettings settings = new() { RepoType = AltinnRepositoryType.App, UseNullableReferenceTypes = true };
             await altinnGitRepository.SaveAltinnStudioSettings(settings);
         }
@@ -233,19 +234,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         // IKKE SLETT
-        private void UpdateAuthorizationPolicyFile(string org, string app, string developer)
+        private void UpdateAuthorizationPolicyFile(AltinnRepoEditingContext editingContext)
         {
             // Read the authorization policy template (XACML file).
-            string path = repositorySettings.GetServicePath(org, app, developer);
+            string path = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
             string policyPath = Path.Combine(path, generalSettings.AuthorizationPolicyTemplate);
             string authorizationPolicyData = File.ReadAllText(policyPath, Encoding.UTF8);
 
             File.WriteAllText(policyPath, authorizationPolicyData, Encoding.UTF8);
         }
 
-        private void CopyFolderToApp(string org, string app, string sourcePath, string path, string developer)
+        private void CopyFolderToApp(AltinnRepoEditingContext editingContext, string sourcePath, string path)
         {
-            string targetPath = Path.Combine(repositorySettings.GetServicePath(org, app, developer), path);
+            string targetPath = Path.Combine(repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer), path);
 
             // Create the app deployment folder
             Directory.CreateDirectory(targetPath);
@@ -263,9 +264,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private void CopyFileToApp(string org, string app, string fileName, string developer)
+        private void CopyFileToApp(AltinnRepoEditingContext editingContext, string fileName)
         {
-            string appPath = repositorySettings.GetServicePath(org, app, developer);
+            string appPath = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
             File.Copy($"{generalSettings.TemplatePath}/{fileName}", Path.Combine(appPath, fileName));
         }
 
