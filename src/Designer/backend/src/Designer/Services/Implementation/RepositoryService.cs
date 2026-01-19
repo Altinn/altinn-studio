@@ -47,7 +47,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// <param name="applicationMetadataService">The service for handling the application metadata file</param>
     /// <param name="textsService">The service for handling texts</param>
     /// <param name="resourceRegistryService">The service for publishing resource in the ResourceRegistry</param>
-    public class RepositoryService(
+    public partial class RepositoryService(
         ServiceRepositorySettings repositorySettings,
         GeneralSettings generalSettings,
         IHttpContextAccessor httpContextAccessor,
@@ -59,7 +59,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         ITextsService textsService,
         IResourceRegistry resourceRegistryService) : IRepository
     {
-        private readonly string _resourceIdentifierRegex = "^[a-z0-9_æøå-]*$";
         private readonly JsonSerializerOptions _serializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
 
         /// <summary>
@@ -462,7 +461,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             try
             {
-                bool isResourceIdentifierValid = !string.IsNullOrEmpty(newResource.Identifier) && Regex.IsMatch(newResource.Identifier, _resourceIdentifierRegex) && !newResource.Identifier.StartsWith("app_");
+                bool isResourceIdentifierValid = !string.IsNullOrEmpty(newResource.Identifier) && ResourceIdentifierRegex().IsMatch(newResource.Identifier) && !newResource.Identifier.StartsWith("app_");
                 if (!isResourceIdentifierValid)
                 {
                     return new StatusCodeResult(400);
@@ -685,5 +684,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
             });
         }
+
+        [GeneratedRegex("^[a-z0-9_æøå-]*$")]
+        private static partial Regex ResourceIdentifierRegex();
     }
 }
