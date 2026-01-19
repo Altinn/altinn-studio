@@ -532,9 +532,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<bool> SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy)
+        public async Task<bool> SavePolicy(string org, string repo, string developer, string resourceId, XacmlPolicy xacmlPolicy)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string policyPath = GetPolicyPath(org, repo, developer, resourceId);
 
 

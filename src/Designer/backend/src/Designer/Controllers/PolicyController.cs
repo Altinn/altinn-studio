@@ -89,9 +89,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("")]
         public async Task<ActionResult> UpdateApplicationPolicy(string org, string app, [FromBody] ResourcePolicy applicationPolicy)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
 
-            await _repository.SavePolicy(org, app, null, xacmlPolicy);
+            await _repository.SavePolicy(org, app, developer, null, xacmlPolicy);
 
             return Ok(applicationPolicy);
         }
@@ -110,9 +111,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("{resourceid}")]
         public async Task<ActionResult> UpdateResourcePolicy(string org, string app, string resourceid, [FromBody] ResourcePolicy applicationPolicy)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
 
-            await _repository.SavePolicy(org, app, resourceid, xacmlPolicy);
+            await _repository.SavePolicy(org, app, developer, resourceid, xacmlPolicy);
 
             return Ok(applicationPolicy);
         }

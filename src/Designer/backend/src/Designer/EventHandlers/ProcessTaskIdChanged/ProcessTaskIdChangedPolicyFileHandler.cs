@@ -40,7 +40,7 @@ public class ProcessTaskIdChangedPolicyFileHandler : INotificationHandler<Proces
                 {
                     xacmlPolicy = PolicyConverter.ConvertPolicy(resourcePolicy);
                     await _repository.SavePolicy(editingContext.Org, editingContext.Repo,
-                        null, xacmlPolicy);
+                        editingContext.Developer, null, xacmlPolicy);
                     hasChanges = true;
                 }
 

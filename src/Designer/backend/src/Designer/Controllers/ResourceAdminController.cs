@@ -406,13 +406,13 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> AddExistingResource(string org, string resourceId, string env)
         {
             string repository = GetRepositoryName(org);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             ServiceResource resource = await _resourceRegistry.GetResource(resourceId, env);
             if (resource == null)
             {
                 return new StatusCodeResult(404);
             }
             resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             StatusCodeResult statusCodeResult = _repository.AddServiceResource(org, developer, resource);
             if (statusCodeResult.StatusCode != (int)HttpStatusCode.Created)
             {
@@ -420,7 +420,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             XacmlPolicy policy = await _resourceRegistry.GetResourcePolicy(resourceId, env);
-            await _repository.SavePolicy(org, repository, resource.Identifier, policy);
+            await _repository.SavePolicy(org, repository, developer, resource.Identifier, policy);
             return Ok(resource);
         }
 
@@ -442,16 +442,16 @@ namespace Altinn.Studio.Designer.Controllers
                 return new StatusCodeResult(400);
             }
             string repository = GetRepositoryName(org);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, env.ToLower());
             resource.Identifier = resourceId;
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             StatusCodeResult statusCodeResult = _repository.AddServiceResource(org, developer, resource);
             if (statusCodeResult.StatusCode != (int)HttpStatusCode.Created)
             {
                 return statusCodeResult;
             }
             XacmlPolicy policy = await _resourceRegistry.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier, env.ToLower());
-            await _repository.SavePolicy(org, repository, resource.Identifier, policy);
+            await _repository.SavePolicy(org, repository, developer, resource.Identifier, policy);
             return Ok(resource);
         }
 
