@@ -34,14 +34,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Copies a repository within an organisation
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="sourceRepository">The name of the repository to be copied.</param>
+        /// <param name="authenticatedContext">The authenticated repository editing context</param>
         /// <param name="targetRepository">The name of the new repository.</param>
-        /// <param name="developer">Developer's username</param>
-        /// <param name="targetOrg">TThe name of the organization in which the repo will be copied. If not set it defaults to <paramref name="org"/></param>
-        /// <param name="token">The developer access token</param>
+        /// <param name="targetOrg">The name of the organization in which the repo will be copied. If not set it defaults to <paramref name="authenticatedContext.Org"/></param>
         /// <returns>The repository created in gitea</returns>
-        Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer, string token, string targetOrg = null);
+        Task<RepositoryClient.Model.Repository> CopyRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, string targetRepository, string targetOrg = null);
 
         /// <summary>
         /// Deletes the local repository for the user and makes a new clone of the repo

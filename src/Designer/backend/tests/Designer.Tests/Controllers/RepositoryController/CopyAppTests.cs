@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
@@ -37,7 +38,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             string uri = $"{UrlPrefix}/copy-app?sourceRepository={ValidSourceRepo}&targetRepository={ValidTargetRepo}";
 
             _repositoryMock
-                .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r => r.CopyRepository(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new Repository { RepositoryCreatedStatus = HttpStatusCode.Created, CloneUrl = "https://www.vg.no" });
 
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, uri);
@@ -73,7 +74,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             string uri = $"{UrlPrefix}/copy-app?sourceRepository={ValidSourceRepo}&targetRepository={ValidTargetRepo}";
 
             _repositoryMock
-                .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r => r.CopyRepository(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new Repository { RepositoryCreatedStatus = HttpStatusCode.GatewayTimeout });
 
             _repositoryMock
@@ -96,7 +97,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             string uri = $"{UrlPrefix}/copy-app?sourceRepository={ValidSourceRepo}&targetRepository={ValidTargetRepo}";
 
             _repositoryMock
-                .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r => r.CopyRepository(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), It.IsAny<string>(), It.IsAny<string>()))
                .Throws(new IOException());
 
             _repositoryMock

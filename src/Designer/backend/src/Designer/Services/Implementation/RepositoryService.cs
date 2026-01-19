@@ -163,11 +163,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer, string token, string targetOrg = null)
+        public async Task<RepositoryClient.Model.Repository> CopyRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, string targetRepository, string targetOrg = null)
         {
-            targetOrg ??= org;
+            targetOrg ??= authenticatedContext.Org;
             CreateRepoOption options = new(targetRepository);
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceRepository, developer, token);
 
             RepositoryClient.Model.Repository repository = await CreateRemoteRepository(targetOrg, options);
 
@@ -176,23 +175,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return repository;
             }
 
-            string targetRepositoryPath = repositorySettings.GetServicePath(targetOrg, targetRepository, developer);
+            string targetRepositoryPath = repositorySettings.GetServicePath(targetOrg, targetRepository, authenticatedContext.Developer);
 
             if (Directory.Exists(targetRepositoryPath))
             {
-                FireDeletionOfLocalRepo(targetOrg, targetRepository, developer);
+                FireDeletionOfLocalRepo(targetOrg, targetRepository, authenticatedContext.Developer);
             }
 
             sourceControl.CloneRemoteRepository(authenticatedContext, targetRepositoryPath);
-            AltinnAppGitRepository targetAppRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepository, developer);
-
-            await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{targetOrg}/{targetRepository}.git");
+            AltinnAppGitRepository targetAppRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepository, authenticatedContext.Developer);
+            await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{authenticatedContext.Org}/{authenticatedContext.Repo}.git", $"repos/{targetOrg}/{targetRepository}.git");
 
             ApplicationMetadata appMetadata = await targetAppRepository.GetApplicationMetadata();
             appMetadata.Id = $"{targetOrg}/{targetRepository}";
             appMetadata.Org = targetOrg;
-            appMetadata.CreatedBy = developer;
-            appMetadata.LastChangedBy = developer;
+            appMetadata.CreatedBy = authenticatedContext.Developer;
+            appMetadata.LastChangedBy = authenticatedContext.Developer;
             appMetadata.Created = DateTime.UtcNow;
             appMetadata.LastChanged = appMetadata.Created;
             await targetAppRepository.SaveApplicationMetadata(appMetadata);
@@ -205,7 +203,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 await targetAppRepository.SaveAppMetadataConfig(serviceConfig);
             }
 
-            CommitInfo commitInfo = new() { Org = targetOrg, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
+            CommitInfo commitInfo = new() { Org = targetOrg, Repository = targetRepository, Message = $"App cloned from {authenticatedContext.Repo} {DateTime.Now.Date.ToShortDateString()}" };
             sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
 
             return repository;

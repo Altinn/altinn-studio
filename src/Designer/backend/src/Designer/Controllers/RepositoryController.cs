@@ -97,10 +97,12 @@ namespace Altinn.Studio.Designer.Controllers
             targetOrg ??= org;
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceRepository, developer, token);
 
             try
             {
-                RepositoryModel repo = await _repository.CopyRepository(org, sourceRepository, targetRepository, developer, targetOrg);
+                RepositoryModel repo = await _repository.CopyRepository(authenticatedContext, targetRepository, targetOrg);
 
                 if (repo.RepositoryCreatedStatus == HttpStatusCode.Created)
                 {

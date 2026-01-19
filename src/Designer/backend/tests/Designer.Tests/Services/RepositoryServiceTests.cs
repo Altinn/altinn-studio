@@ -149,9 +149,10 @@ namespace Designer.Tests.Services
             string targetRepository = "existing-repo";
 
             RepositoryService sut = GetServiceForTest(developer);
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceRepository, developer, token);
 
             // Act
-            Repository actual = await sut.CopyRepository(org, sourceRepository, targetRepository, developer, token);
+            Repository actual = await sut.CopyRepository(authenticatedContext, targetRepository);
 
             // Assert
             Assert.Equal(HttpStatusCode.Conflict, actual.RepositoryCreatedStatus);
@@ -168,6 +169,7 @@ namespace Designer.Tests.Services
             string origRepo = "apps-test-2021";
             string workingRemoteRepositoryName = TestDataHelper.GenerateTestRepoName(origRemoteRepo);
             string targetRepositoryName = TestDataHelper.GenerateTestRepoName(origRepo);
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, workingRemoteRepositoryName, developer, token);
             var workingRemoteDirPath = string.Empty;
             var createdTargetRepoPath = string.Empty;
             try
@@ -180,7 +182,7 @@ namespace Designer.Tests.Services
                 RepositoryService sut = GetServiceForTest(developer);
 
                 // Act
-                await sut.CopyRepository(org, workingRemoteRepositoryName, targetRepositoryName, developer, token);
+                await sut.CopyRepository(authenticatedContext, targetRepositoryName);
 
                 // Assert
                 string developerClonePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), developer, org);
@@ -205,6 +207,7 @@ namespace Designer.Tests.Services
             string token = "test-token";
             string origRemoteRepo = "apps-test";
             string workingSourceRepoName = TestDataHelper.GenerateTestRepoName(origRemoteRepo);
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, workingSourceRepoName, developer, token);
             string targetRepository = TestDataHelper.GenerateTestRepoName("apps-test-clone");
             string expectedRepoPath = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
             var workingRemoteDirPath = string.Empty;
@@ -217,7 +220,7 @@ namespace Designer.Tests.Services
                 RepositoryService sut = GetServiceForTest(developer);
 
                 // Act
-                await sut.CopyRepository(org, workingSourceRepoName, targetRepository, developer, token);
+                await sut.CopyRepository(authenticatedContext, targetRepository);
 
                 // Assert
                 string appMetadataString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
@@ -252,6 +255,7 @@ namespace Designer.Tests.Services
             string token = "test-token";
             string sourceWithConfig = TestDataHelper.GenerateTestRepoName("cfg");
             string targetRepository = TestDataHelper.GenerateTestRepoName("clone");
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceWithConfig, developer, token);
             string workingRemoteDirPath = string.Empty;
 
             try
@@ -273,7 +277,7 @@ namespace Designer.Tests.Services
                 RepositoryService sut = GetServiceForTest(developer);
 
                 // Act
-                await sut.CopyRepository(org, sourceWithConfig, targetRepository, developer, token);
+                await sut.CopyRepository(authenticatedContext, targetRepository);
 
                 string destRepoPath = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
                 string destConfigPath = Path.Combine(destRepoPath, "config.json");
