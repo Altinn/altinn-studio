@@ -287,7 +287,7 @@ public class HomeController : Controller
 
     private DataType? GetStatelessDataType(ApplicationMetadata application)
     {
-        string layoutSetsString = _appResources.GetLayoutSets();
+        string? layoutSetsString = _appResources.GetLayoutSetsString();
 
         // Stateless apps only work with layousets
         if (!string.IsNullOrEmpty(layoutSetsString))
