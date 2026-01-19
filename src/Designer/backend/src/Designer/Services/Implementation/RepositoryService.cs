@@ -553,9 +553,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public XacmlPolicy GetPolicy(string org, string repo, string resourceId)
+        public XacmlPolicy GetPolicy(string org, string repo, string developer, string resourceId)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string policyPath = GetPolicyPath(org, repo, developer, resourceId);
             if (!File.Exists(policyPath))
             {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.PolicyAdmin;
@@ -36,7 +37,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("")]
         public ActionResult GetAppPolicy(string org, string app)
         {
-            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, null);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, developer, null);
 
             if (xacmlPolicy == null)
             {
@@ -61,7 +63,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("{resourceid}")]
         public ActionResult GetResourcePolicy(string org, string app, string resourceid)
         {
-            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, developer, resourceid);
 
             if (xacmlPolicy == null)
             {
@@ -118,7 +121,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("validate")]
         public ActionResult ValidateAppPolicy(string org, string app)
         {
-            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, null);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, developer, null);
 
             ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
             ValidationProblemDetails vpd = ValidatePolicy(resourcePolicy);
@@ -133,7 +137,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("validate/{resourceid}")]
         public ActionResult ValidateResourcePolicy(string org, string app, string resourceid)
         {
-            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, developer, resourceid);
             if (xacmlPolicy == null)
             {
                 ModelState.AddModelError("policy", "policyerror.missingpolicy");

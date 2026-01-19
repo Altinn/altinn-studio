@@ -65,9 +65,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">The organisation that owns the repository where the resource resides</param>
         /// <param name="repo">The repository where the resource resides</param>
+        /// <param name="developer">The developer making the request</param>
         /// <param name="resourceId">The resourceId if resource repository</param>
         /// <returns></returns>
-        XacmlPolicy GetPolicy(string org, string repo, string resourceId);
+        XacmlPolicy GetPolicy(string org, string repo, string developer, string resourceId);
 
         /// <summary>
         /// Gets the filepath of the policyfile
