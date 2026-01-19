@@ -43,10 +43,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Deletes the local repository for the user and makes a new clone of the repo
         /// </summary>
-        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="token">The developer access token</param>
+        /// <param name="authenticatedContext">The authenticated repository editing context</param>
         /// <returns>True if the reset was successful, otherwise false.</returns>
-        bool ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext, string token);
+        bool ResetLocalRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext);
 
         /// <summary>
         /// Saves policy to git repository

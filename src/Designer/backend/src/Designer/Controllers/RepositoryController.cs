@@ -288,11 +288,11 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             string token = await HttpContext.GetDeveloperAppTokenAsync();
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
 
             try
             {
-                _repository.ResetLocalRepository(editingContext, token);
+                _repository.ResetLocalRepository(authenticatedContext);
                 return Ok();
             }
             catch (Exception)

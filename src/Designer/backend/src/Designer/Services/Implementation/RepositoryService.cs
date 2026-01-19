@@ -210,14 +210,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public bool ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext, string token)
+        public bool ResetLocalRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
-            string repoPath = repositorySettings.GetServicePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromEditingContext(altinnRepoEditingContext, token);
+            string repoPath = repositorySettings.GetServicePath(authenticatedContext.Org, authenticatedContext.Repo, authenticatedContext.Developer);
 
             if (Directory.Exists(repoPath))
             {
-                FireDeletionOfLocalRepo(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+                FireDeletionOfLocalRepo(authenticatedContext.Org, authenticatedContext.Repo, authenticatedContext.Developer);
                 sourceControl.CloneRemoteRepository(authenticatedContext);
                 return true;
             }
