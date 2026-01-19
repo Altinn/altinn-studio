@@ -524,7 +524,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> SavePolicy(string org, string repo, string developer, string resourceId, XacmlPolicy xacmlPolicy)
         {
-            string policyPath = GetPolicyPath(org, repo, developer, resourceId);
+            string policyPath = GetPolicyPath(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), resourceId);
 
 
             string xsd;
@@ -544,7 +544,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public XacmlPolicy GetPolicy(string org, string repo, string developer, string resourceId)
         {
-            string policyPath = GetPolicyPath(org, repo, developer, resourceId);
+            string policyPath = GetPolicyPath(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), resourceId);
             if (!File.Exists(policyPath))
             {
                 return null;
@@ -562,9 +562,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetPolicyPath(string org, string repo, string developer, string resourceId)
+        public string GetPolicyPath(AltinnRepoEditingContext editingContext, string resourceId)
         {
-            string localRepoPath = repositorySettings.GetServicePath(org, repo, developer);
+            string localRepoPath = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
             string policyPath = Path.Combine(localRepoPath, generalSettings.AuthorizationPolicyTemplate);
             if (!string.IsNullOrEmpty(resourceId))
             {
