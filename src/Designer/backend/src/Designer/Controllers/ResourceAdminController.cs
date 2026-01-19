@@ -411,6 +411,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string repository = GetRepositoryName(org);
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             ServiceResource resource = await _resourceRegistry.GetResource(resourceId, env);
             if (resource == null)
             {
@@ -424,7 +425,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             XacmlPolicy policy = await _resourceRegistry.GetResourcePolicy(resourceId, env);
-            await _repository.SavePolicy(org, repository, developer, resource.Identifier, policy);
+            await _repository.SavePolicy(editingContext, resource.Identifier, policy);
             return Ok(resource);
         }
 
@@ -447,6 +448,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             string repository = GetRepositoryName(org);
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, env.ToLower());
             resource.Identifier = resourceId;
             StatusCodeResult statusCodeResult = _repository.AddServiceResource(org, developer, resource);
@@ -455,7 +457,7 @@ namespace Altinn.Studio.Designer.Controllers
                 return statusCodeResult;
             }
             XacmlPolicy policy = await _resourceRegistry.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier, env.ToLower());
-            await _repository.SavePolicy(org, repository, developer, resource.Identifier, policy);
+            await _repository.SavePolicy(editingContext, resource.Identifier, policy);
             return Ok(resource);
         }
 

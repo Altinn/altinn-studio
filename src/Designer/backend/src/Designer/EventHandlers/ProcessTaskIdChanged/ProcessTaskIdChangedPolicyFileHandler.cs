@@ -38,8 +38,7 @@ public class ProcessTaskIdChangedPolicyFileHandler : INotificationHandler<Proces
                 if (TryChangeTaskIds(resourcePolicy, notification.OldId, notification.NewId))
                 {
                     xacmlPolicy = PolicyConverter.ConvertPolicy(resourcePolicy);
-                    await _repository.SavePolicy(editingContext.Org, editingContext.Repo,
-                        editingContext.Developer, null, xacmlPolicy);
+                    await _repository.SavePolicy(editingContext, null, xacmlPolicy);
                     hasChanges = true;
                 }
 

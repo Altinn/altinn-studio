@@ -522,10 +522,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<bool> SavePolicy(string org, string repo, string developer, string resourceId, XacmlPolicy xacmlPolicy)
+        public async Task<bool> SavePolicy(AltinnRepoEditingContext editingContext, string resourceId, XacmlPolicy xacmlPolicy)
         {
-            string policyPath = GetPolicyPath(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), resourceId);
-
+            string policyPath = GetPolicyPath(editingContext, resourceId);
 
             string xsd;
             await using (MemoryStream stream = new())
