@@ -118,38 +118,36 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<RepositoryClient.Model.Repository> CreateService(string org, string developer, string token, ServiceConfiguration serviceConfig)
+        public async Task<RepositoryClient.Model.Repository> CreateService(AltinnAuthenticatedRepoEditingContext authenticatedContext, ServiceConfiguration serviceConfig)
         {
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, serviceConfig.RepositoryName, developer, token);
-            string repoPath = repositorySettings.GetServicePath(org, serviceConfig.RepositoryName, developer);
+            string repoPath = repositorySettings.GetServicePath(authenticatedContext.Org, authenticatedContext.Repo, authenticatedContext.Developer);
             CreateRepoOption options = new(serviceConfig.RepositoryName);
 
-            RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
+            RepositoryClient.Model.Repository repository = await CreateRemoteRepository(authenticatedContext.Org, options);
 
             if (repository != null && repository.RepositoryCreatedStatus == HttpStatusCode.Created)
             {
                 if (Directory.Exists(repoPath))
                 {
-                    FireDeletionOfLocalRepo(org, serviceConfig.RepositoryName, developer);
+                    FireDeletionOfLocalRepo(authenticatedContext.Org, serviceConfig.RepositoryName, authenticatedContext.Developer);
                 }
 
                 sourceControl.CloneRemoteRepository(authenticatedContext);
 
                 ModelMetadata metadata = new()
                 {
-                    Org = org,
+                    Org = authenticatedContext.Org,
                     ServiceName = serviceConfig.ServiceName,
                     RepositoryName = serviceConfig.RepositoryName,
                 };
 
                 // This creates all files
-                CreateServiceMetadata(metadata, developer);
-                await applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
-                await textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
-                await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer);
+                CreateServiceMetadata(metadata, authenticatedContext.Developer);
+                await applicationMetadataService.CreateApplicationMetadata(authenticatedContext.Org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
+                await textsService.CreateLanguageResources(authenticatedContext.Org, serviceConfig.RepositoryName, authenticatedContext.Developer);
+                await CreateAltinnStudioSettings(authenticatedContext.Org, serviceConfig.RepositoryName, authenticatedContext.Developer);
 
-                CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
-
+                CommitInfo commitInfo = new() { Org = authenticatedContext.Org, Repository = serviceConfig.RepositoryName, Message = "App created" };
                 sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
             }
 

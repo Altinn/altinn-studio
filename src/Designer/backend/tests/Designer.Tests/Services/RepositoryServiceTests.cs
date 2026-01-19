@@ -113,6 +113,8 @@ namespace Designer.Tests.Services
             string developer = "testUser";
             string token = "test-token";
 
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repositoryName, developer, token);
+
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             var repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repositoryName, developer);
             var repositoryRemoteDirectory = TestDataHelper.GetTestDataRemoteRepository(org, repositoryName);
@@ -121,7 +123,7 @@ namespace Designer.Tests.Services
 
             try
             {
-                await repositoryService.CreateService(org, developer, token, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName });
+                await repositoryService.CreateService(authenticatedContext, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName });
                 var altinnStudioSettings = await new AltinnGitRepositoryFactory(repositoriesRootDirectory).GetAltinnGitRepository(org, repositoryName, developer).GetAltinnStudioSettings();
                 Assert.Equal(AltinnRepositoryType.App, altinnStudioSettings.RepoType);
                 Assert.True(altinnStudioSettings.UseNullableReferenceTypes);

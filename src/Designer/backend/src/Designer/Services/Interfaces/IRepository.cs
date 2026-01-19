@@ -23,15 +23,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         bool DeleteLanguage(AltinnRepoEditingContext altinnRepoEditingContext, string id);
 
         /// <summary>
-        /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
+        /// Creates a new app folder under the given <paramref name="authenticatedContext.Org">authenticatedContext.Org</paramref> and saves the
         /// given <paramref name="serviceConfig"/>
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="developer"></param>
-        /// <param name="token">The developer access token</param>
-        /// <param name="serviceConfig">The ServiceConfiguration to save</param>
+        /// <param name="authenticatedContext">The authenticated repository editing context</param>
+        /// <param name="serviceConfig">The service configuration</param>
         /// <returns>The repository created in gitea</returns>
-        Task<RepositoryClient.Model.Repository> CreateService(string org, string developer, string token, ServiceConfiguration serviceConfig);
+        Task<RepositoryClient.Model.Repository> CreateService(AltinnAuthenticatedRepoEditingContext authenticatedContext, ServiceConfiguration serviceConfig);
 
         /// <summary>
         /// Copies a repository within an organisation
