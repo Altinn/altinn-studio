@@ -85,9 +85,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetAppPath(string org, string app, string developer)
+        public string GetAppPath(string org, string repo, string developer)
         {
-            return repositorySettings.GetServicePath(org, app, developer);
+            return repositorySettings.GetServicePath(org, repo, developer);
         }
 
         /// <inheritdoc/>
