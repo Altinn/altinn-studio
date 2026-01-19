@@ -5,9 +5,9 @@ using Altinn.Studio.Designer.Configuration.Marker;
 namespace Altinn.Studio.Designer.Configuration
 {
     /// <summary>
-    /// Class representation for basic FeedbackForm configuration
+    /// Class representation for basic Deploy configuration
     /// </summary>
-    public class FeedbackFormSettings : ISettingsMarker
+    public class DeploySettings : ISettingsMarker
     {
         /// <summary>
         /// Gets or sets the Slack webhook URL

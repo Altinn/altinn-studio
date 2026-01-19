@@ -1,4 +1,5 @@
 #nullable disable
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
@@ -56,5 +57,17 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if the operation is cancelled.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         Task PublishSyncRootAsync(AltinnOrgEditingContext editingContext, AltinnEnvironment environment, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Sends a deployment notification message to Slack.
+        /// </summary>
+        /// <param name="org">The organisation identifier.</param>
+        /// <param name="env">The target environment name.</param>
+        /// <param name="app">The application name.</param>
+        /// <param name="eventType">The type of deployment event that occurred.</param>
+        /// <param name="buildId">The Azure DevOps build ID, used to link to build logs.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if the operation is cancelled.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        Task SendToSlackAsync(string org, string env, string app, DeployEventType eventType, string buildId, CancellationToken cancellationToken);
     }
 }

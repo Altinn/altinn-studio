@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,8 +70,12 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        string url = await _metricsService.GetAppErrorMetricsLogsAsync(org, environment, app, metric, range, cancellationToken);
-        return Redirect(url);
+        Uri? url = await _metricsService.GetAppErrorMetricsLogsAsync(org, environment, app, metric, range, cancellationToken);
+        if (url is null)
+        {
+            return NotFound();
+        }
+        return Redirect(url.ToString());
     }
 
     [HttpGet("app/health")]

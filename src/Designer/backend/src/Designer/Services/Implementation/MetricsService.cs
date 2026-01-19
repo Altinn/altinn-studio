@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,7 +49,7 @@ internal sealed class MetricsService(
     }
 
     /// <inheritdoc />
-    public async Task<string> GetAppErrorMetricsLogsAsync(
+    public async Task<Uri?> GetAppErrorMetricsLogsAsync(
         string org,
         AltinnEnvironment environment,
         string app,

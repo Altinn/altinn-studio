@@ -18,11 +18,14 @@ using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
+using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -47,6 +50,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IGitOpsConfigurationManager _gitOpsConfigurationManager;
         private readonly IFeatureManager _featureManager;
         private readonly IRuntimeGatewayClient _runtimeGatewayClient;
+        private readonly ISlackClient _slackClient;
+        private readonly DeploySettings _deploySettings;
 
         /// <summary>
         /// Constructor
@@ -66,7 +71,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             TimeProvider timeProvider,
             IGitOpsConfigurationManager gitOpsConfigurationManager,
             IFeatureManager featureManager,
-            IRuntimeGatewayClient runtimeGatewayClient)
+            IRuntimeGatewayClient runtimeGatewayClient,
+            ISlackClient slackClient,
+            DeploySettings deploySettings)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _deploymentRepository = deploymentRepository;
@@ -83,6 +90,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _gitOpsConfigurationManager = gitOpsConfigurationManager;
             _featureManager = featureManager;
             _runtimeGatewayClient = runtimeGatewayClient;
+            _slackClient = slackClient;
+            _deploySettings = deploySettings;
         }
 
         /// <inheritdoc/>
@@ -313,6 +322,99 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 : _azureDevOpsSettings.DeployDefinitionId;
 
             return await _azureDevOpsBuildClient.QueueAsync(queueBuildParameters, definitionId);
+        }
+
+        /// <inheritdoc />
+        public async Task SendToSlackAsync(string org, string env, string app, DeployEventType eventType, string buildId, CancellationToken cancellationToken)
+        {
+            string studioEnv = _generalSettings.OriginEnvironment;
+            var isSuccess = eventType == DeployEventType.InstallSucceeded ||
+                            eventType == DeployEventType.UpgradeSucceeded ||
+                            eventType == DeployEventType.UninstallSucceeded;
+            string emoji = isSuccess ? ":white_check_mark:" : ":x:";
+            var status = eventType switch
+            {
+                DeployEventType.InstallSucceeded or DeployEventType.UpgradeSucceeded => "Deploy succeeded",
+                DeployEventType.UninstallSucceeded => "Undeploy succeeded",
+                DeployEventType.InstallFailed or DeployEventType.UpgradeFailed => "Deploy failed",
+                DeployEventType.UninstallFailed => "Undeploy failed",
+                _ => eventType.ToString(),
+            };
+
+            var elements = new List<SlackText>
+                {
+                    new() { Type = "mrkdwn", Text = $"Org: `{org}`" },
+                    new() { Type = "mrkdwn", Text = $"Env: `{env}`" },
+                    new() { Type = "mrkdwn", Text = $"App: `{app}`" },
+                    new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
+                };
+
+            if (!isSuccess)
+            {
+                elements.Add(new SlackText { Type = "mrkdwn", Text = $"<{GrafanaPodLogsUrl(org, env, app)}|Grafana>" });
+            }
+
+            if (!string.IsNullOrWhiteSpace(buildId))
+            {
+                elements.Add(new SlackText { Type = "mrkdwn", Text = $"<{new Uri($"<https://dev.azure.com/brreg/altinn-studio/_build/results?buildId={buildId}&view=logs|Build log>")}|Build log>" });
+            }
+
+            var message = new SlackMessage
+            {
+                Text = $"{emoji} `{org}` - `{env}` - `{app}` - *{status}*",
+                Blocks =
+                [
+                    new SlackBlock
+                    {
+                        Type = "section",
+                        Text = new SlackText { Type = "mrkdwn", Text = $"{emoji} *{status}*" },
+                    },
+                    new SlackBlock
+                    {
+                        Type = "context",
+                        Elements = elements,
+                    },
+                ],
+            };
+
+            try
+            {
+                await _slackClient.SendMessageAsync(_deploySettings.SlackWebhookUrl, message, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to send Slack deploy notification. Status: {Status}, Org: {Org}, Env: {Env}, App: {App}, StudioEnv: {StudioEnv}",
+                    status,
+                    org,
+                    env,
+                    app,
+                    studioEnv
+                );
+            }
+        }
+
+        private string GrafanaPodLogsUrl(string org, string env, string app)
+        {
+            var isProd = env.Equals(AltinnEnvironment.Prod.Name, StringComparison.OrdinalIgnoreCase);
+
+            var baseDomain = _environmentsService.GetAppClusterUri(org, isProd ? AltinnEnvironment.Prod.Name : "tt02");
+
+            var path = "/monitor/d/ae1906c2hbjeoe/pod-console-error-logs";
+
+            var now = DateTimeOffset.UtcNow;
+            var from = now.AddMinutes(-30);
+
+            var queryParams = new Dictionary<string, string>
+            {
+                ["var-rg"] = $"altinnapps-{org}-{(isProd ? "prod" : env)}-rg",
+                ["var-PodName"] = $"{org}-{app}-deployment-v2",
+                ["from"] = from.ToUnixTimeMilliseconds().ToString(),
+                ["to"] = now.ToUnixTimeMilliseconds().ToString(),
+            };
+
+            return QueryHelpers.AddQueryString($"{baseDomain}{path}", queryParams);
         }
     }
 }
