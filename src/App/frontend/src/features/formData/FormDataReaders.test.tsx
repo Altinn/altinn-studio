@@ -4,12 +4,13 @@ import { beforeAll, expect, jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { v4 as uuidv4 } from 'uuid';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
-import { fetchApplicationMetadata, fetchInstanceData } from 'src/queries/queries';
+import { fetchInstanceData } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IData, IDataType } from 'src/types/shared';
@@ -50,8 +51,8 @@ async function render(props: TestProps) {
   });
   const instanceId = instanceData.id;
 
-  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock((a) => {
+  jest.mocked(getApplicationMetadata).mockImplementation(() =>
+    getApplicationMetadataMock((a) => {
       a.dataTypes = a.dataTypes.filter((dt) => !dt.appLogic?.classRef);
       a.dataTypes.push(...generateDataTypes());
     }),

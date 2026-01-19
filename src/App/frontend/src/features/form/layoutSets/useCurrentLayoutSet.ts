@@ -1,10 +1,12 @@
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
-import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { getCurrentLayoutSet } from 'src/features/applicationMetadata/appMetadataUtils';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { useLaxLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getCurrentDataTypeForApplication } from 'src/features/instance/instanceUtils';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useNavigationParam } from 'src/hooks/navigation';
+import { getLayoutSetForDataElement } from 'src/utils/layout';
+import type { ILayoutSet } from 'src/layout/common.generated';
 
 /**
  * This is a variant that prefers the taskId from the URL. The alternative useCurrentLayoutSetId() and
@@ -21,13 +23,13 @@ export function useCurrentLayoutSetId(taskId?: string) {
 }
 
 export function useCurrentLayoutSet(_taskId?: string) {
-  const application = useLaxApplicationMetadata();
   const layoutSets = useLaxLayoutSets();
   const processTaskId = useProcessTaskId();
+  const isStateless = useIsStateless();
   const taskId = _taskId ?? processTaskId;
   const overriddenLayoutSetId = useTaskOverrides()?.layoutSetId;
 
-  if (application === ContextNotProvided || layoutSets === ContextNotProvided) {
+  if (layoutSets === ContextNotProvided) {
     return undefined;
   }
 
@@ -35,5 +37,27 @@ export function useCurrentLayoutSet(_taskId?: string) {
     return layoutSets.find((set) => set.id === overriddenLayoutSetId);
   }
 
-  return getCurrentLayoutSet({ application, layoutSets, taskId });
+  return getCurrentLayoutSet({ isStateless, layoutSets, taskId });
+}
+
+/**
+ * Get the current layout set for application if it exists
+ */
+export function getCurrentLayoutSet({
+  isStateless,
+  layoutSets,
+  taskId,
+}: {
+  isStateless: boolean;
+  layoutSets: ILayoutSet[];
+  taskId: string | undefined;
+}) {
+  const appMetadata = getApplicationMetadata();
+  if (isStateless) {
+    // We have a stateless app with a layout set
+    return layoutSets.find((set) => set.id === appMetadata.onEntry.show);
+  }
+
+  const dataType = getCurrentDataTypeForApplication({ isStateless, layoutSets, taskId });
+  return getLayoutSetForDataElement(taskId, dataType, layoutSets);
 }

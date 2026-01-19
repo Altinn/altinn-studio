@@ -8,10 +8,10 @@ import { userEvent } from '@testing-library/user-event';
 import dot from 'dot-object';
 import type { JSONSchema7 } from 'json-schema';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, statelessDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
-import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
 import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
@@ -21,7 +21,6 @@ import { FD, FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { fetchApplicationMetadata } from 'src/queries/queries';
 import {
   makeFormDataMethodProxies,
   renderWithInstanceAndLayout,
@@ -100,8 +99,9 @@ const mockSchema: JSONSchema7 = {
 type MinimalRenderProps = Partial<Omit<Parameters<typeof renderWithInstanceAndLayout>[0], 'renderer'>>;
 type RenderProps = MinimalRenderProps & { renderer: React.ReactElement };
 async function statelessRender(props: RenderProps) {
-  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock({
+  jest.mocked(useIsStateless).mockImplementation(() => true);
+  jest.mocked(getApplicationMetadata).mockImplementation(() =>
+    getApplicationMetadataMock({
       onEntry: {
         show: 'stateless',
       },
@@ -134,21 +134,19 @@ async function statelessRender(props: RenderProps) {
         </MemoryRouter>
       ),
       renderer: () => (
-        <ApplicationMetadataProvider>
-          <GlobalFormDataReadersProvider>
-            <LayoutSetsProvider>
-              <LayoutsProvider>
-                <DataModelsProvider>
-                  <LayoutSettingsProvider>
-                    <FormDataWriteProxyProvider value={formDataProxies}>
-                      <FormDataWriteProvider>{props.renderer}</FormDataWriteProvider>
-                    </FormDataWriteProxyProvider>
-                  </LayoutSettingsProvider>
-                </DataModelsProvider>
-              </LayoutsProvider>
-            </LayoutSetsProvider>
-          </GlobalFormDataReadersProvider>
-        </ApplicationMetadataProvider>
+        <GlobalFormDataReadersProvider>
+          <LayoutSetsProvider>
+            <LayoutsProvider>
+              <DataModelsProvider>
+                <LayoutSettingsProvider>
+                  <FormDataWriteProxyProvider value={formDataProxies}>
+                    <FormDataWriteProvider>{props.renderer}</FormDataWriteProvider>
+                  </FormDataWriteProxyProvider>
+                </LayoutSettingsProvider>
+              </DataModelsProvider>
+            </LayoutsProvider>
+          </LayoutSetsProvider>
+        </GlobalFormDataReadersProvider>
       ),
       queries: {
         fetchDataModelSchema: async () => mockSchema,
@@ -161,9 +159,8 @@ async function statelessRender(props: RenderProps) {
 }
 
 async function statefulRender(props: RenderProps) {
-  jest
-    .mocked(fetchApplicationMetadata)
-    .mockImplementationOnce(() => Promise.resolve(getIncomingApplicationMetadataMock()));
+  jest.mocked(useIsStateless).mockImplementation(() => false);
+  jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock());
   return await renderWithInstanceAndLayout({
     ...props,
     alwaysRouteToChildren: true,

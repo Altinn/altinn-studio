@@ -3,6 +3,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.AccessManagement;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.DataLists;
 using Altinn.App.Core.Features.DataProcessing;
 using Altinn.App.Core.Features.ExternalApi;
@@ -173,6 +174,7 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IAppMetadata, AppMetadata>();
         services.TryAddSingleton<IFrontendFeatures, FrontendFeatures>();
         services.TryAddSingleton<ITranslationService, TranslationService>();
+        services.TryAddSingleton<IBootstrapGlobalService, BootstrapGlobalService>();
         services.TryAddTransient<IAppEvents, DefaultAppEvents>();
 #pragma warning disable CS0618, CS0612 // Type or member is obsolete
         services.TryAddTransient<IPageOrder, DefaultPageOrder>();

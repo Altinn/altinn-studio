@@ -39,7 +39,7 @@ export function useInstantiation() {
     onError: (error: HttpClientError) => {
       window.logError(`Instantiation failed:\n`, error);
     },
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       const [instanceOwnerPartyId, instanceGuid] = data.id.split('/');
       const queryKey = instanceQueries.instanceData({
         instanceOwnerPartyId,
@@ -48,7 +48,6 @@ export function useInstantiation() {
       queryClient.setQueryData(queryKey, data);
 
       navigate(`/instance/${data.id}`);
-      await queryClient.invalidateQueries({ queryKey: ['fetchApplicationMetadata'] });
     },
   });
 

@@ -6,7 +6,7 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
@@ -35,7 +35,7 @@ export function useLayoutQueryDef(
 ): QueryDefinition<LayoutContextValue> {
   const { fetchLayouts } = useAppQueries();
   const instanceId = useLaxInstanceId();
-  const features = useApplicationMetadata().features ?? {};
+  const features = getApplicationMetadata().features ?? {};
 
   return {
     queryKey: ['formLayouts', layoutSetId, enabled],

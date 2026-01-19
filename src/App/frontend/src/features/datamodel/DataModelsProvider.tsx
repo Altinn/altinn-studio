@@ -9,8 +9,7 @@ import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { getFirstDataElementId } from 'src/features/applicationMetadata/appMetadataUtils';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { useCustomValidationConfigQuery } from 'src/features/customValidation/useCustomValidationQuery';
 import { UpdateDataElementIdsForCypress } from 'src/features/datamodel/DataElementIdsForCypress';
 import { useCurrentDataModelName, useDataModelUrl } from 'src/features/datamodel/useBindingSchema';
@@ -27,6 +26,7 @@ import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useInstanceDataElements, useInstanceDataQuery } from 'src/features/instance/InstanceContext';
+import { getFirstDataElementId } from 'src/features/instance/instanceUtils';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { isAxiosError } from 'src/utils/isAxiosError';
@@ -143,13 +143,13 @@ export function DataModelsProvider({ children }: PropsWithChildren) {
 }
 
 function DataModelsLoader() {
-  const applicationMetadata = useApplicationMetadata();
+  const applicationMetadata = getApplicationMetadata();
   const setDataTypes = useSelector((state) => state.setDataTypes);
   const allDataTypes = useSelector((state) => state.allDataTypes);
   const writableDataTypes = useSelector((state) => state.writableDataTypes);
   const layouts = useLayouts();
   const defaultDataType = useCurrentDataModelName();
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStateless();
 
   const { data: dataElements, isFetching } = useInstanceDataQuery({
     enabled: !isStateless,
@@ -307,12 +307,13 @@ function LoadInitialData({ dataType, overrideDataElement }: LoaderProps & { over
   const setError = useSelector((state) => state.setError);
   const dataElements = useInstanceDataElements(dataType);
   const dataElementId = overrideDataElement ?? getFirstDataElementId(dataElements, dataType);
-  const metaData = useApplicationMetadata();
+  const metaData = getApplicationMetadata();
+  const isStateless = useIsStateless();
 
   const url = useDataModelUrl({
     dataType,
     dataElementId,
-    prefillFromQueryParams: getValidPrefillDataFromQueryParams(metaData, dataType),
+    prefillFromQueryParams: getValidPrefillDataFromQueryParams(metaData, isStateless, dataType),
   });
 
   const { data, error } = useFormDataQuery(url);

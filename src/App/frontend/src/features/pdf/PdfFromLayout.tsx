@@ -11,7 +11,7 @@ import { DummyPresentation } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { usePdfLayoutName } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -129,7 +129,7 @@ function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
 }
 
 function PdfWrapping({ children }: PropsWithChildren) {
-  const orgLogoEnabled = Boolean(useApplicationMetadata().logoOptions);
+  const orgLogoEnabled = Boolean(getApplicationMetadata().logo);
   const appOwner = useAppOwner();
   const appName = useAppName();
   const { langAsString } = useLanguage();

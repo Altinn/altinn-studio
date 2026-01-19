@@ -54,6 +54,9 @@
   },
   Response: {
     Id: ttd/basic,
+    OnEntry: {
+      Show: new-instance
+    },
     AppIdentifier: {
       Org: ttd,
       App: basic
