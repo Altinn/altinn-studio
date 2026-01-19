@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Altinn.App.Core.Features.Options.Altinn3LibraryProvider;
+namespace Altinn.App.Core.Features.Options.Altinn3LibraryCodeList;
 
 /// <summary>
 /// Outer model for the Altinn 3 library code list API
@@ -30,7 +30,7 @@ public class Altinn3LibraryCodeListResponse
     /// Eg: tagNames: ["region"], tags: ["europe"]
     /// </summary>
     [JsonPropertyName("tagNames")]
-    public required List<string> TagNames { get; set; }
+    public List<string>? TagNames { get; set; }
 }
 
 /// <summary>
@@ -79,5 +79,5 @@ public class Altinn3LibraryCodeListItem
     /// Eg: tagNames: ["region"], tags: ["europe"]
     /// </summary>
     [JsonPropertyName("tags")]
-    public required List<string> Tags { get; set; }
+    public List<string>? Tags { get; set; }
 }

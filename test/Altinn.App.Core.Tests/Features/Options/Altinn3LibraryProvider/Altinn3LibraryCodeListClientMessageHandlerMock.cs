@@ -1,6 +1,6 @@
 ﻿namespace Altinn.App.Core.Tests.Features.Options.Altinn3LibraryProvider;
 
-public class Altinn3LibraryOptionsProviderMessageHandlerMock : DelegatingHandler
+internal sealed class Altinn3LibraryCodeListClientMessageHandlerMock : DelegatingHandler
 {
     // Instrumentation to test that caching works
     public int CallCount => _callCount;
@@ -9,7 +9,7 @@ public class Altinn3LibraryOptionsProviderMessageHandlerMock : DelegatingHandler
     public string? LastRequestUri;
     private readonly Func<HttpResponseMessage> _httpResponseMessage;
 
-    public Altinn3LibraryOptionsProviderMessageHandlerMock(Func<HttpResponseMessage> httpResponseMessage)
+    public Altinn3LibraryCodeListClientMessageHandlerMock(Func<HttpResponseMessage> httpResponseMessage)
     {
         _httpResponseMessage = httpResponseMessage;
     }

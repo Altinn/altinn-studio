@@ -1686,7 +1686,7 @@
           {
             "name": "queryParams",
             "in": "query",
-            "description": "Query parameteres supplied",
+            "description": "Query parameters supplied",
             "style": "deepObject",
             "schema": {
               "type": "object",
@@ -3217,17 +3217,18 @@
         }
       }
     },
-    "/{org}/{app}/api/options/{optionsId}": {
+    "/{org}/{app}/api/options/{optionsIdOrLibraryRef}": {
       "get": {
         "tags": [
           "Options"
         ],
-        "summary": "Api that exposes app related options",
+        "summary": "Api that exposes app related options.",
+        "description": "The tags field is only populated when requesting library code lists.",
         "parameters": [
           {
-            "name": "optionsId",
+            "name": "optionsIdOrLibraryRef",
             "in": "path",
-            "description": "The optionsId",
+            "description": "The optionsId configured for the options provider in the app startup,\nor a library reference on the format: `lib**{creatorOrg}**{codeListId}**{version}`\n(version=\"latest\", if you want the latest version).",
             "required": true,
             "schema": {
               "type": "string"
@@ -3236,7 +3237,7 @@
           {
             "name": "queryParams",
             "in": "query",
-            "description": "Query parameters supplied",
+            "description": "Query parameters supplied.",
             "style": "deepObject",
             "schema": {
               "type": "object",
@@ -3248,7 +3249,7 @@
           {
             "name": "language",
             "in": "query",
-            "description": "The language selected by the user.",
+            "description": "The language selected by the user (ISO 639-1, e.g., 'nb').",
             "schema": {
               "type": "string"
             }
@@ -3272,22 +3273,169 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppOption"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppOption"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppOption"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/options/{optionsId}": {
+    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/options/{optionsIdOrLibraryRef}": {
       "get": {
         "tags": [
           "Options"
         ],
-        "summary": "Exposes options related to the app and logged in user",
+        "summary": "Exposes options related to the app and logged in user.",
+        "description": "The tags field is only populated when requesting library code lists.",
         "parameters": [
           {
             "name": "org",
             "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
+            "description": "Unique identifier of the organisation responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -3296,7 +3444,7 @@
           {
             "name": "app",
             "in": "path",
-            "description": "application identifier which is unique within an organisation",
+            "description": "Application identifier which is unique within an organisation.",
             "required": true,
             "schema": {
               "type": "string"
@@ -3305,7 +3453,7 @@
           {
             "name": "instanceOwnerPartyId",
             "in": "path",
-            "description": "unique id of the party that is the owner of the instance",
+            "description": "Unique id of the party that is the owner of the instance.",
             "required": true,
             "schema": {
               "type": "integer",
@@ -3315,7 +3463,7 @@
           {
             "name": "instanceGuid",
             "in": "path",
-            "description": "unique id to identify the instance",
+            "description": "Unique id to identify the instance.",
             "required": true,
             "schema": {
               "type": "string",
@@ -3323,9 +3471,9 @@
             }
           },
           {
-            "name": "optionsId",
+            "name": "optionsIdOrLibraryRef",
             "in": "path",
-            "description": "The optionsId",
+            "description": "The optionsId configured for the options provider in the app startup,\nor a library reference on the format: `lib**{creatorOrg}**{codeListId}**{version}`\n(version=\"latest\", if you want the latest version).",
             "required": true,
             "schema": {
               "type": "string"
@@ -3334,7 +3482,7 @@
           {
             "name": "language",
             "in": "query",
-            "description": "The language selected by the user.",
+            "description": "The language selected by the user (ISO 639-1, e.g., 'nb').",
             "schema": {
               "type": "string"
             }
@@ -3342,7 +3490,7 @@
           {
             "name": "queryParams",
             "in": "query",
-            "description": "Query parameteres supplied",
+            "description": "Query parameters supplied.",
             "style": "deepObject",
             "schema": {
               "type": "object",
@@ -3354,10 +3502,126 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppOption"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppOption"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppOption"
+                  }
+                }
+              }
+            }
           },
           "404": {
             "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
             "content": {
               "text/plain": {
                 "schema": {
@@ -7092,6 +7356,39 @@
           },
           "errorMessageTextResourceKey": {
             "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppOption": {
+        "required": [
+          "label",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "helpText": {
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
             "nullable": true
           }
         },

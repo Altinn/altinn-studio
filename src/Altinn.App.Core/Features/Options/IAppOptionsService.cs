@@ -26,7 +26,7 @@ public interface IAppOptionsService
     /// <param name="language">The language code requested.</param>
     /// <param name="keyValuePairs">Optional list of key/value pairs to use for filtering and further lookup.</param>
     /// <returns>The list of options</returns>
-    Task<AppOptions> GetOptionsAsync(
+    Task<AppOptions?> GetOptionsAsync(
         InstanceIdentifier instanceIdentifier,
         string optionId,
         string? language,
