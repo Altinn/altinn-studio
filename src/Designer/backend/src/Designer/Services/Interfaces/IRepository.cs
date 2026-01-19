@@ -72,11 +72,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Gets the filepath of the policyfile
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="repo"></param>
+        /// <param name="org">The organisation that owns the repository where the resource resides</param>
+        /// <param name="repo">The repository where the resource resides</param>
+        /// <param name="developer">The developer making the request</param>
         /// <param name="resourceId"></param>
         /// <returns></returns>
-        string GetPolicyPath(string org, string repo, string resourceId);
+        string GetPolicyPath(string org, string repo, string developer, string resourceId);
 
         /// <summary>
         /// Gets the widget settings for an app
