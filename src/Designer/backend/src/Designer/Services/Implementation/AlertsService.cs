@@ -111,15 +111,7 @@ internal sealed class AlertsService(
         catch (Exception ex)
         {
             string appsPlain = string.Join(", ", apps);
-            logger.LogError(
-                ex,
-                "Failed to send Slack alert notification. Alert Name: {AlertName}, Org: {Org}, Env: {Env}, Apps: {AppsList}, StudioEnv: {StudioEnv}",
-                alertName,
-                org,
-                environment,
-                appsPlain,
-                studioEnv
-            );
+            logger.LogError(ex, "Failed to send Slack alert notification. Alert Name: {AlertName}", alertName);
         }
     }
 }

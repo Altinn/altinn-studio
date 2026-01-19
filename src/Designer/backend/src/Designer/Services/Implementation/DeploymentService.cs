@@ -382,15 +382,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(
-                    ex,
-                    "Failed to send Slack deploy notification. Status: {Status}, Org: {Org}, Env: {Env}, App: {App}, StudioEnv: {StudioEnv}",
-                    status,
-                    org,
-                    env,
-                    app,
-                    studioEnv
-                );
+                _logger.LogError(ex, "Failed to send Slack deploy notification");
             }
         }
 
