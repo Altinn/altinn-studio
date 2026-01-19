@@ -3,7 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import { Loader } from 'src/core/loading/Loader';
 import { useCurrentDataModelDataElementId } from 'src/features/datamodel/useBindingSchema';
-import { getLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { TaskKeys, useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { behavesLikeDataTask } from 'src/utils/formLayout';

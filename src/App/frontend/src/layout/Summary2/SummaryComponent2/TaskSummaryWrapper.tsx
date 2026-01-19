@@ -2,7 +2,7 @@ import React from 'react';
 
 import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { FormProvider } from 'src/features/form/FormContext';
-import { getLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { useNavigationParam } from 'src/hooks/navigation';
 
 interface TaskSummaryProps {

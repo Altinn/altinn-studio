@@ -1,5 +1,5 @@
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
-import { getLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { getDataTypeByLayoutSetId } from 'src/features/instance/instanceUtils';
 
 export const useAllowAnonymous = () => {
