@@ -57,8 +57,9 @@ namespace Designer.Tests.Services
 
             RepositoryService sut = GetServiceForTest("testUser");
 
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", "apps-test", "testUser");
             // Act
-            List<FileSystemObject> actual = sut.GetContents("ttd", "apps-test", "testUser");
+            List<FileSystemObject> actual = sut.GetContents(editingContext);
 
             // Assert
             Assert.Equal(expected.First().Type, actual.First().Type);
@@ -83,9 +84,10 @@ namespace Designer.Tests.Services
             int expectedCount = 1;
 
             RepositoryService sut = GetServiceForTest("testUser");
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", "apps-test", "testUser");
 
             // Act
-            List<FileSystemObject> actual = sut.GetContents("ttd", "apps-test", "testUser","App/appsettings.json");
+            List<FileSystemObject> actual = sut.GetContents(editingContext, "App/appsettings.json");
 
             // Assert
             Assert.Equal(expected.First().Type, actual.First().Type);
@@ -97,9 +99,10 @@ namespace Designer.Tests.Services
         {
             // Arrange
             RepositoryService sut = GetServiceForTest("testUser");
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", "apps-test", "testUser");
 
             // Act
-            List<FileSystemObject> actual = sut.GetContents("ttd", "test-apps", "testUser");
+            List<FileSystemObject> actual = sut.GetContents(editingContext);
 
             // Assert
             Assert.Null(actual);

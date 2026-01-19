@@ -557,7 +557,8 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult Contents(string org, string repository, [FromQuery] string path = "")
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            List<FileSystemObject> contents = _repository.GetContents(org, repository, developer, path);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            List<FileSystemObject> contents = _repository.GetContents(editingContext, path);
 
             if (contents == null)
             {

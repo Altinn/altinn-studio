@@ -231,10 +231,11 @@ namespace Altinn.Studio.Designer.Controllers
             List<ServiceResource> repositoryResourceList;
             List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
 
             if (skipParseJson)
             {
-                List<FileSystemObject> resourceFiles = _repository.GetContents(org, repository, developer);
+                List<FileSystemObject> resourceFiles = _repository.GetContents(editingContext);
                 repositoryResourceList = resourceFiles.Where(file => file.Type.Equals("Dir") && !file.Name.StartsWith(".")).Select(file =>
                 {
                     return new ServiceResource

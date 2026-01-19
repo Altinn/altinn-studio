@@ -88,12 +88,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Lists the content of a repository
         /// </summary>
-        /// <param name="org">The organisation that owns the repository where the resource resides</param>
-        /// <param name="repository">The repository where the resource resides</param>
-        /// <param name="developer">The developer making the request</param>
+        /// <param name="editingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="path">The path within the repository to list contents from</param>
         /// <returns>List of <see cref="FileSystemObject"/></returns>
-        List<FileSystemObject> GetContents(string org, string repository, string developer, string path = "");
+        List<FileSystemObject> GetContents(AltinnRepoEditingContext editingContext, string path = "");
 
         /// <summary>
         /// Lists the ServiceResource files in a repository

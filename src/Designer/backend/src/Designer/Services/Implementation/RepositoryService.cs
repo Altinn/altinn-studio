@@ -268,10 +268,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public List<FileSystemObject> GetContents(string org, string repository, string developer, string path = "")
+        public List<FileSystemObject> GetContents(AltinnRepoEditingContext editingContext, string path = "")
         {
             List<FileSystemObject> contents = [];
-            string repositoryPath = repositorySettings.GetServicePath(org, repository, developer);
+            string repositoryPath = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
             string contentPath = Path.Combine(repositoryPath, path);
 
             // repository was not found
@@ -311,8 +311,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<List<ServiceResource>> GetServiceResources(string org, string repository, string developer, string path = "", CancellationToken cancellationToken = default)
         {
-            List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, Path.Combine(path));
-            string repopath = repositorySettings.GetServicePath(org, repository, developer);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            List<FileSystemObject> resourceFiles = GetResourceFiles(editingContext, Path.Combine(path));
+            string repopath = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
 
             using SemaphoreSlim semaphore = new(50); // Limit to 50 concurrent tasks
 
@@ -358,8 +359,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (updatedResource != null && id == updatedResource.Identifier)
             {
                 string repository = string.Format("{0}-resources", org);
-                List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, developer);
-                string repopath = repositorySettings.GetServicePath(org, repository, developer);
+                AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+                List<FileSystemObject> resourceFiles = GetResourceFiles(editingContext, developer);
+                string repopath = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
                 string resourceFileName = GetResourceFileName(updatedResource.Identifier);
 
                 foreach (FileSystemObject resourceFile in resourceFiles)
@@ -391,9 +393,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     return new StatusCodeResult(400);
                 }
                 string repository = $"{org}-resources";
-                if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository, developer))
+                AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+                if (!CheckIfResourceFileAlreadyExists(editingContext, newResource.Identifier))
                 {
-                    string repopath = repositorySettings.GetServicePath(org, repository, developer);
+                    string repopath = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
                     string fullPathOfNewResource = Path.Combine(repopath, newResource.Identifier.AsFileName(), GetResourceFileName(newResource.Identifier));
                     string newResourceJson = JsonSerializer.Serialize(newResource, _serializerOptions);
                     Directory.CreateDirectory(Path.Combine(repopath, newResource.Identifier.AsFileName()));
@@ -412,9 +415,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private bool CheckIfResourceFileAlreadyExists(string identifier, string org, string repository, string developer)
+        private bool CheckIfResourceFileAlreadyExists(AltinnRepoEditingContext editingContext, string identifier)
         {
-            List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, developer);
+            List<FileSystemObject> resourceFiles = GetResourceFiles(editingContext);
             return resourceFiles.Any(resourceFile => resourceFile.Name.ToLower().Equals(GetResourceFileName(identifier).ToLower()));
         }
 
@@ -438,9 +441,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await resourceRegistryService.PublishServiceResource(resource, env, policy);
         }
 
-        private List<FileSystemObject> GetResourceFiles(string org, string repository, string developer, string path = "")
+        private List<FileSystemObject> GetResourceFiles(AltinnRepoEditingContext editingContext, string path = "")
         {
-            List<FileSystemObject> contents = GetContents(org, repository, developer, path);
+            List<FileSystemObject> contents = GetContents(editingContext, path);
             List<FileSystemObject> resourceFiles = [];
 
             if (contents != null)
@@ -449,7 +452,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     if (resourceFile.Type.Equals("Dir") && !resourceFile.Name.StartsWith("."))
                     {
-                        List<FileSystemObject> contentsInFolder = GetContents(org, repository, developer, resourceFile.Name);
+                        List<FileSystemObject> contentsInFolder = GetContents(editingContext, resourceFile.Name);
 
                         if (contentsInFolder != null)
                         {
