@@ -1,5 +1,4 @@
-import type { AssistantMessage } from './ChatThread';
-import type { UserAttachment } from './ChatThread';
+import type { UserAttachment, Source } from './ChatThread';
 
 export const ErrorMessages = {
   CONNECTION_ERROR: '**Connection Error**',
@@ -15,7 +14,7 @@ export interface AssistantMessageData {
   content?: string;
   timestamp?: string | number;
   filesChanged?: string[];
-  sources?: string[];
+  sources?: Source[];
   mode?: 'chat' | 'edit';
   no_branch_operations?: boolean;
 }
