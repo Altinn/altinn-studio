@@ -190,7 +190,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string token = await httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, serviceConfig.RepositoryName, developer, token);
             string repoPath = repositorySettings.GetServicePath(org, serviceConfig.RepositoryName, developer);
-            var options = new CreateRepoOption(serviceConfig.RepositoryName);
+            CreateRepoOption options = new(serviceConfig.RepositoryName);
 
             RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
 
@@ -226,8 +226,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task CreateAltinnStudioSettings(string org, string repository, string developer)
         {
-            var altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
-            var settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, UseNullableReferenceTypes = true };
+            AltinnGitRepository altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+            AltinnStudioSettings settings = new() { RepoType = AltinnRepositoryType.App, UseNullableReferenceTypes = true };
             await altinnGitRepository.SaveAltinnStudioSettings(settings);
         }
 
@@ -235,7 +235,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer, string targetOrg = null)
         {
             targetOrg ??= org;
-            var options = new CreateRepoOption(targetRepository);
+            CreateRepoOption options = new(targetRepository);
             string token = await httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceRepository, developer, token);
 
@@ -254,7 +254,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             sourceControl.CloneRemoteRepository(authenticatedContext, targetRepositoryPath);
-            var targetAppRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepository, developer);
+            AltinnAppGitRepository targetAppRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepository, developer);
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{targetOrg}/{targetRepository}.git");
 
@@ -401,7 +401,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     string fullPath = Path.Combine(repopath, resourceFile.Path);
 
-                    var sw = Stopwatch.StartNew();
+                    Stopwatch sw = Stopwatch.StartNew();
                     try
                     {
                         using FileStream stream = File.OpenRead(fullPath);
@@ -426,7 +426,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
             }
             IEnumerable<Task<ServiceResource>> tasks = resourceFiles.Select(resourceFile => ReadResourceAsync(resourceFile));
-            var serviceResourceList = await Task.WhenAll(tasks);
+            ServiceResource[] serviceResourceList = await Task.WhenAll(tasks);
             return serviceResourceList.Where(r => r != null).ToList();
         }
 
@@ -601,8 +601,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
 
             string xsd;
-            await using (MemoryStream stream = new MemoryStream())
-            await using (var xw = XmlWriter.Create(stream, new XmlWriterSettings { Indent = true, Async = true }))
+            await using (MemoryStream stream = new())
+            await using (XmlWriter xw = XmlWriter.Create(stream, new XmlWriterSettings { Indent = true, Async = true }))
             {
                 XacmlSerializer.WritePolicy(xw, xacmlPolicy);
                 xw.Flush();
@@ -669,9 +669,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 try
                 {
                     // On windows platform the deletion fail due to hidden files.
-                    var directory = new DirectoryInfo(deletePath) { Attributes = FileAttributes.Normal };
+                    DirectoryInfo directory = new(deletePath) { Attributes = FileAttributes.Normal };
 
-                    foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
+                    foreach (FileSystemInfo info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
                     {
                         info.Attributes = FileAttributes.Normal;
                     }
