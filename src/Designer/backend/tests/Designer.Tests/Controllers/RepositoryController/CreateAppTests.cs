@@ -62,5 +62,78 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Assert
             Assert.Equal(HttpStatusCode.Created, res.StatusCode);
         }
+
+        [Fact]
+        public async Task CreateApp_WithCustomTemplatePath_PassesCustomTemplatePathToService()
+        {
+            // Arrange
+            string customTemplatePath = "/path/to/custom/template";
+            string uri = $"{VersionPrefix}/create-app?org=ttd&repository=test&customTemplatePath={customTemplatePath}";
+
+            ServiceConfiguration capturedConfig = null;
+            _repositoryMock
+                .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<ServiceConfiguration>()))
+                .Callback<string, ServiceConfiguration>((org, config) => capturedConfig = config)
+                .ReturnsAsync(new Repository() { RepositoryCreatedStatus = HttpStatusCode.Created, CloneUrl = "https://some.site/this/is/not/relevant" });
+
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            // Act
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+            Assert.NotNull(capturedConfig);
+            Assert.Equal(customTemplatePath, capturedConfig.CustomTemplatePath);
+            Assert.Equal("test", capturedConfig.RepositoryName);
+            Assert.Equal("test", capturedConfig.ServiceName);
+        }
+
+        [Fact]
+        public async Task CreateApp_WithoutCustomTemplatePath_CustomTemplatePathIsNull()
+        {
+            // Arrange
+            string uri = $"{VersionPrefix}/create-app?org=ttd&repository=test";
+
+            ServiceConfiguration capturedConfig = null;
+            _repositoryMock
+                .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<ServiceConfiguration>()))
+                .Callback<string, ServiceConfiguration>((org, config) => capturedConfig = config)
+                .ReturnsAsync(new Repository() { RepositoryCreatedStatus = HttpStatusCode.Created, CloneUrl = "https://some.site/this/is/not/relevant" });
+
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            // Act
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+            Assert.NotNull(capturedConfig);
+            Assert.Null(capturedConfig.CustomTemplatePath);
+        }
+
+        [Fact]
+        public async Task CreateApp_WithEmptyCustomTemplatePath_CustomTemplatePathIsNull()
+        {
+            // Arrange - Empty query parameter gets converted to null by model binding
+            string customTemplatePath = "";
+            string uri = $"{VersionPrefix}/create-app?org=ttd&repository=test&customTemplatePath={customTemplatePath}";
+
+            ServiceConfiguration capturedConfig = null;
+            _repositoryMock
+                .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<ServiceConfiguration>()))
+                .Callback<string, ServiceConfiguration>((org, config) => capturedConfig = config)
+                .ReturnsAsync(new Repository() { RepositoryCreatedStatus = HttpStatusCode.Created, CloneUrl = "https://some.site/this/is/not/relevant" });
+
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            // Act
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+            Assert.NotNull(capturedConfig);
+            Assert.Null(capturedConfig.CustomTemplatePath); // Empty string becomes null in query parameter binding
+        }
     }
 }
