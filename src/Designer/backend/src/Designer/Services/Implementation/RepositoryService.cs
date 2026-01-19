@@ -358,7 +358,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (updatedResource != null && id == updatedResource.Identifier)
             {
                 string repository = string.Format("{0}-resources", org);
-                List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
+                List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, developer);
                 string repopath = repositorySettings.GetServicePath(org, repository, developer);
                 string resourceFileName = GetResourceFileName(updatedResource.Identifier);
 
@@ -391,7 +391,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     return new StatusCodeResult(400);
                 }
                 string repository = $"{org}-resources";
-                if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository))
+                if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository, developer))
                 {
                     string repopath = repositorySettings.GetServicePath(org, repository, developer);
                     string fullPathOfNewResource = Path.Combine(repopath, newResource.Identifier.AsFileName(), GetResourceFileName(newResource.Identifier));
@@ -412,9 +412,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private bool CheckIfResourceFileAlreadyExists(string identifier, string org, string repository)
+        private bool CheckIfResourceFileAlreadyExists(string identifier, string org, string repository, string developer)
         {
-            List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
+            List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, developer);
             return resourceFiles.Any(resourceFile => resourceFile.Name.ToLower().Equals(GetResourceFileName(identifier).ToLower()));
         }
 
@@ -438,9 +438,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await resourceRegistryService.PublishServiceResource(resource, env, policy);
         }
 
-        private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")
+        private List<FileSystemObject> GetResourceFiles(string org, string repository, string developer, string path = "")
         {
-            List<FileSystemObject> contents = GetContents(org, repository, path);
+            List<FileSystemObject> contents = GetContents(org, repository, developer, path);
             List<FileSystemObject> resourceFiles = [];
 
             if (contents != null)
@@ -449,7 +449,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     if (resourceFile.Type.Equals("Dir") && !resourceFile.Name.StartsWith("."))
                     {
-                        List<FileSystemObject> contentsInFolder = GetContents(org, repository, resourceFile.Name);
+                        List<FileSystemObject> contentsInFolder = GetContents(org, repository, developer, resourceFile.Name);
 
                         if (contentsInFolder != null)
                         {
