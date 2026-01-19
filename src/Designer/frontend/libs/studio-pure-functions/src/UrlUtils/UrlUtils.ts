@@ -9,15 +9,6 @@ export class UrlUtils {
   };
 
   /**
-   * Returns the second last parameter from the url pathname.
-   * @param pathname The url pathname to extract the second last parameter from.
-   * @returns The second last parameter from the url pathname.
-   */
-  static extractSecondLastRouterParam = (pathname: string): string => {
-    return extractParamFromEnd(pathname, 2);
-  };
-
-  /**
    * Returns the third parameter from the url pathname.
    * @param pathname The url pathname to extract the third parameter from.
    * @returns The third parameter from the url pathname.

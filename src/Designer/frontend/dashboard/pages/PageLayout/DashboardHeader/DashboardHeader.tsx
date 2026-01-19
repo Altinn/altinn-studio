@@ -1,5 +1,4 @@
 import React, { type ReactElement } from 'react';
-import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMediaQuery } from '@studio/components-legacy';
 import { StudioAvatar, StudioPageHeader } from '@studio/components';
@@ -8,23 +7,21 @@ import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useHeaderContext } from '../../../context/HeaderContext';
 import { useProfileMenuTriggerButtonText } from '../../../hooks/useProfileMenuTriggerButtonText';
 import { usePageHeaderTitle } from '../../../hooks/usePageHeaderTitle';
-import { StringUtils, UrlUtils } from '@studio/pure-functions';
 import { SubHeader } from './SubHeader';
 import { Subroute } from '../../../enums/Subroute';
 import { isOrg } from '../../../utils/orgUtils';
 import { SmallHeaderMenu } from './SmallHeaderMenu';
 import { LargeNavigationMenu } from './LargeNavigationMenu';
 import { mapNavigationMenuToProfileMenu } from '../../../utils/headerUtils';
+import { useSubroute } from '../../../hooks/useSubRoute';
 
 export const DashboardHeader = (): ReactElement => {
   const pageHeaderTitle: string = usePageHeaderTitle();
   const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const selectedContext = useSelectedContext();
-  const location = useLocation();
-  const currentRoutePath: string = UrlUtils.extractSecondLastRouterParam(location.pathname);
+  const subroute = useSubroute();
 
-  const isOrgLibraryPage: boolean =
-    currentRoutePath === StringUtils.removeLeadingSlash(Subroute.OrgLibrary);
+  const isOrgLibraryPage: boolean = subroute === Subroute.OrgLibrary;
   const shouldShowSubMenu: boolean = isOrg(selectedContext) && isOrgLibraryPage;
 
   return (
