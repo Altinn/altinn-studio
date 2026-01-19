@@ -63,9 +63,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Gets a specific polic for an app or for a generic
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="repo"></param>
-        /// <param name="resourceId"></param>
+        /// <param name="org">The organisation that owns the repository where the resource resides</param>
+        /// <param name="repo">The repository where the resource resides</param>
+        /// <param name="resourceId">The resourceId if resource repository</param>
         /// <returns></returns>
         XacmlPolicy GetPolicy(string org, string repo, string resourceId);
 
@@ -75,7 +75,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">The organisation that owns the repository where the resource resides</param>
         /// <param name="repo">The repository where the resource resides</param>
         /// <param name="developer">The developer making the request</param>
-        /// <param name="resourceId"></param>
+        /// <param name="resourceId">The resourceId if resource repository</param>
         /// <returns></returns>
         string GetPolicyPath(string org, string repo, string developer, string resourceId);
 
@@ -89,11 +89,22 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Lists the content of a repository
         /// </summary>
+        /// <param name="org">The organisation that owns the repository where the resource resides</param>
+        /// <param name="repository">The repository where the resource resides</param>
+        /// <param name="developer">The developer making the request</param>
+        /// <param name="path">The path within the repository to list contents from</param>
+        /// <returns>List of <see cref="FileSystemObject"/></returns>
         List<FileSystemObject> GetContents(string org, string repository, string developer, string path = "");
 
         /// <summary>
         /// Lists the ServiceResource files in a repository
         /// </summary>
+        /// <param name="org">The organisation that owns the repository where the resource resides</param>
+        /// <param name="repository">The repository where the resource resides</param>
+        /// <param name="developer">The developer making the request</param>
+        /// <param name="path">The path within the repository to list contents from</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Returns a list of <see cref="ServiceResource"/></returns>
         Task<List<ServiceResource>> GetServiceResources(string org, string repository, string developer, string path = "", CancellationToken cancellationToken = default);
 
         /// <summary>
