@@ -54,7 +54,7 @@ internal sealed class AlertsService(
             firingAlerts.Select(async alert =>
             {
                 string appsParam = Uri.EscapeDataString(string.Join(", ", alert.FiringApps));
-                Uri? appInsightsUrl = !string.IsNullOrWhiteSpace(alert.Id) ? new Uri($"https://{generalSettings.HostName}/designer/api/v1/admin/metrics/{org}/{environment}/app/errors/logs?app={appsParam}&metric={alert.Id}&range=15") : null;
+                Uri? appInsightsUrl = !string.IsNullOrWhiteSpace(alert.Id) ? new Uri($"https://{generalSettings.HostName}/designer/api/v1/admin/metrics/{org}/{environment.Name}/app/errors/logs?app={appsParam}&metric={alert.Id}&range=15") : null;
 
                 await SendToSlackAsync(org, environment, alert.FiringApps, alert.Name, alert.URL, appInsightsUrl, cancellationToken);
 

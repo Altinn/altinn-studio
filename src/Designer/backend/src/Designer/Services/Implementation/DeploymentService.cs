@@ -390,7 +390,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var isProd = env.Equals(AltinnEnvironment.Prod.Name, StringComparison.OrdinalIgnoreCase);
 
-            var baseDomain = isProd ? $"https://${org}.apps.altinn.no" : $"https://${org}.apps.tt02.altinn.no";
+            var baseDomain = isProd ? $"https://{org}.apps.altinn.no" : $"https://{org}.apps.tt02.altinn.no";
 
             var path = "/monitor/d/ae1906c2hbjeoe/pod-console-error-logs";
 
