@@ -23,7 +23,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/ttd/resources/publishstatus/ttd-resources/ttd_testresource";
 
             RepositoryMock
-                .Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
+                .Setup(r => r.GetServiceResourceById(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
                 .Returns(Task.FromResult(new ServiceResource
                 {
                     Identifier = "testresource",

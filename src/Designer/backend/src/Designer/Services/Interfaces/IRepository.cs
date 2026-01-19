@@ -105,13 +105,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Gets a specific ServiceResource based on the identifier
         /// </summary>
-        /// <param name="org">The organisation that owns the repository where the resource resides</param>
-        /// <param name="repository">The repository where the resource resides</param>
-        /// <param name="developer">The developer making the request</param>
+        /// <param name="editingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="identifier">The identifier of the resource</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Returns the ServiceResource object with the corresponding identifier</returns>
-        Task<ServiceResource> GetServiceResourceById(string org, string repository, string developer, string identifier, CancellationToken cancellationToken = default);
+        Task<ServiceResource> GetServiceResourceById(AltinnRepoEditingContext editingContext, string identifier, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Update existing ServiceResource in repository

@@ -421,16 +421,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<ServiceResource> GetServiceResourceById(string org, string repository, string developer, string identifier, CancellationToken cancellationToken = default)
+        public async Task<ServiceResource> GetServiceResourceById(AltinnRepoEditingContext editingContext, string identifier, CancellationToken cancellationToken = default)
         {
-            List<ServiceResource> resourcesInRepo = await GetServiceResources(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer), identifier, cancellationToken);
+            List<ServiceResource> resourcesInRepo = await GetServiceResources(editingContext, identifier, cancellationToken);
             return resourcesInRepo.Where(r => r.Identifier == identifier).FirstOrDefault();
         }
 
         /// <inheritdoc/>
         public async Task<ActionResult> PublishResource(string org, string repository, string developer, string id, string env, string policy = null)
         {
-            ServiceResource resource = await GetServiceResourceById(org, repository, developer, id);
+            ServiceResource resource = await GetServiceResourceById(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer), id);
             if (resource.HasCompetentAuthority == null || resource.HasCompetentAuthority.Orgcode != org)
             {
                 logger.LogWarning("Org mismatch for resource");

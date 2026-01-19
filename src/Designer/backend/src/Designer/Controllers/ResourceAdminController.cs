@@ -341,7 +341,8 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<ServiceResource>> GetResourceById(string org, string repository, string id, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            ServiceResource resource = await _repository.GetServiceResourceById(org, repository, developer, id, cancellationToken);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            ServiceResource resource = await _repository.GetServiceResourceById(editingContext, id, cancellationToken);
             return resource != null ? resource : StatusCode(404);
         }
 
@@ -350,7 +351,8 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<ServiceResourceStatus>> GetPublishStatusById(string org, string repository, string id, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            ServiceResource resource = await _repository.GetServiceResourceById(org, repository, developer, id, cancellationToken);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            ServiceResource resource = await _repository.GetServiceResourceById(editingContext, id, cancellationToken);
             if (resource == null)
             {
                 return StatusCode(404);
@@ -375,7 +377,8 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> GetValidateResource(string org, string repository, string id)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            ServiceResource resourceToValidate = await _repository.GetServiceResourceById(org, repository, developer, id);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            ServiceResource resourceToValidate = await _repository.GetServiceResourceById(editingContext, id);
             if (resourceToValidate != null)
             {
                 ValidationProblemDetails validationProblemDetails = ValidateResource(resourceToValidate);
