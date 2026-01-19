@@ -72,7 +72,7 @@ internal sealed class AlertsService(
         var elements = new List<SlackText>
         {
             new() { Type = "mrkdwn", Text = $"Org: `{org}`" },
-            new() { Type = "mrkdwn", Text = $"Env: `{environment}`" },
+            new() { Type = "mrkdwn", Text = $"Env: `{environment.Name}`" },
             new() { Type = "mrkdwn", Text = $"Apps: {appsFormatted}" },
             new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
         };
