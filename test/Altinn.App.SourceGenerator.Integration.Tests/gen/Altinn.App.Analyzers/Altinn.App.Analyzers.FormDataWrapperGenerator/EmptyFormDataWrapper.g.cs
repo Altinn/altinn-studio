@@ -3,28 +3,28 @@
 
 [global::System.CodeDom.Compiler.GeneratedCode("Altinn.App.Analyzers", "1.0.0.0")]
 [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
+public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_EmptyFormDataWrapper
     : global::Altinn.App.Core.Internal.Data.IFormDataWrapper
 {
-    private readonly global::Altinn.App.SourceGenerator.Tests.Empty _dataModel;
+    private readonly global::Altinn.App.SourceGenerator.Integration.Tests.Models.Empty _dataModel;
 
-    public global::System.Type BackingDataType => typeof(global::Altinn.App.SourceGenerator.Tests.Empty);
+    public global::System.Type BackingDataType => typeof(global::Altinn.App.SourceGenerator.Integration.Tests.Models.Empty);
 
     public T BackingData<T>()
         where T : class
     {
         return _dataModel as T
             ?? throw new global::System.InvalidCastException(
-                $"Attempted to cast data model of type Altinn.App.SourceGenerator.Tests.Empty to {typeof(T).FullName}"
+                $"Attempted to cast data model of type Altinn.App.SourceGenerator.Integration.Tests.Models.Empty to {typeof(T).FullName}"
             );
     }
 
-    public Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper(object dataModel)
+    public Altinn_App_SourceGenerator_Integration_Tests_Models_EmptyFormDataWrapper(object dataModel)
     {
         _dataModel =
-            dataModel as global::Altinn.App.SourceGenerator.Tests.Empty
+            dataModel as global::Altinn.App.SourceGenerator.Integration.Tests.Models.Empty
             ?? throw new global::System.ArgumentException(
-                $"Data model must be of type Altinn.App.SourceGenerator.Tests.Empty, (was {dataModel?.GetType().FullName ?? "null"})"
+                $"Data model must be of type Altinn.App.SourceGenerator.Integration.Tests.Models.Empty, (was {dataModel?.GetType().FullName ?? "null"})"
             );
     }
 
@@ -60,7 +60,7 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
         var bufferOffset = 0;
         var pathOffset = 0;
 
-        AddIndexToPathRecursive_Altinn_App_SourceGenerator_Tests_Empty(
+        AddIndexToPathRecursive_Altinn_App_SourceGenerator_Integration_Tests_Models_Empty(
             path,
             pathOffset,
             rowIndexes,
@@ -71,7 +71,7 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
         return buffer[..bufferOffset];
     }
 
-    private void AddIndexToPathRecursive_Altinn_App_SourceGenerator_Tests_Empty(
+    private void AddIndexToPathRecursive_Altinn_App_SourceGenerator_Integration_Tests_Models_Empty(
         global::System.ReadOnlySpan<char> path,
         int pathOffset,
         global::System.ReadOnlySpan<int> rowIndexes,
@@ -98,12 +98,12 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
     /// <inheritdoc />
     public global::Altinn.App.Core.Internal.Data.IFormDataWrapper Copy()
     {
-        return new Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper(CopyRecursive(_dataModel));
+        return new Altinn_App_SourceGenerator_Integration_Tests_Models_EmptyFormDataWrapper(CopyRecursive(_dataModel));
     }
 
     [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("data")]
-    private static global::Altinn.App.SourceGenerator.Tests.Empty? CopyRecursive(
-        global::Altinn.App.SourceGenerator.Tests.Empty? data
+    private static global::Altinn.App.SourceGenerator.Integration.Tests.Models.Empty? CopyRecursive(
+        global::Altinn.App.SourceGenerator.Integration.Tests.Models.Empty? data
     )
     {
         if (data is null)
@@ -219,8 +219,8 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
     [global::System.Runtime.CompilerServices.ModuleInitializer]
     internal static void Register()
     {
-        global::Altinn.App.Core.Internal.Data.FormDataWrapperFactory.Register<global::Altinn.App.SourceGenerator.Tests.Empty>(
-            dataModel => new Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper(dataModel)
+        global::Altinn.App.Core.Internal.Data.FormDataWrapperFactory.Register<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Empty>(
+            dataModel => new Altinn_App_SourceGenerator_Integration_Tests_Models_EmptyFormDataWrapper(dataModel)
         );
     }
 }
@@ -233,6 +233,6 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
 //   "JsonName": "",
 //   "CSharpName": "",
 //   "IsNullable": false,
-//   "TypeName": "global::Altinn.App.SourceGenerator.Tests.Empty",
+//   "TypeName": "global::Altinn.App.SourceGenerator.Integration.Tests.Models.Empty",
 //   "IsJsonValueType": false,
 // }

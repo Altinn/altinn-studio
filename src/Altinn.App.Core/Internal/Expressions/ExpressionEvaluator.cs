@@ -40,7 +40,7 @@ public static class ExpressionEvaluator
 
             var result = await EvaluateExpression_internal(state, expr, context);
 
-            return result.ToBoolLoose(defaultReturn);
+            return result.ToBoolLoose() ?? defaultReturn;
         }
         catch (Exception e)
         {
@@ -731,7 +731,8 @@ public static class ExpressionEvaluator
 
     private static bool PrepareBooleanArg(ExpressionValue arg)
     {
-        return arg.ToBoolLoose(null);
+        return arg.ToBoolLoose()
+            ?? throw new ExpressionEvaluatorTypeErrorException($"Expected boolean, got value {arg}");
     }
 
     private static bool? And(ExpressionValue[] args)
@@ -825,7 +826,7 @@ public static class ExpressionEvaluator
         {
             JsonValueKind.True or JsonValueKind.False or JsonValueKind.Array or JsonValueKind.Object =>
                 throw new ExpressionEvaluatorTypeErrorException($"Expected number, got value {arg}"),
-            JsonValueKind.String => ParseNumber(arg.String),
+            JsonValueKind.String => ParseNumber(arg.String, throwException: true),
             JsonValueKind.Number => arg.Number,
 
             _ => null,

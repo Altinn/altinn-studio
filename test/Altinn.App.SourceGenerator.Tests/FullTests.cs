@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 using Altinn.App.Analyzers;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.Data;
+using CSharpier.Core;
+using CSharpier.Core.CSharp;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -14,6 +16,39 @@ namespace Altinn.App.SourceGenerator.Tests;
 
 public class FullTests(ITestOutputHelper output)
 {
+    [Fact]
+    public async Task Empty()
+    {
+        var source = """
+            #nullable enable
+
+            namespace Altinn.App.SourceGenerator.Tests;
+
+            public class Skjema
+            {}
+            """;
+        var syntax = CSharpSyntaxTree.ParseText(source, path: "models/Models.cs");
+
+        var applicationMetadata = """
+            {
+                "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/application/application-metadata.schema.v1.json",
+                "id": "ttd/source-generator-test",
+                "title": {},
+                "org": "ttd",
+                "partyTypesAllowed": {},
+                "dataTypes": [{
+                    "id": "form",
+                    "appLogic": {
+                        "classRef": "Altinn.App.SourceGenerator.Tests.Skjema"
+                    }
+                }]
+            }
+
+            """;
+
+        await Verify(RunFormDataWrapper([syntax], applicationMetadata));
+    }
+
     [Fact]
     public async Task Run()
     {
@@ -189,6 +224,20 @@ public class FullTests(ITestOutputHelper output)
         var diagnostics = updatedCompilation.GetDiagnostics();
         output.WriteLine(string.Join(Environment.NewLine, diagnostics));
         Assert.Empty(diagnostics);
+
+        // Verify csharpier formatting of the generated code
+        // Line length is a bit fiddly because it depends on the length of types
+        // but // csharpier-ignore does the trick if needed
+        foreach (var generatedTree in runResult.GeneratedTrees)
+        {
+            var generatedCode = generatedTree.GetText().ToString();
+            var formattedCode = CSharpFormatter.Format(
+                generatedCode,
+                new CodeFormatterOptions() { IncludeGenerated = true, Width = 110 }
+            );
+            Assert.Empty(formattedCode.CompilationErrors);
+            Assert.Equal(formattedCode.Code, generatedCode);
+        }
 
         // Verify the generated code
         return runResult;

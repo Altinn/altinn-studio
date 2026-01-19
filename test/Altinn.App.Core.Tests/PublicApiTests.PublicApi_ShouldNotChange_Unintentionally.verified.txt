@@ -3065,6 +3065,7 @@ namespace Altinn.App.Core.Internal.Data
         void InitializeAltinnRowIds();
         void RemoveAltinnRowIds();
         void RemoveField(System.ReadOnlySpan<char> path, Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption);
+        bool Set(System.ReadOnlySpan<char> path, Altinn.App.Core.Internal.Expressions.ExpressionValue value);
     }
 }
 namespace Altinn.App.Core.Internal.Events
@@ -3137,11 +3138,13 @@ namespace Altinn.App.Core.Internal.Expressions
         public bool Equals(Altinn.App.Core.Internal.Expressions.ExpressionValue other) { }
         public override bool Equals(object? obj) { }
         public override int GetHashCode() { }
-        public bool ToBoolLoose(bool? defaultReturn) { }
+        public bool? ToBoolLoose() { }
         public object? ToObject() { }
         public override string ToString() { }
         public string? ToStringForEquals() { }
         public string? ToStringForText() { }
+        public bool TryDeserialize(System.Type type, out object? result) { }
+        public bool TryDeserialize<T>(out T? result) { }
         public static Altinn.App.Core.Internal.Expressions.ExpressionValue FromObject(object? value) { }
         public static Altinn.App.Core.Internal.Expressions.ExpressionValue op_Implicit(bool? value) { }
         public static Altinn.App.Core.Internal.Expressions.ExpressionValue op_Implicit(double? value) { }

@@ -17,6 +17,7 @@
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.dotTrace" Version="0.15.8" />
     <PackageVersion Include="Buildalyzer.Workspaces" Version="7.1.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="CSharpier.Core" Version="1.2.5" />
     <PackageVersion Include="CSharpier.MsBuild" Version="1.2.5" />
     <PackageVersion Include="Docker.DotNet" Version="3.125.15" />
     <PackageVersion Include="FluentAssertions" Version="7.2.0" />

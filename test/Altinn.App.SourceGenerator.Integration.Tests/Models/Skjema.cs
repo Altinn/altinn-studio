@@ -98,5 +98,3 @@ public class OldXmlValue
     [BindNever]
     public string orid { get; set; } = "7117";
 }
-
-public class Empty { }

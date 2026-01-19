@@ -85,7 +85,7 @@ public abstract class BaseComponent
     public virtual async Task<bool> IsHidden(ComponentContext context)
     {
         var isHidden = await context.EvaluateExpression(Hidden);
-        return isHidden.ToBoolLoose(false);
+        return isHidden.ToBoolLoose() ?? false;
     }
 
     /// <summary>
@@ -94,7 +94,7 @@ public abstract class BaseComponent
     public virtual async Task<bool> IsRequired(ComponentContext context)
     {
         var isRequired = await context.EvaluateExpression(Required);
-        return isRequired.ToBoolLoose(false);
+        return isRequired.ToBoolLoose() ?? false;
     }
 
     /// <summary>
@@ -105,7 +105,7 @@ public abstract class BaseComponent
         var removeWhenHidden = await context.EvaluateExpression(RemoveWhenHidden);
         // The default return should match AppSettings.RemoveHiddenData,
         // but currently we only run removal when it is true, so we set it to true here
-        return removeWhenHidden.ToBoolLoose(true);
+        return removeWhenHidden.ToBoolLoose() ?? true;
     }
 
     /// <summary>

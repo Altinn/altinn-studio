@@ -126,10 +126,13 @@ public static class FormDataWrapperUtils
             return null;
         }
 
+        var propertyTypeInfo = SourceReaderUtils.GetTypeFromProperty(rootSymbol);
+
         return new ModelPathNode(
             "",
             "",
-            SourceReaderUtils.TypeSymbolToString(rootSymbol),
+            propertyTypeInfo.PropertyTypeString,
+            propertyTypeInfo.IsNullable,
             GetNodeProperties(rootSymbol, diagnostics)
         );
     }
@@ -155,21 +158,23 @@ public static class FormDataWrapperUtils
                 // Skip static, readonly, writeonly, implicitly declared, private and indexer properties
                 continue;
             }
-            var (propertyTypeSymbol, propertyCollectionTypeSymbol) = SourceReaderUtils.GetTypeFromProperty(
-                property.Type
-            );
+            var propertyTypeInfo = SourceReaderUtils.GetTypeFromProperty(property.Type);
 
             var cSharpName = property.Name;
             var jsonName = SourceReaderUtils.GetJsonName(property) ?? cSharpName;
-            var typeString = SourceReaderUtils.TypeSymbolToString(propertyTypeSymbol);
-            var collectionTypeString = propertyCollectionTypeSymbol is null
-                ? null
-                : SourceReaderUtils.TypeSymbolToString(propertyCollectionTypeSymbol);
 
-            var subProperties = GetNodeProperties(propertyTypeSymbol, diagnostics);
+            var subProperties = GetNodeProperties(propertyTypeInfo.PropertyType, diagnostics);
 
             nodeProperties.Add(
-                new ModelPathNode(cSharpName, jsonName, typeString, subProperties, collectionTypeString)
+                new ModelPathNode(
+                    cSharpName,
+                    jsonName,
+                    propertyTypeInfo.PropertyTypeString,
+                    propertyTypeInfo.IsNullable,
+                    subProperties,
+                    propertyTypeInfo.PropertyCollectionTypeString,
+                    propertyTypeInfo.IsNullableCollection
+                )
             );
         }
         return nodeProperties.ToArray();
@@ -231,7 +236,7 @@ public static class FormDataWrapperUtils
         }
 
         // Skip properties of abstract types (cannot be instantiated)
-        if (SourceReaderUtils.UnwrapNullable(property.Type) is INamedTypeSymbol { IsAbstract: true })
+        if (SourceReaderUtils.UnwrapNullable(property.Type).UnwrappedSymbol is INamedTypeSymbol { IsAbstract: true })
         {
             return true;
         }
