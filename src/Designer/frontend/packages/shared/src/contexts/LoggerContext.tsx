@@ -1,11 +1,9 @@
 import { type ReactNode } from 'react';
-import React, { createContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useEffect, useMemo } from 'react';
 import type { IConfiguration, IConfig, ITelemetryPlugin } from '@microsoft/applicationinsights-web';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 import { ReactPlugin } from '@microsoft/applicationinsights-react-js';
-import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
-import axios from 'axios';
-import { envFilePath } from 'app-shared/api/paths';
+import { useEnvironmentConfig } from './EnvironmentConfigContext';
 
 export type LoggerConfig = IConfiguration & IConfig;
 
@@ -20,23 +18,7 @@ export const LoggerContextProvider = ({
   config,
 }: LoggerContextProviderProps): JSX.Element => {
   const reactPlugin = useMemo(() => new ReactPlugin(), []);
-  const [environment, setEnvironment] = useState<AltinnStudioEnvironment>(null);
-
-  const fetchConfig = async () => {
-    const response = await axios
-      .get(envFilePath())
-      .catch((error) =>
-        console.warn(
-          'Could not load environment file. This is expected for local dev environments.',
-          error,
-        ),
-      );
-    if (response) return response.data as AltinnStudioEnvironment;
-  };
-
-  useEffect(() => {
-    fetchConfig().then(setEnvironment);
-  }, []);
+  const { environment } = useEnvironmentConfig();
 
   const applicationInsights = useMemo(() => {
     // check if we have a connectionString, if not, don't initialize app insights (we do not want AI to run on localhost)
