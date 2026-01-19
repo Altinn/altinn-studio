@@ -28,9 +28,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="developer"></param>
+        /// <param name="token">The developer access token</param>
         /// <param name="serviceConfig">The ServiceConfiguration to save</param>
         /// <returns>The repository created in gitea</returns>
-        Task<RepositoryClient.Model.Repository> CreateService(string org, string developer, ServiceConfiguration serviceConfig);
+        Task<RepositoryClient.Model.Repository> CreateService(string org, string developer, string token, ServiceConfiguration serviceConfig);
 
         /// <summary>
         /// Copies a repository within an organisation
@@ -40,15 +41,17 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="targetRepository">The name of the new repository.</param>
         /// <param name="developer">Developer's username</param>
         /// <param name="targetOrg">TThe name of the organization in which the repo will be copied. If not set it defaults to <paramref name="org"/></param>
+        /// <param name="token">The developer access token</param>
         /// <returns>The repository created in gitea</returns>
-        Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer, string targetOrg = null);
+        Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer, string token, string targetOrg = null);
 
         /// <summary>
         /// Deletes the local repository for the user and makes a new clone of the repo
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="token">The developer access token</param>
         /// <returns>True if the reset was successful, otherwise false.</returns>
-        Task<bool> ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext);
+        bool ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext, string token);
 
         /// <summary>
         /// Saves policy to git repository

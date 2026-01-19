@@ -17,14 +17,12 @@ using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
-using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -38,7 +36,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </remarks>
     /// <param name="repositorySettings">The settings for the app repository</param>
     /// <param name="generalSettings">The current general settings</param>
-    /// <param name="httpContextAccessor">the http context accessor</param>
     /// <param name="giteaClient">The gitea client</param>
     /// <param name="sourceControl">the source control</param>
     /// <param name="logger">The logger</param>
@@ -49,7 +46,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
     public partial class RepositoryService(
         ServiceRepositorySettings repositorySettings,
         GeneralSettings generalSettings,
-        IHttpContextAccessor httpContextAccessor,
         IGiteaClient giteaClient,
         ISourceControl sourceControl,
         ILogger<RepositoryService> logger,
@@ -122,9 +118,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<RepositoryClient.Model.Repository> CreateService(string org, string developer, ServiceConfiguration serviceConfig)
+        public async Task<RepositoryClient.Model.Repository> CreateService(string org, string developer, string token, ServiceConfiguration serviceConfig)
         {
-            string token = await httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, serviceConfig.RepositoryName, developer, token);
             string repoPath = repositorySettings.GetServicePath(org, serviceConfig.RepositoryName, developer);
             CreateRepoOption options = new(serviceConfig.RepositoryName);
@@ -169,11 +164,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer, string targetOrg = null)
+        public async Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer, string token, string targetOrg = null)
         {
             targetOrg ??= org;
             CreateRepoOption options = new(targetRepository);
-            string token = await httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceRepository, developer, token);
 
             RepositoryClient.Model.Repository repository = await CreateRemoteRepository(targetOrg, options);
@@ -219,10 +213,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<bool> ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext)
+        public bool ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext, string token)
         {
             string repoPath = repositorySettings.GetServicePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            string token = await httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromEditingContext(altinnRepoEditingContext, token);
 
             if (Directory.Exists(repoPath))

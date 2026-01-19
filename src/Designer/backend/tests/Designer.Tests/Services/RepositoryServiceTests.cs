@@ -111,6 +111,7 @@ namespace Designer.Tests.Services
             string org = "ttd";
             string repositoryName = TestDataHelper.GenerateTestRepoName();
             string developer = "testUser";
+            string token = "test-token";
 
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             var repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repositoryName, developer);
@@ -120,7 +121,7 @@ namespace Designer.Tests.Services
 
             try
             {
-                await repositoryService.CreateService(org, developer, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName });
+                await repositoryService.CreateService(org, developer, token, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName });
                 var altinnStudioSettings = await new AltinnGitRepositoryFactory(repositoriesRootDirectory).GetAltinnGitRepository(org, repositoryName, developer).GetAltinnStudioSettings();
                 Assert.Equal(AltinnRepositoryType.App, altinnStudioSettings.RepoType);
                 Assert.True(altinnStudioSettings.UseNullableReferenceTypes);
@@ -141,13 +142,14 @@ namespace Designer.Tests.Services
             // Arrange
             string developer = "testUser";
             string org = "ttd";
+            string token = "test-token";
             string sourceRepository = "apps-test";
             string targetRepository = "existing-repo";
 
             RepositoryService sut = GetServiceForTest(developer);
 
             // Act
-            Repository actual = await sut.CopyRepository(org, sourceRepository, targetRepository, developer);
+            Repository actual = await sut.CopyRepository(org, sourceRepository, targetRepository, developer, token);
 
             // Assert
             Assert.Equal(HttpStatusCode.Conflict, actual.RepositoryCreatedStatus);
@@ -159,6 +161,7 @@ namespace Designer.Tests.Services
             // Arrange
             string developer = "testUser";
             string org = "ttd";
+            string token = "test-token";
             string origRemoteRepo = "apps-test";
             string origRepo = "apps-test-2021";
             string workingRemoteRepositoryName = TestDataHelper.GenerateTestRepoName(origRemoteRepo);
@@ -175,7 +178,7 @@ namespace Designer.Tests.Services
                 RepositoryService sut = GetServiceForTest(developer);
 
                 // Act
-                await sut.CopyRepository(org, workingRemoteRepositoryName, targetRepositoryName, developer);
+                await sut.CopyRepository(org, workingRemoteRepositoryName, targetRepositoryName, developer, token);
 
                 // Assert
                 string developerClonePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), developer, org);
@@ -197,6 +200,7 @@ namespace Designer.Tests.Services
             // Arrange
             string developer = "testUser";
             string org = "ttd";
+            string token = "test-token";
             string origRemoteRepo = "apps-test";
             string workingSourceRepoName = TestDataHelper.GenerateTestRepoName(origRemoteRepo);
             string targetRepository = TestDataHelper.GenerateTestRepoName("apps-test-clone");
@@ -211,7 +215,7 @@ namespace Designer.Tests.Services
                 RepositoryService sut = GetServiceForTest(developer);
 
                 // Act
-                await sut.CopyRepository(org, workingSourceRepoName, targetRepository, developer);
+                await sut.CopyRepository(org, workingSourceRepoName, targetRepository, developer, token);
 
                 // Assert
                 string appMetadataString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
@@ -243,6 +247,7 @@ namespace Designer.Tests.Services
             // Arrange
             string developer = "testUser";
             string org = "ttd";
+            string token = "test-token";
             string sourceWithConfig = TestDataHelper.GenerateTestRepoName("cfg");
             string targetRepository = TestDataHelper.GenerateTestRepoName("clone");
             string workingRemoteDirPath = string.Empty;
@@ -266,7 +271,7 @@ namespace Designer.Tests.Services
                 RepositoryService sut = GetServiceForTest(developer);
 
                 // Act
-                await sut.CopyRepository(org, sourceWithConfig, targetRepository, developer);
+                await sut.CopyRepository(org, sourceWithConfig, targetRepository, developer, token);
 
                 string destRepoPath = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
                 string destConfigPath = Path.Combine(destRepoPath, "config.json");
@@ -430,7 +435,6 @@ namespace Designer.Tests.Services
             RepositoryService service = new(
                 repoSettings,
                 generalSettings,
-                httpContextAccessorMock.Object,
                 new IGiteaClientMock(),
                 sourceControlMock,
                 new Mock<ILogger<RepositoryService>>().Object,

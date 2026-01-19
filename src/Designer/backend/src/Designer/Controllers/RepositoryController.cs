@@ -190,7 +190,8 @@ namespace Altinn.Studio.Designer.Controllers
             ServiceConfiguration config = new() { RepositoryName = repository, ServiceName = repository };
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            RepositoryModel repositoryResult = await _repository.CreateService(org, developer, config);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            RepositoryModel repositoryResult = await _repository.CreateService(org, developer, token, config);
             if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
             {
                 return Created(repositoryResult.CloneUrl, repositoryResult);
@@ -283,11 +284,12 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> ResetLocalRepository(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
             AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
 
             try
             {
-                await _repository.ResetLocalRepository(editingContext);
+                _repository.ResetLocalRepository(editingContext, token);
                 return Ok();
             }
             catch (Exception)
