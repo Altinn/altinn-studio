@@ -5,7 +5,7 @@ import type { JSONSchema7 } from 'json-schema';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId } from 'src/features/instance/instanceUtils';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
@@ -27,7 +27,7 @@ export type AsSchema<T> = {
 };
 
 export function useCurrentDataModelDataElementId() {
-  const layoutSets = useLayoutSets();
+  const layoutSets = getLayoutSets();
   const taskId = useProcessTaskId();
   const isStateless = useIsStateless();
 
@@ -129,7 +129,7 @@ export function useDataModelUrl({ dataType, dataElementId, language, prefillFrom
 export function useCurrentDataModelName() {
   const overriddenDataModelType = useTaskOverrides()?.dataModelType;
 
-  const layoutSets = useLayoutSets();
+  const layoutSets = getLayoutSets();
   const taskId = useProcessTaskId();
   const isStateless = useIsStateless();
 

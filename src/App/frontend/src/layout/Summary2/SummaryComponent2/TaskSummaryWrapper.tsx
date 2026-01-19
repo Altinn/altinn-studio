@@ -2,7 +2,7 @@ import React from 'react';
 
 import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { FormProvider } from 'src/features/form/FormContext';
-import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
 
 interface TaskSummaryProps {
@@ -13,7 +13,7 @@ interface TaskSummaryProps {
 
 export function TaskSummaryWrapper({ taskId, children }: React.PropsWithChildren<TaskSummaryProps>) {
   const currentTaskId = useNavigationParam('taskId');
-  const layoutSets = useLayoutSets();
+  const layoutSets = getLayoutSets();
   const layoutSetForTask = taskId ? layoutSets.find((set) => set.tasks?.includes(taskId)) : undefined;
 
   return (

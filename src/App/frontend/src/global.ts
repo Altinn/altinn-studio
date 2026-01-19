@@ -4,12 +4,15 @@ import type { ApplicationMetadata } from 'src/features/applicationMetadata/types
 import type { IAttachmentsMap } from 'src/features/attachments';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
+import type { GlobalPageSettings, ILayoutSet } from 'src/layout/common.generated';
 
 ///<reference types="cypress-iframe" />
 
 type GlobalData = {
   applicationMetadata: ApplicationMetadata;
   footer: IFooterLayout;
+  layoutSets: ILayoutSet[];
+  globalPageSettings: GlobalPageSettings;
 };
 
 declare global {

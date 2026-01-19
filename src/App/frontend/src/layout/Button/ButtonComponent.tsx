@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from 'src/app-components/Button/Button';
 import { useAttachmentState } from 'src/features/attachments/hooks';
 import { useSetReturnToView } from 'src/features/form/layout/PageNavigationContext';
-import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useProcessQuery, useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
@@ -35,7 +35,6 @@ export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFro
   const attachmentState = useAttachmentState();
   const { mutate: processNext, isPending: isProcessingNext } = useProcessNext();
   const { mutate: processConfirm, isPending: isConfirming } = useProcessNext({ action: 'confirm' });
-  const layoutSets = useLayoutSets();
 
   const setReturnToView = useSetReturnToView();
 
@@ -57,6 +56,8 @@ export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFro
   }
 
   function submitTask() {
+    const layoutSets = getLayoutSets();
+
     setReturnToView?.(undefined);
     if (currentTaskType === ProcessTaskType.Data || behavesLikeDataTask(currentTask?.elementId, layoutSets)) {
       processNext();

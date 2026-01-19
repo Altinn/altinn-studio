@@ -24,7 +24,6 @@ import { ApplicationSettingsProvider } from 'src/features/applicationSettings/Ap
 import { FormProvider } from 'src/features/form/FormContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
-import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
@@ -323,13 +322,11 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
                   <GlobalFormDataReadersProvider>
                     <OrgsProvider>
                       <ApplicationSettingsProvider>
-                        <LayoutSetsProvider>
-                          <ProfileProvider>
-                            <PartyProvider>
-                              <TextResourcesProvider>{children}</TextResourcesProvider>
-                            </PartyProvider>
-                          </ProfileProvider>
-                        </LayoutSetsProvider>
+                        <ProfileProvider>
+                          <PartyProvider>
+                            <TextResourcesProvider>{children}</TextResourcesProvider>
+                          </PartyProvider>
+                        </ProfileProvider>
                       </ApplicationSettingsProvider>
                     </OrgsProvider>
                   </GlobalFormDataReadersProvider>

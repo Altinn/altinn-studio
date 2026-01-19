@@ -24,7 +24,6 @@ import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { ProcessingProvider } from 'src/core/contexts/processingContext';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
-import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
 import { LanguageProvider } from 'src/features/language/LanguageProvider';
@@ -88,30 +87,28 @@ function Root() {
         <UiConfigProvider>
           <InstantiationUrlReset />
           <GlobalFormDataReadersProvider>
-            <LayoutSetsProvider>
-              <ProfileProvider>
-                <TextResourcesProvider>
-                  <OrgsProvider>
-                    <ApplicationSettingsProvider>
-                      <PartyProvider>
-                        <KeepAliveProvider>
-                          <ProcessingProvider>
-                            <App />
-                          </ProcessingProvider>
-                          <ToastContainer
-                            position='top-center'
-                            theme='colored'
-                            transition={Slide}
-                            draggable={false}
-                          />
-                        </KeepAliveProvider>
-                      </PartyProvider>
-                    </ApplicationSettingsProvider>
-                  </OrgsProvider>
-                </TextResourcesProvider>
-              </ProfileProvider>
-              <PartyPrefetcher />
-            </LayoutSetsProvider>
+            <ProfileProvider>
+              <TextResourcesProvider>
+                <OrgsProvider>
+                  <ApplicationSettingsProvider>
+                    <PartyProvider>
+                      <KeepAliveProvider>
+                        <ProcessingProvider>
+                          <App />
+                        </ProcessingProvider>
+                        <ToastContainer
+                          position='top-center'
+                          theme='colored'
+                          transition={Slide}
+                          draggable={false}
+                        />
+                      </KeepAliveProvider>
+                    </PartyProvider>
+                  </ApplicationSettingsProvider>
+                </OrgsProvider>
+              </TextResourcesProvider>
+            </ProfileProvider>
+            <PartyPrefetcher />
           </GlobalFormDataReadersProvider>
         </UiConfigProvider>
       </ViewportWrapper>
