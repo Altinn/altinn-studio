@@ -570,13 +570,12 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/contents.zip")]
         public ActionResult ContentsZip(string org, string repository, [FromQuery] bool full)
         {
-            AltinnRepoContext appContext = AltinnRepoContext.FromOrgRepo(org, repository);
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             string appRoot;
             try
             {
-                appRoot = _repository.GetAppPath(appContext.Org, appContext.Repo);
+                appRoot = _repository.GetAppPath(editingContext.Org, editingContext.Repo, editingContext.Developer);
 
                 if (!Directory.Exists(appRoot))
                 {
@@ -589,7 +588,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             var zipType = full ? "full" : "changes";
-            var zipFileName = $"{appContext.Org}-{appContext.Repo}-{zipType}.zip";
+            var zipFileName = $"{editingContext.Org}-{editingContext.Repo}-{zipType}.zip";
             var tempAltinnFolderPath = Path.Combine(Path.GetTempPath(), "altinn");
             Directory.CreateDirectory(tempAltinnFolderPath);
             var zipFilePath = Path.Combine(tempAltinnFolderPath, zipFileName);

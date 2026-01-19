@@ -138,8 +138,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">The application owner id.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">The developer that owns the app.</param>
         /// <returns></returns>
-        string GetAppPath(string org, string app);
+        string GetAppPath(string org, string app, string developer);
 
         /// <summary>
         /// Deletes the repository both locally and remotely.

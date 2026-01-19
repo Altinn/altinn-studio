@@ -89,9 +89,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetAppPath(string org, string app)
+        public string GetAppPath(string org, string app, string developer)
         {
-            return repositorySettings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
+            return repositorySettings.GetServicePath(org, app, developer);
         }
 
         /// <inheritdoc/>
