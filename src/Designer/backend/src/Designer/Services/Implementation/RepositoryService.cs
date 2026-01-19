@@ -88,12 +88,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return true;
         }
 
-        /// <summary>
-        /// Returns the path to the app folder
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>A string containing the path</returns>
+        /// <inheritdoc/>
         public string GetAppPath(string org, string app)
         {
             return repositorySettings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
@@ -126,13 +121,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return deleted;
         }
 
-        /// <summary>
-        /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
-        /// given <paramref name="serviceConfig"/>
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="serviceConfig">The ServiceConfiguration to save</param>
-        /// <returns>The repository created in gitea</returns>
+        /// <inheritdoc/>
         public async Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
@@ -247,12 +236,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return false;
         }
 
-        /// <summary>
-        /// create a repository in gitea for the given org and options
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="options">the options for creating a repository</param>
-        /// <returns>The newly created repository</returns>
+        /// <inheritdoc/>
         private async Task<RepositoryClient.Model.Repository> CreateRemoteRepository(string org, CreateRepoOption options)
         {
             return await giteaClient.CreateRepository(org, options);
@@ -336,6 +320,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return contents;
         }
 
+        /// <inheritdoc/>
         public async Task<List<ServiceResource>> GetServiceResources(string org, string repository, string path = "", CancellationToken cancellationToken = default)
         {
             List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, Path.Combine(path));
@@ -379,6 +364,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return serviceResourceList.Where(r => r != null).ToList();
         }
 
+        /// <inheritdoc/>
         public ActionResult UpdateServiceResource(string org, string id, ServiceResource updatedResource)
         {
             if (updatedResource != null && id == updatedResource.Identifier)
@@ -406,6 +392,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new StatusCodeResult(403);
         }
 
+        /// <inheritdoc/>
         public StatusCodeResult AddServiceResource(string org, ServiceResource newResource)
         {
             try
@@ -443,12 +430,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return resourceFiles.Any(resourceFile => resourceFile.Name.ToLower().Equals(GetResourceFileName(identifier).ToLower()));
         }
 
+        /// <inheritdoc/>
         public async Task<ServiceResource> GetServiceResourceById(string org, string repository, string identifier, CancellationToken cancellationToken = default)
         {
             List<ServiceResource> resourcesInRepo = await GetServiceResources(org, repository, identifier, cancellationToken);
             return resourcesInRepo.Where(r => r.Identifier == identifier).FirstOrDefault();
         }
 
+        /// <inheritdoc/>
         public async Task<ActionResult> PublishResource(string org, string repository, string id, string env, string policy = null)
         {
             ServiceResource resource = await GetServiceResourceById(org, repository, id);
@@ -544,6 +533,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await sourceControl.DeleteRepository(altinnRepoEditingContext);
         }
 
+        /// <inheritdoc/>
         public async Task<bool> SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy)
         {
             string policyPath = GetPolicyPath(org, repo, resourceId);
@@ -563,6 +553,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return true;
         }
 
+        /// <inheritdoc/>
         public XacmlPolicy GetPolicy(string org, string repo, string resourceId)
         {
             string policyPath = GetPolicyPath(org, repo, resourceId);
@@ -582,6 +573,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return policy;
         }
 
+        /// <inheritdoc/>
         public string GetPolicyPath(string org, string repo, string resourceId)
         {
             string localRepoPath = repositorySettings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
