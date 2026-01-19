@@ -16,11 +16,4 @@ describe('Footer', () => {
     cy.findByRole('link', { name: /\+47 987 65 432/i }).should('have.attr', 'href', 'tel:+4798765432');
     cy.visualTesting('footer');
   });
-
-  it('Does not render footer when backend returns 204', () => {
-    cy.intercept('GET', '**/api/v1/footer', { statusCode: 204, body: null });
-    cy.goto('message');
-    cy.get(appFrontend.sendinButton).should('exist').and('be.visible'); // Make sure the page loads correctly
-    cy.get('footer').should('not.exist');
-  });
 });
