@@ -315,7 +315,7 @@ namespace Designer.Tests.Services
             RepositoryService sut = GetServiceForTest(developer, mock.Object);
 
             // Act
-            await sut.DeleteRepository(org, repository);
+            await sut.DeleteRepository(org, repository, developer);
 
             // Assert
             mock.VerifyAll();

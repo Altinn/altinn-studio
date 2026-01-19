@@ -77,7 +77,7 @@ namespace Designer.Tests.Controllers.RepositoryController
                 .ReturnsAsync(new Repository { RepositoryCreatedStatus = HttpStatusCode.GatewayTimeout });
 
             _repositoryMock
-                 .Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
+                 .Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
 
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, uri);
 
@@ -100,7 +100,7 @@ namespace Designer.Tests.Controllers.RepositoryController
                .Throws(new IOException());
 
             _repositoryMock
-                 .Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
+                 .Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
 
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, uri);
 

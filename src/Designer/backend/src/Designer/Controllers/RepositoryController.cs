@@ -107,12 +107,12 @@ namespace Altinn.Studio.Designer.Controllers
                     return Created(repo.CloneUrl, repo);
                 }
 
-                await _repository.DeleteRepository(targetOrg, targetRepository);
+                await _repository.DeleteRepository(targetOrg, targetRepository, developer);
                 return StatusCode((int)repo.RepositoryCreatedStatus);
             }
             catch (Exception e)
             {
-                await _repository.DeleteRepository(targetOrg, targetRepository);
+                await _repository.DeleteRepository(targetOrg, targetRepository, developer);
                 return StatusCode(500, e);
             }
         }
