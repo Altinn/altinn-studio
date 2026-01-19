@@ -17,7 +17,7 @@ jest.useFakeTimers({ advanceTimers: true });
 
 const mockButtonText: string = 'Mock Button';
 const mockAltinn2LinkService: Altinn2LinkService = {
-  serviceOwnerCode: 'ttd',
+  serviceOwnerCode: 'digdir',
   externalServiceCode: 'code1',
   externalServiceEditionCode: 'edition1',
   serviceName: 'TestService',
@@ -37,7 +37,7 @@ const defaultProps: ImportResourceModalProps = {
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    org: 'ttd',
+    org: 'digdir',
   }),
 }));
 
@@ -187,7 +187,7 @@ describe('ImportResourceModal', () => {
     );
     await user.type(idField, '?/test');
 
-    expect(idField).toHaveValue(`ttd-${mockAltinn2LinkService.serviceName.toLowerCase()}--test`);
+    expect(idField).toHaveValue(`digdir-${mockAltinn2LinkService.serviceName.toLowerCase()}--test`);
   });
 
   it('displays conflict message if identifier is in use', async () => {
@@ -224,7 +224,9 @@ describe('ImportResourceModal', () => {
     await waitFor(() => {
       expect(
         screen.getByText(
-          textMock('resourceadm.dashboard_resource_name_and_id_error', { orgPrefix: 'ttd-' }),
+          textMock('resourceadm.dashboard_resource_name_and_id_error', {
+            orgPrefix: `digdir-, digdir_, altinn- ${textMock('expression.or')} altinn_`,
+          }),
         ),
       ).toBeInTheDocument();
     });

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { cyMockResponses } from 'test/e2e/pageobjects/party-mocks';
 
-import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { InstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 
@@ -60,7 +60,7 @@ describe('Instantiation', () => {
     cy.allowFailureOnEnd();
     cy.intercept('GET', '**/api/v1/applicationmetadata', (req) => {
       req.on('response', (res) => {
-        const body = res.body as IncomingApplicationMetadata;
+        const body = res.body as ApplicationMetadata;
         body.onEntry = { show: 'new-instance' };
       });
     });

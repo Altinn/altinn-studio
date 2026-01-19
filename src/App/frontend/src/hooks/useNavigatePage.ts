@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { NavigateOptions } from 'react-router-dom';
 
 import { SearchParams } from 'src/core/routing/types';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useIsStateless } from 'src/features/applicationMetadata';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
@@ -107,7 +107,7 @@ export const useStartUrl = (forcedTaskId?: string) => {
     useAllNavigationParams();
   const isSubformPage = !!mainPageKey;
   const taskType = useGetTaskTypeById()(taskId);
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStateless();
 
   return useMemo(() => {
     const firstPage = order?.[0];
@@ -202,7 +202,7 @@ export function useIsValidTaskId() {
 }
 
 export function useNavigatePage() {
-  const isStatelessApp = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStateless();
   const navigate = useOurNavigate();
   const navParams = useAllNavigationParamsAsRef();
   const getTaskType = useGetTaskTypeById();
@@ -234,10 +234,10 @@ export function useNavigatePage() {
    */
   useEffect(() => {
     const currentPageId = navParams.current.pageKey ?? '';
-    if (isStatelessApp && orderRef.current[0] !== undefined && (!currentPageId || !isValidPageId(currentPageId))) {
+    if (isStateless && orderRef.current[0] !== undefined && (!currentPageId || !isValidPageId(currentPageId))) {
       navigate(`/${orderRef.current[0]}?${searchParamsRef.current}`, { replace: true });
     }
-  }, [isStatelessApp, orderRef, navigate, isValidPageId, navParams, searchParamsRef]);
+  }, [isStateless, orderRef, navigate, isValidPageId, navParams, searchParamsRef]);
 
   const waitForSave = FD.useWaitForSave();
   const maybeSaveOnPageChange = useCallback(async () => {
@@ -265,7 +265,7 @@ export function useNavigatePage() {
       }
 
       const searchParams = options?.searchParams ? `?${options.searchParams.toString()}` : '';
-      if (isStatelessApp) {
+      if (isStateless) {
         const url = `/${page}${searchParams}`;
         return navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
       }
@@ -281,7 +281,7 @@ export function useNavigatePage() {
       const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`;
       navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
     },
-    [orderRef, isStatelessApp, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations],
+    [orderRef, isStateless, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations],
   );
 
   const [_, setVisitedPages] = useVisitedPages();
