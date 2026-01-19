@@ -13,6 +13,7 @@ import { AttachmentsStorePlugin } from 'src/features/attachments/AttachmentsStor
 import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
 import { HiddenComponentsProvider } from 'src/features/form/dynamics/HiddenComponentsProvider';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
 import {
   LoadingBlockerWaitForValidation,
@@ -20,6 +21,8 @@ import {
   Validation,
 } from 'src/features/validation/validationContext';
 import { ValidationStorePlugin } from 'src/features/validation/ValidationStorePlugin';
+import { useNavigationParam } from 'src/hooks/navigation';
+import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { GeneratorGlobalProvider, GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
@@ -279,6 +282,7 @@ export const NodesProvider = ({ children, ...props }: NodesProviderProps) => {
 };
 
 function ProvideGlobalContext({ children, registry }: PropsWithChildren<{ registry: RefObject<Registry> }>) {
+  const isInTaskTransition = useIsInTaskTransition();
   const latestLayouts = useLayouts();
   const layouts = Store.useSelector((s) => s.layouts);
   const reset = Store.useSelector((s) => s.reset);
@@ -314,7 +318,7 @@ function ProvideGlobalContext({ children, registry }: PropsWithChildren<{ regist
     [registry],
   );
 
-  if (layouts !== latestLayouts) {
+  if (layouts !== latestLayouts || isInTaskTransition) {
     // You changed the layouts, possibly by using devtools. Hold on while we re-generate!
     return <NodesLoader />;
   }
@@ -331,6 +335,22 @@ function ProvideGlobalContext({ children, registry }: PropsWithChildren<{ regist
       {children}
     </GeneratorGlobalProvider>
   );
+}
+
+/**
+ * When navigating to process/next, the taskId transitions to a new one. Layouts will be updated as well, but that
+ * takes time. This hook returns true when in such a transition
+ */
+function useIsInTaskTransition() {
+  const currentTask = useProcessQuery().data?.currentTask?.elementId;
+  const taskIdFromUrl = useNavigationParam('taskId');
+
+  if ([TaskKeys.ProcessEnd, TaskKeys.CustomReceipt].includes(taskIdFromUrl as TaskKeys) && !currentTask) {
+    // Receipt indicates that the process ended - it cannot be compared directly with the taskId
+    return false;
+  }
+
+  return currentTask !== taskIdFromUrl;
 }
 
 function AutoCommit({ registry }: { registry: RefObject<Registry> }) {
