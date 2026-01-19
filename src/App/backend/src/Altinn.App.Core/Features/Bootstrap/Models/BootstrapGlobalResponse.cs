@@ -16,4 +16,10 @@ internal class BootstrapGlobalResponse
     /// </summary>
     [JsonPropertyName("footer")]
     public object? Footer { get; set; }
+
+    /// <summary>
+    /// Footer layout configuration.
+    /// </summary>
+    [JsonPropertyName("applicationSettings")]
+    public object? FrontEndSettings { get; set; }
 }

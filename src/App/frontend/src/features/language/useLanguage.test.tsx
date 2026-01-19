@@ -191,11 +191,6 @@ describe('useLanguage', () => {
             },
           ],
         }),
-        fetchApplicationSettings: async () => ({
-          firstValue: 'liter',
-          secondValue: 'FRITYROLJE',
-          thirdValue: '2019',
-        }),
       },
     });
 
