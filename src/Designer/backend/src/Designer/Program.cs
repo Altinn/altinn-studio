@@ -228,7 +228,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureMvc();
     services.ConfigureNonMarkedSettings(configuration);
 
-    services.RegisterTypedHttpClients(configuration);
+    services.RegisterTypedHttpClients(configuration, env);
     services.AddAnsattPortenAuthenticationAndAuthorization(configuration);
     services.AddMaskinportenAuthentication(configuration);
     services.ConfigureAuthentication(configuration, env);

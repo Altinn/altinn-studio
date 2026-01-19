@@ -26,6 +26,7 @@ rules:
       - helmreleases
     verbs:
       - get
+      - list
   - apiGroups:
       - source.toolkit.fluxcd.io
     resources:

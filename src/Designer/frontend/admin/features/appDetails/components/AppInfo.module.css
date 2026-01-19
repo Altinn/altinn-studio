@@ -1,0 +1,9 @@
+.details-wrapper {
+  display: flex;
+  gap: 2rem;
+}
+
+.external {
+  margin-left: 2px;
+  margin-bottom: -2px;
+}
