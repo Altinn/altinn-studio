@@ -364,13 +364,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ActionResult UpdateServiceResource(string org, string id, ServiceResource updatedResource)
+        public ActionResult UpdateServiceResource(string org, string id, string developer, ServiceResource updatedResource)
         {
             if (updatedResource != null && id == updatedResource.Identifier)
             {
                 string repository = string.Format("{0}-resources", org);
                 List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
-                string repopath = repositorySettings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
+                string repopath = repositorySettings.GetServicePath(org, repository, developer);
                 string resourceFileName = GetResourceFileName(updatedResource.Identifier);
 
                 foreach (FileSystemObject resourceFile in resourceFiles)

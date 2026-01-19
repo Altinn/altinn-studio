@@ -124,9 +124,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">The organisation which owns the repository</param>
         /// <param name="id">The id of the resource that should be updated</param>
+        /// <param name="developer">The developer making the request</param>
         /// <param name="updatedResource">The resource that is to be updated</param>
         /// <returns></returns>
-        ActionResult UpdateServiceResource(string org, string id, ServiceResource updatedResource);
+        ActionResult UpdateServiceResource(string org, string id, string developer, ServiceResource updatedResource);
 
         /// <summary>
         /// Add new ServiceResource to repository

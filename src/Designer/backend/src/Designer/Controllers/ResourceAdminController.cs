@@ -397,7 +397,8 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> UpdateResource(string org, string id, [FromBody] ServiceResource resource, CancellationToken cancellationToken = default)
         {
             resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
-            return _repository.UpdateServiceResource(org, id, resource);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            return _repository.UpdateServiceResource(org, id, developer, resource);
         }
 
         [HttpPost]
