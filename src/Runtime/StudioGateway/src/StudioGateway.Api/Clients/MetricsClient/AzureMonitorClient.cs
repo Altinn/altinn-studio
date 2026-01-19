@@ -267,14 +267,14 @@ internal sealed class AzureMonitorClient(
         }
     }
 
-    public Uri GetLogsUrl(string subscriptionId, string org, string env, string appName, string metricName, int range)
+    public Uri? GetLogsUrl(string subscriptionId, string org, string env, string appName, string? metricName, int range)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
-        if (!_operationNames.TryGetValue(metricName, out var operationNames))
+        if (metricName is null || !_operationNames.TryGetValue(metricName, out var operationNames))
         {
-            throw new ArgumentException($"Unknown metric name: {metricName}", nameof(metricName));
+            return null;
         }
 
         string jsonPath = Path.Combine(AppContext.BaseDirectory, "Clients", "MetricsClient", "logsQueryTemplate.json");
