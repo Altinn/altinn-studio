@@ -29,9 +29,9 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private readonly ServiceRepositorySettings _serviceRepositorySettings;
     private readonly IAltinityWebSocketService _webSocketService;
 
-    private static readonly ConcurrentDictionary<string, string> SessionOwners = new();
+    private static readonly ConcurrentDictionary<string, string> s_sessionOwners = new();
 
-    private static readonly ConcurrentDictionary<string, string> WebSocketConnections = new();
+    private static readonly ConcurrentDictionary<string, string> s_webSocketConnections = new();
 
     public AltinityProxyHub(
         IHttpContextAccessor httpContextAccessor,
@@ -58,7 +58,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         string sessionId = Guid.NewGuid().ToString();
 
-        SessionOwners.TryAdd(sessionId, developer);
+        s_sessionOwners.TryAdd(sessionId, developer);
 
         _logger.LogInformation("Altinity hub connection established for user: {Developer}, connectionId: {ConnectionId}, sessionId: {SessionId}",
             developer, connectionId, sessionId);
@@ -72,7 +72,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
                     await Clients.Group(developer).ReceiveAgentMessage(message);
                 });
 
-            WebSocketConnections.TryAdd(connectionId, wsConnectionId);
+            s_webSocketConnections.TryAdd(connectionId, wsConnectionId);
 
             _logger.LogInformation("Established WebSocket to Altinity for session {SessionId}", sessionId);
         }
@@ -93,7 +93,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         await Groups.RemoveFromGroupAsync(connectionId, developer);
 
-        if (WebSocketConnections.TryRemove(connectionId, out var wsConnectionId))
+        if (s_webSocketConnections.TryRemove(connectionId, out var wsConnectionId))
         {
             try
             {
@@ -172,7 +172,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
     private void ValidateSessionOwnership(string sessionId, string developer)
     {
-        if (!SessionOwners.TryGetValue(sessionId, out var sessionOwner))
+        if (!s_sessionOwners.TryGetValue(sessionId, out var sessionOwner))
         {
             _logger.LogWarning("User {Developer} attempted to use non-existent session {SessionId}", developer, sessionId);
             throw new HubException("Invalid session: Session does not exist");
@@ -302,7 +302,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     /// </summary>
     public async Task SendMessageToSession(string sessionId, object message)
     {
-        if (!SessionOwners.TryGetValue(sessionId, out var sessionOwner))
+        if (!s_sessionOwners.TryGetValue(sessionId, out var sessionOwner))
         {
             _logger.LogWarning("Attempted to send message to unknown session: {SessionId}", sessionId);
             return;
@@ -320,11 +320,11 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
-        if (SessionOwners.TryGetValue(sessionId, out string owner))
+        if (s_sessionOwners.TryGetValue(sessionId, out string owner))
         {
             if (owner == developer)
             {
-                SessionOwners.TryRemove(sessionId, out _);
+                s_sessionOwners.TryRemove(sessionId, out _);
                 _logger.LogInformation("Session {SessionId} closed by owner {Developer}", sessionId, developer);
             }
             else
