@@ -279,10 +279,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public List<FileSystemObject> GetContents(string org, string repository, string path = "")
+        public List<FileSystemObject> GetContents(string org, string repository, string developer, string path = "")
         {
             List<FileSystemObject> contents = [];
-            string repositoryPath = repositorySettings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
+            string repositoryPath = repositorySettings.GetServicePath(org, repository, developer);
             string contentPath = Path.Combine(repositoryPath, path);
 
             // repository was not found

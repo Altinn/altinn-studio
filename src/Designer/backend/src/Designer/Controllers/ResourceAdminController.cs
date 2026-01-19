@@ -230,10 +230,11 @@ namespace Altinn.Studio.Designer.Controllers
             IEnumerable<ListviewServiceResource> resources;
             List<ServiceResource> repositoryResourceList;
             List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             if (skipParseJson)
             {
-                List<FileSystemObject> resourceFiles = _repository.GetContents(org, repository);
+                List<FileSystemObject> resourceFiles = _repository.GetContents(org, repository, developer);
                 repositoryResourceList = resourceFiles.Where(file => file.Type.Equals("Dir") && !file.Name.StartsWith(".")).Select(file =>
                 {
                     return new ServiceResource

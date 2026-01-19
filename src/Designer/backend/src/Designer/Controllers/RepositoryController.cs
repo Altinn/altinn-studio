@@ -551,7 +551,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/contents")]
         public ActionResult Contents(string org, string repository, [FromQuery] string path = "")
         {
-            List<FileSystemObject> contents = _repository.GetContents(org, repository, path);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            List<FileSystemObject> contents = _repository.GetContents(org, repository, developer, path);
 
             if (contents == null)
             {

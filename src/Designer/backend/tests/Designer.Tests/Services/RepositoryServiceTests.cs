@@ -58,7 +58,7 @@ namespace Designer.Tests.Services
             RepositoryService sut = GetServiceForTest("testUser");
 
             // Act
-            List<FileSystemObject> actual = sut.GetContents("ttd", "apps-test");
+            List<FileSystemObject> actual = sut.GetContents("ttd", "apps-test", "testUser");
 
             // Assert
             Assert.Equal(expected.First().Type, actual.First().Type);
@@ -85,7 +85,7 @@ namespace Designer.Tests.Services
             RepositoryService sut = GetServiceForTest("testUser");
 
             // Act
-            List<FileSystemObject> actual = sut.GetContents("ttd", "apps-test", "App/appsettings.json");
+            List<FileSystemObject> actual = sut.GetContents("ttd", "apps-test", "testUser","App/appsettings.json");
 
             // Assert
             Assert.Equal(expected.First().Type, actual.First().Type);
@@ -99,7 +99,7 @@ namespace Designer.Tests.Services
             RepositoryService sut = GetServiceForTest("testUser");
 
             // Act
-            List<FileSystemObject> actual = sut.GetContents("ttd", "test-apps");
+            List<FileSystemObject> actual = sut.GetContents("ttd", "test-apps", "testUser");
 
             // Assert
             Assert.Null(actual);

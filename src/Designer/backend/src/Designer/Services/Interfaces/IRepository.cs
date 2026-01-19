@@ -88,7 +88,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Lists the content of a repository
         /// </summary>
-        List<FileSystemObject> GetContents(string org, string repository, string path = "");
+        List<FileSystemObject> GetContents(string org, string repository, string developer, string path = "");
 
         /// <summary>
         /// Lists the ServiceResource files in a repository
