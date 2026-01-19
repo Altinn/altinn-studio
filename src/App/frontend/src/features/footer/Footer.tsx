@@ -13,7 +13,7 @@ import type { IFooterComponent, IFooterComponentMap } from 'src/features/footer/
 
 export const Footer = () => {
   const application = getApplicationMetadata();
-  const footerLayout = window.footer;
+  const footerLayout = window.altinnAppGlobalData.footer;
   const shouldUseOrgLogo = application.logo != null;
 
   const footerElements = footerLayout?.footer;

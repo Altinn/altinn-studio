@@ -9,6 +9,7 @@ import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
 
 type GlobalData = {
   applicationMetadata: ApplicationMetadata;
+  footer: IFooterLayout;
 };
 
 declare global {
@@ -17,7 +18,6 @@ declare global {
     org: string;
     featureToggles: IFeatureTogglesOptionalMap;
     altinnAppGlobalData: GlobalData;
-    footer: IFooterLayout;
     // Exposes our global query client, which is used to cache data from API calls. This is exposed so that Cypress
     // can inject data into the cache, and so that we can access the cache in tests. It is also used by Studio
     // to invalidate/inject layout data the (Studio) user makes a change to the layout and wants to see the result
