@@ -20,30 +20,43 @@ log = get_logger(__name__)
 
 class MCPClient:
     """Client for interacting with MCP (Model Context Protocol) servers."""
-    
+
     def __init__(self, server_url: str = "http://localhost:8069"): # TODO: Make this configurable
         self.server_url = server_url
         self._client = None
         self._available_tools = []
-    
-    async def _get_client(self):
-        """Get or create FastMCP client"""
+        self._current_gitea_token = None  # Store token separately from tool arguments
+
+    async def _get_client(self, gitea_token: str = None):
+        """Get or create FastMCP client with Authorization header (MCP spec compliant)"""
+        # Always recreate client if token changes (for security)
+        if gitea_token and gitea_token != self._current_gitea_token:
+            self._client = None
+            self._current_gitea_token = gitea_token
+
         if self._client is None:
             try:
                 from fastmcp import Client
-                # Server URL should already include /sse if needed
                 log.info(f"Connecting to FastMCP server at: {self.server_url}")
-                self._client = Client(StreamableHttpTransport(url=self.server_url))
+
+                # MCP spec: Send token as Authorization header (Bearer token)
+                headers = {}
+                if gitea_token:
+                    headers["Authorization"] = f"Bearer {gitea_token}"
+                    log.info("[AUTH] Using Bearer token authentication")
+
+                # Create transport with headers
+                self._client = Client(StreamableHttpTransport(url=self.server_url, headers=headers))
             except ImportError:
                 log.error("FastMCP library not available, install with: pip install fastmcp")
                 raise Exception("FastMCP library not installed")
         return self._client
-    
-    async def connect(self):
+
+    async def connect(self, gitea_token: str = None):
         """Connect to the MCP server."""
         # List available tools
         try:
-            client = await self._get_client()
+            client = await self._get_client(gitea_token)
             async with client:
                 await client.ping()
                 tools = await client.list_tools()
@@ -157,17 +170,29 @@ class MCPClient:
             log.error(f"MCP server check failed: {e}")
             raise Exception(f"MCP server check failed: {str(e)}")
     
-    async def call_tool(self, tool_name: str, arguments: dict):
-        """Call an MCP tool and return the result."""
+    async def call_tool(self, tool_name: str, arguments: dict, gitea_token: str = None):
+        """
+        Call an MCP tool and return the result.
+
+        IMPORTANT: gitea_token is sent via Authorization header (MCP spec compliant).
+        Token is NEVER part of tool arguments, ensuring it never leaks to LLM context.
+
+        The MCP server receives the token via the Authorization header and can use it
+        for git/API operations without exposing it to LLM processing.
+        """
         try:
-            client = await self._get_client()
+            # Get client with Authorization header set (if token provided)
+            client = await self._get_client(gitea_token)
+
+            # MCP spec: Token is sent via Authorization header, NOT in arguments
+            # Arguments are clean and can be safely passed to LLM
             async with client:
                 result = await client.call_tool(tool_name, arguments)
-                
+
                 # Handle CallToolResult objects with structured content
                 if hasattr(result, 'structured_content') and result.structured_content:
                     return result.structured_content
-                
+
                 return result
         except Exception as e:
             log.error(f"Failed to call MCP tool {tool_name}: {e}")

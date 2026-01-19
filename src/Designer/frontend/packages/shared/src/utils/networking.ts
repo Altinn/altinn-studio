@@ -38,29 +38,6 @@ export async function del<T = void>(url: string, config?: AxiosRequestConfig): P
   return response.data;
 }
 
-// Configure axios to send credentials and tokens for appropriate requests
-axios.interceptors.request.use((config) => {
-  const url = config.url;
-  if (url) {
-    // Send credentials for same-origin requests
-    const isSameOrigin = url.startsWith('/') || url.startsWith(window.location.origin);
-    config.withCredentials = isSameOrigin;
-
-    // Add Gitea access token for Gitea API requests
-    // TODO: Replace with proper authentication mechanism
-    const isGiteaApi = url.includes('/repos/api/v1/') || url.includes('/repos/repo/');
-    if (isGiteaApi) {
-      if (!config.headers) {
-        // @ts-ignore - Temporary solution for Gitea authentication
-        config.headers = {};
-      }
-      // @ts-ignore - Temporary solution for Gitea authentication
-      config.headers.Authorization = `token fb6bf022c946599f94279a9d335539bcf82b2b75`;
-    }
-  }
-  return config;
-});
-
 // we are unable to intercept redirect responses,
 // so this workaround is needed to redirect the browser to the login page
 axios.interceptors.response.use(function (response) {

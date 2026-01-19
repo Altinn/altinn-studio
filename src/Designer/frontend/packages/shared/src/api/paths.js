@@ -203,6 +203,7 @@ export const envFilePath = () => `${basePath}/config/env.json`;
 export const syncEventsWebSocketHub = () => '/hubs/sync';
 export const syncEntityUpdateWebSocketHub = () => '/hubs/entity-updated';
 export const previewWebSocketHub = () => `/hubs/preview`;
+export const altinityWebSocketHub = () => '/hubs/altinity';
 
 // Contact
 export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;

@@ -4,3 +4,4 @@ export * from './usePropState';
 export * from './useUniqueKeys';
 export * from './useMediaQuery';
 export * from './usePrevious';
+export * from './useOrgAppScopedStorage';
