@@ -118,11 +118,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Add new ServiceResource to repository
         /// </summary>
-        /// <param name="org">The organisation which owns the repository</param>
-        /// <param name="developer">The developer making the request</param>
+        /// <param name="orgEditingContext">An <see cref="AltinnOrgEditingContext"/>.</param>
         /// <param name="newResource">The new resource that is to be added to the repository</param>
         /// <returns>Status code result of resource creation request: 201 if success, or 409 or 400 on error</returns>
-        StatusCodeResult AddServiceResource(string org, string developer, ServiceResource newResource);
+        StatusCodeResult AddServiceResource(AltinnOrgEditingContext orgEditingContext, ServiceResource newResource);
 
         /// <summary>
         /// Publishes a specific resource to the ResourceRegistry

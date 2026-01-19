@@ -382,7 +382,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public StatusCodeResult AddServiceResource(string org, string developer, ServiceResource newResource)
+        public StatusCodeResult AddServiceResource(AltinnOrgEditingContext orgEditingContext, ServiceResource newResource)
         {
             try
             {
@@ -391,8 +391,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     return new StatusCodeResult(400);
                 }
-                string repository = $"{org}-resources";
-                AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+                string repository = $"{orgEditingContext.Org}-resources";
+                AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(orgEditingContext.Org, repository, orgEditingContext.Developer);
                 if (!CheckIfResourceFileAlreadyExists(editingContext, newResource.Identifier))
                 {
                     string repopath = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
