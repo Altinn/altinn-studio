@@ -72,7 +72,7 @@ public class DeploymentWebhooksController : ControllerBase
             return Ok();
         }
 
-        await _deploymentService.SendToSlackAsync(org, request.Environment, app, eventType, buildId, cancellationToken);
+        await _deploymentService.SendToSlackAsync(org, request.Environment, app, eventType, buildId, deployment.Build.Started, deployment.Build.Finished, cancellationToken);
 
         var deployEvent = CreateDeployEvent(eventType, request);
 

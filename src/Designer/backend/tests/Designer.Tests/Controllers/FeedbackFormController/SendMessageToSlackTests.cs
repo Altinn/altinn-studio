@@ -27,9 +27,7 @@ public class SendMessageToSlackTests : FeedbackFormControllerTestBase<SendMessag
             $$"""
                     {
                       "FeedbackFormSettings" : {
-                            "SlackSettings": {
-                                "WebhookUrl": "{{mockServerFixture.MockApi.Url}}"
-                            }
+                            "SlackWebhookUrl": "{{mockServerFixture.MockApi.Url}}"
                         }
                     }
                 """

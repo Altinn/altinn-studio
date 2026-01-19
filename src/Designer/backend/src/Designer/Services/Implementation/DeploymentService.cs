@@ -324,7 +324,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task SendToSlackAsync(string org, string env, string app, DeployEventType eventType, string buildId, CancellationToken cancellationToken)
+        public async Task SendToSlackAsync(string org, string env, string app, DeployEventType eventType, string buildId, DateTime? startedDate, DateTime? finishedDate, CancellationToken cancellationToken)
         {
             string studioEnv = _generalSettings.OriginEnvironment;
             var isSuccess = eventType == DeployEventType.InstallSucceeded ||
@@ -350,12 +350,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (!isSuccess)
             {
-                elements.Add(new SlackText { Type = "mrkdwn", Text = $"<{GrafanaPodLogsUrl(org, env, app)}|Grafana>" });
+                elements.Add(new SlackText { Type = "mrkdwn", Text = $"<{GrafanaPodLogsUrl(org, env, app, startedDate, finishedDate)}|Grafana>" });
             }
 
             if (!string.IsNullOrWhiteSpace(buildId))
             {
-                elements.Add(new SlackText { Type = "mrkdwn", Text = $"<https://dev.azure.com/brreg/altinn-studio/_build/results?buildId={buildId}&view=logs|Build log>|Build log>" });
+                elements.Add(new SlackText { Type = "mrkdwn", Text = $"<https://dev.azure.com/brreg/altinn-studio/_build/results?buildId={buildId}&view=logs|Build log>" });
             }
 
             var message = new SlackMessage
@@ -386,24 +386,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private string GrafanaPodLogsUrl(string org, string env, string app)
+        private static string GrafanaPodLogsUrl(string org, string env, string app, DateTime? startedDate, DateTime? finishedDate)
         {
             var isProd = env.Equals(AltinnEnvironment.Prod.Name, StringComparison.OrdinalIgnoreCase);
 
-            var baseDomain = _environmentsService.GetAppClusterUri(org, isProd ? AltinnEnvironment.Prod.Name : "tt02");
+            var baseDomain = isProd ? $"https://${org}.apps.altinn.no" : $"https://${org}.apps.tt02.altinn.no";
 
             var path = "/monitor/d/ae1906c2hbjeoe/pod-console-error-logs";
-
-            var now = DateTimeOffset.UtcNow;
-            var from = now.AddMinutes(-30);
 
             var queryParams = new Dictionary<string, string>
             {
                 ["var-rg"] = $"altinnapps-{org}-{(isProd ? "prod" : env)}-rg",
                 ["var-PodName"] = $"{org}-{app}-deployment-v2",
-                ["from"] = from.ToUnixTimeMilliseconds().ToString(),
-                ["to"] = now.ToUnixTimeMilliseconds().ToString(),
             };
+
+            if (startedDate is not null && finishedDate is not null)
+            {
+                queryParams["from"] = new DateTimeOffset(startedDate.Value).ToUnixTimeMilliseconds().ToString();
+                queryParams["to"] = new DateTimeOffset(finishedDate.Value).ToUnixTimeMilliseconds().ToString();
+            }
 
             return QueryHelpers.AddQueryString($"{baseDomain}{path}", queryParams);
         }
