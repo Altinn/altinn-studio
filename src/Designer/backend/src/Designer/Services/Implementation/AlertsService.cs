@@ -35,7 +35,7 @@ internal sealed class AlertsService(
     }
 
     /// <inheritdoc />
-    public async Task NotifyAlertsUpdatedAsync(string org, AltinnEnvironment environment, string baseUrl, IEnumerable<Alert> alerts, CancellationToken cancellationToken)
+    public async Task NotifyAlertsUpdatedAsync(string org, AltinnEnvironment environment, IEnumerable<Alert> alerts, CancellationToken cancellationToken)
     {
         var firingAlerts = alerts
         .Select(alert => new
@@ -53,7 +53,8 @@ internal sealed class AlertsService(
         await Task.WhenAll(
             firingAlerts.Select(async alert =>
             {
-                Uri? appInsightsUrl = !string.IsNullOrWhiteSpace(alert.Id) ? new Uri($"{baseUrl}/designer/api/v1/admin/metrics/{org}/{environment}/app/errors/logs?app={string.Join(", ", alert.FiringApps)}&metric={alert.Id}&range=15") : null;
+                string appsParam = Uri.EscapeDataString(string.Join(", ", alert.FiringApps));
+                Uri? appInsightsUrl = !string.IsNullOrWhiteSpace(alert.Id) ? new Uri($"https://{generalSettings.HostName}/designer/api/v1/admin/metrics/{org}/{environment}/app/errors/logs?app={appsParam}&metric={alert.Id}&range=15") : null;
 
                 await SendToSlackAsync(org, environment, alert.FiringApps, alert.Name, alert.URL, appInsightsUrl, cancellationToken);
 
@@ -72,7 +73,7 @@ internal sealed class AlertsService(
         {
             new() { Type = "mrkdwn", Text = $"Org: `{org}`" },
             new() { Type = "mrkdwn", Text = $"Env: `{environment}`" },
-            new() { Type = "mrkdwn", Text = $"Apps: {apps}" },
+            new() { Type = "mrkdwn", Text = $"Apps: {appsFormatted}" },
             new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
         };
 

@@ -25,7 +25,6 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -356,7 +355,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (!string.IsNullOrWhiteSpace(buildId))
             {
-                elements.Add(new SlackText { Type = "mrkdwn", Text = $"<{new Uri($"<https://dev.azure.com/brreg/altinn-studio/_build/results?buildId={buildId}&view=logs|Build log>")}|Build log>" });
+                elements.Add(new SlackText { Type = "mrkdwn", Text = $"<https://dev.azure.com/brreg/altinn-studio/_build/results?buildId={buildId}&view=logs|Build log>|Build log>" });
             }
 
             var message = new SlackMessage

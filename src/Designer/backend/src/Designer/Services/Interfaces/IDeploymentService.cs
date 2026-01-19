@@ -1,5 +1,4 @@
 #nullable disable
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;

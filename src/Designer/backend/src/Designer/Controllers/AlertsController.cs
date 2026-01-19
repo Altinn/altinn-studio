@@ -40,7 +40,7 @@ public class AlertsController(IAlertsService alertsService) : ControllerBase
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        await _alertsService.NotifyAlertsUpdatedAsync(org, environment, $"{Request.Scheme}://{Request.Host}", alerts, cancellationToken);
+        await _alertsService.NotifyAlertsUpdatedAsync(org, environment, alerts, cancellationToken);
         return Ok();
     }
 }
