@@ -16,8 +16,6 @@ namespace Altinn.Studio.Designer.Models
 
         public AltinnRepoEditingContext RepoEditingContext => FromOrgRepoDeveloper(Org, Repo, Developer);
 
-        public AltinnOrgEditingContext OrgEditingContext => AltinnOrgEditingContext.FromOrgDeveloper(Org, Developer);
-
         private AltinnAuthenticatedRepoEditingContext(string org, string repo, string developer, string developerAppToken)
             : base(org, repo, developer)
         {
