@@ -66,7 +66,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="serviceMetadata">The <see cref="ModelMetadata"/></param>
         /// <returns>A boolean indicating if creation of service metadata went ok</returns>
-        public bool CreateServiceMetadata(ModelMetadata serviceMetadata)
+        private bool CreateServiceMetadata(ModelMetadata serviceMetadata)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
 
@@ -304,7 +304,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="options">the options for creating a repository</param>
         /// <returns>The newly created repository</returns>
-        public async Task<RepositoryClient.Model.Repository> CreateRemoteRepository(string org, CreateRepoOption options)
+        private async Task<RepositoryClient.Model.Repository> CreateRemoteRepository(string org, CreateRepoOption options)
         {
             return await giteaClient.CreateRepository(org, options);
         }
@@ -488,7 +488,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        public bool CheckIfResourceFileAlreadyExists(string identifier, string org, string repository)
+        private bool CheckIfResourceFileAlreadyExists(string identifier, string org, string repository)
         {
             List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
             return resourceFiles.Any(resourceFile => resourceFile.Name.ToLower().Equals(GetResourceFileName(identifier).ToLower()));
