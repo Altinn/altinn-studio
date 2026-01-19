@@ -64,11 +64,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// Method that creates service metadata for a new app
         /// </summary>
         /// <param name="serviceMetadata">The <see cref="ModelMetadata"/></param>
+        /// <param name="developer">The developer creating the service metadata</param>
         /// <returns>A boolean indicating if creation of service metadata went ok</returns>
-        private bool CreateServiceMetadata(ModelMetadata serviceMetadata)
+        private bool CreateServiceMetadata(ModelMetadata serviceMetadata, string developer)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
             string orgPath = repositorySettings.GetOrgPath(serviceMetadata.Org, developer);
@@ -78,13 +77,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             Directory.CreateDirectory(appPath);
 
             // Creates all the files
-            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, generalSettings.DeploymentLocation, repositorySettings.GetDeploymentFolderName());
-            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, generalSettings.AppLocation, repositorySettings.GetAppFolderName());
-            CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, repositorySettings.DockerfileFileName);
-            CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, repositorySettings.AppSlnFileName);
-            CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, repositorySettings.GitIgnoreFileName);
-            CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, repositorySettings.DockerIgnoreFileName);
-            UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            // TODO: parallelize file and folder copy operations
+            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, generalSettings.DeploymentLocation, repositorySettings.GetDeploymentFolderName(), developer);
+            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, generalSettings.AppLocation, repositorySettings.GetAppFolderName(), developer);
+            CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, repositorySettings.DockerfileFileName, developer);
+            CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, repositorySettings.AppSlnFileName, developer);
+            CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, repositorySettings.GitIgnoreFileName, developer);
+            CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, repositorySettings.DockerIgnoreFileName, developer);
+            UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName, developer);
             return true;
         }
 
@@ -160,7 +160,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 };
 
                 // This creates all files
-                CreateServiceMetadata(metadata);
+                CreateServiceMetadata(metadata, developer);
                 await applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 await textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
                 await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer);
@@ -259,19 +259,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         // IKKE SLETT
-        private void UpdateAuthorizationPolicyFile(string org, string app)
+        private void UpdateAuthorizationPolicyFile(string org, string app, string developer)
         {
             // Read the authorization policy template (XACML file).
-            string path = repositorySettings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
+            string path = repositorySettings.GetServicePath(org, app, developer);
             string policyPath = Path.Combine(path, generalSettings.AuthorizationPolicyTemplate);
             string authorizationPolicyData = File.ReadAllText(policyPath, Encoding.UTF8);
 
             File.WriteAllText(policyPath, authorizationPolicyData, Encoding.UTF8);
         }
 
-        private void CopyFolderToApp(string org, string app, string sourcePath, string path)
+        private void CopyFolderToApp(string org, string app, string sourcePath, string path, string developer)
         {
-            string targetPath = Path.Combine(repositorySettings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext)), path);
+            string targetPath = Path.Combine(repositorySettings.GetServicePath(org, app, developer), path);
 
             // Create the app deployment folder
             Directory.CreateDirectory(targetPath);
@@ -289,9 +289,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private void CopyFileToApp(string org, string app, string fileName)
+        private void CopyFileToApp(string org, string app, string fileName, string developer)
         {
-            string appPath = repositorySettings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
+            string appPath = repositorySettings.GetServicePath(org, app, developer);
             File.Copy($"{generalSettings.TemplatePath}/{fileName}", Path.Combine(appPath, fileName));
         }
 
