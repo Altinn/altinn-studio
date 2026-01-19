@@ -133,14 +133,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Publishes a specific resource to the ResourceRegistry
         /// </summary>
-        /// <param name="org">The organisation that owns the repository</param>
-        /// <param name="repository">The repository where the resource resides</param>
-        /// <param name="developer">The developer making the request</param>
+        /// <param name="editingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="id">The id of the resource that should be published</param>
         /// <param name="env">The environment the resource will be published to</param>
         /// <param name="policy">The policy that goes with the resource</param>
         /// <returns></returns>
-        public Task<ActionResult> PublishResource(string org, string repository, string developer, string id, string env, string policy = null);
+        public Task<ActionResult> PublishResource(AltinnRepoEditingContext editingContext, string id, string env, string policy = null);
 
         /// <summary>
         /// Returns the path to the app folder
