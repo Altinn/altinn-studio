@@ -122,9 +122,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig)
+        public async Task<RepositoryClient.Model.Repository> CreateService(string org, string developer, ServiceConfiguration serviceConfig)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string token = await httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, serviceConfig.RepositoryName, developer, token);
             string repoPath = repositorySettings.GetServicePath(org, serviceConfig.RepositoryName, developer);

@@ -27,9 +27,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// given <paramref name="serviceConfig"/>
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="developer"></param>
         /// <param name="serviceConfig">The ServiceConfiguration to save</param>
         /// <returns>The repository created in gitea</returns>
-        Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig);
+        Task<RepositoryClient.Model.Repository> CreateService(string org, string developer, ServiceConfiguration serviceConfig);
 
         /// <summary>
         /// Copies a repository within an organisation

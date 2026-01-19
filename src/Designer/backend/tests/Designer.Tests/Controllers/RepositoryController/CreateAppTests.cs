@@ -51,7 +51,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             string uri = $"{VersionPrefix}/create-app?org=ttd&repository=test";
 
             _repositoryMock
-                .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<ServiceConfiguration>()))
+                .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceConfiguration>()))
                 .ReturnsAsync(new Repository() { RepositoryCreatedStatus = HttpStatusCode.Created, CloneUrl = "https://some.site/this/is/not/relevant" });
 
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
