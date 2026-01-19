@@ -62,7 +62,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="logger">The logger</param>
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
         /// <param name="applicationMetadataService">The service for handling the application metadata file</param>
-        /// <param name="appDevelopmentService">The service for handling files concerning app-development</param>
         /// <param name="textsService">The service for handling texts</param>
         /// <param name="resourceRegistryService">The service for publishing resource in the ResourceRegistry</param>
         public RepositoryService(
@@ -74,7 +73,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ILogger<RepositoryService> logger,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             IApplicationMetadataService applicationMetadataService,
-            IAppDevelopmentService appDevelopmentService,
             ITextsService textsService,
             IResourceRegistry resourceRegistryService)
         {

@@ -420,7 +420,6 @@ namespace Designer.Tests.Services
             ApplicationMetadataService applicationInformationService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, httpContextAccessorMock.Object, giteaClientMock);
 
             ISchemaModelService schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
-            AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
             Mock<ILogger<GiteaContentLibraryService>> loggerMock = new();
             IOptionsService optionsService = new OptionsService(altinnGitRepositoryFactory, new GiteaContentLibraryService(giteaClientMock, loggerMock.Object));
 
@@ -437,7 +436,6 @@ namespace Designer.Tests.Services
                 new Mock<ILogger<RepositoryService>>().Object,
                 altinnGitRepositoryFactory,
                 applicationInformationService,
-                appDevelopmentService,
                 textsService,
                 resourceRegistryService);
 
