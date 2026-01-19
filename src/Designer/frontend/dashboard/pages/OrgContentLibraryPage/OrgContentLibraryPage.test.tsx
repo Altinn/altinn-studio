@@ -25,7 +25,11 @@ import {
   textResources,
   textResourcesWithLanguage,
 } from './test-data/textResources';
-import { CODE_LIST_FOLDER, DEFAULT_LANGUAGE } from 'app-shared/constants';
+import {
+  CODE_LIST_FOLDER,
+  DEFAULT_LANGUAGE,
+  PUBLISHED_CODE_LIST_FOLDER,
+} from 'app-shared/constants';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
@@ -47,6 +51,11 @@ const sharedResourcesByPathQueryKey: string[] = [
   QueryKey.SharedResources,
   orgName,
   CODE_LIST_FOLDER,
+];
+const publishedCodeListsQueryKey: string[] = [
+  QueryKey.PublishedResources,
+  orgName,
+  PUBLISHED_CODE_LIST_FOLDER,
 ];
 
 // Mocks:
@@ -390,6 +399,7 @@ function createQueryClientWithData(): QueryClient {
   queryClient.setQueryData(orgTextResourcesQueryKey, textResourcesWithLanguage);
   queryClient.setQueryData(repoStatusQueryKey, repoStatus);
   queryClient.setQueryData(sharedResourcesByPathQueryKey, sharedResourcesResponse);
+  queryClient.setQueryData(publishedCodeListsQueryKey, []);
   return queryClient;
 }
 
@@ -404,6 +414,7 @@ function createQueryClientWithMissingTextResources(): QueryClient {
   queryClient.setQueryData(orgTextResourcesQueryKey, null);
   queryClient.setQueryData(repoStatusQueryKey, repoStatus);
   queryClient.setQueryData(sharedResourcesByPathQueryKey, sharedResourcesResponse);
+  queryClient.setQueryData(publishedCodeListsQueryKey, []);
   return queryClient;
 }
 
