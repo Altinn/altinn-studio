@@ -36,10 +36,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class RepositoryService : IRepository
     {
-        // Using Norwegian name of initial page to be consistent
-        // with automatic naming from frontend when adding new page
-        private const string InitialLayout = "Side1";
-
         private readonly string _resourceIdentifierRegex = "^[a-z0-9_æøå-]*$";
 
         private readonly ServiceRepositorySettings _settings;
