@@ -100,7 +100,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="serviceMetadata">The <see cref="ModelMetadata"/></param>
         /// <returns>A boolean indicating if creation of service metadata went ok</returns>
-        #region Service metadata
         public bool CreateServiceMetadata(ModelMetadata serviceMetadata)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
@@ -123,8 +122,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName);
             return true;
         }
-
-        #endregion
 
         /// <summary>
         /// Returns the path to the app folder
