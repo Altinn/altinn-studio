@@ -3,10 +3,15 @@ import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigServiceTask } from './ConfigServiceTask';
 import { BpmnContext, type BpmnContextProps } from '../../../contexts/BpmnContext';
+import { BpmnApiContext, type BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
 import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
-import { mockBpmnContextValue } from '../../../../test/mocks/bpmnContextMock';
+import {
+  mockBpmnContextValue,
+  mockBpmnApiContextValue,
+} from '../../../../test/mocks/bpmnContextMock';
 import { mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
-import type { BpmnDetails } from '../../../types/BpmnDetails';
+import { createPdfBpmnDetails } from '../../../../test/mocks/pdfBpmnDetailsMock';
+import { MemoryRouter } from 'react-router-dom';
 
 const tasks = [
   {
@@ -39,6 +44,22 @@ jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
   };
 });
 
+jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+  useStudioEnvironmentParams: () => ({ org: 'test-org', app: 'test-app' }),
+}));
+
+jest.mock('app-shared/hooks/queries', () => ({
+  useTextResourcesQuery: () => ({ data: { nb: [] } }),
+}));
+
+jest.mock('app-shared/hooks/mutations', () => ({
+  useUpsertTextResourceMutation: () => ({ mutate: jest.fn() }),
+}));
+
+jest.mock('../../../hooks/useUpdatePdfConfigTaskIds', () => ({
+  useUpdatePdfConfigTaskIds: () => jest.fn(),
+}));
+
 describe('ConfigServiceTask', () => {
   afterEach(() => jest.clearAllMocks());
 
@@ -66,42 +87,26 @@ describe('ConfigServiceTask', () => {
 
     expect(
       screen.queryByRole('button', {
-        name: textMock('process_editor.configuration_panel_change_pdf_service_task_filename'),
+        name: textMock('process_editor.configuration_panel_pdf_filename_label'),
       }),
     ).not.toBeInTheDocument();
   });
 
   it('should render pdf configuration for pdf service task', () => {
-    const pdfBpmnDetails: BpmnDetails = {
-      ...mockBpmnDetails,
-      taskType: 'pdf',
-      element: {
-        ...mockBpmnDetails.element,
-        businessObject: {
-          ...mockBpmnDetails.element.businessObject,
-          extensionElements: {
-            values: [
-              {
-                pdfConfig: {
-                  filename: { value: 'test.pdf' },
-                  autoPdfTaskIds: { taskIds: [] },
-                },
-              },
-            ],
-          },
-        },
-      },
-    };
+    const pdfBpmnDetails = createPdfBpmnDetails({});
 
     renderConfigServiceTask({
       bpmnContextProps: {
         bpmnDetails: pdfBpmnDetails,
       },
+      bpmnApiContextProps: {
+        layoutSets: { sets: [] },
+      },
     });
 
     expect(
       screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_change_pdf_service_task_filename'),
+        name: textMock('process_editor.configuration_panel_pdf_filename_label'),
       }),
     ).toBeInTheDocument();
   });
@@ -109,16 +114,21 @@ describe('ConfigServiceTask', () => {
 
 type RenderProps = {
   bpmnContextProps: Partial<BpmnContextProps>;
+  bpmnApiContextProps?: Partial<BpmnApiContextProps>;
 };
 
 const renderConfigServiceTask = (props: Partial<RenderProps> = {}) => {
-  const { bpmnContextProps } = props;
+  const { bpmnContextProps, bpmnApiContextProps } = props;
 
   return render(
-    <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...bpmnContextProps }}>
-      <BpmnConfigPanelFormContextProvider>
-        <ConfigServiceTask />
-      </BpmnConfigPanelFormContextProvider>
-    </BpmnContext.Provider>,
+    <MemoryRouter>
+      <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
+        <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...bpmnContextProps }}>
+          <BpmnConfigPanelFormContextProvider>
+            <ConfigServiceTask />
+          </BpmnConfigPanelFormContextProvider>
+        </BpmnContext.Provider>
+      </BpmnApiContext.Provider>
+    </MemoryRouter>,
   );
 };
