@@ -246,7 +246,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             else
             {
-                repositoryResourceList = await _repository.GetServiceResources(org, repository, "", cancellationToken);
+                repositoryResourceList = await _repository.GetServiceResources(org, repository, developer, "", cancellationToken);
             }
 
             if (skipGiteaFields)
@@ -339,7 +339,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/{repository}/{id}")]
         public async Task<ActionResult<ServiceResource>> GetResourceById(string org, string repository, string id, CancellationToken cancellationToken)
         {
-            ServiceResource resource = await _repository.GetServiceResourceById(org, repository, id, cancellationToken);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            ServiceResource resource = await _repository.GetServiceResourceById(org, repository, developer, id, cancellationToken);
             return resource != null ? resource : StatusCode(404);
         }
 
@@ -347,7 +348,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/publishstatus/{repository}/{id}")]
         public async Task<ActionResult<ServiceResourceStatus>> GetPublishStatusById(string org, string repository, string id, CancellationToken cancellationToken)
         {
-            ServiceResource resource = await _repository.GetServiceResourceById(org, repository, id, cancellationToken);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            ServiceResource resource = await _repository.GetServiceResourceById(org, repository, developer, id, cancellationToken);
             if (resource == null)
             {
                 return StatusCode(404);
@@ -371,7 +373,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/validate/{repository}/{id}")]
         public async Task<ActionResult> GetValidateResource(string org, string repository, string id)
         {
-            ServiceResource resourceToValidate = await _repository.GetServiceResourceById(org, repository, id);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            ServiceResource resourceToValidate = await _repository.GetServiceResourceById(org, repository, developer, id);
             if (resourceToValidate != null)
             {
                 ValidationProblemDetails validationProblemDetails = ValidateResource(resourceToValidate);

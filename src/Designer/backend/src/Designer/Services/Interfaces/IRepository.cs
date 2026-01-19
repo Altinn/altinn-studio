@@ -93,17 +93,18 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Lists the ServiceResource files in a repository
         /// </summary>
-        Task<List<ServiceResource>> GetServiceResources(string org, string repository, string path = "", CancellationToken cancellationToken = default);
+        Task<List<ServiceResource>> GetServiceResources(string org, string repository, string developer, string path = "", CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets a specific ServiceResource based on the identifier
         /// </summary>
         /// <param name="org">The organisation that owns the repository where the resource resides</param>
         /// <param name="repository">The repository where the resource resides</param>
+        /// <param name="developer">The developer making the request</param>
         /// <param name="identifier">The identifier of the resource</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Returns the ServiceResource object with the corresponding identifier</returns>
-        Task<ServiceResource> GetServiceResourceById(string org, string repository, string identifier, CancellationToken cancellationToken = default);
+        Task<ServiceResource> GetServiceResourceById(string org, string repository, string developer, string identifier, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Update existing ServiceResource in repository

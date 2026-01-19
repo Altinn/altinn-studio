@@ -320,10 +320,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<List<ServiceResource>> GetServiceResources(string org, string repository, string path = "", CancellationToken cancellationToken = default)
+        public async Task<List<ServiceResource>> GetServiceResources(string org, string repository, string developer, string path = "", CancellationToken cancellationToken = default)
         {
             List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, Path.Combine(path));
-            string repopath = repositorySettings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
+            string repopath = repositorySettings.GetServicePath(org, repository, developer);
 
             using SemaphoreSlim semaphore = new(50); // Limit to 50 concurrent tasks
 
@@ -430,16 +430,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<ServiceResource> GetServiceResourceById(string org, string repository, string identifier, CancellationToken cancellationToken = default)
+        public async Task<ServiceResource> GetServiceResourceById(string org, string repository, string developer, string identifier, CancellationToken cancellationToken = default)
         {
-            List<ServiceResource> resourcesInRepo = await GetServiceResources(org, repository, identifier, cancellationToken);
+            List<ServiceResource> resourcesInRepo = await GetServiceResources(org, repository, developer, identifier, cancellationToken);
             return resourcesInRepo.Where(r => r.Identifier == identifier).FirstOrDefault();
         }
 
         /// <inheritdoc/>
         public async Task<ActionResult> PublishResource(string org, string repository, string id, string env, string policy = null)
         {
-            ServiceResource resource = await GetServiceResourceById(org, repository, id);
+            ServiceResource resource = await GetServiceResourceById(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext), id);
             if (resource.HasCompetentAuthority == null || resource.HasCompetentAuthority.Orgcode != org)
             {
                 logger.LogWarning("Org mismatch for resource");
