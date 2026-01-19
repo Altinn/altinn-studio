@@ -418,6 +418,11 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
+        public Task<string> GetCurrentBranchName(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task FetchRemoteChanges(string org, string repository)
         {
             throw new NotImplementedException();

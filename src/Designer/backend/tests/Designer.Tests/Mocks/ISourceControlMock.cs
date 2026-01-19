@@ -81,6 +81,11 @@ namespace Designer.Tests.Mocks
             return Task.CompletedTask;
         }
 
+        public Task<string> GetCurrentBranchName(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task FetchRemoteChanges(string org, string repository)
         {
             throw new NotImplementedException();
