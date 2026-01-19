@@ -33,8 +33,7 @@ public class ProcessTaskIdChangedPolicyFileHandler : INotificationHandler<Proces
             "App/config/authorization/policy.xml",
             async () =>
             {
-                var xacmlPolicy = _repository.GetPolicy(editingContext.Org,
-                    editingContext.Repo, editingContext.Developer, null);
+                var xacmlPolicy = _repository.GetPolicy(editingContext, null);
                 var resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
                 if (TryChangeTaskIds(resourcePolicy, notification.OldId, notification.NewId))
                 {

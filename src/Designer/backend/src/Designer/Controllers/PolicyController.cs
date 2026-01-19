@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.PolicyAdmin;
@@ -38,7 +39,8 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult GetAppPolicy(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, developer, null);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(editingContext, null);
 
             if (xacmlPolicy == null)
             {
@@ -64,7 +66,8 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult GetResourcePolicy(string org, string app, string resourceid)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, developer, resourceid);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(editingContext, resourceid);
 
             if (xacmlPolicy == null)
             {
@@ -124,7 +127,8 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult ValidateAppPolicy(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, developer, null);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(editingContext, null);
 
             ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
             ValidationProblemDetails vpd = ValidatePolicy(resourcePolicy);
@@ -140,7 +144,8 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult ValidateResourcePolicy(string org, string app, string resourceid)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, developer, resourceid);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(editingContext, resourceid);
             if (xacmlPolicy == null)
             {
                 ModelState.AddModelError("policy", "policyerror.missingpolicy");

@@ -542,9 +542,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public XacmlPolicy GetPolicy(string org, string repo, string developer, string resourceId)
+        public XacmlPolicy GetPolicy(AltinnRepoEditingContext editingContext, string resourceId)
         {
-            string policyPath = GetPolicyPath(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), resourceId);
+            string policyPath = GetPolicyPath(editingContext, resourceId);
             if (!File.Exists(policyPath))
             {
                 return null;
