@@ -96,13 +96,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Lists the ServiceResource files in a repository
         /// </summary>
-        /// <param name="org">The organisation that owns the repository where the resource resides</param>
-        /// <param name="repository">The repository where the resource resides</param>
-        /// <param name="developer">The developer making the request</param>
+        /// <param name="editingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="path">The path within the repository to list contents from</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Returns a list of <see cref="ServiceResource"/></returns>
-        Task<List<ServiceResource>> GetServiceResources(string org, string repository, string developer, string path = "", CancellationToken cancellationToken = default);
+        Task<List<ServiceResource>> GetServiceResources(AltinnRepoEditingContext editingContext, string path = "", CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets a specific ServiceResource based on the identifier

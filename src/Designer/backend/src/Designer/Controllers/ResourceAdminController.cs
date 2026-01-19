@@ -247,7 +247,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             else
             {
-                repositoryResourceList = await _repository.GetServiceResources(org, repository, developer, "", cancellationToken);
+                repositoryResourceList = await _repository.GetServiceResources(editingContext, "", cancellationToken);
             }
 
             if (skipGiteaFields)

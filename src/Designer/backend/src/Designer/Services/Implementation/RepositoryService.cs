@@ -309,9 +309,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<List<ServiceResource>> GetServiceResources(string org, string repository, string developer, string path = "", CancellationToken cancellationToken = default)
+        public async Task<List<ServiceResource>> GetServiceResources(AltinnRepoEditingContext editingContext, string path = "", CancellationToken cancellationToken = default)
         {
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             List<FileSystemObject> resourceFiles = GetResourceFiles(editingContext, Path.Combine(path));
             string repopath = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
 
@@ -424,7 +423,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<ServiceResource> GetServiceResourceById(string org, string repository, string developer, string identifier, CancellationToken cancellationToken = default)
         {
-            List<ServiceResource> resourcesInRepo = await GetServiceResources(org, repository, developer, identifier, cancellationToken);
+            List<ServiceResource> resourcesInRepo = await GetServiceResources(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer), identifier, cancellationToken);
             return resourcesInRepo.Where(r => r.Identifier == identifier).FirstOrDefault();
         }
 
