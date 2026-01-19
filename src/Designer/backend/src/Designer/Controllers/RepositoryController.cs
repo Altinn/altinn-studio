@@ -578,7 +578,7 @@ namespace Altinn.Studio.Designer.Controllers
             string appRoot;
             try
             {
-                appRoot = _repository.GetAppPath(editingContext.Org, editingContext.Repo, editingContext.Developer);
+                appRoot = _repository.GetAppPath(editingContext);
 
                 if (!Directory.Exists(appRoot))
                 {
