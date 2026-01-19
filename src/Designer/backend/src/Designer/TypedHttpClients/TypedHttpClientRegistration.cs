@@ -39,7 +39,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
         /// </summary>
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         /// <param name="config">The Microsoft.Extensions.Configuration.IConfiguration for </param>
-        /// <param name="env">The Microsoft.Extensions.Hosting</param>
+        /// <param name="env">The Microsoft.Extensions.Hosting.IHostEnvironment</param>
         /// <returns>IServiceCollection</returns>
         public static IServiceCollection RegisterTypedHttpClients(this IServiceCollection services, IConfiguration config, IHostEnvironment env)
         {
