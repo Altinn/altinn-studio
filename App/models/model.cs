@@ -183,6 +183,11 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("DatepickerMinDateExample")]
     public string DatepickerMinDateExample { get; set; }
 
+    [XmlElement("geometries", Order = 34)]
+    [JsonProperty("geometries")]
+    [JsonPropertyName("geometries")]
+    public List<geometries> geometries { get; set; }
+
   }
 
   public class GridExample
@@ -486,7 +491,9 @@ namespace Altinn.App.Models.Model
     [XmlElement("String", Order = 2)]
     [JsonProperty("String")]
     [JsonPropertyName("String")]
-     public string String { get; set; }
+    public DateTime? String { get; set; }
+
+    public bool ShouldSerializeString() => String.HasValue;
 
     [XmlElement("DateTime", Order = 3)]
     [JsonProperty("DateTime")]
@@ -495,10 +502,11 @@ namespace Altinn.App.Models.Model
 
     public bool ShouldSerializeDateTime() => DateTime.HasValue;
 
+    [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
     [XmlElement("DateOnly", Order = 4)]
     [JsonProperty("DateOnly")]
     [JsonPropertyName("DateOnly")]
-    public DateOnly? DateOnly { get; set; }
+    public string DateOnly { get; set; }
 
     [XmlElement("FormatStringBackend", Order = 5)]
     [JsonProperty("FormatStringBackend")]
@@ -594,6 +602,35 @@ namespace Altinn.App.Models.Model
     [JsonProperty("Name")]
     [JsonPropertyName("Name")]
     public Name Name { get; set; }
+
+  }
+
+  public class geometries
+  {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
+    [XmlElement("data", Order = 1)]
+    [JsonProperty("data")]
+    [JsonPropertyName("data")]
+    public string data { get; set; }
+
+    [XmlElement("editable", Order = 2)]
+    [JsonProperty("editable")]
+    [JsonPropertyName("editable")]
+    public bool? editable { get; set; }
+
+    public bool ShouldSerializeeditable() => editable.HasValue;
+
+    [XmlElement("label", Order = 3)]
+    [JsonProperty("label")]
+    [JsonPropertyName("label")]
+    public string label { get; set; }
 
   }
 }

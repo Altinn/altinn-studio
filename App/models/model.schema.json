@@ -389,6 +389,24 @@
     },
     "DatepickerMinDateExample": {
       "type": "string"
+    },
+    "geometries": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "string"
+          },
+          "editable": {
+            "type": "boolean"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      }
     }
   }
 }
