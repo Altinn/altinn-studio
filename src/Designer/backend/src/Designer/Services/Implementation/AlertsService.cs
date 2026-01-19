@@ -108,7 +108,7 @@ internal sealed class AlertsService(
         {
             await slackClient.SendMessageAsync(alertsSettings.SlackWebhookUrl, message, cancellationToken);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             logger.LogError(ex, "Failed to send Slack alert notification. Alert Name: {AlertName}", alertName);
         }

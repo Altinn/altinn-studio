@@ -380,7 +380,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 await _slackClient.SendMessageAsync(_deploySettings.SlackWebhookUrl, message, cancellationToken);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 _logger.LogError(ex, "Failed to send Slack deploy notification");
             }
