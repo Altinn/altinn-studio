@@ -1,40 +1,12 @@
 .editing {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: var(--ds-size-1);
+  display: flex;
+  gap: var(--ds-size-2);
 }
 
 .editingTextfield {
-  display: contents;
+  flex: 1;
 }
 
-.editingTextfield * {
-  grid-column: 1;
-}
-
-.editingTextfield p {
-  grid-column: 1 / -1;
-}
-
-.saveButton {
-  grid-column: 2;
-  grid-row: 2;
-  align-self: end;
-}
-
-.cancelButton {
-  grid-column: 3;
-  grid-row: 2;
-  align-self: end;
-}
-
-.reading {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: var(--ds-size-2);
-  padding-bottom: var(--ds-size-2);
-  color: var(--ds-color-text-default);
-  font-weight: var(--ds-font-weight-regular);
+.editingActions {
+  margin-top: var(--ds-size-8);
 }
