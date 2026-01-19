@@ -27,7 +27,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -98,56 +97,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public string GetAppPath(string org, string app)
         {
             return repositorySettings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
-        }
-
-        /// <summary>
-        /// Merges the provided resource texts with the resource text in the the given path
-        /// </summary>
-        /// <param name="path">path for the resource files</param>
-        /// <param name="resourceTexts">resource text dictionary</param>
-        /// <remarks>
-        /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
-        /// </remarks>
-        /// <returns>resource texts</returns>
-        private static Dictionary<string, Dictionary<string, TextResourceElement>> MergeResourceTexts(string path, Dictionary<string, Dictionary<string, TextResourceElement>> resourceTexts)
-        {
-            if (Directory.Exists(path))
-            {
-                string[] directoryFiles = Directory.GetFiles(path);
-
-                foreach (string directoryFile in directoryFiles)
-                {
-                    string fileName = Path.GetFileName(directoryFile);
-                    string[] nameParts = fileName.Split('.');
-                    if (nameParts.Length == 3 && nameParts[0] == "resource" && nameParts[2] == "json")
-                    {
-                        string content = File.ReadAllText(directoryFile);
-                        TextResource r = JsonConvert.DeserializeObject<TextResource>(content);
-                        string culture = r.Language;
-
-                        foreach (TextResourceElement resource in r.Resources)
-                        {
-                            string key = resource.Id;
-                            string value = resource.Value;
-
-                            if (key != null && value != null)
-                            {
-                                if (!resourceTexts.ContainsKey(key))
-                                {
-                                    resourceTexts.Add(key, []);
-                                }
-
-                                if (!resourceTexts[key].ContainsKey(culture))
-                                {
-                                    resourceTexts[key].Add(culture, resource);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return resourceTexts;
         }
 
         /// <inheritdoc/>
