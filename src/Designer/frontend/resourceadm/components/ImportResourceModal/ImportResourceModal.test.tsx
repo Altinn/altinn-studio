@@ -129,7 +129,9 @@ describe('ImportResourceModal', () => {
 
   it('calls import resource from Altinn 2 when import is clicked', async () => {
     const user = userEvent.setup();
-    const importResourceFromAltinn2 = jest.fn();
+    const importResourceFromAltinn2 = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ identifier: 'test-resource-id' }));
     await renderAndOpenModal(user, { importResourceFromAltinn2 });
 
     const environmentSelect = screen.getByLabelText(

@@ -148,12 +148,18 @@ describe('FormDesigner', () => {
       ).not.toBeInTheDocument(),
     );
 
-    await user.click(screen.getByRole('button', { name: textMock('left_menu.close_components') }));
+    const closeComponentsButton = await screen.findByRole('button', {
+      name: textMock('left_menu.close_components'),
+    });
+    await user.click(closeComponentsButton);
     expect(
       screen.getByRole('button', { name: textMock('left_menu.open_components') }),
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: textMock('left_menu.open_components') }));
+    const openComponentsButton = await screen.findByRole('button', {
+      name: textMock('left_menu.open_components'),
+    });
+    await user.click(openComponentsButton);
     expect(
       screen.getByRole('button', { name: textMock('left_menu.close_components') }),
     ).toBeInTheDocument();

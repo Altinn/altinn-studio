@@ -106,8 +106,9 @@ describe('ServicesContext', () => {
       },
     );
 
-    await waitFor(() => result.current.isError);
-    expect(await screen.findByText(textMock('api_errors.GT_03'))).toBeInTheDocument();
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.GT_03'));
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it('Displays a toast message for "GT_01" error code', async () => {
@@ -121,8 +122,10 @@ describe('ServicesContext', () => {
         }),
       { wrapper },
     );
-    await waitFor(() => result.current.isError);
-    expect(await screen.findByText(textMock('api_errors.GT_01'))).toBeInTheDocument();
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.GT_01'));
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it('displays a specific error message if API returns error code DM_01', async () => {
@@ -136,9 +139,9 @@ describe('ServicesContext', () => {
       { wrapper },
     );
 
-    await waitFor(() => result.current.isError);
-
-    expect(await screen.findByText(textMock('api_errors.DM_01'))).toBeInTheDocument();
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.DM_01'));
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it('displays a specific error message if API returns error code DM_03', async () => {
@@ -152,9 +155,9 @@ describe('ServicesContext', () => {
       { wrapper },
     );
 
-    await waitFor(() => result.current.isError);
-
-    expect(await screen.findByText(textMock('api_errors.DM_03'))).toBeInTheDocument();
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.DM_03'));
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it('displays a specific error message if API returns error code DM_05', async () => {
@@ -168,9 +171,9 @@ describe('ServicesContext', () => {
       { wrapper },
     );
 
-    await waitFor(() => result.current.isError);
-
-    expect(await screen.findByText(textMock('api_errors.DM_05'))).toBeInTheDocument();
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.DM_05'));
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it('displays a default error message if API returns an error code but the error message does not exist', async () => {
@@ -184,13 +187,11 @@ describe('ServicesContext', () => {
       { wrapper },
     );
 
-    await waitFor(() => result.current.isError);
-
-    expect(
-      await screen.findByText((content, element) =>
-        content.includes(textMock('general.error_message')),
-      ),
-    ).toBeInTheDocument();
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText((content) =>
+      content.includes(textMock('general.error_message')),
+    );
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it('displays a default error message if an API call fails', async () => {
@@ -204,9 +205,9 @@ describe('ServicesContext', () => {
       { wrapper },
     );
 
-    await waitFor(() => result.current.isError);
-
-    expect(await screen.findByText(textMock('general.error_message'))).toBeInTheDocument();
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('general.error_message'));
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it('Throws an error if used outside a ServiceContextProvider', () => {

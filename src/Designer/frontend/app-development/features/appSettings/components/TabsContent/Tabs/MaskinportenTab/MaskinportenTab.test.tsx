@@ -67,9 +67,11 @@ describe('MaskinportenTab', () => {
 
     await waitForLoggedInStatusCheckIsDone();
 
-    expect(
-      getText(textMock('app_settings.maskinporten_no_scopes_available_description')),
-    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        getText(textMock('app_settings.maskinporten_no_scopes_available_description')),
+      ).toBeInTheDocument(),
+    );
   });
 });
 
