@@ -437,9 +437,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<ActionResult> PublishResource(string org, string repository, string id, string env, string policy = null)
+        public async Task<ActionResult> PublishResource(string org, string repository, string developer, string id, string env, string policy = null)
         {
-            ServiceResource resource = await GetServiceResourceById(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext), id);
+            ServiceResource resource = await GetServiceResourceById(org, repository, developer, id);
             if (resource.HasCompetentAuthority == null || resource.HasCompetentAuthority.Orgcode != org)
             {
                 logger.LogWarning("Org mismatch for resource");

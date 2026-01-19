@@ -743,7 +743,8 @@ namespace Altinn.Studio.Designer.Controllers
             if (repository == $"{org}-resources")
             {
                 string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, id);
-                ActionResult publishResult = await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                ActionResult publishResult = await _repository.PublishResource(org, repository, developer, id, env, xacmlPolicyPath);
                 _memoryCache.Remove($"resourcelist_${env}");
                 return publishResult;
             }
