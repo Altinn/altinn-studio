@@ -134,7 +134,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             {
                                 if (!resourceTexts.ContainsKey(key))
                                 {
-                                    resourceTexts.Add(key, new Dictionary<string, TextResourceElement>());
+                                    resourceTexts.Add(key, []);
                                 }
 
                                 if (!resourceTexts[key].ContainsKey(culture))
@@ -349,7 +349,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public List<FileSystemObject> GetContents(string org, string repository, string path = "")
         {
-            List<FileSystemObject> contents = new();
+            List<FileSystemObject> contents = [];
             string repositoryPath = repositorySettings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
             string contentPath = Path.Combine(repositoryPath, path);
 
@@ -515,7 +515,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")
         {
             List<FileSystemObject> contents = GetContents(org, repository, path);
-            List<FileSystemObject> resourceFiles = new List<FileSystemObject>();
+            List<FileSystemObject> resourceFiles = [];
 
             if (contents != null)
             {
