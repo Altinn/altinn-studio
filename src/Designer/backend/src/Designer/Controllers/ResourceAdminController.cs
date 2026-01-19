@@ -412,7 +412,8 @@ namespace Altinn.Studio.Designer.Controllers
                 return new StatusCodeResult(404);
             }
             resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
-            StatusCodeResult statusCodeResult = _repository.AddServiceResource(org, resource);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            StatusCodeResult statusCodeResult = _repository.AddServiceResource(org, developer, resource);
             if (statusCodeResult.StatusCode != (int)HttpStatusCode.Created)
             {
                 return statusCodeResult;
@@ -428,7 +429,8 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<StatusCodeResult> AddResource(string org, [FromBody] ServiceResource resource)
         {
             resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
-            return _repository.AddServiceResource(org, resource);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            return _repository.AddServiceResource(org, developer, resource);
         }
 
         [HttpPost]
@@ -442,7 +444,8 @@ namespace Altinn.Studio.Designer.Controllers
             string repository = GetRepositoryName(org);
             ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, env.ToLower());
             resource.Identifier = resourceId;
-            StatusCodeResult statusCodeResult = _repository.AddServiceResource(org, resource);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            StatusCodeResult statusCodeResult = _repository.AddServiceResource(org, developer, resource);
             if (statusCodeResult.StatusCode != (int)HttpStatusCode.Created)
             {
                 return statusCodeResult;

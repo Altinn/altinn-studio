@@ -45,7 +45,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
                 ResourceType = ResourceType.Default,
             };
 
-            RepositoryMock.Setup(r => r.AddServiceResource(It.IsAny<string>(), It.IsAny<ServiceResource>())).Returns(new StatusCodeResult(201));
+            RepositoryMock.Setup(r => r.AddServiceResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceResource>())).Returns(new StatusCodeResult(201));
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(serviceResource), System.Text.Encoding.UTF8, "application/json");
 
             //Act

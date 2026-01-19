@@ -392,7 +392,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public StatusCodeResult AddServiceResource(string org, ServiceResource newResource)
+        public StatusCodeResult AddServiceResource(string org, string developer, ServiceResource newResource)
         {
             try
             {
@@ -404,9 +404,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 string repository = $"{org}-resources";
                 if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository))
                 {
-                    string repopath = repositorySettings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
+                    string repopath = repositorySettings.GetServicePath(org, repository, developer);
                     string fullPathOfNewResource = Path.Combine(repopath, newResource.Identifier.AsFileName(), GetResourceFileName(newResource.Identifier));
-                    string newResourceJson = System.Text.Json.JsonSerializer.Serialize(newResource, _serializerOptions);
+                    string newResourceJson = JsonSerializer.Serialize(newResource, _serializerOptions);
                     Directory.CreateDirectory(Path.Combine(repopath, newResource.Identifier.AsFileName()));
                     File.WriteAllText(fullPathOfNewResource, newResourceJson);
 
