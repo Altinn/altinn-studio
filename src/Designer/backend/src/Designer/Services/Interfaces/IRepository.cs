@@ -150,9 +150,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Deletes the repository both locally and remotely.
         /// </summary>
-        /// <param name="org">The repository owner id.</param>
-        /// <param name="repository">The repository name.</param>
-        /// <param name="developer">The developer making the request.</param>
-        Task DeleteRepository(string org, string repository, string developer);
+        /// <param name="editingContext">The editing context</param>
+        Task DeleteRepository(AltinnRepoEditingContext editingContext);
     }
 }

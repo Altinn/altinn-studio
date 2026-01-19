@@ -99,6 +99,7 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             string token = await HttpContext.GetDeveloperAppTokenAsync();
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceRepository, developer, token);
+            AltinnRepoEditingContext targetRepoContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(targetOrg, targetRepository, developer);
 
             try
             {
@@ -109,12 +110,12 @@ namespace Altinn.Studio.Designer.Controllers
                     return Created(repo.CloneUrl, repo);
                 }
 
-                await _repository.DeleteRepository(targetOrg, targetRepository, developer);
+                await _repository.DeleteRepository(targetRepoContext);
                 return StatusCode((int)repo.RepositoryCreatedStatus);
             }
             catch (Exception e)
             {
-                await _repository.DeleteRepository(targetOrg, targetRepository, developer);
+                await _repository.DeleteRepository(targetRepoContext);
                 return StatusCode(500, e);
             }
         }

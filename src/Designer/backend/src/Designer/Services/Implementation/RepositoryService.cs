@@ -516,10 +516,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task DeleteRepository(string org, string repository, string developer)
+        public async Task DeleteRepository(AltinnRepoEditingContext editingContext)
         {
-            AltinnRepoEditingContext altinnRepoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-            await sourceControl.DeleteRepository(altinnRepoEditingContext);
+            await sourceControl.DeleteRepository(editingContext);
         }
 
         /// <inheritdoc/>

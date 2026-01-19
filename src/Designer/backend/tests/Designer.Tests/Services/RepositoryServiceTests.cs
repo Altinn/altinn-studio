@@ -321,6 +321,7 @@ namespace Designer.Tests.Services
             string developer = "testUser";
             string org = "ttd";
             string repository = "apps-test";
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
 
             Mock<ISourceControl> mock = new();
             mock.Setup(m => m.DeleteRepository(It.IsAny<AltinnRepoEditingContext>()))
@@ -329,7 +330,7 @@ namespace Designer.Tests.Services
             RepositoryService sut = GetServiceForTest(developer, mock.Object);
 
             // Act
-            await sut.DeleteRepository(org, repository, developer);
+            await sut.DeleteRepository(editingContext);
 
             // Assert
             mock.VerifyAll();
