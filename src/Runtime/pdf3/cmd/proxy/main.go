@@ -10,13 +10,17 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 	"unicode/utf8"
 
 	"altinn.studio/pdf3/internal/assert"
+	"altinn.studio/pdf3/internal/config"
+	ihttp "altinn.studio/pdf3/internal/http"
 	"altinn.studio/pdf3/internal/log"
-	"altinn.studio/pdf3/internal/runtime"
+	iruntime "altinn.studio/pdf3/internal/runtime"
+	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
@@ -24,15 +28,27 @@ import (
 func main() {
 	logger := log.NewComponent("proxy")
 
-	host := runtime.NewHost(
-		5*time.Second,
-		50*time.Second,
-		3*time.Second,
+	logger.Info("Starting", "GOMAXPROCS", runtime.GOMAXPROCS(0), "NumCPU", runtime.NumCPU())
+
+	// Initialize telemetry with Prometheus exporter
+	tel, err := telemetry.New("pdf3-proxy")
+	if err != nil {
+		logger.Error("Failed to initialize telemetry", "error", err)
+		os.Exit(1)
+	}
+
+	cfg := config.ReadConfig()
+	hostParams := config.ResolveHostParametersForEnvironment(cfg.Environment)
+
+	host := iruntime.NewHost(
+		hostParams.ReadinessDrainDelay,
+		hostParams.ShutdownPeriod,
+		hostParams.ShutdownHardPeriod,
 	)
 	defer host.Stop()
 
 	// Setup HTTP client for worker communication
-	workerHTTPAddr := os.Getenv("WORKER_HTTP_ADDR")
+	workerHTTPAddr := os.Getenv("PDF3_WORKER_HTTP_ADDR")
 	if workerHTTPAddr == "" {
 		workerHTTPAddr = "http://localhost:5031"
 	}
@@ -75,10 +91,11 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/pdf", generatePdf(logger, httpClient, workerHTTPAddr))
+	http.Handle("/pdf", tel.WrapHandler("POST /pdf", generatePdf(logger, httpClient, workerHTTPAddr)))
+	http.Handle("/metrics", tel.Handler())
 
 	// Only register test output endpoint in test internals mode
-	if runtime.IsTestInternalsMode {
+	if iruntime.IsTestInternalsMode {
 		http.HandleFunc("/testoutput/", forwardTestOutputRequest(logger, httpClient))
 	}
 
@@ -101,12 +118,20 @@ func main() {
 	host.WaitForReadinessDrain()
 
 	logger.Info("Shutting down HTTP server")
-	err := server.Shutdown(host.ServerContext())
+	err = server.Shutdown(host.ServerContext())
 	if err != nil {
 		logger.Warn("Failed to wait for ongoing requests to finish, waiting for forced cancellation")
 		host.WaitForHardShutdown()
 	} else {
 		logger.Info("Gracefully shut down HTTP server")
+	}
+
+	// Shutdown telemetry to flush pending metrics
+	logger.Info("Shutting down telemetry")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := tel.Close(shutdownCtx); err != nil {
+		logger.Warn("Failed to gracefully shut down telemetry", "error", err)
 	}
 
 	logger.Info("Server shut down gracefully")
@@ -116,7 +141,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		if r.Method != http.MethodPost {
-			writeProblemDetails(logger, w, http.StatusMethodNotAllowed, ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, http.StatusMethodNotAllowed, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.5",
 				Title:  "Method Not Allowed",
 				Status: http.StatusMethodNotAllowed,
@@ -126,7 +151,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 		}
 		ct := strings.ToLower(r.Header.Get("Content-Type"))
 		if !strings.HasPrefix(ct, "application/json") {
-			writeProblemDetails(logger, w, http.StatusUnsupportedMediaType, ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, http.StatusUnsupportedMediaType, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.13",
 				Title:  "Unsupported Media Type",
 				Status: http.StatusUnsupportedMediaType,
@@ -136,7 +161,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 		}
 		const maxBodySize = 1024 * 64 // 64K should be plenty for the JSON request
 		if r.ContentLength > maxBodySize {
-			writeProblemDetails(logger, w, http.StatusRequestEntityTooLarge, ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, http.StatusRequestEntityTooLarge, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.11",
 				Title:  "Request Entity Too Large",
 				Status: http.StatusRequestEntityTooLarge,
@@ -144,8 +169,8 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 			})
 			return
 		}
-		if !runtime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
-			writeProblemDetails(logger, w, http.StatusBadRequest, ProblemDetails{
+		if !iruntime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
+			ihttp.WriteProblemDetails(logger, w, http.StatusBadRequest, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:  "Bad Request",
 				Status: http.StatusBadRequest,
@@ -159,7 +184,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			writeProblemDetails(logger, w, http.StatusBadRequest, ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, http.StatusBadRequest, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:  "Bad Request",
 				Status: http.StatusBadRequest,
@@ -170,7 +195,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 
 		// Validate request
 		if err := req.Validate(); err != nil {
-			writeProblemDetails(logger, w, http.StatusBadRequest, ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, http.StatusBadRequest, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:  "Bad Request",
 				Status: http.StatusBadRequest,
@@ -192,7 +217,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 		// Prepare request body
 		reqBody, err := json.Marshal(req)
 		if err != nil {
-			writeProblemDetails(reqLogger, w, http.StatusInternalServerError, ProblemDetails{
+			ihttp.WriteProblemDetails(reqLogger, w, http.StatusInternalServerError, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.1",
 				Title:  "Internal Server Error",
 				Status: http.StatusInternalServerError,
@@ -205,7 +230,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 
 		attempt := 1
 		for {
-			assert.AssertWithMessage(attempt <= maxRetries, "Overflowed retry attempts")
+			assert.That(attempt <= maxRetries, "Overflowed retry attempts")
 
 			ret := callWorker(
 				reqLogger,
@@ -215,7 +240,6 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 				r,
 				w,
 				start,
-				&req,
 				attempt,
 				maxRetries,
 				reqBody,
@@ -242,7 +266,6 @@ func callWorker(
 	r *http.Request,
 	w http.ResponseWriter,
 	start time.Time,
-	req *types.PdfRequest,
 	attempt int,
 	maxRetries int,
 	reqBody []byte,
@@ -250,7 +273,7 @@ func callWorker(
 	// Call worker via HTTP
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, workerEndpoint, bytes.NewReader(reqBody))
 	if err != nil {
-		writeProblemDetails(logger, w, http.StatusInternalServerError, ProblemDetails{
+		ihttp.WriteProblemDetails(logger, w, http.StatusInternalServerError, ihttp.ProblemDetails{
 			Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.1",
 			Title:  "Internal Server Error",
 			Status: http.StatusInternalServerError,
@@ -259,7 +282,7 @@ func callWorker(
 		return true
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
-	if runtime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
+	if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
 		testing.CopyTestInput(httpReq.Header, r.Header)
 	}
 
@@ -293,7 +316,7 @@ func callWorker(
 			}
 			return false
 		}
-		writeProblemDetails(logger, w, http.StatusInternalServerError, ProblemDetails{
+		ihttp.WriteProblemDetails(logger, w, http.StatusInternalServerError, ihttp.ProblemDetails{
 			Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.1",
 			Title:  "Internal Server Error",
 			Status: http.StatusInternalServerError,
@@ -312,8 +335,8 @@ func callWorker(
 	if resp.StatusCode == http.StatusOK {
 		// In test internals mode, pass back the worker IP to the client
 		// so they can route test output requests to the correct worker pod
-		if runtime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
-			assert.AssertWithMessage(workerIP != "", "Worker IP should always be set in test internals mode")
+		if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
+			assert.That(workerIP != "", "Worker IP should always be set in test internals mode")
 			w.Header().Set("X-Worker-IP", workerIP)
 			w.Header().Set("X-Worker-Id", workerId)
 			logger.Debug("Returning worker info", "worker_ip", workerIP)
@@ -370,13 +393,13 @@ func callWorker(
 
 	// In test internals mode, pass back the worker IP even on errors
 	// so tests can still fetch test output from the correct worker
-	if runtime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
-		assert.Assert(workerIP != "")
+	if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
+		assert.That(workerIP != "", "Worker IP should always be set in test internals mode")
 		w.Header().Set("X-Worker-IP", workerIP)
 		w.Header().Set("X-Worker-Id", workerId)
 	}
 
-	writeProblemDetails(logger, w, statusCode, ProblemDetails{
+	ihttp.WriteProblemDetails(logger, w, statusCode, ihttp.ProblemDetails{
 		Type:   problemType,
 		Title:  problemTitle,
 		Status: statusCode,
@@ -391,35 +414,16 @@ func callWorker(
 	return true
 }
 
-type ProblemDetails struct {
-	Type       string         `json:"type,omitempty"`
-	Title      string         `json:"title,omitempty"`
-	Status     int            `json:"status,omitempty"`
-	Detail     string         `json:"detail,omitempty"`
-	Instance   string         `json:"instance,omitempty"`
-	Extensions map[string]any `json:"extensions,omitempty"`
-}
-
-func writeProblemDetails(logger *slog.Logger, w http.ResponseWriter, statusCode int, problem ProblemDetails) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	encoder := json.NewEncoder(w)
-	encoder.SetEscapeHTML(false) // Don't escape <, >, & for cleaner error messages
-	if err := encoder.Encode(problem); err != nil {
-		logger.Error("Failed to encode error response", "error", err)
-	}
-}
-
 func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		assert.AssertWithMessage(runtime.IsTestInternalsMode, "Test output endpoint should only be registered in test internals mode")
+		assert.That(iruntime.IsTestInternalsMode, "Test output endpoint should only be registered in test internals mode")
 
 		// Extract test ID from URL path: /testoutput/{id}
 		testID := strings.TrimPrefix(r.URL.Path, "/testoutput/")
 
 		// Client should provide the worker IP via header to ensure we hit the right pod
 		targetWorkerIP := r.Header.Get("X-Target-Worker-IP")
-		assert.AssertWithMessage(targetWorkerIP != "", "X-Target-Worker-IP header is required in test internals mode")
+		assert.That(targetWorkerIP != "", "X-Target-Worker-IP header is required in test internals mode")
 
 		// Route directly to the specified worker pod IP
 		workerEndpoint := fmt.Sprintf("http://%s:5031%s", targetWorkerIP, r.URL.Path)

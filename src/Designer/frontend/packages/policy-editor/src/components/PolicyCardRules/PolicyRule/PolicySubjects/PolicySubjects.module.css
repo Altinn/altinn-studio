@@ -1,23 +1,20 @@
-.label {
-  margin-top: var(--fds-spacing-7);
-  margin-bottom: var(--fds-spacing-1);
+.subjectHeader {
+  margin-top: var(--ds-size-8);
+  font-weight: var(--ds-font-weight-medium);
 }
 
-.chipWrapper {
+.subjectDescription {
+  color: var(--ds-color-text-subtle);
+}
+
+.selectedSubjectList {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  margin-top: var(--ds-size-4);
+  margin-bottom: var(--ds-size-8);
 }
 
-.dropdownWrapper {
-  margin-bottom: var(--fds-spacing-3);
-}
-
-.inputParagraph {
-  margin-bottom: var(--fds-spacing-1);
-}
-
-.chip {
-  margin: 0;
-  margin-right: var(--fds-spacing-1);
-  margin-top: var(--fds-spacing-1);
+.selectedListTitle {
+  font-weight: var(--ds-font-weight-medium);
 }

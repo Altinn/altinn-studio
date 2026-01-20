@@ -1,30 +1,26 @@
-# Build stage
-FROM golang:1.25-trixie@sha256:7534a6264850325fcce93e47b87a0e3fddd96b308440245e6ab1325fa8a44c91 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.25.5-trixie@sha256:5d35fb8d28b9095d123b7d96095bbf3750ff18be0a87e5a21c9cffc4351fbf96 AS builder
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /app
 
-# Copy go mod files first for better dependency caching
 COPY go.mod go.sum ./
 
 # Remove the test fixture dependency from go.mod as it's not needed for building binaries
 # The test/harness package is only imported by test files, not by cmd/proxy or cmd/worker
-RUN sed -i '/require altinn.studio\/runtime-fixture/d' go.mod && \
+RUN sed -i '/altinn.studio\/runtime-fixture v/d' go.mod && \
     sed -i '/replace altinn.studio\/runtime-fixture/d' go.mod
 
 RUN go mod download
 
-# Copy source code
 COPY . .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/proxy
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a -installsuffix cgo -o main ./cmd/proxy
 
-# Runtime stage
 FROM scratch
 
 WORKDIR /app
 
-# Copy the binary from builder stage
 COPY --from=builder /app/main .
 
 EXPOSE 5030
@@ -32,5 +28,4 @@ EXPOSE 5030
 COPY --from=builder /etc/passwd /etc/passwd
 USER nobody
 
-# Run the service
 ENTRYPOINT ["./main"]

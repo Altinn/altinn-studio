@@ -2,9 +2,6 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
-replicaCount: 1
-
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
   repository: altinntjenestercontainerregistry.azurecr.io/altinn-gitea-runner
@@ -19,7 +16,32 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-environmentVariables: []
+# List of runners to deploy. Each runner will create a separate deployment.
+runners: []
+  # - name: ttd
+  #   replicas: 5
+  #   environmentVariables:
+  #     - name: GITEA_INSTANCE_URL
+  #       value: "https://gitea.example.com"
+  #     - name: GITEA_RUNNER_REGISTRATION_TOKEN
+  #       valueFrom:
+  #         secretKeyRef:
+  #           name: gitea-runner-ttd-token
+  #           key: token
+  #     - name: GITEA_RUNNER_NAME
+  #       value: "ttd-runner"
+  # - name: brg
+  #   replicas: 3
+  #   environmentVariables:
+  #     - name: GITEA_INSTANCE_URL
+  #       value: "https://gitea.example.com"
+  #     - name: GITEA_RUNNER_REGISTRATION_TOKEN
+  #       valueFrom:
+  #         secretKeyRef:
+  #           name: gitea-runner-brg-token
+  #           key: token
+  #     - name: GITEA_RUNNER_NAME
+  #       value: "brg-runner"
 
 # This is for setting Kubernetes Annotations to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/

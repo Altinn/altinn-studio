@@ -804,11 +804,10 @@ describe('Group', () => {
     cy.get('#prefill-enabled').findByRole('radio', { name: 'Ja' }).click();
     cy.findByRole('checkbox', { name: appFrontend.group.prefill.stor }).check();
 
-    // When we temporarily disabled the prefilling functionality, ruleHandler tricked the backend by
-    // setting PrefillValuesShadow to the same value as PrefillValues, making the backend think the 'middels' row we
-    // wanted was already present in the main repeating group. When we now re-enable prefilling, that value will
-    // persist in PrefillValuesShadow, still making the backend think the 'middels' row exists - so it still won't
-    // add it at this point.
+    // When we temporarily disabled the prefilling functionality, PrefillValuesShadow was set to the same value as
+    // PrefillValues, making the backend think the 'middels' row we wanted was already present in the main repeating
+    // group. When we now re-enable prefilling, that value will persist in PrefillValuesShadow, still making the
+    // backend think the 'middels' row exists - so it still won't add it at this point.
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 2);
     cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(0).should('contain.text', 'NOK 1');

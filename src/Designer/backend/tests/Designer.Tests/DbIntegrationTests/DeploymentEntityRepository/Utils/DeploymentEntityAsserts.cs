@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Studio.Designer.Repository.Models;
@@ -70,6 +72,28 @@ public static partial class EntityAssertions
         else
         {
             AssertionUtil.AssertCloseTo(expected.Build.Finished.Value, actual.Build.Finished.Value, datesTolerance);
+        }
+
+        AssertEventsEqual(expected.Events, actual.Events, datesTolerance);
+    }
+
+    private static void AssertEventsEqual(List<DeployEvent> expected, List<DeployEvent> actual, TimeSpan datesTolerance)
+    {
+        Assert.Equal(expected?.Count ?? 0, actual?.Count ?? 0);
+
+        if (expected == null || expected.Count == 0)
+        {
+            return;
+        }
+
+        var expectedOrdered = expected.OrderBy(e => e.Timestamp).ToList();
+        var actualOrdered = actual.OrderBy(e => e.Timestamp).ToList();
+
+        for (int i = 0; i < expectedOrdered.Count; i++)
+        {
+            Assert.Equal(expectedOrdered[i].EventType, actualOrdered[i].EventType);
+            Assert.Equal(expectedOrdered[i].Message, actualOrdered[i].Message);
+            AssertionUtil.AssertCloseTo(expectedOrdered[i].Timestamp, actualOrdered[i].Timestamp, datesTolerance);
         }
     }
 }

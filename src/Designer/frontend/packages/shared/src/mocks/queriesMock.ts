@@ -1,9 +1,12 @@
+/* istanbul ignore file */
+
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { Branch, CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
 import type {
   DataModelMetadataJson,
   DataModelMetadataXsd,
@@ -77,6 +80,7 @@ import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
+import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -89,6 +93,15 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
   getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve<BranchStatus>(branchStatus)),
+  getBranches: jest.fn().mockImplementation(() => Promise.resolve<Branch[]>([])),
+  getCurrentBranch: jest.fn().mockImplementation(() =>
+    Promise.resolve<CurrentBranchInfo>({
+      branchName: 'master',
+      commitSha: 'abc123',
+      isTracking: true,
+      remoteName: 'origin',
+    }),
+  ),
   getDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   getDataModelMetadata: jest
     .fn()
@@ -131,6 +144,13 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() =>
       Promise.resolve<ITextResourcesWithLanguage>(textResourcesWithLanguage),
     ),
+  getSharedResources: jest.fn().mockImplementation(() =>
+    Promise.resolve<SharedResourcesResponse>({
+      files: [],
+      commitSha: '',
+    }),
+  ),
+  getPublishedResources: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
   getRepoPull: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
   getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
@@ -230,10 +250,12 @@ export const queriesMock: ServicesContextProps = {
   addLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
   addRepo: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
   addXsdFromRepo: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  checkoutBranch: jest.fn().mockImplementation(() => Promise.resolve({})),
   commitAndPushChanges: jest
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   copyApp: jest.fn().mockImplementation(() => Promise.resolve()),
+  createBranch: jest.fn().mockImplementation(() => Promise.resolve()),
   createDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   createDeployment: jest.fn().mockImplementation(() => Promise.resolve()),
   createOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -251,9 +273,11 @@ export const queriesMock: ServicesContextProps = {
   deleteLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
+  discardChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   generateModels: jest.fn().mockImplementation(() => Promise.resolve()),
   importCodeListFromOrgToApp: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
   logout: jest.fn().mockImplementation(() => Promise.resolve()),
+  publishCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   pushRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   resetRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   saveDataModel: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -278,6 +302,7 @@ export const queriesMock: ServicesContextProps = {
   updateOrgCodeListId: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOrgTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateSharedResources: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   uploadOptionList: jest.fn().mockImplementation(() => Promise.resolve()),

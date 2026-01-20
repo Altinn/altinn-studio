@@ -60,7 +60,7 @@ type DataModelBindingsPersonLookup = {
 
 type Option<T extends string | boolean | number = string | boolean | number> = {
   label: string;
-  value: T;
+  value?: T;
   description?: string;
   helpText?: string;
 };
@@ -420,7 +420,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     hideEmptyFields?: boolean;
     overrides?: Summary2OverrideConfig[];
   };
-  [ComponentType.Text]: { value: string };
+  [ComponentType.Text]: { value: StringExpression };
   [ComponentType.TextArea]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {

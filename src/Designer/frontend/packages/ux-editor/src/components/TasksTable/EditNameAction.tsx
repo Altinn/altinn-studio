@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { createNewTextResourceId, taskNavigationType } from '../Settings/SettingsUtils';
-import { StudioButton, StudioDialog, StudioFieldset } from '@studio/components';
+import type { StudioTextResourceEditorTexts } from '@studio/components';
+import {
+  StudioButton,
+  StudioDialog,
+  StudioFieldset,
+  StudioTextResourceEditor,
+} from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
-import { TextResourceEditor } from '../TextResource/TextResourceEditor';
 import { CheckmarkIcon, PencilIcon, XMarkIcon } from '@studio/icons';
 import classes from './EditNameAction.module.css';
 import { defaultLangCode } from '@altinn/text-editor';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { textResourceByLanguageAndIdSelector } from '@altinn/ux-editor/selectors/textResourceSelectors';
+import {
+  textResourceByLanguageAndIdSelector,
+  textResourcesByLanguageSelector,
+} from 'app-shared/selectors/textResourceSelectors';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 
 export type EditNameActionProps = {
@@ -37,6 +45,9 @@ export const EditNameAction = ({
     const resource = textResourceByLanguageAndIdSelector(DEFAULT_LANGUAGE, id)(textResources);
     return resource?.value || t(taskNavigationType(task.taskType));
   };
+
+  const defaultLanguageTextResources =
+    textResourcesByLanguageSelector(DEFAULT_LANGUAGE)(textResources);
 
   const [textResourceId, setTextResourceId] = useState<string>(
     task?.name ?? createNewTextResourceId(task),
@@ -65,12 +76,24 @@ export const EditNameAction = ({
     setOpenDialog(false);
   };
 
-  const handleReferenceChange = (id: string) => {
-    setTextResourceId(id);
-    setCurrentValue(getResolvedTaskName(id));
+  const handleReferenceChange = (id?: string) => {
+    setTextResourceId(id ?? '');
+    setCurrentValue(getResolvedTaskName(id ?? ''));
   };
 
   const handleTextChange = (value: string) => setCurrentValue(value);
+
+  const editorTexts: StudioTextResourceEditorTexts = {
+    pickerLabel: t('ux_editor.search_text_resources_label'),
+    valueEditorAriaLabel: t('ux_editor.text_resource_binding_text'),
+    valueEditorIdLabel: t('ux_editor.text_resource_binding_id'),
+    noTextResourceOptionLabel: t('ux_editor.search_text_resources_none'),
+    disabledSearchAlertText: t(
+      'ux_editor.modal_properties_textResourceBindings_page_name_search_disabled',
+    ),
+    tabLabelType: t('ux_editor.text_resource_binding_write'),
+    tabLabelSearch: t('ux_editor.text_resource_binding_search'),
+  };
 
   return (
     <StudioDialog.TriggerContext>
@@ -88,11 +111,13 @@ export const EditNameAction = ({
         onKeyDown={(e) => e.key === 'Escape' && handleCancel()}
       >
         <StudioFieldset legend={t('ux_editor.task_table.menu_edit_name')}>
-          <TextResourceEditor
+          <StudioTextResourceEditor
             textResourceId={textResourceId}
             onReferenceChange={handleReferenceChange}
             onTextChange={handleTextChange}
             textResourceValue={currentValue}
+            texts={editorTexts}
+            textResources={defaultLanguageTextResources}
           />
           <div className={classes.buttonGroup}>
             <StudioButton

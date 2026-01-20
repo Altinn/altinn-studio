@@ -1,8 +1,8 @@
 #nullable disable
 using System;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,11 +12,11 @@ namespace Altinn.Studio.Designer.Controllers
     [ApiController]
     public class ContactController : ControllerBase
     {
-        private readonly IGitea _giteaService;
+        private readonly IGiteaClient _giteaClient;
 
-        public ContactController(IGitea giteaService)
+        public ContactController(IGiteaClient giteaClient)
         {
-            _giteaService = giteaService;
+            _giteaClient = giteaClient;
         }
 
         [AllowAnonymous]
@@ -31,7 +31,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             try
             {
-                var organizations = await _giteaService.GetUserOrganizations();
+                var organizations = await _giteaClient.GetUserOrganizations();
                 return Ok(new BelongsToOrgDto { BelongsToOrg = organizations.Count > 0 });
             }
             catch (Exception)

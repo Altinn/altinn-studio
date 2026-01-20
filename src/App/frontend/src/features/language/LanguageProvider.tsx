@@ -1,20 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useGetAppLanguageQuery } from 'src/features/language/textResources/useGetAppLanguagesQuery';
 import { useProfileQuery } from 'src/features/profile/ProfileProvider';
-import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
-import { appSupportsFetchAppLanguagesInAnonymous } from 'src/utils/versioning/versions';
 
 interface LanguageCtx {
   current: string;
   languageResolved: boolean;
   appLanguages: string[] | undefined;
   setWithLanguageSelector: (language: string) => void;
-  setShouldFetchAppLanguages: (shouldFetch: boolean) => void;
 }
 
 const { Provider, useCtx } = createContext<LanguageCtx>({
@@ -27,18 +23,10 @@ const { Provider, useCtx } = createContext<LanguageCtx>({
     setWithLanguageSelector: () => {
       throw new Error('LanguageProvider not initialized');
     },
-    setShouldFetchAppLanguages: () => {
-      throw new Error('LanguageProvider not initialized');
-    },
   },
 });
 
-const IsLoading = Symbol('IsLoading');
-type Loading<T> = T | typeof IsLoading;
-
 export const LanguageProvider = ({ children }: PropsWithChildren) => {
-  // LanguageProvider is provided so early that we cannot access much state directly, so we need to get them set externally.
-  const [shouldFetchAppLanguages, setShouldFetchAppLanguages] = useState<Loading<boolean>>(IsLoading);
   const { data: profile, isLoading: isProfileLoading } = useProfileQuery();
 
   const userId = isProfileLoading ? undefined : profile?.userId;
@@ -47,7 +35,8 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
   const languageFromUrl = getLanguageFromUrl();
   const [languageFromSelector, setWithLanguageSelector] = useLocalStorageState(['selectedLanguage', userId], null);
 
-  const { data: appLanguages, error, isFetching } = useGetAppLanguageQuery(shouldFetchAppLanguages === true);
+  const { data: appLanguages, error, isFetching } = useGetAppLanguageQuery();
+  // TODO(Error handling): Should failing to fetch app languages cause PDF generation to fail?
 
   useEffect(() => {
     error && window.logError('Fetching app languages failed:\n', error);
@@ -59,7 +48,7 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
     languageFromProfile,
   });
 
-  const languageResolved = !isProfileLoading && shouldFetchAppLanguages !== IsLoading && !isFetching;
+  const languageResolved = !isProfileLoading && !isFetching;
 
   return (
     <Provider
@@ -67,7 +56,6 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
         current,
         appLanguages,
         languageResolved,
-        setShouldFetchAppLanguages,
         setWithLanguageSelector,
       }}
     >
@@ -82,32 +70,12 @@ export const useAppLanguages = () => useCtx().appLanguages;
 export const useSetLanguageWithSelector = () => useCtx().setWithLanguageSelector;
 
 /**
- * This is only to prevent a lot of 401 requests for apps where we know the request will fail.
- * Since https://github.com/Altinn/app-lib-dotnet/pull/1115 fetching app languages no longer requires auth,
- * so in the next major release where we require at least v9 all of this checking can be removed
- * and the useGetAppLanguageQuery can be always enabled instead.
- */
-export const SetShouldFetchAppLanguages = () => {
-  // We make the same assumption as in ProfileProvider that the user is logged in when the app does not allow anonymous.
-  const userIsAuthenticated = useIsAllowAnonymous(false);
-  const { altinnNugetVersion } = useApplicationMetadata();
-
-  const setShouldFetchAppLanguages = useCtx().setShouldFetchAppLanguages;
-  const shouldFetchAppLanguages = appSupportsFetchAppLanguagesInAnonymous(altinnNugetVersion) || userIsAuthenticated;
-  useEffect(() => {
-    setShouldFetchAppLanguages(shouldFetchAppLanguages);
-  }, [shouldFetchAppLanguages, setShouldFetchAppLanguages]);
-
-  return null;
-};
-
-/**
  * AppRoutingContext is not provided yet, so we have to get this manually.
  * This unfortunately means that the value is not reactive, and will not update
  * if this query param changes after initial load.
  */
 function getLanguageFromUrl() {
-  const params = new URLSearchParams(window.location.hash.split('?')[1]);
+  const params = new URLSearchParams(window.location.search);
   return params.get('lang');
 }
 

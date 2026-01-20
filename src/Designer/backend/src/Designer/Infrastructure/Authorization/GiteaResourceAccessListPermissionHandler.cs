@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.RepositoryClient.Model;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -16,20 +16,20 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
     /// </summary>
     public class GiteaResourceAccessListPermissionHandler : AuthorizationHandler<GiteaResourceAccessListPermissionRequirement>
     {
-        private readonly IGitea _giteaApiWrapper;
+        private readonly IGiteaClient _giteaClient;
         private readonly HttpContext _httpContext;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="giteaApiWrapper">IGitea</param>
+        /// <param name="giteaClient">IGiteaClient</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         public GiteaResourceAccessListPermissionHandler(
-            IGitea giteaApiWrapper,
+            IGiteaClient giteaClient,
             IHttpContextAccessor httpContextAccessor)
         {
             _httpContext = httpContextAccessor.HttpContext;
-            _giteaApiWrapper = giteaApiWrapper;
+            _giteaClient = giteaClient;
         }
 
         /// <inheritdoc/>
@@ -51,7 +51,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             }
 
             string matchTeam = $"Accesslists-{environment}";
-            List<Team> teams = await _giteaApiWrapper.GetTeams();
+            List<Team> teams = await _giteaClient.GetTeams();
 
             bool isTeamMember = teams.Any(t =>
                 t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase) &&

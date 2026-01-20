@@ -4,10 +4,10 @@ import { PageConfigPanel } from './PageConfigPanel';
 import { useAppContext } from '../../hooks';
 import { GroupConfigPanel } from './GroupConfigPanel/GroupConfigPanel';
 import { ComponentConfigPanel } from './ComponentConfigPanel/ComponentConfigPanel';
-import { StudioSectionHeader } from '@studio/components';
 import { FileIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { ItemType } from './ItemType';
+import { ConfigPanelHeader } from './CommonElements/ConfigPanelHeader/ConfigPanelHeader';
 
 export const Properties = () => {
   return (
@@ -28,14 +28,6 @@ const PropertiesSelectedConfig = () => {
     case ItemType.Group:
       return <GroupConfigPanel selectedItem={selectedItem} key={selectedItem.id} />;
     default:
-      return (
-        <StudioSectionHeader
-          icon={<FileIcon />}
-          heading={{
-            text: t('right_menu.content_empty'),
-            level: 2,
-          }}
-        />
-      );
+      return <ConfigPanelHeader icon={<FileIcon />} title={t('right_menu.content_empty')} />;
   }
 };

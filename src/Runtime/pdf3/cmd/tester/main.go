@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -12,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	"altinn.studio/pdf3/test/harness"
+	localharness "altinn.studio/pdf3/test/harness"
+	"altinn.studio/runtime-fixture/pkg/harness"
 	"altinn.studio/runtime-fixture/pkg/kubernetes"
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
-	"altinn.studio/runtime-fixture/pkg/tools"
 )
 
 func main() {
@@ -54,9 +53,12 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  loadtest-local   Run k6 load tests - locally")
 	fmt.Fprintln(os.Stderr, "  loadtest-env     Run k6 load tests - against env")
 	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprintln(os.Stderr, "Start argument:")
-	fmt.Fprintln(os.Stderr, "  standard")
-	fmt.Fprintln(os.Stderr, "  minimal")
+	fmt.Fprintln(os.Stderr, "Start arguments:")
+	fmt.Fprintln(os.Stderr, "  standard         Use standard variant (more nodes)")
+	fmt.Fprintln(os.Stderr, "  minimal          Use minimal variant (fewer resources)")
+	fmt.Fprintln(os.Stderr, "Start flags:")
+	fmt.Fprintln(os.Stderr, "  --monitoring      Include Prometheus/Grafana monitoring stack")
+	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Test flags:")
 	fmt.Fprintln(os.Stderr, "  --smoke           Run smoke tests only")
 	fmt.Fprintln(os.Stderr, "  --simple          Run simple tests only")
@@ -69,93 +71,47 @@ func printUsage() {
 }
 
 // setupRuntime sets up the Kind cluster, builds images, and deploys pdf3
-func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainerRuntime, error) {
-	fmt.Println("=== Setting Up Runtime ===")
-
-	// Step 1: Setup cluster
-	// We run this asynchronously as bootstrapping a full kind cluster takes some time.
-	// As long as the registry is started, we can start building stuff on our side
-	registryStartedEvent := make(chan error, 1)
-	ingressReadyEvent := make(chan error, 1)
-	runtimeResult := make(chan Result[*kind.KindContainerRuntime], 1)
-	go func() {
-		runtime, err := harness.SetupCluster(variant, registryStartedEvent, ingressReadyEvent)
-		runtimeResult <- NewResult(runtime, err)
-	}()
-
-	// As soon as the registry is started, we can start building and pushing
-	// Use select to handle early failures and avoid deadlock
-	var runtimeResultValue *Result[*kind.KindContainerRuntime]
-	select {
-	case <-registryStartedEvent:
-		// Normal path - registry started, continue to build/push
-	case result := <-runtimeResult:
-		// Early failure - SetupCluster failed before registry started
-		runtimeResultValue = &result
-		if _, err := result.Unwrap(); err != nil {
-			return nil, fmt.Errorf("failed to setup cluster: %w", err)
-		}
-		return nil, fmt.Errorf("got runtime result but no registry event, invalid state")
-	case <-time.After(5 * time.Minute):
-		return nil, fmt.Errorf("timeout waiting for registry to start")
-	}
-
-	// Step 2: Build and push images
-	buildResult := make(chan Result[bool], 1)
-	go func() {
-		imagesChanged, err := harness.BuildAndPushImages()
-		buildResult <- NewResult(imagesChanged, err)
-	}()
-
-	// Step 3: Push kustomize artifact
-	pushResult := make(chan Result[bool], 1)
-	go func() {
-		kustomizeChanged, err := harness.PushKustomizeArtifact()
-		pushResult <- NewResult(kustomizeChanged, err)
-	}()
-
-	// Now let's wait for the runtime to be fully built
-	// Check if we already consumed runtimeResult earlier (in case of early completion/failure)
-	var runtime *kind.KindContainerRuntime
-	var err error
-	if runtimeResultValue != nil {
-		// We already consumed runtimeResult earlier in the select
-		runtime, err = runtimeResultValue.Unwrap()
-	} else {
-		// Normal path - read from channel
-		runtime, err = (<-runtimeResult).Unwrap()
-	}
+func setupRuntime(variant kind.KindContainerRuntimeVariant, options kind.KindContainerRuntimeOptions) (*kind.KindContainerRuntime, error) {
+	root, err := localharness.FindProjectRoot()
 	if err != nil {
-		return nil, fmt.Errorf("failed to setup cluster: %w", err)
+		return nil, err
 	}
 
-	imagesChanged, err := (<-buildResult).Unwrap()
+	variantName := "minimal"
+	if variant == kind.KindContainerRuntimeVariantStandard {
+		variantName = "standard"
+	}
+
+	cfg := harness.Config{
+		ProjectRoot:    root,
+		Variant:        variant,
+		ClusterOptions: options,
+		Images: []harness.Image{
+			{Name: "proxy", Dockerfile: "Dockerfile.proxy", Tag: "localhost:5001/runtime-pdf3-proxy:latest"},
+			{Name: "worker", Dockerfile: "Dockerfile.worker", Tag: "localhost:5001/runtime-pdf3-worker:latest"},
+		},
+		Artifacts: []harness.Artifact{
+			{Name: "kustomize", URL: "oci://localhost:5001/runtime-pdf3-repo:local", Path: "infra/kustomize"},
+		},
+		Deployments: []harness.Deployment{{
+			Name: "pdf3",
+			Kustomize: &harness.KustomizeDeploy{
+				SyncRootDir:       fmt.Sprintf("infra/kustomize/local-syncroot-%s", variantName),
+				KustomizationName: "pdf3-app",
+				Namespace:         "runtime-pdf3",
+				Rollouts: []harness.Rollout{
+					{Deployment: "pdf3-proxy", Namespace: "runtime-pdf3"},
+					{Deployment: "pdf3-worker", Namespace: "runtime-pdf3"},
+				},
+			},
+		}},
+	}
+
+	result, err := harness.Run(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to build and push images: %w", err)
+		return nil, err
 	}
-
-	kustomizeChanged, err := (<-pushResult).Unwrap()
-	if err != nil {
-		return nil, fmt.Errorf("failed to push kustomize artifact: %w", err)
-	}
-
-	// Step 4: Deploy pdf3 via Flux
-	_, err = harness.DeployPdf3ViaFlux(variant, imagesChanged, kustomizeChanged)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deploy pdf3: %w", err)
-	}
-
-	// Step 5: let's wait for ingress
-	fmt.Printf("Waiting for ingress...\n")
-	start := time.Now()
-	err = <-ingressReadyEvent
-	harness.LogDuration("Waited for ingress", start)
-	if err != nil {
-		return nil, fmt.Errorf("failed to wait for ingress: %w", err)
-	}
-
-	fmt.Println("✓ Runtime setup complete")
-	return runtime, nil
+	return result.Runtime, nil
 }
 
 func runStart() {
@@ -165,20 +121,36 @@ func runStart() {
 		fmt.Fprintf(os.Stderr, "Not enough arguments. Must specify 'standard' or 'minimal' for the start command\n")
 		os.Exit(1)
 	}
-	arg := os.Args[2]
+
+	// Parse flags after the variant argument
+	startFlags := flag.NewFlagSet("start", flag.ExitOnError)
+	includeMonitoring := startFlags.Bool("monitoring", false, "Include Prometheus/Grafana monitoring stack")
+
+	// First positional arg is variant, rest are flags
+	variantArg := os.Args[2]
+	if err := startFlags.Parse(os.Args[3:]); err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing flags: %v\n", err)
+		os.Exit(1)
+	}
 
 	var variant kind.KindContainerRuntimeVariant
-	switch arg {
+	switch variantArg {
 	case "standard":
 		variant = kind.KindContainerRuntimeVariantStandard
 	case "minimal":
 		variant = kind.KindContainerRuntimeVariantMinimal
 	default:
-		fmt.Fprintf(os.Stderr, "Invalid arg '%s'. Must specify 'standard' or 'minimal' for the start command\n", arg)
+		fmt.Fprintf(os.Stderr, "Invalid arg '%s'. Must specify 'standard' or 'minimal' for the start command\n", variantArg)
 		os.Exit(1)
 	}
 
-	_, err := setupRuntime(variant)
+	options := kind.KindContainerRuntimeOptions{
+		IncludeMonitoring: *includeMonitoring,
+		IncludeTestserver: true,
+		IncludeLinkerd:    true,
+	}
+
+	_, err := setupRuntime(variant, options)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start runtime: %v\n", err)
 		os.Exit(1)
@@ -192,23 +164,19 @@ func runStart() {
 func runStop() {
 	fmt.Println("=== PDF3 Runtime Stop ===")
 
-	// Find project root
-	projectRoot, err := harness.FindProjectRoot()
+	root, err := localharness.FindProjectRoot()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Load existing runtime
-	cachePath := filepath.Join(projectRoot, ".cache")
-	runtime, err := kind.LoadCurrent(cachePath)
+	result, err := harness.LoadExisting(filepath.Join(root, ".cache"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load runtime: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Stop the runtime
-	if err := runtime.Stop(); err != nil {
+	if err := result.Runtime.Stop(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to stop runtime: %v\n", err)
 		os.Exit(1)
 	}
@@ -234,7 +202,7 @@ func runTest() {
 	runBoth := !*runSmoke && !*runSimple
 
 	// Find project root for logs directory
-	projectRoot, err := harness.FindProjectRoot()
+	projectRoot, err := localharness.FindProjectRoot()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		os.Exit(1)
@@ -244,8 +212,8 @@ func runTest() {
 
 	// Setup runtime
 	var runtime *kind.KindContainerRuntime
-	if harness.IsCI {
-		// For CI, we run `make run v=...` in a separate step, so just expect everything to be up
+	if localharness.IsCI {
+		// For CI, we run `make start-minimal` in a separate step, so just expect everything to be up
 		// it also runs `setupRuntime` like below
 		runtime, err = kind.LoadCurrent(filepath.Join(projectRoot, ".cache"))
 		if err != nil {
@@ -253,7 +221,10 @@ func runTest() {
 			os.Exit(1)
 		}
 	} else {
-		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal)
+		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal, kind.KindContainerRuntimeOptions{
+			IncludeTestserver: true,
+			IncludeLinkerd:    true,
+		})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
 			os.Exit(1)
@@ -306,21 +277,6 @@ func runTest() {
 		if runBoth || *runSimple {
 			fmt.Println("Running simple integration tests...")
 			if err := runTests(projectRoot, "./test/integration/simple/..."); err != nil {
-				if exitErr, ok := err.(*exec.ExitError); ok {
-					testExitCode = exitErr.ExitCode()
-				} else {
-					testExitCode = 1
-				}
-				// Exit immediately on failure when looping
-				if *iterations > 1 {
-					fmt.Println("")
-					fmt.Printf("FAILED on iteration %d of %d\n", i, *iterations)
-					break
-				}
-			}
-
-			fmt.Println("Running unit tests...")
-			if err := runTests(projectRoot, "./internal/..."); err != nil {
 				if exitErr, ok := err.(*exec.ExitError); ok {
 					testExitCode = exitErr.ExitCode()
 				} else {
@@ -430,6 +386,15 @@ func collectLogs(runtime *kind.KindContainerRuntime, logsDir string, sinceSecond
 	return nil
 }
 
+// findK6 locates k6 in PATH
+func findK6() (string, error) {
+	path, err := exec.LookPath("k6")
+	if err != nil {
+		return "", fmt.Errorf("k6 not found in PATH. Install via: https://grafana.com/docs/k6/latest/set-up/install-k6/")
+	}
+	return path, nil
+}
+
 // findChromePath locates the chrome-headless-shell executable in .cache
 func findChromePath(projectRoot string) (string, error) {
 	pattern := filepath.Join(projectRoot, ".cache", "chrome-headless-shell", "*", "chrome-headless-shell-linux64", "chrome-headless-shell")
@@ -446,7 +411,7 @@ func findChromePath(projectRoot string) (string, error) {
 
 func runLoadtestEnv() {
 	// Find project root
-	projectRoot, err := harness.FindProjectRoot()
+	projectRoot, err := localharness.FindProjectRoot()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		os.Exit(1)
@@ -487,13 +452,9 @@ func runLoadtestEnv() {
 
 	fmt.Println("=== PDF3 Load Test ===")
 
-	installer, err := tools.NewInstaller(filepath.Join(projectRoot, ".cache"), false, true)
+	k6Path, err := findK6()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error constructing tools installer: %v\n", err)
-		os.Exit(1)
-	}
-	if _, err := installer.Install(context.Background(), "k6"); err != nil {
-		fmt.Fprintf(os.Stderr, "Error installing tools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -521,13 +482,6 @@ func runLoadtestEnv() {
 	env = append(env, fmt.Sprintf("K6_BROWSER_EXECUTABLE_PATH=%s", chromePath))
 	env = append(env, "K6_WEB_DASHBOARD=true")
 
-	// Get k6 binary path from installer
-	k6Tool, err := installer.GetToolInfo("k6")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get k6 tool info: %v\n", err)
-		os.Exit(1)
-	}
-
 	// Read k6 test script
 	testScriptPath := filepath.Join(projectRoot, "test", "load", "test-env.js")
 	testScript, err := os.Open(testScriptPath)
@@ -539,7 +493,7 @@ func runLoadtestEnv() {
 
 	// Run k6 binary with test script piped to stdin
 	fmt.Println("\n=== Running k6 Load Test ===")
-	cmd := exec.Command(k6Tool.Path, "run", "-")
+	cmd := exec.Command(k6Path, "run", "-")
 	cmd.Stdin = testScript
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -565,7 +519,7 @@ func runLoadtestLocal() {
 	}
 
 	// Find project root
-	projectRoot, err := harness.FindProjectRoot()
+	projectRoot, err := localharness.FindProjectRoot()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		os.Exit(1)
@@ -575,8 +529,8 @@ func runLoadtestLocal() {
 
 	// Setup runtime
 	var runtime *kind.KindContainerRuntime
-	if harness.IsCI {
-		// For CI, we run `make run v=...` in a separate step, so just expect everything to be up
+	if localharness.IsCI {
+		// For CI, we run `make start-minimal` in a separate step, so just expect everything to be up
 		// it also runs `setupRuntime` like below
 		runtime, err = kind.LoadCurrent(filepath.Join(projectRoot, ".cache"))
 		if err != nil {
@@ -584,17 +538,19 @@ func runLoadtestLocal() {
 			os.Exit(1)
 		}
 	} else {
-		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantStandard)
+		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantStandard, kind.KindContainerRuntimeOptions{
+			IncludeTestserver: true,
+			IncludeLinkerd:    true,
+		})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
 			os.Exit(1)
 		}
 	}
 
-	// Install k6 for loadtest
-	fmt.Println("\n=== Installing k6 ===")
-	if _, err := runtime.Installer.Install(context.Background(), "k6"); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to install k6: %v\n", err)
+	k6Path, err := findK6()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -613,20 +569,11 @@ func runLoadtestLocal() {
 	fmt.Println("\n=== Waiting for deployments to be ready ===")
 
 	var depWg sync.WaitGroup
-	depWg.Add(3)
+	depWg.Add(2)
 
 	go func() {
 		defer depWg.Done()
-		fmt.Println("Waiting for pdf-generator deployment (old service)...")
-		if err := runtime.KubernetesClient.RolloutStatus("pdf-generator", "pdf", 2*time.Minute); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed waiting for pdf-generator deployment: %v\n", err)
-			os.Exit(1)
-		}
-	}()
-
-	go func() {
-		defer depWg.Done()
-		fmt.Println("Waiting for pdf3-proxy deployment (new service)...")
+		fmt.Println("Waiting for pdf3-proxy deployment...")
 		if err := runtime.KubernetesClient.RolloutStatus("pdf3-proxy", "runtime-pdf3", 2*time.Minute); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed waiting for pdf3-proxy deployment: %v\n", err)
 			os.Exit(1)
@@ -635,7 +582,7 @@ func runLoadtestLocal() {
 
 	go func() {
 		defer depWg.Done()
-		fmt.Println("Waiting for pdf3-worker deployment (new service)...")
+		fmt.Println("Waiting for pdf3-worker deployment...")
 		if err := runtime.KubernetesClient.RolloutStatus("pdf3-worker", "runtime-pdf3", 2*time.Minute); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed waiting for pdf3-worker deployment: %v\n", err)
 			os.Exit(1)
@@ -645,15 +592,8 @@ func runLoadtestLocal() {
 
 	fmt.Println("✓ All deployments ready")
 
-	// Get k6 binary path from installer
-	k6Tool, err := runtime.Installer.GetToolInfo("k6")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get k6 tool info: %v\n", err)
-		os.Exit(1)
-	}
-
 	// Read k6 test script
-	testScriptPath := filepath.Join(projectRoot, "test", "load", "test-local.ts")
+	testScriptPath := filepath.Join(projectRoot, "test", "load", "test-local.js")
 	testScript, err := os.Open(testScriptPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to read test script: %v\n", err)
@@ -663,7 +603,7 @@ func runLoadtestLocal() {
 
 	// Run k6 binary with test script piped to stdin
 	fmt.Println("\n=== Running k6 Load Test ===")
-	cmd := exec.Command(k6Tool.Path, "run", "-")
+	cmd := exec.Command(k6Path, "run", "-")
 	cmd.Stdin = testScript
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -674,20 +614,4 @@ func runLoadtestLocal() {
 	}
 
 	fmt.Println("\n=== Load Test Completed ===")
-}
-
-type Result[T any] struct {
-	Value T
-	Err   error
-}
-
-func NewResult[T any](value T, err error) Result[T] {
-	return Result[T]{
-		Value: value,
-		Err:   err,
-	}
-}
-
-func (r Result[T]) Unwrap() (T, error) {
-	return r.Value, r.Err
 }

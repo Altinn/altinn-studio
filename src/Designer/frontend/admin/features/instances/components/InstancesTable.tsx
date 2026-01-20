@@ -1,19 +1,29 @@
 import { StudioButton, StudioSpinner, StudioTable, StudioError } from '@studio/components';
+import { useEnvironmentTitle } from 'admin/hooks/useEnvironmentTitle';
 import classes from './InstancesTable.module.css';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import { useAppInstancesQuery } from 'admin/hooks/queries/useAppInstancesQuery';
 import type { SimpleInstance } from 'admin/types/InstancesResponse';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
 import { useMutation } from '@tanstack/react-query';
+import { InstanceStatus } from './InstanceStatus';
+import { isAxiosError } from 'axios';
+import { Alert } from '@digdir/designsystemet-react';
+import { useCurrentOrg } from 'admin/layout/PageLayout';
+import { Link } from 'react-router-dom';
 
 type InstancesTableProps = {
   org: string;
   env: string;
   app: string;
   currentTask?: string;
-  processIsComplete?: boolean;
+  isArchived?: boolean;
+  archiveReference?: string;
+  confirmed?: boolean;
+  isSoftDeleted?: boolean;
+  isHardDeleted?: boolean;
+  createdBefore?: string;
 };
 
 export const InstancesTable = ({
@@ -21,21 +31,40 @@ export const InstancesTable = ({
   env,
   app,
   currentTask,
-  processIsComplete,
+  isArchived,
+  archiveReference,
+  confirmed,
+  isSoftDeleted,
+  isHardDeleted,
+  createdBefore,
 }: InstancesTableProps) => {
-  const { data, status, fetchNextPage, hasNextPage } = useAppInstancesQuery(
+  const { data, status, error, fetchNextPage, hasNextPage } = useAppInstancesQuery(
     org,
     env,
     app,
     currentTask,
-    processIsComplete,
+    isArchived,
+    archiveReference,
+    confirmed,
+    isSoftDeleted,
+    isHardDeleted,
+    createdBefore,
   );
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const orgName = useCurrentOrg().name[i18n.language];
+  const envTitle = useEnvironmentTitle(env);
 
   switch (status) {
     case 'pending':
       return <StudioSpinner aria-label={t('general.loading')} />;
     case 'error':
+      if (isAxiosError(error) && error.response?.status === 403) {
+        return (
+          <Alert severity='info'>
+            {t('admin.instances.missing_rights', { envTitle, orgName })}
+          </Alert>
+        );
+      }
       return <StudioError>{t('general.page_error_title')}</StudioError>;
     case 'success':
       return (
@@ -68,23 +97,27 @@ const InstancesTableWithData = ({
     <StudioTable zebra>
       <StudioTable.Head>
         <StudioTable.Row>
-          <StudioTable.Cell>{t('Id')}</StudioTable.Cell>
-          <StudioTable.Cell>{t('Opprettet')}</StudioTable.Cell>
-          <StudioTable.Cell>{t('Prosessteg')}</StudioTable.Cell>
-          <StudioTable.Cell>{t('Status')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.id')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.created')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.process_task')}</StudioTable.Cell>
+          <StudioTable.Cell>{t('admin.instances.status')}</StudioTable.Cell>
         </StudioTable.Row>
       </StudioTable.Head>
       <StudioTable.Body>
         {instances.map((instance) => (
           <StudioTable.Row key={instance.id}>
             <StudioTable.Cell>
-              <Link to={`${instance.id}`}>{instance.id}</Link>
+              <Link to={`instances/${instance.id}`}>{instance.id}</Link>
             </StudioTable.Cell>
-            <StudioTable.Cell>{formatDateAndTime(instance.createdAt)}</StudioTable.Cell>
             <StudioTable.Cell>
-              {instance.currentTaskName ?? instance.currentTaskId ?? 'Avsluttet'}
+              {instance.createdAt ? formatDateAndTime(instance.createdAt) : '-'}
             </StudioTable.Cell>
-            <StudioTable.Cell>{getStatus(instance)}</StudioTable.Cell>
+            <StudioTable.Cell>
+              {instance.currentTaskName ?? instance.currentTaskId ?? '-'}
+            </StudioTable.Cell>
+            <StudioTable.Cell>
+              <InstanceStatus instance={instance} />
+            </StudioTable.Cell>
           </StudioTable.Row>
         ))}
       </StudioTable.Body>
@@ -94,7 +127,7 @@ const InstancesTableWithData = ({
             <StudioTable.Cell className={classes.footerCell} colSpan={4}>
               <StudioButton disabled={isFetchingMoreResults} onClick={() => doFetchMoreResults()}>
                 {isFetchingMoreResults && <StudioSpinner aria-label={t('general.loading')} />}
-                {t('Last inn 10 flere rader')}
+                {t('admin.instances.fetch_more')}
               </StudioButton>
             </StudioTable.Cell>
           </StudioTable.Row>
@@ -103,20 +136,3 @@ const InstancesTableWithData = ({
     </StudioTable>
   );
 };
-
-// TODO: These may not be reducable to a single status?
-function getStatus(instance: SimpleInstance) {
-  switch (true) {
-    case instance.isSoftDeleted:
-    case instance.isHardDeleted:
-      return 'Slettet';
-    case instance.isConfirmed:
-      return 'Bekreftet';
-    case instance.isArchived:
-      return 'Arkivert';
-    case instance.isComplete:
-      return 'Levert';
-    default:
-      return 'Aktiv';
-  }
-}

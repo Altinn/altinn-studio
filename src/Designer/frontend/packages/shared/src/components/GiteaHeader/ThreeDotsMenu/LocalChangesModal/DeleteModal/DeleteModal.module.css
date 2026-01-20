@@ -1,6 +1,30 @@
+.dialog > :first-child > button {
+  width: fit-content;
+}
+
 .buttonWrapper {
   display: flex;
   justify-content: flex-start;
   margin-top: var(--fds-spacing-6);
   gap: var(--fds-spacing-6);
+}
+
+.buttonWrapper button {
+  width: fit-content;
+}
+
+.headerWrapper {
+  display: flex;
+  align-items: center;
+  padding: var(--ds-size-6) var(--ds-size-4);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+}
+
+.trashIcon {
+  font-size: var(--ds-size-6);
 }

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
@@ -12,11 +12,11 @@ namespace Designer.Tests.Services
 {
     public class UserServiceTests
     {
-        private readonly Mock<IGitea> _giteaApi;
+        private readonly Mock<IGiteaClient> _giteaClientMock;
 
         public UserServiceTests()
         {
-            _giteaApi = new Mock<IGitea>();
+            _giteaClientMock = new Mock<IGiteaClient>();
         }
 
         [Theory]
@@ -32,9 +32,9 @@ namespace Designer.Tests.Services
                 }
             };
 
-            _giteaApi.Setup(api => api.GetTeams()).ReturnsAsync(teams);
+            _giteaClientMock.Setup(api => api.GetTeams()).ReturnsAsync(teams);
 
-            var userService = new UserService(_giteaApi.Object);
+            var userService = new UserService(_giteaClientMock.Object);
 
             AltinnOrgEditingContext altinnOrgEditingContext = AltinnOrgEditingContext.FromOrgDeveloper(org, "developer");
             var result = await userService.GetUserOrgPermission(altinnOrgEditingContext);

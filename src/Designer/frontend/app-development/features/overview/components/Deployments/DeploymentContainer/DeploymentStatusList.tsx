@@ -6,7 +6,7 @@ import classes from './DeploymentStatusList.module.css';
 import { getAppLink } from 'app-shared/ext-urls';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { PROD_ENV_TYPE } from 'app-shared/constants';
-import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import { getDeployStatus, type PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import { BuildResult } from 'app-shared/types/Build';
 
 export interface DeploymentStatusListProps {
@@ -32,7 +32,8 @@ export const DeploymentStatusList = ({
           (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );
         const lastPipelineDeployment = pipelineDeploymentEnvList[0];
-        const isDeploymentInProgress = lastPipelineDeployment?.build.result === BuildResult.none;
+        const deploymentStatus = getDeployStatus(lastPipelineDeployment);
+        const isDeploymentInProgress = deploymentStatus === BuildResult.none;
 
         return (
           <DeploymentStatus

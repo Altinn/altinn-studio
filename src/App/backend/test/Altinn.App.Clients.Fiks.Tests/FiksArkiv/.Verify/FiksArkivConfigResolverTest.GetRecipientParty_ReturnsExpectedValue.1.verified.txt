@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<korrespondansepart xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/arkivmelding/opprett/v1">
+  <korrespondansepartID>abc123</korrespondansepartID>
+  <korrespondanseparttype>
+    <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">EM</kode>
+    <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Mottaker</beskrivelse>
+  </korrespondanseparttype>
+  <korrespondansepartNavn>the-name</korrespondansepartNavn>
+  <organisasjonid>123456789</organisasjonid>
+  <deresReferanse>https://ttd.apps.the-hostname/ttd/test-app/instances/12345/b66a17cd-5155-4ec8-a0b5-397c5e26880e</deresReferanse>
+</korrespondansepart>

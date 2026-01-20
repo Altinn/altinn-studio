@@ -5,6 +5,31 @@ import { WithHoverAddButton, type WithHoverAddButtonProps } from './WithHoverAdd
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { IInternalLayout } from '../../types/global';
+
+//Test data
+const repeatingGroupId = 'repeating-group-1';
+
+function createLayoutWithContainer(containerId: string, containerType: string): IInternalLayout {
+  return {
+    order: {},
+    containers: {
+      [BASE_CONTAINER_ID]: {
+        type: null,
+        itemType: 'CONTAINER' as const,
+        id: BASE_CONTAINER_ID,
+      },
+      [containerId]: {
+        type: containerType,
+        itemType: 'CONTAINER' as const,
+        id: containerId,
+      } as any,
+    },
+    components: {},
+    customDataProperties: {},
+    customRootProperties: {},
+  } as IInternalLayout;
+}
 
 const defaultProps: Omit<WithHoverAddButtonProps, 'children'> = {
   title: 'Test Add Button',
@@ -62,12 +87,70 @@ describe('WithHoverAddButton', () => {
     await user.click(getCloseButton());
     expect(queryAddItemInlineHeading()).not.toBeInTheDocument();
   });
+
+  it('should apply lastChild class when isLastChild is true and parent is RepeatingGroup', () => {
+    const layout = createLayoutWithContainer(repeatingGroupId, 'RepeatingGroup');
+    renderWithHoverAddButton({
+      layout,
+      containerId: repeatingGroupId,
+      isLastChild: true,
+    });
+    const rootElement = screen.getByTestId('with-hover-add-button-root');
+    expect(rootElement).toHaveClass('lastChild');
+  });
+
+  it('should not apply lastChild class when isLastChild is true but parent is not RepeatingGroup', () => {
+    const groupId = 'group-1';
+    const layout = createLayoutWithContainer(groupId, 'Group');
+    renderWithHoverAddButton({
+      layout,
+      containerId: groupId,
+      isLastChild: true,
+    });
+    const rootElement = screen.getByTestId('with-hover-add-button-root');
+    expect(rootElement).not.toHaveClass('lastChild');
+  });
+
+  it('should not apply lastChild class when isLastChild is false', () => {
+    const layout = createLayoutWithContainer(repeatingGroupId, 'RepeatingGroup');
+    renderWithHoverAddButton({
+      layout,
+      containerId: repeatingGroupId,
+      isLastChild: false,
+    });
+    const rootElement = screen.getByTestId('with-hover-add-button-root');
+    expect(rootElement).not.toHaveClass('lastChild');
+  });
+
+  it('should not apply lastChild class when isLastChild is undefined', () => {
+    const layout = createLayoutWithContainer(repeatingGroupId, 'RepeatingGroup');
+    renderWithHoverAddButton({
+      layout,
+      containerId: repeatingGroupId,
+    });
+    const rootElement = screen.getByTestId('with-hover-add-button-root');
+    expect(rootElement).not.toHaveClass('lastChild');
+  });
+
+  it('should handle null parentContainer when containerId is falsy', () => {
+    const layout = createLayoutWithContainer(repeatingGroupId, 'RepeatingGroup');
+    renderWithHoverAddButton({
+      layout,
+      containerId: '',
+      isLastChild: true,
+    });
+    const rootElement = screen.getByTestId('with-hover-add-button-root');
+    expect(rootElement).not.toHaveClass('lastChild');
+  });
 });
 
-function renderWithHoverAddButton() {
-  renderWithProviders(
-    <WithHoverAddButton {...defaultProps}>
-      <div>Test Child</div>
+function renderWithHoverAddButton(
+  props?: Partial<WithHoverAddButtonProps>,
+  children: React.ReactNode = <div>Test Child</div>,
+) {
+  return renderWithProviders(
+    <WithHoverAddButton {...defaultProps} {...props}>
+      {children}
     </WithHoverAddButton>,
   );
 }
@@ -77,11 +160,17 @@ function getClickableActionBar(): HTMLButtonElement {
 }
 
 function getAddItemInlineHeading(): HTMLHeadingElement {
-  return screen.getByText(textMock('ux_editor.add_item.select_component_header'));
+  return screen.getByRole('heading', {
+    level: 4,
+    name: textMock('ux_editor.add_item.select_component_header'),
+  });
 }
 
 function queryAddItemInlineHeading(): HTMLHeadingElement | null {
-  return screen.queryByText(textMock('ux_editor.add_item.select_component_header'));
+  return screen.queryByRole('heading', {
+    level: 4,
+    name: textMock('ux_editor.add_item.select_component_header'),
+  });
 }
 
 function getCloseButton(): HTMLButtonElement {

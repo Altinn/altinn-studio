@@ -4,14 +4,16 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Medallion.Threading;
 using Medallion.Threading.FileSystem;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace Designer.Tests.Controllers.ApiTests
 {
@@ -37,12 +39,17 @@ namespace Designer.Tests.Controllers.ApiTests
         {
             services.Configure<ServiceRepositorySettings>(c =>
                 c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGitea, IGiteaMock>();
+            services.AddSingleton<IGiteaClient, IGiteaClientMock>();
             services.AddSingleton<IDistributedLockProvider>(_ =>
             {
                 var directoryInfo = TestLockPathProvider.Instance.LockFileDirectory;
                 return new FileDistributedSynchronizationProvider(directoryInfo);
             });
+
+            // Use mock logger for Quartz to prevent ObjectDisposedException on LoggerFactory
+            var mockLoggerFactory = new Mock<ILoggerFactory>();
+            mockLoggerFactory.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(new Mock<ILogger>().Object);
+            Quartz.Logging.LogContext.SetCurrentLogProvider(mockLoggerFactory.Object);
         }
 
         /// <summary>

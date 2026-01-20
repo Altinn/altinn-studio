@@ -71,13 +71,19 @@ describe('CommitAndPushContent', () => {
   });
 
   it('should close fileChangesInfoModal when clicking close', async () => {
+    const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
     const user = userEvent.setup();
     renderCommitAndPushContent();
     await user.click(getReviewChangesButton());
     const closeModalButton = screen.getByRole('button', {
-      name: 'close modal', // Todo: Replace 'close modal' with textMock('sync_header.show_changes_modal.close_button') when https://github.com/digdir/designsystemet/issues/2195 is fixed
+      name: 'Lukk dialogvindu',
     });
     await user.click(closeModalButton);
+    const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+    dialog.close();
+    dialog.dispatchEvent(new Event('close', { bubbles: true }));
+    consoleErrorMock.mockRestore();
+
     expect(queryDialog()).not.toBeInTheDocument();
   });
 

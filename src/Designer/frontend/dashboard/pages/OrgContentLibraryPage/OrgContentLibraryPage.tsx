@@ -1,11 +1,11 @@
 import type { ReactElement } from 'react';
 import React, { useMemo, useCallback } from 'react';
-import { ResourceContentLibraryImpl } from '@studio/content-library';
+import { ContentLibrary } from '@studio/content-library';
 import type {
-  CodeListData,
   CodeListWithMetadata,
   PagesConfig,
   TextResourceWithLanguage,
+  CodeListData,
 } from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import {
@@ -26,6 +26,9 @@ import { toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
 import { useDeleteOrgCodeListMutation } from 'app-shared/hooks/mutations/useDeleteOrgCodeListMutation';
 import {
+  backendCodeListsToLibraryCodeLists,
+  libraryCodeListDataToBackendCodeListData,
+  libraryCodeListsToUpdatePayload,
   textResourcesWithLanguageToLibraryTextResources,
   textResourceWithLanguageToMutationArgs,
 } from './utils';
@@ -36,13 +39,26 @@ import { useOrgRepoName } from 'dashboard/hooks/useOrgRepoName';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
 import { useOrgTextResourcesQuery } from 'app-shared/hooks/queries/useOrgTextResourcesQuery';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import {
+  CODE_LIST_FOLDER,
+  DEFAULT_LANGUAGE,
+  ORG_LIBRARY_BASENAME,
+  PUBLISHED_CODE_LIST_FOLDER,
+} from 'app-shared/constants';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import { useUpdateOrgCodeListIdMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListIdMutation';
 import { FeedbackForm } from './FeedbackForm';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
+import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
+import { useSharedCodeListsQuery } from 'app-shared/hooks/queries/useSharedCodeListsQuery';
+import { useUpdateSharedResourcesMutation } from 'app-shared/hooks/mutations/useUpdateSharedResourcesMutation';
+import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
+import { usePublishCodeListMutation } from 'app-shared/hooks/mutations/usePublishCodeListMutation';
+import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
+import { usePublishedResourcesQuery } from 'app-shared/hooks/queries/usePublishedResourcesQuery';
+import { useContentLibraryRouter } from 'app-shared/hooks/useContentLibraryRouter';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -84,8 +100,18 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
     orgName,
     DEFAULT_LANGUAGE,
   );
+  const { data: sharedCodeList, status: sharedCodeListStatus } = useSharedCodeListsQuery(orgName);
+  const { status: publishedCodeListsStatus } = usePublishedResourcesQuery(
+    orgName,
+    PUBLISHED_CODE_LIST_FOLDER,
+  );
 
-  const status = mergeQueryStatuses(codeListDataListStatus, textResourcesStatus);
+  const status = mergeQueryStatuses(
+    codeListDataListStatus,
+    textResourcesStatus,
+    sharedCodeListStatus,
+    publishedCodeListsStatus,
+  );
 
   switch (status) {
     case 'pending':
@@ -96,6 +122,7 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
       return (
         <OrgContentLibraryWithContextAndData
           codeListDataList={codeListDataList}
+          sharedResourceResponse={sharedCodeList}
           orgName={orgName}
           textResources={textResources}
         />
@@ -104,7 +131,8 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
 }
 
 type OrgContentLibraryWithContextAndDataProps = {
-  codeListDataList: CodeListData[];
+  codeListDataList: CodeListsResponse;
+  sharedResourceResponse: SharedResourcesResponse;
   orgName: string;
   textResources: ITextResourcesWithLanguage;
 };
@@ -120,7 +148,8 @@ function OrgContentLibraryWithContextAndData({
   const { mutate: updateCodeListId } = useUpdateOrgCodeListIdMutation(orgName);
   const { mutate: updateTextResources } = useUpdateOrgTextResourcesMutation(orgName);
   const { t } = useTranslation();
-  const displayNewCodeListPage = useFeatureFlag(FeatureFlag.NewCodeLists);
+  const pagesFromFeatureFlags = usePagesFromFeatureFlags(orgName);
+  const router = useContentLibraryRouter(`/${ORG_LIBRARY_BASENAME}/${orgName}`);
 
   const handleUpload = useUploadCodeList(orgName);
 
@@ -148,40 +177,80 @@ function OrgContentLibraryWithContextAndData({
     createCodeList({ title, data: codeList });
   };
 
-  const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
-    heading: t('org_content_library.library_heading'),
-    pages: {
-      codeListsWithTextResources: {
-        props: {
-          codeListDataList,
-          onCreateCodeList: handleCreate,
-          onCreateTextResource: handleUpdateTextResource,
-          onDeleteCodeList: deleteCodeList,
-          onUpdateCodeListId: handleUpdateCodeListId,
-          onUpdateCodeList: handleUpdate,
-          onUpdateTextResource: handleUpdateTextResource,
-          onUploadCodeList: handleUpload,
-          textResources,
-        },
-      },
-      ...pagesFromFeatureFlags(displayNewCodeListPage),
-    },
-  });
-
   return (
     <div>
-      {getContentResourceLibrary()}
+      <ContentLibrary
+        heading={t('org_content_library.library_heading')}
+        router={router}
+        pages={{
+          codeListsWithTextResources: {
+            codeListDataList,
+            onCreateCodeList: handleCreate,
+            onCreateTextResource: handleUpdateTextResource,
+            onDeleteCodeList: deleteCodeList,
+            onUpdateCodeListId: handleUpdateCodeListId,
+            onUpdateCodeList: handleUpdate,
+            onUpdateTextResource: handleUpdateTextResource,
+            onUploadCodeList: handleUpload,
+            textResources,
+          },
+          ...pagesFromFeatureFlags,
+        }}
+      />
       <FeedbackForm />
     </div>
   );
 }
 
-function pagesFromFeatureFlags(displayNewCodeListPage: boolean): Partial<PagesConfig> {
+function usePagesFromFeatureFlags(orgName: string): Partial<PagesConfig> {
+  const displayNewCodeListPage = useFeatureFlag(FeatureFlag.NewCodeLists);
+  const codeListsProps = useCodeListsProps(orgName);
+
   if (displayNewCodeListPage) {
-    return { codeLists: { props: {} } };
+    return { codeLists: codeListsProps };
   } else {
     return {};
   }
+}
+
+function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
+  const { data } = useSharedCodeListsQuery(orgName);
+  const { mutate } = useUpdateSharedResourcesMutation(orgName, CODE_LIST_FOLDER);
+  const { mutate: publish } = usePublishCodeListMutation(orgName);
+  const { t } = useTranslation();
+  const { data: publishedCodeLists } = usePublishedResourcesQuery(
+    orgName,
+    PUBLISHED_CODE_LIST_FOLDER,
+  );
+
+  const libraryCodeLists = backendCodeListsToLibraryCodeLists(data);
+
+  const handleSave = useCallback(
+    (codeListDataList: CodeListData[]): void => {
+      const payload = libraryCodeListsToUpdatePayload(
+        data,
+        codeListDataList,
+        t('org_content_library.code_lists.commit_message_default'),
+      );
+      mutate(payload);
+    },
+    [data, mutate, t],
+  );
+
+  const handlePublish = useCallback(
+    (cld: CodeListData): void => {
+      const payload: PublishCodeListPayload = libraryCodeListDataToBackendCodeListData(cld);
+      publish(payload);
+    },
+    [publish],
+  );
+
+  return {
+    codeLists: libraryCodeLists,
+    onPublish: handlePublish,
+    onSave: handleSave,
+    publishedCodeLists,
+  };
 }
 
 function ContextWithoutLibraryAccess(): ReactElement {

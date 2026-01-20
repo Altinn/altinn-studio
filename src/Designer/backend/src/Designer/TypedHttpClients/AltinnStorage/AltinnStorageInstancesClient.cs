@@ -1,0 +1,155 @@
+#nullable enable
+
+using System;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage.Models;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
+
+namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
+
+public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
+{
+    private readonly HttpClient _httpClient;
+    private readonly IEnvironmentsService _environmentsService;
+    private readonly PlatformSettings _platformSettings;
+    private readonly ILogger<AltinnStorageInstancesClient> _logger;
+
+    private const int SIZE = 10;
+
+    public AltinnStorageInstancesClient(
+        HttpClient httpClient,
+        IEnvironmentsService environmentsService,
+        PlatformSettings options,
+        ILogger<AltinnStorageInstancesClient> logger
+    )
+    {
+        _httpClient = httpClient;
+        _environmentsService = environmentsService;
+        _platformSettings = options;
+        _logger = logger;
+    }
+
+    public async Task<QueryResponse<SimpleInstance>> GetInstances(
+        string org,
+        string env,
+        string app,
+        string? continuationToken,
+        string? currentTaskFilter,
+        bool? isArchivedFilter,
+        string? archiveReferenceFilter,
+        bool? confirmedFilter,
+        bool? isSoftDeletedFilter,
+        bool? isHardDeletedFilter,
+        DateOnly? createdBeforeFilter,
+        CancellationToken ct
+    )
+    {
+        var platformUri = await _environmentsService.CreatePlatformUri(env);
+        var uri = $"{platformUri}{_platformSettings.ApiStorageInstancesUri}{org}/{app}";
+
+        uri = QueryHelpers.AddQueryString(uri, "size", SIZE.ToString());
+
+        if (!string.IsNullOrEmpty(continuationToken))
+        {
+            uri = QueryHelpers.AddQueryString(uri, "continuationToken", continuationToken);
+        }
+
+        if (!string.IsNullOrEmpty(currentTaskFilter))
+        {
+            uri = QueryHelpers.AddQueryString(uri, "process.currentTask", currentTaskFilter);
+        }
+
+        if (isArchivedFilter != null)
+        {
+            uri = QueryHelpers.AddQueryString(
+                uri,
+                "status.isArchived",
+                isArchivedFilter.Value.ToString().ToLowerInvariant()
+            );
+        }
+
+        if (!string.IsNullOrEmpty(archiveReferenceFilter))
+        {
+            uri = QueryHelpers.AddQueryString(uri, "archiveReference", archiveReferenceFilter);
+        }
+
+        if (confirmedFilter != null)
+        {
+            uri = QueryHelpers.AddQueryString(
+                uri,
+                "confirmed",
+                confirmedFilter.Value.ToString().ToLowerInvariant()
+            );
+        }
+
+        if (isSoftDeletedFilter != null)
+        {
+            uri = QueryHelpers.AddQueryString(
+                uri,
+                "status.isSoftDeleted",
+                isSoftDeletedFilter.Value.ToString().ToLowerInvariant()
+            );
+        }
+
+        if (isHardDeletedFilter != null)
+        {
+            uri = QueryHelpers.AddQueryString(
+                uri,
+                "status.isHardDeleted",
+                isHardDeletedFilter.Value.ToString().ToLowerInvariant()
+            );
+        }
+
+        if (createdBeforeFilter != null)
+        {
+            var dateString = createdBeforeFilter.Value.ToString("yyyy-MM-dd");
+            uri = QueryHelpers.AddQueryString(uri, "created", $"lt:{dateString}");
+        }
+
+        using var response = await _httpClient.GetAsync(uri, ct);
+        response.EnsureSuccessStatusCode();
+
+        var queryResponse = await response.Content.ReadFromJsonAsync<QueryResponse<SimpleInstance>>(
+            ct
+        );
+
+        if (queryResponse == null)
+        {
+            throw new JsonException("Could not deserialize Instance query response");
+        }
+
+        return queryResponse;
+    }
+
+    public async Task<SimpleInstanceDetails> GetInstanceDetails(
+        string org,
+        string env,
+        string app,
+        string instanceId,
+        CancellationToken ct
+    )
+    {
+        var platformUri = await _environmentsService.CreatePlatformUri(env);
+        var uri =
+            $"{platformUri}{_platformSettings.ApiStorageInstancesUri}{org}/{app}/{instanceId}";
+
+        using var response = await _httpClient.GetAsync(uri, ct);
+        response.EnsureSuccessStatusCode();
+
+        var instanceDetails = await response.Content.ReadFromJsonAsync<SimpleInstanceDetails>(ct);
+
+        if (instanceDetails == null)
+        {
+            throw new JsonException("Could not deserialize Instance response");
+        }
+
+        return instanceDetails;
+    }
+}
