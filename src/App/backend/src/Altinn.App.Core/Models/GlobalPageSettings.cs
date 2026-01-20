@@ -107,5 +107,3 @@ public class NavigationReceipt : TaskNavigationEntry
     [JsonPropertyName("type")]
     public string Type { get; } = "receipt";
 }
-
-
