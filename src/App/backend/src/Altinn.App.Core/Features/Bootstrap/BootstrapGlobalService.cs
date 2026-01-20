@@ -1,15 +1,21 @@
 using System.Text.Json;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Features.Bootstrap;
 
-internal sealed class BootstrapGlobalService(IAppMetadata appMetadata, IAppResources appResources)
-    : IBootstrapGlobalService
+internal sealed class BootstrapGlobalService(
+    IAppMetadata appMetadata,
+    IAppResources appResources,
+    IOptions<FrontEndSettings> frontEndSettings
+) : IBootstrapGlobalService
 {
     private readonly IAppMetadata _appMetadata = appMetadata;
     private readonly IAppResources _appResources = appResources;
+    private readonly IOptions<FrontEndSettings> _frontEndSettings = frontEndSettings;
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -22,10 +28,12 @@ internal sealed class BootstrapGlobalService(IAppMetadata appMetadata, IAppResou
         var footerTask = _appResources.GetFooter();
 
         await Task.WhenAll(appMetadataTask, footerTask);
+
         var footer = footerTask.Result;
         var footerJson = string.IsNullOrEmpty(footer)
             ? null
             : JsonSerializer.Deserialize<object>(footer, _jsonSerializerOptions);
+
         var layoutSets = _appResources.GetLayoutSets() ?? new LayoutSets { Sets = [] };
         layoutSets.UiSettings ??= new GlobalPageSettings();
 
@@ -34,6 +42,7 @@ internal sealed class BootstrapGlobalService(IAppMetadata appMetadata, IAppResou
             ApplicationMetadata = appMetadataTask.Result,
             Footer = footerJson,
             LayoutSets = layoutSets,
+            FrontEndSettings = _frontEndSettings.Value,
         };
     }
 }

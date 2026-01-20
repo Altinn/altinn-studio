@@ -19,7 +19,6 @@ import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
-import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
@@ -117,7 +116,6 @@ const defaultQueryMocks: AppQueries = {
   fetchLogo: async () => getLogoMock(),
   fetchActiveInstances: async () => [],
   fetchSelectedParty: async () => getPartyMock(),
-  fetchApplicationSettings: async () => ({}),
   fetchOrgs: async () => ({ orgs: getOrgsMock() }),
   fetchReturnUrl: async () => Promise.reject(),
   fetchDataModelSchema: async () => ({}),
@@ -319,13 +317,11 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
                 <NavigationEffectProvider>
                   <GlobalFormDataReadersProvider>
                     <OrgsProvider>
-                      <ApplicationSettingsProvider>
-                        <ProfileProvider>
-                          <PartyProvider>
-                            <TextResourcesProvider>{children}</TextResourcesProvider>
-                          </PartyProvider>
-                        </ProfileProvider>
-                      </ApplicationSettingsProvider>
+                      <ProfileProvider>
+                        <PartyProvider>
+                          <TextResourcesProvider>{children}</TextResourcesProvider>
+                        </PartyProvider>
+                      </ProfileProvider>
                     </OrgsProvider>
                   </GlobalFormDataReadersProvider>
                 </NavigationEffectProvider>

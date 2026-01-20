@@ -11,7 +11,6 @@ import { httpDelete, httpGetRaw, httpPatch, httpPost, putWithoutConfig } from 's
 import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
 import {
   applicationLanguagesUrl,
-  applicationSettingsApiUrl,
   appPath,
   getActionsUrl,
   getActiveInstancesUrl,
@@ -63,7 +62,6 @@ import type {
   IActionType,
   IAltinnOrgs,
   IAppLanguage,
-  IApplicationSettings,
   IData,
   IInstance,
   IParty,
@@ -217,8 +215,6 @@ export const fetchInstanceData = async (partyId: string, instanceGuid: string): 
   );
 
 export const fetchProcessState = (instanceId: string): Promise<IProcess> => httpGet(getProcessStateUrl(instanceId));
-
-export const fetchApplicationSettings = (): Promise<IApplicationSettings> => httpGet(applicationSettingsApiUrl);
 
 export const fetchSelectedParty = (): Promise<IParty | undefined> => httpGet(selectedPartyUrl);
 

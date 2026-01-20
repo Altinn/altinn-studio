@@ -22,4 +22,10 @@ internal class BootstrapGlobalResponse
     /// </summary>
     [JsonPropertyName("layoutSets")]
     public required LayoutSets LayoutSets { get; set; }
+
+    /// <summary>
+    /// FrontendSettings layout configuration.
+    /// </summary>
+    [JsonPropertyName("frontendSettings")]
+    public object? FrontEndSettings { get; set; }
 }
