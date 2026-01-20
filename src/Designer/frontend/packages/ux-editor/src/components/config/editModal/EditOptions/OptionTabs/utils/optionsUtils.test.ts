@@ -26,7 +26,7 @@ describe('optionsUtils', () => {
       const options: OptionList = [{ label: 'label1', value: 'value1' }];
       const optionListIdsFromLibrary = [optionsId];
       const component = { ...mockedComponent, options, optionsId };
-      const result = determineInitialTab(component, optionListIds);
+      const result = determineInitialTab(component, optionListIdsFromLibrary);
       expect(result).toEqual(OptionsTabKey.CodeList);
     });
 
