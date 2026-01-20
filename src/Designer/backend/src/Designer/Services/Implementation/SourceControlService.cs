@@ -60,7 +60,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, destinationPath, cloneOptions);
-            FetchGitNotes(authenticatedContext);
+            FetchGitNotesAtPath(destinationPath, authenticatedContext);
             return cloneResult;
         }
 
@@ -796,7 +796,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public void FetchGitNotes(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
-            string localRepositoryPath = FindLocalRepoLocation(authenticatedContext);
+            FetchGitNotesAtPath(FindLocalRepoLocation(authenticatedContext), authenticatedContext);
+        }
+
+        private static void FetchGitNotesAtPath(string localRepositoryPath, AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        {
             using LibGit2Sharp.Repository repo = new(localRepositoryPath);
             FetchOptions options = new()
             {
