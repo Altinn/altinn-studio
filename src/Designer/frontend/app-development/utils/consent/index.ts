@@ -1,4 +1,4 @@
-export { ConsentProvider } from './ConsentProvider';
+export { ConsentProvider, CONSENT_COOKIE_KEY, CONSENT_COOKIE_EXPIRY_DAYS } from './ConsentProvider';
 export { useConsent } from './useConsent';
 export { useConsentMutation } from './useConsentMutation';
 export { PostHogAnalyticsProvider } from './analyticsProvider';

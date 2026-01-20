@@ -14,8 +14,8 @@ import { ConsentMutationContextProvider } from './ConsentMutationContext';
 import { PostHogAnalyticsProvider } from './analyticsProvider';
 import type { AnalyticsProvider } from './analyticsProvider';
 
-const CONSENT_COOKIE_KEY = 'altinn-studio-consent';
-const CONSENT_COOKIE_EXPIRY_DAYS = 365;
+export const CONSENT_COOKIE_KEY = 'altinn-studio-consent';
+export const CONSENT_COOKIE_EXPIRY_DAYS = 365;
 
 export type ConsentProviderProps = {
   children: ReactNode;

@@ -1,8 +1,10 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react';
-import { ConsentProvider } from './ConsentProvider';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { ConsentProvider, CONSENT_COOKIE_KEY, CONSENT_COOKIE_EXPIRY_DAYS } from './ConsentProvider';
 import { useConsent, useConsentMutation } from '.';
 import type { AnalyticsProvider } from './analyticsProvider';
+import type { ConsentProviderProps } from './ConsentProvider';
 import { CookieStorage } from '@studio/browser-storage';
 
 jest.mock('@posthog/react', () => ({
@@ -28,154 +30,133 @@ const TestComponent = () => {
 
   return (
     <div>
-      <div data-testid='has-decision'>{String(hasDecision)}</div>
-      <div data-testid='has-analytics'>{String(hasAnalyticsConsent)}</div>
-      <div data-testid='has-recording'>{String(hasSessionRecordingConsent)}</div>
-      <button onClick={grantAllConsent} data-testid='grant-all'>
-        Grant All
-      </button>
-      <button onClick={denyAllConsent} data-testid='deny-all'>
-        Deny All
-      </button>
+      <span data-testid='has-decision'>{String(hasDecision)}</span>
+      <span data-testid='has-analytics'>{String(hasAnalyticsConsent)}</span>
+      <span data-testid='has-recording'>{String(hasSessionRecordingConsent)}</span>
+      <button onClick={grantAllConsent}>Grant All</button>
+      <button onClick={denyAllConsent}>Deny All</button>
     </div>
   );
 };
 
+type ConsentStateExpectation = {
+  decision: boolean;
+  analytics: boolean;
+  recording: boolean;
+};
+
+const expectConsentState = (expected: ConsentStateExpectation): void => {
+  expect(screen.getByTestId('has-decision')).toHaveTextContent(String(expected.decision));
+  expect(screen.getByTestId('has-analytics')).toHaveTextContent(String(expected.analytics));
+  expect(screen.getByTestId('has-recording')).toHaveTextContent(String(expected.recording));
+};
+
+const mockStoredConsent = (analytics: boolean, sessionRecording: boolean): void => {
+  (CookieStorage.getItem as jest.Mock).mockReturnValue({
+    preferences: { analytics, sessionRecording },
+    timestamp: Date.now(),
+  });
+};
+
+const mockNoStoredConsent = (): void => {
+  (CookieStorage.getItem as jest.Mock).mockReturnValue(null);
+};
+
 describe('ConsentProvider', () => {
-  let mockAnalyticsProvider: jest.Mocked<AnalyticsProvider>;
+  const mockAnalyticsProvider: jest.Mocked<AnalyticsProvider> = {
+    syncConsent: jest.fn(),
+  };
+
+  const renderConsentProvider = (props?: Partial<ConsentProviderProps>) => {
+    const user = userEvent.setup();
+    render(
+      <ConsentProvider analyticsProvider={mockAnalyticsProvider} {...props}>
+        <TestComponent />
+      </ConsentProvider>,
+    );
+    return { user };
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockAnalyticsProvider = {
-      syncConsent: jest.fn(),
-    };
-    (CookieStorage.getItem as jest.Mock).mockReturnValue(null);
+    mockNoStoredConsent();
   });
 
   it('should initialize with no decision when no cookie exists', () => {
-    const { getByTestId } = render(
-      <ConsentProvider analyticsProvider={mockAnalyticsProvider}>
-        <TestComponent />
-      </ConsentProvider>,
-    );
+    renderConsentProvider();
 
-    expect(getByTestId('has-decision')).toHaveTextContent('false');
-    expect(getByTestId('has-analytics')).toHaveTextContent('false');
-    expect(getByTestId('has-recording')).toHaveTextContent('false');
+    expectConsentState({ decision: false, analytics: false, recording: false });
   });
 
   it('should initialize with existing consent from cookie', () => {
-    (CookieStorage.getItem as jest.Mock).mockReturnValue({
-      preferences: { analytics: true, sessionRecording: false },
-      timestamp: Date.now(),
-    });
+    mockStoredConsent(true, false);
 
-    const { getByTestId } = render(
-      <ConsentProvider analyticsProvider={mockAnalyticsProvider}>
-        <TestComponent />
-      </ConsentProvider>,
-    );
+    renderConsentProvider();
 
-    expect(getByTestId('has-decision')).toHaveTextContent('true');
-    expect(getByTestId('has-analytics')).toHaveTextContent('true');
-    expect(getByTestId('has-recording')).toHaveTextContent('false');
+    expectConsentState({ decision: true, analytics: true, recording: false });
   });
 
-  it('should sync consent with analytics provider on mount when consent exists', async () => {
-    (CookieStorage.getItem as jest.Mock).mockReturnValue({
-      preferences: { analytics: true, sessionRecording: true },
-      timestamp: Date.now(),
-    });
+  it('should sync consent with analytics provider on mount when consent exists', () => {
+    mockStoredConsent(true, true);
 
-    render(
-      <ConsentProvider analyticsProvider={mockAnalyticsProvider}>
-        <TestComponent />
-      </ConsentProvider>,
-    );
+    renderConsentProvider();
 
-    await waitFor(() => {
-      expect(mockAnalyticsProvider.syncConsent).toHaveBeenCalledWith({
-        analytics: true,
-        sessionRecording: true,
-      });
+    expect(mockAnalyticsProvider.syncConsent).toHaveBeenCalledWith({
+      analytics: true,
+      sessionRecording: true,
     });
   });
 
   it('should save consent preferences to cookie when granting all', async () => {
-    const { getByTestId } = render(
-      <ConsentProvider analyticsProvider={mockAnalyticsProvider} getCurrentTimestamp={() => 12345}>
-        <TestComponent />
-      </ConsentProvider>,
+    const fixedTimestamp = 12345;
+    const { user } = renderConsentProvider({ getCurrentTimestamp: () => fixedTimestamp });
+
+    await user.click(screen.getByRole('button', { name: /grant all/i }));
+
+    expect(CookieStorage.setItem).toHaveBeenCalledWith(
+      CONSENT_COOKIE_KEY,
+      {
+        preferences: { analytics: true, sessionRecording: true },
+        timestamp: fixedTimestamp,
+      },
+      {
+        expires: CONSENT_COOKIE_EXPIRY_DAYS,
+        sameSite: 'Lax',
+        secure: true,
+      },
     );
-
-    const grantAllButton = getByTestId('grant-all');
-    grantAllButton.click();
-
-    await waitFor(() => {
-      expect(CookieStorage.setItem).toHaveBeenCalledWith(
-        'altinn-studio-consent',
-        {
-          preferences: { analytics: true, sessionRecording: true },
-          timestamp: 12345,
-        },
-        {
-          expires: 365,
-          sameSite: 'Lax',
-          secure: true,
-        },
-      );
-    });
-
-    expect(getByTestId('has-decision')).toHaveTextContent('true');
-    expect(getByTestId('has-analytics')).toHaveTextContent('true');
-    expect(getByTestId('has-recording')).toHaveTextContent('true');
+    expectConsentState({ decision: true, analytics: true, recording: true });
   });
 
   it('should save consent preferences to cookie when denying all', async () => {
-    const { getByTestId } = render(
-      <ConsentProvider analyticsProvider={mockAnalyticsProvider} getCurrentTimestamp={() => 12345}>
-        <TestComponent />
-      </ConsentProvider>,
+    const fixedTimestamp = 12345;
+    const { user } = renderConsentProvider({ getCurrentTimestamp: () => fixedTimestamp });
+
+    await user.click(screen.getByRole('button', { name: /deny all/i }));
+
+    expect(CookieStorage.setItem).toHaveBeenCalledWith(
+      CONSENT_COOKIE_KEY,
+      {
+        preferences: { analytics: false, sessionRecording: false },
+        timestamp: fixedTimestamp,
+      },
+      {
+        expires: CONSENT_COOKIE_EXPIRY_DAYS,
+        sameSite: 'Lax',
+        secure: true,
+      },
     );
-
-    const denyAllButton = getByTestId('deny-all');
-    denyAllButton.click();
-
-    await waitFor(() => {
-      expect(CookieStorage.setItem).toHaveBeenCalledWith(
-        'altinn-studio-consent',
-        {
-          preferences: { analytics: false, sessionRecording: false },
-          timestamp: 12345,
-        },
-        {
-          expires: 365,
-          sameSite: 'Lax',
-          secure: true,
-        },
-      );
-    });
-
-    expect(getByTestId('has-decision')).toHaveTextContent('true');
-    expect(getByTestId('has-analytics')).toHaveTextContent('false');
-    expect(getByTestId('has-recording')).toHaveTextContent('false');
+    expectConsentState({ decision: true, analytics: false, recording: false });
   });
 
-  it('should sync consent with analytics provider when preferences change', async () => {
-    const { getByTestId } = render(
-      <ConsentProvider analyticsProvider={mockAnalyticsProvider}>
-        <TestComponent />
-      </ConsentProvider>,
-    );
+  it('should sync consent with analytics provider when user grants all', async () => {
+    const { user } = renderConsentProvider();
 
-    const grantAllButton = getByTestId('grant-all');
-    grantAllButton.click();
+    await user.click(screen.getByRole('button', { name: /grant all/i }));
 
-    await waitFor(() => {
-      expect(mockAnalyticsProvider.syncConsent).toHaveBeenCalledWith({
-        analytics: true,
-        sessionRecording: true,
-      });
+    expect(mockAnalyticsProvider.syncConsent).toHaveBeenCalledWith({
+      analytics: true,
+      sessionRecording: true,
     });
   });
 });
