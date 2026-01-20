@@ -111,7 +111,7 @@ public class HomeController : Controller
 
         if (await ShouldShowAppView())
         {
-            EnsureCacheInitialized();
+            EnsureCacheInitialized(_appSettings);
 
             if (_hasLegacyIndexCshtml)
             {
@@ -198,7 +198,7 @@ public class HomeController : Controller
         return htmlContent;
     }
 
-    private void EnsureCacheInitialized()
+    private static void EnsureCacheInitialized(AppSettings appSettings)
     {
         if (_cacheInitialized)
             return;
@@ -208,26 +208,26 @@ public class HomeController : Controller
             if (_cacheInitialized)
                 return;
 
-            var indexCshtmlPath = Path.Combine(_appSettings.AppBasePath, "views", "Home", "Index.cshtml");
+            var indexCshtmlPath = Path.Join(appSettings.AppBasePath, "views", "Home", "Index.cshtml");
             _hasLegacyIndexCshtml = System.IO.File.Exists(indexCshtmlPath);
 
-            var configPath = Path.Combine(_appSettings.AppBasePath, _appSettings.ConfigurationFolder, "frontend.json");
+            var configPath = Path.Join(appSettings.AppBasePath, appSettings.ConfigurationFolder, "frontend.json");
             if (System.IO.File.Exists(configPath))
             {
                 var json = System.IO.File.ReadAllText(configPath);
                 _cachedFrontendConfig = JsonSerializer.Deserialize<FrontendConfiguration>(json, _jsonSerializerOptions);
             }
 
-            _cachedCustomCssFileNames = GetFileNames("custom-css");
-            _cachedCustomJsFileNames = GetFileNames("custom-js");
+            _cachedCustomCssFileNames = GetFileNames(appSettings, "custom-css");
+            _cachedCustomJsFileNames = GetFileNames(appSettings, "custom-js");
 
             _cacheInitialized = true;
         }
     }
 
-    private List<string> GetFileNames(string subfolder)
+    private static List<string> GetFileNames(AppSettings appSettings, string subfolder)
     {
-        var dir = Path.Combine(_appSettings.AppBasePath, "wwwroot", subfolder);
+        var dir = Path.Join(appSettings.AppBasePath, "wwwroot", subfolder);
         if (!Directory.Exists(dir))
             return [];
 
