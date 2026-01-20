@@ -39,19 +39,16 @@ internal sealed class KnownCustomizationMatcher
         var rel = element.GetAttribute("rel");
         var href = element.GetAttribute("href");
 
-        // Must be a stylesheet link with href
-        if (!rel?.Equals("stylesheet", StringComparison.OrdinalIgnoreCase) == true || string.IsNullOrWhiteSpace(href))
+        if (rel?.Equals("stylesheet", StringComparison.OrdinalIgnoreCase) != true || string.IsNullOrWhiteSpace(href))
         {
             return false;
         }
 
-        // Check if it's a standard element (framework CSS)
         if (_standardMatcher.IsStandardElement(element, out _))
         {
             return false;
         }
 
-        // It's a custom external stylesheet - capture all attributes
         var asset = ExtractStylesheetAsset(element, href);
 
         customization = new KnownCustomization
@@ -74,16 +71,13 @@ internal sealed class KnownCustomizationMatcher
 
         var src = element.GetAttribute("src");
 
-        // External script
         if (!string.IsNullOrWhiteSpace(src))
         {
-            // Check if it's a standard element (framework JS)
             if (_standardMatcher.IsStandardElement(element, out _))
             {
                 return false;
             }
 
-            // It's a custom external script - capture all attributes
             var asset = ExtractScriptAsset(element, src);
 
             customization = new KnownCustomization
@@ -100,30 +94,25 @@ internal sealed class KnownCustomizationMatcher
             return true;
         }
 
-        // Inline script
         var content = element.TextContent?.Trim();
         if (string.IsNullOrWhiteSpace(content))
         {
             return false;
         }
 
-        // Analyze the script to check if it's standard and extract cleaned content
         var analysis = _scriptAnalyzer.Analyze(content);
         if (analysis.IsStandard)
         {
             return false;
         }
 
-        // Use cleaned content if available, otherwise full content
         var extractionContent = analysis.CleanedContent ?? content;
 
-        // Skip if cleaned content is empty (script was only boilerplate)
         if (string.IsNullOrWhiteSpace(extractionContent))
         {
             return false;
         }
 
-        // It's a custom inline script (no asset, will be extracted to separate file)
         customization = new KnownCustomization
         {
             TagName = element.TagName,
@@ -148,23 +137,19 @@ internal sealed class KnownCustomizationMatcher
             return false;
         }
 
-        // Analyze the style to check if it's standard and extract cleaned content
         var analysis = _styleAnalyzer.Analyze(content);
         if (analysis.IsStandard)
         {
             return false;
         }
 
-        // Use cleaned content if available, otherwise full content
         var extractionContent = analysis.CleanedContent ?? content;
 
-        // Skip if cleaned content is empty (style was only boilerplate)
         if (string.IsNullOrWhiteSpace(extractionContent))
         {
             return false;
         }
 
-        // It's a custom inline style (no asset, will be extracted to separate file)
         customization = new KnownCustomization
         {
             TagName = element.TagName,

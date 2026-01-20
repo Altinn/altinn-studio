@@ -65,7 +65,6 @@ internal sealed class IndexCshtmlMigrator
             return 1;
         }
 
-        // Validate framework file consistency
         var frameworkValidationError = ValidateFrameworkFileConsistency(categorizationResult);
         if (frameworkValidationError != null)
         {
@@ -132,10 +131,8 @@ internal sealed class IndexCshtmlMigrator
                 }
             }
 
-            // Read org/app from applicationmetadata.json for URL placeholder replacement
             var orgApp = await ReadOrgAndAppFromMetadata();
 
-            // Generate and write frontend.json configuration (only if there are external URLs)
             var configGenerator = new FrontendConfigGenerator(categorizationResult, orgApp?.Org, orgApp?.App);
             var config = configGenerator.Generate();
 
@@ -148,7 +145,6 @@ internal sealed class IndexCshtmlMigrator
 
             if (File.Exists(_indexCshtmlPath))
             {
-                // Validate file name before deletion for safety
                 var fileName = Path.GetFileName(_indexCshtmlPath);
                 if (fileName != "Index.cshtml")
                 {
@@ -168,7 +164,6 @@ internal sealed class IndexCshtmlMigrator
         {
             Console.WriteLine($"Index.cshtml migration failed: {ex.Message}");
 
-            // Attempt rollback of created files
             foreach (var file in createdFiles)
             {
                 if (File.Exists(file))
@@ -177,7 +172,6 @@ internal sealed class IndexCshtmlMigrator
                 }
             }
 
-            // Attempt to delete config file if created
             if (File.Exists(_configOutputPath))
             {
                 File.Delete(_configOutputPath);

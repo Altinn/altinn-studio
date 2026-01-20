@@ -66,13 +66,11 @@ internal sealed class FrontendConfigGenerator
             url = url.Replace("@ViewBag.App", _app, StringComparison.Ordinal);
         }
 
-        // If no replacements were made, return original asset
         if (url == asset.Url)
         {
             return asset;
         }
 
-        // Create new asset with replaced URL, preserving all other attributes
         return new FrontendAsset
         {
             Url = url,

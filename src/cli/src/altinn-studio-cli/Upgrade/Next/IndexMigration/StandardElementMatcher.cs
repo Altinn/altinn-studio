@@ -203,7 +203,6 @@ internal sealed partial class StandardElementMatcher
 
         var src = element.GetAttribute("src");
 
-        // External script - strict URL pattern matching
         if (!string.IsNullOrWhiteSpace(src))
         {
             if (FrameworkJsPattern().IsMatch(src))
@@ -222,7 +221,6 @@ internal sealed partial class StandardElementMatcher
             return false;
         }
 
-        // Inline script - use strict AST-based analyzer
         var content = element.TextContent?.Trim();
         if (string.IsNullOrWhiteSpace(content))
         {
@@ -345,8 +343,6 @@ internal sealed partial class StandardElementMatcher
     {
         return element.Attributes.ToDictionary(a => a.Name.ToLowerInvariant(), a => a.Value);
     }
-
-    // Regex patterns for strict URL matching
 
     /// <summary>
     /// Matches: https://altinncdn.no/toolkits/altinn-app-frontend/{version}/altinn-app-frontend.js

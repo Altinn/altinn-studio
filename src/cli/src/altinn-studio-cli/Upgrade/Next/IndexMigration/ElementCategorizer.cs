@@ -33,13 +33,11 @@ internal sealed class ElementCategorizer
             return;
         }
 
-        // Process the current node if it's an element
         if (node is IElement element)
         {
             CategorizeElement(element, result);
         }
 
-        // Process all child nodes recursively
         foreach (var child in node.ChildNodes)
         {
             CategorizeRecursive(child, result);
@@ -48,7 +46,6 @@ internal sealed class ElementCategorizer
 
     private void CategorizeElement(IElement element, CategorizationResult result)
     {
-        // Check if it's a standard framework element
         if (_standardMatcher.IsStandardElement(element, out var description))
         {
             result.ExpectedElements.Add(
@@ -63,14 +60,12 @@ internal sealed class ElementCategorizer
             return;
         }
 
-        // Check if it's a known customization
         if (_customizationMatcher.IsKnownCustomization(element, out var customization) && customization != null)
         {
             result.KnownCustomizations.Add(customization);
             return;
         }
 
-        // If we get here, it's unexpected
         result.UnexpectedElements.Add(
             new UnexpectedElement
             {
@@ -85,7 +80,6 @@ internal sealed class ElementCategorizer
 
     private static string GetElementLocation(IElement element)
     {
-        // Determine if element is in head or body
         var parent = element.ParentElement;
         while (parent != null)
         {
