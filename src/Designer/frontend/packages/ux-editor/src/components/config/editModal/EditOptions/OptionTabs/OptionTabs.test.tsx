@@ -43,7 +43,7 @@ describe('OptionTabs', () => {
         optionsId,
         options: undefined,
       },
-      optionListIds: [optionsId],
+      optionListIdsFromLibrary: [optionsId],
     });
 
     expect(
@@ -61,7 +61,7 @@ describe('OptionTabs', () => {
         optionsId,
         options: undefined,
       },
-      optionListIds: [],
+      optionListIdsFromLibrary: [],
     });
 
     expect(
@@ -79,7 +79,7 @@ describe('OptionTabs', () => {
         optionsId,
         options: undefined,
       },
-      optionListIds: [],
+      optionListIdsFromLibrary: [],
     });
 
     expect(
@@ -156,18 +156,18 @@ type RenderOptionTabsProps<T extends ComponentType.Checkboxes | ComponentType.Ra
   componentProps?: Partial<FormItem<T>>;
   handleComponentChange?: () => void;
   queries?: Partial<ServicesContextProps>;
-  optionListIds?: string[];
+  optionListIdsFromLibrary?: string[];
 };
 
 function renderOptionTabs<T extends ComponentType.Checkboxes | ComponentType.RadioButtons>({
   componentProps = {},
   handleComponentChange = jest.fn(),
   queries = {},
-  optionListIds = [],
+  optionListIdsFromLibrary = [],
 }: RenderOptionTabsProps<T> = {}) {
   return renderWithProviders(
     <OptionTabs
-      optionListIdsFromLibrary={optionListIds}
+      optionListIdsFromLibrary={optionListIdsFromLibrary}
       handleComponentChange={handleComponentChange}
       component={{
         ...mockComponent,
