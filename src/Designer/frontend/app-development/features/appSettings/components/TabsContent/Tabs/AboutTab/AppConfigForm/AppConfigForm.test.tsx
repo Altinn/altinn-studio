@@ -18,7 +18,7 @@ jest.mock('@studio/feature-flags', () => {
   const useFeatureFlag = jest.fn().mockReturnValue(true);
   return {
     FeatureFlag: {
-      AppMetadataBeta: 'AppMetadataBeta',
+      AppMetadataBeta: 'appMetadataBeta',
     },
     useFeatureFlag,
   };
