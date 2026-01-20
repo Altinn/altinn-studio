@@ -1,5 +1,6 @@
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Expressions;
+using Altinn.App.Core.Models.Layout.Components.Base;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Models.Layout;
@@ -27,6 +28,11 @@ public sealed class LayoutModel
     /// The default data type for the layout model
     /// </summary>
     public DataType DefaultDataType => _defaultLayoutSet.DefaultDataType;
+
+    /// <summary>
+    /// All components in the layout model
+    /// </summary>
+    public IEnumerable<BaseComponent> AllComponents => _defaultLayoutSet.Pages.SelectMany(page => page.AllComponents);
 
     /// <summary>
     /// Generate a list of <see cref="ComponentContext"/> for all components in the layout model

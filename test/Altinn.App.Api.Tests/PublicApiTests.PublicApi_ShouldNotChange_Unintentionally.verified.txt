@@ -92,7 +92,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi=true)]
     public class CustomOpenApiController : Microsoft.AspNetCore.Mvc.Controller
     {
-        public CustomOpenApiController(Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Swashbuckle.AspNetCore.SwaggerGen.ISerializerDataContractResolver dataContractResolver, Altinn.App.Core.Internal.Process.IProcessReader processReader) { }
+        public CustomOpenApiController(Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Swashbuckle.AspNetCore.SwaggerGen.ISerializerDataContractResolver dataContractResolver, Altinn.App.Core.Internal.Process.IProcessReader processReader, System.IServiceProvider serviceProvider, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> settings) { }
         public static string InfoDescriptionWarningText { get; }
         [Microsoft.AspNetCore.Mvc.HttpGet("/{org}/{app}/v1/customOpenapi.json")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> Index() { }

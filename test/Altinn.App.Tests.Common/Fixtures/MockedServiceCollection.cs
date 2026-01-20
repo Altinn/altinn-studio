@@ -363,19 +363,31 @@ public sealed class WrappedServiceProvider : IKeyedServiceProvider, IDisposable,
         var layoutSetName = "layoutSet1";
         var pages = components
             .GroupBy(c => c.PageId)
-            .Select(group => new PageComponent
+            .Select(group =>
             {
-                Id = group.Key,
-                PageId = group.Key,
-                LayoutId = layoutSetName,
-                Type = "page",
-                Components = group.ToList(),
-                Hidden = default,
-                RemoveWhenHidden = default,
-                Required = default,
-                ReadOnly = default,
-                DataModelBindings = ImmutableDictionary<string, ModelBinding>.Empty,
-                TextResourceBindings = ImmutableDictionary<string, Expression>.Empty,
+                var componentList = group.ToList();
+                var pageComponentLookup = componentList.ToDictionary(c => c.Id, StringComparer.Ordinal);
+                Dictionary<string, string> claimedComponentIds = [];
+                foreach (var component in componentList)
+                {
+                    component.ClaimChildren(pageComponentLookup, claimedComponentIds);
+                }
+                var childComponents = componentList.Where(c => !claimedComponentIds.ContainsKey(c.Id)).ToList();
+                return new PageComponent
+                {
+                    Id = group.Key,
+                    PageId = group.Key,
+                    LayoutId = layoutSetName,
+                    Type = "page",
+                    ChildComponents = childComponents,
+                    AllComponents = componentList,
+                    Hidden = default,
+                    RemoveWhenHidden = default,
+                    Required = default,
+                    ReadOnly = default,
+                    DataModelBindings = ImmutableDictionary<string, ModelBinding>.Empty,
+                    TextResourceBindings = ImmutableDictionary<string, Expression>.Empty,
+                };
             });
 
         DataType defaultDataType = _serviceCollection.AddDataType<T>();

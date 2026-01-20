@@ -113,14 +113,20 @@ public sealed class PageComponent : Base.BaseComponent
             DataModelBindings = ImmutableDictionary<string, ModelBinding>.Empty,
             TextResourceBindings = ImmutableDictionary<string, Expression>.Empty,
             // Custom properties
-            Components = componentList.Where(c => !claimedComponentIds.ContainsKey(c.Id)).ToList(),
+            ChildComponents = componentList.Where(c => !claimedComponentIds.ContainsKey(c.Id)).ToList(),
+            AllComponents = componentList,
         };
     }
 
     /// <summary>
-    /// List of the components that are part of this page.
+    /// A read-only collection of the components that are part of this page.
     /// </summary>
-    public required IReadOnlyList<Base.BaseLayoutComponent> Components { get; init; }
+    public required IReadOnlyList<Base.BaseLayoutComponent> ChildComponents { get; init; }
+
+    /// <summary>
+    /// A read-only collection of all components associated with this page, including those that are referenced or claimed by other components.
+    /// </summary>
+    public required IReadOnlyList<Base.BaseComponent> AllComponents { get; init; }
 
     /// <summary>
     /// Get the context for this page component
@@ -133,7 +139,7 @@ public sealed class PageComponent : Base.BaseComponent
     )
     {
         List<ComponentContext> childContexts = [];
-        foreach (var component in Components)
+        foreach (var component in ChildComponents)
         {
             childContexts.Add(
                 await component.GetContext(state, defaultDataElementIdentifier, rowIndexes, layoutsLookup)

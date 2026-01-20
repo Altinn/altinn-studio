@@ -153,6 +153,30 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     }
 
     [Fact]
+    public async Task Get_InstanceOptionsWasFound_ShouldReturn404WithMessage()
+    {
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IInstanceAppOptionsProvider, DummyInstanceProvider>();
+        };
+
+        string org = "tdd";
+        string app = "contributer-restriction";
+        HttpClient client = GetRootedClient(org, app);
+
+        string url = $"/{org}/{app}/api/options/testInstance";
+        HttpResponseMessage response = await client.GetAsync(url);
+        var content = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(content);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(
+            "An instance app options provider was found. "
+                + "Call the options endpoint that requires instanceOwnerPartyId and instanceId instead to retrieve them.",
+            content
+        );
+    }
+
+    [Fact]
     public async Task Get_ShouldSerializeToCorrectTypes()
     {
         OverrideServicesForThisTest = (services) =>

@@ -83,6 +83,13 @@ public partial class OptionsController : ControllerBase
 
         if (appOptions?.Options == null)
         {
+            if (_appOptionsService.IsInstanceAppOptionsProviderRegistered(optionsIdOrLibraryRef))
+            {
+                return NotFound(
+                    "An instance app options provider was found. "
+                        + "Call the options endpoint that requires instanceOwnerPartyId and instanceId instead to retrieve them."
+                );
+            }
             return NotFound();
         }
 

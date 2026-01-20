@@ -53,4 +53,10 @@ public class AppOptionsService : IAppOptionsService
 
         return null;
     }
+
+    /// <inheritdoc/>
+    public bool IsInstanceAppOptionsProviderRegistered(string optionId)
+    {
+        return _instanceAppOptionsFactory.GetOptionsProvider(optionId) != null;
+    }
 }

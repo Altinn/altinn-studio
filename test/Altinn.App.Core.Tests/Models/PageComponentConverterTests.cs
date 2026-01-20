@@ -48,7 +48,7 @@ public class PageComponentConverterTests
         var childComponents =
             component switch
             {
-                PageComponent page => page.Components,
+                PageComponent page => page.ChildComponents,
                 ReferenceComponent referenceComponent => referenceComponent.AllChildren,
                 NoReferenceComponent => [],
                 _ => throw new NotSupportedException(

@@ -1713,6 +1713,7 @@ namespace Altinn.App.Core.Features.Options
         public AppOptionsService(Altinn.App.Core.Features.Options.AppOptionsFactory appOptionsFactory, Altinn.App.Core.Features.Options.InstanceAppOptionsFactory instanceAppOptionsFactory, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
         public System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetOptionsAsync(string optionId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
         public System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions?> GetOptionsAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string optionId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
+        public bool IsInstanceAppOptionsProviderRegistered(string optionId) { }
     }
     public static class AppOptionsServiceExtentions
     {
@@ -1740,6 +1741,7 @@ namespace Altinn.App.Core.Features.Options
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetOptionsAsync(string optionId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
         System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions?> GetOptionsAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string optionId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
+        bool IsInstanceAppOptionsProviderRegistered(string optionId);
     }
     public class InstanceAppOptionsFactory
     {
@@ -4703,7 +4705,8 @@ namespace Altinn.App.Core.Models.Layout.Components
     public sealed class PageComponent : Altinn.App.Core.Models.Layout.Components.Base.BaseComponent
     {
         public PageComponent() { }
-        public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Layout.Components.Base.BaseLayoutComponent> Components { get; init; }
+        public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Layout.Components.Base.BaseComponent> AllComponents { get; init; }
+        public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Layout.Components.Base.BaseLayoutComponent> ChildComponents { get; init; }
         public System.Threading.Tasks.Task<Altinn.App.Core.Models.Expressions.ComponentContext> GetContextForPage(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Models.DataElementIdentifier defaultDataElementIdentifier, int[]? rowIndexes, System.Collections.Generic.Dictionary<string, Altinn.App.Core.Models.Layout.LayoutSetComponent> layoutsLookup) { }
         public static Altinn.App.Core.Models.Layout.Components.PageComponent Parse(System.Text.Json.JsonElement outerElement, string pageId, string layoutId) { }
     }
@@ -4760,6 +4763,7 @@ namespace Altinn.App.Core.Models.Layout
     public sealed class LayoutModel
     {
         public LayoutModel(System.Collections.Generic.List<Altinn.App.Core.Models.Layout.LayoutSetComponent> layouts, Altinn.App.Core.Models.LayoutSet? defaultLayout) { }
+        public System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.Layout.Components.Base.BaseComponent> AllComponents { get; }
         public Altinn.Platform.Storage.Interface.Models.DataType DefaultDataType { get; }
         public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.ComponentContext>> GenerateComponentContexts(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state) { }
     }
