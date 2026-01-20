@@ -121,7 +121,7 @@ public class EnvironmentsService : IEnvironmentsService
                 if (_generalSettings.HostName.StartsWith("dev.") || _generalSettings.HostName.StartsWith("staging."))
                 {
                     return environmentsModel
-                        .Environments.Where(env => env.Name.Contains("prod", StringComparison.OrdinalIgnoreCase))
+                        .Environments.Where(env => !env.Name.Contains("prod", StringComparison.OrdinalIgnoreCase))
                         .ToList();
                 }
 
