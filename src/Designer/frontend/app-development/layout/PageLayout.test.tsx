@@ -57,12 +57,11 @@ describe('PageLayout', () => {
     });
     await waitForElementToBeRemoved(() => screen.queryByLabelText(textMock('repo_status.loading')));
 
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('version_dialog.unsupported_version_title'),
-        level: 2,
-      }),
-    ).toBeInTheDocument();
+    const unsupportedVersionHeading = await screen.findByRole('heading', {
+      name: textMock('version_dialog.unsupported_version_title'),
+      level: 2,
+    });
+    expect(unsupportedVersionHeading).toBeInTheDocument();
   });
 
   it('renders "OutdatedVersion" when version is outdated', async () => {
@@ -71,12 +70,11 @@ describe('PageLayout', () => {
     });
     await waitForElementToBeRemoved(() => screen.queryByLabelText(textMock('repo_status.loading')));
 
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('version_dialog.outdated_version_title'),
-        level: 2,
-      }),
-    ).toBeInTheDocument();
+    const outdatedVersionHeading = await screen.findByRole('heading', {
+      name: textMock('version_dialog.outdated_version_title'),
+      level: 2,
+    });
+    expect(outdatedVersionHeading).toBeInTheDocument();
   });
 
   it('renders the page content and no errors when there are no errors', async () => {

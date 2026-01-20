@@ -39,9 +39,10 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Arrange
             string uri = $"{VersionPrefix}/repo/{org}/{repo}/current-branch";
             var expectedBranchInfo = new CurrentBranchInfo { BranchName = branchName };
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
             _sourceControlMock
-                .Setup(x => x.GetCurrentBranch(org, repo))
+                .Setup(x => x.GetCurrentBranch(editingContext))
                 .Returns(expectedBranchInfo);
 
             // Act
@@ -52,7 +53,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(responseContent);
             Assert.Equal(branchName, responseContent.BranchName);
-            _sourceControlMock.Verify(x => x.GetCurrentBranch(org, repo), Times.Once);
+            _sourceControlMock.Verify(x => x.GetCurrentBranch(editingContext), Times.Once);
         }
 
         [Fact]
@@ -62,9 +63,10 @@ namespace Designer.Tests.Controllers.RepositoryController
             string org = "ttd";
             string repo = "non-existing-repo";
             string uri = $"{VersionPrefix}/repo/{org}/{repo}/current-branch";
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
             _sourceControlMock
-                .Setup(x => x.GetCurrentBranch(org, repo))
+                .Setup(x => x.GetCurrentBranch(editingContext))
                 .Throws(new LibGit2Sharp.RepositoryNotFoundException("Repository not found"));
 
             // Act
@@ -73,7 +75,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Assert
             // RepositoryNotFoundException is handled by global exception handler and returns NotFound
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-            _sourceControlMock.Verify(x => x.GetCurrentBranch(org, repo), Times.Once);
+            _sourceControlMock.Verify(x => x.GetCurrentBranch(editingContext), Times.Once);
         }
     }
 }

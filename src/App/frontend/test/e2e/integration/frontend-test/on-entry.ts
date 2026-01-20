@@ -2,8 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-
-import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import { interceptAppMetadata } from 'test/e2e/support/intercept-app-metadata';
 
 const appFrontend = new AppFrontend();
 
@@ -29,20 +28,16 @@ describe('On Entry', () => {
     ]);
   });
 
-  function interceptAppMetadata(defaultSelectedOption: number) {
-    cy.intercept('**/applicationmetadata', (req) => {
-      req.on('response', (res) => {
-        const body = res.body as IncomingApplicationMetadata;
-        body.onEntry = {
-          show: 'select-instance',
-          instanceSelection: {
-            sortDirection: 'desc',
-            rowsPerPageOptions: [1, 2, 3],
-            defaultSelectedOption,
-          },
-        };
-        res.send(body);
-      });
+  function setupInstanceSelection(defaultSelectedOption: number) {
+    interceptAppMetadata((metadata) => {
+      metadata.onEntry = {
+        show: 'select-instance',
+        instanceSelection: {
+          sortDirection: 'desc',
+          rowsPerPageOptions: [1, 2, 3],
+          defaultSelectedOption,
+        },
+      };
     });
   }
 
@@ -83,7 +78,7 @@ describe('On Entry', () => {
   });
 
   it('is possible to paginate the instances and select default rows per page', () => {
-    interceptAppMetadata(1);
+    setupInstanceSelection(1);
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
     cy.get(appFrontend.selectInstance.container).should('be.visible');
@@ -118,7 +113,7 @@ describe('On Entry', () => {
   });
 
   it('will utilize index 0 when defaultSelectedOption is assigned an invalid index number', () => {
-    interceptAppMetadata(5);
+    setupInstanceSelection(5);
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.selectInstance.tableBody).find('tr').should('have.length', 1);
     cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');

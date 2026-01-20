@@ -42,9 +42,10 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Arrange
             string uri = $"{VersionPrefix}/repo/{org}/{repo}/branches";
             var expectedBranch = new Branch { Name = branchName };
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
             _sourceControlMock
-                .Setup(x => x.CreateBranch(org, repo, branchName))
+                .Setup(x => x.CreateBranch(editingContext, branchName))
                 .ReturnsAsync(expectedBranch);
 
             var request = new CreateBranchRequest { BranchName = branchName };
@@ -61,7 +62,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(responseContent);
             Assert.Equal(branchName, responseContent.Name);
-            _sourceControlMock.Verify(x => x.CreateBranch(org, repo, branchName), Times.Once);
+            _sourceControlMock.Verify(x => x.CreateBranch(editingContext, branchName), Times.Once);
         }
 
         [Theory]
@@ -70,9 +71,10 @@ namespace Designer.Tests.Controllers.RepositoryController
         {
             // Arrange
             string uri = $"{VersionPrefix}/repo/{org}/{repo}/branches";
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
             _sourceControlMock
-                .Setup(x => x.CreateBranch(org, repo, branchName))
+                .Setup(x => x.CreateBranch(editingContext, branchName))
                 .ThrowsAsync(new LibGit2Sharp.NameConflictException("Branch already exists"));
 
             var request = new CreateBranchRequest { BranchName = branchName };
@@ -87,7 +89,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Assert
             // NameConflictException is handled by global exception handler and returns InternalServerError
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-            _sourceControlMock.Verify(x => x.CreateBranch(org, repo, branchName), Times.Once);
+            _sourceControlMock.Verify(x => x.CreateBranch(editingContext, branchName), Times.Once);
         }
 
         [Fact]

@@ -47,7 +47,7 @@ export const routerRoutes: RouterRoute[] = [
     subapp: ProcessEditor,
   },
   {
-    path: RoutePaths.ContentLibrary,
+    path: RoutePaths.ContentLibrary + '/:elementType?',
     subapp: AppContentLibrary,
   },
   {

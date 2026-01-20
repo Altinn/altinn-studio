@@ -60,3 +60,5 @@ export interface ITextResourcesWithLanguage {
   language: string;
   resources: ITextResource[];
 }
+
+export type TextResourcesSelector<T> = (textResources: ITextResources) => T;
