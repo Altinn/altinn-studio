@@ -1,11 +1,16 @@
 using System.Text.Json;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Features.Bootstrap;
 
-internal sealed class BootstrapGlobalService(IAppMetadata appMetadata, IAppResources appResources)
-    : IBootstrapGlobalService
+internal sealed class BootstrapGlobalService(
+    IAppMetadata appMetadata,
+    IAppResources appResources,
+    IOptions<FrontEndSettings> frontEndSettings
+) : IBootstrapGlobalService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -22,6 +27,11 @@ internal sealed class BootstrapGlobalService(IAppMetadata appMetadata, IAppResou
             ? null
             : JsonSerializer.Deserialize<object>(footer, _jsonSerializerOptions);
 
-        return new BootstrapGlobalResponse { ApplicationMetadata = appMetadataTask, Footer = footerJson };
+        return new BootstrapGlobalResponse
+        {
+            ApplicationMetadata = appMetadataTask,
+            Footer = footerJson,
+            FrontEndSettings = frontEndSettings.Value,
+        };
     }
 }
