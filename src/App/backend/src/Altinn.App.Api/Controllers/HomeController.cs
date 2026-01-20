@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
@@ -24,6 +25,13 @@ public class HomeController : Controller
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
+
+    private static readonly object _cacheLock = new();
+    private static bool _cacheInitialized;
+    private static bool _hasLegacyIndexCshtml;
+    private static FrontendConfiguration? _cachedFrontendConfig;
+    private static IReadOnlyList<string> _cachedCustomCssFileNames = [];
+    private static IReadOnlyList<string> _cachedCustomJsFileNames = [];
 
     private readonly IAntiforgery _antiforgery;
     private readonly PlatformSettings _platformSettings;
@@ -103,6 +111,15 @@ public class HomeController : Controller
 
         if (await ShouldShowAppView())
         {
+            EnsureCacheInitialized();
+
+            if (_hasLegacyIndexCshtml)
+            {
+                ViewBag.org = org;
+                ViewBag.app = app;
+                return PartialView("Index");
+            }
+
             BootstrapGlobalResponse appGlobalState = await _bootstrapGlobalService.GetGlobalState();
             return Content(await GenerateHtml(org, app, appGlobalState), "text/html; charset=utf-8");
         }
@@ -128,7 +145,10 @@ public class HomeController : Controller
     private async Task<string> GenerateHtml(string org, string app, BootstrapGlobalResponse appGlobalState)
     {
         var frontendUrl = "https://altinncdn.no/toolkits/altinn-app-frontend/4";
-        if (HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var frontendVersionCookie))
+        if (
+            _env.IsDevelopment()
+            && HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var frontendVersionCookie)
+        )
         {
             frontendUrl = frontendVersionCookie.TrimEnd('/');
         }
@@ -136,6 +156,20 @@ public class HomeController : Controller
         var featureToggles = await _frontendFeatures.GetFrontendFeatures();
         var featureTogglesJson = JsonSerializer.Serialize(featureToggles, _jsonSerializerOptions);
         var globalDataJson = JsonSerializer.Serialize(appGlobalState, _jsonSerializerOptions);
+
+        var externalStylesheets = string.Concat(_cachedFrontendConfig?.Stylesheets.Select(GenerateStylesheetTag) ?? []);
+        var customCssLinks = string.Join(
+            "\n",
+            _cachedCustomCssFileNames.Select(f =>
+                $"<link rel=\"stylesheet\" type=\"text/css\" href=\"/{org}/{app}/custom-css/{f}\">"
+            )
+        );
+
+        var externalScripts = string.Concat(_cachedFrontendConfig?.Scripts.Select(GenerateScriptTag) ?? []);
+        var customJsScripts = string.Join(
+            "\n",
+            _cachedCustomJsFileNames.Select(f => $"<script src=\"/{org}/{app}/custom-js/{f}\"></script>")
+        );
 
         var htmlContent = $$"""
             <!DOCTYPE html>
@@ -147,7 +181,7 @@ public class HomeController : Controller
               <title>{{org}} - {{app}}</title>
               <link rel="icon" href="https://altinncdn.no/favicon.ico">
               <link rel="stylesheet" type="text/css" href="{{frontendUrl}}/altinn-app-frontend.css">
-            </head>
+            {{externalStylesheets}}{{customCssLinks}}</head>
             <body>
               <div id="root"></div>
               <script>
@@ -156,12 +190,93 @@ public class HomeController : Controller
                 window.featureToggles = {{featureTogglesJson}};
                 window.altinnAppGlobalData = {{globalDataJson}};
               </script>
-              <script src="{{frontendUrl}}/altinn-app-frontend.js"></script>
-            </body>
+              <script src="{{frontendUrl}}/altinn-app-frontend.js" crossorigin></script>
+            {{externalScripts}}{{customJsScripts}}</body>
             </html>
             """;
 
         return htmlContent;
+    }
+
+    private void EnsureCacheInitialized()
+    {
+        if (_cacheInitialized)
+            return;
+
+        lock (_cacheLock)
+        {
+            if (_cacheInitialized)
+                return;
+
+            var indexCshtmlPath = Path.Combine(_appSettings.AppBasePath, "views", "Home", "Index.cshtml");
+            _hasLegacyIndexCshtml = System.IO.File.Exists(indexCshtmlPath);
+
+            var configPath = Path.Combine(_appSettings.AppBasePath, _appSettings.ConfigurationFolder, "frontend.json");
+            if (System.IO.File.Exists(configPath))
+            {
+                var json = System.IO.File.ReadAllText(configPath);
+                _cachedFrontendConfig = JsonSerializer.Deserialize<FrontendConfiguration>(json, _jsonSerializerOptions);
+            }
+
+            _cachedCustomCssFileNames = GetFileNames("custom-css");
+            _cachedCustomJsFileNames = GetFileNames("custom-js");
+
+            _cacheInitialized = true;
+        }
+    }
+
+    private IReadOnlyList<string> GetFileNames(string subfolder)
+    {
+        var dir = Path.Combine(_appSettings.AppBasePath, "wwwroot", subfolder);
+        if (!Directory.Exists(dir))
+            return [];
+
+        return Directory.GetFiles(dir).Order().Select(Path.GetFileName).OfType<string>().ToList();
+    }
+
+    private static string GenerateStylesheetTag(FrontendAsset stylesheet)
+    {
+        var sb = new StringBuilder("  <link rel=\"stylesheet\" type=\"text/css\"");
+        sb.Append(" href=\"").Append(stylesheet.Url).Append('"');
+
+        if (!string.IsNullOrEmpty(stylesheet.Media))
+            sb.Append(" media=\"").Append(stylesheet.Media).Append('"');
+
+        if (!string.IsNullOrEmpty(stylesheet.Integrity))
+            sb.Append(" integrity=\"").Append(stylesheet.Integrity).Append('"');
+
+        if (!string.IsNullOrEmpty(stylesheet.Crossorigin))
+            sb.Append(" crossorigin=\"").Append(stylesheet.Crossorigin).Append('"');
+
+        sb.AppendLine(">");
+        return sb.ToString();
+    }
+
+    private static string GenerateScriptTag(FrontendAsset script)
+    {
+        var sb = new StringBuilder("  <script");
+        sb.Append(" src=\"").Append(script.Url).Append('"');
+
+        if (!string.IsNullOrEmpty(script.Type))
+            sb.Append(" type=\"").Append(script.Type).Append('"');
+
+        if (script.Async == true)
+            sb.Append(" async");
+
+        if (script.Defer == true)
+            sb.Append(" defer");
+
+        if (script.Nomodule == true)
+            sb.Append(" nomodule");
+
+        if (!string.IsNullOrEmpty(script.Crossorigin))
+            sb.Append(" crossorigin=\"").Append(script.Crossorigin).Append('"');
+
+        if (!string.IsNullOrEmpty(script.Integrity))
+            sb.Append(" integrity=\"").Append(script.Integrity).Append('"');
+
+        sb.AppendLine("></script>");
+        return sb.ToString();
     }
 
     /// <summary>
