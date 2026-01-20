@@ -151,6 +151,20 @@
           }
         }
       }
+    },
+    "Geometries": {
+      "type": "object",
+      "properties": {
+        "Label": {
+          "type": "string"
+        },
+        "Data": {
+          "type": "string"
+        },
+        "Editable": {
+          "type": "boolean"
+        }
+      }
     }
   },
   "properties": {
@@ -390,22 +404,10 @@
     "DatepickerMinDateExample": {
       "type": "string"
     },
-    "geometries": {
+    "Geometries": {
       "type": "array",
-      "minItems": 0,
       "items": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "string"
-          },
-          "editable": {
-            "type": "boolean"
-          },
-          "label": {
-            "type": "string"
-          }
-        }
+        "$ref": "#/$defs/Geometries"
       }
     }
   }

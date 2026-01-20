@@ -63,6 +63,13 @@
       </xs:element>
     </xs:sequence>
   </xs:complexType>
+  <xs:complexType name="Geometries">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Label" type="xs:string" />
+      <xs:element minOccurs="0" name="Data" type="xs:string" />
+      <xs:element minOccurs="0" name="Editable" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
   <xs:element name="Model">
     <xs:complexType>
       <xs:sequence>
@@ -180,15 +187,7 @@
         </xs:element>
         <xs:element minOccurs="0" name="DatepickerMaxDateExample" type="xs:string" />
         <xs:element minOccurs="0" name="DatepickerMinDateExample" type="xs:string" />
-        <xs:element minOccurs="0" maxOccurs="unbounded" name="geometries">
-          <xs:complexType>
-            <xs:sequence>
-              <xs:element minOccurs="0" name="data" type="xs:string" />
-              <xs:element minOccurs="0" name="editable" type="xs:boolean" />
-              <xs:element minOccurs="0" name="label" type="xs:string" />
-            </xs:sequence>
-          </xs:complexType>
-        </xs:element>
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="Geometries" type="Geometries" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
