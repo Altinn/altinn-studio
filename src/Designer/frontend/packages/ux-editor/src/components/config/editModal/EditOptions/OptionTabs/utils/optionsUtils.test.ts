@@ -24,27 +24,27 @@ describe('optionsUtils', () => {
     it('should return CodeList if both options and optionsId are set', () => {
       const optionsId = 'codeListId';
       const options: OptionList = [{ label: 'label1', value: 'value1' }];
-      const optionListIds = [optionsId];
+      const optionListIdsFromLibrary = [optionsId];
       const component = { ...mockedComponent, options, optionsId };
       const result = determineInitialTab(component, optionListIds);
       expect(result).toEqual(OptionsTabKey.CodeList);
     });
 
-    it('should return CodeList if options is not set and codeListId is in optionListIds', () => {
+    it('should return CodeList if options is not set and optionsId is in optionListIdsFromLibrary', () => {
       const optionsId = 'codeListId';
       const options = undefined;
-      const optionListIds = [optionsId];
+      const optionListIdsFromLibrary = [optionsId];
       const component = { ...mockedComponent, options, optionsId };
-      const result = determineInitialTab(component, optionListIds);
+      const result = determineInitialTab(component, optionListIdsFromLibrary);
       expect(result).toEqual(OptionsTabKey.CodeList);
     });
 
-    it('should return Reference if options is not set and codeListId is not in optionListIds', () => {
+    it('should return Reference if options is not set and optionsId is not in optionListIdsFromLibrary', () => {
       const optionsId = 'codeListId';
       const options = undefined;
-      const optionListIds = ['anotherCodeListId'];
+      const optionListIdsFromLibrary = ['anotherCodeListId'];
       const component = { ...mockedComponent, options, optionsId };
-      const result = determineInitialTab(component, optionListIds);
+      const result = determineInitialTab(component, optionListIdsFromLibrary);
       expect(result).toEqual(OptionsTabKey.Reference);
     });
 
@@ -56,7 +56,7 @@ describe('optionsUtils', () => {
       expect(result).toEqual(OptionsTabKey.CodeList);
     });
 
-    it('should return SelectedOptionsType.CodeList if options is set and codeListId is not set', () => {
+    it('should return CodeList if options is set and optionsId is not set', () => {
       const optionsId = undefined;
       const options = [{ label: 'label1', value: 'value1' }];
       const optionListIds = ['codeListId'];
