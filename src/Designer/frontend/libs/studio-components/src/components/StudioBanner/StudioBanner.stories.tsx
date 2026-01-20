@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { action } from 'storybook/actions';
 import { StudioBanner } from './';
 import { StudioButton } from '../StudioButton';
 import { StudioSwitch } from '../StudioSwitch';
@@ -37,8 +38,16 @@ export const WithChildren: Story = {
     description: 'This banner contains custom content like switches.',
     children: (
       <>
-        <StudioSwitch checked={true} onChange={() => {}} label='Enable analytics' />
-        <StudioSwitch checked={false} onChange={() => {}} label='Enable session recording' />
+        <StudioSwitch
+          checked={true}
+          onChange={action('analytics-changed')}
+          label='Enable analytics'
+        />
+        <StudioSwitch
+          checked={false}
+          onChange={action('session-recording-changed')}
+          label='Enable session recording'
+        />
       </>
     ),
     actions: (

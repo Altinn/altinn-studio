@@ -74,6 +74,26 @@ describe('StudioBanner', () => {
     expect(banner).toBeInTheDocument();
   });
 
+  it('should have aria-labelledby pointing to title', () => {
+    renderBanner();
+    const banner = screen.getByRole('dialog');
+    const heading = screen.getByRole('heading', { name: title });
+    expect(banner).toHaveAttribute('aria-labelledby', heading.id);
+  });
+
+  it('should have aria-describedby pointing to description when provided', () => {
+    renderBanner({ description });
+    const banner = screen.getByRole('dialog');
+    const descriptionElement = screen.getByText(description);
+    expect(banner).toHaveAttribute('aria-describedby', descriptionElement.id);
+  });
+
+  it('should not have aria-describedby when description is not provided', () => {
+    renderBanner();
+    const banner = screen.getByRole('dialog');
+    expect(banner).not.toHaveAttribute('aria-describedby');
+  });
+
   it('should render all parts together', () => {
     renderBanner({
       description,
