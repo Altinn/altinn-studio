@@ -74,9 +74,7 @@ public enum AutoSaveBehavior
 /// <summary>
 /// Base class for task navigation entries.
 /// </summary>
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-[JsonDerivedType(typeof(NavigationTask))]
-[JsonDerivedType(typeof(NavigationReceipt), "receipt")]
+[JsonConverter(typeof(TaskNavigationEntryJsonConverter))]
 public abstract class TaskNavigationEntry
 {
     /// <summary>
@@ -101,4 +99,13 @@ public class NavigationTask : TaskNavigationEntry
 /// <summary>
 /// Navigation entry for the receipt.
 /// </summary>
-public class NavigationReceipt : TaskNavigationEntry { }
+public class NavigationReceipt : TaskNavigationEntry
+{
+    /// <summary>
+    /// The type of the navigation entry.
+    /// </summary>
+    [JsonPropertyName("type")]
+    public string Type { get; } = "receipt";
+}
+
+
