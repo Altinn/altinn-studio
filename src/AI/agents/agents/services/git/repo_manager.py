@@ -26,7 +26,7 @@ class RepoManager:
         self.temp_dir = Path(tempfile.gettempdir()) / "altinity_repos"
         self.temp_dir.mkdir(exist_ok=True)
         self.active_repos: Dict[str, Path] = {}  # session_id -> repo_path
-        self.session_tokens: Dict[str, str] = {}  # session_id -> auth_token
+        self.session_tokens: Dict[str, str] = {}  # session_id -> token
 
     def _get_port(self, parsed_url) -> int:
         if parsed_url.port:
@@ -86,7 +86,7 @@ class RepoManager:
             repo_url: Git repository URL (e.g., http://localhost:3000/user/repo.git)
             session_id: Unique session identifier
             branch: Optional branch name to checkout after cloning
-            token: Authentication token (required)
+            token: Authentication token from X-User-Token header (required)
 
         Returns:
             Path to the cloned repository
@@ -95,7 +95,6 @@ class RepoManager:
             Exception: If cloning fails or token not provided
         """
         # Validate token
-        # Accepts both personal access tokens and JWT tokens (from OIDC/OAuth)
         if not token or not token.strip():
             raise ValueError("Authentication token is required and cannot be empty")
 
@@ -168,8 +167,7 @@ class RepoManager:
             self.active_repos[session_id] = repo_path
 
             # Store the token for this session (for later push operations)
-            if token:
-                self.session_tokens[session_id] = token
+            self.session_tokens[session_id] = token
 
             return repo_path
 
