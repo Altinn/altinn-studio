@@ -20,6 +20,15 @@ export function getLayoutSetsMock(): ILayoutSets {
       },
       getSubFormLayoutSetMock(),
     ],
+    uiSettings: {
+      hideCloseButton: false,
+      showLanguageSelector: false,
+      showExpandWidthButton: true,
+      expandedWidth: false,
+      showProgress: false,
+      autoSaveBehavior: 'onChangeFormData',
+      taskNavigation: [],
+    },
   };
 }
 

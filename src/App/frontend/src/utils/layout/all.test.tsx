@@ -11,6 +11,7 @@ import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { quirks } from 'src/features/form/layout/quirks';
+import { getGlobalUiSettings, getLayoutSets } from 'src/features/layoutSets';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
@@ -141,6 +142,8 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
     window.app = app;
 
     jest.mocked(getApplicationMetadata).mockImplementation(() => set.app.getAppMetadata());
+    jest.mocked(getLayoutSets).mockReturnValue(set.app.getRawLayoutSets().sets);
+    jest.mocked(getGlobalUiSettings).mockReturnValue(set.app.getRawLayoutSets().uiSettings);
     jest.mocked(fetchProcessState).mockImplementation(async () => mainSet.simulateProcessData());
     jest.mocked(fetchInstanceData).mockImplementation(async () => set.simulateInstance());
 
@@ -150,7 +153,6 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
       renderer: () =>
         subformComponent ? <SubformTestWrapper baseId={subformComponent.id}>{children}</SubformTestWrapper> : children,
       queries: {
-        fetchLayoutSets: async () => set.app.getRawLayoutSets(),
         fetchLayouts: async (setId) => set.app.getLayoutSet(setId).getLayouts(),
         fetchLayoutSettings: async (setId) => set.app.getLayoutSet(setId).getSettings(),
         fetchFormData: async (url) => set.getModel({ url }).simulateDataModel(),

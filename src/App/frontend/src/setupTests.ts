@@ -17,6 +17,7 @@ import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadata
 import { getFooterLayoutMock } from 'src/__mocks__/getFooterLayoutMock';
 // Importing CSS for jest-preview to look nicer
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import type {
@@ -125,6 +126,13 @@ jest.mock('src/features/applicationMetadata', () => ({
   ...jest.requireActual<typeof import('src/features/applicationMetadata')>('src/features/applicationMetadata'),
   getApplicationMetadata: jest.fn(() => getApplicationMetadataMock()),
   useIsStateless: jest.fn(() => false),
+}));
+
+jest.mock('src/features/layoutSets', () => ({
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  ...jest.requireActual<typeof import('src/features/layoutSets')>('src/features/layoutSets'),
+  getLayoutSets: jest.fn(() => getLayoutSetsMock().sets),
+  getGlobalUiSettings: jest.fn(() => getLayoutSetsMock().uiSettings),
 }));
 
 jest.mock('src/queries/queries', () => ({

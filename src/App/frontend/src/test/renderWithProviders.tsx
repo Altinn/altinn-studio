@@ -11,7 +11,6 @@ import type { AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { getDataListMock } from 'src/__mocks__/getDataListMock';
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
 import { getOrgsMock } from 'src/__mocks__/getOrgsMock';
@@ -119,7 +118,6 @@ const defaultQueryMocks: AppQueries = {
   fetchActiveInstances: async () => [],
   fetchSelectedParty: async () => getPartyMock(),
   fetchApplicationSettings: async () => ({}),
-  fetchLayoutSets: async () => getLayoutSetsMock(),
   fetchOrgs: async () => ({ orgs: getOrgsMock() }),
   fetchReturnUrl: async () => Promise.reject(),
   fetchDataModelSchema: async () => ({}),
@@ -628,7 +626,7 @@ export const renderWithInstanceAndLayout = async ({
         fetchLayoutSettings: async () => ({
           pages: {
             order: [initialPage],
-          },
+          } as unknown as IPagesSettingsWithOrder,
         }),
         ...renderOptions.queries,
       },
@@ -694,7 +692,7 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
       fetchLayoutSettings: async () => ({
         pages: {
           order: [initialPage],
-        },
+        } as unknown as IPagesSettingsWithOrder,
       }),
       ...rest.queries,
     },
