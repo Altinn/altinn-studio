@@ -8,7 +8,6 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useLayoutSetIdFromUrl } from 'src/features/layoutSets/useCurrentLayoutSet';
-import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { GlobalPageSettings, ILayoutSettings, NavigationPageGroup } from 'src/layout/common.generated';
 
@@ -94,7 +93,7 @@ function omitUndefined<T extends { [K: string]: unknown }>(obj: T): Partial<T> {
 interface ProcessedLayoutSettings {
   order: string[];
   groups?: NavigationPageGroup[];
-  pageSettings: GlobalPageSettings;
+  pageSettings: Partial<GlobalPageSettings>;
   pdfLayoutName?: string;
 }
 
@@ -120,23 +119,12 @@ export const usePageGroups = () => {
 
 const emptyArray = [];
 
-const defaults: Required<GlobalPageSettings> = {
-  hideCloseButton: false,
-  showLanguageSelector: false,
-  showProgress: false,
-  showExpandWidthButton: false,
-  autoSaveBehavior: 'onChangeFormData',
-  expandedWidth: false,
-  taskNavigation: [],
-};
-
-export const usePageSettings = (): Required<GlobalPageSettings> => {
+export function usePageSettings(): GlobalPageSettings {
   const layoutSettings = useLaxCtx();
   const globalUISettings = window.altinnAppGlobalData.globalPageSettings;
-
-  return useShallowMemo({
-    ...defaults,
+  return {
     ...globalUISettings,
+    taskNavigation: globalUISettings.taskNavigation.map((g) => ({ ...g, id: uuidv4() })),
     ...(layoutSettings === ContextNotProvided ? {} : layoutSettings.pageSettings),
-  });
-};
+  };
+}

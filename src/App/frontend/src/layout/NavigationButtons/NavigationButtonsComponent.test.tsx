@@ -3,6 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { CompNavigationButtonsExternal } from 'src/layout/NavigationButtons/config.generated';
@@ -71,7 +72,9 @@ describe('NavigationButtons', () => {
           },
         }),
         fetchLayoutSets: async () => ({ sets: [{ dataType: 'test-data-model', id: 'message', tasks: ['Task_1'] }] }),
-        fetchLayoutSettings: async () => ({ pages: { order: ['layout1', 'layout2'] } }),
+        fetchLayoutSettings: async () => ({
+          pages: { order: ['layout1', 'layout2'] } as unknown as IPagesSettingsWithOrder,
+        }),
       },
     });
 
