@@ -241,7 +241,7 @@ async def handle(state: AgentState) -> AgentState:
                 log.warning("⚠️ Git status shows no actual changes after patch application")
                 # Don't proceed to verification/review if no changes
                 state.next_action = "stop"
-                state.completion_message = "No changes were made to the repository. The requested changes may have already been applied or were not applicable."
+                state.completion_message = "No changes made to the repository."
 
                 # Send event to notify consumer
                 sink.send(

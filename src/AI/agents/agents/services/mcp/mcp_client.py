@@ -171,21 +171,11 @@ class MCPClient:
             raise Exception(f"MCP server check failed: {str(e)}")
     
     async def call_tool(self, tool_name: str, arguments: dict, gitea_token: str = None):
-        """
-        Call an MCP tool and return the result.
-
-        IMPORTANT: gitea_token is sent via Authorization header (MCP spec compliant).
-        Token is NEVER part of tool arguments, ensuring it never leaks to LLM context.
-
-        The MCP server receives the token via the Authorization header and can use it
-        for git/API operations without exposing it to LLM processing.
-        """
+        """Call an MCP tool and return the result."""
         try:
-            # Get client with Authorization header set (if token provided)
+            # Get client with Authorization header set
             client = await self._get_client(gitea_token)
 
-            # MCP spec: Token is sent via Authorization header, NOT in arguments
-            # Arguments are clean and can be safely passed to LLM
             async with client:
                 result = await client.call_tool(tool_name, arguments)
 
