@@ -5,7 +5,7 @@ import type { AppMetric as Metric } from 'admin/types/metrics/AppMetric';
 import { Line } from 'react-chartjs-2';
 import { appErrorMetricsLogsPath } from 'admin/utils/apiPaths';
 import { getChartData, getChartOptions } from 'admin/utils/charts';
-import { Alert } from 'admin/shared/Alert/Alert';
+import { Alert } from 'admin/components/Alert/Alert';
 
 type AppErrorMetricProps = {
   metric: Metric;

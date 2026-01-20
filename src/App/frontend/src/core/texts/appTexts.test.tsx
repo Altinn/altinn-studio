@@ -3,11 +3,10 @@ import React from 'react';
 import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { fetchApplicationMetadata } from 'src/queries/queries';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IAltinnOrg, IAltinnOrgs } from 'src/types/shared';
 
@@ -24,14 +23,13 @@ function AppTextsRenderer() {
 
 interface RenderProps {
   textResources?: IRawTextResource[];
-  applicationMetadata?: ApplicationMetadata;
   orgs?: IAltinnOrgs;
   nbTitle?: string;
 }
 
 async function render({ nbTitle, textResources = [], orgs = {} }: RenderProps) {
   const overrides = nbTitle ? { title: { nb: nbTitle } } : {};
-  jest.mocked(fetchApplicationMetadata).mockImplementation(async () => getIncomingApplicationMetadataMock(overrides));
+  jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock(overrides));
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => <AppTextsRenderer />,
