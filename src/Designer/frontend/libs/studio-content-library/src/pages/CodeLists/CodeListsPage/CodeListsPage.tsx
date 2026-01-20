@@ -19,11 +19,17 @@ import { Errors } from './Errors';
 
 export type CodeListsPageProps = {
   codeLists: CodeListData[];
+  publishedCodeLists: string[];
   onPublish: (data: CodeListData) => void;
   onSave: (data: CodeListData[]) => void;
 };
 
-export function CodeListsPage({ codeLists, onPublish, onSave }: CodeListsPageProps): ReactElement {
+export function CodeListsPage({
+  codeLists,
+  onPublish,
+  onSave,
+  publishedCodeLists,
+}: CodeListsPageProps): ReactElement {
   const { t } = useTranslation();
   const [codeListMap, setCodeListMap] = useState<CodeListMap>(createCodeListMap(codeLists));
   const [errors, setErrors] = useState<CodeListMapError[]>([]);
@@ -76,6 +82,7 @@ export function CodeListsPage({ codeLists, onPublish, onSave }: CodeListsPagePro
         onDeleteCodeList={handleDeleteCodeList}
         onPublish={onPublish}
         onUpdateCodeListData={handleUpdateCodeListData}
+        publishedCodeLists={publishedCodeLists}
       />
       <Errors errors={errors} />
       <StudioButton data-color='success' icon={<FloppydiskIcon />} onClick={handleSave}>
@@ -90,6 +97,7 @@ type ListOfCodeListsProps = Readonly<{
   onDeleteCodeList: (key: string) => void;
   onPublish: (data: CodeListData) => void;
   onUpdateCodeListData: (key: string, newData: CodeListData) => void;
+  publishedCodeLists: string[];
 }>;
 
 function ListOfCodeLists({
@@ -97,6 +105,7 @@ function ListOfCodeLists({
   onDeleteCodeList,
   onPublish,
   onUpdateCodeListData,
+  publishedCodeLists,
 }: ListOfCodeListsProps): ReactElement {
   const { t } = useTranslation();
   const isEmpty = codeListMap.size === 0;
@@ -113,6 +122,7 @@ function ListOfCodeLists({
             onDelete={() => onDeleteCodeList(key)}
             onPublish={onPublish}
             onUpdate={(newData) => onUpdateCodeListData(key, newData)}
+            publishedCodeLists={publishedCodeLists}
           />
         ))}
       </StudioCard>
