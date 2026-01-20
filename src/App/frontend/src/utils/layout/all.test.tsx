@@ -9,10 +9,11 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { quirks } from 'src/features/form/layout/quirks';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
-import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState } from 'src/queries/queries';
+import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
@@ -86,10 +87,10 @@ const windowLoggers = ['logError', 'logErrorOnce', 'logWarn', 'logWarnOnce', 'lo
 const consoleLoggers = ['error', 'warn', 'log'];
 
 describe('All known layout sets should evaluate as a hierarchy', () => {
-  let hashWas: string;
+  let pathnameWas: string;
   beforeAll(() => {
     window.forceNodePropertiesValidation = 'on';
-    hashWas = window.location.hash.toString();
+    pathnameWas = window.location.pathname.toString();
     for (const func of windowLoggers) {
       jest
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -112,7 +113,7 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
 
   afterAll(() => {
     window.forceNodePropertiesValidation = 'off';
-    window.location.hash = hashWas;
+    window.location.pathname = pathnameWas;
     jest.restoreAllMocks();
   });
 
@@ -133,13 +134,13 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
   allSets.sort(() => Math.random() - 0.5);
 
   async function testSet(set: ExternalAppLayoutSet) {
-    const { hash, mainSet, subformComponent } = set.initialize();
-    window.location.hash = hash;
+    const { pathname, mainSet, subformComponent } = set.initialize();
+    window.location.pathname = pathname;
     const [org, app] = set.app.getOrgApp();
     window.org = org;
     window.app = app;
 
-    jest.mocked(fetchApplicationMetadata).mockImplementation(async () => set.app.getAppMetadata());
+    jest.mocked(getApplicationMetadata).mockImplementation(() => set.app.getAppMetadata());
     jest.mocked(fetchProcessState).mockImplementation(async () => mainSet.simulateProcessData());
     jest.mocked(fetchInstanceData).mockImplementation(async () => set.simulateInstance());
 
@@ -155,8 +156,6 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
         fetchFormData: async (url) => set.getModel({ url }).simulateDataModel(),
         fetchDataModelSchema: async (name) => set.getModel({ name }).getSchema(),
         fetchLayoutSchema: async () => layoutSchema as unknown as JSONSchema7,
-        fetchRuleHandler: async (setId) => set.app.getLayoutSet(setId).getRuleHandler(),
-        fetchDynamics: async (setId) => set.app.getLayoutSet(setId).getRuleConfiguration(),
       },
       alwaysRouteToChildren: true,
     });

@@ -8,27 +8,24 @@ import { userEvent } from '@testing-library/user-event';
 import dot from 'dot-object';
 import type { JSONSchema7 } from 'json-schema';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
-import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, statelessDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
-import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
-import { DynamicsProvider } from 'src/features/form/dynamics/DynamicsContext';
 import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutSettingsContext';
-import { RulesProvider } from 'src/features/form/rules/RulesContext';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FD, FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
+import { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { fetchApplicationMetadata } from 'src/queries/queries';
 import {
   makeFormDataMethodProxies,
   renderWithInstanceAndLayout,
   renderWithMinimalProviders,
 } from 'src/test/renderWithProviders';
-import type { IDataModelPatchRequest, IDataModelPatchResponse } from 'src/features/formData/types';
 
 interface DataModelFlat {
   'obj1.prop1': string;
@@ -102,8 +99,9 @@ const mockSchema: JSONSchema7 = {
 type MinimalRenderProps = Partial<Omit<Parameters<typeof renderWithInstanceAndLayout>[0], 'renderer'>>;
 type RenderProps = MinimalRenderProps & { renderer: React.ReactElement };
 async function statelessRender(props: RenderProps) {
-  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock({
+  jest.mocked(useIsStateless).mockImplementation(() => true);
+  jest.mocked(getApplicationMetadata).mockImplementation(() =>
+    getApplicationMetadataMock({
       onEntry: {
         show: 'stateless',
       },
@@ -136,25 +134,19 @@ async function statelessRender(props: RenderProps) {
         </MemoryRouter>
       ),
       renderer: () => (
-        <ApplicationMetadataProvider>
-          <GlobalFormDataReadersProvider>
-            <LayoutSetsProvider>
-              <LayoutsProvider>
-                <DataModelsProvider>
-                  <LayoutSettingsProvider>
-                    <DynamicsProvider>
-                      <RulesProvider>
-                        <FormDataWriteProxyProvider value={formDataProxies}>
-                          <FormDataWriteProvider>{props.renderer}</FormDataWriteProvider>
-                        </FormDataWriteProxyProvider>
-                      </RulesProvider>
-                    </DynamicsProvider>
-                  </LayoutSettingsProvider>
-                </DataModelsProvider>
-              </LayoutsProvider>
-            </LayoutSetsProvider>
-          </GlobalFormDataReadersProvider>
-        </ApplicationMetadataProvider>
+        <GlobalFormDataReadersProvider>
+          <LayoutSetsProvider>
+            <LayoutsProvider>
+              <DataModelsProvider>
+                <LayoutSettingsProvider>
+                  <FormDataWriteProxyProvider value={formDataProxies}>
+                    <FormDataWriteProvider>{props.renderer}</FormDataWriteProvider>
+                  </FormDataWriteProxyProvider>
+                </LayoutSettingsProvider>
+              </DataModelsProvider>
+            </LayoutsProvider>
+          </LayoutSetsProvider>
+        </GlobalFormDataReadersProvider>
       ),
       queries: {
         fetchDataModelSchema: async () => mockSchema,
@@ -167,9 +159,8 @@ async function statelessRender(props: RenderProps) {
 }
 
 async function statefulRender(props: RenderProps) {
-  jest
-    .mocked(fetchApplicationMetadata)
-    .mockImplementationOnce(() => Promise.resolve(getIncomingApplicationMetadataMock()));
+  jest.mocked(useIsStateless).mockImplementation(() => false);
+  jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock());
   return await renderWithInstanceAndLayout({
     ...props,
     alwaysRouteToChildren: true,
@@ -443,9 +434,9 @@ describe('FormData', () => {
       expect(screen.getByTestId('obj1.prop2')).toHaveValue('b');
 
       // Locking prevents saving
-      expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
       act(() => jest.advanceTimersByTime(5000));
-      expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
 
       // Unlock the form
       await user.click(screen.getByRole('button', { name: 'Unlock myLockId' }));
@@ -457,10 +448,11 @@ describe('FormData', () => {
       // Saving is now allowed, so the form data we saved earlier is sent. The one value
       // we changed that was overwritten is now lost.
       act(() => jest.advanceTimersByTime(5000));
-      await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
 
-      const patchReq = (mutations.doPatchFormData.mock as jest.Mock).mock.calls[0][1] as IDataModelPatchRequest;
-      expect(patchReq.patch).toEqual([{ op: 'add', path: '/obj1/prop2', value: 'b' }]);
+      const patchReq = (mutations.doPatchMultipleFormData.mock as jest.Mock).mock
+        .calls[0][1] as IDataModelMultiPatchRequest;
+      expect(patchReq.patches[0].patch).toEqual([{ op: 'add', path: '/obj1/prop2', value: 'b' }]);
       expect(window.logError).toHaveBeenCalledTimes(0);
       expect(window.logWarn).toHaveBeenCalledTimes(0);
     });
@@ -473,9 +465,9 @@ describe('FormData', () => {
       await user.click(screen.getByRole('button', { name: 'Lock myLockId' }));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
 
-      expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
       act(() => jest.advanceTimersByTime(5000));
-      expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
 
       await user.click(await screen.findByRole('button', { name: 'Unlock myLockId' }));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('false'));
@@ -485,7 +477,7 @@ describe('FormData', () => {
 
       act(() => jest.advanceTimersByTime(5000));
       await waitFor(() => expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('false'));
-      expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
       expect(window.logError).toHaveBeenCalledTimes(0);
       expect(window.logWarn).toHaveBeenCalledTimes(0);
     });
@@ -499,21 +491,28 @@ describe('FormData', () => {
       expect(screen.getByTestId('obj2.prop1')).toHaveValue('a');
       expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('true');
 
-      expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
       await user.click(screen.getByRole('button', { name: 'Lock myLockId' }));
-      await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
       expect(screen.getByTestId('isLocked')).toHaveTextContent('false'); // The save has not finished yet
 
-      const patchReq = (mutations.doPatchFormData.mock as jest.Mock).mock.calls[0][1] as IDataModelPatchRequest;
-      expect(patchReq.patch).toEqual([{ op: 'add', path: '/obj2', value: { prop1: 'a' } }]);
+      const patchReq = (mutations.doPatchMultipleFormData.mock as jest.Mock).mock
+        .calls[0][1] as IDataModelMultiPatchRequest;
+      expect(patchReq.patches[0].patch).toEqual([{ op: 'add', path: '/obj2', value: { prop1: 'a' } }]);
 
-      const response: IDataModelPatchResponse = {
-        newDataModel: {
-          obj2: { prop1: 'a' },
-        },
-        validationIssues: {},
+      const response: IDataModelMultiPatchResponse = {
+        newDataModels: [
+          {
+            dataElementId: defaultMockDataElementId,
+            data: {
+              obj2: { prop1: 'a' },
+            },
+          },
+        ],
+        validationIssues: [],
+        instance: getInstanceDataMock(),
       };
-      mutations.doPatchFormData.resolve({ data: response });
+      mutations.doPatchMultipleFormData.resolve({ data: response });
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
       expect(window.logError).toHaveBeenCalledTimes(0);
       expect(window.logWarn).toHaveBeenCalledTimes(0);
@@ -523,11 +522,11 @@ describe('FormData', () => {
       const user = userEvent.setup({ delay: null });
       const { mutations } = await render();
 
-      expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
       await user.click(screen.getByRole('button', { name: 'Lock myLockId' }));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
       expect(screen.getByTestId('lockedBy')).toHaveTextContent('myLockId');
-      expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
       expect(window.logError).toHaveBeenCalledTimes(0);
       expect(window.logWarn).toHaveBeenCalledTimes(0);
 
@@ -556,7 +555,7 @@ describe('FormData', () => {
 
       await user.click(screen.getByRole('button', { name: 'Lock myLockId' }));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
-      expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
 
       // Schedule another lock that will be scheduled after the first one
       await user.click(screen.getByRole('button', { name: 'Lock myOtherLockId' }));
@@ -567,21 +566,25 @@ describe('FormData', () => {
 
       // Unlock the first lock
       await user.click(screen.getByRole('button', { name: 'Unlock myLockId' }));
-      await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
 
-      const response: IDataModelPatchResponse = {
-        newDataModel: {
-          obj2: { prop1: 'a' },
-        },
-        validationIssues: {},
+      const response: IDataModelMultiPatchResponse = {
+        newDataModels: [
+          {
+            dataElementId: defaultMockDataElementId,
+            data: { obj2: { prop1: 'a' } },
+          },
+        ],
+        validationIssues: [],
+        instance: getInstanceDataMock(),
       };
-      mutations.doPatchFormData.resolve({ data: response });
+      mutations.doPatchMultipleFormData.resolve({ data: response });
 
       await waitFor(() => expect(screen.getByTestId('lockedBy')).toHaveTextContent('myOtherLockId'));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
       await user.click(screen.getByRole('button', { name: 'Unlock myOtherLockId' }));
       await waitFor(() => expect(screen.getByTestId('lockedBy')).toHaveTextContent('undefined'));
-      expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1);
     });
   });
 

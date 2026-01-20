@@ -48,8 +48,19 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
   evalExpressions(props: ExprResolver<'RepeatingGroup'>): RepGroupInternal {
     const { item, evalBool } = props;
 
+    const tableColumns = item.tableColumns ? { ...item.tableColumns } : undefined;
+    if (item.tableColumns) {
+      for (const column in tableColumns) {
+        tableColumns[column] = {
+          ...tableColumns[column],
+          hidden: evalBool(tableColumns[column].hidden, false),
+        };
+      }
+    }
+
     return {
       ...this.evalDefaultExpressions(props),
+      ...(tableColumns ? { tableColumns } : undefined),
       edit: item.edit
         ? {
             ...item.edit,
@@ -165,11 +176,10 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
     const item = props.externalItem as CompExternal<'RepeatingGroup'>;
     const repeatingClaims: ChildClaims = new Set(props.childClaims?.values() ?? []);
     const gridRowClaims: ChildClaims = new Set();
-
     for (const row of [...(item.rowsBefore || []), ...(item.rowsAfter || [])]) {
       for (const cell of row.cells.values()) {
         if (cell && 'component' in cell && cell.component && repeatingClaims.has(cell.component)) {
-          gridRowClaims.add(repeatingClaims[cell.component]);
+          gridRowClaims.add(cell.component);
           repeatingClaims.delete(cell.component);
         }
       }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -20,7 +21,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.GitOps;
 /// GitOps configuration manager that uses git repositories to manage the configuration.
 /// </summary>
 public class GitRepoGitOpsConfigurationManager(
-    [FromKeyedServices("bot-auth")] IGitea giteaApi,
+    [FromKeyedServices("bot-auth")] IGiteaClient giteaClient,
     IGitOpsManifestsRenderer gitOpsManifestsRenderer,
     ISourceControl sourceControl,
     IAltinnGitRepositoryFactory gitRepositoryFactory,
@@ -32,12 +33,19 @@ public class GitRepoGitOpsConfigurationManager(
 
     private string GitOpsRepoName(string org) => string.Format(gitOpsSettings.GitOpsRepoNameFormat, org);
 
+    public async Task<bool> GitOpsConfigurationExistsAsync(AltinnOrgEditingContext context)
+    {
+        var repo = await giteaClient.GetRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org));
+        return repo is not null;
+    }
+
     public async Task EnsureGitOpsConfigurationExistsAsync(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
         DeleteLocalRepositoryIfExists(context);
         await EnsureRemoteRepositoryExists(context);
 
-        await sourceControl.CloneRemoteRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org));
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer);
+        await sourceControl.CloneRemoteRepository(editingContext);
 
         await EnsureBaseManifests(context);
         await EnsureEnvironmentManifests(context, environment);
@@ -45,9 +53,7 @@ public class GitRepoGitOpsConfigurationManager(
 
     private async Task EnsureRemoteRepositoryExists(AltinnOrgEditingContext context)
     {
-        // Check if remote repo exists
-        var repo = await giteaApi.GetRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org));
-        if (repo is not null)
+        if (await GitOpsConfigurationExistsAsync(context))
         {
             return;
         }
@@ -60,7 +66,7 @@ public class GitRepoGitOpsConfigurationManager(
             makePrivate: false
         );
 
-        await giteaApi.CreateRepository(gitOpsSettings.GitOpsOrg, createOptions);
+        await giteaClient.CreateRepository(gitOpsSettings.GitOpsOrg, createOptions);
     }
 
     private async Task EnsureBaseManifests(AltinnOrgEditingContext context)
@@ -134,10 +140,8 @@ public class GitRepoGitOpsConfigurationManager(
         string repoName,
         AltinnEnvironment environment)
     {
-        string envKusomizationContent = await repository.ReadTextByRelativePathAsync(ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment.Name));
-
-        string expectedResourcePath = ManifestsPathHelper.EnvironmentManifests.KustomizationAppResource(repoName);
-        return envKusomizationContent.Contains(expectedResourcePath, StringComparison.InvariantCulture);
+        var existingApps = await GetExistingAppsFromEnvironmentKustomization(repository, environment);
+        return existingApps.Contains(AltinnRepoName.FromName(repoName));
     }
 
     public async Task AddAppToGitOpsConfigurationAsync(AltinnRepoEditingContext context, AltinnEnvironment environment)
@@ -183,8 +187,9 @@ public class GitRepoGitOpsConfigurationManager(
     public async Task PersistGitOpsConfigurationAsync(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
         var repository = gitRepositoryFactory.GetAltinnGitRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer);
 
-        await sourceControl.CommitAndPushChanges(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), "master", repository.RepositoryDirectory, $"Update GitOps configuration for environment {environment}", gitOpsSettings.BotPersonalAccessToken);
+        await sourceControl.CommitAndPushChanges(editingContext, "master", repository.RepositoryDirectory, $"Update GitOps configuration for environment {environment}", gitOpsSettings.BotPersonalAccessToken);
     }
     private async Task WriteManifestsToFiles(AltinnOrgEditingContext context, Dictionary<string, string> manifests)
     {

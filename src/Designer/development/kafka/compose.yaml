@@ -56,7 +56,7 @@ services:
       "
 
   schemaregistry:
-    image: confluentinc/cp-schema-registry:7.9.4
+    image: confluentinc/cp-schema-registry:7.9.5
     restart: always
     hostname: schemaregistry
     container_name: schemaregistry
@@ -72,7 +72,7 @@ services:
       - kafka
 
   kafdrop:
-    image: obsidiandynamics/kafdrop:4.1.0
+    image: obsidiandynamics/kafdrop:4.2.0
     restart: always
     ports:
       - "9000:9000"

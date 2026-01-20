@@ -20,7 +20,7 @@ export type StartAppInstanceOptions = {
   // Tenor user to log in as (alternative to user)
   tenorUser?: TenorUser | null;
 
-  authenticationLevel?: string;
+  authenticationLevel?: '0' | '1' | '2';
 
   // JavaScript code to evaluate before starting the app instance (evaluates in the browser, in context of the app).
   // The code runs inside an async function, and if it ends with a return value, that value will assumed to be a
@@ -205,7 +205,7 @@ declare global {
       /**
        * Select from a dropdown in the design system
        */
-      dsSelect(selector: string, value: string, debounce?: boolean): Chainable<null>;
+      dsSelect(selector: string, value: string | RegExp, debounce?: boolean): Chainable<null>;
 
       /**
        * Shortcut for clicking an element and waiting for it to disappear

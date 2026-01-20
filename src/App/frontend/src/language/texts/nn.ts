@@ -219,6 +219,7 @@ export function nn() {
     'image_upload_component.reset': 'Tilbakestill zoom og plassering',
     'image_upload_component.error_invalid_file_type': 'Ugyldig filformat. Last opp ein bildefil.',
     'image_upload_component.error_file_size_exceeded': 'Fila er for stor. Største tillatte filstorleik er 10MB.',
+    'image_upload_component.error_required': 'Du må laste opp eit bilde',
     'image_upload_component.valid_file_types': 'Bildefiler er tillatne',
     'input_components.remaining_characters': 'Du har %d teikn igjen',
     'input_components.exceeded_max_limit': 'Du har overskride maks teikn med %d',
@@ -359,7 +360,7 @@ export function nn() {
     'receipt.receipt': 'Kvittering',
     'receipt.ref_num': 'Referansenummer',
     'receipt.sender': 'Avsendar',
-    'receipt.subtitle': 'Kopi av kvitteringa di er sendt til ditt arkiv',
+    'receipt.subtitle': 'Kvitteringa di er lagra og tilgjengeleg i innboksen din',
     'receipt.title': 'Skjemaet er sendt inn',
     'receipt.title_submitted': 'Følgjande er sendt inn:',
     'receipt_platform.attachments': 'Vedlegg',
@@ -503,5 +504,11 @@ export function nn() {
     'signing_document_list.attachment_type_form': 'Skjema',
     'signing_document_list.download': 'Last ned',
     'signing_document_list_summary.header': 'Signerte dokument',
+    'service_task.title': 'Noko gjekk gale',
+    'service_task.body': 'Ein feil oppstod under automatisk handsaming av skjemaet.',
+    'service_task.help_text':
+      'Du kan prøve å utføre handsaminga på nytt ved å klikke på "{0}". Om problemet held fram, ta kontakt med oss på brukarservice {1}.',
+    'service_task.retry_button': 'Prøv igjen',
+    'service_task.back_button': 'Gå tilbake',
   } satisfies FixedLanguageList;
 }

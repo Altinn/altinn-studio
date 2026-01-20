@@ -10,12 +10,11 @@ import { useHiddenLayoutsExpressions, useLayoutLookups, useLayouts } from 'src/f
 import { useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { getComponentDef, implementsIsChildHidden } from 'src/layout';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useIsHiddenByRules, useIsHiddenByRulesMulti } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { EvalExprOptions } from 'src/features/expressions';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
+import type { CompExternal } from 'src/layout/layout';
 import type { IHiddenLayoutsExternal } from 'src/types';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
@@ -53,12 +52,10 @@ export function useIsHidden<Reason extends boolean = false>(
   const hiddenPages = useHiddenLayoutsExpressions();
   const hiddenSources = findHiddenSources(baseComponentId, layoutLookups, hiddenPages).reverse();
   const dataSources = useExpressionDataSources(hiddenSources);
-  const hiddenByRules = useIsHiddenByRules(useIndexedId(baseComponentId) ?? '');
   const forcedVisible = useIsForcedVisibleByDevTools();
   const pageOrder = useRawPageOrder();
 
   const reason = isHidden({
-    hiddenByRules,
     hiddenSources,
     dataSources,
     pageOrder,
@@ -100,7 +97,6 @@ export function useIsHiddenMulti(
     [baseComponentIds, hiddenPages, layoutLookups],
   );
   const dataSources = useExpressionDataSources(hiddenSources);
-  const hiddenByRules = useIsHiddenByRulesMulti(baseComponentIds);
   const forcedVisible = useIsForcedVisibleByDevTools();
   const pageOrder = useRawPageOrder();
 
@@ -108,7 +104,6 @@ export function useIsHiddenMulti(
     const out: { [baseId: string]: boolean | undefined } = {};
     for (const [idx, baseComponentId] of baseComponentIds.entries()) {
       const reason = isHidden({
-        hiddenByRules: hiddenByRules[baseComponentId] ?? false,
         hiddenSources: hiddenSources[idx],
         dataSources,
         pageOrder,
@@ -126,7 +121,6 @@ export function useIsHiddenMulti(
     baseComponentIds,
     dataSources,
     forcedVisible,
-    hiddenByRules,
     hiddenSources,
     layoutLookups.componentToPage,
     options.respectDevTools,
@@ -180,7 +174,6 @@ export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> =
 interface IsHiddenProps extends Pick<IsHiddenOptions<boolean>, 'respectPageOrder'> {
   hiddenSources: HiddenSource[];
   dataSources: ExpressionDataSources;
-  hiddenByRules: boolean;
   pageOrder: string[];
   pageKey: string | undefined;
 }
@@ -192,20 +185,16 @@ export type HiddenWithReason =
     }
   | {
       hidden: true;
-      reason: HiddenSource['type'] | 'rules' | 'pageOrder';
+      reason: HiddenSource['type'] | 'pageOrder';
     };
 
 function isHidden({
   hiddenSources,
   dataSources,
-  hiddenByRules,
   respectPageOrder = false,
   pageOrder,
   pageKey,
 }: IsHiddenProps): HiddenWithReason {
-  if (hiddenByRules) {
-    return { reason: 'rules', hidden: true };
-  }
   if (respectPageOrder && pageKey !== undefined && !pageOrder.includes(pageKey)) {
     return { reason: 'pageOrder', hidden: true };
   }
@@ -282,7 +271,11 @@ function findHiddenSources(
       const callback = () => parentDef.isChildHidden(tmpParentId, tmpChildId, layoutLookups);
       out.push({ type: 'callback', callback, id: parent.id });
     }
-    if (parentComponent.type === 'RepeatingGroup' && parentComponent.hiddenRow !== undefined) {
+    if (
+      parentComponent.type === 'RepeatingGroup' &&
+      parentComponent.hiddenRow !== undefined &&
+      isInRepGroupChildren(parentComponent, childId)
+    ) {
       out.push({ type: 'hiddenRow', expr: parentComponent.hiddenRow, id: parent.id });
     }
     if (parentComponent.hidden !== undefined) {
@@ -299,6 +292,24 @@ function findHiddenSources(
   }
 
   return out;
+}
+
+/**
+ * Checks if a baseComponentId is in the repeating group children (returns false if the baseComponentId is included
+ * via rowsBefore/rowsAfter).
+ */
+function isInRepGroupChildren(parent: CompExternal<'RepeatingGroup'>, baseComponentId: string) {
+  const multiPage = parent.edit?.multiPage ?? false;
+  if (!multiPage) {
+    return parent.children.includes(baseComponentId);
+  }
+  for (const childId of parent.children) {
+    const [, id] = childId.split(':', 2);
+    if (id === baseComponentId) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function useIsForcedVisibleByDevTools() {

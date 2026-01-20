@@ -241,16 +241,23 @@ namespace Altinn.App.Api.Controllers
             "lt")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.InstanceFileScanResult>> GetFileScanResults([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid) { }
     }
+    [Microsoft.AspNetCore.Mvc.Route("{org}/{app}")]
     public class HomeController : Microsoft.AspNetCore.Mvc.Controller
     {
-        public HomeController(Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> appSettings, Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.App.IAppMetadata appMetadata) { }
+        public HomeController(System.IServiceProvider serviceProvider, Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> appSettings, Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.App.IFrontendFeatures frontendFeatures) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
-        [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/")]
+        [Microsoft.AspNetCore.Mvc.Route("")]
+        [Microsoft.AspNetCore.Mvc.Route("instance-selection")]
+        [Microsoft.AspNetCore.Mvc.Route("instance/{partyId}/{instanceGuid}")]
+        [Microsoft.AspNetCore.Mvc.Route("instance/{partyId}/{instanceGuid}/{*rest}")]
+        [Microsoft.AspNetCore.Mvc.Route("party-selection")]
+        [Microsoft.AspNetCore.Mvc.Route("party-selection/{errorCode}")]
+        [Microsoft.AspNetCore.Mvc.Route("{pageName:int}")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Index([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] bool dontChooseReportee) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "text/html", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
-        [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/set-query-params")]
+        [Microsoft.AspNetCore.Mvc.Route("set-query-params")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> SetQueryParams(string org, string app) { }
         public class QueryParamInit : System.IEquatable<Altinn.App.Api.Controllers.HomeController.QueryParamInit>
         {
@@ -275,7 +282,6 @@ namespace Altinn.App.Api.Controllers
                     Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient,
                     Altinn.App.Core.Internal.Data.IDataClient dataClient,
                     Altinn.App.Core.Internal.App.IAppMetadata appMetadata,
-                    Altinn.App.Core.Internal.AppModel.IAppModel appModel,
                     Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext,
                     Altinn.Common.PEP.Interfaces.IPDP pdp,
                     Altinn.App.Core.Internal.Events.IEventsClient eventsClient,
@@ -550,16 +556,6 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/jsonschema/{id}")]
         public Microsoft.AspNetCore.Mvc.ActionResult GetModelJsonSchema([Microsoft.AspNetCore.Mvc.FromRoute] string id) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(204)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.FileContentResult), 200, "application/json", new string[0])]
-        [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/ruleconfiguration/{id}")]
-        public Microsoft.AspNetCore.Mvc.ActionResult GetRuleConfiguration(string org, string app, string id) { }
-        [Microsoft.AspNetCore.Mvc.HttpGet]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(204)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "text/javascript", new string[0])]
-        [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/rulehandler/{id}")]
-        public Microsoft.AspNetCore.Mvc.ActionResult GetRulehandler(string org, string app, string id) { }
-        [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/validationconfig/{dataTypeId}")]
         public Microsoft.AspNetCore.Mvc.ActionResult GetValidationConfiguration(string org, string app, string dataTypeId) { }
@@ -692,8 +688,10 @@ namespace Altinn.App.Api.Controllers
             "date endpoint instead.")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ValidateData([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(403)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 403)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 500)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>), 200)]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/validate")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ValidateInstance([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? ignoredValidators = null, [Microsoft.AspNetCore.Mvc.FromQuery] bool? onlyIncrementalValidators = default, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }

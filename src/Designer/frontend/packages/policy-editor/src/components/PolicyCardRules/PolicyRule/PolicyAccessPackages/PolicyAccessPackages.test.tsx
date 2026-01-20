@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PolicyEditorContext } from '@altinn/policy-editor/contexts/PolicyEditorContext';
@@ -63,7 +63,7 @@ const accessPackageAreaSkatt: PolicyAccessPackageArea = {
   urn: 'accesspackage:area:skatt_avgift_regnskap_og_toll',
   name: 'Skatt',
   description: '',
-  icon: '',
+  iconUrl: '',
   packages: [skattPackage],
 };
 
@@ -72,7 +72,7 @@ const accessPackageAreaTransport: PolicyAccessPackageArea = {
   urn: 'accesspackage:area:transport',
   name: 'Lagring og transport',
   description: '',
-  icon: 'TruckIcon',
+  iconUrl: 'TruckIcon',
   packages: [sjofartPackage, lufttransportPackage],
 };
 
@@ -81,7 +81,7 @@ const accessPackageAreaOther: PolicyAccessPackageArea = {
   urn: 'accesspackage:area:annet',
   name: 'Annet',
   description: '',
-  icon: 'TruckIcon',
+  iconUrl: 'TruckIcon',
   packages: [revisorPackage, revisorNonDelegablePackage],
 };
 
@@ -96,7 +96,7 @@ const accessPackageAreaGroupVanlig: PolicyAccessPackageAreaGroup = {
 describe('PolicyAccessPackages', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should call add service when access package is checked', async () => {
+  it('checks access package and reflects selection state', async () => {
     const user = userEvent.setup();
     renderAccessPackages();
 
@@ -117,6 +117,9 @@ describe('PolicyAccessPackages', () => {
   it('should call remove service when access package is unchecked', async () => {
     const user = userEvent.setup();
     renderAccessPackages();
+
+    const accordionButton = screen.getByRole('button', { name: accessPackageAreaTransport.name });
+    await user.click(accordionButton);
 
     const packageCheckbox = screen.getByLabelText(
       textMock('policy_editor.access_package_remove', {
@@ -156,21 +159,37 @@ const renderAccessPackages = () => {
 
   return render(
     <ServicesContextProvider {...queriesMock} client={queryClient}>
-      <PolicyEditorContext.Provider
-        value={{ ...mockPolicyEditorContextValue, accessPackages: [accessPackageAreaGroupVanlig] }}
-      >
-        <PolicyRuleContext.Provider
-          value={{
-            ...mockPolicyRuleContextValue,
-            policyRule: {
-              ...mockPolicyRuleContextValue.policyRule,
-              accessPackages: [lufttransportPackage.urn],
-            },
-          }}
-        >
-          <PolicyAccessPackages />
-        </PolicyRuleContext.Provider>
-      </PolicyEditorContext.Provider>
+      <ContextWrapper />
     </ServicesContextProvider>,
+  );
+};
+
+const ContextWrapper = () => {
+  // Add local state for policyRule
+  const [policyRules, setPolicyRules] = useState([
+    {
+      ...mockPolicyRuleContextValue.policyRule,
+      accessPackages: [lufttransportPackage.urn],
+    },
+  ]);
+
+  return (
+    <PolicyEditorContext.Provider
+      value={{
+        ...mockPolicyEditorContextValue,
+        accessPackages: [accessPackageAreaGroupVanlig],
+        policyRules: policyRules,
+        setPolicyRules,
+      }}
+    >
+      <PolicyRuleContext.Provider
+        value={{
+          ...mockPolicyRuleContextValue,
+          policyRule: { ...policyRules[0] },
+        }}
+      >
+        <PolicyAccessPackages />
+      </PolicyRuleContext.Provider>
+    </PolicyEditorContext.Provider>
   );
 };

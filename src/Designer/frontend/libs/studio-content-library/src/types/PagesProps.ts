@@ -1,7 +1,7 @@
-import type { CodeListsWithTextResourcesPageProps } from '../ContentLibrary/LibraryBody/pages/CodeListsWithTextResourcesPage';
+import type { CodeListsWithTextResourcesPageProps } from '../pages/CodeListsWithTextResources/CodeListsWithTextResourcesPage';
 import type { PageName } from './PageName';
-import type { ImagesPageProps } from '../ContentLibrary/LibraryBody/pages/ImagesPage';
-import type { CodeListsPageProps } from '../ContentLibrary/LibraryBody/pages/CodeListsPage';
+import type { ImagesPageProps } from '../pages/Images/ImagesPage';
+import type { CodeListsPageProps } from '../pages/CodeLists/CodeListsPage';
 
 export type PagePropsMap<P extends PageName> = {
   landingPage: {};
@@ -10,12 +10,6 @@ export type PagePropsMap<P extends PageName> = {
   images: ImagesPageProps;
 }[P];
 
-type GlobalPageConfig<T> = {
-  props: T;
+export type PagesConfig = {
+  [K in PageName]?: PagePropsMap<K>;
 };
-
-type AllPagesConfig = {
-  [K in PageName]: GlobalPageConfig<PagePropsMap<K>>;
-};
-
-export type PagesConfig = Partial<AllPagesConfig>;

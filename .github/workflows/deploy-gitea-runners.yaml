@@ -14,10 +14,10 @@ on:
 
   workflow_dispatch:
     inputs:
-      org-enviornments:
-        description: 'Environments for organizations runners to be deployed to. Format of the input object is [{"org": "org-name", "environments": ["env1", "env2"]}].'
+      environments:
+        description: 'Environments to deploy to. Multiple environments can be specified by separating them with a comma.'
         required: false
-        default: '[{"org": "ttd", "environments": ["dev"]}]'
+        default: 'dev'
 
 permissions:
       id-token: write
@@ -27,29 +27,10 @@ jobs:
   get-short-sha:
     uses: ./.github/workflows/template-short-sha.yaml
 
-  construct-org-environments-array:
-    runs-on: ubuntu-latest
-    env:
-      default-org-environments: >-
-        [{"org": "ttd", "environments": ["dev", "staging", "prod"]},{"org": "brg", "environments": ["prod"]},{"org": "dsb", "environments": ["prod"]},{"org": "ssb", "environments": ["prod"]},{"org": "ksdigi", "environments": ["prod"]}]
-    outputs:
-      orgenvironmentsjson: ${{ steps.construct-enviornments.outputs.orgenvironmentsjson }}
-    steps:
-      - name: Construct environment
-        id: construct-enviornments
-        run: |
-          environments='${{ github.event.inputs.org-enviornments }}'
-          if [ -z "$environments" ]; then
-            environments='${{ env.default-org-environments }}'
-          fi
-          echo "Raw environments input: $environments"
-
-          # Construct array of {org, environment}
-          # This will parse the input JSON and construct an array of objects with org and environment
-          # Example input: [{"org": "ttd", "environments": ["dev", "staging", "prod"]}]
-          # Example output: [{"org": "ttd", "environment": "dev"}, {"org": "ttd", "environment": "staging"}, {"org": "ttd", "environment": "prod"}]
-          jsonArray=$(echo "$environments" | jq -c '[.[] | .environments[] as $env | {org, environment: $env}]')
-          echo "orgenvironmentsjson=${jsonArray}" >> $GITHUB_OUTPUT
+  construct-environments-array:
+    uses: ./.github/workflows/template-construct-environments.yaml
+    with:
+      environments: ${{ github.event.inputs.environments || 'dev,staging,prod' }}
 
   determine-tag:
     needs: get-short-sha
@@ -96,18 +77,18 @@ jobs:
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
   flux-config-push:
-    needs: [get-short-sha, docker-build-push, helm-push, determine-tag, construct-org-environments-array]
+    needs: [get-short-sha, docker-build-push, helm-push, determine-tag, construct-environments-array]
     strategy:
       matrix:
-        orgenvironment: ${{ fromJSON(needs.construct-org-environments-array.outputs.orgenvironmentsjson) }}
+        environment: ${{ fromJSON(needs.construct-environments-array.outputs.environmentsjson) }}
     uses: ./.github/workflows/template-flux-config-push.yaml
     with:
       tag: ${{ needs.determine-tag.outputs.tag }}
       registry-name: altinntjenestercontainerregistry.azurecr.io
-      environment: ${{ matrix.orgenvironment.environment }}
+      environment: ${{ matrix.environment }}
       config-chart-name: gitea-org-runner-config
-      artifact-name: gitea-runner-${{ matrix.orgenvironment.org }}
-      helm-set-arguments: chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},releaseName=gitea-runner-${{ matrix.orgenvironment.org }},registrationTokenSecretName=altinn-gitea-runner-${{ matrix.orgenvironment.org }}-secret
+      artifact-name: gitea-runners
+      helm-set-arguments: chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},releaseName=gitea-runners,environment=${{ matrix.environment }}
       trace-workflow: false
       trace-team-name: 'team-studio'
     secrets:

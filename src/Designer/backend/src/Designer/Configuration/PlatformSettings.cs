@@ -16,6 +16,11 @@ namespace Altinn.Studio.Designer.Configuration
         public string ApiStorageApplicationUri { get; set; }
 
         /// <summary>
+        /// Uniform resource identifier for Platform.Storage Instances
+        /// </summary>
+        public string ApiStorageInstancesUri { get; set; }
+
+        /// <summary>
         /// Uniform resource locator for Platform.Authorization policies
         /// </summary>
         public string ApiAuthorizationPolicyUri { get; set; }
@@ -97,6 +102,11 @@ namespace Altinn.Studio.Designer.Configuration
         /// Url used to load access packages
         /// </summary>
         public string AccessPackagesUrl { get; set; }
+
+        /// <summary>
+        /// Url used to load roles
+        /// </summary>
+        public string RolesUrl { get; set; }
 
         /// <summary>
         /// Url pattern to access app cluster

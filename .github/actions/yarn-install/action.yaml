@@ -1,5 +1,10 @@
 name: "My Shared Steps"
 description: "Doing yarn installs with proper caching"
+inputs:
+  working-directory:
+    description: "The directory to run yarn install in"
+    required: false
+    default: "."
 runs:
   using: "composite"
   steps:
@@ -7,23 +12,27 @@ runs:
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
       with:
         cache: 'yarn'
+        cache-dependency-path: ${{ inputs.working-directory }}/yarn.lock
+        node-version: '22'
 
     - name: "Getting yarn cache directory path"
       id: yarn-cache-dir-path
       run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
 
     - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       id: yarn-cache
       with:
         path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        key: ${{ runner.os }}-yarn-${{ hashFiles(format('{0}/yarn.lock', inputs.working-directory)) }}
         restore-keys: |
           ${{ runner.os }}-yarn-
 
     - name: 'Installing Dependencies'
       run: yarn install --immutable --inline-builds
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       env:
         YARN_ENABLE_GLOBAL_CACHE: 'false'
         YARN_NM_MODE: 'hardlinks-local'

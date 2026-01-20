@@ -23,6 +23,7 @@ variables:
   # HOSTNAME: ''
   # TAGNAME: ''
   # PUSH_SYNCROOT_GITOPS_IMAGE: 'false' # Set to 'true' to enable pushing sync-root artifact
+  # PUSH_APPS_OCI_IMAGE: 'true' # Set to 'false' to skip pushing app OCI image
 
   # Variables for generating yaml files. Paths are relative to the root of the apps repository
   FLUX_ARTIFACT_DIR: 'flux-artifact'
@@ -47,8 +48,69 @@ steps:
   - checkout: none
 
   - task: Bash@3
+    displayName: 'Validate required variables'
+    inputs:
+      targetType: inline
+      script: |
+        ERRORS=()
+
+        # Always required variables
+        [ -z "$APP_OWNER" ] && ERRORS+=("APP_OWNER is required")
+        [ -z "$APP_ENVIRONMENT" ] && ERRORS+=("APP_ENVIRONMENT is required")
+        [ -z "$ALTINN_STUDIO_HOSTNAME" ] && ERRORS+=("ALTINN_STUDIO_HOSTNAME is required")
+
+        # Variables required when pushing app OCI image (default behavior)
+        if [ "$PUSH_APPS_OCI_IMAGE" != "false" ]; then
+          [ -z "$APP_REPO" ] && ERRORS+=("APP_REPO is required when PUSH_APPS_OCI_IMAGE is not 'false'")
+          [ -z "$GITEA_ENVIRONMENT" ] && ERRORS+=("GITEA_ENVIRONMENT is required when PUSH_APPS_OCI_IMAGE is not 'false'")
+          [ -z "$APP_COMMIT_ID" ] && ERRORS+=("APP_COMMIT_ID is required when PUSH_APPS_OCI_IMAGE is not 'false'")
+          [ -z "$TAGNAME" ] && ERRORS+=("TAGNAME is required when PUSH_APPS_OCI_IMAGE is not 'false'")
+        fi
+
+        # Variables required when pushing sync-root GitOps image
+        if [ "$PUSH_SYNCROOT_GITOPS_IMAGE" == "true" ]; then
+          [ -z "$GITEA_ENVIRONMENT" ] && ERRORS+=("GITEA_ENVIRONMENT is required when PUSH_SYNCROOT_GITOPS_IMAGE is 'true'")
+        fi
+
+        # Print all errors and exit if any
+        if [ ${#ERRORS[@]} -gt 0 ]; then
+          echo "##[error]Variable validation failed:"
+          for error in "${ERRORS[@]}"; do
+            echo "##[error]  - $error"
+          done
+          exit 1
+        fi
+
+        echo "All required variables are set"
+      failOnStderr: true
+
+  - task: Bash@3
+    displayName: 'Set STUDIO_ENVIRONMENT based on ALTINN_STUDIO_HOSTNAME'
+    inputs:
+      targetType: inline
+      script: |
+        case "$ALTINN_STUDIO_HOSTNAME" in
+          "dev.altinn.studio")
+            STUDIO_ENV="dev"
+            ;;
+          "staging.altinn.studio")
+            STUDIO_ENV="staging"
+            ;;
+          "altinn.studio")
+            STUDIO_ENV="prod"
+            ;;
+          *)
+            echo "Unknown ALTINN_STUDIO_HOSTNAME: $ALTINN_STUDIO_HOSTNAME"
+            exit 1
+            ;;
+        esac
+        echo "##vso[task.setvariable variable=STUDIO_ENVIRONMENT;]$STUDIO_ENV"
+      failOnStderr: true
+
+  - task: Bash@3
     name: RELEASE_NAME
     displayName: 'Create lowercase release name '
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       targetType: inline
       script: |
@@ -65,6 +127,7 @@ steps:
 
   - task: CmdLine@2
     displayName: Pull Repo
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       script: |
         # Should use oauth token when authenticating to private repo
@@ -87,13 +150,99 @@ steps:
 
   - task: CmdLine@2
     displayName: Pull GitOps directory
-    condition: eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true')
+    condition: and(succeeded(), eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true'))
     inputs:
       script: |
         git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
 
   - task: Bash@3
-    displayName: Set environment variables (ALTINN_HOST and RG_NAME) based on APP_ENVIRONMENT
+    displayName: 'Process custom IngressRoute for staf org'
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_OWNER'], 'staf'))
+    inputs:
+      targetType: inline
+      script: |
+        TEMPLATES_DIR="${APP_COMMIT_ID}/deployment/templates"
+
+        # Check if templates directory exists
+        if [ ! -d "$TEMPLATES_DIR" ]; then
+          echo "No templates directory found, skipping custom ingress route processing"
+          echo "##vso[task.setvariable variable=HAS_CUSTOM_INGRESS_ROUTES;]false"
+          exit 0
+        fi
+
+        # Count files in templates directory
+        FILE_COUNT=$(find "$TEMPLATES_DIR" -maxdepth 1 -type f | wc -l | tr -d ' ')
+
+        if [ "$FILE_COUNT" -eq 0 ]; then
+          echo "Templates directory is empty, skipping custom ingress route processing"
+          echo "##vso[task.setvariable variable=HAS_CUSTOM_INGRESS_ROUTES;]false"
+          exit 0
+        elif [ "$FILE_COUNT" -gt 1 ]; then
+          echo "##[error]Templates directory contains more than one file ($FILE_COUNT files). Only a single IngressRoute file is supported."
+          exit 1
+        fi
+
+        # Exactly 1 file - get the file path
+        TEMPLATE_FILE=$(find "$TEMPLATES_DIR" -maxdepth 1 -type f)
+        echo "Found template file: $TEMPLATE_FILE"
+
+        # Check if it's an IngressRoute
+        KIND=$(yq eval '.kind' "$TEMPLATE_FILE")
+        if [ "$KIND" != "IngressRoute" ]; then
+          echo "##[error]Template file is not an IngressRoute (kind: $KIND). Only IngressRoute templates are supported."
+          exit 1
+        fi
+
+        echo "Template file is an IngressRoute, mapping to customIngressRoutes format"
+
+        # Filter out linkerd middleware - it will be auto-injected by the helm chart
+        LINKERD_MIDDLEWARE="${RELEASE_NAME}-deployment"
+
+        # Extract and map to customIngressRoutes array format, filtering out linkerd middleware
+        CUSTOM_ROUTE=$(yq eval '{
+          "name": .metadata.name,
+          "entryPoints": .spec.entryPoints,
+          "routes": [.spec.routes[] | .middlewares = [.middlewares[] | select(.name != "'"${LINKERD_MIDDLEWARE}"'")]]
+        }' "$TEMPLATE_FILE")
+
+        # Wrap in array and write to file for merging later
+        echo "$CUSTOM_ROUTE" | yq eval '[.]' - > "${APP_COMMIT_ID}/custom-ingress-routes.yaml"
+        echo "##vso[task.setvariable variable=HAS_CUSTOM_INGRESS_ROUTES;]true"
+
+        echo "Custom ingress route mapped successfully"
+
+        # Log warning to migrate to values file
+        echo ""
+        echo "##[warning]Custom IngressRoute in templates folder is deprecated. Please migrate to deployment/values.yaml file."
+        echo "##[warning]Add the following to your deployment/values.yaml:"
+        echo ""
+        echo "customIngressRoutes:"
+        cat "${APP_COMMIT_ID}/custom-ingress-routes.yaml"
+        echo ""
+        echo "##[warning]After migrating, remove the templates folder from your repository."
+      failOnStderr: false
+
+  - task: Bash@3
+    displayName: 'Fail if unsupported templates directory exists'
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_OWNER'], 'staf'))
+    inputs:
+      targetType: inline
+      script: |
+        TEMPLATES_DIR="${APP_COMMIT_ID}/deployment/templates"
+
+        # Check if templates directory exists and has files
+        if [ -d "$TEMPLATES_DIR" ]; then
+          FILE_COUNT=$(find "$TEMPLATES_DIR" -maxdepth 1 -type f | wc -l | tr -d ' ')
+          if [ "$FILE_COUNT" -gt 0 ]; then
+            echo "##[error]Templates directory contains $FILE_COUNT file(s). Custom templates are not supported. The altinn-studio deployment helm chart will be used directly."
+            exit 1
+          fi
+        fi
+      failOnStderr: false
+
+  - task: Bash@3
+    displayName: Set environment variables (ALTINN_HOST, RG_NAME) based on APP_ENVIRONMENT
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       targetType: inline
       script: |
@@ -118,6 +267,7 @@ steps:
 
   - task: Bash@3
     displayName: Generate PowerShell script for Application Insights
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       targetType: inline
       script: |
@@ -163,7 +313,7 @@ steps:
 
   - task: AzurePowerShell@4
     displayName: Get application Insights instrumentation key (Production)
-    condition: eq(variables['APP_ENVIRONMENT'], 'production')
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'production'))
     inputs:
       ConnectedServiceNameARM: $(AI_SERVICE_CONNECTION_ID_PROD)
       ScriptType: FilePath
@@ -174,7 +324,7 @@ steps:
 
   - task: AzurePowerShell@4
     displayName: Get application Insights instrumentation key (Non-Production)
-    condition: ne(variables['APP_ENVIRONMENT'], 'production')
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_ENVIRONMENT'], 'production'))
     inputs:
       ConnectedServiceNameARM: $(AI_SERVICE_CONNECTION_ID_TEST)
       ScriptType: FilePath
@@ -185,7 +335,7 @@ steps:
 
   - task: AzurePowerShell@4
     displayName: Ensure API management subscription key - Test
-    condition: "and(succeeded(), ne(variables['APP_ENVIRONMENT'], 'production'), ne(variables['APP_ENVIRONMENT'], 'tt02')) "
+    condition: "and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_ENVIRONMENT'], 'production'), ne(variables['APP_ENVIRONMENT'], 'tt02'))"
     inputs:
       ConnectedServiceNameARM: fa66913f-0df2-411a-89b7-9248e463423d
       ScriptType: InlineScript
@@ -246,7 +396,7 @@ steps:
 
   - task: AzurePowerShell@4
     displayName: Ensure API management subscription key - Staging
-    condition: "and(succeeded(), eq(variables['APP_ENVIRONMENT'], 'tt02')) "
+    condition: "and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'tt02'))"
     inputs:
       ConnectedServiceNameARM: a00b78e7-d6bd-414a-abec-aaae2be043bc
       ScriptType: InlineScript
@@ -308,7 +458,7 @@ steps:
 
   - task: AzurePowerShell@4
     displayName: Ensure API management subscription key - Production
-    condition: "and(succeeded(), eq(variables['APP_ENVIRONMENT'], 'production')) "
+    condition: "and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'production'))"
     inputs:
       ConnectedServiceNameARM: 09d70185-733d-4973-8dfa-c4be37a8ac3a
       ScriptType: InlineScript
@@ -346,6 +496,7 @@ steps:
 
   - task: Bash@3
     displayName: Create flux artifact directory
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       targetType: inline
       script: |
@@ -353,19 +504,26 @@ steps:
 
   - task: Bash@3
     displayName: 'Generate helmrelease template file without values'
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
       script: |
         # Generate HelmRelease template
+        # Name format: {org}-{app}-{studio-env} to allow parsing when HelmRelease is deleted (for uninstall events)
+        HELMRELEASE_NAME="${RELEASE_NAME}-${STUDIO_ENVIRONMENT}"
         cat << EOF > "${HELMRELEASE_FILE}"
         apiVersion: helm.toolkit.fluxcd.io/v2beta1
         kind: HelmRelease
         metadata:
-          name: ${RELEASE_NAME}
+          name: ${HELMRELEASE_NAME}
           namespace: default
           labels:
             altinn.studio/managed-by: altinn-studio
+            altinn.studio/source-environment: ${STUDIO_ENVIRONMENT}
+            altinn.studio/build-id: "${BUILD_BUILDID}"
+            altinn.studio/org: ${APP_OWNER}
+            altinn.studio/app: ${APP_REPO}
         spec:
           releaseName: ${RELEASE_NAME}
           targetNamespace: default
@@ -378,7 +536,7 @@ steps:
               retries: 1
           chart:
             spec:
-              version: 3.2.0
+              version: 3.8.0
               chart: deployment
               sourceRef:
                 kind: HelmRepository
@@ -390,6 +548,7 @@ steps:
 
   - task: Bash@3
     displayName: Generate overrides file.
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
@@ -433,8 +592,6 @@ steps:
               value: ${BASE_URL}/notifications/api/v1/
             - name: GeneralSettings__HostName
               value: ${HOST_NAME}
-            - name: PlatformSettings__ApiPdfEndpoint
-              value: ${BASE_URL}/pdf/api/v1/
             - name: AppSettings__OpenIdWellKnownEndpoint
               value: ${BASE_URL}/authentication/api/v1/openid/
             - name: PlatformSettings__SubscriptionKey
@@ -489,6 +646,7 @@ steps:
 
   - task: Bash@3
     displayName: 'Generate final helmrelease with merged values from values and overrides file'
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
@@ -517,6 +675,13 @@ steps:
           "${NORMALIZED_VALUES}" \
           "${OVERRIDES_FILE}" > "${MERGED_VALUES}"
 
+        # --- Merge custom ingress routes if available (staf org only) ---
+        CUSTOM_INGRESS_FILE="../${APP_COMMIT_ID}/custom-ingress-routes.yaml"
+        if [[ "${HAS_CUSTOM_INGRESS_ROUTES}" == "true" ]] && [[ -f "${CUSTOM_INGRESS_FILE}" ]]; then
+          echo "Merging custom ingress routes into values"
+          yq eval ".customIngressRoutes = load(\"${CUSTOM_INGRESS_FILE}\")" --inplace "${MERGED_VALUES}"
+        fi
+
         # --- Inject merged values into helmrelease.yaml ---
         yq eval '.spec.values = load("'"${MERGED_VALUES}"'")' --inplace "${HELMRELEASE_FILE}"
 
@@ -525,6 +690,7 @@ steps:
 
   - task: AzureCLI@2
     displayName: 'Push OCI artifact to ACR'
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       azureSubscription: 'altinn-studio-apps-deploy'
       scriptType: bash
@@ -550,30 +716,13 @@ steps:
 
   - task: AzureCLI@2
     displayName: 'Push sync-root OCI artifact to ACR'
-    condition: eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true')
+    condition: and(succeeded(), eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true'))
     inputs:
       azureSubscription: 'altinn-studio-apps-deploy'
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
         ACR_NAME="${APP_OWNER}altinnregistry01"
-
-        # Determine studio environment from ALTINN_STUDIO_HOSTNAME
-        case "$ALTINN_STUDIO_HOSTNAME" in
-          "dev.altinn.studio")
-            STUDIO_ENVIRONMENT="dev"
-            ;;
-          "staging.altinn.studio")
-            STUDIO_ENVIRONMENT="staging"
-            ;;
-          "altinn.studio")
-            STUDIO_ENVIRONMENT="prod"
-            ;;
-          *)
-            echo "Unknown ALTINN_STUDIO_HOSTNAME: $ALTINN_STUDIO_HOSTNAME"
-            exit 1
-            ;;
-        esac
 
         # Create temporary directory for sync-root content (only YAML files)
         SYNC_ROOT_DIR="$(pwd)/sync-root-temp"

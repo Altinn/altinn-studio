@@ -4,6 +4,8 @@ import type { SetURLSearchParams } from 'react-router-dom';
 
 import classNames from 'classnames';
 
+import { FatalError } from 'src/app-components/error/FatalError/FatalError';
+import { FatalErrorEmpty } from 'src/app-components/error/FatalErrorEmpty/FatalErrorEmpty';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { SearchParams } from 'src/core/routing/types';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
@@ -190,11 +192,11 @@ const gridToClasses = (labelGrid: IGridStyling | undefined, classes: { [key: str
 
 export function ComponentErrorList({ baseComponentId, errors }: { baseComponentId: string; errors: string[] }) {
   if (!isDev()) {
-    return null;
+    return <FatalErrorEmpty />;
   }
 
   return (
-    <div className={classes.errorFallback}>
+    <FatalError className={classes.errorFallback}>
       <h3>
         <Lang
           id='config_error.component_has_errors'
@@ -209,7 +211,7 @@ export function ComponentErrorList({ baseComponentId, errors }: { baseComponentI
       <p>
         <Lang id='config_error.component_has_errors_after' />
       </p>
-    </div>
+    </FatalError>
   );
 }
 
@@ -219,7 +221,7 @@ function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObjec
   const errorBinding = searchParams.get(SearchParams.FocusErrorBinding);
 
   const abortController = useRef(new AbortController());
-  const hashWas = window.location.hash;
+  const pathnameWas = window.location.pathname;
   const isNavigating = useIsNavigating();
   const shouldFocus = indexedId && indexedId == nodeId && !isNavigating;
 
@@ -236,8 +238,8 @@ function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObjec
           field.focus();
         }
       } finally {
-        if (!abortController.current.signal.aborted && hashWas === window.location.hash) {
-          // Only cleanup when hash is the same as what it was during render. Navigation might have occurred, especially
+        if (!abortController.current.signal.aborted && pathnameWas === window.location.pathname) {
+          // Only cleanup when pathname is the same as what it was during render. Navigation might have occurred, especially
           // in Cypress tests where state changes will happen rapidly. These search params are cleaned up in
           // useNavigatePage() automatically, so it shouldn't be a problem if the page has been changed. If something
           // else happens, we'll re-render and get a new chance to clean up later.
@@ -245,7 +247,7 @@ function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObjec
         }
       }
     }
-  }, [containerDivRef, errorBinding, hashWas, nodeId, searchParams, setSearchParams, shouldFocus]);
+  }, [containerDivRef, errorBinding, pathnameWas, nodeId, searchParams, setSearchParams, shouldFocus]);
 
   useEffect(
     () => () => {
@@ -273,7 +275,7 @@ function findElementToFocus(div: HTMLDivElement | null, binding: string | null) 
 
   if (targetHtmlElements?.length > 0) {
     const elementWithBinding = binding
-      ? Array.from(targetHtmlElements).find((htmlElement) => htmlElement && htmlElement.dataset.bindingkey === binding)
+      ? Array.from(targetHtmlElements).find((htmlElement) => htmlElement?.dataset.bindingkey === binding)
       : undefined;
 
     return elementWithBinding ?? targetHtmlElements[0];

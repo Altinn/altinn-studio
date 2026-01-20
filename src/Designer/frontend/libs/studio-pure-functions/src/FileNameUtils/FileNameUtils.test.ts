@@ -67,6 +67,16 @@ describe('FileNameUtils', () => {
     });
   });
 
+  describe('extractExtension', () => {
+    it('Returns the substring after the last dot in the filepath', () => {
+      expect(FileNameUtils.extractExtension('path/to/filename.json')).toEqual('json');
+      expect(FileNameUtils.extractExtension('path/to/my.file.name.json')).toEqual('json');
+    });
+    it('Returns the path if there is no dot', () => {
+      expect(FileNameUtils.extractExtension('path/to/filename')).toEqual('path/to/filename');
+    });
+  });
+
   describe('removeFileNameFromPath', () => {
     it('Returns file path without file name', () => {
       expect(FileNameUtils.removeFileNameFromPath('/path/to/filename')).toEqual('/path/to/');

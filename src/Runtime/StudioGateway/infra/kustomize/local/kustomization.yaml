@@ -1,0 +1,43 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+patchesStrategicMerge:
+  - secret.yaml
+patches:
+  # Set local image and pull policy, and configure fake OIDC
+  - target:
+      kind: Deployment
+      name: studio-gateway
+    patch: |-
+      - op: replace
+        path: /metadata/annotations/altinn.studio~1image
+        value: "localhost:5001/studio-gateway:latest"
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: "localhost:5001/studio-gateway:latest"
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: "Always"
+      - op: replace
+        path: /spec/replicas
+        value: 1
+  # Delete PDB for local (single replica)
+  - patch: |-
+      $patch: delete
+      apiVersion: policy/v1
+      kind: PodDisruptionBudget
+      metadata:
+        name: studio-gateway-pdb
+  # Update ingress for local traefik
+  - target:
+      kind: IngressRoute
+      name: studio-gateway
+    patch: |-
+      - op: replace
+        path: /spec/entryPoints
+        value:
+          - traefik
+      - op: replace
+        path: /spec/routes/0/match
+        value: PathPrefix(`/runtime/gateway/api/v1`)

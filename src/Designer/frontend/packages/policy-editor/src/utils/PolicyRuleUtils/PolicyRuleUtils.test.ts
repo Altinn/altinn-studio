@@ -1,8 +1,10 @@
 import {
   getUpdatedRules,
-  getSubjectOptions,
   getActionOptions,
   getPolicyRuleIdString,
+  getCcrSubjects,
+  getAltinnSubjects,
+  getOtherSubjects,
 } from './index';
 import {
   mockActionId1,
@@ -17,12 +19,7 @@ import {
   mockPolicyRuleCards,
   mockRuleId1,
 } from '../../../test/mocks/policyRuleMocks';
-import {
-  mockSubjects,
-  mockSubjectId1,
-  mockSubjectId2,
-  mockSubjectId3,
-} from '../../../test/mocks/policySubjectMocks';
+import { policySubjectOrg } from '..';
 
 describe('PolicyRuleUtils', () => {
   describe('getUpdatedRules', () => {
@@ -44,35 +41,6 @@ describe('PolicyRuleUtils', () => {
 
       expect(updatedRules.length).toBe(2);
       expect(updatedRules[0].description).toBe(mockPolicyRuleCard1.description);
-    });
-  });
-
-  describe('getSubjectOptions', () => {
-    it('should return subject options not included in the policy rule', () => {
-      const subjectOptions = getSubjectOptions(mockSubjects, mockPolicyRuleCard1);
-
-      expect(subjectOptions).toHaveLength(1); // Subject 1 and subject 3 are removed
-      expect(subjectOptions.map((s) => s.value)).toEqual([mockSubjectId2]); // 2 not in the rule
-    });
-
-    it('should return all subject options if none are included in the policy rule', () => {
-      const subjectOptions = getSubjectOptions(mockSubjects, mockPolicyRuleCard2);
-
-      expect(subjectOptions.length).toBe(3);
-      expect(subjectOptions.map((s) => s.value)).toEqual([
-        mockSubjectId1,
-        mockSubjectId2,
-        mockSubjectId3,
-      ]);
-    });
-
-    it('should return an empty array if all subjects are included in the policy rule', () => {
-      const subjectOptions = getSubjectOptions(mockSubjects, {
-        ...mockPolicyRuleCard1,
-        subject: [mockSubjectId1, mockSubjectId2, mockSubjectId3],
-      });
-
-      expect(subjectOptions).toHaveLength(0);
     });
   });
 
@@ -110,7 +78,92 @@ describe('PolicyRuleUtils', () => {
     it('should return the string representation of the rule ID', () => {
       const ruleIdString = getPolicyRuleIdString(mockPolicyRuleCard1);
 
-      expect(ruleIdString).toBe(mockRuleId1);
+      expect(ruleIdString).toBe(mockRuleId1.split(':').pop());
+    });
+  });
+
+  const testSubjects = [
+    {
+      id: '2651ed07-f31b-4bc1-87bd-4d270742a19d',
+      name: 'Innehaver',
+      description: 'Fysisk person som er eier av et enkeltpersonforetak',
+      urn: 'urn:altinn:external-role:ccr:innehaver',
+      legacyRoleCode: 'INNH',
+      legacyUrn: 'urn:altinn:rolecode:INNH',
+      provider: {
+        id: '0195ea92-2080-758b-89db-7735c4f68320',
+        name: 'Enhetsregisteret',
+        code: 'sys-ccr',
+      },
+    },
+    {
+      id: '3c99647d-10b5-447e-9f0b-7bef1c7880f7',
+      name: 'Samferdsel',
+      description:
+        'Rollen gir rettighet til tjenester relatert til samferdsel. For eksempel tjenester fra Statens Vegvesen, Sjøfartsdirektoratet og Luftfartstilsynet. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som rolen gir.',
+      urn: 'urn:altinn:rolecode:UILUF',
+      legacyRoleCode: 'UILUF',
+      legacyUrn: 'urn:altinn:rolecode:UILUF',
+      provider: {
+        id: '0195ea92-2080-777d-8626-69c91ea2a05d',
+        name: 'Altinn 2',
+        code: 'sys-altinn2',
+      },
+    },
+    {
+      id: '1c6eeec1-fe70-4fc5-8b45-df4a2255dea6',
+      name: 'Privatperson',
+      description:
+        'Denne rollen er hentet fra Folkeregisteret og gir rettighet til flere tjenester.',
+      urn: 'urn:altinn:role:privatperson',
+      legacyRoleCode: 'PRIV',
+      legacyUrn: 'urn:altinn:rolecode:PRIV',
+      provider: {
+        id: '0195ea92-2080-777d-8626-69c91ea2a05d',
+        name: 'Altinn 2',
+        code: 'sys-altinn2',
+      },
+    },
+    {
+      id: 'e16ab886-1e1e-4f45-8f79-46f06f720f3e',
+      name: 'Selvregistrert bruker',
+      description: 'Selvregistrert bruker',
+      urn: 'urn:altinn:role:selvregistrert',
+      legacyRoleCode: 'SELN',
+      legacyUrn: 'urn:altinn:rolecode:SELN',
+      provider: {
+        id: '0195ea92-2080-777d-8626-69c91ea2a05d',
+        name: 'Altinn 2',
+        code: 'sys-altinn2',
+      },
+    },
+    policySubjectOrg,
+  ];
+  describe('getCcrSubjects', () => {
+    it('should return ccr subjects', () => {
+      const ccrSubjects = getCcrSubjects(testSubjects);
+
+      expect(ccrSubjects.map((x) => x.legacyUrn)).toEqual(['urn:altinn:rolecode:INNH']);
+    });
+  });
+
+  describe('getAltinnSubjects', () => {
+    it('should return ccr subjects', () => {
+      const ccrSubjects = getAltinnSubjects(testSubjects);
+
+      expect(ccrSubjects.map((x) => x.legacyUrn)).toEqual(['urn:altinn:rolecode:UILUF']);
+    });
+  });
+
+  describe('getOtherSubjects', () => {
+    it('should return ccr subjects', () => {
+      const ccrSubjects = getOtherSubjects(testSubjects);
+
+      expect(ccrSubjects.map((x) => x.legacyUrn)).toEqual([
+        'urn:altinn:rolecode:PRIV',
+        'urn:altinn:rolecode:SELN',
+        policySubjectOrg.urn,
+      ]);
     });
   });
 });

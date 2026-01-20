@@ -34,7 +34,12 @@ public sealed class DataElementChanges
 /// </summary>
 public abstract class DataElementChange
 {
-    internal DataElementChange(ChangeType type, DataType dataType, string contentType, DataElement? dataElement = null)
+    private protected DataElementChange(
+        ChangeType type,
+        DataType dataType,
+        string contentType,
+        DataElement? dataElement = null
+    )
     {
         Type = type;
         DataElement = dataElement;
@@ -177,7 +182,7 @@ public sealed class FormDataChange : DataElementChange
     /// is still valid for editing, and the binary data can't keep up with the
     /// changes
     ///
-    /// Availible during validation, because then the data should not be
+    /// Available during validation, because then the data should not be
     /// changed, and it is used for storing and for verification that validators
     /// does not mutate the data.
     ///

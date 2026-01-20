@@ -1,45 +1,41 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import { AppContentLibrary } from './AppContentLibrary';
+import AppContentLibrary from './AppContentLibrary';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../test/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import type {
-  CodeListData,
+  CodeListDataWithTextResources,
   CodeListWithMetadata,
   ContentLibraryConfig,
   PagesConfig,
-  ResourceContentLibraryImpl,
   TextResourceWithLanguage,
 } from '@studio/content-library';
+import { PageName } from '@studio/content-library';
 import { optionList1Data, optionListDataList } from './test-data/optionListDataList';
 import { label1ResourceNb, textResources } from './test-data/textResources';
 import type { ITextResourcesObjectFormat } from 'app-shared/types/global';
 import { codeListTitles } from './test-data/codeListTitles';
+import { RoutePaths } from '../../enums/RoutePaths';
 
 // Mocks:
 jest.mock('@studio/content-library', () => ({
   ...jest.requireActual('@studio/content-library'),
-  ResourceContentLibraryImpl: mockContentLibrary,
+  ContentLibrary: (props) => MockContentLibrary(props),
 }));
 
-function mockContentLibrary(
-  ...args: ConstructorParameters<typeof ResourceContentLibraryImpl>
-): Partial<ResourceContentLibraryImpl> {
-  mockConstructor(...args);
-  return { getContentResourceLibrary };
-}
-
-const mockConstructor = jest.fn();
-const getContentResourceLibrary = jest
+const MockContentLibrary = jest
   .fn()
   .mockImplementation(() => <div data-testid={resourceLibraryTestId} />);
 const resourceLibraryTestId = 'resource-library';
+
+// Test data:
+const org = 'test-org';
+const app = 'test-app';
 
 describe('AppContentLibrary', () => {
   afterEach(jest.clearAllMocks);
@@ -47,6 +43,16 @@ describe('AppContentLibrary', () => {
   it('Renders the content library', async () => {
     renderAppContentLibraryWithData();
     expect(screen.getByTestId(resourceLibraryTestId)).toBeInTheDocument();
+  });
+
+  it('Renders the library with the landing page by default', async () => {
+    renderAppContentLibraryWithData();
+    expect(retrieveConfig().router.location).toBe(PageName.LandingPage);
+  });
+
+  it('Renders the library with the element type page given by the URL', async () => {
+    renderAppContentLibraryWithData({ libraryPath: PageName.CodeLists });
+    expect(retrieveConfig().router.location).toBe(PageName.CodeLists);
   });
 
   it('renders a spinner when waiting for option lists', () => {
@@ -77,22 +83,20 @@ describe('AppContentLibrary', () => {
 
   it('Renders with the given code lists', () => {
     renderAppContentLibraryWithData();
-    const codeListDataList =
-      retrievePagesConfig().codeListsWithTextResources.props.codeListDataList;
-    const expectedData: CodeListData[] = optionListDataList;
+    const codeListDataList = retrievePagesConfig().codeListsWithTextResources.codeListDataList;
+    const expectedData: CodeListDataWithTextResources[] = optionListDataList;
     expect(codeListDataList).toEqual(expectedData);
   });
 
   it('Renders with the given text resources', () => {
     renderAppContentLibraryWithData();
-    const textResourcesData = retrievePagesConfig().codeListsWithTextResources.props.textResources;
+    const textResourcesData = retrievePagesConfig().codeListsWithTextResources.textResources;
     expect(textResourcesData).toEqual(textResources);
   });
 
   it('Renders with the given code list titles', () => {
     renderAppContentLibraryWithData();
-    const codeListTitlesData =
-      retrievePagesConfig().codeListsWithTextResources.props.externalResources;
+    const codeListTitlesData = retrievePagesConfig().codeListsWithTextResources.externalResources;
     expect(codeListTitlesData).toEqual(codeListTitles);
   });
 
@@ -101,7 +105,7 @@ describe('AppContentLibrary', () => {
     const file = new File([''], 'list.json');
     renderAppContentLibraryWithData({ queries: { uploadOptionList } });
 
-    retrievePagesConfig().codeListsWithTextResources.props.onUploadCodeList(file);
+    retrievePagesConfig().codeListsWithTextResources.onUploadCodeList(file);
     await waitFor(expect(uploadOptionList).toHaveBeenCalled);
 
     expect(uploadOptionList).toHaveBeenCalledTimes(1);
@@ -114,7 +118,7 @@ describe('AppContentLibrary', () => {
     renderAppContentLibraryWithData();
     const file = new File([''], 'list.json');
 
-    retrievePagesConfig().codeListsWithTextResources.props.onUploadCodeList(file);
+    retrievePagesConfig().codeListsWithTextResources.onUploadCodeList(file);
     await waitFor(expect(queriesMock.uploadOptionList).toHaveBeenCalled);
 
     const successMessage = textMock('ux_editor.modal_properties_code_list_upload_success');
@@ -126,7 +130,7 @@ describe('AppContentLibrary', () => {
     const file = new File([''], 'list.json');
     renderAppContentLibraryWithData({ queries: { uploadOptionList } });
 
-    retrievePagesConfig().codeListsWithTextResources.props.onUploadCodeList(file);
+    retrievePagesConfig().codeListsWithTextResources.onUploadCodeList(file);
     await waitFor(expect(uploadOptionList).toHaveBeenCalled);
 
     const errorMessage = textMock('ux_editor.modal_properties_code_list_upload_generic_error');
@@ -138,7 +142,7 @@ describe('AppContentLibrary', () => {
     const codeListWithMetadata: CodeListWithMetadata = { title, codeList };
     renderAppContentLibraryWithData();
 
-    retrievePagesConfig().codeListsWithTextResources.props.onUpdateCodeList(codeListWithMetadata);
+    retrievePagesConfig().codeListsWithTextResources.onUpdateCodeList(codeListWithMetadata);
     await waitFor(expect(queriesMock.updateOptionList).toHaveBeenCalled);
 
     expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
@@ -150,7 +154,7 @@ describe('AppContentLibrary', () => {
     const newName = 'newName';
     renderAppContentLibraryWithData();
 
-    retrievePagesConfig().codeListsWithTextResources.props.onUpdateCodeListId(currentName, newName);
+    retrievePagesConfig().codeListsWithTextResources.onUpdateCodeListId(currentName, newName);
     await waitFor(expect(queriesMock.updateOptionListId).toHaveBeenCalled);
 
     expect(queriesMock.updateOptionListId).toHaveBeenCalledTimes(1);
@@ -162,7 +166,7 @@ describe('AppContentLibrary', () => {
     const newCodeList: CodeListWithMetadata = { title, codeList };
     renderAppContentLibraryWithData();
 
-    retrievePagesConfig().codeListsWithTextResources.props.onCreateCodeList(newCodeList);
+    retrievePagesConfig().codeListsWithTextResources.onCreateCodeList(newCodeList);
     await waitFor(expect(queriesMock.updateOptionList).toHaveBeenCalled);
 
     expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
@@ -172,7 +176,7 @@ describe('AppContentLibrary', () => {
   it('calls deleteOptionList with correct data when onDeleteCodeList is triggered', async () => {
     renderAppContentLibraryWithData();
 
-    retrievePagesConfig().codeListsWithTextResources.props.onDeleteCodeList(optionList1Data.title);
+    retrievePagesConfig().codeListsWithTextResources.onDeleteCodeList(optionList1Data.title);
     await waitFor(expect(queriesMock.deleteOptionList).toHaveBeenCalled);
 
     expect(queriesMock.deleteOptionList).toHaveBeenCalledTimes(1);
@@ -185,9 +189,7 @@ describe('AppContentLibrary', () => {
     const textResourceWithLanguage: TextResourceWithLanguage = { language, textResource };
     renderAppContentLibraryWithData();
 
-    retrievePagesConfig().codeListsWithTextResources.props.onUpdateTextResource(
-      textResourceWithLanguage,
-    );
+    retrievePagesConfig().codeListsWithTextResources.onUpdateTextResource(textResourceWithLanguage);
     await waitFor(expect(queriesMock.upsertTextResources).toHaveBeenCalled);
 
     expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
@@ -206,7 +208,7 @@ describe('AppContentLibrary', () => {
     const codeListId = 'codeListId';
     renderAppContentLibraryWithData();
 
-    retrievePagesConfig().codeListsWithTextResources.props.onImportCodeListFromOrg(codeListId);
+    retrievePagesConfig().codeListsWithTextResources.onImportCodeListFromOrg(codeListId);
     await waitFor(expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalled);
 
     expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalledTimes(1);
@@ -222,13 +224,17 @@ describe('AppContentLibrary', () => {
 type RenderAppContentLibraryProps = {
   queries?: Partial<ServicesContextProps>;
   queryClient?: QueryClient;
+  libraryPath?: string;
 };
 
 const renderAppContentLibrary = ({
   queries = {},
   queryClient = createQueryClientMock(),
+  libraryPath = '',
 }: RenderAppContentLibraryProps = {}): void => {
-  renderWithProviders(queries, queryClient)(<AppContentLibrary />);
+  const path = `/${org}/${app}/${RoutePaths.ContentLibrary}/${libraryPath}`;
+  const pathTemplate = `/:org/:app/${RoutePaths.ContentLibrary}/:elementType?`;
+  renderWithProviders(queries, queryClient, {}, path, pathTemplate)(<AppContentLibrary />);
 };
 
 function renderAppContentLibraryWithData(
@@ -252,5 +258,5 @@ function retrievePagesConfig(): PagesConfig {
 }
 
 function retrieveConfig(): ContentLibraryConfig {
-  return mockConstructor.mock.calls[0][0];
+  return MockContentLibrary.mock.calls[0][0];
 }

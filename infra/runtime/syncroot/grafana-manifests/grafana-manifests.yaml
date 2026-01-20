@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: runtime-grafana
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: grafana-manifests-repo
+  namespace: runtime-grafana
+spec:
+  interval: 5m
+  provider: azure
+  ref:
+    tag: ${UPGRADE_CHANNEL}
+  timeout: 5m
+  url: oci://altinncr.azurecr.io/studio-apps/runtime-grafana-manifests-repo
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: grafana-manifests
+  namespace: runtime-grafana
+spec:
+  targetNamespace: grafana
+  interval: 5m
+  retryInterval: 5m
+  timeout: 1m
+  prune: true
+  force: false
+  wait: true
+  path: ./
+  sourceRef:
+    kind: OCIRepository
+    name: grafana-manifests-repo
+    namespace: runtime-grafana
+  postBuild:
+    substitute:
+      AZURE_SUBSCRIPTION_ID: ${AZURE_SUBSCRIPTION_ID}
+      ENVIRONMENT: ${ENVIRONMENT}
+      SERVICEOWNER_ID: ${SERVICEOWNER_ID}
+      GATEWAY_URL: "https://${SERVICEOWNER_ID}.apps.tt02.altinn.no/runtime/gateway/api/v1"

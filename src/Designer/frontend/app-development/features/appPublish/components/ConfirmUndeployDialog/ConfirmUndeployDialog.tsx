@@ -1,7 +1,14 @@
 import type { ReactElement } from 'react';
 import React, { useRef, useState } from 'react';
-import { StudioModal, StudioTextfield, StudioAlert } from '@studio/components-legacy';
-import { StudioButton, StudioParagraph, StudioLink } from '@studio/components';
+import {
+  StudioButton,
+  StudioParagraph,
+  StudioLink,
+  StudioDialog,
+  StudioHeading,
+  StudioTextfield,
+  StudioAlert,
+} from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import classes from './ConfirmUndeployDialog.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -47,11 +54,12 @@ export const ConfirmUndeployDialog = ({
       <StudioButton onClick={openDialog} variant='primary'>
         {t('app_deployment.undeploy_button')}
       </StudioButton>
-      <StudioModal.Dialog
-        closeButtonTitle={t('sync_header.close_local_changes_button')}
-        heading={t('app_deployment.undeploy_confirmation_dialog_title')}
-        ref={dialogRef}
-      >
+      <StudioDialog ref={dialogRef}>
+        <StudioDialog.Block>
+          <StudioHeading level={2}>
+            {t('app_deployment.undeploy_confirmation_dialog_title')}
+          </StudioHeading>
+        </StudioDialog.Block>
         <StudioParagraph spacing>
           {t('app_deployment.undeploy_confirmation_dialog_description')}
         </StudioParagraph>
@@ -63,7 +71,7 @@ export const ConfirmUndeployDialog = ({
           onChange={onAppNameInputChange}
         />
         {undeployError && (
-          <StudioAlert severity='danger' className={classes.errorContainer}>
+          <StudioAlert className={classes.errorContainer}>
             <StudioParagraph>
               <Trans
                 i18nKey={'app_deployment.error_unknown.message'}
@@ -82,7 +90,7 @@ export const ConfirmUndeployDialog = ({
         >
           {t('app_deployment.undeploy_confirmation_button')}
         </StudioButton>
-      </StudioModal.Dialog>
+      </StudioDialog>
     </>
   );
 };

@@ -1,0 +1,202 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaAlertRuleGroup
+metadata:
+  name: external-grafana-altinn-apps
+spec:
+  name: Exceptions
+  folderRef: external-grafana-altinn
+  instanceSelector:
+    matchLabels:
+      dashboards: external-grafana
+  interval: 5m
+  rules:
+    - uid: failed_process_next_requests
+      title: Failed process/next requests
+      condition: C
+      data:
+        - refId: A
+          queryType: Azure Log Analytics
+          relativeTimeRange:
+            from: 300
+            to: 0
+          datasourceUid: azure-monitor-oob
+          model:
+            azureLogAnalytics:
+                dashboardTime: true
+                query: |-
+                    requests
+                    | where $__timeFilter(timestamp)
+                    | where success == false
+                    | where toint(resultCode) >= 500
+                    | where operation_Name == 'PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]'
+                        or operation_Name == 'PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next'
+                    | summarize occurred = iff(count() > 0, 1, 0) by cloud_RoleName
+                resources:
+                    - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
+                resultFormat: time_series
+                timeColumn: timestamp
+                workspace: ""
+            datasource:
+                type: grafana-azure-monitor-datasource
+                uid: azure-monitor-oob
+            instant: false
+            intervalMs: 1000
+            maxDataPoints: 43200
+            queryType: Azure Log Analytics
+            range: true
+            refId: A
+        - refId: B
+          datasourceUid: __expr__
+          model:
+            conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                        - B
+                  reducer:
+                    params: []
+                    type: count
+                  type: query
+            datasource:
+                type: __expr__
+                uid: __expr__
+            expression: A
+            intervalMs: 1000
+            maxDataPoints: 43200
+            reducer: count
+            refId: B
+            type: reduce
+        - refId: C
+          datasourceUid: __expr__
+          model:
+            conditions:
+                - evaluator:
+                    params:
+                        - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                        - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+            datasource:
+                type: __expr__
+                uid: __expr__
+            expression: B
+            intervalMs: 1000
+            maxDataPoints: 43200
+            refId: C
+            type: threshold
+      noDataState: OK
+      execErrState: Error
+      annotations:
+        __dashboardUid__: AltinnApps
+        __panelId__: "14"
+      labels:
+        RuleId: failed_process_next_requests
+        Type: Altinn
+      isPaused: false
+    - uid: failed-instance-creation-requests
+      title: Failed instance creation requests
+      condition: C
+      data:
+        - refId: A
+          queryType: Azure Log Analytics
+          relativeTimeRange:
+            from: 300
+            to: 0
+          datasourceUid: azure-monitor-oob
+          model:
+            azureLogAnalytics:
+                dashboardTime: true
+                query: |-
+                    requests
+                    | where $__timeFilter(timestamp)
+                    | where success == false
+                    | where toint(resultCode) >= 500
+                    | where operation_Name == 'POST Instances/Post [app/org]'
+                        or operation_Name == 'POST Instances/PostSimplified [app/org]'
+                        or operation_Name == 'POST {org}/{app}/instances'
+                        or operation_Name == 'POST {org}/{app}/instances/create'
+                    | summarize occurred = iff(count() > 0, 1, 0) by cloud_RoleName
+                resources:
+                    - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
+                resultFormat: time_series
+                timeColumn: timestamp
+                workspace: ""
+            datasource:
+                type: grafana-azure-monitor-datasource
+                uid: azure-monitor-oob
+            instant: false
+            intervalMs: 1000
+            maxDataPoints: 43200
+            queryType: Azure Log Analytics
+            range: true
+            refId: A
+        - refId: B
+          datasourceUid: __expr__
+          model:
+            conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                        - B
+                  reducer:
+                    params: []
+                    type: count
+                  type: query
+            datasource:
+                type: __expr__
+                uid: __expr__
+            expression: A
+            intervalMs: 1000
+            maxDataPoints: 43200
+            reducer: count
+            refId: B
+            type: reduce
+        - refId: C
+          datasourceUid: __expr__
+          model:
+            conditions:
+                - evaluator:
+                    params:
+                        - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                        - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+            datasource:
+                type: __expr__
+                uid: __expr__
+            expression: B
+            intervalMs: 1000
+            maxDataPoints: 43200
+            refId: C
+            type: threshold
+      noDataState: OK
+      execErrState: Error
+      annotations:
+        __dashboardUid__: AltinnApps
+        __panelId__: "14"
+      labels:
+        RuleId: failed_instance_creation_requests
+        Type: Altinn
+      isPaused: false

@@ -13,14 +13,14 @@ import { jestPreviewConfigure } from 'jest-preview';
 import { TextDecoder, TextEncoder } from 'util';
 import type { AxiosResponse } from 'axios';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 // Importing CSS for jest-preview to look nicer
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import type {
   doProcessNext,
-  fetchApplicationMetadata,
+  doUpdateAttachmentTags,
   fetchInstanceData,
   fetchProcessState,
   fetchUserProfile,
@@ -113,13 +113,20 @@ testingLibraryConfigure({
   asyncUtilTimeout: env.parsed?.WAITFOR_TIMEOUT ? parseInt(env.parsed.WAITFOR_TIMEOUT, 10) : 15000,
 });
 
+jest.mock('src/features/applicationMetadata', () => ({
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  ...jest.requireActual<typeof import('src/features/applicationMetadata')>('src/features/applicationMetadata'),
+  getApplicationMetadata: jest.fn(() => getApplicationMetadataMock()),
+  useIsStateless: jest.fn(() => false),
+}));
+
 jest.mock('src/queries/queries', () => ({
   ...jest.requireActual<AppQueries>('src/queries/queries'),
-  fetchApplicationMetadata: jest
-    .fn<typeof fetchApplicationMetadata>()
-    .mockImplementation(async () => getIncomingApplicationMetadataMock()),
   fetchProcessState: jest.fn<typeof fetchProcessState>(async () => getProcessDataMock()),
   doProcessNext: jest.fn<typeof doProcessNext>(async () => ({ data: getProcessDataMock() }) as AxiosResponse<IProcess>),
   fetchUserProfile: jest.fn<typeof fetchUserProfile>(async () => getProfileMock()),
   fetchInstanceData: jest.fn<typeof fetchInstanceData>(async () => getInstanceDataMock()),
+  doUpdateAttachmentTags: jest.fn<typeof doUpdateAttachmentTags>(async ({ setTagsRequest }) => ({
+    tags: setTagsRequest.tags,
+  })),
 }));

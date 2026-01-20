@@ -26,7 +26,7 @@ func TestNew_CreatesRequiredFiles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cachePath := filepath.Join(t.TempDir(), ".cache")
 
-			runtime, err := New(tt.variant, cachePath)
+			runtime, err := New(tt.variant, cachePath, DefaultOptions())
 			if err != nil {
 				t.Fatalf("New() error = %v", err)
 			}
@@ -43,29 +43,9 @@ func TestNew_CreatesRequiredFiles(t *testing.T) {
 				t.Errorf("cachePath is not a directory")
 			}
 
-			// Verify kind config file was created
-			if info, err := os.Stat(runtime.configPath); err != nil {
-				t.Errorf("kind config was not created at %s: %v", runtime.configPath, err)
-			} else if info.IsDir() {
-				t.Errorf("kind config path is a directory, expected a file")
-			}
-
-			// Verify certs directory was created
-			if info, err := os.Stat(runtime.certsPath); err != nil {
-				t.Errorf("certs directory was not created at %s: %v", runtime.certsPath, err)
-			} else if !info.IsDir() {
-				t.Errorf("certs path is not a directory")
-			}
-
-			// Verify all certificate files were created
-			expectedCerts := []string{"ca.crt", "ca.key", "issuer.crt", "issuer.key"}
-			for _, certFile := range expectedCerts {
-				certPath := filepath.Join(runtime.certsPath, certFile)
-				if info, err := os.Stat(certPath); err != nil {
-					t.Errorf("certificate file %s was not created: %v", certFile, err)
-				} else if info.IsDir() {
-					t.Errorf("certificate file %s is a directory, expected a file", certFile)
-				}
+			// Verify kind config was created in memory
+			if runtime.kindConfig == nil {
+				t.Error("kindConfig was not created")
 			}
 		})
 	}
@@ -73,33 +53,25 @@ func TestNew_CreatesRequiredFiles(t *testing.T) {
 
 func TestNew_KindConfigContent(t *testing.T) {
 	tests := []struct {
-		name            string
-		variant         KindContainerRuntimeVariant
-		expectedName    string
-		expectedContent []string // Strings that should appear in the config
+		name           string
+		variant        KindContainerRuntimeVariant
+		expectedName   string
+		expectedNodes  int
+		expectedZones  []string
 	}{
 		{
-			name:         "Standard variant config",
-			variant:      KindContainerRuntimeVariantStandard,
-			expectedName: "runtime-fixture-kind-standard",
-			expectedContent: []string{
-				"kind: Cluster",
-				"apiVersion: kind.x-k8s.io/v1alpha4",
-				"name: runtime-fixture-kind-standard",
-				"role: control-plane",
-				"role: worker",
-			},
+			name:           "Standard variant config",
+			variant:        KindContainerRuntimeVariantStandard,
+			expectedName:   "runtime-fixture-kind-standard",
+			expectedNodes:  4, // 1 control-plane + 3 workers
+			expectedZones:  []string{"zone-1", "zone-2", "zone-3"},
 		},
 		{
-			name:         "Minimal variant config",
-			variant:      KindContainerRuntimeVariantMinimal,
-			expectedName: "runtime-fixture-kind-minimal",
-			expectedContent: []string{
-				"kind: Cluster",
-				"apiVersion: kind.x-k8s.io/v1alpha4",
-				"name: runtime-fixture-kind-minimal",
-				"role: control-plane",
-			},
+			name:           "Minimal variant config",
+			variant:        KindContainerRuntimeVariantMinimal,
+			expectedName:   "runtime-fixture-kind-minimal",
+			expectedNodes:  2, // 1 control-plane + 1 worker
+			expectedZones:  []string{"zone-1"},
 		},
 	}
 
@@ -107,97 +79,48 @@ func TestNew_KindConfigContent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cachePath := filepath.Join(t.TempDir(), ".cache")
 
-			runtime, err := New(tt.variant, cachePath)
+			runtime, err := New(tt.variant, cachePath, DefaultOptions())
 			if err != nil {
 				t.Fatalf("New() error = %v", err)
 			}
 
-			// Read the config file
-			content, err := os.ReadFile(runtime.configPath)
-			if err != nil {
-				t.Fatalf("failed to read kind config: %v", err)
+			config := runtime.kindConfig
+			if config == nil {
+				t.Fatal("kindConfig is nil")
 			}
 
-			configStr := string(content)
+			// Verify cluster name
+			if config.Name != tt.expectedName {
+				t.Errorf("kindConfig.Name = %q, want %q", config.Name, tt.expectedName)
+			}
 
-			// Verify expected content is present
-			for _, expected := range tt.expectedContent {
-				if !strings.Contains(configStr, expected) {
-					t.Errorf("kind config missing expected content: %q", expected)
+			// Verify node count
+			if len(config.Nodes) != tt.expectedNodes {
+				t.Errorf("kindConfig has %d nodes, want %d", len(config.Nodes), tt.expectedNodes)
+			}
+
+			// Verify API version
+			if config.APIVersion != "kind.x-k8s.io/v1alpha4" {
+				t.Errorf("kindConfig.APIVersion = %q, want 'kind.x-k8s.io/v1alpha4'", config.APIVersion)
+			}
+
+			// Verify zones are present
+			var foundZones []string
+			for _, node := range config.Nodes {
+				if zone, ok := node.Labels["topology.kubernetes.io/zone"]; ok {
+					foundZones = append(foundZones, zone)
 				}
 			}
-
-			// Verify it's valid YAML (basic check)
-			if !strings.HasPrefix(configStr, "kind:") && !strings.HasPrefix(configStr, "---") {
-				t.Errorf("kind config does not appear to be valid YAML")
-			}
-		})
-	}
-}
-
-func TestNew_CertificateContent(t *testing.T) {
-	cachePath := filepath.Join(t.TempDir(), ".cache")
-
-	runtime, err := New(KindContainerRuntimeVariantStandard, cachePath)
-	if err != nil {
-		t.Fatalf("New() error = %v", err)
-	}
-
-	tests := []struct {
-		filename       string
-		expectedPrefix string
-		minSize        int
-		shouldBePEM    bool
-	}{
-		{
-			filename:       "ca.crt",
-			expectedPrefix: "-----BEGIN CERTIFICATE-----",
-			minSize:        100,
-			shouldBePEM:    true,
-		},
-		{
-			filename:       "ca.key",
-			expectedPrefix: "-----BEGIN",
-			minSize:        50,
-			shouldBePEM:    true,
-		},
-		{
-			filename:       "issuer.crt",
-			expectedPrefix: "-----BEGIN CERTIFICATE-----",
-			minSize:        100,
-			shouldBePEM:    true,
-		},
-		{
-			filename:       "issuer.key",
-			expectedPrefix: "-----BEGIN",
-			minSize:        50,
-			shouldBePEM:    true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.filename, func(t *testing.T) {
-			certPath := filepath.Join(runtime.certsPath, tt.filename)
-
-			content, err := os.ReadFile(certPath)
-			if err != nil {
-				t.Fatalf("failed to read %s: %v", tt.filename, err)
-			}
-
-			// Verify minimum size
-			if len(content) < tt.minSize {
-				t.Errorf("%s is too small: got %d bytes, want at least %d", tt.filename, len(content), tt.minSize)
-			}
-
-			// Verify PEM format if expected
-			if tt.shouldBePEM {
-				contentStr := string(content)
-				if !strings.HasPrefix(contentStr, tt.expectedPrefix) {
-					t.Errorf("%s does not start with expected prefix: got %q, want prefix %q",
-						tt.filename, contentStr[:min(len(contentStr), 30)], tt.expectedPrefix)
+			for _, expectedZone := range tt.expectedZones {
+				found := false
+				for _, zone := range foundZones {
+					if zone == expectedZone {
+						found = true
+						break
+					}
 				}
-				if !strings.Contains(contentStr, "-----END") {
-					t.Errorf("%s does not contain PEM end marker", tt.filename)
+				if !found {
+					t.Errorf("expected zone %q not found in config", expectedZone)
 				}
 			}
 		})
@@ -254,7 +177,7 @@ func TestNew_CachePathValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cachePath := tt.setup(t)
 
-			_, err := New(KindContainerRuntimeVariantStandard, cachePath)
+			_, err := New(KindContainerRuntimeVariantStandard, cachePath, DefaultOptions())
 
 			if tt.wantErr {
 				if err == nil {
@@ -275,7 +198,7 @@ func TestNew_InvalidVariant(t *testing.T) {
 	cachePath := filepath.Join(t.TempDir(), ".cache")
 
 	// Use an invalid variant (99)
-	_, err := New(KindContainerRuntimeVariant(99), cachePath)
+	_, err := New(KindContainerRuntimeVariant(99), cachePath, DefaultOptions())
 
 	if err == nil {
 		t.Error("New() with invalid variant should return error")
@@ -286,56 +209,26 @@ func TestNew_InvalidVariant(t *testing.T) {
 	}
 }
 
-func TestNew_IdempotentFileWrites(t *testing.T) {
+func TestNew_IdempotentConfig(t *testing.T) {
 	cachePath := filepath.Join(t.TempDir(), ".cache")
 
 	// Create runtime first time
-	runtime1, err := New(KindContainerRuntimeVariantStandard, cachePath)
+	runtime1, err := New(KindContainerRuntimeVariantStandard, cachePath, DefaultOptions())
 	if err != nil {
 		t.Fatalf("First New() error = %v", err)
 	}
 
-	// Read initial file contents
-	initialConfig, err := os.ReadFile(runtime1.configPath)
-	if err != nil {
-		t.Fatalf("failed to read initial config: %v", err)
-	}
-
-	initialCACrt, err := os.ReadFile(filepath.Join(runtime1.certsPath, "ca.crt"))
-	if err != nil {
-		t.Fatalf("failed to read initial ca.crt: %v", err)
-	}
-
-	// Create runtime second time (should overwrite)
-	runtime2, err := New(KindContainerRuntimeVariantStandard, cachePath)
+	// Create runtime second time
+	runtime2, err := New(KindContainerRuntimeVariantStandard, cachePath, DefaultOptions())
 	if err != nil {
 		t.Fatalf("Second New() error = %v", err)
 	}
 
-	// Read second file contents
-	secondConfig, err := os.ReadFile(runtime2.configPath)
-	if err != nil {
-		t.Fatalf("failed to read second config: %v", err)
+	// Verify configs are equivalent
+	if runtime1.kindConfig.Name != runtime2.kindConfig.Name {
+		t.Error("kindConfig.Name changed between calls to New()")
 	}
-
-	secondCACrt, err := os.ReadFile(filepath.Join(runtime2.certsPath, "ca.crt"))
-	if err != nil {
-		t.Fatalf("failed to read second ca.crt: %v", err)
+	if len(runtime1.kindConfig.Nodes) != len(runtime2.kindConfig.Nodes) {
+		t.Error("kindConfig.Nodes count changed between calls to New()")
 	}
-
-	// Verify contents are identical (idempotent)
-	if string(initialConfig) != string(secondConfig) {
-		t.Error("kind config changed between calls to New()")
-	}
-
-	if string(initialCACrt) != string(secondCACrt) {
-		t.Error("ca.crt changed between calls to New()")
-	}
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }

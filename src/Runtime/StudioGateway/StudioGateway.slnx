@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/StudioGateway.Api/StudioGateway.Api.csproj" />
+    <Project Path="src/StudioGateway.Contracts/StudioGateway.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/StudioGateway.Api.Tests/StudioGateway.Api.Tests.csproj" />
+  </Folder>
+</Solution>

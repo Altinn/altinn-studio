@@ -5,8 +5,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -36,7 +36,6 @@ public class ApplicationsController : ControllerBase
     }
 
     [HttpGet("{org}")]
-    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
     public async Task<ActionResult<Dictionary<string, List<PublishedApplication>>>> GetApps(
         string org,
         CancellationToken ct
@@ -70,9 +69,8 @@ public class ApplicationsController : ControllerBase
         }
     }
 
-    [HttpGet("{org}/{env}/{app}/process-tasks")]
-    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
-    public async Task<ActionResult<IEnumerable<ProcessTask>>> GetProcessTasks(
+    [HttpGet("{org}/{env}/{app}/application-metadata")]
+    public async Task<ActionResult<ApplicationMetadata>> GetApplicationMetadata(
         string org,
         string env,
         string app,
@@ -81,7 +79,33 @@ public class ApplicationsController : ControllerBase
     {
         try
         {
-            return Ok(await _appResourcesService.GetProcessTasks(org, env, app, ct));
+            return Ok(await _appResourcesService.GetApplicationMetadata(org, env, app, ct));
+        }
+        catch (HttpRequestException ex)
+        {
+            return StatusCode((int?)ex.StatusCode ?? 500);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(499);
+        }
+    }
+
+    [HttpGet("{org}/{env}/{app}/process-metadata")]
+    public async Task<ActionResult<IEnumerable<ProcessTaskMetadata>>> GetProcessMetadata(
+        string org,
+        string env,
+        string app,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            return Ok(await _appResourcesService.GetProcessMetadata(org, env, app, ct));
         }
         catch (HttpRequestException ex)
         {

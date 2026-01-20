@@ -8,8 +8,19 @@ on:
       - '.github/workflows/app-backend-tests.yml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
+  build-frontend:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: ./.github/actions/app-build-frontend
   analyze:
+    needs: build-frontend
     strategy:
       matrix:
         os:
@@ -21,6 +32,7 @@ jobs:
             workingDir: src\App\backend\
     name: Build and test
     runs-on: ${{ matrix.os.id }}
+    timeout-minutes: 15
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
@@ -32,17 +44,25 @@ jobs:
         with:
           dotnet-version: |
             8.0.x
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
       - name: Tool restore
         working-directory: ${{ matrix.os.workingDir }}
         run: |
           dotnet tool restore
-      - name: Build
+      - name: Build backend
         working-directory: ${{ matrix.os.workingDir }}
         run: |
           dotnet build solutions/All.sln -v m
+
+      - name: Download built frontend
+        if: matrix.os.id == 'ubuntu-latest'
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: app-frontend-dist
+          path: src/App/frontend/dist
+
       - name: Test
         if: matrix.os.id != 'ubuntu-latest'
         working-directory: ${{ matrix.os.workingDir }}
@@ -58,3 +78,5 @@ jobs:
         working-directory: ${{ matrix.os.workingDir }}
         run: |
           dotnet test solutions/All.sln --no-restore --no-build --logger "console;verbosity=detailed" --filter "Category=Integration"
+        env:
+          SKIP_FRONTEND_BUILD: true

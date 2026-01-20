@@ -24,6 +24,10 @@ namespace Altinn.Studio.Designer.Helpers
                     continue;
                 }
 
+                // Ensure that we also handle pinned versions like [1.2.3]
+                // TODO: Consider other version range formats if needed
+                versionString = versionString.Replace("[", string.Empty).Replace("]", string.Empty);
+
                 if (SemanticVersion.TryParse(versionString, out version))
                 {
                     return true;

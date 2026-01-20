@@ -1,11 +1,13 @@
 #nullable disable
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.EntityUpdate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
+using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -20,19 +22,23 @@ public class DeploymentPipelinePollingJob : IJob
 {
     private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
     private readonly IDeploymentRepository _deploymentRepository;
+    private readonly IDeployEventRepository _deployEventRepository;
     private readonly IAltinnStorageAppMetadataClient _altinnStorageAppMetadataClient;
     private readonly IHubContext<EntityUpdatedHub, IEntityUpdateClient> _entityUpdatedHubContext;
     private readonly IPublisher _mediatr;
     private readonly ILogger<DeploymentPipelinePollingJob> _logger;
+    private readonly TimeProvider _timeProvider;
 
-    public DeploymentPipelinePollingJob(IAzureDevOpsBuildClient azureDevOpsBuildClient, IDeploymentRepository deploymentRepository, IAltinnStorageAppMetadataClient altinnStorageAppMetadataClient, IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext, IPublisher mediatr, ILogger<DeploymentPipelinePollingJob> logger)
+    public DeploymentPipelinePollingJob(IAzureDevOpsBuildClient azureDevOpsBuildClient, IDeploymentRepository deploymentRepository, IDeployEventRepository deployEventRepository, IAltinnStorageAppMetadataClient altinnStorageAppMetadataClient, IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext, IPublisher mediatr, ILogger<DeploymentPipelinePollingJob> logger, TimeProvider timeProvider)
     {
         _azureDevOpsBuildClient = azureDevOpsBuildClient;
         _deploymentRepository = deploymentRepository;
+        _deployEventRepository = deployEventRepository;
         _altinnStorageAppMetadataClient = altinnStorageAppMetadataClient;
         _entityUpdatedHubContext = entityUpdatedHubContext;
         _mediatr = mediatr;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
 
@@ -60,6 +66,12 @@ public class DeploymentPipelinePollingJob : IJob
         deploymentEntity.Build.Started = build.Started;
         deploymentEntity.Build.Finished = build.Finished;
         deploymentEntity.Build.Result = build.Result;
+
+        if (build.Status == BuildStatus.Completed && deploymentEntity.Events.All(e => e.EventType != DeployEventType.PipelineSucceeded && e.EventType != DeployEventType.PipelineFailed))
+        {
+            await AddDeployEventIfNotExist(build.Status, build, org, buildId);
+        }
+
         await _deploymentRepository.Update(deploymentEntity);
 
         if (build.Status == BuildStatus.Completed)
@@ -76,6 +88,21 @@ public class DeploymentPipelinePollingJob : IJob
             CancelJob(context);
         }
 
+    }
+
+    private async Task AddDeployEventIfNotExist(BuildStatus buildStatus, BuildEntity build, string org, string buildId)
+    {
+        var eventType = build.Result == BuildResult.Succeeded
+            ? DeployEventType.PipelineSucceeded
+            : DeployEventType.PipelineFailed;
+
+        await _deployEventRepository.AddAsync(org, buildId, new DeployEvent
+        {
+            EventType = eventType,
+            Message = $"Pipeline {buildId} {build.Result.ToEnumMemberAttributeValue()}",
+            Timestamp = _timeProvider.GetUtcNow(),
+            Origin = DeployEventOrigin.PollingJob
+        });
     }
 
     private async Task PublishCompletedEvent(AltinnRepoEditingContext editingContext, PipelineType type,

@@ -4,13 +4,15 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"sigs.k8s.io/kind/pkg/apis/config/v1alpha4"
 )
 
 // TestNew_ShowCachePathStructure demonstrates the file structure created in cachePath
 func TestNew_ShowCachePathStructure(t *testing.T) {
 	cachePath := filepath.Join(t.TempDir(), ".cache")
 
-	runtime, err := New(KindContainerRuntimeVariantStandard, cachePath)
+	runtime, err := New(KindContainerRuntimeVariantStandard, cachePath, DefaultOptions())
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
@@ -45,84 +47,103 @@ func TestNew_ShowCachePathStructure(t *testing.T) {
 	}
 
 	t.Logf("")
-	t.Logf("  Key paths:")
-	t.Logf("    Config path: %s", runtime.configPath)
-	t.Logf("    Certs path:  %s", runtime.certsPath)
+	t.Logf("  Kind config (in-memory):")
+	t.Logf("    Cluster name: %s", runtime.kindConfig.Name)
+	t.Logf("    Node count: %d", len(runtime.kindConfig.Nodes))
 }
 
-// TestNew_VerifyAllRequiredFiles ensures all required files are present
-func TestNew_VerifyAllRequiredFiles(t *testing.T) {
+// TestNew_VerifyInMemoryConfig ensures kindConfig is properly constructed
+func TestNew_VerifyInMemoryConfig(t *testing.T) {
 	cachePath := filepath.Join(t.TempDir(), ".cache")
 
-	runtime, err := New(KindContainerRuntimeVariantStandard, cachePath)
+	runtime, err := New(KindContainerRuntimeVariantStandard, cachePath, DefaultOptions())
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
 
-	// List of all files that MUST exist
-	requiredFiles := map[string]string{
-		"kind.config.yaml": runtime.configPath,
-		"ca.crt":           filepath.Join(runtime.certsPath, "ca.crt"),
-		"ca.key":           filepath.Join(runtime.certsPath, "ca.key"),
-		"issuer.crt":       filepath.Join(runtime.certsPath, "issuer.crt"),
-		"issuer.key":       filepath.Join(runtime.certsPath, "issuer.key"),
-		"testserver.yaml":  runtime.testserverPath,
+	// Verify kindConfig is not nil
+	if runtime.kindConfig == nil {
+		t.Fatal("kindConfig is nil")
 	}
 
-	t.Log("Verifying all required files exist:")
-	allExist := true
-	for name, path := range requiredFiles {
-		if info, err := os.Stat(path); err != nil {
-			t.Errorf("  ✗ %s: missing (expected at %s)", name, path)
-			allExist = false
-		} else if info.IsDir() {
-			t.Errorf("  ✗ %s: is a directory, expected a file", name)
-			allExist = false
-		} else {
-			t.Logf("  ✓ %s (%d bytes)", name, info.Size())
+	t.Log("Verifying in-memory kind config:")
+
+	// Verify API version
+	if runtime.kindConfig.APIVersion != "kind.x-k8s.io/v1alpha4" {
+		t.Errorf("  ✗ APIVersion: got %q, want 'kind.x-k8s.io/v1alpha4'", runtime.kindConfig.APIVersion)
+	} else {
+		t.Logf("  ✓ APIVersion: %s", runtime.kindConfig.APIVersion)
+	}
+
+	// Verify cluster name
+	expectedName := "runtime-fixture-kind-standard"
+	if runtime.kindConfig.Name != expectedName {
+		t.Errorf("  ✗ Name: got %q, want %q", runtime.kindConfig.Name, expectedName)
+	} else {
+		t.Logf("  ✓ Name: %s", runtime.kindConfig.Name)
+	}
+
+	// Verify node count
+	expectedNodes := 4 // 1 control-plane + 3 workers
+	if len(runtime.kindConfig.Nodes) != expectedNodes {
+		t.Errorf("  ✗ Nodes: got %d, want %d", len(runtime.kindConfig.Nodes), expectedNodes)
+	} else {
+		t.Logf("  ✓ Nodes: %d", len(runtime.kindConfig.Nodes))
+	}
+
+	// Verify control plane exists
+	hasControlPlane := false
+	for _, node := range runtime.kindConfig.Nodes {
+		if node.Role == v1alpha4.ControlPlaneRole {
+			hasControlPlane = true
+			break
 		}
 	}
-
-	if !allExist {
-		t.Fatal("Some required files are missing")
+	if !hasControlPlane {
+		t.Error("  ✗ Control plane: not found")
+	} else {
+		t.Log("  ✓ Control plane: present")
 	}
 
 	t.Log("")
-	t.Log("All required files are present ✓")
+	t.Log("All config checks passed ✓")
 }
 
 // TestNew_CompareVariants shows the difference between Standard and Minimal variants
 func TestNew_CompareVariants(t *testing.T) {
 	tests := []struct {
-		name    string
-		variant KindContainerRuntimeVariant
+		name          string
+		variant       KindContainerRuntimeVariant
+		expectedNodes int
 	}{
-		{"Standard", KindContainerRuntimeVariantStandard},
-		{"Minimal", KindContainerRuntimeVariantMinimal},
+		{"Standard", KindContainerRuntimeVariantStandard, 4},
+		{"Minimal", KindContainerRuntimeVariantMinimal, 2},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cachePath := filepath.Join(t.TempDir(), ".cache")
 
-			runtime, err := New(tt.variant, cachePath)
+			runtime, err := New(tt.variant, cachePath, DefaultOptions())
 			if err != nil {
 				t.Fatalf("New() error = %v", err)
 			}
 
-			t.Logf("%s variant cache structure:", tt.name)
+			t.Logf("%s variant:", tt.name)
 			t.Logf("  Cluster name: %s", runtime.clusterName)
-			t.Logf("  Config file:  %s", runtime.configPath)
-			t.Logf("  Certs dir:    %s", runtime.certsPath)
+			t.Logf("  Node count:   %d", len(runtime.kindConfig.Nodes))
 
-			// Read and display config file size
-			if info, err := os.Stat(runtime.configPath); err == nil {
-				t.Logf("  Config size:  %d bytes", info.Size())
+			if len(runtime.kindConfig.Nodes) != tt.expectedNodes {
+				t.Errorf("expected %d nodes, got %d", tt.expectedNodes, len(runtime.kindConfig.Nodes))
 			}
 
-			// Count cert files
-			certFiles, _ := filepath.Glob(filepath.Join(runtime.certsPath, "*"))
-			t.Logf("  Cert files:   %d files", len(certFiles))
+			// List nodes with their roles
+			for i, node := range runtime.kindConfig.Nodes {
+				t.Logf("    Node %d: role=%s", i, node.Role)
+				if zone, ok := node.Labels["topology.kubernetes.io/zone"]; ok {
+					t.Logf("            zone=%s", zone)
+				}
+			}
 		})
 	}
 }

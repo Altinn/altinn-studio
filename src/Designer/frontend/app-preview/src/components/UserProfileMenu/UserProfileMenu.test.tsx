@@ -7,6 +7,7 @@ import { type Repository, type User } from 'app-shared/types/Repository';
 import { app, org } from '@studio/testing/testids';
 import { repository } from 'app-shared/mocks/mocks';
 import { renderWithProviders } from '../../../test/mocks';
+import { StudioPageHeaderContextProvider } from '@studio/components/src/components/StudioPageHeader/context';
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
@@ -49,7 +50,7 @@ describe('UserProfileMenu', () => {
     renderUserProfileMenu();
 
     expect(
-      screen.getByTitle(
+      screen.getByText(
         textMock('shared.header_user_for_org', { user: userMock.full_name, org: '' }),
       ),
     ).toBeInTheDocument();
@@ -61,7 +62,7 @@ describe('UserProfileMenu', () => {
     renderUserProfileMenu();
 
     expect(
-      screen.queryByTitle(
+      screen.queryByText(
         textMock('shared.header_user_for_org', { user: userMock.full_name, org: '' }),
       ),
     ).not.toBeInTheDocument();
@@ -75,5 +76,9 @@ describe('UserProfileMenu', () => {
 });
 
 const renderUserProfileMenu = (props?: Partial<UserProfileMenuProps>) => {
-  return renderWithProviders()(<UserProfileMenu {...defaultProps} {...props} />);
+  return renderWithProviders()(
+    <StudioPageHeaderContextProvider variant='preview'>
+      <UserProfileMenu {...defaultProps} {...props} />
+    </StudioPageHeaderContextProvider>,
+  );
 };

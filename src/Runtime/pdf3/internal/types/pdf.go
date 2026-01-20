@@ -215,6 +215,10 @@ func MaxWaitForTimeout() time.Duration {
 	return time.Duration(MaxTimeoutMs) * time.Millisecond
 }
 
+// SessionDrainTimeout is the maximum time to wait for an active request to complete
+// when draining a browser session during restart.
+const SessionDrainTimeout = 60 * time.Second
+
 // Validate validates the PdfRequest according to browserless schema rules
 func (r *PdfRequest) Validate() error {
 	// Validate URL (required and well-formed)

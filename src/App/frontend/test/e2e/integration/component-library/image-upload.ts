@@ -59,7 +59,7 @@ describe('ImageUpload component', () => {
       }
       const originalPixels = ctx.getImageData(0, 0, $canvas[0].width, $canvas[0].height).data;
 
-      cy.contains('label', 'Bytt bilde').selectFile(makeTestFile(fileName2, newImageUrl), { force: true });
+      cy.get('input[type="file"]').selectFile(makeTestFile(fileName2, newImageUrl), { force: true });
       cy.get('canvas').should(($newCanvas) => {
         const ctx2 = $newCanvas[0].getContext('2d');
         if (!ctx2) {
@@ -74,5 +74,25 @@ describe('ImageUpload component', () => {
 
     cy.findByRole('button', { name: /Lagre/i }).click();
     cy.findByRole('img', { name: /uploadThis2.png/ }).should('be.visible');
+  });
+
+  it('shows validation error when required and no image is uploaded, removes validation error on upload', () => {
+    cy.interceptLayout('ComponentLayouts', (component) => {
+      if (component.type === 'ImageUpload' && component.id === 'ImageUploadPage-ImageUpload') {
+        component.required = true;
+      }
+      if (component.type === 'NavigationButtons' && component.id === 'ImageUploadPage-NavigationButtons') {
+        component.validateOnNext = { page: 'currentAndPrevious', show: ['All'] };
+      }
+    });
+    cy.gotoNavPage('Bildeopplasting');
+
+    cy.findByRole('button', { name: /next/i }).click();
+    cy.findAllByText('Du må laste opp et bilde').first().should('be.visible');
+
+    uploadImageAndVerify(fileName1);
+    cy.findByRole('button', { name: /Lagre/i }).click();
+
+    cy.findAllByText('Du må laste opp et bilde').should('not.exist');
   });
 });

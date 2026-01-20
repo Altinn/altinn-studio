@@ -1,0 +1,133 @@
+name: "App Run Local Environment"
+description: "Starts frontend server and/or localtest Docker containers"
+inputs:
+  run-frontend:
+    description: "Whether to serve frontend with http-server"
+    required: true
+  run-localtest:
+    description: "Whether to start localtest Docker containers"
+    required: true
+  frontend-port:
+    description: "Port for frontend server"
+    required: false
+    default: "8080"
+  docker-profile:
+    description: "Docker compose profile to use"
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - name: Validate inputs
+      run: |
+        if [[ "${{ inputs.run-frontend }}" != "true" && "${{ inputs.run-frontend }}" != "false" ]]; then
+          echo "Error: run-frontend must be 'true' or 'false', got: ${{ inputs.run-frontend }}"
+          exit 1
+        fi
+        if [[ "${{ inputs.run-localtest }}" != "true" && "${{ inputs.run-localtest }}" != "false" ]]; then
+          echo "Error: run-localtest must be 'true' or 'false', got: ${{ inputs.run-localtest }}"
+          exit 1
+        fi
+        # Validate frontend-port is a valid port number (1-65535)
+        if [[ ! "${{ inputs.frontend-port }}" =~ ^[0-9]+$ ]] || [[ "${{ inputs.frontend-port }}" -lt 1 ]] || [[ "${{ inputs.frontend-port }}" -gt 65535 ]]; then
+          echo "Error: frontend-port must be a valid port number (1-65535), got: ${{ inputs.frontend-port }}"
+          exit 1
+        fi
+      shell: bash
+
+    - name: Set profile args
+      id: set-profile
+      shell: bash
+      run: |
+        profile_args=""
+        if [[ "${{ inputs.docker-profile }}" != "" ]]; then
+          profile_args="--profile ${{ inputs.docker-profile }}"
+        fi
+
+        echo "profile-args=$profile_args" >> $GITHUB_OUTPUT
+
+    - name: Set up Docker Buildx
+      if: ${{ inputs.run-localtest == 'true' }}
+      uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+
+    - name: Login to GitHub Container Registry
+      if: ${{ inputs.run-localtest == 'true' && (github.event.pull_request.head.repo.full_name == github.repository || github.event_name != 'pull_request') }}
+      uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+
+    - name: Pull cached images
+      if: ${{ inputs.run-localtest == 'true' }}
+      working-directory: src/Runtime/localtest
+      env:
+        COMPOSE_FILE: 'docker-compose.yml:docker-compose.ci.yml'
+      run: |
+        args="${{ steps.set-profile.outputs.profile-args }}"
+
+        if ! docker compose $args pull; then
+          echo "Pull failed, building images from scratch..."
+          docker compose $args build
+        else
+          echo "Successfully pulled cached images"
+        fi
+      shell: bash
+
+    - name: Start localtest
+      if: ${{ inputs.run-localtest == 'true' }}
+      working-directory: src/Runtime/localtest
+      run: |
+        args="${{ steps.set-profile.outputs.profile-args }}"
+
+        if ! docker compose $args up -d; then
+          echo "Failed to start localtest"
+          docker compose $args logs
+          exit 1
+        fi
+      shell: bash
+      env:
+        TEST_DOMAIN: local.altinn.cloud
+        ALTINN3LOCAL_PORT: 80
+        COMPOSE_FILE: 'docker-compose.yml:docker-compose.ci.yml'
+
+    - name: Start frontend server
+      if: ${{ inputs.run-frontend == 'true' }}
+      working-directory: src/App/frontend
+      run: |
+        echo "Starting frontend server on port ${{ inputs.frontend-port }}..."
+        yarn run serve -p ${{ inputs.frontend-port }} > frontend-server.log 2>&1 &
+        echo $! > frontend-server.pid
+        echo "Frontend server started with PID $(cat frontend-server.pid)"
+      shell: bash
+
+    - name: Wait for localtest to be ready
+      if: ${{ inputs.run-localtest == 'true' }}
+      working-directory: src/Runtime/localtest
+      run: |
+        args="${{ steps.set-profile.outputs.profile-args }}"
+
+        echo "Waiting for backend services to be ready..."
+
+        # Wait for main localtest service (port 5101)
+        echo "Checking localtest service on port 5101..."
+        timeout 180 bash -c 'until curl -f http://localhost:5101/health > /dev/null 2>&1; do echo "Waiting for localtest service..."; sleep 5; done'
+        echo "✅ Localtest service is ready!"
+
+        # Wait for loadbalancer to be ready (port 80)
+        echo "Checking loadbalancer on port 80..."
+        timeout 60 bash -c 'until curl -s http://localhost:80 | grep -v "Temporary Redirect" > /dev/null 2>&1; do echo "Waiting for loadbalancer..."; sleep 3; done'
+        echo "✅ Loadbalancer is ready!"
+
+        echo "🎉 All localtest services are ready!"
+      shell: bash
+      env:
+        TEST_DOMAIN: local.altinn.cloud
+        ALTINN3LOCAL_PORT: 80
+
+    - name: Wait for frontend server to be ready
+      if: ${{ inputs.run-frontend == 'true' }}
+      run: |
+        echo "Waiting for frontend server to be ready..."
+        timeout 60 bash -c 'until curl -f http://localhost:${{ inputs.frontend-port }} > /dev/null 2>&1; do sleep 2; done'
+        echo "Frontend server is ready on http://localhost:${{ inputs.frontend-port }}"
+      shell: bash

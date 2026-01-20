@@ -3,19 +3,18 @@ import React, { useMemo } from 'react';
 import { formatDate } from 'date-fns';
 
 import { PrettyDateAndTime } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { AltinnContentIconReceipt } from 'src/components/atoms/AltinnContentIconReceipt';
-import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
+import { AltinnContentLoader } from 'src/app-components/loading/AltinnContentLoader/AltinnContentLoader';
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ReceiptComponentSimple } from 'src/components/organisms/AltinnReceiptSimple';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner, useAppReceiver } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
-import { getInstanceSender } from 'src/features/processEnd/confirm/helpers/returnConfirmSummaryObject';
+import { getInstanceSender } from 'src/features/process/confirm/helpers/returnConfirmSummaryObject';
 import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
 import { useNavigationParam } from 'src/hooks/navigation';
 import {
@@ -25,7 +24,7 @@ import {
   toDisplayAttachments,
 } from 'src/utils/attachmentsUtils';
 import { getPageTitle } from 'src/utils/getPageTitle';
-import { returnUrlToArchive } from 'src/utils/urls/urlHelper';
+import { getDialogIdFromDataValues, returnUrlToArchive } from 'src/utils/urls/urlHelper';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 
@@ -84,18 +83,20 @@ export function DefaultReceipt() {
 }
 
 export const ReceiptContainer = () => {
-  const applicationMetadata = useApplicationMetadata();
+  const applicationMetadata = getApplicationMetadata();
   const {
     lastChanged,
     instanceOrg,
     instanceOwner,
     dataElements = [],
+    dataValues,
   } = useInstanceDataQuery({
     select: (instance) => ({
       lastChanged: instance.lastChanged,
       instanceOrg: instance.org,
       instanceOwner: instance.instanceOwner,
       dataElements: instance.data,
+      dataValues: instance.dataValues,
     }),
   }).data ?? {};
   const langTools = useLanguage();
@@ -113,6 +114,8 @@ export const ReceiptContainer = () => {
     }
     return undefined;
   }, [lastChanged]);
+
+  const dialogId = useMemo(() => getDialogIdFromDataValues(dataValues), [dataValues]);
 
   const attachmentWithDataType = getAttachmentsWithDataType({
     attachments: dataElements,
@@ -163,12 +166,11 @@ export const ReceiptContainer = () => {
   if (requirementMissing || !(instanceMetaObject && pdfDisplayAttachments)) {
     return (
       <AltinnContentLoader
+        variant='receipt'
         width={705}
         height={561}
         reason={`receipt-missing-${requirementMissing}`}
-      >
-        <AltinnContentIconReceipt />
-      </AltinnContentLoader>
+      />
     );
   }
 
@@ -183,7 +185,7 @@ export const ReceiptContainer = () => {
           collapsibleTitle={<Lang id='receipt.attachments' />}
           instanceMetaDataObject={instanceMetaObject}
           subtitle={<Lang id='receipt.subtitle' />}
-          subtitleurl={returnUrlToArchive(window.location.host)}
+          subtitleurl={returnUrlToArchive(window.location.host, instanceOwnerParty?.partyId, dialogId)}
           title={<Lang id='receipt.title' />}
           titleSubmitted={<Lang id='receipt.title_submitted' />}
           pdf={pdfDisplayAttachments}

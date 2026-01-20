@@ -73,7 +73,7 @@ describe('Attachment tags validation', () => {
     cy.dsSelect(appFrontend.expressionValidationTest.kjønn, 'Mann');
     cy.findByRole('textbox', { name: /e-post/i }).type('test@altinn.no');
     cy.findByRole('textbox', { name: /telefonnummer/i }).type('98765432');
-    cy.dsSelect(appFrontend.expressionValidationTest.bosted, 'Oslo');
+    cy.dsSelect(appFrontend.expressionValidationTest.bosted, /Oslo/);
 
     cy.findByRole('button', { name: /neste/i }).click();
     cy.findByRole('button', { name: /send inn/i }).click();

@@ -1,5 +1,5 @@
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import type { ITextResource, ITextResources } from 'app-shared/types/global';
+import type { ITextResource } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FormComponent } from './FormComponent';
 import type { FormContainer } from './FormContainer';
@@ -8,7 +8,7 @@ import type React from 'react';
 
 export interface IOption {
   label: string;
-  value: any;
+  value?: any;
 }
 
 export type ITextResourceBindings = KeyValuePairs<string>;
@@ -79,5 +79,3 @@ export enum LayoutItemType {
 }
 
 export type FormLayoutsSelector<T> = (formLayoutsData: IFormLayouts) => T;
-
-export type TextResourcesSelector<T> = (textResources: ITextResources) => T;

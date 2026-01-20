@@ -4,9 +4,10 @@ import { Heading, Paragraph } from '@digdir/designsystemet-react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Label, LabelInner } from 'src/components/label/Label';
-import { BlockPrint } from 'src/components/ReadyForPrint';
 import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { DisplayError } from 'src/core/errorHandling/DisplayError';
+import { Loader } from 'src/core/loading/Loader';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useDataTypeFromLayoutSet, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
@@ -93,7 +94,11 @@ const DoSummaryWrapper = ({
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, entryDisplayName);
 
   if (isSubformDataFetching) {
-    return <BlockPrint />;
+    return <Loader reason='subform-data' />;
+  }
+
+  if (subformDataError) {
+    return <DisplayError error={subformDataError} />;
   }
 
   const subformEntryName =
@@ -167,7 +172,7 @@ export function SubformSummaryComponent2({ targetBaseComponentId }: Summary2Prop
   const { layoutSet } = useItemWhenType(targetBaseComponentId, 'Subform');
   const dataType = useDataTypeFromLayoutSet(layoutSet);
   const dataElements = useInstanceDataElements(dataType);
-  const minCount = useApplicationMetadata().dataTypes.find((dt) => dt.id === dataType)?.minCount;
+  const minCount = getApplicationMetadata().dataTypes.find((dt) => dt.id === dataType)?.minCount;
   const hasElements = !!(dataType && dataElements.length > 0);
   const required =
     useItemWhenType(targetBaseComponentId, 'Subform').required || (minCount !== undefined && minCount > 0);

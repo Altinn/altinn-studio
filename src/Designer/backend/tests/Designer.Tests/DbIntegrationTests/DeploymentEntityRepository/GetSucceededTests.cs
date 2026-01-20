@@ -99,4 +99,30 @@ public class GetSucceededTests : DbIntegrationTestsBase
         yield return ["ttd", Guid.NewGuid().ToString(), "local", SortDirection.Ascending];
         yield return ["ttd", Guid.NewGuid().ToString(), "local", SortDirection.Descending];
     }
+
+    [Theory]
+    [InlineData("ttd", "local")]
+    public async Task GetSucceeded_ShouldReturnDeploymentsWithEvents(string org, string envName)
+    {
+        // Arrange
+        string app = Guid.NewGuid().ToString();
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, app, envName: envName);
+        await DbFixture.PrepareEntityInDatabase(deploymentEntity);
+
+        var events = EntityGenerationUtils.Deployment.GenerateDeployEvents();
+        foreach (var evt in events)
+        {
+            await DbFixture.PrepareDeployEventInDatabase(org, deploymentEntity.Build.Id, evt);
+        }
+
+        // Act
+        var repository = new DeploymentRepository(DbFixture.DbContext);
+        var query = new DocumentQueryModel { Top = 10, SortDirection = SortDirection.Descending };
+        var result = (await repository.GetSucceeded(org, app, envName, query)).ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.NotNull(result[0].Events);
+        Assert.Equal(events.Count, result[0].Events.Count);
+    }
 }

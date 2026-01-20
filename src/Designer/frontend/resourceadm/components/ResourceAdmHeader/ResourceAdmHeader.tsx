@@ -6,7 +6,7 @@ import {
   StudioPageHeader,
   type StudioProfileMenuGroup,
   type StudioProfileMenuItem,
-} from '@studio/components-legacy';
+} from '@studio/components';
 import { useMediaQuery } from '@studio/hooks';
 import { StudioAvatar } from '@studio/components';
 import { getOrgNameByUsername } from '../../utils/userUtils';
@@ -30,22 +30,24 @@ export const ResourceAdmHeader = ({ organizations, user }: ResourceAdmHeaderProp
   const pageHeaderTitle: string = `${getOrgNameByUsername(org, organizations)}${resourcePath}`;
 
   return (
-    <StudioPageHeader>
-      <StudioPageHeader.Main>
-        <StudioPageHeader.Left title={pageHeaderTitle} showTitle />
-        <StudioPageHeader.Right>
-          <DashboardHeaderMenu organizations={organizations} user={user} />
-        </StudioPageHeader.Right>
-      </StudioPageHeader.Main>
-      <StudioPageHeader.Sub>
-        <GiteaHeader
-          menuOnlyHasRepository
-          rightContentClassName={classes.extraPadding}
-          owner={org}
-          repoName={app}
-        />
-      </StudioPageHeader.Sub>
-    </StudioPageHeader>
+    <div data-color-scheme='dark'>
+      <StudioPageHeader>
+        <StudioPageHeader.Main>
+          <StudioPageHeader.Left title={pageHeaderTitle} showTitle />
+          <StudioPageHeader.Right>
+            <DashboardHeaderMenu organizations={organizations} user={user} />
+          </StudioPageHeader.Right>
+        </StudioPageHeader.Main>
+        <StudioPageHeader.Sub>
+          <GiteaHeader
+            menuOnlyHasRepository
+            rightContentClassName={classes.extraPadding}
+            owner={org}
+            repoName={app}
+          />
+        </StudioPageHeader.Sub>
+      </StudioPageHeader>
+    </div>
   );
 };
 
@@ -93,9 +95,6 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
   return (
     <StudioPageHeader.ProfileMenu
       triggerButtonText={showButtonText && triggerButtonText}
-      ariaLabelTriggerButton={triggerButtonText}
-      color='dark'
-      variant='regular'
       profileImage={
         <StudioAvatar
           src={user?.avatar_url}

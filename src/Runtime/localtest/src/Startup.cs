@@ -28,6 +28,9 @@ using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
 using LocalTest.Filters;
 using LocalTest.Helpers;
+using LocalTest.Services.AppRegistry;
+using LocalTest.Services.LocalApp.Interface;
+using LocalTest.Services.TestData;
 using LocalTest.Notifications.LocalTestNotifications;
 using LocalTest.Services.AccessManagement;
 using LocalTest.Services.Authentication.Implementation;
@@ -36,7 +39,6 @@ using LocalTest.Services.Authorization.Implementation;
 using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.Events.Implementation;
 using LocalTest.Services.LocalApp.Implementation;
-using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.LocalFrontend;
 using LocalTest.Services.LocalFrontend.Interface;
 using LocalTest.Services.Profile.Implementation;
@@ -44,7 +46,6 @@ using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Register.Implementation;
 using LocalTest.Services.Register.Interface;
 using LocalTest.Services.Storage.Implementation;
-using LocalTest.Services.TestData;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.FileProviders;
@@ -128,10 +129,10 @@ namespace LocalTest
             services.AddTransient<IAuthorizationHandler, ClaimAccessHandler>();
 
             // Notifications services
-            
+
             GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
             services.AddNotificationServices(generalSettings.BaseUrl, Configuration);
-            
+
             // Storage services
             services.AddSingleton<IClaimsPrincipalProvider, ClaimsPrincipalProvider>();
             services.AddTransient<IAuthorization, AuthorizationService>();
@@ -195,6 +196,8 @@ namespace LocalTest
 
             services.AddDirectoryBrowser();
 
+            services.AddSingleton<AppRegistryService>();
+
             // Access local app details depending on LocalAppMode ("file" or "http")
             if ("http".Equals(Configuration["LocalPlatformSettings:LocalAppMode"], StringComparison.InvariantCultureIgnoreCase))
             {
@@ -216,8 +219,15 @@ namespace LocalTest
         public void Configure(
             IApplicationBuilder app,
             IWebHostEnvironment env,
-            IOptions<LocalPlatformSettings> localPlatformSettings)
+            IOptions<LocalPlatformSettings> localPlatformSettings,
+            AppRegistryService appRegistry,
+            ILocalApp localApp,
+            TestDataService testDataService)
         {
+            // Register cache invalidation callbacks
+            appRegistry.RegisterCacheInvalidationCallback(() => localApp.InvalidateTestDataCache());
+            appRegistry.RegisterCacheInvalidationCallback(() => testDataService.InvalidateCache());
+
             if (env.IsDevelopment() || env.IsEnvironment("docker") || env.IsEnvironment("podman"))
             {
                 app.UseDeveloperExceptionPage();
@@ -234,11 +244,11 @@ namespace LocalTest
 
             app.UseHealthChecks("/health");
             app.UseMiddleware<ProxyMiddleware>();
-            
+
             var storagePath = new DirectoryInfo(localPlatformSettings.Value.LocalTestingStorageBasePath);
             if (!storagePath.Exists)
                 storagePath.Create();
-            
+
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(storagePath.FullName),

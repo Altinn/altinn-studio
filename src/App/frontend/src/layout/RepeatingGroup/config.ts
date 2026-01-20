@@ -214,6 +214,16 @@ export const Config = new CG.component({
                 'currently editing another row',
             ),
         ),
+        new CG.prop(
+          'compactButtons',
+          new CG.bool()
+            .optional({ default: false })
+            .setTitle('Compact buttons')
+            .setDescription(
+              'If true, edit and delete buttons in the table only show icons when the row is not in edit mode. ' +
+                'Text will still be shown when the row is in edit mode.',
+            ),
+        ),
       )
         .exportAs('IGroupEditProperties')
         .optional(),

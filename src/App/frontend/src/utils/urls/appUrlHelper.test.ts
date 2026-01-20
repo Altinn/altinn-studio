@@ -1,17 +1,15 @@
 import {
   getCreateInstancesUrl,
   getDataListsUrl,
-  getDataValidationUrl,
   getEnvironmentLoginUrl,
-  getFetchFormDynamicsUrl,
   getHostname,
+  getInstanceLayoutsUrl,
   getInstantiateUrl,
   getLayoutSettingsUrl,
   getLayoutsUrl,
   getOptionsUrl,
   getProcessStateUrl,
   getRedirectUrl,
-  getRulehandlerUrl,
   getSetSelectedPartyUrl,
   getUpgradeAuthLevelUrl,
   getValidationUrl,
@@ -59,11 +57,6 @@ describe('Frontend urlHelper.ts', () => {
         'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/validate?language=nb',
       );
     });
-    it('should return the expected url for getDataValidationUrl', () => {
-      expect(getDataValidationUrl('12345/instanceId-1234', 'DataElementId', 'nb')).toBe(
-        'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/data/DataElementId/validate?language=nb',
-      );
-    });
     it('should return the expected url for getRedirectUrl', () => {
       expect(getRedirectUrl('http://www.nrk.no')).toBe(
         'https://local.altinn.cloud/ttd/test/api/v1/redirect?url=http%3A%2F%2Fwww.nrk.no',
@@ -79,7 +72,6 @@ describe('Frontend urlHelper.ts', () => {
     const resetWindow = (
       location: Partial<Location> = {
         origin: 'https://ttd.apps.altinn.no',
-        hash: '#/datamodelling',
         pathname: '/ttd/jesttest/',
         host: 'https://ttd.apps.altinn.no',
         href: 'https://ttd.apps.altinn.no/ttd/test',
@@ -150,7 +142,6 @@ describe('Frontend urlHelper.ts', () => {
         window.location = {
           ...oldWindowLocation,
           origin: 'https://ttd.apps.altinn.no',
-          hash: '#/datamodelling',
           pathname: '/ttd/jesttest/',
           host: 'https://ttd.apps.too.many.domains.altinn.no',
           href: 'https://ttd.apps.altinn.no/ttd/test',
@@ -363,14 +354,6 @@ describe('Frontend urlHelper.ts', () => {
     });
   });
 
-  describe('getRulehandlerUrl', () => {
-    it('should return rule handler as passed argument', () => {
-      const result = getRulehandlerUrl('custom-handler.js');
-
-      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/rulehandler/custom-handler.js');
-    });
-  });
-
   describe('getLayoutsUrl', () => {
     it('should return layout as passed argument', () => {
       const result = getLayoutsUrl('custom-layout.json');
@@ -379,19 +362,18 @@ describe('Frontend urlHelper.ts', () => {
     });
   });
 
+  describe('getInstanceLayoutsUrl', () => {
+    it('should include instance ID in layout URL when provided', () => {
+      const result = getInstanceLayoutsUrl('custom-layout.json', 'instanceId-1234');
+      expect(result).toBe('https://local.altinn.cloud/ttd/test/instances/instanceId-1234/layouts/custom-layout.json');
+    });
+  });
+
   describe('getLayoutSettingsUrl', () => {
     it('should return layout as passed argument', () => {
       const result = getLayoutSettingsUrl('custom-layout.json');
 
       expect(result).toBe('https://local.altinn.cloud/ttd/test/api/layoutsettings/custom-layout.json');
-    });
-  });
-
-  describe('getFetchFormDynamicsUrl', () => {
-    it('should return layout as passed argument', () => {
-      const result = getFetchFormDynamicsUrl('custom-rule.json');
-
-      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/ruleconfiguration/custom-rule.json');
     });
   });
 });

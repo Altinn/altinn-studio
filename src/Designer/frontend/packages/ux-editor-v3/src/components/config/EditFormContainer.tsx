@@ -21,8 +21,7 @@ import type { FormContainer } from '../../types/FormContainer';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { StudioTextfield } from '@studio/components-legacy';
-import { StudioProperty } from '@studio/components';
+import { StudioProperty, StudioTextfield } from '@studio/components';
 
 export interface IEditFormContainerProps {
   editFormId: string;
