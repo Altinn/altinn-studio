@@ -8,6 +8,8 @@ namespace Altinn.Studio.Cli.Upgrade.Next.IndexMigration;
 internal sealed class KnownCustomizationMatcher
 {
     private readonly StandardElementMatcher _standardMatcher = new();
+    private readonly StrictScriptAnalyzer _scriptAnalyzer = new();
+    private readonly StrictStyleAnalyzer _styleAnalyzer = new();
 
     /// <summary>
     /// Checks if an element is a known customization
@@ -105,8 +107,18 @@ internal sealed class KnownCustomizationMatcher
             return false;
         }
 
-        // Check if it's a standard element (app ID initialization)
-        if (_standardMatcher.IsStandardElement(element, out _))
+        // Analyze the script to check if it's standard and extract cleaned content
+        var analysis = _scriptAnalyzer.Analyze(content);
+        if (analysis.IsStandard)
+        {
+            return false;
+        }
+
+        // Use cleaned content if available, otherwise full content
+        var extractionContent = analysis.CleanedContent ?? content;
+
+        // Skip if cleaned content is empty (script was only boilerplate)
+        if (string.IsNullOrWhiteSpace(extractionContent))
         {
             return false;
         }
@@ -118,8 +130,8 @@ internal sealed class KnownCustomizationMatcher
             OuterHtml = element.OuterHtml,
             Category = ElementCategory.KnownCustomization,
             CustomizationType = CustomizationType.InlineScript,
-            ExtractionHint = content,
-            Description = $"Inline script ({content.Length} characters)",
+            ExtractionHint = extractionContent,
+            Description = $"Inline script ({extractionContent.Length} characters, boilerplate stripped)",
             Asset = null,
         };
 
@@ -136,8 +148,18 @@ internal sealed class KnownCustomizationMatcher
             return false;
         }
 
-        // Check if it's a standard element
-        if (_standardMatcher.IsStandardElement(element, out _))
+        // Analyze the style to check if it's standard and extract cleaned content
+        var analysis = _styleAnalyzer.Analyze(content);
+        if (analysis.IsStandard)
+        {
+            return false;
+        }
+
+        // Use cleaned content if available, otherwise full content
+        var extractionContent = analysis.CleanedContent ?? content;
+
+        // Skip if cleaned content is empty (style was only boilerplate)
+        if (string.IsNullOrWhiteSpace(extractionContent))
         {
             return false;
         }
@@ -149,8 +171,8 @@ internal sealed class KnownCustomizationMatcher
             OuterHtml = element.OuterHtml,
             Category = ElementCategory.KnownCustomization,
             CustomizationType = CustomizationType.InlineStylesheet,
-            ExtractionHint = content,
-            Description = $"Inline style ({content.Length} characters)",
+            ExtractionHint = extractionContent,
+            Description = $"Inline style ({extractionContent.Length} characters, boilerplate stripped)",
             Asset = null,
         };
 

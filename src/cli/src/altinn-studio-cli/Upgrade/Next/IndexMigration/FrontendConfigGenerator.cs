@@ -14,10 +14,14 @@ internal sealed class FrontendConfigGenerator
     };
 
     private readonly CategorizationResult _categorizationResult;
+    private readonly string? _org;
+    private readonly string? _app;
 
-    public FrontendConfigGenerator(CategorizationResult categorizationResult)
+    public FrontendConfigGenerator(CategorizationResult categorizationResult, string? org = null, string? app = null)
     {
         _categorizationResult = categorizationResult;
+        _org = org;
+        _app = app;
     }
 
     /// <summary>
@@ -32,15 +36,54 @@ internal sealed class FrontendConfigGenerator
             )
             .Select(c => c.Asset)
             .OfType<FrontendAsset>()
+            .Select(ReplaceViewBagPlaceholders)
             .ToList();
 
         var externalScripts = _categorizationResult
             .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.ExternalScript && c.Asset != null)
             .Select(c => c.Asset)
             .OfType<FrontendAsset>()
+            .Select(ReplaceViewBagPlaceholders)
             .ToList();
 
         return new FrontendConfiguration { Stylesheets = externalStylesheets, Scripts = externalScripts };
+    }
+
+    /// <summary>
+    /// Replaces @ViewBag.Org and @ViewBag.App placeholders in asset URLs with actual values
+    /// </summary>
+    private FrontendAsset ReplaceViewBagPlaceholders(FrontendAsset asset)
+    {
+        var url = asset.Url;
+
+        if (_org != null)
+        {
+            url = url.Replace("@ViewBag.Org", _org, StringComparison.Ordinal);
+        }
+
+        if (_app != null)
+        {
+            url = url.Replace("@ViewBag.App", _app, StringComparison.Ordinal);
+        }
+
+        // If no replacements were made, return original asset
+        if (url == asset.Url)
+        {
+            return asset;
+        }
+
+        // Create new asset with replaced URL, preserving all other attributes
+        return new FrontendAsset
+        {
+            Url = url,
+            Type = asset.Type,
+            Async = asset.Async,
+            Defer = asset.Defer,
+            Nomodule = asset.Nomodule,
+            Crossorigin = asset.Crossorigin,
+            Integrity = asset.Integrity,
+            Media = asset.Media,
+        };
     }
 
     /// <summary>

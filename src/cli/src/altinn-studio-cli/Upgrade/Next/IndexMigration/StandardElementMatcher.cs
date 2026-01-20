@@ -169,6 +169,28 @@ internal sealed partial class StandardElementMatcher
                 description = "Altinn app frontend CSS";
                 return true;
             }
+
+            // Localhost framework CSS - used during local development, should not be migrated
+            if (LocalhostFrameworkCssPattern().IsMatch(href))
+            {
+                description = "Localhost Altinn app frontend CSS (local development)";
+                return true;
+            }
+
+            // Altinn DIN font CSS - managed by the generated HTML, should not be carried over
+            if (AltinnDinFontCssPattern().IsMatch(href))
+            {
+                description = "Altinn DIN font CSS (managed by generated HTML)";
+                return true;
+            }
+
+            // Fortawesome toolkit CSS - deprecated, should not be migrated
+            if (FortawesomeToolkitCssPattern().IsMatch(href))
+            {
+                description = "Deprecated Fortawesome toolkit CSS (should not be migrated)";
+                return true;
+            }
+
             return false;
         }
 
@@ -189,6 +211,14 @@ internal sealed partial class StandardElementMatcher
                 description = "Altinn app frontend JS";
                 return true;
             }
+
+            // Localhost framework JS - used during local development, should not be migrated
+            if (LocalhostFrameworkJsPattern().IsMatch(src))
+            {
+                description = "Localhost Altinn app frontend JS (local development)";
+                return true;
+            }
+
             return false;
         }
 
@@ -336,4 +366,32 @@ internal sealed partial class StandardElementMatcher
         RegexOptions.IgnoreCase
     )]
     private static partial Regex FrameworkCssPattern();
+
+    /// <summary>
+    /// Matches: https://altinncdn.no/fonts/altinn-din/altinn-din.css
+    /// This font is managed by the generated HTML and should not be migrated to frontend.json.
+    /// </summary>
+    [GeneratedRegex(@"^https://altinncdn\.no/fonts/altinn-din/altinn-din\.css$", RegexOptions.IgnoreCase)]
+    private static partial Regex AltinnDinFontCssPattern();
+
+    /// <summary>
+    /// Matches: https://altinncdn.no/toolkits/fortawesome/...
+    /// These deprecated Fortawesome toolkit fonts should not be migrated to frontend.json.
+    /// </summary>
+    [GeneratedRegex(@"^https://altinncdn\.no/toolkits/fortawesome/", RegexOptions.IgnoreCase)]
+    private static partial Regex FortawesomeToolkitCssPattern();
+
+    /// <summary>
+    /// Matches localhost URLs loading altinn-app-frontend.js (any port).
+    /// These are used during local development and should not be migrated.
+    /// </summary>
+    [GeneratedRegex(@"^https?://localhost(:\d+)?/altinn-app-frontend\.js$", RegexOptions.IgnoreCase)]
+    private static partial Regex LocalhostFrameworkJsPattern();
+
+    /// <summary>
+    /// Matches localhost URLs loading altinn-app-frontend.css (any port).
+    /// These are used during local development and should not be migrated.
+    /// </summary>
+    [GeneratedRegex(@"^https?://localhost(:\d+)?/altinn-app-frontend\.css$", RegexOptions.IgnoreCase)]
+    private static partial Regex LocalhostFrameworkCssPattern();
 }

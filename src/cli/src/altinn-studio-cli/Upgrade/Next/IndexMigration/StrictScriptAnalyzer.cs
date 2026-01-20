@@ -18,6 +18,12 @@ internal sealed record ScriptAnalysisResult
     /// Human-readable description
     /// </summary>
     public required string Description { get; init; }
+
+    /// <summary>
+    /// For non-standard scripts: The cleaned content with boilerplate removed.
+    /// Null if the script is standard or has no custom content.
+    /// </summary>
+    public string? CleanedContent { get; init; }
 }
 
 /// <summary>
@@ -42,12 +48,6 @@ internal sealed partial class StrictScriptAnalyzer
         if (IsLoadScriptCallOnly(normalized))
         {
             return new ScriptAnalysisResult { IsStandard = true, Description = "loadScript() call only" };
-        }
-
-        // Quick check: Cypress dev tools hook
-        if (IsCypressDevToolsHook(normalized))
-        {
-            return new ScriptAnalysisResult { IsStandard = true, Description = "Cypress dev tools hook" };
         }
 
         // Use AST parsing for detailed analysis
@@ -75,7 +75,7 @@ internal sealed partial class StrictScriptAnalyzer
             }
 
             // Analyze as inline init script
-            return AnalyzeInlineInitScript(statements);
+            return AnalyzeInlineInitScript(scriptContent, statements);
         }
         catch (Exception ex)
         {
@@ -108,26 +108,30 @@ internal sealed partial class StrictScriptAnalyzer
         List<Statement> allStatements
     )
     {
-        // loadScript function should be the only statement (besides possible trailing whitespace)
-        if (allStatements.Count != 1)
+        // Check if there are statements outside the loadScript function
+        var statementsOutsideFunction = allStatements.Where(s => s != loadScriptFunc).ToList();
+        if (statementsOutsideFunction.Count > 0)
         {
-            return new ScriptAnalysisResult
+            // Allow boilerplate statements outside the function (e.g., window.featureToggles = ...)
+            var nonBoilerplateOutside = statementsOutsideFunction.Where(s => !IsBoilerplateStatement(s)).ToList();
+            if (nonBoilerplateOutside.Count > 0)
             {
-                IsStandard = false,
-                Description = "Script has statements outside loadScript function",
-            };
+                return new ScriptAnalysisResult
+                {
+                    IsStandard = false,
+                    Description =
+                        $"Script has {nonBoilerplateOutside.Count} non-boilerplate statement(s) outside loadScript function",
+                };
+            }
         }
 
         var funcBody = loadScriptFunc.Body.Body.ToList();
-        var (windowAssignments, otherStatements) = CategorizeStatements(funcBody);
-
-        // Check for recognized window.* assignments
-        var hasOrg = windowAssignments.Any(a => a.Property == "org");
-        var hasApp = windowAssignments.Any(a => a.Property == "app");
-        var hasReportee = windowAssignments.Any(a => a.Property == "reportee");
-        var hasFeatureToggles = windowAssignments.Any(a => a.Property == "featureToggles");
+        var (windowAssignments, _) = CategorizeStatements(funcBody);
 
         // Must have window.org and window.app
+        var hasOrg = windowAssignments.Any(a => a.Property == "org");
+        var hasApp = windowAssignments.Any(a => a.Property == "app");
+
         if (!hasOrg || !hasApp)
         {
             return new ScriptAnalysisResult
@@ -138,9 +142,7 @@ internal sealed partial class StrictScriptAnalyzer
         }
 
         // Check for unrecognized window.* assignments
-        var unrecognizedWindowAssigns = windowAssignments.Where(a =>
-            a.Property != "org" && a.Property != "app" && a.Property != "reportee" && a.Property != "featureToggles"
-        );
+        var unrecognizedWindowAssigns = windowAssignments.Where(a => !KnownWindowProperties.Contains(a.Property));
 
         if (unrecognizedWindowAssigns.Any())
         {
@@ -152,52 +154,37 @@ internal sealed partial class StrictScriptAnalyzer
             };
         }
 
-        // Check for unrecognized statements (beyond var appId declaration)
-        var unexpectedStatements = otherStatements.Where(s => !IsAppIdDeclaration(s)).ToList();
+        // Check if all statements in the function body are boilerplate
+        var nonBoilerplateStatements = funcBody.Where(s => !IsBoilerplateStatement(s)).ToList();
 
-        if (unexpectedStatements.Count > 0)
+        if (nonBoilerplateStatements.Count > 0)
         {
             return new ScriptAnalysisResult
             {
                 IsStandard = false,
-                Description = $"loadScript has {unexpectedStatements.Count} unrecognized statement(s)",
+                Description = $"loadScript has {nonBoilerplateStatements.Count} non-boilerplate statement(s)",
             };
         }
 
-        // All recognized - standard template (including old cruft like reportee/featureToggles)
-        var desc = "Standard loadScript function";
-        if (hasReportee)
-            desc += " (with window.reportee - old template cruft)";
-        if (hasFeatureToggles)
-            desc += " (with window.featureToggles - old template cruft)";
-
-        return new ScriptAnalysisResult { IsStandard = true, Description = desc };
+        return new ScriptAnalysisResult { IsStandard = true, Description = "Standard loadScript function" };
     }
 
-    private ScriptAnalysisResult AnalyzeInlineInitScript(List<Statement> statements)
+    private ScriptAnalysisResult AnalyzeInlineInitScript(string scriptContent, List<Statement> statements)
     {
-        var (windowAssignments, otherStatements) = CategorizeStatements(statements);
-
-        // Check for recognized window.* assignments
-        var hasOrg = windowAssignments.Any(a => a.Property == "org");
-        var hasApp = windowAssignments.Any(a => a.Property == "app");
-        var hasFeatureToggles = windowAssignments.Any(a => a.Property == "featureToggles");
-
-        // Must have window.org and window.app for standard inline init
-        if (!hasOrg || !hasApp)
+        // First check: if ALL statements are boilerplate, it's standard (safe to delete)
+        // This handles standalone scripts like just "window.featureToggles = {...}"
+        if (statements.All(IsBoilerplateStatement))
         {
-            // Not an init script - check if it's entirely unknown (needs extraction)
-            return new ScriptAnalysisResult
-            {
-                IsStandard = false,
-                Description = "Script does not match any known template pattern",
-            };
+            return new ScriptAnalysisResult { IsStandard = true, Description = "Standard boilerplate script" };
         }
 
-        // Check for unrecognized window.* assignments
-        var unrecognizedWindowAssigns = windowAssignments.Where(a =>
-            a.Property != "org" && a.Property != "app" && a.Property != "featureToggles"
-        );
+        // Extract custom content (strip boilerplate like loadScript() calls)
+        var cleanedContent = ExtractCustomContent(scriptContent, statements);
+
+        // Script has non-boilerplate content - check for unrecognized window.* assignments
+        var (windowAssignments, _) = CategorizeStatements(statements);
+
+        var unrecognizedWindowAssigns = windowAssignments.Where(a => !KnownWindowProperties.Contains(a.Property));
 
         if (unrecognizedWindowAssigns.Any())
         {
@@ -206,27 +193,22 @@ internal sealed partial class StrictScriptAnalyzer
             {
                 IsStandard = false,
                 Description = $"Script has unrecognized window assignments: {props}",
+                CleanedContent = cleanedContent,
             };
         }
 
-        // Check for unrecognized statements (beyond var/const appId declaration)
-        var unexpectedStatements = otherStatements.Where(s => !IsAppIdDeclaration(s)).ToList();
-
-        if (unexpectedStatements.Count > 0)
+        // If cleaned content is empty, all was boilerplate (shouldn't happen due to earlier check)
+        if (string.IsNullOrWhiteSpace(cleanedContent))
         {
-            return new ScriptAnalysisResult
-            {
-                IsStandard = false,
-                Description = $"Script has {unexpectedStatements.Count} unrecognized statement(s)",
-            };
+            return new ScriptAnalysisResult { IsStandard = true, Description = "Standard boilerplate script" };
         }
 
-        // All recognized - standard template
-        var desc = "Standard inline init script";
-        if (hasFeatureToggles)
-            desc += " (with window.featureToggles - old template cruft)";
-
-        return new ScriptAnalysisResult { IsStandard = true, Description = desc };
+        return new ScriptAnalysisResult
+        {
+            IsStandard = false,
+            Description = "Script has custom content",
+            CleanedContent = cleanedContent,
+        };
     }
 
     private sealed record WindowAssignment(string Property, Expression Value);
@@ -260,12 +242,79 @@ internal sealed partial class StrictScriptAnalyzer
         return (windowAssignments, otherStatements);
     }
 
-    private static bool IsAppIdDeclaration(Statement stmt)
+    private static bool IsAllowedStatement(Statement stmt)
     {
-        if (stmt is not VariableDeclaration varDecl)
-            return false;
+        // Allow empty statements (e.g., from double semicolons ;;)
+        if (stmt is EmptyStatement)
+            return true;
 
-        return varDecl.Declarations.Any(d => d.Id is Identifier id && id.Name == "appId");
+        // Allow var appId = ... declarations
+        if (stmt is VariableDeclaration varDecl)
+        {
+            return varDecl.Declarations.Any(d => d.Id is Identifier id && id.Name == "appId");
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Known window properties that are boilerplate from the standard template.
+    /// </summary>
+    private static readonly HashSet<string> KnownWindowProperties = new(StringComparer.Ordinal)
+    {
+        "org",
+        "app",
+        "reportee",
+        "featureToggles",
+    };
+
+    /// <summary>
+    /// Determines if a statement is boilerplate that should be stripped from extracted scripts.
+    /// </summary>
+    private static bool IsBoilerplateStatement(Statement stmt)
+    {
+        // Known window.* assignments: window.org, window.app, window.reportee, window.featureToggles
+        if (
+            stmt is ExpressionStatement exprStmt
+            && exprStmt.Expression is AssignmentExpression assign
+            && assign.Left is MemberExpression member
+            && member.Object is Identifier obj
+            && obj.Name == "window"
+            && member.Property is Identifier propId
+        )
+        {
+            return KnownWindowProperties.Contains(propId.Name);
+        }
+
+        // loadScript() call is boilerplate
+        if (
+            stmt is ExpressionStatement callStmt
+            && callStmt.Expression is CallExpression call
+            && call.Callee is Identifier calleeId
+            && calleeId.Name.Equals("loadScript", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            return true;
+        }
+
+        // Reuse IsAllowedStatement for appId declarations and empty statements
+        return IsAllowedStatement(stmt);
+    }
+
+    /// <summary>
+    /// Extracts only the custom (non-boilerplate) content from a script.
+    /// </summary>
+    private static string? ExtractCustomContent(string source, List<Statement> statements)
+    {
+        var customStatements = statements.Where(s => !IsBoilerplateStatement(s)).ToList();
+
+        if (customStatements.Count == 0)
+            return null;
+
+        // Extract each statement's original text and join
+        var parts = customStatements.Select(s => source.Substring(s.Range.Start, s.Range.End - s.Range.Start)).ToList();
+
+        return string.Join("\n\n", parts).Trim();
     }
 
     private static bool IsLoadScriptCallOnly(string normalized)
@@ -274,20 +323,8 @@ internal sealed partial class StrictScriptAnalyzer
             || normalized.Equals("loadScript()", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static bool IsCypressDevToolsHook(string normalized)
-    {
-        // Match: if(window.Cypress){window["__REACT_DEVTOOLS_GLOBAL_HOOK__"]=window.parent["__REACT_DEVTOOLS_GLOBAL_HOOK__"];}
-        return CypressDevToolsPattern().IsMatch(normalized);
-    }
-
     private static string NormalizeWhitespace(string content)
     {
         return Regex.Replace(content, @"\s+", "").Trim();
     }
-
-    [GeneratedRegex(
-        @"if\(window\.Cypress\)\{window\[.?__REACT_DEVTOOLS_GLOBAL_HOOK__.?\]=window\.parent\[.?__REACT_DEVTOOLS_GLOBAL_HOOK__.?\];?\}",
-        RegexOptions.IgnoreCase
-    )]
-    private static partial Regex CypressDevToolsPattern();
 }

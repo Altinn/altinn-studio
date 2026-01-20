@@ -40,10 +40,24 @@ internal sealed partial class IndexFileParser
         // These are invisible to the HTML parser but represent logic we can't migrate
         DetectRazorControlFlow();
 
+        // Remove Razor comments (@* ... *@) before parsing
+        // These can contain commented-out elements that shouldn't be parsed or migrated
+        var preprocessedContent = StripRazorComments(_rawContent);
+
         // AngleSharp is tolerant of Razor syntax in text nodes and attribute values
         // We parse directly without preprocessing since we're only detecting structural elements
         var parser = new HtmlParser();
-        _document = await parser.ParseDocumentAsync(_rawContent);
+        _document = await parser.ParseDocumentAsync(preprocessedContent);
+    }
+
+    /// <summary>
+    /// Strips Razor comments (@* ... *@) from the content.
+    /// These comments can span multiple lines and may contain HTML elements
+    /// that should not be parsed or migrated.
+    /// </summary>
+    private static string StripRazorComments(string content)
+    {
+        return RazorCommentPattern().Replace(content, string.Empty);
     }
 
     /// <summary>
@@ -120,4 +134,12 @@ internal sealed partial class IndexFileParser
     /// </summary>
     [GeneratedRegex(@"@\{")]
     private static partial Regex RazorCodeBlockPattern();
+
+    /// <summary>
+    /// Matches Razor comments: @* ... *@
+    /// These can span multiple lines and contain any content including HTML elements.
+    /// Uses non-greedy matching to handle multiple comments in the same file.
+    /// </summary>
+    [GeneratedRegex(@"@\*.*?\*@", RegexOptions.Singleline)]
+    private static partial Regex RazorCommentPattern();
 }

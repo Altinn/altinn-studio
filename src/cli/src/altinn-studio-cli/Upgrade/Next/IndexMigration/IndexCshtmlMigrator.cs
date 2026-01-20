@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Altinn.Studio.Cli.Upgrade.Next.IndexMigration;
 
 /// <summary>
@@ -130,8 +132,11 @@ internal sealed class IndexCshtmlMigrator
                 }
             }
 
+            // Read org/app from applicationmetadata.json for URL placeholder replacement
+            var orgApp = await ReadOrgAndAppFromMetadata();
+
             // Generate and write frontend.json configuration (only if there are external URLs)
-            var configGenerator = new FrontendConfigGenerator(categorizationResult);
+            var configGenerator = new FrontendConfigGenerator(categorizationResult, orgApp?.Org, orgApp?.App);
             var config = configGenerator.Generate();
 
             if (config.HasContent)
@@ -202,5 +207,36 @@ internal sealed class IndexCshtmlMigrator
             // Log warning but don't fail migration
             Console.WriteLine($"Warning: Failed to clean up empty directories: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Reads org and app values from applicationmetadata.json
+    /// </summary>
+    /// <returns>Tuple of (org, app) or null if not found</returns>
+    private async Task<(string Org, string App)?> ReadOrgAndAppFromMetadata()
+    {
+        var metadataPath = Path.Combine(_projectFolder, "App", "config", "applicationmetadata.json");
+        if (!File.Exists(metadataPath))
+        {
+            return null;
+        }
+
+        var json = await File.ReadAllTextAsync(metadataPath);
+        using var doc = JsonDocument.Parse(json);
+
+        if (doc.RootElement.TryGetProperty("id", out var idElement))
+        {
+            var id = idElement.GetString();
+            if (!string.IsNullOrEmpty(id))
+            {
+                var parts = id.Split('/', 2);
+                if (parts.Length == 2)
+                {
+                    return (parts[0], parts[1]);
+                }
+            }
+        }
+
+        return null;
     }
 }
