@@ -121,7 +121,7 @@ const emptyArray = [];
 
 export function usePageSettings(): GlobalPageSettings {
   const layoutSettings = useLaxCtx();
-  const globalUISettings = window.altinnAppGlobalData.globalPageSettings;
+  const globalUISettings = window.altinnAppGlobalData.layoutSets.uiSettings;
   return {
     ...globalUISettings,
     taskNavigation: globalUISettings.taskNavigation.map((g) => ({ ...g, id: uuidv4() })),

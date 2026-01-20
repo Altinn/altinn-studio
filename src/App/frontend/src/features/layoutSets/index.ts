@@ -1,3 +1,3 @@
 export function getLayoutSets() {
-  return window.altinnAppGlobalData.layoutSets;
+  return window.altinnAppGlobalData.layoutSets.sets;
 }

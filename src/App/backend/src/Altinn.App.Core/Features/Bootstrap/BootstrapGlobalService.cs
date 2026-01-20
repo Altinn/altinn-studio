@@ -18,21 +18,22 @@ internal sealed class BootstrapGlobalService(IAppMetadata appMetadata, IAppResou
 
     public async Task<BootstrapGlobalResponse> GetGlobalState()
     {
-        var appMetadataTask = await _appMetadata.GetApplicationMetadata();
+        var appMetadataTask = _appMetadata.GetApplicationMetadata();
+        var footerTask = _appResources.GetFooter();
 
-        var footer = await _appResources.GetFooter();
-
+        await Task.WhenAll(appMetadataTask, footerTask);
+        var footer = footerTask.Result;
         var footerJson = string.IsNullOrEmpty(footer)
             ? null
             : JsonSerializer.Deserialize<object>(footer, _jsonSerializerOptions);
-        var layoutSets = _appResources.GetLayoutSets();
+        var layoutSets = _appResources.GetLayoutSets() ?? new LayoutSets { Sets = [] };
+        layoutSets.UiSettings ??= new GlobalPageSettings();
 
         return new BootstrapGlobalResponse
         {
-            ApplicationMetadata = appMetadataTask,
+            ApplicationMetadata = appMetadataTask.Result,
             Footer = footerJson,
-            LayoutSets = layoutSets?.Sets ?? [],
-            GlobalPageSettings = layoutSets?.UiSettings ?? new GlobalPageSettings(),
+            LayoutSets = layoutSets,
         };
     }
 }
