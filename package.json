@@ -4,7 +4,7 @@
     "eslint": "8.57.1",
     "husky": "9.1.7",
     "lint-staged": "16.2.7",
-    "prettier": "3.6.2"
+    "prettier": "3.8.0"
   },
   "lint-staged": {
     "./src/App/frontend/**/*.{js,jsx,ts,tsx}": [
@@ -16,7 +16,7 @@
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",
     "./src/Designer/frontend/language/src/*.json": "yarn run sort-texts"
   },
-  "packageManager": "yarn@4.9.4",
+  "packageManager": "yarn@4.12.0",
   "private": true,
   "scripts": {
     "lint": "yarn workspace studio-designer-frontend lint",
