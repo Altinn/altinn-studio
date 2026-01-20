@@ -77,6 +77,7 @@ describe('OptionTabs', () => {
     renderOptionTabs({
       componentProps: {
         optionsId,
+        options: undefined,
       },
       optionListIds: [],
     });
@@ -151,7 +152,7 @@ describe('OptionTabs', () => {
   });
 });
 
-type renderOptionTabsProps<T extends ComponentType.Checkboxes | ComponentType.RadioButtons> = {
+type RenderOptionTabsProps<T extends ComponentType.Checkboxes | ComponentType.RadioButtons> = {
   componentProps?: Partial<FormItem<T>>;
   handleComponentChange?: () => void;
   queries?: Partial<ServicesContextProps>;
@@ -163,10 +164,10 @@ function renderOptionTabs<T extends ComponentType.Checkboxes | ComponentType.Rad
   handleComponentChange = jest.fn(),
   queries = {},
   optionListIds = [],
-}: renderOptionTabsProps<T> = {}) {
+}: RenderOptionTabsProps<T> = {}) {
   return renderWithProviders(
     <OptionTabs
-      optionListIds={optionListIds}
+      optionListIdsFromLibrary={optionListIds}
       handleComponentChange={handleComponentChange}
       component={{
         ...mockComponent,
