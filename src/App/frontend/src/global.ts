@@ -11,7 +11,7 @@ import type { IApplicationSettings } from 'src/types/shared';
 type GlobalData = {
   applicationMetadata: ApplicationMetadata;
   footer: IFooterLayout;
-  applicationSettings: IApplicationSettings;
+  frontendSettings: IApplicationSettings;
 };
 
 declare global {

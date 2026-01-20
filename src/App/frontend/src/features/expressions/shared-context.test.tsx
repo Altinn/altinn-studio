@@ -97,7 +97,7 @@ describe('Expressions shared context tests', () => {
 
         // Set up applicationSettings in window global (useApplicationSettings reads from here)
         if (frontendSettings) {
-          window.altinnAppGlobalData.applicationSettings = getApplicationSettingsMock(frontendSettings);
+          window.altinnAppGlobalData.frontendSettings = getApplicationSettingsMock(frontendSettings);
         }
 
         if (instanceDataElements) {

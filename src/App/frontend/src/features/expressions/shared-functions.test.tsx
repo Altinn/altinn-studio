@@ -302,7 +302,7 @@ describe('Expressions shared function tests', () => {
 
       // Set up applicationSettings in window global (useApplicationSettings reads from here)
       if (frontendSettings) {
-        window.altinnAppGlobalData.applicationSettings = getApplicationSettingsMock(frontendSettings);
+        window.altinnAppGlobalData.frontendSettings = getApplicationSettingsMock(frontendSettings);
       }
 
       jest.mocked(getApplicationMetadata).mockReturnValue(applicationMetadata);
