@@ -76,7 +76,7 @@ window.app = 'test';
 // Set up altinnAppGlobalData with default mocks
 window.altinnAppGlobalData = {
   applicationMetadata: getApplicationMetadataMock(),
-  applicationSettings: getApplicationSettingsMock(),
+  frontendSettings: getApplicationSettingsMock(),
   footer: getFooterLayoutMock(),
 };
 

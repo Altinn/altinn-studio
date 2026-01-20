@@ -1,1 +1,1 @@
-export const useApplicationSettings = () => window.altinnAppGlobalData.applicationSettings;
+export const useApplicationSettings = () => window.altinnAppGlobalData.frontendSettings;

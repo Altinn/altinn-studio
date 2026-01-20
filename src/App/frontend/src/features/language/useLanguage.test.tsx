@@ -173,7 +173,7 @@ describe('useLanguage', () => {
   });
 
   it('langAsString() should work with complex lookups and arrays', async () => {
-    window.altinnAppGlobalData.applicationSettings = getApplicationSettingsMock({
+    window.altinnAppGlobalData.frontendSettings = getApplicationSettingsMock({
       firstValue: 'liter',
       secondValue: 'FRITYROLJE',
       thirdValue: '2019',
