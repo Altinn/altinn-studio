@@ -3,7 +3,7 @@ import { fireEvent, renderHook, screen, waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from './ServicesContext';
 import { ServicesContextProvider, useServicesContext } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { QueryClient, useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
