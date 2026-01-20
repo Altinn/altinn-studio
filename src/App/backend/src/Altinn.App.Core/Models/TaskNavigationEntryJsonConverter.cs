@@ -27,14 +27,9 @@ public class TaskNavigationEntryJsonConverter : JsonConverter<TaskNavigationEntr
         // Determine which type to deserialize based on presence of "type" property
         bool hasType = root.TryGetProperty("type", out var navigationType);
 
-        if (hasType && navigationType.GetString() == "receipt")
-        {
-            return root.Deserialize<NavigationReceipt>(options);
-        }
-        else
-        {
-            return root.Deserialize<NavigationTask>(options);
-        }
+        return hasType && navigationType.GetString() == "receipt"
+            ? root.Deserialize<NavigationReceipt>(options)
+            : root.Deserialize<NavigationTask>(options);
     }
 
     /// <inheritdoc />

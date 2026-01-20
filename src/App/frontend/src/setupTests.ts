@@ -77,6 +77,7 @@ window.app = 'test';
 window.altinnAppGlobalData = {
   applicationMetadata: getApplicationMetadataMock(),
   footer: getFooterLayoutMock(),
+  layoutSets: getLayoutSetsMock(),
 };
 
 window.logError = (...args) => {
