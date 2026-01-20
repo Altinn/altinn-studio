@@ -27,5 +27,5 @@ internal class BootstrapGlobalResponse
     /// Available language options.
     /// </summary>
     [JsonPropertyName("availableLanguages")]
-    public List<ApplicationLanguage> AvailableLanguages { get; set; }
+    public List<ApplicationLanguage>? AvailableLanguages { get; set; }
 }
