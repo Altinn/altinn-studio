@@ -537,18 +537,6 @@ Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
   cy.findByRole('progressbar').should('not.exist');
 });
 
-Cypress.Commands.add('interceptLayoutSetsUiSettings', (uiSettings) => {
-  cy.intercept('GET', '**/api/layoutsets', (req) => {
-    req.continue((res) => {
-      const body = JSON.parse(res.body);
-      res.body = JSON.stringify({
-        ...body,
-        uiSettings: { ...body.uiSettings, ...uiSettings },
-      });
-    });
-  }).as('layoutSets');
-});
-
 Cypress.Commands.add('getSummary', (label) => {
   cy.get(`[data-testid^=summary-]:has(span:contains(${label}))`);
 });

@@ -139,11 +139,14 @@ describe('On Entry', () => {
   });
 
   it('language selector and other page settings still work during instance selection', () => {
-    cy.interceptLayoutSetsUiSettings({
-      hideCloseButton: true,
-      showExpandWidthButton: true,
-      showProgress: false,
-      showLanguageSelector: true,
+    interceptAltinnAppGlobalData((globalData) => {
+      globalData.layoutSets.uiSettings = {
+        ...globalData.layoutSets.uiSettings,
+        hideCloseButton: true,
+        showExpandWidthButton: true,
+        showProgress: false,
+        showLanguageSelector: true,
+      };
     });
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.selectInstance.header).should('contain.text', texts.alreadyStartedForm);
