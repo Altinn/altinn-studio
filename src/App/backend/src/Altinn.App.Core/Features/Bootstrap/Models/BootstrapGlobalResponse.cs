@@ -10,4 +10,10 @@ internal class BootstrapGlobalResponse
     /// </summary>
     [JsonPropertyName("applicationMetadata")]
     public required ApplicationMetadata ApplicationMetadata { get; set; }
+
+    /// <summary>
+    /// Footer layout configuration.
+    /// </summary>
+    [JsonPropertyName("footer")]
+    public object? Footer { get; set; }
 }
