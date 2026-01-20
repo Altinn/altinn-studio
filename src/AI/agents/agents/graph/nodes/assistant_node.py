@@ -335,8 +335,9 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                 
                 try:
                     result = await mcp_client.call_tool(tool_name, arguments)
-                    
+
                     # Handle CallToolResult objects
+                    extracted = None
                     if hasattr(result, 'structured_content') and result.structured_content:
                         extracted = result.structured_content
                         tool_results[tool_name] = extracted
@@ -354,8 +355,9 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                             extracted = content
                         tool_results[tool_name] = extracted
                     else:
+                        extracted = result
                         tool_results[tool_name] = result
-                    
+
                     result_size = len(str(extracted)) if extracted else 0
                     
                     # Extract text content for markdown display
