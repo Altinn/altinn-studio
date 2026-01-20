@@ -15,7 +15,7 @@
     <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.5.0" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.dotTrace" Version="0.15.8" />
-    <PackageVersion Include="Buildalyzer.Workspaces" Version="7.1.0" />
+    <PackageVersion Include="Buildalyzer.Workspaces" Version="8.0.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="CSharpier.Core" Version="1.2.5" />
     <PackageVersion Include="CSharpier.MsBuild" Version="1.2.5" />
