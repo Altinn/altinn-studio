@@ -14,6 +14,7 @@ import { TextDecoder, TextEncoder } from 'util';
 import type { AxiosResponse } from 'axios';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
 import { getFooterLayoutMock } from 'src/__mocks__/getFooterLayoutMock';
 // Importing CSS for jest-preview to look nicer
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -75,6 +76,7 @@ window.app = 'test';
 // Set up altinnAppGlobalData with default mocks
 window.altinnAppGlobalData = {
   applicationMetadata: getApplicationMetadataMock(),
+  applicationSettings: getApplicationSettingsMock(),
   footer: getFooterLayoutMock(),
 };
 

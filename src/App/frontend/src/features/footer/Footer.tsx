@@ -14,7 +14,6 @@ import type { IFooterComponent, IFooterComponentMap } from 'src/features/footer/
 export const Footer = () => {
   const application = getApplicationMetadata();
   const footerLayout = window.altinnAppGlobalData.footer;
-  console.log('footerLayout', footerLayout);
   const shouldUseOrgLogo = application.logo != null;
 
   const footerElements = footerLayout?.footer;

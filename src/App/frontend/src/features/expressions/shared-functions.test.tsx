@@ -5,6 +5,7 @@ import { screen } from '@testing-library/react';
 import type { AxiosResponse } from 'axios';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getSubFormLayoutSetMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
@@ -298,6 +299,11 @@ describe('Expressions shared function tests', () => {
 
       // Clear localstorage, because LanguageProvider uses it to cache selected languages
       localStorage.clear();
+
+      // Set up applicationSettings in window global (useApplicationSettings reads from here)
+      if (frontendSettings) {
+        window.altinnAppGlobalData.applicationSettings = getApplicationSettingsMock(frontendSettings);
+      }
 
       jest.mocked(getApplicationMetadata).mockReturnValue(applicationMetadata);
       jest.mocked(useIsStateless).mockImplementation(() => stateless ?? false);
