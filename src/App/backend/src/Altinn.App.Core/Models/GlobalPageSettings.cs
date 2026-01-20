@@ -11,31 +11,31 @@ public class GlobalPageSettings
     /// Hide the close button in the upper right corner of the app.
     /// </summary>
     [JsonPropertyName("hideCloseButton")]
-    public bool HideCloseButton { get; set; }
+    public bool HideCloseButton { get; set; } = false;
 
     /// <summary>
     /// Show the language selector in the upper right corner of the app.
     /// </summary>
     [JsonPropertyName("showLanguageSelector")]
-    public bool ShowLanguageSelector { get; set; }
+    public bool ShowLanguageSelector { get; set; } = false;
 
     /// <summary>
     /// Show the expand width button in the upper right corner of the app.
     /// </summary>
     [JsonPropertyName("showExpandWidthButton")]
-    public bool ShowExpandWidthButton { get; set; }
+    public bool ShowExpandWidthButton { get; set; } = false;
 
     /// <summary>
     /// Sets expanded width for pages.
     /// </summary>
     [JsonPropertyName("expandedWidth")]
-    public bool ExpandedWidth { get; set; }
+    public bool ExpandedWidth { get; set; } = false;
 
     /// <summary>
     /// Enables a progress indicator in the upper right corner of the app (when on data tasks/forms).
     /// </summary>
     [JsonPropertyName("showProgress")]
-    public bool ShowProgress { get; set; }
+    public bool ShowProgress { get; set; } = false;
 
     /// <summary>
     /// An attribute specifying when the application will save form data.
@@ -43,13 +43,13 @@ public class GlobalPageSettings
     /// onChangePage saves on every page change.
     /// </summary>
     [JsonPropertyName("autoSaveBehavior")]
-    public AutoSaveBehavior? AutoSaveBehavior { get; set; }
+    public AutoSaveBehavior AutoSaveBehavior { get; set; } = AutoSaveBehavior.OnChangePage;
 
     /// <summary>
     /// Shows the listed tasks in the sidebar navigation menu.
     /// </summary>
     [JsonPropertyName("taskNavigation")]
-    public List<TaskNavigationEntry>? TaskNavigation { get; set; }
+    public List<TaskNavigationEntry> TaskNavigation { get; set; } = [];
 }
 
 /// <summary>
