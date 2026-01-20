@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { interceptAppMetadata } from 'test/e2e/support/intercept-app-metadata';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 const appFrontend = new AppFrontend();
 
@@ -29,8 +29,8 @@ describe('On Entry', () => {
   });
 
   function setupInstanceSelection(defaultSelectedOption: number) {
-    interceptAppMetadata((metadata) => {
-      metadata.onEntry = {
+    interceptAltinnAppGlobalData((globalData) => {
+      globalData.applicationMetadata.onEntry = {
         show: 'select-instance',
         instanceSelection: {
           sortDirection: 'desc',

@@ -8,7 +8,7 @@ import type { ILayoutSets } from 'src/layout/common.generated';
 
 ///<reference types="cypress-iframe" />
 
-type GlobalData = {
+export type AltinnAppGlobalData = {
   applicationMetadata: ApplicationMetadata;
   footer: IFooterLayout;
   layoutSets: ILayoutSets;
@@ -19,7 +19,8 @@ declare global {
     app: string;
     org: string;
     featureToggles: IFeatureTogglesOptionalMap;
-    altinnAppGlobalData: GlobalData;
+    altinnAppGlobalData: AltinnAppGlobalData;
+
     // Exposes our global query client, which is used to cache data from API calls. This is exposed so that Cypress
     // can inject data into the cache, and so that we can access the cache in tests. It is also used by Studio
     // to invalidate/inject layout data the (Studio) user makes a change to the layout and wants to see the result
