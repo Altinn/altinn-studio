@@ -13,6 +13,17 @@ jest.mock('../hooks/useScrollIntoView', () => ({
   useScrollIntoView: jest.fn(),
 }));
 
+// This is temporary mock until we decide what to remove or keep in AppConfigForm.
+jest.mock('@studio/feature-flags', () => {
+  const useFeatureFlag = jest.fn().mockReturnValue(true);
+  return {
+    FeatureFlag: {
+      AppMetadataBeta: 'AppMetadataBeta',
+    },
+    useFeatureFlag,
+  };
+});
+
 describe('AppConfigForm', () => {
   afterEach(jest.clearAllMocks);
 
