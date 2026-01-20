@@ -8,7 +8,10 @@ import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { StudioButton, StudioDialog, StudioParagraph, StudioTextfield } from '@studio/components';
-import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
+import {
+  getResourceIdentifierErrorMessage,
+  getValidIdentifierPrefixes,
+} from '../../utils/resourceUtils';
 import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
 import { formatIdString } from '../../utils/stringUtils';
 
@@ -44,8 +47,7 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
       id.length >= 4 &&
       !idErrorMessage &&
       !isCreatingResource &&
-      id.startsWith(`${org}-`) &&
-      id !== `${org}-`;
+      getValidIdentifierPrefixes(org).every((prefix) => id !== prefix);
 
     /**
      * Creates a new resource in backend, and navigates if success
@@ -87,6 +89,19 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
       setResourceIdExists(false);
     };
 
+    const getIdErrorMessage = (): string => {
+      if (idErrorMessage) {
+        const prefixes = getValidIdentifierPrefixes(org);
+        const prefixesString = [prefixes.slice(0, -1).join(', '), prefixes.slice(-1)[0]].join(
+          ` ${t('expression.or')} `,
+        );
+        return t(idErrorMessage, {
+          orgPrefix: prefixesString,
+        });
+      }
+      return '';
+    };
+
     return (
       <StudioDialog ref={ref} onClose={handleClose}>
         <ResourceAdmDialogContent
@@ -116,7 +131,7 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
               const newId = formatIdString(event.target.value);
               setId(newId);
             }}
-            error={idErrorMessage ? t(idErrorMessage, { orgPrefix: `${org}-` }) : ''}
+            error={getIdErrorMessage()}
           />
         </ResourceAdmDialogContent>
       </StudioDialog>

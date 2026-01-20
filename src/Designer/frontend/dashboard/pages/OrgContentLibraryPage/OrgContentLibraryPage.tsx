@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import React, { useMemo, useCallback } from 'react';
-import { ResourceContentLibraryImpl } from '@studio/content-library';
+import { ContentLibrary } from '@studio/content-library';
 import type {
   CodeListWithMetadata,
   PagesConfig,
@@ -39,7 +39,7 @@ import { useOrgRepoName } from 'dashboard/hooks/useOrgRepoName';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
 import { useOrgTextResourcesQuery } from 'app-shared/hooks/queries/useOrgTextResourcesQuery';
-import { CODE_LIST_FOLDER, DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { CODE_LIST_FOLDER, DEFAULT_LANGUAGE, ORG_LIBRARY_BASENAME } from 'app-shared/constants';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
@@ -52,6 +52,7 @@ import { useUpdateSharedResourcesMutation } from 'app-shared/hooks/mutations/use
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
 import { usePublishCodeListMutation } from 'app-shared/hooks/mutations/usePublishCodeListMutation';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
+import { useContentLibraryRouter } from 'app-shared/hooks/useContentLibraryRouter';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -137,6 +138,7 @@ function OrgContentLibraryWithContextAndData({
   const { mutate: updateTextResources } = useUpdateOrgTextResourcesMutation(orgName);
   const { t } = useTranslation();
   const pagesFromFeatureFlags = usePagesFromFeatureFlags(orgName);
+  const router = useContentLibraryRouter(`/${ORG_LIBRARY_BASENAME}/${orgName}`);
 
   const handleUpload = useUploadCodeList(orgName);
 
@@ -164,27 +166,26 @@ function OrgContentLibraryWithContextAndData({
     createCodeList({ title, data: codeList });
   };
 
-  const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
-    heading: t('org_content_library.library_heading'),
-    pages: {
-      codeListsWithTextResources: {
-        codeListDataList,
-        onCreateCodeList: handleCreate,
-        onCreateTextResource: handleUpdateTextResource,
-        onDeleteCodeList: deleteCodeList,
-        onUpdateCodeListId: handleUpdateCodeListId,
-        onUpdateCodeList: handleUpdate,
-        onUpdateTextResource: handleUpdateTextResource,
-        onUploadCodeList: handleUpload,
-        textResources,
-      },
-      ...pagesFromFeatureFlags,
-    },
-  });
-
   return (
     <div>
-      {getContentResourceLibrary()}
+      <ContentLibrary
+        heading={t('org_content_library.library_heading')}
+        router={router}
+        pages={{
+          codeListsWithTextResources: {
+            codeListDataList,
+            onCreateCodeList: handleCreate,
+            onCreateTextResource: handleUpdateTextResource,
+            onDeleteCodeList: deleteCodeList,
+            onUpdateCodeListId: handleUpdateCodeListId,
+            onUpdateCodeList: handleUpdate,
+            onUpdateTextResource: handleUpdateTextResource,
+            onUploadCodeList: handleUpload,
+            textResources,
+          },
+          ...pagesFromFeatureFlags,
+        }}
+      />
       <FeedbackForm />
     </div>
   );

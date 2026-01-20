@@ -250,6 +250,7 @@ namespace Designer.Tests.Services
             string origApp = "hvem-er-hvem";
             string app = TestDataHelper.GenerateTestRepoName(origApp);
             string developer = "testUser";
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
             await TestDataHelper.CopyRepositoryForTest(org, origApp, developer, app);
 
@@ -260,7 +261,7 @@ namespace Designer.Tests.Services
             SourceControlService sut = GetServiceForTest(developer, mock);
 
             // Act
-            await sut.DeleteRepository(org, app);
+            await sut.DeleteRepository(editingContext);
             string expectedPath = TestDataHelper.GetTestDataRepositoryDirectory(org, app, developer);
 
             // Assert
@@ -274,6 +275,7 @@ namespace Designer.Tests.Services
             // Arrange
             string target = "master";
             string source = "branch";
+            string user = "testUser";
 
             Mock<IGiteaClient> mock = new();
             mock.Setup(m => m.CreatePullRequest(
@@ -281,11 +283,12 @@ namespace Designer.Tests.Services
                 "apps-test",
                 It.Is<CreatePullRequestOption>(o => o.Base == target && o.Head == source)))
                 .ReturnsAsync(true);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", "apps-test", user);
 
-            SourceControlService sut = GetServiceForTest("testUser", mock);
+            SourceControlService sut = GetServiceForTest(user, mock);
 
             // Act
-            await sut.CreatePullRequest("ttd", "apps-test", target, source, "title");
+            await sut.CreatePullRequest(editingContext, target, source, "title");
 
             // Assert
             mock.VerifyAll();

@@ -68,7 +68,7 @@ export const MigrationPage = ({
               className={classes.migrationLink}
               href={altinnDocsUrl({
                 relativeUrl:
-                  'authorization/what-do-you-get/resourceregistry/migration/#migrering-av-rettigheter',
+                  'authorization/guides/resource-owner/migrate/linked_services/#migrering-av-delegeringer',
               })}
               rel='noopener noreferrer'
               target='_blank'

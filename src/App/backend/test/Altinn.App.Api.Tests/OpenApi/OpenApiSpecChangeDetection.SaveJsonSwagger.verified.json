@@ -2527,6 +2527,308 @@
         }
       }
     },
+    "/{org}/{app}/instance-selection": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Returns the index view with references to the React app.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "The application owner short name.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "The name of the app",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dontChooseReportee",
+            "in": "query",
+            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/party-selection": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Returns the index view with references to the React app.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "The application owner short name.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "The name of the app",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dontChooseReportee",
+            "in": "query",
+            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/party-selection/{errorCode}": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Returns the index view with references to the React app.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "The application owner short name.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "The name of the app",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dontChooseReportee",
+            "in": "query",
+            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "errorCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/{pageName}": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Returns the index view with references to the React app.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "The application owner short name.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "The name of the app",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dontChooseReportee",
+            "in": "query",
+            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "pageName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/instance/{partyId}/{instanceGuid}": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Returns the index view with references to the React app.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "The application owner short name.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "The name of the app",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dontChooseReportee",
+            "in": "query",
+            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/instance/{partyId}/{instanceGuid}/{rest}": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Returns the index view with references to the React app.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "The application owner short name.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "The name of the app",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dontChooseReportee",
+            "in": "query",
+            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rest",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/{org}/{app}/set-query-params": {
       "get": {
         "tags": [

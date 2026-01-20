@@ -28,7 +28,7 @@ describe('Party selection', () => {
     cyMockResponses({ allowedToInstantiate: [CyPartyMocks.ExampleOrgWithSubUnit, CyPartyMocks.ExampleDeletedOrg] });
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
-    cy.title().should('eq', 'Hvem vil du sende inn for? - frontend-test - Testdepartementet');
+    cy.title().should('eq', `Hvem vil du sende inn for? - ${appFrontend.apps.frontendTest} - Testdepartementet`);
   });
 
   it('Should skip party selection if you can only represent one person', () => {
@@ -39,7 +39,7 @@ describe('Party selection', () => {
     });
     cy.intercept(
       'POST',
-      `/ttd/frontend-test/instances?instanceOwnerPartyId=${CyPartyMocks.ExamplePerson1.partyId}*`,
+      `/ttd/${appFrontend.apps.frontendTest}/instances?instanceOwnerPartyId=${CyPartyMocks.ExamplePerson1.partyId}*`,
     ).as('loadInstance');
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.partySelection.party).should('not.exist');
@@ -285,7 +285,7 @@ describe('Party selection', () => {
 
     // Navigate directly to /#/party-selection to test that instantiation once more works
     cy.window().then((win) => {
-      win.location.hash = '#/party-selection';
+      win.location.pathname = `/ttd/${appFrontend.apps.frontendTest}/party-selection`;
     });
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
 

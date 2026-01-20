@@ -20,7 +20,6 @@ import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
-import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
@@ -323,21 +322,19 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
             <PageNavigationProvider>
               <Router>
                 <NavigationEffectProvider>
-                  <ApplicationMetadataProvider>
-                    <GlobalFormDataReadersProvider>
-                      <OrgsProvider>
-                        <ApplicationSettingsProvider>
-                          <LayoutSetsProvider>
-                            <ProfileProvider>
-                              <PartyProvider>
-                                <TextResourcesProvider>{children}</TextResourcesProvider>
-                              </PartyProvider>
-                            </ProfileProvider>
-                          </LayoutSetsProvider>
-                        </ApplicationSettingsProvider>
-                      </OrgsProvider>
-                    </GlobalFormDataReadersProvider>
-                  </ApplicationMetadataProvider>
+                  <GlobalFormDataReadersProvider>
+                    <OrgsProvider>
+                      <ApplicationSettingsProvider>
+                        <LayoutSetsProvider>
+                          <ProfileProvider>
+                            <PartyProvider>
+                              <TextResourcesProvider>{children}</TextResourcesProvider>
+                            </PartyProvider>
+                          </ProfileProvider>
+                        </LayoutSetsProvider>
+                      </ApplicationSettingsProvider>
+                    </OrgsProvider>
+                  </GlobalFormDataReadersProvider>
                 </NavigationEffectProvider>
               </Router>
             </PageNavigationProvider>

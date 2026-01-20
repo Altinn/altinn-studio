@@ -9,7 +9,7 @@ import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/get
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
-import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { ILayoutFile, ILayoutSet, ILayoutSets, ILayoutSettings } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
@@ -195,8 +195,8 @@ export class ExternalApp {
     return this;
   }
 
-  getAppMetadata(): IncomingApplicationMetadata {
-    const appMetaData = this.readJson<IncomingApplicationMetadata>('/App/config/applicationmetadata.json');
+  getAppMetadata(): ApplicationMetadata {
+    const appMetaData = this.readJson<ApplicationMetadata>('/App/config/applicationmetadata.json');
     if (this.compat) {
       appMetaData.altinnNugetVersion = '8.5.0.157';
       appMetaData.partyTypesAllowed = {
@@ -210,7 +210,7 @@ export class ExternalApp {
       // 1. When testing, we don't want to end up in instance selection
       // 2. We pretend stateless isn't a thing. If apps are considered stateless, we can end up with useNavigatePage()
       //    redirecting us to a page we didn't want.
-      appMetaData.onEntry = undefined;
+      appMetaData.onEntry = { show: 'new-instance' };
     }
     return appMetaData;
   }
@@ -415,12 +415,12 @@ export class ExternalAppLayoutSet {
     return firstTask ?? 'Task_1'; // Fallback to simulate Task_1 for stateless apps
   }
 
-  initialize(): { hash: string; mainSet: ExternalAppLayoutSet; subformComponent?: CompExternal<'Subform'> } {
+  initialize(): { pathname: string; mainSet: ExternalAppLayoutSet; subformComponent?: CompExternal<'Subform'> } {
     const instance = getInstanceDataMock();
     const pageSettings = this.getSettings().pages;
     const firstPage = 'order' in pageSettings ? pageSettings.order[0] : pageSettings.groups[0].order[0];
 
-    let hash = `#/instance/${instance.instanceOwner.partyId}/${instance.id}`;
+    let pathname = `/dummyOrg/dummyApp/instance/${instance.instanceOwner.partyId}/${instance.id}`;
     let mainSet: ExternalAppLayoutSet | undefined;
     let subformComponent: CompExternal<'Subform'> | undefined = undefined;
 
@@ -441,17 +441,17 @@ export class ExternalAppLayoutSet {
 
     if (!mainSet || !subformComponent) {
       // No other layout set includes us as a subform, we must be the main form.
-      hash += `/${this.getTaskId()}/${firstPage}`;
-      return { hash, mainSet: this };
+      pathname += `/${this.getTaskId()}/${firstPage}`;
+      return { pathname, mainSet: this };
     }
 
     // From here on out, we're in a subform
     const mainPages = mainSet.getSettings().pages;
     const firstMainPage = 'order' in mainPages ? mainPages.order[0] : mainPages.groups[0].order[0];
     const elementId = `fakeUuid:${this.config.dataType}:end`;
-    hash += `/${mainSet.getTaskId()}/${firstMainPage}/${subformComponent.id}/${elementId}/${firstPage}`;
+    pathname += `/${mainSet.getTaskId()}/${firstMainPage}/${subformComponent.id}/${elementId}/${firstPage}`;
 
-    return { hash, mainSet, subformComponent };
+    return { pathname, mainSet, subformComponent };
   }
 
   simulateProcessData(): IProcess {

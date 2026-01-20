@@ -12,10 +12,10 @@ import type {
   CodeListData as LibraryCodeListData,
   ContentLibraryConfig,
   PagesConfig,
-  ResourceContentLibraryImpl,
   TextResources,
   TextResourceWithLanguage,
 } from '@studio/content-library';
+import { PageName } from '@studio/content-library';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
 import { codeList1Data, codeListDataList } from './test-data/codeListDataList';
@@ -52,18 +52,10 @@ const sharedResourcesByPathQueryKey: string[] = [
 // Mocks:
 jest.mock('@studio/content-library', () => ({
   ...jest.requireActual('@studio/content-library'),
-  ResourceContentLibraryImpl: mockContentLibrary,
+  ContentLibrary: (props) => MockContentLibrary(props),
 }));
 
-function mockContentLibrary(
-  ...args: ConstructorParameters<typeof ResourceContentLibraryImpl>
-): Partial<ResourceContentLibraryImpl> {
-  mockConstructor(...args);
-  return { getContentResourceLibrary };
-}
-
-const mockConstructor = jest.fn();
-const getContentResourceLibrary = jest
+const MockContentLibrary = jest
   .fn()
   .mockImplementation(() => <div data-testid={resourceLibraryTestId} />);
 const resourceLibraryTestId = 'resource-library';
@@ -71,11 +63,23 @@ const resourceLibraryTestId = 'resource-library';
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 describe('OrgContentLibraryPage', () => {
-  beforeEach(mockConstructor.mockClear);
+  beforeEach(MockContentLibrary.mockClear);
 
   it('Renders the content library', () => {
     renderOrgContentLibraryWithData();
     expect(screen.getByTestId(resourceLibraryTestId)).toBeInTheDocument();
+  });
+
+  it('Renders with the landing page by default', () => {
+    renderOrgContentLibraryWithData();
+    const { router } = retrieveConfig();
+    expect(router.location).toEqual(PageName.LandingPage);
+  });
+
+  it('Renders with the element type page given by the path', () => {
+    renderOrgContentLibraryWithData({ initialEntries: ['/' + orgName + '/' + PageName.CodeLists] });
+    const { router } = retrieveConfig();
+    expect(router.location).toEqual(PageName.CodeLists);
   });
 
   it('renders a spinner while waiting for repo status', () => {
@@ -93,8 +97,8 @@ describe('OrgContentLibraryPage', () => {
     renderOrgContentLibrary({ queries: { getOrgCodeLists } });
     await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
 
-    const errorMessage = textMock('dashboard.org_library.fetch_error');
-    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+    const errorMessage = await screen.findByText(textMock('dashboard.org_library.fetch_error'));
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it.each([SelectedContextType.None, SelectedContextType.All, SelectedContextType.Self])(
@@ -417,7 +421,7 @@ function createQueryClientWithRepoStatus(): QueryClient {
 function renderOrgContentLibrary(providerData: ProviderData = {}): RenderResult {
   return renderWithProviders(
     <Routes>
-      <Route path=':selectedContext' element={<OrgContentLibraryPage />} />
+      <Route path=':selectedContext/:elementType?' element={<OrgContentLibraryPage />} />
     </Routes>,
     { ...defaultProviderData, ...providerData },
   );
@@ -428,5 +432,5 @@ function retrievePagesConfig(): PagesConfig {
 }
 
 function retrieveConfig(): ContentLibraryConfig {
-  return mockConstructor.mock.calls[0][0];
+  return MockContentLibrary.mock.calls[0][0];
 }

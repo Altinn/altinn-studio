@@ -153,7 +153,7 @@ public class PdfControllerTests
         requestBody
             .Should()
             .Contain(
-                @"url"":""http://local.altinn.cloud/org/app/#/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
+                @"url"":""http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
             );
         requestBody.Should().NotContain(@"name"":""frontendVersion");
     }
@@ -226,7 +226,7 @@ public class PdfControllerTests
         requestBody
             .Should()
             .Contain(
-                @"url"":""http://local.altinn.cloud/org/app/#/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
+                @"url"":""http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
             );
         requestBody
             .Should()
@@ -301,7 +301,7 @@ public class PdfControllerTests
         requestBody
             .Should()
             .Contain(
-                @"url"":""http://org.apps.tt02.altinn.no/org/app/#/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
+                @"url"":""http://org.apps.tt02.altinn.no/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
             );
         requestBody.Should().NotContain(@"name"":""frontendVersion");
     }

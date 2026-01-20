@@ -6,7 +6,6 @@ const origin = window.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
 export const profileApiUrl = `${appPath}/api/v1/profile/user`;
-export const applicationMetadataApiUrl = `${appPath}/api/v1/applicationmetadata`;
 export const applicationSettingsApiUrl = `${appPath}/api/v1/applicationsettings`;
 export const invalidateCookieUrl = `${appPath}/api/authentication/invalidatecookie`;
 export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
@@ -170,7 +169,7 @@ export const getLayoutsUrl = (layoutSetId: string) => `${appPath}/api/layouts/${
 export const getInstanceLayoutsUrl = (layoutSetId: string, instanceId: string) =>
   `${appPath}/instances/${instanceId}/layouts/${layoutSetId}`;
 export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;
-export const getInstanceUiUrl = (instanceId: string) => `${appPath}#/instance/${instanceId}`;
+export const getInstanceUiUrl = (instanceId: string) => `${appPath}/instance/${instanceId}`;
 
 export const appFrontendCDNPath = 'https://altinncdn.no/toolkits/altinn-app-frontend';
 export const frontendVersionsCDN = `${appFrontendCDNPath}/index.json`;
