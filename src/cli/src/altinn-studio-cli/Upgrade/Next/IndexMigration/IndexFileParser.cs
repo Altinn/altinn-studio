@@ -124,7 +124,7 @@ internal sealed partial class IndexFileParser
     /// @inherits (base class directive), @model (model directive)
     /// </summary>
     [GeneratedRegex(
-        @"@(?<directive>Html\.|await\s|functions\s*\{|section\s+\w|addTagHelper|inherits\s|model\s)",
+        @"@(?<directive>Html\.|await[\s(]|functions\s*\{|section\s+\w|addTagHelper|inherits\s|model\s)",
         RegexOptions.IgnoreCase
     )]
     private static partial Regex RazorDangerousPattern();

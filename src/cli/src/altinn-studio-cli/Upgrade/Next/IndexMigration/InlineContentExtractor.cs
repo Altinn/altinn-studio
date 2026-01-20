@@ -49,6 +49,7 @@ internal sealed class InlineContentExtractor
             var content = _inlineStyles[i];
             var fileName = _inlineStyles.Count == 1 ? "styles.css" : $"styles-{i}.css";
             var filePath = Path.Combine(cssDir, fileName);
+            filePath = GetUniqueFilePath(filePath);
 
             await File.WriteAllTextAsync(filePath, content);
             createdFiles.Add(filePath);
@@ -73,11 +74,34 @@ internal sealed class InlineContentExtractor
             var content = _inlineScripts[i];
             var fileName = _inlineScripts.Count == 1 ? "script.js" : $"script-{i}.js";
             var filePath = Path.Combine(jsDir, fileName);
+            filePath = GetUniqueFilePath(filePath);
 
             await File.WriteAllTextAsync(filePath, content);
             createdFiles.Add(filePath);
         }
 
         return createdFiles;
+    }
+
+    private static string GetUniqueFilePath(string filePath)
+    {
+        if (!File.Exists(filePath))
+        {
+            return filePath;
+        }
+
+        var directory = Path.GetDirectoryName(filePath) ?? string.Empty;
+        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
+        var extension = Path.GetExtension(filePath);
+
+        int counter = 1;
+        string uniquePath;
+        do
+        {
+            uniquePath = Path.Combine(directory, $"{fileNameWithoutExtension}-{counter}{extension}");
+            counter++;
+        } while (File.Exists(uniquePath));
+
+        return uniquePath;
     }
 }
