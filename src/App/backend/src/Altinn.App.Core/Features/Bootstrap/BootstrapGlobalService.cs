@@ -2,6 +2,7 @@ using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Language;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Features.Bootstrap;
@@ -9,7 +10,8 @@ namespace Altinn.App.Core.Features.Bootstrap;
 internal sealed class BootstrapGlobalService(
     IAppMetadata appMetadata,
     IAppResources appResources,
-    IOptions<FrontEndSettings> frontEndSettings
+    IOptions<FrontEndSettings> frontEndSettings,
+    IApplicationLanguage applicationLanguage
 ) : IBootstrapGlobalService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -19,19 +21,29 @@ internal sealed class BootstrapGlobalService(
 
     public async Task<BootstrapGlobalResponse> GetGlobalState()
     {
-        var appMetadataTask = await appMetadata.GetApplicationMetadata();
+        var appMetadataTask = appMetadata.GetApplicationMetadata();
 
-        var footer = await appResources.GetFooter();
+        var footerTask = GetFooterLayout();
 
-        var footerJson = string.IsNullOrEmpty(footer)
-            ? null
-            : JsonSerializer.Deserialize<object>(footer, _jsonSerializerOptions);
+        var availableLanguagesTask = applicationLanguage.GetApplicationLanguages();
+
+        // Await all tasks
+        await Task.WhenAll(availableLanguagesTask, appMetadataTask, footerTask, availableLanguagesTask);
 
         return new BootstrapGlobalResponse
         {
-            ApplicationMetadata = appMetadataTask,
-            Footer = footerJson,
+            ApplicationMetadata = await appMetadataTask,
+            Footer = await footerTask,
+            AvailableLanguages = await availableLanguagesTask,
             FrontEndSettings = frontEndSettings.Value,
         };
+    }
+
+    private async Task<object?> GetFooterLayout()
+    {
+        var footerJson = await appResources.GetFooter();
+        return string.IsNullOrEmpty(footerJson)
+            ? null
+            : JsonSerializer.Deserialize<object>(footerJson, _jsonSerializerOptions);
     }
 }
