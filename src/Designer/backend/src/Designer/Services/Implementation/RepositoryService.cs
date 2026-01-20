@@ -274,7 +274,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             targetOrg ??= org;
             var options = new CreateRepoOption(targetRepository);
             string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceRepository, developer, token);
+            AltinnAuthenticatedRepoEditingContext sourceContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceRepository, developer, token);
+            AltinnAuthenticatedRepoEditingContext targetContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(targetOrg, targetRepository, developer, token);
 
             RepositoryClient.Model.Repository repository = await CreateRemoteRepository(targetOrg, options);
 
@@ -290,7 +291,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 FireDeletionOfLocalRepo(targetOrg, targetRepository, developer);
             }
 
-            _sourceControl.CloneRemoteRepository(authenticatedContext, targetRepositoryPath);
+            _sourceControl.CloneRemoteRepository(sourceContext, targetRepositoryPath);
             var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepository, developer);
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
@@ -313,7 +314,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             CommitInfo commitInfo = new() { Org = targetOrg, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
-            _sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
+            _sourceControl.PushChangesForRepository(targetContext, commitInfo);
 
             return repository;
         }
