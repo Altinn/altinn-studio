@@ -3,7 +3,7 @@ import { fireEvent, renderHook, screen, waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from './ServicesContext';
 import { ServicesContextProvider, useServicesContext } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { useQuery } from '@tanstack/react-query';
+import { QueryClient, useMutation, useQuery } from '@tanstack/react-query';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
@@ -216,5 +216,26 @@ describe('ServicesContext', () => {
     expect(renderHookFn).toThrowError(
       'useServicesContext must be used within a ServicesContextProvider.',
     );
+  });
+
+  it('does not display error toast when request is cancelled', async () => {
+    const cancelledError = new Error('Request cancelled');
+    cancelledError.name = 'CanceledError';
+    Object.defineProperty(cancelledError, '__CANCEL__', { value: true });
+
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchCancelled'],
+          queryFn: () => Promise.reject(cancelledError),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    const toastElements = screen.queryAllByRole('alert');
+    expect(toastElements).toHaveLength(0);
   });
 });
