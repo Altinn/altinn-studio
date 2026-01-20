@@ -31,7 +31,6 @@ internal sealed partial class IndexFileParser
     /// <summary>
     /// Parses the Index.cshtml file
     /// </summary>
-    /// <returns>True if parsing was successful, false otherwise</returns>
     public async Task Parse()
     {
         _rawContent = await File.ReadAllTextAsync(_filePath);
