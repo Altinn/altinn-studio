@@ -40,7 +40,7 @@ export function interceptAltinnAppGlobalData(
       }
 
       const globalData = JSON.parse(match[1]);
-      modifier(globalData.applicationMetadata);
+      modifier(globalData);
 
       res.body = res.body.replace(
         /window\.altinnAppGlobalData\s*=\s*\{[\s\S]*?\};/,

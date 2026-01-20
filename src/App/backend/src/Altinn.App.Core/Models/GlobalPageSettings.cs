@@ -43,7 +43,7 @@ public class GlobalPageSettings
     /// onChangePage saves on every page change.
     /// </summary>
     [JsonPropertyName("autoSaveBehavior")]
-    public AutoSaveBehavior AutoSaveBehavior { get; set; } = AutoSaveBehavior.OnChangePage;
+    public AutoSaveBehavior AutoSaveBehavior { get; set; } = AutoSaveBehavior.OnChangeFormData;
 
     /// <summary>
     /// Shows the listed tasks in the sidebar navigation menu.
