@@ -20,7 +20,6 @@ import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
-import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
@@ -119,7 +118,6 @@ const defaultQueryMocks: AppQueries = {
   fetchLogo: async () => getLogoMock(),
   fetchActiveInstances: async () => [],
   fetchSelectedParty: async () => getPartyMock(),
-  fetchApplicationSettings: async () => ({}),
   fetchLayoutSets: async () => getLayoutSetsMock(),
   fetchOrgs: async () => ({ orgs: getOrgsMock() }),
   fetchReturnUrl: async () => Promise.reject(),
@@ -322,15 +320,13 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
                 <NavigationEffectProvider>
                   <GlobalFormDataReadersProvider>
                     <OrgsProvider>
-                      <ApplicationSettingsProvider>
-                        <LayoutSetsProvider>
-                          <ProfileProvider>
-                            <PartyProvider>
-                              <TextResourcesProvider>{children}</TextResourcesProvider>
-                            </PartyProvider>
-                          </ProfileProvider>
-                        </LayoutSetsProvider>
-                      </ApplicationSettingsProvider>
+                      <LayoutSetsProvider>
+                        <ProfileProvider>
+                          <PartyProvider>
+                            <TextResourcesProvider>{children}</TextResourcesProvider>
+                          </PartyProvider>
+                        </ProfileProvider>
+                      </LayoutSetsProvider>
                     </OrgsProvider>
                   </GlobalFormDataReadersProvider>
                 </NavigationEffectProvider>
