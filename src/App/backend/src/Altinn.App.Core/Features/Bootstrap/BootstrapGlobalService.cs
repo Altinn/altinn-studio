@@ -3,13 +3,14 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Features.Bootstrap;
 
 internal sealed class BootstrapGlobalService(
     IAppMetadata appMetadata,
     IAppResources appResources,
-    FrontEndSettings frontEndSettings
+    IOptions<FrontEndSettings> frontEndSettings
 ) : IBootstrapGlobalService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -27,7 +28,7 @@ internal sealed class BootstrapGlobalService(
             ? null
             : JsonSerializer.Deserialize<object>(footer, _jsonSerializerOptions);
 
-        var frontendSettingsJson = new JsonResult(frontEndSettings, _jsonSerializerOptions);
+        var frontendSettingsJson = new JsonResult(frontEndSettings.Value, _jsonSerializerOptions);
 
         return new BootstrapGlobalResponse
         {
