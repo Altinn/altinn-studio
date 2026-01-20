@@ -225,7 +225,7 @@ public class HomeController : Controller
         }
     }
 
-    private IReadOnlyList<string> GetFileNames(string subfolder)
+    private List<string> GetFileNames(string subfolder)
     {
         var dir = Path.Combine(_appSettings.AppBasePath, "wwwroot", subfolder);
         if (!Directory.Exists(dir))
