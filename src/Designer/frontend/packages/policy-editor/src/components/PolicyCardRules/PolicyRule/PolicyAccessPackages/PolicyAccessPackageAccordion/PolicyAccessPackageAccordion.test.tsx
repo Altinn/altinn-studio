@@ -11,7 +11,7 @@ const defaultProps = {
     urn: 'urn:altinn:accesspackage:sjofart',
     name: 'Sjøfart',
     description: '',
-    isDelegable: true,
+    isResourcePolicyAvailable: true,
   },
   isChecked: false,
   handleSelectChange: jest.fn(),
