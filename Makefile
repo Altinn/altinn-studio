@@ -1,40 +1,40 @@
 # Altinn Studio Makefile
 # Make targets for syncing subtree repositories
 
-# Configuration: name:prefix:repo-url:branch
-SUBTREES := localtest:src/Runtime/localtest:https://github.com/Altinn/app-localtest.git:main \
-           frontend:src/App/frontend:https://github.com/Altinn/app-frontend-react.git:main \
-           backend:src/App/backend:https://github.com/Altinn/app-lib-dotnet.git:main \
-           fileanalyzers:src/App/fileanalyzers:https://github.com/Altinn/fileanalyzers-lib-dotnet.git:main \
-           codelists:src/App/codelists:https://github.com/Altinn/codelists-lib-dotnet.git:main
+# Configuration: name|prefix|repo-url|branch
+SUBTREES := localtest|src/Runtime/localtest|https://github.com/Altinn/app-localtest.git|main \
+           frontend|src/App/frontend|https://github.com/Altinn/app-frontend-react.git|main \
+           backend|src/App/backend|https://github.com/Altinn/app-lib-dotnet.git|main \
+           fileanalyzers|src/App/fileanalyzers|https://github.com/Altinn/fileanalyzers-lib-dotnet.git|main \
+           codelists|src/App/codelists|https://github.com/Altinn/codelists-lib-dotnet.git|main
 
 # Test apps configuration for subtree syncing (these all live in src/test/apps)
-# Format: app-name:repo-url:branch
-TEST_APPS := anonymous-stateless-app:https://dev.altinn.studio/repos/ttd/anonymous-stateless-app.git:master \
-            component-library:https://altinn.studio/repos/ttd/component-library.git:master \
-            expression-validation-test:https://dev.altinn.studio/repos/ttd/expression-validation-test.git:master \
-            frontend-test:https://dev.altinn.studio/repos/ttd/frontend-test.git:next-app-lib \
-            multiple-datamodels-test:https://dev.altinn.studio/repos/ttd/multiple-datamodels-test.git:master \
-            navigation-test-subform:https://dev.altinn.studio/repos/ttd/navigation-test-subform.git:master \
-            payment-test:https://dev.altinn.studio/repos/ttd/payment-test.git:master \
-            service-task:https://altinn.studio/repos/ttd/service-task.git:master \
-            signering-brukerstyrt:https://altinn.studio/repos/ttd/signering-brukerstyrt.git:master \
-            signing-test:https://dev.altinn.studio/repos/ttd/signing-test.git:master \
-            stateless-app:https://dev.altinn.studio/repos/ttd/stateless-app.git:master \
-            subform-test:https://dev.altinn.studio/repos/ttd/subform-test.git:master
+# Format: app-name|repo-url|branch (using | delimiter since URLs contain colons)
+TEST_APPS := anonymous-stateless-app|https://dev.altinn.studio/repos/ttd/anonymous-stateless-app.git|master \
+            component-library|https://altinn.studio/repos/ttd/component-library.git|master \
+            expression-validation-test|https://dev.altinn.studio/repos/ttd/expression-validation-test.git|master \
+            frontend-test|https://dev.altinn.studio/repos/ttd/frontend-test.git|next-app-lib \
+            multiple-datamodels-test|https://dev.altinn.studio/repos/ttd/multiple-datamodels-test.git|master \
+            navigation-test-subform|https://dev.altinn.studio/repos/ttd/navigation-test-subform.git|master \
+            payment-test|https://dev.altinn.studio/repos/ttd/payment-test.git|master \
+            service-task|https://altinn.studio/repos/ttd/service-task.git|master \
+            signering-brukerstyrt|https://altinn.studio/repos/ttd/signering-brukerstyrt.git|master \
+            signing-test|https://dev.altinn.studio/repos/ttd/signing-test.git|master \
+            stateless-app|https://dev.altinn.studio/repos/ttd/stateless-app.git|master \
+            subform-test|https://dev.altinn.studio/repos/ttd/subform-test.git|master
 
 # Default branch
 DEFAULT_BRANCH = main
 
 # Extract target names for .PHONY
-SUBTREE_TARGETS := $(foreach subtree,$(SUBTREES),sync-$(word 1,$(subst :, ,$(subtree))))
+SUBTREE_TARGETS := $(foreach subtree,$(SUBTREES),sync-$(word 1,$(subst |, ,$(subtree))))
 
 .PHONY: $(SUBTREE_TARGETS) help create-pr sync-test-apps sync-all
 
 help: ## Show this help message
 	@echo "Available targets:"
 	@$(foreach subtree,$(SUBTREES), \
-		echo "  sync-$(word 1,$(subst :, ,$(subtree))) - Sync $(word 1,$(subst :, ,$(subtree))) subtree";)
+		echo "  sync-$(word 1,$(subst |, ,$(subtree))) - Sync $(word 1,$(subst |, ,$(subtree))) subtree";)
 	@echo "  sync-test-apps - Sync all test app subtrees in src/test/apps"
 	@echo "  sync-all       - Sync all subtrees (main + test apps) and create a single PR"
 	@echo "  help - Show this help message"
@@ -109,16 +109,16 @@ define pull-test-app
 	fi
 endef
 
-# Pull all test apps
+# Pull all test apps (uses | delimiter)
 define pull-all-test-apps
 	$(foreach app,$(TEST_APPS), \
-		$(call pull-test-app,$(word 1,$(subst :, ,$(app))),$(word 2,$(subst :, ,$(app))):$(word 3,$(subst :, ,$(app))),$(word 4,$(subst :, ,$(app)))))
+		$(call pull-test-app,$(word 1,$(subst |, ,$(app))),$(word 2,$(subst |, ,$(app))),$(word 3,$(subst |, ,$(app)))))
 endef
 
 # Pull all main subtrees
 define pull-all-subtrees
 	$(foreach subtree,$(SUBTREES), \
-		$(call pull-subtree,$(word 1,$(subst :, ,$(subtree))),$(word 2,$(subst :, ,$(subtree))),$(word 3,$(subst :, ,$(subtree))),$(word 4,$(subst :, ,$(subtree)))))
+		$(call pull-subtree,$(word 1,$(subst |, ,$(subtree))),$(word 2,$(subst |, ,$(subtree))),$(word 3,$(subst |, ,$(subtree))),$(word 4,$(subst |, ,$(subtree)))))
 endef
 
 # =============================================================================
@@ -146,10 +146,10 @@ create-pr:
 
 # Generate individual sync targets dynamically
 $(foreach subtree,$(SUBTREES), \
-	$(eval sync-$(word 1,$(subst :, ,$(subtree))): ; \
-		$$(call create-sync-branch,$(word 1,$(subst :, ,$(subtree)))) \
-		$$(call pull-subtree,$(word 1,$(subst :, ,$(subtree))),$(word 2,$(subst :, ,$(subtree))),$(word 3,$(subst :, ,$(subtree))),$(word 4,$(subst :, ,$(subtree)))) \
-		@$$(MAKE) create-pr SUBTREE_NAME=$(word 1,$(subst :, ,$(subtree)))))
+	$(eval sync-$(word 1,$(subst |, ,$(subtree))): ; \
+		$$(call create-sync-branch,$(word 1,$(subst |, ,$(subtree)))) \
+		$$(call pull-subtree,$(word 1,$(subst |, ,$(subtree))),$(word 2,$(subst |, ,$(subtree))),$(word 3,$(subst |, ,$(subtree))),$(word 4,$(subst |, ,$(subtree)))) \
+		@$$(MAKE) create-pr SUBTREE_NAME=$(word 1,$(subst |, ,$(subtree)))))
 
 # Sync all test apps
 sync-test-apps: ## Sync all test app subtrees
