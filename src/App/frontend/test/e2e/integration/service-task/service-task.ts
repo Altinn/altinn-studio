@@ -39,7 +39,7 @@ describe('Service task', () => {
       // that from the test (it will only be reached from the real PDF generator). However, the 'Fail' task is also
       // a service task, so we can remove the custom layout-set here to simulate what happens in the PDF generator
       // for a PDF-generating service-task.
-      globalData.layoutSets.sets = globalData.layoutSets.sets.filter((set) => set.id !== 'Fail');
+      globalData.layoutSetsConfig.sets = globalData.layoutSetsConfig.sets.filter((set) => set.id !== 'Fail');
     });
 
     startAppAndFillToFailure();

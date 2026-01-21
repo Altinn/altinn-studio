@@ -140,8 +140,8 @@ describe('On Entry', () => {
 
   it('language selector and other page settings still work during instance selection', () => {
     interceptAltinnAppGlobalData((globalData) => {
-      globalData.layoutSets.uiSettings = {
-        ...globalData.layoutSets.uiSettings,
+      globalData.layoutSetsConfig.uiSettings = {
+        ...globalData.layoutSetsConfig.uiSettings,
         hideCloseButton: true,
         showExpandWidthButton: true,
         showProgress: false,
