@@ -15,6 +15,8 @@
           "title": "Buttons"
         }
       },
+
+
       {
         "id": "ButtonPageLeftAlign",
         "type": "Button",
@@ -25,6 +27,7 @@
         "fullWidth": true,
         "textAlign": "left"
       },
+
       {
         "id": "ButtonPageCenterAlign",
         "type": "Button",
@@ -35,6 +38,7 @@
         "fullWidth": true,
         "textAlign": "center"
       },
+
       {
         "id": "ButtonPageRightAlign",
         "type": "Button",
@@ -45,6 +49,8 @@
         "fullWidth": true,
         "textAlign": "right"
       },
+      
+      
       {
         "id": "small-button",
         "type": "Button",
@@ -54,6 +60,7 @@
         "size": "sm",
         "fullWidth": false
       },
+
       {
         "id": "medium-button",
         "type": "Button",
@@ -63,6 +70,7 @@
         "size": "md",
         "fullWidth": false
       },
+
       {
         "id": "large-button",
         "type": "Button",
@@ -72,6 +80,7 @@
         "size": "lg",
         "fullWidth": false
       },
+
       {
         "id": "Button-NavigationButtons",
         "type": "NavigationButtons",
