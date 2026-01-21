@@ -15,11 +15,11 @@ internal sealed class IndexCshtmlMigrator
     {
         _projectFolder = projectFolder;
         _indexCshtmlPath = Path.Combine(projectFolder, "App", "views", "Home", "Index.cshtml");
-        _configOutputPath = Path.Combine(projectFolder, "App", "config", "frontend.json");
+        _configOutputPath = Path.Combine(projectFolder, "App", "config", "assets.json");
     }
 
     /// <summary>
-    /// Migrates Index.cshtml to frontend.json configuration
+    /// Migrates Index.cshtml to assets.json configuration
     /// </summary>
     /// <returns>0 on success, 1 on failure</returns>
     public async Task<int> Migrate()
@@ -133,14 +133,14 @@ internal sealed class IndexCshtmlMigrator
 
             var orgApp = await ReadOrgAndAppFromMetadata();
 
-            var configGenerator = new FrontendConfigGenerator(categorizationResult, orgApp?.Org, orgApp?.App);
+            var configGenerator = new AssetsConfigGenerator(categorizationResult, orgApp?.Org, orgApp?.App);
             var config = configGenerator.Generate();
 
             if (config.HasContent)
             {
                 await configGenerator.WriteToFile(_configOutputPath);
                 var urlCount = config.Stylesheets.Count + config.Scripts.Count;
-                Console.WriteLine($"Generated frontend.json with {urlCount} external URL(s)");
+                Console.WriteLine($"Generated assets.json with {urlCount} external URL(s)");
             }
 
             if (File.Exists(_indexCshtmlPath))

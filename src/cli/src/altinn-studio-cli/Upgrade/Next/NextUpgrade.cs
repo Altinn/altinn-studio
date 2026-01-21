@@ -139,7 +139,7 @@ internal static class NextUpgrade
                     returnCode = await CleanupLegacyRuleFiles(projectFolder);
                 }
 
-                // Job 6: Migrate Index.cshtml to frontend.json configuration
+                // Job 6: Migrate Index.cshtml to assets.json configuration
                 if (returnCode == 0)
                 {
                     returnCode = await MigrateIndexCshtml(projectFolder);
@@ -374,7 +374,7 @@ internal static class NextUpgrade
     }
 
     /// <summary>
-    /// Job 6: Migrate Index.cshtml to frontend.json configuration
+    /// Job 6: Migrate Index.cshtml to assets.json configuration
     /// </summary>
     static async Task<int> MigrateIndexCshtml(string projectFolder)
     {

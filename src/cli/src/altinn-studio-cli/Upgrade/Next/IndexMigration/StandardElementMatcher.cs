@@ -365,14 +365,14 @@ internal sealed partial class StandardElementMatcher
 
     /// <summary>
     /// Matches: https://altinncdn.no/fonts/altinn-din/altinn-din.css
-    /// This font is managed by the generated HTML and should not be migrated to frontend.json.
+    /// This font is managed by the generated HTML and should not be migrated to assets.json.
     /// </summary>
     [GeneratedRegex(@"^https://altinncdn\.no/fonts/altinn-din/altinn-din\.css$", RegexOptions.IgnoreCase)]
     private static partial Regex AltinnDinFontCssPattern();
 
     /// <summary>
     /// Matches: https://altinncdn.no/toolkits/fortawesome/...
-    /// These deprecated Fortawesome toolkit fonts should not be migrated to frontend.json.
+    /// These deprecated Fortawesome toolkit fonts should not be migrated to assets.json.
     /// </summary>
     [GeneratedRegex(@"^https://altinncdn\.no/toolkits/fortawesome/", RegexOptions.IgnoreCase)]
     private static partial Regex FortawesomeToolkitCssPattern();

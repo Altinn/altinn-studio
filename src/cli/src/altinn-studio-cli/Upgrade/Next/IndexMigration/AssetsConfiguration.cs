@@ -3,21 +3,21 @@ using System.Text.Json.Serialization;
 namespace Altinn.Studio.Cli.Upgrade.Next.IndexMigration;
 
 /// <summary>
-/// Configuration model for frontend.json
+/// Configuration model for assets.json
 /// </summary>
-internal sealed class FrontendConfiguration
+internal sealed class AssetsConfiguration
 {
     /// <summary>
     /// External stylesheet assets with their attributes
     /// </summary>
     [JsonPropertyName("stylesheets")]
-    public List<FrontendAsset> Stylesheets { get; init; } = [];
+    public List<BrowserAsset> Stylesheets { get; init; } = [];
 
     /// <summary>
     /// External script assets with their attributes
     /// </summary>
     [JsonPropertyName("scripts")]
-    public List<FrontendAsset> Scripts { get; init; } = [];
+    public List<BrowserAsset> Scripts { get; init; } = [];
 
     /// <summary>
     /// Whether the configuration has any content
@@ -27,9 +27,9 @@ internal sealed class FrontendConfiguration
 }
 
 /// <summary>
-/// Represents a frontend asset (script or stylesheet) with its attributes
+/// Represents a browser asset included in the generated HTML (script or stylesheet) with its attributes
 /// </summary>
-internal sealed class FrontendAsset
+internal sealed class BrowserAsset
 {
     /// <summary>
     /// URL of the asset (src for scripts, href for stylesheets)

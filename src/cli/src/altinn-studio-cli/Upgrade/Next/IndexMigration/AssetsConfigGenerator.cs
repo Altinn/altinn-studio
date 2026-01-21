@@ -3,9 +3,9 @@ using System.Text.Json;
 namespace Altinn.Studio.Cli.Upgrade.Next.IndexMigration;
 
 /// <summary>
-/// Generates frontend.json configuration from categorization results
+/// Generates assets.json configuration from categorization results
 /// </summary>
-internal sealed class FrontendConfigGenerator
+internal sealed class AssetsConfigGenerator
 {
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
@@ -17,7 +17,7 @@ internal sealed class FrontendConfigGenerator
     private readonly string? _org;
     private readonly string? _app;
 
-    public FrontendConfigGenerator(CategorizationResult categorizationResult, string? org = null, string? app = null)
+    public AssetsConfigGenerator(CategorizationResult categorizationResult, string? org = null, string? app = null)
     {
         _categorizationResult = categorizationResult;
         _org = org;
@@ -28,31 +28,31 @@ internal sealed class FrontendConfigGenerator
     /// Generates FrontendConfiguration containing external assets with their attributes
     /// </summary>
     /// <returns>Frontend configuration object</returns>
-    public FrontendConfiguration Generate()
+    public AssetsConfiguration Generate()
     {
         var externalStylesheets = _categorizationResult
             .KnownCustomizations.Where(c =>
                 c.CustomizationType == CustomizationType.ExternalStylesheet && c.Asset != null
             )
             .Select(c => c.Asset)
-            .OfType<FrontendAsset>()
+            .OfType<BrowserAsset>()
             .Select(ReplaceViewBagPlaceholders)
             .ToList();
 
         var externalScripts = _categorizationResult
             .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.ExternalScript && c.Asset != null)
             .Select(c => c.Asset)
-            .OfType<FrontendAsset>()
+            .OfType<BrowserAsset>()
             .Select(ReplaceViewBagPlaceholders)
             .ToList();
 
-        return new FrontendConfiguration { Stylesheets = externalStylesheets, Scripts = externalScripts };
+        return new AssetsConfiguration { Stylesheets = externalStylesheets, Scripts = externalScripts };
     }
 
     /// <summary>
     /// Replaces @ViewBag.Org and @ViewBag.App placeholders in asset URLs with actual values
     /// </summary>
-    private FrontendAsset ReplaceViewBagPlaceholders(FrontendAsset asset)
+    private BrowserAsset ReplaceViewBagPlaceholders(BrowserAsset asset)
     {
         var url = asset.Url;
 
@@ -71,7 +71,7 @@ internal sealed class FrontendConfigGenerator
             return asset;
         }
 
-        return new FrontendAsset
+        return new BrowserAsset
         {
             Url = url,
             Type = asset.Type,
@@ -87,7 +87,7 @@ internal sealed class FrontendConfigGenerator
     /// <summary>
     /// Writes the configuration to a JSON file
     /// </summary>
-    /// <param name="outputPath">Path to write the frontend.json file</param>
+    /// <param name="outputPath">Path to write the assets.json file</param>
     public async Task WriteToFile(string outputPath)
     {
         var config = Generate();

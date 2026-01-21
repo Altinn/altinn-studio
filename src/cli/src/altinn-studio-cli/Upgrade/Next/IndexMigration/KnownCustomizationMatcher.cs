@@ -165,11 +165,11 @@ internal sealed class KnownCustomizationMatcher
     }
 
     /// <summary>
-    /// Extracts script attributes into a FrontendAsset
+    /// Extracts script attributes into a BrowserAsset
     /// </summary>
-    private static FrontendAsset ExtractScriptAsset(IElement element, string src)
+    private static BrowserAsset ExtractScriptAsset(IElement element, string src)
     {
-        return new FrontendAsset
+        return new BrowserAsset
         {
             Url = src,
             Type = element.GetAttribute("type"),
@@ -182,11 +182,11 @@ internal sealed class KnownCustomizationMatcher
     }
 
     /// <summary>
-    /// Extracts stylesheet attributes into a FrontendAsset
+    /// Extracts stylesheet attributes into a BrowserAsset
     /// </summary>
-    private static FrontendAsset ExtractStylesheetAsset(IElement element, string href)
+    private static BrowserAsset ExtractStylesheetAsset(IElement element, string href)
     {
-        return new FrontendAsset
+        return new BrowserAsset
         {
             Url = href,
             Crossorigin = element.GetAttribute("crossorigin"),

@@ -103,7 +103,7 @@ internal sealed record KnownCustomization : CategorizedElement
     /// For external scripts/stylesheets: The asset with all captured attributes.
     /// Null for inline content.
     /// </summary>
-    public FrontendAsset? Asset { get; init; }
+    public BrowserAsset? Asset { get; init; }
 }
 
 /// <summary>
