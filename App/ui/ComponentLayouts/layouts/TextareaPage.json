@@ -24,10 +24,7 @@
       },
       {
         "dataModelBindings": {
-          "simpleBinding": {
-            "field": "longAnswerInput",
-            "dataType": "model"
-          }
+          "simpleBinding": "longAnswerInput"
         },
         "id": "TextareaPage-Textarea",
         "type": "TextArea",
