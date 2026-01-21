@@ -12,7 +12,7 @@ namespace Altinn.Studio.Designer.Controllers;
 
 [ApiController]
 [Authorize(Policy = AltinnPolicy.MustHaveAdminPermission)]
-[Route("designer/api/admin/[controller]/{org}/{env}")]
+[Route("designer/api/v1/admin/[controller]/{org}/{env}")]
 public class MetricsController(IMetricsService metricsService) : ControllerBase
 {
     private readonly IMetricsService _metricsService = metricsService;

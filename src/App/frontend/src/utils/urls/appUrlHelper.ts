@@ -6,8 +6,6 @@ const origin = window.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
 export const profileApiUrl = `${appPath}/api/v1/profile/user`;
-export const applicationMetadataApiUrl = `${appPath}/api/v1/applicationmetadata`;
-export const applicationSettingsApiUrl = `${appPath}/api/v1/applicationsettings`;
 export const invalidateCookieUrl = `${appPath}/api/authentication/invalidatecookie`;
 export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
 export const selectedPartyUrl = `${appPath}/api/authorization/parties/current?returnPartyObject=true`;
@@ -165,7 +163,6 @@ export const getJsonSchemaUrl = () => `${appPath}/api/jsonschema/`;
 export const getCustomValidationConfigUrl = (dataTypeId: string) => `${appPath}/api/validationconfig/${dataTypeId}`;
 export const getLayoutSettingsUrl = (layoutSetId: string) => `${appPath}/api/layoutsettings/${layoutSetId}`;
 export const getLayoutSetsUrl = () => `${appPath}/api/layoutsets`;
-export const getFooterLayoutUrl = () => `${appPath}/api/v1/footer`;
 export const getLayoutsUrl = (layoutSetId: string) => `${appPath}/api/layouts/${layoutSetId}`;
 export const getInstanceLayoutsUrl = (layoutSetId: string, instanceId: string) =>
   `${appPath}/instances/${instanceId}/layouts/${layoutSetId}`;
