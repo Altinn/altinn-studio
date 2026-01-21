@@ -266,7 +266,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           required={false}
           tagText={t('general.optional')}
         />
-        {/* We comment this part temporarily because we may be will use som of them, it applies for the related tests also*/}
+        {/* TODO (`#17439`): Temporarily hidden - may be re-enabled in future. Related tests also disabled. */}
         {/*
          <StatusRadioGroup
               selectedStatus={updatedAppConfig.status}
