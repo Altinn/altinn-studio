@@ -4056,12 +4056,9 @@ namespace Altinn.App.Core.Models
         public System.Collections.Generic.List<Altinn.App.Core.Models.Attachment> Attachments { get; set; }
         public string Type { get; set; }
     }
-    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
     public enum AutoSaveBehavior
     {
-        [System.Text.Json.Serialization.JsonPropertyName("onChangeFormData")]
         OnChangeFormData = 0,
-        [System.Text.Json.Serialization.JsonPropertyName("onChangePage")]
         OnChangePage = 1,
     }
     public sealed class BinaryDataChange : Altinn.App.Core.Models.DataElementChange
