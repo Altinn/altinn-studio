@@ -88,36 +88,36 @@ endef
 
 # Pull a single subtree (usage: $(call pull-subtree,name,prefix,repo-url,branch))
 define pull-subtree
-	@echo ""; \
+	echo ""; \
 	echo "Syncing $(1) subtree from $(3) ($(4))..."; \
 	git fetch $(3) $(4) && \
 	if GIT_MERGE_AUTOEDIT=no git subtree pull --prefix=$(2) $(3) $(4); then \
 		echo "OK: $(1) subtree synced successfully"; \
 	else \
 		$(handle-conflicts); \
-	fi
+	fi;
 endef
 
 # Pull a single test app (usage: $(call pull-test-app,name,repo-url,branch))
 define pull-test-app
-	@echo "Syncing test app $(1) from $(2) ($(3))..."; \
+	echo "Syncing test app $(1) from $(2) ($(3))..."; \
 	git fetch $(2) $(3) && \
 	if GIT_MERGE_AUTOEDIT=no git subtree pull --prefix=src/test/apps/$(1) $(2) $(3); then \
 		echo "OK: $(1) synced successfully"; \
 	else \
 		$(handle-conflicts); \
-	fi
+	fi;
 endef
 
 # Pull all test apps (uses | delimiter)
 define pull-all-test-apps
-	$(foreach app,$(TEST_APPS), \
+	@$(foreach app,$(TEST_APPS), \
 		$(call pull-test-app,$(word 1,$(subst |, ,$(app))),$(word 2,$(subst |, ,$(app))),$(word 3,$(subst |, ,$(app)))))
 endef
 
 # Pull all main subtrees
 define pull-all-subtrees
-	$(foreach subtree,$(SUBTREES), \
+	@$(foreach subtree,$(SUBTREES), \
 		$(call pull-subtree,$(word 1,$(subst |, ,$(subtree))),$(word 2,$(subst |, ,$(subtree))),$(word 3,$(subst |, ,$(subtree))),$(word 4,$(subst |, ,$(subtree)))))
 endef
 
