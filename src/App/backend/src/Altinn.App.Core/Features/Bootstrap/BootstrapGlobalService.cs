@@ -29,7 +29,8 @@ internal sealed class BootstrapGlobalService(
 
         await Task.WhenAll(appMetadataTask, footerTask);
 
-        var footer = footerTask.Result;
+        var footer = await footerTask;
+        var applicationMetadata = await appMetadataTask;
         var footerJson = string.IsNullOrEmpty(footer)
             ? null
             : JsonSerializer.Deserialize<object>(footer, _jsonSerializerOptions);
@@ -39,7 +40,7 @@ internal sealed class BootstrapGlobalService(
 
         return new BootstrapGlobalResponse
         {
-            ApplicationMetadata = appMetadataTask.Result,
+            ApplicationMetadata = applicationMetadata,
             Footer = footerJson,
             LayoutSetsConfig = layoutSets,
             FrontEndSettings = _frontEndSettings.Value,
