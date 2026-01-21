@@ -24,6 +24,10 @@ func StripMultiplexedHeader(line string) string {
 	if firstByte != streamTypeStdout && firstByte != streamTypeStderr {
 		return line
 	}
+	// Validate the 3 padding bytes are zero, otherwise treat as normal output.
+	if line[1] != 0 || line[2] != 0 || line[3] != 0 {
+		return line
+	}
 
 	return line[multiplexHeaderSize:]
 }

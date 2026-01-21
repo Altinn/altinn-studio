@@ -168,13 +168,21 @@ func validateTarballPath(path string) (string, error) {
 	return cleaned, nil
 }
 
+// normalizeVersionForURL ensures version has studioctl/ prefix for GitHub URLs.
+// Idempotent: running twice produces the same result.
+func normalizeVersionForURL(version string) string {
+	version = strings.TrimPrefix(version, "studioctl/")
+	return "studioctl/" + version
+}
+
 // installFromRelease downloads and extracts resources from GitHub releases.
 func installFromRelease(ctx context.Context, opts Options) (err error) {
 	if opts.Version == "" || opts.Version == "dev" {
 		return ErrVersionRequired
 	}
 
-	url := strings.Replace(releaseURLTemplate, "{version}", opts.Version, 1)
+	versionForURL := normalizeVersionForURL(opts.Version)
+	url := strings.Replace(releaseURLTemplate, "{version}", versionForURL, 1)
 
 	client := &http.Client{Timeout: httpTimeout}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)

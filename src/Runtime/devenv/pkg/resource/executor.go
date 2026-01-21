@@ -2,8 +2,12 @@ package resource
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"slices"
+	"strings"
 
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/container/types"
@@ -15,14 +19,16 @@ import (
 type Executor struct {
 	client   container.ContainerClient
 	observer Observer
-	resolved map[ResourceID]any // Stores resolved state (image IDs, etc.)
+	resolved *resolvedMap // Stores resolved state (image IDs, etc.)
 }
+
+const containerSpecHashLabel = "altinn.studio/devenv-spec-hash"
 
 // NewExecutor creates an executor with the given container client.
 func NewExecutor(client container.ContainerClient) *Executor {
 	return &Executor{
 		client:   client,
-		resolved: make(map[ResourceID]any),
+		resolved: newResolvedMap(),
 	}
 }
 
@@ -179,7 +185,7 @@ func (e *Executor) applyRemoteImage(ctx context.Context, img *RemoteImage) error
 		return fmt.Errorf("inspect image %s: %w", img.Ref, err)
 	}
 
-	e.resolved[img.ID()] = info.ID
+	e.resolved.Set(img.ID(), info.ID)
 	return nil
 }
 
@@ -199,7 +205,7 @@ func (e *Executor) applyLocalImage(ctx context.Context, img *LocalImage) error {
 		return fmt.Errorf("inspect built image %s: %w", img.Tag, err)
 	}
 
-	e.resolved[img.ID()] = info.ID
+	e.resolved.Set(img.ID(), info.ID)
 	return nil
 }
 
@@ -267,7 +273,7 @@ func (e *Executor) networkStatus(ctx context.Context, net *Network) (Status, err
 
 func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 	// Resolve image ID from previously applied image resource
-	imageID, ok := e.resolved[c.Image.ID()].(string)
+	imageID, ok := e.resolved.Get(c.Image.ID())
 	if !ok {
 		return fmt.Errorf("image %s not resolved (was it applied?)", c.Image.ID())
 	}
@@ -290,11 +296,21 @@ func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 		}
 	}
 
+	desiredLabels := normalizedContainerLabels(c, imageID, networks)
+
 	// Check existing container
 	info, err := e.client.ContainerInspect(ctx, c.Name)
 	if err == nil {
+		// TODO: getting the current state should probably be a separate/phase before execution
+		actualNetworks, err := e.client.ContainerNetworks(ctx, c.Name)
+		if err != nil {
+			return fmt.Errorf("get container networks %s: %w", c.Name, err)
+		}
+
 		// Container exists - check if matches desired state
-		if info.ImageID != imageID || !labelsMatch(c.Labels, info.Labels) {
+		if info.ImageID != imageID ||
+			!labelsMatch(desiredLabels, info.Labels) ||
+			!networksMatch(networks, actualNetworks) {
 			// Mismatch - recreate
 			if err := e.stopAndRemoveContainer(ctx, c.Name); err != nil {
 				return err
@@ -321,7 +337,7 @@ func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 		Volumes:       c.Volumes,
 		ExtraHosts:    c.ExtraHosts,
 		RestartPolicy: c.RestartPolicy,
-		Labels:        c.Labels,
+		Labels:        desiredLabels,
 		Detach:        true,
 		User:          c.User,
 	}
@@ -396,4 +412,85 @@ func labelsMatch(expected, actual map[string]string) bool {
 		}
 	}
 	return true
+}
+
+// networksMatch checks if desired networks match actual (order-insensitive)
+func networksMatch(desired, actual []string) bool {
+	if len(desired) != len(actual) {
+		return false
+	}
+	sortedDesired := make([]string, len(desired))
+	copy(sortedDesired, desired)
+	slices.Sort(sortedDesired)
+
+	sortedActual := make([]string, len(actual))
+	copy(sortedActual, actual)
+	slices.Sort(sortedActual)
+
+	return slices.Equal(sortedDesired, sortedActual)
+}
+
+func normalizedContainerLabels(c *Container, imageID string, networks []string) map[string]string {
+	labels := make(map[string]string, len(c.Labels)+1)
+	for k, v := range c.Labels {
+		labels[k] = v
+	}
+	labels[containerSpecHashLabel] = containerSpecHash(c, imageID, networks)
+	return labels
+}
+
+func containerSpecHash(c *Container, imageID string, networks []string) string {
+	var b strings.Builder
+
+	b.WriteString("image=")
+	b.WriteString(imageID)
+	b.WriteByte('\n')
+
+	writeSortedList(&b, "networks", networks)
+	writeSortedList(&b, "env", c.Env)
+	writeSortedList(&b, "extraHosts", c.ExtraHosts)
+
+	b.WriteString("command=")
+	b.WriteString(strings.Join(c.Command, "\x00"))
+	b.WriteByte('\n')
+
+	b.WriteString("user=")
+	b.WriteString(c.User)
+	b.WriteByte('\n')
+
+	b.WriteString("restartPolicy=")
+	b.WriteString(c.RestartPolicy)
+	b.WriteByte('\n')
+
+	portEntries := make([]string, 0, len(c.Ports))
+	for _, p := range c.Ports {
+		portEntries = append(
+			portEntries,
+			fmt.Sprintf("%s|%s|%s|%s", p.HostIP, p.HostPort, p.ContainerPort, p.Protocol),
+		)
+	}
+	writeSortedList(&b, "ports", portEntries)
+
+	volumeEntries := make([]string, 0, len(c.Volumes))
+	for _, v := range c.Volumes {
+		volumeEntries = append(
+			volumeEntries,
+			fmt.Sprintf("%s|%s|%t", v.HostPath, v.ContainerPath, v.ReadOnly),
+		)
+	}
+	writeSortedList(&b, "volumes", volumeEntries)
+
+	sum := sha256.Sum256([]byte(b.String()))
+	return hex.EncodeToString(sum[:])
+}
+
+func writeSortedList(b *strings.Builder, key string, values []string) {
+	copied := make([]string, len(values))
+	copy(copied, values)
+	slices.Sort(copied)
+
+	b.WriteString(key)
+	b.WriteByte('=')
+	b.WriteString(strings.Join(copied, "\x00"))
+	b.WriteByte('\n')
 }

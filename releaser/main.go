@@ -9,20 +9,19 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"altinn.studio/releaser/internal"
-	"altinn.studio/releaser/internal/changelog"
 )
 
 var (
 	errComponentRequired           = errors.New("component is required")
+	errBaseBranchRequired          = errors.New("base-branch is required")
 	errReleaseVersionRequired      = errors.New("version is required")
 	errReleaseCommitBranchRequired = errors.New("commit and branch are required")
-	errTagFormat                   = errors.New("invalid tag format: expected component/vX.Y.Z")
 	errBaseHeadRequired            = errors.New("base and head are required")
-	errChangelogNotModified        = errors.New("changelog was not modified")
+	errWorkflowRequiresCI          = errors.New(
+		"workflow command may only run in CI; use -dry-run for local validation",
+	)
 )
 
 func main() {
@@ -65,7 +64,11 @@ Commands:
   workflow            Run the complete release workflow (for CI)
   prepare             Create a changelog promotion PR for release
   backport            Cherry-pick a commit to a release branch with changelog handling
-  validate-changelog  Validate changelog was modified and has [Unreleased] content
+  validate-changelog  Validate changelog was modified and release-ready
+
+Notes:
+  - workflow resolves the release version from CHANGELOG.md using -base-branch
+  - non-dry-run workflow is CI-only (requires CI=true)
 
 Run 'releaser <command> -h' for command-specific help.
 `)
@@ -73,17 +76,19 @@ Run 'releaser <command> -h' for command-specific help.
 
 func runWorkflow(args []string) error {
 	fs := flag.NewFlagSet("workflow", flag.ExitOnError)
-	tag := fs.String("tag", "", "Release tag (e.g., studioctl/v1.2.3)")
 	component := fs.String("component", "", "Component name (e.g., studioctl)")
-	version := fs.String("version", "", "Version to release (e.g., v1.2.3)")
+	baseBranch := fs.String("base-branch", "", "Base branch (main or release/<component>/vX.Y)")
 	dryRun := fs.Bool("dry-run", false, "Validate without creating tags/releases")
 	skipBranchCheck := fs.Bool("skip-branch-check", false, "Skip branch requirement (unsafe)")
 	fs.Usage = func() {
 		fmt.Print(`Usage: releaser workflow [options]
 
-Runs the complete release workflow:
-  1. Validates version format
-  2. Enforces ref policy (prerelease from main, stable from release branch)
+Runs the complete release workflow. Version is derived from changelog:
+  - base-branch=main -> latest prerelease version
+  - base-branch=release/<component>/vX.Y -> latest stable on that line
+
+Then it:
+  1. Enforces ref policy (prerelease from main, stable from release branch)
   3. Validates changelog has version section (use 'prepare' first)
   4. Builds release artifacts (if component has a builder)
   5. Creates GitHub release (tag created automatically)
@@ -93,23 +98,29 @@ Options:
 		fs.PrintDefaults()
 		fmt.Print(`
 Examples:
-  releaser workflow --tag studioctl/v1.2.3
-  releaser workflow -component studioctl -version v1.2.3
+  releaser workflow -component studioctl -base-branch main
+  releaser workflow -component studioctl -base-branch release/studioctl/v1.2
 `)
 	}
 	if err := fs.Parse(args); err != nil {
 		return fmt.Errorf("parse flags: %w", err)
 	}
-
-	comp, ver, err := resolveComponentVersion(*tag, *component, *version)
-	if err != nil {
+	if *component == "" {
 		fs.Usage()
-		return err
+		return errComponentRequired
+	}
+	if *baseBranch == "" {
+		fs.Usage()
+		return errBaseBranchRequired
+	}
+
+	if err := validateWorkflowExecutionContext(*dryRun); err != nil {
+		return fmt.Errorf("validate workflow execution context: %w", err)
 	}
 
 	req := internal.WorkflowRequest{
-		Component:             comp,
-		Version:               ver,
+		Component:             *component,
+		BaseBranch:            *baseBranch,
 		DryRun:                *dryRun,
 		Draft:                 true,
 		UnsafeSkipBranchCheck: *skipBranchCheck,
@@ -129,14 +140,19 @@ func runPrepare(args []string) error {
 		fmt.Print(`Usage: releaser prepare -component <name> -version <version> [options]
 
 Creates a PR to promote [Unreleased] changelog entries to the specified version.
-After merging the PR, the release workflow will be triggered automatically.
+After merging the PR, CI can run the release workflow if configured.
+
+Version behavior:
+  - vX.Y.Z-preview.N: prep PR targets main
+  - vX.Y.0: creates release/<component>/vX.Y if missing, prep PR targets it
+  - vX.Y.Z (Z>0): prep PR targets existing release/<component>/vX.Y
 
 Steps performed:
   1. Creates branch 'release-prep/<component>-<version>'
   2. Promotes [Unreleased] to [<version>] in CHANGELOG.md
   3. Commits the change
   4. Pushes the branch
-  5. Creates PR with '<component>-release' label
+  5. Creates PR with 'release/<component>' label
 
 Options:
 `)
@@ -189,7 +205,7 @@ Steps performed:
   9. Creates a PR targeting the release branch (label: backport)
 
 After merging the backport PR, use 'releaser prepare -component <name> -version vX.Y.Z'
-to create the release PR.
+to create the release PR (then CI can run the release workflow if configured).
 
 Options:
 `)
@@ -233,8 +249,8 @@ Used in CI to enforce changelog updates in PRs.
 
 Checks performed:
   1. Verifies changelog file was modified between base and head
-  2. Validates [Unreleased] section exists
-  3. Validates [Unreleased] section has at least one category and entry
+  2. Validates [Unreleased] has at least one category and entry OR this is a release-promotion PR
+  3. Validates released sections (if present) have no duplicates and are semver-descending
 
 Options:
 `)
@@ -252,75 +268,30 @@ Options:
 		return errBaseHeadRequired
 	}
 
-	comp, err := internal.GetComponent(*component)
-	if err != nil {
-		return fmt.Errorf("get component: %w", err)
+	req := internal.ValidationRequest{
+		Component:     *component,
+		Base:          *base,
+		Head:          *head,
+		ChangelogPath: "",
 	}
-
-	ctx := context.Background()
-	git := internal.NewGitCLI()
-
-	// Get repo root for path resolution
-	root, err := git.RepoRoot(ctx)
-	if err != nil {
-		return fmt.Errorf("get repo root: %w", err)
-	}
-	changelogPath := filepath.Join(root, comp.ChangelogPath)
-
-	// Check if changelog was modified
-	diffOutput, err := git.Run(ctx, "diff", "--name-only", *base, *head)
-	if err != nil {
-		return fmt.Errorf("git diff: %w", err)
-	}
-
-	modified := false
-	for line := range strings.SplitSeq(diffOutput, "\n") {
-		if strings.TrimSpace(line) == comp.ChangelogPath {
-			modified = true
-			break
-		}
-	}
-	if !modified {
-		return fmt.Errorf("%w: %s", errChangelogNotModified, comp.ChangelogPath)
-	}
-
-	// Validate [Unreleased] section
-	//nolint:gosec // G304: changelog path comes from git rev-parse in the local repo.
-	content, err := os.ReadFile(changelogPath)
-	if err != nil {
-		return fmt.Errorf("read changelog: %w", err)
-	}
-
-	cl, err := changelog.Parse(string(content))
-	if err != nil {
-		return fmt.Errorf("parse changelog: %w", err)
-	}
-
-	if err := cl.ValidateUnreleased(); err != nil {
+	if err := internal.RunValidation(context.Background(), req, internal.NewConsoleLogger()); err != nil {
 		return fmt.Errorf("validate changelog: %w", err)
 	}
 
-	fmt.Printf("changelog validated: %s\n", comp.ChangelogPath)
+	fmt.Println("changelog validated")
 	return nil
 }
 
-// resolveComponentVersion extracts component and version from either:
-//   - --tag flag (e.g., "studioctl/v1.2.3")
-//   - -component and -version flags
-func resolveComponentVersion(tag, component, version string) (string, string, error) {
-	if tag != "" {
-		parts := strings.SplitN(tag, "/", 2)
-		if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-			return "", "", fmt.Errorf("%w: %s", errTagFormat, tag)
-		}
-		return parts[0], parts[1], nil
+func validateWorkflowExecutionContext(dryRun bool) error {
+	if dryRun {
+		return nil
 	}
+	if isCIEnvironment() {
+		return nil
+	}
+	return errWorkflowRequiresCI
+}
 
-	if component == "" {
-		return "", "", errComponentRequired
-	}
-	if version == "" {
-		return "", "", errReleaseVersionRequired
-	}
-	return component, version, nil
+func isCIEnvironment() bool {
+	return os.Getenv("CI") == "true"
 }

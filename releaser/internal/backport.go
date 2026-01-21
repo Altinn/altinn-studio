@@ -27,7 +27,8 @@ type backportConfig struct {
 	releaseBranch  string
 	backportBranch string
 	shortSHA       string
-	versionParts   []string
+	major          int
+	minor          int
 	dryRun         bool
 }
 
@@ -103,9 +104,21 @@ func RunBackportWithDeps(ctx context.Context, req BackportRequest, git *GitCLI, 
 
 	log.Success("Backport complete")
 	log.Info("Commit %s (%s) has been backported to %s", cfg.shortSHA, cfg.commitMsg, cfg.releaseBranch)
+	nextPrepareVersion := fmt.Sprintf("v%d.%d.X", cfg.major, cfg.minor)
+	if resolved, err := resolveBackportPrepareVersion(
+		ctx, git, cfg.releaseBranch, clPath, cfg.major, cfg.minor,
+	); err == nil {
+		nextPrepareVersion = resolved
+	} else {
+		log.Info("Note: could not infer exact next patch version from changelog: %v", err)
+	}
 	log.Info("Next steps:")
 	log.Info("  1. Merge the backport PR targeting %s", cfg.releaseBranch)
-	log.Info("  2. Run: go run ./cmd/dev release prepare -version v%s.%s.X", cfg.versionParts[0], cfg.versionParts[1])
+	log.Info(
+		"  2. Run: releaser prepare -component %s -version %s",
+		cfg.component.Name,
+		nextPrepareVersion,
+	)
 	log.Info("  3. Merge the release PR to trigger the release workflow")
 	return nil
 }
@@ -130,8 +143,14 @@ func parseBackportConfig(req BackportRequest, comp *Component) (*backportConfig,
 
 	// Parse major/minor as integers for ReleaseBranch
 	major, minor := 0, 0
-	_, _ = fmt.Sscanf(parts[0], "%d", &major) //nolint:errcheck // best effort parse
-	_, _ = fmt.Sscanf(parts[1], "%d", &minor) //nolint:errcheck // best effort parse
+	n, err := fmt.Sscanf(parts[0], "%d", &major)
+	if err != nil || n != 1 {
+		return nil, errBackportInvalidVersion
+	}
+	n, err = fmt.Sscanf(parts[1], "%d", &minor)
+	if err != nil || n != 1 {
+		return nil, errBackportInvalidVersion
+	}
 
 	releaseBranch := comp.ReleaseBranch(major, minor)
 
@@ -149,9 +168,37 @@ func parseBackportConfig(req BackportRequest, comp *Component) (*backportConfig,
 		releaseBranch:  releaseBranch,
 		backportBranch: backportBranch,
 		shortSHA:       shortSHA,
-		versionParts:   parts,
+		major:          major,
+		minor:          minor,
 		dryRun:         req.DryRun,
 	}, nil
+}
+
+func resolveBackportPrepareVersion(
+	ctx context.Context,
+	git *GitCLI,
+	releaseBranch, changelogPath string,
+	major, minor int,
+) (string, error) {
+	// Hint generation should not pollute the user-visible command stream.
+	hintGit := NewGitCLI(WithWorkdir(git.workdir), WithLogger(NopLogger{}))
+	content, err := readRemoteFile(ctx, hintGit, releaseBranch, changelogPath)
+	if err != nil {
+		return "", fmt.Errorf("read changelog from %s: %w", releaseBranch, err)
+	}
+	return nextPatchVersionHint(content, major, minor)
+}
+
+func nextPatchVersionHint(content string, major, minor int) (string, error) {
+	cl, err := changelog.Parse(content)
+	if err != nil {
+		return "", fmt.Errorf("parse changelog: %w", err)
+	}
+	latest, err := cl.LatestStableForLine(major, minor)
+	if err != nil {
+		return "", fmt.Errorf("find latest stable for v%d.%d: %w", major, minor, err)
+	}
+	return fmt.Sprintf("v%d.%d.%d", major, minor, latest.Patch+1), nil
 }
 
 func logBackportState(log Logger, cfg *backportConfig, repoRoot string) {
@@ -208,7 +255,7 @@ func executeBackport(
 		return err
 	}
 	logChangelogEntries(log, entries)
-	if err := commitBackport(ctx, git, cfg.shortSHA, cfg.commitMsg, cfg.commit); err != nil {
+	if err := commitBackport(ctx, git, cfg.shortSHA, cfg.commitMsg, cfg.commit, clPath); err != nil {
 		return err
 	}
 	if err := pushBackportBranch(ctx, git, cfg.backportBranch); err != nil {
@@ -241,12 +288,30 @@ func applyBackportChanges(
 	clPath string,
 	commitSHA string,
 	entries []changelog.Entry,
-) error {
+) (err error) {
+	defer func() {
+		if err != nil {
+			// Cleanup: abort cherry-pick to restore clean state
+			// Log abort errors but don't override the original error
+			if abortErr := git.RunWrite(ctx, "cherry-pick", "--abort"); abortErr != nil {
+				log.Error("Failed to abort cherry-pick during cleanup: %v", abortErr)
+			}
+		}
+	}()
+
 	log.Step("Applying backport changes")
-	if err := git.RunWrite(ctx, "cherry-pick", "-x", "--no-commit", commitSHA); err != nil {
-		return fmt.Errorf("cherry-pick commit: %w", err)
+	err = git.RunWrite(ctx, "cherry-pick", "-x", "--no-commit", commitSHA)
+	if err != nil {
+		resolved, resolveErr := resolveChangelogOnlyCherryPickConflict(ctx, git, clPath)
+		if resolveErr != nil {
+			return fmt.Errorf("resolve cherry-pick conflict: %w", resolveErr)
+		}
+		if !resolved {
+			return fmt.Errorf("cherry-pick commit: %w", err)
+		}
 	}
-	if err := git.RunWrite(ctx, "checkout", "HEAD", "--", clPath); err != nil {
+	err = git.RunWrite(ctx, "checkout", "HEAD", "--", clPath)
+	if err != nil {
 		return fmt.Errorf("restore changelog: %w", err)
 	}
 
@@ -273,10 +338,40 @@ func applyBackportChanges(
 	return nil
 }
 
-func commitBackport(ctx context.Context, git *GitCLI, shortSHA, originalMsg, commitSHA string) error {
+func resolveChangelogOnlyCherryPickConflict(ctx context.Context, git *GitCLI, clPath string) (bool, error) {
+	conflicts, err := git.Run(ctx, "diff", "--name-only", "--diff-filter=U")
+	if err != nil {
+		return false, fmt.Errorf("list conflicts: %w", err)
+	}
+	if conflicts == "" {
+		return false, nil
+	}
+
+	for file := range strings.SplitSeq(conflicts, "\n") {
+		if strings.TrimSpace(file) == "" {
+			continue
+		}
+		if file != clPath {
+			return false, nil
+		}
+	}
+
+	// The changelog is rebuilt from extracted entries; resolve this conflict by
+	// keeping the release branch version so non-changelog changes can proceed.
+	if err := git.RunWrite(ctx, "checkout", "--ours", "--", clPath); err != nil {
+		return false, fmt.Errorf("checkout ours for changelog: %w", err)
+	}
+	if err := git.RunWrite(ctx, "add", "--", clPath); err != nil {
+		return false, fmt.Errorf("stage resolved changelog: %w", err)
+	}
+	return true, nil
+}
+
+func commitBackport(ctx context.Context, git *GitCLI, shortSHA, originalMsg, commitSHA, changelogPath string) error {
 	commitMsg := fmt.Sprintf("Backport %s: %s\n\n(cherry picked from commit %s)", shortSHA, originalMsg, commitSHA)
-	if err := git.RunWrite(ctx, "add", "."); err != nil {
-		return fmt.Errorf("git add: %w", err)
+	// Cherry-pick already stages the picked changes. Only re-stage the changelog after editing it.
+	if err := git.RunWrite(ctx, "add", "--", changelogPath); err != nil {
+		return fmt.Errorf("git add changelog: %w", err)
 	}
 	if err := git.RunWrite(ctx, "commit", "-m", commitMsg); err != nil {
 		return fmt.Errorf("git commit: %w", err)
@@ -292,7 +387,7 @@ func pushBackportBranch(ctx context.Context, git *GitCLI, backportBranch string)
 }
 
 func createBackportPR(ctx context.Context, gh GitHubRunner, cfg *backportConfig) error {
-	prTitle := fmt.Sprintf("Backport %s to v%s.%s", cfg.shortSHA, cfg.versionParts[0], cfg.versionParts[1])
+	prTitle := fmt.Sprintf("Backport %s to v%d.%d", cfg.shortSHA, cfg.major, cfg.minor)
 	prBody := fmt.Sprintf(
 		"Backport of %s.\n\nOriginal commit: %s\n\nOriginal message: %s\n",
 		cfg.shortSHA,

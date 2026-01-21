@@ -8,6 +8,7 @@ import (
 	"io"
 	"os/exec"
 	"strings"
+	"sync"
 
 	"altinn.studio/devenv/pkg/container/types"
 )
@@ -39,6 +40,11 @@ func (c *Client) Name() string {
 	return types.RuntimeNamePodmanCLI
 }
 
+// Installation returns the container runtime installation type
+func (c *Client) Installation() types.RuntimeInstallation {
+	return types.InstallationPodman
+}
+
 // Build builds a container image from a Dockerfile
 func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string) error {
 	cmd := exec.CommandContext(ctx, "podman", "build", "-t", tag, "-f", dockerfile, contextPath)
@@ -62,11 +68,7 @@ func (c *Client) Push(ctx context.Context, image string) error {
 
 // CreateContainer creates and optionally starts a container
 func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig) (string, error) {
-	args := []string{"run"}
-
-	if cfg.Detach {
-		args = append(args, "-d")
-	}
+	args := []string{"create"}
 
 	if cfg.Name != "" {
 		args = append(args, "--name", cfg.Name)
@@ -125,14 +127,24 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 	cmd := exec.CommandContext(ctx, "podman", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("podman run failed: %w\nOutput: %s", err, string(output))
+		return "", fmt.Errorf("podman create failed: %w\nOutput: %s", err, string(output))
 	}
 
-	// Return container ID (first line of output for detached containers)
+	// Return container ID (first line of output)
 	containerID := strings.TrimSpace(string(output))
 	if idx := strings.Index(containerID, "\n"); idx != -1 {
 		containerID = containerID[:idx]
 	}
+
+	// If caller requested immediate start, start now
+	if cfg.Detach {
+		if err := c.ContainerStart(ctx, containerID); err != nil {
+			// Cleanup on failure
+			_ = c.ContainerRemove(ctx, containerID, true)
+			return "", fmt.Errorf("failed to start container: %w", err)
+		}
+	}
+
 	return containerID, nil
 }
 
@@ -284,6 +296,48 @@ func (c *Client) ImagePull(ctx context.Context, image string) error {
 	return nil
 }
 
+type containerInspectInfo struct {
+	ID          string `json:"Id"`
+	Name        string `json:"Name"`
+	Image       string `json:"Image"`
+	ImageDigest string `json:"ImageDigest"`
+	Config      struct {
+		Labels map[string]string `json:"Labels"`
+	} `json:"Config"`
+	State struct {
+		Status   string `json:"Status"`
+		Running  bool   `json:"Running"`
+		Paused   bool   `json:"Paused"`
+		ExitCode int    `json:"ExitCode"`
+	} `json:"State"`
+}
+
+func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
+	var info []containerInspectInfo
+	if err := json.Unmarshal(output, &info); err != nil {
+		return types.ContainerInfo{}, fmt.Errorf("failed to parse container inspect output: %w", err)
+	}
+	if len(info) == 0 {
+		return types.ContainerInfo{}, types.ErrContainerNotFound
+	}
+
+	// Docker reports a resolved image ID here; Podman exposes it as `.Image`.
+	// `.ImageDigest` is a manifest digest and does not match `ImageInspect().ID`.
+	return types.ContainerInfo{
+		ID:      info[0].ID,
+		Name:    info[0].Name,
+		Image:   info[0].Image,
+		ImageID: info[0].Image,
+		Labels:  info[0].Config.Labels,
+		State: types.ContainerState{
+			Status:   info[0].State.Status,
+			Running:  info[0].State.Running,
+			Paused:   info[0].State.Paused,
+			ExitCode: info[0].State.ExitCode,
+		},
+	}, nil
+}
+
 // ContainerInspect returns detailed information about a container
 func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.ContainerInfo, error) {
 	cmd := exec.CommandContext(ctx, "podman", "inspect", nameOrID)
@@ -296,42 +350,7 @@ func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.C
 		return types.ContainerInfo{}, fmt.Errorf("failed to inspect container: %w: %s", err, string(output))
 	}
 
-	var info []struct {
-		ID          string `json:"Id"`
-		Name        string `json:"Name"`
-		Image       string `json:"Image"`
-		ImageDigest string `json:"ImageDigest"`
-		Config      struct {
-			Labels map[string]string `json:"Labels"`
-		} `json:"Config"`
-		State struct {
-			Status   string `json:"Status"`
-			Running  bool   `json:"Running"`
-			Paused   bool   `json:"Paused"`
-			ExitCode int    `json:"ExitCode"`
-		} `json:"State"`
-	}
-	if err := json.Unmarshal(output, &info); err != nil {
-		return types.ContainerInfo{}, fmt.Errorf("failed to parse container inspect output: %w", err)
-	}
-
-	if len(info) == 0 {
-		return types.ContainerInfo{}, types.ErrContainerNotFound
-	}
-
-	return types.ContainerInfo{
-		ID:      info[0].ID,
-		Name:    info[0].Name,
-		Image:   info[0].Image,
-		ImageID: info[0].ImageDigest,
-		Labels:  info[0].Config.Labels,
-		State: types.ContainerState{
-			Status:   info[0].State.Status,
-			Running:  info[0].State.Running,
-			Paused:   info[0].State.Paused,
-			ExitCode: info[0].State.ExitCode,
-		},
-	}, nil
+	return parseContainerInspect(output)
 }
 
 // ContainerStart starts an existing container
@@ -371,6 +390,13 @@ func (c *Client) ContainerRemove(ctx context.Context, nameOrID string, force boo
 	cmd := exec.CommandContext(ctx, "podman", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
+		lower := strings.ToLower(string(output))
+		if strings.Contains(lower, "no such container") ||
+			strings.Contains(lower, "no such object") ||
+			strings.Contains(lower, "container does not exist") ||
+			strings.Contains(lower, "unable to find") {
+			return types.ErrContainerNotFound
+		}
 		return fmt.Errorf("podman rm failed: %w\nOutput: %s", err, string(output))
 	}
 	return nil
@@ -497,9 +523,9 @@ func (c *Client) ContainerLogs(
 
 // cmdLogReader wraps a pipe reader and cleans up the command on close.
 type cmdLogReader struct {
-	cmd    *exec.Cmd
-	reader *io.PipeReader
-	closed bool
+	cmd       *exec.Cmd
+	reader    *io.PipeReader
+	closeOnce sync.Once
 }
 
 func (r *cmdLogReader) Read(p []byte) (int, error) {
@@ -507,19 +533,16 @@ func (r *cmdLogReader) Read(p []byte) (int, error) {
 }
 
 func (r *cmdLogReader) Close() error {
-	if r.closed {
-		return nil
-	}
-	r.closed = true
+	r.closeOnce.Do(func() {
+		// Close reader first to unblock any pending reads.
+		_ = r.reader.Close()
 
-	// Close reader first to unblock any pending reads
-	_ = r.reader.Close()
-
-	// Kill the process if still running
-	if r.cmd.Process != nil {
-		_ = r.cmd.Process.Kill()
-		_ = r.cmd.Wait()
-	}
+		// Kill the process if still running.
+		if r.cmd.Process != nil {
+			_ = r.cmd.Process.Kill()
+			_ = r.cmd.Wait()
+		}
+	})
 	return nil
 }
 

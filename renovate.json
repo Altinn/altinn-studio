@@ -61,9 +61,9 @@
       "commitMessageSuffix": " (pdf3)"
     },
     {
-      "matchFileNames": ["src/cli/studioctl/internal/config/config.yaml"],
-      "additionalBranchPrefix": "studioctl/",
-      "commitMessageSuffix": " (studioctl)"
+      "matchFileNames": ["src/cli/**"],
+      "additionalBranchPrefix": "cli/",
+      "commitMessageSuffix": " (cli)"
     },
     {
       "matchFileNames": ["src/App/**"],

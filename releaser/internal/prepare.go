@@ -80,7 +80,7 @@ func RunPrepareWithDeps(ctx context.Context, req PrepareRequest, git *GitCLI, gh
 		clPath = comp.ChangelogPath
 	}
 
-	cfg, err := prepareReleasePrepConfig(ctx, git, comp, repoRoot, req.Version, clPath)
+	cfg, err := prepareReleasePrepConfig(ctx, git, comp, req.Version, clPath)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func prepareReleasePrepConfig(
 	ctx context.Context,
 	git *GitCLI,
 	comp *Component,
-	repoRoot, version, clPath string,
+	version, clPath string,
 ) (*releasePrepConfig, error) {
 	verStr := version
 	if !strings.HasPrefix(verStr, "v") {
@@ -121,20 +121,19 @@ func prepareReleasePrepConfig(
 		return nil, err
 	}
 
-	changelogFile := filepath.Join(repoRoot, clPath)
-	//nolint:gosec // G304: changelog path comes from git rev-parse in the local repo.
-	content, err := os.ReadFile(changelogFile)
+	sourceBranch := baseBranch
+	if createReleaseBranch {
+		// First stable release lines are cut from main before promotion.
+		sourceBranch = mainBranch
+	}
+	content, err := readRemoteFile(ctx, git, sourceBranch, clPath)
 	if err != nil {
 		return nil, fmt.Errorf("read changelog: %w", err)
 	}
 
-	cl, err := changelog.Parse(string(content))
+	cl, err := changelog.Parse(content)
 	if err != nil {
 		return nil, fmt.Errorf("parse changelog: %w", err)
-	}
-
-	if valErr := cl.ValidateUnreleased(); valErr != nil {
-		return nil, fmt.Errorf("invalid changelog: %w", valErr)
 	}
 
 	if cl.HasVersion(verStr) {
@@ -159,6 +158,13 @@ func prepareReleasePrepConfig(
 			".\n\nMerging this PR will automatically trigger the release workflow.",
 		promoted: promoted,
 	}, nil
+}
+
+func readRemoteFile(ctx context.Context, git *GitCLI, branch, path string) (string, error) {
+	if _, err := git.Run(ctx, "fetch", "origin", branch); err != nil {
+		return "", fmt.Errorf("fetch origin/%s: %w", branch, err)
+	}
+	return git.Run(ctx, "show", "origin/"+branch+":"+path)
 }
 
 func determineBranchStrategy(ctx context.Context, git *GitCLI, tag *Tag) (string, bool, error) {

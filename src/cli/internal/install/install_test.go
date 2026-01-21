@@ -618,6 +618,29 @@ func verifyHTTPErrorStatus(t *testing.T, statusCode int) {
 	}
 }
 
+func TestNormalizeVersionForURL(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"v1.2.3", "studioctl/v1.2.3"},
+		{"studioctl/v1.2.3", "studioctl/v1.2.3"},
+		{"v0.1.0-dev", "studioctl/v0.1.0-dev"},
+		{"studioctl/v0.1.0-dev", "studioctl/v0.1.0-dev"},
+		{"v1.0.0-preview.0", "studioctl/v1.0.0-preview.0"},
+		{"studioctl/v1.0.0-preview.0", "studioctl/v1.0.0-preview.0"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result := normalizeVersionForURL(tt.input)
+			if result != tt.expected {
+				t.Errorf("normalizeVersionForURL(%q) = %q, want %q", tt.input, result, tt.expected)
+			}
+		})
+	}
+}
+
 func TestCloseWithError(t *testing.T) {
 	tests := []struct {
 		closeErr    error

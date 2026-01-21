@@ -52,6 +52,11 @@ func TestStripMultiplexedHeader(t *testing.T) {
 			input: "\x03\x00\x00\x00\x00\x00\x00\x05hello",
 			want:  "\x03\x00\x00\x00\x00\x00\x00\x05hello",
 		},
+		{
+			name:  "padding bytes non-zero - no header",
+			input: "\x01\x01\x00\x00\x00\x00\x00\x05hello",
+			want:  "\x01\x01\x00\x00\x00\x00\x00\x05hello",
+		},
 	}
 
 	for _, tt := range tests {

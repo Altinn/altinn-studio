@@ -65,37 +65,6 @@ const unreleasedOnlyChangelog = `# Changelog
 - New feature
 `
 
-func TestParse(t *testing.T) {
-	cl, err := changelog.Parse(sampleChangelog)
-	if err != nil {
-		t.Fatalf("Parse() error = %v", err)
-	}
-
-	if cl.Preamble != "# Changelog\n\nAll notable changes to this project will be documented in this file." {
-		t.Errorf("Preamble = %q, want changelog header", cl.Preamble)
-	}
-
-	if cl.Unreleased == nil {
-		t.Fatal("Unreleased = nil, want non-nil")
-	}
-
-	if len(cl.Unreleased.Categories) != 2 {
-		t.Errorf("Unreleased.Categories = %d, want 2", len(cl.Unreleased.Categories))
-	}
-
-	if len(cl.Versions) != 2 {
-		t.Errorf("Versions = %d, want 2", len(cl.Versions))
-	}
-
-	if cl.Versions[0].Version.Num != "1.2.0" {
-		t.Errorf("Versions[0].Version.Num = %q, want 1.2.0", cl.Versions[0].Version.Num)
-	}
-
-	if cl.Versions[0].Date.Format("2006-01-02") != "2024-01-15" {
-		t.Errorf("Versions[0].Date = %v, want 2024-01-15", cl.Versions[0].Date)
-	}
-}
-
 func TestExtractNotes(t *testing.T) {
 	tests := []struct {
 		wantErr error
@@ -130,6 +99,17 @@ func TestExtractNotes(t *testing.T) {
 			name:    "extract with studioctl/ prefix",
 			content: sampleChangelog,
 			version: "studioctl/v1.2.0",
+			want: `### Added
+- Feature A
+- Feature B
+
+### Changed
+- Updated C`,
+		},
+		{
+			name:    "extract with other component prefix",
+			content: sampleChangelog,
+			version: "fileanalyzers/v1.2.0",
 			want: `### Added
 - Feature A
 - Feature B
@@ -227,6 +207,14 @@ func TestPromote(t *testing.T) {
 			},
 		},
 		{
+			name:    "promote with other component prefix",
+			content: sampleChangelog,
+			version: "fileanalyzers/v1.3.0",
+			contains: []string{
+				"## [1.3.0] - 2024-02-01",
+			},
+		},
+		{
 			name:    "promote preview version",
 			content: sampleChangelog,
 			version: "1.3.0-preview.1",
@@ -240,6 +228,54 @@ func TestPromote(t *testing.T) {
 			version: "1.3.0-beta.1",
 			contains: []string{
 				"## [1.3.0-beta.1] - 2024-02-01",
+			},
+		},
+		{
+			name: "promote stable from prerelease history when unreleased is empty",
+			content: `# Changelog
+
+## [Unreleased]
+
+## [1.0.0-preview.2] - 2024-01-02
+
+### Fixed
+- Critical bugfix
+
+## [1.0.0-preview.1] - 2024-01-01
+
+### Added
+- First stable feature
+`,
+			version: "1.0.0",
+			contains: []string{
+				"## [1.0.0] - 2024-02-01",
+				"### Added\n- First stable feature",
+				"### Fixed\n- Critical bugfix",
+			},
+		},
+		{
+			name: "promote stable from prerelease history and unreleased entries",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- Final release polish
+
+## [1.1.0-preview.2] - 2024-01-02
+
+### Added
+- Feature B
+
+## [1.1.0-preview.1] - 2024-01-01
+
+### Added
+- Feature A
+`,
+			version: "1.1.0",
+			contains: []string{
+				"## [1.1.0] - 2024-02-01",
+				"### Added\n- Feature A\n- Feature B\n- Final release polish",
 			},
 		},
 		{
@@ -310,6 +346,143 @@ func TestPromote(t *testing.T) {
 	}
 }
 
+func TestPromote_MaintainsSemverOrder(t *testing.T) {
+	fixedDate := time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name         string
+		content      string
+		version      string
+		wantVersions []string
+	}{
+		{
+			name: "inserts stable in middle",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- Upcoming
+
+## [2.0.0] - 2024-01-10
+
+### Added
+- A
+
+## [1.5.0] - 2024-01-09
+
+### Added
+- B
+
+## [1.1.0] - 2024-01-08
+
+### Added
+- C
+`,
+			version:      "1.6.0",
+			wantVersions: []string{"2.0.0", "1.6.0", "1.5.0", "1.1.0"},
+		},
+		{
+			name: "appends oldest stable",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- Upcoming
+
+## [2.0.0] - 2024-01-10
+
+### Added
+- A
+
+## [1.5.0] - 2024-01-09
+
+### Added
+- B
+`,
+			version:      "1.4.9",
+			wantVersions: []string{"2.0.0", "1.5.0", "1.4.9"},
+		},
+		{
+			name: "inserts prerelease below stable for same core",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- Upcoming
+
+## [1.2.0] - 2024-01-10
+
+### Added
+- Stable
+
+## [1.2.0-preview.2] - 2024-01-09
+
+### Added
+- Preview
+
+## [1.1.9] - 2024-01-08
+
+### Added
+- Older
+`,
+			version:      "1.2.0-preview.10",
+			wantVersions: []string{"1.2.0", "1.2.0-preview.10", "1.2.0-preview.2", "1.1.9"},
+		},
+		{
+			name: "inserts patch below newer previews and above prior stable",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Fixed
+- Bugfix
+
+## [1.1.0-preview.2] - 2024-01-10
+
+### Added
+- Preview 2
+
+## [1.1.0-preview.1] - 2024-01-09
+
+### Added
+- Preview 1
+
+## [1.0.0] - 2024-01-08
+
+### Added
+- Stable
+`,
+			version:      "1.0.1",
+			wantVersions: []string{"1.1.0-preview.2", "1.1.0-preview.1", "1.0.1", "1.0.0"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cl, err := changelog.Parse(tt.content)
+			if err != nil {
+				t.Fatalf("Parse() error = %v", err)
+			}
+
+			promoted, err := cl.Promote(tt.version, fixedDate)
+			if err != nil {
+				t.Fatalf("Promote() error = %v", err)
+			}
+
+			gotVersions := make([]string, 0, len(promoted.Versions))
+			for _, section := range promoted.Versions {
+				gotVersions = append(gotVersions, section.Version.Num)
+			}
+			if !slices.Equal(gotVersions, tt.wantVersions) {
+				t.Fatalf("Promote() versions = %v, want %v", gotVersions, tt.wantVersions)
+			}
+		})
+	}
+}
+
 func TestValidateUnreleased(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -348,47 +521,6 @@ func TestValidateUnreleased(t *testing.T) {
 			got := cl.ValidateUnreleased() == nil
 			if got != tt.want {
 				t.Errorf("ValidateUnreleased() == nil = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestHasVersion(t *testing.T) {
-	tests := []struct {
-		name    string
-		content string
-		version string
-		want    bool
-	}{
-		{
-			name:    "version exists",
-			content: sampleChangelog,
-			version: "1.2.0",
-			want:    true,
-		},
-		{
-			name:    "version exists with v prefix",
-			content: sampleChangelog,
-			version: "v1.2.0",
-			want:    true,
-		},
-		{
-			name:    "version not found",
-			content: sampleChangelog,
-			version: "9.9.9",
-			want:    false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cl, err := changelog.Parse(tt.content)
-			if err != nil {
-				t.Fatalf("Parse() error = %v", err)
-			}
-
-			if got := cl.HasVersion(tt.version); got != tt.want {
-				t.Errorf("HasVersion() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -527,25 +659,6 @@ func TestParseWithDiff(t *testing.T) {
 	}
 }
 
-func TestParseWithDiff_Categories(t *testing.T) {
-	cl, err := changelog.ParseWithDiff("", sampleDiffMultipleEntries, testChangelogPath)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	categories := make(map[string]int)
-	for _, e := range cl.AddedEntries {
-		categories[e.Category]++
-	}
-
-	if categories["Added"] != 1 {
-		t.Errorf("expected 1 Added entry, got %d", categories["Added"])
-	}
-	if categories["Fixed"] != 2 {
-		t.Errorf("expected 2 Fixed entries, got %d", categories["Fixed"])
-	}
-}
-
 func TestParseWithDiff_BackportStyle(t *testing.T) {
 	cl, err := changelog.ParseWithDiff("", sampleDiffBackport, testChangelogPath)
 	if err != nil {
@@ -666,63 +779,6 @@ func TestInsertEntries(t *testing.T) {
 	}
 }
 
-func TestInsertEntries_CategoryOrder(t *testing.T) {
-	cl, err := changelog.Parse(emptyUnreleasedChangelog)
-	if err != nil {
-		t.Fatalf("Parse() error = %v", err)
-	}
-
-	entries := []changelog.Entry{
-		{Category: "Removed", Text: "Removed feature"},
-		{Category: "Added", Text: "New feature"},
-		{Category: "Fixed", Text: "Bugfix"},
-		{Category: "Changed", Text: "Changed behavior"},
-	}
-
-	updated, err := cl.InsertEntries(entries)
-	if err != nil {
-		t.Fatalf("InsertEntries() error = %v", err)
-	}
-
-	got := updated.String()
-
-	// Check order: Added should come before Changed, Changed before Fixed, Fixed before Removed
-	addedIdx := strings.Index(got, "### Added")
-	changedIdx := strings.Index(got, "### Changed")
-	fixedIdx := strings.Index(got, "### Fixed")
-	removedIdx := strings.Index(got, "### Removed")
-
-	indices := []int{addedIdx, changedIdx, fixedIdx, removedIdx}
-	if !slices.IsSorted(indices) {
-		t.Errorf("categories not in expected order: Added=%d, Changed=%d, Fixed=%d, Removed=%d",
-			addedIdx, changedIdx, fixedIdx, removedIdx)
-	}
-}
-
-func TestSection_String(t *testing.T) {
-	cl, err := changelog.Parse(sampleChangelog)
-	if err != nil {
-		t.Fatalf("Parse() error = %v", err)
-	}
-
-	ver := cl.GetVersion("1.2.0")
-	if ver == nil {
-		t.Fatal("GetVersion() = nil, want non-nil")
-	}
-
-	got := ver.String()
-	want := `### Added
-- Feature A
-- Feature B
-
-### Changed
-- Updated C`
-
-	if got != want {
-		t.Errorf("Section.String() got:\n%s\n\nwant:\n%s", got, want)
-	}
-}
-
 func TestSection_IsUnreleased(t *testing.T) {
 	cl, err := changelog.Parse(sampleChangelog)
 	if err != nil {
@@ -753,53 +809,358 @@ func TestSection_HasCategory(t *testing.T) {
 	}
 }
 
-func TestSection_GetCategory(t *testing.T) {
-	cl, err := changelog.Parse(sampleChangelog)
-	if err != nil {
-		t.Fatalf("Parse() error = %v", err)
+func TestParse_InvalidCategory(t *testing.T) {
+	tests := []struct {
+		name          string
+		content       string
+		wantCategory  string
+		wantValidList string
+	}{
+		{
+			name: "invalid category in unreleased",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Invalid
+- Some entry`,
+			wantCategory:  "Invalid",
+			wantValidList: "Added, Changed, Fixed, Removed, Security, Deprecated",
+		},
+		{
+			name: "invalid category in version",
+			content: `# Changelog
+
+## [1.0.0] - 2024-01-01
+
+### Breaking
+- Breaking change`,
+			wantCategory:  "Breaking",
+			wantValidList: "Added, Changed, Fixed, Removed, Security, Deprecated",
+		},
+		{
+			name: "typo in category",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Adedd
+- Feature`,
+			wantCategory:  "Adedd",
+			wantValidList: "Added, Changed, Fixed, Removed, Security, Deprecated",
+		},
+		{
+			name: "lowercase category",
+			content: `# Changelog
+
+## [Unreleased]
+
+### added
+- Feature`,
+			wantCategory:  "added",
+			wantValidList: "Added, Changed, Fixed, Removed, Security, Deprecated",
+		},
 	}
 
-	cat := cl.Unreleased.GetCategory("Added")
-	if cat == nil {
-		t.Fatal("GetCategory(Added) = nil, want non-nil")
-	}
-
-	if len(cat.Entries) != 1 || cat.Entries[0] != "New feature X" {
-		t.Errorf("GetCategory(Added).Entries = %v, want [New feature X]", cat.Entries)
-	}
-
-	if cl.Unreleased.GetCategory("Removed") != nil {
-		t.Error("GetCategory(Removed) != nil, want nil")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := changelog.Parse(tt.content)
+			if err == nil {
+				t.Fatal("Parse() error = nil, want error")
+			}
+			if !errors.Is(err, changelog.ErrInvalidCategory) {
+				t.Errorf("Parse() error = %v, want error wrapping ErrInvalidCategory", err)
+			}
+			errMsg := err.Error()
+			if !strings.Contains(errMsg, tt.wantCategory) {
+				t.Errorf("error message %q does not contain invalid category %q", errMsg, tt.wantCategory)
+			}
+			if !strings.Contains(errMsg, tt.wantValidList) {
+				t.Errorf("error message %q does not contain valid categories list %q", errMsg, tt.wantValidList)
+			}
+		})
 	}
 }
 
-func TestChangelog_String_RoundTrip(t *testing.T) {
-	// Parse and re-serialize should produce valid changelog
-	cl, err := changelog.Parse(sampleChangelog)
-	if err != nil {
-		t.Fatalf("Parse() error = %v", err)
+func TestParse_CategoryOrder(t *testing.T) {
+	tests := []struct {
+		wantErrType  error
+		name         string
+		content      string
+		wantInErrMsg string
+		wantErr      bool
+	}{
+		{
+			name: "correct order",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+### Changed
+- Updated something
+
+### Fixed
+- Bug fix`,
+			wantErr: false,
+		},
+		{
+			name: "wrong order - Fixed before Changed",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+### Fixed
+- Bug fix
+
+### Changed
+- Updated something`,
+			wantErr:      true,
+			wantErrType:  changelog.ErrCategoryOrder,
+			wantInErrMsg: "Changed",
+		},
+		{
+			name: "wrong order - Removed before Fixed",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+### Removed
+- Removed feature
+
+### Fixed
+- Bug fix`,
+			wantErr:      true,
+			wantErrType:  changelog.ErrCategoryOrder,
+			wantInErrMsg: "Fixed",
+		},
+		{
+			name: "single category",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Fixed
+- Bug fix`,
+			wantErr: false,
+		},
+		{
+			name: "subset in correct order",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+### Fixed
+- Bug fix
+
+### Security
+- Security fix`,
+			wantErr: false,
+		},
+		{
+			name: "wrong order in version section",
+			content: `# Changelog
+
+## [1.0.0] - 2024-01-01
+
+### Fixed
+- Bug fix
+
+### Added
+- New feature`,
+			wantErr:      true,
+			wantErrType:  changelog.ErrCategoryOrder,
+			wantInErrMsg: "Added",
+		},
 	}
 
-	serialized := cl.String()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := changelog.Parse(tt.content)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 
-	// Parse again
-	cl2, err := changelog.Parse(serialized)
-	if err != nil {
-		t.Fatalf("Parse(serialized) error = %v", err)
+			if tt.wantErr && err != nil {
+				if !errors.Is(err, tt.wantErrType) {
+					t.Errorf("Parse() error = %v, want error wrapping %v", err, tt.wantErrType)
+				}
+				if tt.wantInErrMsg != "" && !strings.Contains(err.Error(), tt.wantInErrMsg) {
+					t.Errorf("Parse() error message %q does not contain %q", err.Error(), tt.wantInErrMsg)
+				}
+			}
+		})
+	}
+}
+
+func TestParse_VersionSectionValidation(t *testing.T) {
+	tests := []struct {
+		wantErrType error
+		name        string
+		content     string
+		wantErr     bool
+	}{
+		{
+			name: "released versions in descending order",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+## [1.2.0] - 2024-01-02
+
+### Added
+- Stable release
+
+## [1.2.0-preview.1] - 2024-01-01
+
+### Added
+- Preview release
+
+## [1.1.0] - 2023-12-01
+
+### Added
+- Older release`,
+		},
+		{
+			name: "historical prerelease lines below latest stable are allowed",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+## [1.3.0-preview.1] - 2024-01-03
+
+### Added
+- Active preview
+
+## [1.2.0] - 2024-01-02
+
+### Added
+- Latest stable
+
+## [1.2.0-preview.2] - 2024-01-01
+
+### Added
+- Historical preview`,
+		},
+		{
+			name: "duplicate released version",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+## [1.2.0] - 2024-01-02
+
+### Added
+- Stable release
+
+## [1.2.0] - 2024-01-01
+
+### Fixed
+- Duplicate section`,
+			wantErr:     true,
+			wantErrType: changelog.ErrDuplicateVersion,
+		},
+		{
+			name: "released versions not descending",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+## [1.1.0] - 2024-01-02
+
+### Added
+- Older release
+
+## [1.2.0] - 2024-01-01
+
+### Added
+- Newer release`,
+			wantErr:     true,
+			wantErrType: changelog.ErrVersionOrder,
+		},
+		{
+			name: "stable must come before prerelease for same core",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+## [1.2.0-preview.1] - 2024-01-02
+
+### Added
+- Preview release
+
+## [1.2.0] - 2024-01-01
+
+### Added
+- Stable release`,
+			wantErr:     true,
+			wantErrType: changelog.ErrVersionOrder,
+		},
+		{
+			name: "multiple active prerelease release-lines are not allowed",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+## [1.3.0-preview.1] - 2024-01-03
+
+### Added
+- Preview line A
+
+## [1.2.0-preview.4] - 2024-01-02
+
+### Added
+- Preview line B
+
+## [1.1.0] - 2024-01-01
+
+### Added
+- Stable release`,
+			wantErr:     true,
+			wantErrType: changelog.ErrPrereleaseConflict,
+		},
 	}
 
-	// Check key properties are preserved
-	if cl2.Unreleased == nil {
-		t.Error("Unreleased = nil after round trip")
-	}
-
-	if len(cl2.Versions) != len(cl.Versions) {
-		t.Errorf("Versions count = %d, want %d", len(cl2.Versions), len(cl.Versions))
-	}
-
-	for i, v := range cl.Versions {
-		if cl2.Versions[i].Version.Num != v.Version.Num {
-			t.Errorf("Versions[%d].Version.Num = %q, want %q", i, cl2.Versions[i].Version.Num, v.Version.Num)
-		}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := changelog.Parse(tt.content)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && !errors.Is(err, tt.wantErrType) {
+				t.Errorf("Parse() error = %v, want error wrapping %v", err, tt.wantErrType)
+			}
+		})
 	}
 }

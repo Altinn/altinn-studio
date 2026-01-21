@@ -9,9 +9,15 @@ BUILD_DIR := build
 DEV_HOME := $(BUILD_DIR)/dev-home
 LOCALBIN := bin
 
+# Match `go install` output on Windows so tool install rules can locate binaries.
+EXEEXT :=
+ifeq ($(OS),Windows_NT)
+EXEEXT := .exe
+endif
+
 # Tools
 GOLANGCI_LINT_VERSION ?= v2.8.0
-GOLANGCI_LINT := $(LOCALBIN)/golangci-lint
+GOLANGCI_LINT := $(LOCALBIN)/golangci-lint$(EXEEXT)
 
 .PHONY: all
 all: build

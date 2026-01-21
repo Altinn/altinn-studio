@@ -207,11 +207,12 @@ func (c *Client) CloneRepo(ctx context.Context, org, repo, destPath string) erro
 
 // buildCloneURL constructs the HTTPS clone URL with embedded credentials.
 func (c *Client) buildCloneURL(org, repo string) string {
-	// URL encode username and token in case they contain special characters
-	encodedUser := url.PathEscape(c.username)
-	encodedToken := url.PathEscape(c.token)
-	return fmt.Sprintf("https://%s:%s@%s/repos/%s/%s.git",
-		encodedUser, encodedToken, c.host, org, repo)
+	var u url.URL
+	u.Scheme = c.scheme
+	u.Host = c.host
+	u.Path = fmt.Sprintf("/repos/%s/%s.git", org, repo)
+	u.User = url.UserPassword(c.username, c.token)
+	return u.String()
 }
 
 // execGitClone runs git clone command.

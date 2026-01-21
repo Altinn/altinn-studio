@@ -77,4 +77,3 @@ type Resource interface {
 type Validator interface {
 	Validate() error
 }
-

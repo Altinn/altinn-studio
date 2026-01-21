@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"altinn.studio/studioctl/internal/appdetect"
 	"altinn.studio/studioctl/internal/config"
@@ -98,7 +99,7 @@ func (c *RunCommand) Run(ctx context.Context, args []string) error {
 func (c *RunCommand) runDotnet(ctx context.Context, appPath string, args []string) error {
 	// Build dotnet run command
 	dotnetArgs := make([]string, 0, 3+len(args))
-	dotnetArgs = append(dotnetArgs, "run", "--project", appPath+"/App")
+	dotnetArgs = append(dotnetArgs, "run", "--project", filepath.Join(appPath, "App"))
 	dotnetArgs = append(dotnetArgs, args...)
 
 	c.out.Verbosef("Running: dotnet %v", dotnetArgs)

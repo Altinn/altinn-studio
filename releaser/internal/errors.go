@@ -5,7 +5,13 @@ import "errors"
 var (
 	errContextRequired        = errors.New("context is required")
 	errComponentRequired      = errors.New("component is required")
+	errBaseBranchRequired     = errors.New("base branch is required")
+	errRepoRootRequired       = errors.New("repo root is required")
+	errGitRequired            = errors.New("git client is required")
+	errChangelogNil           = errors.New("changelog is required")
 	errReleaseVersionRequired = errors.New("version is required")
+	errValidationBaseRequired = errors.New("base commit is required")
+	errValidationHeadRequired = errors.New("head commit is required")
 	errChangelogVersionExists = errors.New("version already exists in changelog")
 	errReleaseBranchMissing   = errors.New("release branch does not exist for patch release")
 	errReleaseBranchExists    = errors.New("release branch already exists; use patch version")
