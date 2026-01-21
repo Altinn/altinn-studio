@@ -513,7 +513,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/v1/redirect")]
     public class RedirectController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public RedirectController(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> settings) { }
+        public RedirectController(Altinn.App.Core.Features.Redirect.IRedirectUrlValidator redirectUrlValidator) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(400)]

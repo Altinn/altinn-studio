@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
@@ -73,6 +74,7 @@ public class HomeController : Controller
     /// <param name="org">The application owner short name.</param>
     /// <param name="app">The name of the app</param>
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
+    /// <param name="returnUrl">Optional return URL</param>
     [HttpGet]
     [Route("")]
     [Route("instance-selection")]
@@ -84,9 +86,12 @@ public class HomeController : Controller
     public async Task<IActionResult> Index(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromQuery] bool dontChooseReportee
+        [FromQuery] bool dontChooseReportee,
+        [FromQuery] string? returnUrl
     )
     {
+        Debugger.Break();
+
         // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
         var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
         if (tokens.RequestToken != null)
@@ -103,7 +108,7 @@ public class HomeController : Controller
 
         if (await ShouldShowAppView())
         {
-            BootstrapGlobalResponse appGlobalState = await _bootstrapGlobalService.GetGlobalState();
+            BootstrapGlobalResponse appGlobalState = await _bootstrapGlobalService.GetGlobalState(returnUrl);
             return Content(await GenerateHtml(org, app, appGlobalState), "text/html; charset=utf-8");
         }
 

@@ -17,6 +17,7 @@ using Altinn.App.Core.Features.Payment.Processors.FakePaymentProcessor;
 using Altinn.App.Core.Features.Payment.Processors.Nets;
 using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Features.Pdf;
+using Altinn.App.Core.Features.Redirect;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Features.Validation.Default;
@@ -175,6 +176,7 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IFrontendFeatures, FrontendFeatures>();
         services.TryAddSingleton<ITranslationService, TranslationService>();
         services.TryAddSingleton<IBootstrapGlobalService, BootstrapGlobalService>();
+        services.TryAddTransient<IRedirectUrlValidator, RedirectUrlValidator>();
         services.TryAddTransient<IAppEvents, DefaultAppEvents>();
 #pragma warning disable CS0618, CS0612 // Type or member is obsolete
         services.TryAddTransient<IPageOrder, DefaultPageOrder>();

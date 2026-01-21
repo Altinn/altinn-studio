@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Features.Redirect;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Features.Bootstrap.Models;
@@ -28,4 +29,10 @@ internal class BootstrapGlobalResponse
     /// </summary>
     [JsonPropertyName("availableLanguages")]
     public List<ApplicationLanguage>? AvailableLanguages { get; set; }
+
+    /// <summary>
+    /// Verified returnUrl
+    /// </summary>
+    [JsonPropertyName("returnUrl")]
+    public RedirectUrlValidationResult? ReturnUrl { get; set; }
 }

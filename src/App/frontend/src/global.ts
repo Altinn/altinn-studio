@@ -13,6 +13,12 @@ type GlobalData = {
   footer: IFooterLayout;
   frontendSettings: IApplicationSettings;
   availableLanguages: IAppLanguage[];
+  returnUrl?: {
+    isValid: boolean;
+    decodedUrl?: string;
+    isInvalidDomain: boolean;
+    errorMessage?: string;
+  };
 };
 
 declare global {

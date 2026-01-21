@@ -40,13 +40,20 @@ describe('Presentation', () => {
     const mockedLocation = { ...realLocation, search: `?returnUrl=${returnUrl}` };
     jest.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
 
-    await render({}, { fetchReturnUrl: async () => returnUrl });
+    window.altinnAppGlobalData.returnUrl = {
+      isInvalidDomain: false,
+      isValid: false,
+      decodedUrl: returnUrl,
+    };
+
+    await render({});
 
     const closeButton = screen.getByRole('link', {
       name: 'Tilbake',
     });
 
     expect(closeButton).toHaveAttribute('href', returnUrl);
+    window.altinnAppGlobalData.returnUrl = undefined;
   });
 
   it('should link to default messagebox url if query parameter returnUrl is not valid', async () => {

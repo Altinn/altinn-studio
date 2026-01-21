@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Bootstrap.Models;
+using Altinn.App.Core.Features.Redirect;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Language;
 using Microsoft.Extensions.Options;
@@ -11,7 +12,8 @@ internal sealed class BootstrapGlobalService(
     IAppMetadata appMetadata,
     IAppResources appResources,
     IOptions<FrontEndSettings> frontEndSettings,
-    IApplicationLanguage applicationLanguage
+    IApplicationLanguage applicationLanguage,
+    IRedirectUrlValidator redirectUrlValidator
 ) : IBootstrapGlobalService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -19,7 +21,7 @@ internal sealed class BootstrapGlobalService(
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    public async Task<BootstrapGlobalResponse> GetGlobalState()
+    public async Task<BootstrapGlobalResponse> GetGlobalState(string? redirectUrl)
     {
         var appMetadataTask = appMetadata.GetApplicationMetadata();
 
@@ -28,6 +30,16 @@ internal sealed class BootstrapGlobalService(
         var availableLanguagesTask = applicationLanguage.GetApplicationLanguages();
 
         await Task.WhenAll(appMetadataTask, footerTask, availableLanguagesTask);
+        if (redirectUrl == null)
+        {
+            return new BootstrapGlobalResponse
+            {
+                ApplicationMetadata = await appMetadataTask,
+                Footer = await footerTask,
+                AvailableLanguages = await availableLanguagesTask,
+                FrontEndSettings = frontEndSettings.Value,
+            };
+        }
 
         return new BootstrapGlobalResponse
         {
@@ -35,6 +47,7 @@ internal sealed class BootstrapGlobalService(
             Footer = await footerTask,
             AvailableLanguages = await availableLanguagesTask,
             FrontEndSettings = frontEndSettings.Value,
+            ReturnUrl = redirectUrlValidator.Validate(redirectUrl),
         };
     }
 
