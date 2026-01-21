@@ -82,6 +82,8 @@ public class AppMetadata : IAppMetadata
 
                 application.Features = await _frontendFeatures.GetFrontendFeatures();
                 application.ExternalApiIds = _externalApiFactory?.GetAllExternalApiIds();
+                application.OnEntry ??= new OnEntry { Show = "new-instance" };
+                application.OnEntry.Show ??= "new-instance";
 
                 _application = application;
 

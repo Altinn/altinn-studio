@@ -308,7 +308,7 @@ namespace Designer.Tests.Services
             string repository = "apps-test";
 
             Mock<ISourceControl> mock = new();
-            mock.Setup(m => m.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()))
+            mock.Setup(m => m.DeleteRepository(It.IsAny<AltinnRepoEditingContext>()))
                 .Returns(Task.CompletedTask);
 
             RepositoryService sut = GetServiceForTest(developer, mock.Object);

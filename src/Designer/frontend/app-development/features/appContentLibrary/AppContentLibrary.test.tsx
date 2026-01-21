@@ -5,7 +5,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../test/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
@@ -14,32 +13,29 @@ import type {
   CodeListWithMetadata,
   ContentLibraryConfig,
   PagesConfig,
-  ResourceContentLibraryImpl,
   TextResourceWithLanguage,
 } from '@studio/content-library';
+import { PageName } from '@studio/content-library';
 import { optionList1Data, optionListDataList } from './test-data/optionListDataList';
 import { label1ResourceNb, textResources } from './test-data/textResources';
 import type { ITextResourcesObjectFormat } from 'app-shared/types/global';
 import { codeListTitles } from './test-data/codeListTitles';
+import { RoutePaths } from '../../enums/RoutePaths';
 
 // Mocks:
 jest.mock('@studio/content-library', () => ({
   ...jest.requireActual('@studio/content-library'),
-  ResourceContentLibraryImpl: mockContentLibrary,
+  ContentLibrary: (props) => MockContentLibrary(props),
 }));
 
-function mockContentLibrary(
-  ...args: ConstructorParameters<typeof ResourceContentLibraryImpl>
-): Partial<ResourceContentLibraryImpl> {
-  mockConstructor(...args);
-  return { getContentResourceLibrary };
-}
-
-const mockConstructor = jest.fn();
-const getContentResourceLibrary = jest
+const MockContentLibrary = jest
   .fn()
   .mockImplementation(() => <div data-testid={resourceLibraryTestId} />);
 const resourceLibraryTestId = 'resource-library';
+
+// Test data:
+const org = 'test-org';
+const app = 'test-app';
 
 describe('AppContentLibrary', () => {
   afterEach(jest.clearAllMocks);
@@ -47,6 +43,16 @@ describe('AppContentLibrary', () => {
   it('Renders the content library', async () => {
     renderAppContentLibraryWithData();
     expect(screen.getByTestId(resourceLibraryTestId)).toBeInTheDocument();
+  });
+
+  it('Renders the library with the landing page by default', async () => {
+    renderAppContentLibraryWithData();
+    expect(retrieveConfig().router.location).toBe(PageName.LandingPage);
+  });
+
+  it('Renders the library with the element type page given by the URL', async () => {
+    renderAppContentLibraryWithData({ libraryPath: PageName.CodeLists });
+    expect(retrieveConfig().router.location).toBe(PageName.CodeLists);
   });
 
   it('renders a spinner when waiting for option lists', () => {
@@ -218,13 +224,17 @@ describe('AppContentLibrary', () => {
 type RenderAppContentLibraryProps = {
   queries?: Partial<ServicesContextProps>;
   queryClient?: QueryClient;
+  libraryPath?: string;
 };
 
 const renderAppContentLibrary = ({
   queries = {},
   queryClient = createQueryClientMock(),
+  libraryPath = '',
 }: RenderAppContentLibraryProps = {}): void => {
-  renderWithProviders(queries, queryClient)(<AppContentLibrary />);
+  const path = `/${org}/${app}/${RoutePaths.ContentLibrary}/${libraryPath}`;
+  const pathTemplate = `/:org/:app/${RoutePaths.ContentLibrary}/:elementType?`;
+  renderWithProviders(queries, queryClient, {}, path, pathTemplate)(<AppContentLibrary />);
 };
 
 function renderAppContentLibraryWithData(
@@ -248,5 +258,5 @@ function retrievePagesConfig(): PagesConfig {
 }
 
 function retrieveConfig(): ContentLibraryConfig {
-  return mockConstructor.mock.calls[0][0];
+  return MockContentLibrary.mock.calls[0][0];
 }

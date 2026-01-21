@@ -72,6 +72,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IAppScopesService, AppScopesService>();
             services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
             services.AddTransient<IAppResourcesService, AppResourcesService>();
+            services.AddTransient<IAlertsService, AlertsService>();
+            services.AddTransient<IMetricsService, MetricsService>();
             services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
             services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
             services.AddTransient<IAuthorizationPolicyService, AuthorizationPolicyService>();
