@@ -67,6 +67,50 @@ public class StudioctlInstallScriptServiceTests
     }
 
     [Fact]
+    public async Task GetInstallScriptAsync_NoCache_TransportException_ReturnsUnavailable()
+    {
+        var handler = new TestHttpMessageHandler(_ => throw new HttpRequestException("DNS failure"));
+
+        var service = CreateService(handler);
+
+        StudioctlInstallScriptResult result =
+            await service.GetInstallScriptAsync(StudioctlInstallScriptType.PowerShell, CancellationToken.None);
+
+        Assert.Equal(StudioctlInstallScriptStatus.Unavailable, result.Status);
+    }
+
+    [Fact]
+    public async Task GetInstallScriptAsync_NoCache_Timeout_ReturnsUnavailable()
+    {
+        var handler = new TestHttpMessageHandler(_ => throw new TaskCanceledException("timeout"));
+
+        var service = CreateService(handler);
+
+        StudioctlInstallScriptResult result =
+            await service.GetInstallScriptAsync(StudioctlInstallScriptType.Bash, CancellationToken.None);
+
+        Assert.Equal(StudioctlInstallScriptStatus.Unavailable, result.Status);
+    }
+
+    [Fact]
+    public async Task GetInstallScriptAsync_NoCache_ResponseTooLarge_ReturnsUnavailable()
+    {
+        byte[] payload = new byte[16 * 1024 * 1024];
+        var handler = new TestHttpMessageHandler(_ =>
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent(payload)
+            });
+
+        var service = CreateService(handler);
+
+        StudioctlInstallScriptResult result =
+            await service.GetInstallScriptAsync(StudioctlInstallScriptType.Bash, CancellationToken.None);
+
+        Assert.Equal(StudioctlInstallScriptStatus.Unavailable, result.Status);
+    }
+
+    [Fact]
     public async Task GetInstallScriptAsync_StaleCache_ReturnsCached()
     {
         byte[] payload = System.Text.Encoding.UTF8.GetBytes("cached");

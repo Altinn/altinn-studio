@@ -30,6 +30,7 @@ const (
 var (
 	ErrUnsupportedShell = errors.New("unsupported shell")
 	ErrBinaryPath       = errors.New("cannot determine binary path")
+	ErrInvalidAliasName = errors.New("invalid alias name")
 )
 
 // ShellCommand implements the 'shell' subcommand.
@@ -115,6 +116,13 @@ func (c *ShellCommand) runAlias(ctx context.Context, args []string) error {
 	configPath, err := getShellConfigPath(ctx, shell)
 	if err != nil {
 		return err
+	}
+
+	if validateErr := validateAliasName(flags.aliasName); validateErr != nil {
+		return validateErr
+	}
+	if strings.ContainsAny(binaryPath, "\r\n") {
+		return fmt.Errorf("%w: binary path contains newline", ErrBinaryPath)
 	}
 
 	// Generate alias line
@@ -327,14 +335,63 @@ func getPowerShellProfilePath(ctx context.Context) (string, error) {
 	return filepath.Join(home, "Documents", "PowerShell", "Microsoft.PowerShell_profile.ps1"), nil
 }
 
+func validateAliasName(name string) error {
+	if name == "" {
+		return fmt.Errorf("%w: empty", ErrInvalidAliasName)
+	}
+	if !isASCIIAlpha(name[0]) && name[0] != '_' {
+		return fmt.Errorf("%w: %q", ErrInvalidAliasName, name)
+	}
+	for i := 1; i < len(name); i++ {
+		c := name[i]
+		if !isASCIIAlphaNum(c) && c != '_' {
+			return fmt.Errorf("%w: %q", ErrInvalidAliasName, name)
+		}
+	}
+	return nil
+}
+
+func isASCIIAlpha(c byte) bool {
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+}
+
+func isASCIIAlphaNum(c byte) bool {
+	return isASCIIAlpha(c) || (c >= '0' && c <= '9')
+}
+
+func quotePOSIXSingle(s string) string {
+	// POSIX-safe single-quote escaping: close quote, emit '\'' sequence, reopen.
+	// Example: abc'd -> 'abc'"'"'d'
+	if !strings.Contains(s, "'") {
+		return "'" + s + "'"
+	}
+	var b strings.Builder
+	b.Grow(len(s) + 2)
+	b.WriteByte('\'')
+	for i := range len(s) {
+		if s[i] == '\'' {
+			b.WriteString("'\"'\"'")
+			continue
+		}
+		b.WriteByte(s[i])
+	}
+	b.WriteByte('\'')
+	return b.String()
+}
+
+func quotePowerShellSingle(s string) string {
+	// PowerShell single-quoted strings escape a single quote by doubling it.
+	return "'" + strings.ReplaceAll(s, "'", "''") + "'"
+}
+
 func formatAliasLine(shell, aliasName, binaryPath string) string {
 	switch shell {
 	case shellBash, shellZsh:
-		return fmt.Sprintf("alias %s='%s'", aliasName, binaryPath)
+		return fmt.Sprintf("alias %s=%s", aliasName, quotePOSIXSingle(binaryPath))
 	case shellFish:
-		return fmt.Sprintf("alias %s '%s'", aliasName, binaryPath)
+		return fmt.Sprintf("alias %s %s", aliasName, quotePOSIXSingle(binaryPath))
 	case shellPowerShell:
-		return fmt.Sprintf("Set-Alias -Name %s -Value '%s'", aliasName, binaryPath)
+		return fmt.Sprintf("Set-Alias -Name %s -Value %s", aliasName, quotePowerShellSingle(binaryPath))
 	default:
 		return ""
 	}
@@ -396,7 +453,7 @@ func ensureConfigFileExists(path string) error {
 
 func appendToFile(path, line string) error {
 	//nolint:gosec // path is constructed from known safe sources
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, perm.FilePermDefault)
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_RDWR, perm.FilePermDefault)
 	if err != nil {
 		return fmt.Errorf("opening file for append: %w", err)
 	}
@@ -414,6 +471,9 @@ func appendToFile(path, line string) error {
 		// Read last byte to check for newline
 		buf := make([]byte, 1)
 		if _, readErr := file.ReadAt(buf, stat.Size()-1); readErr == nil && buf[0] != '\n' {
+			prefix = "\n"
+		} else if readErr != nil {
+			// If we can't read, still avoid concatenating onto the last line.
 			prefix = "\n"
 		}
 		// Add extra newline for spacing

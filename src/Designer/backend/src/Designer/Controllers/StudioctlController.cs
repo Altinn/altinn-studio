@@ -6,7 +6,6 @@ using Altinn.Studio.Designer.Services.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Net.Http.Headers;
 
 namespace Altinn.Studio.Designer.Controllers;
 
@@ -48,8 +47,6 @@ public class StudioctlController : ControllerBase
 
     private IActionResult CreateFileResult(StudioctlInstallScriptResult result)
     {
-        var file = File(result.Content, ScriptContentType, result.FileName);
-        Response.Headers[HeaderNames.ContentDisposition] = $"attachment; filename=\"{result.FileName}\"";
-        return file;
+        return File(result.Content, ScriptContentType, result.FileName);
     }
 }

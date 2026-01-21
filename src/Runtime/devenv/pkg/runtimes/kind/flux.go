@@ -136,8 +136,8 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 			return fmt.Errorf("failed to reconcile base infra: %w", err)
 		}
 	}
+	//nolint:staticcheck // TODO: reconcile local lgtm setup?
 	if r.options.IncludeMonitoring {
-		// TODO: reconcile local lgtm setup?
 	}
 
 	fmt.Println("✓ Base infra reconciled")
@@ -174,8 +174,8 @@ func (r *KindContainerRuntime) applyBaseInfrastructure() error {
 	}
 	fmt.Println("✓ Base infrastructure manifest applied")
 
+	//nolint:staticcheck // TODO: reconcile local lgtm setup?
 	if r.options.IncludeMonitoring {
-		// TODO: lgtm stack for local testing?
 	}
 
 	return nil

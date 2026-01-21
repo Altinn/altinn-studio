@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
@@ -15,21 +16,27 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
 {
     private static readonly Uri s_baseUrl = new("https://github.com/Altinn/altinn-studio/releases/latest/download/");
     private static readonly TimeSpan s_refreshInterval = TimeSpan.FromHours(1);
+    // Keep stale fallback available for a day while ensuring cache entries eventually expire.
+    private static readonly TimeSpan s_cacheEntryLifetime = TimeSpan.FromHours(24);
     private const string CacheKeyPrefix = "studioctl-install-script:";
+    private const int MaxScriptBytes = 8 * 1024 * 1024;
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMemoryCache _cache;
     private readonly ILogger<StudioctlInstallScriptService> _logger;
+    private readonly IHostApplicationLifetime? _hostLifetime;
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _refreshLocks = new();
 
     public StudioctlInstallScriptService(
         IHttpClientFactory httpClientFactory,
         IMemoryCache cache,
-        ILogger<StudioctlInstallScriptService> logger)
+        ILogger<StudioctlInstallScriptService> logger,
+        IHostApplicationLifetime? hostLifetime = null)
     {
         _httpClientFactory = httpClientFactory;
         _cache = cache;
         _logger = logger;
+        _hostLifetime = hostLifetime;
     }
 
     public async Task<StudioctlInstallScriptResult> GetInstallScriptAsync(
@@ -79,9 +86,10 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
 
         _ = Task.Run(async () =>
         {
+            var cancellationToken = _hostLifetime?.ApplicationStopping ?? CancellationToken.None;
             try
             {
-                var result = await FetchAndCacheAsync(scriptType, cacheKey, CancellationToken.None);
+                var result = await FetchAndCacheAsync(scriptType, cacheKey, cancellationToken);
                 if (result.Status != StudioctlInstallScriptStatus.Ok)
                 {
                     _logger.LogWarning(
@@ -89,6 +97,10 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
                         scriptType,
                         result.Status);
                 }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogDebug("Background refresh canceled for {ScriptType}", scriptType);
             }
             catch (Exception ex)
             {
@@ -151,27 +163,26 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         using HttpClient client = _httpClientFactory.CreateClient();
-        using HttpResponseMessage response = await client.SendAsync(
-            request,
-            HttpCompletionOption.ResponseHeadersRead,
-            cancellationToken);
-
-        if (response.StatusCode == HttpStatusCode.NotFound)
+        HttpResponseMessage response;
+        try
         {
-            _logger.LogInformation("Install script not found upstream: {Url}", url);
+            response = await client.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken);
+        }
+        catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning(ex, "Timed out while fetching install script {Url}", url);
             return new StudioctlInstallScriptResult(
-                StudioctlInstallScriptStatus.NotFound,
+                StudioctlInstallScriptStatus.Unavailable,
                 Array.Empty<byte>(),
                 fileName,
                 false);
         }
-
-        if (!response.IsSuccessStatusCode)
+        catch (HttpRequestException ex)
         {
-            _logger.LogWarning(
-                "Failed to fetch install script {Url}. Status: {Status}",
-                url,
-                response.StatusCode);
+            _logger.LogWarning(ex, "Transport failure while fetching install script {Url}", url);
             return new StudioctlInstallScriptResult(
                 StudioctlInstallScriptStatus.Unavailable,
                 Array.Empty<byte>(),
@@ -179,25 +190,75 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
                 false);
         }
 
-        byte[] content = await response.Content.ReadAsByteArrayAsync(cancellationToken);
-        if (content.Length == 0)
+        using (response)
         {
-            _logger.LogWarning("Install script response was empty: {Url}", url);
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                _logger.LogInformation("Install script not found upstream: {Url}", url);
+                return new StudioctlInstallScriptResult(
+                    StudioctlInstallScriptStatus.NotFound,
+                    Array.Empty<byte>(),
+                    fileName,
+                    false);
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning(
+                    "Failed to fetch install script {Url}. Status: {Status}",
+                    url,
+                    response.StatusCode);
+                return new StudioctlInstallScriptResult(
+                    StudioctlInstallScriptStatus.Unavailable,
+                    Array.Empty<byte>(),
+                    fileName,
+                    false);
+            }
+
+            try
+            {
+                await response.Content.LoadIntoBufferAsync(MaxScriptBytes, cancellationToken);
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Install script response exceeded size limit of {MaxBytes} bytes: {Url}",
+                    MaxScriptBytes,
+                    url);
+                return new StudioctlInstallScriptResult(
+                    StudioctlInstallScriptStatus.Unavailable,
+                    Array.Empty<byte>(),
+                    fileName,
+                    false);
+            }
+
+            byte[] content = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+            if (content.Length == 0)
+            {
+                _logger.LogWarning("Install script response was empty: {Url}", url);
+                return new StudioctlInstallScriptResult(
+                    StudioctlInstallScriptStatus.Unavailable,
+                    Array.Empty<byte>(),
+                    fileName,
+                    false);
+            }
+
+            var entry = new StudioctlInstallScriptCacheEntry(content, DateTimeOffset.UtcNow);
+            _cache.Set(
+                cacheKey,
+                entry,
+                new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = s_cacheEntryLifetime
+                });
+
             return new StudioctlInstallScriptResult(
-                StudioctlInstallScriptStatus.Unavailable,
-                Array.Empty<byte>(),
+                StudioctlInstallScriptStatus.Ok,
+                content,
                 fileName,
                 false);
         }
-
-        var entry = new StudioctlInstallScriptCacheEntry(content, DateTimeOffset.UtcNow);
-        _cache.Set(cacheKey, entry);
-
-        return new StudioctlInstallScriptResult(
-            StudioctlInstallScriptStatus.Ok,
-            content,
-            fileName,
-            false);
     }
 
     internal sealed record StudioctlInstallScriptCacheEntry(byte[] Content, DateTimeOffset FetchedAt);

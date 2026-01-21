@@ -39,6 +39,27 @@ const (
 	RuntimeNamePodmanCLI       = "Podman CLI"
 )
 
+// RuntimeInstallation represents the actual container runtime installed on the system.
+// This is independent of the transport mechanism used to communicate with the runtime.
+type RuntimeInstallation int
+
+const (
+	InstallationUnknown RuntimeInstallation = iota
+	InstallationDocker
+	InstallationPodman
+)
+
+func (i RuntimeInstallation) String() string {
+	switch i {
+	case InstallationDocker:
+		return "Docker"
+	case InstallationPodman:
+		return "Podman"
+	default:
+		return "Unknown"
+	}
+}
+
 // PortMapping defines a container port binding
 type PortMapping struct {
 	HostIP        string // e.g., "127.0.0.1" or "" for all interfaces

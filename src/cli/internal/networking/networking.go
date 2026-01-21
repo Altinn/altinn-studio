@@ -25,6 +25,8 @@ const (
 	cacheFileName    = "network-metadata.yaml"
 	cacheMaxAge      = 7 * 24 * time.Hour // 1 week
 	probeContainerID = "studioctl-probe"
+	probeCleanupTTL  = 5 * time.Second
+	maxProbeLogBytes = 1 << 20
 )
 
 // NetworkMetadata holds cached network configuration discovered from containers.
@@ -36,7 +38,11 @@ type NetworkMetadata struct {
 }
 
 // ErrInvalidProbeIP is returned when the probe returns an invalid IP address.
-var ErrInvalidProbeIP = errors.New("invalid IP from probe")
+var (
+	ErrInvalidProbeIP      = errors.New("invalid IP from probe")
+	ErrProbeLogTooLarge    = errors.New("network probe logs exceeded max size")
+	ErrProbeLogReadFailure = errors.New("read network probe container logs")
+)
 
 // CacheStatus represents the state of the network metadata cache.
 type CacheStatus struct {
@@ -188,11 +194,13 @@ func (n *Networking) RefreshNetworkMetadata(ctx context.Context) (NetworkMetadat
 	if err != nil {
 		return NetworkMetadata{}, fmt.Errorf("create network probe container: %w", err)
 	}
-	defer func() {
-		if rerr := n.client.ContainerRemove(ctx, containerID, true); rerr != nil {
+	defer func(baseCtx context.Context) {
+		cleanupCtx, cancel := context.WithTimeout(baseCtx, probeCleanupTTL)
+		defer cancel()
+		if rerr := n.client.ContainerRemove(cleanupCtx, containerID, true); rerr != nil {
 			n.out.Debugf("failed to remove network probe container: %v", rerr)
 		}
-	}()
+	}(context.WithoutCancel(ctx))
 
 	if startErr := n.client.ContainerStart(ctx, containerID); startErr != nil {
 		return NetworkMetadata{}, fmt.Errorf("start network probe container: %w", startErr)
@@ -213,9 +221,9 @@ func (n *Networking) RefreshNetworkMetadata(ctx context.Context) (NetworkMetadat
 		}
 	}()
 
-	output, readErr := io.ReadAll(logs)
+	output, readErr := readAllWithLimit(logs, maxProbeLogBytes)
 	if readErr != nil {
-		return NetworkMetadata{}, fmt.Errorf("read network probe container logs: %w", readErr)
+		return NetworkMetadata{}, fmt.Errorf("%w: %w", ErrProbeLogReadFailure, readErr)
 	}
 
 	metadata := parseNetworkProbeOutput(string(output))
@@ -231,6 +239,18 @@ func (n *Networking) RefreshNetworkMetadata(ctx context.Context) (NetworkMetadat
 	}
 
 	return metadata, nil
+}
+
+func readAllWithLimit(r io.Reader, maxBytes int64) ([]byte, error) {
+	limited := &io.LimitedReader{R: r, N: maxBytes + 1}
+	output, err := io.ReadAll(limited)
+	if err != nil {
+		return nil, fmt.Errorf("read limited stream: %w", err)
+	}
+	if int64(len(output)) > maxBytes {
+		return nil, ErrProbeLogTooLarge
+	}
+	return output, nil
 }
 
 // parseNetworkProbeOutput parses the structured output from the network probe.

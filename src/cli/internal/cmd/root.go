@@ -19,8 +19,12 @@ var version = "dev"
 const (
 	// flagHelp is the long-form help flag.
 	flagHelp = "--help"
+	// flagVersion is the long-form version flag.
+	flagVersion = "--version"
 	// helpSubcmd is the help subcommand name.
 	helpSubcmd = "help"
+	// versionSubcmd is the version subcommand name.
+	versionSubcmd = "version"
 )
 
 // Command represents a subcommand.
@@ -80,7 +84,7 @@ func (c *CLI) Run(ctx context.Context, args []string) int {
 		return 0
 	}
 
-	if cmdName == "-V" || cmdName == "--version" || cmdName == "version" {
+	if cmdName == "-V" || cmdName == flagVersion || cmdName == versionSubcmd {
 		c.out.Printf("studioctl %s\n", c.cfg.Version)
 		return 0
 	}
@@ -153,22 +157,40 @@ func parseVerboseFlag(arg string, currentCount int) (int, bool) {
 }
 
 // parseStringFlag handles --name value and --name=value style flags.
-// Returns the value, skip count (0 or 1), and whether the flag was handled.
-func parseStringFlag(args []string, i int, name string) (value string, skip int, handled bool) {
+// Returns the value, skip count (0 or 1), whether the flag was handled, and any error.
+func parseStringFlag(args []string, i int, name string) (value string, skip int, handled bool, err error) {
 	arg := args[i]
 	prefix := "--" + name + "="
 	if value, found := strings.CutPrefix(arg, prefix); found {
-		return value, 0, true
+		return value, 0, true, nil
 	}
 	if arg == "--"+name && i+1 < len(args) {
-		return args[i+1], 1, true
+		nextArg := args[i+1]
+		if isKnownGlobalFlag(nextArg) {
+			return "", 0, false, fmt.Errorf(
+				"flag --%s requires a value, got flag %s: %w",
+				name, nextArg, ErrInvalidFlagValue,
+			)
+		}
+		return nextArg, 1, true, nil
 	}
-	return "", 0, false
+	if arg == "--"+name {
+		return "", 0, false, fmt.Errorf("flag --%s requires a value: %w", name, ErrInvalidFlagValue)
+	}
+	return "", 0, false, nil
+}
+
+func isKnownGlobalFlag(arg string) bool {
+	switch arg {
+	case "--home", "--socket-dir", "-v", "--verbose", "-vv", "--debug", "-h", flagHelp, "-V", flagVersion:
+		return true
+	}
+	return strings.HasPrefix(arg, "--home=") || strings.HasPrefix(arg, "--socket-dir=")
 }
 
 // isPassthroughFlag returns true for flags that should be passed to remaining args.
 func isPassthroughFlag(arg string) bool {
-	return arg == "-h" || arg == flagHelp || arg == "-V" || arg == "--version"
+	return arg == "-h" || arg == flagHelp || arg == "-V" || arg == flagVersion
 }
 
 // ParseGlobalFlags parses global flags from os.Args and returns remaining args.
@@ -188,12 +210,16 @@ func ParseGlobalFlags() (config.Flags, []string, error) {
 		}
 
 		// Try string flags
-		if val, skip, ok := parseStringFlag(args, i, "home"); ok {
+		if val, skip, ok, err := parseStringFlag(args, i, "home"); err != nil {
+			return config.Flags{}, nil, fmt.Errorf("parsing --home flag: %w", err)
+		} else if ok {
 			flags.Home = val
 			i += skip
 			continue
 		}
-		if val, skip, ok := parseStringFlag(args, i, "socket-dir"); ok {
+		if val, skip, ok, err := parseStringFlag(args, i, "socket-dir"); err != nil {
+			return config.Flags{}, nil, fmt.Errorf("parsing --socket-dir flag: %w", err)
+		} else if ok {
 			flags.SocketDir = val
 			i += skip
 			continue
@@ -220,6 +246,38 @@ func ParseGlobalFlags() (config.Flags, []string, error) {
 	return flags, remaining, nil
 }
 
+func shouldInitializeConfig(args []string) bool {
+	if len(args) == 0 {
+		return false
+	}
+	switch args[0] {
+	case "-V", flagVersion, versionSubcmd, "-h", flagHelp, helpSubcmd:
+		return false
+	}
+	for _, arg := range args {
+		if arg == "-h" || arg == flagHelp {
+			return false
+		}
+	}
+	return true
+}
+
+func newEphemeralConfig(flags config.Flags, version string) *config.Config {
+	var images config.ImagesConfig
+
+	return &config.Config{
+		Home:      "",
+		SocketDir: "",
+		LogDir:    "",
+		DataDir:   "",
+		BinDir:    "",
+		Images:    images,
+		Version:   version,
+		Verbose:   flags.Verbose >= 1,
+		Debug:     flags.Verbose >= 2 || os.Getenv(config.EnvDebug) == "1",
+	}
+}
+
 // Main is the entry point for studioctl.
 func Main() int {
 	flags, args, err := ParseGlobalFlags()
@@ -228,10 +286,15 @@ func Main() int {
 		return 1
 	}
 
-	cfg, err := config.New(flags, version)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error initializing config: %v\n", err)
-		return 1
+	var cfg *config.Config
+	if shouldInitializeConfig(args) {
+		cfg, err = config.New(flags, version)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error initializing config: %v\n", err)
+			return 1
+		}
+	} else {
+		cfg = newEphemeralConfig(flags, version)
 	}
 
 	// Create context that cancels on interrupt (Ctrl+C) or termination signal

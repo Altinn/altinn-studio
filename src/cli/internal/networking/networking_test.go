@@ -3,6 +3,7 @@ package networking
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net"
 	"os"
@@ -339,6 +340,29 @@ func TestParseNetworkProbeOutput(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestReadAllWithLimit(t *testing.T) {
+	t.Parallel()
+
+	t.Run("within limit", func(t *testing.T) {
+		t.Parallel()
+		got, err := readAllWithLimit(strings.NewReader("abc"), 3)
+		if err != nil {
+			t.Fatalf("readAllWithLimit() error = %v", err)
+		}
+		if string(got) != "abc" {
+			t.Fatalf("readAllWithLimit() = %q, want %q", string(got), "abc")
+		}
+	})
+
+	t.Run("exceeds limit", func(t *testing.T) {
+		t.Parallel()
+		_, err := readAllWithLimit(strings.NewReader("abcd"), 3)
+		if !errors.Is(err, ErrProbeLogTooLarge) {
+			t.Fatalf("error = %v, want ErrProbeLogTooLarge", err)
+		}
+	})
 }
 
 func TestResolveNetworkMetadata_Integration(t *testing.T) {

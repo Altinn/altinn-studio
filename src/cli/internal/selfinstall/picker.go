@@ -18,15 +18,17 @@ type PickerOption struct {
 
 // Picker handles interactive selection of install location.
 type Picker struct {
-	out        *ui.Output
-	candidates []Candidate
+	out               *ui.Output
+	candidates        []Candidate
+	recommendedOption int // Index in filtered options, -1 if none
 }
 
 // NewPicker creates a new picker with the given candidates.
 func NewPicker(out *ui.Output, candidates []Candidate) *Picker {
 	return &Picker{
-		out:        out,
-		candidates: candidates,
+		out:               out,
+		candidates:        candidates,
+		recommendedOption: -1,
 	}
 }
 
@@ -76,10 +78,14 @@ func (p *Picker) Run(ctx context.Context) (string, error) {
 
 func (p *Picker) buildOptions() []PickerOption {
 	options := make([]PickerOption, 0, len(p.candidates)+1)
+	p.recommendedOption = -1
 
 	// Add writable candidates first
 	for _, c := range p.candidates {
 		if c.Writable || c.NeedsSudo {
+			if c.Recommended && c.Writable && p.recommendedOption == -1 {
+				p.recommendedOption = len(options)
+			}
 			options = append(options, PickerOption{
 				Label: c.Label(),
 				Value: c.Path,
@@ -106,33 +112,34 @@ func (p *Picker) hasRecommended() bool {
 }
 
 func (p *Picker) readSelection(ctx context.Context, numOptions int) (int, error) {
-	line, err := ui.ReadLine(ctx, os.Stdin)
-	if err != nil {
-		p.out.Println("") // newline after interrupt
-		return 0, fmt.Errorf("read selection: %w", err)
-	}
-
-	input := strings.TrimSpace(string(line))
-
-	// Empty input = default (recommended option)
-	if input == "" {
-		for i, c := range p.candidates {
-			if c.Recommended && c.Writable {
-				return i, nil
-			}
+	for {
+		line, err := ui.ReadLine(ctx, os.Stdin)
+		if err != nil {
+			p.out.Println("") // newline after interrupt
+			return 0, fmt.Errorf("read selection: %w", err)
 		}
-		// No recommended, require explicit selection
-		p.out.Error("Please enter a number")
-		return p.readSelection(ctx, numOptions)
-	}
 
-	// Parse number
-	num, err := strconv.Atoi(input)
-	if err != nil || num < 1 || num > numOptions {
-		p.out.Errorf("Invalid selection. Please enter a number between 1 and %d", numOptions)
-		p.out.Printf("Enter a number [1-%d]: ", numOptions)
-		return p.readSelection(ctx, numOptions)
-	}
+		input := strings.TrimSpace(string(line))
 
-	return num - 1, nil // Convert to 0-indexed
+		// Empty input = default (recommended option)
+		if input == "" {
+			if p.recommendedOption >= 0 {
+				return p.recommendedOption, nil
+			}
+			// No recommended, require explicit selection
+			p.out.Error("Please enter a number")
+			p.out.Printf("Enter a number [1-%d]: ", numOptions)
+			continue
+		}
+
+		// Parse number
+		num, err := strconv.Atoi(input)
+		if err != nil || num < 1 || num > numOptions {
+			p.out.Errorf("Invalid selection. Please enter a number between 1 and %d", numOptions)
+			p.out.Printf("Enter a number [1-%d]: ", numOptions)
+			continue
+		}
+
+		return num - 1, nil // Convert to 0-indexed
+	}
 }

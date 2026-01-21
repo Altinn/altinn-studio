@@ -76,9 +76,9 @@ func (c *Component) BackportBranch(ver, sha string) string {
 	return fmt.Sprintf("backport/%s-%s-%s", c.Name, ver, shortSHA)
 }
 
-// ReleaseLabel returns the PR label for releases (e.g., "studioctl-release").
+// ReleaseLabel returns the PR label for releases (e.g., "release/studioctl").
 func (c *Component) ReleaseLabel() string {
-	return c.Name + "-release"
+	return "release/" + c.Name
 }
 
 // ReleaseTitle returns the GitHub release title (e.g., "studioctl v1.0.0").

@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -41,6 +42,7 @@ type Output struct {
 	err     io.Writer
 	verbose bool
 	debug   bool
+	mu      sync.Mutex
 }
 
 // NewOutput creates a new Output instance.
@@ -50,6 +52,7 @@ func NewOutput(out, errOut io.Writer, verbose, debug bool) *Output {
 		err:     errOut,
 		verbose: verbose,
 		debug:   debug,
+		mu:      sync.Mutex{},
 	}
 }
 
@@ -60,21 +63,30 @@ func DefaultOutput(verbose, debug bool) *Output {
 
 // Print writes a message to stdout.
 func (o *Output) Print(msg string) {
-	if _, err := fmt.Fprint(o.out, msg); err != nil {
+	o.mu.Lock()
+	_, err := fmt.Fprint(o.out, msg)
+	o.mu.Unlock()
+	if err != nil {
 		o.logWriteErr(err)
 	}
 }
 
 // Println writes a message to stdout with a newline.
 func (o *Output) Println(msg string) {
-	if _, err := fmt.Fprintln(o.out, msg); err != nil {
+	o.mu.Lock()
+	_, err := fmt.Fprintln(o.out, msg)
+	o.mu.Unlock()
+	if err != nil {
 		o.logWriteErr(err)
 	}
 }
 
 // Printf writes a formatted message to stdout.
 func (o *Output) Printf(format string, args ...any) {
-	if _, err := fmt.Fprintf(o.out, format, args...); err != nil {
+	o.mu.Lock()
+	_, err := fmt.Fprintf(o.out, format, args...)
+	o.mu.Unlock()
+	if err != nil {
 		o.logWriteErr(err)
 	}
 }
@@ -84,7 +96,10 @@ func (o *Output) Error(msg string) {
 	if Colors() {
 		msg = errorStyle().Render(msg)
 	}
-	if _, err := fmt.Fprintln(o.err, msg); err != nil {
+	o.mu.Lock()
+	_, err := fmt.Fprintln(o.err, msg)
+	o.mu.Unlock()
+	if err != nil {
 		o.logWriteErr(err)
 	}
 }
@@ -99,7 +114,10 @@ func (o *Output) Warning(msg string) {
 	if Colors() {
 		msg = warningStyle().Render(msg)
 	}
-	if _, err := fmt.Fprintln(o.err, msg); err != nil {
+	o.mu.Lock()
+	_, err := fmt.Fprintln(o.err, msg)
+	o.mu.Unlock()
+	if err != nil {
 		o.logWriteErr(err)
 	}
 }
@@ -114,7 +132,10 @@ func (o *Output) Success(msg string) {
 	if Colors() {
 		msg = successStyle().Render(msg)
 	}
-	if _, err := fmt.Fprintln(o.out, msg); err != nil {
+	o.mu.Lock()
+	_, err := fmt.Fprintln(o.out, msg)
+	o.mu.Unlock()
+	if err != nil {
 		o.logWriteErr(err)
 	}
 }
@@ -129,7 +150,10 @@ func (o *Output) Info(msg string) {
 	if Colors() {
 		msg = infoStyle().Render(msg)
 	}
-	if _, err := fmt.Fprintln(o.out, msg); err != nil {
+	o.mu.Lock()
+	_, err := fmt.Fprintln(o.out, msg)
+	o.mu.Unlock()
+	if err != nil {
 		o.logWriteErr(err)
 	}
 }
@@ -145,7 +169,10 @@ func (o *Output) Verbose(msg string) {
 		if Colors() {
 			msg = dimStyle().Render(msg)
 		}
-		if _, err := fmt.Fprintln(o.out, msg); err != nil {
+		o.mu.Lock()
+		_, err := fmt.Fprintln(o.out, msg)
+		o.mu.Unlock()
+		if err != nil {
 			o.logWriteErr(err)
 		}
 	}
@@ -165,7 +192,10 @@ func (o *Output) Debug(msg string) {
 			msg = "[debug] " + msg
 		}
 		// Cannot recursively log debug errors - just check and ignore
-		if _, err := fmt.Fprintln(o.err, msg); err != nil {
+		o.mu.Lock()
+		_, err := fmt.Fprintln(o.err, msg)
+		o.mu.Unlock()
+		if err != nil {
 			return
 		}
 	}
@@ -212,7 +242,10 @@ func (o *Output) Table(rows [][]string) {
 				parts = append(parts, fmt.Sprintf("%-*s", maxWidths[i], cell))
 			}
 		}
-		if _, err := fmt.Fprintln(o.out, strings.Join(parts, "  ")); err != nil {
+		o.mu.Lock()
+		_, err := fmt.Fprintln(o.out, strings.Join(parts, "  "))
+		o.mu.Unlock()
+		if err != nil {
 			o.logWriteErr(err)
 		}
 	}
@@ -234,7 +267,10 @@ func (s *Section) Header(title string) {
 	if Colors() {
 		title = lipgloss.NewStyle().Bold(true).Render(title)
 	}
-	if _, err := fmt.Fprintln(s.out.out, title); err != nil {
+	s.out.mu.Lock()
+	_, err := fmt.Fprintln(s.out.out, title)
+	s.out.mu.Unlock()
+	if err != nil {
 		s.out.logWriteErr(err)
 	}
 }
@@ -246,7 +282,10 @@ func (s *Section) KeyValue(key, value string) {
 	if Colors() {
 		paddedKey = dimStyle().Render(paddedKey)
 	}
-	if _, err := fmt.Fprintf(s.out.out, "  %s  %s\n", paddedKey, value); err != nil {
+	s.out.mu.Lock()
+	_, err := fmt.Fprintf(s.out.out, "  %s  %s\n", paddedKey, value)
+	s.out.mu.Unlock()
+	if err != nil {
 		s.out.logWriteErr(err)
 	}
 }
@@ -267,7 +306,10 @@ func (s *Section) KeyValueStatus(ok bool, key, value string) {
 		}
 		paddedKey = dimStyle().Render(paddedKey)
 	}
-	if _, err := fmt.Fprintf(s.out.out, "  %s %s  %s\n", icon, paddedKey, value); err != nil {
+	s.out.mu.Lock()
+	_, err := fmt.Fprintf(s.out.out, "  %s %s  %s\n", icon, paddedKey, value)
+	s.out.mu.Unlock()
+	if err != nil {
 		s.out.logWriteErr(err)
 	}
 }

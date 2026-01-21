@@ -53,25 +53,25 @@ func TestNew_CreatesRequiredFiles(t *testing.T) {
 
 func TestNew_KindConfigContent(t *testing.T) {
 	tests := []struct {
-		name           string
-		variant        KindContainerRuntimeVariant
-		expectedName   string
-		expectedNodes  int
-		expectedZones  []string
+		name          string
+		variant       KindContainerRuntimeVariant
+		expectedName  string
+		expectedNodes int
+		expectedZones []string
 	}{
 		{
-			name:           "Standard variant config",
-			variant:        KindContainerRuntimeVariantStandard,
-			expectedName:   "runtime-fixture-kind-standard",
-			expectedNodes:  4, // 1 control-plane + 3 workers
-			expectedZones:  []string{"zone-1", "zone-2", "zone-3"},
+			name:          "Standard variant config",
+			variant:       KindContainerRuntimeVariantStandard,
+			expectedName:  "runtime-fixture-kind-standard",
+			expectedNodes: 4, // 1 control-plane + 3 workers
+			expectedZones: []string{"zone-1", "zone-2", "zone-3"},
 		},
 		{
-			name:           "Minimal variant config",
-			variant:        KindContainerRuntimeVariantMinimal,
-			expectedName:   "runtime-fixture-kind-minimal",
-			expectedNodes:  2, // 1 control-plane + 1 worker
-			expectedZones:  []string{"zone-1"},
+			name:          "Minimal variant config",
+			variant:       KindContainerRuntimeVariantMinimal,
+			expectedName:  "runtime-fixture-kind-minimal",
+			expectedNodes: 2, // 1 control-plane + 1 worker
+			expectedZones: []string{"zone-1"},
 		},
 	}
 

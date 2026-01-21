@@ -51,4 +51,7 @@ var (
 
 	// ErrNotRunning is returned when localtest is not running.
 	ErrNotRunning = errors.New("localtest not running")
+
+	// ErrInvalidFlagValue is returned when a flag value is invalid.
+	ErrInvalidFlagValue = errors.New("invalid flag value")
 )

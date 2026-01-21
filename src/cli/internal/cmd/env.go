@@ -13,6 +13,8 @@ import (
 	"altinn.studio/studioctl/internal/ui"
 )
 
+var errInvalidPort = errors.New("invalid port")
+
 // EnvCommand implements the 'env' subcommand.
 type EnvCommand struct {
 	cfg *config.Config
@@ -129,6 +131,10 @@ func (c *EnvCommand) parseUpFlags(args []string) (envUpFlags, bool, error) {
 			return f, true, nil // help was shown
 		}
 		return f, false, fmt.Errorf("parsing flags: %w", err)
+	}
+
+	if f.port != 0 && (f.port < 1 || f.port > 65535) {
+		return f, false, fmt.Errorf("%w: %d (must be 1-65535)", errInvalidPort, f.port)
 	}
 
 	return f, false, nil

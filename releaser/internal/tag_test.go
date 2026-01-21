@@ -1,32 +1,11 @@
 package internal_test
 
 import (
-	"errors"
 	"testing"
 
 	"altinn.studio/releaser/internal"
 	"altinn.studio/releaser/internal/version"
 )
-
-func TestTagWithComponent(t *testing.T) {
-	comp, err := internal.GetComponent("studioctl")
-	if err != nil {
-		t.Fatalf("GetComponent() error: %v", err)
-	}
-	ver, err := version.Parse("v1.2.3")
-	if err != nil {
-		t.Fatalf("ParseVersion() error: %v", err)
-	}
-
-	tag := internal.NewTag(comp, ver)
-
-	if tag.Full() != "studioctl/v1.2.3" {
-		t.Errorf("Full() = %q, want %q", tag.Full(), "studioctl/v1.2.3")
-	}
-	if tag.ReleaseBranch() != "release/studioctl/v1.2" {
-		t.Errorf("ReleaseBranch() = %q, want %q", tag.ReleaseBranch(), "release/studioctl/v1.2")
-	}
-}
 
 func TestComponentDerivedNames(t *testing.T) {
 	tests := []struct {
@@ -46,7 +25,7 @@ func TestComponentDerivedNames(t *testing.T) {
 			wantTag:    "studioctl/v1.2.3",
 			wantBranch: "release/studioctl/v1.2",
 			wantPrepBr: "release-prep/studioctl-v1.2.3",
-			wantLabel:  "studioctl-release",
+			wantLabel:  "release/studioctl",
 			wantTitle:  "studioctl v1.2.3",
 		},
 		{
@@ -56,7 +35,7 @@ func TestComponentDerivedNames(t *testing.T) {
 			wantTag:    "fileanalyzers/v2.0.0",
 			wantBranch: "release/fileanalyzers/v2.0",
 			wantPrepBr: "release-prep/fileanalyzers-v2.0.0",
-			wantLabel:  "fileanalyzers-release",
+			wantLabel:  "release/fileanalyzers",
 			wantTitle:  "fileanalyzers v2.0.0",
 		},
 	}
@@ -109,38 +88,5 @@ func TestComponentBackportBranch(t *testing.T) {
 	want = "backport/studioctl-v1.0-abc"
 	if got != want {
 		t.Errorf("BackportBranch() = %q, want %q", got, want)
-	}
-}
-
-func TestGetComponent(t *testing.T) {
-	tests := []struct {
-		name    string
-		compID  string
-		wantErr bool
-	}{
-		{name: "studioctl exists", compID: "studioctl", wantErr: false},
-		{name: "fileanalyzers exists", compID: "fileanalyzers", wantErr: false},
-		{name: "unknown fails", compID: "unknown", wantErr: true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			comp, err := internal.GetComponent(tt.compID)
-			if tt.wantErr {
-				if err == nil {
-					t.Fatalf("GetComponent() expected error, got nil")
-				}
-				if !errors.Is(err, internal.ErrComponentNotFound) {
-					t.Errorf("error = %v, want ErrComponentNotFound", err)
-				}
-				return
-			}
-			if err != nil {
-				t.Fatalf("GetComponent() unexpected error: %v", err)
-			}
-			if comp.Name != tt.compID {
-				t.Errorf("Name = %q, want %q", comp.Name, tt.compID)
-			}
-		})
 	}
 }

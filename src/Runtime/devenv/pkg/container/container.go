@@ -47,9 +47,10 @@ import (
 
 // Cached detection result
 var (
-	detectOnce   sync.Once
-	detectedType runtimeType
-	detectErr    error
+	detectOnce         sync.Once
+	detectedType       runtimeType
+	detectErr          error
+	detectedSocketPath string // cached socket path for runtimePodmanSocket
 )
 
 type runtimeType int
@@ -61,16 +62,28 @@ const (
 	runtimePodmanCLI
 )
 
+func (rt runtimeType) installation() RuntimeInstallation {
+	switch rt {
+	case runtimeDocker:
+		return InstallationDocker
+	case runtimePodmanSocket, runtimePodmanCLI:
+		return InstallationPodman
+	default:
+		return InstallationUnknown
+	}
+}
+
 // Re-export types and constants for convenience
 type (
-	PortMapping     = types.PortMapping
-	VolumeMount     = types.VolumeMount
-	ContainerConfig = types.ContainerConfig
-	ImageInfo       = types.ImageInfo
-	ContainerState  = types.ContainerState
-	ContainerInfo   = types.ContainerInfo
-	NetworkConfig   = types.NetworkConfig
-	NetworkInfo     = types.NetworkInfo
+	RuntimeInstallation = types.RuntimeInstallation
+	PortMapping         = types.PortMapping
+	VolumeMount         = types.VolumeMount
+	ContainerConfig     = types.ContainerConfig
+	ImageInfo           = types.ImageInfo
+	ContainerState      = types.ContainerState
+	ContainerInfo       = types.ContainerInfo
+	NetworkConfig       = types.NetworkConfig
+	NetworkInfo         = types.NetworkInfo
 )
 
 // ErrContainerNotFound is returned when a container does not exist.
@@ -80,6 +93,9 @@ var ErrContainerNotFound = types.ErrContainerNotFound
 var ErrNetworkNotFound = types.ErrNetworkNotFound
 
 const (
+	InstallationUnknown        = types.InstallationUnknown
+	InstallationDocker         = types.InstallationDocker
+	InstallationPodman         = types.InstallationPodman
 	RuntimeNameDockerEngineAPI = types.RuntimeNameDockerEngineAPI
 	RuntimeNamePodmanCLI       = types.RuntimeNamePodmanCLI
 )
@@ -155,6 +171,10 @@ type ContainerClient interface {
 	// Name returns the runtime name ("docker" or "podman")
 	Name() string
 
+	// Installation returns the actual container runtime installed.
+	// This distinguishes Docker from Podman even when using Docker-compatible API.
+	Installation() RuntimeInstallation
+
 	// Close releases resources held by the client
 	Close() error
 }
@@ -218,6 +238,7 @@ func detectRuntime(ctx context.Context) (runtimeType, error) {
 
 	// Try Podman sockets (Docker-compat API)
 	if socketPath := findPodmanSocket(ctx); socketPath != "" {
+		detectedSocketPath = socketPath
 		return runtimePodmanSocket, nil
 	}
 
@@ -231,11 +252,15 @@ func detectRuntime(ctx context.Context) (runtimeType, error) {
 
 // newClientForType creates a new client based on the detected runtime type
 func newClientForType(ctx context.Context, rt runtimeType) (ContainerClient, error) {
+	install := rt.installation()
 	switch rt {
 	case runtimeDocker:
-		return dockerapi.New(ctx)
+		return dockerapi.NewWithInstallation(ctx, install)
 	case runtimePodmanSocket:
-		return dockerapi.NewPodmanCompat(ctx)
+		if detectedSocketPath != "" {
+			return dockerapi.NewPodmanCompatWithHost(ctx, "unix://"+detectedSocketPath, install)
+		}
+		return dockerapi.NewPodmanCompatWithInstallation(ctx, install)
 	case runtimePodmanCLI:
 		return podman.New(ctx)
 	default:
@@ -250,19 +275,7 @@ func findPodmanSocket(ctx context.Context) string {
 			continue
 		}
 
-		// Set DOCKER_HOST temporarily to try this socket
-		oldHost := os.Getenv("DOCKER_HOST")
-		_ = os.Setenv("DOCKER_HOST", "unix://"+socketPath)
-
-		cli, err := dockerapi.NewPodmanCompat(ctx)
-
-		// Restore original DOCKER_HOST
-		if oldHost != "" {
-			_ = os.Setenv("DOCKER_HOST", oldHost)
-		} else {
-			_ = os.Unsetenv("DOCKER_HOST")
-		}
-
+		cli, err := dockerapi.NewPodmanCompatWithHost(ctx, "unix://"+socketPath, InstallationPodman)
 		if err == nil {
 			_ = cli.Close()
 			return socketPath

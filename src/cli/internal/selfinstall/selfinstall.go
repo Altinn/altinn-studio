@@ -142,11 +142,11 @@ func windowsCandidates(inPath map[string]bool, out *ui.Output) []Candidate {
 	// On Windows, there's no standard user bin directory in PATH
 	// We offer some options but expect manual PATH setup
 	localBin := filepath.Join(home, ".local", "bin")
-	appDataBin := filepath.Join(os.Getenv("LOCALAPPDATA"), "Programs", "studioctl")
 
 	var candidates []Candidate
 
-	if appDataBin != "" {
+	if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
+		appDataBin := filepath.Join(localAppData, "Programs", "studioctl")
 		candidates = append(candidates, Candidate{
 			Path:        appDataBin,
 			InPath:      inPath[filepath.Clean(appDataBin)],

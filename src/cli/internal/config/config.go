@@ -299,40 +299,43 @@ func Load(homeDir string) (PersistedConfig, error) {
 	return merge(defaults, userCfg), nil
 }
 
+// mergeImageSpec merges Image and Tag fields independently.
+// Non-empty user values override defaults for each field.
+func mergeImageSpec(defaults, user ImageSpec) ImageSpec {
+	result := defaults
+	if user.Image != "" {
+		result.Image = user.Image
+	}
+	if user.Tag != "" {
+		result.Tag = user.Tag
+	}
+	return result
+}
+
 // merge combines defaults with user overrides.
 // Non-empty user values override defaults.
 func merge(defaults, user PersistedConfig) PersistedConfig {
 	result := defaults
 
 	// Core images
-	if user.Images.Core.Localtest.Image != "" {
-		result.Images.Core.Localtest = user.Images.Core.Localtest
-	}
-	if user.Images.Core.PDF3.Image != "" {
-		result.Images.Core.PDF3 = user.Images.Core.PDF3
-	}
+	result.Images.Core.Localtest = mergeImageSpec(defaults.Images.Core.Localtest, user.Images.Core.Localtest)
+	result.Images.Core.PDF3 = mergeImageSpec(defaults.Images.Core.PDF3, user.Images.Core.PDF3)
 
 	// Monitoring images
-	if user.Images.Monitoring.Tempo.Image != "" {
-		result.Images.Monitoring.Tempo = user.Images.Monitoring.Tempo
-	}
-	if user.Images.Monitoring.Mimir.Image != "" {
-		result.Images.Monitoring.Mimir = user.Images.Monitoring.Mimir
-	}
-	if user.Images.Monitoring.Loki.Image != "" {
-		result.Images.Monitoring.Loki = user.Images.Monitoring.Loki
-	}
-	if user.Images.Monitoring.OtelCollector.Image != "" {
-		result.Images.Monitoring.OtelCollector = user.Images.Monitoring.OtelCollector
-	}
-	if user.Images.Monitoring.Grafana.Image != "" {
-		result.Images.Monitoring.Grafana = user.Images.Monitoring.Grafana
-	}
+	result.Images.Monitoring.Tempo = mergeImageSpec(defaults.Images.Monitoring.Tempo, user.Images.Monitoring.Tempo)
+	result.Images.Monitoring.Mimir = mergeImageSpec(defaults.Images.Monitoring.Mimir, user.Images.Monitoring.Mimir)
+	result.Images.Monitoring.Loki = mergeImageSpec(defaults.Images.Monitoring.Loki, user.Images.Monitoring.Loki)
+	result.Images.Monitoring.OtelCollector = mergeImageSpec(
+		defaults.Images.Monitoring.OtelCollector,
+		user.Images.Monitoring.OtelCollector,
+	)
+	result.Images.Monitoring.Grafana = mergeImageSpec(
+		defaults.Images.Monitoring.Grafana,
+		user.Images.Monitoring.Grafana,
+	)
 
 	// Utility images
-	if user.Images.Utility.Busybox.Image != "" {
-		result.Images.Utility.Busybox = user.Images.Utility.Busybox
-	}
+	result.Images.Utility.Busybox = mergeImageSpec(defaults.Images.Utility.Busybox, user.Images.Utility.Busybox)
 
 	return result
 }

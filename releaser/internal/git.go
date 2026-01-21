@@ -14,6 +14,7 @@ import (
 var (
 	ErrNotOnMain        = errors.New("prereleases must be triggered from main branch")
 	ErrGitCommandFailed = errors.New("git command failed")
+	ErrWorkingTreeDirty = errors.New("working tree has uncommitted changes")
 )
 
 // GitRunner defines the interface for git operations.
@@ -34,6 +35,8 @@ type GitRunner interface {
 	PushWithUpstream(ctx context.Context, remote, branch string) error
 	// RepoRoot returns the git repository root directory.
 	RepoRoot(ctx context.Context) (string, error)
+	// WorkingTreeClean checks if working tree has no uncommitted changes.
+	WorkingTreeClean(ctx context.Context) (bool, error)
 }
 
 // GitCLI implements GitRunner by shelling out to the git CLI.
@@ -84,7 +87,15 @@ func (g *GitCLI) TagExists(ctx context.Context, tag string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return code == 0, nil // exit 1 = not found
+	if code == 0 {
+		return true, nil
+	}
+
+	remoteCode, err := g.runExitCode(ctx, "ls-remote", "--exit-code", "--tags", "origin", "refs/tags/"+tag)
+	if err != nil {
+		return false, err
+	}
+	return remoteCode == 0, nil
 }
 
 // CurrentBranch returns the current branch name.
@@ -138,6 +149,15 @@ func (g *GitCLI) RepoRoot(ctx context.Context) (string, error) {
 		g.repoRoot = root
 	})
 	return g.repoRoot, g.repoRootErr
+}
+
+// WorkingTreeClean checks if working tree has no uncommitted changes.
+func (g *GitCLI) WorkingTreeClean(ctx context.Context) (bool, error) {
+	output, err := g.Run(ctx, "status", "--porcelain")
+	if err != nil {
+		return false, err
+	}
+	return output == "", nil
 }
 
 // RunWrite executes a git command that mutates state.

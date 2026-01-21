@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -24,6 +25,13 @@ var (
 	ErrVersionExists      = errors.New("version already exists in changelog")
 	ErrNoChangelogInDiff  = errors.New("no CHANGELOG.md changes found in diff")
 	ErrNoEntriesInDiff    = errors.New("no changelog entries found in diff")
+	ErrInvalidCategory    = errors.New("invalid changelog category")
+	ErrCategoryOrder      = errors.New("categories not in standard order")
+	ErrDuplicateVersion   = errors.New("duplicate released version in changelog")
+	ErrVersionOrder       = errors.New("released versions are not in descending semver order")
+	ErrPrereleaseConflict = errors.New("multiple active prerelease release-lines in changelog")
+	ErrNoReleasedVersions = errors.New("no released versions found in changelog")
+	ErrNoMatchingVersion  = errors.New("no matching released version found in changelog")
 )
 
 // Section represents a version section in the changelog.
@@ -66,6 +74,9 @@ var (
 
 	// Matches list items: "- some text" or "* some text".
 	listItemPattern = regexp.MustCompile(`^[-*]\s+(.+)`)
+
+	// Matches the semantic version prefix at the start of normalized versions.
+	versionPrefixPattern = regexp.MustCompile(`^\d+\.\d+\.\d+`)
 )
 
 // standardCategoryOrder defines the preferred order for changelog categories.
@@ -73,6 +84,42 @@ var (
 //nolint:gochecknoglobals // Read-only package constant.
 var standardCategoryOrder = []string{
 	"Added", "Changed", "Fixed", "Removed", "Security", "Deprecated",
+}
+
+// categoryValidator validates category names and order.
+type categoryValidator struct {
+	lastCategoryIndex int
+}
+
+func newCategoryValidator() *categoryValidator {
+	return &categoryValidator{lastCategoryIndex: -1}
+}
+
+// reset resets the validator for a new section.
+func (v *categoryValidator) reset() {
+	v.lastCategoryIndex = -1
+}
+
+// validate checks if a category is valid and in the correct order.
+// Returns nil on success, or an error describing the validation failure.
+func (v *categoryValidator) validate(categoryName string) error {
+	categoryIndex := slices.Index(standardCategoryOrder, categoryName)
+	if categoryIndex == -1 {
+		return fmt.Errorf("%w: %q (valid categories: %s)",
+			ErrInvalidCategory,
+			categoryName,
+			strings.Join(standardCategoryOrder, ", "))
+	}
+
+	if categoryIndex < v.lastCategoryIndex {
+		return fmt.Errorf("%w: %q appears out of order (expected order: %s)",
+			ErrCategoryOrder,
+			categoryName,
+			strings.Join(standardCategoryOrder, ", "))
+	}
+
+	v.lastCategoryIndex = categoryIndex
+	return nil
 }
 
 // Parse parses changelog content into an AST representation.
@@ -93,6 +140,9 @@ func ParseWithDiff(content, diff, changelogPath string) (*Changelog, error) {
 	if err := parseContent(cl, content); err != nil {
 		return nil, err
 	}
+	if err := validateVersionSections(cl.Versions); err != nil {
+		return nil, err
+	}
 	if diff != "" && changelogPath != "" {
 		entries, err := extractEntriesFromDiff(diff, changelogPath)
 		if err != nil && !errors.Is(err, ErrNoChangelogInDiff) && !errors.Is(err, ErrNoEntriesInDiff) {
@@ -103,6 +153,145 @@ func ParseWithDiff(content, diff, changelogPath string) (*Changelog, error) {
 	return cl, nil
 }
 
+func validateVersionSections(sections []*Section) error {
+	seen := make(map[string]struct{}, len(sections))
+	var prev *semver.Version
+
+	for _, section := range sections {
+		if section == nil || section.Version == nil {
+			continue
+		}
+
+		current := section.Version
+		key := current.String()
+		if _, ok := seen[key]; ok {
+			return fmt.Errorf("%w: %s", ErrDuplicateVersion, key)
+		}
+		seen[key] = struct{}{}
+
+		if prev != nil && compareSemver(current, prev) > 0 {
+			return fmt.Errorf("%w: %s appears after %s", ErrVersionOrder, current.String(), prev.String())
+		}
+		prev = current
+	}
+
+	return validateActivePrereleaseLine(sections)
+}
+
+func validateActivePrereleaseLine(sections []*Section) error {
+	var activeMajor, activeMinor int
+	lineInitialized := false
+
+	for _, section := range sections {
+		if section == nil || section.Version == nil {
+			continue
+		}
+		if !section.Version.IsPrerelease {
+			break
+		}
+		if !lineInitialized {
+			activeMajor = section.Version.Major
+			activeMinor = section.Version.Minor
+			lineInitialized = true
+			continue
+		}
+		if section.Version.Major != activeMajor || section.Version.Minor != activeMinor {
+			return fmt.Errorf(
+				"%w: saw v%d.%d and v%d.%d at top of changelog",
+				ErrPrereleaseConflict,
+				activeMajor,
+				activeMinor,
+				section.Version.Major,
+				section.Version.Minor,
+			)
+		}
+	}
+
+	return nil
+}
+
+func compareSemver(a, b *semver.Version) int {
+	switch {
+	case a.Major > b.Major:
+		return 1
+	case a.Major < b.Major:
+		return -1
+	case a.Minor > b.Minor:
+		return 1
+	case a.Minor < b.Minor:
+		return -1
+	case a.Patch > b.Patch:
+		return 1
+	case a.Patch < b.Patch:
+		return -1
+	}
+
+	if !a.IsPrerelease && !b.IsPrerelease {
+		return 0
+	}
+	if !a.IsPrerelease {
+		return 1
+	}
+	if !b.IsPrerelease {
+		return -1
+	}
+
+	return comparePrerelease(a.Prerelease, b.Prerelease)
+}
+
+func comparePrerelease(a, b string) int {
+	aParts := strings.Split(a, ".")
+	bParts := strings.Split(b, ".")
+	limit := min(len(aParts), len(bParts))
+
+	for i := range limit {
+		if aParts[i] == bParts[i] {
+			continue
+		}
+
+		aNum, aIsNum := parseNumericIdentifier(aParts[i])
+		bNum, bIsNum := parseNumericIdentifier(bParts[i])
+		switch {
+		case aIsNum && bIsNum:
+			if aNum > bNum {
+				return 1
+			}
+			return -1
+		case aIsNum && !bIsNum:
+			return -1
+		case !aIsNum && bIsNum:
+			return 1
+		default:
+			return strings.Compare(aParts[i], bParts[i])
+		}
+	}
+
+	switch {
+	case len(aParts) > len(bParts):
+		return 1
+	case len(aParts) < len(bParts):
+		return -1
+	default:
+		return 0
+	}
+}
+
+func parseNumericIdentifier(value string) (int, bool) {
+	if value == "" {
+		return 0, false
+	}
+	for _, char := range value {
+		if char < '0' || char > '9' {
+			return 0, false
+		}
+	}
+	number, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, false
+	}
+	return number, true
+}
+
 // parseContent parses the changelog content into the AST.
 //
 //nolint:gocognit,gocyclo,cyclop,funlen,nestif // Parser requires sequential state machine logic.
@@ -111,6 +300,7 @@ func parseContent(cl *Changelog, content string) error {
 	var preamble strings.Builder
 	var currentSection *Section
 	var currentCategory *Category
+	validator := newCategoryValidator()
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -126,6 +316,7 @@ func parseContent(cl *Changelog, content string) error {
 				Categories: nil,
 			}
 			currentCategory = nil
+			validator.reset()
 			cl.Unreleased = currentSection
 			continue
 		}
@@ -152,6 +343,7 @@ func parseContent(cl *Changelog, content string) error {
 				Categories: nil,
 			}
 			currentCategory = nil
+			validator.reset()
 			cl.Versions = append(cl.Versions, currentSection)
 			continue
 		}
@@ -159,11 +351,16 @@ func parseContent(cl *Changelog, content string) error {
 		// Check for category header
 		if matches := categoryPattern.FindStringSubmatch(line); matches != nil {
 			if currentSection != nil {
+				categoryName := matches[1]
+				if err := validator.validate(categoryName); err != nil {
+					return err
+				}
+
 				if currentCategory != nil {
 					currentSection.Categories = append(currentSection.Categories, *currentCategory)
 				}
 				currentCategory = &Category{
-					Name:    matches[1],
+					Name:    categoryName,
 					Entries: nil,
 				}
 			}
@@ -313,6 +510,20 @@ func (c *Changelog) GetVersion(version string) *Section {
 	return nil
 }
 
+// LatestPrerelease returns the highest prerelease version found in released sections.
+func (c *Changelog) LatestPrerelease() (*semver.Version, error) {
+	return c.latestVersion(func(ver *semver.Version) bool {
+		return ver.IsPrerelease
+	})
+}
+
+// LatestStableForLine returns the highest stable version for a release line (major.minor).
+func (c *Changelog) LatestStableForLine(major, minor int) (*semver.Version, error) {
+	return c.latestVersion(func(ver *semver.Version) bool {
+		return !ver.IsPrerelease && ver.Major == major && ver.Minor == minor
+	})
+}
+
 // ExtractNotes returns the release notes for a specific version as markdown.
 func (c *Changelog) ExtractNotes(version string) (string, error) {
 	sec := c.GetVersion(version)
@@ -359,24 +570,14 @@ func (c *Changelog) Promote(version string, date time.Time) (*Changelog, error) 
 		return nil, ErrNoUnreleased
 	}
 
-	if len(c.Unreleased.Categories) == 0 {
-		return nil, ErrUnreleasedEmpty
-	}
-
-	hasContent := false
-	for _, cat := range c.Unreleased.Categories {
-		if len(cat.Entries) > 0 {
-			hasContent = true
-			break
-		}
-	}
-	if !hasContent {
-		return nil, ErrUnreleasedEmpty
-	}
-
 	ver, err := semver.Parse("v" + normalized)
 	if err != nil {
 		return nil, fmt.Errorf("parse version: %w", err)
+	}
+
+	promotedCategories := buildPromotedCategories(c, ver)
+	if len(promotedCategories) == 0 {
+		return nil, ErrUnreleasedEmpty
 	}
 
 	// Clone the changelog
@@ -395,17 +596,112 @@ func (c *Changelog) Promote(version string, date time.Time) (*Changelog, error) 
 	newVersion := &Section{
 		Version:    ver,
 		Date:       date,
-		Categories: cloneCategories(c.Unreleased.Categories),
+		Categories: promotedCategories,
 	}
 
-	// Prepend new version to versions list
+	// Insert new version so released sections stay semver-descending.
 	newCl.Versions = make([]*Section, 0, len(c.Versions)+1)
-	newCl.Versions = append(newCl.Versions, newVersion)
+	inserted := false
 	for _, v := range c.Versions {
+		if !inserted && (v == nil || v.Version == nil || compareSemver(ver, v.Version) > 0) {
+			newCl.Versions = append(newCl.Versions, newVersion)
+			inserted = true
+		}
 		newCl.Versions = append(newCl.Versions, cloneSection(v))
+	}
+	if !inserted {
+		newCl.Versions = append(newCl.Versions, newVersion)
+	}
+
+	if err := validateVersionSections(newCl.Versions); err != nil {
+		return nil, err
 	}
 
 	return newCl, nil
+}
+
+func buildPromotedCategories(c *Changelog, target *semver.Version) []Category {
+	unreleased := cloneNonEmptyCategories(c.Unreleased.Categories)
+	if target.IsPrerelease || target.Patch > 0 {
+		return unreleased
+	}
+
+	// A new stable .0 should include prerelease history for the same release line.
+	prereleaseLine := collectPrereleaseLineCategories(c.Versions, target)
+	return mergeCategories(prereleaseLine, unreleased)
+}
+
+func collectPrereleaseLineCategories(versions []*Section, target *semver.Version) []Category {
+	categories := make([]Category, 0)
+	for i := len(versions) - 1; i >= 0; i-- {
+		section := versions[i]
+		if section == nil || section.Version == nil {
+			continue
+		}
+		version := section.Version
+		if !version.IsPrerelease {
+			continue
+		}
+		if version.Major != target.Major || version.Minor != target.Minor || version.Patch != target.Patch {
+			continue
+		}
+		categories = mergeCategories(categories, cloneNonEmptyCategories(section.Categories))
+	}
+	return categories
+}
+
+func cloneNonEmptyCategories(categories []Category) []Category {
+	if len(categories) == 0 {
+		return nil
+	}
+	nonEmpty := make([]Category, 0, len(categories))
+	for _, category := range categories {
+		if len(category.Entries) == 0 {
+			continue
+		}
+		nonEmpty = append(nonEmpty, Category{
+			Name:    category.Name,
+			Entries: slices.Clone(category.Entries),
+		})
+	}
+	return nonEmpty
+}
+
+func mergeCategories(left, right []Category) []Category {
+	if len(left) == 0 {
+		return cloneCategories(right)
+	}
+	if len(right) == 0 {
+		return cloneCategories(left)
+	}
+
+	mergedByName := make(map[string][]string, len(left)+len(right))
+	seenNames := make(map[string]struct{}, len(left)+len(right))
+	orderedNames := make([]string, 0, len(left)+len(right))
+	appendCategory := func(category Category) {
+		if _, seen := seenNames[category.Name]; !seen {
+			seenNames[category.Name] = struct{}{}
+			orderedNames = append(orderedNames, category.Name)
+		}
+		mergedByName[category.Name] = append(mergedByName[category.Name], category.Entries...)
+	}
+
+	for _, category := range left {
+		appendCategory(category)
+	}
+	for _, category := range right {
+		appendCategory(category)
+	}
+
+	result := make([]Category, 0, len(orderedNames))
+	for _, name := range orderedNames {
+		result = append(result, Category{
+			Name:    name,
+			Entries: mergedByName[name],
+		})
+	}
+	sortCategories(result)
+	return result
 }
 
 // InsertEntries adds entries to the [Unreleased] section.
@@ -506,6 +802,30 @@ func (c *Changelog) String() string {
 	return strings.TrimRight(b.String(), "\n") + "\n"
 }
 
+func (c *Changelog) latestVersion(matches func(*semver.Version) bool) (*semver.Version, error) {
+	var best *semver.Version
+	hasReleased := false
+	for _, section := range c.Versions {
+		if section == nil || section.Version == nil {
+			continue
+		}
+		hasReleased = true
+		if !matches(section.Version) {
+			continue
+		}
+		if best == nil || compareSemver(section.Version, best) > 0 {
+			best = section.Version
+		}
+	}
+	if !hasReleased {
+		return nil, ErrNoReleasedVersions
+	}
+	if best == nil {
+		return nil, ErrNoMatchingVersion
+	}
+	return best, nil
+}
+
 // IsUnreleased returns true if this is the [Unreleased] section.
 func (s *Section) IsUnreleased() bool {
 	return s.Version == nil
@@ -553,12 +873,14 @@ func (s *Section) String() string {
 }
 
 // normalizeVersion strips the 'v' prefix and validates the version format.
-// Also strips the 'studioctl/' prefix if present.
+// Also strips an optional "<component>/" prefix if present.
 func normalizeVersion(version string) string {
-	version = strings.TrimPrefix(version, "studioctl/")
+	if slash := strings.LastIndex(version, "/"); slash >= 0 {
+		version = version[slash+1:]
+	}
 	version = strings.TrimPrefix(version, "v")
 
-	if !regexp.MustCompile(`^\d+\.\d+\.\d+`).MatchString(version) {
+	if !versionPrefixPattern.MatchString(version) {
 		return ""
 	}
 	return version

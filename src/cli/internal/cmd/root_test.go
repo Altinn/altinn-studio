@@ -77,6 +77,8 @@ func TestParseGlobalFlags(t *testing.T) {
 		newFlagTestCaseWithSocket("socket-dir flag",
 			[]string{"studioctl", "--socket-dir", "/custom/sockets", "env", "up"},
 			[]string{"env", "up"}, "/custom/sockets", 0),
+		newFlagTestCaseWithHome("home flag accepts dash-prefixed value",
+			[]string{"studioctl", "--home", "--custom-home", "run"}, []string{"run"}, "--custom-home", 0),
 
 		newFlagTestCaseWithHome("multiple flags",
 			[]string{"studioctl", "-v", "--home", "/home", "doctor"}, []string{"doctor"}, "/home", 1),
@@ -123,6 +125,92 @@ func TestParseGlobalFlags(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestParseGlobalFlags_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		wantErrMsg string
+		args       []string
+	}{
+		{
+			name:       "home flag missing value",
+			args:       []string{"studioctl", "--home"},
+			wantErrMsg: "flag --home requires a value",
+		},
+		{
+			name:       "home flag followed by known flag",
+			args:       []string{"studioctl", "--home", "-v", "run"},
+			wantErrMsg: "flag --home requires a value, got flag -v",
+		},
+		{
+			name:       "socket-dir flag missing value",
+			args:       []string{"studioctl", "--socket-dir"},
+			wantErrMsg: "flag --socket-dir requires a value",
+		},
+		{
+			name:       "socket-dir flag followed by known flag",
+			args:       []string{"studioctl", "--socket-dir", "--home=/tmp", "run"},
+			wantErrMsg: "flag --socket-dir requires a value, got flag --home=/tmp",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			oldArgs := os.Args
+			os.Args = tt.args
+			defer func() { os.Args = oldArgs }()
+
+			_, _, err := cmd.ParseGlobalFlags()
+			if err == nil {
+				t.Fatal("ParseGlobalFlags() expected error, got nil")
+			}
+
+			// Check that error message contains the expected text
+			errMsg := err.Error()
+			if !containsSubstr(errMsg, tt.wantErrMsg) {
+				t.Errorf(
+					"ParseGlobalFlags() error = %q, want containing %q",
+					errMsg, tt.wantErrMsg,
+				)
+			}
+		})
+	}
+}
+
+func TestShouldInitializeConfig(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+		want bool
+	}{
+		{name: "no args", args: nil, want: false},
+		{name: "root help subcommand", args: []string{"help"}, want: false},
+		{name: "root help flag", args: []string{"--help"}, want: false},
+		{name: "root version flag", args: []string{"--version"}, want: false},
+		{name: "command help flag", args: []string{"env", "--help"}, want: false},
+		{name: "plain command", args: []string{"env", "up"}, want: true},
+		{name: "help as positional arg", args: []string{"run", "help"}, want: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := cmd.ExportShouldInitializeConfig(tt.args)
+			if got != tt.want {
+				t.Fatalf("ExportShouldInitializeConfig() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// containsSubstr checks if s contains substr.
+func containsSubstr(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }
 
 func TestCLI_Run(t *testing.T) {

@@ -200,13 +200,9 @@ func TestClient_buildCloneURL_SpecialChars(t *testing.T) {
 	}
 
 	url := client.buildCloneURL("org", "repo")
-	// Should URL-encode special characters
-	if url == "" {
-		t.Error("buildCloneURL returned empty string")
-	}
-	// Verify the URL is constructed (detailed encoding may vary)
-	if len(url) < 20 {
-		t.Errorf("URL seems too short: %s", url)
+	expected := "https://user%40example.com:token%2Fwith+special=chars@altinn.studio/repos/org/repo.git"
+	if url != expected {
+		t.Errorf("expected %s, got %s", expected, url)
 	}
 }
 
