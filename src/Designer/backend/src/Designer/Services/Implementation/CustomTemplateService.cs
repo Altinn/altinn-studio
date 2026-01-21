@@ -26,8 +26,14 @@ public class CustomTemplateService : ICustomTemplateService
     private const string TemplateContentFolder = "content";
     private const string TemplateFileName = "template.json";
     private const string TemplateManifestFileName = "templateManifest.json";
-    private const string TemplateCacheFolder = ".template-cache";
+
+    private const string LocalTemplateCacheFolder = ".template-cache";
     private const string CacheMetadataFileName = ".cache-info.json";
+
+    private const int MaxParallelDownloads = 15;
+    private const int LockMaxRetries = 30;
+    private const int LockRetryDelayMs = 1000;
+    private static readonly TimeSpan s_cacheExpiration = TimeSpan.FromDays(7);
 
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IGiteaClient _giteaClient;
@@ -44,17 +50,17 @@ public class CustomTemplateService : ICustomTemplateService
         _settings = settings;
     }
 
-    // <inheritdoc />   
+    // <inheritdoc />
     public async Task<List<CustomTemplate>> GetCustomTemplateList()
     {
         List<CustomTemplate> templates = [];
 
-        templates.AddRange(await GetTemplateListForAls());
+        templates.AddRange(await GetTemplateManifestForOrg(AltinnStudioOrg));
 
         return templates;
     }
 
-    // <inheritdoc />   
+    // <inheritdoc />
     public async Task ApplyTemplateToRepository(string templateOwner, string templateId, string targetOrg, string targetRepo, string developer)
     {
         CustomTemplate template = await GetCustomTemplate(templateOwner, templateId); // called first as it includes validation of the template
@@ -91,33 +97,74 @@ public class CustomTemplateService : ICustomTemplateService
         return errors;
     }
 
-    private async Task<List<CustomTemplate>> GetTemplateListForAls()
+    private async Task<List<CustomTemplate>> GetTemplateManifestForOrg(string templateOwner, CancellationToken cancellationToken = default)
     {
-        string repository = GetContentRepoName(AltinnStudioOrg);
-        string baseCommitSha = await _giteaClient.GetLatestCommitOnBranch(AltinnStudioOrg, repository);
+        string templateRepo = GetContentRepoName(templateOwner);
+        string templateCacheFolderPath = Path.Combine(_settings.RepositoryLocation, LocalTemplateCacheFolder, templateOwner);
+        string templateManifestCachePath = Path.Combine(_settings.RepositoryLocation, LocalTemplateCacheFolder, templateOwner, TemplateManifestFileName);
 
-        // could retrieve the template list from cache.. only disk if newer than cache
+        string lockFilePath = Path.Combine(templateCacheFolderPath, ".lock");
 
-        string path = Path.Combine(TemplateFolder, TemplateManifestFileName);
-        (FileSystemObject? file, ProblemDetails? problem) = await _giteaClient.GetFileAndErrorAsync(AltinnStudioOrg, repository, path, null); // passing null as reference to get main branch and latest commit
-
-        if (problem != null)
-        {
-            // do something with the problem details. 
-
-        }
+        using FileStream? lockStream = await AcquireFileLockAsync(lockFilePath, cancellationToken);
 
         try
         {
-            List<CustomTemplate> templates = JsonSerializer.Deserialize<List<CustomTemplate>>(Encoding.UTF8.GetString(Convert.FromBase64String(file.Content))) ?? [];
+            string latestCommitSha = await _giteaClient.GetLatestCommitOnBranch(templateOwner, templateRepo);
+            bool cacheValid = await IsCacheValidAsync(templateCacheFolderPath, latestCommitSha);
+
+            if (!cacheValid)
+            {
+                _logger.LogInformation("Template manifest missing for {templateOwner}. Downloading from API...", templateOwner);
+                await DownloadTemplateManifestToCache(templateOwner, templateRepo, templateManifestCachePath, latestCommitSha);
+            }
+            else
+            {
+                _logger.LogInformation("Template manifest hit for {templateOwner}. Using cached file.", templateOwner);
+            }
+
+            string cachedTemplateList = await File.ReadAllTextAsync(templateManifestCachePath);
+            List<CustomTemplate> templates = JsonSerializer.Deserialize<List<CustomTemplate>>(cachedTemplateList) ?? [];
             return templates;
         }
         catch
         {
-            // do something with the exception
+            _logger.LogError("// CustomTemplateService // GetTemplateManifestForOrg // Failed to get template manifest for org {TemplateOwner}", templateOwner);
+            throw;
+        }
+    }
+
+    private async Task DownloadTemplateManifestToCache(string owner, string repo, string cacheFilePath, string commitSha)
+    {
+        string remoteTemplateManifestPath = Path.Combine(TemplateFolder, TemplateManifestFileName);
+        (FileSystemObject? file, ProblemDetails? problem) = await _giteaClient.GetFileAndErrorAsync(owner, repo, remoteTemplateManifestPath, null); // passing null as reference to get main branch and latest commit
+
+        if (problem != null)
+        {
+            switch (problem.Status)
+            {
+                case 404:
+                    throw CustomTemplateException.NotFound($"Template list for owner '{owner}' not found");
+                default:
+                    throw CustomTemplateException.DeserializationFailed($"An error occurred while retrieving the template list for owner '{owner}'.", problem.Detail);
+            }
         }
 
-        return [];
+        string jsonString = Encoding.UTF8.GetString(Convert.FromBase64String(file.Content));
+
+        await File.WriteAllTextAsync(cacheFilePath, jsonString);
+
+        var cacheInfo = new TemplateCacheInfo
+        {
+            CommitSha = commitSha,
+            CachedAt = DateTime.UtcNow,
+        };
+
+        string metadataPath = Path.Combine(Path.GetDirectoryName(cacheFilePath)!, CacheMetadataFileName);
+        string metadataJson = JsonSerializer.Serialize(cacheInfo, new JsonSerializerOptions { WriteIndented = true });
+        await File.WriteAllTextAsync(metadataPath, metadataJson);
+
+        _logger.LogInformation("Cached template manifest for owner {Owner} (commit: {CommitSha})",
+             owner, commitSha[..7]);
     }
 
     private async Task<CustomTemplate> GetCustomTemplate(string owner, string id)
@@ -166,6 +213,7 @@ public class CustomTemplateService : ICustomTemplateService
 
     private void DeleteContent(string org, string repository, string developer, string path)
     {
+        // remove paths are validated as part of template retrieval. So we can assume they are safe to use here.
         string targetPath = Path.Combine(_settings.GetServicePath(org, repository, developer), path);
 
         if (Directory.Exists(targetPath))
@@ -178,44 +226,32 @@ public class CustomTemplateService : ICustomTemplateService
         }
     }
 
-
-
     private async Task CopyTemplateContentToRepository(string templateOwner, string templateId, string targetOrg, string targetRepo, string developer, CancellationToken cancellationToken = default)
     {
         string templateRepo = GetContentRepoName(templateOwner);
 
-        string templateCachePath = Path.Combine(_settings.RepositoryLocation, TemplateCacheFolder, templateOwner, templateId);
+        string templateCachePath = Path.Combine(_settings.RepositoryLocation, LocalTemplateCacheFolder, templateOwner, templateId);
         string lockFilePath = Path.Combine(templateCachePath, ".lock");
         string cacheTemplateContentPath = Path.Combine(templateCachePath, TemplateContentFolder);
 
-        // Use file-based locking (works across multiple instances)
         using FileStream? lockStream = await AcquireFileLockAsync(lockFilePath, cancellationToken);
 
-        try
+        string latestCommitSha = await _giteaClient.GetLatestCommitOnBranch(templateOwner, templateRepo, null, cancellationToken);
+
+        bool cacheValid = await IsCacheValidAsync(templateCachePath, latestCommitSha);
+
+        if (!cacheValid)
         {
-            // Check if we need to refresh the cache
-            string latestCommitSha = await _giteaClient.GetLatestCommitOnBranch(templateOwner, templateRepo, null, cancellationToken);
-
-            bool cacheValid = await IsCacheValidAsync(templateCachePath, latestCommitSha);
-
-            if (!cacheValid)
-            {
-                _logger.LogInformation("Template cache miss for {TemplateId}. Downloading from API...", templateId);
-                await DownloadTemplateToCache(templateOwner, templateRepo, templateId, templateCachePath, latestCommitSha, cancellationToken);
-            }
-            else
-            {
-                _logger.LogInformation("Template cache hit for {TemplateId}. Using cached files.", templateId);
-            }
-
-            // Copy from cache to target app
-            AltinnAppGitRepository targetAppRepo = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepo, developer);
-            CopyDirectory(cacheTemplateContentPath, targetAppRepo.RepositoryDirectory);
+            _logger.LogInformation("Template cache miss for {TemplateId}. Downloading from API...", templateId);
+            await DownloadTemplateToCache(templateOwner, templateRepo, templateId, templateCachePath, latestCommitSha, cancellationToken);
         }
-        finally
+        else
         {
-            lockStream?.Dispose();
+            _logger.LogInformation("Template cache hit for {TemplateId}. Using cached files.", templateId);
         }
+
+        AltinnAppGitRepository targetAppRepo = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepo, developer);
+        CopyDirectory(cacheTemplateContentPath, targetAppRepo.RepositoryDirectory);
     }
 
     /// <summary>
@@ -227,29 +263,25 @@ public class CustomTemplateService : ICustomTemplateService
         Directory.CreateDirectory(Path.GetDirectoryName(lockFilePath)!);
 
         int retryCount = 0;
-        int maxRetries = 30;
-        int retryDelayMs = 1000;
+        int maxRetries = LockMaxRetries;
+        int retryDelayMs = LockRetryDelayMs;
 
         while (retryCount < maxRetries)
         {
             try
             {
-                // Try to create/open file with exclusive access
                 var lockStream = new FileStream(
                     lockFilePath,
                     FileMode.OpenOrCreate,
                     FileAccess.ReadWrite,
-                    FileShare.None, // Exclusive access
+                    FileShare.None,
                     bufferSize: 1,
-                    FileOptions.DeleteOnClose // Auto-cleanup on release
+                    FileOptions.DeleteOnClose
                 );
 
-                // Write timestamp to lock file for debugging
-                using var writer = new StreamWriter(lockStream, leaveOpen: true);
-                await writer.WriteLineAsync($"Locked at {DateTime.UtcNow:O}");
-                await writer.FlushAsync();
-                lockStream.Position = 0;
+                _logger.LogInformation("Acquired template cache lock: {LockFilePath} at {Time}", lockFilePath, DateTime.UtcNow);
 
+                lockStream.Position = 0;
                 return lockStream;
             }
             catch (IOException)
@@ -297,7 +329,7 @@ public class CustomTemplateService : ICustomTemplateService
 
             // Cache is valid if commit SHA matches and cache is less than 1 week old
             bool commitMatches = cacheInfo.CommitSha.Equals(latestCommitSha, StringComparison.Ordinal);
-            bool notExpired = DateTime.UtcNow - cacheInfo.CachedAt < TimeSpan.FromDays(7);
+            bool notExpired = DateTime.UtcNow - cacheInfo.CachedAt < s_cacheExpiration;
 
             return commitMatches && notExpired;
         }
@@ -346,7 +378,7 @@ public class CustomTemplateService : ICustomTemplateService
         // Download files in parallel
         ParallelOptions options = new()
         {
-            MaxDegreeOfParallelism = 15,
+            MaxDegreeOfParallelism = MaxParallelDownloads,
             CancellationToken = cancellationToken
         };
 
@@ -382,7 +414,6 @@ public class CustomTemplateService : ICustomTemplateService
         {
             CommitSha = commitSha,
             CachedAt = DateTime.UtcNow,
-            FileCount = contentFiles.Count
         };
 
         string metadataPath = Path.Combine(cachePath, CacheMetadataFileName);
@@ -480,6 +511,5 @@ public class CustomTemplateService : ICustomTemplateService
     {
         public string CommitSha { get; init; } = string.Empty;
         public DateTime CachedAt { get; init; }
-        public int FileCount { get; init; }
     }
 }
