@@ -6,6 +6,7 @@ import * as mutations from 'app-shared/api/mutations';
 import 'app-shared/design-tokens';
 import type { LoggerConfig } from 'app-shared/contexts/LoggerContext';
 import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
+import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext';
 import type { QueryClientConfig } from '@tanstack/react-query';
 import { PageRoutes } from './router/PageRoutes';
 
@@ -28,9 +29,11 @@ const queryClientConfig: QueryClientConfig = {
 };
 
 root.render(
-  <LoggerContextProvider config={loggerConfig}>
-    <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
-      <PageRoutes />
-    </ServicesContextProvider>
-  </LoggerContextProvider>,
+  <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
+    <EnvironmentConfigProvider>
+      <LoggerContextProvider config={loggerConfig}>
+        <PageRoutes />
+      </LoggerContextProvider>
+    </EnvironmentConfigProvider>
+  </ServicesContextProvider>,
 );
