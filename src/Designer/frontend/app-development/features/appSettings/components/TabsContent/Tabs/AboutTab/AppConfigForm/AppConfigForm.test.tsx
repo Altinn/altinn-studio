@@ -508,7 +508,7 @@ const getTextbox = (name: string): HTMLInputElement => screen.getByRole('textbox
 const queryTextbox = (name: string): HTMLInputElement | null =>
   screen.queryByRole('textbox', { name });
 const getLink = (name: string): HTMLAnchorElement => screen.getByRole('link', { name });
-const queryLink = (name: string): HTMLAnchorElement | null => screen.queryByRole('link', { name });
+// const queryLink = (name: string): HTMLAnchorElement | null => screen.queryByRole('link', { name });
 const getButton = (name: string): HTMLButtonElement => screen.getByRole('button', { name });
 const getErrorHeader = (): HTMLHeadingElement =>
   screen.getByRole('heading', {
@@ -521,7 +521,7 @@ const queryErrorHeader = (): HTMLHeadingElement | null =>
     level: 2,
   });
 const getSwitch = (name: string): HTMLInputElement => screen.getByRole('switch', { name });
-const getLabelText = (name: string): HTMLLabelElement => screen.getByLabelText(name);
+// const getLabelText = (name: string): HTMLLabelElement => screen.getByLabelText(name);
 
 const optionalText: string = textMock('general.optional');
 const requiredText: string = textMock('general.required');
