@@ -6,10 +6,10 @@ import { StudioTextfield } from '@studio/components';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type {
   AppConfigNew,
-  AvailableForTypeOption,
+  // AvailableForTypeOption,
   ContactPoint,
   Keyword,
-  StatusOption,
+  // StatusOption,
 } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
 import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
@@ -20,11 +20,10 @@ import { useScrollIntoView } from '../hooks/useScrollIntoView';
 import { ObjectUtils } from '@studio/pure-functions';
 import { SwitchInput } from './SwitchInput';
 import { mapKeywordsArrayToString, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
-import { StatusRadioGroup } from './StatusRadioGroup';
-import { AvailableForTypeCheckboxGroup } from './AvailableForTypeRadioGroup';
+// import { StatusRadioGroup } from './StatusRadioGroup';
+// import { AvailableForTypeCheckboxGroup } from './AvailableForTypeRadioGroup';
 import { ContactPoints } from './ContactPoints';
 import { APP_CONFIG_RESOURCE_TYPE } from 'app-development/features/appSettings/constants/appConfigResourceType';
-import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 
 export type AppConfigFormProps = {
   appConfig: AppConfigNew;
@@ -38,8 +37,6 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   const [keywordsInputValue, setKeywordsInputValue] = useState(
     mapKeywordsArrayToString(updatedAppConfig.keywords ?? []),
   );
-
-  const appMetadata = useFeatureFlag(FeatureFlag.AppMetadata);
 
   const errorSummaryRef: MutableRefObject<HTMLDivElement | null> = useRef<HTMLDivElement | null>(
     null,
@@ -59,10 +56,10 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   const rightDescriptionErrors: AppConfigFormError[] = getFieldErrors(
     AppResourceFormFieldIds.RightDescription,
   );
-  const statusErrors: AppConfigFormError[] = getFieldErrors(AppResourceFormFieldIds.Status);
-  const availableForTypeErrors: AppConfigFormError[] = getFieldErrors(
-    AppResourceFormFieldIds.AvailableForType,
-  );
+  // const statusErrors: AppConfigFormError[] = getFieldErrors(AppResourceFormFieldIds.Status);
+  // const availableForTypeErrors: AppConfigFormError[] = getFieldErrors(
+  //   AppResourceFormFieldIds.AvailableForType,
+  // );
 
   const contactPointErrors: AppConfigFormError[] = getFieldErrors(
     AppResourceFormFieldIds.ContactPointsId,
@@ -149,33 +146,33 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     }));
   };
 
-  const onChangeStatus = (status: StatusOption): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
-      ...oldVal,
-      status,
-    }));
-  };
+  // const onChangeStatus = (status: StatusOption): void => {
+  //   setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+  //     ...oldVal,
+  //     status,
+  //   }));
+  // };
 
-  const onChangeSelfIdentifiedUser = (e: ChangeEvent<HTMLInputElement>): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
-      ...oldVal,
-      selfIdentifiedUserEnabled: e.target.checked,
-    }));
-  };
+  // const onChangeSelfIdentifiedUser = (e: ChangeEvent<HTMLInputElement>): void => {
+  //   setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+  //     ...oldVal,
+  //     selfIdentifiedUserEnabled: e.target.checked,
+  //   }));
+  // };
 
-  const onChangeEnterpriseUser = (e: ChangeEvent<HTMLInputElement>): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
-      ...oldVal,
-      enterpriseUserEnabled: e.target.checked,
-    }));
-  };
+  // const onChangeEnterpriseUser = (e: ChangeEvent<HTMLInputElement>): void => {
+  //   setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+  //     ...oldVal,
+  //     enterpriseUserEnabled: e.target.checked,
+  //   }));
+  // };
 
-  const onChangeAvailableForType = (availableForType: AvailableForTypeOption[]): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
-      ...oldVal,
-      availableForType: availableForType,
-    }));
-  };
+  // const onChangeAvailableForType = (availableForType: AvailableForTypeOption[]): void => {
+  //   setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+  //     ...oldVal,
+  //     availableForType: availableForType,
+  //   }));
+  // };
 
   const onChangeContactPoints = (contactPoints: ContactPoint[]): void => {
     setUpdatedAppConfig((oldVal: AppConfigNew) => ({
@@ -269,9 +266,9 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           required={false}
           tagText={t('general.optional')}
         />
-        {!appMetadata && (
-          <>
-            <StatusRadioGroup
+        {/* We commit this part temporarily because we may be will use som of them, it applies for the related tests also*/}
+        {/*
+         <StatusRadioGroup
               selectedStatus={updatedAppConfig.status}
               onChangeStatus={onChangeStatus}
               errors={statusErrors}
@@ -306,9 +303,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
               onChangeAvailableForType={onChangeAvailableForType}
               errors={availableForTypeErrors}
               id={AppResourceFormFieldIds.AvailableForType}
-            />
-          </>
-        )}
+            /> */}
         <ContactPoints
           contactPointList={updatedAppConfig.contactPoints}
           onContactPointsChanged={onChangeContactPoints}
