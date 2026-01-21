@@ -406,13 +406,13 @@ namespace Designer.Tests.Services
 
             ResourceRegistryService resourceRegistryService = new();
 
-            CustomTemplateService customTemplateService = new(altinnGitRepositoryFactory);
+            CustomTemplateService customTemplateService = new(altinnGitRepositoryFactory, giteaClientMock, new Mock<ILogger<CustomTemplateService>>().Object);
 
             RepositoryService service = new(
                 repoSettings,
                 generalSettings,
                 httpContextAccessorMock.Object,
-                new IGiteaClientMock(),
+                giteaClientMock,
                 sourceControlMock,
                 new Mock<ILogger<RepositoryService>>().Object,
                 altinnGitRepositoryFactory,
