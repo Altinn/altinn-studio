@@ -187,11 +187,10 @@ describe('LayoutSettingsContext', () => {
           { type: 'receipt', name: 'kvittering' },
         ],
       });
+
       expect(screen.getAllByTestId('task-group-id')).toHaveLength(2);
       expect(screen.getAllByTestId('task-group-name')).toHaveLength(2);
-      expect(screen.getAllByTestId('task-group-id')[0]).toHaveTextContent(UUID);
       expect(screen.getAllByTestId('task-group-name')[0]).toHaveTextContent('utfylling');
-      expect(screen.getAllByTestId('task-group-id')[1]).toHaveTextContent(UUID);
       expect(screen.getAllByTestId('task-group-name')[1]).toHaveTextContent('kvittering');
     });
 

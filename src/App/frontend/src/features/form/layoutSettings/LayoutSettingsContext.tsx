@@ -127,7 +127,6 @@ export function usePageSettings(): GlobalPageSettings {
 
   return {
     ...globalUISettings,
-    taskNavigation: globalUISettings.taskNavigation.map((g) => ({ ...g, id: uuidv4() })),
     ...(layoutSettings === ContextNotProvided ? {} : layoutSettings.pageSettings),
   };
 }
