@@ -3,7 +3,7 @@ import React from 'react';
 import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
 
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getLayoutSetsConfigMock } from 'src/__mocks__/getLayoutSetsMock';
 import {
   usePageGroups,
   usePageSettings,
@@ -18,7 +18,7 @@ import type {
   NavigationTask,
 } from 'src/layout/common.generated';
 
-const layoutSetsMock = getLayoutSetsMock();
+const layoutSetsConfigMock = getLayoutSetsConfigMock();
 
 describe('LayoutSettingsContext', () => {
   const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
@@ -36,9 +36,9 @@ describe('LayoutSettingsContext', () => {
     overrideTaskNavigation?: (Omit<NavigationTask, 'id'> | Omit<NavigationReceipt, 'id'>)[];
   }) {
     jest.mocked(getGlobalUiSettings).mockReturnValue({
-      ...layoutSetsMock.uiSettings,
+      ...layoutSetsConfigMock.uiSettings,
       taskNavigation:
-        (taskNavigation as (NavigationTask | NavigationReceipt)[]) ?? layoutSetsMock.uiSettings.taskNavigation,
+        (taskNavigation as (NavigationTask | NavigationReceipt)[]) ?? layoutSetsConfigMock.uiSettings.taskNavigation,
     });
 
     return renderWithInstanceAndLayout({
@@ -149,7 +149,7 @@ describe('LayoutSettingsContext', () => {
 
   describe('usePageSettings().taskNavigation', () => {
     const UseTaskNavigation = () => {
-      const taskNavigation = usePageSettings().taskNavigation;
+      const taskNavigation = usePageSettings().taskNavigation ?? [];
       return (
         <>
           {taskNavigation.map((taskGroup) => (
@@ -172,7 +172,7 @@ describe('LayoutSettingsContext', () => {
       );
     };
 
-    it('returns empy array when not specified', async () => {
+    it('returns empty array when not specified', async () => {
       await render({ renderer: () => <UseTaskNavigation />, order: ['first'] });
       expect(screen.queryByTestId('task-group-id')).not.toBeInTheDocument();
       expect(screen.queryByTestId('task-group-name')).not.toBeInTheDocument();

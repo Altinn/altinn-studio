@@ -18,7 +18,7 @@ import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettings
 import { getFooterLayoutMock } from 'src/__mocks__/getFooterLayoutMock';
 // Importing CSS for jest-preview to look nicer
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getLayoutSetsConfigMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import type {
@@ -79,7 +79,7 @@ window.altinnAppGlobalData = {
   applicationMetadata: getApplicationMetadataMock(),
   frontendSettings: getApplicationSettingsMock(),
   footer: getFooterLayoutMock(),
-  layoutSets: getLayoutSetsMock(),
+  layoutSetsConfig: getLayoutSetsConfigMock(),
 };
 
 window.logError = (...args) => {
@@ -134,8 +134,8 @@ jest.mock('src/features/applicationMetadata', () => ({
 jest.mock('src/features/layoutSets', () => ({
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   ...jest.requireActual<typeof import('src/features/layoutSets')>('src/features/layoutSets'),
-  getLayoutSets: jest.fn(() => getLayoutSetsMock().sets),
-  getGlobalUiSettings: jest.fn(() => getLayoutSetsMock().uiSettings),
+  getLayoutSets: jest.fn(() => getLayoutSetsConfigMock().sets),
+  getGlobalUiSettings: jest.fn(() => getLayoutSetsConfigMock().uiSettings),
 }));
 
 jest.mock('src/queries/queries', () => ({

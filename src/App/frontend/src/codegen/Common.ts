@@ -699,28 +699,35 @@ const common = {
       new CG.prop(
         'hideCloseButton',
         new CG.bool()
+          .optional({ default: false })
           .setTitle('Hide close button')
           .setDescription('Hide the close button in the upper right corner of the app'),
       ),
       new CG.prop(
         'showLanguageSelector',
         new CG.bool()
+          .optional({ default: false })
           .setTitle('Show language selector')
           .setDescription('Show the language selector in the upper right corner of the app'),
       ),
       new CG.prop(
         'showExpandWidthButton',
         new CG.bool()
+          .optional({ default: false })
           .setTitle('Show expand width button')
           .setDescription('Show the expand width button in the upper right corner of the app'),
       ),
       new CG.prop(
         'expandedWidth',
-        new CG.bool().setTitle('Expanded width').setDescription('Sets expanded width for pages'),
+        new CG.bool()
+          .optional({ default: false })
+          .setTitle('Expanded width')
+          .setDescription('Sets expanded width for pages'),
       ),
       new CG.prop(
         'showProgress',
         new CG.bool()
+          .optional({ default: false })
           .setTitle('Show progress indicator')
           .setDescription(
             'Enables a progress indicator in the upper right corner of the app (when on data tasks/forms)',
@@ -729,6 +736,7 @@ const common = {
       new CG.prop(
         'autoSaveBehavior',
         new CG.enum('onChangeFormData', 'onChangePage')
+          .optional({ default: 'onChangeFormData' })
           .setTitle('Auto save behavior')
           .setDescription(
             'An attribute specifying when the application will save form data. onChangeFormData saves on every interaction with form elements. onChangePage saves on every page change.',
@@ -750,6 +758,7 @@ const common = {
             ).exportAs('NavigationReceipt'),
           ).setUnionType('discriminated'),
         )
+          .optional({ default: [] })
           .setTitle('Task navigation settings')
           .setDescription('Shows the listed tasks in the sidebar navigation menu'),
       ),
@@ -837,7 +846,7 @@ const common = {
           .setTitle('Layout sets')
           .setDescription('List of layout sets for different data types'),
       ),
-      new CG.prop('uiSettings', CG.common('GlobalPageSettings')),
+      new CG.prop('uiSettings', CG.common('GlobalPageSettings').optional()),
     )
       .setTitle('Layout sets')
       .setDescription('Settings regarding layout pages and components'),

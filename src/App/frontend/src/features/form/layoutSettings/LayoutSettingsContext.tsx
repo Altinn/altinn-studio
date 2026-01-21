@@ -10,7 +10,8 @@ import { createQueryContext } from 'src/core/contexts/queryContext';
 import { getGlobalUiSettings } from 'src/features/layoutSets';
 import { useLayoutSetIdFromUrl } from 'src/features/layoutSets/useCurrentLayoutSet';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
-import type { GlobalPageSettings, ILayoutSettings, NavigationPageGroup } from 'src/layout/common.generated';
+import type { GlobalPageSettings } from 'src/features/layoutSets/types';
+import type { ILayoutSettings, NavigationPageGroup } from 'src/layout/common.generated';
 
 // Also used for prefetching @see formPrefetcher.ts
 export function useLayoutSettingsQueryDef(layoutSetId?: string): QueryDefinition<ProcessedLayoutSettings> {

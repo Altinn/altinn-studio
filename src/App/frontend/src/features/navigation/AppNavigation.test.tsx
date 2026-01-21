@@ -4,7 +4,7 @@ import { jest } from '@jest/globals';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getLayoutSetsConfigMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getGlobalUiSettings } from 'src/features/layoutSets';
 import { AppNavigation } from 'src/features/navigation/AppNavigation';
 import { BackendValidationSeverity } from 'src/features/validation';
@@ -20,7 +20,7 @@ import type {
 } from 'src/layout/common.generated';
 
 const user = userEvent.setup({ delay: 100 });
-const layoutSetsMock = getLayoutSetsMock();
+const layoutSetsConfigMock = getLayoutSetsConfigMock();
 
 describe('AppNavigation', () => {
   async function render({
@@ -43,9 +43,9 @@ describe('AppNavigation', () => {
     const rawOrder = order ?? groups?.flatMap((g) => g.order) ?? [];
 
     jest.mocked(getGlobalUiSettings).mockReturnValue({
-      ...layoutSetsMock.uiSettings,
+      ...layoutSetsConfigMock.uiSettings,
       taskNavigation:
-        (taskNavigation as (NavigationTask | NavigationReceipt)[]) ?? layoutSetsMock.uiSettings.taskNavigation,
+        (taskNavigation as (NavigationTask | NavigationReceipt)[]) ?? layoutSetsConfigMock.uiSettings.taskNavigation,
     });
     return renderWithInstanceAndLayout({
       renderer: () => <AppNavigation />,

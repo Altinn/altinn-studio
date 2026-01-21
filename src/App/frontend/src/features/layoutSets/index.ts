@@ -1,9 +1,9 @@
-import type { GlobalPageSettings } from 'src/layout/common.generated';
+import type { GlobalPageSettings } from 'src/features/layoutSets/types';
 
 export function getLayoutSets() {
-  return window.altinnAppGlobalData.layoutSets.sets;
+  return window.altinnAppGlobalData.layoutSetsConfig.sets;
 }
 
 export function getGlobalUiSettings(): GlobalPageSettings {
-  return window.altinnAppGlobalData.layoutSets.uiSettings;
+  return window.altinnAppGlobalData.layoutSetsConfig.uiSettings;
 }

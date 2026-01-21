@@ -1,8 +1,8 @@
-import type { ILayoutSet, ILayoutSets } from 'src/layout/common.generated';
+import type { LayoutSet, LayoutSetsConfig } from 'src/features/layoutSets/types';
 
 export const defaultDataTypeMock = 'test-data-model';
 export const statelessDataTypeMock = 'stateless';
-export function getLayoutSetsMock(): ILayoutSets {
+export function getLayoutSetsConfigMock(): LayoutSetsConfig {
   return {
     sets: [
       {
@@ -32,7 +32,7 @@ export function getLayoutSetsMock(): ILayoutSets {
   };
 }
 
-export function getSubFormLayoutSetMock(): ILayoutSet {
+export function getSubFormLayoutSetMock(): LayoutSet {
   return {
     id: 'subform-layout',
     dataType: 'subform-data',

@@ -18,6 +18,7 @@ import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
+import type { GlobalPageSettings } from 'src/features/layoutSets/types';
 import type { ExternalAppLayoutSet } from 'src/test/allApps';
 
 const env = dotenv.config({ quiet: true });
@@ -143,7 +144,8 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
 
     jest.mocked(getApplicationMetadata).mockImplementation(() => set.app.getAppMetadata());
     jest.mocked(getLayoutSets).mockReturnValue(set.app.getRawLayoutSets().sets);
-    jest.mocked(getGlobalUiSettings).mockReturnValue(set.app.getRawLayoutSets().uiSettings);
+    // Real apps have backend-populated uiSettings, cast to GlobalPageSettings
+    jest.mocked(getGlobalUiSettings).mockReturnValue(set.app.getRawLayoutSets().uiSettings as GlobalPageSettings);
     jest.mocked(fetchProcessState).mockImplementation(async () => mainSet.simulateProcessData());
     jest.mocked(fetchInstanceData).mockImplementation(async () => set.simulateInstance());
 
