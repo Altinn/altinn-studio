@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 
 import { getLayoutSetsConfigMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getGlobalUiSettings } from 'src/features/layoutSets';
+import { NavigationReceipt, NavigationTask } from 'src/features/layoutSets/types';
 import { AppNavigation } from 'src/features/navigation/AppNavigation';
 import { BackendValidationSeverity } from 'src/features/validation';
 import * as UseNavigatePage from 'src/hooks/useNavigatePage';
@@ -15,8 +16,6 @@ import type {
   ILayoutSettings,
   NavigationPageGroupMultiple,
   NavigationPageGroupSingle,
-  NavigationReceipt,
-  NavigationTask,
 } from 'src/layout/common.generated';
 
 const user = userEvent.setup({ delay: 100 });

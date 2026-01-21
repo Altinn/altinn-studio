@@ -1,6 +1,25 @@
-import type { GlobalPageSettings as GlobalPageSettingsFromSchema } from 'src/layout/common.generated';
+// These types should ultimately be generated from the backend DTOs, but for now we define them manually here.
+export type GlobalPageSettings = {
+  hideCloseButton: NonNullable<boolean | undefined>;
+  showLanguageSelector: NonNullable<boolean | undefined>;
+  showExpandWidthButton: NonNullable<boolean | undefined>;
+  expandedWidth: NonNullable<boolean | undefined>;
+  showProgress: NonNullable<boolean | undefined>;
+  autoSaveBehavior: 'onChangeFormData' | 'onChangePage';
+  taskNavigation: (NavigationTask | NavigationReceipt)[];
+};
 
-export type GlobalPageSettings = Required<GlobalPageSettingsFromSchema>;
+export type NavigationReceipt = {
+  id: string;
+  name?: string;
+  type: 'receipt';
+};
+
+export type NavigationTask = {
+  id: string;
+  name?: string;
+  taskId: string;
+};
 
 export type LayoutSet = {
   id: string;

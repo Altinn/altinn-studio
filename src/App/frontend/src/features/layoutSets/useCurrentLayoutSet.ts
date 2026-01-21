@@ -5,7 +5,7 @@ import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { getLayoutSets } from 'src/features/layoutSets';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { getLayoutSetForDataElement } from 'src/utils/layout';
-import type { ILayoutSet } from 'src/layout/common.generated';
+import type { LayoutSet } from 'src/features/layoutSets/types';
 
 /**
  * This is a variant that prefers the taskId from the URL. The alternative useCurrentLayoutSetId() and
@@ -44,7 +44,7 @@ export function getCurrentLayoutSet({
   taskId,
 }: {
   isStateless: boolean;
-  layoutSets: ILayoutSet[];
+  layoutSets: LayoutSet[];
   taskId: string | undefined;
 }) {
   const appMetadata = getApplicationMetadata();

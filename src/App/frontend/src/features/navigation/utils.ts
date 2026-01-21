@@ -17,7 +17,7 @@ import { ValidationMask } from 'src/features/validation';
 import { useVisitedPages } from 'src/hooks/useNavigatePage';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import type { NavigationReceipt, NavigationTask } from 'src/layout/common.generated';
+import type { NavigationReceipt, NavigationTask } from 'src/features/layoutSets/types';
 
 export function useHasGroupedNavigation() {
   const pageGroups = usePageGroups();

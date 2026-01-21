@@ -10,13 +10,9 @@ import {
   useRawPageOrder,
 } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { getGlobalUiSettings } from 'src/features/layoutSets';
+import { NavigationReceipt, NavigationTask } from 'src/features/layoutSets/types';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type {
-  ILayoutSettings,
-  NavigationPageGroup,
-  NavigationReceipt,
-  NavigationTask,
-} from 'src/layout/common.generated';
+import type { ILayoutSettings, NavigationPageGroup } from 'src/layout/common.generated';
 
 const layoutSetsConfigMock = getLayoutSetsConfigMock();
 

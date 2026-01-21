@@ -8,7 +8,7 @@ import {
   getCurrentTaskDataElementId,
   getDataTypeByTaskId,
 } from 'src/features/instance/instanceUtils';
-import { ILayoutSet } from 'src/layout/common.generated';
+import { LayoutSet } from 'src/features/layoutSets/types';
 import { IData } from 'src/types/shared';
 
 describe('instanceUtils.ts', () => {
@@ -82,7 +82,7 @@ describe('instanceUtils.ts', () => {
     } as unknown as IData,
   ];
 
-  const layoutSets: ILayoutSet[] = [
+  const layoutSets: LayoutSet[] = [
     {
       id: 'datamodel',
       tasks: ['Task_1'],
@@ -132,7 +132,7 @@ describe('instanceUtils.ts', () => {
     });
 
     it('should return connected dataTypeId in app metadata if no layout set is configured', () => {
-      const layoutSets: ILayoutSet[] = [];
+      const layoutSets: LayoutSet[] = [];
       const result = getCurrentDataTypeForApplication({
         isStateless: false,
         layoutSets,
@@ -143,7 +143,7 @@ describe('instanceUtils.ts', () => {
     });
 
     it('should return connected dataTypeId based on data type defined in layout sets if the current task has this configured', () => {
-      const layoutSets: ILayoutSet[] = [
+      const layoutSets: LayoutSet[] = [
         {
           id: 'confirm',
           dataType: 'Datamodel-for-confirm',
@@ -161,7 +161,7 @@ describe('instanceUtils.ts', () => {
     });
 
     it('should return datatype of custom receipt if the taskId points to custom receipt', () => {
-      const layoutSets: ILayoutSet[] = [
+      const layoutSets: LayoutSet[] = [
         {
           id: 'confirm',
           dataType: 'Datamodel-for-confirm',
@@ -185,7 +185,7 @@ describe('instanceUtils.ts', () => {
   });
 
   describe('getCurrentTaskDataElementId', () => {
-    const layoutSets: ILayoutSet[] = [];
+    const layoutSets: LayoutSet[] = [];
     it('should return current task data element id', () => {
       const result = getCurrentTaskDataElementId({
         isStateless: false,
@@ -224,7 +224,7 @@ describe('instanceUtils.ts', () => {
 
     it('should log error and fallback to app metadata dataType when layout set dataType is not found in metadata', () => {
       const logErrorSpy = jest.spyOn(window, 'logError').mockImplementation(() => {});
-      const layoutSetsWithInvalidDataType: ILayoutSet[] = [
+      const layoutSetsWithInvalidDataType: LayoutSet[] = [
         {
           id: 'test-set',
           tasks: ['Task_1'],
@@ -244,7 +244,7 @@ describe('instanceUtils.ts', () => {
     });
 
     it('should return dataType from metadata when no layout set is configured for task', () => {
-      const emptyLayoutSets: ILayoutSet[] = [];
+      const emptyLayoutSets: LayoutSet[] = [];
       const result = getDataTypeByTaskId({
         taskId: 'Task_1',
         layoutSets: emptyLayoutSets,
@@ -254,7 +254,7 @@ describe('instanceUtils.ts', () => {
     });
 
     it('should return undefined when task has no matching layout set and no dataType in metadata', () => {
-      const emptyLayoutSets: ILayoutSet[] = [];
+      const emptyLayoutSets: LayoutSet[] = [];
       const result = getDataTypeByTaskId({
         taskId: 'Task_WithNoDataType',
         layoutSets: emptyLayoutSets,
@@ -263,7 +263,7 @@ describe('instanceUtils.ts', () => {
     });
 
     it('should match task from layout set tasks array', () => {
-      const multiTaskLayoutSets: ILayoutSet[] = [
+      const multiTaskLayoutSets: LayoutSet[] = [
         {
           id: 'multi-task-set',
           tasks: ['Task_A', 'Task_B', 'Task_C'],

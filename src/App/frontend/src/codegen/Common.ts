@@ -694,7 +694,7 @@ const common = {
           .setDescription('List of components to exclude from the PDF generation'),
       ),
     ),
-  GlobalPageSettings: () =>
+  GlobalPageSettingsFromSchema: () =>
     new CG.obj(
       new CG.prop(
         'hideCloseButton',
@@ -750,12 +750,12 @@ const common = {
               new CG.prop('id', new CG.str()).omitInSchema(),
               new CG.prop('name', new CG.str().optional()),
               new CG.prop('taskId', new CG.str()),
-            ).exportAs('NavigationTask'),
+            ).exportAs('NavigationTaskFromSchema'),
             new CG.obj(
               new CG.prop('id', new CG.str()).omitInSchema(),
               new CG.prop('name', new CG.str().optional()),
               new CG.prop('type', new CG.const('receipt')),
-            ).exportAs('NavigationReceipt'),
+            ).exportAs('NavigationReceiptFromSchema'),
           ).setUnionType('discriminated'),
         )
           .optional({ default: [] })
@@ -812,7 +812,7 @@ const common = {
           .setTitle('Page groups')
           .setDescription('List of page groups in the order they should appear in the application'),
       ),
-    ).extends(CG.common('GlobalPageSettings'), CG.common('IPagesBaseSettings')),
+    ).extends(CG.common('GlobalPageSettingsFromSchema'), CG.common('IPagesBaseSettings')),
 
   IPagesSettingsWithOrder: () =>
     new CG.obj(
@@ -822,7 +822,7 @@ const common = {
           .setTitle('Page order')
           .setDescription('List of pages in the order they should appear in the application'),
       ),
-    ).extends(CG.common('GlobalPageSettings'), CG.common('IPagesBaseSettings')),
+    ).extends(CG.common('GlobalPageSettingsFromSchema'), CG.common('IPagesBaseSettings')),
   IPagesSettings: () =>
     new CG.union(CG.common('IPagesSettingsWithOrder'), CG.common('IPagesSettingsWithGroups')).setUnionType(
       'discriminated',
@@ -837,20 +837,20 @@ const common = {
       .setDescription('Settings regarding layout pages and components'),
 
   // Layout sets:
-  ILayoutSets: () =>
+  ILayoutSetsFromSchema: () =>
     new CG.obj(
       new CG.prop('$schema', new CG.str().optional()),
       new CG.prop(
         'sets',
-        new CG.arr(CG.common('ILayoutSet'))
+        new CG.arr(CG.common('ILayoutSetFromSchema'))
           .setTitle('Layout sets')
           .setDescription('List of layout sets for different data types'),
       ),
-      new CG.prop('uiSettings', CG.common('GlobalPageSettings').optional()),
+      new CG.prop('uiSettings', CG.common('GlobalPageSettingsFromSchema').optional()),
     )
       .setTitle('Layout sets')
       .setDescription('Settings regarding layout pages and components'),
-  ILayoutSet: () =>
+  ILayoutSetFromSchema: () =>
     new CG.obj(
       new CG.prop(
         'id',
