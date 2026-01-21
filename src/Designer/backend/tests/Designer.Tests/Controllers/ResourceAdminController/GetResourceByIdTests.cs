@@ -28,9 +28,9 @@ namespace Designer.Tests.Controllers.ResourceAdminController
                 .Returns(Task.FromResult(new ServiceResource
                 {
                     Identifier = "testresource",
-                    Title = new Dictionary<string, string>(),
-                    Description = new Dictionary<string, string>(),
-                    RightDescription = new Dictionary<string, string>(),
+                    Title = new(),
+                    Description = new(),
+                    RightDescription = new(),
                     Homepage = "test.no",
                     Status = string.Empty,
                     IsPartOf = string.Empty,

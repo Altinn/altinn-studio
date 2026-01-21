@@ -3,36 +3,25 @@ import type { ChangeEvent, MutableRefObject, ReactElement } from 'react';
 import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioTextfield } from '@studio/components';
-import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
-import type {
-  AppConfigNew,
-  // AvailableForTypeOption,
-  ContactPoint,
-  Keyword,
-  // StatusOption,
-} from 'app-shared/types/AppConfig';
+import type { ContactPoint, Keyword } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
 import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
-import { validateAppConfig } from '../utils/appConfigValidationUtils';
-import { ErrorSummary } from './ErrorSummary';
 import { useScrollIntoView } from '../hooks/useScrollIntoView';
 import { ObjectUtils } from '@studio/pure-functions';
 import { SwitchInput } from './SwitchInput';
 import { mapKeywordsArrayToString, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
-// import { StatusRadioGroup } from './StatusRadioGroup';
-// import { AvailableForTypeCheckboxGroup } from './AvailableForTypeRadioGroup';
 import { ContactPoints } from './ContactPoints';
-import { APP_CONFIG_RESOURCE_TYPE } from 'app-development/features/appSettings/constants/appConfigResourceType';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 export type AppConfigFormProps = {
-  appConfig: AppConfigNew;
-  saveAppConfig: (appConfig: AppConfigNew) => void; // Remove prop when endpoint is implemented
+  appConfig: ApplicationMetadata;
+  saveAppConfig: (appConfig: ApplicationMetadata) => void; // Remove prop when endpoint is implemented
 };
 
 export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps): ReactElement {
   const { t } = useTranslation();
-  const [updatedAppConfig, setUpdatedAppConfig] = useState<AppConfigNew>(appConfig);
+  const [updatedAppConfig, setUpdatedAppConfig] = useState<ApplicationMetadata>(appConfig);
   const [showAppConfigErrors, setShowAppConfigErrors] = useState<boolean>(false);
   const [keywordsInputValue, setKeywordsInputValue] = useState(
     mapKeywordsArrayToString(updatedAppConfig.keywords ?? []),
@@ -42,28 +31,28 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     null,
   );
 
-  const validationErrors: AppConfigFormError[] = validateAppConfig(updatedAppConfig, t);
-  const getFieldErrors = (field: AppResourceFormFieldIds): AppConfigFormError[] => {
-    return getValidationErrorsForField(!showAppConfigErrors, validationErrors, field);
-  };
+  //const validationErrors: AppConfigFormError[] = validateAppConfig(updatedAppConfig, t);
+  // const getFieldErrors = (field: AppResourceFormFieldIds): AppConfigFormError[] => {
+  //   return getValidationErrorsForField(!showAppConfigErrors, validationErrors, field);
+  // };
 
-  const serviceNameErrors: AppConfigFormError[] = getFieldErrors(
-    AppResourceFormFieldIds.ServiceName,
-  );
-  const descriptionErrors: AppConfigFormError[] = getFieldErrors(
-    AppResourceFormFieldIds.Description,
-  );
-  const rightDescriptionErrors: AppConfigFormError[] = getFieldErrors(
-    AppResourceFormFieldIds.RightDescription,
-  );
+  // const serviceNameErrors: AppConfigFormError[] = getFieldErrors(
+  //   AppResourceFormFieldIds.ServiceName,
+  // );
+  // const descriptionErrors: AppConfigFormError[] = getFieldErrors(
+  //   AppResourceFormFieldIds.Description,
+  // );
+  // const rightDescriptionErrors: AppConfigFormError[] = getFieldErrors(
+  //   AppResourceFormFieldIds.RightDescription,
+  // );
   // const statusErrors: AppConfigFormError[] = getFieldErrors(AppResourceFormFieldIds.Status);
   // const availableForTypeErrors: AppConfigFormError[] = getFieldErrors(
   //   AppResourceFormFieldIds.AvailableForType,
   // );
 
-  const contactPointErrors: AppConfigFormError[] = getFieldErrors(
-    AppResourceFormFieldIds.ContactPointsId,
-  );
+  // const contactPointErrors: AppConfigFormError[] = getFieldErrors(
+  //   AppResourceFormFieldIds.ContactPointsId,
+  // );
 
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
 
@@ -74,7 +63,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
 
   const persistAppDetails = (): void => {
     setShowAppConfigErrors(false);
-    saveAppConfig({ ...updatedAppConfig, resourceType: APP_CONFIG_RESOURCE_TYPE });
+    saveAppConfig({ ...updatedAppConfig });
     console.log('AppConfig saved: ', updatedAppConfig); // Will be removed when endpoint is implemented
   };
 
@@ -86,44 +75,50 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   };
 
   const onChangeServiceName = (updatedLanguage: SupportedLanguage): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+    setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
       ...oldVal,
       serviceName: updatedLanguage,
     }));
   };
 
   const onChangeServiceId = (e: ChangeEvent<HTMLInputElement>): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+    setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
       ...oldVal,
       serviceId: e.target.value,
     }));
   };
 
   const onChangeDescription = (updatedLanguage: SupportedLanguage): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+    setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
       ...oldVal,
       description: updatedLanguage,
     }));
   };
 
   const onChangeHomepage = (e: ChangeEvent<HTMLInputElement>): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+    setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
       ...oldVal,
       homepage: e.target.value,
     }));
   };
 
   const onChangeDelegable = (e: ChangeEvent<HTMLInputElement>): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+    setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
       ...oldVal,
-      isDelegable: e.target.checked,
+      access: {
+        ...oldVal.access,
+        delegable: e.target.checked,
+      },
     }));
   };
 
   const onChangeRightDescription = (updatedLanguage: SupportedLanguage): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+    setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
       ...oldVal,
-      rightDescription: updatedLanguage,
+      access: {
+        ...oldVal.access,
+        rightDescription: updatedLanguage,
+      },
     }));
   };
 
@@ -132,49 +127,49 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     setKeywordsInputValue(keywordsString);
 
     const keywords: Keyword[] = mapStringToKeywords(keywordsString);
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+    setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
       ...oldVal,
       keywords,
     }));
   };
 
   // const onChangeStatus = (status: StatusOption): void => {
-  //   setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+  //   setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
   //     ...oldVal,
   //     status,
   //   }));
   // };
 
   // const onChangeSelfIdentifiedUser = (e: ChangeEvent<HTMLInputElement>): void => {
-  //   setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+  //   setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
   //     ...oldVal,
   //     selfIdentifiedUserEnabled: e.target.checked,
   //   }));
   // };
 
   // const onChangeEnterpriseUser = (e: ChangeEvent<HTMLInputElement>): void => {
-  //   setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+  //   setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
   //     ...oldVal,
   //     enterpriseUserEnabled: e.target.checked,
   //   }));
   // };
 
   // const onChangeAvailableForType = (availableForType: AvailableForTypeOption[]): void => {
-  //   setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+  //   setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
   //     ...oldVal,
   //     availableForType: availableForType,
   //   }));
   // };
 
   const onChangeContactPoints = (contactPoints: ContactPoint[]): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+    setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
       ...oldVal,
       contactPoints,
     }));
   };
 
   const onChangeVisible = (e: ChangeEvent<HTMLInputElement>): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+    setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
       ...oldVal,
       visible: e.target.checked,
     }));
@@ -183,13 +178,10 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   return (
     <div className={classes.wrapper}>
       <div className={classes.formWrapper}>
-        {showAppConfigErrors && validationErrors.length > 0 && (
-          <ErrorSummary validationErrors={validationErrors} ref={errorSummaryRef} />
-        )}
         <StudioTextfield
           label={t('app_settings.about_tab_repo_label')}
           description={t('app_settings.about_tab_repo_description')}
-          defaultValue={updatedAppConfig.repositoryName}
+          defaultValue={updatedAppConfig.id}
           readOnly
         />
         <InputfieldsWithTranslation
@@ -198,13 +190,12 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           id={AppResourceFormFieldIds.ServiceName}
           value={updatedAppConfig.serviceName}
           updateLanguage={onChangeServiceName}
-          errors={serviceNameErrors}
           required
         />
         <StudioTextfield
           label={t('app_settings.about_tab_alt_id_label')}
           description={t('app_settings.about_tab_alt_id_description')}
-          value={updatedAppConfig.serviceId}
+          value={updatedAppConfig.id}
           onChange={onChangeServiceId}
           required={false}
           tagText={t('general.optional')}
@@ -217,7 +208,6 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           updateLanguage={onChangeDescription}
           required
           isTextArea
-          errors={descriptionErrors}
         />
         <StudioTextfield
           label={t('app_settings.about_tab_homepage_field_label')}
@@ -229,25 +219,24 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
         />
         <SwitchInput
           switchAriaLabel={t('app_settings.about_tab_delegable_show_text', {
-            shouldText: !updatedAppConfig.isDelegable
+            shouldText: !updatedAppConfig.access?.delegable
               ? t('app_settings.about_tab_switch_should_not')
               : '',
           })}
           cardHeading={t('app_settings.about_tab_delegable_field_label')}
           description={t('app_settings.about_tab_delegable_field_description')}
-          checked={updatedAppConfig?.isDelegable ?? false}
+          checked={updatedAppConfig?.access?.delegable ?? false}
           onChange={onChangeDelegable}
         />
-        {updatedAppConfig.isDelegable && (
+        {updatedAppConfig.access?.delegable && (
           <InputfieldsWithTranslation
             label={t('app_settings.about_tab_right_description_field_label')}
             description={t('app_settings.about_tab_right_description_field_description')}
             id={AppResourceFormFieldIds.RightDescription}
-            value={updatedAppConfig.rightDescription}
+            value={updatedAppConfig.access.rightDescription}
             updateLanguage={onChangeRightDescription}
             required
             isTextArea
-            errors={rightDescriptionErrors}
           />
         )}
         <StudioTextfield
@@ -299,7 +288,6 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
         <ContactPoints
           contactPointList={updatedAppConfig.contactPoints}
           onContactPointsChanged={onChangeContactPoints}
-          errors={contactPointErrors}
           id={AppResourceFormFieldIds.ContactPointsId}
         />
         <SwitchInput
@@ -330,13 +318,4 @@ enum AppResourceFormFieldIds {
   Status = 'status',
   AvailableForType = 'availableForType',
   ContactPointsId = 'contactPoints',
-}
-
-function getValidationErrorsForField(
-  hideErrors: boolean,
-  validationErrors: AppConfigFormError[],
-  field: AppResourceFormFieldIds,
-): AppConfigFormError[] {
-  if (hideErrors) return [];
-  return validationErrors.filter((error) => error.field === field);
 }
