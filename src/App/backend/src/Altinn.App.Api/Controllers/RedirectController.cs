@@ -13,7 +13,7 @@ namespace Altinn.App.Api.Controllers;
 [AutoValidateAntiforgeryTokenIfAuthCookie]
 [Route("{org}/{app}/api/v1/redirect")]
 [ApiController]
-internal sealed class RedirectController(IRedirectUrlValidator redirectUrlValidator) : ControllerBase
+public class RedirectController(IRedirectUrlValidator redirectUrlValidator) : ControllerBase
 {
     /// <summary>
     /// Validates URL used for redirection

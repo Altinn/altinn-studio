@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Features.Redirect;
 /// <summary>
 /// Result of a redirect URL validation.
 /// </summary>
-internal sealed class RedirectUrlValidationResult
+public class RedirectUrlValidationResult
 {
     /// <summary>
     /// Indicates whether the URL is valid.
