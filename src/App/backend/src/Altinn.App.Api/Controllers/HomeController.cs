@@ -29,7 +29,7 @@ public class HomeController : Controller
     private static readonly object _cacheLock = new();
     private static bool _cacheInitialized;
     private static bool _hasLegacyIndexCshtml;
-    private static FrontendConfiguration? _cachedFrontendConfig;
+    private static BrowserAssetsConfiguration? _cachedFrontendConfig;
     private static IReadOnlyList<string> _cachedCustomCssFileNames = [];
     private static IReadOnlyList<string> _cachedCustomJsFileNames = [];
 
@@ -211,16 +211,18 @@ public class HomeController : Controller
             var indexCshtmlPath = Path.Join(appSettings.AppBasePath, "views", "Home", "Index.cshtml");
             _hasLegacyIndexCshtml = System.IO.File.Exists(indexCshtmlPath);
 
-            var configPath = Path.Join(appSettings.AppBasePath, appSettings.ConfigurationFolder, "frontend.json");
+            var configPath = Path.Join(appSettings.AppBasePath, appSettings.ConfigurationFolder, "assets.json");
             if (System.IO.File.Exists(configPath))
             {
                 var json = System.IO.File.ReadAllText(configPath);
-                _cachedFrontendConfig = JsonSerializer.Deserialize<FrontendConfiguration>(json, _jsonSerializerOptions);
+                _cachedFrontendConfig = JsonSerializer.Deserialize<BrowserAssetsConfiguration>(
+                    json,
+                    _jsonSerializerOptions
+                );
             }
 
             _cachedCustomCssFileNames = GetFileNames(appSettings, "custom-css");
             _cachedCustomJsFileNames = GetFileNames(appSettings, "custom-js");
-
             _cacheInitialized = true;
         }
     }
@@ -234,7 +236,7 @@ public class HomeController : Controller
         return Directory.GetFiles(dir).Order().Select(Path.GetFileName).OfType<string>().ToList();
     }
 
-    private static string GenerateStylesheetTag(FrontendAsset stylesheet)
+    private static string GenerateStylesheetTag(BrowserStylesheet stylesheet)
     {
         var sb = new StringBuilder("  <link rel=\"stylesheet\" type=\"text/css\"");
         sb.Append(" href=\"").Append(stylesheet.Url).Append('"');
@@ -245,32 +247,32 @@ public class HomeController : Controller
         if (!string.IsNullOrEmpty(stylesheet.Integrity))
             sb.Append(" integrity=\"").Append(stylesheet.Integrity).Append('"');
 
-        if (!string.IsNullOrEmpty(stylesheet.Crossorigin))
-            sb.Append(" crossorigin=\"").Append(stylesheet.Crossorigin).Append('"');
+        if (stylesheet.Crossorigin)
+            sb.Append(" crossorigin=\"anonymous\"");
 
         sb.AppendLine(">");
         return sb.ToString();
     }
 
-    private static string GenerateScriptTag(FrontendAsset script)
+    private static string GenerateScriptTag(BrowserScript script)
     {
         var sb = new StringBuilder("  <script");
         sb.Append(" src=\"").Append(script.Url).Append('"');
 
-        if (!string.IsNullOrEmpty(script.Type))
-            sb.Append(" type=\"").Append(script.Type).Append('"');
+        if (script.Type is not null)
+            sb.Append(" type=\"module\"");
 
-        if (script.Async == true)
+        if (script.Async)
             sb.Append(" async");
 
-        if (script.Defer == true)
+        if (script.Defer)
             sb.Append(" defer");
 
-        if (script.Nomodule == true)
+        if (script.Nomodule)
             sb.Append(" nomodule");
 
-        if (!string.IsNullOrEmpty(script.Crossorigin))
-            sb.Append(" crossorigin=\"").Append(script.Crossorigin).Append('"');
+        if (script.Crossorigin)
+            sb.Append(" crossorigin=\"anonymous\"");
 
         if (!string.IsNullOrEmpty(script.Integrity))
             sb.Append(" integrity=\"").Append(script.Integrity).Append('"');
