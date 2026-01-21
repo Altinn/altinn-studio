@@ -282,7 +282,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 FireDeletionOfLocalRepo(targetOrg, targetRepository, developer);
             }
 
-            await _sourceControl.CloneRemoteRepository(org, sourceRepository, targetRepositoryPath);
+            await _sourceControl.CloneRemoteRepository(org, sourceRepository, targetRepositoryPath, string.Empty);
             var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepository, developer);
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
