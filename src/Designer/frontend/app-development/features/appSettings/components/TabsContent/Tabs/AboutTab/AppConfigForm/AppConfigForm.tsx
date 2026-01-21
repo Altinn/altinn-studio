@@ -39,7 +39,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     mapKeywordsArrayToString(updatedAppConfig.keywords ?? []),
   );
 
-  const appMetadataBeta = useFeatureFlag(FeatureFlag.AppMetadataBeta);
+  const appMetadata = useFeatureFlag(FeatureFlag.AppMetadata);
 
   const errorSummaryRef: MutableRefObject<HTMLDivElement | null> = useRef<HTMLDivElement | null>(
     null,
@@ -269,7 +269,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           required={false}
           tagText={t('general.optional')}
         />
-        {appMetadataBeta && (
+        {!appMetadata && (
           <>
             <StatusRadioGroup
               selectedStatus={updatedAppConfig.status}
