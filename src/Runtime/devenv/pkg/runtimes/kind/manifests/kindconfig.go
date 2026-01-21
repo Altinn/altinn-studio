@@ -60,7 +60,7 @@ func buildBaseConfig(clusterName string) *v1alpha4.Cluster {
 			Kind:       "Cluster",
 			APIVersion: "kind.x-k8s.io/v1alpha4",
 		},
-		Name:                   clusterName,
+		Name:                    clusterName,
 		ContainerdConfigPatches: []string{containerdConfigPatch},
 		Nodes: []v1alpha4.Node{
 			{

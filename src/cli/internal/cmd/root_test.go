@@ -125,6 +125,62 @@ func TestParseGlobalFlags(t *testing.T) {
 	}
 }
 
+func TestParseGlobalFlags_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		wantErrMsg string
+		args       []string
+	}{
+		{
+			name:       "home flag followed by another flag",
+			args:       []string{"studioctl", "--home", "--foo"},
+			wantErrMsg: "flag --home requires a value, got flag --foo",
+		},
+		{
+			name:       "home flag followed by short flag",
+			args:       []string{"studioctl", "--home", "-v"},
+			wantErrMsg: "flag --home requires a value, got flag -v",
+		},
+		{
+			name:       "socket-dir flag followed by another flag",
+			args:       []string{"studioctl", "--socket-dir", "--home", "/path"},
+			wantErrMsg: "flag --socket-dir requires a value, got flag --home",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			oldArgs := os.Args
+			os.Args = tt.args
+			defer func() { os.Args = oldArgs }()
+
+			_, _, err := cmd.ParseGlobalFlags()
+			if err == nil {
+				t.Fatal("ParseGlobalFlags() expected error, got nil")
+			}
+
+			// Check that error message contains the expected text
+			errMsg := err.Error()
+			if !containsSubstr(errMsg, tt.wantErrMsg) {
+				t.Errorf(
+					"ParseGlobalFlags() error = %q, want containing %q",
+					errMsg, tt.wantErrMsg,
+				)
+			}
+		})
+	}
+}
+
+// containsSubstr checks if s contains substr.
+func containsSubstr(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
+}
+
 func TestCLI_Run(t *testing.T) {
 	tempDir := t.TempDir()
 	cfg, err := config.New(config.Flags{Home: tempDir, SocketDir: "", Verbose: 0}, "test-version")

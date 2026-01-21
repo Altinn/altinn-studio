@@ -2,7 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"os"
 	"sync"
 	"time"
 
@@ -75,9 +74,9 @@ func (s *Spinner) StopWithSuccess(msg string) {
 	s.Stop()
 	var err error
 	if Colors() {
-		_, err = fmt.Fprintln(os.Stdout, successStyle().Render("✓")+" "+msg)
+		_, err = fmt.Fprintln(s.out.out, successStyle().Render("✓")+" "+msg)
 	} else {
-		_, err = fmt.Fprintln(os.Stdout, "[ok] "+msg)
+		_, err = fmt.Fprintln(s.out.out, "[ok] "+msg)
 	}
 	if err != nil {
 		s.out.logWriteErr(err)
@@ -89,9 +88,9 @@ func (s *Spinner) StopWithError(msg string) {
 	s.Stop()
 	var err error
 	if Colors() {
-		_, err = fmt.Fprintln(os.Stdout, errorStyle().Render("✗")+" "+msg)
+		_, err = fmt.Fprintln(s.out.out, errorStyle().Render("✗")+" "+msg)
 	} else {
-		_, err = fmt.Fprintln(os.Stdout, "[error] "+msg)
+		_, err = fmt.Fprintln(s.out.out, "[error] "+msg)
 	}
 	if err != nil {
 		s.out.logWriteErr(err)
@@ -125,13 +124,13 @@ func (s *Spinner) render(frame int) {
 	}
 
 	// Move to start of line, clear, and write
-	if _, err := fmt.Fprintf(os.Stdout, "\r\033[K%s %s", spinner, message); err != nil {
+	if _, err := fmt.Fprintf(s.out.out, "\r\033[K%s %s", spinner, message); err != nil {
 		s.out.logWriteErr(err)
 	}
 }
 
 func (s *Spinner) clearLine() {
-	if _, err := fmt.Fprint(os.Stdout, "\r\033[K"); err != nil {
+	if _, err := fmt.Fprint(s.out.out, "\r\033[K"); err != nil {
 		s.out.logWriteErr(err)
 	}
 }

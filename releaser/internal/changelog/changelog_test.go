@@ -803,3 +803,199 @@ func TestChangelog_String_RoundTrip(t *testing.T) {
 		}
 	}
 }
+
+func TestParse_InvalidCategory(t *testing.T) {
+	tests := []struct {
+		name          string
+		content       string
+		wantCategory  string
+		wantValidList string
+	}{
+		{
+			name: "invalid category in unreleased",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Invalid
+- Some entry`,
+			wantCategory:  "Invalid",
+			wantValidList: "Added, Changed, Fixed, Removed, Security, Deprecated",
+		},
+		{
+			name: "invalid category in version",
+			content: `# Changelog
+
+## [1.0.0] - 2024-01-01
+
+### Breaking
+- Breaking change`,
+			wantCategory:  "Breaking",
+			wantValidList: "Added, Changed, Fixed, Removed, Security, Deprecated",
+		},
+		{
+			name: "typo in category",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Adedd
+- Feature`,
+			wantCategory:  "Adedd",
+			wantValidList: "Added, Changed, Fixed, Removed, Security, Deprecated",
+		},
+		{
+			name: "lowercase category",
+			content: `# Changelog
+
+## [Unreleased]
+
+### added
+- Feature`,
+			wantCategory:  "added",
+			wantValidList: "Added, Changed, Fixed, Removed, Security, Deprecated",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := changelog.Parse(tt.content)
+			if err == nil {
+				t.Fatal("Parse() error = nil, want error")
+			}
+			if !errors.Is(err, changelog.ErrInvalidCategory) {
+				t.Errorf("Parse() error = %v, want error wrapping ErrInvalidCategory", err)
+			}
+			errMsg := err.Error()
+			if !strings.Contains(errMsg, tt.wantCategory) {
+				t.Errorf("error message %q does not contain invalid category %q", errMsg, tt.wantCategory)
+			}
+			if !strings.Contains(errMsg, tt.wantValidList) {
+				t.Errorf("error message %q does not contain valid categories list %q", errMsg, tt.wantValidList)
+			}
+		})
+	}
+}
+
+func TestParse_CategoryOrder(t *testing.T) {
+	tests := []struct {
+		wantErrType  error
+		name         string
+		content      string
+		wantInErrMsg string
+		wantErr      bool
+	}{
+		{
+			name: "correct order",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+### Changed
+- Updated something
+
+### Fixed
+- Bug fix`,
+			wantErr: false,
+		},
+		{
+			name: "wrong order - Fixed before Changed",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+### Fixed
+- Bug fix
+
+### Changed
+- Updated something`,
+			wantErr:      true,
+			wantErrType:  changelog.ErrCategoryOrder,
+			wantInErrMsg: "Changed",
+		},
+		{
+			name: "wrong order - Removed before Fixed",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+### Removed
+- Removed feature
+
+### Fixed
+- Bug fix`,
+			wantErr:      true,
+			wantErrType:  changelog.ErrCategoryOrder,
+			wantInErrMsg: "Fixed",
+		},
+		{
+			name: "single category",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Fixed
+- Bug fix`,
+			wantErr: false,
+		},
+		{
+			name: "subset in correct order",
+			content: `# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+### Fixed
+- Bug fix
+
+### Security
+- Security fix`,
+			wantErr: false,
+		},
+		{
+			name: "wrong order in version section",
+			content: `# Changelog
+
+## [1.0.0] - 2024-01-01
+
+### Fixed
+- Bug fix
+
+### Added
+- New feature`,
+			wantErr:      true,
+			wantErrType:  changelog.ErrCategoryOrder,
+			wantInErrMsg: "Added",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := changelog.Parse(tt.content)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && err != nil {
+				if !errors.Is(err, tt.wantErrType) {
+					t.Errorf("Parse() error = %v, want error wrapping %v", err, tt.wantErrType)
+				}
+				if tt.wantInErrMsg != "" && !strings.Contains(err.Error(), tt.wantInErrMsg) {
+					t.Errorf("Parse() error message %q does not contain %q", err.Error(), tt.wantInErrMsg)
+				}
+			}
+		})
+	}
+}

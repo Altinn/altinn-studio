@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/container/types"
@@ -15,14 +16,14 @@ import (
 type Executor struct {
 	client   container.ContainerClient
 	observer Observer
-	resolved map[ResourceID]any // Stores resolved state (image IDs, etc.)
+	resolved *resolvedMap // Stores resolved state (image IDs, etc.)
 }
 
 // NewExecutor creates an executor with the given container client.
 func NewExecutor(client container.ContainerClient) *Executor {
 	return &Executor{
 		client:   client,
-		resolved: make(map[ResourceID]any),
+		resolved: newResolvedMap(),
 	}
 }
 
@@ -179,7 +180,7 @@ func (e *Executor) applyRemoteImage(ctx context.Context, img *RemoteImage) error
 		return fmt.Errorf("inspect image %s: %w", img.Ref, err)
 	}
 
-	e.resolved[img.ID()] = info.ID
+	e.resolved.Set(img.ID(), info.ID)
 	return nil
 }
 
@@ -199,7 +200,7 @@ func (e *Executor) applyLocalImage(ctx context.Context, img *LocalImage) error {
 		return fmt.Errorf("inspect built image %s: %w", img.Tag, err)
 	}
 
-	e.resolved[img.ID()] = info.ID
+	e.resolved.Set(img.ID(), info.ID)
 	return nil
 }
 
@@ -267,7 +268,7 @@ func (e *Executor) networkStatus(ctx context.Context, net *Network) (Status, err
 
 func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 	// Resolve image ID from previously applied image resource
-	imageID, ok := e.resolved[c.Image.ID()].(string)
+	imageID, ok := e.resolved.Get(c.Image.ID())
 	if !ok {
 		return fmt.Errorf("image %s not resolved (was it applied?)", c.Image.ID())
 	}
@@ -293,8 +294,16 @@ func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 	// Check existing container
 	info, err := e.client.ContainerInspect(ctx, c.Name)
 	if err == nil {
+		// TODO: getting the current state should probably be a separate/phase before execution
+		actualNetworks, err := e.client.ContainerNetworks(ctx, c.Name)
+		if err != nil {
+			return fmt.Errorf("get container networks %s: %w", c.Name, err)
+		}
+
 		// Container exists - check if matches desired state
-		if info.ImageID != imageID || !labelsMatch(c.Labels, info.Labels) {
+		if info.ImageID != imageID ||
+			!labelsMatch(c.Labels, info.Labels) ||
+			!networksMatch(networks, actualNetworks) {
 			// Mismatch - recreate
 			if err := e.stopAndRemoveContainer(ctx, c.Name); err != nil {
 				return err
@@ -396,4 +405,20 @@ func labelsMatch(expected, actual map[string]string) bool {
 		}
 	}
 	return true
+}
+
+// networksMatch checks if desired networks match actual (order-insensitive)
+func networksMatch(desired, actual []string) bool {
+	if len(desired) != len(actual) {
+		return false
+	}
+	sortedDesired := make([]string, len(desired))
+	copy(sortedDesired, desired)
+	slices.Sort(sortedDesired)
+
+	sortedActual := make([]string, len(actual))
+	copy(sortedActual, actual)
+	slices.Sort(sortedActual)
+
+	return slices.Equal(sortedDesired, sortedActual)
 }

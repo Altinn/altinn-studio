@@ -1,7 +1,6 @@
 package dockerapi
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -17,28 +16,39 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
 )
 
 // Client implements ContainerClient for Docker using the official SDK.
 // It can also connect to Podman's Docker-compatible API socket.
 type Client struct {
-	cli      *client.Client
-	isPodman bool // true when connected to Podman's Docker-compat socket
+	cli          *client.Client
+	installation types.RuntimeInstallation
 }
 
 // New creates a new Docker client
 func New(ctx context.Context) (*Client, error) {
-	return newClient(ctx, false)
+	return newClient(ctx, types.InstallationDocker)
 }
 
 // NewPodmanCompat creates a client configured for Podman's Docker-compatible API.
 // Use this when connecting to a Podman socket via DOCKER_HOST.
 func NewPodmanCompat(ctx context.Context) (*Client, error) {
-	return newClient(ctx, true)
+	return newClient(ctx, types.InstallationPodman)
 }
 
-func newClient(ctx context.Context, isPodman bool) (*Client, error) {
+// NewWithInstallation creates a client with explicit installation type
+func NewWithInstallation(ctx context.Context, install types.RuntimeInstallation) (*Client, error) {
+	return newClient(ctx, install)
+}
+
+// NewPodmanCompatWithInstallation creates Podman-compat client with explicit installation
+func NewPodmanCompatWithInstallation(ctx context.Context, install types.RuntimeInstallation) (*Client, error) {
+	return newClient(ctx, install)
+}
+
+func newClient(ctx context.Context, installation types.RuntimeInstallation) (*Client, error) {
 	cli, err := client.NewClientWithOpts(
 		client.FromEnv,
 		client.WithAPIVersionNegotiation(),
@@ -53,12 +63,43 @@ func newClient(ctx context.Context, isPodman bool) (*Client, error) {
 		return nil, fmt.Errorf("failed to connect to docker daemon: %w", err)
 	}
 
-	return &Client{cli: cli, isPodman: isPodman}, nil
+	return &Client{cli: cli, installation: installation}, nil
 }
 
-// IsPodman returns true if connected to Podman's Docker-compatible socket
-func (c *Client) IsPodman() bool {
-	return c.isPodman
+// NewWithHost creates a Docker client connected to specified host
+func NewWithHost(ctx context.Context, host string) (*Client, error) {
+	return newClientWithHost(ctx, types.InstallationDocker, host)
+}
+
+// NewPodmanCompatWithHost creates Podman-compatible client with explicit host
+func NewPodmanCompatWithHost(ctx context.Context, host string, install types.RuntimeInstallation) (*Client, error) {
+	return newClientWithHost(ctx, install, host)
+}
+
+// newClientWithHost is shared implementation using client.WithHost()
+func newClientWithHost(ctx context.Context, installation types.RuntimeInstallation, host string) (*Client, error) {
+	opts := []client.Opt{
+		client.WithHost(host),
+		client.WithAPIVersionNegotiation(),
+	}
+
+	cli, err := client.NewClientWithOpts(opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create docker client: %w", err)
+	}
+
+	// Verify connection by pinging the daemon
+	if _, err := cli.Ping(ctx); err != nil {
+		_ = cli.Close()
+		return nil, fmt.Errorf("failed to connect to docker daemon: %w", err)
+	}
+
+	return &Client{cli: cli, installation: installation}, nil
+}
+
+// Installation returns the container runtime installation type
+func (c *Client) Installation() types.RuntimeInstallation {
+	return c.installation
 }
 
 // Close releases resources held by the client
@@ -76,14 +117,14 @@ func (c *Client) Name() string {
 // The Docker Engine API doesn't support BuildKit sessions without complex setup.
 func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string) error {
 	binary := "docker"
-	if c.isPodman {
+	if c.installation == types.InstallationPodman {
 		binary = "podman"
 	}
 
 	args := []string{"build", "-t", tag, "-f", dockerfile}
 
 	// Disable provenance/sbom attestations for local builds (BuildKit feature)
-	if !c.isPodman {
+	if c.installation != types.InstallationPodman {
 		args = append(args, "--provenance=false", "--sbom=false")
 	}
 
@@ -91,7 +132,7 @@ func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string)
 	cmd := exec.CommandContext(ctx, binary, args...)
 
 	// Enable BuildKit for Docker (Podman uses buildah which handles this natively)
-	if !c.isPodman {
+	if c.installation != types.InstallationPodman {
 		cmd.Env = append(os.Environ(), "DOCKER_BUILDKIT=1")
 	}
 
@@ -195,7 +236,7 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 
 	// Build capability list
 	capAdd := cfg.CapAdd
-	if c.isPodman {
+	if c.installation == types.InstallationPodman {
 		// Podman has a more restrictive default capability set than Docker.
 		// Add Docker's defaults to ensure consistent behavior.
 		capAdd = types.MergeCapabilities(types.DefaultPodmanCapabilities, cfg.CapAdd)
@@ -285,6 +326,7 @@ func (c *Client) ExecWithIO(ctx context.Context, containerName string, cmd []str
 		AttachStdout: true,
 		AttachStderr: true,
 		AttachStdin:  stdin != nil,
+		Tty:          false,
 	}
 
 	resp, err := c.cli.ContainerExecCreate(ctx, containerName, execCfg)
@@ -292,7 +334,7 @@ func (c *Client) ExecWithIO(ctx context.Context, containerName string, cmd []str
 		return fmt.Errorf("failed to create exec: %w", err)
 	}
 
-	attachResp, err := c.cli.ContainerExecAttach(ctx, resp.ID, container.ExecAttachOptions{})
+	attachResp, err := c.cli.ContainerExecAttach(ctx, resp.ID, container.ExecAttachOptions{Tty: false})
 	if err != nil {
 		return fmt.Errorf("failed to attach to exec: %w", err)
 	}
@@ -306,17 +348,18 @@ func (c *Client) ExecWithIO(ctx context.Context, containerName string, cmd []str
 		}()
 	}
 
-	// Copy output - Docker multiplexes stdout/stderr
-	// For simplicity, we just copy to stdout (they're typically the same in our use case)
-	outputBuf := new(bytes.Buffer)
-	_, err = io.Copy(outputBuf, attachResp.Reader)
-	if err != nil && err != io.EOF {
-		return fmt.Errorf("failed to read exec output: %w", err)
+	stdoutWriter := stdout
+	stderrWriter := stderr
+	if stdoutWriter == nil {
+		stdoutWriter = io.Discard
+	}
+	if stderrWriter == nil {
+		stderrWriter = io.Discard
 	}
 
-	// Write output to provided writers
-	if stdout != nil {
-		_, _ = stdout.Write(outputBuf.Bytes())
+	_, err = stdcopy.StdCopy(stdoutWriter, stderrWriter, attachResp.Reader)
+	if err != nil && err != io.EOF {
+		return fmt.Errorf("failed to read exec output: %w", err)
 	}
 
 	// Check exit code
@@ -326,7 +369,7 @@ func (c *Client) ExecWithIO(ctx context.Context, containerName string, cmd []str
 	}
 
 	if inspectResp.ExitCode != 0 {
-		return fmt.Errorf("exec exited with code %d: %s", inspectResp.ExitCode, outputBuf.String())
+		return fmt.Errorf("exec exited with code %d", inspectResp.ExitCode)
 	}
 
 	return nil
@@ -501,13 +544,22 @@ func (c *Client) ContainerWait(ctx context.Context, nameOrID string) (int, error
 	statusCh, errCh := c.cli.ContainerWait(ctx, nameOrID, container.WaitConditionNotRunning)
 
 	select {
+	case status := <-statusCh:
+		// Got status - this is the success path
+		return int(status.StatusCode), nil
 	case err := <-errCh:
 		if err != nil {
 			return -1, fmt.Errorf("wait container: %w", err)
 		}
-		return -1, nil
-	case status := <-statusCh:
-		return int(status.StatusCode), nil
+		// errCh closed but no status - shouldn't happen, handle defensively
+		select {
+		case status := <-statusCh:
+			return int(status.StatusCode), nil
+		case <-ctx.Done():
+			return -1, ctx.Err()
+		default:
+			return -1, fmt.Errorf("wait completed without status")
+		}
 	case <-ctx.Done():
 		return -1, ctx.Err()
 	}

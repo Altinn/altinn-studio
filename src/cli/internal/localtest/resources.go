@@ -30,10 +30,10 @@ const (
 
 // RuntimeConfig holds runtime-specific configuration for localtest.
 type RuntimeConfig struct {
-	HostGateway      string // resolved host gateway IP (e.g., "172.17.0.1")
-	LoadBalancerPort string // port for localtest (default: "80" for Docker, "8000" for Podman)
-	User             string // "uid:gid" to run containers as (prevents root-owned bind mount files)
-	IsPodman         bool   // true if using Podman runtime
+	HostGateway      string                        // resolved host gateway IP (e.g., "172.17.0.1")
+	LoadBalancerPort string                        // port for localtest (default: "80" for Docker, "8000" for Podman)
+	User             string                        // "uid:gid" to run containers as (prevents root-owned bind mount files)
+	Installation     container.RuntimeInstallation // container runtime installation type
 }
 
 // ContainerSpec defines a container to run.
@@ -117,10 +117,7 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 	}
 
 	// Determine environment based on runtime
-	dotnetEnv := "Docker"
-	if cfg.IsPodman {
-		dotnetEnv = "Podman"
-	}
+	dotnetEnv := cfg.Installation.String()
 
 	return []ContainerSpec{
 		newContainerSpec(
@@ -273,6 +270,14 @@ type ResourceBuildOptions struct {
 	IncludeMonitoring bool
 }
 
+// ResourceDestroyOptions holds minimal options for destroying resources.
+type ResourceDestroyOptions struct {
+	DataDir           string
+	Images            config.ImagesConfig
+	IncludeMonitoring bool
+	Installation      container.RuntimeInstallation
+}
+
 // BuildResources creates the resource graph for localtest.
 // Returns pure resource types that can be applied via an Executor.
 func BuildResources(opts ResourceBuildOptions) []resource.Resource {
@@ -365,6 +370,96 @@ func BuildResources(opts ResourceBuildOptions) []resource.Resource {
 	return resources
 }
 
+// BuildResourcesForDestroy creates the list of resources need to shutdown localtest.
+func BuildResourcesForDestroy(opts ResourceDestroyOptions) []resource.Resource {
+	runtimeCfg := RuntimeConfig{
+		Installation:     opts.Installation,
+		HostGateway:      "", // not used for destroy
+		LoadBalancerPort: "", // not used for destroy
+		User:             "", // not used for destroy
+	}
+
+	core := coreContainers(opts.DataDir, runtimeCfg)
+	mon := monitoringContainers(opts.DataDir, runtimeCfg)
+	monImages := monitoringImageRefs(opts.Images.Monitoring)
+
+	labels := map[string]string{LabelKey: LabelValue}
+
+	capacity := 1 + len(core)*2
+	if opts.IncludeMonitoring {
+		capacity += len(mon) * 2
+	}
+	resources := make([]resource.Resource, 0, capacity)
+
+	network := &resource.Network{
+		Name:   NetworkName,
+		Driver: "bridge",
+		Labels: labels,
+	}
+	resources = append(resources, network)
+
+	coreImages := map[string]resource.ImageResource{
+		ContainerLocaltest: &resource.RemoteImage{
+			Ref:        opts.Images.Core.Localtest.Ref(),
+			PullPolicy: resource.PullIfNotPresent,
+		},
+		ContainerPDF3: &resource.RemoteImage{
+			Ref:        opts.Images.Core.PDF3.Ref(),
+			PullPolicy: resource.PullIfNotPresent,
+		},
+	}
+
+	resources = append(resources, coreImages[ContainerLocaltest])
+	resources = append(resources, coreImages[ContainerPDF3])
+
+	for i := range core {
+		spec := &core[i]
+		imageRes := coreImages[spec.Name]
+
+		ctr := &resource.Container{
+			Name:          spec.Name,
+			Image:         resource.Ref(imageRes),
+			Networks:      []resource.ResourceRef{resource.Ref(network)},
+			Labels:        labels,
+			Ports:         nil, // not used for destroy
+			Volumes:       nil, // not used for destroy
+			Env:           nil, // not used for destroy
+			Command:       nil, // not used for destroy
+			ExtraHosts:    nil, // not used for destroy
+			RestartPolicy: "",  // not used for destroy
+			User:          "",  // not used for destroy
+		}
+		resources = append(resources, ctr)
+	}
+
+	for i := range mon {
+		spec := &mon[i]
+
+		image := &resource.RemoteImage{
+			Ref:        monImages[spec.Name],
+			PullPolicy: resource.PullIfNotPresent,
+		}
+		resources = append(resources, image)
+
+		ctr := &resource.Container{
+			Name:          spec.Name,
+			Image:         resource.Ref(image),
+			Networks:      []resource.ResourceRef{resource.Ref(network)},
+			Labels:        labels,
+			Ports:         nil, // not used for destroy
+			Volumes:       nil, // not used for destroy
+			Env:           nil, // not used for destroy
+			Command:       nil, // not used for destroy
+			ExtraHosts:    nil, // not used for destroy
+			RestartPolicy: "",  // not used for destroy
+			User:          "",  // not used for destroy
+		}
+		resources = append(resources, ctr)
+	}
+
+	return resources
+}
+
 // buildCoreImages creates image resources for core containers based on mode.
 func buildCoreImages(opts ResourceBuildOptions) map[string]resource.ImageResource {
 	images := make(map[string]resource.ImageResource, 2)
@@ -397,6 +492,7 @@ func buildCoreImages(opts ResourceBuildOptions) map[string]resource.ImageResourc
 }
 
 // GetStatus returns the current status of localtest.
+// TODO: graph resource model package should handle this (retrieving the current state of a graph of resources).
 func GetStatus(ctx context.Context, client container.ContainerClient) (interfaces.LocaltestStatus, error) {
 	status := newLocaltestStatus()
 

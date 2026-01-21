@@ -24,6 +24,8 @@ var (
 	ErrVersionExists      = errors.New("version already exists in changelog")
 	ErrNoChangelogInDiff  = errors.New("no CHANGELOG.md changes found in diff")
 	ErrNoEntriesInDiff    = errors.New("no changelog entries found in diff")
+	ErrInvalidCategory    = errors.New("invalid changelog category")
+	ErrCategoryOrder      = errors.New("categories not in standard order")
 )
 
 // Section represents a version section in the changelog.
@@ -75,6 +77,42 @@ var standardCategoryOrder = []string{
 	"Added", "Changed", "Fixed", "Removed", "Security", "Deprecated",
 }
 
+// categoryValidator validates category names and order.
+type categoryValidator struct {
+	lastCategoryIndex int
+}
+
+func newCategoryValidator() *categoryValidator {
+	return &categoryValidator{lastCategoryIndex: -1}
+}
+
+// reset resets the validator for a new section.
+func (v *categoryValidator) reset() {
+	v.lastCategoryIndex = -1
+}
+
+// validate checks if a category is valid and in the correct order.
+// Returns nil on success, or an error describing the validation failure.
+func (v *categoryValidator) validate(categoryName string) error {
+	categoryIndex := slices.Index(standardCategoryOrder, categoryName)
+	if categoryIndex == -1 {
+		return fmt.Errorf("%w: %q (valid categories: %s)",
+			ErrInvalidCategory,
+			categoryName,
+			strings.Join(standardCategoryOrder, ", "))
+	}
+
+	if categoryIndex < v.lastCategoryIndex {
+		return fmt.Errorf("%w: %q appears out of order (expected order: %s)",
+			ErrCategoryOrder,
+			categoryName,
+			strings.Join(standardCategoryOrder, ", "))
+	}
+
+	v.lastCategoryIndex = categoryIndex
+	return nil
+}
+
 // Parse parses changelog content into an AST representation.
 func Parse(content string) (*Changelog, error) {
 	return ParseWithDiff(content, "", "")
@@ -111,6 +149,7 @@ func parseContent(cl *Changelog, content string) error {
 	var preamble strings.Builder
 	var currentSection *Section
 	var currentCategory *Category
+	validator := newCategoryValidator()
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -126,6 +165,7 @@ func parseContent(cl *Changelog, content string) error {
 				Categories: nil,
 			}
 			currentCategory = nil
+			validator.reset()
 			cl.Unreleased = currentSection
 			continue
 		}
@@ -152,6 +192,7 @@ func parseContent(cl *Changelog, content string) error {
 				Categories: nil,
 			}
 			currentCategory = nil
+			validator.reset()
 			cl.Versions = append(cl.Versions, currentSection)
 			continue
 		}
@@ -159,11 +200,16 @@ func parseContent(cl *Changelog, content string) error {
 		// Check for category header
 		if matches := categoryPattern.FindStringSubmatch(line); matches != nil {
 			if currentSection != nil {
+				categoryName := matches[1]
+				if err := validator.validate(categoryName); err != nil {
+					return err
+				}
+
 				if currentCategory != nil {
 					currentSection.Categories = append(currentSection.Categories, *currentCategory)
 				}
 				currentCategory = &Category{
-					Name:    matches[1],
+					Name:    categoryName,
 					Entries: nil,
 				}
 			}

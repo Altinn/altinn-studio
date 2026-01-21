@@ -153,17 +153,24 @@ func parseVerboseFlag(arg string, currentCount int) (int, bool) {
 }
 
 // parseStringFlag handles --name value and --name=value style flags.
-// Returns the value, skip count (0 or 1), and whether the flag was handled.
-func parseStringFlag(args []string, i int, name string) (value string, skip int, handled bool) {
+// Returns the value, skip count (0 or 1), whether the flag was handled, and any error.
+func parseStringFlag(args []string, i int, name string) (value string, skip int, handled bool, err error) {
 	arg := args[i]
 	prefix := "--" + name + "="
 	if value, found := strings.CutPrefix(arg, prefix); found {
-		return value, 0, true
+		return value, 0, true, nil
 	}
 	if arg == "--"+name && i+1 < len(args) {
-		return args[i+1], 1, true
+		nextArg := args[i+1]
+		if strings.HasPrefix(nextArg, "-") {
+			return "", 0, false, fmt.Errorf(
+				"flag --%s requires a value, got flag %s: %w",
+				name, nextArg, ErrInvalidFlagValue,
+			)
+		}
+		return args[i+1], 1, true, nil
 	}
-	return "", 0, false
+	return "", 0, false, nil
 }
 
 // isPassthroughFlag returns true for flags that should be passed to remaining args.
@@ -188,12 +195,16 @@ func ParseGlobalFlags() (config.Flags, []string, error) {
 		}
 
 		// Try string flags
-		if val, skip, ok := parseStringFlag(args, i, "home"); ok {
+		if val, skip, ok, err := parseStringFlag(args, i, "home"); err != nil {
+			return config.Flags{}, nil, fmt.Errorf("parsing --home flag: %w", err)
+		} else if ok {
 			flags.Home = val
 			i += skip
 			continue
 		}
-		if val, skip, ok := parseStringFlag(args, i, "socket-dir"); ok {
+		if val, skip, ok, err := parseStringFlag(args, i, "socket-dir"); err != nil {
+			return config.Flags{}, nil, fmt.Errorf("parsing --socket-dir flag: %w", err)
+		} else if ok {
 			flags.SocketDir = val
 			i += skip
 			continue

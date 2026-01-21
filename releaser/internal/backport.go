@@ -130,8 +130,14 @@ func parseBackportConfig(req BackportRequest, comp *Component) (*backportConfig,
 
 	// Parse major/minor as integers for ReleaseBranch
 	major, minor := 0, 0
-	_, _ = fmt.Sscanf(parts[0], "%d", &major) //nolint:errcheck // best effort parse
-	_, _ = fmt.Sscanf(parts[1], "%d", &minor) //nolint:errcheck // best effort parse
+	n, err := fmt.Sscanf(parts[0], "%d", &major)
+	if err != nil || n != 1 {
+		return nil, errBackportInvalidVersion
+	}
+	n, err = fmt.Sscanf(parts[1], "%d", &minor)
+	if err != nil || n != 1 {
+		return nil, errBackportInvalidVersion
+	}
 
 	releaseBranch := comp.ReleaseBranch(major, minor)
 
@@ -241,12 +247,24 @@ func applyBackportChanges(
 	clPath string,
 	commitSHA string,
 	entries []changelog.Entry,
-) error {
+) (err error) {
+	defer func() {
+		if err != nil {
+			// Cleanup: abort cherry-pick to restore clean state
+			// Log abort errors but don't override the original error
+			if abortErr := git.RunWrite(ctx, "cherry-pick", "--abort"); abortErr != nil {
+				log.Error("Failed to abort cherry-pick during cleanup: %v", abortErr)
+			}
+		}
+	}()
+
 	log.Step("Applying backport changes")
-	if err := git.RunWrite(ctx, "cherry-pick", "-x", "--no-commit", commitSHA); err != nil {
+	err = git.RunWrite(ctx, "cherry-pick", "-x", "--no-commit", commitSHA)
+	if err != nil {
 		return fmt.Errorf("cherry-pick commit: %w", err)
 	}
-	if err := git.RunWrite(ctx, "checkout", "HEAD", "--", clPath); err != nil {
+	err = git.RunWrite(ctx, "checkout", "HEAD", "--", clPath)
+	if err != nil {
 		return fmt.Errorf("restore changelog: %w", err)
 	}
 

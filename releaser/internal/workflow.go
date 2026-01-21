@@ -213,6 +213,21 @@ func (w *Workflow) enforcePrereleasePolicy(currentBranch string) error {
 	return nil
 }
 
+func (w *Workflow) validateWorkingTreeClean(ctx context.Context) error {
+	clean, err := w.git.WorkingTreeClean(ctx)
+	if err != nil {
+		return fmt.Errorf("check working tree: %w", err)
+	}
+	if !clean {
+		w.log.Error("Working tree has uncommitted changes")
+		w.log.Error("Commit or stash changes before releasing:")
+		w.log.Error("  git add -A && git commit -m 'your message'")
+		w.log.Error("  or: git stash")
+		return ErrWorkingTreeDirty
+	}
+	return nil
+}
+
 func (w *Workflow) enforceStablePolicy(ctx context.Context, currentBranch string) error {
 	releaseBranch := w.tag.ReleaseBranch()
 	branchExists, err := w.git.RemoteBranchExists(ctx, releaseBranch)
@@ -227,18 +242,27 @@ func (w *Workflow) enforceStablePolicy(ctx context.Context, currentBranch string
 
 	w.log.Detail("Release branch exists", releaseBranch)
 
-	if currentBranch != releaseBranch {
-		if w.config.UnsafeSkipBranchCheck {
-			w.log.Info("(unsafe-skip-branch-check) Ignoring branch requirement, on %s", currentBranch)
-			return nil
-		}
-		w.log.Info("Checking out release branch")
-		if err := w.git.Checkout(ctx, releaseBranch); err != nil {
-			return fmt.Errorf("checkout release branch: %w", err)
-		}
-		if err := w.git.Pull(ctx, "origin", releaseBranch); err != nil {
-			return fmt.Errorf("pull release branch: %w", err)
-		}
+	if currentBranch == releaseBranch {
+		w.log.Success("Using release branch")
+		return nil
+	}
+
+	if w.config.UnsafeSkipBranchCheck {
+		w.log.Info("(unsafe-skip-branch-check) Ignoring branch requirement, on %s", currentBranch)
+		return nil
+	}
+
+	// Pre-flight validation before checkout
+	if err := w.validateWorkingTreeClean(ctx); err != nil {
+		return err
+	}
+
+	w.log.Info("Checking out release branch")
+	if err := w.git.Checkout(ctx, releaseBranch); err != nil {
+		return fmt.Errorf("checkout release branch: %w", err)
+	}
+	if err := w.git.Pull(ctx, "origin", releaseBranch); err != nil {
+		return fmt.Errorf("pull release branch: %w", err)
 	}
 
 	w.log.Success("Using release branch")

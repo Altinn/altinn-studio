@@ -24,7 +24,7 @@ func TestWorkflow_Run_TagExists(t *testing.T) {
 
 	workflow, err := internal.NewWorkflow(t.Context(),
 		cfg,
-		&fakeGit{tagExists: true},
+		&fakeGit{tagExists: true, workingTreeClean: true},
 		&fakeGH{},
 		&fakeBuilder{},
 		internal.NopLogger{},
@@ -54,7 +54,7 @@ func TestWorkflow_Run_PreviewMustBeOnMain(t *testing.T) {
 
 	workflow, err := internal.NewWorkflow(t.Context(),
 		cfg,
-		&fakeGit{currentBranch: "feature/foo"},
+		&fakeGit{currentBranch: "feature/foo", workingTreeClean: true},
 		&fakeGH{},
 		&fakeBuilder{},
 		internal.NopLogger{},
@@ -91,7 +91,7 @@ func TestWorkflow_Run_ChangelogMissing(t *testing.T) {
 
 	workflow, err := internal.NewWorkflow(t.Context(),
 		cfg,
-		&fakeGit{currentBranch: "main"},
+		&fakeGit{currentBranch: "main", workingTreeClean: true},
 		&fakeGH{},
 		builder,
 		internal.NopLogger{},
@@ -141,7 +141,7 @@ func TestWorkflow_Run_PreviewSuccess(t *testing.T) {
 	workflow, err := internal.NewWorkflow(
 		t.Context(),
 		cfg,
-		&fakeGit{currentBranch: "main"},
+		&fakeGit{currentBranch: "main", workingTreeClean: true},
 		gh,
 		builder,
 		internal.NopLogger{},
@@ -192,6 +192,7 @@ func TestWorkflow_Run_StableChecksOutReleaseBranch(t *testing.T) {
 	git := &fakeGit{
 		currentBranch:      "main",
 		remoteBranchExists: true,
+		workingTreeClean:   true,
 	}
 
 	cfg := internal.WorkflowConfig{
@@ -219,6 +220,54 @@ func TestWorkflow_Run_StableChecksOutReleaseBranch(t *testing.T) {
 	}
 	if gh.target != "release/studioctl/v1.2" {
 		t.Fatalf("target = %s, want release/studioctl/v1.2", gh.target)
+	}
+}
+
+func TestWorkflow_Run_DirtyWorkingTree(t *testing.T) {
+	t.Parallel()
+
+	changelogPath := writeChangelog(t, `# Changelog
+
+## [Unreleased]
+
+## [v1.2.3] - 2025-01-01
+
+### Added
+- Test entry
+`)
+
+	outputDir := t.TempDir()
+	builder := &fakeBuilder{}
+	gh := &fakeGH{}
+	git := &fakeGit{
+		currentBranch:      "main",
+		remoteBranchExists: true,
+		workingTreeClean:   false,
+	}
+
+	cfg := internal.WorkflowConfig{
+		Component:     "studioctl",
+		Version:       "v1.2.3",
+		ChangelogPath: changelogPath,
+		OutputDir:     outputDir,
+		DryRun:        false,
+		Draft:         true,
+	}
+
+	workflow, err := internal.NewWorkflow(t.Context(), cfg, git, gh, builder, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("NewWorkflow() error: %v", err)
+	}
+	err = workflow.Run(t.Context())
+
+	if err == nil {
+		t.Fatalf("expected error for dirty working tree, got nil")
+	}
+	if !errors.Is(err, internal.ErrWorkingTreeDirty) {
+		t.Fatalf("error = %v, want ErrWorkingTreeDirty", err)
+	}
+	if git.checkoutCount != 0 {
+		t.Fatalf("expected checkout not to be called, got %d calls", git.checkoutCount)
 	}
 }
 
@@ -252,7 +301,7 @@ func TestWorkflow_Run_NilBuilder(t *testing.T) {
 	workflow, err := internal.NewWorkflow(
 		t.Context(),
 		cfg,
-		&fakeGit{currentBranch: "main"},
+		&fakeGit{currentBranch: "main", workingTreeClean: true},
 		gh,
 		nil,
 		internal.NopLogger{},
@@ -281,7 +330,14 @@ func TestNewWorkflow_InvalidComponent(t *testing.T) {
 		Version:   "v1.0.0",
 	}
 
-	_, err := internal.NewWorkflow(t.Context(), cfg, &fakeGit{}, &fakeGH{}, nil, internal.NopLogger{})
+	_, err := internal.NewWorkflow(
+		t.Context(),
+		cfg,
+		&fakeGit{workingTreeClean: true},
+		&fakeGH{},
+		nil,
+		internal.NopLogger{},
+	)
 	if err == nil {
 		t.Fatalf("expected error for invalid component, got nil")
 	}
@@ -298,7 +354,14 @@ func TestNewWorkflow_InvalidVersion(t *testing.T) {
 		Version:   "invalid",
 	}
 
-	_, err := internal.NewWorkflow(t.Context(), cfg, &fakeGit{}, &fakeGH{}, nil, internal.NopLogger{})
+	_, err := internal.NewWorkflow(
+		t.Context(),
+		cfg,
+		&fakeGit{workingTreeClean: true},
+		&fakeGH{},
+		nil,
+		internal.NopLogger{},
+	)
 	if err == nil {
 		t.Fatalf("expected error for invalid version, got nil")
 	}
@@ -315,6 +378,7 @@ type fakeGit struct {
 	pullCount          int
 	tagExists          bool
 	remoteBranchExists bool
+	workingTreeClean   bool
 }
 
 func (g *fakeGit) TagExists(_ context.Context, _ string) (bool, error) {
@@ -354,6 +418,13 @@ func (g *fakeGit) PushWithUpstream(_ context.Context, _, _ string) error {
 
 func (g *fakeGit) RepoRoot(_ context.Context) (string, error) {
 	return ".", nil
+}
+
+func (g *fakeGit) WorkingTreeClean(_ context.Context) (bool, error) {
+	if !g.workingTreeClean {
+		return false, nil
+	}
+	return true, nil
 }
 
 type fakeGH struct {
