@@ -1,12 +1,12 @@
 # Altinn Studio Makefile
 # Make targets for syncing subtree repositories
 
-# Configuration: name:prefix:repo:remote
-SUBTREES := localtest:src/Runtime/localtest:../app-localtest:Altinn/app-localtest \
-           frontend:src/App/frontend:../app-frontend-react:Altinn/app-frontend-react \
-           backend:src/App/backend:../app-lib-dotnet:Altinn/app-lib-dotnet \
-           fileanalyzers:src/App/fileanalyzers:../fileanalyzers-lib-dotnet:Altinn/fileanalyzers-lib-dotnet \
-           codelists:src/App/codelists:../codelists-lib-dotnet:Altinn/codelists-lib-dotnet
+# Configuration: name:prefix:repo-url:branch
+SUBTREES := localtest:src/Runtime/localtest:https://github.com/Altinn/app-localtest.git:main \
+           frontend:src/App/frontend:https://github.com/Altinn/app-frontend-react.git:main \
+           backend:src/App/backend:https://github.com/Altinn/app-lib-dotnet.git:main \
+           fileanalyzers:src/App/fileanalyzers:https://github.com/Altinn/fileanalyzers-lib-dotnet.git:main \
+           codelists:src/App/codelists:https://github.com/Altinn/codelists-lib-dotnet.git:main
 
 # Test apps configuration for subtree syncing (these all live in src/test/apps)
 # Format: app-name:repo-url:branch
@@ -29,16 +29,104 @@ DEFAULT_BRANCH = main
 # Extract target names for .PHONY
 SUBTREE_TARGETS := $(foreach subtree,$(SUBTREES),sync-$(word 1,$(subst :, ,$(subtree))))
 
-.PHONY: $(SUBTREE_TARGETS) help create-pr sync-test-apps
+.PHONY: $(SUBTREE_TARGETS) help create-pr sync-test-apps sync-all
 
 help: ## Show this help message
 	@echo "Available targets:"
 	@$(foreach subtree,$(SUBTREES), \
-		echo "  sync-$(word 1,$(subst :, ,$(subtree))) - Sync $(word 1,$(subst :, ,$(subtree))) subtree from $(word 3,$(subst :, ,$(subtree)))";)
+		echo "  sync-$(word 1,$(subst :, ,$(subtree))) - Sync $(word 1,$(subst :, ,$(subtree))) subtree";)
 	@echo "  sync-test-apps - Sync all test app subtrees in src/test/apps"
+	@echo "  sync-all       - Sync all subtrees (main + test apps) and create a single PR"
 	@echo "  help - Show this help message"
 
-create-pr: ## Push changes and create pull request for sync job
+# =============================================================================
+# Reusable macros
+# =============================================================================
+
+# Check for uncommitted changes
+define check-clean-working-tree
+	@if ! git diff-index --quiet HEAD --; then \
+		echo "ERROR: You have uncommitted changes in your working directory"; \
+		echo "Please commit or stash your changes before syncing"; \
+		exit 1; \
+	fi
+endef
+
+# Create a sync branch (usage: $(call create-sync-branch,branch-suffix))
+define create-sync-branch
+	@branch_name="chore/subtree-sync-$(1)"; \
+	if git show-ref --verify --quiet refs/heads/$$branch_name; then \
+		echo "ERROR: Branch $$branch_name already exists"; \
+		echo "Please merge/close that PR and delete the branch before attempting another sync"; \
+		exit 1; \
+	fi; \
+	echo "Fetching latest $(DEFAULT_BRANCH)..."; \
+	git fetch origin $(DEFAULT_BRANCH) && \
+	echo "Creating branch $$branch_name from origin/$(DEFAULT_BRANCH)..."; \
+	git checkout -b $$branch_name origin/$(DEFAULT_BRANCH)
+endef
+
+# Handle merge conflicts (waits for user to resolve, then commits)
+define handle-conflicts
+	echo ""; \
+	echo "==============================================="; \
+	echo "Merge conflicts detected!"; \
+	echo "==============================================="; \
+	echo ""; \
+	echo "Please resolve the conflicts in your editor."; \
+	read -p "Press Enter after resolving conflicts..." dummy; \
+	while git diff --name-only --diff-filter=U | grep -q .; do \
+		echo ""; \
+		echo "ERROR: There are still unresolved conflicts:"; \
+		git diff --name-only --diff-filter=U; \
+		echo ""; \
+		read -p "Press Enter after resolving all conflicts..." dummy; \
+	done; \
+	echo "Committing resolved conflicts..."; \
+	git add . && git commit --no-edit
+endef
+
+# Pull a single subtree (usage: $(call pull-subtree,name,prefix,repo-url,branch))
+define pull-subtree
+	@echo ""; \
+	echo "Syncing $(1) subtree from $(3) ($(4))..."; \
+	git fetch $(3) $(4) && \
+	if GIT_MERGE_AUTOEDIT=no git subtree pull --prefix=$(2) $(3) $(4); then \
+		echo "OK: $(1) subtree synced successfully"; \
+	else \
+		$(handle-conflicts); \
+	fi
+endef
+
+# Pull a single test app (usage: $(call pull-test-app,name,repo-url,branch))
+define pull-test-app
+	@echo "Syncing test app $(1) from $(2) ($(3))..."; \
+	git fetch $(2) $(3) && \
+	if GIT_MERGE_AUTOEDIT=no git subtree pull --prefix=src/test/apps/$(1) $(2) $(3); then \
+		echo "OK: $(1) synced successfully"; \
+	else \
+		$(handle-conflicts); \
+	fi
+endef
+
+# Pull all test apps
+define pull-all-test-apps
+	$(foreach app,$(TEST_APPS), \
+		$(call pull-test-app,$(word 1,$(subst :, ,$(app))),$(word 2,$(subst :, ,$(app))):$(word 3,$(subst :, ,$(app))),$(word 4,$(subst :, ,$(app)))))
+endef
+
+# Pull all main subtrees
+define pull-all-subtrees
+	$(foreach subtree,$(SUBTREES), \
+		$(call pull-subtree,$(word 1,$(subst :, ,$(subtree))),$(word 2,$(subst :, ,$(subtree))),$(word 3,$(subst :, ,$(subtree))),$(word 4,$(subst :, ,$(subtree)))))
+endef
+
+# =============================================================================
+# Targets
+# =============================================================================
+
+# Push changes and create pull request for sync job
+create-pr:
 	@current_branch=$$(git rev-parse --abbrev-ref HEAD); \
 	subtree_name=$$(echo $$current_branch | sed 's/chore\/subtree-sync-//'); \
 	if [ -n "$(SUBTREE_NAME)" ]; then \
@@ -56,126 +144,30 @@ create-pr: ## Push changes and create pull request for sync job
 		echo "Install GitHub CLI to enable automatic PR creation: https://cli.github.com/"; \
 	fi
 
-# Function to perform sync validation and execution
-# Usage: $(call sync-subtree,name,prefix,repo,remote)
-define sync-subtree
-	@echo "Syncing $(1) subtree..."
-	@current_branch=$$(git rev-parse --abbrev-ref HEAD); \
-	if [ "$$current_branch" != "$(DEFAULT_BRANCH)" ]; then \
-		echo "ERROR: You must be on the $(DEFAULT_BRANCH) branch to start a sync"; \
-		echo "Current branch: $$current_branch"; \
-		echo "Please checkout $(DEFAULT_BRANCH) first: git checkout $(DEFAULT_BRANCH)"; \
-		exit 1; \
-	fi
-	@branch_name="chore/subtree-sync-$(1)"; \
-	if git show-ref --verify --quiet refs/heads/$$branch_name; then \
-		echo "ERROR: Branch $$branch_name already exists"; \
-		echo "Please merge/close that PR and delete your remote and local branch before attempting another sync"; \
-		exit 1; \
-	fi; \
-	echo "Creating branch $$branch_name..."; \
-	git checkout -b $$branch_name
-	@if [ ! -d "$(3)" ]; then \
-		echo "ERROR: Source directory $(3) does not exist"; \
-		exit 1; \
-	fi
-	@cd $(3) && \
-		current_remote=$$(git remote get-url origin 2>/dev/null | sed 's|.*github.com[:/]||' | sed 's|\.git$$||') && \
-		if [ "$$current_remote" != "$(4)" ]; then \
-			echo "ERROR: $(3) remote is $$current_remote, expected $(4)"; \
-			exit 1; \
-		fi && \
-		echo "OK: Remote verification passed: $$current_remote" && \
-		current_branch=$$(git rev-parse --abbrev-ref HEAD) && \
-		if [ "$$current_branch" != "$(DEFAULT_BRANCH)" ]; then \
-			echo "ERROR: $(3) is on branch $$current_branch, expected $(DEFAULT_BRANCH)"; \
-			echo "Please checkout $(DEFAULT_BRANCH) and pull latest changes manually"; \
-			exit 1; \
-		fi && \
-		git fetch origin && \
-		local_commit=$$(git rev-parse HEAD) && \
-		remote_commit=$$(git rev-parse origin/$(DEFAULT_BRANCH)) && \
-		if [ "$$local_commit" != "$$remote_commit" ]; then \
-			echo "ERROR: $(3) is not up to date with origin/$(DEFAULT_BRANCH)"; \
-			echo "Please pull latest changes manually"; \
-			exit 1; \
-		fi && \
-		echo "OK: $(3) is up to date with origin/$(DEFAULT_BRANCH)"
-	@set -e; \
-	if git subtree pull --prefix=$(2) $(3) $(DEFAULT_BRANCH); then \
-		echo "OK: $(1) subtree sync complete"; \
-		$(MAKE) create-pr SUBTREE_NAME=$(1); \
-	else \
-		echo ""; \
-		echo "==============================================="; \
-		echo "Merge conflicts detected!"; \
-		echo "==============================================="; \
-		echo ""; \
-		echo "Please resolve conflicts in the affected files,"; \
-		echo "then stage and commit your changes:"; \
-		echo "  git add ."; \
-		echo "  git commit --no-edit"; \
-		echo ""; \
-		read -p "Press Enter after resolving conflicts to continue with PR creation..." dummy; \
-		$(MAKE) create-pr SUBTREE_NAME=$(1); \
-	fi
-endef
-
-# Generate sync targets dynamically
+# Generate individual sync targets dynamically
 $(foreach subtree,$(SUBTREES), \
-	$(eval sync-$(word 1,$(subst :, ,$(subtree))): ## Sync $(word 1,$(subst :, ,$(subtree))) subtree) \
-	$(eval sync-$(word 1,$(subst :, ,$(subtree))): ; $$(call sync-subtree,$(word 1,$(subst :, ,$(subtree))),$(word 2,$(subst :, ,$(subtree))),$(word 3,$(subst :, ,$(subtree))),$(word 4,$(subst :, ,$(subtree))))))
+	$(eval sync-$(word 1,$(subst :, ,$(subtree))): ; \
+		$$(call create-sync-branch,$(word 1,$(subst :, ,$(subtree)))) \
+		$$(call pull-subtree,$(word 1,$(subst :, ,$(subtree))),$(word 2,$(subst :, ,$(subtree))),$(word 3,$(subst :, ,$(subtree))),$(word 4,$(subst :, ,$(subtree)))) \
+		@$$(MAKE) create-pr SUBTREE_NAME=$(word 1,$(subst :, ,$(subtree)))))
 
 # Sync all test apps
 sync-test-apps: ## Sync all test app subtrees
 	@echo "Syncing all test apps..."
-	@# Check for uncommitted changes
-	@if ! git diff-index --quiet HEAD --; then \
-		echo "ERROR: You have uncommitted changes in your working directory"; \
-		echo "Please commit or stash your changes before syncing:"; \
-		echo "  git add ."; \
-		echo "  git commit -m 'your message'"; \
-		echo "  OR"; \
-		echo "  git stash"; \
-		exit 1; \
-	fi
-	@current_branch=$$(git rev-parse --abbrev-ref HEAD); \
-	if [ "$$current_branch" != "$(DEFAULT_BRANCH)" ]; then \
-		echo "ERROR: You must be on the $(DEFAULT_BRANCH) branch to start a sync"; \
-		echo "Current branch: $$current_branch"; \
-		echo "Please checkout $(DEFAULT_BRANCH) first: git checkout $(DEFAULT_BRANCH)"; \
-		exit 1; \
-	fi
-	@branch_name="chore/subtree-sync-test-apps"; \
-	if git show-ref --verify --quiet refs/heads/$$branch_name; then \
-		echo "ERROR: Branch $$branch_name already exists"; \
-		echo "Please merge/close that PR and delete your remote and local branch before attempting another sync"; \
-		exit 1; \
-	fi; \
-	echo "Creating branch $$branch_name..."; \
-	git checkout -b $$branch_name
-	@$(foreach app,$(TEST_APPS), \
-		app_name=$$(echo "$(app)" | cut -d: -f1); \
-		repo_url=$$(echo "$(app)" | cut -d: -f2-3); \
-		branch=$$(echo "$(app)" | cut -d: -f4); \
-		echo ""; \
-		echo "Syncing $$app_name from $$repo_url ($$branch)..."; \
-		git fetch $$repo_url $$branch && \
-		if GIT_MERGE_AUTOEDIT=no git subtree pull --prefix=src/test/apps/$$app_name $$repo_url $$branch; then \
-			echo "OK: $$app_name synced successfully"; \
-		else \
-			echo ""; \
-			echo "==============================================="; \
-			echo "Merge conflicts detected for $$app_name!"; \
-			echo "==============================================="; \
-			echo ""; \
-			echo "Please resolve conflicts in the affected files,"; \
-			echo "then stage and commit your changes:"; \
-			echo "  git add ."; \
-			echo "  git commit --no-edit"; \
-			echo ""; \
-			read -p "Press Enter after resolving conflicts to continue..." dummy; \
-		fi;)
+	$(check-clean-working-tree)
+	$(call create-sync-branch,test-apps)
+	$(pull-all-test-apps)
 	@echo ""
 	@echo "All test apps synced successfully!"
 	@$(MAKE) create-pr SUBTREE_NAME=test-apps
+
+# Sync all subtrees (main + test apps) in a single PR
+sync-all: ## Sync all subtrees and create a single PR
+	@echo "Syncing all subtrees..."
+	$(check-clean-working-tree)
+	$(call create-sync-branch,all)
+	$(pull-all-subtrees)
+	$(pull-all-test-apps)
+	@echo ""
+	@echo "All subtrees synced successfully!"
+	@$(MAKE) create-pr SUBTREE_NAME=all
