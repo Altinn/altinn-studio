@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Helpers.Serialization;
 
 namespace Altinn.App.Core.Models;
 
@@ -55,19 +56,16 @@ public class GlobalPageSettings
 /// <summary>
 /// Auto save behavior options for form data.
 /// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum AutoSaveBehavior
 {
     /// <summary>
     /// Save on every interaction with form elements.
     /// </summary>
-    [JsonPropertyName("onChangeFormData")]
     OnChangeFormData,
 
     /// <summary>
     /// Save on every page change.
     /// </summary>
-    [JsonPropertyName("onChangePage")]
     OnChangePage,
 }
 
