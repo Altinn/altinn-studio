@@ -28,34 +28,72 @@ internal sealed class AssetsConfigGenerator
     /// Generates FrontendConfiguration containing external assets with their attributes
     /// </summary>
     /// <returns>Frontend configuration object</returns>
-    public AssetsConfiguration Generate()
+    public BrowserAssetsConfiguration Generate()
     {
         var externalStylesheets = _categorizationResult
             .KnownCustomizations.Where(c =>
                 c.CustomizationType == CustomizationType.ExternalStylesheet && c.Asset != null
             )
             .Select(c => c.Asset)
-            .OfType<BrowserAsset>()
+            .OfType<BrowserStylesheet>()
             .Select(ReplaceViewBagPlaceholders)
             .ToList();
 
         var externalScripts = _categorizationResult
             .KnownCustomizations.Where(c => c.CustomizationType == CustomizationType.ExternalScript && c.Asset != null)
             .Select(c => c.Asset)
-            .OfType<BrowserAsset>()
+            .OfType<BrowserScript>()
             .Select(ReplaceViewBagPlaceholders)
             .ToList();
 
-        return new AssetsConfiguration { Stylesheets = externalStylesheets, Scripts = externalScripts };
+        return new BrowserAssetsConfiguration { Stylesheets = externalStylesheets, Scripts = externalScripts };
     }
 
     /// <summary>
-    /// Replaces @ViewBag.Org and @ViewBag.App placeholders in asset URLs with actual values
+    /// Replaces @ViewBag.Org and @ViewBag.App placeholders in stylesheet URLs with actual values
     /// </summary>
-    private BrowserAsset ReplaceViewBagPlaceholders(BrowserAsset asset)
+    private BrowserStylesheet ReplaceViewBagPlaceholders(BrowserStylesheet asset)
     {
-        var url = asset.Url;
+        var url = ReplaceUrlPlaceholders(asset.Url);
+        if (url == asset.Url)
+        {
+            return asset;
+        }
 
+        return new BrowserStylesheet
+        {
+            Url = url,
+            Crossorigin = asset.Crossorigin,
+            Integrity = asset.Integrity,
+            Media = asset.Media,
+        };
+    }
+
+    /// <summary>
+    /// Replaces @ViewBag.Org and @ViewBag.App placeholders in script URLs with actual values
+    /// </summary>
+    private BrowserScript ReplaceViewBagPlaceholders(BrowserScript asset)
+    {
+        var url = ReplaceUrlPlaceholders(asset.Url);
+        if (url == asset.Url)
+        {
+            return asset;
+        }
+
+        return new BrowserScript
+        {
+            Url = url,
+            Type = asset.Type,
+            Async = asset.Async,
+            Defer = asset.Defer,
+            Nomodule = asset.Nomodule,
+            Crossorigin = asset.Crossorigin,
+            Integrity = asset.Integrity,
+        };
+    }
+
+    private string ReplaceUrlPlaceholders(string url)
+    {
         if (_org != null)
         {
             url = url.Replace("@ViewBag.Org", _org, StringComparison.Ordinal);
@@ -66,22 +104,7 @@ internal sealed class AssetsConfigGenerator
             url = url.Replace("@ViewBag.App", _app, StringComparison.Ordinal);
         }
 
-        if (url == asset.Url)
-        {
-            return asset;
-        }
-
-        return new BrowserAsset
-        {
-            Url = url,
-            Type = asset.Type,
-            Async = asset.Async,
-            Defer = asset.Defer,
-            Nomodule = asset.Nomodule,
-            Crossorigin = asset.Crossorigin,
-            Integrity = asset.Integrity,
-            Media = asset.Media,
-        };
+        return url;
     }
 
     /// <summary>

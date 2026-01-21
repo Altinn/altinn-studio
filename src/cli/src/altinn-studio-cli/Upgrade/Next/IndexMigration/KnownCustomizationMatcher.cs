@@ -165,31 +165,37 @@ internal sealed class KnownCustomizationMatcher
     }
 
     /// <summary>
-    /// Extracts script attributes into a BrowserAsset
+    /// Extracts script attributes into a BrowserScript
     /// </summary>
-    private static BrowserAsset ExtractScriptAsset(IElement element, string src)
+    private static BrowserScript ExtractScriptAsset(IElement element, string src)
     {
-        return new BrowserAsset
+        var type = element.GetAttribute("type");
+        var scriptType =
+            type?.Equals("module", StringComparison.OrdinalIgnoreCase) == true
+                ? BrowserScriptType.Module
+                : (BrowserScriptType?)null;
+
+        return new BrowserScript
         {
             Url = src,
-            Type = element.GetAttribute("type"),
-            Async = element.HasAttribute("async") ? true : null,
-            Defer = element.HasAttribute("defer") ? true : null,
-            Nomodule = element.HasAttribute("nomodule") ? true : null,
-            Crossorigin = element.GetAttribute("crossorigin"),
+            Type = scriptType,
+            Async = element.HasAttribute("async"),
+            Defer = element.HasAttribute("defer"),
+            Nomodule = element.HasAttribute("nomodule"),
+            Crossorigin = element.HasAttribute("crossorigin"),
             Integrity = element.GetAttribute("integrity"),
         };
     }
 
     /// <summary>
-    /// Extracts stylesheet attributes into a BrowserAsset
+    /// Extracts stylesheet attributes into a BrowserStylesheet
     /// </summary>
-    private static BrowserAsset ExtractStylesheetAsset(IElement element, string href)
+    private static BrowserStylesheet ExtractStylesheetAsset(IElement element, string href)
     {
-        return new BrowserAsset
+        return new BrowserStylesheet
         {
             Url = href,
-            Crossorigin = element.GetAttribute("crossorigin"),
+            Crossorigin = element.HasAttribute("crossorigin"),
             Integrity = element.GetAttribute("integrity"),
             Media = element.GetAttribute("media"),
         };
