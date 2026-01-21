@@ -1,0 +1,16 @@
+.templateSelector {
+  margin: 1rem 0;
+}
+
+.templateSelector label {
+  font-weight: bold;
+}
+
+.templateSelector ul {
+  list-style: none;
+  padding: 0;
+}
+
+.templateSelector li {
+  margin-bottom: 0.5rem;
+}

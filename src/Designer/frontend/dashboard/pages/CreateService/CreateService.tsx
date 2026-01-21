@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import classes from './CreateService.module.css';
 import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
 import { useAddRepoMutation } from '../../hooks/mutations/useAddRepoMutation';
-import { DataModelFormat } from 'app-shared/types/DataModelFormat';
 import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { NewApplicationForm } from '../../components/NewApplicationForm';
+import type { CustomTemplate } from '../../../packages/shared/src/types/CustomTemplate';
+import type { CustomTemplateReference } from '../../../packages/shared/src/types/CustomTemplateReference';
+import { fetchCustomTemplates } from '../../../packages/shared/src/api/customTemplates';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { type NewAppForm } from '../../types/NewAppForm';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
@@ -23,8 +25,6 @@ type CreateServiceProps = {
   organizations: Organization[];
 };
 export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
-  const dataModellingPreference: DataModelFormat.XSD = DataModelFormat.XSD;
-
   const { t } = useTranslation();
 
   const {
@@ -49,13 +49,19 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   };
 
   const createAppRepo = async (newAppForm: NewAppForm) => {
-    const { org, repoName } = newAppForm;
+    const { org, repoName, templates } = newAppForm;
 
     addRepoMutation(
       {
         org,
         repository: repoName,
-        dataModellingPreference: dataModellingPreference,
+        ...(templates && templates.length > 0
+          ? {
+              templates: templates.map(
+                (temp): CustomTemplateReference => ({ id: temp.id, owner: temp.owner }),
+              ),
+            }
+          : {}),
       },
       {
         onSuccess: (): void => {
@@ -76,6 +82,20 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     );
   };
 
+  const [availableTemplates, setAvailableTemplates] = useState<CustomTemplate[]>([]);
+  useEffect(() => {
+    fetchCustomTemplates().then((templates: CustomTemplate[]) => {
+      setAvailableTemplates(
+        templates.map((t) => ({
+          id: t.id,
+          name: t.name, // Pass the full object
+          owner: t.owner,
+          description: t.description, // If needed elsewhere
+        })),
+      );
+    });
+  }, []);
+
   return (
     <div className={classes.wrapper}>
       <NewApplicationForm
@@ -90,6 +110,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
           type: 'link',
           href: `/${subroute}/${selectedContext}`,
         }}
+        availableTemplates={availableTemplates}
       />
     </div>
   );

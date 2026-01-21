@@ -1,4 +1,6 @@
 import React, { type FormEvent, type ChangeEvent, useState } from 'react';
+import { TemplateSelector } from '../TemplateSelector/TemplateSelector';
+import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 import classes from './NewApplicationForm.module.css';
 import { StudioButton, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +35,7 @@ export type NewApplicationFormProps = {
   formError: NewAppForm;
   setFormError: React.Dispatch<React.SetStateAction<NewAppForm>>;
   actionableElement: ActionableElement;
+  availableTemplates?: CustomTemplate[];
 };
 
 export const NewApplicationForm = ({
@@ -44,6 +47,7 @@ export const NewApplicationForm = ({
   formError,
   setFormError,
   actionableElement,
+  availableTemplates = [],
 }: NewApplicationFormProps): React.JSX.Element => {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
@@ -53,6 +57,7 @@ export const NewApplicationForm = ({
       ? user.login
       : selectedContext;
   const [currentSelectedOrg, setCurrentSelectedOrg] = useState<string>(defaultSelectedOrgOrUser);
+  const [selectedTemplates, setSelectedTemplates] = useState<CustomTemplate[]>([]);
   const { data: userOrgPermission, isFetching } = useUserOrgPermissionQuery(currentSelectedOrg, {
     enabled: Boolean(currentSelectedOrg),
   });
@@ -75,6 +80,7 @@ export const NewApplicationForm = ({
     const newAppForm: NewAppForm = {
       org: formData.get('org') as string,
       repoName: formData.get('repoName') as string,
+      templates: selectedTemplates.length > 0 ? selectedTemplates : undefined,
     };
 
     const isFormValid: boolean = validateNewAppForm(newAppForm);
@@ -121,6 +127,11 @@ export const NewApplicationForm = ({
         name='repoName'
         errorMessage={formError.repoName}
         onChange={validateTextValue}
+      />
+      <TemplateSelector
+        templates={availableTemplates}
+        selectedTemplates={selectedTemplates}
+        onChange={setSelectedTemplates}
       />
       <div className={classes.actionContainer}>
         {isLoading ? (
