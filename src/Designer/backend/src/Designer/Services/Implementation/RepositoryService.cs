@@ -50,7 +50,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ILogger _logger;
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly IApplicationMetadataService _applicationMetadataService;
-        private readonly IAppDevelopmentService _appDevelopmentService;
         private readonly ITextsService _textsService;
         private readonly IResourceRegistry _resourceRegistryService;
         private readonly ICustomTemplateService _templateService;
@@ -67,7 +66,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="logger">The logger</param>
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
         /// <param name="applicationMetadataService">The service for handling the application metadata file</param>
-        /// <param name="appDevelopmentService">The service for handling files concerning app-development</param>
         /// <param name="textsService">The service for handling texts</param>
         /// <param name="resourceRegistryService">The service for publishing resource in the ResourceRegistry</param>
         /// <param name="templateService">The service for managing custom templates</param>
@@ -80,7 +78,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ILogger<RepositoryService> logger,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             IApplicationMetadataService applicationMetadataService,
-            IAppDevelopmentService appDevelopmentService,
             ITextsService textsService,
             IResourceRegistry resourceRegistryService,
             ICustomTemplateService templateService)
@@ -93,7 +90,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _logger = logger;
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _applicationMetadataService = applicationMetadataService;
-            _appDevelopmentService = appDevelopmentService;
             _textsService = textsService;
             _resourceRegistryService = resourceRegistryService;
             _templateService = templateService;
@@ -252,9 +248,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
                     await ApplyCustomTemplates(org, serviceConfig.RepositoryName, developer, templates);
                     await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer, templates);
-                    CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
-                    await _sourceControl.PushChangesForRepository(commitInfo);
+                    CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
+                    await _sourceControl.PushChangesForRepository(commitInfo, altinnRepoEditingContext);
                 }
                 catch (Exception)
                 {
@@ -265,14 +261,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return repository;
-
         }
 
         private async Task ApplyCustomTemplates(string org, string repositoryName, string developer, List<CustomTemplateReference> templates)
         {
             foreach (CustomTemplateReference templateRef in templates)
             {
-                await _templateService.ApplyTemplateToRepository(templateRef.Owner, templateRef.Id, org, repositoryName, developer);             
+                await _templateService.ApplyTemplateToRepository(templateRef.Owner, templateRef.Id, org, repositoryName, developer);
             }
         }
 
@@ -721,6 +716,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     _logger.LogWarning("Failed to delete repository {Repo} for org {Org}.", repo, org);
                 }
             });
-        }        
+        }
     }
 }

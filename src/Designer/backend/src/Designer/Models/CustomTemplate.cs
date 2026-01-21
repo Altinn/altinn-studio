@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace Altinn.Studio.Designer.Models;
 
 /// <summary>
-/// Represents the manifest descriptor for an Altinn Studio App Template.
+/// Represents the configuration for a custom app template in Altinn Studio.
 /// </summary>
 public class CustomTemplate
 {

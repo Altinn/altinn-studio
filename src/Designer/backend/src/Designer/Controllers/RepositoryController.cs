@@ -167,9 +167,9 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action used to create a new app under the current org.
+        /// Action used to create a new app
         /// </summary>
-        /// <param name="request">Create app request obejct containing.</param>
+        /// <param name="request">Create app request object containing the necessary information to create the app.</param>
         /// <returns>
         /// An indication if app was created successful or not.
         /// </returns>

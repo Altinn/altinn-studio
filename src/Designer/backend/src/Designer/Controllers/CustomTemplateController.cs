@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -11,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
-    /// This is the API controller for functionality related to application template manifests.
+    /// This is the API controller for functionality related to custom application templates.
     /// </summary>
     [ApiController]
     [Authorize]
@@ -27,12 +26,9 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<CustomTemplateListDto>>> GetCustomTemplateList(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<List<CustomTemplateListDto>>> GetCustomTemplateList()
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
-            var templates = await _templateService.GetCustomTemplateList(developer, cancellationToken);
+            List<CustomTemplate> templates = await _templateService.GetCustomTemplateList();
 
             return Ok(new CustomTemplateListDto()
             {

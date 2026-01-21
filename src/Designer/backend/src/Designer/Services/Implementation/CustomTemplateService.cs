@@ -44,12 +44,34 @@ public class CustomTemplateService : ICustomTemplateService
         _settings = settings;
     }
 
+    // <inheritdoc />   
+    public async Task<List<CustomTemplate>> GetCustomTemplateList()
+    {
+        List<CustomTemplate> templates = [];
+
+        templates.AddRange(await GetTemplateListForAls());
+
+        return templates;
+    }
+
+    // <inheritdoc />   
+    public async Task ApplyTemplateToRepository(string templateOwner, string templateId, string targetOrg, string targetRepo, string developer)
+    {
+        CustomTemplate template = await GetCustomTemplate(templateOwner, templateId); // called first as it includes validation of the template
+
+        await CopyTemplateContentToRepository(templateOwner, templateId, targetOrg, targetRepo, developer);
+        foreach (string removePath in template.Remove)
+        {
+            DeleteContent(targetOrg, targetRepo, developer, removePath);
+        }
+    }
+
     /// <summary>
     /// Validates a JSON string against the AppTemplateManifest JSON schema using NJsonSchema.
     /// </summary>
     /// <param name="jsonString">The JSON string to validate.</param>
     /// <returns>A list of validation errors. Empty if valid.</returns>
-    public static async Task<ICollection<ValidationError>> ValidateManifestJsonAsync(string jsonString)
+    internal static async Task<ICollection<ValidationError>> ValidateManifestJsonAsync(string jsonString)
     {
         if (string.IsNullOrWhiteSpace(jsonString))
         {
@@ -69,28 +91,15 @@ public class CustomTemplateService : ICustomTemplateService
         return errors;
     }
 
-    public async Task<List<CustomTemplate>> GetCustomTemplateList(string developer, CancellationToken cancellationToken)
+    private async Task<List<CustomTemplate>> GetTemplateListForAls()
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        List<CustomTemplate> templates = [];
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        templates.AddRange(await GetTemplateListForAls(cancellationToken));
-
-        return templates;
-    }
-
-    private async Task<List<CustomTemplate>> GetTemplateListForAls(CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
         string repository = GetContentRepoName(AltinnStudioOrg);
-        string baseCommitSha = await _giteaClient.GetLatestCommitOnBranch(AltinnStudioOrg, repository, cancellationToken: cancellationToken);
+        string baseCommitSha = await _giteaClient.GetLatestCommitOnBranch(AltinnStudioOrg, repository);
+
+        // could retrieve the template list from cache.. only disk if newer than cache
 
         string path = Path.Combine(TemplateFolder, TemplateManifestFileName);
-        (FileSystemObject? file, ProblemDetails? problem) = await _giteaClient.GetFileAndErrorAsync(AltinnStudioOrg, repository, path, null, cancellationToken); // passing null as reference to get main branch and latest commit
+        (FileSystemObject? file, ProblemDetails? problem) = await _giteaClient.GetFileAndErrorAsync(AltinnStudioOrg, repository, path, null); // passing null as reference to get main branch and latest commit
 
         if (problem != null)
         {
@@ -111,17 +120,16 @@ public class CustomTemplateService : ICustomTemplateService
         return [];
     }
 
-    private async Task<CustomTemplate> GetCustomTemplate(string owner, string id, CancellationToken cancellationToken = default)
+    private async Task<CustomTemplate> GetCustomTemplate(string owner, string id)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         string templateRepo = GetContentRepoName(owner);
 
         try
         {
-            string baseCommitSha = await _giteaClient.GetLatestCommitOnBranch(owner, templateRepo, cancellationToken: cancellationToken);
+            string baseCommitSha = await _giteaClient.GetLatestCommitOnBranch(owner, templateRepo);
             string path = Path.Combine(TemplateFolder, id, TemplateFileName);
 
-            (FileSystemObject? file, ProblemDetails? problem) = await _giteaClient.GetFileAndErrorAsync(owner, templateRepo, path, null, cancellationToken); // passing null as reference to get main branch and latest commit
+            (FileSystemObject? file, ProblemDetails? problem) = await _giteaClient.GetFileAndErrorAsync(owner, templateRepo, path, null); // passing null as reference to get main branch and latest commit
 
             if (problem != null)
             {
@@ -170,18 +178,7 @@ public class CustomTemplateService : ICustomTemplateService
         }
     }
 
-    public async Task ApplyTemplateToRepository(string templateOwner, string templateId, string targetOrg, string targetRepo, string developer, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
 
-        CustomTemplate template = await GetCustomTemplate(templateOwner, templateId, cancellationToken); // called first as it includes validation of the template
-
-        await CopyTemplateContentToRepository(templateOwner, templateId, targetOrg, targetRepo, developer, cancellationToken);
-        foreach (string removePath in template.Remove)
-        {
-            DeleteContent(targetOrg, targetRepo, developer, removePath);
-        }
-    }
 
     private async Task CopyTemplateContentToRepository(string templateOwner, string templateId, string targetOrg, string targetRepo, string developer, CancellationToken cancellationToken = default)
     {
