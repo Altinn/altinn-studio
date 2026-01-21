@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -39,22 +38,6 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 Templates = [.. templates.Select(t => CustomTemplateDto.From(t))]
             });
-        }
-
-        [HttpGet]
-        [Route("{owner}/{id}")]
-        public async Task<ActionResult<CustomTemplate>> GetCustomTemplate(string owner, string id, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
-            var template = await _templateService.GetCustomTemplate(developer, owner, id, cancellationToken);
-            if (template == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(CustomTemplateDto.From(template));
         }
     }
 }

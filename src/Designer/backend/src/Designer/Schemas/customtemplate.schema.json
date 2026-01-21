@@ -1,17 +1,17 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "Altinn Studio App Template ManifestDescriptor",
+    "title": "Altinn Studio App Custom Template Descriptor",
     "type": "object",
     "additionalProperties": false,
-    "required": [ "id", "publisherId", "name", "description", "contentPath" ],
+    "required": [ "id", "owner", "name", "description" ],
     "properties": {
         "id": {
             "type": "string",
             "minLength": 5
         },
-        "publisherId": {
+        "owner": {
             "type": "string",
-            "minLength": 3
+            "minLength": 2
         },
 
         "name": {
@@ -40,13 +40,6 @@
                 "minLength": 20
             }
         },
-        "contentPath": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Relative folder path under the template repository root folder (org/org-content/templates/). No absolute paths, no drive/UNC, no '..'.",
-            "pattern": "^(?!/)(?!\\\\\\\\)(?!.*\\\\)(?!.*:)(?!.*(^|/)\\.\\.(/|$))[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*/?$"
-        },
-
         "remove": {
             "type": "array",
             "description": "Optional list of relative repo paths/globs from application repo root. No absolute paths, no drive/UNC, no '..'.",

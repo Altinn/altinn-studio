@@ -13,39 +13,16 @@ public class ValidateCustomTemplateTest
     {
         var validManifest = @"{
         ""id"": ""template-12345"",
-        ""publisherId"": ""altinn"",
+        ""owner"": ""altinn"",
         ""name"": { ""nb"": ""Test Template"" },
         ""description"": { ""nb"": ""Dette er en norsk beskrivelse."", ""en"":""This is an English description""},
-        ""contentPath"": ""templates/test"",
         ""remove"": [""src/oldfile.txt""]
         }";
 
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(validManifest);
         Assert.Empty(errors);
     }
-
-    [Theory]
-    [InlineData("/absolute/path")]
-    [InlineData("../../other/app/templates")]
-    [InlineData("/tmp/file.txt")]
-    [InlineData("/var/run/secretsW")]
-    [InlineData("/etc/ssl/certs/")]
-    [InlineData("/run/secrets/my-secret")]
-    public async Task ValidateManifestJsonAsync_InvalidContentPath_ReturnsError(string contentPath)
-    {
-        var invalidContentPathManifest = $@"{{
-            ""id"": ""template-12345"",
-            ""publisherId"": ""altinn"",
-            ""name"": {{ ""nb"": ""Test Template"" }},
-            ""description"": {{ ""nb"": ""This is a valid description for the template."" }},
-            ""contentPath"": ""{contentPath}"",
-            ""remove"": [""src/oldfile.txt""]
-        }}";
-
-        var errors = await CustomTemplateService.ValidateManifestJsonAsync(invalidContentPathManifest);
-        Assert.Contains(errors, e => e.Path.Contains("contentPath") && e.Kind == ValidationErrorKind.PatternMismatch);
-    }
-
+   
     [Theory]
     [InlineData("/absolute/path")]
     [InlineData("../../other/app/templates")]
@@ -55,7 +32,7 @@ public class ValidateCustomTemplateTest
     {
         var invalidRemoveManifest = $@"{{
         ""id"": ""template-12345"",
-        ""publisherId"": ""altinn"",
+        ""owner"": ""altinn"",
         ""name"": {{ ""nb"": ""Test Template"" }},
         ""description"": {{ ""nb"": ""This is a valid description for the template."" }},
         ""contentPath"": ""templates/test"",
@@ -71,7 +48,7 @@ public class ValidateCustomTemplateTest
     {
         var unknownPropertyManifest = @"{
         ""id"": ""template-12345"",
-        ""publisherId"": ""altinn"",
+        ""owner"": ""altinn"",
         ""name"": { ""nb"": ""Test Template"" },
         ""description"": { ""nb"": ""This is a valid description for the template."" },
         ""contentPath"": ""templates/test"",
@@ -95,7 +72,7 @@ public class ValidateCustomTemplateTest
     {
         var missingNbName = @"{
         ""id"": ""template-12345"",
-        ""publisherId"": ""altinn"",
+        ""owner"": ""altinn"",
         ""name"": { ""en"": ""Test Template"" },
         ""description"": { ""nb"": ""This is a valid description for the template."" },
         ""contentPath"": ""templates/test"",
@@ -111,7 +88,7 @@ public class ValidateCustomTemplateTest
     {
         var missingNbDescription = @"{
         ""id"": ""template-12345"",
-        ""publisherId"": ""altinn"",
+        ""owner"": ""altinn"",
         ""name"": { ""nb"": ""Test Template"" },
         ""description"": { ""en"": ""This is a valid description for the template."" },
         ""contentPath"": ""templates/test"",

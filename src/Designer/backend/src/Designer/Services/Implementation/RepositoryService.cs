@@ -243,37 +243,42 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     RepositoryName = serviceConfig.RepositoryName,
                 };
 
-                // This creates all files
-                CreateServiceMetadata(metadata);
-                await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
-                await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
-                await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer);
-
-                // call template engine for templates.             
-                foreach (var templateRef in templates)
+                try
                 {
-                    var template = await _templateService.GetCustomTemplate(developer, templateRef.Owner, templateRef.Id);
-                    var validationResult = await CustomTemplateService.ValidateManifestJsonAsync(System.Text.Json.JsonSerializer.Serialize(template));
+                    // This creates all files
+                    CreateServiceMetadata(metadata);
+                    await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
+                    await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
+                    await ApplyCustomTemplates(org, serviceConfig.RepositoryName, developer, templates);
+                    await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer, templates);
+                    CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
-                    if (validationResult != null)
-                    {
-                        // rull tilbake hele driten. 
-                    }
+                    await _sourceControl.PushChangesForRepository(commitInfo);
                 }
-                // validate template and roll back repo creation if invalid
-
-                CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
-
-                await _sourceControl.PushChangesForRepository(commitInfo);
+                catch (Exception)
+                {
+                    // Cleanup repository on failure
+                    await DeleteRepository(org, serviceConfig.RepositoryName);
+                    throw;
+                }
             }
 
             return repository;
+
         }
 
-        private async Task CreateAltinnStudioSettings(string org, string repository, string developer)
+        private async Task ApplyCustomTemplates(string org, string repositoryName, string developer, List<CustomTemplateReference> templates)
+        {
+            foreach (CustomTemplateReference templateRef in templates)
+            {
+                await _templateService.ApplyTemplateToRepository(templateRef.Owner, templateRef.Id, org, repositoryName, developer);             
+            }
+        }
+
+        private async Task CreateAltinnStudioSettings(string org, string repository, string developer, List<CustomTemplateReference> templates)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
-            var settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, UseNullableReferenceTypes = true };
+            var settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, UseNullableReferenceTypes = true, Templates = templates };
             await altinnGitRepository.SaveAltinnStudioSettings(settings);
         }
 
@@ -712,6 +717,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     _logger.LogWarning("Failed to delete repository {Repo} for org {Org}.", repo, org);
                 }
             });
-        }
+        }        
     }
 }

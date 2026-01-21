@@ -166,7 +166,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="Schemas\appTemplateManifest.schema.json">
+    <Content Update="Schemas\customtemplate.schema.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="Views\Home\AppToken.cshtml">

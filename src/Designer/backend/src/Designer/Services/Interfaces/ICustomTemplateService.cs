@@ -9,5 +9,5 @@ public interface ICustomTemplateService
 {
     public Task<List<CustomTemplate>> GetCustomTemplateList(string developer, CancellationToken cancellationToken);
 
-    public Task<CustomTemplate> GetCustomTemplate(string developer, string owner, string id, CancellationToken cancellationToken = default);
+    public Task ApplyTemplateToRepository(string templateOwner, string templateId, string org, string repository, string developer, CancellationToken cancellationToken = default);
 }

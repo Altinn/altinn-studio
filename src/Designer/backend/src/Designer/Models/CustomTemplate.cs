@@ -21,9 +21,6 @@ public class CustomTemplate
     [JsonPropertyName("description")]
     public Dictionary<string, string> Description { get; set; }
 
-    [JsonPropertyName("contentPath")]
-    public string ContentPath { get; set; }
-
     [JsonPropertyName("remove")]
     public List<string> Remove { get; set; }
 }
