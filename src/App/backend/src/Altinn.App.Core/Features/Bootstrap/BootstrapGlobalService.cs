@@ -34,14 +34,14 @@ internal sealed class BootstrapGlobalService(
             ? null
             : JsonSerializer.Deserialize<object>(footer, _jsonSerializerOptions);
 
-        var layoutSets = _appResources.GetLayoutSets() ?? new LayoutSets { Sets = [] };
+        var layoutSets = _appResources.GetLayoutSetsConfig() ?? new LayoutSetsConfig { Sets = [] };
         layoutSets.UiSettings ??= new GlobalPageSettings();
 
         return new BootstrapGlobalResponse
         {
             ApplicationMetadata = appMetadataTask.Result,
             Footer = footerJson,
-            LayoutSets = layoutSets,
+            LayoutSetsConfig = layoutSets,
             FrontEndSettings = _frontEndSettings.Value,
         };
     }

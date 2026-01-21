@@ -250,7 +250,7 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public string? GetLayoutSetsString()
+    public string? GetLayoutSetsConfigString()
     {
         using var activity = _telemetry?.StartGetLayoutSetsActivity();
         string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.LayoutSetsFileName);
@@ -265,13 +265,16 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public LayoutSets? GetLayoutSets()
+    public LayoutSetsConfig? GetLayoutSetsConfig()
     {
         using var activity = _telemetry?.StartGetLayoutSetActivity();
-        string? layoutSetsString = GetLayoutSetsString();
+        string? layoutSetsString = GetLayoutSetsConfigString();
         if (layoutSetsString is not null)
         {
-            return System.Text.Json.JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
+            return System.Text.Json.JsonSerializer.Deserialize<LayoutSetsConfig>(
+                layoutSetsString,
+                _jsonSerializerOptions
+            );
         }
 
         return null;
@@ -281,7 +284,7 @@ public class AppResourcesSI : IAppResources
     public LayoutSet? GetLayoutSetForTask(string taskId)
     {
         using var activity = _telemetry?.StartGetLayoutSetsForTaskActivity();
-        var sets = GetLayoutSets();
+        var sets = GetLayoutSetsConfig();
         return sets?.Sets?.Find(s => s?.Tasks?.Contains(taskId) is true);
     }
 
@@ -313,7 +316,7 @@ public class AppResourcesSI : IAppResources
     [Obsolete("Use GetLayoutModelForTask instead")]
     public LayoutModel GetLayoutModel(string? layoutSetId = null)
     {
-        var sets = GetLayoutSets();
+        var sets = GetLayoutSetsConfig();
         if (sets is null)
         {
             throw new InvalidOperationException("No layout set found");
@@ -332,7 +335,7 @@ public class AppResourcesSI : IAppResources
     public LayoutModel? GetLayoutModelForTask(string taskId)
     {
         using var activity = _telemetry?.StartGetLayoutModelActivity();
-        var layoutSets = GetLayoutSets();
+        var layoutSets = GetLayoutSetsConfig();
         if (layoutSets is null)
         {
             return null;

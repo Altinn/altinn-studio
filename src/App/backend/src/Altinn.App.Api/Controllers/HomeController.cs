@@ -288,12 +288,15 @@ public class HomeController : Controller
 
     private DataType? GetStatelessDataType(ApplicationMetadata application)
     {
-        string? layoutSetsString = _appResources.GetLayoutSetsString();
+        string? layoutSetsString = _appResources.GetLayoutSetsConfigString();
 
         // Stateless apps only work with layousets
         if (!string.IsNullOrEmpty(layoutSetsString))
         {
-            LayoutSets? layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
+            LayoutSetsConfig? layoutSets = JsonSerializer.Deserialize<LayoutSetsConfig>(
+                layoutSetsString,
+                _jsonSerializerOptions
+            );
             string? dataTypeId = layoutSets?.Sets?.Find(set => set.Id == application.OnEntry?.Show)?.DataType;
             return application.DataTypes.Find(d => d.Id == dataTypeId);
         }

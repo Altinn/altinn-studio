@@ -121,13 +121,13 @@ public class PdfController : ControllerBase
         string appModelclassRef = _resources.GetClassRefForLogicDataType(dataElement.DataType);
         Type dataType = _appModel.GetModelType(appModelclassRef);
 
-        string? layoutSetsString = _resources.GetLayoutSetsString();
-        LayoutSets? layoutSets = null;
+        string? layoutSetsString = _resources.GetLayoutSetsConfigString();
+        LayoutSetsConfig? layoutSets = null;
         LayoutSet? layoutSet = null;
         if (!string.IsNullOrEmpty(layoutSetsString))
         {
             layoutSets =
-                JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions)
+                JsonSerializer.Deserialize<LayoutSetsConfig>(layoutSetsString, _jsonSerializerOptions)
                 ?? throw new JsonException("Could not deserialize LayoutSets");
             layoutSet = layoutSets.Sets?.FirstOrDefault(t =>
                 t.DataType.Equals(dataElement.DataType, StringComparison.Ordinal) && t.Tasks?.Contains(taskId) is true

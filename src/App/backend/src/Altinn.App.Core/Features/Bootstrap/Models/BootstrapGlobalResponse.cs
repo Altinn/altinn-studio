@@ -20,8 +20,8 @@ internal class BootstrapGlobalResponse
     /// <summary>
     /// Layout sets configuration.
     /// </summary>
-    [JsonPropertyName("layoutSets")]
-    public required LayoutSets LayoutSets { get; set; }
+    [JsonPropertyName("layoutSetsConfig")]
+    public required LayoutSetsConfig LayoutSetsConfig { get; set; }
 
     /// <summary>
     /// FrontendSettings layout configuration.

@@ -101,12 +101,12 @@ public interface IAppResources
     /// Gets the the layout sets
     /// </summary>
     /// <returns>The layout sets</returns>
-    string? GetLayoutSetsString();
+    string? GetLayoutSetsConfigString();
 
     /// <summary>
     /// Get the layout set definition. Return null if no layout sets exists
     /// </summary>
-    LayoutSets? GetLayoutSets();
+    LayoutSetsConfig? GetLayoutSetsConfig();
 
     /// <summary>
     /// Gets the footer layout

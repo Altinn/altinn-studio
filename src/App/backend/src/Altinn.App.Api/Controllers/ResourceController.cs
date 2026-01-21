@@ -112,7 +112,7 @@ public class ResourceController : ControllerBase
     [Route("{org}/{app}/api/layoutsets")]
     public ActionResult GetLayoutSets(string org, string app)
     {
-        string? layoutSets = _appResourceService.GetLayoutSetsString();
+        string? layoutSets = _appResourceService.GetLayoutSetsConfigString();
         return Ok(layoutSets);
     }
 
