@@ -6,8 +6,8 @@ import (
 	"math"
 	"testing"
 
-	"altinn.studio/pdf3/test/harness"
 	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/pdf3/test/harness"
 )
 
 // getImageSize queries the container runtime for image size in bytes

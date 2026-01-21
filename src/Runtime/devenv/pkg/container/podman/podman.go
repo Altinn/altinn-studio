@@ -39,6 +39,11 @@ func (c *Client) Name() string {
 	return types.RuntimeNamePodmanCLI
 }
 
+// Installation returns the container runtime installation type
+func (c *Client) Installation() types.RuntimeInstallation {
+	return types.InstallationPodman
+}
+
 // Build builds a container image from a Dockerfile
 func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string) error {
 	cmd := exec.CommandContext(ctx, "podman", "build", "-t", tag, "-f", dockerfile, contextPath)
@@ -62,11 +67,7 @@ func (c *Client) Push(ctx context.Context, image string) error {
 
 // CreateContainer creates and optionally starts a container
 func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig) (string, error) {
-	args := []string{"run"}
-
-	if cfg.Detach {
-		args = append(args, "-d")
-	}
+	args := []string{"create"}
 
 	if cfg.Name != "" {
 		args = append(args, "--name", cfg.Name)
@@ -125,14 +126,24 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 	cmd := exec.CommandContext(ctx, "podman", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("podman run failed: %w\nOutput: %s", err, string(output))
+		return "", fmt.Errorf("podman create failed: %w\nOutput: %s", err, string(output))
 	}
 
-	// Return container ID (first line of output for detached containers)
+	// Return container ID (first line of output)
 	containerID := strings.TrimSpace(string(output))
 	if idx := strings.Index(containerID, "\n"); idx != -1 {
 		containerID = containerID[:idx]
 	}
+
+	// If caller requested immediate start, start now
+	if cfg.Detach {
+		if err := c.ContainerStart(ctx, containerID); err != nil {
+			// Cleanup on failure
+			_ = c.ContainerRemove(ctx, containerID, true)
+			return "", fmt.Errorf("failed to start container: %w", err)
+		}
+	}
+
 	return containerID, nil
 }
 

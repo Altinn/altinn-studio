@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"altinn.studio/devenv/pkg/cache"
@@ -248,11 +249,13 @@ func newInternal(r *KindContainerRuntime, clusters []string, variant KindContain
 
 	foundCluster := false
 	for _, cluster := range clusters {
-		if cluster != clusterName {
-			return fmt.Errorf("another KindContainerRuntime cluster variant is already running: %s", cluster)
-		} else {
+		if cluster == clusterName {
 			foundCluster = true
+		} else if strings.HasPrefix(cluster, "runtime-fixture-kind-") {
+			// Only reject conflicting fixture variants
+			return fmt.Errorf("another KindContainerRuntime cluster variant is already running: %s", cluster)
 		}
+		// else: ignore unrelated user clusters
 	}
 
 	if isLoad && !foundCluster {

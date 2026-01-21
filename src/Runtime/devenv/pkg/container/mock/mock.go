@@ -15,25 +15,26 @@ type Client struct {
 	mu sync.Mutex
 
 	// Method implementations - set these to customize behavior
-	BuildFunc            func(ctx context.Context, contextPath, dockerfile, tag string) error
-	PushFunc             func(ctx context.Context, image string) error
-	CreateContainerFunc  func(ctx context.Context, cfg types.ContainerConfig) (string, error)
-	ContainerStateFunc   func(ctx context.Context, nameOrID string) (types.ContainerState, error)
+	BuildFunc             func(ctx context.Context, contextPath, dockerfile, tag string) error
+	PushFunc              func(ctx context.Context, image string) error
+	CreateContainerFunc   func(ctx context.Context, cfg types.ContainerConfig) (string, error)
+	ContainerStateFunc    func(ctx context.Context, nameOrID string) (types.ContainerState, error)
 	ContainerNetworksFunc func(ctx context.Context, nameOrID string) ([]string, error)
-	ExecFunc             func(ctx context.Context, container string, cmd []string) error
-	ExecWithIOFunc       func(ctx context.Context, container string, cmd []string, stdin io.Reader, stdout, stderr io.Writer) error
-	NetworkConnectFunc   func(ctx context.Context, network, container string) error
-	ImageInspectFunc     func(ctx context.Context, image string) (types.ImageInfo, error)
-	ImagePullFunc        func(ctx context.Context, image string) error
-	ContainerInspectFunc func(ctx context.Context, nameOrID string) (types.ContainerInfo, error)
-	ContainerStartFunc   func(ctx context.Context, nameOrID string) error
-	ContainerStopFunc    func(ctx context.Context, nameOrID string, timeout *int) error
-	ContainerRemoveFunc  func(ctx context.Context, nameOrID string, force bool) error
-	NetworkCreateFunc    func(ctx context.Context, cfg types.NetworkConfig) (string, error)
-	NetworkInspectFunc   func(ctx context.Context, nameOrID string) (types.NetworkInfo, error)
-	NetworkRemoveFunc    func(ctx context.Context, nameOrID string) error
-	ContainerLogsFunc    func(ctx context.Context, nameOrID string, follow bool, tail string) (io.ReadCloser, error)
-	ContainerWaitFunc    func(ctx context.Context, nameOrID string) (int, error)
+	ExecFunc              func(ctx context.Context, container string, cmd []string) error
+	ExecWithIOFunc        func(ctx context.Context, container string, cmd []string, stdin io.Reader, stdout, stderr io.Writer) error
+	NetworkConnectFunc    func(ctx context.Context, network, container string) error
+	ImageInspectFunc      func(ctx context.Context, image string) (types.ImageInfo, error)
+	ImagePullFunc         func(ctx context.Context, image string) error
+	ContainerInspectFunc  func(ctx context.Context, nameOrID string) (types.ContainerInfo, error)
+	ContainerStartFunc    func(ctx context.Context, nameOrID string) error
+	ContainerStopFunc     func(ctx context.Context, nameOrID string, timeout *int) error
+	ContainerRemoveFunc   func(ctx context.Context, nameOrID string, force bool) error
+	NetworkCreateFunc     func(ctx context.Context, cfg types.NetworkConfig) (string, error)
+	NetworkInspectFunc    func(ctx context.Context, nameOrID string) (types.NetworkInfo, error)
+	NetworkRemoveFunc     func(ctx context.Context, nameOrID string) error
+	ContainerLogsFunc     func(ctx context.Context, nameOrID string, follow bool, tail string) (io.ReadCloser, error)
+	ContainerWaitFunc     func(ctx context.Context, nameOrID string) (int, error)
+	InstallationFunc      func() types.RuntimeInstallation
 
 	// Call tracking
 	Calls []Call
@@ -243,6 +244,14 @@ func (emptyReader) Read([]byte) (int, error) {
 // Name implements ContainerClient.
 func (c *Client) Name() string {
 	return "Mock"
+}
+
+// Installation implements ContainerClient.
+func (c *Client) Installation() types.RuntimeInstallation {
+	if c.InstallationFunc != nil {
+		return c.InstallationFunc()
+	}
+	return types.InstallationUnknown
 }
 
 // Close implements ContainerClient.

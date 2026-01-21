@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	localharness "altinn.studio/pdf3/test/harness"
 	"altinn.studio/devenv/pkg/harness"
 	"altinn.studio/devenv/pkg/kubernetes"
 	"altinn.studio/devenv/pkg/runtimes/kind"
+	localharness "altinn.studio/pdf3/test/harness"
 )
 
 func main() {

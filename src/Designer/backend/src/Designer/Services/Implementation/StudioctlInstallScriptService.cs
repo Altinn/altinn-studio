@@ -151,27 +151,26 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         using HttpClient client = _httpClientFactory.CreateClient();
-        using HttpResponseMessage response = await client.SendAsync(
-            request,
-            HttpCompletionOption.ResponseHeadersRead,
-            cancellationToken);
-
-        if (response.StatusCode == HttpStatusCode.NotFound)
+        HttpResponseMessage response;
+        try
         {
-            _logger.LogInformation("Install script not found upstream: {Url}", url);
+            response = await client.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken);
+        }
+        catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning(ex, "Timed out while fetching install script {Url}", url);
             return new StudioctlInstallScriptResult(
-                StudioctlInstallScriptStatus.NotFound,
+                StudioctlInstallScriptStatus.Unavailable,
                 Array.Empty<byte>(),
                 fileName,
                 false);
         }
-
-        if (!response.IsSuccessStatusCode)
+        catch (HttpRequestException ex)
         {
-            _logger.LogWarning(
-                "Failed to fetch install script {Url}. Status: {Status}",
-                url,
-                response.StatusCode);
+            _logger.LogWarning(ex, "Transport failure while fetching install script {Url}", url);
             return new StudioctlInstallScriptResult(
                 StudioctlInstallScriptStatus.Unavailable,
                 Array.Empty<byte>(),
@@ -179,25 +178,51 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
                 false);
         }
 
-        byte[] content = await response.Content.ReadAsByteArrayAsync(cancellationToken);
-        if (content.Length == 0)
+        using (response)
         {
-            _logger.LogWarning("Install script response was empty: {Url}", url);
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                _logger.LogInformation("Install script not found upstream: {Url}", url);
+                return new StudioctlInstallScriptResult(
+                    StudioctlInstallScriptStatus.NotFound,
+                    Array.Empty<byte>(),
+                    fileName,
+                    false);
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning(
+                    "Failed to fetch install script {Url}. Status: {Status}",
+                    url,
+                    response.StatusCode);
+                return new StudioctlInstallScriptResult(
+                    StudioctlInstallScriptStatus.Unavailable,
+                    Array.Empty<byte>(),
+                    fileName,
+                    false);
+            }
+
+            byte[] content = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+            if (content.Length == 0)
+            {
+                _logger.LogWarning("Install script response was empty: {Url}", url);
+                return new StudioctlInstallScriptResult(
+                    StudioctlInstallScriptStatus.Unavailable,
+                    Array.Empty<byte>(),
+                    fileName,
+                    false);
+            }
+
+            var entry = new StudioctlInstallScriptCacheEntry(content, DateTimeOffset.UtcNow);
+            _cache.Set(cacheKey, entry);
+
             return new StudioctlInstallScriptResult(
-                StudioctlInstallScriptStatus.Unavailable,
-                Array.Empty<byte>(),
+                StudioctlInstallScriptStatus.Ok,
+                content,
                 fileName,
                 false);
         }
-
-        var entry = new StudioctlInstallScriptCacheEntry(content, DateTimeOffset.UtcNow);
-        _cache.Set(cacheKey, entry);
-
-        return new StudioctlInstallScriptResult(
-            StudioctlInstallScriptStatus.Ok,
-            content,
-            fileName,
-            false);
     }
 
     internal sealed record StudioctlInstallScriptCacheEntry(byte[] Content, DateTimeOffset FetchedAt);

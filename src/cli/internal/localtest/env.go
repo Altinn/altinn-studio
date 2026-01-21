@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"strconv"
 	"sync"
 	"time"
@@ -103,7 +104,7 @@ func (e *Env) Up(ctx context.Context, opts interfaces.EnvUpOptions) error {
 	}
 
 	if !opts.Detach {
-		return e.runForeground(ctx, buildOpts, localtestURL)
+		return e.runForeground(ctx, localtestURL)
 	}
 
 	e.out.Println("\nLocaltest started in background.")
@@ -118,8 +119,7 @@ func (e *Env) Up(ctx context.Context, opts interfaces.EnvUpOptions) error {
 func (e *Env) Down(ctx context.Context) error {
 	e.out.Verbosef("Using container runtime: %s", e.client.Name())
 
-	// For destruction, we use minimal placeholder config since we just need resource IDs
-	opts := e.defaultDestroyOpts()
+	opts := e.buildDestroyOptions()
 
 	spinner := ui.NewSpinner(e.out, "Stopping localtest environment...")
 	if !e.cfg.Verbose {
@@ -149,7 +149,6 @@ func (e *Env) Logs(ctx context.Context, opts interfaces.EnvLogsOptions) error {
 // then tears down the environment.
 func (e *Env) runForeground(
 	ctx context.Context,
-	opts ResourceBuildOptions,
 	localtestURL string,
 ) error {
 	e.out.Println("\nLocaltest is running. Press Ctrl+C to stop.")
@@ -166,8 +165,10 @@ func (e *Env) runForeground(
 	teardownCtx, cancel := context.WithTimeout(context.Background(), teardownTimeout)
 	defer cancel()
 
+	destroyOpts := e.buildDestroyOptions()
+
 	//nolint:contextcheck // intentionally using new context for cleanup after cancellation
-	if err := e.destroyResources(teardownCtx, opts); err != nil {
+	if err := e.destroyResources(teardownCtx, destroyOpts); err != nil {
 		e.out.Warningf("Failed to stop environment cleanly: %v", err)
 		return err
 	}
@@ -211,9 +212,10 @@ func (e *Env) applyResources(ctx context.Context, opts ResourceBuildOptions) err
 }
 
 // destroyResources tears down localtest containers and networks.
-func (e *Env) destroyResources(ctx context.Context, opts ResourceBuildOptions) error {
+func (e *Env) destroyResources(ctx context.Context, opts ResourceDestroyOptions) error {
 	graph := resource.NewGraph()
-	resources := BuildResources(opts)
+	// TODO: we should probably load resources as "current state" instead
+	resources := BuildResourcesForDestroy(opts)
 	for _, res := range resources {
 		if err := graph.Add(res); err != nil {
 			return fmt.Errorf("add resource %q to graph: %w", res.ID(), err)
@@ -231,28 +233,20 @@ func (e *Env) destroyResources(ctx context.Context, opts ResourceBuildOptions) e
 	return nil
 }
 
-// defaultDestroyOpts returns ResourceBuildOptions for destruction.
-// Uses placeholder values since actual config doesn't matter for stopping containers.
-func (e *Env) defaultDestroyOpts() ResourceBuildOptions {
-	return ResourceBuildOptions{
-		DataDir: e.cfg.DataDir,
-		RuntimeConfig: RuntimeConfig{
-			HostGateway:      "0.0.0.0",
-			LoadBalancerPort: "80",
-			User:             "",
-			IsPodman:         false,
-		},
-		IncludeMonitoring: true, // include all for cleanup
-		ImageMode:         ReleaseMode,
+// buildDestroyOptions returns ResourceDestroyOptions for destroying resources.
+func (e *Env) buildDestroyOptions() ResourceDestroyOptions {
+	return ResourceDestroyOptions{
+		DataDir:           e.cfg.DataDir,
 		Images:            e.cfg.Images,
-		DevConfig:         nil,
+		IncludeMonitoring: true, // include all for cleanup
+		Installation:      e.client.Installation(),
 	}
 }
 
 // buildRuntimeConfig detects the container runtime and builds the runtime configuration.
 func (e *Env) buildRuntimeConfig(ctx context.Context, portFlag int) (RuntimeConfig, error) {
-	// Detect Podman based on CLI availability in PATH
-	isPodman := IsPodmanAvailable()
+	// Get runtime installation
+	installation := e.client.Installation()
 
 	// Resolve network metadata (cache stored in home directory)
 	n := networking.NewNetworking(e.client, e.cfg, e.out)
@@ -271,13 +265,18 @@ func (e *Env) buildRuntimeConfig(ctx context.Context, portFlag int) (RuntimeConf
 	}
 
 	// Get current user to run containers as (prevents root-owned bind mount files)
-	user := fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
+	// On Windows, leave empty as os.Getuid() returns -1
+	// TODO: we should probably handle this better, what about the WSL mode for Docker Desktop?
+	var user string
+	if runtime.GOOS != "windows" {
+		user = fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
+	}
 
 	return RuntimeConfig{
 		HostGateway:      metadata.HostGateway,
 		LoadBalancerPort: strconv.Itoa(port),
 		User:             user,
-		IsPodman:         isPodman,
+		Installation:     installation,
 	}, nil
 }
 

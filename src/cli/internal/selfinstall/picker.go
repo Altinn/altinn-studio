@@ -18,15 +18,17 @@ type PickerOption struct {
 
 // Picker handles interactive selection of install location.
 type Picker struct {
-	out        *ui.Output
-	candidates []Candidate
+	out               *ui.Output
+	candidates        []Candidate
+	recommendedOption int // Index in filtered options, -1 if none
 }
 
 // NewPicker creates a new picker with the given candidates.
 func NewPicker(out *ui.Output, candidates []Candidate) *Picker {
 	return &Picker{
-		out:        out,
-		candidates: candidates,
+		out:               out,
+		candidates:        candidates,
+		recommendedOption: -1,
 	}
 }
 
@@ -76,10 +78,14 @@ func (p *Picker) Run(ctx context.Context) (string, error) {
 
 func (p *Picker) buildOptions() []PickerOption {
 	options := make([]PickerOption, 0, len(p.candidates)+1)
+	p.recommendedOption = -1
 
 	// Add writable candidates first
 	for _, c := range p.candidates {
 		if c.Writable || c.NeedsSudo {
+			if c.Recommended && c.Writable && p.recommendedOption == -1 {
+				p.recommendedOption = len(options)
+			}
 			options = append(options, PickerOption{
 				Label: c.Label(),
 				Value: c.Path,
@@ -116,10 +122,8 @@ func (p *Picker) readSelection(ctx context.Context, numOptions int) (int, error)
 
 	// Empty input = default (recommended option)
 	if input == "" {
-		for i, c := range p.candidates {
-			if c.Recommended && c.Writable {
-				return i, nil
-			}
+		if p.recommendedOption >= 0 {
+			return p.recommendedOption, nil
 		}
 		// No recommended, require explicit selection
 		p.out.Error("Please enter a number")

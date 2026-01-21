@@ -23,7 +23,7 @@ test: ## Run unit tests (excludes e2e)
 
 .PHONY: test-e2e
 test-e2e: ## Run e2e tests (slower, includes cross-compilation)
-	go test -race -count=1 -v ./test/e2e/...
+	go test -race -count=1 ./test/e2e/...
 
 .PHONY: test-cover
 test-cover: ## Run tests with coverage (excludes e2e)

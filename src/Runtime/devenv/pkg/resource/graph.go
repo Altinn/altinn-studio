@@ -134,12 +134,28 @@ func (g *Graph) detectCycle() error {
 
 	var visit func(id ResourceID) error
 	visit = func(id ResourceID) error {
+		r, exists := g.resources[id]
+		if !exists {
+			return fmt.Errorf("internal error: resource %q not found in graph", id)
+		}
+		if r == nil {
+			return fmt.Errorf("internal error: resource %q is nil", id)
+		}
+
 		colors[id] = gray
 		path = append(path, id)
 
-		r := g.resources[id]
 		for _, ref := range r.Dependencies() {
 			depID := ref.ID()
+
+			dep, exists := g.resources[depID]
+			if !exists {
+				return fmt.Errorf("resource %q depends on non-existent resource %q", id, depID)
+			}
+			if dep == nil {
+				return fmt.Errorf("resource %q depends on nil resource %q", id, depID)
+			}
+
 			switch colors[depID] {
 			case gray:
 				// Found cycle - find where it starts in path

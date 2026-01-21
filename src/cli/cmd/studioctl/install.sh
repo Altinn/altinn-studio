@@ -178,7 +178,8 @@ verify_checksum() {
 
 	# Extract expected checksum for our asset
 	expected=""
-	while IFS= read -r sum name _; do
+	while read -r sum name _; do
+		name=${name#\*}
 		if [ "$name" = "$ASSET" ]; then
 			expected=$sum
 			break
