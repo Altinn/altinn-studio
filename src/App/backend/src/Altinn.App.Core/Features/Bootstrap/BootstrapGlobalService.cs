@@ -27,8 +27,7 @@ internal sealed class BootstrapGlobalService(
 
         var availableLanguagesTask = applicationLanguage.GetApplicationLanguages();
 
-        // Await all tasks
-        await Task.WhenAll(availableLanguagesTask, appMetadataTask, footerTask, availableLanguagesTask);
+        await Task.WhenAll(appMetadataTask, footerTask, availableLanguagesTask);
 
         return new BootstrapGlobalResponse
         {
