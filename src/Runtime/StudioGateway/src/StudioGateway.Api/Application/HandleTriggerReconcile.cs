@@ -36,11 +36,13 @@ internal static class HandleTriggerReconcile
             }
             catch (k8s.Autorest.HttpOperationException ex) when (ex.Response.StatusCode == HttpStatusCode.NotFound)
             {
+#pragma warning disable S6667
                 logger.LogInformation(
                     "Attempted to trigger reconciliation for app {App} (originEnv: {OriginEnv}), but resources were not found. This app is probably new.",
                     app,
                     originEnvironment
                 );
+#pragma warning restore S6667
             }
         }
 
