@@ -2299,8 +2299,8 @@ namespace Altinn.App.Core.Implementation
         public Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModel(string? layoutSetId = null) { }
         public Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForTask(string taskId) { }
         public Altinn.App.Core.Models.LayoutSet? GetLayoutSetForTask(string taskId) { }
-        public Altinn.App.Core.Models.LayoutSets? GetLayoutSets() { }
-        public string? GetLayoutSetsString() { }
+        public Altinn.App.Core.Models.LayoutSetsConfig? GetLayoutSetsConfig() { }
+        public string? GetLayoutSetsConfigString() { }
         public Altinn.App.Core.Models.LayoutSettings GetLayoutSettings() { }
         public Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId) { }
         public string? GetLayoutSettingsString() { }
@@ -2560,7 +2560,7 @@ namespace Altinn.App.Core.Interface
         System.Threading.Tasks.Task<string?> GetFooter();
         [System.Obsolete("Use GetLayoutModelForTask instead")]
         Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModel(string? layoutSetId = null);
-        Altinn.App.Core.Models.LayoutSets? GetLayoutSet();
+        Altinn.App.Core.Models.LayoutSetsConfig? GetLayoutSet();
         Altinn.App.Core.Models.LayoutSet? GetLayoutSetForTask(string taskId);
         string GetLayoutSets();
         Altinn.App.Core.Models.LayoutSettings GetLayoutSettings();
@@ -2870,8 +2870,8 @@ namespace Altinn.App.Core.Internal.App
         Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModel(string? layoutSetId = null);
         Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForTask(string taskId);
         Altinn.App.Core.Models.LayoutSet? GetLayoutSetForTask(string taskId);
-        Altinn.App.Core.Models.LayoutSets? GetLayoutSets();
-        string? GetLayoutSetsString();
+        Altinn.App.Core.Models.LayoutSetsConfig? GetLayoutSetsConfig();
+        string? GetLayoutSetsConfigString();
         Altinn.App.Core.Models.LayoutSettings GetLayoutSettings();
         Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);
         string? GetLayoutSettingsString();
@@ -4270,9 +4270,9 @@ namespace Altinn.App.Core.Models
         public System.Collections.Generic.List<string>? Tasks { get; set; }
         public string? Type { get; set; }
     }
-    public class LayoutSets
+    public class LayoutSetsConfig
     {
-        public LayoutSets() { }
+        public LayoutSetsConfig() { }
         public required System.Collections.Generic.List<Altinn.App.Core.Models.LayoutSet> Sets { get; set; }
         public Altinn.App.Core.Models.GlobalPageSettings? UiSettings { get; set; }
     }
