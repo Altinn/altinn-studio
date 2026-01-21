@@ -12,7 +12,7 @@ type GlobalData = {
   applicationMetadata: ApplicationMetadata;
   footer: IFooterLayout;
   frontendSettings: IApplicationSettings;
-  appLanguages: IAppLanguage[];
+  availableLanguages: IAppLanguage[];
 };
 
 declare global {

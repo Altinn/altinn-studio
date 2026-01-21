@@ -78,7 +78,7 @@ window.altinnAppGlobalData = {
   applicationMetadata: getApplicationMetadataMock(),
   frontendSettings: getApplicationSettingsMock(),
   footer: getFooterLayoutMock(),
-  appLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
+  availableLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
 };
 
 window.logError = (...args) => {

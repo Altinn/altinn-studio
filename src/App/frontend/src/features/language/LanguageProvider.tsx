@@ -34,7 +34,7 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
   const languageFromUrl = getLanguageFromUrl();
   const [languageFromSelector, setWithLanguageSelector] = useLocalStorageState(['selectedLanguage', userId], null);
 
-  const appLanguages = window.altinnAppGlobalData.appLanguages.map((lang) => lang.language);
+  const appLanguages = window.altinnAppGlobalData.availableLanguages.map((lang) => lang.language);
 
   const current = useResolveCurrentLanguage(appLanguages, {
     languageFromSelector,
