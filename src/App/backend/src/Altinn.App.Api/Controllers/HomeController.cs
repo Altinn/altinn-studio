@@ -1,10 +1,8 @@
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Bootstrap;
-using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -26,13 +24,6 @@ public class HomeController : Controller
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
-    private static readonly object _cacheLock = new();
-    private static bool _cacheInitialized;
-    private static bool _hasLegacyIndexCshtml;
-    private static BrowserAssetsConfiguration? _cachedFrontendConfig;
-    private static IReadOnlyList<string> _cachedCustomCssFileNames = [];
-    private static IReadOnlyList<string> _cachedCustomJsFileNames = [];
-
     private readonly IAntiforgery _antiforgery;
     private readonly PlatformSettings _platformSettings;
     private readonly IWebHostEnvironment _env;
@@ -40,20 +31,19 @@ public class HomeController : Controller
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
-    private readonly IFrontendFeatures _frontendFeatures;
     private readonly IBootstrapGlobalService _bootstrapGlobalService;
+    private readonly IIndexPageGenerator _indexPageGenerator;
 
     /// <summary>
     /// Initialize a new instance of the <see cref="HomeController"/> class.
     /// </summary>
-    /// <param name="serviceProvider">The serviceProvider service used to inject internal services.</param>
+    /// <param name="serviceProvider">The service provider for resolving internal services.</param>
     /// <param name="antiforgery">The anti forgery service.</param>
     /// <param name="platformSettings">The platform settings.</param>
     /// <param name="env">The current environment.</param>
     /// <param name="appSettings">The application settings</param>
     /// <param name="appResources">The application resources service</param>
     /// <param name="appMetadata">The application metadata service</param>
-    /// <param name="frontendFeatures">The frontend features service</param>
     public HomeController(
         IServiceProvider serviceProvider,
         IAntiforgery antiforgery,
@@ -61,8 +51,7 @@ public class HomeController : Controller
         IWebHostEnvironment env,
         IOptions<AppSettings> appSettings,
         IAppResources appResources,
-        IAppMetadata appMetadata,
-        IFrontendFeatures frontendFeatures
+        IAppMetadata appMetadata
     )
     {
         _antiforgery = antiforgery;
@@ -72,7 +61,7 @@ public class HomeController : Controller
         _appResources = appResources;
         _appMetadata = appMetadata;
         _bootstrapGlobalService = serviceProvider.GetRequiredService<IBootstrapGlobalService>();
-        _frontendFeatures = frontendFeatures;
+        _indexPageGenerator = serviceProvider.GetRequiredService<IIndexPageGenerator>();
     }
 
     /// <summary>
@@ -111,17 +100,22 @@ public class HomeController : Controller
 
         if (await ShouldShowAppView())
         {
-            EnsureCacheInitialized(_appSettings);
-
-            if (_hasLegacyIndexCshtml)
+            if (_indexPageGenerator.HasLegacyIndexCshtml)
             {
                 ViewBag.org = org;
                 ViewBag.app = app;
                 return PartialView("Index");
             }
 
-            BootstrapGlobalResponse appGlobalState = await _bootstrapGlobalService.GetGlobalState();
-            return Content(await GenerateHtml(org, app, appGlobalState), "text/html; charset=utf-8");
+            string? frontendVersionOverride = null;
+            if (_env.IsDevelopment() && HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var cookie))
+            {
+                frontendVersionOverride = cookie.TrimEnd('/');
+            }
+
+            var appGlobalState = await _bootstrapGlobalService.GetGlobalState();
+            var html = await _indexPageGenerator.Generate(org, app, appGlobalState, frontendVersionOverride);
+            return Content(html, "text/html; charset=utf-8");
         }
 
         string scheme = _env.IsDevelopment() ? "http" : "https";
@@ -140,145 +134,6 @@ public class HomeController : Controller
         }
 
         return Redirect(redirectUrl);
-    }
-
-    private async Task<string> GenerateHtml(string org, string app, BootstrapGlobalResponse appGlobalState)
-    {
-        var frontendUrl = "https://altinncdn.no/toolkits/altinn-app-frontend/4";
-        if (
-            _env.IsDevelopment()
-            && HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var frontendVersionCookie)
-        )
-        {
-            frontendUrl = frontendVersionCookie.TrimEnd('/');
-        }
-
-        var featureToggles = await _frontendFeatures.GetFrontendFeatures();
-        var featureTogglesJson = JsonSerializer.Serialize(featureToggles, _jsonSerializerOptions);
-        var globalDataJson = JsonSerializer.Serialize(appGlobalState, _jsonSerializerOptions);
-
-        var externalStylesheets = string.Concat(_cachedFrontendConfig?.Stylesheets.Select(GenerateStylesheetTag) ?? []);
-        var customCssLinks = string.Join(
-            "\n",
-            _cachedCustomCssFileNames.Select(f =>
-                $"<link rel=\"stylesheet\" type=\"text/css\" href=\"/{org}/{app}/custom-css/{f}\">"
-            )
-        );
-
-        var externalScripts = string.Concat(_cachedFrontendConfig?.Scripts.Select(GenerateScriptTag) ?? []);
-        var customJsScripts = string.Join(
-            "\n",
-            _cachedCustomJsFileNames.Select(f => $"<script src=\"/{org}/{app}/custom-js/{f}\"></script>")
-        );
-
-        var htmlContent = $$"""
-            <!DOCTYPE html>
-            <html lang="no">
-            <head>
-              <meta charset="utf-8">
-              <meta http-equiv="X-UA-Compatible" content="IE=edge">
-              <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-              <title>{{org}} - {{app}}</title>
-              <link rel="icon" href="https://altinncdn.no/favicon.ico">
-              <link rel="stylesheet" type="text/css" href="{{frontendUrl}}/altinn-app-frontend.css">
-            {{externalStylesheets}}{{customCssLinks}}</head>
-            <body>
-              <div id="root"></div>
-              <script>
-                window.org = '{{org}}';
-                window.app = '{{app}}';
-                window.featureToggles = {{featureTogglesJson}};
-                window.altinnAppGlobalData = {{globalDataJson}};
-              </script>
-              <script src="{{frontendUrl}}/altinn-app-frontend.js" crossorigin></script>
-            {{externalScripts}}{{customJsScripts}}</body>
-            </html>
-            """;
-
-        return htmlContent;
-    }
-
-    private static void EnsureCacheInitialized(AppSettings appSettings)
-    {
-        if (_cacheInitialized)
-            return;
-
-        lock (_cacheLock)
-        {
-            if (_cacheInitialized)
-                return;
-
-            var indexCshtmlPath = Path.Join(appSettings.AppBasePath, "views", "Home", "Index.cshtml");
-            _hasLegacyIndexCshtml = System.IO.File.Exists(indexCshtmlPath);
-
-            var configPath = Path.Join(appSettings.AppBasePath, appSettings.ConfigurationFolder, "assets.json");
-            if (System.IO.File.Exists(configPath))
-            {
-                var json = System.IO.File.ReadAllText(configPath);
-                _cachedFrontendConfig = JsonSerializer.Deserialize<BrowserAssetsConfiguration>(
-                    json,
-                    _jsonSerializerOptions
-                );
-            }
-
-            _cachedCustomCssFileNames = GetFileNames(appSettings, "custom-css");
-            _cachedCustomJsFileNames = GetFileNames(appSettings, "custom-js");
-            _cacheInitialized = true;
-        }
-    }
-
-    private static List<string> GetFileNames(AppSettings appSettings, string subfolder)
-    {
-        var dir = Path.Join(appSettings.AppBasePath, "wwwroot", subfolder);
-        if (!Directory.Exists(dir))
-            return [];
-
-        return Directory.GetFiles(dir).Order().Select(Path.GetFileName).OfType<string>().ToList();
-    }
-
-    private static string GenerateStylesheetTag(BrowserStylesheet stylesheet)
-    {
-        var sb = new StringBuilder("  <link rel=\"stylesheet\" type=\"text/css\"");
-        sb.Append(" href=\"").Append(stylesheet.Url).Append('"');
-
-        if (!string.IsNullOrEmpty(stylesheet.Media))
-            sb.Append(" media=\"").Append(stylesheet.Media).Append('"');
-
-        if (!string.IsNullOrEmpty(stylesheet.Integrity))
-            sb.Append(" integrity=\"").Append(stylesheet.Integrity).Append('"');
-
-        if (stylesheet.Crossorigin)
-            sb.Append(" crossorigin=\"anonymous\"");
-
-        sb.AppendLine(">");
-        return sb.ToString();
-    }
-
-    private static string GenerateScriptTag(BrowserScript script)
-    {
-        var sb = new StringBuilder("  <script");
-        sb.Append(" src=\"").Append(script.Url).Append('"');
-
-        if (script.Type is not null)
-            sb.Append(" type=\"module\"");
-
-        if (script.Async)
-            sb.Append(" async");
-
-        if (script.Defer)
-            sb.Append(" defer");
-
-        if (script.Nomodule)
-            sb.Append(" nomodule");
-
-        if (script.Crossorigin)
-            sb.Append(" crossorigin=\"anonymous\"");
-
-        if (!string.IsNullOrEmpty(script.Integrity))
-            sb.Append(" integrity=\"").Append(script.Integrity).Append('"');
-
-        sb.AppendLine("></script>");
-        return sb.ToString();
     }
 
     /// <summary>
