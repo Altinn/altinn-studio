@@ -119,6 +119,7 @@ export const deploymentsPath = (org, app, sortDirection) => `${apiBasePath}/${or
 export const deployPermissionsPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/permissions`; // Get
 export const envConfigPath = () => `${apiBasePath}/environments`; // Get
 export const undeployAppFromEnvPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/undeploy`;
+export const appValidationPath = (org, app) => `${apiBasePath}/${org}/${app}/validation`;
 
 // Repositories
 export const branchStatusPath = (org, app, branch) => `${apiBasePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
