@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features.Redirect;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Profile.Models;
 
 namespace Altinn.App.Core.Features.Bootstrap.Models;
 
@@ -35,4 +36,10 @@ internal class BootstrapGlobalResponse
     /// </summary>
     [JsonPropertyName("returnUrl")]
     public ReturnUrlValidationResult? ReturnUrl { get; set; }
+
+    /// <summary>
+    /// User profile information.
+    /// </summary>
+    [JsonPropertyName("userProfile")]
+    public UserProfile? UserProfile { get; set; }
 }

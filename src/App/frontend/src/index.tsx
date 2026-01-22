@@ -31,7 +31,6 @@ import { TextResourcesProvider } from 'src/features/language/textResources/TextR
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
-import { ProfileProvider } from 'src/features/profile/ProfileProvider';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { AppPrefetcher } from 'src/queries/appPrefetcher';
 import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
@@ -88,25 +87,25 @@ function Root() {
           <InstantiationUrlReset />
           <GlobalFormDataReadersProvider>
             <LayoutSetsProvider>
-              <ProfileProvider>
-                <TextResourcesProvider>
-                  <OrgsProvider>
-                    <PartyProvider>
-                      <KeepAliveProvider>
-                        <ProcessingProvider>
-                          <App />
-                        </ProcessingProvider>
-                        <ToastContainer
-                          position='top-center'
-                          theme='colored'
-                          transition={Slide}
-                          draggable={false}
-                        />
-                      </KeepAliveProvider>
-                    </PartyProvider>
-                  </OrgsProvider>
-                </TextResourcesProvider>
-              </ProfileProvider>
+              {/*<ProfileProvider>*/}
+              <TextResourcesProvider>
+                <OrgsProvider>
+                  <PartyProvider>
+                    <KeepAliveProvider>
+                      <ProcessingProvider>
+                        <App />
+                      </ProcessingProvider>
+                      <ToastContainer
+                        position='top-center'
+                        theme='colored'
+                        transition={Slide}
+                        draggable={false}
+                      />
+                    </KeepAliveProvider>
+                  </PartyProvider>
+                </OrgsProvider>
+              </TextResourcesProvider>
+              {/*</ProfileProvider>*/}
               <PartyPrefetcher />
             </LayoutSetsProvider>
           </GlobalFormDataReadersProvider>
