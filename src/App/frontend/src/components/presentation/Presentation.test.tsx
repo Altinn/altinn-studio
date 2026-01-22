@@ -40,11 +40,7 @@ describe('Presentation', () => {
     const mockedLocation = { ...realLocation, search: `?returnUrl=${returnUrl}` };
     jest.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
 
-    window.altinnAppGlobalData.returnUrl = {
-      isInvalidDomain: false,
-      isValid: false,
-      decodedUrl: returnUrl,
-    };
+    window.altinnAppGlobalData.returnUrl = returnUrl;
 
     await render({});
 

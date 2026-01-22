@@ -14,12 +14,7 @@ type GlobalData = {
   frontendSettings: IApplicationSettings;
   availableLanguages: IAppLanguage[];
   userProfile?: IProfile;
-  returnUrl?: {
-    isValid: boolean;
-    decodedUrl?: string;
-    isInvalidDomain: boolean;
-    errorMessage?: string;
-  };
+  returnUrl?: string;
 };
 
 declare global {

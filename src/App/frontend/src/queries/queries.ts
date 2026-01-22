@@ -228,8 +228,6 @@ export const fetchOrgs = (): Promise<{ orgs: IAltinnOrgs }> =>
   });
 
 export const fetchPartiesAllowedToInstantiate = (): Promise<IParty[]> => httpGet(validPartiesUrl);
-// export const fetchReturnUrl = (queryParameterReturnUrl: string): Promise<string> =>
-//   httpGet(getRedirectUrl(queryParameterReturnUrl));
 
 export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTokenUrl);
 

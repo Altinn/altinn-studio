@@ -26,7 +26,7 @@ export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
   const dataValues = useInstanceDataQuery({ select: (instance) => instance.dataValues }).data;
   const dialogId = getDialogIdFromDataValues(dataValues);
   const messageBoxUrl = getMessageBoxUrl(party?.partyId, dialogId);
-  const returnUrl = window.altinnAppGlobalData.returnUrl?.decodedUrl;
+  const returnUrl = window.altinnAppGlobalData.returnUrl;
 
   if (isSubform) {
     return (

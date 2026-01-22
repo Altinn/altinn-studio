@@ -17,7 +17,7 @@ internal sealed class BootstrapGlobalService(
     IAppResources appResources,
     IOptions<FrontEndSettings> frontEndSettings,
     IApplicationLanguage applicationLanguage,
-    IReturnUrlValidator returnUrlValidator,
+    IReturnUrlService returnUrlService,
     IProfileClient profileClient,
     IHttpContextAccessor httpContextAccessor
 ) : IBootstrapGlobalService
@@ -46,7 +46,7 @@ internal sealed class BootstrapGlobalService(
             AvailableLanguages = await availableLanguagesTask,
             FrontEndSettings = frontEndSettings.Value,
             UserProfile = await userProfileTask,
-            ReturnUrl = redirectUrl is not null ? returnUrlValidator.Validate(redirectUrl) : null,
+            ReturnUrl = redirectUrl is not null ? returnUrlService.Validate(redirectUrl) : null,
         };
     }
 
@@ -59,14 +59,7 @@ internal sealed class BootstrapGlobalService(
             return null;
         }
 
-        try
-        {
-            return await profileClient.GetUserProfile(userId.Value);
-        }
-        catch
-        {
-            return null;
-        }
+        return await profileClient.GetUserProfile(userId.Value);
     }
 
     private async Task<object?> GetFooterLayout()
