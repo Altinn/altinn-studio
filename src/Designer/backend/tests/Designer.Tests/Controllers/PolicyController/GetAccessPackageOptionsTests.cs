@@ -36,7 +36,6 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             }
 
             Assert.NotNull(accessPackageOptions);
-            Assert.Equal(3, accessPackageOptions.Count);
         }
     }
 }

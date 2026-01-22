@@ -153,6 +153,10 @@ func runUnitTest() {
 	testCmd := exec.Command("go", args...)
 	testCmd.Dir = projectRoot
 	testCmd.Env = append(os.Environ(), "KUBEBUILDER_ASSETS="+kubebuilderAssets)
+	// Auto-update snapshots when running locally (not in CI)
+	if os.Getenv("CI") == "" && os.Getenv("UPDATE_SNAPS") == "" {
+		testCmd.Env = append(testCmd.Env, "UPDATE_SNAPS=true")
+	}
 	testCmd.Stdout = os.Stdout
 	testCmd.Stderr = os.Stderr
 
@@ -402,6 +406,11 @@ func runE2ETest() {
 func runTests(projectRoot, packagePath string) error {
 	cmd := exec.Command("go", "test", "-tags=e2e", packagePath, "-v", "-ginkgo.v")
 	cmd.Dir = projectRoot
+	cmd.Env = os.Environ()
+	// Auto-update snapshots when running locally (not in CI)
+	if os.Getenv("CI") == "" && os.Getenv("UPDATE_SNAPS") == "" {
+		cmd.Env = append(cmd.Env, "UPDATE_SNAPS=true")
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 

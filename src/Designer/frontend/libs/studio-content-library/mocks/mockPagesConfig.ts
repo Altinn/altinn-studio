@@ -25,6 +25,7 @@ export const mockPagesConfig: PagesConfig = {
     codeLists: [],
     onPublish: () => {},
     onSave: () => {},
+    publishedCodeLists: [],
   },
   images: {
     images: [{ title: 'image', imageSrc: 'www.external-image-url.com' }],

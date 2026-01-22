@@ -17,14 +17,6 @@ make lint              # Run golangci-lint
 make lint-fix          # Run linter with auto-fixes
 ```
 
-### Snapshot Testing
-
-The project uses go-snaps for snapshot tests. Update snapshots with:
-
-```bash
-UPDATE_SNAPS=true make test
-```
-
 ### Development Dependencies
 
 ```bash

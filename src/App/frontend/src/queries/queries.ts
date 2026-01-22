@@ -10,9 +10,6 @@ import { getFileContentType } from 'src/utils/attachmentsUtils';
 import { httpDelete, httpGetRaw, httpPatch, httpPost, putWithoutConfig } from 'src/utils/network/networking';
 import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
 import {
-  applicationLanguagesUrl,
-  applicationMetadataApiUrl,
-  applicationSettingsApiUrl,
   appPath,
   getActionsUrl,
   getActiveInstancesUrl,
@@ -22,7 +19,6 @@ import {
   getDataElementUrl,
   getDataModelTypeUrl,
   getFileUploadUrl,
-  getFooterLayoutUrl,
   getInstanceLayoutsUrl,
   getInstantiateUrl,
   getJsonSchemaUrl,
@@ -46,10 +42,8 @@ import {
   validPartiesUrl,
 } from 'src/utils/urls/appUrlHelper';
 import { customEncodeURI, orgsListUrl } from 'src/utils/urls/urlHelper';
-import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { DataPostResponse } from 'src/features/attachments';
 import type { IDataList } from 'src/features/dataLists';
-import type { IFooterLayout } from 'src/features/footer/types';
 import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import type { Instantiation } from 'src/features/instantiate/useInstantiation';
 import type { ITextResourceResult } from 'src/features/language/textResources';
@@ -64,17 +58,7 @@ import type { ILayoutSets, ILayoutSettings, IRawOption } from 'src/layout/common
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { ISimpleInstance, LooseAutocomplete } from 'src/types';
-import type {
-  IActionType,
-  IAltinnOrgs,
-  IAppLanguage,
-  IApplicationSettings,
-  IData,
-  IInstance,
-  IParty,
-  IProcess,
-  IProfile,
-} from 'src/types/shared';
+import type { IActionType, IAltinnOrgs, IData, IInstance, IParty, IProcess, IProfile } from 'src/types/shared';
 
 export const doSetSelectedParty = (partyId: number | string) =>
   putWithoutConfig<LooseAutocomplete<'Party successfully updated'> | null>(getSetSelectedPartyUrl(partyId));
@@ -223,13 +207,7 @@ export const fetchInstanceData = async (partyId: string, instanceGuid: string): 
 
 export const fetchProcessState = (instanceId: string): Promise<IProcess> => httpGet(getProcessStateUrl(instanceId));
 
-export const fetchApplicationMetadata = () => httpGet<IncomingApplicationMetadata>(applicationMetadataApiUrl);
-
-export const fetchApplicationSettings = (): Promise<IApplicationSettings> => httpGet(applicationSettingsApiUrl);
-
 export const fetchSelectedParty = (): Promise<IParty | undefined> => httpGet(selectedPartyUrl);
-
-export const fetchFooterLayout = (): Promise<IFooterLayout | null> => httpGet(getFooterLayoutUrl());
 
 export const fetchLayoutSets = (): Promise<ILayoutSets> => httpGet(getLayoutSetsUrl());
 
@@ -251,9 +229,6 @@ export const fetchOrgs = (): Promise<{ orgs: IAltinnOrgs }> =>
   });
 
 export const fetchPartiesAllowedToInstantiate = (): Promise<IParty[]> => httpGet(validPartiesUrl);
-
-export const fetchAppLanguages = (): Promise<IAppLanguage[]> => httpGet(applicationLanguagesUrl);
-
 export const fetchReturnUrl = (queryParameterReturnUrl: string): Promise<string> =>
   httpGet(getRedirectUrl(queryParameterReturnUrl));
 

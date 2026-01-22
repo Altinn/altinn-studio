@@ -4,11 +4,11 @@ import type { PropsWithChildren } from 'react';
 import dot from 'dot-object';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
-import { getFirstDataElementId } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useAvailableDataModels } from 'src/features/datamodel/useAvailableDataModels';
 import { useDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
+import { getFirstDataElementId } from 'src/features/instance/instanceUtils';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
