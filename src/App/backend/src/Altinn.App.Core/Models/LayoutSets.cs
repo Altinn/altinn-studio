@@ -3,7 +3,7 @@ namespace Altinn.App.Core.Models;
 /// <summary>
 /// Layout sets config for a specific app containing one or more layout set
 /// </summary>
-public class LayoutSetsConfig
+public class LayoutSets
 {
     /// <summary>
     /// Sets

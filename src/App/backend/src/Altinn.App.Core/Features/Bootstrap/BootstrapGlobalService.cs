@@ -34,14 +34,14 @@ internal sealed class BootstrapGlobalService(
 
         await Task.WhenAll(appMetadataTask, footerTask, availableLanguagesTask);
 
-        var layoutSets = _appResources.GetLayoutSetsConfig() ?? new LayoutSetsConfig { Sets = [] };
+        var layoutSets = _appResources.GetLayoutSets() ?? new LayoutSets { Sets = [] };
         layoutSets.UiSettings ??= new GlobalPageSettings();
 
         return new BootstrapGlobalResponse
         {
             ApplicationMetadata = await appMetadataTask,
             Footer = await footerTask,
-            LayoutSetsConfig = layoutSets,
+            LayoutSets = layoutSets,
             AvailableLanguages = await availableLanguagesTask,
             FrontEndSettings = _frontEndSettings.Value,
         };

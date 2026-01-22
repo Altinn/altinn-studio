@@ -81,9 +81,9 @@ public sealed class DataAccessorFixture
         ServiceCollection.AddSingleton(new AppIdentifier(Org, App));
         ServiceCollection.AddFakeLoggingWithXunit(outputHelper);
         AppResourcesMock
-            .Setup(ar => ar.GetLayoutSetsConfig())
+            .Setup(ar => ar.GetLayoutSets())
             .Returns(
-                new LayoutSetsConfig()
+                new LayoutSets()
                 {
                     // RequiredLayoutValidator checks to see if TaskId has a layout to see if it should run
                     Sets = new()

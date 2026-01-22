@@ -137,7 +137,7 @@ public interface IAppResources
     /// <summary>
     /// Get the layout set definition. Return null if no layoutsets exists
     /// </summary>
-    LayoutSetsConfig? GetLayoutSet();
+    LayoutSets? GetLayoutSet();
 
     /// <summary>
     /// Get the layout set definition for a given task. Return null if no layoutsets exists
