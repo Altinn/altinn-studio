@@ -751,24 +751,26 @@ steps:
 
         echo "Generating MaskinportenClient CR with ${SCOPE_COUNT} scopes"
 
-        SCOPES_YAML=$(echo "${SCOPES_ARRAY}" | jq -r '.[]' | sed 's/^/  - "/' | sed 's/$/"/')
+        yq eval --null-input '{
+          "apiVersion": "resources.altinn.studio/v1alpha1",
+          "kind": "MaskinportenClient",
+          "metadata": {
+            "name": env(RELEASE_NAME),
+            "namespace": "default",
+            "labels": {
+              "altinn.studio/managed-by": "altinn-studio",
+              "altinn.studio/source-environment": env(STUDIO_ENVIRONMENT),
+              "altinn.studio/build-id": env(BUILD_BUILDID),
+              "altinn.studio/org": env(APP_OWNER),
+              "altinn.studio/app": env(APP_REPO)
+            }
+          },
+          "spec": {
+            "scopes": []
+          }
+        }' > "${MASKINPORTEN_CR_FILE}"
 
-        cat << EOF > "${MASKINPORTEN_CR_FILE}"
-        apiVersion: resources.altinn.studio/v1alpha1
-        kind: MaskinportenClient
-        metadata:
-          name: ${RELEASE_NAME}
-          namespace: default
-          labels:
-            altinn.studio/managed-by: altinn-studio
-            altinn.studio/source-environment: ${STUDIO_ENVIRONMENT}
-            altinn.studio/build-id: "${BUILD_BUILDID}"
-            altinn.studio/org: ${APP_OWNER}
-            altinn.studio/app: ${APP_REPO}
-        spec:
-          scopes:
-        ${SCOPES_YAML}
-        EOF
+        yq eval --inplace ".spec.scopes = $(echo "${SCOPES_ARRAY}" | yq eval --input-format json --output-format json '.')" "${MASKINPORTEN_CR_FILE}"
 
         echo "##vso[task.setvariable variable=HAS_APP_SCOPES;]true"
         echo "Generated MaskinportenClient CR:"
