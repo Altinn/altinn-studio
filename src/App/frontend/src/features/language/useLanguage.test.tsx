@@ -2,6 +2,7 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
+import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
@@ -172,6 +173,12 @@ describe('useLanguage', () => {
   });
 
   it('langAsString() should work with complex lookups and arrays', async () => {
+    window.altinnAppGlobalData.frontendSettings = getApplicationSettingsMock({
+      firstValue: 'liter',
+      secondValue: 'FRITYROLJE',
+      thirdValue: '2019',
+    });
+
     await renderWithoutInstanceAndLayout({
       renderer: () => <TestSimple input='complex' />,
       queries: {
@@ -190,11 +197,6 @@ describe('useLanguage', () => {
               ],
             },
           ],
-        }),
-        fetchApplicationSettings: async () => ({
-          firstValue: 'liter',
-          secondValue: 'FRITYROLJE',
-          thirdValue: '2019',
         }),
       },
     });
