@@ -70,6 +70,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="finishedDate">The date and time when the deployment finished.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if the operation is cancelled.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task SendToSlackAsync(string org, AltinnEnvironment environment, string app, DeployEventType eventType, string buildId, DateTime? startedDate, DateTime? finishedDate, CancellationToken cancellationToken);
+        Task SendToSlackAsync(string org, AltinnEnvironment environment, string app, DeployEventType eventType, string buildId, DateTimeOffset? startedDate, DateTimeOffset? finishedDate, CancellationToken cancellationToken);
     }
 }

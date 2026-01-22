@@ -324,7 +324,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task SendToSlackAsync(string org, AltinnEnvironment environment, string app, DeployEventType eventType, string buildId, DateTime? startedDate, DateTime? finishedDate, CancellationToken cancellationToken)
+        public async Task SendToSlackAsync(string org, AltinnEnvironment environment, string app, DeployEventType eventType, string buildId, DateTimeOffset? startedDate, DateTimeOffset? finishedDate, CancellationToken cancellationToken)
         {
             string studioEnv = _generalSettings.OriginEnvironment;
             var isSuccess = eventType == DeployEventType.InstallSucceeded ||
@@ -386,7 +386,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private static string GrafanaPodLogsUrl(string org, AltinnEnvironment environment, string app, DateTime? startedDate, DateTime? finishedDate)
+        private static string GrafanaPodLogsUrl(string org, AltinnEnvironment environment, string app, DateTimeOffset? startedDate, DateTimeOffset? finishedDate)
         {
             var isProd = environment.Name.Equals(AltinnEnvironment.Prod.Name, StringComparison.OrdinalIgnoreCase);
 
@@ -402,8 +402,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (startedDate is not null && finishedDate is not null)
             {
-                queryParams["from"] = new DateTimeOffset(startedDate.Value).ToUnixTimeMilliseconds().ToString();
-                queryParams["to"] = new DateTimeOffset(finishedDate.Value).ToUnixTimeMilliseconds().ToString();
+                queryParams["from"] = startedDate.Value.ToUnixTimeMilliseconds().ToString();
+                queryParams["to"] = finishedDate.Value.ToUnixTimeMilliseconds().ToString();
             }
 
             return QueryHelpers.AddQueryString($"{baseDomain}{path}", queryParams);
