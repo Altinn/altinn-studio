@@ -4,7 +4,6 @@ import type { ConsentPreferences } from './types';
 
 export type ConsentMutationContextValue = {
   grantAllConsent: () => void;
-  grantAnalyticsOnly: () => void;
   denyAllConsent: () => void;
   setConsentPreferences: (preferences: ConsentPreferences) => void;
 };

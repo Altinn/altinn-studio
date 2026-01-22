@@ -14,6 +14,7 @@ import { PageRoutes } from './router/PageRoutes';
 import { AppDevelopmentContextProvider } from './contexts/AppDevelopmentContext';
 import { FeatureFlagsProvider } from '@studio/feature-flags';
 import { ConsentProvider } from './utils/consent';
+import { ConsentBanner } from './components/ConsentBanner';
 
 const loggerConfig: LoggerConfig = {
   enableUnhandledPromiseRejectionTracking: true,
@@ -39,6 +40,7 @@ root.render(
         <LoggerContextProvider config={loggerConfig}>
           <PostHogContextProvider>
             <ConsentProvider>
+              <ConsentBanner />
               <PreviewConnectionContextProvider>
                 <AppDevelopmentContextProvider>
                   <PageRoutes />

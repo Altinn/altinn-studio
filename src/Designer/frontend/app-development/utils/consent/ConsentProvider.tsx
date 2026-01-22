@@ -74,10 +74,6 @@ export function ConsentProvider({
     setConsentPreferences({ analytics: true, sessionRecording: true });
   }, [setConsentPreferences]);
 
-  const grantAnalyticsOnly = useCallback((): void => {
-    setConsentPreferences({ analytics: true, sessionRecording: false });
-  }, [setConsentPreferences]);
-
   const denyAllConsent = useCallback((): void => {
     setConsentPreferences({ analytics: false, sessionRecording: false });
   }, [setConsentPreferences]);
@@ -93,8 +89,8 @@ export function ConsentProvider({
   );
 
   const mutationValue = useMemo(
-    () => ({ grantAllConsent, grantAnalyticsOnly, denyAllConsent, setConsentPreferences }),
-    [grantAllConsent, grantAnalyticsOnly, denyAllConsent, setConsentPreferences],
+    () => ({ grantAllConsent, denyAllConsent, setConsentPreferences }),
+    [grantAllConsent, denyAllConsent, setConsentPreferences],
   );
 
   return (

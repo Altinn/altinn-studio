@@ -1,11 +1,9 @@
-export type ConsentStatus = 'granted' | 'denied' | 'pending';
-
-export interface ConsentPreferences {
+export type ConsentPreferences = {
   analytics: boolean;
   sessionRecording: boolean;
-}
+};
 
-export interface ConsentState {
+export type ConsentState = {
   preferences: ConsentPreferences;
   timestamp: number;
-}
+};

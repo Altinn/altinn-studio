@@ -69,7 +69,12 @@ describe('PostHogAnalyticsProvider', () => {
 
       expect(mockPostHog.opt_in_capturing).toHaveBeenCalled();
       expect(mockPostHog.startSessionRecording).toHaveBeenCalled();
-      expect(mockPostHog.set_config).toHaveBeenCalledTimes(2);
+      expect(mockPostHog.set_config).toHaveBeenCalledWith(
+        expect.objectContaining({ autocapture: true }),
+      );
+      expect(mockPostHog.set_config).toHaveBeenCalledWith(
+        expect.objectContaining({ disable_session_recording: false }),
+      );
     });
 
     it('should handle both analytics and session recording being disabled', () => {
@@ -77,7 +82,12 @@ describe('PostHogAnalyticsProvider', () => {
 
       expect(mockPostHog.opt_out_capturing).toHaveBeenCalled();
       expect(mockPostHog.stopSessionRecording).toHaveBeenCalled();
-      expect(mockPostHog.set_config).toHaveBeenCalledTimes(2);
+      expect(mockPostHog.set_config).toHaveBeenCalledWith(
+        expect.objectContaining({ autocapture: false }),
+      );
+      expect(mockPostHog.set_config).toHaveBeenCalledWith(
+        expect.objectContaining({ disable_session_recording: true }),
+      );
     });
 
     it('should do nothing if posthog instance is null', () => {

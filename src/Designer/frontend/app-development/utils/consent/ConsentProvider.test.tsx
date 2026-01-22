@@ -159,4 +159,29 @@ describe('ConsentProvider', () => {
       sessionRecording: true,
     });
   });
+
+  it('should log error but not crash when analytics provider syncConsent fails', () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const syncError = new Error('Sync failed');
+    mockAnalyticsProvider.syncConsent.mockImplementation(() => {
+      throw syncError;
+    });
+    mockStoredConsent(true, true);
+
+    renderConsentProvider();
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Failed to sync consent with analytics provider:',
+      syncError,
+    );
+    expectConsentState({ decision: true, analytics: true, recording: true });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('should not sync consent with analytics provider when no consent exists', () => {
+    renderConsentProvider();
+
+    expect(mockAnalyticsProvider.syncConsent).not.toHaveBeenCalled();
+  });
 });
