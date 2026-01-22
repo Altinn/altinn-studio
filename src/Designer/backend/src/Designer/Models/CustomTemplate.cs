@@ -22,5 +22,5 @@ public class CustomTemplate
     public Dictionary<string, string> Description { get; set; }
 
     [JsonPropertyName("remove")]
-    public List<string> Remove { get; set; }
+    public List<string> Remove { get; set; };
 }

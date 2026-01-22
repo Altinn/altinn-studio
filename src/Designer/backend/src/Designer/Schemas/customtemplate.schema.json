@@ -45,7 +45,6 @@
             "description": "Optional list of relative repo paths/globs from application repo root. No absolute paths, no drive/UNC, no '..'.",
             "items": {
                 "type": "string",
-                "minLength": 1,
                 "pattern": "^(?!/)(?!\\\\\\\\)(?!.*\\\\)(?!.*:)(?!.*(^|/)\\.\\.(/|$))[A-Za-z0-9._\\-/*?\\[\\]{}!]+(?:/[A-Za-z0-9._\\-/*?\\[\\]{}!]+)*/?$"
             }
         }

@@ -25,7 +25,7 @@ public class CustomTemplateService : ICustomTemplateService
     private const string TemplateFileName = "template.json";
     private const string TemplateContentFolder = "content";
     private const string TemplateSchemaFileName = "customtemplate.schema.json";
- 
+
     private readonly IGiteaClient _giteaClient;
     private readonly ServiceRepositorySettings _serviceRepoSettings;
     private readonly ILogger<CustomTemplateService> _logger;
@@ -136,9 +136,9 @@ public class CustomTemplateService : ICustomTemplateService
             switch (problem.Status)
             {
                 case 404:
-                    throw CustomTemplateException.NotFound($"Template list for owner '{owner}' not found");
+                    throw CustomTemplateException.NotFound($"Template manifest for owner '{owner}' not found");
                 default:
-                    throw CustomTemplateException.DeserializationFailed($"An error occurred while retrieving the template list for owner '{owner}'.", problem.Detail);
+                    throw CustomTemplateException.DeserializationFailed($"An error occurred while retrieving the template manifest for owner '{owner}'.", problem.Detail);
             }
         }
 
@@ -164,44 +164,37 @@ public class CustomTemplateService : ICustomTemplateService
     {
         string templateRepo = GetContentRepoName(owner);
 
-        try
+        string baseCommitSha = await _giteaClient.GetLatestCommitOnBranch(owner, templateRepo);
+        string path = Path.Combine(TemplateFolder, id, TemplateFileName);
+
+        (FileSystemObject? file, ProblemDetails? problem) = await _giteaClient.GetFileAndErrorAsync(owner, templateRepo, path, null); // passing null as reference to get main branch and latest commit
+
+        if (problem != null)
         {
-            string baseCommitSha = await _giteaClient.GetLatestCommitOnBranch(owner, templateRepo);
-            string path = Path.Combine(TemplateFolder, id, TemplateFileName);
-
-            (FileSystemObject? file, ProblemDetails? problem) = await _giteaClient.GetFileAndErrorAsync(owner, templateRepo, path, null); // passing null as reference to get main branch and latest commit
-
-            if (problem != null)
+            switch (problem.Status)
             {
-                switch (problem.Status)
-                {
-                    case 404:
-                        throw CustomTemplateException.NotFound($"Template '{id}' not found");
-                    default:
-                        throw CustomTemplateException.DeserializationFailed("An error occurred while retrieving the template.", problem.Detail);
-                }
+                case 404:
+                    throw CustomTemplateException.NotFound($"Template '{id}' not found");
+                default:
+                    throw CustomTemplateException.DeserializationFailed("An error occurred while retrieving the template.", problem.Detail);
             }
-
-            string templateContent = Encoding.UTF8.GetString(Convert.FromBase64String(file.Content));
-            var validationResult = await ValidateManifestJsonAsync(templateContent);
-
-            if (validationResult.Count > 0)
-            {
-                throw CustomTemplateException.ValidationFailed("Template validation failed.", validationResult);
-            }
-
-            CustomTemplate? template = JsonSerializer.Deserialize<CustomTemplate>(templateContent);
-            if (template == null)
-            {
-                throw CustomTemplateException.DeserializationFailed("An error occurred while deserializing the template.");
-            }
-
-            return template;
         }
-        catch (Exception ex)
+
+        string templateContent = Encoding.UTF8.GetString(Convert.FromBase64String(file.Content));
+        var validationResult = await ValidateManifestJsonAsync(templateContent);
+
+        if (validationResult.Count > 0)
         {
-            throw CustomTemplateException.DeserializationFailed("JSON parsing failed", ex.Message, ex);
+            throw CustomTemplateException.ValidationFailed("Template validation failed.", validationResult);
         }
+
+        CustomTemplate? template = JsonSerializer.Deserialize<CustomTemplate>(templateContent);
+        if (template == null)
+        {
+            throw CustomTemplateException.DeserializationFailed("An error occurred while deserializing the template.");
+        }
+
+        return template;
     }
 
     private void DeleteContent(string org, string repository, string developer, string path)
@@ -242,7 +235,7 @@ public class CustomTemplateService : ICustomTemplateService
         {
             _logger.LogInformation("Template cache hit for {TemplateId}. Using cached files.", templateId);
         }
-        
+
         CopyDirectory(cacheTemplateContentPath, _serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer));
     }
 

@@ -68,7 +68,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="applicationMetadataService">The service for handling the application metadata file</param>
         /// <param name="textsService">The service for handling texts</param>
         /// <param name="resourceRegistryService">The service for publishing resource in the ResourceRegistry</param>
-        /// <param name="templateService">The service for managing custom templates</param>
+        /// <param name="templateService">The service for handling custom templates</param>
         public RepositoryService(
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,

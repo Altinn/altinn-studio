@@ -19,6 +19,7 @@ public partial class AltinnOrgGitRepository : AltinnGitRepository
     private const string CodeListWithTextResourcesFolder = "CodeListsWithTextResources/";
     private const string LanguageResourceFolderName = "Texts/";
     private const string TextResourceFileNamePattern = "resource.*.json";
+
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         WriteIndented = true,
