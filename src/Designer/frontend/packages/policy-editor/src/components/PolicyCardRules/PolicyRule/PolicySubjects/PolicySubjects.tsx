@@ -90,7 +90,7 @@ export const PolicySubjects = () => {
       description: t('policy_editor.access_package_unknown_description', {
         accessPackageUrn: urn,
       }),
-      isDelegable: true,
+      isResourcePolicyAvailable: true,
     };
   };
 

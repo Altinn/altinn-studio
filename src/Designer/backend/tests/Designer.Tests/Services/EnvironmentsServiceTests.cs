@@ -85,7 +85,7 @@ public class EnvironmentsServiceTests
         {
             BaseAddress = new Uri("https://mock.altinn.cloud")
         };
-        var generalSettings = new GeneralSettings { EnvironmentsUrl = "https://mock.altinn.cloud/environments.json" };
+        var generalSettings = new GeneralSettings { EnvironmentsUrl = "https://mock.altinn.cloud/environments.json", HostName = "altinn.studio" };
         var platformSettings = new PlatformSettings { AppClusterUrlPattern = "https://{org}.{appPrefix}.{hostName}" };
         var cache = new MemoryCache(new MemoryCacheOptions());
 
