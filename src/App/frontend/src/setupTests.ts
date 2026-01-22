@@ -80,6 +80,7 @@ window.altinnAppGlobalData = {
   frontendSettings: getApplicationSettingsMock(),
   footer: getFooterLayoutMock(),
   layoutSets: getLayoutSetsMock(),
+  availableLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
 };
 
 window.logError = (...args) => {

@@ -100,11 +100,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         RepoStatus RepositoryStatus(AltinnRepoEditingContext editingContext);
 
         /// <summary>
-        /// Gets a dictionary of all filePaths and corresponding contentChanges as git diff string if file has been added or modified
+        /// Gets a dictionary of all filePaths and corresponding contentChanges as git diff string comparing working directory to current branch HEAD
         /// </summary>
         /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>A dictionary with the filePath and a string for the git diff</returns>
-        Task<Dictionary<string, string>> GetChangedContent(AltinnRepoEditingContext editingContext);
+        Dictionary<string, string> GetChangedContent(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Push commits to repository

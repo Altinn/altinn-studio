@@ -15,8 +15,9 @@ import type {
 import { FormField } from '../../FormField';
 import { StudioButton, StudioTextfield } from '@studio/components';
 
-export interface ISelectionEditComponentProvidedProps
-  extends IGenericEditComponent<FormCheckboxesComponent | FormRadioButtonsComponent> {
+export interface ISelectionEditComponentProvidedProps extends IGenericEditComponent<
+  FormCheckboxesComponent | FormRadioButtonsComponent
+> {
   renderOptions?: {
     onlyCodeListOptions?: boolean;
   };
