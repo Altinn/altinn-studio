@@ -10,6 +10,7 @@ import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AppHeader } from 'src/components/presentation/AppHeader/AppHeader';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
@@ -56,7 +57,10 @@ describe('presentation/AppHeader', () => {
 
       queries: {
         fetchTextResources: () => Promise.resolve({ language: 'nb', resources: textResources }),
-        fetchLayoutSettings: () => Promise.resolve({ pages: { showLanguageSelector, order: ['1', '2', '3'] } }),
+        fetchLayoutSettings: () =>
+          Promise.resolve({
+            pages: { showLanguageSelector, order: ['1', '2', '3'] } as unknown as IPagesSettingsWithOrder,
+          }),
       },
     });
   };

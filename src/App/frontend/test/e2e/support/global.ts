@@ -6,7 +6,6 @@ import type { CyUser, TenorUser } from 'test/e2e/support/auth';
 
 import type { IFeatureToggles } from 'src/features/toggles';
 import type { BackendValidationIssue, BackendValidationIssuesWithSource } from 'src/features/validation';
-import type { ILayoutSets } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { LooseAutocomplete } from 'src/types';
 
@@ -164,8 +163,6 @@ declare global {
         mutator?: (component: CompExternal) => void,
         allLayoutsMutator?: (layouts: ILayouts) => void,
       ): Chainable<null>;
-
-      interceptLayoutSetsUiSettings(uiSettings: Partial<ILayoutSets['uiSettings']>): Chainable<null>;
 
       iframeCustom(): Chainable<null>;
 

@@ -11,7 +11,6 @@ import type { AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { getDataListMock } from 'src/__mocks__/getDataListMock';
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
 import { getOrgsMock } from 'src/__mocks__/getOrgsMock';
@@ -23,7 +22,6 @@ import { RenderStart } from 'src/core/ui/RenderStart';
 import { FormProvider } from 'src/features/form/FormContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
-import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
@@ -38,7 +36,7 @@ import { PageNavigationRouter } from 'src/test/routerUtils';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
-import type { IRawOption } from 'src/layout/common.generated';
+import type { IPagesSettingsWithOrder, IRawOption } from 'src/layout/common.generated';
 import type { CompExternal, CompExternalExact, CompTypes } from 'src/layout/layout';
 import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 
@@ -117,7 +115,6 @@ const defaultQueryMocks: AppQueries = {
   fetchLogo: async () => getLogoMock(),
   fetchActiveInstances: async () => [],
   fetchSelectedParty: async () => getPartyMock(),
-  fetchLayoutSets: async () => getLayoutSetsMock(),
   fetchOrgs: async () => ({ orgs: getOrgsMock() }),
   fetchDataModelSchema: async () => ({}),
   fetchPartiesAllowedToInstantiate: async () => [getPartyMock()],
@@ -130,7 +127,7 @@ const defaultQueryMocks: AppQueries = {
   fetchTextResources: async (language) => ({ language, resources: getTextResourcesMock() }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
   fetchPostPlace: async () => ({ valid: true, result: 'OSLO' }),
-  fetchLayoutSettings: async () => ({ pages: { order: [] } }),
+  fetchLayoutSettings: async () => ({ pages: { order: [] } as unknown as IPagesSettingsWithOrder }),
   fetchLayouts: () => Promise.reject(new Error('fetchLayouts not mocked')),
   fetchLayoutsForInstance: () => Promise.reject(new Error('fetchLayoutsForInstance not mocked')),
   fetchBackendValidations: async () => [],
@@ -317,11 +314,19 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
                 <NavigationEffectProvider>
                   <GlobalFormDataReadersProvider>
                     <OrgsProvider>
+<<<<<<< HEAD
                       <LayoutSetsProvider>
                         <PartyProvider>
                           <TextResourcesProvider>{children}</TextResourcesProvider>
                         </PartyProvider>
                       </LayoutSetsProvider>
+=======
+                      <ProfileProvider>
+                        <PartyProvider>
+                          <TextResourcesProvider>{children}</TextResourcesProvider>
+                        </PartyProvider>
+                      </ProfileProvider>
+>>>>>>> refactor/return-url-in-initdata
                     </OrgsProvider>
                   </GlobalFormDataReadersProvider>
                 </NavigationEffectProvider>
@@ -622,7 +627,7 @@ export const renderWithInstanceAndLayout = async ({
         fetchLayoutSettings: async () => ({
           pages: {
             order: [initialPage],
-          },
+          } as unknown as IPagesSettingsWithOrder,
         }),
         ...renderOptions.queries,
       },
@@ -688,7 +693,7 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
       fetchLayoutSettings: async () => ({
         pages: {
           order: [initialPage],
-        },
+        } as unknown as IPagesSettingsWithOrder,
       }),
       ...rest.queries,
     },

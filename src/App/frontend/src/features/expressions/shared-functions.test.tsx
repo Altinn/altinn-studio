@@ -21,7 +21,12 @@ import {
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
+<<<<<<< HEAD
 import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
+=======
+import { getLayoutSets } from 'src/features/form/layoutSets';
+import { fetchInstanceData, fetchProcessState, fetchUserProfile } from 'src/queries/queries';
+>>>>>>> refactor/return-url-in-initdata
 import { AppQueries } from 'src/queries/types';
 import {
   renderWithInstanceAndLayout,
@@ -307,6 +312,9 @@ describe('Expressions shared function tests', () => {
       }
 
       jest.mocked(getApplicationMetadata).mockReturnValue(applicationMetadata);
+      jest
+        .mocked(getLayoutSets)
+        .mockReturnValue([{ id: 'layout-set', dataType: 'default', tasks: ['Task_1'] }, getSubFormLayoutSetMock()]);
       jest.mocked(useIsStateless).mockImplementation(() => stateless ?? false);
       jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
       jest.mocked(fetchProcessState).mockImplementation(async () => process ?? getProcessDataMock());
@@ -337,9 +345,6 @@ describe('Expressions shared function tests', () => {
       );
 
       const queries: Partial<AppQueries> = {
-        fetchLayoutSets: async () => ({
-          sets: [{ id: 'layout-set', dataType: 'default', tasks: ['Task_1'] }, getSubFormLayoutSetMock()],
-        }),
         fetchLayouts: async () => layouts,
         fetchFormData,
         ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),

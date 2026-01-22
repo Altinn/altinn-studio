@@ -1,7 +1,7 @@
 namespace Altinn.App.Core.Models;
 
 /// <summary>
-/// Layoutsets for a specific app containg one or more layoytset
+/// Layout sets config for a specific app containing one or more layout set
 /// </summary>
 public class LayoutSets
 {
@@ -9,4 +9,9 @@ public class LayoutSets
     /// Sets
     /// </summary>
     public required List<LayoutSet> Sets { get; set; }
+
+    /// <summary>
+    /// Ui settings
+    /// </summary>
+    public GlobalPageSettings? UiSettings { get; set; }
 }

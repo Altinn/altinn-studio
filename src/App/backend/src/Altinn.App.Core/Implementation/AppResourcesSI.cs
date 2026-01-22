@@ -250,7 +250,7 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public string GetLayoutSets()
+    public string? GetLayoutSetsString()
     {
         using var activity = _telemetry?.StartGetLayoutSetsActivity();
         string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.LayoutSetsFileName);
@@ -265,10 +265,10 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public LayoutSets? GetLayoutSet()
+    public LayoutSets? GetLayoutSets()
     {
         using var activity = _telemetry?.StartGetLayoutSetActivity();
-        string? layoutSetsString = GetLayoutSets();
+        string? layoutSetsString = GetLayoutSetsString();
         if (layoutSetsString is not null)
         {
             return System.Text.Json.JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
@@ -281,7 +281,7 @@ public class AppResourcesSI : IAppResources
     public LayoutSet? GetLayoutSetForTask(string taskId)
     {
         using var activity = _telemetry?.StartGetLayoutSetsForTaskActivity();
-        var sets = GetLayoutSet();
+        var sets = GetLayoutSets();
         return sets?.Sets?.Find(s => s?.Tasks?.Contains(taskId) is true);
     }
 
@@ -313,7 +313,7 @@ public class AppResourcesSI : IAppResources
     [Obsolete("Use GetLayoutModelForTask instead")]
     public LayoutModel GetLayoutModel(string? layoutSetId = null)
     {
-        var sets = GetLayoutSet();
+        var sets = GetLayoutSets();
         if (sets is null)
         {
             throw new InvalidOperationException("No layout set found");
@@ -332,7 +332,7 @@ public class AppResourcesSI : IAppResources
     public LayoutModel? GetLayoutModelForTask(string taskId)
     {
         using var activity = _telemetry?.StartGetLayoutModelActivity();
-        var layoutSets = GetLayoutSet();
+        var layoutSets = GetLayoutSets();
         if (layoutSets is null)
         {
             return null;

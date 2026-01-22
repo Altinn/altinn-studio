@@ -23,7 +23,6 @@ import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { ProcessingProvider } from 'src/core/contexts/processingContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
-import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
 import { LanguageProvider } from 'src/features/language/LanguageProvider';
@@ -86,8 +85,12 @@ function Root() {
         <UiConfigProvider>
           <InstantiationUrlReset />
           <GlobalFormDataReadersProvider>
+<<<<<<< HEAD
             <LayoutSetsProvider>
               {/*<ProfileProvider>*/}
+=======
+            <ProfileProvider>
+>>>>>>> refactor/return-url-in-initdata
               <TextResourcesProvider>
                 <OrgsProvider>
                   <PartyProvider>
@@ -105,9 +108,14 @@ function Root() {
                   </PartyProvider>
                 </OrgsProvider>
               </TextResourcesProvider>
+<<<<<<< HEAD
               {/*</ProfileProvider>*/}
               <PartyPrefetcher />
             </LayoutSetsProvider>
+=======
+            </ProfileProvider>
+            <PartyPrefetcher />
+>>>>>>> refactor/return-url-in-initdata
           </GlobalFormDataReadersProvider>
         </UiConfigProvider>
       </ViewportWrapper>
