@@ -1,1 +1,0 @@
-export { ConsentBanner } from './ConsentBanner';
