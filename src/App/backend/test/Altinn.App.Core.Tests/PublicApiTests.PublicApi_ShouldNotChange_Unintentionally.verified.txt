@@ -1910,7 +1910,7 @@ namespace Altinn.App.Core.Features.Redirect
     {
         Altinn.App.Core.Features.Redirect.RedirectUrlValidationResult Validate(string? base64Url);
     }
-    public sealed class RedirectUrlValidationResult
+    public class RedirectUrlValidationResult
     {
         public RedirectUrlValidationResult() { }
         public string? DecodedUrl { get; init; }
