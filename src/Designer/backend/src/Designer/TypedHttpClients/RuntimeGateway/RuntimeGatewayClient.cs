@@ -30,8 +30,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     {
         using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        var originEnvironment = GetOriginEnvironment();
-        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/origin/{originEnvironment}/apps";
+        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/origin/{_generalSettings.OriginEnvironment}/apps";
 
         var response = await client.GetFromJsonAsync<List<AppDeployment>>(requestUrl, cancellationToken);
         return response
@@ -44,8 +43,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     {
         using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        var originEnvironment = GetOriginEnvironment();
-        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{originEnvironment}";
+        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{_generalSettings.OriginEnvironment}";
 
         var response = await client.GetFromJsonAsync<AppDeployment>(requestUrl, cancellationToken);
         return response
