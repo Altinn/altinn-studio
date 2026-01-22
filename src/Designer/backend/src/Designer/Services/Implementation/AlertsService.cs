@@ -89,7 +89,7 @@ internal sealed class AlertsService(
 
         var message = new SlackMessage
         {
-            Text = $"{Emoji} `{org}` - `{environment}` - {appsFormatted} - *{alertName}*",
+            Text = $"{Emoji} `{org}` - `{environment.Name}` - {appsFormatted} - *{alertName}*",
             Blocks =
             [
                 new SlackBlock

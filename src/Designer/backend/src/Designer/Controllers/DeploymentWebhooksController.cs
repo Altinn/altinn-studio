@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Hubs.EntityUpdate;
 using Altinn.Studio.Designer.Infrastructure.Maskinporten;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
@@ -72,7 +73,7 @@ public class DeploymentWebhooksController : ControllerBase
             return Ok();
         }
 
-        await _deploymentService.SendToSlackAsync(org, request.Environment, app, eventType, buildId, deployment.Build.Started, deployment.Build.Finished, cancellationToken);
+        await _deploymentService.SendToSlackAsync(org, AltinnEnvironment.FromName(request.Environment), app, eventType, buildId, deployment.Build.Started, deployment.Build.Finished, cancellationToken);
 
         var deployEvent = CreateDeployEvent(eventType, request);
 

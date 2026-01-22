@@ -324,7 +324,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task SendToSlackAsync(string org, string env, string app, DeployEventType eventType, string buildId, DateTime? startedDate, DateTime? finishedDate, CancellationToken cancellationToken)
+        public async Task SendToSlackAsync(string org, AltinnEnvironment environment, string app, DeployEventType eventType, string buildId, DateTime? startedDate, DateTime? finishedDate, CancellationToken cancellationToken)
         {
             string studioEnv = _generalSettings.OriginEnvironment;
             var isSuccess = eventType == DeployEventType.InstallSucceeded ||
@@ -343,14 +343,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var elements = new List<SlackText>
                 {
                     new() { Type = "mrkdwn", Text = $"Org: `{org}`" },
-                    new() { Type = "mrkdwn", Text = $"Env: `{env}`" },
+                    new() { Type = "mrkdwn", Text = $"Env: `{environment.Name}`" },
                     new() { Type = "mrkdwn", Text = $"App: `{app}`" },
                     new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
                 };
 
             if (!isSuccess)
             {
-                elements.Add(new SlackText { Type = "mrkdwn", Text = $"<{GrafanaPodLogsUrl(org, env, app, startedDate, finishedDate)}|Grafana>" });
+                elements.Add(new SlackText { Type = "mrkdwn", Text = $"<{GrafanaPodLogsUrl(org, environment, app, startedDate, finishedDate)}|Grafana>" });
             }
 
             if (!string.IsNullOrWhiteSpace(buildId))
@@ -360,7 +360,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var message = new SlackMessage
             {
-                Text = $"{emoji} `{org}` - `{env}` - `{app}` - *{status}*",
+                Text = $"{emoji} `{org}` - `{environment.Name}` - `{app}` - *{status}*",
                 Blocks =
                 [
                     new SlackBlock
@@ -386,9 +386,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private static string GrafanaPodLogsUrl(string org, string env, string app, DateTime? startedDate, DateTime? finishedDate)
+        private static string GrafanaPodLogsUrl(string org, AltinnEnvironment environment, string app, DateTime? startedDate, DateTime? finishedDate)
         {
-            var isProd = env.Equals(AltinnEnvironment.Prod.Name, StringComparison.OrdinalIgnoreCase);
+            var isProd = environment.Name.Equals(AltinnEnvironment.Prod.Name, StringComparison.OrdinalIgnoreCase);
 
             var baseDomain = isProd ? $"https://{org}.apps.altinn.no" : $"https://{org}.apps.tt02.altinn.no";
 
@@ -396,7 +396,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var queryParams = new Dictionary<string, string>
             {
-                ["var-rg"] = $"altinnapps-{org}-{(isProd ? "prod" : env)}-rg",
+                ["var-rg"] = $"altinnapps-{org}-{(isProd ? "prod" : environment.Name)}-rg",
                 ["var-PodName"] = $"{org}-{app}-deployment-v2",
             };
 
