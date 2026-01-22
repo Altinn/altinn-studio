@@ -14,21 +14,21 @@ const package1: PolicyAccessPackage = {
   urn: 'urn:package1',
   name: package1Name,
   description: 'First package',
-  isDelegable: true,
+  isResourcePolicyAvailable: true,
 };
 const package2: PolicyAccessPackage = {
   id: 'package2',
   urn: 'urn:package2',
   name: package2Name,
   description: 'Second package',
-  isDelegable: true,
+  isResourcePolicyAvailable: true,
 };
 const package3: PolicyAccessPackage = {
   id: 'package3',
   urn: 'urn:package3',
   name: 'Package Gamma',
   description: 'Third package',
-  isDelegable: true,
+  isResourcePolicyAvailable: true,
 };
 
 const area1Name = 'Area 1';
