@@ -12,10 +12,17 @@ import {
   isAccessPackageSelected,
 } from './policyAccessPackageUtils';
 import { AllAccessPackages } from './AllAccessPackages';
+import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 
-export const PolicyAccessPackages = (): ReactElement => {
+interface PolicyAccessPackagesProps {
+  accessPackages: PolicyAccessPackageAreaGroup[];
+}
+
+export const PolicyAccessPackages = ({
+  accessPackages,
+}: PolicyAccessPackagesProps): ReactElement => {
   const { t } = useTranslation();
-  const { policyRules, accessPackages, setPolicyRules, savePolicy } = usePolicyEditorContext();
+  const { policyRules, setPolicyRules, savePolicy } = usePolicyEditorContext();
   const { policyRule, policyError, setPolicyError } = usePolicyRuleContext();
 
   const [searchValue, setSearchValue] = useState<string>('');
