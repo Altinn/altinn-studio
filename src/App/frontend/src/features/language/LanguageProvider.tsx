@@ -102,7 +102,7 @@ function useResolveCurrentLanguage(
       return languageFromSelector;
     }
     window.logWarnOnce(
-      `User's preferred language (${languageFromSelector}) from language selector / localstorage is not supported by the app, supported languages: [${appLanguages.join(', ')}]`,
+      `User's preferred language (${languageFromSelector}) from language selector / cookie is not supported by the app, supported languages: [${appLanguages.join(', ')}]`,
     );
   }
 
