@@ -1,8 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
-import { useGetAppLanguageQuery } from 'src/features/language/textResources/useGetAppLanguagesQuery';
 import { useProfileQuery } from 'src/features/profile/ProfileProvider';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
 
@@ -35,12 +34,7 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
   const languageFromUrl = getLanguageFromUrl();
   const [languageFromSelector, setWithLanguageSelector] = useLocalStorageState(['selectedLanguage', userId], null);
 
-  const { data: appLanguages, error, isFetching } = useGetAppLanguageQuery();
-  // TODO(Error handling): Should failing to fetch app languages cause PDF generation to fail?
-
-  useEffect(() => {
-    error && window.logError('Fetching app languages failed:\n', error);
-  }, [error]);
+  const appLanguages = window.altinnAppGlobalData.availableLanguages.map((lang) => lang.language);
 
   const current = useResolveCurrentLanguage(appLanguages, {
     languageFromSelector,
@@ -48,7 +42,7 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
     languageFromProfile,
   });
 
-  const languageResolved = !isProfileLoading && !isFetching;
+  const languageResolved = !isProfileLoading;
 
   return (
     <Provider

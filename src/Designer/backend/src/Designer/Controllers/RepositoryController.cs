@@ -229,7 +229,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// This method returns the git diff between the local WIP commit and the latest remote commit on main for a given repository
+        /// This method returns the git diff between the working directory and the current branch's HEAD commit for a given repository
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The repository</param>
@@ -241,7 +241,7 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             await _sourceControl.FetchRemoteChanges(editingContext);
-            return await _sourceControl.GetChangedContent(editingContext);
+            return _sourceControl.GetChangedContent(editingContext);
         }
 
         /// <summary>
