@@ -18,6 +18,8 @@ export const appErrorMetricsLogsPath = (
 export const appHealthMetricsPath = (org: string, env: string, app: string) =>
   `${adminApiBasePathV1}/metrics/${org}/${env}/app/health?app=${app}`; // Get
 export const runningAppsPath = (org: string) => `${adminApiBasePath}/applications/${org}`; // Get
+export const appDetailsPath = (org: string, env: string, app: string) =>
+  `${adminApiBasePath}/applications/${org}/${env}/${app}`; // Get
 export const instancesListPath = (
   org: string,
   env: string,

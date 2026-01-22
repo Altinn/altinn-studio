@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -38,8 +39,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients
         /// </summary>
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         /// <param name="config">The Microsoft.Extensions.Configuration.IConfiguration for </param>
+        /// <param name="env">The Microsoft.Extensions.Hosting.IHostEnvironment</param>
         /// <returns>IServiceCollection</returns>
-        public static IServiceCollection RegisterTypedHttpClients(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection RegisterTypedHttpClients(this IServiceCollection services, IConfiguration config, IHostEnvironment env)
         {
             services.AddHttpClient();
             services.AddTransient<AzureDevOpsTokenDelegatingHandler>();
@@ -68,7 +70,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddTransient<PlatformSubscriptionAuthDelegatingHandler>();
             services.AddMaskinportenHttpClient();
             services.AddSlackClient(config);
-            services.AddRuntimeGatewayHttpClient(config);
+            services.AddRuntimeGatewayHttpClient(config, env);
 
             return services;
         }
