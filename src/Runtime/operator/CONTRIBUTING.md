@@ -42,13 +42,11 @@ make test-e2e # runs e2e tests, requires kind
 We use [go-snaps](https://github.com/gkampitakis/go-snaps) for snapshot tests.
 
 **Local development:**
-
 - Running `make test` automatically updates snapshots when changes are detected
 - Review changes via `git diff` to verify correctness before committing
 - Snapshots should be committed alongside code changes
 
 **CI environment:**
-
 - Tests fail on snapshot mismatches (no auto-update)
 - Ensures snapshots are always up-to-date in the repository
 
