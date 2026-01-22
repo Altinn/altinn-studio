@@ -4,7 +4,7 @@ import type { ApplicationMetadata } from 'src/features/applicationMetadata/types
 import type { IAttachmentsMap } from 'src/features/attachments';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
-import type { IApplicationSettings } from 'src/types/shared';
+import type { IAppLanguage, IApplicationSettings } from 'src/types/shared';
 
 ///<reference types="cypress-iframe" />
 
@@ -12,6 +12,7 @@ type GlobalData = {
   applicationMetadata: ApplicationMetadata;
   footer: IFooterLayout;
   frontendSettings: IApplicationSettings;
+  availableLanguages: IAppLanguage[];
 };
 
 declare global {
