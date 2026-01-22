@@ -26,7 +26,7 @@ jobs:
         id: find-release-branch
         run: |
           # Get the latest release from GitHub
-          LATEST_RELEASE_TAG=$(gh release list --limit 1 --exclude-pre-releases --exclude-drafts --json tagName --jq '.[0].tagName')
+          LATEST_RELEASE_TAG=$(gh release list --limit 10 --exclude-pre-releases --exclude-drafts --json tagName,publishedAt --jq 'sort_by(.publishedAt) | reverse | .[0].tagName')
 
           if [ -z "$LATEST_RELEASE_TAG" ]; then
             echo "No releases found"
