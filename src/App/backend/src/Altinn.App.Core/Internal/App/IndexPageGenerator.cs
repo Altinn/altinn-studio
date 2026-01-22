@@ -17,7 +17,7 @@ internal sealed class IndexPageGenerator : IIndexPageGenerator
     };
 
     private static readonly object _cacheLock = new();
-    private static bool _cacheInitialized;
+    private static volatile bool _cacheInitialized;
     private static bool _hasLegacyIndexCshtml;
     private static BrowserAssetsConfiguration? _cachedFrontendConfig;
     private static IReadOnlyList<string> _cachedCustomCssFileNames = [];
