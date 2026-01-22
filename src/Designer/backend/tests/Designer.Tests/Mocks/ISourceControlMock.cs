@@ -108,7 +108,7 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<Dictionary<string, string>> GetChangedContent(AltinnRepoEditingContext editingContext)
+        public Dictionary<string, string> GetChangedContent(AltinnRepoEditingContext editingContext)
         {
             throw new NotImplementedException();
         }

@@ -116,6 +116,15 @@ public class EnvironmentsService : IEnvironmentsService
                         "Failed to deserialize response content or content was empty."
                     );
                 }
+
+                // Pretend that production environment does not exist in dev/staging, there is very limited access anyway
+                if (_generalSettings.HostName.StartsWith("dev.") || _generalSettings.HostName.StartsWith("staging."))
+                {
+                    return environmentsModel
+                        .Environments.Where(env => !env.Name.Contains("prod", StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                }
+
                 return environmentsModel.Environments;
             }
         );

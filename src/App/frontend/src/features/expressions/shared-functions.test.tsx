@@ -4,11 +4,13 @@ import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 import type { AxiosResponse } from 'axios';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getSubFormLayoutSetMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { type FunctionTestBase, getSharedTests, type SharedTestFunctionContext } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
@@ -19,7 +21,7 @@ import {
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
-import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState, fetchUserProfile } from 'src/queries/queries';
+import { fetchInstanceData, fetchProcessState, fetchUserProfile } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {
   renderWithInstanceAndLayout,
@@ -242,7 +244,7 @@ describe('Expressions shared function tests', () => {
         } as object),
       });
 
-      const applicationMetadata = getIncomingApplicationMetadataMock(
+      const applicationMetadata = getApplicationMetadataMock(
         stateless ? { onEntry: { show: 'layout-set' }, externalApiIds: ['testId'] } : {},
       );
       if (instanceDataElements) {
@@ -298,7 +300,13 @@ describe('Expressions shared function tests', () => {
       // Clear localstorage, because LanguageProvider uses it to cache selected languages
       localStorage.clear();
 
-      jest.mocked(fetchApplicationMetadata).mockResolvedValue(applicationMetadata);
+      // Set up applicationSettings in window global (useApplicationSettings reads from here)
+      if (frontendSettings) {
+        window.altinnAppGlobalData.frontendSettings = getApplicationSettingsMock(frontendSettings);
+      }
+
+      jest.mocked(getApplicationMetadata).mockReturnValue(applicationMetadata);
+      jest.mocked(useIsStateless).mockImplementation(() => stateless ?? false);
       jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
       jest.mocked(fetchProcessState).mockImplementation(async () => process ?? getProcessDataMock());
       jest.mocked(fetchUserProfile).mockImplementation(async () => profile);

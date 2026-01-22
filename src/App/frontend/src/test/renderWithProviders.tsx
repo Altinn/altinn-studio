@@ -20,8 +20,6 @@ import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
-import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
@@ -38,7 +36,6 @@ import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { ProfileProvider } from 'src/features/profile/ProfileProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { PageNavigationRouter } from 'src/test/routerUtils';
-import type { IFooterLayout } from 'src/features/footer/types';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
@@ -121,8 +118,6 @@ const defaultQueryMocks: AppQueries = {
   fetchLogo: async () => getLogoMock(),
   fetchActiveInstances: async () => [],
   fetchSelectedParty: async () => getPartyMock(),
-  fetchApplicationSettings: async () => ({}),
-  fetchFooterLayout: async () => ({ footer: [] }) as IFooterLayout,
   fetchLayoutSets: async () => getLayoutSetsMock(),
   fetchOrgs: async () => ({ orgs: getOrgsMock() }),
   fetchReturnUrl: async () => Promise.reject(),
@@ -136,7 +131,6 @@ const defaultQueryMocks: AppQueries = {
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
   fetchTextResources: async (language) => ({ language, resources: getTextResourcesMock() }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
-  fetchAppLanguages: async () => [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
   fetchPostPlace: async () => ({ valid: true, result: 'OSLO' }),
   fetchLayoutSettings: async () => ({ pages: { order: [] } }),
   fetchLayouts: () => Promise.reject(new Error('fetchLayouts not mocked')),
@@ -323,21 +317,17 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
             <PageNavigationProvider>
               <Router>
                 <NavigationEffectProvider>
-                  <ApplicationMetadataProvider>
-                    <GlobalFormDataReadersProvider>
-                      <OrgsProvider>
-                        <ApplicationSettingsProvider>
-                          <LayoutSetsProvider>
-                            <ProfileProvider>
-                              <PartyProvider>
-                                <TextResourcesProvider>{children}</TextResourcesProvider>
-                              </PartyProvider>
-                            </ProfileProvider>
-                          </LayoutSetsProvider>
-                        </ApplicationSettingsProvider>
-                      </OrgsProvider>
-                    </GlobalFormDataReadersProvider>
-                  </ApplicationMetadataProvider>
+                  <GlobalFormDataReadersProvider>
+                    <OrgsProvider>
+                      <LayoutSetsProvider>
+                        <ProfileProvider>
+                          <PartyProvider>
+                            <TextResourcesProvider>{children}</TextResourcesProvider>
+                          </PartyProvider>
+                        </ProfileProvider>
+                      </LayoutSetsProvider>
+                    </OrgsProvider>
+                  </GlobalFormDataReadersProvider>
                 </NavigationEffectProvider>
               </Router>
             </PageNavigationProvider>

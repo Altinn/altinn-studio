@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -20,6 +21,7 @@ public class HomeController : Controller
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
     private readonly IAntiforgery _antiforgery;
@@ -29,26 +31,27 @@ public class HomeController : Controller
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
-    private readonly IFrontendFeatures _frontendFeatures;
+    private readonly IBootstrapGlobalService _bootstrapGlobalService;
+    private readonly IIndexPageGenerator _indexPageGenerator;
 
     /// <summary>
     /// Initialize a new instance of the <see cref="HomeController"/> class.
     /// </summary>
+    /// <param name="serviceProvider">The service provider for resolving internal services.</param>
     /// <param name="antiforgery">The anti forgery service.</param>
     /// <param name="platformSettings">The platform settings.</param>
     /// <param name="env">The current environment.</param>
     /// <param name="appSettings">The application settings</param>
     /// <param name="appResources">The application resources service</param>
     /// <param name="appMetadata">The application metadata service</param>
-    /// <param name="frontendFeatures">The frontend features service</param>
     public HomeController(
+        IServiceProvider serviceProvider,
         IAntiforgery antiforgery,
         IOptions<PlatformSettings> platformSettings,
         IWebHostEnvironment env,
         IOptions<AppSettings> appSettings,
         IAppResources appResources,
-        IAppMetadata appMetadata,
-        IFrontendFeatures frontendFeatures
+        IAppMetadata appMetadata
     )
     {
         _antiforgery = antiforgery;
@@ -57,7 +60,8 @@ public class HomeController : Controller
         _appSettings = appSettings.Value;
         _appResources = appResources;
         _appMetadata = appMetadata;
-        _frontendFeatures = frontendFeatures;
+        _bootstrapGlobalService = serviceProvider.GetRequiredService<IBootstrapGlobalService>();
+        _indexPageGenerator = serviceProvider.GetRequiredService<IIndexPageGenerator>();
     }
 
     /// <summary>
@@ -96,9 +100,22 @@ public class HomeController : Controller
 
         if (await ShouldShowAppView())
         {
-            ViewBag.org = org;
-            ViewBag.app = app;
-            return Content(await GenerateHtml(org, app), "text/html; charset=utf-8");
+            if (_indexPageGenerator.HasLegacyIndexCshtml)
+            {
+                ViewBag.org = org;
+                ViewBag.app = app;
+                return PartialView("Index");
+            }
+
+            string? frontendVersionOverride = null;
+            if (_env.IsDevelopment() && HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var cookie))
+            {
+                frontendVersionOverride = cookie.TrimEnd('/');
+            }
+
+            var appGlobalState = await _bootstrapGlobalService.GetGlobalState();
+            var html = await _indexPageGenerator.Generate(org, app, appGlobalState, frontendVersionOverride);
+            return Content(html, "text/html; charset=utf-8");
         }
 
         string scheme = _env.IsDevelopment() ? "http" : "https";
@@ -117,43 +134,6 @@ public class HomeController : Controller
         }
 
         return Redirect(redirectUrl);
-    }
-
-    private async Task<string> GenerateHtml(string org, string app)
-    {
-        var frontendUrl = "https://altinncdn.no/toolkits/altinn-app-frontend/4";
-        if (HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var frontendVersionCookie))
-        {
-            frontendUrl = frontendVersionCookie.TrimEnd('/');
-        }
-
-        var featureToggles = await _frontendFeatures.GetFrontendFeatures();
-        var featureTogglesJson = JsonSerializer.Serialize(featureToggles, _jsonSerializerOptions);
-
-        var htmlContent = $$"""
-            <!DOCTYPE html>
-            <html lang="no">
-            <head>
-              <meta charset="utf-8">
-              <meta http-equiv="X-UA-Compatible" content="IE=edge">
-              <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-              <title>{{org}} - {{app}}</title>
-              <link rel="icon" href="https://altinncdn.no/favicon.ico">
-              <link rel="stylesheet" type="text/css" href="{{frontendUrl}}/altinn-app-frontend.css">
-            </head>
-            <body>
-              <div id="root"></div>
-              <script>
-                window.org = '{{org}}';
-                window.app = '{{app}}';
-                window.featureToggles = {{featureTogglesJson}};
-              </script>
-              <script src="{{frontendUrl}}/altinn-app-frontend.js"></script>
-            </body>
-            </html>
-            """;
-
-        return htmlContent;
     }
 
     /// <summary>
