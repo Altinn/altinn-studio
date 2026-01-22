@@ -3,7 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { useProfileQuery } from 'src/features/profile/ProfileProvider';
-import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
+import { useCookieState } from 'src/hooks/useCookieState';
 
 interface LanguageCtx {
   current: string;
@@ -28,11 +28,11 @@ const { Provider, useCtx } = createContext<LanguageCtx>({
 export const LanguageProvider = ({ children }: PropsWithChildren) => {
   const { data: profile, isLoading: isProfileLoading } = useProfileQuery();
 
-  const userId = isProfileLoading ? undefined : profile?.userId;
   const languageFromProfile = isProfileLoading ? undefined : profile?.profileSettingPreference.language;
 
   const languageFromUrl = getLanguageFromUrl();
-  const [languageFromSelector, setWithLanguageSelector] = useLocalStorageState(['selectedLanguage', userId], null);
+  const [languageFromSelector, setLanguageFromSelector] = useCookieState<string | null>('selectedLanguage', null);
+  const setWithLanguageSelector = (language: string) => setLanguageFromSelector(language);
 
   const appLanguages = window.altinnAppGlobalData.availableLanguages.map((lang) => lang.language);
 
