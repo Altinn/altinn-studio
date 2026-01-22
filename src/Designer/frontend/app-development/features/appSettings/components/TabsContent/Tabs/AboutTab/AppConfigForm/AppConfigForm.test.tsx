@@ -9,12 +9,35 @@ import { renderWithProviders } from 'app-development/test/mocks';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 import { APP_CONFIG_RESOURCE_TYPE } from 'app-development/features/appSettings/constants/appConfigResourceType';
 
+// TODO: {/* (#15374): We commented the tests which are no longer needed after we disabled the validation error message,
+// TODO: We will see after working with validation if we need them or just remove all.  */}
+
 jest.mock('../hooks/useScrollIntoView', () => ({
   useScrollIntoView: jest.fn(),
 }));
 
 describe('AppConfigForm', () => {
   afterEach(jest.clearAllMocks);
+
+  // it('renders error summary when the save button is pressed and there are errors', async () => {
+  //   const user = userEvent.setup();
+  //   renderAppConfigForm();
+
+  //   const anInputField = getOptionalTextbox(textMock('app_settings.about_tab_alt_id_label'));
+  //   const newValue: string = 'A';
+  //   await user.type(anInputField, newValue);
+
+  //   const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
+  //   await user.click(saveButton);
+
+  //   expect(getErrorHeader()).toBeInTheDocument();
+  //   expect(
+  //     getLink(errorMessageServiceNameNN('app_settings.about_tab_error_usage_string_service_name')),
+  //   ).toBeInTheDocument();
+  //   expect(
+  //     getLink(errorMessageServiceNameEN('app_settings.about_tab_error_usage_string_service_name')),
+  //   ).toBeInTheDocument();
+  // });
 
   it('does not render error summary when the save button is pressed and there are no errors', async () => {
     const user = userEvent.setup();
@@ -257,6 +280,23 @@ describe('AppConfigForm', () => {
     expect(cancelButton).not.toBeDisabled();
   });
 
+  // it('does not call saveAppConfig when fields are changed but there are errors', async () => {
+  //   const user = userEvent.setup();
+  //   const saveAppConfig = jest.fn();
+  //   renderAppConfigForm({ saveAppConfig });
+
+  //   const altId = getOptionalTextbox(textMock('app_settings.about_tab_alt_id_label'));
+  //   const newText: string = 'A';
+  //   await user.type(altId, newText);
+  //   await user.tab();
+
+  //   const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
+  //   await user.click(saveButton);
+
+  //   expect(saveAppConfig).not.toHaveBeenCalled();
+  //   expect(getErrorHeader()).toBeInTheDocument();
+  // });
+
   it('calls saveAppConfig with correct data when fields are changed and there are no errors', async () => {
     const user = userEvent.setup();
     const saveAppConfig = jest.fn();
@@ -278,6 +318,25 @@ describe('AppConfigForm', () => {
       serviceId: `${mockAppConfigComplete.serviceId}${newText}`,
     });
   });
+
+  // it('should hide the error summary when the cancel button is clicked', async () => {
+  //   const user = userEvent.setup();
+  //   jest.spyOn(window, 'confirm').mockImplementation(() => true);
+  //   renderAppConfigForm();
+
+  //   const altId = getOptionalTextbox(textMock('app_settings.about_tab_alt_id_label'));
+  //   const newText: string = 'A';
+  //   await user.type(altId, newText);
+  //   await user.tab();
+
+  //   const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
+  //   await user.click(saveButton);
+  //   expect(getErrorHeader()).toBeInTheDocument();
+
+  //   const cancelButton = getButton(textMock('app_settings.about_tab_reset_button'));
+  //   await user.click(cancelButton);
+  //   expect(queryErrorHeader()).not.toBeInTheDocument();
+  // });
 
   it('should not reset the form when the cancel button is clicked without confirmation', async () => {
     const user = userEvent.setup();
@@ -451,10 +510,14 @@ const getOptionalTextbox = (name: string): HTMLInputElement =>
 const getTextbox = (name: string): HTMLInputElement => screen.getByRole('textbox', { name });
 const queryTextbox = (name: string): HTMLInputElement | null =>
   screen.queryByRole('textbox', { name });
-const getLink = (name: string): HTMLAnchorElement => screen.getByRole('link', { name });
+// const getLink = (name: string): HTMLAnchorElement => screen.getByRole('link', { name });
 // const queryLink = (name: string): HTMLAnchorElement | null => screen.queryByRole('link', { name });
 const getButton = (name: string): HTMLButtonElement => screen.getByRole('button', { name });
-
+// const getErrorHeader = (): HTMLHeadingElement =>
+//   screen.getByRole('heading', {
+//     name: textMock('app_settings.about_tab_error_summary_header'),
+//     level: 2,
+//   });
 const queryErrorHeader = (): HTMLHeadingElement | null =>
   screen.queryByRole('heading', {
     name: textMock('app_settings.about_tab_error_summary_header'),
@@ -465,3 +528,12 @@ const getSwitch = (name: string): HTMLInputElement => screen.getByRole('switch',
 
 const optionalText: string = textMock('general.optional');
 const requiredText: string = textMock('general.required');
+// const errorMessageServiceNameNN = (field: string): string =>
+//   textMock('app_settings.about_tab_error_translation_missing_nn', {
+//     field: textMock(field),
+//   });
+
+// const errorMessageServiceNameEN = (field: string): string =>
+//   textMock('app_settings.about_tab_error_translation_missing_en', {
+//     field: textMock(field),
+//   });
