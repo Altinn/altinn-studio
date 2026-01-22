@@ -71,6 +71,7 @@ public class HomeController : Controller
     /// <param name="org">The application owner short name.</param>
     /// <param name="app">The name of the app</param>
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
+    /// <param name="returnUrl"></param>
     [HttpGet]
     [Route("")]
     [Route("instance-selection")]
