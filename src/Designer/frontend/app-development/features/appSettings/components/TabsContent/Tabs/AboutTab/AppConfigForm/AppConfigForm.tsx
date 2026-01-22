@@ -6,10 +6,10 @@ import { StudioTextfield } from '@studio/components';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type {
   AppConfigNew,
-  AvailableForTypeOption,
+  // AvailableForTypeOption,
   ContactPoint,
   Keyword,
-  StatusOption,
+  // StatusOption,
 } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
 import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
@@ -20,8 +20,8 @@ import { useScrollIntoView } from '../hooks/useScrollIntoView';
 import { ObjectUtils } from '@studio/pure-functions';
 import { SwitchInput } from './SwitchInput';
 import { mapKeywordsArrayToString, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
-import { StatusRadioGroup } from './StatusRadioGroup';
-import { AvailableForTypeCheckboxGroup } from './AvailableForTypeRadioGroup';
+// import { StatusRadioGroup } from './StatusRadioGroup';
+// import { AvailableForTypeCheckboxGroup } from './AvailableForTypeRadioGroup';
 import { ContactPoints } from './ContactPoints';
 import { APP_CONFIG_RESOURCE_TYPE } from 'app-development/features/appSettings/constants/appConfigResourceType';
 
@@ -56,10 +56,10 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   const rightDescriptionErrors: AppConfigFormError[] = getFieldErrors(
     AppResourceFormFieldIds.RightDescription,
   );
-  const statusErrors: AppConfigFormError[] = getFieldErrors(AppResourceFormFieldIds.Status);
-  const availableForTypeErrors: AppConfigFormError[] = getFieldErrors(
-    AppResourceFormFieldIds.AvailableForType,
-  );
+  // const statusErrors: AppConfigFormError[] = getFieldErrors(AppResourceFormFieldIds.Status);
+  // const availableForTypeErrors: AppConfigFormError[] = getFieldErrors(
+  //   AppResourceFormFieldIds.AvailableForType,
+  // );
 
   const contactPointErrors: AppConfigFormError[] = getFieldErrors(
     AppResourceFormFieldIds.ContactPointsId,
@@ -146,33 +146,33 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     }));
   };
 
-  const onChangeStatus = (status: StatusOption): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
-      ...oldVal,
-      status,
-    }));
-  };
+  // const onChangeStatus = (status: StatusOption): void => {
+  //   setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+  //     ...oldVal,
+  //     status,
+  //   }));
+  // };
 
-  const onChangeSelfIdentifiedUser = (e: ChangeEvent<HTMLInputElement>): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
-      ...oldVal,
-      selfIdentifiedUserEnabled: e.target.checked,
-    }));
-  };
+  // const onChangeSelfIdentifiedUser = (e: ChangeEvent<HTMLInputElement>): void => {
+  //   setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+  //     ...oldVal,
+  //     selfIdentifiedUserEnabled: e.target.checked,
+  //   }));
+  // };
 
-  const onChangeEnterpriseUser = (e: ChangeEvent<HTMLInputElement>): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
-      ...oldVal,
-      enterpriseUserEnabled: e.target.checked,
-    }));
-  };
+  // const onChangeEnterpriseUser = (e: ChangeEvent<HTMLInputElement>): void => {
+  //   setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+  //     ...oldVal,
+  //     enterpriseUserEnabled: e.target.checked,
+  //   }));
+  // };
 
-  const onChangeAvailableForType = (availableForType: AvailableForTypeOption[]): void => {
-    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
-      ...oldVal,
-      availableForType: availableForType,
-    }));
-  };
+  // const onChangeAvailableForType = (availableForType: AvailableForTypeOption[]): void => {
+  //   setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+  //     ...oldVal,
+  //     availableForType: availableForType,
+  //   }));
+  // };
 
   const onChangeContactPoints = (contactPoints: ContactPoint[]): void => {
     setUpdatedAppConfig((oldVal: AppConfigNew) => ({
@@ -266,40 +266,44 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           required={false}
           tagText={t('general.optional')}
         />
-        <StatusRadioGroup
-          selectedStatus={updatedAppConfig.status}
-          onChangeStatus={onChangeStatus}
-          errors={statusErrors}
-          id={AppResourceFormFieldIds.Status}
-        />
-        <SwitchInput
-          switchAriaLabel={t('app_settings.about_tab_self_identified_user_show_text', {
-            shouldText: !updatedAppConfig.selfIdentifiedUserEnabled
-              ? t('app_settings.about_tab_switch_should_not')
-              : '',
-          })}
-          cardHeading={t('app_settings.about_tab_self_identified_user_field_label')}
-          description={t('app_settings.about_tab_self_identified_user_field_description')}
-          checked={updatedAppConfig?.selfIdentifiedUserEnabled ?? false}
-          onChange={onChangeSelfIdentifiedUser}
-        />
-        <SwitchInput
-          switchAriaLabel={t('app_settings.about_tab_enterprise_user_show_text', {
-            shouldText: !updatedAppConfig.enterpriseUserEnabled
-              ? t('app_settings.about_tab_switch_should_not')
-              : '',
-          })}
-          cardHeading={t('app_settings.about_tab_enterprise_user_field_label')}
-          description={t('app_settings.about_tab_enterprise_user_field_description')}
-          checked={updatedAppConfig?.enterpriseUserEnabled ?? false}
-          onChange={onChangeEnterpriseUser}
-        />
-        <AvailableForTypeCheckboxGroup
-          initialValues={updatedAppConfig.availableForType}
-          onChangeAvailableForType={onChangeAvailableForType}
-          errors={availableForTypeErrors}
-          id={AppResourceFormFieldIds.AvailableForType}
-        />
+        {/* TODO (`#17439`): Temporarily hidden - may be re-enabled in future. Related tests also disabled. */}
+        {/*
+         <StatusRadioGroup
+              selectedStatus={updatedAppConfig.status}
+              onChangeStatus={onChangeStatus}
+              errors={statusErrors}
+              id={AppResourceFormFieldIds.Status}
+            />
+
+            <SwitchInput
+              switchAriaLabel={t('app_settings.about_tab_self_identified_user_show_text', {
+                shouldText: !updatedAppConfig.selfIdentifiedUserEnabled
+                  ? t('app_settings.about_tab_switch_should_not')
+                  : '',
+              })}
+              cardHeading={t('app_settings.about_tab_self_identified_user_field_label')}
+              description={t('app_settings.about_tab_self_identified_user_field_description')}
+              checked={updatedAppConfig?.selfIdentifiedUserEnabled ?? false}
+              onChange={onChangeSelfIdentifiedUser}
+            />
+            <SwitchInput
+              switchAriaLabel={t('app_settings.about_tab_enterprise_user_show_text', {
+                shouldText: !updatedAppConfig.enterpriseUserEnabled
+                  ? t('app_settings.about_tab_switch_should_not')
+                  : '',
+              })}
+              cardHeading={t('app_settings.about_tab_enterprise_user_field_label')}
+              description={t('app_settings.about_tab_enterprise_user_field_description')}
+              checked={updatedAppConfig?.enterpriseUserEnabled ?? false}
+              onChange={onChangeEnterpriseUser}
+            />
+
+            <AvailableForTypeCheckboxGroup
+              initialValues={updatedAppConfig.availableForType}
+              onChangeAvailableForType={onChangeAvailableForType}
+              errors={availableForTypeErrors}
+              id={AppResourceFormFieldIds.AvailableForType}
+            /> */}
         <ContactPoints
           contactPointList={updatedAppConfig.contactPoints}
           onContactPointsChanged={onChangeContactPoints}
