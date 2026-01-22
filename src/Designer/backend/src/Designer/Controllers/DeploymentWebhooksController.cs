@@ -1,5 +1,6 @@
 #nullable disable
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
@@ -73,7 +74,7 @@ public class DeploymentWebhooksController : ControllerBase
             return Ok();
         }
 
-        await _deploymentService.SendToSlackAsync(org, AltinnEnvironment.FromName(request.Environment), app, eventType, buildId, deployment.Events.First()?.Created, deployment.Events.Last()?.Created, cancellationToken);
+        await _deploymentService.SendToSlackAsync(org, AltinnEnvironment.FromName(request.Environment), app, eventType, buildId, deployment.Events.FirstOrDefault()?.Created, deployment.Events.LastOrDefault()?.Created, cancellationToken);
 
         var deployEvent = CreateDeployEvent(eventType, request);
 
