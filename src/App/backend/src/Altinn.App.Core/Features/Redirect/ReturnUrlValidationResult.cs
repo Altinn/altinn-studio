@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Features.Redirect;
 /// <summary>
 /// Result of a redirect URL validation.
 /// </summary>
-public class RedirectUrlValidationResult
+public class ReturnUrlValidationResult
 {
     /// <summary>
     /// Indicates whether the URL is valid.
@@ -34,7 +34,7 @@ public class RedirectUrlValidationResult
     /// </summary>
     /// <param name="decodedUrl">The decoded URL</param>
     /// <returns>A successful result</returns>
-    public static RedirectUrlValidationResult Success(string decodedUrl) =>
+    public static ReturnUrlValidationResult Success(string decodedUrl) =>
         new() { IsValid = true, DecodedUrl = decodedUrl };
 
     /// <summary>
@@ -42,7 +42,7 @@ public class RedirectUrlValidationResult
     /// </summary>
     /// <param name="errorMessage">The error message</param>
     /// <returns>A failure result</returns>
-    public static RedirectUrlValidationResult InvalidFormat(string errorMessage) =>
+    public static ReturnUrlValidationResult InvalidFormat(string errorMessage) =>
         new()
         {
             IsValid = false,
@@ -55,7 +55,7 @@ public class RedirectUrlValidationResult
     /// </summary>
     /// <param name="errorMessage">The error message</param>
     /// <returns>A failure result</returns>
-    public static RedirectUrlValidationResult InvalidDomain(string errorMessage) =>
+    public static ReturnUrlValidationResult InvalidDomain(string errorMessage) =>
         new()
         {
             IsValid = false,

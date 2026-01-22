@@ -34,5 +34,5 @@ internal class BootstrapGlobalResponse
     /// Verified returnUrl
     /// </summary>
     [JsonPropertyName("returnUrl")]
-    public RedirectUrlValidationResult? ReturnUrl { get; set; }
+    public ReturnUrlValidationResult? ReturnUrl { get; set; }
 }

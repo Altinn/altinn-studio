@@ -1906,13 +1906,13 @@ namespace Altinn.App.Core.Features.Pdf
 }
 namespace Altinn.App.Core.Features.Redirect
 {
-    public interface IRedirectUrlValidator
+    public interface IReturnUrlValidator
     {
-        Altinn.App.Core.Features.Redirect.RedirectUrlValidationResult Validate(string? base64Url);
+        Altinn.App.Core.Features.Redirect.ReturnUrlValidationResult Validate(string? base64Url);
     }
-    public class RedirectUrlValidationResult
+    public class ReturnUrlValidationResult
     {
-        public RedirectUrlValidationResult() { }
+        public ReturnUrlValidationResult() { }
         public string? DecodedUrl { get; init; }
         public string? ErrorMessage { get; init; }
         public bool IsInvalidDomain { get; init; }
@@ -1923,9 +1923,9 @@ namespace Altinn.App.Core.Features.Redirect
         [set: System.Diagnostics.CodeAnalysis.MemberNotNullWhen(false, "ErrorMessage")]
         [set: System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, "DecodedUrl")]
         public bool IsValid { get; init; }
-        public static Altinn.App.Core.Features.Redirect.RedirectUrlValidationResult InvalidDomain(string errorMessage) { }
-        public static Altinn.App.Core.Features.Redirect.RedirectUrlValidationResult InvalidFormat(string errorMessage) { }
-        public static Altinn.App.Core.Features.Redirect.RedirectUrlValidationResult Success(string decodedUrl) { }
+        public static Altinn.App.Core.Features.Redirect.ReturnUrlValidationResult InvalidDomain(string errorMessage) { }
+        public static Altinn.App.Core.Features.Redirect.ReturnUrlValidationResult InvalidFormat(string errorMessage) { }
+        public static Altinn.App.Core.Features.Redirect.ReturnUrlValidationResult Success(string decodedUrl) { }
     }
 }
 namespace Altinn.App.Core.Features.Signing

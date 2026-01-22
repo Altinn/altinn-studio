@@ -13,7 +13,7 @@ internal sealed class BootstrapGlobalService(
     IAppResources appResources,
     IOptions<FrontEndSettings> frontEndSettings,
     IApplicationLanguage applicationLanguage,
-    IRedirectUrlValidator redirectUrlValidator
+    IReturnUrlValidator returnUrlValidator
 ) : IBootstrapGlobalService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -47,7 +47,7 @@ internal sealed class BootstrapGlobalService(
             Footer = await footerTask,
             AvailableLanguages = await availableLanguagesTask,
             FrontEndSettings = frontEndSettings.Value,
-            ReturnUrl = redirectUrlValidator.Validate(redirectUrl),
+            ReturnUrl = returnUrlValidator.Validate(redirectUrl),
         };
     }
 

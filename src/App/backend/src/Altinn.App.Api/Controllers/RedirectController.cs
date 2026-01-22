@@ -13,7 +13,7 @@ namespace Altinn.App.Api.Controllers;
 [AutoValidateAntiforgeryTokenIfAuthCookie]
 [Route("{org}/{app}/api/v1/redirect")]
 [ApiController]
-public class RedirectController(IRedirectUrlValidator redirectUrlValidator) : ControllerBase
+public class RedirectController(IReturnUrlValidator returnUrlValidator) : ControllerBase
 {
     /// <summary>
     /// Validates URL used for redirection
@@ -24,7 +24,7 @@ public class RedirectController(IRedirectUrlValidator redirectUrlValidator) : Co
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public ActionResult<string> ValidateUrl([BindRequired, FromQuery] string url)
     {
-        var result = redirectUrlValidator.Validate(url);
+        var result = returnUrlValidator.Validate(url);
 
         if (result.IsValid)
         {

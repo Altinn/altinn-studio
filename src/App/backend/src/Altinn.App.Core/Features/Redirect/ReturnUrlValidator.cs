@@ -5,18 +5,16 @@ using Microsoft.Extensions.Options;
 namespace Altinn.App.Core.Features.Redirect;
 
 /// <inheritdoc />
-internal sealed class RedirectUrlValidator(IOptions<GeneralSettings> settings) : IRedirectUrlValidator
+internal sealed class ReturnUrlValidator(IOptions<GeneralSettings> settings) : IReturnUrlValidator
 {
     private readonly GeneralSettings _settings = settings.Value;
 
     /// <inheritdoc />
-    public RedirectUrlValidationResult Validate(string? base64Url)
+    public ReturnUrlValidationResult Validate(string? base64Url)
     {
         if (string.IsNullOrEmpty(base64Url))
         {
-            return RedirectUrlValidationResult.InvalidFormat(
-                "Invalid value of query parameter url. The query parameter url must not be empty or null."
-            );
+            return ReturnUrlValidationResult.InvalidFormat("The query parameter returnUrl must not be empty or null.");
         }
 
         try
@@ -27,15 +25,15 @@ internal sealed class RedirectUrlValidator(IOptions<GeneralSettings> settings) :
 
             if (!IsValidRedirectUri(uri.Host))
             {
-                return RedirectUrlValidationResult.InvalidDomain("Invalid domain from query parameter url.");
+                return ReturnUrlValidationResult.InvalidDomain("Invalid domain from returnUrl query parameter.");
             }
 
-            return RedirectUrlValidationResult.Success(convertedUri);
+            return ReturnUrlValidationResult.Success(convertedUri);
         }
         catch (FormatException)
         {
-            return RedirectUrlValidationResult.InvalidFormat(
-                "Invalid format of query parameter url. The query parameter url must be a valid base64 encoded string"
+            return ReturnUrlValidationResult.InvalidFormat(
+                "The query parameter returnUrl must be a valid base64 encoded string"
             );
         }
     }
