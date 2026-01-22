@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PageName } from '../../types/PageName';
 import { infoBoxConfigs } from './infoBoxConfigs';
-import { Guard } from '@studio/pure-functions';
+import { Guard } from '@studio/guard';
 
 const pageNameMock: PageName = PageName.CodeListsWithTextResources;
 
