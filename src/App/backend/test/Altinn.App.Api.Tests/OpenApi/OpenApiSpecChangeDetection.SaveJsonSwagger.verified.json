@@ -2522,7 +2522,6 @@
           {
             "name": "returnUrl",
             "in": "query",
-            "description": "Optional return URL",
             "schema": {
               "type": "string"
             }
@@ -2571,7 +2570,6 @@
           {
             "name": "returnUrl",
             "in": "query",
-            "description": "Optional return URL",
             "schema": {
               "type": "string"
             }
@@ -2620,7 +2618,6 @@
           {
             "name": "returnUrl",
             "in": "query",
-            "description": "Optional return URL",
             "schema": {
               "type": "string"
             }
@@ -2669,7 +2666,6 @@
           {
             "name": "returnUrl",
             "in": "query",
-            "description": "Optional return URL",
             "schema": {
               "type": "string"
             }
@@ -2726,7 +2722,6 @@
           {
             "name": "returnUrl",
             "in": "query",
-            "description": "Optional return URL",
             "schema": {
               "type": "string"
             }
@@ -2783,7 +2778,6 @@
           {
             "name": "returnUrl",
             "in": "query",
-            "description": "Optional return URL",
             "schema": {
               "type": "string"
             }
@@ -2848,7 +2842,6 @@
           {
             "name": "returnUrl",
             "in": "query",
-            "description": "Optional return URL",
             "schema": {
               "type": "string"
             }
