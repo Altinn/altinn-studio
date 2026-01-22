@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
@@ -90,8 +89,6 @@ public class HomeController : Controller
         [FromQuery] string? returnUrl
     )
     {
-        Debugger.Break();
-
         // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
         var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
         if (tokens.RequestToken != null)
