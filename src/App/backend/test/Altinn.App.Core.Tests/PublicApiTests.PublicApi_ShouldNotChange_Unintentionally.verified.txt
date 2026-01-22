@@ -1906,7 +1906,7 @@ namespace Altinn.App.Core.Features.Pdf
 }
 namespace Altinn.App.Core.Features.Redirect
 {
-    public interface IReturnUrlValidator
+    public interface IReturnUrlService
     {
         Altinn.App.Core.Features.Redirect.ReturnUrlValidationResult Validate(string? base64Url);
     }

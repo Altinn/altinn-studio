@@ -3,7 +3,7 @@ namespace Altinn.App.Core.Features.Redirect;
 /// <summary>
 /// Service for validating redirect URLs.
 /// </summary>
-public interface IReturnUrlValidator
+public interface IReturnUrlService
 {
     /// <summary>
     /// Validates and decodes a base64-encoded redirect URL.
