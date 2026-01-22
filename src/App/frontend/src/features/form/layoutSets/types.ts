@@ -1,10 +1,10 @@
 // These types should ultimately be generated from the backend DTOs, but for now we define them manually here.
 export type GlobalPageSettings = {
-  hideCloseButton: NonNullable<boolean | undefined>;
-  showLanguageSelector: NonNullable<boolean | undefined>;
-  showExpandWidthButton: NonNullable<boolean | undefined>;
-  expandedWidth: NonNullable<boolean | undefined>;
-  showProgress: NonNullable<boolean | undefined>;
+  hideCloseButton: boolean;
+  showLanguageSelector: boolean;
+  showExpandWidthButton: boolean;
+  expandedWidth: boolean;
+  showProgress: boolean;
   autoSaveBehavior: 'onChangeFormData' | 'onChangePage';
   taskNavigation: (NavigationTask | NavigationReceipt)[];
 };
