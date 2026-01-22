@@ -95,20 +95,3 @@ export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
 
   return null;
 }
-
-// TODO: Change to useLocation.search and add tests to make sure it works as expected
-// function useReturnUrl() {
-//   const { fetchReturnUrl } = useAppQueries();
-//   // // Unfortunately, since it is used like this it means it is not reactive and will not update
-//   // // if the query parameter changes during the apps lifetime. But this is not likely to be an issue
-//   // // as the value has to be base64 encoded so there will likely not be any valid update to this
-//   // // after the app loads. We certainly don't touch it.
-//   // const queryParameterReturnUrl = new URLSearchParams(window.location.search).get('returnUrl');
-//   //
-//   // const { data, isFetching } = useQuery({
-//   //   queryKey: ['returnUrl', queryParameterReturnUrl],
-//   //   queryFn: queryParameterReturnUrl ? () => fetchReturnUrl(queryParameterReturnUrl) : skipToken,
-//   // });
-//
-//   return { returnUrl: data, isFetchingReturnUrl: isFetching };
-// }
