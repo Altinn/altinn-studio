@@ -85,37 +85,24 @@ function Root() {
         <UiConfigProvider>
           <InstantiationUrlReset />
           <GlobalFormDataReadersProvider>
-<<<<<<< HEAD
-            <LayoutSetsProvider>
-              {/*<ProfileProvider>*/}
-=======
-            <ProfileProvider>
->>>>>>> refactor/return-url-in-initdata
-              <TextResourcesProvider>
-                <OrgsProvider>
-                  <PartyProvider>
-                    <KeepAliveProvider>
-                      <ProcessingProvider>
-                        <App />
-                      </ProcessingProvider>
-                      <ToastContainer
-                        position='top-center'
-                        theme='colored'
-                        transition={Slide}
-                        draggable={false}
-                      />
-                    </KeepAliveProvider>
-                  </PartyProvider>
-                </OrgsProvider>
-              </TextResourcesProvider>
-<<<<<<< HEAD
-              {/*</ProfileProvider>*/}
-              <PartyPrefetcher />
-            </LayoutSetsProvider>
-=======
-            </ProfileProvider>
+            <TextResourcesProvider>
+              <OrgsProvider>
+                <PartyProvider>
+                  <KeepAliveProvider>
+                    <ProcessingProvider>
+                      <App />
+                    </ProcessingProvider>
+                    <ToastContainer
+                      position='top-center'
+                      theme='colored'
+                      transition={Slide}
+                      draggable={false}
+                    />
+                  </KeepAliveProvider>
+                </PartyProvider>
+              </OrgsProvider>
+            </TextResourcesProvider>
             <PartyPrefetcher />
->>>>>>> refactor/return-url-in-initdata
           </GlobalFormDataReadersProvider>
         </UiConfigProvider>
       </ViewportWrapper>

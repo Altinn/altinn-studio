@@ -21,12 +21,8 @@ import {
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
-<<<<<<< HEAD
-import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
-=======
 import { getLayoutSets } from 'src/features/form/layoutSets';
-import { fetchInstanceData, fetchProcessState, fetchUserProfile } from 'src/queries/queries';
->>>>>>> refactor/return-url-in-initdata
+import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {
   renderWithInstanceAndLayout,
