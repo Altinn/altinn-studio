@@ -3,8 +3,10 @@ import type { StudioResizableLayoutContextProps } from '../context/StudioResizab
 import type { StudioResizableOrientation } from '../StudioResizableLayoutContainer/StudioResizableLayoutContainer';
 import { StudioResizableLayoutContext } from '../context/StudioResizableLayoutContext';
 
-interface useStudioResizableLayoutContextReturnType
-  extends Omit<StudioResizableLayoutContextProps, 'containerSizes'> {
+interface useStudioResizableLayoutContextReturnType extends Omit<
+  StudioResizableLayoutContextProps,
+  'containerSizes'
+> {
   containerSize: number;
 }
 
