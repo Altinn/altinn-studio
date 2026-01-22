@@ -16,12 +16,6 @@ export type AltinnAppGlobalData = {
   frontendSettings: IApplicationSettings;
   availableLanguages: IAppLanguage[];
   returnUrl?: string;
-  // returnUrl?: {
-  //   isValid: boolean;
-  //   decodedUrl?: string;
-  //   isInvalidDomain: boolean;
-  //   errorMessage?: string;
-  // };
 };
 
 declare global {
