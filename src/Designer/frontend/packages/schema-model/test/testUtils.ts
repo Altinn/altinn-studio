@@ -60,15 +60,15 @@ export const getGeneralJsonSchemaForTest = (name: string): KeyValuePairs => {
 };
 
 export const dumpToDebug = (dirname: string, basename: string, data: any) => {
-  //if (process.env.DEBUG === 'true') {
-  const dir = path.join(dirname, 'debug');
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir);
+  if (process.env.DEBUG === 'true') {
+    const dir = path.join(dirname, 'debug');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
+    }
+    const preppedData = data instanceof Map ? Array.from(data) : data;
+    const filename = path.join(dir, `${basename}.json`);
+    fs.writeFileSync(filename, JSON.stringify(preppedData, null, 4), 'utf-8');
   }
-  const preppedData = data instanceof Map ? Array.from(data) : data;
-  const filename = path.join(dir, `${basename}.json`);
-  fs.writeFileSync(filename, JSON.stringify(preppedData, null, 4), 'utf-8');
-  //}
 };
 
 export const validateSchema = (schema: KeyValuePairs) => {
