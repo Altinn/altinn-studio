@@ -32,7 +32,6 @@ public class HomeController : Controller
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
-    private readonly IFrontendFeatures _frontendFeatures;
     private readonly IBootstrapGlobalService _bootstrapGlobalService;
     private readonly IIndexPageGenerator _indexPageGenerator;
 
@@ -53,8 +52,7 @@ public class HomeController : Controller
         IWebHostEnvironment env,
         IOptions<AppSettings> appSettings,
         IAppResources appResources,
-        IAppMetadata appMetadata,
-        IFrontendFeatures frontendFeatures
+        IAppMetadata appMetadata
     )
     {
         _antiforgery = antiforgery;
