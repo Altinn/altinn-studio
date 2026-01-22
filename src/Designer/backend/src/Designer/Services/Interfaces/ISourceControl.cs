@@ -100,12 +100,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         RepoStatus RepositoryStatus(string org, string repository);
 
         /// <summary>
-        /// Gets a dictionary of all filePaths and corresponding contentChanges as git diff string if file has been added or modified
+        /// Gets a dictionary of all filePaths and corresponding contentChanges as git diff string comparing working directory to current branch HEAD
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
         /// <returns>A dictionary with the filePath and a string for the git diff</returns>
-        Task<Dictionary<string, string>> GetChangedContent(string org, string repository);
+        Dictionary<string, string> GetChangedContent(string org, string repository);
 
         /// <summary>
         /// Push commits to repository

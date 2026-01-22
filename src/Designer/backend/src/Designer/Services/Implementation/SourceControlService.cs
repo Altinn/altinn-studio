@@ -315,29 +315,26 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<Dictionary<string, string>> GetChangedContent(string org, string repository)
+        public Dictionary<string, string> GetChangedContent(string org, string repository)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using var repo = new LibGit2Sharp.Repository(localServiceRepoFolder);
+
             Dictionary<string, string> fileDiffs = [];
-            using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
+            var currentBranchHeadCommit = repo.Head?.Tip;
+            if (currentBranchHeadCommit == null)
             {
-                await FetchRemoteChanges(org, repository);
-                var remoteMainBranch = repo.Branches[$"refs/remotes/origin/{DefaultBranch}"];
-                if (remoteMainBranch == null || remoteMainBranch.Tip == null)
-                {
-                    return fileDiffs;
-                }
-                var remoteMainCommit = remoteMainBranch.Tip;
-
-                var changes = repo.Diff.Compare<TreeChanges>(remoteMainCommit.Tree, DiffTargets.WorkingDirectory);
-                foreach (var change in changes)
-                {
-                    Patch patch = repo.Diff.Compare<Patch>(remoteMainCommit.Tree, DiffTargets.WorkingDirectory, new[] { change.Path });
-                    fileDiffs[change.Path] = patch.Content;
-                }
-
                 return fileDiffs;
             }
+
+            var changes = repo.Diff.Compare<TreeChanges>(currentBranchHeadCommit.Tree, DiffTargets.WorkingDirectory);
+            foreach (var change in changes)
+            {
+                Patch patch = repo.Diff.Compare<Patch>(currentBranchHeadCommit.Tree, DiffTargets.WorkingDirectory, new[] { change.Path });
+                fileDiffs[change.Path] = patch.Content;
+            }
+
+            return fileDiffs;
         }
 
         /// <summary>
