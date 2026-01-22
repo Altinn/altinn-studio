@@ -22,4 +22,10 @@ internal class BootstrapGlobalResponse
     /// </summary>
     [JsonPropertyName("frontendSettings")]
     public object? FrontEndSettings { get; set; }
+
+    /// <summary>
+    /// Available language options.
+    /// </summary>
+    [JsonPropertyName("availableLanguages")]
+    public List<ApplicationLanguage>? AvailableLanguages { get; set; }
 }

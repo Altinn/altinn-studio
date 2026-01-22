@@ -173,6 +173,7 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IAppResources, AppResourcesSI>();
         services.TryAddSingleton<IAppMetadata, AppMetadata>();
         services.TryAddSingleton<IFrontendFeatures, FrontendFeatures>();
+        services.TryAddSingleton<IIndexPageGenerator, IndexPageGenerator>();
         services.TryAddSingleton<ITranslationService, TranslationService>();
         services.TryAddSingleton<IBootstrapGlobalService, BootstrapGlobalService>();
         services.TryAddTransient<IAppEvents, DefaultAppEvents>();
