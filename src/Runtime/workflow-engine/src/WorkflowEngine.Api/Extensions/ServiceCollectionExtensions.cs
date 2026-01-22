@@ -1,4 +1,8 @@
 using Microsoft.Extensions.Options;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using WorkflowEngine.Api.Constants;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
@@ -31,6 +35,55 @@ internal static class ServiceCollectionExtensions
             services.AddSingleton<IEngine, Engine>();
             services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
             services.AddHostedService<EngineHost>();
+
+            return services;
+        }
+
+        public IServiceCollection AddTelemetry()
+        {
+            services.AddHostedService<MetricsCollector>();
+            services
+                .AddOpenTelemetry()
+                .ConfigureResource(r =>
+                    r.AddService(
+                        serviceName: Telemetry.ServiceName,
+                        serviceVersion: Telemetry.ServiceVersion,
+                        serviceInstanceId: Environment.MachineName
+                    )
+                )
+                .WithTracing(builder =>
+                {
+                    builder
+                        .AddSource(Telemetry.ServiceName)
+                        .AddHttpClientInstrumentation(opts =>
+                        {
+                            opts.RecordException = true;
+                        })
+                        .AddAspNetCoreInstrumentation(opts =>
+                        {
+                            opts.RecordException = true;
+                        })
+                        .AddEntityFrameworkCoreInstrumentation()
+                        .AddOtlpExporter();
+                })
+                .WithMetrics(builder =>
+                {
+                    builder
+                        .AddMeter(Telemetry.ServiceName)
+                        .AddRuntimeInstrumentation()
+                        .AddHttpClientInstrumentation()
+                        .AddAspNetCoreInstrumentation()
+                        .AddOtlpExporter();
+                });
+
+            services.AddLogging(logging =>
+            {
+                logging.AddOpenTelemetry(options =>
+                {
+                    options.IncludeFormattedMessage = true;
+                    options.AddOtlpExporter();
+                });
+            });
 
             return services;
         }

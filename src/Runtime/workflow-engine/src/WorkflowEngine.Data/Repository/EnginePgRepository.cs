@@ -18,9 +18,6 @@ internal sealed class EnginePgRepository : IEngineRepository
     private readonly ILogger<EnginePgRepository> _logger;
     private readonly EngineSettings _settings;
 
-    private static List<PersistentItemStatus> _incompleteItemStatuses =>
-        [PersistentItemStatus.Enqueued, PersistentItemStatus.Processing, PersistentItemStatus.Requeued];
-
     public EnginePgRepository(
         EngineDbContext context,
         IOptions<EngineSettings> settings,
@@ -34,29 +31,127 @@ internal sealed class EnginePgRepository : IEngineRepository
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
-    public async Task<IReadOnlyList<Workflow>> GetIncompleteWorkflows(CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflows(CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger.FetchingIncompleteWorkflows();
+            _logger.FetchingWorkflows("active");
 
-            var result = await _context
-                .Jobs.Include(j => j.Tasks)
-                .Where(j => _incompleteItemStatuses.Contains(j.Status))
-                .Select(x => x.ToDomainModel())
-                .ToListAsync(cancellationToken);
+            var result = await _context.GetActiveWorkflows().ToDomainModel().ToListAsync(cancellationToken);
 
-            _logger.SuccessfullyFetchedIncompleteWorkflows(result.Count);
+            _logger.SuccessfullyFetchedWorkflows(result.Count);
 
             return result;
         }
         catch (Exception ex)
         {
-            _logger.FailedToFetchIncompleteWorkflows(ex.Message, ex);
+            _logger.FailedToFetchWorkflows(ex.Message, ex);
             throw;
         }
     }
 
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.FetchingWorkflows("scheduled");
+
+            var result = await _context.GetScheduledWorkflows().ToDomainModel().ToListAsync(cancellationToken);
+
+            _logger.SuccessfullyFetchedWorkflows(result.Count);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<Workflow>> GetFailedWorkflows(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.FetchingWorkflows("failed");
+
+            var result = await _context.GetFailedWorkflows().ToDomainModel().ToListAsync(cancellationToken);
+
+            _logger.SuccessfullyFetchedWorkflows(result.Count);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<int> CountActiveWorkflows(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.CountingWorkflows("active");
+
+            var result = await _context.GetActiveWorkflows().CountAsync(cancellationToken);
+
+            _logger.SuccessfullyFetchedWorkflows(result);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<int> CountScheduledWorkflows(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.CountingWorkflows("scheduled");
+
+            var result = await _context.GetScheduledWorkflows().CountAsync(cancellationToken);
+
+            _logger.SuccessfullyFetchedWorkflows(result);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<int> CountFailedWorkflows(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.CountingWorkflows("failed");
+
+            var result = await _context.GetFailedWorkflows().CountAsync(cancellationToken);
+
+            _logger.SuccessfullyFetchedWorkflows(result);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task<Workflow> AddWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default)
     {
         try
@@ -65,7 +160,7 @@ internal sealed class EnginePgRepository : IEngineRepository
 
             var workflow = Workflow.FromRequest(engineRequest);
             var entity = WorkflowEntity.FromDomainModel(workflow);
-            var dbRecord = _context.Jobs.Add(entity);
+            var dbRecord = _context.Workflows.Add(entity);
             await _context.SaveChangesAsync(cancellationToken);
             var result = dbRecord.Entity.ToDomainModel();
 
@@ -80,6 +175,7 @@ internal sealed class EnginePgRepository : IEngineRepository
         }
     }
 
+    /// <inheritdoc/>
     public async Task UpdateWorkflow(Workflow workflow, CancellationToken cancellationToken = default)
     {
         try
@@ -90,7 +186,7 @@ internal sealed class EnginePgRepository : IEngineRepository
                 async ct =>
                 {
                     await _context
-                        .Jobs.Where(t => t.Id == workflow.DatabaseId)
+                        .Workflows.Where(t => t.Id == workflow.DatabaseId)
                         .ExecuteUpdateAsync(
                             setters =>
                                 setters
@@ -111,6 +207,7 @@ internal sealed class EnginePgRepository : IEngineRepository
         }
     }
 
+    /// <inheritdoc/>
     public async Task UpdateStep(Step step, CancellationToken cancellationToken = default)
     {
         try
@@ -212,13 +309,56 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 }
 
+internal static class EnginePgRepositoryQueries
+{
+    private static List<PersistentItemStatus> _incompleteItemStatuses =>
+        [PersistentItemStatus.Enqueued, PersistentItemStatus.Processing, PersistentItemStatus.Requeued];
+
+    private static List<PersistentItemStatus> _failedItemStatuses =>
+        [PersistentItemStatus.Requeued, PersistentItemStatus.Failed];
+
+    extension(EngineDbContext dbContext)
+    {
+        public IQueryable<WorkflowEntity> GetActiveWorkflows() =>
+            dbContext
+                .Workflows.Include(j => j.Steps)
+                .Where(x =>
+                    x.Steps.Any(y => y.StartTime <= DateTime.UtcNow && _incompleteItemStatuses.Contains(y.Status))
+                );
+
+        public IQueryable<WorkflowEntity> GetScheduledWorkflows() =>
+            dbContext
+                .Workflows.Include(j => j.Steps)
+                .Where(x =>
+                    x.Steps.Any(y => y.StartTime > DateTime.UtcNow && _incompleteItemStatuses.Contains(y.Status))
+                );
+
+        public IQueryable<WorkflowEntity> GetFailedWorkflows() =>
+            dbContext.Workflows.Include(j => j.Steps).Where(x => _failedItemStatuses.Contains(x.Status));
+    }
+
+    extension(IQueryable<WorkflowEntity> entityQuery)
+    {
+        public IQueryable<Workflow> ToDomainModel() => entityQuery.Select(x => x.ToDomainModel());
+    }
+
+    extension(IQueryable<StepEntity> entityQuery)
+    {
+        public IQueryable<Step> ToDomainModel(string? traceContext) =>
+            entityQuery.Select(x => x.ToDomainModel(traceContext));
+    }
+}
+
 internal static partial class EnginePgRepositoryLogs
 {
-    [LoggerMessage(LogLevel.Debug, "Fetching incomplete workflows from database")]
-    internal static partial void FetchingIncompleteWorkflows(this ILogger<EnginePgRepository> logger);
+    [LoggerMessage(LogLevel.Debug, "Fetching {WorkflowType} workflows from database")]
+    internal static partial void FetchingWorkflows(this ILogger<EnginePgRepository> logger, string workflowType);
+
+    [LoggerMessage(LogLevel.Debug, "Counting {WorkflowType} workflows from database")]
+    internal static partial void CountingWorkflows(this ILogger<EnginePgRepository> logger, string workflowType);
 
     [LoggerMessage(LogLevel.Debug, "Fetched {WorkflowCount} workflows from database")]
-    internal static partial void SuccessfullyFetchedIncompleteWorkflows(
+    internal static partial void SuccessfullyFetchedWorkflows(
         this ILogger<EnginePgRepository> logger,
         int workflowCount
     );
@@ -227,7 +367,7 @@ internal static partial class EnginePgRepositoryLogs
         LogLevel.Error,
         "Failed to fetch workflows from database due to task cancellation or after all retries exhausted. Database down? Error: {Message}"
     )]
-    internal static partial void FailedToFetchIncompleteWorkflows(
+    internal static partial void FailedToFetchWorkflows(
         this ILogger<EnginePgRepository> logger,
         string message,
         Exception ex

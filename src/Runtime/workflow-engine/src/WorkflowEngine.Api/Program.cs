@@ -13,10 +13,17 @@ var dbConnectionString =
 
 // Services
 builder.Services.AddWorkflowEngineHost();
+builder.Services.AddTelemetry();
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer<ApiKeyOpenApiTransformer>());
 builder.Services.AddApiKeyAuthentication();
 builder.Services.AddDbRepository(dbConnectionString);
 builder.Services.AddEngineHealthChecks();
+builder.Services.AddHttpContextAccessor();
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.PropertyNameCaseInsensitive = true;
+    options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+});
 
 var app = builder.Build();
 

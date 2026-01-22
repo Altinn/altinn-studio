@@ -8,7 +8,7 @@ internal sealed class EngineDbContext : DbContext
     public EngineDbContext(DbContextOptions<EngineDbContext> options)
         : base(options) { }
 
-    public DbSet<WorkflowEntity> Jobs { get; set; }
+    public DbSet<WorkflowEntity> Workflows { get; set; }
     public DbSet<StepEntity> Steps { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -57,7 +57,7 @@ internal partial class Engine
         // TODO: Disabled for now. We don't necessarily want to resume jobs after restart while testing.
         return;
 
-        IReadOnlyList<Workflow> incompleteJobs = await _repository.GetIncompleteWorkflows(cancellationToken);
+        IReadOnlyList<Workflow> incompleteJobs = await _repository.GetActiveWorkflows(cancellationToken);
 
         foreach (var job in incompleteJobs)
         {
