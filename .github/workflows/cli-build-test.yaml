@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest,windows-latest,ubuntu-latest]
-    name: Run dotnet build and test
+    name: Build and test
     runs-on: ${{ matrix.os}}
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
@@ -32,12 +32,37 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Go
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5
+        with:
+          go-version-file: 'src/cli/go.mod'
+          cache-dependency-path: src/cli/go.sum
+
+      - name: Setup Go for changelog validation
+        if: matrix.os == 'ubuntu-latest' && github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-changelog')
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5
+        with:
+          go-version-file: 'releaser/go.mod'
+          cache-dependency-path: releaser/go.sum
+
+      - name: Validate changelog
+        if: matrix.os == 'ubuntu-latest' && github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-changelog')
+        working-directory: releaser
+        run: |
+          go run . validate-changelog -component studioctl -base "${{ github.event.pull_request.base.sha }}" -head "${{ github.event.pull_request.head.sha }}"
+
       - name: Build
         working-directory: src/cli
         run: |
-          dotnet build -v m
+          make build
+
+      - name: Lint
+        working-directory: src/cli
+        run: |
+          make lint
 
       - name: Test
         working-directory: src/cli
         run: |
-          dotnet test -v m
+          make test
+
