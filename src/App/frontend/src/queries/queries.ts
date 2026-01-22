@@ -10,7 +10,6 @@ import { getFileContentType } from 'src/utils/attachmentsUtils';
 import { httpDelete, httpGetRaw, httpPatch, httpPost, putWithoutConfig } from 'src/utils/network/networking';
 import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
 import {
-  // applicationLanguagesUrl,
   appPath,
   getActionsUrl,
   getActiveInstancesUrl,
