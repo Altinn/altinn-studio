@@ -283,29 +283,26 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<Dictionary<string, string>> GetChangedContent(AltinnRepoEditingContext editingContext)
+        public Dictionary<string, string> GetChangedContent(AltinnRepoEditingContext editingContext)
         {
             string localServiceRepoFolder = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);
+            using var repo = new LibGit2Sharp.Repository(localServiceRepoFolder);
+
             Dictionary<string, string> fileDiffs = [];
-            using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
+            var currentBranchHeadCommit = repo.Head?.Tip;
+            if (currentBranchHeadCommit == null)
             {
-                await FetchRemoteChanges(editingContext);
-                Branch remoteMainBranch = repo.Branches[$"refs/remotes/origin/{DefaultBranch}"];
-                if (remoteMainBranch == null || remoteMainBranch.Tip == null)
-                {
-                    return fileDiffs;
-                }
-                LibGit2Sharp.Commit remoteMainCommit = remoteMainBranch.Tip;
-
-                TreeChanges changes = repo.Diff.Compare<TreeChanges>(remoteMainCommit.Tree, DiffTargets.WorkingDirectory);
-                foreach (TreeEntryChanges change in changes)
-                {
-                    Patch patch = repo.Diff.Compare<Patch>(remoteMainCommit.Tree, DiffTargets.WorkingDirectory, [change.Path]);
-                    fileDiffs[change.Path] = patch.Content;
-                }
-
                 return fileDiffs;
             }
+
+            TreeChanges changes = repo.Diff.Compare<TreeChanges>(currentBranchHeadCommit.Tree, DiffTargets.WorkingDirectory);
+            foreach (TreeEntryChanges change in changes)
+            {
+                Patch patch = repo.Diff.Compare<Patch>(currentBranchHeadCommit.Tree, DiffTargets.WorkingDirectory, [change.Path]);
+                fileDiffs[change.Path] = patch.Content;
+            }
+
+            return fileDiffs;
         }
 
         /// <inheritdoc/>

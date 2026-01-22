@@ -7,6 +7,7 @@ import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewCo
 import 'app-shared/design-tokens';
 import type { LoggerConfig } from 'app-shared/contexts/LoggerContext';
 import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
+import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext';
 import type { QueryClientConfig } from '@tanstack/react-query';
 import { PageRoutes } from './router/PageRoutes';
 import { AppDevelopmentContextProvider } from './contexts/AppDevelopmentContext';
@@ -30,15 +31,17 @@ const queryClientConfig: QueryClientConfig = {
 };
 
 root.render(
-  <LoggerContextProvider config={loggerConfig}>
-    <FeatureFlagsProvider>
-      <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
-        <PreviewConnectionContextProvider>
-          <AppDevelopmentContextProvider>
-            <PageRoutes />
-          </AppDevelopmentContextProvider>
-        </PreviewConnectionContextProvider>
-      </ServicesContextProvider>
-    </FeatureFlagsProvider>
-  </LoggerContextProvider>,
+  <FeatureFlagsProvider>
+    <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
+      <EnvironmentConfigProvider>
+        <LoggerContextProvider config={loggerConfig}>
+          <PreviewConnectionContextProvider>
+            <AppDevelopmentContextProvider>
+              <PageRoutes />
+            </AppDevelopmentContextProvider>
+          </PreviewConnectionContextProvider>
+        </LoggerContextProvider>
+      </EnvironmentConfigProvider>
+    </ServicesContextProvider>
+  </FeatureFlagsProvider>,
 );
