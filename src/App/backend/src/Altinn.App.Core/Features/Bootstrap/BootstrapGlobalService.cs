@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Bootstrap.Models;
-using Altinn.App.Core.Features.Redirect;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Language;
+using Altinn.App.Core.Models;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Features.Bootstrap;
@@ -12,10 +12,13 @@ internal sealed class BootstrapGlobalService(
     IAppMetadata appMetadata,
     IAppResources appResources,
     IOptions<FrontEndSettings> frontEndSettings,
-    IApplicationLanguage applicationLanguage,
-    IReturnUrlService returnUrlService
+    IApplicationLanguage applicationLanguage
 ) : IBootstrapGlobalService
 {
+    private readonly IAppMetadata _appMetadata = appMetadata;
+    private readonly IAppResources _appResources = appResources;
+    private readonly IOptions<FrontEndSettings> _frontEndSettings = frontEndSettings;
+    private readonly IApplicationLanguage _applicationLanguage = applicationLanguage;
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -23,39 +26,30 @@ internal sealed class BootstrapGlobalService(
 
     public async Task<BootstrapGlobalResponse> GetGlobalState(string? redirectUrl)
     {
-        var appMetadataTask = appMetadata.GetApplicationMetadata();
+        var appMetadataTask = _appMetadata.GetApplicationMetadata();
 
         var footerTask = GetFooterLayout();
 
-        var availableLanguagesTask = applicationLanguage.GetApplicationLanguages();
+        var availableLanguagesTask = _applicationLanguage.GetApplicationLanguages();
 
         await Task.WhenAll(appMetadataTask, footerTask, availableLanguagesTask);
-        if (redirectUrl == null)
-        {
-            return new BootstrapGlobalResponse
-            {
-                ApplicationMetadata = await appMetadataTask,
-                Footer = await footerTask,
-                AvailableLanguages = await availableLanguagesTask,
-                FrontEndSettings = frontEndSettings.Value,
-            };
-        }
 
-        var validatedUrl = returnUrlService.Validate(redirectUrl);
+        var layoutSets = _appResources.GetLayoutSets() ?? new LayoutSets { Sets = [] };
+        layoutSets.UiSettings ??= new GlobalPageSettings();
 
         return new BootstrapGlobalResponse
         {
             ApplicationMetadata = await appMetadataTask,
             Footer = await footerTask,
+            LayoutSets = layoutSets,
             AvailableLanguages = await availableLanguagesTask,
-            FrontEndSettings = frontEndSettings.Value,
-            ReturnUrl = validatedUrl.DecodedUrl is not null ? validatedUrl : null,
+            FrontEndSettings = _frontEndSettings.Value,
         };
     }
 
     private async Task<object?> GetFooterLayout()
     {
-        var footerJson = await appResources.GetFooter();
+        var footerJson = await _appResources.GetFooter();
         return string.IsNullOrEmpty(footerJson)
             ? null
             : JsonSerializer.Deserialize<object>(footerJson, _jsonSerializerOptions);
