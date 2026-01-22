@@ -294,6 +294,73 @@ namespace Designer.Tests.Services
             mock.VerifyAll();
         }
 
+        [Fact]
+        public void GetChangedContent_OnMasterBranch_ReturnsUncommittedChanges()
+        {
+            // Arrange
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            var context = CreateTestRepository(repoName);
+
+            string testFile = Path.Join(_repoDir, "uncommitted-file.txt");
+            File.WriteAllText(testFile, "This is new content");
+
+            // Act
+            var result = _sourceControlService.GetChangedContent(context);
+
+            // Assert
+            Assert.Single(result);
+            Assert.Contains("uncommitted-file.txt", result.Keys);
+        }
+
+        [Fact]
+        public void GetChangedContent_OnFeatureBranch_ReturnsOnlyUncommittedChanges()
+        {
+            // Arrange
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            const string BranchName = "feature-branch";
+            var context = CreateTestRepository(repoName);
+
+            // Create feature branch and commit a file
+            _sourceControlService.CreateLocalBranch(context, BranchName);
+            _sourceControlService.CheckoutRepoOnBranch(context, BranchName);
+
+            string committedFile = Path.Join(_repoDir, "committed-on-feature.txt");
+            File.WriteAllText(committedFile, "Committed content");
+
+            using (var repo = new Repository(_repoDir))
+            {
+                Commands.Stage(repo, "committed-on-feature.txt");
+                var signature = new LibGit2Sharp.Signature(_developer, $"{_developer}@test.com", DateTimeOffset.Now);
+                repo.Commit("Add file on feature branch", signature, signature);
+            }
+
+            // Add uncommitted file
+            string uncommittedFile = Path.Join(_repoDir, "uncommitted-on-feature.txt");
+            File.WriteAllText(uncommittedFile, "Uncommitted content");
+
+            // Act
+            var result = _sourceControlService.GetChangedContent(context);
+
+            // Assert
+            Assert.Single(result);
+            Assert.Contains("uncommitted-on-feature.txt", result.Keys);
+            Assert.DoesNotContain("committed-on-feature.txt", result.Keys);
+        }
+
+        [Fact]
+        public void GetChangedContent_NoChanges_ReturnsEmptyDictionary()
+        {
+            // Arrange
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            var context = CreateTestRepository(repoName);
+
+            // Act
+            var result = _sourceControlService.GetChangedContent(context);
+
+            // Assert
+            Assert.Empty(result);
+        }
+
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
             List<Claim> claims = new();
@@ -347,7 +414,7 @@ namespace Designer.Tests.Services
 
             using var repo = new Repository(_repoDir);
 
-            string testFile = Path.Combine(_repoDir, "test.txt");
+            string testFile = Path.Join(_repoDir, "test.txt");
             File.WriteAllText(testFile, "Initial content");
 
             Commands.Stage(repo, "test.txt");
