@@ -217,4 +217,25 @@ describe('ServicesContext', () => {
       'useServicesContext must be used within a ServicesContextProvider.',
     );
   });
+
+  it('does not display error toast when request is cancelled', async () => {
+    const cancelledError = new Error('Request cancelled');
+    cancelledError.name = 'CanceledError';
+    Object.defineProperty(cancelledError, '__CANCEL__', { value: true });
+
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchCancelled'],
+          queryFn: () => Promise.reject(cancelledError),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    const toastElements = screen.queryAllByRole('alert');
+    expect(toastElements).toHaveLength(0);
+  });
 });
