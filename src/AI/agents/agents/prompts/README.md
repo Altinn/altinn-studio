@@ -47,8 +47,8 @@ Stored as **Markdown files with YAML frontmatter** (no variables):
 ```markdown
 ---
 name: Prompt Name
-role: planner # LLM role to use
-version: '1.0'
+role: planner  # LLM role to use
+version: "1.0"
 ---
 
 Your actual prompt content here...
@@ -112,10 +112,9 @@ user_prompt = render_template(
 ## Prompt Files
 
 ### System Prompts
-
 - `general_planning.md` - High-level strategic planning
 - `tool_planning.md` - Tool orchestration and selection
-- `detailed_planning.md` - Detailed implementation planning
+- `detailed_planning.md` - Detailed implementation planning  
 - `patch_synthesis.md` - Patch generation rules and conventions
 - `intent_security.md` - Security-focused intent parsing
 - `goal_suggestions.md` - Generate clear goal examples from unclear input
@@ -129,7 +128,6 @@ user_prompt = render_template(
 - `chat_assistant.md` - Simple chat-based Q&A assistance
 
 ### User Templates
-
 - `templates/intake_planning_user.md` - User goal → High-level plan
 - `templates/general_planning_user.md` - User goal → JSON plan
 - `templates/planner_initial_user.md` - User goal → Initial plan (legacy)

@@ -114,7 +114,7 @@ ws.onopen = () => {
     JSON.stringify({
       type: 'session',
       session_id: 'your-session-id',
-    }),
+    })
   );
 };
 

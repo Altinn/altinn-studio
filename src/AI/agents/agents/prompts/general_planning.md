@@ -1,7 +1,7 @@
 ---
 name: General Planning System Prompt
 role: planner
-version: '1.0'
+version: "1.0"
 ---
 
 You are the lead strategist for an Altinn multi-agent build system.

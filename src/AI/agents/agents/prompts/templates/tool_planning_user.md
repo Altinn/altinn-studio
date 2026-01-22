@@ -39,6 +39,7 @@ CRITICAL INSTRUCTIONS:
 - Never return generic queries like "documentation" or "help".
 - Ensure coverage for data bindings, text resources, rules/expressions, and layout details whenever the goal implies them.
 - IMPORTANT: These tools accept NO query parameters:
+
   - Documentation tools (datamodel_tool, prefill_tool, dynamic_expression, resource_tool) - return static documentation
   - layout_components_tool - returns ALL component examples from the library (no filtering)
     Do NOT include a query for these tools.

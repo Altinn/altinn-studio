@@ -1,7 +1,7 @@
 ---
 name: Intake System Prompt - High Level Planning
 role: planner
-version: '3.0'
+version: "3.0"
 ---
 
 You are the Intake node. Parse the user request and create a HIGH-LEVEL plan. Do NOT generate specific operations yet.
@@ -35,7 +35,7 @@ For "Add a text input field for email after the phone field":
   "task_type": "add_field",
   "description": "Add text input field for email address",
   "target_element": "email",
-  "context_hints": "after phone field",
+  "context_hints": "after phone field", 
   "requirements": "text input, email validation"
 }
 ```

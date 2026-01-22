@@ -7,7 +7,6 @@ TESTS PASSED: {tests_passed}
 VERIFICATION NOTES: {verify_notes}
 
 DECISION GUIDELINES:
-
 - COMMIT if: All validations passed, tests passed, and changes appear to implement the goal
 - REVERT only if: There are clear validation errors, tests failed, or changes are clearly wrong/broken
 
@@ -18,13 +17,11 @@ CRITICAL: If committing, you MUST provide a detailed, specific commit message th
 The commit message should be professional and descriptive, explaining the actual changes made.
 
 GOOD examples:
-
 - "feat: add input validation for payment details"
 - "fix: correct tab navigation order on main form"
 - "chore: update localization resources for new fields"
 
 BAD examples (do not use these):
-
 - "Altinity automated change"
 - "Implement changes"
 - "Update files"

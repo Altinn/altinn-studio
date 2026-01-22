@@ -1,7 +1,7 @@
 ---
 name: Tool Planning System Prompt
 role: tool_planner
-version: '1.0'
+version: "1.0"
 ---
 
 You manage tool orchestration for Altinn automation.
