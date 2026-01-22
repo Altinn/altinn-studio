@@ -301,7 +301,7 @@ namespace Designer.Tests.Services
             string repoName = TestDataHelper.GenerateTestRepoName();
             var context = CreateTestRepository(repoName);
 
-            string testFile = Path.Combine(_repoDir, "uncommitted-file.txt");
+            string testFile = Path.Join(_repoDir, "uncommitted-file.txt");
             File.WriteAllText(testFile, "This is new content");
 
             // Act
@@ -324,7 +324,7 @@ namespace Designer.Tests.Services
             _sourceControlService.CreateLocalBranch(context, BranchName);
             _sourceControlService.CheckoutRepoOnBranch(context, BranchName);
 
-            string committedFile = Path.Combine(_repoDir, "committed-on-feature.txt");
+            string committedFile = Path.Join(_repoDir, "committed-on-feature.txt");
             File.WriteAllText(committedFile, "Committed content");
 
             using (var repo = new Repository(_repoDir))
@@ -335,7 +335,7 @@ namespace Designer.Tests.Services
             }
 
             // Add uncommitted file
-            string uncommittedFile = Path.Combine(_repoDir, "uncommitted-on-feature.txt");
+            string uncommittedFile = Path.Join(_repoDir, "uncommitted-on-feature.txt");
             File.WriteAllText(uncommittedFile, "Uncommitted content");
 
             // Act
@@ -414,7 +414,7 @@ namespace Designer.Tests.Services
 
             using var repo = new Repository(_repoDir);
 
-            string testFile = Path.Combine(_repoDir, "test.txt");
+            string testFile = Path.Join(_repoDir, "test.txt");
             File.WriteAllText(testFile, "Initial content");
 
             Commands.Stage(repo, "test.txt");
