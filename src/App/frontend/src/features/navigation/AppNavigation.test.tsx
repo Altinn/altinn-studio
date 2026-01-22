@@ -5,8 +5,8 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
-import { getGlobalUiSettings } from 'src/features/layoutSets';
-import { NavigationReceipt, NavigationTask } from 'src/features/layoutSets/types';
+import { getGlobalUiSettings } from 'src/features/form/layoutSets';
+import { NavigationReceipt, NavigationTask } from 'src/features/form/layoutSets/types';
 import { AppNavigation } from 'src/features/navigation/AppNavigation';
 import { BackendValidationSeverity } from 'src/features/validation';
 import * as UseNavigatePage from 'src/hooks/useNavigatePage';

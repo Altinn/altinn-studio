@@ -1,5 +1,5 @@
 import { LayoutStyle } from 'src/layout/common.generated';
-import type { ILayoutSet } from 'src/features/layoutSets/types';
+import type { ILayoutSet } from 'src/features/form/layoutSets/types';
 
 export function getLayoutSetForDataElement(
   currentTaskId: string | undefined,

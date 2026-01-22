@@ -1,11 +1,11 @@
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { getCurrentDataTypeForApplication } from 'src/features/instance/instanceUtils';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
-import { getLayoutSets } from 'src/features/layoutSets';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { getLayoutSetForDataElement } from 'src/utils/layout';
-import type { ILayoutSet } from 'src/features/layoutSets/types';
+import type { ILayoutSet } from 'src/features/form/layoutSets/types';
 
 /**
  * This is a variant that prefers the taskId from the URL. The alternative useCurrentLayoutSetId() and

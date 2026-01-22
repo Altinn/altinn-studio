@@ -3,12 +3,12 @@ import { jest } from '@jest/globals';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { ILayoutSet } from 'src/features/form/layoutSets/types';
 import {
   getCurrentDataTypeForApplication,
   getCurrentTaskDataElementId,
   getDataTypeByTaskId,
 } from 'src/features/instance/instanceUtils';
-import { ILayoutSet } from 'src/features/layoutSets/types';
 import { IData } from 'src/types/shared';
 
 describe('instanceUtils.ts', () => {

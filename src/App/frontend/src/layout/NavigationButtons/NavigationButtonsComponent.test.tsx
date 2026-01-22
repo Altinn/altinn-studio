@@ -4,7 +4,7 @@ import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
-import { getLayoutSets } from 'src/features/layoutSets';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';

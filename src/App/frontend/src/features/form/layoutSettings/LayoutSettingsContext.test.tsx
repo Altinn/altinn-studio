@@ -4,13 +4,13 @@ import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
 
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getGlobalUiSettings } from 'src/features/form/layoutSets';
+import { NavigationReceipt, NavigationTask } from 'src/features/form/layoutSets/types';
 import {
   usePageGroups,
   usePageSettings,
   useRawPageOrder,
 } from 'src/features/form/layoutSettings/LayoutSettingsContext';
-import { getGlobalUiSettings } from 'src/features/layoutSets';
-import { NavigationReceipt, NavigationTask } from 'src/features/layoutSets/types';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ILayoutSettings, NavigationPageGroup } from 'src/layout/common.generated';
 

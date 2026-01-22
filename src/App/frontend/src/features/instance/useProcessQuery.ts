@@ -1,8 +1,8 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useIsStateless } from 'src/features/applicationMetadata';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { getLayoutSets } from 'src/features/layoutSets';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { fetchProcessState } from 'src/queries/queries';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';

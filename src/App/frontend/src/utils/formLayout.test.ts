@@ -1,4 +1,4 @@
-import { ILayoutSet } from 'src/features/layoutSets/types';
+import { ILayoutSet } from 'src/features/form/layoutSets/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 
 describe('behavesLikeDataTask', () => {

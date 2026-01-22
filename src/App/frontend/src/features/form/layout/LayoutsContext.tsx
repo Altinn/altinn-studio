@@ -11,10 +11,10 @@ import { useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { applyLayoutQuirks } from 'src/features/form/layout/quirks';
+import { getLayoutSets } from 'src/features/form/layoutSets';
+import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { getLayoutSets } from 'src/features/layoutSets';
-import { useLayoutSetIdFromUrl } from 'src/features/layoutSets/useCurrentLayoutSet';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
 import { fetchLayoutsForInstance } from 'src/queries/queries';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';

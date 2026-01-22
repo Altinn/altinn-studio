@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import type { GlobalPageSettings } from 'src/features/layoutSets/types';
+import type { GlobalPageSettings } from 'src/features/form/layoutSets/types';
 
 export function getLayoutSets() {
   return window.altinnAppGlobalData.layoutSets.sets;

@@ -131,9 +131,9 @@ jest.mock('src/features/applicationMetadata', () => ({
   useIsStateless: jest.fn(() => false),
 }));
 
-jest.mock('src/features/layoutSets', () => ({
+jest.mock('src/features/form/layoutSets', () => ({
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  ...jest.requireActual<typeof import('src/features/layoutSets')>('src/features/layoutSets'),
+  ...jest.requireActual<typeof import('src/features/form/layoutSets')>('src/features/form/layoutSets'),
   getLayoutSets: jest.fn(() => getLayoutSetsMock().sets),
   getGlobalUiSettings: jest.fn(() => getLayoutSetsMock().uiSettings),
 }));

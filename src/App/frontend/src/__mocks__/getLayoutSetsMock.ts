@@ -1,4 +1,4 @@
-import type { ILayoutSet, ILayoutSets } from 'src/features/layoutSets/types';
+import type { ILayoutSet, ILayoutSets } from 'src/features/form/layoutSets/types';
 
 export const defaultDataTypeMock = 'test-data-model';
 export const statelessDataTypeMock = 'stateless';

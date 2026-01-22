@@ -11,14 +11,14 @@ import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { quirks } from 'src/features/form/layout/quirks';
-import { getGlobalUiSettings, getLayoutSets } from 'src/features/layoutSets';
+import { getGlobalUiSettings, getLayoutSets } from 'src/features/form/layoutSets';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import type { GlobalPageSettings } from 'src/features/layoutSets/types';
+import type { GlobalPageSettings } from 'src/features/form/layoutSets/types';
 import type { ExternalAppLayoutSet } from 'src/test/allApps';
 
 const env = dotenv.config({ quiet: true });

@@ -8,9 +8,9 @@ import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadata
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
-import { getLayoutSets } from 'src/features/layoutSets';
 import { fetchInstanceData } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource } from 'src/features/language/textResources';

@@ -5,7 +5,7 @@ import cn from 'classnames';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/navigation/components/TaskGroup.module.css';
 import { getTaskIcon, useGetTaskGroupType, useGetTaskName } from 'src/features/navigation/utils';
-import type { NavigationReceipt, NavigationTask } from 'src/features/layoutSets/types';
+import type { NavigationReceipt, NavigationTask } from 'src/features/form/layoutSets/types';
 
 export function TaskGroup({ group, active }: { group: NavigationTask | NavigationReceipt; active: boolean }) {
   const getTaskType = useGetTaskGroupType();

@@ -1,4 +1,4 @@
-import type { ILayoutSet } from 'src/features/layoutSets/types';
+import type { ILayoutSet } from 'src/features/form/layoutSets/types';
 
 /**
  * Some tasks other than data (for instance confirm, or other in the future) can be configured to behave like data steps

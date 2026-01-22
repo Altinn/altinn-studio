@@ -1,6 +1,6 @@
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { getDataTypeByLayoutSetId } from 'src/features/instance/instanceUtils';
-import { getLayoutSets } from 'src/features/layoutSets';
 
 export const useAllowAnonymous = () => {
   const isStateless = useIsStateless();

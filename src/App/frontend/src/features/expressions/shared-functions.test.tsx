@@ -21,7 +21,7 @@ import {
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
-import { getLayoutSets } from 'src/features/layoutSets';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { fetchInstanceData, fetchProcessState, fetchUserProfile } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {

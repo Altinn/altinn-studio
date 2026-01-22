@@ -23,11 +23,11 @@ import {
   MissingDataTypeException,
 } from 'src/features/datamodel/utils';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useInstanceDataElements, useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { getFirstDataElementId } from 'src/features/instance/instanceUtils';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
-import { useCurrentLayoutSetId } from 'src/features/layoutSets/useCurrentLayoutSet';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { HttpStatusCodes } from 'src/utils/network/networking';

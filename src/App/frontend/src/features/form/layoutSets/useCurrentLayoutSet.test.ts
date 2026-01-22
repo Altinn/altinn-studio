@@ -3,8 +3,8 @@ import { jest } from '@jest/globals';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { ILayoutSet } from 'src/features/layoutSets/types';
-import { getCurrentLayoutSet } from 'src/features/layoutSets/useCurrentLayoutSet';
+import { ILayoutSet } from 'src/features/form/layoutSets/types';
+import { getCurrentLayoutSet } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { IData } from 'src/types/shared';
 
 describe('useCurrentLayoutSet.ts', () => {
