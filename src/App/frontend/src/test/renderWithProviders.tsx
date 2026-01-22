@@ -314,19 +314,9 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
                 <NavigationEffectProvider>
                   <GlobalFormDataReadersProvider>
                     <OrgsProvider>
-<<<<<<< HEAD
-                      <LayoutSetsProvider>
-                        <PartyProvider>
-                          <TextResourcesProvider>{children}</TextResourcesProvider>
-                        </PartyProvider>
-                      </LayoutSetsProvider>
-=======
-                      <ProfileProvider>
-                        <PartyProvider>
-                          <TextResourcesProvider>{children}</TextResourcesProvider>
-                        </PartyProvider>
-                      </ProfileProvider>
->>>>>>> refactor/return-url-in-initdata
+                      <PartyProvider>
+                        <TextResourcesProvider>{children}</TextResourcesProvider>
+                      </PartyProvider>
                     </OrgsProvider>
                   </GlobalFormDataReadersProvider>
                 </NavigationEffectProvider>
