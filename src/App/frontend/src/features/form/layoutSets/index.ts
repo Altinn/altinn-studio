@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
-
 import type { GlobalPageSettings } from 'src/features/form/layoutSets/types';
 
 export function getLayoutSets() {
@@ -7,10 +5,5 @@ export function getLayoutSets() {
 }
 
 export function getGlobalUiSettings(): GlobalPageSettings {
-  const globalUISettings = window.altinnAppGlobalData.layoutSets.uiSettings;
-
-  return {
-    ...globalUISettings,
-    taskNavigation: (globalUISettings.taskNavigation ?? []).map((g) => ({ ...g, id: g.id ?? uuidv4() })),
-  };
+  return window.altinnAppGlobalData.layoutSets.uiSettings;
 }

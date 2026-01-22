@@ -75,6 +75,12 @@ public enum AutoSaveBehavior
 public abstract class TaskNavigationEntry
 {
     /// <summary>
+    /// Unique identifier for the navigation entry. Generated automatically if not provided.
+    /// </summary>
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    /// <summary>
     /// Optional name for the navigation entry.
     /// </summary>
     [JsonPropertyName("name")]
