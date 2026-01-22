@@ -8,6 +8,7 @@ export type PolicyEditorContextProps = {
   actions: PolicyAction[];
   subjects: PolicySubject[];
   accessPackages: PolicyAccessPackageAreaGroup[];
+  accessPackagesPriv: PolicyAccessPackageAreaGroup[];
   usageType: PolicyEditorUsage;
   resourceType: string;
   resourceId: string;

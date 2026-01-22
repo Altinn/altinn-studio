@@ -77,6 +77,9 @@ export const PolicyEditor = ({
       actions={actions}
       subjects={subjects}
       accessPackages={accessPackages?.filter((x) => x.id !== PERSON_ACCESS_PACKAGE_AREA_ID) ?? []}
+      accessPackagesPriv={
+        accessPackages?.filter((x) => x.id === PERSON_ACCESS_PACKAGE_AREA_ID) ?? []
+      }
       usageType={usageType}
       resourceType={resourceType}
       showAllErrors={showAllErrors}
