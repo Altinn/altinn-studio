@@ -8,7 +8,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { ToastOptions } from 'react-toastify';
 import { ToastContainer, Slide, toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
-import { isAxiosError } from 'axios';
+import { isAxiosError, isCancel } from 'axios';
 import type { i18n } from 'i18next';
 import { Trans, useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
@@ -37,6 +37,10 @@ const handleError = (
   meta: QueryMeta | MutationMeta,
   logout: () => Promise<void>,
 ): void => {
+  if (isCancel(error)) {
+    return;
+  }
+
   if (!isAxiosError(error)) {
     console.error(error);
   }

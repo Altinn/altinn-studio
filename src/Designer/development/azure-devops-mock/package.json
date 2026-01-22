@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "author": "The Altinn Studio Team",
   "dependencies": {
-    "axios": "1.12.2",
+    "axios": "1.13.2",
     "cors": "2.8.5",
-    "express": "4.21.2",
+    "express": "4.22.1",
     "morgan": "1.10.1",
     "nodemon": "3.1.11",
     "p-queue": "8.1.1",

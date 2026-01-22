@@ -280,15 +280,20 @@ describe('CreateService', () => {
     // Adding a tab so that we are sure that the combobox is closed
     await user.tab();
 
-    const createBtn: HTMLElement = screen.getByRole('button', {
-      name: textMock('dashboard.create_service_btn'),
-    });
-    user.click(createBtn);
+    const getCreateBtn = (): HTMLElement =>
+      screen.getByRole('button', {
+        name: textMock('dashboard.create_service_btn'),
+      });
+    await user.click(getCreateBtn());
 
     expect(addRepoMock).rejects.toEqual(axiosError);
 
-    expect(screen.queryByText(textMock('dashboard.creating_your_service'))).not.toBeInTheDocument();
-    expect(createBtn).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.queryByText(textMock('dashboard.creating_your_service')),
+      ).not.toBeInTheDocument(),
+    );
+    expect(getCreateBtn()).toBeInTheDocument();
     expect(screen.getByRole('link', { name: textMock('general.cancel') }));
   });
 
