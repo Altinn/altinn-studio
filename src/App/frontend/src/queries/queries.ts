@@ -11,7 +11,6 @@ import { httpDelete, httpGetRaw, httpPatch, httpPost, putWithoutConfig } from 's
 import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
 import {
   applicationLanguagesUrl,
-  applicationSettingsApiUrl,
   appPath,
   getActionsUrl,
   getActiveInstancesUrl,
@@ -21,7 +20,6 @@ import {
   getDataElementUrl,
   getDataModelTypeUrl,
   getFileUploadUrl,
-  getFooterLayoutUrl,
   getInstanceLayoutsUrl,
   getInstantiateUrl,
   getJsonSchemaUrl,
@@ -47,7 +45,6 @@ import {
 import { customEncodeURI, orgsListUrl } from 'src/utils/urls/urlHelper';
 import type { DataPostResponse } from 'src/features/attachments';
 import type { IDataList } from 'src/features/dataLists';
-import type { IFooterLayout } from 'src/features/footer/types';
 import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import type { Instantiation } from 'src/features/instantiate/useInstantiation';
 import type { ITextResourceResult } from 'src/features/language/textResources';
@@ -66,7 +63,6 @@ import type {
   IActionType,
   IAltinnOrgs,
   IAppLanguage,
-  IApplicationSettings,
   IData,
   IInstance,
   IParty,
@@ -221,11 +217,7 @@ export const fetchInstanceData = async (partyId: string, instanceGuid: string): 
 
 export const fetchProcessState = (instanceId: string): Promise<IProcess> => httpGet(getProcessStateUrl(instanceId));
 
-export const fetchApplicationSettings = (): Promise<IApplicationSettings> => httpGet(applicationSettingsApiUrl);
-
 export const fetchSelectedParty = (): Promise<IParty | undefined> => httpGet(selectedPartyUrl);
-
-export const fetchFooterLayout = (): Promise<IFooterLayout | null> => httpGet(getFooterLayoutUrl());
 
 export const fetchLayoutSets = (): Promise<ILayoutSets> => httpGet(getLayoutSetsUrl());
 
