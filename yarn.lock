@@ -608,10 +608,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-css@npm:1.9.0":
-  version: 1.9.0
-  resolution: "@digdir/designsystemet-css@npm:1.9.0"
-  checksum: 10/8632d1117d81db68d7b7511e6996baf790e9b0445ee7c3dad384d8a3c328cd4b9fc952057c7d46c0ac3b612c9609e10b0d15f0548420e17029c4c7d800e4ce7a
+"@digdir/designsystemet-css@npm:1.1.10":
+  version: 1.1.10
+  resolution: "@digdir/designsystemet-css@npm:1.1.10"
+  checksum: 10/68707154f87ed90f90495f95a11142b909fdc53464f226fe6bec0a74a418bee927012ac00dab944994c0d9a6fd4a807be66e7af86ccd7712aa3977d9d7169314
   languageName: node
   linkType: hard
 
@@ -630,24 +630,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-react@npm:1.9.0":
-  version: 1.9.0
-  resolution: "@digdir/designsystemet-react@npm:1.9.0"
+"@digdir/designsystemet-react@npm:1.1.10":
+  version: 1.1.10
+  resolution: "@digdir/designsystemet-react@npm:1.1.10"
   dependencies:
-    "@digdir/designsystemet-types": "npm:^1.9.0"
-    "@floating-ui/dom": "npm:^1.7.4"
+    "@floating-ui/dom": "npm:^1.7.3"
     "@floating-ui/react": "npm:0.26.23"
-    "@navikt/aksel-icons": "npm:^7.35.1"
-    "@radix-ui/react-slot": "npm:^1.2.4"
+    "@navikt/aksel-icons": "npm:^7.25.1"
+    "@radix-ui/react-slot": "npm:^1.2.3"
     "@tanstack/react-virtual": "npm:^3.13.12"
-    "@u-elements/u-combobox": "npm:^1.0.5"
-    "@u-elements/u-datalist": "npm:^1.0.14"
-    "@u-elements/u-details": "npm:^0.1.5"
+    "@u-elements/u-combobox": "npm:^0.0.20"
+    "@u-elements/u-datalist": "npm:^1.0.12"
+    "@u-elements/u-details": "npm:^0.1.1"
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: ">=18.3.1 || ^19.0.0"
     react-dom: ">=18.3.1 || ^19.0.0"
-  checksum: 10/dbaf55dfb4e5c44e78dcd1cc87bb8b6db1cc9e52abd9cf9992e755c2139d9eb2d169a4b83864fdf891a8f5fd687cbe261d4db4d86d51857e05109172662ed65a
+  checksum: 10/18cb6b2a464d5ae871d864c880025065a514be4d8ad4b0de4bc64b05820becd218c94dabc71fc3d77a2c581acc3f28a0d431b7529abf5be30c463b319cbc779e
   languageName: node
   linkType: hard
 
@@ -658,12 +657,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-theme@npm:1.10.0":
-  version: 1.10.0
-  resolution: "@digdir/designsystemet-theme@npm:1.10.0"
-  dependencies:
-    "@digdir/designsystemet-types": "npm:^1.10.0"
-  checksum: 10/79ecdf2f36d6f8040639c5f31b9781431f8eb37ad01db5b3f58e3ff538e7d66c0cd645a46d1f4d7912090c682c9fdb49cae3c3bb3bc401ae3bbdbda22a282951
+"@digdir/designsystemet-theme@npm:1.1.10":
+  version: 1.1.10
+  resolution: "@digdir/designsystemet-theme@npm:1.1.10"
+  checksum: 10/e3f32ab9b7a2e7175f3819766f7daf48e91acf0b6121c7838f8e83b4b1888f6116e10bd766ca7dd4064d2185741ef4988068c7efcc53c265d08c9fcdd5011417
   languageName: node
   linkType: hard
 
@@ -676,7 +673,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-types@npm:^1.10.0, @digdir/designsystemet-types@npm:^1.11.0, @digdir/designsystemet-types@npm:^1.9.0":
+"@digdir/designsystemet-types@npm:^1.11.0":
   version: 1.11.0
   resolution: "@digdir/designsystemet-types@npm:1.11.0"
   checksum: 10/21db526b4f0960a45c8cc049cc603ab22e1640082ff4af5195448c7020025efca2254b23a4fe301ce36381152e878ae64a42a4b4aab0134b0d89065d6f804b86
@@ -927,7 +924,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/dom@npm:^1.7.4":
+"@floating-ui/dom@npm:^1.7.3, @floating-ui/dom@npm:^1.7.4":
   version: 1.7.4
   resolution: "@floating-ui/dom@npm:1.7.4"
   dependencies:
@@ -1613,7 +1610,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@navikt/aksel-icons@npm:^7.0.0, @navikt/aksel-icons@npm:^7.35.1":
+"@navikt/aksel-icons@npm:^7.0.0, @navikt/aksel-icons@npm:^7.25.1":
   version: 7.40.0
   resolution: "@navikt/aksel-icons@npm:7.40.0"
   checksum: 10/3aa95caee5484355b8e1bbe06fa3f4c1dd2f5db48c3c27e445f8ce53438e3571949f957178b2dbc81163c148f5c5c000222e67afe60556955419ad06ce505fab
@@ -1867,7 +1864,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-slot@npm:^1.0.2, @radix-ui/react-slot@npm:^1.2.4":
+"@radix-ui/react-slot@npm:^1.0.2, @radix-ui/react-slot@npm:^1.2.3":
   version: 1.2.4
   resolution: "@radix-ui/react-slot@npm:1.2.4"
   dependencies:
@@ -2339,9 +2336,9 @@ __metadata:
   resolution: "@studio/components@workspace:src/Designer/frontend/libs/studio-components"
   dependencies:
     "@chromatic-com/storybook": "npm:^4.0.0"
-    "@digdir/designsystemet-css": "npm:1.9.0"
-    "@digdir/designsystemet-react": "npm:1.9.0"
-    "@digdir/designsystemet-theme": "npm:1.10.0"
+    "@digdir/designsystemet-css": "npm:1.1.10"
+    "@digdir/designsystemet-react": "npm:1.1.10"
+    "@digdir/designsystemet-theme": "npm:1.1.10"
     "@storybook/addon-docs": "npm:9.1.17"
     "@storybook/addon-links": "npm:9.1.17"
     "@storybook/builder-vite": "npm:9.1.17"
@@ -3483,21 +3480,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@u-elements/u-combobox@npm:^1.0.5":
-  version: 1.0.5
-  resolution: "@u-elements/u-combobox@npm:1.0.5"
-  checksum: 10/ff767d05a2dfcd8833fdfaa00c04ce66b6d8887e63afa09ab5b57555e87d9022f6964736b7a89ccf9acb8b609b2aecd8885610e8b359b8bd8138aeb10b2dc100
+"@u-elements/u-combobox@npm:^0.0.20":
+  version: 0.0.20
+  resolution: "@u-elements/u-combobox@npm:0.0.20"
+  checksum: 10/9bc592c57ae2913433ee932a2bb66c07cdbf8f689745ceefaac4d73bcd7323c346b9fd2acf50a4bb27323f4c4c36ce556f3094d06eeef9a7d0914924da09adfd
   languageName: node
   linkType: hard
 
-"@u-elements/u-datalist@npm:^1.0.14":
-  version: 1.0.14
-  resolution: "@u-elements/u-datalist@npm:1.0.14"
-  checksum: 10/07ba68a730a7750f82d21510a2c8600664a97e48c8873cba7a67a4b1e92a5520caf0a8664c3c1e4db9e2aa28591955865544b92c3e1f6e08f7ce1dcbc4b4e491
+"@u-elements/u-datalist@npm:^1.0.12":
+  version: 1.1.0
+  resolution: "@u-elements/u-datalist@npm:1.1.0"
+  checksum: 10/8e219056cff5383119d906356ade3ce8b2d2dbcca8abc2c38c43bd21b99c6d93d875acb55d89959a3dc107fabe6a772d67bd21995bb4e6b88b53b37e37424103
   languageName: node
   linkType: hard
 
-"@u-elements/u-details@npm:^0.1.5":
+"@u-elements/u-details@npm:^0.1.1":
   version: 0.1.5
   resolution: "@u-elements/u-details@npm:0.1.5"
   checksum: 10/b001fda29f63f69fe7c55f812e5077a371447678a4e56c59d99479229de17894e0c1ae04b66ed273dbc35d5fbea48324ecb92537d03dbc0aa2fc5dbdc643ac78
