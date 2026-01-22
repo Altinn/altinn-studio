@@ -21,7 +21,7 @@ import {
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
-import { fetchInstanceData, fetchProcessState, fetchUserProfile } from 'src/queries/queries';
+import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {
   renderWithInstanceAndLayout,
@@ -149,6 +149,7 @@ describe('Expressions shared function tests', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    window.altinnAppGlobalData.userProfile = getProfileMock();
   });
 
   afterAll(() => {
@@ -275,9 +276,9 @@ describe('Expressions shared function tests', () => {
         } as unknown as IDataType);
       }
 
-      const profile = getProfileMock();
       if (profileSettings?.language) {
-        profile.profileSettingPreference.language = profileSettings.language;
+        window.altinnAppGlobalData.userProfile = getProfileMock();
+        window.altinnAppGlobalData.userProfile.profileSettingPreference.language = profileSettings.language;
       }
 
       async function fetchFormData(url: string) {
@@ -309,7 +310,6 @@ describe('Expressions shared function tests', () => {
       jest.mocked(useIsStateless).mockImplementation(() => stateless ?? false);
       jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
       jest.mocked(fetchProcessState).mockImplementation(async () => process ?? getProcessDataMock());
-      jest.mocked(fetchUserProfile).mockImplementation(async () => profile);
       jest.mocked(fetchInstanceData).mockImplementation(async () => {
         let instanceData = getInstanceDataMock();
         if (instance) {
