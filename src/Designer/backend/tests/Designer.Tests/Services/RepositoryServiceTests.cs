@@ -17,6 +17,7 @@ using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
+using Designer.Configuration;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
@@ -405,7 +406,7 @@ namespace Designer.Tests.Services
 
             ResourceRegistryService resourceRegistryService = new();
 
-            CustomTemplateService customTemplateService = new(altinnGitRepositoryFactory, giteaClientMock, new Mock<ILogger<CustomTemplateService>>().Object, repoSettings);
+            CustomTemplateService customTemplateService = new(giteaClientMock, repoSettings, new CustomTemplateSettings(), new Mock<ILogger<CustomTemplateService>>().Object);
 
             RepositoryService service = new(
                 repoSettings,

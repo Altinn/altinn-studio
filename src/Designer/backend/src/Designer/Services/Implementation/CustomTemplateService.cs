@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.CustomTemplate;
-using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Designer.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NJsonSchema;
@@ -20,34 +20,27 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class CustomTemplateService : ICustomTemplateService
 {
-    private const string SchemaFileName = "customtemplate.schema.json";
-    private const string AltinnStudioOrg = "als";
     private const string TemplateFolder = "Templates/";
-    private const string TemplateContentFolder = "content";
-    private const string TemplateFileName = "template.json";
     private const string TemplateManifestFileName = "templateManifest.json";
-
-    private const string LocalTemplateCacheFolder = ".template-cache";
-    private const string CacheMetadataFileName = ".cache-info.json";
-
-    private const int MaxParallelDownloads = 15;
-    private const int LockMaxRetries = 30;
-    private const int LockRetryDelayMs = 1000;
-    private static readonly TimeSpan s_cacheExpiration = TimeSpan.FromDays(7);
-
-    private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+    private const string TemplateFileName = "template.json";
+    private const string TemplateContentFolder = "content";
+    private const string TemplateSchemaFileName = "customtemplate.schema.json";
+ 
     private readonly IGiteaClient _giteaClient;
+    private readonly ServiceRepositorySettings _serviceRepoSettings;
     private readonly ILogger<CustomTemplateService> _logger;
-    private readonly ServiceRepositorySettings _settings;
+    private readonly CustomTemplateSettings _templateSettings;
 
-    public string AppTemplateManifestSchemaLocation { get; } = Path.Combine(AppContext.BaseDirectory, "Schemas", SchemaFileName);
-
-    public CustomTemplateService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGiteaClient giteaClient, ILogger<CustomTemplateService> logger, ServiceRepositorySettings settings)
+    public CustomTemplateService(
+        IGiteaClient giteaClient,
+        ServiceRepositorySettings serviceRepositorySettings,
+        CustomTemplateSettings templateSettings,
+        ILogger<CustomTemplateService> logger)
     {
-        _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _giteaClient = giteaClient;
+        _serviceRepoSettings = serviceRepositorySettings;
+        _templateSettings = templateSettings;
         _logger = logger;
-        _settings = settings;
     }
 
     // <inheritdoc />
@@ -55,7 +48,7 @@ public class CustomTemplateService : ICustomTemplateService
     {
         List<CustomTemplate> templates = [];
 
-        templates.AddRange(await GetTemplateManifestForOrg(AltinnStudioOrg));
+        templates.AddRange(await GetTemplateManifestForOrg(_templateSettings.DefaultTemplateOrganization));
 
         return templates;
     }
@@ -84,7 +77,7 @@ public class CustomTemplateService : ICustomTemplateService
             throw new ArgumentException("JSON string must not be null or empty.", nameof(jsonString));
         }
 
-        string schemaPath = Path.Combine(AppContext.BaseDirectory, "Schemas", SchemaFileName);
+        string schemaPath = Path.Combine(AppContext.BaseDirectory, "Schemas", TemplateSchemaFileName);
 
         if (!File.Exists(schemaPath))
         {
@@ -100,8 +93,8 @@ public class CustomTemplateService : ICustomTemplateService
     private async Task<List<CustomTemplate>> GetTemplateManifestForOrg(string templateOwner, CancellationToken cancellationToken = default)
     {
         string templateRepo = GetContentRepoName(templateOwner);
-        string templateCacheFolderPath = Path.Combine(_settings.RepositoryLocation, LocalTemplateCacheFolder, templateOwner);
-        string templateManifestCachePath = Path.Combine(_settings.RepositoryLocation, LocalTemplateCacheFolder, templateOwner, TemplateManifestFileName);
+        string templateCacheFolderPath = Path.Combine(_serviceRepoSettings.RepositoryLocation, _templateSettings.Cache.LocalCacheFolder, templateOwner);
+        string templateManifestCachePath = Path.Combine(_serviceRepoSettings.RepositoryLocation, _templateSettings.Cache.LocalCacheFolder, templateOwner, TemplateManifestFileName);
 
         string lockFilePath = Path.Combine(templateCacheFolderPath, ".lock");
 
@@ -159,7 +152,7 @@ public class CustomTemplateService : ICustomTemplateService
             CachedAt = DateTime.UtcNow,
         };
 
-        string metadataPath = Path.Combine(Path.GetDirectoryName(cacheFilePath)!, CacheMetadataFileName);
+        string metadataPath = Path.Combine(Path.GetDirectoryName(cacheFilePath)!, _templateSettings.Cache.MetadataFileName);
         string metadataJson = JsonSerializer.Serialize(cacheInfo, new JsonSerializerOptions { WriteIndented = true });
         await File.WriteAllTextAsync(metadataPath, metadataJson);
 
@@ -214,7 +207,7 @@ public class CustomTemplateService : ICustomTemplateService
     private void DeleteContent(string org, string repository, string developer, string path)
     {
         // remove paths are validated as part of template retrieval. So we can assume they are safe to use here.
-        string targetPath = Path.Combine(_settings.GetServicePath(org, repository, developer), path);
+        string targetPath = Path.Combine(_serviceRepoSettings.GetServicePath(org, repository, developer), path);
 
         if (Directory.Exists(targetPath))
         {
@@ -230,7 +223,7 @@ public class CustomTemplateService : ICustomTemplateService
     {
         string templateRepo = GetContentRepoName(templateOwner);
 
-        string templateCachePath = Path.Combine(_settings.RepositoryLocation, LocalTemplateCacheFolder, templateOwner, templateId);
+        string templateCachePath = Path.Combine(_serviceRepoSettings.RepositoryLocation, _templateSettings.Cache.LocalCacheFolder, templateOwner, templateId);
         string lockFilePath = Path.Combine(templateCachePath, ".lock");
         string cacheTemplateContentPath = Path.Combine(templateCachePath, TemplateContentFolder);
 
@@ -249,9 +242,8 @@ public class CustomTemplateService : ICustomTemplateService
         {
             _logger.LogInformation("Template cache hit for {TemplateId}. Using cached files.", templateId);
         }
-
-        AltinnAppGitRepository targetAppRepo = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepo, developer);
-        CopyDirectory(cacheTemplateContentPath, targetAppRepo.RepositoryDirectory);
+        
+        CopyDirectory(cacheTemplateContentPath, _serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer));
     }
 
     /// <summary>
@@ -263,8 +255,8 @@ public class CustomTemplateService : ICustomTemplateService
         Directory.CreateDirectory(Path.GetDirectoryName(lockFilePath)!);
 
         int retryCount = 0;
-        int maxRetries = LockMaxRetries;
-        int retryDelayMs = LockRetryDelayMs;
+        int maxRetries = _templateSettings.Lock.MaxRetries;
+        int retryDelayMs = _templateSettings.Lock.RetryDelayMs;
 
         while (retryCount < maxRetries)
         {
@@ -311,7 +303,7 @@ public class CustomTemplateService : ICustomTemplateService
             return false;
         }
 
-        string metadataPath = Path.Combine(cachePath, CacheMetadataFileName);
+        string metadataPath = Path.Combine(cachePath, _templateSettings.Cache.MetadataFileName);
         if (!File.Exists(metadataPath))
         {
             return false;
@@ -328,8 +320,10 @@ public class CustomTemplateService : ICustomTemplateService
             }
 
             // Cache is valid if commit SHA matches and cache is less than 1 week old
+            var cacheExpiration = TimeSpan.FromDays(_templateSettings.Cache.ExpirationDays);
+
             bool commitMatches = cacheInfo.CommitSha.Equals(latestCommitSha, StringComparison.Ordinal);
-            bool notExpired = DateTime.UtcNow - cacheInfo.CachedAt < s_cacheExpiration;
+            bool notExpired = DateTime.UtcNow - cacheInfo.CachedAt < cacheExpiration;
 
             return commitMatches && notExpired;
         }
@@ -378,7 +372,7 @@ public class CustomTemplateService : ICustomTemplateService
         // Download files in parallel
         ParallelOptions options = new()
         {
-            MaxDegreeOfParallelism = MaxParallelDownloads,
+            MaxDegreeOfParallelism = _templateSettings.Cache.MaxParallelDownloads,
             CancellationToken = cancellationToken
         };
 
@@ -416,7 +410,7 @@ public class CustomTemplateService : ICustomTemplateService
             CachedAt = DateTime.UtcNow,
         };
 
-        string metadataPath = Path.Combine(cachePath, CacheMetadataFileName);
+        string metadataPath = Path.Combine(cachePath, _templateSettings.Cache.MetadataFileName);
         string metadataJson = JsonSerializer.Serialize(cacheInfo, new JsonSerializerOptions { WriteIndented = true });
         await File.WriteAllTextAsync(metadataPath, metadataJson, cancellationToken);
 
