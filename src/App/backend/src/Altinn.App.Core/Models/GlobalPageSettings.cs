@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Models;
 public class GlobalPageSettings
 {
     /// <summary>
-    /// Hide the close button in the upper right corner of the app.
+    /// Hide the close button in the upper left corner of the app.
     /// </summary>
     [JsonPropertyName("hideCloseButton")]
     public bool HideCloseButton { get; set; } = false;
