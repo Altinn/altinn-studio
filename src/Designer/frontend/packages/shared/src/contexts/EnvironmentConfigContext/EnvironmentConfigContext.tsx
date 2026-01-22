@@ -30,7 +30,7 @@ export const EnvironmentConfigProvider = ({
   const contextValue: EnvironmentConfigContextValue = {
     environment: data ?? null,
     isLoading,
-    error: error as Error | null,
+    error,
   };
 
   return (

@@ -7,8 +7,8 @@ import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewCo
 import 'app-shared/design-tokens';
 import type { LoggerConfig } from 'app-shared/contexts/LoggerContext';
 import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
-import { PostHogContextProvider } from 'app-shared/contexts/PostHogContext';
 import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext';
+import { PostHogContextProvider } from 'app-shared/contexts/PostHogContext';
 import type { QueryClientConfig } from '@tanstack/react-query';
 import { PageRoutes } from './router/PageRoutes';
 import { AppDevelopmentContextProvider } from './contexts/AppDevelopmentContext';
@@ -34,22 +34,21 @@ const queryClientConfig: QueryClientConfig = {
 };
 
 root.render(
-  <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
-    <EnvironmentConfigProvider>
-      <LoggerContextProvider config={loggerConfig}>
-        <FeatureFlagsProvider>
+  <FeatureFlagsProvider>
+    <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
+      <EnvironmentConfigProvider>
+        <LoggerContextProvider config={loggerConfig}>
           <PostHogContextProvider>
             <ConsentProvider>
               <PreviewConnectionContextProvider>
                 <AppDevelopmentContextProvider>
                   <PageRoutes />
-                  <ConsentBanner />
                 </AppDevelopmentContextProvider>
               </PreviewConnectionContextProvider>
             </ConsentProvider>
           </PostHogContextProvider>
-        </FeatureFlagsProvider>
-      </LoggerContextProvider>
-    </EnvironmentConfigProvider>
-  </ServicesContextProvider>,
+        </LoggerContextProvider>
+      </EnvironmentConfigProvider>
+    </ServicesContextProvider>
+  </FeatureFlagsProvider>,
 );

@@ -6,7 +6,6 @@ const origin = window.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
 export const profileApiUrl = `${appPath}/api/v1/profile/user`;
-export const applicationSettingsApiUrl = `${appPath}/api/v1/applicationsettings`;
 export const invalidateCookieUrl = `${appPath}/api/authentication/invalidatecookie`;
 export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
 export const selectedPartyUrl = `${appPath}/api/authorization/parties/current?returnPartyObject=true`;
