@@ -3,11 +3,11 @@ import { v4 as uuidv4 } from 'uuid';
 import type { GlobalPageSettings } from 'src/features/layoutSets/types';
 
 export function getLayoutSets() {
-  return window.altinnAppGlobalData.layoutSetsConfig.sets;
+  return window.altinnAppGlobalData.layoutSets.sets;
 }
 
 export function getGlobalUiSettings(): GlobalPageSettings {
-  const globalUISettings = window.altinnAppGlobalData.layoutSetsConfig.uiSettings;
+  const globalUISettings = window.altinnAppGlobalData.layoutSets.uiSettings;
 
   return {
     ...globalUISettings,

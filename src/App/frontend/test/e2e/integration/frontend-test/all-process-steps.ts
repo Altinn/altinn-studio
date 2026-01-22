@@ -130,8 +130,8 @@ function testReceiptSubStatus() {
 
 function interceptAndAddCustomReceipt() {
   interceptAltinnAppGlobalData((globalData) => {
-    globalData.layoutSetsConfig.sets = [
-      ...globalData.layoutSetsConfig.sets,
+    globalData.layoutSets.sets = [
+      ...globalData.layoutSets.sets,
       {
         id: 'custom-receipt',
         dataType: 'likert',

@@ -1,12 +1,12 @@
 import { LayoutStyle } from 'src/layout/common.generated';
-import type { LayoutSet } from 'src/features/layoutSets/types';
+import type { ILayoutSet } from 'src/features/layoutSets/types';
 
 export function getLayoutSetForDataElement(
   currentTaskId: string | undefined,
   datatype: string | undefined,
-  layoutSets: LayoutSet[],
+  layoutSets: ILayoutSet[],
 ) {
-  return layoutSets.find((layoutSet: LayoutSet) => {
+  return layoutSets.find((layoutSet: ILayoutSet) => {
     if (layoutSet.dataType !== datatype) {
       return false;
     }

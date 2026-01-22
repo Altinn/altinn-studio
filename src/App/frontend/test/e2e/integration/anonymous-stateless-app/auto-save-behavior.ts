@@ -10,7 +10,7 @@ describe('Auto save behavior', () => {
       postFormDataCounter++;
     }).as('putFormData');
     interceptAltinnAppGlobalData((globalData) => {
-      globalData.layoutSetsConfig.uiSettings.autoSaveBehavior = 'onChangeFormData';
+      globalData.layoutSets.uiSettings.autoSaveBehavior = 'onChangeFormData';
     });
     cy.startAppInstance(appFrontend.apps.anonymousStateless, { cyUser: null });
 
@@ -33,7 +33,7 @@ describe('Auto save behavior', () => {
       postFormDataCounter++;
     }).as('putFormData');
     interceptAltinnAppGlobalData((globalData) => {
-      globalData.layoutSetsConfig.uiSettings.autoSaveBehavior = 'onChangePage';
+      globalData.layoutSets.uiSettings.autoSaveBehavior = 'onChangePage';
     });
     cy.startAppInstance(appFrontend.apps.anonymousStateless, { cyUser: null });
 

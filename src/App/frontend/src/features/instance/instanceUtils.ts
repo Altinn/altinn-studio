@@ -1,5 +1,5 @@
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import type { LayoutSet } from 'src/features/layoutSets/types';
+import type { ILayoutSet } from 'src/features/layoutSets/types';
 import type { IData, IInstance } from 'src/types/shared';
 
 // Even though the process state is part of the instance data we fetch from the server, we don't want to expose it
@@ -12,7 +12,7 @@ export function removeProcessFromInstance(instance: IInstance & { process?: unkn
 
 interface CommonProps {
   isStateless: boolean;
-  layoutSets: LayoutSet[];
+  layoutSets: ILayoutSet[];
   taskId: string | undefined;
 }
 interface GetCurrentTaskDataElementIdProps extends CommonProps {
@@ -57,7 +57,7 @@ export function getCurrentDataTypeForApplication({ isStateless, layoutSets, task
 
 interface GetDataTypeByTaskIdProps {
   taskId: string | undefined;
-  layoutSets: LayoutSet[];
+  layoutSets: ILayoutSet[];
 }
 
 export function getDataTypeByTaskId({ taskId, layoutSets }: GetDataTypeByTaskIdProps) {
@@ -95,7 +95,7 @@ export function getDataTypeByTaskId({ taskId, layoutSets }: GetDataTypeByTaskIdP
 
 interface GetDataTypeByLayoutSetIdProps {
   layoutSetId: string | undefined;
-  layoutSets: LayoutSet[];
+  layoutSets: ILayoutSet[];
 }
 
 export function getDataTypeByLayoutSetId({ layoutSetId, layoutSets }: GetDataTypeByLayoutSetIdProps) {

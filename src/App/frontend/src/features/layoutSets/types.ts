@@ -21,13 +21,13 @@ export type NavigationTask = {
   taskId: string;
 };
 
-export type LayoutSet = {
+export type ILayoutSet = {
   id: string;
   dataType: string;
   tasks?: string[];
 };
 
-export type LayoutSetsConfig = {
-  sets: LayoutSet[];
+export type ILayoutSets = {
+  sets: ILayoutSet[];
   uiSettings: GlobalPageSettings;
 };

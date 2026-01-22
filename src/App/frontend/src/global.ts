@@ -3,7 +3,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IAttachmentsMap } from 'src/features/attachments';
 import type { IFooterLayout } from 'src/features/footer/types';
-import type { LayoutSetsConfig } from 'src/features/layoutSets/types';
+import type { ILayoutSets } from 'src/features/layoutSets/types';
 import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
 import type { IApplicationSettings } from 'src/types/shared';
 
@@ -12,7 +12,7 @@ import type { IApplicationSettings } from 'src/types/shared';
 export type AltinnAppGlobalData = {
   applicationMetadata: ApplicationMetadata;
   footer: IFooterLayout;
-  layoutSetsConfig: LayoutSetsConfig;
+  layoutSets: ILayoutSets;
   frontendSettings: IApplicationSettings;
 };
 

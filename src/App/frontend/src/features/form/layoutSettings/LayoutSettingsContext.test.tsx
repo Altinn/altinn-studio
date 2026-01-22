@@ -3,7 +3,7 @@ import React from 'react';
 import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
 
-import { getLayoutSetsConfigMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import {
   usePageGroups,
   usePageSettings,
@@ -14,7 +14,7 @@ import { NavigationReceipt, NavigationTask } from 'src/features/layoutSets/types
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ILayoutSettings, NavigationPageGroup } from 'src/layout/common.generated';
 
-const layoutSetsConfigMock = getLayoutSetsConfigMock();
+const layoutSetsMock = getLayoutSetsMock();
 
 describe('LayoutSettingsContext', () => {
   const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
@@ -32,9 +32,9 @@ describe('LayoutSettingsContext', () => {
     overrideTaskNavigation?: (Omit<NavigationTask, 'id'> | Omit<NavigationReceipt, 'id'>)[];
   }) {
     jest.mocked(getGlobalUiSettings).mockReturnValue({
-      ...layoutSetsConfigMock.uiSettings,
+      ...layoutSetsMock.uiSettings,
       taskNavigation:
-        (taskNavigation as (NavigationTask | NavigationReceipt)[]) ?? layoutSetsConfigMock.uiSettings.taskNavigation,
+        (taskNavigation as (NavigationTask | NavigationReceipt)[]) ?? layoutSetsMock.uiSettings.taskNavigation,
     });
 
     return renderWithInstanceAndLayout({

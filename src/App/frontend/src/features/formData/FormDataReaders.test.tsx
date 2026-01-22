@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getLayoutSetsConfigMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
@@ -60,7 +60,7 @@ async function render(props: TestProps) {
   );
   jest
     .mocked(getLayoutSets)
-    .mockReturnValue(getLayoutSetsConfigMock().sets.map((set) => ({ ...set, dataType: props.defaultDataModel })));
+    .mockReturnValue(getLayoutSetsMock().sets.map((set) => ({ ...set, dataType: props.defaultDataModel })));
 
   jest.mocked(fetchInstanceData).mockImplementationOnce(async () => instanceData);
 

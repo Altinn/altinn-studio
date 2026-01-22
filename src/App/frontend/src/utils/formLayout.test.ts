@@ -1,8 +1,8 @@
-import { LayoutSet } from 'src/features/layoutSets/types';
+import { ILayoutSet } from 'src/features/layoutSets/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 
 describe('behavesLikeDataTask', () => {
-  const layoutSets: LayoutSet[] = [
+  const layoutSets: ILayoutSet[] = [
     { id: 'set_1', dataType: 'SomeType', tasks: ['Task_1'] },
     { id: 'set_2', dataType: 'SomeType', tasks: ['Task_2'] },
   ];
