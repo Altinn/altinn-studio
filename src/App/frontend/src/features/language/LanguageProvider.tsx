@@ -29,10 +29,12 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
   const { data: profile, isLoading: isProfileLoading } = useProfileQuery();
 
   const languageFromProfile = isProfileLoading ? undefined : profile?.profileSettingPreference.language;
-
+  const userId = profile?.userId;
   const languageFromUrl = getLanguageFromUrl();
-  const [languageFromSelector, setLanguageFromSelector] = useCookieState<string | null>('selectedLanguage', null);
-  const setWithLanguageSelector = (language: string) => setLanguageFromSelector(language);
+  const [languageFromSelector, setWithLanguageSelector] = useCookieState<string | null>(
+    ['selectedLanguage', userId],
+    null,
+  );
 
   const appLanguages = window.altinnAppGlobalData.availableLanguages.map((lang) => lang.language);
 

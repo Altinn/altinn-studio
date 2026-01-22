@@ -9,7 +9,6 @@ import { useRef, useSyncExternalStore } from 'react';
  */
 type LocalStorageEntries = {
   visitedPages: string[];
-  selectedLanguage: string | null;
 };
 
 class LocalStorageController<T> {

@@ -5,6 +5,7 @@ import { CookieStorage } from 'src/utils/cookieStorage/CookieStorage';
 const COOKIE_EXPIRY_DAYS = 365;
 
 type CookieName = 'selectedLanguage';
+type ScopeKey = string | number | boolean | null | undefined;
 
 let listeners: Array<() => void> = [];
 
@@ -21,30 +22,37 @@ function subscribe(listener: () => void) {
   };
 }
 
-function getFullKey(key: CookieName): string {
-  return `${window.org}_${window.app}_${key}`;
+function isNotNullUndefinedOrEmpty(key: ScopeKey) {
+  return key != null && (typeof key !== 'string' || !!key.length);
 }
 
-export function useCookieState<T>(cookieName: CookieName, defaultValue: T): [T, (value: T) => void] {
-  const fullKey = getFullKey(cookieName);
+function getFullCookieKey(cookieName: CookieName, scopeKeys: ScopeKey[]): string {
+  return [window.org, window.app, cookieName, ...scopeKeys].filter(isNotNullUndefinedOrEmpty).join('_');
+}
+
+export function useCookieState<T>(
+  [cookieName, ...scopeKeys]: [CookieName, ...ScopeKey[]],
+  defaultValue: T,
+): [T, (value: T) => void] {
+  const fullCookieKey = getFullCookieKey(cookieName, scopeKeys);
 
   const getSnapshot = useCallback(() => {
-    const value = CookieStorage.getItem<T>(fullKey);
+    const value = CookieStorage.getItem<T>(fullCookieKey);
     return value ?? defaultValue;
-  }, [fullKey, defaultValue]);
+  }, [fullCookieKey, defaultValue]);
 
   const cookieValue = useSyncExternalStore(subscribe, getSnapshot);
 
   const setCookieValue = useCallback(
     (newValue: T) => {
       if (newValue === null) {
-        CookieStorage.removeItem(fullKey);
+        CookieStorage.removeItem(fullCookieKey);
       } else {
-        CookieStorage.setItem(fullKey, newValue, COOKIE_EXPIRY_DAYS);
+        CookieStorage.setItem(fullCookieKey, newValue, COOKIE_EXPIRY_DAYS);
       }
       emitChange();
     },
-    [fullKey],
+    [fullCookieKey],
   );
 
   return [cookieValue, setCookieValue];

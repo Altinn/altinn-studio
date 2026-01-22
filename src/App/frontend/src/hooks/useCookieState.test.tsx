@@ -23,18 +23,18 @@ describe('useCookieState', () => {
   });
 
   it('should return the default value when no cookie exists', () => {
-    const { result } = renderHook(() => useCookieState('selectedLanguage', null));
+    const { result } = renderHook(() => useCookieState(['selectedLanguage'], null));
     expect(result.current[0]).toBeNull();
   });
 
   it('should return the cookie value when it exists', () => {
     CookieStorage.setItem('testorg_testapp_selectedLanguage', 'nb');
-    const { result } = renderHook(() => useCookieState('selectedLanguage', null));
+    const { result } = renderHook(() => useCookieState(['selectedLanguage'], null));
     expect(result.current[0]).toBe('nb');
   });
 
   it('should update the cookie when setValue is called', () => {
-    const { result } = renderHook(() => useCookieState<string | null>('selectedLanguage', null));
+    const { result } = renderHook(() => useCookieState<string | null>(['selectedLanguage'], null));
 
     act(() => {
       result.current[1]('en');
@@ -46,7 +46,7 @@ describe('useCookieState', () => {
 
   it('should remove the cookie when setValue is called with null', () => {
     CookieStorage.setItem('testorg_testapp_selectedLanguage', 'nb');
-    const { result } = renderHook(() => useCookieState('selectedLanguage', null));
+    const { result } = renderHook(() => useCookieState(['selectedLanguage'], null));
 
     expect(result.current[0]).toBe('nb');
 
@@ -59,7 +59,7 @@ describe('useCookieState', () => {
   });
 
   it('should use the correct key format with org and app', () => {
-    const { result } = renderHook(() => useCookieState<string | null>('selectedLanguage', null));
+    const { result } = renderHook(() => useCookieState<string | null>(['selectedLanguage'], null));
 
     act(() => {
       result.current[1]('nn');
@@ -70,9 +70,43 @@ describe('useCookieState', () => {
     expect(CookieStorage.getItem('selectedLanguage')).toBeNull();
   });
 
+  describe('with scope keys', () => {
+    it('should include scope keys in the cookie key', () => {
+      const { result } = renderHook(() => useCookieState<string | null>(['selectedLanguage', 12345], null));
+
+      act(() => {
+        result.current[1]('en');
+      });
+
+      expect(CookieStorage.getItem('testorg_testapp_selectedLanguage_12345')).toBe('en');
+    });
+
+    it('should filter out null and undefined scope keys', () => {
+      const { result } = renderHook(() =>
+        useCookieState<string | null>(['selectedLanguage', null, undefined, 'validKey'], null),
+      );
+
+      act(() => {
+        result.current[1]('en');
+      });
+
+      expect(CookieStorage.getItem('testorg_testapp_selectedLanguage_validKey')).toBe('en');
+    });
+
+    it('should filter out empty string scope keys', () => {
+      const { result } = renderHook(() => useCookieState<string | null>(['selectedLanguage', '', 'validKey'], null));
+
+      act(() => {
+        result.current[1]('en');
+      });
+
+      expect(CookieStorage.getItem('testorg_testapp_selectedLanguage_validKey')).toBe('en');
+    });
+  });
+
   describe('component integration', () => {
     function TestComponent() {
-      const [language, setLanguage] = useCookieState('selectedLanguage', 'nb');
+      const [language, setLanguage] = useCookieState(['selectedLanguage'], 'nb');
 
       return (
         <>
