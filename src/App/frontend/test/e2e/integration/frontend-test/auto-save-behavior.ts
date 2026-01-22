@@ -1,5 +1,6 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
 
@@ -8,7 +9,9 @@ type ReqCounter = { count: number };
 
 describe('Auto save behavior', () => {
   it('onChangeFormData: Should save form data when interacting with form element(checkbox) but not on navigation', () => {
-    cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangeFormData' });
+    interceptAltinnAppGlobalData((globalData) => {
+      globalData.layoutSets.uiSettings.autoSaveBehavior = 'onChangeFormData';
+    });
     cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
 
     cy.goto('group');
@@ -29,7 +32,9 @@ describe('Auto save behavior', () => {
   });
 
   it('onChangePage: Should not save form when interacting with form element(checkbox), but should save on navigating between pages', () => {
-    cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
+    interceptAltinnAppGlobalData((globalData) => {
+      globalData.layoutSets.uiSettings.autoSaveBehavior = 'onChangePage';
+    });
     cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
     cy.goto('group');
 
@@ -83,7 +88,9 @@ describe('Auto save behavior', () => {
 
   (['current', 'all'] as const).forEach((pages) => {
     it(`should run save before single field validation with navigation trigger ${pages || 'undefined'}`, () => {
-      cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
+      interceptAltinnAppGlobalData((globalData) => {
+        globalData.layoutSets.uiSettings.autoSaveBehavior = 'onChangePage';
+      });
       cy.interceptLayout('changename', (component) => {
         if (component.type === 'NavigationButtons') {
           component.validateOnNext = { page: pages, show: ['All'] };
@@ -161,7 +168,9 @@ describe('Auto save behavior', () => {
 
   ([undefined, 'current', 'currentAndPrevious', 'all'] as const).forEach((validateOnNext) => {
     it(`should run save before single field validation with validateOnNext = ${validateOnNext || 'undefined'}`, () => {
-      cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
+      interceptAltinnAppGlobalData((globalData) => {
+        globalData.layoutSets.uiSettings.autoSaveBehavior = 'onChangePage';
+      });
       cy.interceptLayout('changename', (component) => {
         if (component.type === 'NavigationButtons') {
           component.validateOnNext = validateOnNext

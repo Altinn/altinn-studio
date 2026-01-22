@@ -1,4 +1,5 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 const appFrontend = new AppFrontend();
 
@@ -8,7 +9,9 @@ describe('Auto save behavior', () => {
     cy.intercept('POST', '**/data/**', () => {
       postFormDataCounter++;
     }).as('putFormData');
-    cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangeFormData' });
+    interceptAltinnAppGlobalData((globalData) => {
+      globalData.layoutSets.uiSettings.autoSaveBehavior = 'onChangeFormData';
+    });
     cy.startAppInstance(appFrontend.apps.anonymousStateless, { cyUser: null });
 
     cy.get(appFrontend.stateless.name).type('Per');
@@ -29,7 +32,9 @@ describe('Auto save behavior', () => {
     cy.intercept('POST', '**/data/**', () => {
       postFormDataCounter++;
     }).as('putFormData');
-    cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
+    interceptAltinnAppGlobalData((globalData) => {
+      globalData.layoutSets.uiSettings.autoSaveBehavior = 'onChangePage';
+    });
     cy.startAppInstance(appFrontend.apps.anonymousStateless, { cyUser: null });
 
     cy.get(appFrontend.stateless.name).type('Per');

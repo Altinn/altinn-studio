@@ -1,12 +1,11 @@
-import { ContextNotProvided } from 'src/core/contexts/context';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
-import { useLaxLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { getCurrentDataTypeForApplication } from 'src/features/instance/instanceUtils';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { getLayoutSetForDataElement } from 'src/utils/layout';
-import type { ILayoutSet } from 'src/layout/common.generated';
+import type { ILayoutSet } from 'src/features/form/layoutSets/types';
 
 /**
  * This is a variant that prefers the taskId from the URL. The alternative useCurrentLayoutSetId() and
@@ -23,15 +22,11 @@ export function useCurrentLayoutSetId(taskId?: string) {
 }
 
 export function useCurrentLayoutSet(_taskId?: string) {
-  const layoutSets = useLaxLayoutSets();
+  const layoutSets = getLayoutSets();
   const processTaskId = useProcessTaskId();
   const isStateless = useIsStateless();
   const taskId = _taskId ?? processTaskId;
   const overriddenLayoutSetId = useTaskOverrides()?.layoutSetId;
-
-  if (layoutSets === ContextNotProvided) {
-    return undefined;
-  }
 
   if (overriddenLayoutSetId) {
     return layoutSets.find((set) => set.id === overriddenLayoutSetId);
