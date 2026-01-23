@@ -101,9 +101,9 @@ export const StudioTableRemotePagination = forwardRef<
     const isSortingActive = !isTableEmpty && onSortClick;
     const isPaginationActive = Boolean(
       pagination &&
-      hasTotalRows &&
-      hasPageSizeOptions &&
-      totalRows! > Math.min(...pageSizeOptions!),
+        hasTotalRows &&
+        hasPageSizeOptions &&
+        totalRows! > Math.min(...pageSizeOptions!),
     );
 
     const retainedIsPaginationActive = useRetainWhileLoading(isLoading, isPaginationActive);

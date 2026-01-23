@@ -9,9 +9,8 @@ import { useTranslation } from 'react-i18next';
 import { OptionTabs } from './OptionTabs';
 import classes from './EditOptions.module.css';
 
-export interface ISelectionEditComponentProvidedProps<
-  T extends SelectionComponentType,
-> extends IGenericEditComponent<T> {}
+export interface ISelectionEditComponentProvidedProps<T extends SelectionComponentType>
+  extends IGenericEditComponent<T> {}
 
 export function EditOptions<T extends SelectionComponentType>({
   component,
