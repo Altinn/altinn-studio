@@ -3,45 +3,43 @@ import { useTranslation } from 'react-i18next';
 import { StudioTabs } from '@studio/components';
 import { ReferenceTab } from './ReferenceTab/ReferenceTab';
 import { EditTab } from './EditTab';
-import { SelectedOptionsType } from '../EditOptions';
 import type { IGenericEditComponent } from '../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../types/FormComponent';
-import { getSelectedOptionsType } from './utils/optionsUtils';
+import { determineInitialTab } from './utils/optionsUtils';
 import classes from './OptionTabs.module.css';
+import { OptionsTabKey } from './enums/OptionsTabKey';
 
 type OptionTabsProps = {
-  optionListIds: string[];
+  optionListIdsFromLibrary: string[];
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
-export function OptionTabs({ component, handleComponentChange, optionListIds }: OptionTabsProps) {
-  const initialSelectedOptionsType = getSelectedOptionsType(
-    component.optionsId,
-    component.options,
-    optionListIds || [],
-  );
-  const [selectedOptionsType, setSelectedOptionsType] = useState(initialSelectedOptionsType);
+export function OptionTabs({
+  component,
+  handleComponentChange,
+  optionListIdsFromLibrary,
+}: OptionTabsProps) {
+  const initialSelectedTab = determineInitialTab(component, optionListIdsFromLibrary);
+  const [selectedTab, setSelectedTab] = useState(initialSelectedTab);
   const { t } = useTranslation();
 
   return (
     <StudioTabs
-      value={selectedOptionsType}
+      value={selectedTab}
       data-size='sm'
-      onChange={(value) => {
-        setSelectedOptionsType(value as SelectedOptionsType);
-      }}
+      onChange={(value) => setSelectedTab(value as OptionsTabKey)}
     >
       <StudioTabs.List>
-        <StudioTabs.Tab value={SelectedOptionsType.CodeList}>
+        <StudioTabs.Tab value={OptionsTabKey.CodeList}>
           {t('ux_editor.options.tab_code_list')}
         </StudioTabs.Tab>
-        <StudioTabs.Tab value={SelectedOptionsType.ReferenceId}>
+        <StudioTabs.Tab value={OptionsTabKey.Reference}>
           {t('ux_editor.options.tab_reference_id')}
         </StudioTabs.Tab>
       </StudioTabs.List>
-      <StudioTabs.Panel className={classes.tabContent} value={SelectedOptionsType.CodeList}>
+      <StudioTabs.Panel className={classes.tabContent} value={OptionsTabKey.CodeList}>
         <EditTab component={component} handleComponentChange={handleComponentChange} />
       </StudioTabs.Panel>
-      <StudioTabs.Panel value={SelectedOptionsType.ReferenceId} className={classes.tabContent}>
+      <StudioTabs.Panel value={OptionsTabKey.Reference} className={classes.tabContent}>
         <ReferenceTab component={component} handleComponentChange={handleComponentChange} />
       </StudioTabs.Panel>
     </StudioTabs>
