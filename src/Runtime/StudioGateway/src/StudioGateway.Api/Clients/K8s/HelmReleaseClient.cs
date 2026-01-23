@@ -46,8 +46,7 @@ internal sealed class HelmReleaseClient(IKubernetes kubernetes)
 
             return new HelmRelease(element);
         }
-        catch (k8s.Autorest.HttpOperationException ex)
-            when (ex.Response.StatusCode == HttpStatusCode.NotFound)
+        catch (k8s.Autorest.HttpOperationException ex) when (ex.Response.StatusCode == HttpStatusCode.NotFound)
         {
             return null;
         }
@@ -87,10 +86,7 @@ internal sealed class HelmReleaseClient(IKubernetes kubernetes)
             );
         }
 
-        if (
-            !element.TryGetProperty("items", out var items)
-            || items.ValueKind != JsonValueKind.Array
-        )
+        if (!element.TryGetProperty("items", out var items) || items.ValueKind != JsonValueKind.Array)
         {
             throw new InvalidOperationException(
                 $"Expected HelmRelease list response to contain an 'items' array in namespace '{@namespace}'."
