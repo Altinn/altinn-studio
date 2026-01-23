@@ -158,6 +158,7 @@ public class PdfService : IPdfService
 
         string fileName = await GetFileName(
             instance,
+            taskId,
             language,
             customFileNameTextResourceKey,
             subformPdfContext?.DataElementId
@@ -284,6 +285,7 @@ public class PdfService : IPdfService
 
     private async Task<string> GetFileName(
         Instance instance,
+        string taskId,
         string? language,
         string? customFileNameTextResourceKey,
         string? subformDataElementId
@@ -293,31 +295,16 @@ public class PdfService : IPdfService
 
         if (_instanceDataUnitOfWorkInitializer != null && customFileNameTextResourceKey != null)
         {
-            // Variable substitution support for custom file names
-            InstanceDataUnitOfWork cachedDataMutator = await _instanceDataUnitOfWorkInitializer.Init(
+            InstanceDataUnitOfWork dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
                 instance,
-                instance.Process?.CurrentTask?.ElementId,
+                taskId,
                 language
             );
 
-            LayoutEvaluatorState state =
-                cachedDataMutator.GetLayoutEvaluatorState()
-                ?? throw new InvalidOperationException("LayoutEvaluatorState should not be null.");
-
-            DataElementIdentifier? dataElementIdentifier =
-                subformDataElementId != null ? new DataElementIdentifier(subformDataElementId) : default;
-
-            var componentContext = new ComponentContext(
-                state,
-                component: null,
-                rowIndices: null,
-                dataElementIdentifier: dataElementIdentifier
-            );
-
-            fileName = await _translationService.TranslateTextKey(
+            fileName = await GetVariableSubstitutedFileName(
+                dataAccessor,
                 customFileNameTextResourceKey,
-                state,
-                componentContext
+                subformDataElementId
             );
         }
         else
@@ -408,6 +395,29 @@ public class PdfService : IPdfService
         }
 
         return additionalQueryParams;
+    }
+
+    private async Task<string?> GetVariableSubstitutedFileName(
+        InstanceDataUnitOfWork dataAccessor,
+        string customFileNameTextResourceKey,
+        string? subformDataElementId
+    )
+    {
+        LayoutEvaluatorState state =
+            dataAccessor.GetLayoutEvaluatorState()
+            ?? throw new InvalidOperationException("LayoutEvaluatorState should not be null. No current task?");
+
+        DataElementIdentifier? dataElementIdentifier =
+            subformDataElementId != null ? new DataElementIdentifier(subformDataElementId) : default;
+
+        var componentContext = new ComponentContext(
+            state,
+            component: null,
+            rowIndices: null,
+            dataElementIdentifier: dataElementIdentifier
+        );
+
+        return await _translationService.TranslateTextKey(customFileNameTextResourceKey, state, componentContext);
     }
 }
 
