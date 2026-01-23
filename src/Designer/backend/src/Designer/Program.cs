@@ -45,8 +45,6 @@ using Microsoft.Net.Http.Headers;
 ILogger logger;
 
 string applicationInsightsConnectionString = string.Empty;
-string postHogApiKey = string.Empty;
-string postHogApiHost = string.Empty;
 
 ConfigureSetupLogging();
 
@@ -119,19 +117,6 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
         catch (Exception vaultException)
         {
             logger.LogError(vaultException, "Could not find secret for application insights");
-        }
-
-        try
-        {
-            Response<KeyVaultSecret> postHogKeySecret = await keyVaultClient.GetSecretAsync("altinn-studio-dev-designer-post-hog-api-key");
-            postHogApiKey = postHogKeySecret.Value.Value;
-
-            Response<KeyVaultSecret> postHogHostSecret = await keyVaultClient.GetSecretAsync("altinn-studio-dev-designer-post-hog-api-host");
-            postHogApiHost = postHogHostSecret.Value.Value;
-        }
-        catch (Exception vaultException)
-        {
-            logger.LogError(vaultException, "Could not find secrets for PostHog");
         }
     }
 
