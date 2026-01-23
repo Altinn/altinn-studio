@@ -2,7 +2,7 @@ import React, { type FormEvent, type ChangeEvent, useState } from 'react';
 import { TemplateSelector } from '../TemplateSelector/TemplateSelector';
 import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 import classes from './NewApplicationForm.module.css';
-import { StudioButton, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioHeading, StudioSpinner, StudioSwitch } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { ServiceOwnerSelector } from '../ServiceOwnerSelector';
 import { RepoNameInput } from '../RepoNameInput';
@@ -58,6 +58,7 @@ export const NewApplicationForm = ({
       : selectedContext;
   const [currentSelectedOrg, setCurrentSelectedOrg] = useState<string>(defaultSelectedOrgOrUser);
   const [selectedTemplates, setSelectedTemplates] = useState<CustomTemplate[]>([]);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState<boolean>(false);
   const { data: userOrgPermission, isFetching } = useUserOrgPermissionQuery(currentSelectedOrg, {
     enabled: Boolean(currentSelectedOrg),
   });
@@ -115,6 +116,9 @@ export const NewApplicationForm = ({
 
   return (
     <form onSubmit={handleSubmit} className={classes.form}>
+      <StudioHeading level={1} spacing>
+        {t('dashboard.new_service')}
+      </StudioHeading>
       <ServiceOwnerSelector
         name='org'
         user={user}
@@ -128,11 +132,18 @@ export const NewApplicationForm = ({
         errorMessage={formError.repoName}
         onChange={validateTextValue}
       />
-      <TemplateSelector
-        templates={availableTemplates}
-        selectedTemplates={selectedTemplates}
-        onChange={setSelectedTemplates}
+      <StudioSwitch
+        checked={showAdvancedOptions}
+        onChange={() => setShowAdvancedOptions(!showAdvancedOptions)}
+        label={t('dashboard.new_application_form.show_advanced_options')}
       />
+      {showAdvancedOptions && (
+        <TemplateSelector
+          templates={availableTemplates}
+          selectedTemplates={selectedTemplates}
+          onChange={setSelectedTemplates}
+        />
+      )}
       <div className={classes.actionContainer}>
         {isLoading ? (
           <StudioSpinner aria-hidden spinnerTitle={t('dashboard.creating_your_service')} />

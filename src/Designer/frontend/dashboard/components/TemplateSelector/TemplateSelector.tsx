@@ -1,47 +1,57 @@
 import React from 'react';
-import { type CustomTemplate } from 'app-shared/types/CustomTemplateReference';
+import { type CustomTemplate } from 'app-shared/types/CustomTemplate';
+import { StudioCard, StudioParagraph, StudioSelect } from '@studio/components';
+import classes from './TemplateSelector.module.css';
+import { useTranslation } from 'react-i18next';
 
-export interface TemplateSelectorProps {
+export type TemplateSelectorProps = {
   templates: CustomTemplate[];
   selectedTemplates: CustomTemplate[];
   onChange: (selected: CustomTemplate[]) => void;
-}
+};
 
-export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
+export const TemplateSelector = ({
   templates,
   selectedTemplates,
   onChange,
-}) => {
-  const handleCheckboxChange = (template: CustomTemplate) => {
-    if (selectedTemplates.some((t) => t.id === template.id)) {
-      onChange(selectedTemplates.filter((t) => t.id !== template.id));
-    } else {
-      onChange([...selectedTemplates, template]);
-    }
+}: TemplateSelectorProps): React.JSX.Element => {
+  const { t } = useTranslation();
+
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(event.target.selectedOptions);
+    const selected = templates.filter((template) =>
+      selectedOptions.some((option) => option.value === template.id),
+    );
+    onChange(selected);
   };
 
   return (
-    <div>
-      <label style={{ fontWeight: 'bold' }}>Select templates:</label>
-      <ul style={{ listStyle: 'none', padding: 0 }}>
+    <div className={classes.templateSelectorContainer}>
+      <StudioSelect
+        onChange={handleChange}
+        label={t('dashboard.new_application_form.select_templates')}
+        description={t('dashboard.new_application_form.select_templates_description')}
+        value={selectedTemplates.map((template) => template.id)}
+      >
+        <StudioSelect.Option value=''>
+          {t('dashboard.new_application_form.select_templates_default')}
+        </StudioSelect.Option>
         {templates.map((template) => (
-          <li key={template.id}>
-            <label>
-              <input
-                type='checkbox'
-                checked={selectedTemplates.some((t) => t.id === template.id)}
-                onChange={() => handleCheckboxChange(template)}
-              />
-              <span>{template.name.nb ?? Object.values(template.name)[0] ?? template.id}</span>
-              {template.description && (
-                <div style={{ fontSize: '0.9em', color: '#666', marginLeft: 24 }}>
-                  {template.description.nb ?? Object.values(template.description)[0] ?? ''}
-                </div>
-              )}
-            </label>
-          </li>
+          <StudioSelect.Option key={template.id} value={template.id}>
+            {template.name.nb ?? template.id}
+          </StudioSelect.Option>
         ))}
-      </ul>
+      </StudioSelect>
+      {selectedTemplates.map((template) => (
+        <StudioCard key={template.id}>
+          <StudioParagraph className={classes.templateName} spacing>
+            {template.name.nb ?? template.id}
+          </StudioParagraph>
+          {template.description && (
+            <StudioParagraph>{template.description.nb ?? template.id}</StudioParagraph>
+          )}
+        </StudioCard>
+      ))}
     </div>
   );
 };

@@ -1,16 +1,10 @@
-.templateSelector {
-  margin: 1rem 0;
-}
-
-.templateSelector label {
+.templateName {
   font-weight: bold;
 }
 
-.templateSelector ul {
-  list-style: none;
-  padding: 0;
-}
-
-.templateSelector li {
-  margin-bottom: 0.5rem;
+.templateSelectorContainer {
+  margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
 }
