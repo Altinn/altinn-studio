@@ -8,7 +8,7 @@ import { immer } from 'zustand/middleware/immer';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
-import { useHasPendingAttachments } from 'src/features/attachments/hooks';
+import { hasPendingAttachments } from 'src/features/attachments/utils';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
@@ -31,9 +31,9 @@ import { InvalidDataValidation } from 'src/features/validation/invalidDataValida
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
 import { SchemaValidation } from 'src/features/validation/schemaValidation/SchemaValidation';
 import { hasValidationErrors, mergeFieldValidations, selectValidations } from 'src/features/validation/utils';
-import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
+import type { NodesContext } from 'src/utils/layout/NodesContext';
 
 interface Internals {
   individualValidations: {
@@ -178,11 +178,8 @@ function useWaitForValidation(): WaitForValidation {
   const waitForNodesReady = NodesInternal.useWaitUntilReady();
   const waitForSave = FD.useWaitForSave();
   const waitForState = useWaitForState<ValidationsProcessedLast['initial'], ValidationContext & Internals>(useStore());
-  const hasPendingAttachments = useHasPendingAttachments();
-
-  // Provide a promise that resolves when all pending validations have been completed
-  const pendingAttachmentsRef = useAsRef(hasPendingAttachments);
-  const waitForAttachments = useWaitForState(pendingAttachmentsRef);
+  const nodesStore = NodesInternal.useStore();
+  const waitForAttachments = useWaitForState<void, NodesContext>(nodesStore);
 
   const hasWritableDataTypes = !!DataModels.useWritableDataTypes()?.length;
   const enabled = useShouldValidateInitial();
@@ -195,7 +192,7 @@ function useWaitForValidation(): WaitForValidation {
         return;
       }
 
-      await waitForAttachments((state) => !state);
+      await waitForAttachments((state) => !hasPendingAttachments(state));
 
       // Wait until we've saved changed to backend, and we've processed the backend validations we got from that save
       await waitForNodesReady();
