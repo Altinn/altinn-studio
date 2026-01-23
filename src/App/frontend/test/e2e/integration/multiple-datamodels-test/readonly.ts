@@ -1,4 +1,5 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 const appFrontend = new AppFrontend();
 
@@ -97,7 +98,9 @@ describe('readonly data models', () => {
     cy.findByText(errorReportTitle).should('not.exist');
 
     // Test with autoSaveBehavior onChangePage in order to test that requestManualSave works as expected
-    cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
+    interceptAltinnAppGlobalData((globalData) => {
+      globalData.layoutSets.uiSettings.autoSaveBehavior = 'onChangePage';
+    });
     cy.then(() => formDataRequests.splice(0, formDataRequests.length)); // Clear requests
     cy.reloadAndWait();
 

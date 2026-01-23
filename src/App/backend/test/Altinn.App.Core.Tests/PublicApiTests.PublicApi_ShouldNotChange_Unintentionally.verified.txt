@@ -2298,9 +2298,9 @@ namespace Altinn.App.Core.Implementation
         [System.Obsolete("Use GetLayoutModelForTask instead")]
         public Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModel(string? layoutSetId = null) { }
         public Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForTask(string taskId) { }
-        public Altinn.App.Core.Models.LayoutSets? GetLayoutSet() { }
         public Altinn.App.Core.Models.LayoutSet? GetLayoutSetForTask(string taskId) { }
-        public string GetLayoutSets() { }
+        public Altinn.App.Core.Models.LayoutSets? GetLayoutSets() { }
+        public string? GetLayoutSetsString() { }
         public Altinn.App.Core.Models.LayoutSettings GetLayoutSettings() { }
         public Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId) { }
         public string? GetLayoutSettingsString() { }
@@ -2869,9 +2869,9 @@ namespace Altinn.App.Core.Internal.App
         [System.Obsolete("Use GetLayoutModelForTask instead", false)]
         Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModel(string? layoutSetId = null);
         Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForTask(string taskId);
-        Altinn.App.Core.Models.LayoutSets? GetLayoutSet();
         Altinn.App.Core.Models.LayoutSet? GetLayoutSetForTask(string taskId);
-        string GetLayoutSets();
+        Altinn.App.Core.Models.LayoutSets? GetLayoutSets();
+        string? GetLayoutSetsString();
         Altinn.App.Core.Models.LayoutSettings GetLayoutSettings();
         Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);
         string? GetLayoutSettingsString();
@@ -4056,6 +4056,11 @@ namespace Altinn.App.Core.Models
         public System.Collections.Generic.List<Altinn.App.Core.Models.Attachment> Attachments { get; set; }
         public string Type { get; set; }
     }
+    public enum AutoSaveBehavior
+    {
+        OnChangeFormData = 0,
+        OnChangePage = 1,
+    }
     public sealed class BinaryDataChange : Altinn.App.Core.Models.DataElementChange
     {
         public System.ReadOnlyMemory<byte> CurrentBinaryData { get; }
@@ -4157,6 +4162,24 @@ namespace Altinn.App.Core.Models
         public System.ReadOnlyMemory<byte> PreviousBinaryData { get; }
         public object PreviousFormData { get; }
     }
+    public class GlobalPageSettings
+    {
+        public GlobalPageSettings() { }
+        [System.Text.Json.Serialization.JsonPropertyName("autoSaveBehavior")]
+        public Altinn.App.Core.Models.AutoSaveBehavior AutoSaveBehavior { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("expandedWidth")]
+        public bool ExpandedWidth { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("hideCloseButton")]
+        public bool HideCloseButton { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("showExpandWidthButton")]
+        public bool ShowExpandWidthButton { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("showLanguageSelector")]
+        public bool ShowLanguageSelector { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("showProgress")]
+        public bool ShowProgress { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("taskNavigation")]
+        public System.Collections.Generic.List<Altinn.App.Core.Models.TaskNavigationEntry> TaskNavigation { get; set; }
+    }
     public interface ILanguageCodeStandard
     {
         Altinn.App.Core.Models.LanguageCodeValidationResult Validate(string code);
@@ -4251,6 +4274,7 @@ namespace Altinn.App.Core.Models
     {
         public LayoutSets() { }
         public required System.Collections.Generic.List<Altinn.App.Core.Models.LayoutSet> Sets { get; set; }
+        public Altinn.App.Core.Models.GlobalPageSettings? UiSettings { get; set; }
     }
     public class LayoutSettings
     {
@@ -4294,6 +4318,18 @@ namespace Altinn.App.Core.Models
         public static bool operator ==(Altinn.App.Core.Models.NationalIdentityNumber left, Altinn.App.Core.Models.NationalIdentityNumber right) { }
         public static bool operator ==(Altinn.App.Core.Models.NationalIdentityNumber left, string right) { }
         public static bool operator ==(string left, Altinn.App.Core.Models.NationalIdentityNumber right) { }
+    }
+    public class NavigationReceipt : Altinn.App.Core.Models.TaskNavigationEntry
+    {
+        public NavigationReceipt() { }
+        [System.Text.Json.Serialization.JsonPropertyName("type")]
+        public string Type { get; }
+    }
+    public class NavigationTask : Altinn.App.Core.Models.TaskNavigationEntry
+    {
+        public NavigationTask() { }
+        [System.Text.Json.Serialization.JsonPropertyName("taskId")]
+        public required string TaskId { get; set; }
     }
     public class OnEntry : Altinn.Platform.Storage.Interface.Models.OnEntryConfig
     {
@@ -4392,6 +4428,21 @@ namespace Altinn.App.Core.Models
         public StylesConfig() { }
         public System.Collections.Generic.List<string> ExternalStyles { get; set; }
         public System.Collections.Generic.List<string> InternalStyles { get; set; }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.TaskNavigationEntryJsonConverter))]
+    public abstract class TaskNavigationEntry
+    {
+        protected TaskNavigationEntry() { }
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        public string Id { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string? Name { get; set; }
+    }
+    public class TaskNavigationEntryJsonConverter : System.Text.Json.Serialization.JsonConverter<Altinn.App.Core.Models.TaskNavigationEntry>
+    {
+        public TaskNavigationEntryJsonConverter() { }
+        public override Altinn.App.Core.Models.TaskNavigationEntry? Read(ref System.Text.Json.Utf8JsonReader reader, System.Type typeToConvert, System.Text.Json.JsonSerializerOptions options) { }
+        public override void Write(System.Text.Json.Utf8JsonWriter writer, Altinn.App.Core.Models.TaskNavigationEntry value, System.Text.Json.JsonSerializerOptions options) { }
     }
     public class UserContext
     {

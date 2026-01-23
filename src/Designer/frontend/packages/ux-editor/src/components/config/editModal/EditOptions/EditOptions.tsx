@@ -13,13 +13,6 @@ export interface ISelectionEditComponentProvidedProps<
   T extends SelectionComponentType,
 > extends IGenericEditComponent<T> {}
 
-export enum SelectedOptionsType {
-  CodeList = 'codelist',
-  Manual = 'manual',
-  ReferenceId = 'referenceId',
-  Unknown = '',
-}
-
 export function EditOptions<T extends SelectionComponentType>({
   component,
   handleComponentChange,
@@ -46,7 +39,7 @@ export function EditOptions<T extends SelectionComponentType>({
         <OptionTabs
           component={component}
           handleComponentChange={handleComponentChange}
-          optionListIds={optionListIds}
+          optionListIdsFromLibrary={optionListIds}
         />
       )}
     </div>

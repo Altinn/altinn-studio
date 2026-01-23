@@ -4,7 +4,6 @@ import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -30,9 +29,6 @@ const render = async (stateless: boolean, allowAnonymous: boolean) => {
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => <TestComponent />,
-    queries: {
-      fetchLayoutSets: () => Promise.resolve(getLayoutSetsMock()),
-    },
   });
 };
 
