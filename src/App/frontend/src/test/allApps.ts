@@ -11,7 +11,12 @@ import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
-import type { ILayoutFile, ILayoutSet, ILayoutSets, ILayoutSettings } from 'src/layout/common.generated';
+import type {
+  ILayoutFile,
+  ILayoutSetFromSchema,
+  ILayoutSetsFromSchema,
+  ILayoutSettings,
+} from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 import type { IInstance, IProcess } from 'src/types/shared';
 
@@ -231,8 +236,8 @@ export class ExternalApp {
     return out;
   }
 
-  getRawLayoutSets(): ILayoutSets {
-    const out = this.readJson<ILayoutSets>('/App/ui/layout-sets.json');
+  getRawLayoutSets(): ILayoutSetsFromSchema {
+    const out = this.readJson<ILayoutSetsFromSchema>('/App/ui/layout-sets.json');
 
     for (const set of out.sets) {
       if (this.compat && !set.tasks) {
@@ -329,7 +334,7 @@ export class ExternalAppLayoutSet {
   constructor(
     public readonly app: ExternalApp,
     private id: string,
-    private config: ILayoutSet,
+    private config: ILayoutSetFromSchema,
   ) {}
 
   getName() {

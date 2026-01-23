@@ -1,7 +1,7 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useIsStateless } from 'src/features/applicationMetadata';
-import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { fetchProcessState } from 'src/queries/queries';
@@ -61,7 +61,7 @@ export function useTaskTypeFromBackend() {
 export function useGetTaskTypeById() {
   const { data: processData } = useProcessQuery();
   const isStateless = useIsStateless();
-  const layoutSets = useLayoutSets();
+  const layoutSets = getLayoutSets();
 
   return (taskId: string | undefined) => {
     const task =

@@ -1,4 +1,4 @@
-import { interceptAppMetadata } from 'test/e2e/support/intercept-app-metadata';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import { PartyType } from 'src/types/shared';
 import type { ApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/types';
@@ -147,15 +147,15 @@ export function cyMockResponses(whatToMock: Mockable) {
     whatToMock.partyTypesAllowed !== undefined ||
     whatToMock.onEntryShow !== undefined
   ) {
-    interceptAppMetadata((metadata) => {
+    interceptAltinnAppGlobalData((globalData) => {
       if (whatToMock.appPromptForPartyOverride !== undefined) {
-        metadata.promptForParty = whatToMock.appPromptForPartyOverride;
+        globalData.applicationMetadata.promptForParty = whatToMock.appPromptForPartyOverride;
       }
       if (whatToMock.partyTypesAllowed !== undefined) {
-        metadata.partyTypesAllowed = whatToMock.partyTypesAllowed;
+        globalData.applicationMetadata.partyTypesAllowed = whatToMock.partyTypesAllowed;
       }
       if (whatToMock.onEntryShow !== undefined) {
-        metadata.onEntry = { show: whatToMock.onEntryShow };
+        globalData.applicationMetadata.onEntry = { show: whatToMock.onEntryShow };
       }
     });
   }

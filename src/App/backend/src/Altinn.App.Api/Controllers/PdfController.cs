@@ -121,7 +121,7 @@ public class PdfController : ControllerBase
         string appModelclassRef = _resources.GetClassRefForLogicDataType(dataElement.DataType);
         Type dataType = _appModel.GetModelType(appModelclassRef);
 
-        string layoutSetsString = _resources.GetLayoutSets();
+        string? layoutSetsString = _resources.GetLayoutSetsString();
         LayoutSets? layoutSets = null;
         LayoutSet? layoutSet = null;
         if (!string.IsNullOrEmpty(layoutSetsString))
