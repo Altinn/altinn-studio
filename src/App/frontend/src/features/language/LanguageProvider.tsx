@@ -3,7 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { useProfileQuery } from 'src/features/profile/ProfileProvider';
-import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
+import { useCookieState } from 'src/hooks/useCookieState';
 
 interface LanguageCtx {
   current: string;
@@ -28,11 +28,9 @@ const { Provider, useCtx } = createContext<LanguageCtx>({
 export const LanguageProvider = ({ children }: PropsWithChildren) => {
   const { data: profile, isLoading: isProfileLoading } = useProfileQuery();
 
-  const userId = isProfileLoading ? undefined : profile?.userId;
   const languageFromProfile = isProfileLoading ? undefined : profile?.profileSettingPreference.language;
-
   const languageFromUrl = getLanguageFromUrl();
-  const [languageFromSelector, setWithLanguageSelector] = useLocalStorageState(['selectedLanguage', userId], null);
+  const [languageFromSelector, setWithLanguageSelector] = useCookieState<string | null>('lang', null);
 
   const appLanguages = window.altinnAppGlobalData.availableLanguages.map((lang) => lang.language);
 
@@ -100,7 +98,7 @@ function useResolveCurrentLanguage(
       return languageFromSelector;
     }
     window.logWarnOnce(
-      `User's preferred language (${languageFromSelector}) from language selector / localstorage is not supported by the app, supported languages: [${appLanguages.join(', ')}]`,
+      `User's preferred language (${languageFromSelector}) from language selector / cookie is not supported by the app, supported languages: [${appLanguages.join(', ')}]`,
     );
   }
 
