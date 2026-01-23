@@ -225,9 +225,8 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var downstreamHeader = response.Headers.Single(x => x.Key == "Altinn-DownstreamParameters").Value.Single();
         var downstreamParameters = downstreamHeader.Split(',');
 
-        Assert.Contains("source=test-name", downstreamParameters);
         Assert.Contains("version=1", downstreamParameters);
-        Assert.Equal(2, downstreamParameters.Length);
+        Assert.Single(downstreamParameters);
         Assert.Equal(
             "[{\"value\":\"Value1\",\"label\":\"En label\",\"description\":\"En beskrivelse\",\"helpText\":\"En hjelpetekst\",\"tags\":{\"test-tag-name\":\"test-tag\"}}]",
             content
@@ -578,9 +577,8 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var downstreamHeader = response.Headers.Single(x => x.Key == "Altinn-DownstreamParameters").Value.Single();
         var downstreamParameters = downstreamHeader.Split(',');
 
-        Assert.Contains("source=test-name", downstreamParameters);
         Assert.Contains("version=1", downstreamParameters);
-        Assert.Equal(2, downstreamParameters.Length);
+        Assert.Single(downstreamParameters);
         Assert.Equal(
             "[{\"value\":\"Value1\",\"label\":\"En label\",\"description\":\"En beskrivelse\",\"helpText\":\"En hjelpetekst\",\"tags\":{\"test-tag-name\":\"test-tag\"}}]",
             content
@@ -689,7 +687,6 @@ internal sealed class DummyAltinn3LibraryCodeListService : IAltinn3LibraryCodeLi
             },
         },
         Version = "1",
-        Source = new() { Name = "test-name" },
         TagNames = ["test-tag-name"],
     };
 
@@ -709,11 +706,7 @@ internal sealed class DummyAltinn3LibraryCodeListService : IAltinn3LibraryCodeLi
         var responseOptionOne = libraryCodeListResponse.Codes.First();
         return new AppOptions()
         {
-            Parameters = new()
-            {
-                { "source", libraryCodeListResponse.Source.Name },
-                { "version", libraryCodeListResponse.Version },
-            },
+            Parameters = new() { { "version", libraryCodeListResponse.Version } },
             Options = new()
             {
                 new()

@@ -73,7 +73,6 @@ public static class Altinn3LibraryCodeListServiceTestData
         {
             Codes = additionalCodes,
             Version = Version,
-            Source = new Altinn3LibraryCodeListSource { Name = SourceName },
             TagNames = tagNames,
         };
     }

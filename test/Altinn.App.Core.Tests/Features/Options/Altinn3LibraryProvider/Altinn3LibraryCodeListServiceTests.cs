@@ -306,8 +306,6 @@ public class Altinn3LibraryCodeListServiceTests
         Assert.Equal(Altinn3LibraryCodeListServiceTestData.EnHelpText, option.HelpText);
         var versionParam = result.Parameters.Single(p => p.Key == "version");
         Assert.Equal(Altinn3LibraryCodeListServiceTestData.Version, versionParam.Value);
-        var sourceParam = result.Parameters.Single(p => p.Key == "source");
-        Assert.Equal(Altinn3LibraryCodeListServiceTestData.SourceName, sourceParam.Value);
     }
 
     [Fact]

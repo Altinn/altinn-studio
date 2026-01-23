@@ -1676,18 +1676,10 @@ namespace Altinn.App.Core.Features.Options.Altinn3LibraryCodeList
         public Altinn3LibraryCodeListResponse() { }
         [System.Text.Json.Serialization.JsonPropertyName("codes")]
         public required System.Collections.Generic.List<Altinn.App.Core.Features.Options.Altinn3LibraryCodeList.Altinn3LibraryCodeListItem> Codes { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("source")]
-        public required Altinn.App.Core.Features.Options.Altinn3LibraryCodeList.Altinn3LibraryCodeListSource Source { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("tagNames")]
         public System.Collections.Generic.List<string>? TagNames { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("version")]
         public required string Version { get; set; }
-    }
-    public class Altinn3LibraryCodeListSource
-    {
-        public Altinn3LibraryCodeListSource() { }
-        [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public required string Name { get; set; }
     }
     public interface IAltinn3LibraryCodeListService
     {
