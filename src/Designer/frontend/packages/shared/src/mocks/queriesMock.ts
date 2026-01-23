@@ -81,6 +81,7 @@ import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
+import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -92,6 +93,11 @@ export const queriesMock: ServicesContextProps = {
   getAvailableResourcesFromOrg: jest
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
+  getAvailableTemplatesForOrg: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<CustomTemplateList>({ templates: [], totalCount: 0 }),
+    ),
   getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve<BranchStatus>(branchStatus)),
   getBranches: jest.fn().mockImplementation(() => Promise.resolve<Branch[]>([])),
   getCurrentBranch: jest.fn().mockImplementation(() =>

@@ -31,7 +31,9 @@ export const TemplateSelector = ({
         onChange={handleChange}
         label={t('dashboard.new_application_form.select_templates')}
         description={t('dashboard.new_application_form.select_templates_description')}
-        value={selectedTemplates.map((template) => template.id)}
+        value={
+          selectedTemplates.find((temp) => temp.id) ? selectedTemplates.map((temp) => temp.id) : ''
+        } // If no selection, set to empty string to show placeholder
       >
         <StudioSelect.Option value=''>
           {t('dashboard.new_application_form.select_templates_default')}

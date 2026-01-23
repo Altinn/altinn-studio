@@ -2,7 +2,7 @@ import React, { type FormEvent, type ChangeEvent, useState } from 'react';
 import { TemplateSelector } from '../TemplateSelector/TemplateSelector';
 import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 import classes from './NewApplicationForm.module.css';
-import { StudioButton, StudioHeading, StudioSpinner, StudioSwitch } from '@studio/components';
+import { StudioButton, StudioHeading, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { ServiceOwnerSelector } from '../ServiceOwnerSelector';
 import { RepoNameInput } from '../RepoNameInput';
@@ -14,6 +14,8 @@ import { type NewAppForm } from '../../types/NewAppForm';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { Link } from 'react-router-dom';
 import { useUserOrgPermissionQuery } from '../../hooks/queries/useUserOrgPermissionsQuery';
+import { useAvailableTemplatesForOrgQuery } from 'dashboard/hooks/queries/useAvailableTemplatesForOrgQuery';
+import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 
 type CancelButton = {
   onClick: () => void;
@@ -35,7 +37,6 @@ export type NewApplicationFormProps = {
   formError: NewAppForm;
   setFormError: React.Dispatch<React.SetStateAction<NewAppForm>>;
   actionableElement: ActionableElement;
-  availableTemplates?: CustomTemplate[];
 };
 
 export const NewApplicationForm = ({
@@ -47,10 +48,10 @@ export const NewApplicationForm = ({
   formError,
   setFormError,
   actionableElement,
-  availableTemplates = [],
 }: NewApplicationFormProps): React.JSX.Element => {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
+  const isCustomTemplatesEnabled = useFeatureFlag(FeatureFlag.CustomTemplates);
   const { validateRepoOwnerName, validateRepoName } = useCreateAppFormValidation();
   const defaultSelectedOrgOrUser: string =
     selectedContext === SelectedContextType.Self || selectedContext === SelectedContextType.All
@@ -58,10 +59,11 @@ export const NewApplicationForm = ({
       : selectedContext;
   const [currentSelectedOrg, setCurrentSelectedOrg] = useState<string>(defaultSelectedOrgOrUser);
   const [selectedTemplates, setSelectedTemplates] = useState<CustomTemplate[]>([]);
-  const [showAdvancedOptions, setShowAdvancedOptions] = useState<boolean>(false);
   const { data: userOrgPermission, isFetching } = useUserOrgPermissionQuery(currentSelectedOrg, {
     enabled: Boolean(currentSelectedOrg),
   });
+  // TODO: Allow for fetching templates based on selected org when org selector is changed
+  const { data: availableTemplates } = useAvailableTemplatesForOrgQuery();
 
   const validateTextValue = (event: ChangeEvent<HTMLInputElement>) => {
     const { errorMessage: repoNameErrorMessage, isValid: isRepoNameValid } = validateRepoName(
@@ -132,12 +134,7 @@ export const NewApplicationForm = ({
         errorMessage={formError.repoName}
         onChange={validateTextValue}
       />
-      <StudioSwitch
-        checked={showAdvancedOptions}
-        onChange={() => setShowAdvancedOptions(!showAdvancedOptions)}
-        label={t('dashboard.new_application_form.show_advanced_options')}
-      />
-      {showAdvancedOptions && (
+      {isCustomTemplatesEnabled && availableTemplates && availableTemplates.length > 0 && (
         <TemplateSelector
           templates={availableTemplates}
           selectedTemplates={selectedTemplates}
