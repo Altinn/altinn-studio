@@ -1,12 +1,21 @@
+import { isNotNullUndefinedOrEmpty } from 'src/utils/listUtils';
+import { isLocalEnvironment } from 'src/utils/urls/urlHelper';
+
 const MILLISECONDS_PER_DAY = 86400000;
 
 export class CookieStorage {
   static setItem<T>(key: string, value: T, expiresInDays?: number): void {
-    const encoded = `${encodeURIComponent(key)}=${encodeURIComponent(JSON.stringify(value))}`;
+    const encodedKeyValue = `${encodeURIComponent(key)}=${encodeURIComponent(JSON.stringify(value))}`;
     const expires = expiresInDays
-      ? `; expires=${new Date(Date.now() + expiresInDays * MILLISECONDS_PER_DAY).toUTCString()}`
+      ? `expires=${new Date(Date.now() + expiresInDays * MILLISECONDS_PER_DAY).toUTCString()}`
       : '';
-    document.cookie = `${encoded + expires}; path=/; samesite=Lax`;
+    const secure = isLocalEnvironment(window.location.host) ? '' : 'Secure';
+
+    const cookieString = [encodedKeyValue, expires, 'path=/', 'SameSite=Lax', secure]
+      .filter(isNotNullUndefinedOrEmpty)
+      .join('; ');
+
+    document.cookie = cookieString;
   }
 
   static getItem<T>(key: string): T | null {
