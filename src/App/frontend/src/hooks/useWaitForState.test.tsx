@@ -95,7 +95,7 @@ describe('useWaitForState', () => {
     await waitFor(() => expect(screen.getByTestId('current')).toHaveTextContent('waited'));
 
     expect(callback).toHaveBeenCalledTimes(1);
-    expect(callback).toHaveBeenCalledWith('state now set to updated, return value was "fooBar"', 2);
+    expect(callback).toHaveBeenCalledWith('state now set to updated, return value was "fooBar"', 3);
 
     // Render count is higher than 2, because the component renders once more when we set the state to 'waited'
     expect(screen.getByTestId('renderCount')).toHaveTextContent('3');
