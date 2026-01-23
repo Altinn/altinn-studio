@@ -4,13 +4,13 @@ import { CheckmarkIcon, XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/features/navigation/components/Page.module.css';
 import { SubformsForPage } from 'src/features/navigation/components/SubformsForPage';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 
 export function Page({
   page,
@@ -27,7 +27,9 @@ export function Page({
   const isCurrentPage = page === currentPageId;
 
   const { navigateToPage } = useNavigatePage();
-  const { performProcess, isAnyProcessing, isThisProcessing: isNavigating } = useIsProcessing();
+  const performProcess = useProcessingMutation('navigate-page');
+  const isNavigating = useIsThisProcessing('navigate-page');
+  const isAnyProcessing = useIsAnyProcessing();
 
   return (
     <li className={classes.pageListItem}>

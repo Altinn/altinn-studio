@@ -5,7 +5,6 @@ import cn from 'classnames';
 
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { Lang } from 'src/features/language/Lang';
@@ -16,6 +15,7 @@ import { SubformsForPage } from 'src/features/navigation/components/SubformsForP
 import { getTaskIcon, useValidationsForPages, useVisiblePages } from 'src/features/navigation/utils';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import type {
   NavigationPageGroup,
   NavigationPageGroupMultiple,
@@ -74,7 +74,9 @@ function PageGroupSingle({
   onNavigate,
 }: PageGroupProps<NavigationPageGroupSingle>) {
   const { navigateToPage } = useNavigatePage();
-  const { performProcess, isAnyProcessing, isThisProcessing: isNavigating } = useIsProcessing();
+  const performProcess = useProcessingMutation('navigate-page');
+  const isNavigating = useIsThisProcessing('navigate-page');
+  const isAnyProcessing = useIsAnyProcessing();
   const page = group.order[0];
 
   const pageGroupHasErrors = validations !== ContextNotProvided && validations.hasErrors.group;

@@ -21,7 +21,6 @@ import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
-import { ProcessingProvider } from 'src/core/contexts/processingContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
@@ -91,9 +90,7 @@ function Root() {
                 <OrgsProvider>
                   <PartyProvider>
                     <KeepAliveProvider>
-                      <ProcessingProvider>
-                        <App />
-                      </ProcessingProvider>
+                      <App />
                       <ToastContainer
                         position='top-center'
                         theme='colored'

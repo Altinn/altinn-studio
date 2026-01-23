@@ -10,7 +10,6 @@ import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { Caption } from 'src/components/form/caption/Caption';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
@@ -21,6 +20,7 @@ import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ComponentErrorList } from 'src/layout/GenericComponent';
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
@@ -58,7 +58,9 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
 
   const { enterSubform } = useNavigatePage();
   const lock = FD.useLocking(id);
-  const { performProcess, isAnyProcessing: isAddingDisabled, isThisProcessing: isAdding } = useIsProcessing();
+  const performProcess = useProcessingMutation('subform');
+  const isAdding = useIsThisProcessing('subform');
+  const isAddingDisabled = useIsAnyProcessing();
   const nodeId = useIndexedId(baseComponentId);
 
   const subformIdsWithError =
