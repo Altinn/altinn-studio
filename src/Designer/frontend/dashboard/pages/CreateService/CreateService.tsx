@@ -88,7 +88,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       setAvailableTemplates(
         templates.map((t) => ({
           id: t.id,
-          name: t.name, // Pass the full object
+          name: t.name,
           owner: t.owner,
           description: t.description, // If needed elsewhere
         })),
