@@ -29,9 +29,8 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
   const { data: profile, isLoading: isProfileLoading } = useProfileQuery();
 
   const languageFromProfile = isProfileLoading ? undefined : profile?.profileSettingPreference.language;
-  const partyId = profile?.partyId;
   const languageFromUrl = getLanguageFromUrl();
-  const [languageFromSelector, setWithLanguageSelector] = useCookieState<string | null>(['lang', partyId], null);
+  const [languageFromSelector, setWithLanguageSelector] = useCookieState<string | null>('lang', null);
 
   const appLanguages = window.altinnAppGlobalData.availableLanguages.map((lang) => lang.language);
 

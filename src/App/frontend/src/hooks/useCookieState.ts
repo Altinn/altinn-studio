@@ -1,12 +1,12 @@
 import { useCallback, useSyncExternalStore } from 'react';
 
+import { useProfileQuery } from 'src/features/profile/ProfileProvider';
 import { CookieStorage } from 'src/utils/cookieStorage/CookieStorage';
 import { isNotNullUndefinedOrEmpty } from 'src/utils/listUtils';
 
 const COOKIE_EXPIRY_DAYS = 365;
 
 type CookieName = 'lang';
-type ScopeKey = string | number | boolean | null | undefined;
 
 let listeners: Array<() => void> = [];
 
@@ -23,15 +23,15 @@ function subscribe(listener: () => void) {
   };
 }
 
-function getFullCookieKey(cookieName: CookieName, scopeKeys: ScopeKey[]): string {
-  return [window.org, window.app, ...scopeKeys, cookieName].filter(isNotNullUndefinedOrEmpty).join('_');
+function getFullCookieKey(cookieName: CookieName, partyId: number | undefined): string {
+  const parts = [window.org, window.app, partyId, cookieName].filter(isNotNullUndefinedOrEmpty);
+  return parts.join('_');
 }
 
-export function useCookieState<T>(
-  [cookieName, ...scopeKeys]: [CookieName, ...ScopeKey[]],
-  defaultValue: T,
-): [T, (value: T) => void] {
-  const fullCookieKey = getFullCookieKey(cookieName, scopeKeys);
+export function useCookieState<T>(cookieName: CookieName, defaultValue: T): [T, (value: T) => void] {
+  const { data: profile } = useProfileQuery();
+  const partyId = profile?.partyId;
+  const fullCookieKey = getFullCookieKey(cookieName, partyId);
 
   const getSnapshot = useCallback(() => {
     const value = CookieStorage.getItem<T>(fullCookieKey);
