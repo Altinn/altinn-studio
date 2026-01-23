@@ -48,9 +48,7 @@ internal static class DeployEndpoints
             .RequireAuthorization("MaskinportenScope")
             .WithName("TriggerReconcile")
             .WithSummary("Trigger Flux reconciliation.")
-            .WithDescription(
-                "Triggers Flux to reconcile app resources by patching OCIRepository annotation."
-            )
+            .WithDescription("Triggers Flux to reconcile app resources by patching OCIRepository annotation.")
             .WithTags("Deploy");
 
         return app;

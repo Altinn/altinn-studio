@@ -45,10 +45,7 @@ internal sealed class HelmRelease
 
     public IReadOnlyDictionary<string, string> GetLabels()
     {
-        if (
-            !_root.TryGetProperty("metadata", out var metadata)
-            || !metadata.TryGetProperty("labels", out var labels)
-        )
+        if (!_root.TryGetProperty("metadata", out var metadata) || !metadata.TryGetProperty("labels", out var labels))
         {
             return new Dictionary<string, string>();
         }
