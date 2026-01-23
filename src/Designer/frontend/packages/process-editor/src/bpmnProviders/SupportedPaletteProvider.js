@@ -62,7 +62,7 @@ class SupportedPaletteProvider {
                 }),
                 signatureDataType: `signatures-${generateRandomId(4)}`,
                 runDefaultValidator: bpmnFactory.create('altinn:RunDefaultValidator', {
-                  value: 'true',
+                  value: true,
                 }),
               }),
             }),
@@ -103,7 +103,7 @@ class SupportedPaletteProvider {
                 signingPdfDataType: `signatures-pdf-${generateRandomId(4)}`,
                 correspondenceResource: '', // No default
                 runDefaultValidator: bpmnFactory.create('altinn:RunDefaultValidator', {
-                  value: 'true',
+                  value: true,
                 }),
               }),
             }),
