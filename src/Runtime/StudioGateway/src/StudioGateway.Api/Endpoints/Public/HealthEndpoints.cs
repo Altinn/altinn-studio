@@ -1,4 +1,4 @@
-using StudioGateway.Api.Hosting;
+using Common;
 
 namespace StudioGateway.Api.Endpoints.Public;
 

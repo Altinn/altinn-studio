@@ -59,9 +59,8 @@ internal sealed class AzureMonitorClient(
         var workspace = await rg.Value.GetOperationalInsightsWorkspaces().GetAsync(workspaceName);
 
         _workspaceId =
-            workspace.Value.Data.CustomerId?.ToString() ?? throw new InvalidOperationException(
-                "Log Analytics Workspace ID not found."
-            );
+            workspace.Value.Data.CustomerId?.ToString()
+            ?? throw new InvalidOperationException("Log Analytics Workspace ID not found.");
 
         return _workspaceId;
     }

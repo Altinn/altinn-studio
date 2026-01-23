@@ -2,6 +2,7 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.Query.Logs;
 using Azure.ResourceManager;
+using Common;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using StudioGateway.Api;
@@ -61,8 +62,8 @@ builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<Gatew
 builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<AlertsClientSettings>>().Value);
 builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<MetricsClientSettings>>().Value);
 
-builder.ConfigureKestrelPorts();
-builder.AddHostingConfiguration();
+builder.ConfigureKestrelPorts(publicPort: PortConfiguration.PublicPort, internalPort: PortConfiguration.InternalPort);
+builder.UseCommonHostingConfiguration();
 builder.AddMaskinportenAuthentication();
 
 builder.Services.ConfigureHttpJsonOptions(options =>

@@ -1,5 +1,5 @@
+using Common;
 using StudioGateway.Api.Application;
-using StudioGateway.Api.Hosting;
 
 namespace StudioGateway.Api.Endpoints.Public;
 
