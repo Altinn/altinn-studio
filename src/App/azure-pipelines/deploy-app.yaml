@@ -745,7 +745,6 @@ steps:
 
         if [ "${SCOPE_COUNT}" -eq 0 ]; then
           echo "No Maskinporten scopes configured, skipping MaskinportenClient CR generation"
-          echo "##vso[task.setvariable variable=HAS_APP_SCOPES;]false"
           exit 0
         fi
 
@@ -772,7 +771,6 @@ steps:
 
         yq eval --inplace ".spec.scopes = $(echo "${SCOPES_ARRAY}" | yq eval --input-format json --output-format json '.')" "${MASKINPORTEN_CR_FILE}"
 
-        echo "##vso[task.setvariable variable=HAS_APP_SCOPES;]true"
         echo "Generated MaskinportenClient CR:"
         cat "${MASKINPORTEN_CR_FILE}"
 
