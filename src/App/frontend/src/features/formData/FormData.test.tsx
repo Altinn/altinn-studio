@@ -14,7 +14,6 @@ import { defaultDataTypeMock, statelessDataTypeMock } from 'src/__mocks__/getLay
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
 import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
-import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FD, FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
@@ -135,17 +134,15 @@ async function statelessRender(props: RenderProps) {
       ),
       renderer: () => (
         <GlobalFormDataReadersProvider>
-          <LayoutSetsProvider>
-            <LayoutsProvider>
-              <DataModelsProvider>
-                <LayoutSettingsProvider>
-                  <FormDataWriteProxyProvider value={formDataProxies}>
-                    <FormDataWriteProvider>{props.renderer}</FormDataWriteProvider>
-                  </FormDataWriteProxyProvider>
-                </LayoutSettingsProvider>
-              </DataModelsProvider>
-            </LayoutsProvider>
-          </LayoutSetsProvider>
+          <LayoutsProvider>
+            <DataModelsProvider>
+              <LayoutSettingsProvider>
+                <FormDataWriteProxyProvider value={formDataProxies}>
+                  <FormDataWriteProvider>{props.renderer}</FormDataWriteProvider>
+                </FormDataWriteProxyProvider>
+              </LayoutSettingsProvider>
+            </DataModelsProvider>
+          </LayoutsProvider>
         </GlobalFormDataReadersProvider>
       ),
       queries: {

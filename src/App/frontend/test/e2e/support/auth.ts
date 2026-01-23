@@ -1,6 +1,6 @@
 import type { CyHttpMessages, RouteHandler } from 'cypress/types/net-stubbing';
 
-import { interceptAppMetadata } from 'test/e2e/support/intercept-app-metadata';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import type { IProcess, ITask } from 'src/types/shared';
 
@@ -266,8 +266,8 @@ type TenorLoginParams = {
 
 export function tenorUserLogin(props: TenorLoginParams) {
   cy.log(`Logging in as Tenor user: ${props.tenorUser.name}`);
-  interceptAppMetadata((metadata) => {
-    metadata.promptForParty = 'never';
+  interceptAltinnAppGlobalData((globalData) => {
+    globalData.applicationMetadata.promptForParty = 'never';
   });
 
   if (Cypress.env('type') === 'localtest') {

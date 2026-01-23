@@ -7,6 +7,7 @@ import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { Form } from 'src/components/form/Form';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
+import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal, ILayout } from 'src/layout/layout';
 import type { CompSummaryExternal } from 'src/layout/Summary/config.generated';
@@ -277,7 +278,8 @@ describe('Form', () => {
               },
             },
           }),
-        fetchLayoutSettings: () => Promise.resolve({ pages: { order: [mockLayoutId, '2', '3'] } }),
+        fetchLayoutSettings: () =>
+          Promise.resolve({ pages: { order: [mockLayoutId, '2', '3'] } as unknown as IPagesSettingsWithOrder }),
         fetchBackendValidations: () => Promise.resolve(validationIssues),
         fetchTextResources: async () => ({
           language: 'nb',
