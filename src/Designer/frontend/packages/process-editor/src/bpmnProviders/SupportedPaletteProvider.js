@@ -61,7 +61,9 @@ class SupportedPaletteProvider {
                   dataTypes: [],
                 }),
                 signatureDataType: `signatures-${generateRandomId(4)}`,
-                runDefaultValidator: true,
+                runDefaultValidator: bpmnFactory.create('altinn:RunDefaultValidator', {
+                  value: 'true',
+                }),
               }),
             }),
           ],
@@ -100,7 +102,9 @@ class SupportedPaletteProvider {
                 signeeProviderId: '', // No default interface exists in the apps
                 signingPdfDataType: `signatures-pdf-${generateRandomId(4)}`,
                 correspondenceResource: '', // No default
-                runDefaultValidator: true,
+                runDefaultValidator: bpmnFactory.create('altinn:RunDefaultValidator', {
+                  value: 'true',
+                }),
               }),
             }),
           ],
