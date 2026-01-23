@@ -11,7 +11,6 @@ export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefi
 export const selectedPartyUrl = `${appPath}/api/authorization/parties/current?returnPartyObject=true`;
 export const instancesControllerUrl = `${appPath}/instances`;
 export const refreshJwtTokenUrl = `${appPath}/api/authentication/keepAlive`;
-export const applicationLanguagesUrl = `${appPath}/api/v1/applicationlanguages`;
 
 export const getInstantiateUrl = (language?: string) => {
   const queryString = getQueryStringFromObject({ language });
@@ -162,7 +161,6 @@ export const redirectToUpgrade = (reqAuthLevel: string) => {
 export const getJsonSchemaUrl = () => `${appPath}/api/jsonschema/`;
 export const getCustomValidationConfigUrl = (dataTypeId: string) => `${appPath}/api/validationconfig/${dataTypeId}`;
 export const getLayoutSettingsUrl = (layoutSetId: string) => `${appPath}/api/layoutsettings/${layoutSetId}`;
-export const getLayoutSetsUrl = () => `${appPath}/api/layoutsets`;
 export const getLayoutsUrl = (layoutSetId: string) => `${appPath}/api/layouts/${layoutSetId}`;
 export const getInstanceLayoutsUrl = (layoutSetId: string, instanceId: string) =>
   `${appPath}/instances/${instanceId}/layouts/${layoutSetId}`;

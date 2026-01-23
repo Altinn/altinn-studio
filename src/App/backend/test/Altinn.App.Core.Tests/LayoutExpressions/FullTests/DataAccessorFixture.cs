@@ -81,7 +81,7 @@ public sealed class DataAccessorFixture
         ServiceCollection.AddSingleton(new AppIdentifier(Org, App));
         ServiceCollection.AddFakeLoggingWithXunit(outputHelper);
         AppResourcesMock
-            .Setup(ar => ar.GetLayoutSet())
+            .Setup(ar => ar.GetLayoutSets())
             .Returns(
                 new LayoutSets()
                 {

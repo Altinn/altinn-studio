@@ -18,8 +18,20 @@ internal class BootstrapGlobalResponse
     public object? Footer { get; set; }
 
     /// <summary>
+    /// Layout sets configuration.
+    /// </summary>
+    [JsonPropertyName("layoutSets")]
+    public required LayoutSets LayoutSets { get; set; }
+
+    /// <summary>
     /// FrontendSettings layout configuration.
     /// </summary>
     [JsonPropertyName("frontendSettings")]
     public object? FrontEndSettings { get; set; }
+
+    /// <summary>
+    /// Available language options.
+    /// </summary>
+    [JsonPropertyName("availableLanguages")]
+    public List<ApplicationLanguage>? AvailableLanguages { get; set; }
 }

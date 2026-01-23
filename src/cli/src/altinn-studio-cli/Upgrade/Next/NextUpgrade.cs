@@ -4,10 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
+using Altinn.Studio.Cli.Upgrade.Next.IndexMigration;
 using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration;
 using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingRules;
 using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.DataProcessingRules;
-using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.Models;
 
 namespace Altinn.Studio.Cli.Upgrade.Next;
 
@@ -50,7 +50,7 @@ internal static class NextUpgrade
 
         int returnCode = 0;
         upgradeCommand.SetAction(
-            async (parseResult, cancellationToken) =>
+            async (parseResult) =>
             {
                 var projectFolder = parseResult.GetValue(projectFolderOption);
                 var projectFile = parseResult.GetValue(projectFileOption);
@@ -137,6 +137,12 @@ internal static class NextUpgrade
                 if (returnCode == 0)
                 {
                     returnCode = await CleanupLegacyRuleFiles(projectFolder);
+                }
+
+                // Job 6: Migrate Index.cshtml to assets.json configuration
+                if (returnCode == 0)
+                {
+                    returnCode = await MigrateIndexCshtml(projectFolder);
                 }
 
                 if (returnCode == 0)
@@ -363,6 +369,23 @@ internal static class NextUpgrade
         catch (Exception ex)
         {
             await Console.Error.WriteLineAsync($"Error cleaning up legacy rule files: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Job 6: Migrate Index.cshtml to assets.json configuration
+    /// </summary>
+    static async Task<int> MigrateIndexCshtml(string projectFolder)
+    {
+        try
+        {
+            var migrator = new IndexCshtmlMigrator(projectFolder);
+            return await migrator.Migrate();
+        }
+        catch (Exception ex)
+        {
+            await Console.Error.WriteLineAsync($"Error migrating Index.cshtml: {ex.Message}");
             return 1;
         }
     }

@@ -10,7 +10,6 @@ import { getFileContentType } from 'src/utils/attachmentsUtils';
 import { httpDelete, httpGetRaw, httpPatch, httpPost, putWithoutConfig } from 'src/utils/network/networking';
 import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
 import {
-  applicationLanguagesUrl,
   appPath,
   getActionsUrl,
   getActiveInstancesUrl,
@@ -23,7 +22,6 @@ import {
   getInstanceLayoutsUrl,
   getInstantiateUrl,
   getJsonSchemaUrl,
-  getLayoutSetsUrl,
   getLayoutSettingsUrl,
   getLayoutsUrl,
   getOrderDetailsUrl,
@@ -55,20 +53,11 @@ import type {
   BackendValidationIssuesWithSource,
   IExpressionValidationConfig,
 } from 'src/features/validation';
-import type { ILayoutSets, ILayoutSettings, IRawOption } from 'src/layout/common.generated';
+import type { ILayoutSettings, IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { ISimpleInstance, LooseAutocomplete } from 'src/types';
-import type {
-  IActionType,
-  IAltinnOrgs,
-  IAppLanguage,
-  IData,
-  IInstance,
-  IParty,
-  IProcess,
-  IProfile,
-} from 'src/types/shared';
+import type { IActionType, IAltinnOrgs, IData, IInstance, IParty, IProcess, IProfile } from 'src/types/shared';
 
 export const doSetSelectedParty = (partyId: number | string) =>
   putWithoutConfig<LooseAutocomplete<'Party successfully updated'> | null>(getSetSelectedPartyUrl(partyId));
@@ -219,8 +208,6 @@ export const fetchProcessState = (instanceId: string): Promise<IProcess> => http
 
 export const fetchSelectedParty = (): Promise<IParty | undefined> => httpGet(selectedPartyUrl);
 
-export const fetchLayoutSets = (): Promise<ILayoutSets> => httpGet(getLayoutSetsUrl());
-
 export const fetchLayouts = (layoutSetId: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(layoutSetId));
 
 export const fetchLayoutsForInstance = (layoutSetId: string, instanceId: string): Promise<ILayoutCollection> =>
@@ -239,9 +226,6 @@ export const fetchOrgs = (): Promise<{ orgs: IAltinnOrgs }> =>
   });
 
 export const fetchPartiesAllowedToInstantiate = (): Promise<IParty[]> => httpGet(validPartiesUrl);
-
-export const fetchAppLanguages = (): Promise<IAppLanguage[]> => httpGet(applicationLanguagesUrl);
-
 export const fetchReturnUrl = (queryParameterReturnUrl: string): Promise<string> =>
   httpGet(getRedirectUrl(queryParameterReturnUrl));
 
