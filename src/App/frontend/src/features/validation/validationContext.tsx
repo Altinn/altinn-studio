@@ -177,7 +177,7 @@ export function ValidationProvider({ children }: PropsWithChildren) {
 function useWaitForValidation(): WaitForValidation {
   const waitForNodesReady = NodesInternal.useWaitUntilReady();
   const waitForSave = FD.useWaitForSave();
-  const waitForState = useWaitForState<ValidationsProcessedLast['initial'], ValidationContext & Internals>(useStore());
+  const waitForState = useWaitForState<ValidationsProcessedLast, ValidationContext & Internals>(useStore());
   const nodesStore = NodesInternal.useStore();
   const waitForAttachments = useWaitForState<void, NodesContext>(nodesStore);
 
@@ -198,7 +198,7 @@ function useWaitForValidation(): WaitForValidation {
       await waitForNodesReady();
       const validationsFromSave = await waitForSave(forceSave);
       // If validationsFromSave is not defined, we check if initial validations are done processing
-      await waitForState(async (state) => {
+      const processedLast = await waitForState((state, setReturnValue) => {
         const { isFetching, cachedInitialValidations } = getCachedInitialValidations();
         const incrementalMatch = deepEqual(state.processedLast.incremental, validationsFromSave);
         const initialMatch = deepEqual(state.processedLast.initial, cachedInitialValidations);
@@ -206,12 +206,13 @@ function useWaitForValidation(): WaitForValidation {
         const validationsReady = incrementalMatch && initialMatch && !isFetching;
 
         if (validationsReady) {
-          await waitForNodesToValidate(state.processedLast);
+          setReturnValue(state.processedLast);
           return true;
         }
 
         return false;
       });
+      await waitForNodesToValidate(processedLast);
       await waitForNodesReady();
     },
     [

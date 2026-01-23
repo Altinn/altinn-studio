@@ -5,7 +5,7 @@ import type { StoreApi } from 'zustand';
 import { ContextNotProvided } from 'src/core/contexts/context';
 
 export type WaitForState<T, RetVal> = (callback: Callback<T, RetVal>) => Promise<RetVal>;
-type Callback<T, RetVal> = (state: T, setReturnValue: (val: RetVal) => void) => boolean | Promise<boolean>;
+type Callback<T, RetVal> = (state: T, setReturnValue: (val: RetVal) => void) => boolean;
 type StoreInput<T> = T extends typeof ContextNotProvided ? StoreApi<T> | typeof ContextNotProvided : StoreApi<T>;
 
 /**
@@ -28,7 +28,7 @@ export function useWaitForState<RetVal, T>(store: StoreInput<T>): WaitForState<T
 
       // Check current state immediately
       const currentState = store.getState();
-      const immediateResult = await callback(currentState, setReturnValue);
+      const immediateResult = callback(currentState, setReturnValue);
       if (immediateResult) {
         return returnValue as RetVal;
       }
@@ -36,7 +36,7 @@ export function useWaitForState<RetVal, T>(store: StoreInput<T>): WaitForState<T
       // Current state doesn't match - subscribe and wait
       return new Promise<RetVal>((resolve) => {
         const unsubscribe = store.subscribe(async (newState) => {
-          const shouldResolve = await callback(newState, setReturnValue);
+          const shouldResolve = callback(newState, setReturnValue);
           if (shouldResolve) {
             unsubscribe();
             resolve(returnValue as RetVal);
