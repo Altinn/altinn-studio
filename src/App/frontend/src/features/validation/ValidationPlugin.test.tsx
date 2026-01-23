@@ -10,7 +10,7 @@ import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { Form } from 'src/components/form/Form';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { AllowedValidationMasks } from 'src/layout/common.generated';
+import type { AllowedValidationMasks, IPagesSettingsWithOrder } from 'src/layout/common.generated';
 
 function FormDataValue() {
   const formDataValue = FD.useDebouncedPick({ dataType: defaultDataTypeMock, field: 'TextField' });
@@ -76,7 +76,8 @@ describe('ValidationPlugin', () => {
               },
               required: ['TextField'],
             }),
-          fetchLayoutSettings: () => Promise.resolve({ pages: { order: ['Form', 'NextPage'] } }),
+          fetchLayoutSettings: () =>
+            Promise.resolve({ pages: { order: ['Form', 'NextPage'] } as unknown as IPagesSettingsWithOrder }),
           fetchTextResources: async () => ({
             language: 'nb',
             resources: [

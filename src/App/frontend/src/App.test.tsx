@@ -15,16 +15,6 @@ describe('App', () => {
     jest.clearAllMocks();
   });
 
-  test('should render unknown error when hasLayoutSetError', async () => {
-    await renderWithInstanceAndLayout({
-      renderer: () => <App />,
-      queries: {
-        fetchLayoutSets: () => Promise.reject(new Error('400 Bad Request')),
-      },
-    });
-    await screen.findByRole('heading', { level: 1, name: 'Ukjent feil' });
-  });
-
   test('should render unknown error when hasOrgsError', async () => {
     await renderWithInstanceAndLayout({
       renderer: () => <App />,

@@ -1,5 +1,5 @@
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import type { ILayoutSet } from 'src/layout/common.generated';
+import type { ILayoutSet } from 'src/features/form/layoutSets/types';
 import type { IData, IInstance } from 'src/types/shared';
 
 // Even though the process state is part of the instance data we fetch from the server, we don't want to expose it

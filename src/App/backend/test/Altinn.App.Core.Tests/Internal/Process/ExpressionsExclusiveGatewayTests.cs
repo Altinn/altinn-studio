@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
@@ -20,12 +19,6 @@ namespace Altinn.App.Core.Tests.Internal.Process;
 
 public class ExpressionsExclusiveGatewayTests
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true,
-    };
-
     private readonly Mock<IAppResources> _resources = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModel = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadata = new(MockBehavior.Strict);
@@ -314,7 +307,4 @@ public class ExpressionsExclusiveGatewayTests
         );
         return (new ExpressionsExclusiveGateway(layoutStateInit, _resources.Object), dataAccessor);
     }
-
-    private static string LayoutSetsToString(LayoutSets layoutSets) =>
-        JsonSerializer.Serialize(layoutSets, _jsonSerializerOptions);
 }

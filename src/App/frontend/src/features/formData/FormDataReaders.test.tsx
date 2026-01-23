@@ -8,6 +8,7 @@ import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadata
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
 import { fetchInstanceData } from 'src/queries/queries';
@@ -57,6 +58,10 @@ async function render(props: TestProps) {
       a.dataTypes.push(...generateDataTypes());
     }),
   );
+  jest
+    .mocked(getLayoutSets)
+    .mockReturnValue(getLayoutSetsMock().sets.map((set) => ({ ...set, dataType: props.defaultDataModel })));
+
   jest.mocked(fetchInstanceData).mockImplementationOnce(async () => instanceData);
 
   function generateDataElements(instanceId: string): IData[] {
@@ -113,13 +118,6 @@ async function render(props: TestProps) {
     ),
     instanceId: instanceData.id,
     queries: {
-      fetchLayoutSets: async () => {
-        const mock = getLayoutSetsMock();
-        for (const set of mock.sets) {
-          set.dataType = props.defaultDataModel;
-        }
-        return mock;
-      },
       fetchTextResources: async () => ({
         resources: props.textResources,
         language: 'nb',
