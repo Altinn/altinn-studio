@@ -1,6 +1,7 @@
 import { useCallback, useSyncExternalStore } from 'react';
 
 import { CookieStorage } from 'src/utils/cookieStorage/CookieStorage';
+import { isNotNullUndefinedOrEmpty } from 'src/utils/listUtils';
 
 const COOKIE_EXPIRY_DAYS = 365;
 
@@ -22,12 +23,8 @@ function subscribe(listener: () => void) {
   };
 }
 
-function isNotNullUndefinedOrEmpty(key: ScopeKey) {
-  return key != null && (typeof key !== 'string' || !!key.length);
-}
-
 function getFullCookieKey(cookieName: CookieName, scopeKeys: ScopeKey[]): string {
-  return [window.org, window.app, cookieName, ...scopeKeys].filter(isNotNullUndefinedOrEmpty).join('_');
+  return [window.org, window.app, ...scopeKeys, cookieName].filter(isNotNullUndefinedOrEmpty).join('_');
 }
 
 export function useCookieState<T>(
