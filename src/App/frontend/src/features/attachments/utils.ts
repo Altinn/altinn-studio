@@ -17,7 +17,13 @@ export function hasPendingAttachments(state: NodesContext): boolean {
       return true;
     }
 
-    if (attachments.some((a) => a.uploaded && a.data.fileScanResult === FileScanResults.Infected)) {
+    if (
+      attachments.some(
+        (a) =>
+          a.uploaded &&
+          (a.data.fileScanResult === FileScanResults.Infected || a.data.fileScanResult === FileScanResults.Pending),
+      )
+    ) {
       return true;
     }
   }
