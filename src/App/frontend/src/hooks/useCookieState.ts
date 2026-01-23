@@ -4,7 +4,7 @@ import { CookieStorage } from 'src/utils/cookieStorage/CookieStorage';
 
 const COOKIE_EXPIRY_DAYS = 365;
 
-type CookieName = 'selectedLanguage';
+type CookieName = 'lang';
 type ScopeKey = string | number | boolean | null | undefined;
 
 let listeners: Array<() => void> = [];
