@@ -5,7 +5,7 @@ describe('CookieStorage', () => {
     // Clear all cookies before each test
     document.cookie.split(';').forEach((cookie) => {
       const name = cookie.split('=')[0].trim();
-      document.cookie = `${name}=; max-age=0; path=/`;
+      document.cookie = `${name}=; max-age=0; path=/${window.org}/${window.app}`;
     });
   });
 
@@ -61,7 +61,7 @@ describe('CookieStorage', () => {
     });
 
     it('should return null for malformed JSON', () => {
-      document.cookie = 'malformedKey=not-valid-json; path=/';
+      document.cookie = `malformedKey=not-valid-json; path=/${window.org}/${window.app}`;
       expect(CookieStorage.getItem('malformedKey')).toBeNull();
     });
   });

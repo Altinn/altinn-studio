@@ -11,7 +11,7 @@ export class CookieStorage {
       : '';
     const secure = isLocalEnvironment(window.location.host) ? '' : 'Secure';
 
-    const cookieString = [encodedKeyValue, expires, 'path=/', 'SameSite=Lax', secure]
+    const cookieString = [encodedKeyValue, expires, `path=/${window.org}/${window.app}`, 'SameSite=Lax', secure]
       .filter(isNotNullUndefinedOrEmpty)
       .join('; ');
 
@@ -31,6 +31,6 @@ export class CookieStorage {
   }
 
   static removeItem(key: string): void {
-    document.cookie = `${encodeURIComponent(key)}=; max-age=0; path=/`;
+    document.cookie = `${encodeURIComponent(key)}=; max-age=0; path=/${window.org}/${window.app}`;
   }
 }
