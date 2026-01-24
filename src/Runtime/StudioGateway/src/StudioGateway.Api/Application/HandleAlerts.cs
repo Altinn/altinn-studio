@@ -44,7 +44,7 @@ internal static class HandleAlerts
         DesignerClient designerClient,
         AlertPayload alertPayload,
         CancellationToken cancellationToken,
-        string environment = AltinnEnvironments.Prod
+        string environment = "dev"
     )
     {
         var alerts = alertPayload
