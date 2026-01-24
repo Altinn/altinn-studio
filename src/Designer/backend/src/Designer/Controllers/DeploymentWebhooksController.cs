@@ -74,11 +74,11 @@ public class DeploymentWebhooksController : ControllerBase
             return Ok();
         }
 
-        await _deploymentService.SendToSlackAsync(org, AltinnEnvironment.FromName(request.Environment), app, eventType, buildId, deployment.Events.FirstOrDefault()?.Created, deployment.Events.LastOrDefault()?.Created, cancellationToken);
-
         var deployEvent = CreateDeployEvent(eventType, request);
 
         await _deployEventRepository.AddAsync(org, buildId, deployEvent, cancellationToken);
+
+        await _deploymentService.SendToSlackAsync(org, AltinnEnvironment.FromName(request.Environment), app, eventType, buildId, deployment.Events.FirstOrDefault()?.Created, cancellationToken);
 
         await PublishEntityUpdatedAsync(deployment);
 

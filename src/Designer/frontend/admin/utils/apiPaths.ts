@@ -1,3 +1,5 @@
+import { getIsoRangeFromMinutes } from './formatDateAndTime';
+
 const adminApiBasePath = `/designer/api/admin`;
 const adminApiBasePathV1 = `/designer/api/v1/admin`;
 
@@ -10,11 +12,18 @@ export const appErrorMetricsPath = (org: string, env: string, app: string, range
 export const appErrorMetricsLogsPath = (
   org: string,
   env: string,
-  app: string,
+  apps: string[],
   metric: string,
   range: number,
-) =>
-  `${adminApiBasePathV1}/metrics/${org}/${env}/app/errors/logs?app=${app}&metric=${metric}&range=${range}`; // Get
+) => {
+  const { from, to } = getIsoRangeFromMinutes(range);
+  const queryParams = new URLSearchParams();
+  apps.forEach((app) => queryParams.append('apps', app));
+  queryParams.set('metric', metric);
+  queryParams.set('from', encodeURIComponent(from));
+  queryParams.set('to', encodeURIComponent(to));
+  return `${adminApiBasePathV1}/metrics/${org}/${env}/app/errors/logs?${queryParams.toString()}`; // Get
+};
 export const appHealthMetricsPath = (org: string, env: string, app: string) =>
   `${adminApiBasePathV1}/metrics/${org}/${env}/app/health?app=${app}`; // Get
 export const runningAppsPath = (org: string) => `${adminApiBasePath}/applications/${org}`; // Get
@@ -75,7 +84,12 @@ export const instanceDataElementPath = (
  * Example: { a: 'b', c: null } => '?a=b'
  */
 function getQueryStringFromObject(obj: Record<string, string | null | undefined>): string {
-  const cleanObj = Object.fromEntries(Object.entries(obj).filter(([_, value]) => !!value));
+  const cleanObj = Object.entries(obj).reduce<Record<string, string>>((acc, [key, value]) => {
+    if (value) {
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
   const queryParams = new URLSearchParams(cleanObj);
   const queryString = queryParams.toString();
   return queryString ? `?${queryString}` : '';

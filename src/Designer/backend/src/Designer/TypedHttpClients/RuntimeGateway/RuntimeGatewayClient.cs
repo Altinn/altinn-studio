@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -127,15 +128,29 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     public async Task<Uri?> GetAppErrorMetricsLogsAsync(
         string org,
         AltinnEnvironment environment,
-        string app,
+        IReadOnlyCollection<string> apps,
         string metric,
-        int range,
+        DateTimeOffset from,
+        DateTimeOffset to,
         CancellationToken cancellationToken
     )
     {
         using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors/logs?app={Uri.EscapeDataString(app)}&metric={Uri.EscapeDataString(metric)}&range={range}";
+        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors/logs";
+
+        IEnumerable<string> queryParts = apps
+                .Where(appName => !string.IsNullOrWhiteSpace(appName))
+                .Select(appName => appName.Trim())
+                .Select(appName => $"apps={Uri.EscapeDataString(appName)}")
+                .Concat([
+            $"metric={Uri.EscapeDataString(metric)}",
+            $"from={from.ToUniversalTime().ToString("O")}",
+            $"to={to.ToUniversalTime().ToString("O")}",
+        ]);
+
+        string queryString = string.Join("&", queryParts);
+        requestUrl = $"{requestUrl}?{queryString}";
 
         Dictionary<string, Uri> result = await client.GetFromJsonAsync<Dictionary<string, Uri>>(requestUrl, cancellationToken) ?? new();
         return result.TryGetValue("url", out Uri? url) ? url : null;

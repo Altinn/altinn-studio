@@ -63,14 +63,17 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     public async Task<ActionResult> GetAppErrorMetricsLogs(
         string org,
         string env,
-        string app,
+        string[] apps,
         string metric,
-        int range,
+        DateTimeOffset from,
+        DateTimeOffset to,
         CancellationToken cancellationToken
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        Uri? url = await _metricsService.GetAppErrorMetricsLogsAsync(org, environment, app, metric, range, cancellationToken);
+        Uri? url = await _metricsService.GetAppErrorMetricsLogsAsync(org, environment, apps, metric,
+            from,
+            to, cancellationToken);
         if (url is null)
         {
             return NotFound();

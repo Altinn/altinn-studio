@@ -35,9 +35,10 @@ public interface IMetricsService
     public Task<Uri?> GetAppErrorMetricsLogsAsync(
         string org,
         AltinnEnvironment environment,
-        string app,
+        IReadOnlyCollection<string> apps,
         string metric,
-        int range,
+        DateTimeOffset from,
+        DateTimeOffset to,
         CancellationToken cancellationToken
     );
 

@@ -37,6 +37,11 @@ internal sealed class AlertsService(
     /// <inheritdoc />
     public async Task NotifyAlertsUpdatedAsync(string org, AltinnEnvironment environment, IEnumerable<Alert> alerts, CancellationToken cancellationToken)
     {
+        DateTimeOffset to = DateTimeOffset.UtcNow;
+        DateTimeOffset from = to.AddMinutes(-15);
+        string fromIso = from.ToString("O");
+        string toIso = to.ToString("O");
+
         var firingAlerts = alerts
         .Select(alert => new
         {
@@ -53,8 +58,17 @@ internal sealed class AlertsService(
         await Task.WhenAll(
             firingAlerts.Select(async alert =>
             {
-                string appsParam = Uri.EscapeDataString(string.Join(", ", alert.FiringApps));
-                Uri? appInsightsUrl = !string.IsNullOrWhiteSpace(alert.Id) ? new Uri($"https://{generalSettings.HostName}/designer/api/v1/admin/metrics/{org}/{environment.Name}/app/errors/logs?app={appsParam}&metric={alert.Id}&range=15") : null;
+                Uri? appInsightsUrl = null;
+                if (!string.IsNullOrWhiteSpace(alert.Id))
+                {
+                    IEnumerable<string> queryParts = alert.FiringApps.Select(app => $"apps={Uri.EscapeDataString(app)}").Concat([
+                        $"metric={Uri.EscapeDataString(alert.Id)}",
+                        $"from={fromIso}",
+                        $"to={toIso}",
+                    ]);
+                    string queryString = string.Join("&", queryParts);
+                    appInsightsUrl = new Uri($"https://{generalSettings.HostName}/designer/api/v1/admin/metrics/{org}/{environment.Name}/app/errors/logs?{queryString}");
+                }
 
                 await SendToSlackAsync(org, environment, alert.FiringApps, alert.Name, alert.URL, appInsightsUrl, cancellationToken);
 
