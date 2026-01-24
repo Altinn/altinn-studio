@@ -1,3 +1,4 @@
+using System;
 using StudioGateway.Api.Clients.MetricsClient.Contracts.AzureMonitor;
 
 namespace StudioGateway.Api.Clients.MetricsClient;
@@ -15,8 +16,9 @@ internal interface IMetricsClient
         string subscriptionId,
         string org,
         string env,
-        string appName,
+        IReadOnlyCollection<string> apps,
         string? metricName,
-        int range
+        DateTimeOffset from,
+        DateTimeOffset to
     );
 }

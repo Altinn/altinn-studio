@@ -2,6 +2,7 @@ using StudioGateway.Api.Clients.AlertsClient;
 using StudioGateway.Api.Clients.AlertsClient.Contracts;
 using StudioGateway.Api.Clients.Designer;
 using StudioGateway.Api.Clients.Designer.Contracts;
+using StudioGateway.Api.Clients.MetricsClient;
 using StudioGateway.Api.Settings;
 using StudioGateway.Contracts.Alerts;
 
@@ -47,12 +48,17 @@ internal static class HandleAlerts
     )
     {
         var alerts = alertPayload
-            .Alerts.GroupBy(a => a.Labels["alertname"])
+            .Alerts.Where(a =>
+            {
+                var ruleId = a.Labels.GetValueOrDefault("RuleId");
+                return !string.IsNullOrEmpty(ruleId) && AzureMonitorClient.OperationNameKeys.Contains(ruleId);
+            })
+            .GroupBy(a => a.Labels["alertname"])
             .Select(alerts =>
             {
                 return new Alert
                 {
-                    Id = alerts.First().Labels.GetValueOrDefault("RuleId"),
+                    Id = alerts.First().Labels["RuleId"],
                     Name = alerts.Key,
                     Alerts = alerts.Select(a => new AlertInstance
                     {
