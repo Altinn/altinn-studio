@@ -20,8 +20,8 @@ export const appErrorMetricsLogsPath = (
   const queryParams = new URLSearchParams();
   apps.forEach((app) => queryParams.append('apps', app));
   queryParams.set('metric', metric);
-  queryParams.set('from', encodeURIComponent(from));
-  queryParams.set('to', encodeURIComponent(to));
+  queryParams.set('from', from);
+  queryParams.set('to', to);
   return `${adminApiBasePathV1}/metrics/${org}/${env}/app/errors/logs?${queryParams.toString()}`; // Get
 };
 export const appHealthMetricsPath = (org: string, env: string, app: string) =>

@@ -39,8 +39,8 @@ internal sealed class AlertsService(
     {
         DateTimeOffset to = DateTimeOffset.UtcNow;
         DateTimeOffset from = to.AddMinutes(-15);
-        string fromIso = from.ToString("O");
-        string toIso = to.ToString("O");
+        string fromIso = Uri.EscapeDataString(from.ToString("O"));
+        string toIso = Uri.EscapeDataString(to.ToString("O"));
 
         var firingAlerts = alerts
         .Select(alert => new
