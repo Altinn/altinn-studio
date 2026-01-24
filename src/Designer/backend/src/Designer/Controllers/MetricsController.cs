@@ -63,10 +63,10 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     public async Task<ActionResult> GetAppErrorMetricsLogs(
         string org,
         string env,
-        string[] apps,
-        string metric,
-        DateTimeOffset from,
-        DateTimeOffset to,
+        [FromQuery] string[] apps,
+        [FromQuery] string metric,
+        [FromQuery] long from,
+        [FromQuery] long to,
         CancellationToken cancellationToken
     )
     {
