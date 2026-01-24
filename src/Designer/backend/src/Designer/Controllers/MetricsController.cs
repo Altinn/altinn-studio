@@ -65,8 +65,8 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
         string env,
         [FromQuery] string[] apps,
         [FromQuery] string metric,
-        [FromQuery] long from,
-        [FromQuery] long to,
+        [FromQuery] DateTimeOffset from,
+        [FromQuery] DateTimeOffset to,
         CancellationToken cancellationToken
     )
     {
