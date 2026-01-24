@@ -1,4 +1,4 @@
-using System;
+using Microsoft.AspNetCore.Mvc;
 using StudioGateway.Api.Clients.K8s;
 using StudioGateway.Api.Clients.MetricsClient;
 using StudioGateway.Api.Settings;
@@ -89,10 +89,10 @@ internal static class HandleMetrics
         GatewayContext gatewayContext,
         IServiceProvider serviceProvider,
         MetricsClientSettings metricsClientSettings,
-        string[] apps,
-        string metric,
-        DateTimeOffset from,
-        DateTimeOffset to
+        [FromQuery] string[] apps,
+        [FromQuery] string metric,
+        [FromQuery] DateTimeOffset from,
+        [FromQuery] DateTimeOffset to
     )
     {
         IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
