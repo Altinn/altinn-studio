@@ -11,9 +11,9 @@ namespace Altinn.Studio.Designer.Configuration
     public class AlertsSettings : ISettingsMarker
     {
         /// <summary>
-        /// Gets or sets Slack webhook URL for TT02.
+        /// Gets or sets Slack webhook URL for TT02, AT21, AT22, AT23, AT24, YT01.
         /// </summary>
-        public Uri TT02 { get; set; }
+        public Uri Test { get; set; }
 
         /// <summary>
         /// Gets or sets Slack webhook URL for production.
@@ -25,7 +25,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// </summary>
         public Uri GetSlackWebhookUrl(AltinnEnvironment environment)
         {
-            return environment.IsProd() ? Prod : TT02;
+            return environment.IsProd() ? Prod : Test;
         }
     }
 }
