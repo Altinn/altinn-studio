@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { AppMetric as Metric } from 'admin/types/metrics/AppMetric';
 
 import { Line } from 'react-chartjs-2';
-import { Alert } from 'admin/shared/Alert/Alert';
+import { Alert } from 'admin/components/Alert/Alert';
 import { getChartData, getChartOptions } from 'admin/utils/charts';
 
 type AppMetricProps = {

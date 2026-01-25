@@ -393,7 +393,7 @@ public class SourceControlStub : ISourceControl
     public Task FetchGitNotes(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public Task FetchRemoteChanges(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-    public Task<Dictionary<string, string>> GetChangedContent(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
+    public Dictionary<string, string> GetChangedContent(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public CurrentBranchInfo GetCurrentBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public Commit GetLatestCommitForCurrentUser(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public List<Commit> Log(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();

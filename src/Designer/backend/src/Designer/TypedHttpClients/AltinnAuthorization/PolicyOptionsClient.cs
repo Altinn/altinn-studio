@@ -74,63 +74,21 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
         public async Task<List<SubjectOption>> GetSubjectOptions(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/subjectoptions.json";
-            string newRolesUrl = _platformSettings.RolesUrl;
-
-            // temp implementation: a flag will be added to the new roles API, which will determine if a role can be used in 
-            // policy editor or not. Since this flag is not implemented yet; load the old roles list, and look up each role
-            // in the new role API to get return roles in new format (with new descriptions)
-            List<SubjectOption> subjectOptions = [];
-            List<OldSubjectOption> oldSubjectOptions = [];
-            List<SubjectOption> newSubjectOptions = [];
+            string rolesUrl = _platformSettings.RolesUrl;
 
             try
             {
-                HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
+                HttpResponseMessage response = await _client.GetAsync(rolesUrl, cancellationToken);
                 response.EnsureSuccessStatusCode();
                 string subjectOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
-                oldSubjectOptions = JsonSerializer.Deserialize<List<OldSubjectOption>>(subjectOptionsString, _serializerOptions) ?? [];
+                List<SubjectOption> subjectOptions = JsonSerializer.Deserialize<List<SubjectOption>>(subjectOptionsString, _serializerOptions) ?? [];
+                return subjectOptions.Where(option => option.IsResourcePolicyAvailable).OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase).ToList();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed retrieving Subject options from {Url}", url);
+                _logger.LogError(ex, "Failed retrieving Subject options from {Url}", rolesUrl);
                 throw new Exception($"Something went wrong when retrieving Subject options", ex);
             }
-
-            try
-            {
-                HttpResponseMessage newResponse = await _client.GetAsync(newRolesUrl, cancellationToken);
-                newResponse.EnsureSuccessStatusCode();
-                string newSubjectOptionsString = await newResponse.Content.ReadAsStringAsync(cancellationToken);
-                newSubjectOptions = JsonSerializer.Deserialize<List<SubjectOption>>(newSubjectOptionsString, _serializerOptions) ?? [];
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed retrieving Subject options from {Url}", newRolesUrl);
-                throw new Exception($"Something went wrong when retrieving Subject options", ex);
-            }
-
-            oldSubjectOptions.ForEach(oldSubject =>
-            {
-                if (string.IsNullOrWhiteSpace(oldSubject.SubjectId))
-                {
-                    return; // skip invalid legacy entries
-                }
-                string newRoleCode = $"urn:altinn:rolecode:{oldSubject.SubjectId}";
-                SubjectOption match = newSubjectOptions.Find(n =>
-                {
-                    bool isLegacyUrnMatch = string.Equals(n.LegacyUrn, newRoleCode, StringComparison.OrdinalIgnoreCase);
-                    bool isUrnMatch = string.Equals(n.Urn, newRoleCode, StringComparison.OrdinalIgnoreCase);
-                    return isLegacyUrnMatch || isUrnMatch;
-                });
-
-                if (match != null)
-                {
-                    subjectOptions.Add(match);
-                }
-            });
-
-            return [.. subjectOptions.OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase)];
         }
     }
 }

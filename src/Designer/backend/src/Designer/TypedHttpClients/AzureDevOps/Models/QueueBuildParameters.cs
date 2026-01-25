@@ -76,5 +76,12 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
         /// </summary>
         [JsonPropertyName("PUSH_APPS_OCI_IMAGE")]
         public string PushAppsOciImage { get; set; } = "true";
+
+        /// <summary>
+        /// JSON-encoded array of Maskinporten scopes for the app
+        /// Format: ["scope1", "scope2"]
+        /// </summary>
+        [JsonPropertyName("APP_MASKINPORTEN_SCOPES")]
+        public string AppMaskinportenScopes { get; set; }
     }
 }

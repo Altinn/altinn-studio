@@ -9,9 +9,14 @@ import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/get
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
-import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
-import type { ILayoutFile, ILayoutSet, ILayoutSets, ILayoutSettings } from 'src/layout/common.generated';
+import type {
+  ILayoutFile,
+  ILayoutSetFromSchema,
+  ILayoutSetsFromSchema,
+  ILayoutSettings,
+} from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 import type { IInstance, IProcess } from 'src/types/shared';
 
@@ -195,8 +200,8 @@ export class ExternalApp {
     return this;
   }
 
-  getAppMetadata(): IncomingApplicationMetadata {
-    const appMetaData = this.readJson<IncomingApplicationMetadata>('/App/config/applicationmetadata.json');
+  getAppMetadata(): ApplicationMetadata {
+    const appMetaData = this.readJson<ApplicationMetadata>('/App/config/applicationmetadata.json');
     if (this.compat) {
       appMetaData.altinnNugetVersion = '8.5.0.157';
       appMetaData.partyTypesAllowed = {
@@ -210,7 +215,7 @@ export class ExternalApp {
       // 1. When testing, we don't want to end up in instance selection
       // 2. We pretend stateless isn't a thing. If apps are considered stateless, we can end up with useNavigatePage()
       //    redirecting us to a page we didn't want.
-      appMetaData.onEntry = undefined;
+      appMetaData.onEntry = { show: 'new-instance' };
     }
     return appMetaData;
   }
@@ -231,8 +236,8 @@ export class ExternalApp {
     return out;
   }
 
-  getRawLayoutSets(): ILayoutSets {
-    const out = this.readJson<ILayoutSets>('/App/ui/layout-sets.json');
+  getRawLayoutSets(): ILayoutSetsFromSchema {
+    const out = this.readJson<ILayoutSetsFromSchema>('/App/ui/layout-sets.json');
 
     for (const set of out.sets) {
       if (this.compat && !set.tasks) {
@@ -329,7 +334,7 @@ export class ExternalAppLayoutSet {
   constructor(
     public readonly app: ExternalApp,
     private id: string,
-    private config: ILayoutSet,
+    private config: ILayoutSetFromSchema,
   ) {}
 
   getName() {

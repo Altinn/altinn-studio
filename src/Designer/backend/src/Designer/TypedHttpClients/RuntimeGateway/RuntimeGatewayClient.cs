@@ -26,6 +26,34 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         _environmentsService = environmentsService;
     }
 
+    public async Task<IEnumerable<AppDeployment>> GetAppDeployments(string org, AltinnEnvironment environment, CancellationToken cancellationToken)
+    {
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        var originEnvironment = GetOriginEnvironment();
+        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/origin/{originEnvironment}/apps";
+
+        var response = await client.GetFromJsonAsync<List<AppDeployment>>(requestUrl, cancellationToken);
+        return response
+            ?? throw new InvalidOperationException(
+                "Received empty or null response body when deserializing List<AppDeployment>."
+            );
+    }
+
+    public async Task<AppDeployment> GetAppDeployment(string org, string app, AltinnEnvironment environment, CancellationToken cancellationToken)
+    {
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        var originEnvironment = GetOriginEnvironment();
+        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{originEnvironment}";
+
+        var response = await client.GetFromJsonAsync<AppDeployment>(requestUrl, cancellationToken);
+        return response
+            ?? throw new InvalidOperationException(
+                "Received empty or null response body when deserializing AppDeployment."
+            );
+    }
+
     public async Task<bool> IsAppDeployedWithGitOpsAsync(string org, string app, AltinnEnvironment environment, CancellationToken cancellationToken)
     {
         using var client = _httpClientFactory.CreateClient("runtime-gateway");
@@ -44,7 +72,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/alerts";
 
@@ -59,7 +87,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/errors?range={range}";
 
@@ -75,7 +103,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app?app={Uri.EscapeDataString(app)}&range={range}";
 
@@ -91,7 +119,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors?app={Uri.EscapeDataString(app)}&range={range}";
 
@@ -108,7 +136,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors/logs?app={Uri.EscapeDataString(app)}&metric={Uri.EscapeDataString(metric)}&range={range}";
 
@@ -124,26 +152,26 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient($"runtime-gateway");
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/health?app={Uri.EscapeDataString(app)}";
 
         return await client.GetFromJsonAsync<IEnumerable<AppHealthMetric>>(requestUrl, cancellationToken) ?? [];
     }
 
-    public async Task TriggerReconcileAsync(string org, string app, AltinnEnvironment environment, bool isNewApp, bool isUndeploy, CancellationToken cancellationToken)
+    public async Task TriggerReconcileAsync(string org, string app, AltinnEnvironment environment, bool isUndeploy, CancellationToken cancellationToken)
     {
         using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         var originEnvironment = GetOriginEnvironment();
         var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{originEnvironment}/reconcile";
 
-        var request = new TriggerReconcileRequest(isNewApp, isUndeploy);
+        var request = new TriggerReconcileRequest(isUndeploy);
         var response = await HttpClientJsonExtensions.PostAsJsonAsync(client, requestUrl, request, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 
-    private record TriggerReconcileRequest(bool IsNewApp, bool IsUndeploy);
+    private record TriggerReconcileRequest(bool IsUndeploy);
 
     private string GetOriginEnvironment()
     {

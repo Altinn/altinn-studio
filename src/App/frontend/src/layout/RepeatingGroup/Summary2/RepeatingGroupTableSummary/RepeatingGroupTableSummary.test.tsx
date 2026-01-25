@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import * as useNavigatePageModule from 'src/hooks/useNavigatePage';
+import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { RepeatingGroupProvider } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -165,7 +166,7 @@ describe('RepeatingGroupTableSummary', () => {
         fetchLayoutSettings: async () => ({
           pages: {
             order: ['FormPage1', 'FormPage2'],
-          },
+          } as unknown as IPagesSettingsWithOrder,
         }),
       },
     });

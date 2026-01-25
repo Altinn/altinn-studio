@@ -54,10 +54,8 @@
   },
   Response: {
     Id: ttd/basic,
-    Features: {
-      footer: true,
-      jsonObjectInDataResponse: false,
-      processActions: true
+    OnEntry: {
+      Show: new-instance
     },
     AppIdentifier: {
       Org: ttd,

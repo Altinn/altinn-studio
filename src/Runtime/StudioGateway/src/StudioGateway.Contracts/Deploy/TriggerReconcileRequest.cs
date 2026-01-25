@@ -1,3 +1,3 @@
 namespace StudioGateway.Contracts.Deploy;
 
-public record TriggerReconcileRequest(bool IsNewApp, bool IsUndeploy);
+public record TriggerReconcileRequest(bool IsUndeploy);

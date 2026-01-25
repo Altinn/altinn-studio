@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -20,6 +21,8 @@ public class HomeController : Controller
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };
 
     private readonly IAntiforgery _antiforgery;
@@ -29,10 +32,13 @@ public class HomeController : Controller
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
+    private readonly IBootstrapGlobalService _bootstrapGlobalService;
+    private readonly IIndexPageGenerator _indexPageGenerator;
 
     /// <summary>
     /// Initialize a new instance of the <see cref="HomeController"/> class.
     /// </summary>
+    /// <param name="serviceProvider">The service provider for resolving internal services.</param>
     /// <param name="antiforgery">The anti forgery service.</param>
     /// <param name="platformSettings">The platform settings.</param>
     /// <param name="env">The current environment.</param>
@@ -40,6 +46,7 @@ public class HomeController : Controller
     /// <param name="appResources">The application resources service</param>
     /// <param name="appMetadata">The application metadata service</param>
     public HomeController(
+        IServiceProvider serviceProvider,
         IAntiforgery antiforgery,
         IOptions<PlatformSettings> platformSettings,
         IWebHostEnvironment env,
@@ -54,6 +61,8 @@ public class HomeController : Controller
         _appSettings = appSettings.Value;
         _appResources = appResources;
         _appMetadata = appMetadata;
+        _bootstrapGlobalService = serviceProvider.GetRequiredService<IBootstrapGlobalService>();
+        _indexPageGenerator = serviceProvider.GetRequiredService<IIndexPageGenerator>();
     }
 
     /// <summary>
@@ -92,9 +101,22 @@ public class HomeController : Controller
 
         if (await ShouldShowAppView())
         {
-            ViewBag.org = org;
-            ViewBag.app = app;
-            return PartialView("Index");
+            if (_indexPageGenerator.HasLegacyIndexCshtml)
+            {
+                ViewBag.org = org;
+                ViewBag.app = app;
+                return PartialView("Index");
+            }
+
+            string? frontendVersionOverride = null;
+            if (_env.IsDevelopment() && HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var cookie))
+            {
+                frontendVersionOverride = cookie.TrimEnd('/');
+            }
+
+            var appGlobalState = await _bootstrapGlobalService.GetGlobalState();
+            var html = await _indexPageGenerator.Generate(org, app, appGlobalState, frontendVersionOverride);
+            return Content(html, "text/html; charset=utf-8");
         }
 
         string scheme = _env.IsDevelopment() ? "http" : "https";
@@ -238,7 +260,7 @@ public class HomeController : Controller
 
     private DataType? GetStatelessDataType(ApplicationMetadata application)
     {
-        string layoutSetsString = _appResources.GetLayoutSets();
+        string? layoutSetsString = _appResources.GetLayoutSetsString();
 
         // Stateless apps only work with layousets
         if (!string.IsNullOrEmpty(layoutSetsString))

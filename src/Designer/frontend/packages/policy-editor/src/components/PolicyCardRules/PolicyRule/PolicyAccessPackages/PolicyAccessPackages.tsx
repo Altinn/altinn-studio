@@ -6,7 +6,7 @@ import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicyAccessPackages.module.css';
 import {
-  filterAccessPackagesByIsDelegable,
+  filterAccessPackagesByIsResourcePolicyAvailable,
   filterAccessPackagesBySearchString,
   groupAccessPackagesByArea,
   isAccessPackageSelected,
@@ -22,7 +22,7 @@ export const PolicyAccessPackages = (): ReactElement => {
 
   const groupedDelegableAccessPackagesByArea = useMemo(() => {
     const areas = groupAccessPackagesByArea(accessPackages);
-    return filterAccessPackagesByIsDelegable(areas);
+    return filterAccessPackagesByIsResourcePolicyAvailable(areas);
   }, [accessPackages]);
 
   const handleSelectAccessPackage = (packageUrn: string): void => {
