@@ -38,7 +38,7 @@ internal sealed class AlertsService(
     public async Task NotifyAlertsUpdatedAsync(string org, AltinnEnvironment environment, IEnumerable<Alert> alerts, CancellationToken cancellationToken)
     {
         DateTimeOffset to = DateTimeOffset.UtcNow;
-        DateTimeOffset from = to.AddMinutes(-15);
+        DateTimeOffset from = to.AddMinutes(-5);
         string fromIso = Uri.EscapeDataString(from.ToString("O"));
         string toIso = Uri.EscapeDataString(to.ToString("O"));
 
@@ -83,22 +83,15 @@ internal sealed class AlertsService(
         string studioEnv = generalSettings.OriginEnvironment;
         string appsFormatted = string.Join(", ", apps.Select(a => $"`{a}`"));
         const string Emoji = ":x:";
-        var elements = new List<SlackText>
-        {
-            new() { Type = "mrkdwn", Text = $"Org: `{org}`" },
-            new() { Type = "mrkdwn", Text = $"Env: `{environment.Name}`" },
-            new() { Type = "mrkdwn", Text = $"Apps: {appsFormatted}" },
-            new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
-        };
 
+        var links = new List<SlackText>();
         if (grafanaUrl is not null)
         {
-            elements.Add(new SlackText { Type = "mrkdwn", Text = $"<{grafanaUrl}|Grafana>" });
+            links.Add(new SlackText { Type = "mrkdwn", Text = $"<{grafanaUrl}|Grafana>" });
         }
-
         if (appInsightsUrl is not null)
         {
-            elements.Add(new SlackText { Type = "mrkdwn", Text = $"<{appInsightsUrl}|Application Insights>" });
+            links.Add(new SlackText { Type = "mrkdwn", Text = $"<{appInsightsUrl}|Application Insights>" });
         }
 
         var message = new SlackMessage
@@ -107,16 +100,27 @@ internal sealed class AlertsService(
             Blocks =
             [
                 new SlackBlock
+                {
+                    Type = "section",
+                    Text = new SlackText { Type = "mrkdwn", Text = $"{Emoji} *{alertName}*" },
+                },
+                new SlackBlock
+                {
+                    Type = "context",
+                    Elements = new List<SlackText>
                     {
-                        Type = "section",
-                        Text = new SlackText { Type = "mrkdwn", Text = $"{Emoji} *{alertName}*" },
+                        new() { Type = "mrkdwn", Text = $"Org: `{org}`" },
+                        new() { Type = "mrkdwn", Text = $"Env: `{environment.Name}`" },
+                        new() { Type = "mrkdwn", Text = $"Apps: {appsFormatted}" },
+                        new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
                     },
-                    new SlackBlock
-                    {
-                        Type = "context",
-                        Elements = elements,
-                    },
-                ],
+                },
+                new SlackBlock
+                {
+                    Type = "context",
+                    Elements = links
+                }
+            ],
         };
         try
         {

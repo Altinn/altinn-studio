@@ -333,18 +333,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             string studioEnv = _generalSettings.OriginEnvironment;
 
-            var elements = new List<SlackText>
-                {
-                    new() { Type = "mrkdwn", Text = $"Org: `{org}`" },
-                    new() { Type = "mrkdwn", Text = $"Env: `{environment.Name}`" },
-                    new() { Type = "mrkdwn", Text = $"App: `{app}`" },
-                    new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
-                    new() { Type = "mrkdwn", Text = $"<{GrafanaPodLogsUrl(org, environment, app, startedDate, _timeProvider.GetUtcNow())}|Grafana>" },
-                };
+            var links = new List<SlackText>
+            {
+                new() { Type = "mrkdwn", Text = $"<{GrafanaPodLogsUrl(org, environment, app, startedDate, _timeProvider.GetUtcNow())}|Grafana>" },
+            };
 
             if (!string.IsNullOrWhiteSpace(buildId))
             {
-                elements.Add(new SlackText { Type = "mrkdwn", Text = $"<https://dev.azure.com/brreg/altinn-studio/_build/results?buildId={buildId}&view=logs|Build log>" });
+                links.Add(new SlackText { Type = "mrkdwn", Text = $"<https://dev.azure.com/brreg/altinn-studio/_build/results?buildId={buildId}&view=logs|Build log>" });
             }
 
             string emoji = ":x:";
@@ -368,7 +364,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     new SlackBlock
                     {
                         Type = "context",
-                        Elements = elements,
+                        Elements = new List<SlackText>
+                        {
+                            new() { Type = "mrkdwn", Text = $"Org: `{org}`" },
+                            new() { Type = "mrkdwn", Text = $"Env: `{environment.Name}`" },
+                            new() { Type = "mrkdwn", Text = $"App: `{app}`" },
+                            new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
+                        },
+                    },
+                    new SlackBlock
+                    {
+                        Type = "context",
+                        Elements = links,
                     },
                 ],
             };
