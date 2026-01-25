@@ -250,6 +250,7 @@ namespace Designer.Tests.Services
             string origApp = "hvem-er-hvem";
             string app = TestDataHelper.GenerateTestRepoName(origApp);
             string developer = "testUser";
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
             await TestDataHelper.CopyRepositoryForTest(org, origApp, developer, app);
 
@@ -260,7 +261,7 @@ namespace Designer.Tests.Services
             SourceControlService sut = GetServiceForTest(developer, mock);
 
             // Act
-            await sut.DeleteRepository(org, app);
+            await sut.DeleteRepository(editingContext);
             string expectedPath = TestDataHelper.GetTestDataRepositoryDirectory(org, app, developer);
 
             // Assert
@@ -274,6 +275,7 @@ namespace Designer.Tests.Services
             // Arrange
             string target = "master";
             string source = "branch";
+            string user = "testUser";
 
             Mock<IGiteaClient> mock = new();
             mock.Setup(m => m.CreatePullRequest(
@@ -281,14 +283,82 @@ namespace Designer.Tests.Services
                 "apps-test",
                 It.Is<CreatePullRequestOption>(o => o.Base == target && o.Head == source)))
                 .ReturnsAsync(true);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", "apps-test", user);
 
-            SourceControlService sut = GetServiceForTest("testUser", mock);
+            SourceControlService sut = GetServiceForTest(user, mock);
 
             // Act
-            await sut.CreatePullRequest("ttd", "apps-test", target, source, "title");
+            await sut.CreatePullRequest(editingContext, target, source, "title");
 
             // Assert
             mock.VerifyAll();
+        }
+
+        [Fact]
+        public void GetChangedContent_OnMasterBranch_ReturnsUncommittedChanges()
+        {
+            // Arrange
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            var context = CreateTestRepository(repoName);
+
+            string testFile = Path.Join(_repoDir, "uncommitted-file.txt");
+            File.WriteAllText(testFile, "This is new content");
+
+            // Act
+            var result = _sourceControlService.GetChangedContent(context);
+
+            // Assert
+            Assert.Single(result);
+            Assert.Contains("uncommitted-file.txt", result.Keys);
+        }
+
+        [Fact]
+        public void GetChangedContent_OnFeatureBranch_ReturnsOnlyUncommittedChanges()
+        {
+            // Arrange
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            const string BranchName = "feature-branch";
+            var context = CreateTestRepository(repoName);
+
+            // Create feature branch and commit a file
+            _sourceControlService.CreateLocalBranch(context, BranchName);
+            _sourceControlService.CheckoutRepoOnBranch(context, BranchName);
+
+            string committedFile = Path.Join(_repoDir, "committed-on-feature.txt");
+            File.WriteAllText(committedFile, "Committed content");
+
+            using (var repo = new Repository(_repoDir))
+            {
+                Commands.Stage(repo, "committed-on-feature.txt");
+                var signature = new LibGit2Sharp.Signature(_developer, $"{_developer}@test.com", DateTimeOffset.Now);
+                repo.Commit("Add file on feature branch", signature, signature);
+            }
+
+            // Add uncommitted file
+            string uncommittedFile = Path.Join(_repoDir, "uncommitted-on-feature.txt");
+            File.WriteAllText(uncommittedFile, "Uncommitted content");
+
+            // Act
+            var result = _sourceControlService.GetChangedContent(context);
+
+            // Assert
+            Assert.Single(result);
+            Assert.Contains("uncommitted-on-feature.txt", result.Keys);
+            Assert.DoesNotContain("committed-on-feature.txt", result.Keys);
+        }
+
+        [Fact]
+        public void GetChangedContent_NoChanges_ReturnsEmptyDictionary()
+        {
+            // Arrange
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            var context = CreateTestRepository(repoName);
+
+            // Act
+            var result = _sourceControlService.GetChangedContent(context);
+
+            // Assert
+            Assert.Empty(result);
         }
 
         private static HttpContext GetHttpContextForTestUser(string userName)
@@ -344,7 +414,7 @@ namespace Designer.Tests.Services
 
             using var repo = new Repository(_repoDir);
 
-            string testFile = Path.Combine(_repoDir, "test.txt");
+            string testFile = Path.Join(_repoDir, "test.txt");
             File.WriteAllText(testFile, "Initial content");
 
             Commands.Stage(repo, "test.txt");

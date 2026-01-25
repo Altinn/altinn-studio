@@ -5,6 +5,12 @@ export const useDisplayObjectValues = (valuesToBeSaved?: object) => {
 
   if (!valuesToBeSaved) return null;
 
+  const translateEnumValue = (enumValue: string) => {
+    const enumKey = `enum_${enumValue}`;
+    const translation = componentPropertyLabel(enumKey);
+    return translation !== enumKey ? translation : enumValue;
+  };
+
   const translatedValue = (value: unknown) => {
     const valueStr = String(value);
 
@@ -13,13 +19,11 @@ export const useDisplayObjectValues = (valuesToBeSaved?: object) => {
       return directTranslation;
     }
 
-    const enumKey = `enum_${valueStr}`;
-    const enumTranslation = componentPropertyLabel(enumKey);
-    if (enumTranslation !== enumKey) {
-      return enumTranslation;
-    }
-
-    return value;
+    return valueStr
+      .split(',')
+      .map((enumValue) => enumValue.trim())
+      .map(translateEnumValue)
+      .join(', ');
   };
 
   return Object.values(valuesToBeSaved).map(translatedValue).join(', ');

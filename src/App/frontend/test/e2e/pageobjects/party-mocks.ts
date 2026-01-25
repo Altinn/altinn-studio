@@ -1,5 +1,7 @@
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
+
 import { PartyType } from 'src/types/shared';
-import type { IncomingApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/types';
 import type { ISimpleInstance } from 'src/types';
 import type { IParty } from 'src/types/shared';
 
@@ -99,8 +101,8 @@ interface Mockable {
   selectedParty?: IParty;
   allowedToInstantiate?: IParty[] | ((parties: IParty[]) => IParty[]);
   doNotPromptForParty?: boolean;
-  appPromptForPartyOverride?: IncomingApplicationMetadata['promptForParty'];
-  partyTypesAllowed?: IncomingApplicationMetadata['partyTypesAllowed'];
+  appPromptForPartyOverride?: ApplicationMetadata['promptForParty'];
+  partyTypesAllowed?: ApplicationMetadata['partyTypesAllowed'];
   activeInstances?: false | ISimpleInstance[]; // Defaults to false
   onEntryShow?: ShowTypes;
 }
@@ -145,19 +147,16 @@ export function cyMockResponses(whatToMock: Mockable) {
     whatToMock.partyTypesAllowed !== undefined ||
     whatToMock.onEntryShow !== undefined
   ) {
-    cy.intercept('GET', '**/api/v1/applicationmetadata', (req) => {
-      req.on('response', (res) => {
-        const body = res.body as IncomingApplicationMetadata;
-        if (whatToMock.appPromptForPartyOverride !== undefined) {
-          body.promptForParty = whatToMock.appPromptForPartyOverride;
-        }
-        if (whatToMock.partyTypesAllowed !== undefined) {
-          body.partyTypesAllowed = whatToMock.partyTypesAllowed;
-        }
-        if (whatToMock.onEntryShow !== undefined) {
-          body.onEntry = { show: whatToMock.onEntryShow };
-        }
-      });
+    interceptAltinnAppGlobalData((globalData) => {
+      if (whatToMock.appPromptForPartyOverride !== undefined) {
+        globalData.applicationMetadata.promptForParty = whatToMock.appPromptForPartyOverride;
+      }
+      if (whatToMock.partyTypesAllowed !== undefined) {
+        globalData.applicationMetadata.partyTypesAllowed = whatToMock.partyTypesAllowed;
+      }
+      if (whatToMock.onEntryShow !== undefined) {
+        globalData.applicationMetadata.onEntry = { show: whatToMock.onEntryShow };
+      }
     });
   }
 

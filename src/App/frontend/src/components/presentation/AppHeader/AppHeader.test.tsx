@@ -4,11 +4,12 @@ import { expect, jest } from '@jest/globals';
 import { act, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AppHeader } from 'src/components/presentation/AppHeader/AppHeader';
-import { fetchApplicationMetadata } from 'src/queries/queries';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
@@ -37,13 +38,13 @@ describe('presentation/AppHeader', () => {
   interface IRenderComponentProps {
     party: IParty;
     user?: IProfile;
-    logo?: ApplicationMetadata['logoOptions'];
+    logo?: ApplicationMetadata['logo'];
     showLanguageSelector?: boolean;
     languageResponse?: IAppLanguage[];
     textResources?: IRawTextResource[];
   }
   const render = async ({ logo, showLanguageSelector = false, textResources = [] }: IRenderComponentProps) => {
-    jest.mocked(fetchApplicationMetadata).mockImplementation(async () => getIncomingApplicationMetadataMock({ logo }));
+    jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock({ logo }));
 
     return await renderWithInstanceAndLayout({
       renderer: () => (
@@ -55,7 +56,10 @@ describe('presentation/AppHeader', () => {
 
       queries: {
         fetchTextResources: () => Promise.resolve({ language: 'nb', resources: textResources }),
-        fetchLayoutSettings: () => Promise.resolve({ pages: { showLanguageSelector, order: ['1', '2', '3'] } }),
+        fetchLayoutSettings: () =>
+          Promise.resolve({
+            pages: { showLanguageSelector, order: ['1', '2', '3'] } as unknown as IPagesSettingsWithOrder,
+          }),
       },
     });
   };

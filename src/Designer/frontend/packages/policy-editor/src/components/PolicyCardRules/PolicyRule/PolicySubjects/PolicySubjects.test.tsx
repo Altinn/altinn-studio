@@ -27,14 +27,14 @@ const sjofartPackage: PolicyAccessPackage = {
   urn: 'urn:altinn:accesspackage:sjofart',
   name: 'Sjøfart',
   description: '',
-  isDelegable: true,
+  isResourcePolicyAvailable: true,
 };
 const lufttransportPackage: PolicyAccessPackage = {
   id: 'urn:altinn:accesspackage:lufttransport',
   urn: 'urn:altinn:accesspackage:lufttransport',
   name: 'Lufttransport',
   description: '',
-  isDelegable: true,
+  isResourcePolicyAvailable: true,
 };
 const accessPackageAreaTransport: PolicyAccessPackageArea = {
   id: 'transport-area',

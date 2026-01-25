@@ -44,7 +44,8 @@ public class GitRepoGitOpsConfigurationManager(
         DeleteLocalRepositoryIfExists(context);
         await EnsureRemoteRepositoryExists(context);
 
-        await sourceControl.CloneRemoteRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org));
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer);
+        await sourceControl.CloneRemoteRepository(editingContext);
 
         await EnsureBaseManifests(context);
         await EnsureEnvironmentManifests(context, environment);
@@ -186,8 +187,9 @@ public class GitRepoGitOpsConfigurationManager(
     public async Task PersistGitOpsConfigurationAsync(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
         var repository = gitRepositoryFactory.GetAltinnGitRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer);
 
-        await sourceControl.CommitAndPushChanges(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), "master", repository.RepositoryDirectory, $"Update GitOps configuration for environment {environment}", gitOpsSettings.BotPersonalAccessToken);
+        await sourceControl.CommitAndPushChanges(editingContext, "master", repository.RepositoryDirectory, $"Update GitOps configuration for environment {environment}", gitOpsSettings.BotPersonalAccessToken);
     }
     private async Task WriteManifestsToFiles(AltinnOrgEditingContext context, Dictionary<string, string> manifests)
     {
