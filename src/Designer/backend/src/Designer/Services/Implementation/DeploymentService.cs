@@ -350,8 +350,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string emoji = ":x:";
             var status = eventType switch
             {
-                DeployEventType.InstallSucceeded or DeployEventType.UpgradeSucceeded => "Deploy succeeded",
-                DeployEventType.UninstallSucceeded => "Undeploy succeeded",
                 DeployEventType.InstallFailed or DeployEventType.UpgradeFailed => "Deploy failed",
                 DeployEventType.UninstallFailed => "Undeploy failed",
                 _ => eventType.ToString(),
