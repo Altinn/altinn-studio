@@ -1,5 +1,7 @@
 import { useRef, useSyncExternalStore } from 'react';
 
+import { isNotNullUndefinedOrEmpty } from 'src/utils/listUtils';
+
 /**
  * This type contains what we store in localstorage at different keys.
  * Types need to be able to be used with JSON.stringify and JSON.parse.
@@ -9,7 +11,6 @@ import { useRef, useSyncExternalStore } from 'react';
  */
 type LocalStorageEntries = {
   visitedPages: string[];
-  selectedLanguage: string | null;
 };
 
 class LocalStorageController<T> {
@@ -88,10 +89,6 @@ export function useLocalStorageState<K extends keyof LocalStorageEntries, D exte
   const value = useSyncExternalStore(state.current.subscribe, state.current.getSnapshot);
 
   return [value, state.current.setValue];
-}
-
-function isNotNullUndefinedOrEmpty(key: ScopeKey) {
-  return key != null && (typeof key !== 'string' || !!key.length);
 }
 
 function getFullKey(entryKey: string, scopeKeys: ScopeKey[]) {

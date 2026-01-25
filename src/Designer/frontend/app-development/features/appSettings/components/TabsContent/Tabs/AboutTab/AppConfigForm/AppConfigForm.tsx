@@ -68,16 +68,8 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
 
   const saveUpdatedAppConfig = (): void => {
-    if (hasValidationErrors()) {
-      setShowAppConfigErrors(true);
-      return;
-    }
-
+    setShowAppConfigErrors(false);
     persistAppDetails();
-  };
-
-  const hasValidationErrors = (): boolean => {
-    return validationErrors.length > 0;
   };
 
   const persistAppDetails = (): void => {
@@ -230,7 +222,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
         <StudioTextfield
           label={t('app_settings.about_tab_homepage_field_label')}
           description={t('app_settings.about_tab_homepage_field_description')}
-          value={updatedAppConfig.homepage}
+          value={updatedAppConfig.homepage ?? ''}
           onChange={onChangeHomepage}
           required={false}
           tagText={t('general.optional')}
