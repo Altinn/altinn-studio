@@ -286,7 +286,9 @@ internal sealed class AzureMonitorClient(
             return null;
         }
 
-        var normalizedApps = apps.Where(appName => !string.IsNullOrWhiteSpace(appName)).Select(appName => appName.Trim()).ToList();
+        var normalizedApps = apps.Where(appName => !string.IsNullOrWhiteSpace(appName))
+            .Select(appName => appName.Trim())
+            .ToList();
         if (normalizedApps.Count == 0)
         {
             return null;
@@ -303,7 +305,10 @@ internal sealed class AzureMonitorClient(
             .Replace("{durationMs}", durationMs.ToString(CultureInfo.InvariantCulture))
             .Replace("{app_Names}", string.Join(", ", normalizedApps.Select(n => $"'{n.Replace("'", "''")}'")))
             .Replace("{operation_Names}", string.Join(", ", operationNames.Select(n => $"'{n}'")))
-            .Replace("\"{appNames}\"", string.Join(", ", normalizedApps.Select(name => $"\"{JsonEncodedText.Encode(name)}\"")))
+            .Replace(
+                "\"{appNames}\"",
+                string.Join(", ", normalizedApps.Select(name => $"\"{JsonEncodedText.Encode(name)}\""))
+            )
             .Replace("\"{operationNames}\"", string.Join(",", operationNames.Select(n => $"\"{n}\"")));
         var minifiedJson = System.Text.Json.Nodes.JsonNode.Parse(json)?.ToJsonString() ?? string.Empty;
 
