@@ -124,7 +124,7 @@ internal sealed class AlertsService(
         };
         try
         {
-            await slackClient.SendMessageAsync(alertsSettings.SlackWebhookUrl, message, cancellationToken);
+            await slackClient.SendMessageAsync(alertsSettings.GetSlackWebhookUrl(environment), message, cancellationToken);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

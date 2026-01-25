@@ -50,7 +50,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IFeatureManager _featureManager;
         private readonly IRuntimeGatewayClient _runtimeGatewayClient;
         private readonly ISlackClient _slackClient;
-        private readonly DeploySettings _deploySettings;
+        private readonly AlertsSettings _alertsSettings;
 
         /// <summary>
         /// Constructor
@@ -72,7 +72,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IFeatureManager featureManager,
             IRuntimeGatewayClient runtimeGatewayClient,
             ISlackClient slackClient,
-            DeploySettings deploySettings)
+            AlertsSettings alertsSettings)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _deploymentRepository = deploymentRepository;
@@ -90,7 +90,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _featureManager = featureManager;
             _runtimeGatewayClient = runtimeGatewayClient;
             _slackClient = slackClient;
-            _deploySettings = deploySettings;
+            _alertsSettings = alertsSettings;
         }
 
         /// <inheritdoc/>
@@ -382,7 +382,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             try
             {
-                await _slackClient.SendMessageAsync(_deploySettings.SlackWebhookUrl, message, cancellationToken);
+                await _slackClient.SendMessageAsync(_alertsSettings.GetSlackWebhookUrl(environment), message, cancellationToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -392,15 +392,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private static string GrafanaPodLogsUrl(string org, AltinnEnvironment environment, string app, DateTimeOffset? startedDate, DateTimeOffset finishedDate)
         {
-            var isProd = environment.Name.Equals(AltinnEnvironment.Prod.Name, StringComparison.OrdinalIgnoreCase);
-
-            var baseDomain = isProd ? $"https://{org}.apps.altinn.no" : $"https://{org}.apps.tt02.altinn.no";
+            var baseDomain = environment.IsProd() ? $"https://{org}.apps.altinn.no" : $"https://{org}.apps.tt02.altinn.no";
 
             var path = "/monitor/d/ae1906c2hbjeoe/pod-console-error-logs";
 
             var queryParams = new Dictionary<string, string>
             {
-                ["var-rg"] = $"altinnapps-{org}-{(isProd ? "prod" : environment.Name)}-rg",
+                ["var-rg"] = $"altinnapps-{org}-{(environment.IsProd() ? "prod" : environment.Name)}-rg",
                 ["var-PodName"] = $"{org}-{app}-deployment-v2",
             };
 

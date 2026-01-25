@@ -52,7 +52,7 @@ namespace Designer.Tests.Services
         private readonly GeneralSettings _generalSettings;
         private readonly FakeTimeProvider _fakeTimeProvider;
         private readonly Mock<ISlackClient> _slackClient;
-        private readonly DeploySettings _deploySettings;
+        private readonly AlertsSettings _alertsSettings;
 
         public DeploymentServiceTest(ITestOutputHelper testOutputHelper)
         {
@@ -73,7 +73,7 @@ namespace Designer.Tests.Services
             _generalSettings = new GeneralSettings();
             _fakeTimeProvider = new FakeTimeProvider();
             _slackClient = new Mock<ISlackClient>();
-            _deploySettings = new DeploySettings();
+            _alertsSettings = new AlertsSettings();
         }
 
         [Theory]
@@ -125,7 +125,7 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _deploySettings);
+                _alertsSettings);
 
             // Act
             DeploymentEntity deploymentEntity =
@@ -190,7 +190,7 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _deploySettings);
+                _alertsSettings);
 
             // Act
             SearchResults<DeploymentEntity> results =
@@ -271,7 +271,7 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _deploySettings);
+                _alertsSettings);
 
             // Act
             await deploymentService.CreateAsync(org, app, deploymentModel);
@@ -364,7 +364,7 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _deploySettings);
+                _alertsSettings);
 
             // Act
             await deploymentService.CreateAsync(org, app, deploymentModel);
@@ -449,7 +449,7 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _deploySettings);
+                _alertsSettings);
 
             // Act
             await deploymentService.CreateAsync(org, app, deploymentModel);
@@ -573,7 +573,7 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _deploySettings);
+                _alertsSettings);
 
             // Act
             await deploymentService.UndeployAsync(editingContext, env);
@@ -661,7 +661,7 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _deploySettings);
+                _alertsSettings);
 
             // Act
             await deploymentService.UndeployAsync(editingContext, env);
@@ -752,7 +752,7 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _deploySettings);
+                _alertsSettings);
 
             // Act
             await deploymentService.UndeployAsync(editingContext, env);
@@ -848,7 +848,7 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _deploySettings);
+                _alertsSettings);
 
             // Act
             await deploymentService.UndeployAsync(editingContext, env);
