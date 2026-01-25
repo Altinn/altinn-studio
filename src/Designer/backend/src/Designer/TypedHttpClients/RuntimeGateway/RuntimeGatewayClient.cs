@@ -145,8 +145,8 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
                 .Select(appName => $"apps={Uri.EscapeDataString(appName)}")
                 .Concat([
             $"metric={Uri.EscapeDataString(metric)}",
-            $"from={from.ToUniversalTime().ToString("O")}",
-            $"to={to.ToUniversalTime().ToString("O")}",
+            $"from={Uri.EscapeDataString(from.ToUniversalTime().ToString("O"))}",
+            $"to={Uri.EscapeDataString(to.ToUniversalTime().ToString("O"))}",
         ]);
 
         string queryString = string.Join("&", queryParts);
