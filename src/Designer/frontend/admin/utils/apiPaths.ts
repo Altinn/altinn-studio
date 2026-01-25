@@ -84,12 +84,7 @@ export const instanceDataElementPath = (
  * Example: { a: 'b', c: null } => '?a=b'
  */
 function getQueryStringFromObject(obj: Record<string, string | null | undefined>): string {
-  const cleanObj = Object.entries(obj).reduce<Record<string, string>>((acc, [key, value]) => {
-    if (value) {
-      acc[key] = value;
-    }
-    return acc;
-  }, {});
+  const cleanObj = Object.fromEntries(Object.entries(obj).filter(([_, value]) => !!value));
   const queryParams = new URLSearchParams(cleanObj);
   const queryString = queryParams.toString();
   return queryString ? `?${queryString}` : '';
