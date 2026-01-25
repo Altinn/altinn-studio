@@ -25,7 +25,7 @@ class LocalStorageController<T> {
   }
 
   public getSnapshot = () => {
-    this.updateCurrentValue(window.localStorage.getItem(this.key));
+    this.updateCurrentValue(globalThis.localStorage.getItem(this.key));
     return this.currentRawValue != null ? (this.currentValue as T) : this.defaultValue;
   };
 
@@ -40,9 +40,9 @@ class LocalStorageController<T> {
      * The native 'storage' event only gets called when localstorage is modified from a different browser context (e.g. a different tab),
      * so using a custom 'internal-storage' event to keep hooks in sync internally.
      */
-    window.addEventListener('internal-storage', callback);
+    globalThis.addEventListener('internal-storage', callback);
     return () => {
-      window.removeEventListener('internal-storage', callback);
+      globalThis.removeEventListener('internal-storage', callback);
     };
   };
 
@@ -51,11 +51,11 @@ class LocalStorageController<T> {
     const newValue = typeof valueOrSetter === 'function' ? (valueOrSetter as (prev: T) => T)(prev) : valueOrSetter;
     const newRawValue = stringify(newValue);
     if (typeof newRawValue === 'string') {
-      window.localStorage.setItem(this.key, newRawValue);
+      globalThis.localStorage.setItem(this.key, newRawValue);
     } else {
-      window.localStorage.removeItem(this.key);
+      globalThis.localStorage.removeItem(this.key);
     }
-    window.dispatchEvent(new StorageEvent('internal-storage', { newValue: newRawValue, key: this.key }));
+    globalThis.dispatchEvent(new StorageEvent('internal-storage', { newValue: newRawValue, key: this.key }));
   };
 
   private updateCurrentValue(newRawValue: string | null): boolean {
@@ -92,7 +92,7 @@ export function useLocalStorageState<K extends keyof LocalStorageEntries, D exte
 }
 
 function getFullKey(entryKey: string, scopeKeys: ScopeKey[]) {
-  let fullKey = `${window.org}/${window.app}`;
+  let fullKey = `${globalThis.org}/${globalThis.app}`;
 
   scopeKeys.length && (fullKey += `/${scopeKeys.filter(isNotNullUndefinedOrEmpty).join('/')}`);
   fullKey += `/${entryKey}`;
@@ -104,7 +104,7 @@ function stringify(data: unknown): string | null {
     return JSON.stringify(data);
   } catch (e) {
     // logError will try to stringify args of type 'object', so if this fails here we should not pass the object to logError.
-    window.logError('useLocalStorageState failed to stringify with error:\n', e);
+    globalThis.logError('useLocalStorageState failed to stringify with error:\n', e);
     return null;
   }
 }
@@ -113,7 +113,7 @@ function parse<T>(data: string): T | null {
   try {
     return JSON.parse(data) as T;
   } catch (e) {
-    window.logError(`useLocalStorageState failed to parse string '${data}' with error:\n`, e);
+    globalThis.logError(`useLocalStorageState failed to parse string '${data}' with error:\n`, e);
     return null;
   }
 }

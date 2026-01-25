@@ -13,7 +13,7 @@ const ONE_MINUTE_IN_MILLISECONDS = 60000;
 const TEN_MINUTE_IN_MILLISECONDS = ONE_MINUTE_IN_MILLISECONDS * 10;
 
 const redirectToLogin = (appOidcProvider: string | null): void => {
-  window.location.href = getEnvironmentLoginUrl(appOidcProvider);
+  globalThis.location.href = getEnvironmentLoginUrl(appOidcProvider);
 };
 
 const useRefreshJwtTokenQuery = (appOidcProvider: string | null | undefined, allowAnonymous: boolean | undefined) => {

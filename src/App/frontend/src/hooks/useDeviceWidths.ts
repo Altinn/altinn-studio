@@ -35,13 +35,13 @@ export function useIsMobileOrTablet() {
 }
 
 export function useBrowserWidth(condition: Condition) {
-  const [state, setState] = useState(condition(window.innerWidth));
+  const [state, setState] = useState(condition(globalThis.innerWidth));
 
   useEffect(() => {
-    const handleResize = () => setState(condition(window.innerWidth));
-    window.addEventListener('resize', handleResize);
+    const handleResize = () => setState(condition(globalThis.innerWidth));
+    globalThis.addEventListener('resize', handleResize);
     handleResize(); // Size may have changed between render and effect
-    return () => window.removeEventListener('resize', handleResize);
+    return () => globalThis.removeEventListener('resize', handleResize);
   }, [condition]);
 
   return state;

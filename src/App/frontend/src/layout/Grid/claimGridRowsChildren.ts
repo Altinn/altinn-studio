@@ -19,7 +19,7 @@ export function claimGridRowsChildren<T extends CompTypes>(
         }
         const capabilities = getCapabilities(type);
         if (!capabilities.renderInTable) {
-          window.logWarn(
+          globalThis.logWarn(
             `Grid-like component included a component '${cell.component}', which ` +
               `is a '${type}' and cannot be rendered in a table.`,
           );

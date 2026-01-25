@@ -85,9 +85,9 @@ export function useFormDataQuery(url: string | undefined) {
   useEffect(() => {
     if (utils.error && isAxiosError(utils.error)) {
       if (utils.error.message?.includes('403')) {
-        window.logInfo('Current party is missing roles');
+        globalThis.logInfo('Current party is missing roles');
       } else {
-        window.logError('Fetching form data failed:\n', utils.error);
+        globalThis.logError('Fetching form data failed:\n', utils.error);
       }
 
       maybeAuthenticationRedirect(utils.error).then();

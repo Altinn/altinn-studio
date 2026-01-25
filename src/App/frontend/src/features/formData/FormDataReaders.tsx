@@ -214,7 +214,7 @@ function SpecificDataModelFetcher({ reader, isAvailable }: { reader: DataModelRe
     if (error) {
       const dataModelName = reader.getName();
       updateModel(new DataModelReader(dataModelName, undefined, 'error'));
-      window.logErrorOnce(
+      globalThis.logErrorOnce(
         `One or more text resources look up variables from 'dataModel.${dataModelName}', but we failed to fetch it:\n`,
         error,
       );
@@ -224,7 +224,7 @@ function SpecificDataModelFetcher({ reader, isAvailable }: { reader: DataModelRe
   useEffect(() => {
     if (!isAvailable) {
       updateModel(new DataModelReader(reader.getName(), undefined, 'error'));
-      window.logErrorOnce(
+      globalThis.logErrorOnce(
         `One or more text resources look up variables from 'dataModel.${reader.getName()}', but ` +
           `it is not available to load`,
       );

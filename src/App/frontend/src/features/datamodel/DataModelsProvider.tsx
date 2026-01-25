@@ -136,7 +136,7 @@ export function DataModelsProvider({ children }: PropsWithChildren) {
   return (
     <Provider>
       <DataModelsLoader />
-      {window.Cypress && <UpdateDataElementIdsForCypress />}
+      {globalThis.Cypress && <UpdateDataElementIdsForCypress />}
       <BlockUntilLoaded>{children}</BlockUntilLoaded>
     </Provider>
   );
@@ -179,18 +179,18 @@ function DataModelsLoader() {
 
       if (!typeDef) {
         const error = new MissingDataTypeException(dataType);
-        window.logErrorOnce(error.message);
+        globalThis.logErrorOnce(error.message);
         continue;
       }
       if (!typeDef?.appLogic?.classRef) {
         const error = new MissingClassRefException(dataType);
-        window.logErrorOnce(error.message);
+        globalThis.logErrorOnce(error.message);
         continue;
       }
 
       if (!isStateless && !dataElements?.find(([dt]) => dt === dataType)) {
         const error = new MissingDataElementException(dataType);
-        window.logErrorOnce(error.message);
+        globalThis.logErrorOnce(error.message);
         continue;
       }
 

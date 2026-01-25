@@ -23,7 +23,7 @@ export function useResetScrollPosition(getScrollPosition: () => number | undefin
       const scrollBy = newScrollPosition !== undefined ? newScrollPosition - prevScrollPosition : undefined;
 
       if (newScrollPosition !== undefined && scrollBy !== undefined && Math.abs(scrollBy) > 1) {
-        window.scrollBy({ top: scrollBy });
+        globalThis.scrollBy({ top: scrollBy });
       } else {
         requestAnimationFrame(check);
       }

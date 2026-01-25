@@ -99,7 +99,7 @@ export function ComponentSelector({ type }: ComponentSelectorProps) {
     listenersRef.current.push({ eventType: 'keydown', listener: escapeListener });
 
     for (const { eventType, listener } of listenersRef.current) {
-      window.addEventListener(eventType, listener);
+      globalThis.addEventListener(eventType, listener);
     }
     setActive(true);
   }
@@ -111,7 +111,7 @@ export function ComponentSelector({ type }: ComponentSelectorProps) {
 
   const cleanup = useCallback(() => {
     for (const { eventType, listener } of listenersRef.current) {
-      window.removeEventListener(eventType, listener);
+      globalThis.removeEventListener(eventType, listener);
     }
     listenersRef.current = [];
 

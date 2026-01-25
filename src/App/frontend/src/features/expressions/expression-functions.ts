@@ -600,11 +600,11 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
   },
   linkToComponent(linkText, id, enableBackButton = false) {
     if (id == null) {
-      window.logWarn('Component id was empty but must be set for linkToComponent to work');
+      globalThis.logWarn('Component id was empty but must be set for linkToComponent to work');
       return null;
     }
     if (linkText == null) {
-      window.logWarn('Link text was empty but must be set for linkToComponent to work');
+      globalThis.logWarn('Link text was empty but must be set for linkToComponent to work');
       return null;
     }
 
@@ -640,11 +640,11 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
   },
   linkToPage(linkText, pageId, enableBackButton = false) {
     if (pageId == null) {
-      window.logWarn('Page id was empty but must be set for linkToPage to work');
+      globalThis.logWarn('Page id was empty but must be set for linkToPage to work');
       return null;
     }
     if (linkText == null) {
-      window.logWarn('Link text was empty but must be set for linkToPage to work');
+      globalThis.logWarn('Link text was empty but must be set for linkToPage to work');
       return null;
     }
     const taskId = this.dataSources.process?.currentTask?.elementId;

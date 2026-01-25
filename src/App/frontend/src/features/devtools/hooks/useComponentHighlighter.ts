@@ -7,7 +7,7 @@ export function setHighlightStyle(highlightElement: HTMLElement, referenceElemen
   const { top, left, bottom, right } = referenceElement.getBoundingClientRect();
   const width = right - left;
   const height = bottom - top;
-  highlightElement.style.top = `${top + window.scrollY}px`;
+  highlightElement.style.top = `${top + globalThis.scrollY}px`;
   highlightElement.style.left = `${left}px`;
   highlightElement.style.width = `${width}px`;
   highlightElement.style.height = `${height}px`;

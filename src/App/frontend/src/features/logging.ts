@@ -81,8 +81,8 @@ export function parseErrorArgs(args: unknown[]): string {
 });
 
 /** @see start-app-instance.ts */
-window.CypressLog = (...args: string[]) => {
-  if (window.Cypress) {
+globalThis.CypressLog = (...args: string[]) => {
+  if (globalThis.Cypress) {
     const dateStamp = new Date().toISOString();
     // eslint-disable-next-line
     console.log('CypressLog:', dateStamp, args.join(' '));

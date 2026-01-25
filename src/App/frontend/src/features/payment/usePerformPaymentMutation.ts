@@ -16,15 +16,15 @@ export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: str
       }
     },
     onError: (error: AxiosError) => {
-      window.logError('Error performing pay action', error);
+      globalThis.logError('Error performing pay action', error);
       if (error.response?.status === 409) {
         // The payment has already been paid, reload the page to get the updated status and go to receipt
-        window.location.reload();
+        globalThis.location.reload();
       }
     },
     onSuccess: (data) => {
       if (data?.redirectUrl) {
-        window.location.assign(data.redirectUrl);
+        globalThis.location.assign(data.redirectUrl);
       } else {
         return queryClient.invalidateQueries({ queryKey: ['fetchPaymentInfo'] });
       }

@@ -20,7 +20,7 @@ export function ImageComponent({ baseComponentId }: PropsFromGenericComponent<'I
 
   let imgSrc = image?.src[languageKey] ?? image?.src.nb ?? '';
   if (imgSrc.startsWith('wwwroot')) {
-    imgSrc = imgSrc.replace('wwwroot', `/${window.org}/${window.app}`);
+    imgSrc = imgSrc.replace('wwwroot', `/${globalThis.org}/${globalThis.app}`);
   }
 
   const imgType = imgSrc.slice(-3);

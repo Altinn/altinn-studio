@@ -77,11 +77,8 @@ describe('Frontend urlHelper.ts', () => {
         href: 'https://ttd.apps.altinn.no/ttd/test',
       },
     ) => {
-      const oldWindowLocation = window.location;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      delete (window as any).location;
-      // @ts-expect-error: can be removed when this issue is fixed: https://github.com/microsoft/TypeScript/issues/61335
-      window.location = {
+      const oldWindowLocation = globalThis.location;
+      globalThis.location = {
         ...oldWindowLocation,
         ...location,
       };
@@ -95,9 +92,9 @@ describe('Frontend urlHelper.ts', () => {
       });
       it('changes the window location', () => {
         resetWindow();
-        expect(window.location.href).toBe('https://ttd.apps.altinn.no/ttd/test');
+        expect(globalThis.location.href).toBe('https://ttd.apps.altinn.no/ttd/test');
         redirectToUpgrade('overlord');
-        expect(window.location.href).toBe(
+        expect(globalThis.location.href).toBe(
           'https://altinn.no/ui/authentication/upgrade?goTo=https%3A%2F%2Fplatform.altinn.no%2Fauthentication%2Fapi%2Fv1%2Fauthentication%3Fgoto%3Dhttps%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&reqAuthLevel=overlord',
         );
       });
@@ -135,11 +132,8 @@ describe('Frontend urlHelper.ts', () => {
       });
 
       it('should throw error when host has too many subdomains', () => {
-        const oldWindowLocation = window.location;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        delete (window as any).location;
-        // @ts-expect-error: can be removed when this issue is fixed: https://github.com/microsoft/TypeScript/issues/61335
-        window.location = {
+        const oldWindowLocation = globalThis.location;
+        globalThis.location = {
           ...oldWindowLocation,
           origin: 'https://ttd.apps.altinn.no',
           pathname: '/ttd/jesttest/',

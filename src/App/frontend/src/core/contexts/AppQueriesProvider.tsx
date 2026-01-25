@@ -45,7 +45,7 @@ export const AppQueriesProvider = ({
   // Lets us access the query client from the console, and inject data into the cache (for example for use in
   // Cypress tests)
   useEffect(() => {
-    window.queryClient = queryClient;
+    globalThis.queryClient = queryClient;
   }, [queryClient]);
 
   return (

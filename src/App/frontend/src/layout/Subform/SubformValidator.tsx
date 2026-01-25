@@ -31,7 +31,7 @@ export function SubformValidator(props: NodeValidationProps<'Subform'>) {
 
     if (error) {
       addError(error, intermediateItem.id, 'node');
-      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
+      globalThis.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
     }
   }, [addError, dataType, externalItem, langAsString, intermediateItem.id, targetType]);
 

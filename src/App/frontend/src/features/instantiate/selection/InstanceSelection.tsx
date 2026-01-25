@@ -33,7 +33,7 @@ function getDateDisplayString(timeStamp: string) {
   const offset = date.getTimezoneOffset();
   date = new Date(date.getTime() - offset * 60 * 1000);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const locale = window.navigator?.language || (window.navigator as any)?.userLanguage || 'nb-NO';
+  const locale = globalThis.navigator?.language || (globalThis.navigator as any)?.userLanguage || 'nb-NO';
   return date.toLocaleDateString(locale, {
     year: 'numeric',
     month: '2-digit',
@@ -288,7 +288,7 @@ function InstanceSelection() {
 
 /**
  * Opens a new tab with the given url
- * This works much like window.open, but respects the browser settings for opening
+ * This works much like globalThis.open, but respects the browser settings for opening
  * new tabs (if they should open in the background or not)
  */
 const openInTab = (url: string, originalEvent: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {

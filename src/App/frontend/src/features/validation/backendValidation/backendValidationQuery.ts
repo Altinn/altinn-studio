@@ -98,7 +98,7 @@ export function useBackendValidationQuery<TResult = BackendValidationIssue[]>(
   });
 
   useEffect(() => {
-    query.error && window.logError('Fetching initial validations failed:\n', query.error);
+    query.error && globalThis.logError('Fetching initial validations failed:\n', query.error);
   }, [query.error]);
 
   return query;

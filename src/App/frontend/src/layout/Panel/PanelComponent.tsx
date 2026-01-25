@@ -23,7 +23,7 @@ export const PanelComponent = ({ baseComponentId }: PropsFromGenericComponent<'P
   const isOnTop = childrenOfParent.indexOf(baseComponentId) === 0;
 
   if (!textResourceBindings?.body && !textResourceBindings?.title) {
-    window.logWarn('Unable to render panel component: no text resource binding found.');
+    globalThis.logWarn('Unable to render panel component: no text resource binding found.');
     return null;
   }
 

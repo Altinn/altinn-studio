@@ -71,10 +71,10 @@ export function AltinnCollapsibleAttachments({
  * Watches the print media query and returns true if the page is being printed
  */
 function useIsPrint() {
-  const [isPrint, setIsPrint] = useState(() => window.matchMedia('print').matches);
+  const [isPrint, setIsPrint] = useState(() => globalThis.matchMedia('print').matches);
 
   useEffect(() => {
-    const mediaQueryList = window.matchMedia('print');
+    const mediaQueryList = globalThis.matchMedia('print');
     const handleChange = (event: MediaQueryListEvent) => setIsPrint(event.matches);
     mediaQueryList.addEventListener('change', handleChange);
     return () => {

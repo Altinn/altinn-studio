@@ -18,7 +18,7 @@ export function validateDataModelBindingsAny<T extends CompTypes>(
   name = key,
 ): [string[], undefined] | [undefined, JSONSchema7] {
   const value: IDataModelReference = (bindings ?? {})[key] ?? undefined;
-  if (!lookupBinding || window.forceNodePropertiesValidation === 'off') {
+  if (!lookupBinding || globalThis.forceNodePropertiesValidation === 'off') {
     return [[], undefined];
   }
 

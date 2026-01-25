@@ -25,7 +25,7 @@ const useOrgsQuery = () => {
   });
 
   useEffect(() => {
-    utils.error && window.logError('Fetching organizations failed:\n', utils.error);
+    utils.error && globalThis.logError('Fetching organizations failed:\n', utils.error);
   }, [utils.error]);
 
   return utils;

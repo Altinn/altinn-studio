@@ -22,10 +22,10 @@ jest.mock('src/core/routing/useIsReceiptPage', () => ({
 const mockUseIsReceiptPage = useIsReceiptPage as jest.MockedFunction<typeof useIsReceiptPage>;
 
 describe('Presentation', () => {
-  let realLocation: Location = window.location;
+  let realLocation: Location = globalThis.location;
 
   beforeEach(() => {
-    realLocation = window.location;
+    realLocation = globalThis.location;
     mockUseIsReceiptPage.mockReturnValue(false);
   });
 

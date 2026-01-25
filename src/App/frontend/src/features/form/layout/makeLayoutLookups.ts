@@ -193,13 +193,13 @@ function canClaimChild(childId: string, parentId: string, lookup: PlainLayoutLoo
   const parentPageKey = lookup.componentToPage[parentId];
   const exists = !!lookup.allComponents[childId];
   if (!exists) {
-    window.logError(`Component '${childId}' (as referenced by '${parentId}') does not exist`);
+    globalThis.logError(`Component '${childId}' (as referenced by '${parentId}') does not exist`);
     return false;
   }
   const existsOnThisPage = exists && lookup.componentToPage[childId] === parentPageKey;
   if (!existsOnThisPage) {
     const actualPage = lookup.componentToPage[childId];
-    window.logError(
+    globalThis.logError(
       `Component '${childId}' (as referenced by '${parentId}') exists on page '${actualPage}', not '${parentPageKey}'`,
     );
     return false;
@@ -212,7 +212,7 @@ function canClaimChild(childId: string, parentId: string, lookup: PlainLayoutLoo
   }
   if (otherClaims.length > 0) {
     const claimsStr = otherClaims.join(', ');
-    window.logError(`Component '${childId}' (as referenced by '${parentId}') is already claimed by '${claimsStr}'`);
+    globalThis.logError(`Component '${childId}' (as referenced by '${parentId}') is already claimed by '${claimsStr}'`);
     return false;
   }
 
@@ -227,7 +227,7 @@ function canClaimChild(childId: string, parentId: string, lookup: PlainLayoutLoo
 function getType(id: string, requestedBy: string, lookup: PlainLayoutLookups) {
   const type = lookup.allComponents[id]?.type;
   if (type === undefined) {
-    window.logError(`Component '${id}' (as referenced by '${requestedBy}') does not exist`);
+    globalThis.logError(`Component '${id}' (as referenced by '${requestedBy}') does not exist`);
     return undefined;
   }
   return type;

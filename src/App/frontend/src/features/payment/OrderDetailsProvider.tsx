@@ -29,7 +29,7 @@ const useOrderDetailsQuery = () => {
   const utils = useQuery<OrderDetails, HttpClientError>(useOrderDetailsQueryDef(enabled, instanceId));
 
   useEffect(() => {
-    utils.error && window.logError('Fetching orderDetails failed:\n', utils.error);
+    utils.error && globalThis.logError('Fetching orderDetails failed:\n', utils.error);
   }, [utils.error]);
 
   return {

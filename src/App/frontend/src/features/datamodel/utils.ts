@@ -78,7 +78,7 @@ function addDataTypesFromExpressionsRecursive(obj: unknown, dataTypes: Set<strin
       if (typeof maybeDataType === 'string') {
         dataTypes.add(maybeDataType);
       } else {
-        window.logWarnOnce(
+        globalThis.logWarnOnce(
           'A non-string value was found when looking for dataType references in expressions, the following dataType could not be determined:\n',
           maybeDataType,
         );

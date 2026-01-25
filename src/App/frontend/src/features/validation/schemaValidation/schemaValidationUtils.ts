@@ -146,7 +146,7 @@ export function getErrorTextKey(error: ErrorObject): string {
 export function getErrorParams(error: ErrorObject): string | null {
   const errorType = errorTypes[error.keyword];
   if (typeof errorType === 'undefined') {
-    window.logWarnOnce(`Schema validation: Error message for ${error.keyword} not implemented`);
+    globalThis.logWarnOnce(`Schema validation: Error message for ${error.keyword} not implemented`);
     return null;
   }
   const errorParams = error.params[errorType.paramKey];

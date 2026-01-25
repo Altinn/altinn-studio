@@ -30,7 +30,7 @@ function DataModelValidation<T extends CompTypes>({ externalItem, intermediateIt
   const addError = NodesInternal.useAddError();
   const def = getComponentDef(intermediateItem.type);
   const errors =
-    implementsDataModelBindingValidation(def, intermediateItem) && window.forceNodePropertiesValidation !== 'off'
+    implementsDataModelBindingValidation(def, intermediateItem) && globalThis.forceNodePropertiesValidation !== 'off'
       ? // eslint-disable-next-line react-compiler/react-compiler
         def.useDataModelBindingValidation(externalItem.id, intermediateItem.dataModelBindings)
       : emptyArray;
@@ -41,7 +41,9 @@ function DataModelValidation<T extends CompTypes>({ externalItem, intermediateIt
       return;
     }
 
-    window.logErrorOnce(`Data model binding errors for component '/${intermediateItem.id}':\n- ${errors.join('\n- ')}`);
+    globalThis.logErrorOnce(
+      `Data model binding errors for component '/${intermediateItem.id}':\n- ${errors.join('\n- ')}`,
+    );
 
     for (const error of errors) {
       addError(error, intermediateItem.id, 'node');
@@ -73,7 +75,7 @@ function SchemaValidation<T extends CompTypes>({ intermediateItem, externalItem 
       return;
     }
 
-    window.logErrorOnce(
+    globalThis.logErrorOnce(
       `Layout configuration errors for component '/${intermediateItem.id}':\n- ${errorMessages.join('\n- ')}`,
     );
 

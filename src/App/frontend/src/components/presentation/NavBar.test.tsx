@@ -37,7 +37,7 @@ describe('NavBar', () => {
   });
 
   it('should render close button', async () => {
-    jest.spyOn(window, 'location', 'get').mockReturnValue({ ...window.location });
+    jest.spyOn(window, 'location', 'get').mockReturnValue({ ...globalThis.location });
 
     await render({
       hideCloseButton: false,

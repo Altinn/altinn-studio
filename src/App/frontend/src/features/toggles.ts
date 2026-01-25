@@ -32,12 +32,12 @@ export type FeatureValue = { value: boolean; source: FeatureToggleSource };
 
 export function getFeature(feature: IFeatureToggles): FeatureValue {
   if (
-    window.featureToggles &&
-    feature in window.featureToggles &&
-    typeof window.featureToggles[feature] === 'boolean'
+    globalThis.featureToggles &&
+    feature in globalThis.featureToggles &&
+    typeof globalThis.featureToggles[feature] === 'boolean'
   ) {
     return {
-      value: window.featureToggles[feature] as boolean,
+      value: globalThis.featureToggles[feature] as boolean,
       source: 'window',
     };
   }

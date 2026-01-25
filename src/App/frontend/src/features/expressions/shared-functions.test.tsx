@@ -137,15 +137,15 @@ describe('Expressions shared function tests', () => {
     jest
       .spyOn(window, 'logError')
       .mockImplementation(() => {})
-      .mockName('window.logError');
+      .mockName('globalThis.logError');
     jest
       .spyOn(window, 'logWarnOnce')
       .mockImplementation(() => {})
-      .mockName('window.logWarnOnce');
+      .mockName('globalThis.logWarnOnce');
     jest
       .spyOn(window, 'logErrorOnce')
       .mockImplementation(() => {})
-      .mockName('window.logErrorOnce');
+      .mockName('globalThis.logErrorOnce');
   });
 
   afterEach(() => {
@@ -303,7 +303,7 @@ describe('Expressions shared function tests', () => {
 
       // Set up applicationSettings in window global (useApplicationSettings reads from here)
       if (frontendSettings) {
-        window.altinnAppGlobalData.frontendSettings = getApplicationSettingsMock(frontendSettings);
+        globalThis.altinnAppGlobalData.frontendSettings = getApplicationSettingsMock(frontendSettings);
       }
 
       jest.mocked(getApplicationMetadata).mockReturnValue(applicationMetadata);
@@ -397,7 +397,7 @@ async function assertExpr({ expression, expects, expectsFailure, ...rest }: Func
   // dependencies for the expression in some way)
   expect(Object.keys(rest)).toHaveLength(0);
 
-  const errorMock = window.logError as jest.Mock;
+  const errorMock = globalThis.logError as jest.Mock;
   const textContent = (await screen.findByTestId('expr-result')).textContent;
   const result = textContent ? JSON.parse(textContent) : null;
 

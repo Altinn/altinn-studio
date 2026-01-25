@@ -55,7 +55,7 @@ describe('GenericComponent', () => {
     const spy = jest
       .spyOn(window, 'logError')
       .mockImplementation(() => {})
-      .mockName('window.logError');
+      .mockName('globalThis.logError');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await render({ type: 'unknown-type' as any }, false);
     await waitFor(

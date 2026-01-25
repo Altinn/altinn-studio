@@ -46,7 +46,7 @@ export function FileUploadLayoutValidator(
 
     if (error) {
       addError(error, intermediateItem.id, 'node');
-      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
+      globalThis.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
     }
   }, [addError, langAsString, intermediateItem.id, othersWithSameBindingMemo]);
 

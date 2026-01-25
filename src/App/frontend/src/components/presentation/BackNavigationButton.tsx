@@ -117,7 +117,7 @@ function useReturnUrl() {
   // if the query parameter changes during the apps lifetime. But this is not likely to be an issue
   // as the value has to be base64 encoded so there will likely not be any valid update to this
   // after the app loads. We certainly don't touch it.
-  const queryParameterReturnUrl = new URLSearchParams(window.location.search).get('returnUrl');
+  const queryParameterReturnUrl = new URLSearchParams(globalThis.location.search).get('returnUrl');
 
   const { data, isFetching } = useQuery({
     queryKey: ['returnUrl', queryParameterReturnUrl],

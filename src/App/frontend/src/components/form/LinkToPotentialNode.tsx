@@ -32,11 +32,11 @@ export const LinkToPotentialNode = (props: Props) => {
   }
 
   if (!component) {
-    window.logWarnOnce(
+    globalThis.logWarnOnce(
       `linkToComponent points to a component that does not exist. The link is therefore rendered as pure text. Component ID you tried to link to: ${componentId} (base id was ${baseComponentId})`,
     );
   } else if (isHidden) {
-    window.logWarnOnce(
+    globalThis.logWarnOnce(
       `linkToComponent points to a component that is hidden. The link is therefore rendered as pure text. Component ID you tried to link to: ${componentId}`,
     );
   }

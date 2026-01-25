@@ -81,7 +81,7 @@ jest.mock('src/components/molecules/AltinnCollapsibleAttachments.module.css', ()
 describe('AltinnCollapsibleAttachments', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset window.matchMedia mock
+    // Reset globalThis.matchMedia mock
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
       value: jest.fn().mockImplementation(() => ({

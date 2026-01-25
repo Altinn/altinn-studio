@@ -20,7 +20,7 @@ describe('useCookieState', () => {
     // Clear all cookies before each test
     document.cookie.split(';').forEach((cookie) => {
       const name = cookie.split('=')[0].trim();
-      document.cookie = `${name}=; max-age=0; path=/${window.org}/${window.app}`;
+      document.cookie = `${name}=; max-age=0; path=/${globalThis.org}/${globalThis.app}`;
     });
 
     // Default mock for useProfileQuery

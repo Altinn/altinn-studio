@@ -79,11 +79,11 @@ function useIsLayoutValidationEnabled() {
   const enabled = isDev() || hasErrors || panelOpen || hasBeenEnabledBefore.current;
   hasBeenEnabledBefore.current = enabled;
 
-  if (window.forceNodePropertiesValidation === 'on') {
+  if (globalThis.forceNodePropertiesValidation === 'on') {
     return true;
   }
 
-  if (window.forceNodePropertiesValidation === 'off') {
+  if (globalThis.forceNodePropertiesValidation === 'off') {
     return false;
   }
 

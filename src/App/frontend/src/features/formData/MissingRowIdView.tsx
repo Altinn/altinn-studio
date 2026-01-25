@@ -8,7 +8,7 @@ import type { MissingRowIdException } from 'src/features/formData/MissingRowIdEx
 
 export const MissingRowIdView = ({ error }: { error: MissingRowIdException }) => {
   const { langAsString } = useLanguage();
-  window.logErrorOnce(langAsString('missing_row_id_error.full_message', [ALTINN_ROW_ID, error.path]));
+  globalThis.logErrorOnce(langAsString('missing_row_id_error.full_message', [ALTINN_ROW_ID, error.path]));
 
   return (
     <InstantiationErrorPage

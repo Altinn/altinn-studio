@@ -7,7 +7,7 @@ export const mockMediaQuery = (maxWidth: number) => {
       configurable: true,
       value: width,
     });
-    window.matchMedia = jest.fn(
+    globalThis.matchMedia = jest.fn(
       (query: string) =>
         ({
           matches: width <= maxWidth,

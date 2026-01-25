@@ -91,8 +91,8 @@ const consoleLoggers = ['error', 'warn', 'log'];
 describe('All known layout sets should evaluate as a hierarchy', () => {
   let pathnameWas: string;
   beforeAll(() => {
-    window.forceNodePropertiesValidation = 'on';
-    pathnameWas = window.location.pathname.toString();
+    globalThis.forceNodePropertiesValidation = 'on';
+    pathnameWas = globalThis.location.pathname.toString();
     for (const func of windowLoggers) {
       jest
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -114,8 +114,8 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
   });
 
   afterAll(() => {
-    window.forceNodePropertiesValidation = 'off';
-    window.location.pathname = pathnameWas;
+    globalThis.forceNodePropertiesValidation = 'off';
+    globalThis.location.pathname = pathnameWas;
     jest.restoreAllMocks();
   });
 
@@ -137,10 +137,10 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
 
   async function testSet(set: ExternalAppLayoutSet) {
     const { pathname, mainSet, subformComponent } = set.initialize();
-    window.location.pathname = pathname;
+    globalThis.location.pathname = pathname;
     const [org, app] = set.app.getOrgApp();
-    window.org = org;
-    window.app = app;
+    globalThis.org = org;
+    globalThis.app = app;
 
     jest.mocked(getApplicationMetadata).mockImplementation(() => set.app.getAppMetadata());
     jest.mocked(getLayoutSets).mockReturnValue(set.app.getRawLayoutSets().sets);
@@ -176,7 +176,7 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
       alwaysFail = err;
     }
 
-    // Inject errors from console/window.logError into the full error list for this layout-set
+    // Inject errors from console/globalThis.logError into the full error list for this layout-set
     const devToolsLoggers = windowLoggers.map((func) => window[func] as jest.Mock);
     // eslint-disable-next-line no-console
     const browserLoggers = consoleLoggers.map((func) => console[func] as jest.Mock);

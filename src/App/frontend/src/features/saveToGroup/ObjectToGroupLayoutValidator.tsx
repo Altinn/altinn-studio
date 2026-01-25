@@ -34,7 +34,7 @@ export function ObjectToGroupLayoutValidator(props: NodeValidationProps<'List' |
 
     if (error) {
       addError(error, intermediateItem.id, 'node');
-      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
+      globalThis.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
     }
   }, [addError, intermediateItem.id, deletionStrategy, checkedBinding, langAsString, group]);
 

@@ -15,7 +15,7 @@ export const PrintButtonComponent = ({ baseComponentId }: PropsFromGenericCompon
       <Button
         variant='secondary'
         color='first'
-        onClick={window.print}
+        onClick={globalThis.print}
       >
         <Lang id={textResourceBindings?.title ?? 'general.print_button_text'} />
       </Button>

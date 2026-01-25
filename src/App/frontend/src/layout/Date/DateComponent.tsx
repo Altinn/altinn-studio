@@ -28,13 +28,13 @@ export const DateComponent = ({ baseComponentId }: PropsFromGenericComponent<'Da
     displayData = isValid(parsedValue) ? formatDateLocale(language, parsedValue, format) : null;
     if (displayData?.includes('Unsupported: ')) {
       displayData = null;
-      window.logErrorOnce(
+      globalThis.logErrorOnce(
         `Date component "${baseComponentId}" failed to format using "${format}": Unsupported token(s)`,
       );
     }
   } catch (err) {
     if (value?.trim() !== '') {
-      window.logErrorOnce(`Date component "${baseComponentId}" failed to parse date "${value}":`, err);
+      globalThis.logErrorOnce(`Date component "${baseComponentId}" failed to parse date "${value}":`, err);
     }
   }
 

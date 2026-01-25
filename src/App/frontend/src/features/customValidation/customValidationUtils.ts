@@ -21,7 +21,7 @@ function resolveExpressionValidationDefinition(
   if ('ref' in definition) {
     const reference = config[definition.ref];
     if (!reference) {
-      window.logWarn(
+      globalThis.logWarn(
         `Custom validation:\nTried to reference ${definition.ref} in ${name} but it does not exist. Make sure it is defined before it is referenced.`,
       );
       return null;
@@ -38,12 +38,12 @@ function resolveExpressionValidationDefinition(
   }
 
   if (!('message' in resolvedDefinition)) {
-    window.logWarn(`Custom validation:\nDefinition for ${name} is missing a message.`);
+    globalThis.logWarn(`Custom validation:\nDefinition for ${name} is missing a message.`);
     return null;
   }
 
   if (typeof resolvedDefinition.condition === 'undefined') {
-    window.logWarn(`Custom validation:\nDefinition for ${name} is missing a condition.`);
+    globalThis.logWarn(`Custom validation:\nDefinition for ${name} is missing a condition.`);
     return null;
   }
 
@@ -62,7 +62,7 @@ function resolveExpressionValidation(
   if (typeof definition === 'string') {
     const reference = resolvedDefinitions[definition];
     if (!reference) {
-      window.logWarn(
+      globalThis.logWarn(
         `Custom validation:\nTried to reference ${definition} in validations.${field} but it does not exist.`,
       );
       return null;
@@ -80,7 +80,7 @@ function resolveExpressionValidation(
     if ('ref' in definition) {
       reference = resolvedDefinitions[definition.ref];
       if (!reference) {
-        window.logWarn(
+        globalThis.logWarn(
           `Custom validation:\nTried to reference ${definition.ref} in validations.${field} but it does not exist.`,
         );
       }
@@ -102,12 +102,12 @@ function resolveExpressionValidation(
   }
 
   if (!('message' in expressionValidation)) {
-    window.logWarn(`Custom validation:\nValidation for ${field} is missing a message.`);
+    globalThis.logWarn(`Custom validation:\nValidation for ${field} is missing a message.`);
     return null;
   }
 
   if (typeof expressionValidation.condition === 'undefined') {
-    window.logWarn(`Custom validation:\nValidation for ${field} is missing a condition.`);
+    globalThis.logWarn(`Custom validation:\nValidation for ${field} is missing a condition.`);
     return null;
   }
 

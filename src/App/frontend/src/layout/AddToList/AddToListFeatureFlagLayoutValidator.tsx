@@ -10,7 +10,7 @@ export function AddToListFeatureFlagLayoutValidator({ intermediateItem }: NodeVa
     const error = `You need to enable the feature flag addToListEnabled to use this component. Please note that the component is experimental
     and the configuration is likely to change.`;
     addError(error, intermediateItem.id, 'node');
-    window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
+    globalThis.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
   }
   return null;
 }

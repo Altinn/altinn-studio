@@ -242,7 +242,7 @@ function MaintainSimpleDataModelBinding({ bindings, attachments }: MaintainSimpl
 
   useEffect(() => {
     if (Object.keys(attachments).length > 1) {
-      window.logErrorOnce(
+      globalThis.logErrorOnce(
         `Node ${parent.baseId} has more than one attachment, but only one is supported with \`dataModelBindings.simpleBinding\``,
       );
       return;

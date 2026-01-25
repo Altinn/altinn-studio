@@ -169,7 +169,7 @@ function PlainPage({ pageKey }: { pageKey: string }) {
 
   if (!pageExists) {
     const message = `Error using: "pdfLayoutName": ${JSON.stringify(pageKey)}, could not find a layout with that name.`;
-    window.logErrorOnce(message);
+    globalThis.logErrorOnce(message);
     throw new Error(message);
   }
 

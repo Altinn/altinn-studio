@@ -48,7 +48,7 @@ export const InstantiateHeader = ({ profile }: InstantiateHeaderProps) => {
             <li className={classes.headerLink}>
               <a
                 className='altinnLink'
-                href={returnUrlToAllForms(window.location.host)}
+                href={returnUrlToAllForms(globalThis.location.host)}
               >
                 <Lang id='instantiate.all_forms' />
               </a>
@@ -56,7 +56,7 @@ export const InstantiateHeader = ({ profile }: InstantiateHeaderProps) => {
             <li className={classes.headerLink}>
               <a
                 className='altinnLink'
-                href={returnUrlToProfile(window.location.host, party?.partyId)}
+                href={returnUrlToProfile(globalThis.location.host, party?.partyId)}
               >
                 <Lang id='instantiate.profile' />
               </a>

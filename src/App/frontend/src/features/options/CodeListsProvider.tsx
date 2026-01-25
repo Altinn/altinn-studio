@@ -96,7 +96,7 @@ function CodeListFetcher({ url, optionsId, storeInZustand }: { url: string } & T
       updateCodeList(optionsId, data.data);
     } else if (error) {
       updateCodeList(optionsId, undefined);
-      window.logErrorOnce(
+      globalThis.logErrorOnce(
         `Failed to fetch options for optionLabel expression (tried to fetch '${optionsId}')\n`,
         error,
       );
@@ -183,7 +183,7 @@ function addCodeListsFromExpressionsRecursive(
         });
         urls.set(url, { optionsId: maybeOptionId, storeInZustand: true });
       } else {
-        window.logWarnOnce(
+        globalThis.logWarnOnce(
           'A non-string value was found when looking for optionsId references in expressions, the following option id could not be determined:\n',
           maybeOptionId,
         );

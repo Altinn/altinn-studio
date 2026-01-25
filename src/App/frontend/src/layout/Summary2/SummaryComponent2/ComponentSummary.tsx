@@ -80,9 +80,9 @@ function useIsHiddenBecauseEmpty<T extends CompTypes>(baseComponentId: string, t
   const forceShowInSummary = item['forceShowInSummary'];
 
   if (isRequired && content === SummaryContains.EmptyValueNotRequired) {
-    window.logErrorOnce(`Node ${baseComponentId} marked as required, but summary indicates EmptyValueNotRequired`);
+    globalThis.logErrorOnce(`Node ${baseComponentId} marked as required, but summary indicates EmptyValueNotRequired`);
   } else if (isRequired === false && content === SummaryContains.EmptyValueRequired) {
-    window.logErrorOnce(`Node ${baseComponentId} marked as not required, but summary indicates EmptyValueRequired`);
+    globalThis.logErrorOnce(`Node ${baseComponentId} marked as not required, but summary indicates EmptyValueRequired`);
   }
 
   return hideEmptyFields && !forceShowInSummary && content === SummaryContains.EmptyValueNotRequired;

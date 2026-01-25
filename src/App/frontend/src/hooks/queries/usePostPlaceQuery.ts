@@ -22,7 +22,7 @@ export const usePostPlaceQuery = (zipCode: string | undefined, enabled: boolean)
   });
 
   useEffect(() => {
-    error && window.logError(`Fetching post place for zip code ${zipCode} failed:\n`, error);
+    error && globalThis.logError(`Fetching post place for zip code ${zipCode} failed:\n`, error);
   }, [error, zipCode]);
 
   if (isFetching) {

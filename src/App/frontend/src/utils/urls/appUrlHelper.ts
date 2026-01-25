@@ -1,8 +1,8 @@
 import { IgnoredValidators } from 'src/features/validation';
 import { getQueryStringFromObject } from 'src/utils/urls/urlHelper';
 
-const { org, app } = window;
-const origin = window.location.origin;
+const { org, app } = globalThis;
+const origin = globalThis.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
 export const profileApiUrl = `${appPath}/api/v1/profile/user`;
@@ -113,8 +113,8 @@ export const getUpgradeAuthLevelUrl = (reqAuthLevel: string) => {
 
 export const getEnvironmentLoginUrl = (oidcProvider: string | null) => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.
-  const domainSplitted: string[] = window.location.host.split('.');
-  const encodedGoToUrl = encodeURIComponent(window.location.href);
+  const domainSplitted: string[] = globalThis.location.host.split('.');
+  const encodedGoToUrl = encodeURIComponent(globalThis.location.href);
   let issParam = '';
   if (oidcProvider != null && oidcProvider != '') {
     issParam = `&iss=${oidcProvider}`;
@@ -140,7 +140,7 @@ export const getEnvironmentLoginUrl = (oidcProvider: string | null) => {
 
 export const getHostname = () => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.
-  const domainSplitted: string[] = window.location.host.split('.');
+  const domainSplitted: string[] = globalThis.location.host.split('.');
   if (domainSplitted.length === 5) {
     return `${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}`;
   }
@@ -149,13 +149,13 @@ export const getHostname = () => {
   }
   if (domainSplitted[0] === 'altinn3local' || domainSplitted[0] === 'local') {
     // Local test, needs to be backward compat with users who uses old local test
-    return window.location.host;
+    return globalThis.location.host;
   }
   throw new Error('Unknown domain');
 };
 
 export const redirectToUpgrade = (reqAuthLevel: string) => {
-  window.location.href = getUpgradeAuthLevelUrl(reqAuthLevel);
+  globalThis.location.href = getUpgradeAuthLevelUrl(reqAuthLevel);
 };
 
 export const getJsonSchemaUrl = () => `${appPath}/api/jsonschema/`;

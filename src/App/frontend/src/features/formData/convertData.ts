@@ -27,7 +27,7 @@ export function convertData(value: Value, schema: JSONSchema7 | undefined): Retu
   try {
     return convertToType(value, schema);
   } catch (e) {
-    window.logError(`Error converting data to schema (${JSON.stringify(schema)}) defined by data model:\n`, e);
+    globalThis.logError(`Error converting data to schema (${JSON.stringify(schema)}) defined by data model:\n`, e);
     return { newValue: undefined, error: true };
   }
 }

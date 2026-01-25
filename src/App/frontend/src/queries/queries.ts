@@ -277,7 +277,7 @@ export const fetchLayoutSchema = async (): Promise<JSONSchema7 | undefined> => {
 export const fetchPostPlace = (zipCode: string): Promise<{ result: string; valid: boolean }> =>
   httpGet('https://api.bring.com/shippingguide/api/postalCode.json', {
     params: {
-      clientUrl: window.location.href,
+      clientUrl: globalThis.location.href,
       pnr: zipCode,
     },
   });

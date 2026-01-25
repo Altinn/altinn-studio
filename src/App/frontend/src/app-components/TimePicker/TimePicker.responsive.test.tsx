@@ -28,7 +28,7 @@ describe('TimePicker - Responsive & Accessibility', () => {
   });
 
   describe('Responsive Behavior', () => {
-    const originalInnerWidth = window.innerWidth;
+    const originalInnerWidth = globalThis.innerWidth;
 
     afterEach(() => {
       // Reset window width

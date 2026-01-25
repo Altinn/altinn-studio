@@ -1,7 +1,7 @@
 import { useNavigationParam } from 'src/hooks/navigation';
 
 export function getApplicationMetadata() {
-  return window.altinnAppGlobalData.applicationMetadata;
+  return globalThis.altinnAppGlobalData.applicationMetadata;
 }
 
 export function useIsStateless() {

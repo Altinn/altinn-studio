@@ -246,7 +246,7 @@ function isValidExpr(obj: unknown, errorText = 'Invalid expression'): obj is Exp
     });
     const fullMessage = `${errorText}:\n${pretty}`;
 
-    window.logError(fullMessage);
+    globalThis.logError(fullMessage);
     alreadyValidatedExpressions.set(cacheKey, false);
     return false;
   }
