@@ -1,4 +1,9 @@
 /**
+ * Minimum version of Altinn.App .NET libraries required for PDF service task
+ */
+export const MINIMUM_VERSION_FOR_PDF_SERVICE_TASK = '8.9.0';
+
+/**
  * Returns true if the version is 8 or higher, and false otherwise
  *
  * @param version the version to check
@@ -36,8 +41,12 @@ export const isVersionEqualOrGreater = (version: string, minVersion: string): bo
     const v = versionParts[i] || 0;
     const m = minVersionParts[i] || 0;
 
-    if (v > m) return true;
-    if (v < m) return false;
+    if (v > m) {
+      return true;
+    }
+    if (v < m) {
+      return false;
+    }
   }
 
   return true; // versions are equal

@@ -1,10 +1,11 @@
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { getAppLibVersion } from '../utils/bpmnModeler/BpmnModelerInstance';
-import { isVersionEqualOrGreater } from '../utils/processEditorUtils';
+import {
+  isVersionEqualOrGreater,
+  MINIMUM_VERSION_FOR_PDF_SERVICE_TASK,
+} from '../utils/processEditorUtils';
 
 const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];
-
-const MINIMUM_VERSION_FOR_PDF_SERVICE_TASK = '8.9.0';
 
 class SupportedPaletteProvider {
   constructor(bpmnFactory, create, elementFactory, palette, translate, modeling) {
