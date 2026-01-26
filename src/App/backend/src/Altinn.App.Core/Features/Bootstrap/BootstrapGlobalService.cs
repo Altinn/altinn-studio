@@ -54,7 +54,7 @@ internal sealed class BootstrapGlobalService(
 
     private async Task<object?> GetFooterLayout()
     {
-        var footerJson = await appResources.GetFooter();
+        var footerJson = await _appResources.GetFooter();
         return string.IsNullOrEmpty(footerJson)
             ? null
             : JsonSerializer.Deserialize<object>(footerJson, _jsonSerializerOptions);
