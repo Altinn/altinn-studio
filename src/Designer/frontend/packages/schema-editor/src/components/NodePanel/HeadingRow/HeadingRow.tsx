@@ -158,7 +158,7 @@ const DeleteButton = ({ schemaPointer }: DeleteButtonProps) => {
   const handleDelete = () => {
     setSelectedUniquePointer(null);
     setSelectedTypePointer(null);
-    savableModel.deleteNode(schemaPointer);
+    savableModel.deleteNodeAndSave(schemaPointer);
   };
 
   return (

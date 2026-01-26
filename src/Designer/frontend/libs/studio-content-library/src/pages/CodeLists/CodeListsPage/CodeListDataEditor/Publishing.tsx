@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 export type PublishingProps = {
   className: string;
   codeListName: string;
+  isPending: boolean;
   onPublish: () => void;
   publishedCodeLists: string[];
 };
@@ -13,10 +14,10 @@ export type PublishingProps = {
 export function Publishing({
   className,
   codeListName,
+  isPending,
   onPublish,
   publishedCodeLists,
 }: PublishingProps): React.ReactNode {
-  const { t } = useTranslation();
   const publishedElements = useMemo(
     () => new PublishedElements(publishedCodeLists),
     [publishedCodeLists],
@@ -24,18 +25,28 @@ export function Publishing({
 
   const canPublish = !!codeListName;
   const isPublished = publishedElements.isPublished(codeListName);
-  const buttonText = isPublished
-    ? t('app_content_library.code_lists.publish_new_version')
-    : t('app_content_library.code_lists.publish');
+  const buttonText = useButtonText(isPublished, isPending);
 
   return (
     <div className={className}>
       <PublishedTag latestVersion={publishedElements.latestVersionOrNull(codeListName)} />
-      <StudioButton onClick={onPublish} variant='secondary' disabled={!canPublish}>
+      <StudioButton
+        disabled={!canPublish}
+        loading={isPending}
+        onClick={onPublish}
+        variant='secondary'
+      >
         {buttonText}
       </StudioButton>
     </div>
   );
+}
+
+function useButtonText(isPublished: boolean, isPublishing: boolean): string {
+  const { t } = useTranslation();
+  if (isPublishing) return t('app_content_library.code_lists.is_publishing');
+  else if (isPublished) return t('app_content_library.code_lists.publish_new_version');
+  else return t('app_content_library.code_lists.publish');
 }
 
 type PublishedTagProps = {
