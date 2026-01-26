@@ -28,7 +28,7 @@ internal sealed class ReturnUrlService(IOptions<GeneralSettings> settings, ILogg
 
             if (!IsValidRedirectUri(uri.Host))
             {
-                logger.LogWarning("Invalid domain from returnUrl query parameter.");
+                logger.LogWarning("Return URL validation failed: Invalid domain");
                 return ReturnUrlValidationResult.InvalidDomain("Invalid domain from returnUrl query parameter.");
             }
 

@@ -2522,7 +2522,7 @@
           {
             "name": "returnUrl",
             "in": "query",
-            "description": "Url encoded return URL. Will be validated and set as the return url when the user clicks the back button",
+            "description": "Custom returnUrl param that will be verified",
             "schema": {
               "type": "string"
             }
@@ -2571,7 +2571,7 @@
           {
             "name": "returnUrl",
             "in": "query",
-            "description": "Url encoded return URL. Will be validated and set as the return url when the user clicks the back button",
+            "description": "Custom returnUrl param that will be verified",
             "schema": {
               "type": "string"
             }
@@ -2620,7 +2620,7 @@
           {
             "name": "returnUrl",
             "in": "query",
-            "description": "Url encoded return URL. Will be validated and set as the return url when the user clicks the back button",
+            "description": "Custom returnUrl param that will be verified",
             "schema": {
               "type": "string"
             }
@@ -2669,7 +2669,7 @@
           {
             "name": "returnUrl",
             "in": "query",
-            "description": "Url encoded return URL. Will be validated and set as the return url when the user clicks the back button",
+            "description": "Custom returnUrl param that will be verified",
             "schema": {
               "type": "string"
             }
@@ -2726,7 +2726,7 @@
           {
             "name": "returnUrl",
             "in": "query",
-            "description": "Url encoded return URL. Will be validated and set as the return url when the user clicks the back button",
+            "description": "Custom returnUrl param that will be verified",
             "schema": {
               "type": "string"
             }
@@ -2783,7 +2783,7 @@
           {
             "name": "returnUrl",
             "in": "query",
-            "description": "Url encoded return URL. Will be validated and set as the return url when the user clicks the back button",
+            "description": "Custom returnUrl param that will be verified",
             "schema": {
               "type": "string"
             }
@@ -2848,7 +2848,7 @@
           {
             "name": "returnUrl",
             "in": "query",
-            "description": "Url encoded return URL. Will be validated and set as the return url when the user clicks the back button",
+            "description": "Custom returnUrl param that will be verified",
             "schema": {
               "type": "string"
             }
