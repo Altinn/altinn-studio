@@ -1,19 +1,12 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { act, renderHook, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { useProfile } from 'src/features/profile/ProfileProvider';
+import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { useCookieState } from 'src/hooks/useCookieState';
 import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
 import { CookieStorage } from 'src/utils/cookieStorage/CookieStorage';
-
-jest.mock('src/features/profile/ProfileProvider', () => ({
-  useProfileQuery: jest.fn(),
-}));
-
-const mockedUseProfile = jest.mocked(useProfile);
 
 describe('useCookieState', () => {
   beforeEach(() => {
@@ -23,8 +16,12 @@ describe('useCookieState', () => {
       document.cookie = `${name}=; max-age=0; path=/${window.org}/${window.app}`;
     });
 
-    // Default mock for useProfileQuery
-    mockedUseProfile.mockReturnValue({ partyId: 12345 } as ReturnType<typeof useProfile>);
+    // Set default profile
+    window.altinnAppGlobalData.userProfile = getProfileMock();
+  });
+
+  afterEach(() => {
+    window.altinnAppGlobalData.userProfile = getProfileMock();
   });
 
   it('should return the default value when no cookie exists', () => {
@@ -76,6 +73,8 @@ describe('useCookieState', () => {
   });
 
   it('should work without partyId when profile is not loaded', () => {
+    window.altinnAppGlobalData.userProfile = undefined;
+
     const { result } = renderHook(() => useCookieState<string | null>('lang', null));
 
     act(() => {

@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Altinn.App.Core.Features.Redirect;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
 
