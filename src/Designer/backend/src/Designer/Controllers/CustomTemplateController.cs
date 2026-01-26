@@ -26,7 +26,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<CustomTemplateListDto>>> GetCustomTemplateList()
+        public async Task<ActionResult<CustomTemplateListDto>> GetCustomTemplateList()
         {
             List<CustomTemplate> templates = await _templateService.GetCustomTemplateList();
 

@@ -23,7 +23,6 @@ using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
 using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
-using Designer.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

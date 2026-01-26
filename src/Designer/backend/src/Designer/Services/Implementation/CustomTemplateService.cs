@@ -10,7 +10,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Designer.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NJsonSchema;
@@ -21,7 +20,7 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class CustomTemplateService : ICustomTemplateService
 {
     private const string TemplateFolder = "Templates/";
-    private const string TemplateManifestFileName = "templateManifest.json";
+    private const string TemplateManifestFileName = "templatemanifest.json";
     private const string TemplateFileName = "template.json";
     private const string TemplateContentFolder = "content";
     private const string TemplateSchemaFileName = "customtemplate.schema.json";

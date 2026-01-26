@@ -9,7 +9,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
-using Designer.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -76,7 +75,7 @@ public class GetCustomTemplateListTests : IDisposable
             .ReturnsAsync(commitSha);
 
         _giteaClientMock
-            .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templateManifest.json", null, default))
+            .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templatemanifest.json", null, default))
             .ReturnsAsync((new FileSystemObject { Content = base64Content }, null));
 
         var sut = CreateService();
@@ -91,7 +90,7 @@ public class GetCustomTemplateListTests : IDisposable
 
         // Verify cache files exist
         string cachePath = Path.Combine(_testCacheRoot, ".template-cache", "als");
-        string manifestCachePath = Path.Combine(cachePath, "templateManifest.json");
+        string manifestCachePath = Path.Combine(cachePath, "templatemanifest.json");
         string metadataPath = Path.Combine(cachePath, ".cache-info.json");
 
         Assert.True(File.Exists(manifestCachePath), "Template manifest should be cached");
@@ -108,7 +107,7 @@ public class GetCustomTemplateListTests : IDisposable
         Assert.NotNull(metadata);
 
         _giteaClientMock.Verify(x => x.GetFileAndErrorAsync(
-            "als", "als-content", "Templates/templateManifest.json", null, default), Times.Once);
+            "als", "als-content", "Templates/templatemanifest.json", null, default), Times.Once);
     }
 
     [Fact]
@@ -125,7 +124,7 @@ public class GetCustomTemplateListTests : IDisposable
         string cachePath = Path.Combine(_testCacheRoot, ".template-cache", "als");
         Directory.CreateDirectory(cachePath);
 
-        string manifestPath = Path.Combine(cachePath, "templateManifest.json");
+        string manifestPath = Path.Combine(cachePath, "templatemanifest.json");
         await File.WriteAllTextAsync(manifestPath, JsonSerializer.Serialize(cachedTemplates));
 
         string metadataPath = Path.Combine(cachePath, ".cache-info.json");
@@ -164,7 +163,7 @@ public class GetCustomTemplateListTests : IDisposable
         string cachePath = Path.Combine(_testCacheRoot, ".template-cache", "als");
         Directory.CreateDirectory(cachePath);
 
-        string manifestPath = Path.Combine(cachePath, "templateManifest.json");
+        string manifestPath = Path.Combine(cachePath, "templatemanifest.json");
         await File.WriteAllTextAsync(manifestPath, "[]");
 
         string metadataPath = Path.Combine(cachePath, ".cache-info.json");
@@ -186,7 +185,7 @@ public class GetCustomTemplateListTests : IDisposable
             .ReturnsAsync(commitSha);
 
         _giteaClientMock
-            .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templateManifest.json", null, default))
+            .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templatemanifest.json", null, default))
             .ReturnsAsync((new FileSystemObject
             {
                 Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(newManifestJson))
@@ -206,7 +205,7 @@ public class GetCustomTemplateListTests : IDisposable
         Assert.Contains(commitSha, updatedMetadataJson);
 
         _giteaClientMock.Verify(x => x.GetFileAndErrorAsync(
-            "als", "als-content", "Templates/templateManifest.json", null, default), Times.Once);
+            "als", "als-content", "Templates/templatemanifest.json", null, default), Times.Once);
     }
 
     [Fact]
@@ -220,7 +219,7 @@ public class GetCustomTemplateListTests : IDisposable
         string cachePath = Path.Combine(_testCacheRoot, ".template-cache", "als");
         Directory.CreateDirectory(cachePath);
 
-        string manifestPath = Path.Combine(cachePath, "templateManifest.json");
+        string manifestPath = Path.Combine(cachePath, "templatemanifest.json");
         await File.WriteAllTextAsync(manifestPath, "[]");
 
         string metadataPath = Path.Combine(cachePath, ".cache-info.json");
@@ -241,7 +240,7 @@ public class GetCustomTemplateListTests : IDisposable
             .ReturnsAsync(newCommitSha);
 
         _giteaClientMock
-            .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templateManifest.json", null, default))
+            .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templatemanifest.json", null, default))
             .ReturnsAsync((new FileSystemObject
             {
                 Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(updatedTemplates)))
@@ -276,7 +275,7 @@ public class GetCustomTemplateListTests : IDisposable
             .ReturnsAsync(commitSha);
 
         _giteaClientMock
-            .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templateManifest.json", null, default))
+            .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templatemanifest.json", null, default))
             .ReturnsAsync((new FileSystemObject
             {
                 Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(templates)))
@@ -302,7 +301,7 @@ public class GetCustomTemplateListTests : IDisposable
             .ReturnsAsync("abc123def456");
 
         _giteaClientMock
-            .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templateManifest.json", null, default))
+            .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templatemanifest.json", null, default))
             .ReturnsAsync((new FileSystemObject
             {
                 Content = Convert.ToBase64String(Encoding.UTF8.GetBytes("[]"))
@@ -326,7 +325,7 @@ public class GetCustomTemplateListTests : IDisposable
             .ReturnsAsync("abc123def456");
 
         _giteaClientMock
-            .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templateManifest.json", null, default))
+            .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templatemanifest.json", null, default))
             .ReturnsAsync((null, new ProblemDetails { Status = 404 }));
 
         var sut = CreateService();

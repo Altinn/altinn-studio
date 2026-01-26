@@ -10,7 +10,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
-using Designer.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -294,7 +293,7 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         string invalidJson = "{ \"id\": \"test\" }"; // Invalid according to schema
 
         _giteaClientMock
-            .Setup(x => x.GetFileAndErrorAsync(templateOwner, "als-content", 
+            .Setup(x => x.GetFileAndErrorAsync(templateOwner, "als-content",
                 $"Templates/{templateId}\\template.json", null, default))
             .ReturnsAsync((new FileSystemObject
             {
