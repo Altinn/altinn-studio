@@ -17,6 +17,9 @@ type Jwks struct {
 
 type Jwk struct {
 	inner jose.JSONWebKey
+	// exp stores the Unix timestamp of certificate expiry (NotAfter)
+	// Required by Maskinporten API, preserved even when certificates are removed for public key
+	exp *int64
 }
 
 func NewJwks(keys ...*Jwk) *Jwks {
@@ -24,7 +27,7 @@ func NewJwks(keys ...*Jwk) *Jwks {
 }
 
 func NewJwk(certificates []*x509.Certificate, key *rsa.PrivateKey, keyId string, use string, algorithm string) *Jwk {
-	return &Jwk{
+	jwk := &Jwk{
 		inner: jose.JSONWebKey{
 			Certificates: certificates,
 			Key:          key,
@@ -33,19 +36,57 @@ func NewJwk(certificates []*x509.Certificate, key *rsa.PrivateKey, keyId string,
 			Algorithm:    algorithm,
 		},
 	}
+
+	if len(certificates) > 0 {
+		expUnix := certificates[0].NotAfter.Unix()
+		jwk.exp = &expUnix
+	}
+
+	return jwk
 }
 
 func (j *Jwk) MarshalJSON() ([]byte, error) {
-	return json.Marshal(j.inner)
+	data, err := j.inner.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+
+	if j.exp == nil {
+		return data, nil
+	}
+
+	var m map[string]any
+	if err := json.Unmarshal(data, &m); err != nil {
+		return nil, err
+	}
+
+	m["exp"] = *j.exp
+	return json.Marshal(m)
+}
+
+// jwkWithExp is used for unmarshaling JSON that may include Maskinporten's 'exp' field
+type jwkWithExp struct {
+	jose.JSONWebKey
+	Exp *int64 `json:"exp,omitempty"`
 }
 
 func (j *Jwk) UnmarshalJSON(b []byte) error {
-	var inner jose.JSONWebKey
-	if err := json.Unmarshal(b, &inner); err != nil {
+	var wrapper jwkWithExp
+	if err := json.Unmarshal(b, &wrapper); err != nil {
 		return err
 	}
 
-	j.inner = inner
+	j.inner = wrapper.JSONWebKey
+
+	// `exp` was initially not added to JWK's, so this makes it backward compatible
+	// with any clients that were created before we started adding it
+	if wrapper.Exp == nil && len(wrapper.Certificates) > 0 {
+		expUnix := wrapper.Certificates[0].NotAfter.Unix()
+		j.exp = &expUnix
+	} else {
+		j.exp = wrapper.Exp
+	}
+
 	return nil
 }
 
@@ -73,7 +114,11 @@ func (j *Jwk) Public() *Jwk {
 	// We set certificates to nil here because Maskinporten doesn't want the 'x5c' field
 	// which is marshalled from the Certificates field on the struct.
 	publicJwk.Certificates = nil
-	return &Jwk{inner: publicJwk}
+
+	return &Jwk{
+		inner: publicJwk,
+		exp:   j.exp,
+	}
 }
 
 func (j *Jwk) Certificates() []*x509.Certificate {

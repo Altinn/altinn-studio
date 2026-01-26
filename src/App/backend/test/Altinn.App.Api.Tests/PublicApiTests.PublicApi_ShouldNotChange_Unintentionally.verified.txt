@@ -253,7 +253,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.Route("party-selection")]
         [Microsoft.AspNetCore.Mvc.Route("party-selection/{errorCode}")]
         [Microsoft.AspNetCore.Mvc.Route("{pageName:int}")]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Index([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] bool dontChooseReportee) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Index([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] bool dontChooseReportee, [Microsoft.AspNetCore.Mvc.FromQuery] string? returnUrl) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "text/html", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
@@ -513,7 +513,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/v1/redirect")]
     public class RedirectController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public RedirectController(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> settings) { }
+        public RedirectController(Altinn.App.Core.Features.Redirect.IReturnUrlService returnUrlService) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(400)]
