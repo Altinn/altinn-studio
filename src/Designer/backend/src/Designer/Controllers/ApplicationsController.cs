@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Models.Dto;
@@ -83,7 +84,7 @@ public class ApplicationsController : ControllerBase
                 }
                 catch (HttpRequestException e)
                 {
-                    _logger.LogError(e, $"Could not reach environment {env.Name} for org {org}.");
+                    _logger.LogError(e, "Could not reach environment {EnvName} for org {Org}.", env.Name, org.WithoutLineBreaks());
                     return (env, new List<AppDeployment>());
                 }
             });
@@ -120,7 +121,7 @@ public class ApplicationsController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "Invalid deployment data for org {Org}.", org);
+            _logger.LogError(ex, "Invalid deployment data for org {Org}.", org.WithoutLineBreaks());
             return StatusCode(502);
         }
     }
@@ -181,8 +182,8 @@ public class ApplicationsController : ControllerBase
                     _logger.LogError(
                         ex,
                         "Invalid Index.cshtml file for app {Org}/{App}@{Commit}.",
-                        org,
-                        app,
+                        org.WithoutLineBreaks(),
+                        app.WithoutLineBreaks(),
                         releaseEntity.TargetCommitish
                     );
                 }
@@ -200,9 +201,9 @@ public class ApplicationsController : ControllerBase
                     _logger.LogError(
                         ex,
                         "Invalid AltinnNugetVersion for app {Org}/{Env}/{App}: '{AltinnNugetVersion}'.",
-                        org,
-                        env,
-                        app,
+                        org.WithoutLineBreaks(),
+                        env.WithoutLineBreaks(),
+                        app.WithoutLineBreaks(),
                         applicationMetadata.AltinnNugetVersion
                     );
                 }
@@ -292,9 +293,9 @@ public class ApplicationsController : ControllerBase
             _logger.LogError(
                 ex,
                 "Invalid process task data for app {Org}/{Env}/{App}.",
-                org,
-                env,
-                app
+                org.WithoutLineBreaks(),
+                env.WithoutLineBreaks(),
+                app.WithoutLineBreaks()
             );
             return StatusCode(502);
         }
