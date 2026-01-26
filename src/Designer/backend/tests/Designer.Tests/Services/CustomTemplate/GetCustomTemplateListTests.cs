@@ -63,8 +63,8 @@ public class GetCustomTemplateListTests : IDisposable
         string commitSha = "abc123def456";
         var expectedTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "template-1", Owner = "als", Name = new(){ { "nb", "Template 1" } }, Remove = { } },
-            new() { Id = "template-2", Owner = "als", Name = new(){ { "nb", "Template 2" } }, Remove = { } }
+            new() { Id = "template-1", Owner = "als", Name = new(){ { "nb", "Template 1" } } },
+            new() { Id = "template-2", Owner = "als", Name = new(){ { "nb", "Template 2" } } }
         };
 
         string manifestJson = JsonSerializer.Serialize(expectedTemplates);
@@ -117,7 +117,7 @@ public class GetCustomTemplateListTests : IDisposable
         string commitSha = "abc123def456";
         var cachedTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "cached-template", Owner = "als", Name =new() { { "nb", "Cached Template" } }, Remove = { } }
+            new() { Id = "cached-template", Owner = "als", Name =new() { { "nb", "Cached Template" } } }
         };
 
         // Setup cache manually
@@ -176,7 +176,7 @@ public class GetCustomTemplateListTests : IDisposable
 
         var newTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "new-template", Owner = "als", Name = new() { { "nb", "New Template" } }, Remove = { } }
+            new() { Id = "new-template", Owner = "als", Name = new() { { "nb", "New Template" } } }
         };
         string newManifestJson = JsonSerializer.Serialize(newTemplates);
 
@@ -232,7 +232,7 @@ public class GetCustomTemplateListTests : IDisposable
 
         var updatedTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "updated-template", Owner = "als", Name = new(){ { "nb", "Updated Template" } }, Remove = { } }
+            new() { Id = "updated-template", Owner = "als", Name = new(){ { "nb", "Updated Template" } } }
         };
 
         _giteaClientMock
@@ -267,7 +267,7 @@ public class GetCustomTemplateListTests : IDisposable
         string commitSha = "abc123def456";
         var templates = new List<CustomTemplateModel>
         {
-            new() { Id = "test-template", Owner = "als", Name = new() { { "nb", "Test" } }, Remove = [] }
+            new() { Id = "test-template", Owner = "als", Name = new() { { "nb", "Test" } } }
         };
 
         _giteaClientMock
