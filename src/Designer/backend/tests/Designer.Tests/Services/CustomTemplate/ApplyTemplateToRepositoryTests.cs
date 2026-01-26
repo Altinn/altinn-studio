@@ -294,7 +294,7 @@ public class ApplyTemplateToRepositoryTests : IDisposable
 
         _giteaClientMock
             .Setup(x => x.GetFileAndErrorAsync(templateOwner, "als-content",
-                $"Templates/{templateId}\\template.json", null, default))
+                   It.Is<string>(s => s.Contains(templateId) && s.Contains("template.json")), null, default))
             .ReturnsAsync((new FileSystemObject
             {
                 Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(invalidJson))
@@ -321,7 +321,7 @@ public class ApplyTemplateToRepositoryTests : IDisposable
 
         _giteaClientMock
             .Setup(x => x.GetFileAndErrorAsync(templateOwner, "als-content",
-                $"Templates/{templateId}\\template.json", null, default))
+                It.Is<string>(s => s.Contains(templateId) && s.Contains("template.json")), null, default))
             .ReturnsAsync((null, new ProblemDetails { Status = 404 }));
 
         var sut = CreateService();
