@@ -197,7 +197,9 @@ class SupportedPaletteProvider {
         const appLibVersion = getAppLibVersion();
         if (!isVersionEqualOrGreater(appLibVersion, MINIMUM_VERSION_FOR_PDF_SERVICE_TASK)) {
           window.alert(
-            'Denne funksjonaliteten krever versjon 8.9.0 eller høyere av Altinn.App-.NET-bibliotekene.',
+            translate('process_editor.palette_pdf_service_task_version_error', {
+              version: MINIMUM_VERSION_FOR_PDF_SERVICE_TASK,
+            }),
           );
           return;
         }
@@ -253,7 +255,7 @@ class SupportedPaletteProvider {
         'create.altinn-data-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-data-task',
-          title: translate('Create data task'),
+          title: translate('process_editor.palette_create_data_task'),
           action: {
             click: createCustomTask('data'),
             dragstart: createCustomTask('data'),
@@ -261,7 +263,7 @@ class SupportedPaletteProvider {
         },
         'create.altinn-feedback-task': {
           group: 'activity',
-          title: translate('Create feedback task'),
+          title: translate('process_editor.palette_create_feedback_task'),
           className: 'bpmn-icon-task-generic bpmn-icon-feedback-task',
           action: {
             click: createCustomTask('feedback'),
@@ -271,7 +273,7 @@ class SupportedPaletteProvider {
         'create.altinn-signing-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-signing-task',
-          title: translate('Create signing task'),
+          title: translate('process_editor.palette_create_signing_task'),
           action: {
             click: createCustomSigningTask(),
             dragstart: createCustomSigningTask(),
@@ -280,7 +282,7 @@ class SupportedPaletteProvider {
         'create.altinn-user-controlled-signing-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-user-controlled-signing-task',
-          title: translate('Create user-controlled signing task'),
+          title: translate('process_editor.palette_create_user_controlled_signing_task'),
           action: {
             click: createUserControlledSigningTask(),
             dragstart: createUserControlledSigningTask(),
@@ -289,7 +291,7 @@ class SupportedPaletteProvider {
         'create.altinn-confirmation-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
-          title: translate('Create confirm task'),
+          title: translate('process_editor.palette_create_confirmation_task'),
           action: {
             click: createCustomConfirmationTask(),
             dragstart: createCustomConfirmationTask(),
@@ -298,7 +300,7 @@ class SupportedPaletteProvider {
         'create.altinn-payment-task': {
           group: 'activity',
           className: `bpmn-icon-task-generic bpmn-icon-payment-task`,
-          title: translate('Create payment task'),
+          title: translate('process_editor.palette_create_payment_task'),
           action: {
             click: createCustomPaymentTask(),
             dragstart: createCustomPaymentTask(),
@@ -307,7 +309,7 @@ class SupportedPaletteProvider {
         'create.altinn-pdf-task': {
           group: 'activity',
           className: `bpmn-icon-task-generic bpmn-icon-pdf-task`,
-          title: translate('Create PDF service task'),
+          title: translate('process_editor.palette_create_pdf_service_task'),
           action: {
             click: createCustomPdfServiceTask(),
             dragstart: createCustomPdfServiceTask(),
