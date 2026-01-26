@@ -48,7 +48,7 @@ internal sealed class BootstrapGlobalService(
             LayoutSets = layoutSets,
             AvailableLanguages = await availableLanguagesTask,
             FrontEndSettings = _frontEndSettings.Value,
-            ReturnUrl = validatedUrl.DecodedUrl is not null ? validatedUrl : null,
+            ReturnUrl = validatedUrl.DecodedUrl is not null ? validatedUrl.DecodedUrl : null,
         };
     }
 

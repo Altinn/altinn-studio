@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Altinn.App.Core.Features.Redirect;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Features.Bootstrap.Models;
@@ -40,5 +39,5 @@ internal class BootstrapGlobalResponse
     /// Verified returnUrl
     /// </summary>
     [JsonPropertyName("returnUrl")]
-    public ReturnUrlValidationResult? ReturnUrl { get; set; }
+    public string? ReturnUrl { get; set; }
 }
