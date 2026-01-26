@@ -80,8 +80,8 @@ func (j *Jwk) UnmarshalJSON(b []byte) error {
 
 	// `exp` was initially not added to JWK's, so this makes it backward compatible
 	// with any clients that were created before we started adding it
-	if wrapper.Exp == nil && len(wrapper.JSONWebKey.Certificates) > 0 {
-		expUnix := wrapper.JSONWebKey.Certificates[0].NotAfter.Unix()
+	if wrapper.Exp == nil && len(wrapper.Certificates) > 0 {
+		expUnix := wrapper.Certificates[0].NotAfter.Unix()
 		j.exp = &expUnix
 	} else {
 		j.exp = wrapper.Exp
