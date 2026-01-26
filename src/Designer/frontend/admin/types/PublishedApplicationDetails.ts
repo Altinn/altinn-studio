@@ -3,6 +3,8 @@ export type PublishedApplicationDetails = {
   env: string;
   app: string;
   version: string;
+  appLibVersion?: string;
+  appFrontendVersion?: string;
   commit: string;
   createdAt: string;
   createdBy: string;

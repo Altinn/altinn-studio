@@ -3,8 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Models.Dto;
@@ -29,6 +32,7 @@ public class ApplicationsController : ControllerBase
     private readonly IDeploymentRepository _deploymentRepository;
     private readonly IReleaseRepository _releaseRepository;
     private readonly IAppResourcesService _appResourcesService;
+    private readonly IGiteaClient _giteaClient;
     private readonly ILogger<ApplicationsController> _logger;
 
     public ApplicationsController(
@@ -37,6 +41,7 @@ public class ApplicationsController : ControllerBase
         IDeploymentRepository deploymentRepository,
         IReleaseRepository releaseRepository,
         IAppResourcesService appResourcesService,
+        IGiteaClient giteaClient,
         ILogger<ApplicationsController> logger
     )
     {
@@ -45,6 +50,7 @@ public class ApplicationsController : ControllerBase
         _deploymentRepository = deploymentRepository;
         _releaseRepository = releaseRepository;
         _appResourcesService = appResourcesService;
+        _giteaClient = giteaClient;
         _logger = logger;
     }
 
@@ -129,6 +135,8 @@ public class ApplicationsController : ControllerBase
     {
         try
         {
+            var applicationMetadataTask = _appResourcesService.GetApplicationMetadata(org, env, app, ct);
+
             var runtimeAppDeployment = await _runtimeGatewayClient.GetAppDeployment(
                 org,
                 app,
@@ -136,21 +144,43 @@ public class ApplicationsController : ControllerBase
                 ct
             );
 
-            var deploymentEntity = await _deploymentRepository.Get(
-                org,
-                runtimeAppDeployment.BuildId
-            );
             var releaseEntity = await _releaseRepository.GetSucceededReleaseFromDb(
                 org,
                 app,
                 runtimeAppDeployment.ImageTag
             );
 
+            var indexFileTask = _giteaClient.GetFileAsync(org, app, $"App/views/Home/Index.cshtml", releaseEntity.TargetCommitish, ct);
+
+            var deploymentEntity = await _deploymentRepository.Get(
+                org,
+                runtimeAppDeployment.BuildId
+            );
+
+            var indexFile = await indexFileTask;
+            var applicationMetadata = await applicationMetadataTask;
+
+            var indexFileContent = !string.IsNullOrEmpty(indexFile?.Content) ? Encoding.UTF8.GetString(Convert.FromBase64String(indexFile.Content)) : null;
+            string frontendVersion = null;
+            if (!string.IsNullOrEmpty(indexFileContent))
+            {
+                AppFrontendVersionHelper.TryGetFrontendVersionFromIndexContent(
+                    indexFileContent,
+                    out frontendVersion
+                );
+            }
+
+            var appLibVersion = !string.IsNullOrEmpty(applicationMetadata.AltinnNugetVersion)
+                ? new Version(applicationMetadata.AltinnNugetVersion).ToString(3)
+                : null;
+
             var application = new PublishedApplicationDetails()
             {
                 Org = runtimeAppDeployment.Org,
                 App = runtimeAppDeployment.App,
                 Version = runtimeAppDeployment.ImageTag,
+                AppLibVersion = appLibVersion,
+                AppFrontendVersion = frontendVersion,
                 Env = deploymentEntity.EnvName, // runtimeAppDeployment.Env uses prod (not production)
                 Commit = releaseEntity.TargetCommitish,
                 CreatedAt = deploymentEntity.Created,
