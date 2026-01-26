@@ -4,7 +4,7 @@ import { jest } from '@jest/globals';
 import { act, renderHook, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { useProfileQuery } from 'src/features/profile/ProfileProvider';
+import { useProfile } from 'src/features/profile/ProfileProvider';
 import { useCookieState } from 'src/hooks/useCookieState';
 import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
 import { CookieStorage } from 'src/utils/cookieStorage/CookieStorage';
@@ -13,7 +13,7 @@ jest.mock('src/features/profile/ProfileProvider', () => ({
   useProfileQuery: jest.fn(),
 }));
 
-const mockedUseProfileQuery = jest.mocked(useProfileQuery);
+const mockedUseProfile = jest.mocked(useProfile);
 
 describe('useCookieState', () => {
   beforeEach(() => {
@@ -24,11 +24,7 @@ describe('useCookieState', () => {
     });
 
     // Default mock for useProfileQuery
-    mockedUseProfileQuery.mockReturnValue({
-      data: { partyId: 12345 },
-      isLoading: false,
-      enabled: true,
-    } as ReturnType<typeof useProfileQuery>);
+    mockedUseProfile.mockReturnValue({ partyId: 12345 } as ReturnType<typeof useProfile>);
   });
 
   it('should return the default value when no cookie exists', () => {
@@ -80,12 +76,6 @@ describe('useCookieState', () => {
   });
 
   it('should work without partyId when profile is not loaded', () => {
-    mockedUseProfileQuery.mockReturnValue({
-      data: null,
-      isLoading: true,
-      enabled: true,
-    } as ReturnType<typeof useProfileQuery>);
-
     const { result } = renderHook(() => useCookieState<string | null>('lang', null));
 
     act(() => {

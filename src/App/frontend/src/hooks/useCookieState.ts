@@ -1,6 +1,7 @@
 import { useCallback, useSyncExternalStore } from 'react';
 
-import { useProfileQuery } from 'src/features/profile/ProfileProvider';
+import { useProfile } from 'src/features/profile/ProfileProvider';
+// import { useProfileQuery } from 'src/features/profile/ProfileProvider';
 import { CookieStorage } from 'src/utils/cookieStorage/CookieStorage';
 import { isNotNullUndefinedOrEmpty } from 'src/utils/listUtils';
 
@@ -29,7 +30,7 @@ function getFullCookieKey(cookieName: CookieName, partyId: number | undefined): 
 }
 
 export function useCookieState<T>(cookieName: CookieName, defaultValue: T): [T, (value: T) => void] {
-  const { data: profile } = useProfileQuery();
+  const profile = useProfile();
   const partyId = profile?.partyId;
   const fullCookieKey = getFullCookieKey(cookieName, partyId);
 
