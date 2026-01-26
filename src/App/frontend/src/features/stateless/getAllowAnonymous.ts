@@ -1,19 +1,20 @@
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
-import { useLayoutSetsQuery } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { getDataTypeByLayoutSetId } from 'src/features/instance/instanceUtils';
 
 export const useAllowAnonymous = () => {
-  const application = getApplicationMetadata();
   const isStateless = useIsStateless();
-  const { data: layoutSets } = useLayoutSetsQuery();
 
-  if (!layoutSets || !isStateless) {
+  if (!isStateless) {
     return false;
   }
 
+  const application = getApplicationMetadata();
+  const layoutSets = getLayoutSets();
+
   const dataTypeId = getDataTypeByLayoutSetId({
     layoutSetId: application.onEntry.show,
-    layoutSets: layoutSets.sets,
+    layoutSets,
   });
   const dataType = application.dataTypes.find((d) => d.id === dataTypeId);
   const allowAnonymous = dataType?.appLogic?.allowAnonymousOnStateless;

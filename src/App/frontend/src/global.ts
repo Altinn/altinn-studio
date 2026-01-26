@@ -3,23 +3,19 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IAttachmentsMap } from 'src/features/attachments';
 import type { IFooterLayout } from 'src/features/footer/types';
+import type { ILayoutSets } from 'src/features/form/layoutSets/types';
 import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
 import type { IAppLanguage, IApplicationSettings } from 'src/types/shared';
 
 ///<reference types="cypress-iframe" />
 
-type GlobalData = {
+export type AltinnAppGlobalData = {
   applicationMetadata: ApplicationMetadata;
   footer: IFooterLayout;
+  layoutSets: ILayoutSets;
   frontendSettings: IApplicationSettings;
   availableLanguages: IAppLanguage[];
   returnUrl?: string;
-  // returnUrl?: {
-  //   isValid: boolean;
-  //   decodedUrl?: string;
-  //   isInvalidDomain: boolean;
-  //   errorMessage?: string;
-  // };
 };
 
 declare global {
@@ -27,7 +23,8 @@ declare global {
     app: string;
     org: string;
     featureToggles: IFeatureTogglesOptionalMap;
-    altinnAppGlobalData: GlobalData;
+    altinnAppGlobalData: AltinnAppGlobalData;
+
     // Exposes our global query client, which is used to cache data from API calls. This is exposed so that Cypress
     // can inject data into the cache, and so that we can access the cache in tests. It is also used by Studio
     // to invalidate/inject layout data the (Studio) user makes a change to the layout and wants to see the result
