@@ -373,8 +373,8 @@ public class ApplyTemplateToRepositoryTests : IDisposable
 
         // Verify API was NOT called for content download (only for template.json and commit check)
         _giteaClientMock.Verify(x => x.GetDirectoryAsync(
-            It.IsAny<string>(), It.IsAny<string>(), 
-            It.Is<string>(p => p.Contains("/content")), 
+            It.IsAny<string>(), It.IsAny<string>(),
+            It.Is<string>(p => p.Contains("/content")),
             It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -382,7 +382,7 @@ public class ApplyTemplateToRepositoryTests : IDisposable
 
     private string CreateTargetRepository(string org, string repo, string developer)
     {
-        string path = _repoSettings.GetServicePath(org, repo, developer); 
+        string path = _repoSettings.GetServicePath(org, repo, developer);
         Directory.CreateDirectory(path);
         return path;
     }
@@ -431,10 +431,10 @@ public class ApplyTemplateToRepositoryTests : IDisposable
             .Setup(x => x.GetLatestCommitOnBranch(owner, $"{owner}-content", null, default))
             .ReturnsAsync("abc123def456");
 
-          _giteaClientMock
-              .Setup(x => x.GetFileAndErrorAsync(owner, $"{owner}-content",
-                  $"Templates/{templateId}\\template.json", null, default))
-              .ReturnsAsync((new FileSystemObject { Content = base64Content }, null));
+        string path = Path.Combine("Templates", templateId, "template.json");
+        _giteaClientMock
+            .Setup(x => x.GetFileAndErrorAsync(owner, $"{owner}-content", It.Is<string>(s => s.Contains(templateId) && s.Contains("template.json")), null, default))
+            .ReturnsAsync((new FileSystemObject { Content = base64Content }, null));
     }
 
     private CustomTemplateService CreateService()
