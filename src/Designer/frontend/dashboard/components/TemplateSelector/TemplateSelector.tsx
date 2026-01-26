@@ -6,24 +6,28 @@ import { useTranslation } from 'react-i18next';
 
 export type TemplateSelectorProps = {
   templates: CustomTemplate[];
-  selectedTemplates: CustomTemplate[];
-  onChange: (selected: CustomTemplate[]) => void;
+  selectedTemplate: CustomTemplate;
+  onChange: (selected: CustomTemplate) => void;
 };
 
 export const TemplateSelector = ({
   templates,
-  selectedTemplates,
+  selectedTemplate,
   onChange,
 }: TemplateSelectorProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = Array.from(event.target.selectedOptions);
-    const selected = templates.filter((template) =>
+    const selected = templates.find((template) =>
       selectedOptions.some((option) => option.value === template.id),
     );
     onChange(selected);
   };
+
+  if (templates.length === 0) {
+    return null;
+  }
 
   return (
     <div className={classes.templateSelectorContainer}>
@@ -31,9 +35,7 @@ export const TemplateSelector = ({
         onChange={handleChange}
         label={t('dashboard.new_application_form.select_templates')}
         description={t('dashboard.new_application_form.select_templates_description')}
-        value={
-          selectedTemplates.find((temp) => temp.id) ? selectedTemplates.map((temp) => temp.id) : ''
-        } // If no selection, set to empty string to show placeholder
+        value={selectedTemplate?.id || ''}
       >
         <StudioSelect.Option value=''>
           {t('dashboard.new_application_form.select_templates_default')}
@@ -44,16 +46,16 @@ export const TemplateSelector = ({
           </StudioSelect.Option>
         ))}
       </StudioSelect>
-      {selectedTemplates.map((template) => (
-        <StudioCard key={template.id}>
+      {selectedTemplate && (
+        <StudioCard key={selectedTemplate.id}>
           <StudioParagraph className={classes.templateName} spacing>
-            {template.name.nb ?? template.id}
+            {selectedTemplate.name.nb ?? selectedTemplate.id}
           </StudioParagraph>
-          {template.description && (
-            <StudioParagraph>{template.description.nb ?? template.id}</StudioParagraph>
+          {selectedTemplate.description && (
+            <StudioParagraph>{selectedTemplate.description.nb ?? ''}</StudioParagraph>
           )}
         </StudioCard>
-      ))}
+      )}
     </div>
   );
 };
