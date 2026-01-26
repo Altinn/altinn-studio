@@ -58,8 +58,8 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
 
   const { enterSubform } = useNavigatePage();
   const lock = FD.useLocking(id);
-  const performProcess = useProcessingMutation('subform');
-  const isAdding = useIsThisProcessing('subform');
+  const performProcess = useProcessingMutation('add-subform');
+  const isAdding = useIsThisProcessing('add-subform');
   const isAddingDisabled = useIsAnyProcessing();
   const nodeId = useIndexedId(baseComponentId);
 

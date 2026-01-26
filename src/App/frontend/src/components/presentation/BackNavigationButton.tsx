@@ -26,8 +26,8 @@ export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
   const isSubform = useIsSubformPage();
   const { returnUrl, isFetchingReturnUrl } = useReturnUrl();
   const { exitSubform } = useNavigatePage();
-  const performProcess = useProcessingMutation('exitSubform');
-  const isExitingSubform = useIsThisProcessing('exitSubform');
+  const performProcess = useProcessingMutation('exit-subform');
+  const isExitingSubform = useIsThisProcessing('exit-subform');
   const isAnyProcessing = useIsAnyProcessing();
 
   const dataValues = useInstanceDataQuery({ select: (instance) => instance.dataValues }).data;

@@ -13,7 +13,7 @@ const PROCESSING_MUTATION_KEY = ['processing'] as const;
  * - 'custom-action': Custom button actions
  * - 'navigate-page': All page navigation (NavigationBar, NavigationButtons, Page, PageGroup)
  */
-export type MutationKey = 'instantiation' | 'exitSubform' | 'subform' | 'custom-action' | 'navigate-page';
+export type MutationKey = 'instantiation' | 'exit-subform' | 'add-subform' | 'custom-action' | 'navigate-page';
 
 /**
  * Process keys for 'navigate-page' mutations.
