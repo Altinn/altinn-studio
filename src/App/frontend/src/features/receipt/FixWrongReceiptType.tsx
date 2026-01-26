@@ -26,7 +26,7 @@ export function FixWrongReceiptType({ children }: PropsWithChildren) {
     redirectTo = TaskKeys.CustomReceipt;
   } else if (taskId === TaskKeys.CustomReceipt && (!hasCustomReceipt || customReceiptDataModelNotFound)) {
     if (customReceiptDataModelNotFound) {
-      window.logWarnOnce(
+      globalThis.logWarnOnce(
         'You specified a custom receipt, but the data model is missing. Falling back to default receipt.',
       );
     }

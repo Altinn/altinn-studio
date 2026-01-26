@@ -169,10 +169,10 @@ describe('openByDefault', () => {
     expect(mutations?.doPatchMultipleFormData.mock).not.toHaveBeenCalled();
 
     if (expectedWarning) {
-      await waitFor(() => expect(window.logWarn).toHaveBeenCalled());
-      expect(window.logWarn).toHaveBeenCalledWith(expectedWarning);
+      await waitFor(() => expect(globalThis.logWarn).toHaveBeenCalled());
+      expect(globalThis.logWarn).toHaveBeenCalledWith(expectedWarning);
     } else {
-      expect(window.logWarn).not.toHaveBeenCalled();
+      expect(globalThis.logWarn).not.toHaveBeenCalled();
     }
   }
 
@@ -181,7 +181,7 @@ describe('openByDefault', () => {
     jest
       .spyOn(window, 'logWarn')
       .mockImplementation(() => {})
-      .mockName('window.logWarn');
+      .mockName('globalThis.logWarn');
   });
 
   afterEach(() => {
@@ -444,7 +444,7 @@ describe('openByDefault', () => {
         mutations,
       });
 
-      expect(window.logWarn).toHaveBeenCalledTimes(1);
+      expect(globalThis.logWarn).toHaveBeenCalledTimes(1);
     },
   );
 

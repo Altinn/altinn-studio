@@ -49,7 +49,7 @@ export const useDataModelSchemaQuery = (enabled: boolean, dataTypeId: string) =>
   const utils = useQuery(queryDef);
 
   useEffect(() => {
-    utils.error && window.logError('Fetching data model schema failed:\n', utils.error);
+    utils.error && globalThis.logError('Fetching data model schema failed:\n', utils.error);
   }, [utils.error]);
 
   return { ...utils, enabled: queryDef.enabled };

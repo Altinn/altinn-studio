@@ -39,7 +39,7 @@ export const usePdfFormatQuery = (enabled: boolean): UseQueryResult<IPdfFormat> 
   const utils = useQuery(usePdfFormatQueryDef(enabled && ready, instanceId, dataElementId));
 
   useEffect(() => {
-    utils.error && window.logError('Fetching PDF format failed:\n', utils.error);
+    utils.error && globalThis.logError('Fetching PDF format failed:\n', utils.error);
   }, [utils.error]);
 
   return utils;

@@ -48,7 +48,7 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
   const navigation = useNavigation();
 
   if (!dataType) {
-    window.logErrorOnce(`Unable to find data type for subform with id ${id}`);
+    globalThis.logErrorOnce(`Unable to find data type for subform with id ${id}`);
     throw new Error(`Unable to find data type for subform with id ${id}`);
   }
 

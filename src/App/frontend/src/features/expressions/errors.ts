@@ -56,11 +56,11 @@ export interface PrettyErrorsOptions {
  */
 export function traceExpressionError(err: Error, expr: Expression, path: string[], options?: PrettyErrorsOptions) {
   if (!(err instanceof ExprRuntimeError)) {
-    window.logError(err);
+    globalThis.logError(err);
     return;
   }
 
-  window.logError(prettyError(err, expr, path, options));
+  globalThis.logError(prettyError(err, expr, path, options));
 }
 
 export function prettyError(err: Error, expr: Expression, path: string[], options?: PrettyErrorsOptions): string {

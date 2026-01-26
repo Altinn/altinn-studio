@@ -150,7 +150,7 @@ describe('useGetOptions', () => {
     jest
       .spyOn(window, 'logWarnOnce')
       .mockImplementation(() => {})
-      .mockName(`window.logWarnOnce`);
+      .mockName(`globalThis.logWarnOnce`);
   });
 
   afterEach(() => {
@@ -227,7 +227,7 @@ describe('useGetOptions', () => {
       expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual(unfilteredOptions);
     });
 
-    expect(window.logWarnOnce).toHaveBeenCalledWith(
+    expect(globalThis.logWarnOnce).toHaveBeenCalledWith(
       `Node 'myComponent': Option with value "foo" was selected, but the option filter ` +
         `excludes it. This will cause the option to be deselected. If this was unintentional, add a check ` +
         `for the currently selected option in your optionFilter expression.`,
@@ -246,7 +246,7 @@ describe('useGetOptions', () => {
       expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([remainingOption]),
     );
 
-    expect(window.logWarnOnce).toHaveBeenCalledWith(
+    expect(globalThis.logWarnOnce).toHaveBeenCalledWith(
       'Option was duplicate value (and was removed). With duplicate values, it is impossible to tell which of the options the user selected.\n',
       JSON.stringify({ value: 'foo', label: 'second' }, null, 2),
     );

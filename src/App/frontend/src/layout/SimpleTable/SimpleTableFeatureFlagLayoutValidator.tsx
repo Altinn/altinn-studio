@@ -11,7 +11,7 @@ export function SimpleTableFeatureFlagLayoutValidator({ intermediateItem }: Node
 
     and the configuration is likely to change.`;
     addError(error, intermediateItem.id, 'node');
-    window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
+    globalThis.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
   }
   return null;
 }

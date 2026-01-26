@@ -20,7 +20,7 @@ export function ValidateSigningTaskType(props: Props) {
   useEffect(() => {
     if (currentTaskType !== ProcessTaskType.Signing && isInCurrentTask) {
       addError(error, props.intermediateItem.id, 'node');
-      window.logErrorOnce(`Validation error for '${props.intermediateItem.id}': ${error}`);
+      globalThis.logErrorOnce(`Validation error for '${props.intermediateItem.id}': ${error}`);
     }
   }, [addError, error, isInCurrentTask, props.intermediateItem.id, props.intermediateItem.type, currentTaskType]);
 

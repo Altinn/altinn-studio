@@ -13,7 +13,8 @@ import { usePartiesQueryDef, useSelectedPartyQueryDef } from 'src/features/party
  */
 export function AppPrefetcher() {
   const { instanceOwnerPartyId, instanceGuid } =
-    matchPath({ path: '/instance/:instanceOwnerPartyId/:instanceGuid/*' }, window.location.hash.slice(1))?.params ?? {};
+    matchPath({ path: '/instance/:instanceOwnerPartyId/:instanceGuid/*' }, globalThis.location.hash.slice(1))?.params ??
+    {};
   const instanceId = instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
 
   usePrefetchQuery(useOrgsQueryDef());

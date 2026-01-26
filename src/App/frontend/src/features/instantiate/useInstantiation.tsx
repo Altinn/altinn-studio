@@ -37,7 +37,7 @@ export function useInstantiation() {
     mutationFn: (args: InstantiationArgs) =>
       typeof args === 'number' ? doInstantiate(args, currentLanguage) : doInstantiateWithPrefill(args, currentLanguage),
     onError: (error: HttpClientError) => {
-      window.logError(`Instantiation failed:\n`, error);
+      globalThis.logError(`Instantiation failed:\n`, error);
     },
     onSuccess: (data) => {
       const [instanceOwnerPartyId, instanceGuid] = data.id.split('/');

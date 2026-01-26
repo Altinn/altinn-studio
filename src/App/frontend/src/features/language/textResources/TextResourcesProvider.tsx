@@ -31,7 +31,7 @@ const useTextResourcesQuery = () => {
   };
 
   useEffect(() => {
-    utils.error && window.logError('Fetching text resources failed:\n', utils.error);
+    utils.error && globalThis.logError('Fetching text resources failed:\n', utils.error);
   }, [utils.error]);
 
   return utils;

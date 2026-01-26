@@ -53,7 +53,7 @@ export function OpenByDefaultProvider({ baseComponentId, children }: PropsWithCh
         hasAddedRow.current = true;
         const { result } = await addRow();
         if (result !== 'addedAndOpened') {
-          window.logWarn(
+          globalThis.logWarn(
             `openByDefault for repeating group '${baseComponentId}' returned '${result}'. You may have rules that make it ` +
               `impossible to add a new blank row, or open the added row for editing, such as a restrictive ` +
               `hiddenRow expression. You probably want to disable openByDefault for this group, as openByDefault ` +

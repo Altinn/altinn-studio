@@ -52,7 +52,7 @@ export function useGetTaskName() {
     const type = getTaskType(group);
     if (!type) {
       if ('taskId' in group) {
-        window.logErrorOnce(`Navigation component could not find a task with id '${group.taskId}'.`);
+        globalThis.logErrorOnce(`Navigation component could not find a task with id '${group.taskId}'.`);
       }
       return '';
     }

@@ -29,9 +29,9 @@ export function PdfWrapper({ children }: PropsWithChildren) {
     if (previewPDF) {
       waitForPrint().then((success) => {
         if (success) {
-          window.print();
+          globalThis.print();
         } else {
-          window.logWarn('PDF preview timed out');
+          globalThis.logWarn('PDF preview timed out');
         }
         setPdfPreview(false);
       });

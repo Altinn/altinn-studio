@@ -169,7 +169,7 @@ function useLogFetchError(error: Error | null, item: CompIntermediateExact<CompW
       const _queryParameters = queryParameters ? `\nqueryParameters: ${JSON.stringify(queryParameters)}` : '';
       const _secure = secure ? `\nsecure: ${secure}` : '';
 
-      window.logErrorOnce(
+      globalThis.logErrorOnce(
         `Failed to fetch options for node ${id}${_optionsId}${_mapping}${_queryParameters}${_secure}`,
       );
     }
@@ -209,7 +209,7 @@ export function useFilteredAndSortedOptions({ unsorted, valueType, item }: Filte
           { returnType: ExprVal.Boolean, defaultValue: true, valueArguments },
         );
         if (!keep && selectedValues.includes(option.value)) {
-          window.logWarnOnce(
+          globalThis.logWarnOnce(
             `Node '${id}': Option with value "${option.value}" was selected, but the option filter ` +
               `excludes it. This will cause the option to be deselected. If this was unintentional, add a check ` +
               `for the currently selected option in your optionFilter expression.`,

@@ -64,7 +64,7 @@ function useLayoutQuery() {
   const utils = useQuery(useLayoutQueryDef(hasInstance ? !!process : true, defaultDataModel, currentLayoutSetId));
 
   useEffect(() => {
-    utils.error && window.logError('Fetching form layout failed:\n', utils.error);
+    utils.error && globalThis.logError('Fetching form layout failed:\n', utils.error);
   }, [utils.error]);
 
   const data = useMemo(() => {
@@ -149,7 +149,7 @@ function removeDuplicateComponentIds(layouts: ILayouts, layoutSetId: string) {
     for (const [idx, comp] of page.entries()) {
       const prev = seenIds.get(comp.id);
       if (prev) {
-        window.logError(
+        globalThis.logError(
           `Removed duplicate component id '${comp.id}' from page '${pageKey}' at index ${idx} ` +
             `(first found on page '${prev.pageKey})' at index ${prev.idx})`,
         );
@@ -184,7 +184,7 @@ function removeDuplicateComponentIds(layouts: ILayouts, layoutSetId: string) {
     code.push(`    ${[...quirksCode.logMessages.values()].join(',\n    ')}`);
     code.push('  ],');
     code.push('}');
-    const fullKey = `${window.org}/${window.app}/${layoutSetId}`;
+    const fullKey = `${globalThis.org}/${globalThis.app}/${layoutSetId}`;
     const _fullCode = `'${fullKey}': ${code.join('\n')},`;
     // Uncomment the next line to get the generated quirks code
     // debugger;

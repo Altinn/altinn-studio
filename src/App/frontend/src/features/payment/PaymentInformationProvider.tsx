@@ -33,7 +33,7 @@ const usePaymentInformationQuery = () => {
   const result = useQuery(usePaymentInformationQueryDef(enabled, instanceId));
 
   useEffect(() => {
-    result.error && window.logError('Fetching paymentInfo failed:\n', result.error);
+    result.error && globalThis.logError('Fetching paymentInfo failed:\n', result.error);
   }, [result.error]);
 
   return {

@@ -146,15 +146,15 @@ describe('FormDataReaders', () => {
     jest
       .spyOn(window, 'logWarnOnce')
       .mockImplementation(() => {})
-      .mockName('window.logWarnOnce');
+      .mockName('globalThis.logWarnOnce');
     jest
       .spyOn(window, 'logError')
       .mockImplementation(() => {})
-      .mockName('window.logError');
+      .mockName('globalThis.logError');
     jest
       .spyOn(window, 'logErrorOnce')
       .mockImplementation(() => {})
-      .mockName('window.logErrorOnce');
+      .mockName('globalThis.logErrorOnce');
   });
 
   it.each<string>(['someModel', 'someModel1.0'])(
@@ -187,8 +187,8 @@ describe('FormDataReaders', () => {
       expect(queries.fetchFormData).toHaveBeenCalledTimes(1);
       expect(queries.fetchFormData).toHaveBeenCalledWith(urlFor(modelName), {});
 
-      expect(window.logError).not.toHaveBeenCalled();
-      expect(window.logErrorOnce).not.toHaveBeenCalled();
+      expect(globalThis.logError).not.toHaveBeenCalled();
+      expect(globalThis.logErrorOnce).not.toHaveBeenCalled();
     },
   );
 
@@ -313,15 +313,15 @@ describe('FormDataReaders', () => {
     expect(queries.fetchFormData).toHaveBeenCalledWith(urlFor('model2'), {});
     expect(queries.fetchFormData).toHaveBeenCalledWith(urlFor('modelMissing'), {});
 
-    expect(window.logError).toHaveBeenCalledTimes(1);
-    expect(window.logError).toHaveBeenCalledWith('Fetching form data failed:\n', missingError);
+    expect(globalThis.logError).toHaveBeenCalledTimes(1);
+    expect(globalThis.logError).toHaveBeenCalledWith('Fetching form data failed:\n', missingError);
 
-    expect(window.logErrorOnce).toHaveBeenCalledWith(
+    expect(globalThis.logErrorOnce).toHaveBeenCalledWith(
       `One or more text resources look up variables from 'dataModel.modelMissing', but we failed to fetch it:\n`,
       missingError,
     );
 
-    expect(window.logWarnOnce).toHaveBeenCalledWith(
+    expect(globalThis.logWarnOnce).toHaveBeenCalledWith(
       `A text resource variable with key 'name' did not exist in the data model 'modelMissing'. ` +
         `You may want to set a defaultValue to prevent the full key from being presented to the user.`,
     );

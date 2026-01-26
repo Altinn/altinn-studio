@@ -221,7 +221,7 @@ function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObjec
   const errorBinding = searchParams.get(SearchParams.FocusErrorBinding);
 
   const abortController = useRef(new AbortController());
-  const pathnameWas = window.location.pathname;
+  const pathnameWas = globalThis.location.pathname;
   const isNavigating = useIsNavigating();
   const shouldFocus = indexedId && indexedId == nodeId && !isNavigating;
 
@@ -238,7 +238,7 @@ function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObjec
           field.focus();
         }
       } finally {
-        if (!abortController.current.signal.aborted && pathnameWas === window.location.pathname) {
+        if (!abortController.current.signal.aborted && pathnameWas === globalThis.location.pathname) {
           // Only cleanup when pathname is the same as what it was during render. Navigation might have occurred, especially
           // in Cypress tests where state changes will happen rapidly. These search params are cleaned up in
           // useNavigatePage() automatically, so it shouldn't be a problem if the page has been changed. If something

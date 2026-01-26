@@ -20,7 +20,7 @@ export function claimNonRepeatingChildren<T extends CompTypes>(
       }
       const capabilities = getCapabilities(type);
       if (!capabilities[options.onlyWithCapability]) {
-        window.logWarn(
+        globalThis.logWarn(
           `${options.componentType} included a component '${id}', which ` +
             `is a '${type}' and cannot be rendered in a ${options.componentType}.`,
         );

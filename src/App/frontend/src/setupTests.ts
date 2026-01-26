@@ -66,16 +66,16 @@ Element.prototype.getClientRects = () => ({
 // Forcing a low timeout for useDelayedSaveState()
 global.delayedSaveState = 50;
 
-window.forceNodePropertiesValidation = 'off';
+globalThis.forceNodePropertiesValidation = 'off';
 
-window.inUnitTest = true;
+globalThis.inUnitTest = true;
 
 // org and app is assigned to window object, so to avoid 'undefined' in tests, they need to be set
-window.org = 'ttd';
-window.app = 'test';
+globalThis.org = 'ttd';
+globalThis.app = 'test';
 
 // Set up altinnAppGlobalData with default mocks
-window.altinnAppGlobalData = {
+globalThis.altinnAppGlobalData = {
   applicationMetadata: getApplicationMetadataMock(),
   frontendSettings: getApplicationSettingsMock(),
   footer: getFooterLayoutMock(),
@@ -83,16 +83,16 @@ window.altinnAppGlobalData = {
   availableLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
 };
 
-window.logError = (...args) => {
+globalThis.logError = (...args) => {
   throw new Error(args.join(' '));
 };
-window.logWarn = window.logError;
-window.logInfo = window.logError;
-window.logErrorOnce = window.logError;
-window.logWarnOnce = window.logError;
-window.logInfoOnce = window.logError;
+globalThis.logWarn = globalThis.logError;
+globalThis.logInfo = globalThis.logError;
+globalThis.logErrorOnce = globalThis.logError;
+globalThis.logWarnOnce = globalThis.logError;
+globalThis.logInfoOnce = globalThis.logError;
 
-window.scrollTo = () => {};
+globalThis.scrollTo = () => {};
 document.getAnimations = () => [];
 
 jest.setTimeout(env.parsed?.JEST_TIMEOUT ? parseInt(env.parsed.JEST_TIMEOUT, 10) : 20000);

@@ -32,7 +32,7 @@ export const DevToolsLogs = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.setAttribute('href', url);
-    a.setAttribute('download', `${window.org}-${window.app}-${new Date().toISOString()}-logs.txt`);
+    a.setAttribute('download', `${globalThis.org}-${globalThis.app}-${new Date().toISOString()}-logs.txt`);
     a.click();
   };
 

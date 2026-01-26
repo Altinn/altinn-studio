@@ -148,11 +148,11 @@ describe('File uploading components', () => {
       jest
         .spyOn(window, 'logError')
         .mockImplementation(() => {})
-        .mockName('window.logError');
+        .mockName('globalThis.logError');
       jest
         .spyOn(window, 'logErrorOnce')
         .mockImplementation(() => {})
-        .mockName('window.logErrorOnce');
+        .mockName('globalThis.logErrorOnce');
       await renderWithInstanceAndLayout({
         renderer: () => <GenericComponent baseComponentId='FileUpload1' />,
         queries: {

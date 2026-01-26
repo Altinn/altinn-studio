@@ -631,7 +631,7 @@ function useAttachmentsUploadMutation() {
     },
     onError: (error: AxiosError) => {
       if (!isDataPostError(error.response?.data)) {
-        window.logError('Failed to upload attachment:\n', error.message);
+        globalThis.logError('Failed to upload attachment:\n', error.message);
       }
     },
   };
@@ -654,7 +654,7 @@ function useAttachmentsRemoveMutation() {
       return doAttachmentRemove(instanceId, dataGuid, language);
     },
     onError: (error: AxiosError) => {
-      window.logError('Failed to delete attachment:\n', error);
+      globalThis.logError('Failed to delete attachment:\n', error);
     },
     onSuccess: (_data, dataGuid) => {
       optimisticallyRemoveDataElement(dataGuid);
@@ -675,7 +675,7 @@ function useAttachmentUpdateTagsMutation() {
       return doUpdateAttachmentTags({ instanceId, dataElementId, setTagsRequest });
     },
     onError: (error: AxiosError) => {
-      window.logError('Failed to add tag to attachment:\n', error);
+      globalThis.logError('Failed to add tag to attachment:\n', error);
     },
     onSuccess: (data) => {
       if (data.validationIssues) {

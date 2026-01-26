@@ -41,7 +41,7 @@ export function Summary2LayoutValidator({ intermediateItem, externalItem }: Node
     if (errors.length > 0) {
       const error = `Summary overrides contain errors: \n- ${errors.join('\n- ')}`;
       addError(error, intermediateItem.id, 'node');
-      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
+      globalThis.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
     }
   }, [errors, intermediateItem.id, addError]);
 

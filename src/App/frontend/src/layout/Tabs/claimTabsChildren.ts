@@ -14,7 +14,7 @@ export function claimTabsChildren<T extends CompTypes>(
       }
       const capabilities = getCapabilities(type);
       if (!capabilities.renderInTabs) {
-        window.logWarn(
+        globalThis.logWarn(
           `Tabs component included a component '${child}', which ` +
             `is a '${type}' and cannot be rendered as a Tabs child.`,
         );

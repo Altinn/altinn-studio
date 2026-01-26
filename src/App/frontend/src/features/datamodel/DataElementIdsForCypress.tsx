@@ -6,8 +6,8 @@ export function UpdateDataElementIdsForCypress() {
   const dataElementIds = DataModels.useDataElementIds();
 
   useEffect(() => {
-    if (window.Cypress) {
-      window.CypressState = { ...window.CypressState, dataElementIds };
+    if (globalThis.Cypress) {
+      globalThis.CypressState = { ...globalThis.CypressState, dataElementIds };
     }
   }, [dataElementIds]);
 

@@ -44,7 +44,10 @@ const InnerDownloadXMLButton = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.setAttribute('href', url);
-      a.setAttribute('download', `${window.org}-${window.app}-${instanceId ?? 'stateless'}-${selectedDataType}.xml`);
+      a.setAttribute(
+        'download',
+        `${globalThis.org}-${globalThis.app}-${instanceId ?? 'stateless'}-${selectedDataType}.xml`,
+      );
       a.click();
     }
   };

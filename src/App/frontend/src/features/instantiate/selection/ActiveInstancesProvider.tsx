@@ -26,7 +26,7 @@ const useActiveInstancesQuery = () => {
   });
 
   useEffect(() => {
-    utils.error && window.logError('Fetching active instances failed:\n', utils.error);
+    utils.error && globalThis.logError('Fetching active instances failed:\n', utils.error);
   }, [utils.error]);
 
   return utils;

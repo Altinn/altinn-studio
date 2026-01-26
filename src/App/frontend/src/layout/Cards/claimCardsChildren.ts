@@ -14,7 +14,7 @@ export function claimCardsChildren<T extends CompTypes>(
       }
       const capabilities = getCapabilities(type);
       if (!capabilities.renderInCardsMedia) {
-        window.logWarn(
+        globalThis.logWarn(
           `Cards component included a component '${card.media}', which ` +
             `is a '${type}' and cannot be rendered as Card media.`,
         );
@@ -30,7 +30,7 @@ export function claimCardsChildren<T extends CompTypes>(
       }
       const capabilities = getCapabilities(type);
       if (!capabilities.renderInCards) {
-        window.logWarn(
+        globalThis.logWarn(
           `Cards component included a component '${child}', which ` +
             `is a '${type}' and cannot be rendered as a Card child.`,
         );

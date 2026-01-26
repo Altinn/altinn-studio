@@ -31,10 +31,10 @@ export const DevTools = () => {
       }
     };
 
-    window.addEventListener('keydown', listener);
+    globalThis.addEventListener('keydown', listener);
 
     return () => {
-      window.removeEventListener('keydown', listener);
+      globalThis.removeEventListener('keydown', listener);
     };
   }, [panelOpen, setPanelOpen]);
 

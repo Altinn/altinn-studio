@@ -133,7 +133,7 @@ function useDynamicHeight(elementRef: React.RefObject<HTMLDivElement | null>, is
     const updateMaxHeight = () => {
       const rect = elementRef.current?.getBoundingClientRect();
       if (rect) {
-        const availableHeight = Math.max(0, window.innerHeight - rect.top - 20); // 20px margin, non-negative
+        const availableHeight = Math.max(0, globalThis.innerHeight - rect.top - 20); // 20px margin, non-negative
         setMaxHeight(availableHeight);
       }
     };
@@ -145,13 +145,13 @@ function useDynamicHeight(elementRef: React.RefObject<HTMLDivElement | null>, is
       resizeObserver.observe(elementRef.current);
     }
 
-    window.addEventListener('resize', updateMaxHeight);
-    window.addEventListener('scroll', updateMaxHeight, true);
+    globalThis.addEventListener('resize', updateMaxHeight);
+    globalThis.addEventListener('scroll', updateMaxHeight, true);
 
     return () => {
       resizeObserver.disconnect();
-      window.removeEventListener('resize', updateMaxHeight);
-      window.removeEventListener('scroll', updateMaxHeight, true);
+      globalThis.removeEventListener('resize', updateMaxHeight);
+      globalThis.removeEventListener('scroll', updateMaxHeight, true);
     };
   }, [isActive, elementRef]);
 

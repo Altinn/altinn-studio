@@ -18,7 +18,7 @@ export function SigneeListError({ error }: { error: Error }) {
 
   // TODO: alarm? telemetri?
   if (error instanceof ZodError) {
-    window.logErrorOnce(
+    globalThis.logErrorOnce(
       `Did not get the expected response from the server. The response didn't match the expected schema: \n${error}`,
     );
 
@@ -42,7 +42,7 @@ export function SigneeListError({ error }: { error: Error }) {
     const parsed = problemDetailsSchema.safeParse(error.response?.data);
 
     if (parsed.success) {
-      window.logErrorOnce(langAsString(error.message));
+      globalThis.logErrorOnce(langAsString(error.message));
       return (
         <FatalError>
           <Lang id='signee_list.api_error_display' />

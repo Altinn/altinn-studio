@@ -28,7 +28,7 @@ export const useCustomValidationConfigQuery = (enabled: boolean, dataTypeId: str
   });
 
   useEffect(() => {
-    utils.error && window.logError('Fetching validation configuration failed:\n', utils.error);
+    utils.error && globalThis.logError('Fetching validation configuration failed:\n', utils.error);
   }, [utils.error]);
 
   return {

@@ -326,11 +326,11 @@ describe('FormData', () => {
       jest
         .spyOn(window, 'logWarn')
         .mockImplementation(() => {})
-        .mockName(`window.logWarn`);
+        .mockName(`globalThis.logWarn`);
       jest
         .spyOn(window, 'logError')
         .mockImplementation(() => {})
-        .mockName(`window.logError`);
+        .mockName(`globalThis.logError`);
     });
 
     afterEach(() => {
@@ -450,8 +450,8 @@ describe('FormData', () => {
       const patchReq = (mutations.doPatchMultipleFormData.mock as jest.Mock).mock
         .calls[0][1] as IDataModelMultiPatchRequest;
       expect(patchReq.patches[0].patch).toEqual([{ op: 'add', path: '/obj1/prop2', value: 'b' }]);
-      expect(window.logError).toHaveBeenCalledTimes(0);
-      expect(window.logWarn).toHaveBeenCalledTimes(0);
+      expect(globalThis.logError).toHaveBeenCalledTimes(0);
+      expect(globalThis.logWarn).toHaveBeenCalledTimes(0);
     });
 
     it('Locking will not trigger a save if no values have changed', async () => {
@@ -475,8 +475,8 @@ describe('FormData', () => {
       act(() => jest.advanceTimersByTime(5000));
       await waitFor(() => expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('false'));
       expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
-      expect(window.logError).toHaveBeenCalledTimes(0);
-      expect(window.logWarn).toHaveBeenCalledTimes(0);
+      expect(globalThis.logError).toHaveBeenCalledTimes(0);
+      expect(globalThis.logWarn).toHaveBeenCalledTimes(0);
     });
 
     it('Unsaved changes should be saved before locking', async () => {
@@ -511,8 +511,8 @@ describe('FormData', () => {
       };
       mutations.doPatchMultipleFormData.resolve({ data: response });
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
-      expect(window.logError).toHaveBeenCalledTimes(0);
-      expect(window.logWarn).toHaveBeenCalledTimes(0);
+      expect(globalThis.logError).toHaveBeenCalledTimes(0);
+      expect(globalThis.logWarn).toHaveBeenCalledTimes(0);
     });
 
     it('Locking should queue up when requested multiple times', async () => {
@@ -524,8 +524,8 @@ describe('FormData', () => {
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
       expect(screen.getByTestId('lockedBy')).toHaveTextContent('myLockId');
       expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
-      expect(window.logError).toHaveBeenCalledTimes(0);
-      expect(window.logWarn).toHaveBeenCalledTimes(0);
+      expect(globalThis.logError).toHaveBeenCalledTimes(0);
+      expect(globalThis.logWarn).toHaveBeenCalledTimes(0);
 
       // Try to lock another lock id (will wait for the first lock to finish)
       await user.click(screen.getByRole('button', { name: 'Lock myOtherLockId' }));

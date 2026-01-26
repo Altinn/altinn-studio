@@ -60,7 +60,7 @@ function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?:
 }
 
 export const getMessageBoxUrl = (partyId?: number, dialogId?: string): string | undefined =>
-  buildArbeidsflateRedirectUrl(window.location.host, partyId, dialogId);
+  buildArbeidsflateRedirectUrl(globalThis.location.host, partyId, dialogId);
 
 export function getDialogIdFromDataValues(dataValues: unknown): string | undefined {
   const data = dataValues as Record<string, unknown> | null | undefined;
@@ -124,9 +124,9 @@ export function customEncodeURI(uri: string): string {
 
 // Storage is always returning https:// links for attachments.
 // on localhost (without https) this is a problem, so we make links
-// to the same domain as window.location.host relative.
+// to the same domain as globalThis.location.host relative.
 // "https://domain.com/a/b" => "/a/b"
-export const makeUrlRelativeIfSameDomain = (url: string, location: Location = window.location) => {
+export const makeUrlRelativeIfSameDomain = (url: string, location: Location = globalThis.location) => {
   try {
     const parsed = new URL(url);
     if (parsed.hostname === location.hostname) {

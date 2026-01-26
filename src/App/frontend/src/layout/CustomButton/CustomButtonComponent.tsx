@@ -80,7 +80,7 @@ function useHandleClientActions(): UseHandleClientActions {
 
   async function handleClientAction(action: CBTypes.ClientAction) {
     if (action.id == null) {
-      window.logError('Client action is missing id. Did you provide the id of the action? Action:', action);
+      globalThis.logError('Client action is missing id. Did you provide the id of the action? Action:', action);
       return;
     }
 

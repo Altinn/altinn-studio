@@ -9,7 +9,7 @@ let isDevCache: boolean | null = null;
  * This can be either through LocalTest, altinn studio preview or TT02.
  */
 export function isDev(): boolean {
-  if (isDevCache !== null && !window.inUnitTest) {
+  if (isDevCache !== null && !globalThis.inUnitTest) {
     return isDevCache;
   }
   isDevCache = isLocalOrStaging() || isStudioPreview();
@@ -17,19 +17,19 @@ export function isDev(): boolean {
 }
 
 export function isLocalTest(): boolean {
-  return localtestHostName.test(window.location.hostname);
+  return localtestHostName.test(globalThis.location.hostname);
 }
 
 /**
  * Indicates whether the application is running through LocalTest or in TT02 (staging).
  */
 export function isLocalOrStaging(): boolean {
-  return devHostNames.some((host) => host.test(window.location.hostname));
+  return devHostNames.some((host) => host.test(globalThis.location.hostname));
 }
 
 /**
  * Indicates whether the application is running in Altinn Studio Preview.
  */
 export function isStudioPreview(): boolean {
-  return studioHostNames.some((host) => host.test(window.location.hostname));
+  return studioHostNames.some((host) => host.test(globalThis.location.hostname));
 }

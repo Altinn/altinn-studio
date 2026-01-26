@@ -97,7 +97,7 @@ export const instanceQueries = {
               try {
                 return await fetchInstanceData(instanceOwnerPartyId, instanceGuid);
               } catch (error) {
-                window.logError('Fetching instance data failed:\n', error);
+                globalThis.logError('Fetching instance data failed:\n', error);
                 throw error;
               }
             },

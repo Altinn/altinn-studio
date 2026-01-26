@@ -83,7 +83,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   const hasSetCurrentPageId = currentPageId in textResources;
 
   if (!hasSetCurrentPageId) {
-    window.logWarnOnce(
+    globalThis.logWarnOnce(
       `You have not set a page title for this page. This is highly recommended for user experience and WCAG compliance and will be required in the future.
        To add a title to this page, add this to your language resource file (for example language.nb.json):
 

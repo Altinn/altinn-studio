@@ -27,7 +27,7 @@ function useLayoutSettingsQuery() {
   const query = useQuery(useLayoutSettingsQueryDef(layoutSetId));
 
   useEffect(() => {
-    query.error && window.logError('Fetching layout settings failed:\n', query.error);
+    query.error && globalThis.logError('Fetching layout settings failed:\n', query.error);
   }, [query.error]);
 
   return query;
@@ -45,12 +45,12 @@ function processData(settings: ILayoutSettings | null): ProcessedLayoutSettings 
 
   if (!('order' in settings.pages) && !('groups' in settings.pages)) {
     const msg = 'Missing page order, specify one of `pages.order` or `pages.groups` in Settings.json';
-    window.logError(msg);
+    globalThis.logError(msg);
     throw new Error(msg);
   }
   if ('order' in settings.pages && 'groups' in settings.pages) {
     const msg = 'Specify one of `pages.order` or `pages.groups` in Settings.json';
-    window.logError(msg);
+    globalThis.logError(msg);
     throw new Error(msg);
   }
 

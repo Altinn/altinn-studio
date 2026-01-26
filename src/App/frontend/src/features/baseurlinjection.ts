@@ -6,7 +6,7 @@
 // Bugreport: https://github.com/Altinn/app-frontend-react/issues/2257
 {
   const base = document.createElement('base');
-  const { protocol, hostname, port: _port } = window.location;
+  const { protocol, hostname, port: _port } = globalThis.location;
   const { org, app } = window;
   const isDefaultHttpsPort = protocol === 'https:' && _port === '443';
   const isDefaultHttpPort = protocol === 'http:' && _port === '80';

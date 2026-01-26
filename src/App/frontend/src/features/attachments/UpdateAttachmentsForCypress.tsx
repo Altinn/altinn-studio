@@ -6,8 +6,8 @@ export function UpdateAttachmentsForCypress() {
   const attachments = useAllAttachments();
 
   useEffect(() => {
-    if (window.Cypress) {
-      window.CypressState = { ...window.CypressState, attachments };
+    if (globalThis.Cypress) {
+      globalThis.CypressState = { ...globalThis.CypressState, attachments };
     }
   }, [attachments]);
 

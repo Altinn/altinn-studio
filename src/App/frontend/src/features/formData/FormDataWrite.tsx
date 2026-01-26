@@ -168,7 +168,7 @@ function useFormDataSaveMutation() {
         'same data as backend is sending back. If the issue persists, contact support.';
 
       console.error(message);
-      window.logError(message);
+      globalThis.logError(message);
       throw new Error(message);
     }
   }
@@ -404,11 +404,11 @@ function FormDataEffects() {
         setUnsavedAttrTimeout.current = undefined;
       }, 10);
     }
-    window.onbeforeunload = hasUnsavedChanges ? () => true : null;
+    globalThis.onbeforeunload = hasUnsavedChanges ? () => true : null;
 
     return () => {
       document.body.removeAttribute('data-unsaved-changes');
-      window.onbeforeunload = null;
+      globalThis.onbeforeunload = null;
     };
   }, [hasUnsavedChanges]);
 
@@ -454,13 +454,13 @@ function FormDataEffects() {
 
   // Sets the debounced data in the window object, so that Cypress tests can access it.
   useSelector((state) => {
-    if (window.Cypress) {
+    if (globalThis.Cypress) {
       const formData: { [key: string]: unknown } = {};
       for (const [dataType, { debouncedCurrentData }] of Object.entries(state.dataModels)) {
         formData[dataType] = debouncedCurrentData;
       }
 
-      window.CypressState = { ...window.CypressState, formData };
+      globalThis.CypressState = { ...globalThis.CypressState, formData };
     }
   });
 

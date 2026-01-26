@@ -28,7 +28,7 @@ export function parseLocation(locationString: string | undefined): Location | un
   }
   const latLonArray = locationString.split(',');
   if (latLonArray.length != 2) {
-    window.logErrorOnce(`Invalid location string: ${locationString}`);
+    globalThis.logErrorOnce(`Invalid location string: ${locationString}`);
     return undefined;
   }
   const latString = latLonArray[0];
@@ -36,7 +36,7 @@ export function parseLocation(locationString: string | undefined): Location | un
   const lat = parseFloat(latString);
   const lon = parseFloat(lonString);
   if (isNaN(lat) || isNaN(lon)) {
-    window.logErrorOnce(`Invalid location string: ${locationString}`);
+    globalThis.logErrorOnce(`Invalid location string: ${locationString}`);
     return undefined;
   }
   return {

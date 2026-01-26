@@ -40,7 +40,7 @@ export function useExternalApis(ids: string[]): ExternalApisResult {
       });
 
       Object.entries(errors).forEach(([id, error]) => {
-        window.logErrorOnce(`Failed to fetch external API ${id}`, error);
+        globalThis.logErrorOnce(`Failed to fetch external API ${id}`, error);
       });
 
       return { data, errors };

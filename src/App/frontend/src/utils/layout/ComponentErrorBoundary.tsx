@@ -40,7 +40,7 @@ function StoreErrorAndBail({ error, nodeId }: { error: Error; nodeId: string }) 
   const addError = NodesInternal.useAddError();
 
   useEffect(() => {
-    window.logError(`Exception thrown when rendering node "${nodeId}":\n`, error);
+    globalThis.logError(`Exception thrown when rendering node "${nodeId}":\n`, error);
     addError(error.message, nodeId, 'node');
   }, [addError, error, nodeId]);
 

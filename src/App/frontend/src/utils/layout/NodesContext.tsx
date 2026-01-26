@@ -250,7 +250,7 @@ export const NodesProvider = ({ children, ...props }: NodesProviderProps) => {
             <LayoutSetGenerator />
           </GeneratorData.Provider>
         </GeneratorValidationProvider>
-        {window.Cypress && <UpdateAttachmentsForCypress />}
+        {globalThis.Cypress && <UpdateAttachmentsForCypress />}
         <ProvideWaitForValidation />
         <ExpressionValidation />
         <LoadingBlockerWaitForValidation>{children}</LoadingBlockerWaitForValidation>

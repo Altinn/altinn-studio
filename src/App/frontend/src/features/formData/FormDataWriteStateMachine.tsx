@@ -358,7 +358,7 @@ function makeActions(
     setLeafValue: ({ reference, newValue, callback, ...rest }) =>
       set((state) => {
         if (state.dataModels[reference.dataType].readonly) {
-          window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
+          globalThis.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           callback?.(FDSetValueReadOnly);
           return;
         }
@@ -378,7 +378,7 @@ function makeActions(
     appendToListUnique: ({ reference, newValue }) =>
       set((state) => {
         if (state.dataModels[reference.dataType].readonly) {
-          window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
+          globalThis.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
         const existingValue = dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
@@ -395,7 +395,7 @@ function makeActions(
     appendToList: ({ reference, newValue }) =>
       set((state) => {
         if (state.dataModels[reference.dataType].readonly) {
-          window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
+          globalThis.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
         if (typeof newValue === 'object') {
@@ -429,7 +429,7 @@ function makeActions(
     removeIndexFromList: ({ reference, index }) =>
       set((state) => {
         if (state.dataModels[reference.dataType].readonly) {
-          window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
+          globalThis.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
         const existingValue = dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
@@ -443,7 +443,7 @@ function makeActions(
     removeValueFromList: ({ reference, value }) =>
       set((state) => {
         if (state.dataModels[reference.dataType].readonly) {
-          window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
+          globalThis.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
         const existingValue = dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
@@ -456,7 +456,7 @@ function makeActions(
     removeFromListCallback: ({ reference, startAtIndex, callback }) =>
       set((state) => {
         if (state.dataModels[reference.dataType].readonly) {
-          window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
+          globalThis.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
         const models = [
@@ -500,7 +500,7 @@ function makeActions(
         const changedTypes = new Set<string>();
         for (const { reference, newValue } of changes) {
           if (state.dataModels[reference.dataType].readonly) {
-            window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
+            globalThis.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
             continue;
           }
 

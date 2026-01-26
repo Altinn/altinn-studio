@@ -4,15 +4,15 @@ import { getSharedTests } from 'src/features/expressions/shared';
 import { ExprValidation } from 'src/features/expressions/validation';
 
 describe('Expression validation', () => {
-  let originalLogError: typeof window.logError;
+  let originalLogError: typeof globalThis.logError;
 
   beforeEach(() => {
-    originalLogError = window.logError;
-    window.logError = jest.fn();
+    originalLogError = globalThis.logError;
+    globalThis.logError = jest.fn();
   });
 
   afterEach(() => {
-    window.logError = originalLogError;
+    globalThis.logError = originalLogError;
   });
 
   describe('Shared tests for invalid expressions', () => {

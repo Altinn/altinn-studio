@@ -9,7 +9,7 @@ import classes from 'src/features/devtools/DevTools.module.css';
 import { DevToolsControls } from 'src/features/devtools/DevToolsControls';
 
 function clampHeight(height: number): number {
-  return Math.min(Math.max(height, 10), window.innerHeight);
+  return Math.min(Math.max(height, 10), globalThis.innerHeight);
 }
 
 interface IDevToolsPanelProps {

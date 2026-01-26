@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 future: {
                   v7_relativeSplatPath: true,
                 },
-                basename: `/${window.org}/${window.app}`,
+                basename: `/${globalThis.org}/${globalThis.app}`,
               },
             )}
             future={{ v7_startTransition: true }}

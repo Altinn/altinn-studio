@@ -53,13 +53,13 @@ function StoreErrorAndBail({ error, ref }: { error: Error; ref: Ref }) {
 
   useEffect(() => {
     if (!ref) {
-      window.logError('Exception thrown when generating unknown node:\n', error);
+      globalThis.logError('Exception thrown when generating unknown node:\n', error);
     } else if (ref.type === 'node') {
       addError(error.message, ref.id, 'node');
-      window.logError(`Exception thrown when generating node "${ref.id}":\n`, error);
+      globalThis.logError(`Exception thrown when generating node "${ref.id}":\n`, error);
     } else {
       addError(error.message, ref.id, 'page');
-      window.logError(`Exception thrown when generating page "${ref.id}":\n`, error);
+      globalThis.logError(`Exception thrown when generating page "${ref.id}":\n`, error);
     }
   }, [addError, error, ref]);
 

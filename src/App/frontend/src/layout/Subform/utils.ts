@@ -26,7 +26,7 @@ export function useSubformFormData(dataElementId: string) {
 
   useEffect(() => {
     if (subformDataError) {
-      window.logErrorOnce(`Error loading data element ${dataElementId} from server.\n`, subformDataError);
+      globalThis.logErrorOnce(`Error loading data element ${dataElementId} from server.\n`, subformDataError);
     }
   }, [dataElementId, subformDataError]);
 

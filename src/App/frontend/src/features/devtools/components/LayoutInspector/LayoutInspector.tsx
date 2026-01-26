@@ -59,7 +59,7 @@ export const LayoutInspector = () => {
         const updatedComponent = JSON.parse(componentProperties ?? '');
 
         if (currentView) {
-          window.queryClient.setQueriesData<LayoutContextValue>(
+          globalThis.queryClient.setQueriesData<LayoutContextValue>(
             { queryKey: ['formLayouts', currentLayoutSetId] },
             (_queryData) => {
               const queryData = structuredClone(_queryData);

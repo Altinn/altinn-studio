@@ -56,7 +56,7 @@ export class List extends ListDef {
       }
 
       if (legacySummaryBinding && dmBindings) {
-        window.logError(
+        globalThis.logError(
           `Node ${baseComponentId}: BindingToShowInSummary is deprecated and does not work ` +
             `along with a group binding, use summaryBinding instead`,
         );

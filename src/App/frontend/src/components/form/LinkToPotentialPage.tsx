@@ -26,11 +26,11 @@ export const LinkToPotentialPage = (props: Props) => {
   }
 
   if (isHiddenPage) {
-    window.logWarnOnce(
+    globalThis.logWarnOnce(
       `linkToPage points to a page that is hidden. The link is therefore rendered as pure text. Page you tried to link to: ${page}`,
     );
   } else if (!isValidPageId(page)) {
-    window.logWarnOnce(
+    globalThis.logWarnOnce(
       `linkToPage points to a page that does not exist. The link is therefore rendered as pure text. Page you tried to link to: ${page}`,
     );
   }

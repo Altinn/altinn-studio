@@ -37,7 +37,7 @@ const usePartiesAllowedToInstantiateQuery = () => {
   const utils = useQuery(usePartiesQueryDef(enabled));
 
   useEffect(() => {
-    utils.error && window.logError('Fetching parties failed:\n', utils.error);
+    utils.error && globalThis.logError('Fetching parties failed:\n', utils.error);
   }, [utils.error]);
 
   return {
@@ -60,7 +60,7 @@ const useSelectedPartyQuery = (enabled: boolean) => {
   const query = useQuery(useSelectedPartyQueryDef(enabled));
 
   useEffect(() => {
-    query.error && window.logError('Fetching current party failed:\n', query.error);
+    query.error && globalThis.logError('Fetching current party failed:\n', query.error);
   }, [query.error]);
 
   return query;
@@ -72,7 +72,7 @@ const useSetSelectedPartyMutation = () => {
     mutationKey: ['doSetSelectedParty'],
     mutationFn: (party: IParty) => doSetSelectedParty(party.partyId),
     onError: (error: HttpClientError) => {
-      window.logError('Setting current party failed:\n', error);
+      globalThis.logError('Setting current party failed:\n', error);
     },
   });
 };

@@ -9,9 +9,9 @@ export class CookieStorage {
     const expires = expiresInDays
       ? `expires=${new Date(Date.now() + expiresInDays * MILLISECONDS_PER_DAY).toUTCString()}`
       : '';
-    const secure = isLocalEnvironment(window.location.host) ? '' : 'Secure';
+    const secure = isLocalEnvironment(globalThis.location.host) ? '' : 'Secure';
 
-    const cookieString = [encodedKeyValue, expires, `path=/${window.org}/${window.app}`, 'SameSite=Lax', secure]
+    const cookieString = [encodedKeyValue, expires, `path=/${globalThis.org}/${globalThis.app}`, 'SameSite=Lax', secure]
       .filter(isNotNullUndefinedOrEmpty)
       .join('; ');
 
@@ -31,6 +31,6 @@ export class CookieStorage {
   }
 
   static removeItem(key: string): void {
-    document.cookie = `${encodeURIComponent(key)}=; max-age=0; path=/${window.org}/${window.app}`;
+    document.cookie = `${encodeURIComponent(key)}=; max-age=0; path=/${globalThis.org}/${globalThis.app}`;
   }
 }

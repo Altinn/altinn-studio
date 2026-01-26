@@ -32,7 +32,7 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
   const languageFromUrl = getLanguageFromUrl();
   const [languageFromSelector, setWithLanguageSelector] = useCookieState<string | null>('lang', null);
 
-  const appLanguages = window.altinnAppGlobalData.availableLanguages.map((lang) => lang.language);
+  const appLanguages = globalThis.altinnAppGlobalData.availableLanguages.map((lang) => lang.language);
 
   const current = useResolveCurrentLanguage(appLanguages, {
     languageFromSelector,
@@ -67,7 +67,7 @@ export const useSetLanguageWithSelector = () => useCtx().setWithLanguageSelector
  * if this query param changes after initial load.
  */
 function getLanguageFromUrl() {
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(globalThis.location.search);
   return params.get('lang');
 }
 
@@ -97,7 +97,7 @@ function useResolveCurrentLanguage(
     if (appLanguages.includes(languageFromSelector)) {
       return languageFromSelector;
     }
-    window.logWarnOnce(
+    globalThis.logWarnOnce(
       `User's preferred language (${languageFromSelector}) from language selector / cookie is not supported by the app, supported languages: [${appLanguages.join(', ')}]`,
     );
   }
@@ -106,7 +106,7 @@ function useResolveCurrentLanguage(
     if (appLanguages.includes(languageFromUrl)) {
       return languageFromUrl;
     }
-    window.logWarnOnce(
+    globalThis.logWarnOnce(
       `User's preferred language from query parameter (lang=${languageFromUrl}) is not supported by the app, supported languages: [${appLanguages.join(', ')}]`,
     );
   }
@@ -115,7 +115,7 @@ function useResolveCurrentLanguage(
     if (appLanguages.includes(languageFromProfile)) {
       return languageFromProfile;
     }
-    window.logInfoOnce(
+    globalThis.logInfoOnce(
       `User's preferred language (${languageFromProfile}) from Altinn profile is not supported by the app, supported languages: [${appLanguages.join(', ')}]`,
     );
   }
@@ -140,7 +140,7 @@ function useResolveCurrentLanguage(
 
   // The app has not defined any languages, something is probably wrong
 
-  window.logErrorOnce('When fetching app languages the app returned 0 languages');
+  globalThis.logErrorOnce('When fetching app languages the app returned 0 languages');
 
   return 'nb';
 }

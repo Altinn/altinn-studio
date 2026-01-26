@@ -36,7 +36,7 @@ export const IFrameComponent = ({ baseComponentId }: PropsFromGenericComponent<'
 
   // Resize the iframe to fit the content thats loaded inside it
   const adjustIFrameSize = (iframe: React.BaseSyntheticEvent): void => {
-    iframe.target.style.height = `${iframe.target.contentWindow.document.documentElement.scrollHeight}px`;
+    iframe.target.style.height = `${iframe.target.contentglobalThis.document.documentElement.scrollHeight}px`;
   };
 
   return (

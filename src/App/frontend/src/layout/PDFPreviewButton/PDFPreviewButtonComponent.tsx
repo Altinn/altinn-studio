@@ -16,7 +16,7 @@ export function PDFPreviewButtonRenderLayoutValidator({ intermediateItem }: Node
     if (!instanceId) {
       const error = `Cannot use PDF preview button in a stateless app`;
       addError(error, intermediateItem.id, 'node');
-      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
+      globalThis.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
     }
   }, [addError, instanceId, intermediateItem.id]);
 

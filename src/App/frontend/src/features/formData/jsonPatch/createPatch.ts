@@ -75,7 +75,7 @@ function compareObjects({ prev, next, current, path, ...rest }: CompareProps<obj
 function isSameRow(left: unknown, right: unknown): boolean {
   if (isObject(left) && isObject(right)) {
     if (!(ALTINN_ROW_ID in left && ALTINN_ROW_ID in right)) {
-      window.logWarn(
+      globalThis.logWarn(
         `Unable to compare objects in array, as one or both are missing ` +
           `the ${ALTINN_ROW_ID} property. You may experience duplicated or missing rows in the form.`,
       );

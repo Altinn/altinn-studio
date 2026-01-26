@@ -6,7 +6,7 @@ import type { ILayouts } from 'src/layout/layout';
  * and warns about them.
  */
 export function applyLayoutQuirks(layouts: ILayouts, layoutSetId: string) {
-  const key = `${window.org}/${window.app}/${layoutSetId}`;
+  const key = `${globalThis.org}/${globalThis.app}/${layoutSetId}`;
   const quirk = quirks[key];
   if (!quirk) {
     return layouts;
@@ -17,7 +17,7 @@ export function applyLayoutQuirks(layouts: ILayouts, layoutSetId: string) {
 
   try {
     quirk.verifyAndApply(clone);
-    window.logError(
+    globalThis.logError(
       `Layout quirk(s) applied: \n - ${quirk.logMessages.join('\n - ')}.\n` +
         `Please fix your layout configuration. These workarounds will be removed in the future.`,
     );

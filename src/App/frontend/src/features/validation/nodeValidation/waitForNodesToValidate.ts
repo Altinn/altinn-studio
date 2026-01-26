@@ -16,8 +16,8 @@ export function useWaitForNodesToValidate() {
   return useCallback(
     async (processedLast: ValidationsProcessedLast): Promise<void> => {
       let callbackId: ReturnType<typeof requestIdleCallback | typeof requestAnimationFrame> | undefined;
-      const request = window.requestIdleCallback || window.requestAnimationFrame;
-      const cancel = window.cancelIdleCallback || window.cancelAnimationFrame;
+      const request = globalThis.requestIdleCallback || globalThis.requestAnimationFrame;
+      const cancel = globalThis.cancelIdleCallback || globalThis.cancelAnimationFrame;
 
       function check(): boolean {
         const allNodeData = nodesStore.getState().nodeData;

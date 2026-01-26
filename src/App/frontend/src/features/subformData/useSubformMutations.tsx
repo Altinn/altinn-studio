@@ -27,7 +27,7 @@ export const useAddEntryMutation = (dataType: string) => {
       invalidateInstanceData();
     },
     onError: (error) => {
-      window.logErrorOnce('Failed to add subform entry:', error);
+      globalThis.logErrorOnce('Failed to add subform entry:', error);
 
       if (isAxiosError(error) && error.response?.status === 409) {
         toast(langAsString('form_filler.error_max_count_reached_subform_server', [dataType]), { type: 'error' });

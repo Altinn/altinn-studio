@@ -249,11 +249,11 @@ export function useNavigatePage() {
       const shouldExitSubform = options?.searchParams?.has(SearchParams.ExitSubform, 'true') ?? false;
       const replace = options?.replace ?? false;
       if (!page) {
-        window.logWarn('navigateToPage called without page');
+        globalThis.logWarn('navigateToPage called without page');
         return;
       }
       if (!orderRef.current.includes(page) && !shouldExitSubform) {
-        window.logWarn('navigateToPage called with invalid page:', `"${page}"`);
+        globalThis.logWarn('navigateToPage called with invalid page:', `"${page}"`);
         return;
       }
 
@@ -295,7 +295,7 @@ export function useNavigatePage() {
       const currentPage = navParams.current.pageKey;
       const nextPage = getNextPageKey(orderRef.current, currentPage);
       if (!nextPage) {
-        window.logWarn('Tried to navigate to next page when standing on the last page.');
+        globalThis.logWarn('Tried to navigate to next page when standing on the last page.');
         return;
       }
 
@@ -326,7 +326,7 @@ export function useNavigatePage() {
       const previousPage = getPreviousPageKey(orderRef.current, navParams.current.pageKey);
 
       if (!previousPage) {
-        window.logWarn('Tried to navigate to previous page when standing on the first page.');
+        globalThis.logWarn('Tried to navigate to previous page when standing on the first page.');
         return;
       }
       await navigateToPage(previousPage, options);
@@ -336,7 +336,7 @@ export function useNavigatePage() {
 
   const exitSubform = async () => {
     if (!navParams.current.mainPageKey) {
-      window.logWarn('Tried to close subform page while not in a subform.');
+      globalThis.logWarn('Tried to close subform page while not in a subform.');
       return;
     }
 
@@ -361,7 +361,7 @@ export function useNavigatePage() {
     validate?: boolean;
   }) => {
     if (page && !orderRef.current.includes(page)) {
-      window.logWarn('enterSubform called with invalid page:', `"${page}"`);
+      globalThis.logWarn('enterSubform called with invalid page:', `"${page}"`);
       return;
     }
     const { instanceOwnerPartyId, instanceGuid, taskId, pageKey } = navParams.current;
@@ -387,7 +387,7 @@ export function useNavigatePage() {
 export function focusMainContent(options?: NavigateToPageOptions) {
   if (!options?.searchParams?.has(SearchParams.FocusComponentId)) {
     document.getElementById('main-content')?.focus();
-    window.scrollTo(0, 0);
+    globalThis.scrollTo(0, 0);
   }
 }
 

@@ -24,7 +24,7 @@ function subscribe(listener: () => void) {
 }
 
 function getFullCookieKey(cookieName: CookieName, partyId: number | undefined): string {
-  const parts = [window.org, window.app, partyId, cookieName].filter(isNotNullUndefinedOrEmpty);
+  const parts = [globalThis.org, globalThis.app, partyId, cookieName].filter(isNotNullUndefinedOrEmpty);
   return parts.join('_');
 }
 
