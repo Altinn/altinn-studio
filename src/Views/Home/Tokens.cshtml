@@ -27,33 +27,33 @@
             </div>
         }
         </div>
-        <div class="flex flex-column">
-        <h2 class="mt-4">Service owner tokens (e.g. Maskinporten)</h2>
-        @using (Html.BeginForm("GetTestOrgToken", "Home", FormMethod.Get, new { Class = "form-signin" }))
-        {
-            <div class="form-group mt-1">
-                <label>Service owner org code</label>
-                @Html.TextBox("org", Model.DefaultOrg, new { Class = "form-control" })
-            </div>
-            <div class="form-group mt-1">
-                <label>Authentication level</label>
-                @Html.DropDownList("authenticationLevel", Model.AuthenticationLevels, new { Class = "form-control" })
-            </div>
-            <div class="form-group mt-1">
-                <label>Service owner org number (optional)</label>
-                @Html.TextBox("orgNumber", "", new { Class = "form-control", Placeholder = "For official orgs this is fetched from altinncdn.no" })
-            </div>
-            <div class="form-group mt-1">
-                <label>Token scopes (space-separated list)</label>
-                @Html.TextBox("scopes", "", new { Class = "form-control", Id = "scopes", PlaceHolder = "altinn:serviceowner/instances.read altinn:serviceowner/instances.write" })
-            </div>
+<div class="flex flex-column">
+    <h2 class="mt-4">Service owner tokens (e.g. Maskinporten)</h2>
+    @using (Html.BeginForm("GetTestOrgToken", "Home", FormMethod.Get, new { Class = "form-signin" }))
+    {
+        <div class="form-group mt-1">
+            <label>Service owner org code</label>
+            @Html.TextBox("org", Model.DefaultOrg, new { Class = "form-control" })
+        </div>
+        <div class="form-group mt-1">
+            <label>Authentication level</label>
+            @Html.DropDownList("authenticationLevel", Model.AuthenticationLevels, new { Class = "form-control" })
+        </div>
+        <div class="form-group mt-1">
+            <label>Service owner org number (optional)</label>
+            @Html.TextBox("orgNumber", "", new { Class = "form-control", Placeholder = "For official orgs this is fetched from altinncdn.no" })
+        </div>
+        <div class="form-group mt-1">
+            <label>Token scopes (space-separated list)</label>
+            @Html.TextBox("scopes", "", new { Class = "form-control", Id = "scopes", PlaceHolder = "altinn:serviceowner/instances.read altinn:serviceowner/instances.write" })
+        </div>
 
-            <div class="form-group mt-1">
-                <button type="submit" class="btn btn-primary">Generate service owner token</button>
-            </div>
-        }
+        <div class="form-group mt-1">
+            <button type="submit" class="btn btn-primary">Generate service owner token</button>
+        </div>
+    }
         
-        <div class="flex flex-column">
+    <div class="flex flex-column">
         <h2 class="mt-4">System user tokens</h2>
         @using (Html.BeginForm("GetTestSystemUserToken", "Home", FormMethod.Get, new { Class = "form-signin" }))
         {
@@ -72,6 +72,7 @@
             </div>
         }
     </div>
+</div>
 </div>
 
 @section Scripts
