@@ -15,6 +15,7 @@ export type AltinnAppGlobalData = {
   layoutSets: ILayoutSets;
   frontendSettings: IApplicationSettings;
   availableLanguages: IAppLanguage[];
+  returnUrl?: string;
 };
 
 declare global {
