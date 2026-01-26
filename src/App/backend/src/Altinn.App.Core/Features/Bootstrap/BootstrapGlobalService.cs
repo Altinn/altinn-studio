@@ -27,7 +27,7 @@ internal sealed class BootstrapGlobalService(
     private readonly IAppResources _appResources = appResources;
     private readonly IOptions<FrontEndSettings> _frontEndSettings = frontEndSettings;
     private readonly IApplicationLanguage _applicationLanguage = applicationLanguage;
-    private readonly IReturnUrlService _returnUrlService = returnUrlService;
+    private readonly IProfileClient _profileClient = profileClient;
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -41,14 +41,13 @@ internal sealed class BootstrapGlobalService(
         var footerTask = GetFooterLayout();
 
         var availableLanguagesTask = _applicationLanguage.GetApplicationLanguages();
-        var validatedUrl = _returnUrlService.Validate(redirectUrl);
-
-        await Task.WhenAll(appMetadataTask, footerTask, availableLanguagesTask);
-
-        var userProfileTask = GetUserProfileOrNull();
 
         var layoutSets = _appResources.GetLayoutSets() ?? new LayoutSets { Sets = [] };
         layoutSets.UiSettings ??= new GlobalPageSettings();
+
+        var validatedUrl = returnUrlService.Validate(redirectUrl);
+
+        var userProfileTask = GetUserProfileOrNull();
 
         await Task.WhenAll(appMetadataTask, footerTask, availableLanguagesTask, userProfileTask);
 
@@ -56,11 +55,11 @@ internal sealed class BootstrapGlobalService(
         {
             ApplicationMetadata = await appMetadataTask,
             Footer = await footerTask,
+            LayoutSets = layoutSets,
             AvailableLanguages = await availableLanguagesTask,
             FrontEndSettings = _frontEndSettings.Value,
+            ReturnUrl = validatedUrl.DecodedUrl is not null ? validatedUrl.DecodedUrl : null,
             UserProfile = await userProfileTask,
-            ReturnUrl = validatedUrl,
-            LayoutSets = layoutSets,
         };
     }
 
@@ -73,7 +72,7 @@ internal sealed class BootstrapGlobalService(
             return null;
         }
 
-        return await profileClient.GetUserProfile(userId.Value);
+        return await _profileClient.GetUserProfile(userId.Value);
     }
 
     private async Task<object?> GetFooterLayout()

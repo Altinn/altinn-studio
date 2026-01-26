@@ -2,11 +2,13 @@ import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
-import { useProfile } from 'src/features/profile/ProfileProvider';
+import {useProfile, useProfileQuery} from 'src/features/profile/ProfileProvider';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
+import {useCookieState} from "src/hooks/useCookieState";
 
 interface LanguageCtx {
   current: string;
+  languageResolved: boolean;
   appLanguages: string[] | undefined;
   setWithLanguageSelector: (language: string) => void;
 }
@@ -16,6 +18,7 @@ const { Provider, useCtx } = createContext<LanguageCtx>({
   required: false,
   default: {
     current: 'nb',
+    languageResolved: false,
     appLanguages: undefined,
     setWithLanguageSelector: () => {
       throw new Error('LanguageProvider not initialized');
@@ -26,11 +29,10 @@ const { Provider, useCtx } = createContext<LanguageCtx>({
 export const LanguageProvider = ({ children }: PropsWithChildren) => {
   const profile = useProfile();
 
-  const userId = profile?.userId;
   const languageFromProfile = profile?.profileSettingPreference.language;
 
   const languageFromUrl = getLanguageFromUrl();
-  const [languageFromSelector, setWithLanguageSelector] = useLocalStorageState(['selectedLanguage', userId], null);
+  const [languageFromSelector, setWithLanguageSelector] = useCookieState<string | null>('lang', null);
 
   const appLanguages = window.altinnAppGlobalData.availableLanguages.map((lang) => lang.language);
 
@@ -46,6 +48,7 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
         current,
         appLanguages,
         setWithLanguageSelector,
+        languageResolved: true
       }}
     >
       <div lang={current}>{children}</div>
@@ -54,6 +57,7 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
 };
 
 export const useCurrentLanguage = () => useCtx().current;
+export const useIsCurrentLanguageResolved = () => useCtx().languageResolved;
 export const useAppLanguages = () => useCtx().appLanguages;
 export const useSetLanguageWithSelector = () => useCtx().setWithLanguageSelector;
 
