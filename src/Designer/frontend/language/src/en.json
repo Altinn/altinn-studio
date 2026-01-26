@@ -572,7 +572,7 @@
   "process_editor.palette_create_pdf_service_task": "Create PDF service task",
   "process_editor.palette_create_signing_task": "Create signing task",
   "process_editor.palette_create_user_controlled_signing_task": "Create user-controlled signing task",
-  "process_editor.palette_pdf_service_task_version_error": "This functionality requires version {{version}} or higher of the Altinn.App-.NET libraries.",
+  "process_editor.palette_pdf_service_task_version_error": "This functionality requires version {{version}} or higher of the Altinn.App .NET libraries.",
   "process_editor.save": "Save",
   "process_editor.unsaved_changes": "You have {{count}} unsaved changes",
   "receipt.attachments": "Attachments",
