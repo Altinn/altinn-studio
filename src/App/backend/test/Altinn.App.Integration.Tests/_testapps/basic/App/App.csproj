@@ -9,15 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!--
-      We reference wildcard versions because the integration test harness
-      is building and packing the libaries and providing them as a local NuGet feed.
-      So we dont care about the exact version, it just has to be compiled from the code in the current commit
-    -->
-    <PackageReference Include="Altinn.App.Api" Version="*-*">
-        <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
-    </PackageReference>
-    <PackageReference Include="Altinn.App.Core" Version="*-*" />
+    <ProjectReference Include="../../../../../src/Altinn.App.Api/Altinn.App.Api.csproj" />
+    <ProjectReference Include="../../../../../src/Altinn.App.Core/Altinn.App.Core.csproj" />
 
     <!-- Required for the fixture - compilation of injected services -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
