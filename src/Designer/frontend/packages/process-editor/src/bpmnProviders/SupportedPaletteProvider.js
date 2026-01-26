@@ -1,6 +1,10 @@
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
+import { getAppLibVersion } from '../utils/bpmnModeler/BpmnModelerInstance';
+import { isVersionEqualOrGreater } from '../utils/processEditorUtils';
 
 const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];
+
+const MINIMUM_VERSION_FOR_PDF_SERVICE_TASK = '8.9.0';
 
 class SupportedPaletteProvider {
   constructor(bpmnFactory, create, elementFactory, palette, translate, modeling) {
@@ -190,6 +194,14 @@ class SupportedPaletteProvider {
       const taskType = 'pdf';
 
       return function (event) {
+        const appLibVersion = getAppLibVersion();
+        if (!isVersionEqualOrGreater(appLibVersion, MINIMUM_VERSION_FOR_PDF_SERVICE_TASK)) {
+          window.alert(
+            'Denne funksjonaliteten krever versjon 8.9.0 eller høyere av Altinn.App-.NET-bibliotekene.',
+          );
+          return;
+        }
+
         const task = buildAltinnServiceTask(taskType);
 
         const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
