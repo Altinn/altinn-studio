@@ -9,7 +9,6 @@ import { Pagination } from 'src/app-components/Pagination/Pagination';
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import {
@@ -24,6 +23,7 @@ import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffect
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { focusMainContent } from 'src/hooks/useNavigatePage';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
 import type { ISimpleInstance } from 'src/types';
@@ -60,7 +60,9 @@ function InstanceSelection() {
   const instantiation = useInstantiation();
   const selectedParty = useSelectedParty();
   const setNavigationEffect = useSetNavigationEffect();
-  const { performProcess, isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
+  const performProcess = useProcessingMutation('instantiation');
+  const isLoading = useIsThisProcessing('instantiation');
+  const isAnyProcessing = useIsAnyProcessing();
   const navigate = useNavigate();
 
   const appName = useAppName();

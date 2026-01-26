@@ -3,14 +3,12 @@ import React from 'react';
 import { CheckmarkIcon, XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/features/navigation/components/Page.module.css';
 import { SubformsForPage } from 'src/features/navigation/components/SubformsForPage';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useProcessingMutation } from 'src/hooks/useProcessingMutation';
 
 export function Page({
   page,
@@ -27,12 +25,11 @@ export function Page({
   const isCurrentPage = page === currentPageId;
 
   const { navigateToPage } = useNavigatePage();
-  const { performProcess, isAnyProcessing, isThisProcessing: isNavigating } = useIsProcessing();
+  const performProcess = useProcessingMutation('navigate-page');
 
   return (
     <li className={classes.pageListItem}>
       <button
-        disabled={isAnyProcessing}
         aria-current={isCurrentPage ? 'page' : undefined}
         className={cn(classes.pageButton, 'fds-focus')}
         onClick={() =>
@@ -48,7 +45,6 @@ export function Page({
           error={hasErrors}
           complete={isComplete}
           active={isCurrentPage}
-          isLoading={isNavigating}
         />
         <span className={cn(classes.pageName, { [classes.pageNameActive]: isCurrentPage })}>
           <Lang id={page} />
@@ -69,33 +65,13 @@ export function Page({
   );
 }
 
-function PageSymbol({
-  error,
-  complete,
-  active,
-  isLoading,
-}: {
-  error: boolean;
-  complete: boolean;
-  active: boolean;
-  isLoading: boolean;
-}) {
-  const { langAsString } = useLanguage();
+function PageSymbol({ error, complete, active }: { error: boolean; complete: boolean; active: boolean }) {
   const showActive = active;
   const showError = error && !active;
   const showComplete = complete && !error && !active;
 
   const Icon = showError ? XMarkIcon : showComplete ? CheckmarkIcon : null;
   const testid = showError ? 'state-error' : showComplete ? 'state-complete' : undefined;
-
-  if (isLoading) {
-    return (
-      <Spinner
-        style={{ width: 20, height: 20 }}
-        aria-label={langAsString('general.loading')}
-      />
-    );
-  }
 
   return (
     <div

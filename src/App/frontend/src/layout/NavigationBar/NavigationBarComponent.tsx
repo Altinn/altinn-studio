@@ -5,7 +5,6 @@ import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -13,9 +12,15 @@ import { useOnPageNavigationValidation } from 'src/features/validation/callbacks
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import {
+  useCurrentProcessKey,
+  useIsAnyProcessing,
+  useProcessingMutationWithKey,
+} from 'src/hooks/useProcessingMutation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/NavigationBar/NavigationBarComponent.module.css';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import type { NavigatePageProcessKey } from 'src/hooks/useProcessingMutation';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 interface INavigationButton {
@@ -56,7 +61,9 @@ export const NavigationBarComponent = ({ baseComponentId }: PropsFromGenericComp
   const currentPageId = useNavigationParam('pageKey') ?? '';
   const { navigateToPage, order, maybeSaveOnPageChange } = useNavigatePage();
   const onPageNavigationValidation = useOnPageNavigationValidation();
-  const { performProcess, isAnyProcessing, process } = useIsProcessing<string>();
+  const performProcess = useProcessingMutationWithKey<NavigatePageProcessKey>('navigate-page');
+  const currentProcessKey = useCurrentProcessKey<NavigatePageProcessKey>('navigate-page');
+  const isAnyProcessing = useIsAnyProcessing();
   const layoutLookups = useLayoutLookups();
 
   const firstPageLink = React.useRef<HTMLButtonElement>(undefined);
@@ -159,7 +166,7 @@ export const NavigationBarComponent = ({ baseComponentId }: PropsFromGenericComp
                     ref={index === 0 ? firstPageLink : null}
                   >
                     <div className={classes.buttonContent}>
-                      {process === pageId && (
+                      {currentProcessKey === pageId && (
                         <Spinner
                           className={classes.spinner}
                           aria-label={langAsString('general.loading')}

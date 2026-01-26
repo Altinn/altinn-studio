@@ -12,6 +12,7 @@ import { isAttachmentUploaded, isDataPostError } from 'src/features/attachments/
 import { sortAttachmentsByName } from 'src/features/attachments/sortAttachments';
 import { attachmentSelector } from 'src/features/attachments/tools';
 import { FileScanResults } from 'src/features/attachments/types';
+import { hasPendingAttachments } from 'src/features/attachments/utils';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { dataModelPairsToObject } from 'src/features/formData/types';
 import {
@@ -474,25 +475,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
         );
       },
       useHasPendingAttachments() {
-        const out = store.useLaxSelector((state) => {
-          for (const id of Object.keys(state.nodeData)) {
-            const nodeData = state.nodeData[id];
-            if (!nodeData || !('attachments' in nodeData)) {
-              continue;
-            }
-
-            const attachments = Object.values(nodeData.attachments);
-            if (attachments.some((a) => !a.uploaded || a.updating || a.deleting)) {
-              return true;
-            }
-
-            if (attachments.some((a) => a.uploaded && a.data.fileScanResult === FileScanResults.Infected)) {
-              return true;
-            }
-          }
-          return false;
-        });
-
+        const out = store.useLaxSelector(hasPendingAttachments);
         return out === ContextNotProvided ? false : out;
       },
       useAttachmentState(): AttachmentStateInfo {

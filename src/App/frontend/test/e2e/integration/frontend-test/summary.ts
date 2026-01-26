@@ -489,6 +489,7 @@ describe('Summary', () => {
       cy.get(exampleSummary).should('exist');
       assertErrorReport();
       cy.findByRole('button', { name: 'Forrige' }).click();
+      cy.get(appFrontend.changeOfName.newFirstName).should('exist');
       assertErrorReport();
       cy.gotoNavPage('summary');
       cy.get(exampleSummary).should('exist');
