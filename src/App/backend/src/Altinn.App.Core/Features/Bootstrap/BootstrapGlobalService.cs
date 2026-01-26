@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Bootstrap.Models;
+using Altinn.App.Core.Features.Redirect;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
@@ -12,7 +13,8 @@ internal sealed class BootstrapGlobalService(
     IAppMetadata appMetadata,
     IAppResources appResources,
     IOptions<FrontEndSettings> frontEndSettings,
-    IApplicationLanguage applicationLanguage
+    IApplicationLanguage applicationLanguage,
+    IReturnUrlService returnUrlService
 ) : IBootstrapGlobalService
 {
     private readonly IAppMetadata _appMetadata = appMetadata;
@@ -24,7 +26,7 @@ internal sealed class BootstrapGlobalService(
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    public async Task<BootstrapGlobalResponse> GetGlobalState()
+    public async Task<BootstrapGlobalResponse> GetGlobalState(string? redirectUrl)
     {
         var appMetadataTask = _appMetadata.GetApplicationMetadata();
 
@@ -32,10 +34,12 @@ internal sealed class BootstrapGlobalService(
 
         var availableLanguagesTask = _applicationLanguage.GetApplicationLanguages();
 
-        await Task.WhenAll(appMetadataTask, footerTask, availableLanguagesTask);
-
         var layoutSets = _appResources.GetLayoutSets() ?? new LayoutSets { Sets = [] };
         layoutSets.UiSettings ??= new GlobalPageSettings();
+
+        var validatedUrl = returnUrlService.Validate(redirectUrl);
+
+        await Task.WhenAll(appMetadataTask, footerTask, availableLanguagesTask);
 
         return new BootstrapGlobalResponse
         {
@@ -44,6 +48,7 @@ internal sealed class BootstrapGlobalService(
             LayoutSets = layoutSets,
             AvailableLanguages = await availableLanguagesTask,
             FrontEndSettings = _frontEndSettings.Value,
+            ReturnUrl = validatedUrl.DecodedUrl is not null ? validatedUrl.DecodedUrl : null,
         };
     }
 
