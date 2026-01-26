@@ -348,7 +348,6 @@ public class CustomTemplateService : ICustomTemplateService
         if (contentFiles.Count == 0)
         {
             _logger.LogWarning("No content found for template '{TemplateId}'", templateId);
-            return;
         }
 
         // Clear old cache content
@@ -481,8 +480,26 @@ public class CustomTemplateService : ICustomTemplateService
 
         foreach (FileInfo file in source.GetFiles())
         {
-            File.SetAttributes(file.FullName, FileAttributes.Normal);
-            file.CopyTo(Path.Combine(target.FullName, file.Name), overwrite: true);
+            string targetFilePath = Path.Combine(target.FullName, file.Name);
+
+            // Remove read-only attribute if file exists (Windows-compatible approach)
+            if (File.Exists(targetFilePath))
+            {
+                try
+                {
+                    FileAttributes attrs = File.GetAttributes(targetFilePath);
+                    if ((attrs & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+                    {
+                        File.SetAttributes(targetFilePath, attrs & ~FileAttributes.ReadOnly);
+                    }
+                }
+                catch (Exception)
+                {
+                    // Ignore attribute errors on non-Windows systems
+                }
+            }
+
+            file.CopyTo(targetFilePath, overwrite: true);
         }
 
         foreach (DirectoryInfo subDir in source.GetDirectories())
