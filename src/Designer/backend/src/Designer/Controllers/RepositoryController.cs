@@ -189,7 +189,8 @@ namespace Altinn.Studio.Designer.Controllers
 
             var config = new ServiceConfiguration { RepositoryName = request.Repository, ServiceName = request.Repository };
 
-            var repositoryResult = await _repository.CreateService(request.Org, config, request.Templates);
+            var repositoryResult = await _repository.CreateService(request.Org, config, [ request.Template]);
+
             if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
             {
                 return Created(repositoryResult.CloneUrl, repositoryResult);
