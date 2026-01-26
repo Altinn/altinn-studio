@@ -22,7 +22,6 @@ public class ValidateCustomTemplateTest
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(validManifest);
         Assert.Empty(errors);
     }
-   
     [Theory]
     [InlineData("/absolute/path")]
     [InlineData("../../other/app/templates")]
