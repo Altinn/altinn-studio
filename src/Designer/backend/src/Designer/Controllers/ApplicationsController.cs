@@ -199,7 +199,7 @@ public class ApplicationsController : ControllerBase
                 {
                     _logger.LogError(
                         ex,
-                        "Invalid AltinnNugetVersion file for app {Org}/{Env}/{App}: '{AltinnNugetVersion}'.",
+                        "Invalid AltinnNugetVersion for app {Org}/{Env}/{App}: '{AltinnNugetVersion}'.",
                         org,
                         env,
                         app,
