@@ -31,6 +31,7 @@ public class HomeController : Controller
     private readonly AppSettings _appSettings;
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
+    private readonly ILogger<HomeController> _logger;
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
     private readonly IBootstrapGlobalService _bootstrapGlobalService;
     private readonly IIndexPageGenerator _indexPageGenerator;
@@ -52,7 +53,8 @@ public class HomeController : Controller
         IWebHostEnvironment env,
         IOptions<AppSettings> appSettings,
         IAppResources appResources,
-        IAppMetadata appMetadata
+        IAppMetadata appMetadata,
+        ILogger<HomeController> logger
     )
     {
         _antiforgery = antiforgery;
@@ -63,6 +65,7 @@ public class HomeController : Controller
         _appMetadata = appMetadata;
         _bootstrapGlobalService = serviceProvider.GetRequiredService<IBootstrapGlobalService>();
         _indexPageGenerator = serviceProvider.GetRequiredService<IIndexPageGenerator>();
+        _logger = logger;
     }
 
     /// <summary>
@@ -72,6 +75,7 @@ public class HomeController : Controller
     /// <param name="app">The name of the app</param>
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
     /// <param name="returnUrl">Custom returnUrl param that will be verified</param>
+    /// <param name="lang">The chosen language to use for default text resources</param>
     [HttpGet]
     [Route("")]
     [Route("instance-selection")]
@@ -84,7 +88,8 @@ public class HomeController : Controller
         [FromRoute] string org,
         [FromRoute] string app,
         [FromQuery] bool dontChooseReportee,
-        [FromQuery] string? returnUrl
+        [FromQuery] string? returnUrl,
+        [FromQuery] string? lang = null
     )
     {
         // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
@@ -116,7 +121,7 @@ public class HomeController : Controller
                 frontendVersionOverride = cookie.TrimEnd('/');
             }
 
-            var appGlobalState = await _bootstrapGlobalService.GetGlobalState(returnUrl);
+            var appGlobalState = await _bootstrapGlobalService.GetGlobalState(org, app, returnUrl, lang);
             var html = await _indexPageGenerator.Generate(org, app, appGlobalState, frontendVersionOverride);
             return Content(html, "text/html; charset=utf-8");
         }
