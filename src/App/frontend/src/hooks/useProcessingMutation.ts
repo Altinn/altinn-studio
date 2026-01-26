@@ -40,7 +40,7 @@ export function useProcessingMutationWithKey<TProcessKey extends string>(
   const queryClient = useQueryClient();
   const fullMutationKey = getFullMutationKey(mutationKey);
 
-  const mutation = useMutation({
+  const { mutateAsync } = useMutation({
     mutationKey: fullMutationKey,
     scope: { id: PROCESSING_SCOPE_ID },
     mutationFn: async ({ callback }: { callback: () => Promise<unknown>; processKey: TProcessKey }) => {
@@ -54,9 +54,9 @@ export function useProcessingMutationWithKey<TProcessKey extends string>(
       if (queryClient.isMutating({ mutationKey: PROCESSING_MUTATION_KEY, status: 'pending' }) > 0) {
         return;
       }
-      await mutation.mutateAsync({ callback, processKey });
+      await mutateAsync({ callback, processKey });
     },
-    [mutation, queryClient],
+    [mutateAsync, queryClient],
   );
 }
 
