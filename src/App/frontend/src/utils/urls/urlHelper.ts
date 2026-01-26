@@ -4,7 +4,7 @@ export const orgsListUrl = 'https://altinncdn.no/orgs/altinn-orgs.json';
 const prodStagingRegex = /^\w+\.apps\.((\w+\.)?altinn\.(no|cloud))$/;
 const localRegex = /^local\.altinn\.cloud(:\d+)?$/;
 
-function isLocalEnvironment(host: string): boolean {
+export function isLocalEnvironment(host: string): boolean {
   return localRegex.test(host);
 }
 
