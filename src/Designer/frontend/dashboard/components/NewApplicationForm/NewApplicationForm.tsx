@@ -58,7 +58,7 @@ export const NewApplicationForm = ({
       ? user.login
       : selectedContext;
   const [currentSelectedOrg, setCurrentSelectedOrg] = useState<string>(defaultSelectedOrgOrUser);
-  const [selectedTemplates, setSelectedTemplates] = useState<CustomTemplate[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<CustomTemplate>();
   const { data: userOrgPermission, isFetching } = useUserOrgPermissionQuery(currentSelectedOrg, {
     enabled: Boolean(currentSelectedOrg),
   });
@@ -83,7 +83,7 @@ export const NewApplicationForm = ({
     const newAppForm: NewAppForm = {
       org: formData.get('org') as string,
       repoName: formData.get('repoName') as string,
-      templates: selectedTemplates.length > 0 ? selectedTemplates : undefined,
+      templates: selectedTemplate ? [selectedTemplate] : undefined,
     };
 
     const isFormValid: boolean = validateNewAppForm(newAppForm);
@@ -137,8 +137,8 @@ export const NewApplicationForm = ({
       {isCustomTemplatesEnabled && availableTemplates && availableTemplates.length > 0 && (
         <TemplateSelector
           templates={availableTemplates}
-          selectedTemplates={selectedTemplates}
-          onChange={setSelectedTemplates}
+          selectedTemplate={selectedTemplate}
+          onChange={setSelectedTemplate}
         />
       )}
       <div className={classes.actionContainer}>
