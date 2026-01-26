@@ -3,7 +3,8 @@ import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import type { BranchStatus, Branch } from 'app-shared/types/BranchStatus';
+import type { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { Branch } from 'app-shared/types/api/BranchTypes';
 import type {
   DataModelMetadataJson,
   DataModelMetadataXsd,
@@ -136,6 +137,15 @@ export const queriesMock: ServicesContextProps = {
   getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
   getRepoBranches: jest.fn().mockImplementation(() => Promise.resolve<Branch[]>([])),
   getRepoCurrentBranch: jest.fn().mockImplementation(() => Promise.resolve<string>('main')),
+  getBranches: jest.fn().mockImplementation(() => Promise.resolve<Branch[]>([])),
+  getCurrentBranch: jest.fn().mockImplementation(() =>
+    Promise.resolve({
+      branchName: 'main',
+      commitSha: 'test-sha',
+      isTracking: true,
+      remoteName: 'origin/main',
+    }),
+  ),
   getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getStarredRepos: jest.fn().mockImplementation(() => Promise.resolve<Repository[]>([])),
@@ -259,6 +269,11 @@ export const queriesMock: ServicesContextProps = {
   pushRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   resetRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   setRepoBranch: jest.fn().mockImplementation(() => Promise.resolve()),
+  createBranch: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<Branch>({ name: 'main', commit: { id: '', message: '' } })),
+  checkoutBranch: jest.fn().mockImplementation(() => Promise.resolve(repoStatus)),
+  discardChanges: jest.fn().mockImplementation(() => Promise.resolve(repoStatus)),
   saveDataModel: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayoutV3: jest.fn().mockImplementation(() => Promise.resolve()),

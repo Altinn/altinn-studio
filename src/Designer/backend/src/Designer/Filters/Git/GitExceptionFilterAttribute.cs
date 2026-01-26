@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
+using Altinn.Studio.Designer.Exceptions;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
@@ -31,6 +32,12 @@ namespace Altinn.Studio.Designer.Filters.Git
             if (context.Exception is GiteaUnathorizedException || (context.Exception is LibGit2SharpException && context.Exception.Message.Contains("server requires authentication that we do not support")))
             {
                 context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, GitErrorCodes.GiteaSessionExpired, HttpStatusCode.Unauthorized)) { StatusCode = (int)HttpStatusCode.Unauthorized };
+            }
+
+            if (context.Exception is UncommittedChangesException uncommittedChangesException)
+            {
+                context.Result = new ObjectResult(uncommittedChangesException.ErrorDetails) { StatusCode = (int)HttpStatusCode.Conflict };
+                context.ExceptionHandled = true;
             }
         }
     }

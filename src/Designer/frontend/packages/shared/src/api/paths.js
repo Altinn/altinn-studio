@@ -120,6 +120,10 @@ export const undeployAppFromEnvPath = (org, app) => `${apiBasePath}/${org}/${app
 
 // Repositories
 export const branchStatusPath = (org, app, branch) => `${apiBasePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
+export const branchesPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/branches`; // Get, Post
+export const checkoutBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/checkout`; // Post
+export const currentBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/current-branch`; // Get
+export const discardChangesPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/discard-changes`; // Post
 export const copyAppPath = (org, sourceRepository, targetRepository, targetOrg) =>
   `${apiBasePath}/repos/repo/${org}/copy-app?${s({
     sourceRepository,

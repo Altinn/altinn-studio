@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-
 using LibGit2Sharp;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -299,6 +296,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     repoStatus.AheadBy = branch.TrackingDetails.AheadBy;
                     repoStatus.BehindBy = branch.TrackingDetails.BehindBy;
                 }
+
+                repoStatus.CurrentBranch = repo.Head.FriendlyName;
             }
 
             return repoStatus;
@@ -396,6 +395,69 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return Task.FromResult(head.FriendlyName);
         }
 
+        /// <inheritdoc/>
+        public CurrentBranchInfo GetCurrentBranch(string org, string repository)
+        {
+            string localPath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+
+            using LibGit2Sharp.Repository repo = new(localPath);
+            return new CurrentBranchInfo
+            {
+                BranchName = repo.Head.FriendlyName,
+                CommitSha = repo.Head.Tip?.Sha,
+                IsTracking = repo.Head.IsTracking,
+                RemoteName = repo.Head.TrackedBranch?.FriendlyName
+            };
+        }
+
+        /// <inheritdoc/>
+        public async Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName)
+        {
+            RepoStatus repoStatus = RepositoryStatus(org, repository);
+
+            bool hasUncommittedChanges = repoStatus.ContentStatus
+                .Any(c => c.FileStatus != Enums.FileStatus.Unaltered);
+
+            if (hasUncommittedChanges)
+            {
+                var error = new UncommittedChangesError
+                {
+                    Error = "Cannot switch branches with uncommitted changes",
+                    Message = "You have uncommitted changes. Please commit and push your changes, or discard them before switching branches.",
+                    UncommittedFiles = repoStatus.ContentStatus
+                        .Where(c => c.FileStatus != Enums.FileStatus.Unaltered)
+                        .Select(c => new UncommittedFile
+                        {
+                            FilePath = c.FilePath,
+                            Status = c.FileStatus.ToString()
+                        })
+                        .ToList(),
+                    CurrentBranch = repoStatus.CurrentBranch,
+                    TargetBranch = branchName
+                };
+
+                throw new Exceptions.UncommittedChangesException(error);
+            }
+
+            await FetchRemoteChanges(org, repository);
+            CheckoutRepoOnBranch(org, repository, branchName);
+            return RepositoryStatus(org, repository);
+        }
+
+        /// <inheritdoc/>
+        public RepoStatus DiscardLocalChanges(string org, string repository)
+        {
+            string localPath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+
+            using (var repo = new LibGit2Sharp.Repository(localPath))
+            {
+                repo.Reset(ResetMode.Hard, repo.Head.Tip);
+                repo.RemoveUntrackedFiles();
+            }
+
+            return RepositoryStatus(org, repository);
+        }
+
         /// <summary>
         /// Method for storing AppToken in Developers folder. This is not the permanent solution
         /// </summary>
@@ -491,6 +553,38 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 repo.Network.Push(b, options);
                 repo.Network.Push(remote, "refs/notes/commits", options);
             }
+        }
+
+        /// <summary>
+        /// Checkout the repository on specified branch.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <param name="branchName">The name of the branch</param>
+        private void CheckoutRepoOnBranch(string org, string repository, string branchName)
+        {
+            string localPath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using LibGit2Sharp.Repository repo = new(localPath);
+
+            Branch branch = repo.Branches.FirstOrDefault(b => b.FriendlyName == branchName);
+
+            if (branch == null)
+            {
+                Branch remoteBranch = repo.Branches.FirstOrDefault(b =>
+                    b.IsRemote && (b.FriendlyName == $"origin/{branchName}" || b.FriendlyName.EndsWith($"/{branchName}")));
+
+                if (remoteBranch != null)
+                {
+                    branch = repo.CreateBranch(branchName, remoteBranch.Tip);
+                    branch = repo.Branches.Update(branch, b => b.TrackedBranch = remoteBranch.CanonicalName);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Branch '{branchName}' not found in local or remote branches.");
+                }
+            }
+
+            Commands.Checkout(repo, branch);
         }
 
         /// <summary>

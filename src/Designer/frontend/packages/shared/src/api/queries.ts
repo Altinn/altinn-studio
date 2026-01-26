@@ -6,6 +6,8 @@ import {
   appVersionPath,
   belongsToOrg,
   branchStatusPath,
+  branchesPath,
+  currentBranchPath,
   dataModelMetadataPath,
   dataModelPath,
   dataModelsJsonPath,
@@ -78,7 +80,8 @@ import {
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
-import type { BranchStatus, Branch } from 'app-shared/types/BranchStatus';
+import type { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { Branch, CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
 import type { DataModelMetadataJson, DataModelMetadataXsd } from 'app-shared/types/DataModelMetadata';
 import type { Environment } from 'app-shared/types/Environment';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
@@ -156,6 +159,8 @@ export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(rep
 export const getRepoDiff = (owner: string, app: string) => get<RepoDiffResponse>(repoDiffPath(owner, app));
 export const getRepoBranches = (owner: string, app: string) => get<Branch[]>(repositoryBranchesPath(owner, app));
 export const getRepoCurrentBranch = (owner: string, app: string) => get<string>(repositoryCurrentBranchPath(owner, app));
+export const getBranches = (org: string, app: string) => get<Branch[]>(branchesPath(org, app));
+export const getCurrentBranch = (org: string, app: string) => get<CurrentBranchInfo>(currentBranchPath(org, app));
 export const getRuleConfig = (owner: string, app: string, layoutSetName: string) => get<RuleConfig>(ruleConfigPath(owner, app, layoutSetName));
 export const getRuleModel = (owner: string, app: string, layoutSetName: string) => get<string>(ruleHandlerPath(owner, app, layoutSetName));
 export const getStarredRepos = () => get<Repository[]>(userStarredListPath());

@@ -60,6 +60,9 @@ import {
   layoutConvertToPageOrderPath,
   taskNavigationGroupPath,
   orgCodeListUpdateIdPath,
+  branchesPath,
+  checkoutBranchPath,
+  discardChangesPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -77,6 +80,8 @@ import type { CreateDataModelPayload } from 'app-shared/types/api/CreateDataMode
 import type { Policy } from '@altinn/policy-editor';
 import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers, HeaderEtag, MigrateDelegationsRequest } from 'app-shared/types/ResourceAdm';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { Branch } from 'app-shared/types/api/BranchTypes';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Repository } from 'app-shared/types/Repository';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
@@ -206,3 +211,11 @@ export const uploadOrgCodeList = async (org: string, payload: FormData): Promise
 // Organisation text resources:
 export const createOrgTextResources = async (org: string, language: string, payload: ITextResourcesWithLanguage): Promise<ITextResourcesWithLanguage> => post<ITextResourcesWithLanguage, ITextResourcesWithLanguage>(orgTextResourcesPath(org, language), payload);
 export const updateOrgTextResources = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);
+
+// Branches:
+export const createBranch = async (org: string, app: string, branchName: string): Promise<Branch> =>
+  post(branchesPath(org, app), { branchName });
+export const checkoutBranch = async (org: string, app: string, branchName: string): Promise<RepoStatus> =>
+  post(checkoutBranchPath(org, app), { branchName });
+export const discardChanges = async (org: string, app: string): Promise<RepoStatus> =>
+  post(discardChangesPath(org, app), {});

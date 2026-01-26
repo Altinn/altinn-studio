@@ -168,5 +168,31 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repository">The name of the repository.</param>
         /// <returns>The friendly branch name, or <c>null</c> if detached.</returns>
         Task<string> GetCurrentBranchName(string org, string repository);
+
+        /// <summary>
+        /// Gets information about the current branch
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="repository">The name of the repository.</param>
+        /// <returns>Information about the current branch</returns>
+        CurrentBranchInfo GetCurrentBranch(string org, string repository);
+
+        /// <summary>
+        /// Checks out a branch, validating that there are no uncommitted changes first
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="repository">The name of the repository.</param>
+        /// <param name="branchName">The name of the branch to checkout</param>
+        /// <returns>The updated repository status, or null if there are uncommitted changes</returns>
+        /// <exception cref="Exceptions.UncommittedChangesException">Thrown when there are uncommitted changes</exception>
+        Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName);
+
+        /// <summary>
+        /// Discards all local changes in the repository (hard reset + clean untracked files)
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="repository">The name of the repository.</param>
+        /// <returns>The updated repository status</returns>
+        RepoStatus DiscardLocalChanges(string org, string repository);
     }
 }
