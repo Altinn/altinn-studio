@@ -160,19 +160,53 @@ public class ApplicationsController : ControllerBase
             var indexFile = await indexFileTask;
             var applicationMetadata = await applicationMetadataTask;
 
-            var indexFileContent = !string.IsNullOrEmpty(indexFile?.Content) ? Encoding.UTF8.GetString(Convert.FromBase64String(indexFile.Content)) : null;
             string frontendVersion = null;
-            if (!string.IsNullOrEmpty(indexFileContent))
+            if (!string.IsNullOrEmpty(indexFile?.Content))
             {
-                AppFrontendVersionHelper.TryGetFrontendVersionFromIndexContent(
-                    indexFileContent,
-                    out frontendVersion
-                );
+                try
+                {
+                    var indexFileContent = Encoding.UTF8.GetString(
+                        Convert.FromBase64String(indexFile.Content)
+                    );
+                    if (!string.IsNullOrEmpty(indexFileContent))
+                    {
+                        AppFrontendVersionHelper.TryGetFrontendVersionFromIndexContent(
+                            indexFileContent,
+                            out frontendVersion
+                        );
+                    }
+                }
+                catch (FormatException ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Invalid Index.cshtml file for app {Org}/{App}@{Commit}.",
+                        org,
+                        app,
+                        releaseEntity.TargetCommitish
+                    );
+                }
             }
 
-            var appLibVersion = !string.IsNullOrEmpty(applicationMetadata.AltinnNugetVersion)
-                ? new Version(applicationMetadata.AltinnNugetVersion).ToString(3)
-                : null;
+            string appLibVersion = null;
+            if (!string.IsNullOrEmpty(applicationMetadata.AltinnNugetVersion))
+            {
+                try
+                {
+                    appLibVersion = new Version(applicationMetadata.AltinnNugetVersion).ToString(3);
+                }
+                catch (FormatException ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Invalid AltinnNugetVersion file for app {Org}/{Env}/{App}: '{AltinnNugetVersion}'.",
+                        org,
+                        env,
+                        app,
+                        applicationMetadata.AltinnNugetVersion
+                    );
+                }
+            }
 
             var application = new PublishedApplicationDetails()
             {
