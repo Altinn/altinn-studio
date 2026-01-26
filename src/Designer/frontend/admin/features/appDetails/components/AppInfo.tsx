@@ -33,7 +33,17 @@ type AppInfoWithDataProps = {
 };
 
 const AppInfoWithData = ({
-  appDetails: { org, env, app, version, commit, createdAt, createdBy },
+  appDetails: {
+    org,
+    env,
+    app,
+    version,
+    appLibVersion,
+    appFrontendVersion,
+    commit,
+    createdAt,
+    createdBy,
+  },
 }: AppInfoWithDataProps) => {
   const { t } = useTranslation();
 
@@ -45,7 +55,11 @@ const AppInfoWithData = ({
       <StudioHeading data-size='sm'>{t('Informasjon om appen')}</StudioHeading>
       <div className={classes['details-wrapper']}>
         <LabelValue label={t('Miljø')}>{t(`admin.environment.${env}`)}</LabelValue>
-        <LabelValue label={t('Versjon')}>{version}</LabelValue>
+        <LabelValue label={t('App versjon')}>{version}</LabelValue>
+        {appLibVersion && <LabelValue label={t('Backend versjon')}>{appLibVersion}</LabelValue>}
+        {appFrontendVersion && (
+          <LabelValue label={t('Frontend versjon')}>{appFrontendVersion}</LabelValue>
+        )}
         <LabelValue label={t('Commit')}>
           <a href={commitPath} target='_blank' rel='noreferrer'>
             {shortenedCommit}
