@@ -11,8 +11,11 @@ export class PostHogAnalyticsProvider implements AnalyticsProvider {
   public syncConsent(preferences: ConsentPreferences): void {
     if (!this.posthog) return;
 
-    this.syncAnalyticsConsent(preferences.analytics);
-    this.syncSessionRecording(preferences.sessionRecording);
+    const analyticsEnabled = preferences.analytics;
+    const sessionRecordingEnabled = analyticsEnabled && preferences.sessionRecording;
+
+    this.syncAnalyticsConsent(analyticsEnabled);
+    this.syncSessionRecording(sessionRecordingEnabled);
   }
 
   private syncAnalyticsConsent(enabled: boolean): void {

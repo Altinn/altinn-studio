@@ -8,13 +8,31 @@ import React, {
 } from 'react';
 import { usePostHog } from '@posthog/react';
 import { CookieStorage } from '@studio/browser-storage';
-import type { ConsentState, ConsentPreferences } from './types';
+import type { ConsentState, ConsentPreferences, StoredConsentState } from './types';
 import { ConsentContextProvider } from './ConsentContext';
 import { ConsentMutationContextProvider } from './ConsentMutationContext';
 import { PostHogAnalyticsProvider } from './analyticsProvider';
 import type { AnalyticsProvider } from './analyticsProvider';
 
 export const CONSENT_COOKIE_KEY = 'altinn-studio-consent';
+
+function isValidConsentState(stored: StoredConsentState | null): stored is ConsentState {
+  return (
+    stored !== null &&
+    typeof stored.timestamp === 'number' &&
+    typeof stored.preferences?.analytics === 'boolean' &&
+    typeof stored.preferences?.sessionRecording === 'boolean'
+  );
+}
+
+function getStoredConsentState(): ConsentState | null {
+  try {
+    const stored = CookieStorage.getItem<StoredConsentState>(CONSENT_COOKIE_KEY);
+    return isValidConsentState(stored) ? stored : null;
+  } catch {
+    return null;
+  }
+}
 export const CONSENT_COOKIE_EXPIRY_DAYS = 365;
 
 export type ConsentProviderProps = {
@@ -29,9 +47,7 @@ export function ConsentProvider({
   getCurrentTimestamp = Date.now,
 }: ConsentProviderProps): ReactElement {
   const posthog = usePostHog();
-  const [consentState, setConsentState] = useState<ConsentState | null>(() =>
-    CookieStorage.getItem<ConsentState>(CONSENT_COOKIE_KEY),
-  );
+  const [consentState, setConsentState] = useState<ConsentState | null>(getStoredConsentState);
 
   const provider = useMemo(
     () => analyticsProvider ?? new PostHogAnalyticsProvider(posthog),

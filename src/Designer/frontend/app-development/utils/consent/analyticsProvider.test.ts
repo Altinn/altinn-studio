@@ -97,5 +97,16 @@ describe('PostHogAnalyticsProvider', () => {
         nullProvider.syncConsent({ analytics: true, sessionRecording: true });
       }).not.toThrow();
     });
+
+    it('should disable session recording when analytics is false, even if sessionRecording is true', () => {
+      provider.syncConsent({ analytics: false, sessionRecording: true });
+
+      expect(mockPostHog.opt_out_capturing).toHaveBeenCalled();
+      expect(mockPostHog.stopSessionRecording).toHaveBeenCalled();
+      expect(mockPostHog.set_config).toHaveBeenCalledWith(
+        expect.objectContaining({ disable_session_recording: true }),
+      );
+      expect(mockPostHog.startSessionRecording).not.toHaveBeenCalled();
+    });
   });
 });

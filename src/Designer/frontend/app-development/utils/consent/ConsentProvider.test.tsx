@@ -62,6 +62,40 @@ const mockNoStoredConsent = (): void => {
   (CookieStorage.getItem as jest.Mock).mockReturnValue(null);
 };
 
+describe('useConsentContext', () => {
+  it('should throw error when used outside ConsentProvider', () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+    const ThrowingComponent = () => {
+      useConsent();
+      return null;
+    };
+
+    expect(() => render(<ThrowingComponent />)).toThrow(
+      'useConsentContext must be used within a ConsentProvider',
+    );
+
+    consoleErrorSpy.mockRestore();
+  });
+});
+
+describe('useConsentMutationContext', () => {
+  it('should throw error when used outside ConsentProvider', () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+    const ThrowingComponent = () => {
+      useConsentMutation();
+      return null;
+    };
+
+    expect(() => render(<ThrowingComponent />)).toThrow(
+      'useConsentMutationContext must be used within a ConsentProvider',
+    );
+
+    consoleErrorSpy.mockRestore();
+  });
+});
+
 describe('ConsentProvider', () => {
   const mockAnalyticsProvider: jest.Mocked<AnalyticsProvider> = {
     syncConsent: jest.fn(),
@@ -183,5 +217,36 @@ describe('ConsentProvider', () => {
     renderConsentProvider();
 
     expect(mockAnalyticsProvider.syncConsent).not.toHaveBeenCalled();
+  });
+
+  it('should treat malformed cookie as no decision', () => {
+    (CookieStorage.getItem as jest.Mock).mockReturnValue({
+      preferences: { analytics: 'not-a-boolean' },
+      timestamp: 'invalid',
+    });
+
+    renderConsentProvider();
+
+    expectConsentState({ decision: false, analytics: false, recording: false });
+  });
+
+  it('should treat cookie with missing preferences as no decision', () => {
+    (CookieStorage.getItem as jest.Mock).mockReturnValue({
+      timestamp: Date.now(),
+    });
+
+    renderConsentProvider();
+
+    expectConsentState({ decision: false, analytics: false, recording: false });
+  });
+
+  it('should handle CookieStorage.getItem throwing an error', () => {
+    (CookieStorage.getItem as jest.Mock).mockImplementation(() => {
+      throw new Error('Cookie read failed');
+    });
+
+    renderConsentProvider();
+
+    expectConsentState({ decision: false, analytics: false, recording: false });
   });
 });
