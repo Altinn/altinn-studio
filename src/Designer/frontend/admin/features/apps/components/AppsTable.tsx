@@ -11,6 +11,7 @@ import {
   StudioAlert,
 } from '@studio/components';
 import React from 'react';
+import { Alert as DsAlert } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
@@ -54,17 +55,27 @@ const sortEnvironments = (a: string, b: string) => {
 };
 
 const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const orgName = useCurrentOrg().name[i18n.language];
   const [search, setSearch] = useQueryParamState<string>('appSearch', '');
-  const [tab, setTab] = useQueryParamState<string>(
+  const [selectedEnvironment, setSelectedEnvironment] = useQueryParamState<string>(
     'environment',
     DEFAULT_SEARCH_PARAMS.environment,
   );
 
   const availableEnvironments = Object.keys(runningApps).toSorted(sortEnvironments);
 
+  if (!availableEnvironments.length) {
+    return <DsAlert severity='info'>{t('admin.environment.no_results', { orgName })}</DsAlert>;
+  }
+
+  if (!selectedEnvironment || !availableEnvironments.includes(selectedEnvironment)) {
+    setSelectedEnvironment(availableEnvironments[0]);
+    return <StudioSpinner aria-label={t('general.loading')} />;
+  }
+
   return (
-    <StudioTabs value={tab ?? availableEnvironments.at(0)} onChange={setTab}>
+    <StudioTabs value={selectedEnvironment} onChange={setSelectedEnvironment}>
       <StudioTabs.List>
         {availableEnvironments.map((environment) => (
           <StudioTabs.Tab key={environment} value={environment}>
@@ -72,12 +83,12 @@ const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
           </StudioTabs.Tab>
         ))}
       </StudioTabs.List>
-      {availableEnvironments.map((env) => (
-        <StudioTabs.Panel key={env} value={env}>
+      {availableEnvironments.map((environment) => (
+        <StudioTabs.Panel key={environment} value={environment}>
           <AppsTableContent
-            key={env}
+            key={environment}
             org={org}
-            env={env}
+            environment={environment}
             search={search}
             setSearch={setSearch}
             runningApps={runningApps}
@@ -89,14 +100,20 @@ const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
 };
 
 type AppsTableContentProps = AppsTableWithDataProps & {
-  env: string;
+  environment: string;
   search?: string;
   setSearch: (newState: string) => void;
 };
 
-const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTableContentProps) => {
+const AppsTableContent = ({
+  org,
+  environment,
+  search,
+  setSearch,
+  runningApps,
+}: AppsTableContentProps) => {
   const { t, i18n } = useTranslation();
-  const envTitle = useEnvironmentTitle(env);
+  const envTitle = useEnvironmentTitle(environment);
   const orgName = useCurrentOrg().name[i18n.language];
   const [range, setRange] = useQueryParamState<number>('range', DEFAULT_SEARCH_PARAMS.range);
   const {
@@ -104,7 +121,7 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
     isPending: errorMetricsIsPending,
     error: errorMetricsError,
     isError: errorMetricsIsError,
-  } = useErrorMetricsQuery(org, env, range!, {
+  } = useErrorMetricsQuery(org, environment, range!, {
     hideDefaultError: true,
   });
 
@@ -151,7 +168,7 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
           </StudioTable.Row>
         </StudioTable.Head>
         <StudioTable.Body>
-          {runningApps[env]
+          {runningApps[environment]
             .filter((app) => !search || app.app.toLowerCase().includes(search.toLowerCase()))
             .map((app) => {
               const appErrorMetrics = errorMetrics?.filter((metric) => metric.appName === app.app);
@@ -167,7 +184,9 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
             .map((app) => (
               <StudioTable.Row key={app.app}>
                 <StudioTable.Cell>
-                  <Link to={`${env}/${app.app}${createSearchParams({ range })}`}>{app.app}</Link>
+                  <Link to={`${environment}/${app.app}${createSearchParams({ range })}`}>
+                    {app.app}
+                  </Link>
                 </StudioTable.Cell>
                 <StudioTable.Cell>{app.version}</StudioTable.Cell>
                 <StudioTable.Cell className={classes.errorMetricsCell}>
@@ -184,7 +203,13 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
                               {t(`admin.metrics.${metric.name}`)}
                             </>
                           }
-                          url={appErrorMetricsLogsPath(org, env, [app.app], metric.name, range!)}
+                          url={appErrorMetricsLogsPath(
+                            org,
+                            environment,
+                            [app.app],
+                            metric.name,
+                            range!,
+                          )}
                           className={classes.errorMetric}
                         ></Alert>
                       );
