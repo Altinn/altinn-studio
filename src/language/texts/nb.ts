@@ -513,5 +513,11 @@ export function nb() {
       'Du kan prøve å utføre behandlingen på nytt ved å klikke på "{0}". Hvis problemet vedvarer, ta kontakt med oss på brukerservice {1}.',
     'service_task.retry_button': 'Prøv igjen',
     'service_task.back_button': 'Gå tilbake',
+    'service_task_custom_pdf_default.title': 'Noe gikk galt',
+    'service_task_custom_pdf_default.body': 'En feil oppstod under automatisk behandling av skjemaet.',
+    'service_task_custom_pdf_default.help_text':
+      'Du kan prøve å utføre behandlingen på nytt ved å klikke på "Prøv igjen". Hvis problemet vedvarer, ta kontakt med oss på brukerservice +47 75 00 60 00.',
+    'service_task_custom_pdf_default.retry_button': 'Prøv igjen',
+    'service_task_custom_pdf_default.back_button': 'Gå tilbake',
   } satisfies FixedLanguageList;
 }

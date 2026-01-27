@@ -512,5 +512,11 @@ export function en() {
       'You can try to process again by clicking "{0}". If the problem persists, contact customer service at {1}.',
     'service_task.retry_button': 'Try again',
     'service_task.back_button': 'Go back',
+    'service_task_custom_pdf_default.title': 'Something went wrong',
+    'service_task_custom_pdf_default.body': 'An error occurred during automatic processing of the form.',
+    'service_task_custom_pdf_default.help_text':
+      'You can try to process again by clicking "Try again". If the problem persists, contact customer service at +47 75 00 60 00.',
+    'service_task_custom_pdf_default.retry_button': 'Try again',
+    'service_task_custom_pdf_default.back_button': 'Go back',
   };
 }

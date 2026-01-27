@@ -510,5 +510,11 @@ export function nn() {
       'Du kan prøve å utføre handsaminga på nytt ved å klikke på "{0}". Om problemet held fram, ta kontakt med oss på brukarservice {1}.',
     'service_task.retry_button': 'Prøv igjen',
     'service_task.back_button': 'Gå tilbake',
+    'service_task_custom_pdf_default.title': 'Noko gjekk gale',
+    'service_task_custom_pdf_default.body': 'Ein feil oppstod under automatisk handsaming av skjemaet.',
+    'service_task_custom_pdf_default.help_text':
+      'Du kan prøve å utføre handsaminga på nytt ved å klikke på "Prøv igjen". Om problemet held fram, ta kontakt med oss på brukarservice +47 75 00 60 00.',
+    'service_task_custom_pdf_default.retry_button': 'Prøv igjen',
+    'service_task_custom_pdf_default.back_button': 'Gå tilbake',
   } satisfies FixedLanguageList;
 }
