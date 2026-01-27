@@ -273,4 +273,38 @@ describe('OnProcessTaskRemoveHandler', () => {
     ).toHaveLength(0);
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
+
+  it('should remove layoutSet when pdf-task is deleted', () => {
+    const layoutSets: LayoutSets = {
+      sets: [{ id: 'pdfLayoutSetId', dataType: 'pdf', tasks: ['testElementId'] }],
+    };
+
+    const taskMetadata = createTaskMetadataMock(
+      'pdf',
+      getMockBpmnElementForTask('pdf').businessObject,
+    );
+
+    const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({
+      layoutSets,
+    });
+
+    onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
+    expect(deleteLayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'pdfLayoutSetId' });
+    expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
+    expect(deleteDataTypeFromAppMetadataMock).not.toHaveBeenCalled();
+  });
+
+  it('should not call deleteLayoutSet when pdf-task is deleted and no layoutSet exists', () => {
+    const taskMetadata = createTaskMetadataMock(
+      'pdf',
+      getMockBpmnElementForTask('pdf').businessObject,
+    );
+
+    const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({});
+
+    onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
+    expect(deleteLayoutSetMock).not.toHaveBeenCalled();
+    expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
+    expect(deleteDataTypeFromAppMetadataMock).not.toHaveBeenCalled();
+  });
 });

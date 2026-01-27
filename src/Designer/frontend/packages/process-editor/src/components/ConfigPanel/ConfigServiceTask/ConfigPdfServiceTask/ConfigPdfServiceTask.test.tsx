@@ -9,8 +9,42 @@ import {
   mockBpmnContextValue,
   mockBpmnApiContextValue,
 } from '../../../../../test/mocks/bpmnContextMock';
-import { createPdfBpmnDetails } from '../../../../../test/mocks/pdfBpmnDetailsMock';
+import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
+import type { BpmnDetails } from '../../../../types/BpmnDetails';
 import { MemoryRouter } from 'react-router-dom';
+
+type PdfBpmnDetailsConfig = {
+  filenameTextResourceKey?: string;
+  taskIds?: string[];
+};
+
+const createPdfBpmnDetails = (config: PdfBpmnDetailsConfig = {}): BpmnDetails => {
+  const { filenameTextResourceKey = '', taskIds = [] } = config;
+  return {
+    ...mockBpmnDetails,
+    taskType: 'pdf',
+    element: {
+      ...mockBpmnDetails.element,
+      businessObject: {
+        ...mockBpmnDetails.element.businessObject,
+        extensionElements: {
+          values: [
+            {
+              pdfConfig: {
+                filenameTextResourceKey: filenameTextResourceKey
+                  ? { value: filenameTextResourceKey }
+                  : undefined,
+                autoPdfTaskIds: {
+                  taskIds: taskIds.map((id) => ({ value: id })),
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+  };
+};
 
 let mockTasks: any[] = [];
 
@@ -42,6 +76,12 @@ jest.mock('app-shared/hooks/mutations', () => ({
   useUpsertTextResourceMutation: () => ({ mutate: mockUpsertTextResource }),
 }));
 
+jest.mock('app-shared/hooks/useValidateLayoutSetName', () => ({
+  useValidateLayoutSetName: () => ({
+    validateLayoutSetName: () => undefined,
+  }),
+}));
+
 const emptyLayoutSets = { sets: [] };
 
 describe('ConfigPdfServiceTask', () => {
@@ -67,6 +107,84 @@ describe('ConfigPdfServiceTask', () => {
         },
       },
     ];
+  });
+
+  describe('version warnings', () => {
+    it('should show warning when appLibVersion is below minimum required version', () => {
+      const pdfBpmnDetails = createPdfBpmnDetails({});
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+          appLibVersion: '8.0.0',
+        },
+        bpmnApiContextProps: {
+          layoutSets: emptyLayoutSets,
+        },
+      });
+
+      expect(
+        screen.getByText(
+          textMock('process_editor.palette_pdf_service_task_version_error', {
+            version: '8.9.0',
+          }),
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it('should show warning when frontendVersion is below minimum required version', () => {
+      const pdfBpmnDetails = createPdfBpmnDetails({});
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+          appLibVersion: '8.9.0',
+          frontendVersion: '4.0.0',
+        },
+        bpmnApiContextProps: {
+          layoutSets: emptyLayoutSets,
+        },
+      });
+
+      expect(
+        screen.getByText(
+          textMock('process_editor.palette_pdf_service_task_frontend_version_error', {
+            version: '4.25.2',
+          }),
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it('should not show version warning when both versions meet requirements', () => {
+      const pdfBpmnDetails = createPdfBpmnDetails({});
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+          appLibVersion: '8.9.0',
+          frontendVersion: '4.25.2',
+        },
+        bpmnApiContextProps: {
+          layoutSets: emptyLayoutSets,
+        },
+      });
+
+      expect(
+        screen.queryByText(
+          textMock('process_editor.palette_pdf_service_task_version_error', {
+            version: '8.9.0',
+          }),
+        ),
+      ).not.toBeInTheDocument();
+
+      expect(
+        screen.queryByText(
+          textMock('process_editor.palette_pdf_service_task_frontend_version_error', {
+            version: '4.25.2',
+          }),
+        ),
+      ).not.toBeInTheDocument();
+    });
   });
 
   describe('PDF mode radio group', () => {
@@ -308,6 +426,231 @@ describe('ConfigPdfServiceTask', () => {
           name: textMock('process_editor.configuration_panel_pdf_layout_set_link'),
         }),
       ).toBeInTheDocument();
+    });
+
+    it('should call deleteLayoutSet when switching from layout-based to automatic mode and confirming', async () => {
+      const user = userEvent.setup();
+      const pdfBpmnDetails = createPdfBpmnDetails({});
+      const deleteLayoutSetMock = jest.fn();
+      jest.spyOn(window, 'confirm').mockReturnValue(true);
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+        },
+        bpmnApiContextProps: {
+          layoutSets: {
+            sets: [
+              {
+                id: 'pdf-layout-set',
+                tasks: [pdfBpmnDetails.id],
+              },
+            ],
+          },
+          deleteLayoutSet: deleteLayoutSetMock,
+        },
+      });
+
+      const automaticRadio = screen.getByRole('radio', {
+        name: textMock('process_editor.configuration_panel_pdf_mode_automatic'),
+      });
+      await user.click(automaticRadio);
+
+      expect(window.confirm).toHaveBeenCalledWith(
+        textMock('process_editor.configuration_panel_pdf_mode_change_to_automatic_confirm'),
+      );
+      expect(deleteLayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'pdf-layout-set' });
+    });
+
+    it('should not change mode when switching from layout-based to automatic mode and canceling', async () => {
+      const user = userEvent.setup();
+      const pdfBpmnDetails = createPdfBpmnDetails({});
+      const deleteLayoutSetMock = jest.fn();
+      jest.spyOn(window, 'confirm').mockReturnValue(false);
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+        },
+        bpmnApiContextProps: {
+          layoutSets: {
+            sets: [
+              {
+                id: 'pdf-layout-set',
+                tasks: [pdfBpmnDetails.id],
+              },
+            ],
+          },
+          deleteLayoutSet: deleteLayoutSetMock,
+        },
+      });
+
+      const automaticRadio = screen.getByRole('radio', {
+        name: textMock('process_editor.configuration_panel_pdf_mode_automatic'),
+      });
+      await user.click(automaticRadio);
+
+      expect(window.confirm).toHaveBeenCalled();
+      expect(deleteLayoutSetMock).not.toHaveBeenCalled();
+      expect(
+        screen.getByRole('button', {
+          name: textMock('process_editor.configuration_panel_pdf_layout_set_link'),
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it('should enable create button when both name and data model are provided', async () => {
+      const user = userEvent.setup();
+      const pdfBpmnDetails = createPdfBpmnDetails({});
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+        },
+        bpmnApiContextProps: {
+          layoutSets: emptyLayoutSets,
+          allDataModelIds: ['dataModel1', 'dataModel2'],
+        },
+      });
+
+      const layoutBasedRadio = screen.getByRole('radio', {
+        name: textMock('process_editor.configuration_panel_pdf_mode_layout_based'),
+      });
+      await user.click(layoutBasedRadio);
+
+      const createButton = screen.getByRole('button', {
+        name: textMock('process_editor.configuration_panel_pdf_create_button'),
+      });
+
+      expect(createButton).toBeDisabled();
+
+      const layoutSetNameInput = screen.getByLabelText(
+        textMock('process_editor.configuration_panel_pdf_layout_set_name_label'),
+      );
+      await user.type(layoutSetNameInput, 'my-pdf-layout');
+
+      expect(createButton).toBeDisabled();
+
+      const dataModelCombobox = screen.getByRole('combobox', {
+        name: textMock('process_editor.configuration_panel_pdf_select_data_model_label'),
+      });
+      await user.click(dataModelCombobox);
+      await user.click(screen.getByRole('option', { name: 'dataModel1' }));
+
+      await waitFor(() => expect(createButton).not.toBeDisabled());
+    });
+
+    it('should call addLayoutSet when clicking create button with valid inputs', async () => {
+      const user = userEvent.setup();
+      const pdfBpmnDetails = createPdfBpmnDetails({});
+      const addLayoutSetMock = jest.fn();
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+        },
+        bpmnApiContextProps: {
+          layoutSets: emptyLayoutSets,
+          allDataModelIds: ['dataModel1', 'dataModel2'],
+          addLayoutSet: addLayoutSetMock,
+        },
+      });
+
+      const layoutBasedRadio = screen.getByRole('radio', {
+        name: textMock('process_editor.configuration_panel_pdf_mode_layout_based'),
+      });
+      await user.click(layoutBasedRadio);
+
+      const createButton = screen.getByRole('button', {
+        name: textMock('process_editor.configuration_panel_pdf_create_button'),
+      });
+
+      const layoutSetNameInput = screen.getByLabelText(
+        textMock('process_editor.configuration_panel_pdf_layout_set_name_label'),
+      );
+      await user.type(layoutSetNameInput, 'my-pdf-layout');
+
+      const dataModelCombobox = screen.getByRole('combobox', {
+        name: textMock('process_editor.configuration_panel_pdf_select_data_model_label'),
+      });
+      await user.click(dataModelCombobox);
+      await user.click(screen.getByRole('option', { name: 'dataModel1' }));
+
+      await waitFor(() => expect(createButton).not.toBeDisabled());
+      await user.click(createButton);
+
+      await waitFor(() => expect(addLayoutSetMock).toHaveBeenCalledTimes(1));
+      expect(addLayoutSetMock).toHaveBeenCalledWith({
+        layoutSetIdToUpdate: 'my-pdf-layout',
+        taskType: 'pdf',
+        layoutSetConfig: {
+          id: 'my-pdf-layout',
+          dataType: 'dataModel1',
+          tasks: [pdfBpmnDetails.id],
+        },
+      });
+    });
+
+    it('should disable create button when layout set name is empty', async () => {
+      const user = userEvent.setup();
+      const pdfBpmnDetails = createPdfBpmnDetails({});
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+        },
+        bpmnApiContextProps: {
+          layoutSets: emptyLayoutSets,
+          allDataModelIds: ['dataModel1'],
+        },
+      });
+
+      const layoutBasedRadio = screen.getByRole('radio', {
+        name: textMock('process_editor.configuration_panel_pdf_mode_layout_based'),
+      });
+      await user.click(layoutBasedRadio);
+
+      const dataModelCombobox = screen.getByRole('combobox', {
+        name: textMock('process_editor.configuration_panel_pdf_select_data_model_label'),
+      });
+      await user.click(dataModelCombobox);
+      await user.click(screen.getByRole('option', { name: 'dataModel1' }));
+      await user.keyboard('{Escape}');
+
+      const createButton = screen.getByRole('button', {
+        name: textMock('process_editor.configuration_panel_pdf_create_button'),
+      });
+      expect(createButton).toBeDisabled();
+    });
+
+    it('should disable create button when data model is not selected', async () => {
+      const user = userEvent.setup();
+      const pdfBpmnDetails = createPdfBpmnDetails({});
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+        },
+        bpmnApiContextProps: {
+          layoutSets: emptyLayoutSets,
+          allDataModelIds: ['dataModel1'],
+        },
+      });
+
+      const layoutBasedRadio = screen.getByRole('radio', {
+        name: textMock('process_editor.configuration_panel_pdf_mode_layout_based'),
+      });
+      await user.click(layoutBasedRadio);
+
+      const layoutSetNameInput = screen.getByLabelText(
+        textMock('process_editor.configuration_panel_pdf_layout_set_name_label'),
+      );
+      await user.type(layoutSetNameInput, 'my-pdf-layout');
+
+      const createButton = screen.getByRole('button', {
+        name: textMock('process_editor.configuration_panel_pdf_create_button'),
+      });
+      expect(createButton).toBeDisabled();
     });
   });
 
