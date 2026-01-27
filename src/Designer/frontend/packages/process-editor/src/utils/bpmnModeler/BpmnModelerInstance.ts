@@ -5,12 +5,15 @@ import CustomTranslateModule from '../../bpmnProviders/CustomTranslateModule';
 import { altinnCustomTasks } from '../../extensions/altinnCustomTasks';
 import UpdateTaskIdCommandHandler from '@altinn/process-editor/commandHandlers/UpdateTaskIdCommandHandler';
 
-// Module-level variable to store the app library version for access by bpmn-js modules
-let currentAppLibVersion: string | null = null;
-let currentFrontendVersion: string | null = null;
+type VersionModule = {
+  appLibVersion: ['value', string];
+  frontendVersion: ['value', string];
+};
 
-export const getAppLibVersion = (): string | null => currentAppLibVersion;
-export const getFrontendVersion = (): string | null => currentFrontendVersion;
+const createVersionModule = (appLibVersion: string, frontendVersion: string): VersionModule => ({
+  appLibVersion: ['value', appLibVersion],
+  frontendVersion: ['value', frontendVersion],
+});
 
 export class BpmnModelerInstance {
   private static instance: BpmnModeler | null = null;
@@ -29,13 +32,6 @@ export class BpmnModelerInstance {
     appLibVersion?: string,
     frontendVersion?: string,
   ): BpmnModeler {
-    if (appLibVersion) {
-      currentAppLibVersion = appLibVersion;
-    }
-    if (frontendVersion) {
-      currentFrontendVersion = frontendVersion;
-    }
-
     const shouldCreateNewInstance =
       !BpmnModelerInstance.instance && BpmnModelerInstance.currentRefContainer !== canvasContainer;
 
@@ -43,6 +39,7 @@ export class BpmnModelerInstance {
       BpmnModelerInstance.instance = new BpmnModeler({
         container: canvasContainer,
         additionalModules: [
+          createVersionModule(appLibVersion, frontendVersion),
           SupportedPaletteProvider,
           SupportedContextPadProvider,
           UpdateTaskIdCommandHandler,

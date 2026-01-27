@@ -2,6 +2,9 @@ import SupportedPaletteProviderModule from './SupportedPaletteProvider';
 
 const SupportedPaletteProvider = SupportedPaletteProviderModule.supportedPaletteProvider[1] as any;
 
+const mockAppLibVersion = '8.9.0';
+const mockFrontendVersion = '4.25.2';
+
 describe('SupportedPaletteProvider', () => {
   let provider: any;
   let mockBpmnFactory: any;
@@ -47,6 +50,8 @@ describe('SupportedPaletteProvider', () => {
       mockPalette,
       mockTranslate,
       mockModeling,
+      mockAppLibVersion,
+      mockFrontendVersion,
     );
   });
 
@@ -65,6 +70,8 @@ describe('SupportedPaletteProvider', () => {
       expect(provider.elementFactory).toBe(mockElementFactory);
       expect(provider.translate).toBe(mockTranslate);
       expect(provider.modeling).toBe(mockModeling);
+      expect(provider.appLibVersion).toBe(mockAppLibVersion);
+      expect(provider.frontendVersion).toBe(mockFrontendVersion);
     });
   });
 
@@ -83,7 +90,9 @@ describe('SupportedPaletteProvider', () => {
       expect(result['create.altinn-pdf-task'].className).toBe(
         'bpmn-icon-task-generic bpmn-icon-pdf-task',
       );
-      expect(result['create.altinn-pdf-task'].title).toBe('Create PDF service task');
+      expect(result['create.altinn-pdf-task'].title).toBe(
+        'process_editor.palette_create_pdf_service_task',
+      );
       expect(result['create.altinn-pdf-task'].action.click).toBeDefined();
       expect(result['create.altinn-pdf-task'].action.dragstart).toBeDefined();
     });
