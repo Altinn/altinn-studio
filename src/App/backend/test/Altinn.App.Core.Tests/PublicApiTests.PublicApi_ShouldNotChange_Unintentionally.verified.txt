@@ -2478,7 +2478,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Pdf
 {
     public class PdfGeneratorClient : Altinn.App.Core.Internal.Pdf.IPdfGeneratorClient
     {
-        public PdfGeneratorClient(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Infrastructure.Clients.Pdf.PdfGeneratorClient> logger, System.Net.Http.HttpClient httpClient, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Internal.Pdf.PdfGeneratorSettings> pdfGeneratorSettings, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, Altinn.App.Core.Internal.Auth.IUserTokenProvider userTokenProvider, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
+        public PdfGeneratorClient(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Infrastructure.Clients.Pdf.PdfGeneratorClient> logger, System.Net.Http.HttpClient httpClient, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Internal.Pdf.PdfGeneratorSettings> pdfGeneratorSettings, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, Altinn.App.Core.Internal.Auth.IUserTokenProvider userTokenProvider, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor, Microsoft.Extensions.Hosting.IHostEnvironment hostEnvironment, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
         public System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(System.Uri uri, System.Threading.CancellationToken ct) { }
         public System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(System.Uri uri, string? footerContent, System.Threading.CancellationToken ct) { }
     }
