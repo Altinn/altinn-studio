@@ -1,6 +1,6 @@
 #nullable disable
-using Altinn.Studio.Designer.Enums;
 using System.Text.Json.Serialization;
+using Altinn.Studio.Designer.Enums;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
