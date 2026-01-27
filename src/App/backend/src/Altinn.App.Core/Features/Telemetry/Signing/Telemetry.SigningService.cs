@@ -87,7 +87,7 @@ partial class Telemetry
             "singing_get_service_owner_party"
         );
 
-        [EnumExtensions]
+        [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
         internal enum ServiceOwnerPartyResult
         {
             [Display(Name = "success")]
@@ -102,7 +102,7 @@ partial class Telemetry
     {
         internal static readonly string MetricNameNotifySignees = Metrics.CreateLibName("signing_notify_signees");
 
-        [EnumExtensions]
+        [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
         internal enum NotifySigneesResult
         {
             [Display(Name = "success")]
