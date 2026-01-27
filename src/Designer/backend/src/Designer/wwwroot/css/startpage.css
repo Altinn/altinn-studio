@@ -433,7 +433,7 @@ h3 {
 a[href^='http']:not([href*='altinn.github.io/docs/'])::after {
     display: inline-block;
     width: 1.3em;
-    background-image: url(/designer/img/arrowrightup.svg);
+    background-image: url(/img/arrowrightup.svg);
     background-repeat: no-repeat;
     background-size: 119% auto;
     vertical-align: middle;
