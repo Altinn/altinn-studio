@@ -1,5 +1,4 @@
 export { useAddOptionListMutation } from './useAddOptionListMutation';
-export { useSetRepoBranchMutation } from './useSetRepoBranchMutation';
 export { useCreateBranchMutation } from './useCreateBranchMutation';
 export { useCheckoutBranchMutation } from './useCheckoutBranchMutation';
 export { useCheckoutWithUncommittedChangesHandling } from './useCheckoutWithUncommittedChangesHandling';

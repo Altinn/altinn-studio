@@ -304,20 +304,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<string> GetCurrentBranchName(string org, string repository)
-        {
-            try
-            {
-                return _decoratedService.GetCurrentBranchName(org, repository);
-            }
-            catch (Exception ex)
-            {
-                LogError(ex, "GetCurrentBranchName", org, repository);
-                throw;
-            }
-        }
-
-        /// <inheritdoc/>
         public CurrentBranchInfo GetCurrentBranch(string org, string repository)
         {
             try

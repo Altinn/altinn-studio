@@ -162,14 +162,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task DeleteRepository(string org, string repository);
 
         /// <summary>
-        /// Returns the name of the currently checked out branch in the local clone.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of the repository.</param>
-        /// <returns>The friendly branch name, or <c>null</c> if detached.</returns>
-        Task<string> GetCurrentBranchName(string org, string repository);
-
-        /// <summary>
         /// Gets information about the current branch
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>

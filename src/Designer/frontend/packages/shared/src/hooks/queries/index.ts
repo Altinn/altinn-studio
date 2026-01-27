@@ -8,7 +8,6 @@ export { useOptionListsReferencesQuery } from './useOptionListsReferencesQuery';
 export { useRepoMetadataQuery } from './useRepoMetadataQuery';
 export { useRepoPullQuery } from './useRepoPullQuery';
 export { useRepoStatusQuery } from './useRepoStatusQuery';
-export { useRepoBranchesQuery } from './useRepoBranchesQuery';
 export { useBranchesQuery } from './useBranchesQuery';
 export { useCurrentBranchQuery } from './useCurrentBranchQuery';
 export { useTextResourcesQuery } from './useTextResourcesQuery';

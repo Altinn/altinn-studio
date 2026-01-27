@@ -135,8 +135,6 @@ export const queriesMock: ServicesContextProps = {
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
   getRepoPull: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
   getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
-  getRepoBranches: jest.fn().mockImplementation(() => Promise.resolve<Branch[]>([])),
-  getRepoCurrentBranch: jest.fn().mockImplementation(() => Promise.resolve<string>('main')),
   getBranches: jest.fn().mockImplementation(() => Promise.resolve<Branch[]>([])),
   getCurrentBranch: jest.fn().mockImplementation(() =>
     Promise.resolve({
@@ -268,7 +266,6 @@ export const queriesMock: ServicesContextProps = {
   logout: jest.fn().mockImplementation(() => Promise.resolve()),
   pushRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   resetRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
-  setRepoBranch: jest.fn().mockImplementation(() => Promise.resolve()),
   createBranch: jest
     .fn()
     .mockImplementation(() => Promise.resolve<Branch>({ name: 'main', commit: { id: '', message: '' } })),

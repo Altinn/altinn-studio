@@ -381,21 +381,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<string> GetCurrentBranchName(string org, string repository)
-        {
-            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using var repo = new LibGit2Sharp.Repository(localServiceRepoFolder);
-            Branch head = repo.Head;
-
-            if (repo.Info.IsHeadDetached || head == null)
-            {
-                return Task.FromResult<string>(null);
-            }
-
-            return Task.FromResult(head.FriendlyName);
-        }
-
-        /// <inheritdoc/>
         public CurrentBranchInfo GetCurrentBranch(string org, string repository)
         {
             string localPath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));

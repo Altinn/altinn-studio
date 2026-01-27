@@ -32,8 +32,6 @@ import {
   repoMetaPath,
   repoPullPath,
   repoSearchPath,
-  repositoryBranchesPath,
-  repositoryCurrentBranchPath,
   repoStatusPath,
   resourceActionsPath,
   resourceListPath,
@@ -157,8 +155,6 @@ export const getRepoMetadata = (owner: string, app: string) => get<Repository>(r
 export const getRepoPull = (owner: string, app: string) => get<RepoStatus>(repoPullPath(owner, app));
 export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(repoStatusPath(owner, app));
 export const getRepoDiff = (owner: string, app: string) => get<RepoDiffResponse>(repoDiffPath(owner, app));
-export const getRepoBranches = (owner: string, app: string) => get<Branch[]>(repositoryBranchesPath(owner, app));
-export const getRepoCurrentBranch = (owner: string, app: string) => get<string>(repositoryCurrentBranchPath(owner, app));
 export const getBranches = (org: string, app: string) => get<Branch[]>(branchesPath(org, app));
 export const getCurrentBranch = (org: string, app: string) => get<CurrentBranchInfo>(currentBranchPath(org, app));
 export const getRuleConfig = (owner: string, app: string, layoutSetName: string) => get<RuleConfig>(ruleConfigPath(owner, app, layoutSetName));
