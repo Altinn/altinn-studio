@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Expressions;
-using Altinn.App.Core.Models.Layout.Components.Base;
+using Altinn.App.Core.Models.Layout.Components;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;

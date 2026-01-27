@@ -9,10 +9,12 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
+import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Input/InputComponent.module.css';
 import { isNumberFormat, isPatternFormat } from 'src/layout/Input/number-format-helpers';
+import { buildAriaDescribedBy } from 'src/utils/inputUtils';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { InputProps } from 'src/app-components/Input/Input';
@@ -129,13 +131,24 @@ export const InputVariant = ({
   const { inputMode, pattern } = getMobileKeyboardProps(variant, autocomplete);
   const debounce = FD.useDebounceImmediately();
 
+  const descriptionId = getDescriptionId(id);
+  const validationsId = `${baseComponentId}-validations`;
+  const validations = useUnifiedValidationsForNode(baseComponentId);
+  const hasValidations = validations.length > 0;
+
+  const inputDescribedBy = buildAriaDescribedBy({
+    renderedInTable: overrideDisplay?.renderedInTable,
+    hasTitle: !!textResourceBindings?.title,
+    descriptionId,
+    hasDescription: !!textResourceBindings?.description,
+    validationsId,
+    hasValidations,
+  });
+
   const inputProps: InputProps = {
     id,
     'aria-label': langAsString(textResourceBindings?.title),
-    'aria-describedby':
-      overrideDisplay?.renderedInTable !== true && textResourceBindings?.title && textResourceBindings?.description
-        ? getDescriptionId(id)
-        : undefined,
+    'aria-describedby': inputDescribedBy,
     autoComplete: autocomplete,
     className: formatting?.align ? classes[`text-align-${formatting.align}`] : '',
     readOnly,
