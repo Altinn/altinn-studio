@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { UseMutationResult, UseMutationOptions } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import type { RepoStatus } from 'app-shared/types/api/BranchTypes';
 import type { AxiosError } from 'axios';
 import { HttpResponseUtils } from '../../utils/httpResponseUtils';
+import { isAppSpecificQuery, isFormLayoutQuery } from 'app-shared/utils/tanstackQueryUtils';
 
 export const useCheckoutBranchMutation = (
   org: string,
@@ -17,8 +17,15 @@ export const useCheckoutBranchMutation = (
   return useMutation({
     mutationFn: (branchName: string) => checkoutBranch(org, app, branchName),
     onSuccess: (data, variables, onMutateResult, context) => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.CurrentBranch, org, app] });
-      queryClient.invalidateQueries({ queryKey: [QueryKey.RepoStatus, org, app] });
+      // To prevent race conditions, refetch is temporarily disabled for form layout queries.
+      // They will be refetched once the component tree updates after checkout.
+      queryClient.invalidateQueries({
+        predicate: isFormLayoutQuery,
+        refetchType: 'none',
+      });
+      queryClient.invalidateQueries({
+        predicate: (query) => isAppSpecificQuery(query, org, app) && !isFormLayoutQuery(query),
+      });
       options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     onError: (error, variables, onMutateResult, context) => {
