@@ -126,6 +126,7 @@ export default function ProcessEditor(): React.ReactElement {
       deleteLayoutSet={deleteLayoutSet}
       mutateLayoutSetId={mutateLayoutSetId}
       appLibVersion={appLibData.backendVersion}
+      frontendVersion={appLibData.frontendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
       mutateDataTypes={mutateDataTypes}
       saveBpmn={saveBpmnXml}

@@ -61,8 +61,16 @@ describe('processEditorUtils', () => {
     });
 
     it('handles versions with different segment counts', () => {
+      // Missing segment in version is treated as "latest" (passes)
       expect(isVersionEqualOrGreater('8.9', '8.9.0')).toBe(true);
+      // Missing segment in minVersion is treated as "unspecified" (passes)
+      expect(isVersionEqualOrGreater('8.9.0', '8.9')).toBe(true);
+      // Extra segment in version, minVersion unspecified (passes)
       expect(isVersionEqualOrGreater('8.9.0.1', '8.9.0')).toBe(true);
+      // Version with fewer segments but higher minor (passes)
+      expect(isVersionEqualOrGreater('8.10', '8.9.0')).toBe(true);
+      // Version with fewer segments but lower minor (fails)
+      expect(isVersionEqualOrGreater('8.8', '8.9.0')).toBe(false);
     });
   });
 });

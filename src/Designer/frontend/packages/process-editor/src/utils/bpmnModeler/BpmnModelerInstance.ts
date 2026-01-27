@@ -7,8 +7,10 @@ import UpdateTaskIdCommandHandler from '@altinn/process-editor/commandHandlers/U
 
 // Module-level variable to store the app library version for access by bpmn-js modules
 let currentAppLibVersion: string | null = null;
+let currentFrontendVersion: string | null = null;
 
 export const getAppLibVersion = (): string | null => currentAppLibVersion;
+export const getFrontendVersion = (): string | null => currentFrontendVersion;
 
 export class BpmnModelerInstance {
   private static instance: BpmnModeler | null = null;
@@ -22,9 +24,16 @@ export class BpmnModelerInstance {
   }
 
   // Singleton pattern to ensure only one instance of the StudioBpmnModeler is created
-  public static getInstance(canvasContainer?: HTMLDivElement, appLibVersion?: string): BpmnModeler {
+  public static getInstance(
+    canvasContainer?: HTMLDivElement,
+    appLibVersion?: string,
+    frontendVersion?: string,
+  ): BpmnModeler {
     if (appLibVersion) {
       currentAppLibVersion = appLibVersion;
+    }
+    if (frontendVersion) {
+      currentFrontendVersion = frontendVersion;
     }
 
     const shouldCreateNewInstance =

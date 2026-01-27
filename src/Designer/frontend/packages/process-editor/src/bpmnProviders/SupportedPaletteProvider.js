@@ -1,8 +1,9 @@
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
-import { getAppLibVersion } from '../utils/bpmnModeler/BpmnModelerInstance';
+import { getAppLibVersion, getFrontendVersion } from '../utils/bpmnModeler/BpmnModelerInstance';
 import {
   isVersionEqualOrGreater,
-  MINIMUM_VERSION_FOR_PDF_SERVICE_TASK,
+  MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
+  MINIMUM_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
 } from '../utils/processEditorUtils';
 
 const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];
@@ -196,10 +197,23 @@ class SupportedPaletteProvider {
 
       return function (event) {
         const appLibVersion = getAppLibVersion();
-        if (!isVersionEqualOrGreater(appLibVersion, MINIMUM_VERSION_FOR_PDF_SERVICE_TASK)) {
+        const frontendVersion = getFrontendVersion();
+
+        if (!isVersionEqualOrGreater(appLibVersion, MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK)) {
           window.alert(
             translate('process_editor.palette_pdf_service_task_version_error', {
-              version: MINIMUM_VERSION_FOR_PDF_SERVICE_TASK,
+              version: MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
+            }),
+          );
+          return;
+        }
+
+        if (
+          !isVersionEqualOrGreater(frontendVersion, MINIMUM_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK)
+        ) {
+          window.alert(
+            translate('process_editor.palette_pdf_service_task_frontend_version_error', {
+              version: MINIMUM_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
             }),
           );
           return;
