@@ -8,7 +8,7 @@ describe('BpmnContext', () => {
   });
   it('should render children', () => {
     render(
-      <BpmnContextProvider appLibVersion={'8.0.0'}>
+      <BpmnContextProvider appLibVersion={'8.0.0'} frontendVersion={'4.0.0'}>
         <button>My button</button>
       </BpmnContextProvider>,
     );
@@ -23,7 +23,7 @@ describe('BpmnContext', () => {
     };
 
     render(
-      <BpmnContextProvider appLibVersion={'8.0.0'}>
+      <BpmnContextProvider appLibVersion={'8.0.0'} frontendVersion={'4.0.0'}>
         <TestComponent />
       </BpmnContextProvider>,
     );
@@ -47,7 +47,9 @@ describe('BpmnContext', () => {
 
   it('should throw an error when modelerRef.current is undefined', async () => {
     const wrapper = ({ children }) => (
-      <BpmnContextProvider appLibVersion={'8.0.0'}>{children}</BpmnContextProvider>
+      <BpmnContextProvider appLibVersion={'8.0.0'} frontendVersion={'4.0.0'}>
+        {children}
+      </BpmnContextProvider>
     );
     const { result } = renderHook(() => useBpmnContext(), {
       wrapper,

@@ -33,14 +33,15 @@ import { useStickyBottomScroll } from './useStickyBottomScroll';
 import { getAvailableTasks, filterCurrentTaskIds, generateTextResourceId } from './utils';
 import {
   isVersionEqualOrGreater,
-  MINIMUM_VERSION_FOR_PDF_SERVICE_TASK,
+  MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
+  MINIMUM_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
 } from '@altinn/process-editor/utils/processEditorUtils';
 
 type PdfMode = 'automatic' | 'layout-based';
 
 export const ConfigPdfServiceTask = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { bpmnDetails, modelerRef, appLibVersion } = useBpmnContext();
+  const { bpmnDetails, modelerRef, appLibVersion, frontendVersion } = useBpmnContext();
   const { addLayoutSet, layoutSets, allDataModelIds, deleteLayoutSet } = useBpmnApiContext();
   const { validateLayoutSetName } = useValidateLayoutSetName();
   const { org, app } = useStudioEnvironmentParams();
@@ -197,14 +198,27 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
     tabLabelSearch: t('process_editor.configuration_panel_pdf_filename_tab_search'),
   };
 
-  console.log(`APP VERSION: ${appLibVersion}`);
-  if (!isVersionEqualOrGreater(appLibVersion, MINIMUM_VERSION_FOR_PDF_SERVICE_TASK)) {
+  if (!isVersionEqualOrGreater(appLibVersion, MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK)) {
     return (
       <div className={classes.pdfConfig}>
         <StudioAlert data-color='warning'>
           <StudioParagraph data-size='sm'>
             {t('process_editor.palette_pdf_service_task_version_error', {
-              version: MINIMUM_VERSION_FOR_PDF_SERVICE_TASK,
+              version: MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
+            })}
+          </StudioParagraph>
+        </StudioAlert>
+      </div>
+    );
+  }
+
+  if (!isVersionEqualOrGreater(frontendVersion, MINIMUM_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK)) {
+    return (
+      <div className={classes.pdfConfig}>
+        <StudioAlert data-color='warning'>
+          <StudioParagraph data-size='sm'>
+            {t('process_editor.palette_pdf_service_task_frontend_version_error', {
+              version: MINIMUM_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
             })}
           </StudioParagraph>
         </StudioAlert>

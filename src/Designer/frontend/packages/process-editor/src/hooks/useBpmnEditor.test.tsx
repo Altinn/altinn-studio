@@ -25,8 +25,10 @@ import type BpmnModeler from 'bpmn-js/lib/Modeler';
 
 // Test data:
 const appLibVersion = '8.0.0';
+const frontendVersion = '4.0.0';
 const defaultBpmnContextProps: Omit<BpmnContextProviderProps, 'children'> = {
   appLibVersion,
+  frontendVersion,
   bpmnXml: undefined,
 };
 const layoutSetId = 'someLayoutSetId';

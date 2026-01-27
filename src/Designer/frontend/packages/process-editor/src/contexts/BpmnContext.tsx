@@ -10,6 +10,7 @@ export type BpmnContextProps = {
   getUpdatedXml: () => Promise<string>;
   isEditAllowed: boolean;
   appLibVersion: string;
+  frontendVersion: string;
   bpmnDetails: BpmnDetails;
   setBpmnDetails: React.Dispatch<React.SetStateAction<BpmnDetails>>;
   isInitialized: boolean;
@@ -23,11 +24,13 @@ export type BpmnContextProviderProps = {
   children: React.ReactNode;
   bpmnXml: string | undefined | null;
   appLibVersion: string;
+  frontendVersion: string;
 };
 export const BpmnContextProvider = ({
   bpmnXml,
   children,
   appLibVersion,
+  frontendVersion,
 }: Partial<BpmnContextProviderProps>) => {
   const [bpmnDetails, setBpmnDetails] = useState<BpmnDetails>(null);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
@@ -59,6 +62,7 @@ export const BpmnContextProvider = ({
         getUpdatedXml,
         isEditAllowed,
         appLibVersion,
+        frontendVersion,
         bpmnDetails,
         setBpmnDetails,
         isInitialized,

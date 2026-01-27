@@ -13,9 +13,11 @@ jest.mock('../../contexts/BpmnContext', () => ({
 
 const mockAppLibVersion8: string = '8.0.1';
 const mockAppLibVersion7: string = '7.0.1';
+const mockFrontendVersion: string = '4.0.0';
 
 const defaultProps: BpmnContextProviderProps = {
   appLibVersion: mockAppLibVersion8,
+  frontendVersion: mockFrontendVersion,
   bpmnXml: '',
   children: null,
 };

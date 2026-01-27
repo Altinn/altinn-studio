@@ -1185,6 +1185,7 @@
   "process_editor.palette_create_pdf_service_task": "Lag PDF-systemoppgave",
   "process_editor.palette_create_signing_task": "Lag signeringsoppgave",
   "process_editor.palette_create_user_controlled_signing_task": "Lag brukerstyrt signeringsoppgave",
+  "process_editor.palette_pdf_service_task_frontend_version_error": "Denne funksjonaliteten krever versjon {{version}} eller høyere av app-frontend-react.",
   "process_editor.palette_pdf_service_task_version_error": "Denne funksjonaliteten krever versjon {{version}} eller høyere av Altinn.App-.NET-bibliotekene.",
   "process_editor.recommended_action.new_name": "Gi oppgaven et navn",
   "process_editor.recommended_action.new_name_description": "Et godt navn gjør at du lettere finner oppgaven igjen på Utforming-siden. Hvis du velger Hopp over får oppgaven et tilfeldig navn, men det kan du endre senere.",
