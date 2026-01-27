@@ -1,7 +1,7 @@
 {
     "tables": ["requests"],
-    "timeContextWhereClause": "| where timestamp >= ago({range}m)",
-    "filterWhereClause": "| where success == false | where client_Type != 'Browser' | where toint(resultCode) >= 500 | where cloud_RoleName == '{appName}' | where operation_Name in ({operation_Names}) | order by timestamp desc",
+    "timeContextWhereClause": "| where timestamp between (datetime({from}) .. datetime({to}))",
+    "filterWhereClause": "| where success == false | where client_Type != 'Browser' | where toint(resultCode) >= 500 | where cloud_RoleName in ({app_Names}) | where operation_Name in ({operation_Names}) | order by timestamp desc",
     "originalParams": {
         "eventTypes": [
             {
@@ -11,7 +11,9 @@
             }
         ],
         "timeContext": {
-            "durationMs": "{durationMs}"
+            "durationMs": "{durationMs}",
+            "startTime": "{from}",
+            "endTime": "{to}"
         },
         "filter": [
             {
@@ -49,7 +51,7 @@
                     "name": "cloud/roleName",
                     "draftKey": "cloud/roleName"
                 },
-                "values": ["{appName}"],
+                "values": ["{appNames}"],
                 "operator": {
                     "label": "=",
                     "value": "==",

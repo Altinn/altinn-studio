@@ -15,16 +15,7 @@ export type StudioTextareaProps = TextareaProps & {
 };
 
 function StudioTextarea(
-  {
-    children,
-    required,
-    tagText,
-    className,
-    label,
-    description,
-    error,
-    ...rest
-  }: StudioTextareaProps,
+  { children, tagText, className, label, description, error, ...rest }: StudioTextareaProps,
   ref: Ref<HTMLTextAreaElement>,
 ): ReactElement {
   const id: string = useId();
@@ -35,7 +26,7 @@ function StudioTextarea(
     <StudioField className={className}>
       {label && (
         <StudioLabel>
-          <StudioLabelWrapper required={required} tagText={tagText}>
+          <StudioLabelWrapper required={rest.required} tagText={tagText}>
             {label}
           </StudioLabelWrapper>
         </StudioLabel>

@@ -16,7 +16,7 @@ export function ImageUploadSummary2({ targetBaseComponentId }: Summary2Props) {
   const isCompact = useSummaryProp('isCompact');
   const { storedImage } = useImageFile(targetBaseComponentId);
   const isEmpty = attachment.length === 0;
-  const title = textResourceBindings?.title;
+  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
   const emptyValueText = required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired;
   const contentLogic = isEmpty ? emptyValueText : SummaryContains.SomeUserContent;
   const imageElement = storedImage ? <ImageToDisplay targetBaseComponentId={targetBaseComponentId} /> : undefined;

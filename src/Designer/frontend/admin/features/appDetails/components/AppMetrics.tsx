@@ -145,7 +145,7 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
         range={range}
         org={org}
         env={env}
-        app={app}
+        apps={[app]}
       />
     ));
   };

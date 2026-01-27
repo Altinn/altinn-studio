@@ -24,7 +24,7 @@ public partial class AppFixture : IAsyncDisposable
 
         /// <summary>
         /// Tests container-to-container connectivity by calling the app's PDF diagnostic endpoint.
-        /// This verifies that the app container can reach the PDF service container via host.containers.internal.
+        /// This verifies that the app container can reach the PDF service container via container network.
         /// </summary>
         public async Task<ConnectivityResult> Pdf()
         {
@@ -37,7 +37,7 @@ public partial class AppFixture : IAsyncDisposable
 
         /// <summary>
         /// Tests container-to-container connectivity by calling the app's localtest diagnostic endpoint.
-        /// This verifies that the app container can reach the localtest health endpoint via host.containers.internal.
+        /// This verifies that the app container can reach the localtest health endpoint via container network.
         /// </summary>
         public async Task<ConnectivityResult> Localtest()
         {
