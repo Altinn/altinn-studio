@@ -1,0 +1,53 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "size": "L",
+        "id": "service-task-title",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "service_task.title"
+        }
+      },
+      {
+        "id": "service-task-body",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "service_task.body"
+        }
+      },
+      {
+        "id": "service-task-help-text",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "service_task.help_text"
+        }
+      },
+      {
+        "id": "service-task-button-group",
+        "type": "ButtonGroup",
+        "children": [
+          "service-task-retry-button",
+          "service-task-back-button"
+        ]
+      },
+      {
+        "id": "service-task-retry-button",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "service_task.retry_button"
+        }
+      },
+      {
+        "id": "service-task-back-button",
+        "type": "ActionButton",
+        "textResourceBindings": {
+          "title": "service_task.back_button"
+        },
+        "action": "reject",
+        "buttonStyle": "secondary"
+      }
+    ]
+  }
+}
