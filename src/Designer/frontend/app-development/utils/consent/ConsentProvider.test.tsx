@@ -122,6 +122,16 @@ describe('ConsentProvider', () => {
     expectConsentState({ decision: false, analytics: false, recording: false });
   });
 
+  it('should use default PostHogAnalyticsProvider when no analyticsProvider is provided', () => {
+    render(
+      <ConsentProvider>
+        <TestComponent />
+      </ConsentProvider>,
+    );
+
+    expectConsentState({ decision: false, analytics: false, recording: false });
+  });
+
   it('should initialize with existing consent from cookie', () => {
     mockStoredConsent(true, false);
 
@@ -248,5 +258,29 @@ describe('ConsentProvider', () => {
     renderConsentProvider();
 
     expectConsentState({ decision: false, analytics: false, recording: false });
+  });
+
+  it('should log error and not update state when CookieStorage.setItem fails', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const storageError = new Error('Storage full');
+    (CookieStorage.setItem as jest.Mock).mockImplementation(() => {
+      throw storageError;
+    });
+
+    const errorHandler = jest.fn();
+    window.addEventListener('error', errorHandler);
+
+    const { user } = renderConsentProvider();
+
+    await user.click(screen.getByRole('button', { name: /grant all/i }));
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Failed to save consent preferences:',
+      storageError,
+    );
+    expectConsentState({ decision: false, analytics: false, recording: false });
+
+    window.removeEventListener('error', errorHandler);
+    consoleErrorSpy.mockRestore();
   });
 });

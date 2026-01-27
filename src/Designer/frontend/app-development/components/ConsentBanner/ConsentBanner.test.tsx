@@ -236,4 +236,27 @@ describe('ConsentBanner', () => {
 
     expect(saveButton).not.toBeDisabled();
   });
+
+  it('should uncheck session recording when analytics is unchecked', async () => {
+    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+      hasDecision: false,
+    });
+
+    const user = userEvent.setup();
+    render(<ConsentBanner />);
+
+    const analyticsSwitch = screen.getByRole('switch', {
+      name: textMock('consent.banner.analytics.label'),
+    });
+    const recordingSwitch = screen.getByRole('switch', {
+      name: textMock('consent.banner.sessionRecording.label'),
+    });
+
+    await user.click(analyticsSwitch);
+    await user.click(recordingSwitch);
+    expect(recordingSwitch).toBeChecked();
+
+    await user.click(analyticsSwitch);
+    expect(recordingSwitch).not.toBeChecked();
+  });
 });
