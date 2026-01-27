@@ -3,9 +3,8 @@ import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardHeader } from './DashboardHeader';
 import { SelectedContextType } from '../../../enums/SelectedContextType';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { StringUtils } from '@studio/pure-functions';
 import { Subroute } from '../../../enums/Subroute';
 import { HeaderContextProvider } from '../../../context/HeaderContext';
 import { mockOrg1, mockOrg2 } from '../../../testing/organizationMock';
@@ -16,16 +15,17 @@ import { useMediaQuery } from '@studio/components-legacy/src/hooks/useMediaQuery
 import { repoStatus } from 'app-shared/mocks/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import type { QueryClient } from '@tanstack/react-query';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { PageName } from '@studio/content-library';
 
 const mockOrgTtd: string = 'ttd';
-const mockPathnameOrgLibraryTtd: string = `${StringUtils.removeLeadingSlash(Subroute.OrgLibrary)}/${mockOrgTtd}`;
-
 const mockNavigate = jest.fn();
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
-  useLocation: jest.fn().mockReturnValue({ pathname: 'app-dashboard/self' }),
 }));
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
@@ -168,8 +168,6 @@ describe('DashboardHeader', () => {
   });
 
   it('should not render the submenu when there is a merge conflict', () => {
-    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
-
     const getRepoStatus = jest
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: true }));
@@ -185,8 +183,6 @@ describe('DashboardHeader', () => {
   });
 
   it('should not render the submenu when there is a repo error', () => {
-    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
-
     const getRepoStatus = jest.fn().mockImplementation(() => Promise.reject(new Error('error')));
 
     renderDashboardHeader(
@@ -200,8 +196,6 @@ describe('DashboardHeader', () => {
   });
 
   it('should not render the submenu when the page is not orgLibrary', () => {
-    (useLocation as jest.Mock).mockReturnValue({ pathname: 'notOrgLibraryPath' });
-
     const getRepoStatus = jest
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
@@ -217,7 +211,6 @@ describe('DashboardHeader', () => {
   });
 
   it('should not render the submenu when the selected context is not org', () => {
-    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
     const getRepoStatus = jest
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
@@ -233,7 +226,6 @@ describe('DashboardHeader', () => {
   });
 
   it('should render the submenu when showSubMenu is true, there is no repo error and page is orgLibrary', async () => {
-    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
     const getRepoStatus = jest
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
@@ -277,28 +269,67 @@ describe('DashboardHeader', () => {
       }),
     ).toBeInTheDocument();
   });
+
+  it('Renders the Git header when in the organisation library and no element type is given', () => {
+    renderDashboardHeaderForLibrary();
+    const giteaMenuButtonName = textMock('sync_header.gitea_menu');
+    expect(screen.getByRole('button', { name: giteaMenuButtonName })).toBeInTheDocument();
+  });
+
+  it('Renders the Git header when in the organisation library and an element type is given', () => {
+    renderDashboardHeaderForLibrary(PageName.CodeLists);
+    const giteaMenuButtonName = textMock('sync_header.gitea_menu');
+    expect(screen.getByRole('button', { name: giteaMenuButtonName })).toBeInTheDocument();
+  });
+
+  it('Does not render the Git header when not in the organisation library', () => {
+    renderDashboardHeader({ subroute: Subroute.AppDashboard });
+    const giteaMenuButtonName = textMock('sync_header.gitea_menu');
+    expect(screen.queryByRole('button', { name: giteaMenuButtonName })).not.toBeInTheDocument();
+  });
 });
 
 type Params = {
   subroute?: string;
   selectedContext?: string;
+  elementType?: string;
 };
 
 const renderDashboardHeader = (
-  { subroute = Subroute.AppDashboard, selectedContext = SelectedContextType.Self }: Params = {},
+  {
+    subroute = Subroute.AppDashboard,
+    selectedContext = SelectedContextType.Self,
+    elementType,
+  }: Params = {},
   queries: Partial<ServicesContextProps> = {},
+  queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  const initialEntry = `/${subroute}/${selectedContext}`;
+  const initialEntry = `/${subroute}/${selectedContext}${elementType ? `/${elementType}` : ''}`;
   return renderWithProviders(
     <HeaderContextProvider {...headerContextValueMock}>
       <Routes>
-        <Route path='/:subroute/:selectedContext' element={<DashboardHeader />} />
+        <Route path={`/${Subroute.AppDashboard}/:selectedContext`} element={<DashboardHeader />} />
+        <Route
+          path={`/${Subroute.OrgLibrary}/:selectedContext/:elementType?`}
+          element={<DashboardHeader />}
+        />
       </Routes>
     </HeaderContextProvider>,
-    { queries: { ...queries, ...queriesMock }, initialEntries: [initialEntry] },
+    { queries: { ...queries, ...queriesMock }, initialEntries: [initialEntry], queryClient },
   );
 };
 
 function getFetchChangesButton(): HTMLElement | null {
   return screen.queryByRole('button', { name: textMock('sync_header.fetch_changes') });
+}
+
+function renderDashboardHeaderForLibrary(elementType: string = ''): void {
+  const queryClient = createQueryClientMock();
+  const contentRepoName = mockOrgTtd + '-content';
+  queryClient.setQueryData([QueryKey.RepoStatus, mockOrgTtd, contentRepoName], repoStatus);
+  renderDashboardHeader(
+    { subroute: Subroute.OrgLibrary, selectedContext: mockOrgTtd, elementType },
+    {},
+    queryClient,
+  );
 }

@@ -2518,6 +2518,14 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "returnUrl",
+            "in": "query",
+            "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2558,6 +2566,14 @@
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "returnUrl",
+            "in": "query",
+            "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -2600,6 +2616,14 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "returnUrl",
+            "in": "query",
+            "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2640,6 +2664,14 @@
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "returnUrl",
+            "in": "query",
+            "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
             }
           },
           {
@@ -2692,6 +2724,14 @@
             }
           },
           {
+            "name": "returnUrl",
+            "in": "query",
+            "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "pageName",
             "in": "path",
             "required": true,
@@ -2738,6 +2778,14 @@
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "returnUrl",
+            "in": "query",
+            "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
             }
           },
           {
@@ -2795,6 +2843,14 @@
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "returnUrl",
+            "in": "query",
+            "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
             }
           },
           {
