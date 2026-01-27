@@ -3,20 +3,15 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.ResourceRegistry.Core.Models;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
-using Altinn.Studio.Designer.RepositoryClient.Model;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
-using LibGit2Sharp;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Polly.Caching;
 using Xunit;
 using IRepository = Altinn.Studio.Designer.Services.Interfaces.IRepository;
 using Repository = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
@@ -100,7 +95,7 @@ namespace Designer.Tests.Controllers.RepositoryController
                 Template = new CustomTemplateReference
                 {
                     Owner = "ttd",
-                    Id = "custom-template"                    
+                    Id = "custom-template"
                 }
             }), System.Text.Encoding.UTF8, "application/json");
 
