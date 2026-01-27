@@ -34,6 +34,7 @@ export function LikertSummary({ targetBaseComponentId }: Summary2Props) {
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
+  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
 
   if (!rows.length || rows.length <= 0) {
     return (
@@ -42,7 +43,7 @@ export function LikertSummary({ targetBaseComponentId }: Summary2Props) {
         content={required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired}
       >
         <SingleValueSummary
-          title={<Lang id={textResourceBindings?.title} />}
+          title={<Lang id={title} />}
           targetBaseComponentId={targetBaseComponentId}
           errors={errors}
           hideEditButton={readOnly}
@@ -65,7 +66,7 @@ export function LikertSummary({ targetBaseComponentId }: Summary2Props) {
               data-size='xs'
               level={4}
             >
-              <Lang id={textResourceBindings?.title} />
+              <Lang id={title} />
             </Heading>
           </div>
           {rows.filter(typedBoolean).map((row) => (
@@ -108,6 +109,7 @@ function LikertRowSummary({ rowBaseId, emptyFieldText, readOnly, isCompact }: Li
   const displayData = useDisplayData(rowBaseId);
   const validations = useUnifiedValidationsForNode(rowBaseId);
   const errors = validationsOfSeverity(validations, 'error');
+  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
 
   useReportSummaryRender(
     displayData.trim() === ''
@@ -119,7 +121,7 @@ function LikertRowSummary({ rowBaseId, emptyFieldText, readOnly, isCompact }: Li
 
   return (
     <SingleValueSummary
-      title={<Lang id={textResourceBindings?.title} />}
+      title={<Lang id={title} />}
       isCompact={isCompact}
       targetBaseComponentId={rowBaseId}
       displayData={displayData}
