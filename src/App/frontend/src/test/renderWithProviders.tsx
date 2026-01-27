@@ -31,7 +31,6 @@ import { TextResourcesProvider } from 'src/features/language/textResources/TextR
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
-import { ProfileProvider } from 'src/features/profile/ProfileProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { PageNavigationRouter } from 'src/test/routerUtils';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
@@ -315,11 +314,9 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
                 <NavigationEffectProvider>
                   <GlobalFormDataReadersProvider>
                     <OrgsProvider>
-                      <ProfileProvider>
-                        <PartyProvider>
-                          <TextResourcesProvider>{children}</TextResourcesProvider>
-                        </PartyProvider>
-                      </ProfileProvider>
+                      <PartyProvider>
+                        <TextResourcesProvider>{children}</TextResourcesProvider>
+                      </PartyProvider>
                     </OrgsProvider>
                   </GlobalFormDataReadersProvider>
                 </NavigationEffectProvider>
