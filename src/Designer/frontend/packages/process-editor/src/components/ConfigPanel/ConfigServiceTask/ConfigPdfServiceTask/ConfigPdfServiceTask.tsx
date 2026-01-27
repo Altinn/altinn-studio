@@ -82,7 +82,7 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
 
   const setValueRef = useRef<((value: string) => void) | null>(null);
 
-  const handlePdfModeChange = (value: string) => {
+  const handlePdfModeChange = (value: string): void => {
     const newMode = value as PdfMode;
 
     if (pdfMode === 'layout-based' && newMode === 'automatic' && currentLayoutSet) {
@@ -113,7 +113,7 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
     setValue(value);
   };
 
-  const updateBpmnFilenameTextResourceKey = (textResourceId: string) => {
+  const updateBpmnFilenameTextResourceKey = (textResourceId: string): void => {
     if (textResourceId === pdfConfig.filenameTextResourceKey?.value) {
       return;
     }
@@ -129,7 +129,7 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
     });
   };
 
-  const handleOpenTextResourceEditor = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleOpenTextResourceEditor = (event: React.MouseEvent<HTMLButtonElement>): void => {
     onOpenTextResourceEditor(event.currentTarget);
 
     if (!storedFilenameTextResourceId) {
@@ -140,12 +140,12 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
     setIsTextResourceEditorOpen(true);
   };
 
-  const handleTextResourceIdChange = (id: string) => {
+  const handleTextResourceIdChange = (id: string): void => {
     updateBpmnFilenameTextResourceKey(id);
     setCurrentTextResourceId(id);
   };
 
-  const handleValueChange = (id: string, value: string) => {
+  const handleValueChange = (id: string, value: string): void => {
     upsertTextResource({
       textId: id,
       language: DEFAULT_LANGUAGE,
@@ -153,16 +153,16 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
     });
   };
 
-  const handleDeleteTextResource = () => {
+  const handleDeleteTextResource = (): void => {
     updateBpmnFilenameTextResourceKey('');
   };
 
-  const handleTaskIdsChange = (newTaskIds: string[]) => {
+  const handleTaskIdsChange = (newTaskIds: string[]): void => {
     setSelectedTaskIds(newTaskIds);
     updateTaskIds(newTaskIds);
   };
 
-  const handleCreateLayoutSet = () => {
+  const handleCreateLayoutSet = (): void => {
     addLayoutSet({
       layoutSetIdToUpdate: newLayoutSetName,
       taskType: 'pdf',
@@ -333,7 +333,7 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
           </StudioParagraph>
 
           <StudioParagraph data-size='sm'>
-            {t('process_editor.configuration_panel_pdf_filname_description')}
+            {t('process_editor.configuration_panel_pdf_filename_description')}
           </StudioParagraph>
 
           {isTextResourceEditorOpen ? (
