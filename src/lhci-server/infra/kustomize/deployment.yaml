@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lhci-server
+  labels:
+    app: lhci-server
+  annotations:
+    altinn.studio/image: ""  # Patched by workflow
+    altinn.studio/image-tag: ""  # Patched by workflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lhci-server
+  template:
+    metadata:
+      labels:
+        app: lhci-server
+    spec:
+      imagePullSecrets:
+        - name: acr-secret
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: lhci-server
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/lhci-server:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 9001
+          protocol: TCP
+        env:
+        - name: LHCI_STORAGE__SQL_CONNECTION_URL
+          valueFrom:
+            secretKeyRef:
+              name: lhci-credentials
+              key: sqlConnectionUrl
+        - name: LHCI_STORAGE__SQL_DIALECT
+          value: "postgres"
+        - name: LHCI_BASIC_AUTH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: lhci-credentials
+              key: basicAuthUsername
+        - name: LHCI_BASIC_AUTH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: lhci-credentials
+              key: basicAuthPassword
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 9001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 9001
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false

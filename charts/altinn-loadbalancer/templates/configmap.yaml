@@ -34,6 +34,10 @@ data:
         server altinn-mcp-server;
       }
 
+      upstream lhci {
+        server lhci-server.lhci:9001;
+      }
+
       map $uri $spa_path {
         ~^/(dashboard|editor|preview|admin|resourceadm|info)(/.*)?$ $1;
         default                                               none;
@@ -144,6 +148,14 @@ data:
           proxy_set_header 	  Host $host;
           proxy_set_header 	  X-Forwarded-For $remote_addr;
           proxy_set_header    X-Forwarded-Proto $scheme;
+        }
+
+        location /lhci/ {
+          proxy_pass            http://lhci/;
+          proxy_set_header      Host $host;
+          proxy_set_header      X-Forwarded-For $remote_addr;
+          proxy_set_header      X-Forwarded-Proto $scheme;
+          proxy_set_header      Authorization $http_authorization;
         }
 
         location / {
