@@ -320,4 +320,72 @@ describe('SupportedPaletteProvider', () => {
       expect(pdfConfigCalls.length).toBeGreaterThan(0);
     });
   });
+
+  describe('PDF service task version validation', () => {
+    it('should show alert and not create task when appLibVersion is below minimum', () => {
+      const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
+
+      const providerWithOldAppLibVersion = new SupportedPaletteProvider(
+        mockBpmnFactory,
+        mockCreate,
+        mockElementFactory,
+        { registerProvider: jest.fn() },
+        mockTranslate,
+        mockModeling,
+        '8.0.0',
+        mockFrontendVersion,
+      );
+
+      const paletteEntries = providerWithOldAppLibVersion.getPaletteEntries();
+      const result = paletteEntries({});
+
+      result['create.altinn-pdf-task'].action.click({});
+
+      expect(alertSpy).toHaveBeenCalledWith(
+        'process_editor.palette_pdf_service_task_version_error',
+      );
+      expect(mockCreate.start).not.toHaveBeenCalled();
+
+      alertSpy.mockRestore();
+    });
+
+    it('should show alert and not create task when frontendVersion is below minimum', () => {
+      const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
+
+      const providerWithOldFrontendVersion = new SupportedPaletteProvider(
+        mockBpmnFactory,
+        mockCreate,
+        mockElementFactory,
+        { registerProvider: jest.fn() },
+        mockTranslate,
+        mockModeling,
+        mockAppLibVersion,
+        '4.0.0',
+      );
+
+      const paletteEntries = providerWithOldFrontendVersion.getPaletteEntries();
+      const result = paletteEntries({});
+
+      result['create.altinn-pdf-task'].action.click({});
+
+      expect(alertSpy).toHaveBeenCalledWith(
+        'process_editor.palette_pdf_service_task_frontend_version_error',
+      );
+      expect(mockCreate.start).not.toHaveBeenCalled();
+
+      alertSpy.mockRestore();
+    });
+
+    it('should create task when both versions meet requirements', () => {
+      const mockEntries = {};
+      const mockEvent = {};
+
+      const paletteEntries = provider.getPaletteEntries();
+      const result = paletteEntries(mockEntries);
+
+      result['create.altinn-pdf-task'].action.click(mockEvent);
+
+      expect(mockCreate.start).toHaveBeenCalled();
+    });
+  });
 });

@@ -10,8 +10,41 @@ import {
   mockBpmnApiContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
 import { mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
-import { createPdfBpmnDetails } from '../../../../test/mocks/pdfBpmnDetailsMock';
+import type { BpmnDetails } from '../../../types/BpmnDetails';
 import { MemoryRouter } from 'react-router-dom';
+
+type PdfBpmnDetailsConfig = {
+  filenameTextResourceKey?: string;
+  taskIds?: string[];
+};
+
+const createPdfBpmnDetails = (config: PdfBpmnDetailsConfig = {}): BpmnDetails => {
+  const { filenameTextResourceKey = '', taskIds = [] } = config;
+  return {
+    ...mockBpmnDetails,
+    taskType: 'pdf',
+    element: {
+      ...mockBpmnDetails.element,
+      businessObject: {
+        ...mockBpmnDetails.element.businessObject,
+        extensionElements: {
+          values: [
+            {
+              pdfConfig: {
+                filenameTextResourceKey: filenameTextResourceKey
+                  ? { value: filenameTextResourceKey }
+                  : undefined,
+                autoPdfTaskIds: {
+                  taskIds: taskIds.map((id) => ({ value: id })),
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+  };
+};
 
 const tasks = [
   {
