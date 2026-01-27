@@ -6,7 +6,7 @@ import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { DataModelReaders } from 'src/features/formData/FormDataReaders';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
-import { useLangToolsDataSources } from 'src/features/language/LangToolsStore';
+import { useLangToolsDataSources } from 'src/features/language/useLangToolsDataSources';
 import { type FixedLanguageList, getLanguageFromCode } from 'src/language/languages';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
@@ -14,11 +14,11 @@ import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import type { DataModelReader, useDataModelReaders } from 'src/features/formData/FormDataReaders';
+import type { TextResourceMap } from 'src/features/language/textResources';
 import type {
   LangDataSources,
   LimitedTextResourceVariablesDataSources,
-} from 'src/features/language/LangDataSourcesProvider';
-import type { TextResourceMap } from 'src/features/language/textResources';
+} from 'src/features/language/useLangToolsDataSources';
 import type { FormDataSelector } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { LooseAutocomplete } from 'src/types';

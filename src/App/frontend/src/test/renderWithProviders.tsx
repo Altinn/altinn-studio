@@ -25,7 +25,6 @@ import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
 import { LanguageProvider } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
@@ -320,23 +319,21 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       queryClient={queryClient}
     >
       <LanguageProvider>
-        <LangToolsStoreProvider>
-          <UiConfigProvider>
-            <PageNavigationProvider>
-              <Router>
-                <NavigationEffectProvider>
-                  <GlobalFormDataReadersProvider>
-                    <OrgsProvider>
-                      <PartyProvider>
-                        <TextResourcesProvider>{children}</TextResourcesProvider>
-                      </PartyProvider>
-                    </OrgsProvider>
-                  </GlobalFormDataReadersProvider>
-                </NavigationEffectProvider>
-              </Router>
-            </PageNavigationProvider>
-          </UiConfigProvider>
-        </LangToolsStoreProvider>
+        <UiConfigProvider>
+          <PageNavigationProvider>
+            <Router>
+              <NavigationEffectProvider>
+                <GlobalFormDataReadersProvider>
+                  <OrgsProvider>
+                    <PartyProvider>
+                      <TextResourcesProvider>{children}</TextResourcesProvider>
+                    </PartyProvider>
+                  </OrgsProvider>
+                </GlobalFormDataReadersProvider>
+              </NavigationEffectProvider>
+            </Router>
+          </PageNavigationProvider>
+        </UiConfigProvider>
       </LanguageProvider>
     </AppQueriesProvider>
   );
@@ -362,11 +359,9 @@ function MinimalProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <LangToolsStoreProvider>
-        <Router>
-          <NavigationEffectProvider>{children}</NavigationEffectProvider>
-        </Router>
-      </LangToolsStoreProvider>
+      <Router>
+        <NavigationEffectProvider>{children}</NavigationEffectProvider>
+      </Router>
     </AppQueriesProvider>
   );
 }
