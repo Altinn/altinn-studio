@@ -9,7 +9,7 @@ import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
 import { useMutation } from '@tanstack/react-query';
 import { InstanceStatus } from './InstanceStatus';
 import { isAxiosError } from 'axios';
-import { Alert } from '@digdir/designsystemet-react';
+import { Alert, Skeleton } from '@digdir/designsystemet-react';
 import { useCurrentOrg } from 'admin/layout/PageLayout';
 import { Link } from 'react-router-dom';
 
@@ -56,7 +56,7 @@ export const InstancesTable = ({
 
   switch (status) {
     case 'pending':
-      return <StudioSpinner aria-label={t('general.loading')} />;
+      return <InstancesTableSkeleton n={11} />;
     case 'error':
       if (isAxiosError(error) && error.response?.status === 403) {
         return (
@@ -77,6 +77,18 @@ export const InstancesTable = ({
   }
 };
 
+const InstancesTableSkeleton = ({ n }: { n: number }) => {
+  const { t } = useTranslation();
+  return (
+    <div aria-label={t('general.loading')} className={classes.skeletonWrapper}>
+      {Array.from({ length: n }).map((_, i) => (
+        <Skeleton.Rectangle key={i} className={classes.rowSkeleton} />
+      ))}
+      <Skeleton.Rectangle className={classes.buttonSkeleton} />
+    </div>
+  );
+};
+
 type InstancesTableWithDataProps = {
   instances: SimpleInstance[];
   hasMoreResults: boolean;
@@ -93,8 +105,12 @@ const InstancesTableWithData = ({
     mutationFn: fetchMoreResults,
   });
 
+  if (!instances.length) {
+    return <Alert severity='info'>{t('admin.instances.no_results')}</Alert>;
+  }
+
   return (
-    <StudioTable zebra>
+    <StudioTable>
       <StudioTable.Head>
         <StudioTable.Row>
           <StudioTable.Cell>{t('admin.instances.id')}</StudioTable.Cell>

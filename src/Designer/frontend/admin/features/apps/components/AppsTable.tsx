@@ -20,6 +20,7 @@ import { appErrorMetricsLogsPath } from 'admin/utils/apiPaths';
 import { Alert } from 'admin/components/Alert/Alert';
 import { isAxiosError } from 'axios';
 import { useCurrentOrg } from 'admin/layout/PageLayout';
+import { DEFAULT_SEARCH_PARAMS } from 'admin/utils/constants';
 
 export type AppsTableProps = {
   org: string;
@@ -55,16 +56,19 @@ const sortEnvironments = (a: string, b: string) => {
 const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
   const { t } = useTranslation();
   const [search, setSearch] = useQueryParamState<string>('appSearch', '');
-  const [tab, setTab] = useQueryParamState<string>('environment', undefined);
+  const [tab, setTab] = useQueryParamState<string>(
+    'environment',
+    DEFAULT_SEARCH_PARAMS.environment,
+  );
 
   const availableEnvironments = Object.keys(runningApps).toSorted(sortEnvironments);
 
   return (
     <StudioTabs value={tab ?? availableEnvironments.at(0)} onChange={setTab}>
       <StudioTabs.List>
-        {availableEnvironments.map((env) => (
-          <StudioTabs.Tab key={env} value={env}>
-            {t(`admin.environment.${env}`)} ({runningApps[env].length})
+        {availableEnvironments.map((environment) => (
+          <StudioTabs.Tab key={environment} value={environment}>
+            {t('admin.environment.name', { environment })} ({runningApps[environment].length})
           </StudioTabs.Tab>
         ))}
       </StudioTabs.List>
