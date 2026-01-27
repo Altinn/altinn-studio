@@ -97,12 +97,6 @@ export const getProcessNextUrl = (instanceId: string, language?: string) => {
   return `${appPath}/instances/${instanceId}/process/next${queryString}`;
 };
 
-export const getRedirectUrl = (returnUrl: string) => {
-  const encodedUriComponent = encodeURIComponent(returnUrl);
-
-  return `${appPath}/api/v1/redirect?url=${encodedUriComponent}`;
-};
-
 export const getUpgradeAuthLevelUrl = (reqAuthLevel: string) => {
   const redirect: string =
     `https://platform.${getHostname()}` + `/authentication/api/v1/authentication?goto=${appPath}`;

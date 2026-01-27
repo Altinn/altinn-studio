@@ -34,7 +34,7 @@ export const useAddProperty = (): AddProperty => {
     const reference = prompt(t('schema_editor.add_reference.prompt'));
     if (!reference) return undefined;
     if (savableModel.hasDefinition(reference)) {
-      const { schemaPointer } = savableModel.addReference(name, reference, target);
+      const { schemaPointer } = savableModel.addReferenceAndSave(name, reference, target);
       return schemaPointer;
     } else {
       alert(t('schema_editor.add_reference.type_does_not_exist', { reference }));
@@ -43,12 +43,12 @@ export const useAddProperty = (): AddProperty => {
   };
 
   const addField = (name: string, target: NodePosition, fieldType?: FieldType): string => {
-    const { schemaPointer } = savableModel.addField(name, fieldType, target);
+    const { schemaPointer } = savableModel.addFieldAndSave(name, fieldType, target);
     return schemaPointer;
   };
 
   const addCombination = (name: string, target: NodePosition): string => {
-    const { schemaPointer } = savableModel.addCombination(name, target);
+    const { schemaPointer } = savableModel.addCombinationAndSave(name, target);
     return schemaPointer;
   };
 

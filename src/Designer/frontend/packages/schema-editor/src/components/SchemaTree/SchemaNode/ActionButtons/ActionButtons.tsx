@@ -21,7 +21,7 @@ export const ActionButtons = ({ schemaPointer, className, uniquePointer }: Actio
   const deleteNode = useDeleteNode(schemaPointer, savableModel);
   const node = savableModel.getNodeBySchemaPointer(schemaPointer);
 
-  const convertToReference = () => savableModel.convertToDefinition(schemaPointer);
+  const convertToReference = () => savableModel.convertToDefinitionAndSave(schemaPointer);
   const hasReferringNodes = savableModel.hasReferringNodes(schemaPointer);
   const actionButtonTitleKey = hasReferringNodes
     ? 'schema_editor.disable_deletion_info_for_used_definition'
@@ -60,7 +60,7 @@ const useDeleteNode = (schemaPointer: string, savableModel: SavableSchemaModel) 
       : t('schema_editor.data_model_field_deletion_text');
     if (confirm(confirmMessage)) {
       setSelectedUniquePointer(null);
-      savableModel.deleteNode(schemaPointer);
+      savableModel.deleteNodeAndSave(schemaPointer);
     }
   }, [savableModel, schemaPointer, t, setSelectedUniquePointer]);
 };

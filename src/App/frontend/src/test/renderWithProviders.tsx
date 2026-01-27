@@ -117,7 +117,6 @@ const defaultQueryMocks: AppQueries = {
   fetchActiveInstances: async () => [],
   fetchSelectedParty: async () => getPartyMock(),
   fetchOrgs: async () => ({ orgs: getOrgsMock() }),
-  fetchReturnUrl: async () => Promise.reject(),
   fetchDataModelSchema: async () => ({}),
   fetchPartiesAllowedToInstantiate: async () => [getPartyMock()],
   fetchRefreshJwtToken: async () => ({}),

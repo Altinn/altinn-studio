@@ -38,7 +38,7 @@ public class HomeController : Controller
     /// <summary>
     /// Initialize a new instance of the <see cref="HomeController"/> class.
     /// </summary>
-    /// <param name="serviceProvider">The service provider for resolving internal services.</param>
+    /// <param name="serviceProvider">The serviceProvider service used to inject internal services.</param>
     /// <param name="antiforgery">The anti forgery service.</param>
     /// <param name="platformSettings">The platform settings.</param>
     /// <param name="env">The current environment.</param>
@@ -71,6 +71,7 @@ public class HomeController : Controller
     /// <param name="org">The application owner short name.</param>
     /// <param name="app">The name of the app</param>
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
+    /// <param name="returnUrl">Custom returnUrl param that will be verified</param>
     [HttpGet]
     [Route("")]
     [Route("instance-selection")]
@@ -82,7 +83,8 @@ public class HomeController : Controller
     public async Task<IActionResult> Index(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromQuery] bool dontChooseReportee
+        [FromQuery] bool dontChooseReportee,
+        [FromQuery] string? returnUrl
     )
     {
         // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
@@ -114,7 +116,7 @@ public class HomeController : Controller
                 frontendVersionOverride = cookie.TrimEnd('/');
             }
 
-            var appGlobalState = await _bootstrapGlobalService.GetGlobalState();
+            var appGlobalState = await _bootstrapGlobalService.GetGlobalState(returnUrl);
             var html = await _indexPageGenerator.Generate(org, app, appGlobalState, frontendVersionOverride);
             return Content(html, "text/html; charset=utf-8");
         }

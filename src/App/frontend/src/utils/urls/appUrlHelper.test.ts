@@ -9,7 +9,6 @@ import {
   getLayoutsUrl,
   getOptionsUrl,
   getProcessStateUrl,
-  getRedirectUrl,
   getSetSelectedPartyUrl,
   getUpgradeAuthLevelUrl,
   getValidationUrl,
@@ -55,11 +54,6 @@ describe('Frontend urlHelper.ts', () => {
     it('should return the expected url for getValidationUrl', () => {
       expect(getValidationUrl('12345/instanceId-1234', 'nb')).toBe(
         'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/validate?language=nb',
-      );
-    });
-    it('should return the expected url for getRedirectUrl', () => {
-      expect(getRedirectUrl('http://www.nrk.no')).toBe(
-        'https://local.altinn.cloud/ttd/test/api/v1/redirect?url=http%3A%2F%2Fwww.nrk.no',
       );
     });
     it('should return the expected url for getUpgradeAuthLevelUrl', () => {
