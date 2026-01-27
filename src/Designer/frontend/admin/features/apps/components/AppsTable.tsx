@@ -20,7 +20,7 @@ import { appErrorMetricsLogsPath } from 'admin/utils/apiPaths';
 import { Alert } from 'admin/components/Alert/Alert';
 import { isAxiosError } from 'axios';
 import { useCurrentOrg } from 'admin/layout/PageLayout';
-import { DEFAULT_SEARCH_PARAMS } from 'admin/utils/constants';
+import { createSearchParams, DEFAULT_SEARCH_PARAMS } from 'admin/utils/constants';
 
 export type AppsTableProps = {
   org: string;
@@ -98,8 +98,7 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
   const { t, i18n } = useTranslation();
   const envTitle = useEnvironmentTitle(env);
   const orgName = useCurrentOrg().name[i18n.language];
-  const defaultRange = 1440;
-  const [range, setRange] = useQueryParamState<number>('range', defaultRange);
+  const [range, setRange] = useQueryParamState<number>('range', DEFAULT_SEARCH_PARAMS.range);
   const {
     data: errorMetrics,
     isPending: errorMetricsIsPending,
@@ -168,11 +167,7 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
             .map((app) => (
               <StudioTable.Row key={app.app}>
                 <StudioTable.Cell>
-                  <Link
-                    to={`${env}/${app.app}${range && range !== defaultRange ? '?range=' + range : ''}`}
-                  >
-                    {app.app}
-                  </Link>
+                  <Link to={`${env}/${app.app}${createSearchParams({ range })}`}>{app.app}</Link>
                 </StudioTable.Cell>
                 <StudioTable.Cell>{app.version}</StudioTable.Cell>
                 <StudioTable.Cell className={classes.errorMetricsCell}>
