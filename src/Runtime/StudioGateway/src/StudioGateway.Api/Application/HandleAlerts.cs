@@ -50,22 +50,28 @@ internal static class HandleAlerts
         var alerts = alertPayload
             .Alerts.Where(a =>
             {
-                var ruleId = a.Labels.GetValueOrDefault("RuleId");
+                var ruleId = a.Annotations.GetValueOrDefault("ruleId");
                 return !string.IsNullOrEmpty(ruleId) && AzureMonitorClient.OperationNameKeys.Contains(ruleId);
             })
-            .GroupBy(a => a.Labels["alertname"])
+            .GroupBy(a => a.Annotations["ruleId"])
             .Select(alerts =>
             {
                 return new Alert
                 {
-                    Id = alerts.First().Labels["RuleId"],
-                    Name = alerts.Key,
+                    RuleId = alerts.Key,
+                    Name = alerts.First().Labels.GetValueOrDefault("alertname", "unknown"),
                     Alerts = alerts.Select(a => new AlertInstance
                     {
                         Status = a.Status,
                         App = a.Labels.GetValueOrDefault("cloud_RoleName", "unknown"),
                     }),
                     URL = alerts.First().GeneratorURL,
+                    IntervalInMinutes = int.TryParse(
+                        alerts.First().Annotations.GetValueOrDefault("intervalInMinutes"),
+                        out var interval
+                    )
+                        ? interval
+                        : null,
                 };
             });
 
