@@ -326,7 +326,7 @@ const DataElementGroup = ({
               {formatDateAndTime(dataElement.lastChangedAt)}
             </LabelValue>
             <LabelValue label={t('admin.instances.data.locked')}>
-              {dataElement.locked ? 'Ja' : 'Nei'}
+              {dataElement.locked ? t('general.yes') : t('general.no')}
             </LabelValue>
             <LabelValue label={t('admin.instances.data.size')}>
               {t('admin.instances.data.size_kb', { size: (dataElement.size ?? 0) / 1e3 })}
