@@ -70,12 +70,6 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
   );
   const initialMode: PdfMode = currentLayoutSet ? 'layout-based' : 'automatic';
 
-  const existingDataType = currentLayoutSet?.dataType;
-  const dataModelOptionsToSelect: string[] = existingDataType
-    ? [...new Set([...allDataModelIds, existingDataType])]
-    : allDataModelIds;
-  const currentValue = existingDataType ? [existingDataType] : [];
-
   const [selectedTaskIds, setSelectedTaskIds] = useState(currentTaskIds);
   const [newLayoutSetName, setNewLayoutSetName] = useState('');
   const [newLayoutSetNameError, setNewLayoutSetNameError] = useState('');
@@ -84,7 +78,7 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
   const [currentTextResourceId, setCurrentTextResourceId] = useState<string>(
     storedFilenameTextResourceId,
   );
-  const [selectedValue, setSelectedValue] = useState(currentValue);
+  const [selectedValue, setSelectedValue] = useState<string[]>([]);
 
   const setValueRef = useRef<((value: string) => void) | null>(null);
 
@@ -286,7 +280,7 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
                     <Combobox.Empty>
                       {t('process_editor.configuration_panel_pdf_no_data_models')}
                     </Combobox.Empty>
-                    {dataModelOptionsToSelect.map((option) => (
+                    {allDataModelIds.map((option) => (
                       <Combobox.Option value={option} key={option}>
                         {option}
                       </Combobox.Option>
