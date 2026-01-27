@@ -340,8 +340,9 @@ export function en() {
     'person_lookup.validation_error_name_too_short': "The name can't be empty.",
     'person_lookup.validation_error_ssn': 'The national ID number/D-number is invalid.',
     'person_lookup.validation_error_not_found':
-      'No person is registered with this combination of national ID number/D-number and name. Please check the fields and try again. <br> Note: After 5 failed attempts, the search functionality will be temporarily locked.',
-    'person_lookup.validation_error_too_many_requests': 'Too many requests. Please try again later.',
+      'No person is registered with this combination of national ID number/D-number and name. Please check the fields and try again. <br> Note: After 3 failed attempts, the search functionality may be temporarily locked.',
+    'person_lookup.validation_error_too_many_requests':
+      'Too many requests. You have been locked out of the search functionality for one hour. Please try again later.',
     'person_lookup.validation_error_forbidden':
       'You do not have permission to perform this action. A security level of minimum 2 is required.',
     'person_lookup.validation_invalid_response_from_server': 'An error occurred. Please try again later.',

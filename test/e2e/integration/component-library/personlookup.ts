@@ -72,7 +72,7 @@ describe('Person lookup component', () => {
       /Ingen person er registrert med denne kombinasjonen av fødselsnummer\/D-nummer og navn. Vennligst kontroller feltene og prøv igjen./i,
     ).should('exist');
 
-    cy.findByText(/Merk: Etter 5 feilforsøk blir søkemuligheten midlertidig sperret./i).should('exist');
+    cy.findByText(/Merk: Etter 3 feilforsøk kan søkemuligheten bli midlertidig sperret./i).should('exist');
 
     // Must be updated when backend returns better http status codes
     cy.intercept('POST', '/ttd/component-library/api/v1/lookup/person', {
