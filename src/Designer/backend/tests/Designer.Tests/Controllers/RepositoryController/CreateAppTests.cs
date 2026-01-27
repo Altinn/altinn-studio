@@ -100,7 +100,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             }), System.Text.Encoding.UTF8, "application/json");
 
             _repositoryMock
-                .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<ServiceConfiguration>(), It.IsAny<List<CustomTemplateReference>>()))
+                .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<ServiceConfiguration>(), It.Is<List<CustomTemplateReference>>(l => l.Count == 1 && l[0].Id == "custom-template")))
                 .ReturnsAsync(new Repository() { RepositoryCreatedStatus = HttpStatusCode.Created, CloneUrl = "https://some.site/this/is/not/relevant" });
 
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);

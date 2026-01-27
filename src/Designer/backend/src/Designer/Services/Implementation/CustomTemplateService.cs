@@ -57,11 +57,12 @@ public class CustomTemplateService : ICustomTemplateService
     {
         CustomTemplate template = await GetCustomTemplate(templateOwner, templateId); // called first as it includes validation of the template
 
-        await CopyTemplateContentToRepository(templateOwner, templateId, targetOrg, targetRepo, developer);
         foreach (string removePath in template.Remove)
         {
             DeleteContent(targetOrg, targetRepo, developer, removePath);
         }
+
+        await CopyTemplateContentToRepository(templateOwner, templateId, targetOrg, targetRepo, developer);
     }
 
     /// <summary>
