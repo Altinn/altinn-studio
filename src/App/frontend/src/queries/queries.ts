@@ -35,7 +35,6 @@ import {
   instancesControllerUrl,
   profileApiUrl,
   refreshJwtTokenUrl,
-  selectedPartyUrl,
   textResourcesUrl,
   validPartiesUrl,
 } from 'src/utils/urls/appUrlHelper';
@@ -204,8 +203,6 @@ export const fetchInstanceData = async (partyId: string, instanceGuid: string): 
   );
 
 export const fetchProcessState = (instanceId: string): Promise<IProcess> => httpGet(getProcessStateUrl(instanceId));
-
-export const fetchSelectedParty = (): Promise<IParty | undefined> => httpGet(selectedPartyUrl);
 
 export const fetchLayouts = (layoutSetId: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(layoutSetId));
 

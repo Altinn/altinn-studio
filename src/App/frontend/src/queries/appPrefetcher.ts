@@ -4,7 +4,7 @@ import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
 import { instanceQueries } from 'src/features/instance/InstanceContext';
 import { processQueries } from 'src/features/instance/useProcessQuery';
 import { useOrgsQueryDef } from 'src/features/orgs/OrgsProvider';
-import { usePartiesQueryDef, useSelectedPartyQueryDef } from 'src/features/party/PartiesProvider';
+import { usePartiesQueryDef } from 'src/features/party/PartiesProvider';
 
 /**
  * Prefetches requests that require no processed data to determine the url
@@ -18,8 +18,6 @@ export function AppPrefetcher() {
 
   usePrefetchQuery(useOrgsQueryDef());
   usePrefetchQuery(usePartiesQueryDef(true), Boolean(instanceOwnerPartyId));
-  usePrefetchQuery(useSelectedPartyQueryDef(true), Boolean(instanceOwnerPartyId));
-
   usePrefetchQuery(instanceQueries.instanceData({ instanceOwnerPartyId, instanceGuid }));
   usePrefetchQuery(processQueries.processState(instanceId));
 
