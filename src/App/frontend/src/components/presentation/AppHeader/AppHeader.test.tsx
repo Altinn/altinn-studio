@@ -88,6 +88,7 @@ describe('presentation/AppHeader', () => {
         hidden: true,
       }),
     ).toBeInTheDocument();
+    window.altinnAppGlobalData.userProfile = undefined;
   });
 
   it('Should render Altinn logo if logo options are not set', async () => {
