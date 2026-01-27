@@ -111,6 +111,7 @@ namespace LocalTest
             services.AddTransient<IPersonLookup, PersonLookupService>();
             services.AddTransient<TestDataService>();
             services.AddTransient<TenorDataRepository>();
+            services.AddSingleton<IInstanceLockRepository, InstanceLockRepository>();
 
             services.AddSingleton<IContextHandler, ContextHandler>();
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
@@ -132,10 +133,10 @@ namespace LocalTest
             services.AddTransient<IAuthorizationHandler, ClaimAccessHandler>();
 
             // Notifications services
-            
+
             GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
             services.AddNotificationServices(generalSettings.BaseUrl, Configuration);
-            
+
             // Storage services
             services.AddSingleton<IClaimsPrincipalProvider, ClaimsPrincipalProvider>();
             services.AddTransient<IAuthorization, AuthorizationService>();
@@ -159,7 +160,7 @@ namespace LocalTest
                         ClockSkew = TimeSpan.Zero
                     };
                     options.JwtCookieName = "AltinnStudioRuntime";
-                    options.MetadataAddress = new Uri($"http://localhost:5101/authentication/api/v1/openid").ToString();;
+                    options.MetadataAddress = new Uri("http://localhost:5101/authentication/api/v1/openid").ToString();
                     options.RequireHttpsMetadata = false;
                 });
 
@@ -239,11 +240,11 @@ namespace LocalTest
 
             app.UseHealthChecks("/health");
             app.UseMiddleware<ProxyMiddleware>();
-            
+
             var storagePath = new DirectoryInfo(localPlatformSettings.Value.LocalTestingStorageBasePath);
             if (!storagePath.Exists)
                 storagePath.Create();
-            
+
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(storagePath.FullName),
