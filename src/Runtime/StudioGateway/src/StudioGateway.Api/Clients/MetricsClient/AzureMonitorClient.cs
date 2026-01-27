@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text.Json;
 using Azure;
 using Azure.Identity;
 using Azure.Monitor.Query.Logs;
@@ -40,6 +42,8 @@ internal sealed class AzureMonitorClient(
             ]
         },
     };
+
+    internal static IReadOnlyCollection<string> OperationNameKeys { get; } = _operationNames.Keys.ToArray();
 
     private static string GetInterval(int range)
     {
@@ -267,23 +271,44 @@ internal sealed class AzureMonitorClient(
         }
     }
 
-    public Uri GetLogsUrl(string subscriptionId, string org, string env, string appName, string metricName, int range)
+    public Uri? GetLogsUrl(
+        string subscriptionId,
+        string org,
+        string env,
+        IReadOnlyCollection<string> apps,
+        string? metricName,
+        DateTimeOffset from,
+        DateTimeOffset to
+    )
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
-
-        if (!_operationNames.TryGetValue(metricName, out var operationNames))
+        if (metricName is null || !_operationNames.TryGetValue(metricName, out var operationNames))
         {
-            throw new ArgumentException($"Unknown metric name: {metricName}", nameof(metricName));
+            return null;
+        }
+
+        var normalizedApps = apps.Where(appName => !string.IsNullOrWhiteSpace(appName))
+            .Select(appName => appName.Trim())
+            .ToList();
+        if (normalizedApps.Count == 0)
+        {
+            return null;
         }
 
         string jsonPath = Path.Combine(AppContext.BaseDirectory, "Clients", "MetricsClient", "logsQueryTemplate.json");
+        var fromUtc = from.ToUniversalTime();
+        var toUtc = to.ToUniversalTime();
+        var durationMs = (long)(toUtc - fromUtc).TotalMilliseconds;
         string jsonTemplate = File.ReadAllText(jsonPath);
         string json = jsonTemplate
-            .Replace("{range}", range.ToString())
-            .Replace("{durationMs}", (range * 60 * 1000).ToString())
-            .Replace("{appName}", appName.Replace("'", "''"))
+            .Replace("{from}", fromUtc.ToString("O", CultureInfo.InvariantCulture))
+            .Replace("{to}", toUtc.ToString("O", CultureInfo.InvariantCulture))
+            .Replace("{durationMs}", durationMs.ToString(CultureInfo.InvariantCulture))
+            .Replace("{app_Names}", string.Join(", ", normalizedApps.Select(n => $"'{n.Replace("'", "''")}'")))
             .Replace("{operation_Names}", string.Join(", ", operationNames.Select(n => $"'{n}'")))
+            .Replace(
+                "\"{appNames}\"",
+                string.Join(", ", normalizedApps.Select(name => $"\"{JsonEncodedText.Encode(name)}\""))
+            )
             .Replace("\"{operationNames}\"", string.Join(",", operationNames.Select(n => $"\"{n}\"")));
         var minifiedJson = System.Text.Json.Nodes.JsonNode.Parse(json)?.ToJsonString() ?? string.Empty;
 

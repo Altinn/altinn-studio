@@ -189,7 +189,7 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
                               {t(`admin.metrics.${metric.name}`)}
                             </>
                           }
-                          url={appErrorMetricsLogsPath(org, env, app.app, metric.name, range!)}
+                          url={appErrorMetricsLogsPath(org, env, [app.app], metric.name, range!)}
                           className={classes.errorMetric}
                         ></Alert>
                       );

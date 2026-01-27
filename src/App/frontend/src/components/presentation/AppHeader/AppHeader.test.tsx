@@ -6,6 +6,7 @@ import { userEvent } from '@testing-library/user-event';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
+import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AppHeader } from 'src/components/presentation/AppHeader/AppHeader';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
@@ -17,6 +18,10 @@ import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IAppLanguage, IParty, IProfile } from 'src/types/shared';
 
 describe('presentation/AppHeader', () => {
+  afterEach(() => {
+    window.altinnAppGlobalData.userProfile = undefined;
+  });
+
   const userPerson = {
     party: {
       name: 'Test Testesen',
@@ -65,6 +70,7 @@ describe('presentation/AppHeader', () => {
   };
 
   it('should render menu with logout option when clicking profile icon', async () => {
+    window.altinnAppGlobalData.userProfile = getProfileMock();
     await render({ party: partyOrg });
     expect(
       screen.queryByRole('menuitem', {
