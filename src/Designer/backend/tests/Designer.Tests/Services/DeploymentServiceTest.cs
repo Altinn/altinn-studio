@@ -19,6 +19,7 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
+using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Designer.Tests.Utils;
@@ -50,6 +51,8 @@ namespace Designer.Tests.Services
         private readonly Mock<IRuntimeGatewayClient> _runtimeGatewayClient;
         private readonly GeneralSettings _generalSettings;
         private readonly FakeTimeProvider _fakeTimeProvider;
+        private readonly Mock<ISlackClient> _slackClient;
+        private readonly AlertsSettings _alertsSettings;
 
         public DeploymentServiceTest(ITestOutputHelper testOutputHelper)
         {
@@ -69,6 +72,8 @@ namespace Designer.Tests.Services
             _runtimeGatewayClient = new Mock<IRuntimeGatewayClient>();
             _generalSettings = new GeneralSettings();
             _fakeTimeProvider = new FakeTimeProvider();
+            _slackClient = new Mock<ISlackClient>();
+            _alertsSettings = new AlertsSettings();
         }
 
         [Theory]
@@ -118,7 +123,9 @@ namespace Designer.Tests.Services
                 _fakeTimeProvider,
                 _gitOpsConfigurationManager.Object,
                 _featureManager.Object,
-                _runtimeGatewayClient.Object);
+                _runtimeGatewayClient.Object,
+                _slackClient.Object,
+                _alertsSettings);
 
             // Act
             DeploymentEntity deploymentEntity =
@@ -181,7 +188,9 @@ namespace Designer.Tests.Services
                 _fakeTimeProvider,
                 _gitOpsConfigurationManager.Object,
                 _featureManager.Object,
-                _runtimeGatewayClient.Object);
+                _runtimeGatewayClient.Object,
+                _slackClient.Object,
+                _alertsSettings);
 
             // Act
             SearchResults<DeploymentEntity> results =
@@ -260,7 +269,9 @@ namespace Designer.Tests.Services
                 _fakeTimeProvider,
                 _gitOpsConfigurationManager.Object,
                 _featureManager.Object,
-                _runtimeGatewayClient.Object);
+                _runtimeGatewayClient.Object,
+                _slackClient.Object,
+                _alertsSettings);
 
             // Act
             await deploymentService.CreateAsync(org, app, deploymentModel);
@@ -351,7 +362,9 @@ namespace Designer.Tests.Services
                 _fakeTimeProvider,
                 _gitOpsConfigurationManager.Object,
                 _featureManager.Object,
-                _runtimeGatewayClient.Object);
+                _runtimeGatewayClient.Object,
+                _slackClient.Object,
+                _alertsSettings);
 
             // Act
             await deploymentService.CreateAsync(org, app, deploymentModel);
@@ -434,7 +447,9 @@ namespace Designer.Tests.Services
                 _fakeTimeProvider,
                 _gitOpsConfigurationManager.Object,
                 _featureManager.Object,
-                _runtimeGatewayClient.Object);
+                _runtimeGatewayClient.Object,
+                _slackClient.Object,
+                _alertsSettings);
 
             // Act
             await deploymentService.CreateAsync(org, app, deploymentModel);
@@ -556,7 +571,9 @@ namespace Designer.Tests.Services
                 _fakeTimeProvider,
                 _gitOpsConfigurationManager.Object,
                 _featureManager.Object,
-                _runtimeGatewayClient.Object);
+                _runtimeGatewayClient.Object,
+                _slackClient.Object,
+                _alertsSettings);
 
             // Act
             await deploymentService.UndeployAsync(editingContext, env);
@@ -642,7 +659,9 @@ namespace Designer.Tests.Services
                 _fakeTimeProvider,
                 _gitOpsConfigurationManager.Object,
                 _featureManager.Object,
-                _runtimeGatewayClient.Object);
+                _runtimeGatewayClient.Object,
+                _slackClient.Object,
+                _alertsSettings);
 
             // Act
             await deploymentService.UndeployAsync(editingContext, env);
@@ -731,7 +750,9 @@ namespace Designer.Tests.Services
                 _fakeTimeProvider,
                 _gitOpsConfigurationManager.Object,
                 _featureManager.Object,
-                _runtimeGatewayClient.Object);
+                _runtimeGatewayClient.Object,
+                _slackClient.Object,
+                _alertsSettings);
 
             // Act
             await deploymentService.UndeployAsync(editingContext, env);
@@ -825,7 +846,9 @@ namespace Designer.Tests.Services
                 _fakeTimeProvider,
                 _gitOpsConfigurationManager.Object,
                 _featureManager.Object,
-                _runtimeGatewayClient.Object);
+                _runtimeGatewayClient.Object,
+                _slackClient.Object,
+                _alertsSettings);
 
             // Act
             await deploymentService.UndeployAsync(editingContext, env);
