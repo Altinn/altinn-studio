@@ -1,5 +1,4 @@
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
-import { getAppLibVersion, getFrontendVersion } from '../utils/bpmnModeler/BpmnModelerInstance';
 import {
   isVersionEqualOrGreater,
   MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
@@ -9,18 +8,37 @@ import {
 const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];
 
 class SupportedPaletteProvider {
-  constructor(bpmnFactory, create, elementFactory, palette, translate, modeling) {
+  constructor(
+    bpmnFactory,
+    create,
+    elementFactory,
+    palette,
+    translate,
+    modeling,
+    appLibVersion,
+    frontendVersion,
+  ) {
     this.bpmnFactory = bpmnFactory;
     this.create = create;
     this.elementFactory = elementFactory;
     this.translate = translate;
     this.modeling = modeling;
+    this.appLibVersion = appLibVersion;
+    this.frontendVersion = frontendVersion;
 
     palette.registerProvider(this);
   }
 
   getPaletteEntries() {
-    const { elementFactory, create, bpmnFactory, translate, modeling } = this;
+    const {
+      elementFactory,
+      create,
+      bpmnFactory,
+      translate,
+      modeling,
+      appLibVersion,
+      frontendVersion,
+    } = this;
 
     function createCustomTask(taskType) {
       return function (event) {
@@ -196,9 +214,6 @@ class SupportedPaletteProvider {
       const taskType = 'pdf';
 
       return function (event) {
-        const appLibVersion = getAppLibVersion();
-        const frontendVersion = getFrontendVersion();
-
         if (!isVersionEqualOrGreater(appLibVersion, MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK)) {
           window.alert(
             translate('process_editor.palette_pdf_service_task_version_error', {
@@ -362,6 +377,8 @@ SupportedPaletteProvider.$inject = [
   'palette',
   'translate',
   'modeling',
+  'appLibVersion',
+  'frontendVersion',
 ];
 
 export default {
