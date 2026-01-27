@@ -17,7 +17,7 @@ export type AltinnAppGlobalData = {
   availableLanguages: IAppLanguage[];
   userProfile?: IProfile;
   returnUrl?: string;
-  selectedParty: IParty;
+  selectedParty?: IParty;
 };
 
 declare global {

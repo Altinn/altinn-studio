@@ -49,6 +49,7 @@ internal class BootstrapGlobalResponse
     [JsonPropertyName("userProfile")]
     public UserProfile? UserProfile { get; set; }
 
+    /// <summary>
     /// Verified returnUrl
     /// </summary>
     [JsonPropertyName("selectedParty")]
