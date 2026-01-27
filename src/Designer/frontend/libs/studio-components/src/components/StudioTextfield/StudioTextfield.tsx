@@ -10,7 +10,7 @@ export type StudioTextfieldProps = TextfieldProps & {
 };
 
 function StudioTextfield(
-  { children, required, tagText, label, ...rest }: StudioTextfieldProps,
+  { children, tagText, label, ...rest }: StudioTextfieldProps,
   ref: Ref<HTMLInputElement>,
 ): ReactElement {
   // Designsystemet has conditional types, so if we extract label from props, we must
@@ -24,7 +24,7 @@ function StudioTextfield(
       ref={ref}
       {...rest}
       label={
-        <StudioLabelWrapper required={required} tagText={tagText}>
+        <StudioLabelWrapper required={rest.required} tagText={tagText}>
           {label}
         </StudioLabelWrapper>
       }
