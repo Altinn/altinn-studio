@@ -19,11 +19,12 @@ namespace Altinn.Studio.Designer.Controllers;
 /// </remarks>
 /// <param name="slackClient">A http client to send messages to slack</param>
 /// <param name="generalSettings">the general settings</param>
+/// <param name="feedbackFormSettings">the feedback form settings</param>
 [Authorize]
 [ApiController]
 [ValidateAntiForgeryToken]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/feedbackform")]
-public class FeedbackFormController(ISlackClient slackClient, GeneralSettings generalSettings) : ControllerBase
+public class FeedbackFormController(ISlackClient slackClient, GeneralSettings generalSettings, FeedbackFormSettings feedbackFormSettings) : ControllerBase
 {
     private readonly ISlackClient _slackClient = slackClient;
     private readonly GeneralSettings _generalSettings = generalSettings;
@@ -65,7 +66,7 @@ public class FeedbackFormController(ISlackClient slackClient, GeneralSettings ge
             feedback.Answers.Add("env", _generalSettings.HostName);
         }
 
-        await _slackClient.SendMessage(new SlackRequest
+        await _slackClient.SendMessageAsync(feedbackFormSettings.SlackWebhookUrl, new SlackMessage
         {
             Text = JsonSerializer.Serialize(feedback.Answers, s_jsonSerializerOptions),
         }, cancellationToken);

@@ -18,10 +18,12 @@ using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
+using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
 
@@ -47,6 +49,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IGitOpsConfigurationManager _gitOpsConfigurationManager;
         private readonly IFeatureManager _featureManager;
         private readonly IRuntimeGatewayClient _runtimeGatewayClient;
+        private readonly ISlackClient _slackClient;
+        private readonly AlertsSettings _alertsSettings;
 
         /// <summary>
         /// Constructor
@@ -66,7 +70,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             TimeProvider timeProvider,
             IGitOpsConfigurationManager gitOpsConfigurationManager,
             IFeatureManager featureManager,
-            IRuntimeGatewayClient runtimeGatewayClient)
+            IRuntimeGatewayClient runtimeGatewayClient,
+            ISlackClient slackClient,
+            AlertsSettings alertsSettings)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _deploymentRepository = deploymentRepository;
@@ -83,6 +89,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _gitOpsConfigurationManager = gitOpsConfigurationManager;
             _featureManager = featureManager;
             _runtimeGatewayClient = runtimeGatewayClient;
+            _slackClient = slackClient;
+            _alertsSettings = alertsSettings;
         }
 
         /// <inheritdoc/>
@@ -313,6 +321,94 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 : _azureDevOpsSettings.DeployDefinitionId;
 
             return await _azureDevOpsBuildClient.QueueAsync(queueBuildParameters, definitionId);
+        }
+
+        /// <inheritdoc />
+        public async Task SendToSlackAsync(string org, AltinnEnvironment environment, string app, DeployEventType eventType, string buildId, DateTimeOffset? startedDate, CancellationToken cancellationToken)
+        {
+            if (eventType == DeployEventType.InstallSucceeded || eventType == DeployEventType.UpgradeSucceeded || eventType == DeployEventType.UninstallSucceeded)
+            {
+                return;
+            }
+
+            string studioEnv = _generalSettings.OriginEnvironment;
+
+            var links = new List<SlackText>
+            {
+                new() { Type = "mrkdwn", Text = $"<{GrafanaPodLogsUrl(org, environment, app, startedDate, _timeProvider.GetUtcNow())}|Grafana>" },
+            };
+
+            if (!string.IsNullOrWhiteSpace(buildId))
+            {
+                links.Add(new SlackText { Type = "mrkdwn", Text = $"<https://dev.azure.com/brreg/altinn-studio/_build/results?buildId={buildId}&view=logs|Build log>" });
+            }
+
+            string emoji = ":x:";
+            var status = eventType switch
+            {
+                DeployEventType.InstallFailed or DeployEventType.UpgradeFailed => "Deploy failed",
+                DeployEventType.UninstallFailed => "Undeploy failed",
+                _ => eventType.ToString(),
+            };
+
+            var message = new SlackMessage
+            {
+                Text = $"{emoji} `{org}` - `{environment.Name}` - `{app}` - *{status}*",
+                Blocks =
+                [
+                    new SlackBlock
+                    {
+                        Type = "section",
+                        Text = new SlackText { Type = "mrkdwn", Text = $"{emoji} *{status}*" },
+                    },
+                    new SlackBlock
+                    {
+                        Type = "context",
+                        Elements = new List<SlackText>
+                        {
+                            new() { Type = "mrkdwn", Text = $"Org: `{org}`" },
+                            new() { Type = "mrkdwn", Text = $"Env: `{environment.Name}`" },
+                            new() { Type = "mrkdwn", Text = $"App: `{app}`" },
+                            new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
+                        },
+                    },
+                    new SlackBlock
+                    {
+                        Type = "context",
+                        Elements = links,
+                    },
+                ],
+            };
+
+            try
+            {
+                await _slackClient.SendMessageAsync(_alertsSettings.GetSlackWebhookUrl(environment), message, cancellationToken);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogError(ex, "Failed to send Slack deploy notification");
+            }
+        }
+
+        private static string GrafanaPodLogsUrl(string org, AltinnEnvironment environment, string app, DateTimeOffset? startedDate, DateTimeOffset finishedDate)
+        {
+            var baseDomain = environment.IsProd() ? $"https://{org}.apps.altinn.no" : $"https://{org}.apps.tt02.altinn.no";
+
+            var path = "/monitor/d/ae1906c2hbjeoe/pod-console-error-logs";
+
+            var queryParams = new Dictionary<string, string>
+            {
+                ["var-rg"] = $"altinnapps-{org}-{(environment.IsProd() ? "prod" : environment.Name)}-rg",
+                ["var-PodName"] = $"{org}-{app}-deployment-v2",
+            };
+
+            if (startedDate is not null)
+            {
+                queryParams["from"] = startedDate.Value.ToUnixTimeMilliseconds().ToString();
+                queryParams["to"] = finishedDate.ToUnixTimeMilliseconds().ToString();
+            }
+
+            return QueryHelpers.AddQueryString($"{baseDomain}{path}", queryParams);
         }
     }
 }

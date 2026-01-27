@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ public interface IRuntimeGatewayClient
     Task<IEnumerable<ErrorMetric>> GetErrorMetricsAsync(string org, AltinnEnvironment environment, int range, CancellationToken cancellationToken);
     Task<IEnumerable<AppMetric>> GetAppMetricsAsync(string org, AltinnEnvironment environment, string app, int range, CancellationToken cancellationToken);
     Task<IEnumerable<AppErrorMetric>> GetAppErrorMetricsAsync(string org, AltinnEnvironment environment, string app, int range, CancellationToken cancellationToken);
-    Task<string> GetAppErrorMetricsLogsAsync(string org, AltinnEnvironment environment, string app, string metric, int range, CancellationToken cancellationToken);
+    Task<Uri?> GetAppErrorMetricsLogsAsync(string org, AltinnEnvironment environment, IReadOnlyCollection<string> apps, string metric, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken);
     Task<IEnumerable<AppHealthMetric>> GetAppHealthMetricsAsync(string org, AltinnEnvironment environment, string app, CancellationToken cancellationToken);
     Task TriggerReconcileAsync(string org, string app, AltinnEnvironment environment, bool isUndeploy, CancellationToken cancellationToken);
 }

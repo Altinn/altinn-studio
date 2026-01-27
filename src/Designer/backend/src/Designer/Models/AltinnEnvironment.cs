@@ -1,3 +1,4 @@
+using System;
 using Altinn.Studio.Designer.Helpers;
 
 namespace Altinn.Studio.Designer.Models;
@@ -20,5 +21,8 @@ public record AltinnEnvironment
         return new AltinnEnvironment(name);
     }
 
-    public static AltinnEnvironment Prod => new("prod");
+    public bool IsProd()
+    {
+        return Name.Equals("prod", StringComparison.OrdinalIgnoreCase);
+    }
 }

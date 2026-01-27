@@ -1,13 +1,16 @@
 #nullable disable
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Hubs.EntityUpdate;
 using Altinn.Studio.Designer.Infrastructure.Maskinporten;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -25,15 +28,18 @@ public class DeploymentWebhooksController : ControllerBase
 {
     private readonly IDeployEventRepository _deployEventRepository;
     private readonly IHubContext<EntityUpdatedHub, IEntityUpdateClient> _entityUpdatedHubContext;
+    private readonly IDeploymentService _deploymentService;
     private readonly IDeploymentRepository _deploymentRepository;
 
     public DeploymentWebhooksController(
         IDeployEventRepository deployEventRepository,
         IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext,
+        IDeploymentService deploymentService,
         IDeploymentRepository deploymentRepository)
     {
         _deployEventRepository = deployEventRepository;
         _entityUpdatedHubContext = entityUpdatedHubContext;
+        _deploymentService = deploymentService;
         _deploymentRepository = deploymentRepository;
     }
 
@@ -71,6 +77,8 @@ public class DeploymentWebhooksController : ControllerBase
         var deployEvent = CreateDeployEvent(eventType, request);
 
         await _deployEventRepository.AddAsync(org, buildId, deployEvent, cancellationToken);
+
+        await _deploymentService.SendToSlackAsync(org, AltinnEnvironment.FromName(request.Environment), app, eventType, buildId, deployment.Events.FirstOrDefault()?.Created, cancellationToken);
 
         await PublishEntityUpdatedAsync(deployment);
 
