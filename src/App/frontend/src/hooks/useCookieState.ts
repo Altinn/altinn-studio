@@ -1,7 +1,6 @@
 import { useCallback, useSyncExternalStore } from 'react';
 
 import { useProfile } from 'src/features/profile/ProfileProvider';
-// import { useProfileQuery } from 'src/features/profile/ProfileProvider';
 import { CookieStorage } from 'src/utils/cookieStorage/CookieStorage';
 import { isNotNullUndefinedOrEmpty } from 'src/utils/listUtils';
 

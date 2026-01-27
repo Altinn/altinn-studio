@@ -18,6 +18,10 @@ import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IAppLanguage, IParty, IProfile } from 'src/types/shared';
 
 describe('presentation/AppHeader', () => {
+  afterEach(() => {
+    window.altinnAppGlobalData.userProfile = undefined;
+  });
+
   const userPerson = {
     party: {
       name: 'Test Testesen',
@@ -88,7 +92,6 @@ describe('presentation/AppHeader', () => {
         hidden: true,
       }),
     ).toBeInTheDocument();
-    window.altinnAppGlobalData.userProfile = undefined;
   });
 
   it('Should render Altinn logo if logo options are not set', async () => {
