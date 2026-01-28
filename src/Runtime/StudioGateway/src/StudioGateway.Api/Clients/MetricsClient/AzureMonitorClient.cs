@@ -50,23 +50,11 @@ internal sealed class AzureMonitorClient(
 
     private async Task<ResourceIdentifier> GetApplicationLogAnalyticsWorkspaceIdAsync()
     {
-        if (_workspaceId is not null)
-            return _workspaceId;
-
-        try
-        {
-            _workspaceId = OperationalInsightsWorkspaceResource.CreateResourceIdentifier(
-                gatewayContext.AzureSubscriptionId,
-                $"monitor-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-rg",
-                $"application-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-law"
-            );
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("Log Analytics Workspace ID not found.", ex);
-        }
-
-        return _workspaceId;
+        return _workspaceId ??= OperationalInsightsWorkspaceResource.CreateResourceIdentifier(
+            gatewayContext.AzureSubscriptionId,
+            $"monitor-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-rg",
+            $"application-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-law"
+        );
     }
 
     public async Task<IEnumerable<FailedRequest>> GetFailedRequestsAsync(int range, CancellationToken cancellationToken)
