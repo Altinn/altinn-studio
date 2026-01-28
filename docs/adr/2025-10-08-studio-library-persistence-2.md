@@ -65,7 +65,7 @@ List the pros and cons with the alternatives. This should be in regard to the de
 
 - Good, because it supports B1, B3, B4, B5, B6
 - Neutral, because B2 and B7 leads to complexity in the implementation
-  - B2: For immutability, we would need to duplicate data per organization. If service owner X publishes a code list and service owner Y wants to use it we need duplication in order to avoid X breaking production for Y
+  - B2: For immutability, we would need to duplicate data per organisation. If service owner X publishes a code list and service owner Y wants to use it we need duplication in order to avoid X breaking production for Y
   - B7: We will need to manage the creation and updates of index files.
 
 ### A4 - Cluster hosted file persistence with Nginx
