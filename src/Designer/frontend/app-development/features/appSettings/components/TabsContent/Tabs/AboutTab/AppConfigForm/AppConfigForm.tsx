@@ -28,12 +28,20 @@ import { APP_CONFIG_RESOURCE_TYPE } from 'app-development/features/appSettings/c
 export type AppConfigFormProps = {
   appConfig: AppConfigNew;
   saveAppConfig: (appConfig: AppConfigNew) => void; // Remove prop when endpoint is implemented
+  /** Used in tests to show error summary without going through save flow */
+  initialShowAppConfigErrors?: boolean;
 };
 
-export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps): ReactElement {
+export function AppConfigForm({
+  appConfig,
+  saveAppConfig,
+  initialShowAppConfigErrors = false,
+}: AppConfigFormProps): ReactElement {
   const { t } = useTranslation();
   const [updatedAppConfig, setUpdatedAppConfig] = useState<AppConfigNew>(appConfig);
-  const [showAppConfigErrors, setShowAppConfigErrors] = useState<boolean>(false);
+  const [showAppConfigErrors, setShowAppConfigErrors] = useState<boolean>(
+    initialShowAppConfigErrors,
+  );
   const [keywordsInputValue, setKeywordsInputValue] = useState(
     mapKeywordsArrayToString(updatedAppConfig.keywords ?? []),
   );
@@ -192,6 +200,14 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           defaultValue={updatedAppConfig.repositoryName}
           readOnly
         />
+        <StudioTextfield
+          label={t('app_settings.about_tab_alt_id_label')}
+          description={t('app_settings.about_tab_alt_id_description')}
+          value={updatedAppConfig.serviceId}
+          onChange={onChangeServiceId}
+          required={false}
+          tagText={t('general.optional')}
+        />
         <InputfieldsWithTranslation
           label={t('app_settings.about_tab_name_label')}
           description={t('app_settings.about_tab_name_description')}
@@ -200,14 +216,6 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           updateLanguage={onChangeServiceName}
           errors={serviceNameErrors}
           required
-        />
-        <StudioTextfield
-          label={t('app_settings.about_tab_alt_id_label')}
-          description={t('app_settings.about_tab_alt_id_description')}
-          value={updatedAppConfig.serviceId}
-          onChange={onChangeServiceId}
-          required={false}
-          tagText={t('general.optional')}
         />
         <InputfieldsWithTranslation
           label={t('app_settings.about_tab_description_field_label')}
@@ -323,7 +331,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   );
 }
 
-enum AppResourceFormFieldIds {
+export enum AppResourceFormFieldIds {
   ServiceName = 'serviceName',
   Description = 'description',
   RightDescription = 'rightDescription',
@@ -332,7 +340,7 @@ enum AppResourceFormFieldIds {
   ContactPointsId = 'contactPoints',
 }
 
-function getValidationErrorsForField(
+export function getValidationErrorsForField(
   hideErrors: boolean,
   validationErrors: AppConfigFormError[],
   field: AppResourceFormFieldIds,

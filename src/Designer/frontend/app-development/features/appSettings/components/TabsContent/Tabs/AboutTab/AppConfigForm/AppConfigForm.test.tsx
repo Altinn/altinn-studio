@@ -1,6 +1,10 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { AppConfigForm } from './AppConfigForm';
+import {
+  AppConfigForm,
+  getValidationErrorsForField,
+  AppResourceFormFieldIds,
+} from './AppConfigForm';
 import type { AppConfigFormProps } from './AppConfigForm';
 import type { AppConfigNew, ContactPoint } from 'app-shared/types/AppConfig';
 import userEvent from '@testing-library/user-event';
@@ -297,6 +301,32 @@ describe('AppConfigForm', () => {
   //   expect(getErrorHeader()).toBeInTheDocument();
   // });
 
+  it('updates contact points when add contact point is clicked and save is called', async () => {
+    const user = userEvent.setup();
+    const saveAppConfig = jest.fn();
+    renderAppConfigForm({
+      appConfig: mockAppConfigComplete,
+      saveAppConfig,
+    });
+
+    const addContactPointButton = getButton(
+      textMock('app_settings.about_tab_contact_point_add_button_text'),
+    );
+    await user.click(addContactPointButton);
+
+    const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
+    await user.click(saveButton);
+
+    expect(saveAppConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contactPoints: [
+          mockContactPoints,
+          { category: '', email: '', telephone: '', contactPage: '' },
+        ],
+      }),
+    );
+  });
+
   it('calls saveAppConfig with correct data when fields are changed and there are no errors', async () => {
     const user = userEvent.setup();
     const saveAppConfig = jest.fn();
@@ -377,6 +407,39 @@ describe('AppConfigForm', () => {
     await user.click(cancelButton);
 
     expect(altId).toHaveValue(mockAppConfig.serviceId);
+  });
+
+  describe('getValidationErrorsForField', () => {
+    const validationErrors = [
+      { field: 'serviceName' as const, error: 'Missing nb', index: 'nb' as const },
+      { field: 'serviceName' as const, error: 'Missing nn', index: 'nn' as const },
+      { field: 'description' as const, error: 'Missing description', index: 'nb' as const },
+    ];
+
+    it('returns empty array when hideErrors is true', () => {
+      expect(
+        getValidationErrorsForField(true, validationErrors, AppResourceFormFieldIds.ServiceName),
+      ).toEqual([]);
+    });
+
+    it('returns filtered errors for the field when hideErrors is false', () => {
+      expect(
+        getValidationErrorsForField(false, validationErrors, AppResourceFormFieldIds.ServiceName),
+      ).toEqual([
+        { field: 'serviceName', error: 'Missing nb', index: 'nb' },
+        { field: 'serviceName', error: 'Missing nn', index: 'nn' },
+      ]);
+    });
+
+    it('returns empty array when hideErrors is false but no errors match the field', () => {
+      expect(
+        getValidationErrorsForField(
+          false,
+          validationErrors,
+          AppResourceFormFieldIds.ContactPointsId,
+        ),
+      ).toEqual([]);
+    });
   });
 
   // it('should hide the alert when the required fields are filled in correctly', async () => {

@@ -1,6 +1,5 @@
 .section {
-  margin-top: var(--ds-size-4);
-  margin-bottom: var(--ds-size-4);
+  margin-top: var(--ds-size-2);
 }
 
 .header {
@@ -19,6 +18,14 @@
 .headerDescription {
   margin-top: var(--ds-size-1);
   color: var(--ds-color-neutral-text-subtle);
+}
+
+.section [role='tabpanel'] {
+  padding: 0;
+}
+
+.section [role='tabpanel'] :global(.ds-field) {
+  margin-top: var(--ds-size-2);
 }
 
 .tabLabel {
