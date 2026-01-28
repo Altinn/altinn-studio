@@ -54,10 +54,14 @@ export type AppMetricsProps = {
 };
 
 export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
-  const { org, env, app } = useParams() as { org: string; env: string; app: string };
+  const { org, environment, app } = useParams() as {
+    org: string;
+    environment: string;
+    app: string;
+  };
   const { t, i18n } = useTranslation();
 
-  const envTitle = useEnvironmentTitle(env);
+  const envTitle = useEnvironmentTitle(environment);
   const orgName = useCurrentOrg().name[i18n.language];
 
   const {
@@ -65,7 +69,7 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
     isPending: appHealthMetricsIsPending,
     error: appHealthMetricsError,
     isError: appHealthMetricsIsError,
-  } = useAppHealthMetricsQuery(org, env, app, {
+  } = useAppHealthMetricsQuery(org, environment, app, {
     hideDefaultError: true,
   });
 
@@ -74,7 +78,7 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
     isPending: appErrorMetricsIsPending,
     error: appErrorMetricsError,
     isError: appErrorMetricsIsError,
-  } = useAppErrorMetricsQuery(org, env, app, range!, {
+  } = useAppErrorMetricsQuery(org, environment, app, range!, {
     hideDefaultError: true,
   });
 
@@ -83,7 +87,7 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
     isPending: appMetricsIsPending,
     error: appMetricsError,
     isError: appMetricsIsError,
-  } = useAppMetricsQuery(org, env, app, range!, {
+  } = useAppMetricsQuery(org, environment, app, range!, {
     hideDefaultError: true,
   });
 
@@ -144,7 +148,7 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
         metric={metric}
         range={range}
         org={org}
-        env={env}
+        environment={environment}
         apps={[app]}
       />
     ));

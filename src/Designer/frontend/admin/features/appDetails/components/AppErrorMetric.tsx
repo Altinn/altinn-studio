@@ -11,11 +11,11 @@ type AppErrorMetricProps = {
   metric: Metric;
   range: number;
   org: string;
-  env: string;
+  environment: string;
   apps: string[];
 };
 
-export const AppErrorMetric = ({ metric, range, org, env, apps }: AppErrorMetricProps) => {
+export const AppErrorMetric = ({ metric, range, org, environment, apps }: AppErrorMetricProps) => {
   const { t } = useTranslation();
   const options = getChartOptions(range);
   const count = metric.dataPoints.reduce((sum, item) => sum + item.count, 0);
@@ -30,7 +30,7 @@ export const AppErrorMetric = ({ metric, range, org, env, apps }: AppErrorMetric
       color={isError ? 'danger' : 'success'}
       title={t(`admin.metrics.${metric.name}`)}
       count={count.toString()}
-      url={appErrorMetricsLogsPath(org, env, apps, metric.name, range)}
+      url={appErrorMetricsLogsPath(org, environment, apps, metric.name, range)}
     >
       <Line options={options} data={metricsChartData} />
     </Alert>

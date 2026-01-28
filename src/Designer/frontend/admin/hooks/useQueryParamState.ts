@@ -24,7 +24,7 @@ export function useQueryParamState<T>(
 
         return newParams;
       },
-      { replace: true },
+      { replace: true, preventScrollReset: true },
     ),
   );
 
