@@ -1,4 +1,10 @@
-import { StudioButton, StudioSpinner, StudioTable, StudioError } from '@studio/components';
+import {
+  StudioButton,
+  StudioSpinner,
+  StudioTable,
+  StudioError,
+  StudioAlert,
+} from '@studio/components';
 import { useEnvironmentTitle } from 'admin/hooks/useEnvironmentTitle';
 import classes from './InstancesTable.module.css';
 import React from 'react';
@@ -9,7 +15,7 @@ import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
 import { useMutation } from '@tanstack/react-query';
 import { InstanceStatus } from './InstanceStatus';
 import { isAxiosError } from 'axios';
-import { Alert, Skeleton } from '@digdir/designsystemet-react';
+import { Skeleton } from '@digdir/designsystemet-react';
 import { useCurrentOrg } from 'admin/layout/PageLayout';
 import { Link } from 'react-router-dom';
 
@@ -60,9 +66,9 @@ export const InstancesTable = ({
     case 'error':
       if (isAxiosError(error) && error.response?.status === 403) {
         return (
-          <Alert severity='info'>
+          <StudioAlert data-color='info'>
             {t('admin.instances.missing_rights', { envTitle, orgName })}
-          </Alert>
+          </StudioAlert>
         );
       }
       return <StudioError>{t('general.page_error_title')}</StudioError>;
@@ -106,7 +112,7 @@ const InstancesTableWithData = ({
   });
 
   if (!instances.length) {
-    return <Alert severity='info'>{t('admin.instances.no_results')}</Alert>;
+    return <StudioAlert data-color='info'>{t('admin.instances.no_results')}</StudioAlert>;
   }
 
   return (
