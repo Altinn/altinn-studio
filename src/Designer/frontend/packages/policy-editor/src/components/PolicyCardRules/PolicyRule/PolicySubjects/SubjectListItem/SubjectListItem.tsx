@@ -57,7 +57,7 @@ export const SubjectListItem = ({
       </div>
       <StudioCheckbox
         data-size='md'
-        className={classes.subjectCheckbox}
+        className={isSelectedListItem ? '' : classes.subjectCheckbox}
         checked={isChecked}
         onChange={() => handleChange(urn, legacyUrn)}
         aria-label={title}
