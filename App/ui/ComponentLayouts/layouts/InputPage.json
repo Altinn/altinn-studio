@@ -31,10 +31,7 @@
           "title": "InputPage.Input.title"
         },
         "dataModelBindings": {
-          "simpleBinding": {
-            "field": "shortAnswerInput",
-            "dataType": "model"
-          }
+          "simpleBinding": "shortAnswerInput"
         },
         "showValidations": [
           "All"
@@ -47,10 +44,7 @@
           "title": "InputPage.Input.Grid.title-1"
         },
         "dataModelBindings": {
-          "simpleBinding": {
-            "field": "shortAnswerInput",
-            "dataType": "model"
-          }
+          "simpleBinding": "shortAnswerInput"
         },
         "grid": {
           "xs": 12,
@@ -64,10 +58,7 @@
           "title": "InputPage.Input.Grid.title-2"
         },
         "dataModelBindings": {
-          "simpleBinding": {
-            "field": "shortAnswerInput",
-            "dataType": "model"
-          }
+          "simpleBinding": "shortAnswerInput"
         },
         "grid": {
           "xs": 12,
@@ -81,10 +72,7 @@
           "title": "InputPage.Input.Grid.title.long"
         },
         "dataModelBindings": {
-          "simpleBinding": {
-            "field": "shortAnswerInput",
-            "dataType": "model"
-          }
+          "simpleBinding": "shortAnswerInput"
         },
         "required": false,
         "grid": {
