@@ -289,20 +289,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var currentBranchHeadCommit = repo.Head?.Tip;
             if (currentBranchHeadCommit == null)
             {
-                FetchRemoteChanges(authenticatedContext);
-                Branch remoteMainBranch = repo.Branches[$"refs/remotes/origin/{DefaultBranch}"];
-                if (remoteMainBranch == null || remoteMainBranch.Tip == null)
-                {
-                    return fileDiffs;
-                }
-                LibGit2Sharp.Commit remoteMainCommit = remoteMainBranch.Tip;
+                return fileDiffs;
+            }
 
-                TreeChanges changes = repo.Diff.Compare<TreeChanges>(remoteMainCommit.Tree, DiffTargets.WorkingDirectory);
-                foreach (TreeEntryChanges change in changes)
-                {
-                    Patch patch = repo.Diff.Compare<Patch>(remoteMainCommit.Tree, DiffTargets.WorkingDirectory, [change.Path]);
-                    fileDiffs[change.Path] = patch.Content;
-                }
+            TreeChanges changes = repo.Diff.Compare<TreeChanges>(currentBranchHeadCommit.Tree, DiffTargets.WorkingDirectory);
+            foreach (TreeEntryChanges change in changes)
+            {
+                Patch patch = repo.Diff.Compare<Patch>(currentBranchHeadCommit.Tree, DiffTargets.WorkingDirectory, [change.Path]);
+                fileDiffs[change.Path] = patch.Content;
             }
 
             return fileDiffs;
