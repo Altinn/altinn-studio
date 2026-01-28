@@ -19,6 +19,11 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
 {
     private readonly WebApplicationFactory<SourceControlLoggingDecorator> _webApplicationFactory = webApplicationFactory;
 
+    private const string NonExistantOrg = "org-should-not-exist";
+    private const string NonExistantRepo = "repo-should-not-exist";
+    private const string TestUser = "testUser";
+    private const string RandomToken = "some_random_token";
+
     [Fact]
     public void Container_DecoratesISourceControlService_ReturnsDecoratorClass()
     {
@@ -36,7 +41,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_Status_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("org_should_not_exist", "repo-should-not-exist", "testUser");
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
         try
         {
             service.Status(editingContext);
@@ -49,13 +54,13 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     }
 
     [Fact]
-    public async Task DecoratedISourceControlService_CloneRemoteRepository1_LogsErrorWithAdditionalInfo()
+    public void DecoratedISourceControlService_CloneRemoteRepository1_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("org_should_not_exist", "repo-should-not-exist", "testUser");
+        AltinnAuthenticatedRepoEditingContext authenticatedEditingContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
         try
         {
-            await service.CloneRemoteRepository(editingContext);
+            service.CloneRemoteRepository(authenticatedEditingContext);
         }
         catch
         {
@@ -65,13 +70,13 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     }
 
     [Fact]
-    public async Task DecoratedISourceControlService_CloneRemoteRepository2_LogsErrorWithAdditionalInfo()
+    public void DecoratedISourceControlService_CloneRemoteRepository2_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("org_should_not_exist", "repo-should-not-exist", "testUser");
+        AltinnAuthenticatedRepoEditingContext authenticatedEditingContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
         try
         {
-            await service.CloneRemoteRepository(editingContext, "destination_path_should_not_exist", "branch_name_should_not_exist");
+            service.CloneRemoteRepository(authenticatedEditingContext, "destination_path_should_not_exist", "branch_name_should_not_exist");
         }
         catch
         {
@@ -84,7 +89,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public async Task DecoratedISourceControlService_DeleteRepository_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("org_should_not_exist", "repo-should-not-exist", "testUser");
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
         try
         {
             await service.DeleteRepository(editingContext);
@@ -100,7 +105,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_StageChange_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("org_should_not_exist", "repo-should-not-exist", "testUser");
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
         try
         {
             service.StageChange(editingContext, "file_should_not_exist");
@@ -116,9 +121,9 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_Commit_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        string org = "org_should_not_exist";
-        string repo = "repo-should-not-exist";
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
+        string org = NonExistantOrg;
+        string repo = NonExistantRepo;
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, TestUser);
         CommitInfo commitInfo = new() { Org = org, Repository = repo, Message = "should_not_be_commited" };
         try
         {
@@ -132,13 +137,13 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     }
 
     [Fact]
-    public async Task DecoratedISourceControlService_CommitAndPushChanges_LogsErrorWithAdditionalInfo()
+    public void DecoratedISourceControlService_CommitAndPushChanges_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("org_should_not_exist", "repo-should-not-exist", "testUser");
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
         try
         {
-            await service.CommitAndPushChanges(editingContext, "non-existing-branch", "non-existing-file", "should_not_be_commited");
+            service.CommitAndPushChanges(authenticatedContext, "non-existing-branch", "non-existing-file", "should_not_be_commited");
         }
         catch
         {
@@ -151,7 +156,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_CreateBranch_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("org_should_not_exist", "repo-should-not-exist", "testUser");
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
         try
         {
             service.CreateBranch(editingContext, "non-existing-branch");
@@ -167,7 +172,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_CreatePullRequest_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("org_should_not_exist", "repo-should-not-exist", "testUser");
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
         try
         {
             service.CreatePullRequest(editingContext, "non-existing-target-branch", "non-existing-source-branch", "could-have-been-a-pull-request-title");
@@ -180,13 +185,13 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     }
 
     [Fact]
-    public async Task DecoratedISourceControlService_FetchRemoteChanges_LogsErrorWithAdditionalInfo()
+    public void DecoratedISourceControlService_FetchRemoteChanges_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("org_should_not_exist", "repo-should-not-exist", "testUser");
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
         try
         {
-            await service.FetchRemoteChanges(editingContext);
+            service.FetchRemoteChanges(authenticatedContext);
         }
         catch
         {
@@ -199,7 +204,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_GetLatestCommitForCurrentUser_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("org_should_not_exist", "repo-should-not-exist", "testUser");
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
         try
         {
             service.GetLatestCommitForCurrentUser(editingContext);
@@ -215,7 +220,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_Log_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("org_should_not_exist", "repo-should-not-exist", "testUser");
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
         try
         {
             service.Log(editingContext);
@@ -231,10 +236,10 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_PullRemoteChanges_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("org_should_not_exist", "repo-should-not-exist", "testUser");
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
         try
         {
-            service.PullRemoteChanges(editingContext);
+            service.PullRemoteChanges(authenticatedContext);
         }
         catch
         {
@@ -247,10 +252,10 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_Push_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("org_should_not_exist", "repo-should-not-exist", "testUser");
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
         try
         {
-            service.Push(editingContext);
+            service.Push(authenticatedContext);
         }
         catch
         {
@@ -260,16 +265,14 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     }
 
     [Fact]
-    public async Task DecoratedISourceControlService_PushChangesForRepository_LogsErrorWithAdditionalInfo()
+    public void DecoratedISourceControlService_PushChangesForRepository_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        string org = "org_should_not_exist";
-        string repo = "repo-should-not-exist";
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
-        CommitInfo commitInfo = new() { Org = org, Repository = repo, Message = "should_not_be_commited" };
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
+        CommitInfo commitInfo = new() { Org = NonExistantOrg, Repository = NonExistantRepo, Message = "should_not_be_commited" };
         try
         {
-            await service.PushChangesForRepository(commitInfo, editingContext);
+            service.PushChangesForRepository(authenticatedContext, commitInfo);
         }
         catch
         {
@@ -282,7 +285,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_RepositoryStatus_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("org_should_not_exist", "repo-should-not-exist", "testUser");
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
         try
         {
             service.RepositoryStatus(editingContext);
@@ -295,13 +298,13 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     }
 
     [Fact]
-    public async Task DecoratedISourceControlService_CloneIfNotExists_LogsErrorWithAdditionalInfo()
+    public void DecoratedISourceControlService_CloneIfNotExists_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("org_should_not_exist", "repo-should-not-exist", "testUser");
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
         try
         {
-            await service.CloneIfNotExists(editingContext);
+            service.CloneIfNotExists(authenticatedContext);
         }
         catch
         {
@@ -316,7 +319,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
         try
         {
-            service.StoreAppTokenForUser("some_random_token", "testUser");
+            service.StoreAppTokenForUser(RandomToken, TestUser);
         }
         catch
         {
@@ -375,33 +378,33 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
 
 public class SourceControlStub : ISourceControl
 {
-    public Task<RepoStatus> CheckoutBranchWithValidation(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
+    public RepoStatus CheckoutBranchWithValidation(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName) => throw new NotImplementedException();
     public void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
-    public Task CloneIfNotExists(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-    public Task<string> CloneRemoteRepository(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-    public Task<string> CloneRemoteRepository(AltinnRepoEditingContext editingContext, string destinationPath, string branchName = "") => throw new NotImplementedException();
+    public void CloneIfNotExists(AltinnAuthenticatedRepoEditingContext authenticatedContext) => throw new NotImplementedException();
+    public string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedEditingContext) => throw new NotImplementedException();
+    public string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, string destinationPath, string branchName = "") => throw new NotImplementedException();
     public void Commit(CommitInfo commitInfo, AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-    public Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string localPath, string message, string accessToken = "") => throw new NotImplementedException();
+    public void CommitAndPushChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName, string localPath, string message) => throw new NotImplementedException();
     public void CommitToLocalRepo(AltinnRepoEditingContext editingContext, string message) => throw new NotImplementedException();
     public Task<Branch> CreateBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
     public void CreateLocalBranch(AltinnRepoEditingContext editingContext, string branchName, string commitSha = null) => throw new NotImplementedException();
     public Task<bool> CreatePullRequest(AltinnRepoEditingContext editingContext, string target, string source, string title) => throw new NotImplementedException();
     public void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
-    public Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
+    public void DeleteRemoteBranchIfExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName) => throw new NotImplementedException();
     public Task DeleteRepository(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public RepoStatus DiscardLocalChanges(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-    public Task FetchGitNotes(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-    public Task FetchRemoteChanges(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
+    public void FetchGitNotes(AltinnAuthenticatedRepoEditingContext authenticatedContext) => throw new NotImplementedException();
+    public void FetchRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext) => throw new NotImplementedException();
     public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-    public Dictionary<string, string> GetChangedContent(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
+    public Dictionary<string, string> GetChangedContent(AltinnAuthenticatedRepoEditingContext authenticatedContext) => throw new NotImplementedException();
     public CurrentBranchInfo GetCurrentBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public Commit GetLatestCommitForCurrentUser(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public List<Commit> Log(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public void MergeBranchIntoHead(AltinnRepoEditingContext editingContext, string featureBranch) => throw new NotImplementedException();
-    public Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
-    public Task<RepoStatus> PullRemoteChanges(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-    public Task<bool> Push(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-    public Task PushChangesForRepository(CommitInfo commitInfo, AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
+    public void PublishBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName) => throw new NotImplementedException();
+    public RepoStatus PullRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext) => throw new NotImplementedException();
+    public bool Push(AltinnAuthenticatedRepoEditingContext authenticatedContext) => throw new NotImplementedException();
+    public void PushChangesForRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, CommitInfo commitInfo) => throw new NotImplementedException();
     public LibGit2Sharp.RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public RepoStatus RepositoryStatus(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public void StageChange(AltinnRepoEditingContext editingContext, string fileName) => throw new NotImplementedException();
