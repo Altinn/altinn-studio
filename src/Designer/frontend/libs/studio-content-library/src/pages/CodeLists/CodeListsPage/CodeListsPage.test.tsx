@@ -11,7 +11,13 @@ import { codeLists, coloursData } from './test-data/codeLists';
 // Test data:
 const onPublish = jest.fn();
 const onSave = jest.fn();
-const defaultProps: CodeListsPageProps = { codeLists, onPublish, onSave, publishedCodeLists: [] };
+const defaultProps: CodeListsPageProps = {
+  codeLists,
+  isPublishing: jest.fn().mockReturnValue(false),
+  onPublish,
+  onSave,
+  publishedCodeLists: [],
+};
 
 describe('CodeListsPage', () => {
   beforeEach(() => {

@@ -27,7 +27,7 @@ public class DataListsController : ControllerBase
     /// Api that exposes app related datalists
     /// </summary>
     /// <param name="id">The listId</param>
-    /// <param name="queryParams">Query parameteres supplied</param>
+    /// <param name="queryParams">Query parameters supplied</param>
     /// <param name="language">The language selected by the user.</param>
     /// <returns>The data list</returns>
     [HttpGet]

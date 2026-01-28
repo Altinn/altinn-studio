@@ -81,4 +81,5 @@ internal sealed class CrossNamespaceObjectReference
 [JsonSerializable(typeof(CrossNamespaceObjectReference))]
 [JsonSerializable(typeof(HelmRepository))]
 [JsonSerializable(typeof(HelmRepositorySpec))]
+[JsonSerializable(typeof(System.Text.Json.Nodes.JsonObject))]
 internal sealed partial class TestJsonContext : JsonSerializerContext;

@@ -37,7 +37,7 @@ jest.mock('react-router-dom', () => {
     ...originalModule,
     useParams: jest.fn(() => ({
       org,
-      env,
+      environment: env,
       app,
     })),
   };

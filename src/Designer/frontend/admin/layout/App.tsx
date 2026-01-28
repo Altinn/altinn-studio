@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import './App.css';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
 import classes from './App.module.css';
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
@@ -40,6 +40,7 @@ export function App() {
           <Outlet />
         </WebSocketSyncWrapper>
       </div>
+      <ScrollRestoration />
     </div>
   );
 }

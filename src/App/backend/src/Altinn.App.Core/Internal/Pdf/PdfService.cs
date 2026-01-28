@@ -4,10 +4,13 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Helpers.Extensions;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Expressions;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -27,8 +30,9 @@ public class PdfService : IPdfService
     private readonly IAuthenticationContext _authenticationContext;
     private readonly ITranslationService _translationService;
     private readonly GeneralSettings _generalSettings;
+    private readonly InstanceDataUnitOfWorkInitializer? _instanceDataUnitOfWorkInitializer;
     private readonly Telemetry? _telemetry;
-    private const string PdfElementType = "ref-data-as-pdf";
+    internal const string PdfElementType = "ref-data-as-pdf";
     private const string PdfContentType = "application/pdf";
 
     /// <summary>
@@ -43,6 +47,7 @@ public class PdfService : IPdfService
         ILogger<PdfService> logger,
         IAuthenticationContext authenticationContext,
         ITranslationService translationService,
+        IServiceProvider? serviceProvider = null,
         Telemetry? telemetry = null
     )
     {
@@ -54,6 +59,7 @@ public class PdfService : IPdfService
         _logger = logger;
         _authenticationContext = authenticationContext;
         _translationService = translationService;
+        _instanceDataUnitOfWorkInitializer = serviceProvider?.GetService<InstanceDataUnitOfWorkInitializer>();
         _telemetry = telemetry;
     }
 
@@ -62,11 +68,11 @@ public class PdfService : IPdfService
     {
         using var activity = _telemetry?.StartGenerateAndStorePdfActivity(instance, taskId);
 
-        await GenerateAndStorePdfInternal(instance, taskId, null, null, ct);
+        _ = await GenerateAndStorePdfInternal(instance, taskId, null, null, null, ct);
     }
 
     /// <inheritdoc/>
-    public async Task GenerateAndStorePdf(
+    public async Task<DataElement> GenerateAndStorePdf(
         Instance instance,
         string taskId,
         string? customFileNameTextResourceKey,
@@ -76,11 +82,31 @@ public class PdfService : IPdfService
     {
         using var activity = _telemetry?.StartGenerateAndStorePdfActivity(instance, taskId);
 
-        await GenerateAndStorePdfInternal(
+        return await GenerateAndStorePdfInternal(
             instance,
             taskId,
             customFileNameTextResourceKey,
+            null,
             autoGeneratePdfForTaskIds,
+            ct
+        );
+    }
+
+    /// <inheritdoc/>
+    public async Task<DataElement> GenerateAndStoreSubformPdf(
+        Instance instance,
+        string taskId,
+        string? customFileNameTextResourceKey,
+        SubformPdfContext subformPdfContext,
+        CancellationToken ct
+    )
+    {
+        return await GenerateAndStorePdfInternal(
+            instance,
+            taskId,
+            customFileNameTextResourceKey,
+            subformPdfContext,
+            null,
             ct
         );
     }
@@ -96,7 +122,7 @@ public class PdfService : IPdfService
 
         var language = GetOverriddenLanguage(queries) ?? await auth.GetLanguage();
 
-        return await GeneratePdfContent(instance, language, isPreview, null, ct);
+        return await GeneratePdfContent(instance, taskId, language, isPreview, null, null, ct);
     }
 
     /// <inheritdoc/>
@@ -105,10 +131,11 @@ public class PdfService : IPdfService
         return await GeneratePdf(instance, taskId, false, ct);
     }
 
-    private async Task GenerateAndStorePdfInternal(
+    private async Task<DataElement> GenerateAndStorePdfInternal(
         Instance instance,
         string taskId,
         string? customFileNameTextResourceKey,
+        SubformPdfContext? subformPdfContext,
         List<string>? autoGeneratePdfForTaskIds = null,
         CancellationToken ct = default
     )
@@ -121,14 +148,22 @@ public class PdfService : IPdfService
 
         await using Stream pdfContent = await GeneratePdfContent(
             instance,
+            taskId,
             language,
             false,
+            subformPdfContext,
             autoGeneratePdfForTaskIds,
             ct
         );
 
-        string fileName = await GetFileName(language, customFileNameTextResourceKey);
-        await _dataClient.InsertBinaryData(
+        string fileName = await GetFileName(
+            instance,
+            taskId,
+            language,
+            customFileNameTextResourceKey,
+            subformPdfContext?.DataElementId
+        );
+        DataElement dataElement = await _dataClient.InsertBinaryData(
             instance.Id,
             PdfElementType,
             PdfContentType,
@@ -137,12 +172,16 @@ public class PdfService : IPdfService
             taskId,
             cancellationToken: ct
         );
+
+        return dataElement;
     }
 
     private async Task<Stream> GeneratePdfContent(
         Instance instance,
+        string taskId,
         string language,
         bool isPreview,
+        SubformPdfContext? subformPdfContext,
         List<string>? autoGeneratePdfForTaskIds,
         CancellationToken ct
     )
@@ -156,7 +195,7 @@ public class PdfService : IPdfService
             autoGeneratePdfForTaskIds
         );
 
-        Uri uri = BuildUri(baseUrl, pagePath, language, autoPdfTaskIdsQueryParams);
+        Uri uri = BuildUri(baseUrl, pagePath, taskId, language, subformPdfContext, autoPdfTaskIdsQueryParams);
 
         bool displayFooter = _pdfGeneratorSettings.DisplayFooter;
 
@@ -179,13 +218,32 @@ public class PdfService : IPdfService
     private static Uri BuildUri(
         string baseUrl,
         string pagePath,
+        string taskId,
         string language,
+        SubformPdfContext? subformPdfContext,
         List<KeyValuePair<string, string>>? additionalQueryParams = null
     )
     {
         // Uses string manipulation instead of UriBuilder, since UriBuilder messes up
         // query parameters in combination with hash fragments in the url.
         string url = baseUrl + pagePath;
+
+        // Insert subform component and data element id in the url if provided
+        if (subformPdfContext is not null)
+        {
+            int pdfIndex = url.IndexOf("?pdf=1", StringComparison.OrdinalIgnoreCase);
+            if (pdfIndex > 0)
+            {
+                string beforePdf = $"{url[..pdfIndex]}/{taskId}/subform";
+                string afterPdf = url[pdfIndex..];
+                url = $"{beforePdf}/{subformPdfContext.ComponentId}/{subformPdfContext.DataElementId}/{afterPdf}";
+            }
+            else
+            {
+                url += $"/{taskId}/subform/{subformPdfContext.ComponentId}/{subformPdfContext.DataElementId}";
+            }
+        }
+
         string lang = Uri.EscapeDataString(language);
         if (url.Contains('?'))
         {
@@ -225,28 +283,50 @@ public class PdfService : IPdfService
         return null;
     }
 
-    private async Task<string> GetFileName(string? language, string? customFileNameTextResourceKey)
+    private async Task<string> GetFileName(
+        Instance instance,
+        string taskId,
+        string? language,
+        string? customFileNameTextResourceKey,
+        string? subformDataElementId
+    )
     {
-        string? titleText = await _translationService.TranslateTextKey(
-            customFileNameTextResourceKey ?? "backend.pdf_default_file_name",
-            language
-        );
+        string? fileName;
 
-        if (string.IsNullOrEmpty(titleText))
+        if (_instanceDataUnitOfWorkInitializer != null && customFileNameTextResourceKey != null)
+        {
+            InstanceDataUnitOfWork dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
+                instance,
+                taskId,
+                language
+            );
+
+            fileName = await GetVariableSubstitutedFileName(
+                dataAccessor,
+                customFileNameTextResourceKey,
+                subformDataElementId
+            );
+        }
+        else
+        {
+            // Fall back to simple translation without variable substitution
+            fileName = await _translationService.TranslateTextKey(
+                customFileNameTextResourceKey ?? "backend.pdf_default_file_name",
+                language
+            );
+        }
+
+        if (string.IsNullOrEmpty(fileName))
         {
             // translation for backend.pdf_default_file_name should always be present (it has a falback in the translation service),
             // but just in case, we default to a hardcoded string.
-            titleText = "Altinn PDF.pdf";
+            fileName = "Altinn PDF.pdf";
         }
 
-        var file = GetValidFileName(titleText);
-        return file.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? file : $"{file}.pdf";
-    }
-
-    private static string GetValidFileName(string fileName)
-    {
-        fileName = Uri.EscapeDataString(fileName.AsFileName(false));
-        return fileName;
+        string escapedFileName = Uri.EscapeDataString(fileName.AsFileName(false));
+        return escapedFileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)
+            ? escapedFileName
+            : $"{escapedFileName}.pdf";
     }
 
     private async Task<string> GetPreviewFooter(string language)
@@ -316,4 +396,34 @@ public class PdfService : IPdfService
 
         return additionalQueryParams;
     }
+
+    private async Task<string?> GetVariableSubstitutedFileName(
+        InstanceDataUnitOfWork dataAccessor,
+        string customFileNameTextResourceKey,
+        string? subformDataElementId
+    )
+    {
+        LayoutEvaluatorState state =
+            dataAccessor.GetLayoutEvaluatorState()
+            ?? throw new InvalidOperationException("LayoutEvaluatorState should not be null. No current task?");
+
+        DataElementIdentifier? dataElementIdentifier =
+            subformDataElementId != null ? new DataElementIdentifier(subformDataElementId) : default;
+
+        var componentContext = new ComponentContext(
+            state,
+            component: null,
+            rowIndices: null,
+            dataElementIdentifier: dataElementIdentifier
+        );
+
+        return await _translationService.TranslateTextKey(customFileNameTextResourceKey, state, componentContext);
+    }
 }
+
+/// <summary>
+/// Contains subform-specific parameters required for generating a subform PDF.
+/// </summary>
+/// <param name="ComponentId">The ID of the subform component.</param>
+/// <param name="DataElementId">The ID of the subform data element.</param>
+public sealed record SubformPdfContext(string ComponentId, string DataElementId);

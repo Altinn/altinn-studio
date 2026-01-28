@@ -122,6 +122,19 @@ table > tbody > tr.editingRow:hover {
   text-align: var(--cell-text-alignment);
 }
 
+.contentFormatting input {
+  text-align: var(--cell-text-alignment) !important;
+}
+
+.contentFormattingEditable {
+  overflow: visible;
+  display: block;
+}
+
+.contentFormattingEditable input {
+  text-align: var(--cell-text-alignment) !important;
+}
+
 .spaceAfterContent {
   padding-right: 5px;
 }

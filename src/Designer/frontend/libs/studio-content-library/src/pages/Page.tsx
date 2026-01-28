@@ -5,7 +5,7 @@ import type { PagePropsMap, PagesConfig } from '../types/PagesProps';
 import { useTranslation } from 'react-i18next';
 import { StudioContentMenu } from '@studio/components';
 import type { ContentLibraryConfig } from '../types/ContentLibraryConfig';
-import { Guard } from '@studio/pure-functions';
+import { Guard } from '@studio/guard';
 
 export abstract class Page<Name extends PageName> {
   abstract readonly name: Name;

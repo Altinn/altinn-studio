@@ -109,12 +109,16 @@
         },
         "validateOnSaveRow": ["All"],
         "hiddenRow": [
-          "greaterThanEq",
+          "and",
+          ["notEquals", ["dataModel", "useBothRepGroups"], true],
           [
-            "dataModel",
-            "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
-          ],
-          ["dataModel", "hideRowValue"]
+            "greaterThanEq",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+            ],
+            ["dataModel", "hideRowValue"]
+          ]
         ],
         "edit": {
           "mode": "showTable",
@@ -658,6 +662,21 @@
         }
       },
       {
+        "id": "useBothRepGroups",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Vis alle rader i begge repeterende grupper?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "useBothRepGroups"
+        },
+        "required": false,
+        "options": [
+          { "label": "Ja", "value": true },
+          { "label": "Nei", "value": false }
+        ]
+      },
+      {
         "id": "hideRepeatingGroupRow",
         "type": "Input",
         "textResourceBindings": {
@@ -674,7 +693,8 @@
           },
           "align": "right"
         },
-        "readOnly": false
+        "readOnly": false,
+        "hidden": ["equals", ["dataModel", "useBothRepGroups"], true]
       },
       {
         "id": "nav-page-repeating",

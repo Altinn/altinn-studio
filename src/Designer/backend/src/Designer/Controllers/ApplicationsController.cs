@@ -3,8 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Models.Dto;
@@ -29,6 +33,7 @@ public class ApplicationsController : ControllerBase
     private readonly IDeploymentRepository _deploymentRepository;
     private readonly IReleaseRepository _releaseRepository;
     private readonly IAppResourcesService _appResourcesService;
+    private readonly IGiteaClient _giteaClient;
     private readonly ILogger<ApplicationsController> _logger;
 
     public ApplicationsController(
@@ -37,6 +42,7 @@ public class ApplicationsController : ControllerBase
         IDeploymentRepository deploymentRepository,
         IReleaseRepository releaseRepository,
         IAppResourcesService appResourcesService,
+        IGiteaClient giteaClient,
         ILogger<ApplicationsController> logger
     )
     {
@@ -45,6 +51,7 @@ public class ApplicationsController : ControllerBase
         _deploymentRepository = deploymentRepository;
         _releaseRepository = releaseRepository;
         _appResourcesService = appResourcesService;
+        _giteaClient = giteaClient;
         _logger = logger;
     }
 
@@ -77,7 +84,7 @@ public class ApplicationsController : ControllerBase
                 }
                 catch (HttpRequestException e)
                 {
-                    _logger.LogError(e, $"Could not reach environment {env.Name} for org {org}.");
+                    _logger.LogError(e, "Could not reach environment {EnvName} for org {Org}.", env.Name, org.WithoutLineBreaks());
                     return (env, new List<AppDeployment>());
                 }
             });
@@ -114,7 +121,7 @@ public class ApplicationsController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "Invalid deployment data for org {Org}.", org);
+            _logger.LogError(ex, "Invalid deployment data for org {Org}.", org.WithoutLineBreaks());
             return StatusCode(502);
         }
     }
@@ -129,6 +136,8 @@ public class ApplicationsController : ControllerBase
     {
         try
         {
+            var applicationMetadataTask = _appResourcesService.GetApplicationMetadata(org, env, app, ct);
+
             var runtimeAppDeployment = await _runtimeGatewayClient.GetAppDeployment(
                 org,
                 app,
@@ -136,21 +145,77 @@ public class ApplicationsController : ControllerBase
                 ct
             );
 
-            var deploymentEntity = await _deploymentRepository.Get(
-                org,
-                runtimeAppDeployment.BuildId
-            );
             var releaseEntity = await _releaseRepository.GetSucceededReleaseFromDb(
                 org,
                 app,
                 runtimeAppDeployment.ImageTag
             );
 
+            var indexFileTask = _giteaClient.GetFileAsync(org, app, $"App/views/Home/Index.cshtml", releaseEntity.TargetCommitish, ct);
+
+            var deploymentEntity = await _deploymentRepository.Get(
+                org,
+                runtimeAppDeployment.BuildId
+            );
+
+            var indexFile = await indexFileTask;
+            var applicationMetadata = await applicationMetadataTask;
+
+            string frontendVersion = null;
+            if (!string.IsNullOrEmpty(indexFile?.Content))
+            {
+                try
+                {
+                    var indexFileContent = Encoding.UTF8.GetString(
+                        Convert.FromBase64String(indexFile.Content)
+                    );
+                    if (!string.IsNullOrEmpty(indexFileContent))
+                    {
+                        AppFrontendVersionHelper.TryGetFrontendVersionFromIndexContent(
+                            indexFileContent,
+                            out frontendVersion
+                        );
+                    }
+                }
+                catch (FormatException ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Invalid Index.cshtml file for app {Org}/{App}@{Commit}.",
+                        org.WithoutLineBreaks(),
+                        app.WithoutLineBreaks(),
+                        releaseEntity.TargetCommitish
+                    );
+                }
+            }
+
+            string appLibVersion = null;
+            if (!string.IsNullOrEmpty(applicationMetadata.AltinnNugetVersion))
+            {
+                try
+                {
+                    appLibVersion = new Version(applicationMetadata.AltinnNugetVersion).ToString(3);
+                }
+                catch (FormatException ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Invalid AltinnNugetVersion for app {Org}/{Env}/{App}: '{AltinnNugetVersion}'.",
+                        org.WithoutLineBreaks(),
+                        env.WithoutLineBreaks(),
+                        app.WithoutLineBreaks(),
+                        applicationMetadata.AltinnNugetVersion
+                    );
+                }
+            }
+
             var application = new PublishedApplicationDetails()
             {
                 Org = runtimeAppDeployment.Org,
                 App = runtimeAppDeployment.App,
                 Version = runtimeAppDeployment.ImageTag,
+                AppLibVersion = appLibVersion,
+                AppFrontendVersion = frontendVersion,
                 Env = deploymentEntity.EnvName, // runtimeAppDeployment.Env uses prod (not production)
                 Commit = releaseEntity.TargetCommitish,
                 CreatedAt = deploymentEntity.Created,
@@ -228,9 +293,9 @@ public class ApplicationsController : ControllerBase
             _logger.LogError(
                 ex,
                 "Invalid process task data for app {Org}/{Env}/{App}.",
-                org,
-                env,
-                app
+                org.WithoutLineBreaks(),
+                env.WithoutLineBreaks(),
+                app.WithoutLineBreaks()
             );
             return StatusCode(502);
         }

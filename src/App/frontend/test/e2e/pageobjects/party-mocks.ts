@@ -133,19 +133,11 @@ export function cyMockResponses(whatToMock: Mockable) {
       });
     });
   }
-  if (whatToMock.doNotPromptForParty !== undefined) {
-    cy.intercept('GET', '**/api/v1/profile/user', {
-      body: {
-        profileSettingPreference: {
-          doNotPromptForParty: whatToMock.doNotPromptForParty,
-        },
-      },
-    });
-  }
   if (
     whatToMock.appPromptForPartyOverride !== undefined ||
     whatToMock.partyTypesAllowed !== undefined ||
-    whatToMock.onEntryShow !== undefined
+    whatToMock.onEntryShow !== undefined ||
+    whatToMock.doNotPromptForParty !== undefined
   ) {
     interceptAltinnAppGlobalData((globalData) => {
       if (whatToMock.appPromptForPartyOverride !== undefined) {
@@ -156,6 +148,10 @@ export function cyMockResponses(whatToMock: Mockable) {
       }
       if (whatToMock.onEntryShow !== undefined) {
         globalData.applicationMetadata.onEntry = { show: whatToMock.onEntryShow };
+      }
+
+      if (whatToMock.doNotPromptForParty !== undefined && globalData.userProfile !== undefined) {
+        globalData.userProfile.profileSettingPreference.doNotPromptForParty = whatToMock.doNotPromptForParty;
       }
     });
   }

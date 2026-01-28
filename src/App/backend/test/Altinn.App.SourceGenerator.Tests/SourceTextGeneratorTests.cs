@@ -47,7 +47,7 @@ public class SourceTextGeneratorTests(ITestOutputHelper outputHelper)
     private ModelPathNode GetRoot<T>()
     {
         var children = typeof(T).GetProperties().Select(GetFromType).ToArray();
-        return new ModelPathNode("", "", "global::" + typeof(T).FullName!, children);
+        return new ModelPathNode("", "", "global::" + typeof(T).FullName!, false, children);
     }
 
     private ModelPathNode GetFromType(PropertyInfo propertyInfo)
@@ -61,28 +61,40 @@ public class SourceTextGeneratorTests(ITestOutputHelper outputHelper)
         if (collectionInterface != null)
         {
             var typeParam = collectionInterface.GetGenericArguments()[0];
-            var typeString = FullTypeName(typeParam);
-            var listType = $"{FullTypeName(propertyType.GetGenericTypeDefinition())}<{typeString}>";
+            var (listType, isNullableList) = FullTypeName(typeParam);
+            var typeString =
+                "global::" + propertyType.GetGenericTypeDefinition().FullName?.Replace("`1", "") + "<" + listType + ">";
+
             var children = GetChildren(typeParam);
 
-            return new ModelPathNode(cSharpName, jsonPath, typeString, children, listType: listType);
+            return new ModelPathNode(
+                cSharpName,
+                jsonPath,
+                typeString,
+                isNullable: true, // Reflection does not provide NRT info collections, assume nullable
+                children,
+                listType: listType,
+                isNullableList: isNullableList
+            );
         }
         else
         {
-            var typeString = FullTypeName(propertyType);
+            var (typeString, isNullable) = FullTypeName(propertyType);
             var children = GetChildren(propertyType);
 
-            return new ModelPathNode(cSharpName, jsonPath, typeString, children);
+            return new ModelPathNode(cSharpName, jsonPath, typeString, isNullable, children);
         }
     }
 
-    private static string FullTypeName(Type typeParam)
+    private static (string name, bool isNullable) FullTypeName(Type typeParam)
     {
+        var isNullable = !typeParam.IsValueType; // TODO: Is there a better way to know if a type is
         if (typeParam.Name == "Nullable`1")
         {
             typeParam = typeParam.GenericTypeArguments[0];
+            isNullable = true;
         }
-        return "global::" + typeParam.FullName?.Replace("`1", "");
+        return ("global::" + typeParam.FullName?.Replace("`1", ""), isNullable);
     }
 
     private ModelPathNode[]? GetChildren(Type propertyType)

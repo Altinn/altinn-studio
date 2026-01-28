@@ -19,6 +19,12 @@ public class PublishedApplicationDetails
     [JsonPropertyName("version")]
     public required string Version { get; set; }
 
+    [JsonPropertyName("appLibVersion")]
+    public string? AppLibVersion { get; set; }
+
+    [JsonPropertyName("appFrontendVersion")]
+    public string? AppFrontendVersion { get; set; }
+
     [JsonPropertyName("commit")]
     public required string Commit { get; set; }
 

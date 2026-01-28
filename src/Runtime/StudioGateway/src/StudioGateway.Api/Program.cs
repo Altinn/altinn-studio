@@ -1,7 +1,6 @@
 using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.Query.Logs;
-using Azure.ResourceManager;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using StudioGateway.Api;
@@ -23,11 +22,6 @@ builder.Services.AddSingleton(sp =>
 {
     var credential = sp.GetRequiredService<TokenCredential>();
     return new LogsQueryClient(credential);
-});
-builder.Services.AddSingleton(sp =>
-{
-    var credential = sp.GetRequiredService<TokenCredential>();
-    return new ArmClient(credential);
 });
 
 builder.Services.AddSingleton(TimeProvider.System);

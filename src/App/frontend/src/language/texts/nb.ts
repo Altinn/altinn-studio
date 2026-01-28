@@ -344,9 +344,9 @@ export function nb() {
     'person_lookup.validation_error_name_too_short': 'Etternavn kan ikke være tomt.',
     'person_lookup.validation_error_ssn': 'Fødselsnummeret/D-nummeret er ugyldig.',
     'person_lookup.validation_error_not_found':
-      'Ingen person er registrert med denne kombinasjonen av fødselsnummer/D-nummer og navn. Vennligst kontroller feltene og prøv igjen. <br> Merk: Etter 5 feilforsøk blir søkemuligheten midlertidig sperret.',
+      'Ingen person er registrert med denne kombinasjonen av fødselsnummer/D-nummer og navn. Vennligst kontroller feltene og prøv igjen. <br> Merk: Etter 3 feilforsøk kan søkemuligheten bli midlertidig sperret.',
     'person_lookup.validation_error_too_many_requests':
-      'Du har nådd grensen for antall søk. Vennligst prøv igjen senere.',
+      'Du har nådd grensen for antall søk. Du har blitt utestengt fra søkefunksjonaliteten i en time. Vennligst prøv igjen senere.',
     'person_lookup.validation_error_forbidden':
       'Du har ikke tilgang til å søke på denne personen. Sikkerhetsnivå 2 eller høyere kreves.',
     'person_lookup.validation_invalid_response_from_server': 'Det oppstod en feil. Vennligst prøv igjen senere.',
@@ -513,5 +513,11 @@ export function nb() {
       'Du kan prøve å utføre behandlingen på nytt ved å klikke på "{0}". Hvis problemet vedvarer, ta kontakt med oss på brukerservice {1}.',
     'service_task.retry_button': 'Prøv igjen',
     'service_task.back_button': 'Gå tilbake',
+    'service_task_custom_pdf_default.title': 'Noe gikk galt',
+    'service_task_custom_pdf_default.body': 'En feil oppstod under automatisk behandling av skjemaet.',
+    'service_task_custom_pdf_default.help_text':
+      'Du kan prøve å utføre behandlingen på nytt ved å klikke på "Prøv igjen". Hvis problemet vedvarer, ta kontakt med oss på brukerservice +47 75 00 60 00.',
+    'service_task_custom_pdf_default.retry_button': 'Prøv igjen',
+    'service_task_custom_pdf_default.back_button': 'Gå tilbake',
   } satisfies FixedLanguageList;
 }

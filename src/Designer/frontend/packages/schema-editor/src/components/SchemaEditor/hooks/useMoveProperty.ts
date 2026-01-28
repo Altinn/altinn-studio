@@ -28,7 +28,7 @@ export const useMoveProperty = (): HandleMove => {
         movementErrorAlert(error, { name, parent });
         return;
       }
-      const movedNode = savableModel.moveNode(schemaPointer, target);
+      const movedNode = savableModel.moveNodeAndSave(schemaPointer, target);
       if (selectedUniquePointer === uniquePointer) {
         const movedUniquePointer = SchemaModel.getUniquePointer(
           movedNode.schemaPointer,

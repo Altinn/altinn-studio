@@ -48,3 +48,4 @@ spec:
   postBuild:
     substitute:
       SERVICEOWNER_ID: ${SERVICEOWNER_ID}
+      GATEWAY_ENTRA_CLIENT_ID: ${STUDIO_GATEWAY_CLIENT_ID}

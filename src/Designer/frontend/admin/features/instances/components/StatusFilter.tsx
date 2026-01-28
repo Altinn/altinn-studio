@@ -1,6 +1,7 @@
 import { StudioSelect } from '@studio/components';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import classes from './StatusFilter.module.css';
 
 type StatusFilterProps = {
   label: string;
@@ -19,6 +20,7 @@ export const StatusFilter = ({ label, value, setValue, options, disabled }: Stat
 
   return (
     <StudioSelect
+      className={classes.select}
       label={t(label)}
       disabled={disabled}
       value={JSON.stringify(value ?? null)}
