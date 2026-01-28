@@ -15,6 +15,8 @@ namespace Altinn.Studio.Designer.Models
         /// </summary>
         public string Developer { get; }
 
+        public AltinnOrgEditingContext OrgEditingContext => AltinnOrgEditingContext.FromAltinnRepoEditingContext(this);
+
         protected AltinnRepoEditingContext(string org, string repo, string developer) : base(org, repo)
         {
             ValidateDeveloper(developer);

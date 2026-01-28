@@ -38,7 +38,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             string uri = $"{VersionPrefix}/repo/ttd/apps-test/contents";
 
             _repositoryMock
-                .Setup(r => r.GetContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r => r.GetContents(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()))
                 .Returns(new List<FileSystemObject>
                 {
                     new FileSystemObject
@@ -66,7 +66,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             string uri = $"{VersionPrefix}/repo/acn-sbuad/apps-test/contents?path=App";
 
             _repositoryMock
-                .Setup(r => r.GetContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r => r.GetContents(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()))
                 .Returns((List<FileSystemObject>)null);
 
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);

@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.Sync;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.PolicyAdmin;
 using Altinn.Studio.PolicyAdmin.Models;
@@ -25,20 +26,19 @@ public class ProcessTaskIdChangedPolicyFileHandler : INotificationHandler<Proces
     public async Task Handle(ProcessTaskIdChangedEvent notification, CancellationToken cancellationToken)
     {
         bool hasChanges = false;
+        AltinnRepoEditingContext editingContext = notification.EditingContext;
         await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
-            notification.EditingContext,
+            editingContext,
             SyncErrorCodes.PolicyFileTaskIdSyncError,
             "App/config/authorization/policy.xml",
             async () =>
             {
-                var xacmlPolicy = _repository.GetPolicy(notification.EditingContext.Org,
-                    notification.EditingContext.Repo, null);
+                var xacmlPolicy = _repository.GetPolicy(editingContext, null);
                 var resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
                 if (TryChangeTaskIds(resourcePolicy, notification.OldId, notification.NewId))
                 {
                     xacmlPolicy = PolicyConverter.ConvertPolicy(resourcePolicy);
-                    await _repository.SavePolicy(notification.EditingContext.Org, notification.EditingContext.Repo,
-                        null, xacmlPolicy);
+                    await _repository.SavePolicy(editingContext, null, xacmlPolicy);
                     hasChanges = true;
                 }
 

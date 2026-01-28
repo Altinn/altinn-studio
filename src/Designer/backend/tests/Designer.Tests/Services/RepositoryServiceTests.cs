@@ -57,8 +57,9 @@ namespace Designer.Tests.Services
 
             RepositoryService sut = GetServiceForTest("testUser");
 
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", "apps-test", "testUser");
             // Act
-            List<FileSystemObject> actual = sut.GetContents("ttd", "apps-test");
+            List<FileSystemObject> actual = sut.GetContents(editingContext);
 
             // Assert
             Assert.Equal(expected.First().Type, actual.First().Type);
@@ -83,9 +84,10 @@ namespace Designer.Tests.Services
             int expectedCount = 1;
 
             RepositoryService sut = GetServiceForTest("testUser");
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", "apps-test", "testUser");
 
             // Act
-            List<FileSystemObject> actual = sut.GetContents("ttd", "apps-test", "App/appsettings.json");
+            List<FileSystemObject> actual = sut.GetContents(editingContext, "App/appsettings.json");
 
             // Assert
             Assert.Equal(expected.First().Type, actual.First().Type);
@@ -97,9 +99,10 @@ namespace Designer.Tests.Services
         {
             // Arrange
             RepositoryService sut = GetServiceForTest("testUser");
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", "apps-test", "testUser");
 
             // Act
-            List<FileSystemObject> actual = sut.GetContents("ttd", "test-apps");
+            List<FileSystemObject> actual = sut.GetContents(editingContext);
 
             // Assert
             Assert.Null(actual);
@@ -111,6 +114,9 @@ namespace Designer.Tests.Services
             string org = "ttd";
             string repositoryName = TestDataHelper.GenerateTestRepoName();
             string developer = "testUser";
+            string token = "test-token";
+
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repositoryName, developer, token);
 
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             var repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repositoryName, developer);
@@ -120,7 +126,7 @@ namespace Designer.Tests.Services
 
             try
             {
-                await repositoryService.CreateService(org, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName });
+                await repositoryService.CreateService(authenticatedContext, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName });
                 var altinnStudioSettings = await new AltinnGitRepositoryFactory(repositoriesRootDirectory).GetAltinnGitRepository(org, repositoryName, developer).GetAltinnStudioSettings();
                 Assert.Equal(AltinnRepositoryType.App, altinnStudioSettings.RepoType);
                 Assert.True(altinnStudioSettings.UseNullableReferenceTypes);
@@ -141,13 +147,15 @@ namespace Designer.Tests.Services
             // Arrange
             string developer = "testUser";
             string org = "ttd";
+            string token = "test-token";
             string sourceRepository = "apps-test";
             string targetRepository = "existing-repo";
 
             RepositoryService sut = GetServiceForTest(developer);
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceRepository, developer, token);
 
             // Act
-            Repository actual = await sut.CopyRepository(org, sourceRepository, targetRepository, developer);
+            Repository actual = await sut.CopyRepository(authenticatedContext, targetRepository);
 
             // Assert
             Assert.Equal(HttpStatusCode.Conflict, actual.RepositoryCreatedStatus);
@@ -159,10 +167,12 @@ namespace Designer.Tests.Services
             // Arrange
             string developer = "testUser";
             string org = "ttd";
+            string token = "test-token";
             string origRemoteRepo = "apps-test";
             string origRepo = "apps-test-2021";
             string workingRemoteRepositoryName = TestDataHelper.GenerateTestRepoName(origRemoteRepo);
             string targetRepositoryName = TestDataHelper.GenerateTestRepoName(origRepo);
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, workingRemoteRepositoryName, developer, token);
             var workingRemoteDirPath = string.Empty;
             var createdTargetRepoPath = string.Empty;
             try
@@ -175,7 +185,7 @@ namespace Designer.Tests.Services
                 RepositoryService sut = GetServiceForTest(developer);
 
                 // Act
-                await sut.CopyRepository(org, workingRemoteRepositoryName, targetRepositoryName, developer);
+                await sut.CopyRepository(authenticatedContext, targetRepositoryName);
 
                 // Assert
                 string developerClonePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), developer, org);
@@ -197,8 +207,10 @@ namespace Designer.Tests.Services
             // Arrange
             string developer = "testUser";
             string org = "ttd";
+            string token = "test-token";
             string origRemoteRepo = "apps-test";
             string workingSourceRepoName = TestDataHelper.GenerateTestRepoName(origRemoteRepo);
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, workingSourceRepoName, developer, token);
             string targetRepository = TestDataHelper.GenerateTestRepoName("apps-test-clone");
             string expectedRepoPath = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
             var workingRemoteDirPath = string.Empty;
@@ -211,7 +223,7 @@ namespace Designer.Tests.Services
                 RepositoryService sut = GetServiceForTest(developer);
 
                 // Act
-                await sut.CopyRepository(org, workingSourceRepoName, targetRepository, developer);
+                await sut.CopyRepository(authenticatedContext, targetRepository);
 
                 // Assert
                 string appMetadataString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
@@ -243,8 +255,10 @@ namespace Designer.Tests.Services
             // Arrange
             string developer = "testUser";
             string org = "ttd";
+            string token = "test-token";
             string sourceWithConfig = TestDataHelper.GenerateTestRepoName("cfg");
             string targetRepository = TestDataHelper.GenerateTestRepoName("clone");
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceWithConfig, developer, token);
             string workingRemoteDirPath = string.Empty;
 
             try
@@ -266,7 +280,7 @@ namespace Designer.Tests.Services
                 RepositoryService sut = GetServiceForTest(developer);
 
                 // Act
-                await sut.CopyRepository(org, sourceWithConfig, targetRepository, developer);
+                await sut.CopyRepository(authenticatedContext, targetRepository);
 
                 string destRepoPath = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
                 string destConfigPath = Path.Combine(destRepoPath, "config.json");
@@ -307,6 +321,7 @@ namespace Designer.Tests.Services
             string developer = "testUser";
             string org = "ttd";
             string repository = "apps-test";
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
 
             Mock<ISourceControl> mock = new();
             mock.Setup(m => m.DeleteRepository(It.IsAny<AltinnRepoEditingContext>()))
@@ -315,7 +330,7 @@ namespace Designer.Tests.Services
             RepositoryService sut = GetServiceForTest(developer, mock.Object);
 
             // Act
-            await sut.DeleteRepository(org, repository);
+            await sut.DeleteRepository(editingContext);
 
             // Assert
             mock.VerifyAll();
@@ -420,7 +435,6 @@ namespace Designer.Tests.Services
             ApplicationMetadataService applicationInformationService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, httpContextAccessorMock.Object, giteaClientMock);
 
             ISchemaModelService schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
-            AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
             Mock<ILogger<GiteaContentLibraryService>> loggerMock = new();
             IOptionsService optionsService = new OptionsService(altinnGitRepositoryFactory, new GiteaContentLibraryService(giteaClientMock, loggerMock.Object));
 
@@ -431,13 +445,11 @@ namespace Designer.Tests.Services
             RepositoryService service = new(
                 repoSettings,
                 generalSettings,
-                httpContextAccessorMock.Object,
                 new IGiteaClientMock(),
                 sourceControlMock,
                 new Mock<ILogger<RepositoryService>>().Object,
                 altinnGitRepositoryFactory,
                 applicationInformationService,
-                appDevelopmentService,
                 textsService,
                 resourceRegistryService);
 

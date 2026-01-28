@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.PolicyAdmin;
@@ -36,7 +38,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("")]
         public ActionResult GetAppPolicy(string org, string app)
         {
-            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, null);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(editingContext, null);
 
             if (xacmlPolicy == null)
             {
@@ -61,7 +65,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("{resourceid}")]
         public ActionResult GetResourcePolicy(string org, string app, string resourceid)
         {
-            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(editingContext, resourceid);
 
             if (xacmlPolicy == null)
             {
@@ -86,9 +92,11 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("")]
         public async Task<ActionResult> UpdateApplicationPolicy(string org, string app, [FromBody] ResourcePolicy applicationPolicy)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-            await _repository.SavePolicy(org, app, null, xacmlPolicy);
+            await _repository.SavePolicy(editingContext, null, xacmlPolicy);
 
             return Ok(applicationPolicy);
         }
@@ -107,9 +115,11 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("{resourceid}")]
         public async Task<ActionResult> UpdateResourcePolicy(string org, string app, string resourceid, [FromBody] ResourcePolicy applicationPolicy)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
             XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
 
-            await _repository.SavePolicy(org, app, resourceid, xacmlPolicy);
+            await _repository.SavePolicy(editingContext, resourceid, xacmlPolicy);
 
             return Ok(applicationPolicy);
         }
@@ -118,7 +128,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("validate")]
         public ActionResult ValidateAppPolicy(string org, string app)
         {
-            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, null);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(editingContext, null);
 
             ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
             ValidationProblemDetails vpd = ValidatePolicy(resourcePolicy);
@@ -133,7 +145,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("validate/{resourceid}")]
         public ActionResult ValidateResourcePolicy(string org, string app, string resourceid)
         {
-            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(editingContext, resourceid);
             if (xacmlPolicy == null)
             {
                 ModelState.AddModelError("policy", "policyerror.missingpolicy");

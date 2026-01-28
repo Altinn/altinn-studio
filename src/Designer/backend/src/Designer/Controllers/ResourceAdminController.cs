@@ -230,10 +230,12 @@ namespace Altinn.Studio.Designer.Controllers
             IEnumerable<ListviewServiceResource> resources;
             List<ServiceResource> repositoryResourceList;
             List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
 
             if (skipParseJson)
             {
-                List<FileSystemObject> resourceFiles = _repository.GetContents(org, repository);
+                List<FileSystemObject> resourceFiles = _repository.GetContents(editingContext);
                 repositoryResourceList = resourceFiles.Where(file => file.Type.Equals("Dir") && !file.Name.StartsWith(".")).Select(file =>
                 {
                     return new ServiceResource
@@ -245,7 +247,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             else
             {
-                repositoryResourceList = await _repository.GetServiceResources(org, repository, "", cancellationToken);
+                repositoryResourceList = await _repository.GetServiceResources(editingContext, "", cancellationToken);
             }
 
             if (skipGiteaFields)
@@ -338,7 +340,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/{repository}/{id}")]
         public async Task<ActionResult<ServiceResource>> GetResourceById(string org, string repository, string id, CancellationToken cancellationToken)
         {
-            ServiceResource resource = await _repository.GetServiceResourceById(org, repository, id, cancellationToken);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            ServiceResource resource = await _repository.GetServiceResourceById(editingContext, id, cancellationToken);
             return resource != null ? resource : StatusCode(404);
         }
 
@@ -346,7 +350,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/publishstatus/{repository}/{id}")]
         public async Task<ActionResult<ServiceResourceStatus>> GetPublishStatusById(string org, string repository, string id, CancellationToken cancellationToken)
         {
-            ServiceResource resource = await _repository.GetServiceResourceById(org, repository, id, cancellationToken);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            ServiceResource resource = await _repository.GetServiceResourceById(editingContext, id, cancellationToken);
             if (resource == null)
             {
                 return StatusCode(404);
@@ -370,7 +376,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/validate/{repository}/{id}")]
         public async Task<ActionResult> GetValidateResource(string org, string repository, string id)
         {
-            ServiceResource resourceToValidate = await _repository.GetServiceResourceById(org, repository, id);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            ServiceResource resourceToValidate = await _repository.GetServiceResourceById(editingContext, id);
             if (resourceToValidate != null)
             {
                 ValidationProblemDetails validationProblemDetails = ValidateResource(resourceToValidate);
@@ -393,7 +401,8 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> UpdateResource(string org, string id, [FromBody] ServiceResource resource, CancellationToken cancellationToken = default)
         {
             resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
-            return _repository.UpdateServiceResource(org, id, resource);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            return _repository.UpdateServiceResource(org, id, developer, resource);
         }
 
         [HttpPost]
@@ -401,20 +410,22 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> AddExistingResource(string org, string resourceId, string env)
         {
             string repository = GetRepositoryName(org);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             ServiceResource resource = await _resourceRegistry.GetResource(resourceId, env);
             if (resource == null)
             {
                 return new StatusCodeResult(404);
             }
             resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
-            StatusCodeResult statusCodeResult = _repository.AddServiceResource(org, resource);
+            StatusCodeResult statusCodeResult = _repository.AddServiceResource(editingContext.OrgEditingContext, resource);
             if (statusCodeResult.StatusCode != (int)HttpStatusCode.Created)
             {
                 return statusCodeResult;
             }
 
             XacmlPolicy policy = await _resourceRegistry.GetResourcePolicy(resourceId, env);
-            await _repository.SavePolicy(org, repository, resource.Identifier, policy);
+            await _repository.SavePolicy(editingContext, resource.Identifier, policy);
             return Ok(resource);
         }
 
@@ -423,7 +434,9 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<StatusCodeResult> AddResource(string org, [FromBody] ServiceResource resource)
         {
             resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
-            return _repository.AddServiceResource(org, resource);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnOrgEditingContext orgEditingContext = AltinnOrgEditingContext.FromOrgDeveloper(org, developer);
+            return _repository.AddServiceResource(orgEditingContext, resource);
         }
 
         [HttpPost]
@@ -435,15 +448,17 @@ namespace Altinn.Studio.Designer.Controllers
                 return new StatusCodeResult(400);
             }
             string repository = GetRepositoryName(org);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, env.ToLower());
             resource.Identifier = resourceId;
-            StatusCodeResult statusCodeResult = _repository.AddServiceResource(org, resource);
+            StatusCodeResult statusCodeResult = _repository.AddServiceResource(editingContext.OrgEditingContext, resource);
             if (statusCodeResult.StatusCode != (int)HttpStatusCode.Created)
             {
                 return statusCodeResult;
             }
             XacmlPolicy policy = await _resourceRegistry.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier, env.ToLower());
-            await _repository.SavePolicy(org, repository, resource.Identifier, policy);
+            await _repository.SavePolicy(editingContext, resource.Identifier, policy);
             return Ok(resource);
         }
 
@@ -738,8 +753,10 @@ namespace Altinn.Studio.Designer.Controllers
         {
             if (repository == $"{org}-resources")
             {
-                string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, id);
-                ActionResult publishResult = await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+                string xacmlPolicyPath = _repository.GetPolicyPath(editingContext, id);
+                ActionResult publishResult = await _repository.PublishResource(editingContext, id, env, xacmlPolicyPath);
                 _memoryCache.Remove($"resourcelist_${env}");
                 return publishResult;
             }

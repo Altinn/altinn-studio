@@ -97,22 +97,25 @@ namespace Altinn.Studio.Designer.Controllers
             targetOrg ??= org;
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceRepository, developer, token);
+            AltinnRepoEditingContext targetRepoContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(targetOrg, targetRepository, developer);
 
             try
             {
-                RepositoryModel repo = await _repository.CopyRepository(org, sourceRepository, targetRepository, developer, targetOrg);
+                RepositoryModel repo = await _repository.CopyRepository(authenticatedContext, targetRepository, targetOrg);
 
                 if (repo.RepositoryCreatedStatus == HttpStatusCode.Created)
                 {
                     return Created(repo.CloneUrl, repo);
                 }
 
-                await _repository.DeleteRepository(targetOrg, targetRepository);
+                await _repository.DeleteRepository(targetRepoContext);
                 return StatusCode((int)repo.RepositoryCreatedStatus);
             }
             catch (Exception e)
             {
-                await _repository.DeleteRepository(targetOrg, targetRepository);
+                await _repository.DeleteRepository(targetRepoContext);
                 return StatusCode(500, e);
             }
         }
@@ -187,9 +190,12 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest($"{repository} is an invalid repository name.");
             }
 
-            var config = new ServiceConfiguration { RepositoryName = repository, ServiceName = repository };
+            ServiceConfiguration config = new() { RepositoryName = repository, ServiceName = repository };
 
-            var repositoryResult = await _repository.CreateService(org, config);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+            RepositoryModel repositoryResult = await _repository.CreateService(authenticatedContext, config);
             if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
             {
                 return Created(repositoryResult.CloneUrl, repositoryResult);
@@ -282,11 +288,12 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> ResetLocalRepository(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
 
             try
             {
-                await _repository.ResetLocalRepository(editingContext);
+                _repository.ResetLocalRepository(authenticatedContext);
                 return Ok();
             }
             catch (Exception)
@@ -550,7 +557,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/contents")]
         public ActionResult Contents(string org, string repository, [FromQuery] string path = "")
         {
-            List<FileSystemObject> contents = _repository.GetContents(org, repository, path);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            List<FileSystemObject> contents = _repository.GetContents(editingContext, path);
 
             if (contents == null)
             {
@@ -569,13 +578,12 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/contents.zip")]
         public ActionResult ContentsZip(string org, string repository, [FromQuery] bool full)
         {
-            AltinnRepoContext appContext = AltinnRepoContext.FromOrgRepo(org, repository);
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             string appRoot;
             try
             {
-                appRoot = _repository.GetAppPath(appContext.Org, appContext.Repo);
+                appRoot = _repository.GetAppPath(editingContext);
 
                 if (!Directory.Exists(appRoot))
                 {
@@ -588,7 +596,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             var zipType = full ? "full" : "changes";
-            var zipFileName = $"{appContext.Org}-{appContext.Repo}-{zipType}.zip";
+            var zipFileName = $"{editingContext.Org}-{editingContext.Repo}-{zipType}.zip";
             var tempAltinnFolderPath = Path.Combine(Path.GetTempPath(), "altinn");
             Directory.CreateDirectory(tempAltinnFolderPath);
             var zipFilePath = Path.Combine(tempAltinnFolderPath, zipFileName);
