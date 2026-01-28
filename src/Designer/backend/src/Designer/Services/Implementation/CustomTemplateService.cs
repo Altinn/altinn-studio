@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -10,7 +11,10 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Designer.Helpers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.FileSystemGlobbing;
+using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using Microsoft.Extensions.Logging;
 using NJsonSchema;
 using NJsonSchema.Validation;
@@ -63,6 +67,40 @@ public class CustomTemplateService : ICustomTemplateService
         }
 
         await CopyTemplateContentToRepository(templateOwner, templateId, targetOrg, targetRepo, developer);
+
+        await ApplyPackageReferences(targetOrg, targetRepo, developer, template.PackageReferences);
+    }
+
+    private async Task ApplyPackageReferences(string targetOrg, string targetRepo, string developer, List<PackageReference> packageReferences)
+    {
+        foreach (var projectReference in packageReferences)
+        {
+            var projectFiles = ResolveProjectFiles(_serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer), projectReference.Project);
+
+            if (!projectFiles.Any())
+            {
+                throw CustomTemplateException.NotFound($"Project file pattern '{projectReference.Project}' in package reference '{projectReference.Include}' did not match any files in target repository.");
+
+            }
+            else if (projectFiles.Count() > 1)
+            {
+                throw CustomTemplateException.NotFound($"Project file pattern '{projectReference.Project}' in package reference '{projectReference.Include}' matched multiple files in target repository.");
+            }
+
+            CsprojPatcher.UpsertPackageReference(projectFiles.First(), projectReference.Include, projectReference.Version);
+        }
+    }
+
+    private static IEnumerable<string> ResolveProjectFiles(string baseDirectory, string pattern)
+    {
+        var matcher = new Matcher(StringComparison.OrdinalIgnoreCase);
+        matcher.AddInclude(pattern);
+
+        var result = matcher.Execute(
+            new DirectoryInfoWrapper(new DirectoryInfo(baseDirectory))
+        );
+
+        return result.Files.Select(f => Path.Combine(baseDirectory, f.Path));
     }
 
     /// <summary>

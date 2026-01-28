@@ -23,4 +23,19 @@ public class CustomTemplate
 
     [JsonPropertyName("remove")]
     public List<string> Remove { get; set; } = [];
+
+    [JsonPropertyName("packageReferences")]
+    public List<PackageReference> PackageReferences { get; set; } = [];
+}
+
+public class PackageReference
+{
+    [JsonPropertyName("include")]
+    public string Include { get; set; }
+
+    [JsonPropertyName("version")]
+    public string Version { get; set; }
+
+    [JsonPropertyName("project")]
+    public string Project { get; set; }
 }
