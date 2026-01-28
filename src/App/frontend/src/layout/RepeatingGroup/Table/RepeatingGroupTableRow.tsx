@@ -142,24 +142,13 @@ export function RepeatingGroupTableRow({
       {!mobileView ? (
         tableItems.map((item) =>
           shouldEditInTable(editForGroup?.mode, item.baseId, item.type, columnSettings) ? (
-            <Table.Cell
+            <EditableCell
               key={item.baseId}
-              className={classes.tableCell}
-            >
-              <div ref={(ref) => refSetter && refSetter(index, `component-${item.baseId}`, ref)}>
-                <GenericComponent
-                  baseComponentId={item.baseId}
-                  overrideDisplay={{
-                    renderedInTable: true,
-                    renderLabel: false,
-                    renderLegend: false,
-                  }}
-                  overrideItemProps={{
-                    grid: {},
-                  }}
-                />
-              </div>
-            </Table.Cell>
+              index={index}
+              refSetter={refSetter}
+              baseComponentId={item.baseId}
+              columnSettings={columnSettings}
+            />
           ) : (
             <NonEditableCell
               key={item.baseId}
@@ -431,6 +420,42 @@ function DeleteElement({
         />
       </Button>
     </>
+  );
+}
+
+function EditableCell({
+  baseComponentId,
+  columnSettings,
+  refSetter,
+  index,
+}: {
+  baseComponentId: string;
+  columnSettings: ITableColumnFormatting | undefined;
+  index: number;
+  refSetter: ((index: number, id: string, ref: HTMLDivElement | null) => void) | undefined;
+}) {
+  const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
+
+  return (
+    <Table.Cell className={classes.tableCell}>
+      <div
+        className={cn(classes.contentFormatting, classes.contentFormattingEditable)}
+        style={style}
+        ref={(ref) => refSetter && refSetter(index, `component-${baseComponentId}`, ref)}
+      >
+        <GenericComponent
+          baseComponentId={baseComponentId}
+          overrideDisplay={{
+            renderedInTable: true,
+            renderLabel: false,
+            renderLegend: false,
+          }}
+          overrideItemProps={{
+            grid: {},
+          }}
+        />
+      </div>
+    </Table.Cell>
   );
 }
 

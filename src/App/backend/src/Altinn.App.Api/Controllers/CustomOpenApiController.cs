@@ -1,15 +1,20 @@
 using System.Globalization;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Extensions;
@@ -28,21 +33,28 @@ namespace Altinn.App.Api.Controllers;
 public class CustomOpenApiController : Controller
 {
     private readonly IAppMetadata _appMetadata;
+    private readonly IAppResources _appResources;
     private readonly IAppModel _appModel;
     private readonly SchemaGenerator _schemaGenerator;
     private readonly SchemaRepository _schemaRepository;
     private readonly IProcessReader _processReader;
+    private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly AppSettings _settings;
 
     /// <summary>
     /// Constructor with services from dependency injection
     /// </summary>
     public CustomOpenApiController(
+        IAppResources appResources,
         IAppModel appModel,
         IAppMetadata appMetadata,
         ISerializerDataContractResolver dataContractResolver,
-        IProcessReader processReader
+        IProcessReader processReader,
+        IServiceProvider serviceProvider,
+        IOptions<AppSettings> settings
     )
     {
+        _appResources = appResources;
         _appModel = appModel;
         _appMetadata = appMetadata;
         _processReader = processReader;
@@ -51,6 +63,8 @@ public class CustomOpenApiController : Controller
             dataContractResolver
         );
         _schemaRepository = new SchemaRepository();
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
+        _settings = settings.Value;
     }
 
     internal static readonly OpenApiSpecVersion SpecVersion = OpenApiSpecVersion.OpenApi3_0;
@@ -736,6 +750,149 @@ public class CustomOpenApiController : Controller
             }
         );
 
+        // Options endpoint
+        var optionsTags = new[]
+        {
+            new OpenApiTag { Name = "Options", Description = "Operations for getting app options" },
+        };
+        var allOptionsSchemaCollection = GetInstanceAppOptionsSchemaCollection();
+        allOptionsSchemaCollection.AddRange(GetAppOptionsSchemaCollection(appMetadata));
+        document.Paths.Add(
+            $"/{appMetadata.Id}/instances/{{instanceOwnerPartyId}}/{{instanceGuid}}/options/{{optionsId}}",
+            new OpenApiPathItem()
+            {
+                Summary = "Get instance app options",
+                Operations =
+                {
+                    [OperationType.Get] = new()
+                    {
+                        Tags = optionsTags,
+                        OperationId = "GetInstanceAppOptions",
+                        Summary = "Get instance app options",
+                        Description =
+                            "Exposes options related to the app and logged in user. The tags field is only populated when requesting library code lists.",
+                        Parameters =
+                        [
+                            Snippets.InstanceOwnerPartyIdParameterReference,
+                            Snippets.InstanceGuidParameterReference,
+                            new()
+                            {
+                                Name = "optionsId",
+                                Description = "OptionsId from a layout component.",
+                                In = ParameterLocation.Path,
+                                Schema = new OpenApiSchema() { Type = "string", Enum = allOptionsSchemaCollection },
+                            },
+                            new()
+                            {
+                                Name = "queryParams",
+                                Description = "Query parameters supplied.",
+                                In = ParameterLocation.Query,
+                                Schema = new OpenApiSchema()
+                                {
+                                    Type = "object",
+                                    AdditionalProperties = new OpenApiSchema() { Type = "string" },
+                                    Example = new OpenApiObject() { ["key"] = new OpenApiString("value") },
+                                },
+                            },
+                            new()
+                            {
+                                Name = "language",
+                                Description = "The language selected by the user (ISO 639-1, e.g., 'nb').",
+                                In = ParameterLocation.Query,
+                                Schema = new OpenApiSchema() { Type = "string", Example = new OpenApiString("nb") },
+                            },
+                        ],
+                        Responses = Snippets.AddCommonErrorResponses(
+                            new OpenApiResponses
+                            {
+                                ["200"] = new()
+                                {
+                                    Description = "AppOptions",
+                                    Content =
+                                    {
+                                        ["application/json"] = new OpenApiMediaType()
+                                        {
+                                            Schema = _schemaGenerator.GenerateSchema(
+                                                typeof(List<AppOption>),
+                                                _schemaRepository
+                                            ),
+                                        },
+                                    },
+                                },
+                            }
+                        ),
+                    },
+                },
+            }
+        );
+        var appOptionsSchemaCollection = GetAppOptionsSchemaCollection(appMetadata);
+        document.Paths.Add(
+            $"/{appMetadata.Id}/api/options/{{optionsId}}",
+            new OpenApiPathItem()
+            {
+                Summary = "Get app options",
+                Operations =
+                {
+                    [OperationType.Get] = new()
+                    {
+                        Tags = optionsTags,
+                        OperationId = "GetAppOptions",
+                        Summary = "Get app options",
+                        Description =
+                            "Api that exposes app related options. The tags field is only populated when requesting library code lists.",
+                        Parameters =
+                        [
+                            new()
+                            {
+                                Name = "optionsId",
+                                Description = "OptionsId from a layout component.",
+                                In = ParameterLocation.Path,
+                                Schema = new OpenApiSchema() { Type = "string", Enum = appOptionsSchemaCollection },
+                            },
+                            new()
+                            {
+                                Name = "queryParams",
+                                Description = "Query parameters supplied.",
+                                In = ParameterLocation.Query,
+                                Schema = new OpenApiSchema()
+                                {
+                                    Type = "object",
+                                    AdditionalProperties = new OpenApiSchema() { Type = "string" },
+                                    Example = new OpenApiObject() { ["key"] = new OpenApiString("value") },
+                                },
+                            },
+                            new()
+                            {
+                                Name = "language",
+                                Description = "The language selected by the user (ISO 639-1, e.g., 'nb').",
+                                In = ParameterLocation.Query,
+                                Schema = new OpenApiSchema() { Type = "string", Example = new OpenApiString("nb") },
+                            },
+                        ],
+                        Responses = Snippets.AddCommonErrorResponses(
+                            new OpenApiResponses
+                            {
+                                ["200"] = new()
+                                {
+                                    Description = "AppOptions",
+                                    Content =
+                                    {
+                                        ["application/json"] = new OpenApiMediaType()
+                                        {
+                                            Schema = _schemaGenerator.GenerateSchema(
+                                                typeof(List<AppOption>),
+                                                _schemaRepository
+                                            ),
+                                        },
+                                    },
+                                },
+                            }
+                        ),
+                    },
+                },
+            }
+        );
+
         // Validation endpoint
         var validationTags = new[]
         {
@@ -816,6 +973,45 @@ public class CustomOpenApiController : Controller
                 },
             }
         );
+    }
+
+    private List<IOpenApiAny> GetInstanceAppOptionsSchemaCollection()
+    {
+        var optionsIds = _appImplementationFactory.GetAll<IInstanceAppOptionsProvider>().Select(a => a.Id);
+
+        return optionsIds.Select(optionsId => new OpenApiString(optionsId)).Cast<IOpenApiAny>().ToList();
+    }
+
+    private List<IOpenApiAny> GetAppOptionsSchemaCollection(ApplicationMetadata appMetadata)
+    {
+        // Get Altinn 3 library code lists references configured in ApplicationMetadata:
+        const string libraryRefRegex =
+            @"^lib\*\*(?<org>[a-zA-Z0-9]+)\*\*(?<codeListId>[a-zA-Z0-9_-]+)\*\*(?<version>[a-zA-Z0-9._-]+)$";
+        var optionsIds = appMetadata
+            .DataTypes.Select(d => d.TaskId)
+            .Distinct()
+            .Select(taskId => _appResources.GetLayoutModelForTask(taskId))
+            .SelectMany(layout => layout?.AllComponents.OfType<OptionsComponent>().Select(oc => oc.OptionsId) ?? [])
+            .Where(o => !string.IsNullOrWhiteSpace(o) && Regex.IsMatch(o, libraryRefRegex))
+            .Distinct()
+            .ToList();
+
+        // Get all ids from IAppOptionsProviders:
+        optionsIds.AddRange(_appImplementationFactory.GetAll<IAppOptionsProvider>().Select(a => a.Id));
+
+        // Get Json file names:
+        string jsonOptionsFolderPath = Path.Join(_settings.AppBasePath, _settings.OptionsFolder);
+        if (Directory.Exists(jsonOptionsFolderPath))
+        {
+            optionsIds.AddRange(
+                Directory
+                    .GetFiles(jsonOptionsFolderPath)
+                    .Where(x => x.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                    .Select(Path.GetFileNameWithoutExtension)
+            );
+        }
+
+        return optionsIds.Select(optionsId => new OpenApiString(optionsId)).Cast<IOpenApiAny>().ToList();
     }
 
     private void AddRoutsForDataType(OpenApiDocument doc, ApplicationMetadata appMetadata, DataType dataType)

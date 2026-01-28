@@ -203,6 +203,7 @@ public static class MimeTypeMap
             { ".ics", new("application/octet-stream") },
             { ".idl", new("text/plain") },
             { ".ief", new("image/ief") },
+            { ".ifc", new("application/x-step") },
             { ".iii", new("application/x-iphone") },
             { ".inc", new("text/plain") },
             { ".inf", new("application/octet-stream") },

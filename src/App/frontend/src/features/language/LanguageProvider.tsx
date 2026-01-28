@@ -2,12 +2,11 @@ import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
-import { useProfileQuery } from 'src/features/profile/ProfileProvider';
+import { useProfile } from 'src/features/profile/ProfileProvider';
 import { useCookieState } from 'src/hooks/useCookieState';
 
 interface LanguageCtx {
   current: string;
-  languageResolved: boolean;
   appLanguages: string[] | undefined;
   setWithLanguageSelector: (language: string) => void;
 }
@@ -17,7 +16,6 @@ const { Provider, useCtx } = createContext<LanguageCtx>({
   required: false,
   default: {
     current: 'nb',
-    languageResolved: false,
     appLanguages: undefined,
     setWithLanguageSelector: () => {
       throw new Error('LanguageProvider not initialized');
@@ -26,9 +24,10 @@ const { Provider, useCtx } = createContext<LanguageCtx>({
 });
 
 export const LanguageProvider = ({ children }: PropsWithChildren) => {
-  const { data: profile, isLoading: isProfileLoading } = useProfileQuery();
+  const profile = useProfile();
 
-  const languageFromProfile = isProfileLoading ? undefined : profile?.profileSettingPreference.language;
+  const languageFromProfile = profile?.profileSettingPreference.language;
+
   const languageFromUrl = getLanguageFromUrl();
   const [languageFromSelector, setWithLanguageSelector] = useCookieState<string | null>('lang', null);
 
@@ -40,14 +39,11 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
     languageFromProfile,
   });
 
-  const languageResolved = !isProfileLoading;
-
   return (
     <Provider
       value={{
         current,
         appLanguages,
-        languageResolved,
         setWithLanguageSelector,
       }}
     >
@@ -57,7 +53,6 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
 };
 
 export const useCurrentLanguage = () => useCtx().current;
-export const useIsCurrentLanguageResolved = () => useCtx().languageResolved;
 export const useAppLanguages = () => useCtx().appLanguages;
 export const useSetLanguageWithSelector = () => useCtx().setWithLanguageSelector;
 

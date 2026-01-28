@@ -44,9 +44,9 @@ namespace LocalTest.Configuration
         }
 
         public string LocalFrontendHostname { get; set; } = "localhost";
-        
+
         public string LocalFrontendProtocol { get; set; } = "http";
-        
+
         /// <summary>
         /// Url for the local app when LocalAppMode == http
         /// <summary>
@@ -72,6 +72,8 @@ namespace LocalTest.Configuration
         public string AuthorizationDataFolder { get; set; } = "authorization/";
 
         public string PartyListFolder { get; set; } = "partylist/";
+
+        public string InstanceLockFolder { get; set; } = "instancelocks/";
 
         public string ResourceRegistryFolder { get; set; } = "authorization/resources/";
 

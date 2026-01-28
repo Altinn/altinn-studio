@@ -11,6 +11,7 @@ using Altinn.App.Core.Features.FileAnalyzis;
 using Altinn.App.Core.Features.Notifications.Email;
 using Altinn.App.Core.Features.Notifications.Sms;
 using Altinn.App.Core.Features.Options;
+using Altinn.App.Core.Features.Options.Altinn3LibraryCodeList;
 using Altinn.App.Core.Features.PageOrder;
 using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Payment.Processors.FakePaymentProcessor;
@@ -336,11 +337,14 @@ public static class ServiceCollectionExtensions
 
         // Services related to application options
         services.TryAddTransient<AppOptionsFactory>();
-        services.AddTransient<IAppOptionsProvider, DefaultAppOptionsProvider>();
         services.TryAddTransient<IAppOptionsFileHandler, AppOptionsFileHandler>();
 
         // Services related to instance aware and secure app options
         services.TryAddTransient<InstanceAppOptionsFactory>();
+
+        // Services related to Altinn 3 library code list
+        services.AddHttpClient<IAltinn3LibraryCodeListApiClient, Altinn3LibraryCodeListApiClient>();
+        services.TryAddTransient<IAltinn3LibraryCodeListService, Altinn3LibraryCodeListService>();
     }
 
     private static void AddExternalApis(IServiceCollection services)
@@ -382,6 +386,7 @@ public static class ServiceCollectionExtensions
 
         services.AddTransient<IServiceTask, PdfServiceTask>();
         services.AddTransient<IServiceTask, EFormidlingServiceTask>();
+        services.AddTransient<IServiceTask, SubformPdfServiceTask>();
     }
 
     private static void AddActionServices(IServiceCollection services)

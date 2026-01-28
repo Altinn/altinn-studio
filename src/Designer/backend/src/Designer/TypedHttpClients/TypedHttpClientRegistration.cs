@@ -69,7 +69,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddTransient<GitOpsBotTokenDelegatingHandler>();
             services.AddTransient<PlatformSubscriptionAuthDelegatingHandler>();
             services.AddMaskinportenHttpClient();
-            services.AddSlackClient(config);
+            services.AddHttpClient<ISlackClient, SlackClient>();
             services.AddRuntimeGatewayHttpClient(config, env);
 
             return services;
@@ -179,18 +179,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                     })
             .AddHttpMessageHandler<AnsattPortenTokenDelegatingHandler>();
 
-        }
-
-        private static IHttpClientBuilder AddSlackClient(this IServiceCollection services, IConfiguration config)
-        {
-            FeedbackFormSettings feedbackFormSettings = config.GetSection("FeedbackFormSettings").Get<FeedbackFormSettings>();
-            string token = config["FeedbackFormSlackToken"];
-            return services.AddHttpClient<ISlackClient, SlackClient>(client =>
-            {
-                client.BaseAddress = new Uri(feedbackFormSettings.SlackSettings.WebhookUrl + config["FeedbackFormSlackWebhookSecret"]);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
-            }).AddHttpMessageHandler<EnsureSuccessHandler>();
         }
     }
 }

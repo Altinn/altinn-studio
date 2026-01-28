@@ -11,6 +11,7 @@ export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefi
 export const selectedPartyUrl = `${appPath}/api/authorization/parties/current?returnPartyObject=true`;
 export const instancesControllerUrl = `${appPath}/instances`;
 export const refreshJwtTokenUrl = `${appPath}/api/authentication/keepAlive`;
+export const postalCodesUrl = 'https://altinncdn.no/postcodes/registry.json';
 
 export const getInstantiateUrl = (language?: string) => {
   const queryString = getQueryStringFromObject({ language });

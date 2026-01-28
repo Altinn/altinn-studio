@@ -56,7 +56,7 @@ partial class Telemetry
     {
         internal static readonly string MetricNameOrder = Metrics.CreateLibName("notification_orders");
 
-        [EnumExtensions]
+        [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
         internal enum OrderResult
         {
             [Display(Name = "success")]
@@ -66,7 +66,7 @@ partial class Telemetry
             Error,
         }
 
-        [EnumExtensions]
+        [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
         internal enum OrderType
         {
             [Display(Name = "sms")]
