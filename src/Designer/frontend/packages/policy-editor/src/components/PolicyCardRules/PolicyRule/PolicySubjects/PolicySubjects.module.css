@@ -1,7 +1,11 @@
 .personAccordion {
   background-color: var(--ds-color-success-surface-tinted);
+  font-weight: var(--ds-font-weight-medium);
+  font-size: var(--ds-font-size-4);
 }
 
 .orgAccordion {
   background-color: var(--ds-color-accent-surface-tinted);
+  font-weight: var(--ds-font-weight-medium);
+  font-size: var(--ds-font-size-4);
 }

@@ -3,6 +3,7 @@ import {
   StudioAlert,
   StudioDetails,
   StudioHeading,
+  StudioLink,
   StudioParagraph,
   StudioTabs,
 } from '@studio/components';
@@ -10,7 +11,6 @@ import { getPersonSubjects } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicySubjects.module.css';
-import { PersonIcon } from '@studio/icons';
 import { PolicyAccessPackages } from '../PolicyAccessPackages';
 import { useTranslation } from 'react-i18next';
 import { RoleList } from './RoleList/RoleList';
@@ -37,7 +37,7 @@ export const PolicySubjectsPriv = ({ handleSubjectChange }: PolicySubjectsPrivPr
   return (
     <StudioDetails data-color='neutral'>
       <StudioDetails.Summary className={classes.personAccordion}>
-        <PersonIcon fontSize={28} /> For privatperson
+        {t('policy_editor.person_subjects_header')}
       </StudioDetails.Summary>
       <StudioDetails.Content className={classes.subjectBlock}>
         <StudioTabs defaultValue={TabId.AccessPackages}>
@@ -55,14 +55,21 @@ export const PolicySubjectsPriv = ({ handleSubjectChange }: PolicySubjectsPrivPr
           </StudioTabs.Panel>
           <StudioTabs.Panel value={TabId.Guardian}>
             <StudioAlert data-color='info'>
-              <StudioHeading level={3}>Snart kommer vergeroller i Altinn</StudioHeading>
-              <StudioParagraph>
-                Vergerollene vil fungere tilsvarende roller fra Enhetsregisteret og tildeles av
-                Statsforvalteren. Rollene vil vises i Altinn, men kan ikke tilgangsstyres. Bruk
-                rollene for å gi verger tilgang til deres tjenester i kraft av rollen som verge.
+              <StudioHeading level={3} spacing>
+                {t('policy_editor.guardianship_alert_header')}
+              </StudioHeading>
+              <StudioParagraph spacing>
+                {t('policy_editor.guardianship_alert_first_line')}
               </StudioParagraph>
               <StudioParagraph>
-                Mer om vergerollene: https://www.vergemal.no/fullmaktstekst
+                {t('policy_editor.guardianship_alert_second_line')}{' '}
+                <StudioLink
+                  href='https://www.vergemal.no/fullmaktstekst'
+                  target='_blank'
+                  rel='noreferrer'
+                >
+                  https://www.vergemal.no/fullmaktstekst
+                </StudioLink>
               </StudioParagraph>
             </StudioAlert>
           </StudioTabs.Panel>

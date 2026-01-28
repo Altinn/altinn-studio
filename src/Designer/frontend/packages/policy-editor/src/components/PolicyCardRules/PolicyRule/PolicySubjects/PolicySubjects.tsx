@@ -124,17 +124,17 @@ export const PolicySubjects = () => {
   };
 
   const personGroups = [
-    getChosenAccessPackage('Tilgangspakker', chosenPrivAccessPackages),
-    getChosenRoles('Andre roller', getPersonSubjects(subjects)),
+    getChosenAccessPackage(t('policy_editor.access_package_header'), chosenPrivAccessPackages),
+    getChosenRoles(t('policy_editor.rule_card_subjects_other_roles'), getPersonSubjects(subjects)),
   ];
 
   const orgGroups = [
-    getChosenAccessPackage('Tilgangspakker', chosenOrgAccessPackages),
-    getChosenRoles('Andre/Altinn roller', [
+    getChosenAccessPackage(t('policy_editor.access_package_header'), chosenOrgAccessPackages),
+    getChosenRoles(t('policy_editor.rule_card_subjects_other_altinn_roles'), [
       ...getAltinnSubjects(subjects),
       ...getOtherSubjects(subjects),
     ]),
-    getChosenRoles('Enhetsregisterroller', getCcrSubjects(subjects)),
+    getChosenRoles(t('policy_editor.rule_card_subjects_ccr_roles'), getCcrSubjects(subjects)),
   ];
 
   return (

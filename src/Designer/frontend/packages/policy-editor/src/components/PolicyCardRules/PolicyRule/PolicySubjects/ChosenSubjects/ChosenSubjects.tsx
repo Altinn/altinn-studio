@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Buildings3Icon, PersonIcon } from '@studio/icons';
 import { SubjectListItem } from '../SubjectListItem';
 import classes from './ChosenSubjects.module.css';
@@ -18,6 +19,8 @@ interface ChosenSubjectsProps {
 }
 
 export const ChosenSubjects = ({ isPersonSubject, groups }: ChosenSubjectsProps) => {
+  const { t } = useTranslation();
+
   if (groups.reduce((prev, curr) => prev + curr.items.length, 0) === 0) {
     return null;
   }
@@ -26,7 +29,9 @@ export const ChosenSubjects = ({ isPersonSubject, groups }: ChosenSubjectsProps)
     .sort((a, b) => a.items.length - b.items.length)
     .filter((group) => group.items.length > 0);
   const Icon = isPersonSubject ? PersonIcon : Buildings3Icon;
-  const heading = isPersonSubject ? 'For privatpersoner' : 'For virksomheter';
+  const heading = isPersonSubject
+    ? t('policy_editor.person_subjects_header')
+    : t('policy_editor.org_subjects_header');
 
   const generateGroup = (group: ChosenSubjectGroup) => {
     return (
