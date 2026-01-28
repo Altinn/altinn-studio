@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -307,6 +308,12 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 				cookieValue["url"] = cookie.Url
 			}
 			cookies = append(cookies, cookieValue)
+		}
+
+		url := req.request.URL
+		if strings.Contains(url, "brg/aarsregnskap-vanlig") && os.Getenv("PDF3_ENVIRONMENT") == "tt02" {
+			payload, err := json.MarshalIndent(cookies, "", "  ")
+			w.logger.Info("Setting cookies for brg/aarsregnskap-vanlig", "cookies", payload, "err", err)
 		}
 
 		startedProcessing = true
