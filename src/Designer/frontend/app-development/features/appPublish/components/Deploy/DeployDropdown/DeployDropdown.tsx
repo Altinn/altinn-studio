@@ -1,5 +1,6 @@
 import React, { type ReactElement } from 'react';
 import classes from './DeployDropdown.module.css';
+import type { StudioSuggestionItem } from '@studio/components';
 import { StudioSuggestion, StudioSpinner, StudioError } from '@studio/components';
 import type { ImageOption } from '../../ImageOption';
 import { useTranslation } from 'react-i18next';
@@ -43,13 +44,13 @@ export const DeployDropdown = ({
   const successfullyBuiltAppReleases: AppRelease[] = filterSucceededReleases(releases);
   const imageOptions: ImageOption[] = mapAppReleasesToImageOptions(successfullyBuiltAppReleases, t);
 
-  const selectedItems = selectedImageTag
-    ? imageOptions.filter((option) => option.value === selectedImageTag)
-    : [];
+  const selectedItems: StudioSuggestionItem = selectedImageTag
+    ? imageOptions.filter((option) => option.value === selectedImageTag)[0]
+    : undefined;
 
-  const handleSelectedChange = (items: { value: string }[]) => {
+  const handleSelectedChange = (item: StudioSuggestionItem) => {
     if (!disabled) {
-      setSelectedImageTag(items[0]?.value || '');
+      setSelectedImageTag(item.value || '');
     }
   };
 
@@ -61,6 +62,7 @@ export const DeployDropdown = ({
         emptyText={t('app_deployment.no_versions')}
         filter={() => true}
         onSelectedChange={handleSelectedChange}
+        multiple={false}
       >
         {imageOptions.map((imageOption: ImageOption) => {
           return (
