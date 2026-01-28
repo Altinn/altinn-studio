@@ -8,13 +8,14 @@ import {
   StudioTabs,
 } from '@studio/components';
 import { getPersonSubjects } from '../../../../utils/PolicyRuleUtils';
-import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicySubjects.module.css';
 import { PolicyAccessPackages } from '../PolicyAccessPackages';
 import { useTranslation } from 'react-i18next';
 import { RoleList } from './RoleList/RoleList';
 import { PersonIcon } from '@studio/icons';
+import type { PolicySubject } from '@altinn/policy-editor/types';
+import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 
 enum TabId {
   AccessPackages = 'AccessPackages',
@@ -23,12 +24,17 @@ enum TabId {
 }
 
 interface PolicySubjectsPrivProps {
+  subjects: PolicySubject[];
+  accessPackages: PolicyAccessPackageAreaGroup[];
   handleSubjectChange: (subjectUrn: string, subjectLegacyUrn?: string) => void;
 }
 
-export const PolicySubjectsPriv = ({ handleSubjectChange }: PolicySubjectsPrivProps) => {
+export const PolicySubjectsPriv = ({
+  subjects,
+  accessPackages,
+  handleSubjectChange,
+}: PolicySubjectsPrivProps) => {
   const { t } = useTranslation();
-  const { subjects, accessPackagesPriv } = usePolicyEditorContext();
   const { policyRule } = usePolicyRuleContext();
 
   const personSubjects = useMemo(() => {
@@ -52,7 +58,7 @@ export const PolicySubjectsPriv = ({ handleSubjectChange }: PolicySubjectsPrivPr
             </StudioTabs.Tab>
           </StudioTabs.List>
           <StudioTabs.Panel value={TabId.AccessPackages}>
-            <PolicyAccessPackages accessPackages={accessPackagesPriv} isPersonSubject />
+            <PolicyAccessPackages accessPackages={accessPackages} isPersonSubject />
           </StudioTabs.Panel>
           <StudioTabs.Panel value={TabId.Guardian}>
             <StudioAlert data-color='info'>

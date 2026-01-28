@@ -1,3 +1,12 @@
+.subjectHeader {
+  margin-top: var(--ds-size-8);
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.subjectDescription {
+  color: var(--ds-color-text-subtle);
+}
+
 .personAccordion {
   background-color: var(--ds-color-success-surface-tinted);
   font-weight: var(--ds-font-weight-medium);

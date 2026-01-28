@@ -265,8 +265,7 @@ const ContextWrapper = () => {
     <PolicyEditorContext.Provider
       value={{
         ...mockPolicyEditorContextValue,
-        accessPackages: [accessPackageAreaGroupVanlig],
-        accessPackagesPriv: [accessPackageAreaGroupPerson],
+        accessPackages: [accessPackageAreaGroupVanlig, accessPackageAreaGroupPerson],
         subjects: subjects,
         policyRules: policyRules,
         setPolicyRules,

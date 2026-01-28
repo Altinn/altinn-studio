@@ -18,18 +18,26 @@ import { ChosenSubjects } from './ChosenSubjects/ChosenSubjects';
 import type { PolicySubject } from '@altinn/policy-editor/types';
 import classes from './PolicySubjects.module.css';
 
+const PERSON_ACCESS_PACKAGE_AREA_ID = '413f99ca-19ca-4124-8470-b0c1dba3d2ee';
+
 export const PolicySubjects = () => {
   const { t } = useTranslation();
-  const { policyRules, subjects, accessPackages, accessPackagesPriv, setPolicyRules, savePolicy } =
+  const { policyRules, subjects, accessPackages, setPolicyRules, savePolicy } =
     usePolicyEditorContext();
   const { policyRule, policyError, showAllErrors, setPolicyError } = usePolicyRuleContext();
 
   const flatAccessPackagesOrg = useMemo(() => {
-    return accessPackages.flatMap((a) => a.areas).flatMap((a) => a.packages);
+    return accessPackages
+      .filter((area) => area.id !== PERSON_ACCESS_PACKAGE_AREA_ID)
+      .flatMap((a) => a.areas)
+      .flatMap((a) => a.packages);
   }, [accessPackages]);
   const flatAccessPackagesPriv = useMemo(() => {
-    return accessPackagesPriv.flatMap((a) => a.areas).flatMap((a) => a.packages);
-  }, [accessPackagesPriv]);
+    return accessPackages
+      .filter((area) => area.id === PERSON_ACCESS_PACKAGE_AREA_ID)
+      .flatMap((a) => a.areas)
+      .flatMap((a) => a.packages);
+  }, [accessPackages]);
 
   const [chosenOrgAccessPackages, chosenPrivAccessPackages] = useMemo(() => {
     const org: PolicyAccessPackage[] = [];

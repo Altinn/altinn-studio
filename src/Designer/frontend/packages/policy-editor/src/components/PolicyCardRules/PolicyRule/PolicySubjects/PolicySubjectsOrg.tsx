@@ -5,13 +5,14 @@ import {
   getCcrSubjects,
   getOtherSubjects,
 } from '../../../../utils/PolicyRuleUtils';
-import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicySubjects.module.css';
 import { Buildings3Icon } from '@studio/icons';
 import { PolicyAccessPackages } from '../PolicyAccessPackages';
 import { useTranslation } from 'react-i18next';
 import { RoleList } from './RoleList/RoleList';
+import type { PolicySubject } from '@altinn/policy-editor/types';
+import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 
 enum TabId {
   ErRoles = 'ErRoles',
@@ -21,12 +22,17 @@ enum TabId {
 }
 
 interface PolicySubjectsOrgProps {
+  subjects: PolicySubject[];
+  accessPackages: PolicyAccessPackageAreaGroup[];
   handleSubjectChange: (subjectUrn: string, subjectLegacyUrn?: string) => void;
 }
 
-export const PolicySubjectsOrg = ({ handleSubjectChange }: PolicySubjectsOrgProps) => {
+export const PolicySubjectsOrg = ({
+  subjects,
+  accessPackages,
+  handleSubjectChange,
+}: PolicySubjectsOrgProps) => {
   const { t } = useTranslation();
-  const { subjects, accessPackages } = usePolicyEditorContext();
   const { policyRule } = usePolicyRuleContext();
 
   const ccrSubjects = useMemo(() => {

@@ -23,8 +23,6 @@ import { PolicyRulesEditor } from './components/PolicyRulesEditor';
 import { PolicyEditorTabs } from './components/PolicyEditorTabs';
 import { ConsentResourcePolicyRulesEditor } from './components/ConsentResourcePolicyRulesEditor';
 
-const PERSON_ACCESS_PACKAGE_AREA_ID = '413f99ca-19ca-4124-8470-b0c1dba3d2ee';
-
 export type PolicyEditorProps = {
   policy: Policy;
   actions: PolicyAction[];
@@ -76,10 +74,7 @@ export const PolicyEditor = ({
       setPolicyRules={setPolicyRules}
       actions={actions}
       subjects={subjects}
-      accessPackages={accessPackages?.filter((x) => x.id !== PERSON_ACCESS_PACKAGE_AREA_ID) ?? []}
-      accessPackagesPriv={
-        accessPackages?.filter((x) => x.id === PERSON_ACCESS_PACKAGE_AREA_ID) ?? []
-      }
+      accessPackages={accessPackages}
       usageType={usageType}
       resourceType={resourceType}
       showAllErrors={showAllErrors}
