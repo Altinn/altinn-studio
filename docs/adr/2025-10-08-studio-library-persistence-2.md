@@ -17,7 +17,7 @@ When choosing to use the "latest", it should not be required to redeploy an appl
 Users must get an overview over published resources in Studio Library.
 
 Diff from 007:
-Removed payment driver (B7) and public marketplace driver (B9), add alternatives A5 and A6.
+Remove payment driver (B7) and public marketplace driver (B9), add alternatives A5 and A6.
 
 ## Decision drivers
 
