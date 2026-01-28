@@ -1,12 +1,11 @@
 using System.Globalization;
 using System.Text.Json;
 using Azure;
+using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.Query.Logs;
 using Azure.Monitor.Query.Logs.Models;
-using Azure.ResourceManager;
 using Azure.ResourceManager.OperationalInsights;
-using Azure.ResourceManager.Resources;
 using StudioGateway.Api.Clients.MetricsClient.Contracts.AzureMonitor;
 using StudioGateway.Api.Settings;
 
@@ -14,12 +13,11 @@ namespace StudioGateway.Api.Clients.MetricsClient;
 
 internal sealed class AzureMonitorClient(
     GatewayContext gatewayContext,
-    ArmClient armClient,
     LogsQueryClient logsQueryClient,
     ILogger<AzureMonitorClient> logger
 ) : IMetricsClient
 {
-    private string? _workspaceId;
+    private ResourceIdentifier? _workspaceId;
 
     private const int MaxRange = 10080;
 
@@ -50,25 +48,13 @@ internal sealed class AzureMonitorClient(
         return range < 360 ? "5m" : "1h";
     }
 
-    private async Task<string> GetApplicationLogAnalyticsWorkspaceIdAsync()
+    private async Task<ResourceIdentifier> GetApplicationLogAnalyticsWorkspaceIdAsync()
     {
-        if (_workspaceId != null)
-            return _workspaceId;
-
-        string resourceGroupName = $"monitor-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-rg";
-        string workspaceName = $"application-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-law";
-
-        var subscription = armClient.GetSubscriptionResource(
-            SubscriptionResource.CreateResourceIdentifier(gatewayContext.AzureSubscriptionId)
+        return _workspaceId ??= OperationalInsightsWorkspaceResource.CreateResourceIdentifier(
+            gatewayContext.AzureSubscriptionId,
+            $"monitor-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-rg",
+            $"application-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-law"
         );
-        var rg = await subscription.GetResourceGroups().GetAsync(resourceGroupName);
-        var workspace = await rg.Value.GetOperationalInsightsWorkspaces().GetAsync(workspaceName);
-
-        _workspaceId =
-            workspace.Value.Data.CustomerId?.ToString()
-            ?? throw new InvalidOperationException("Log Analytics Workspace ID not found.");
-
-        return _workspaceId;
     }
 
     public async Task<IEnumerable<FailedRequest>> GetFailedRequestsAsync(int range, CancellationToken cancellationToken)
@@ -89,7 +75,7 @@ internal sealed class AzureMonitorClient(
                 | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
                 | summarize Count = count() by AppRoleName, OperationName";
 
-            Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
+            Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
                 logAnalyticsWorkspaceId,
                 query,
                 new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
@@ -151,7 +137,7 @@ internal sealed class AzureMonitorClient(
                 | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
-            Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
+            Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
                 logAnalyticsWorkspaceId,
                 query,
                 new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
@@ -224,7 +210,7 @@ internal sealed class AzureMonitorClient(
                 | summarize Count = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
-            Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
+            Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
                 logAnalyticsWorkspaceId,
                 query,
                 new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
