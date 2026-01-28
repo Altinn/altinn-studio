@@ -28,7 +28,7 @@ A list of decision drivers. These are points which can differ in importance. If 
 - B2: An application must be able to pin a version of a resource, and this resource must be immutable (per service owner).
 - B3: An application must be able to require "latest version" of a resource, and get updates during runtime.
 - B4: The endpoint for retrieving the resources should be open.
-- B5: Nice to have: When using the "latest version", it should be faster to wait for the application to retrieve a new publish of the resource than redeploying the application.
+- B5: Nice to have: When using the "latest version", it should be faster to wait for the application to retrieve a newly published version of the resource than redeploying the application.
 - B6: Need to have: The SLA for the persistent storage should not be worse than for the application.
 - B7: Users must get an overview over published resources in Studio Library - on the service owner organisations level.
 
@@ -65,7 +65,7 @@ List the pros and cons with the alternatives. This should be in regard to the de
 
 - Good, because it supports B1, B3, B4, B5, B6
 - Neutral, because B2 and B7 leads to complexity in the implementation
-  - B2: For immutability, we would need to duplicate data per organisation. If service owner X publishes a code list and service owner Y wants to use it we need duplication in order to avoid X breaking production for Y
+  - B2: For immutability, we would need to duplicate data per organisation. If service owner X publishes a code list and service owner Y wants to consume it, duplication is necessary so that changes introduced by X cannot break production for Y.
   - B7: We will need to manage the creation and updates of index files.
 
 ### A4 - Cluster hosted file persistence with Nginx
