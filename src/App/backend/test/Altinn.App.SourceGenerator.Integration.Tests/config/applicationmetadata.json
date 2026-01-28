@@ -12,6 +12,12 @@
             "appLogic": {
                 "classRef": "Altinn.App.SourceGenerator.Integration.Tests.Models.Skjema"
             }
+        },
+        {
+            "id": "empty",
+            "appLogic": {
+                "classRef": "Altinn.App.SourceGenerator.Integration.Tests.Models.Empty"
+            }
         }
     ],
     "partyTypesAllowed": {}

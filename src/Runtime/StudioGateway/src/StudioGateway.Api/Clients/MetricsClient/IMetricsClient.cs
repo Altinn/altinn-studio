@@ -1,3 +1,4 @@
+using System;
 using StudioGateway.Api.Clients.MetricsClient.Contracts.AzureMonitor;
 
 namespace StudioGateway.Api.Clients.MetricsClient;
@@ -11,5 +12,13 @@ internal interface IMetricsClient
         CancellationToken cancellationToken
     );
     public Task<IEnumerable<AppMetric>> GetAppMetricsAsync(string app, int range, CancellationToken cancellationToken);
-    public Uri GetLogsUrl(string subscriptionId, string org, string env, string appName, string metricName, int range);
+    public Uri? GetLogsUrl(
+        string subscriptionId,
+        string org,
+        string env,
+        IReadOnlyCollection<string> apps,
+        string? metricName,
+        DateTimeOffset from,
+        DateTimeOffset to
+    );
 }

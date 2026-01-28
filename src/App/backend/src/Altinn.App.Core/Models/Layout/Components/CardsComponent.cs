@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Models.Layout.Components;
 /// <summary>
 /// This class represents a component that references other components and displays them in a card-like format.
 /// </summary>
-public sealed class CardsComponent : SimpleReferenceComponent
+public sealed class CardsComponent : ReferenceComponent
 {
     /// <summary>
     /// Parser for CardsComponent from a JsonElement

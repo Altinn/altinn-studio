@@ -27,18 +27,6 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
       ...component,
     },
     ...rest,
-    queries: {
-      fetchPostPlace: async (input) => {
-        if (input === '0001') {
-          return { valid: true, result: 'OSLO' };
-        }
-        if (input === '0002') {
-          return { valid: true, result: 'BERGEN' };
-        }
-        return { valid: false, result: '' };
-      },
-      ...rest.queries,
-    },
   });
 
 describe('AddressComponent', () => {
@@ -113,10 +101,6 @@ describe('AddressComponent', () => {
       },
       queries: {
         fetchFormData: async () => ({ address: 'initial address', zipCode: '0001' }),
-        fetchPostPlace: (zipCode: string) =>
-          zipCode === '0001'
-            ? Promise.resolve({ valid: true, result: 'OSLO' })
-            : Promise.resolve({ valid: false, result: '' }),
       },
     });
 
@@ -167,7 +151,7 @@ describe('AddressComponent', () => {
   });
 
   it('should call dispatch for post place when zip code is cleared', async () => {
-    const { formDataMethods, queries } = await render({
+    const { formDataMethods } = await render({
       queries: {
         fetchFormData: async () => ({ address: 'a', zipCode: '0001', postPlace: 'Oslo' }),
       },
@@ -187,12 +171,10 @@ describe('AddressComponent', () => {
       reference: { field: 'postPlace', dataType: defaultDataTypeMock },
       newValue: '',
     });
-
-    expect(queries.fetchPostPlace).toHaveBeenCalledTimes(1);
   });
 
-  it('should only call fetchPostPlace once at the end, when debouncing', async () => {
-    const { queries } = await render({
+  it('should update post place after typing zip code with debouncing', async () => {
+    await render({
       queries: {
         fetchFormData: async () => ({ address: 'a', zipCode: '', postPlace: '' }),
       },
@@ -202,9 +184,6 @@ describe('AddressComponent', () => {
     await waitFor(() => expect(screen.getByRole('textbox', { name: 'Poststed' })).toHaveDisplayValue('BERGEN'), {
       timeout: 15000,
     });
-
-    expect(queries.fetchPostPlace).toHaveBeenCalledTimes(1);
-    expect(queries.fetchPostPlace).toHaveBeenCalledWith('0002');
   });
 
   it('should display no extra markings when required is false, and labelSettings.optionalIndicator is not true', async () => {

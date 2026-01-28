@@ -147,6 +147,33 @@ describe('RepeatingGroupTable', () => {
       await userEvent.click(screen.getAllByRole('button', { name: /rediger/i })[0]);
       expect(screen.getByTestId('editIndex')).toHaveTextContent('0');
     });
+
+    it('should render EditableCell when editInTable is enabled for a column', async () => {
+      const groupWithEditInTable = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        tableColumns: { field1: { editInTable: true } },
+      });
+      const layout = getLayout(groupWithEditInTable, components);
+      await render(layout);
+      const inputs = screen.getAllByRole('textbox');
+      expect(inputs.length).toBeGreaterThan(0);
+      const field1Inputs = inputs.filter((input) => input.getAttribute('id')?.includes('field1'));
+      expect(field1Inputs.length).toBeGreaterThan(0);
+    });
+
+    it('should render EditableCell when edit mode is onlyTable', async () => {
+      const groupWithOnlyTableMode = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        edit: { mode: 'onlyTable' },
+        tableColumns: { field1: { editInTable: true } },
+      });
+      const layout = getLayout(groupWithOnlyTableMode, components);
+      await render(layout);
+      const inputs = screen.getAllByRole('textbox');
+      expect(inputs.length).toBeGreaterThan(0);
+      const field1Inputs = inputs.filter((input) => input.getAttribute('id')?.includes('field1'));
+      expect(field1Inputs.length).toBeGreaterThan(0);
+    });
   });
 
   describe('mobile view', () => {

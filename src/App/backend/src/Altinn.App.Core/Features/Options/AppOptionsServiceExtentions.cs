@@ -18,6 +18,6 @@ public static class AppOptionsServiceExtentions
             sp.GetRequiredService<AppOptionsFactory>
         ));
         // Note the missing () on GetRequiredService in order to inject a function that captures the service collection
-        // to lazily initialize the option provider list to avoid a cyclic depencency.
+        // to lazily initialize the option provider list to avoid a cyclic dependency.
     }
 }

@@ -10,9 +10,13 @@ internal static class AddIndexToPathGenerator
             $$"""
 
                 /// <inheritdoc />
-                public global::System.ReadOnlySpan<char> AddIndexToPath(global::System.ReadOnlySpan<char> path, global::System.ReadOnlySpan<int> rowIndexes, global::System.Span<char> buffer)
+                public global::System.ReadOnlySpan<char> AddIndexToPath(
+                    global::System.ReadOnlySpan<char> path,
+                    global::System.ReadOnlySpan<int> rowIndexes,
+                    global::System.Span<char> buffer
+                )
                 {
-                    if(path.IsEmpty)
+                    if (path.IsEmpty)
                     {
                         return global::System.ReadOnlySpan<char>.Empty;
                     }
@@ -90,7 +94,9 @@ internal static class AddIndexToPathGenerator
                                         buffer[bufferOffset++] = '[';
                                         if (!literalIndex.TryFormat(buffer[bufferOffset..], out int charsWritten))
                                         {
-                                            throw new global::System.ArgumentException($"Buffer too small to write index for {path}.");
+                                            throw new global::System.ArgumentException(
+                                                $"Buffer too small to write index for {path}."
+                                            );
                                         }
 
                                         bufferOffset += charsWritten;
@@ -103,7 +109,9 @@ internal static class AddIndexToPathGenerator
                                         buffer[bufferOffset++] = '[';
                                         if (!rowIndexes[0].TryFormat(buffer[bufferOffset..], out int charsWritten))
                                         {
-                                            throw new global::System.ArgumentException($"Buffer too small to write index for {path}.");
+                                            throw new global::System.ArgumentException(
+                                                $"Buffer too small to write index for {path}."
+                                            );
                                         }
                                         bufferOffset += charsWritten;
                                         buffer[bufferOffset++] = ']';
@@ -145,7 +153,7 @@ internal static class AddIndexToPathGenerator
                 );
             }
 
-            builder.Append("                return;\n");
+            builder.Append("                return;\r\n");
         }
 
         builder.Append(

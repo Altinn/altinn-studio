@@ -25,7 +25,7 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc/>
-        public Task<Instance> GetInstance(string instanceId, int instanceOwnerId)
+        public async Task<Instance> GetInstance(string instanceId, int instanceOwnerId)
         {
             if (instanceOwnerId <= 0)
             {
@@ -33,7 +33,8 @@ namespace Altinn.Platform.Authorization.Repositories
             }
 
             string[] instanceIdParts = instanceId.Split("/");
-            return _instanceRepository.GetOne(int.Parse(instanceIdParts[0]), Guid.Parse(instanceIdParts[1]));
+            (Instance instance, long internalId) = await _instanceRepository.GetOne(Guid.Parse(instanceIdParts[1]), true, CancellationToken.None);
+            return instance;
         }
 
 
@@ -41,7 +42,8 @@ namespace Altinn.Platform.Authorization.Repositories
         public async Task<Instance> GetInstance(string instanceId)
         {
             string[] instanceIdParts = instanceId.Split("/");
-            return await _instanceRepository.GetOne(int.Parse(instanceIdParts[0]), Guid.Parse(instanceIdParts[1]));
+            (Instance instance, long internalId) = await _instanceRepository.GetOne(Guid.Parse(instanceIdParts[1]), true, CancellationToken.None);
+            return instance;
         }
 
 

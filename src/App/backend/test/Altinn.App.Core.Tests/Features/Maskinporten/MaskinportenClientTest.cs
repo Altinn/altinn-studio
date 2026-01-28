@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Text.Json;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
+using Moq.Protected;
 
 namespace Altinn.App.Core.Tests.Features.Maskinporten;
 
@@ -51,10 +53,11 @@ public class MaskinportenClientTests
                 _ => throw new ArgumentException($"Unknown variant: {variant}"),
             };
 
-        public static Fixture Create(bool configureMaskinporten = true)
+        public static Fixture Create(bool configureMaskinporten = true, string? authority = null)
         {
             var mockHttpClientFactory = new Mock<IHttpClientFactory>();
             var fakeTimeProvider = new FakeTime(new DateTimeOffset(2024, 1, 1, 10, 0, 0, TimeSpan.Zero));
+            var effectiveAuthority = authority ?? DefaultSettings.Authority;
 
             var app = AppBuilder.Build(registerCustomAppServices: services =>
             {
@@ -67,7 +70,7 @@ public class MaskinportenClientTests
                 {
                     services.Configure<MaskinportenSettings>(options =>
                     {
-                        options.Authority = DefaultSettings.Authority;
+                        options.Authority = effectiveAuthority;
                         options.ClientId = DefaultSettings.ClientId;
                         options.JwkBase64 = DefaultSettings.JwkBase64;
                     });
@@ -75,7 +78,7 @@ public class MaskinportenClientTests
                         MaskinportenClient.VariantInternal,
                         options =>
                         {
-                            options.Authority = InternalSettings.Authority;
+                            options.Authority = effectiveAuthority;
                             options.ClientId = InternalSettings.ClientId;
                             options.JwkBase64 = InternalSettings.JwkBase64;
                         }
@@ -149,14 +152,15 @@ public class MaskinportenClientTests
         await using var fixture = Fixture.Create();
         var settings = fixture.Client(variant).Settings;
         var scopes = "scope1 scope2";
+        var audience = "https://test.maskinporten.no/";
 
         // Act
-        var jwt = fixture.Client(variant).GenerateJwtGrant(scopes);
+        var jwt = fixture.Client(variant).GenerateJwtGrant(scopes, audience);
         var parsed = new JwtSecurityTokenHandler().ReadJwtToken(jwt);
 
         // Assert
         Assert.Single(parsed.Audiences);
-        Assert.Equal(settings.Authority, parsed.Audiences.Single());
+        Assert.Equal(audience, parsed.Audiences.Single());
         Assert.Equal(settings.ClientId, parsed.Issuer);
         Assert.Equal(scopes, parsed.Claims.First(x => x.Type == "scope").Value);
     }
@@ -171,7 +175,7 @@ public class MaskinportenClientTests
         // Act
         var act = () =>
         {
-            fixture.Client(variant).GenerateJwtGrant("scope");
+            fixture.Client(variant).GenerateJwtGrant("scope", "https://test.maskinporten.no/");
         };
 
         // Assert
@@ -460,5 +464,295 @@ public class MaskinportenClientTests
         // Assert
         Assert.Equal(expectedMaskinportenKey, maskinportenResult);
         Assert.Equal(expectedAltinnKey, altinnResult);
+    }
+
+    [Theory]
+    [MemberData(nameof(Variants))]
+    public async Task GetAudienceFromWellKnown_FetchesAndCachesIssuer(string variant)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(variant);
+        const string expectedIssuer = "https://issuer.maskinporten.no/";
+        var callCount = 0;
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                callCount++;
+                var mockHandler = new Mock<HttpMessageHandler>();
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.IsAny<HttpRequestMessage>(),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .ReturnsAsync(
+                        new HttpResponseMessage
+                        {
+                            StatusCode = HttpStatusCode.OK,
+                            Content = new StringContent(JsonSerializer.Serialize(new { issuer = expectedIssuer })),
+                        }
+                    );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act
+        var result1 = await client.GetAudienceFromWellKnown();
+        var result2 = await client.GetAudienceFromWellKnown();
+
+        // Assert
+        Assert.Equal(expectedIssuer, result1);
+        Assert.Equal(expectedIssuer, result2);
+        Assert.Equal(1, callCount); // Only one HTTP call due to caching
+    }
+
+    [Theory]
+    [MemberData(nameof(Variants))]
+    public async Task GetAudienceFromWellKnown_BackgroundRefreshesExpiredCache(string variant)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(variant);
+        const string issuer1 = "https://issuer1.maskinporten.no/";
+        const string issuer2 = "https://issuer2.maskinporten.no/";
+        var currentIssuer = issuer1;
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var mockHandler = new Mock<HttpMessageHandler>();
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.IsAny<HttpRequestMessage>(),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .ReturnsAsync(() =>
+                        new HttpResponseMessage
+                        {
+                            StatusCode = HttpStatusCode.OK,
+                            Content = new StringContent(JsonSerializer.Serialize(new { issuer = currentIssuer })),
+                        }
+                    );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act
+        var result1 = await client.GetAudienceFromWellKnown();
+        currentIssuer = issuer2;
+        fixture.FakeTime.Advance(MaskinportenClient.WellKnownCacheDuration + TimeSpan.FromSeconds(1));
+
+        // Second call returns stale value immediately, triggers background refresh
+        var result2 = await client.GetAudienceFromWellKnown();
+
+        // Wait for background refresh to complete
+        string result3 = issuer1;
+        var timeout = TimeSpan.FromSeconds(5);
+        var stopwatch = Stopwatch.StartNew();
+        while (stopwatch.Elapsed < timeout)
+        {
+            result3 = await client.GetAudienceFromWellKnown();
+            if (result3 == issuer2)
+                break;
+            await Task.Delay(10);
+        }
+
+        // Assert
+        Assert.Equal(issuer1, result1);
+        Assert.Equal(issuer1, result2); // Returns stale immediately
+        Assert.Equal(issuer2, result3); // Gets refreshed value
+    }
+
+    [Theory]
+    [MemberData(nameof(Variants))]
+    public async Task GetAudienceFromWellKnown_UsesStaleCacheOnFailure(string variant)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(variant);
+        const string cachedIssuer = "https://cached.maskinporten.no/";
+        var shouldFail = false;
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var mockHandler = new Mock<HttpMessageHandler>();
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.IsAny<HttpRequestMessage>(),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .ReturnsAsync(() =>
+                        shouldFail
+                            ? new HttpResponseMessage { StatusCode = HttpStatusCode.InternalServerError }
+                            : new HttpResponseMessage
+                            {
+                                StatusCode = HttpStatusCode.OK,
+                                Content = new StringContent(JsonSerializer.Serialize(new { issuer = cachedIssuer })),
+                            }
+                    );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act - first call succeeds and caches
+        var result1 = await client.GetAudienceFromWellKnown();
+        shouldFail = true;
+        fixture.FakeTime.Advance(MaskinportenClient.WellKnownCacheDuration + TimeSpan.FromSeconds(1));
+        // Second call fails but should return stale cached value
+        var result2 = await client.GetAudienceFromWellKnown();
+
+        // Assert
+        Assert.Equal(cachedIssuer, result1);
+        Assert.Equal(cachedIssuer, result2);
+    }
+
+    [Theory]
+    [MemberData(nameof(Variants))]
+    public async Task GetAudienceFromWellKnown_FallsBackToAuthorityOnFirstFailure(string variant)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(variant);
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var mockHandler = new Mock<HttpMessageHandler>();
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.IsAny<HttpRequestMessage>(),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.InternalServerError });
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act
+        var result = await client.GetAudienceFromWellKnown();
+
+        // Assert - should fall back to Authority since no cached value exists
+        Assert.Equal(client.Settings.Authority, result);
+    }
+
+    public static TheoryData<string> AuthorityVariants =>
+        new()
+        {
+            "https://maskinporten.dev/", // with trailing slash
+            "https://maskinporten.dev", // without trailing slash
+        };
+
+    [Theory]
+    [MemberData(nameof(AuthorityVariants))]
+    public async Task GetAccessToken_ConstructsCorrectTokenEndpointUrl_RegardlessOfTrailingSlash(string authority)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create(authority: authority);
+        var client = fixture.Client(MaskinportenClient.VariantDefault);
+        var capturedUrls = new CapturedUrls();
+        var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
+            scope: "scope",
+            expiry: TimeSpan.FromMinutes(2),
+            fixture.FakeTime
+        );
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var mockHandler = TestHelpers.MockHttpMessageHandlerFactory(
+                    maskinportenTokenResponse,
+                    altinnAccessToken: null,
+                    wellKnownIssuer: null,
+                    capturedUrls
+                );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act
+        await client.GetAccessToken(["scope"]);
+
+        // Assert - token endpoint should always be constructed correctly
+        Assert.NotNull(capturedUrls.TokenUrl);
+        Assert.Equal("https://maskinporten.dev/token", capturedUrls.TokenUrl.ToString());
+    }
+
+    [Theory]
+    [MemberData(nameof(AuthorityVariants))]
+    public async Task GetAccessToken_ConstructsCorrectWellKnownUrl_RegardlessOfTrailingSlash(string authority)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create(authority: authority);
+        var client = fixture.Client(MaskinportenClient.VariantDefault);
+        var capturedUrls = new CapturedUrls();
+        var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
+            scope: "scope",
+            expiry: TimeSpan.FromMinutes(2),
+            fixture.FakeTime
+        );
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var mockHandler = TestHelpers.MockHttpMessageHandlerFactory(
+                    maskinportenTokenResponse,
+                    altinnAccessToken: null,
+                    wellKnownIssuer: null,
+                    capturedUrls
+                );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act
+        await client.GetAccessToken(["scope"]);
+
+        // Assert - well-known endpoint should always be constructed correctly
+        Assert.NotNull(capturedUrls.WellKnownUrl);
+        Assert.Equal(
+            "https://maskinporten.dev/.well-known/oauth-authorization-server",
+            capturedUrls.WellKnownUrl.ToString()
+        );
+    }
+
+    [Theory]
+    [MemberData(nameof(AuthorityVariants))]
+    public async Task GetAudienceFromWellKnown_FallbackAlwaysHasTrailingSlash(string authority)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create(authority: authority);
+        var client = fixture.Client(MaskinportenClient.VariantDefault);
+
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var mockHandler = new Mock<HttpMessageHandler>();
+                mockHandler
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.IsAny<HttpRequestMessage>(),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.InternalServerError });
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act
+        var result = await client.GetAudienceFromWellKnown();
+
+        // Assert - fallback should always have trailing slash for JWT audience claim
+        Assert.Equal("https://maskinporten.dev/", result);
     }
 }
