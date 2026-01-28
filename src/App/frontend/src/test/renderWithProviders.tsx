@@ -16,7 +16,6 @@ import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloa
 import { getOrgsMock } from 'src/__mocks__/getOrgsMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
-import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { FormProvider } from 'src/features/form/FormContext';
@@ -26,7 +25,6 @@ import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataRea
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { LanguageProvider } from 'src/features/language/LanguageProvider';
-import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
@@ -136,7 +134,6 @@ const defaultQueryMocks: AppQueries = {
   fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IRawOption[], unknown>,
   fetchDataList: async () => getDataListMock(),
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
-  fetchTextResources: async (language) => ({ language, resources: getTextResourcesMock() }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
   fetchLayoutSettings: async () => ({ pages: { order: [] } as unknown as IPagesSettingsWithOrder }),
   fetchLayouts: () => Promise.reject(new Error('fetchLayouts not mocked')),
@@ -325,9 +322,7 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
               <NavigationEffectProvider>
                 <GlobalFormDataReadersProvider>
                   <OrgsProvider>
-                    <PartyProvider>
-                      <TextResourcesProvider>{children}</TextResourcesProvider>
-                    </PartyProvider>
+                    <PartyProvider>{children}</PartyProvider>
                   </OrgsProvider>
                 </GlobalFormDataReadersProvider>
               </NavigationEffectProvider>

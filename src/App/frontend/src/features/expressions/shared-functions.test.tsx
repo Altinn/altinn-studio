@@ -22,6 +22,7 @@ import {
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
 import { getLayoutSets } from 'src/features/form/layoutSets';
+import { toTextResourceMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {
@@ -185,6 +186,13 @@ describe('Expressions shared function tests', () => {
         stateless,
       } = test;
 
+      jest.mocked(useTextResources).mockReturnValue(
+        toTextResourceMap({
+          language: 'nb',
+          resources: textResources || [],
+        }),
+      );
+
       if (disabledFrontend) {
         // Skipped tests usually means that the frontend does not support the feature yet
         return;
@@ -344,10 +352,6 @@ describe('Expressions shared function tests', () => {
         fetchLayouts: async () => layouts,
         fetchFormData,
         ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
-        fetchTextResources: async () => ({
-          language: 'nb',
-          resources: textResources || [],
-        }),
         fetchOptions: async (url: string) => {
           const codeListId = url.match(/api\/options\/(\w+)\?/)?.[1];
           if (!codeLists || !codeListId || !codeLists[codeListId]) {

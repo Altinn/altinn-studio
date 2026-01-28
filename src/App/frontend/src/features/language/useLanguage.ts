@@ -15,10 +15,7 @@ import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import type { DataModelReader, useDataModelReaders } from 'src/features/formData/FormDataReaders';
 import type { TextResourceMap } from 'src/features/language/textResources';
-import type {
-  LangDataSources,
-  LimitedTextResourceVariablesDataSources,
-} from 'src/features/language/useLangToolsDataSources';
+import type { LimitedTextResourceVariablesDataSources } from 'src/features/language/useLangToolsDataSources';
 import type { FormDataSelector } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { LooseAutocomplete } from 'src/types';
@@ -99,10 +96,7 @@ export function useLanguageWithForcedPath(dataModelPath: IDataModelReference | u
   const formDataSelector = FD.useLaxDebouncedSelector();
 
   return useMemo(() => {
-    const { textResources, language, selectedLanguage, ...dataSources } = sources || {};
-    if (!textResources || !language || !selectedLanguage) {
-      throw new Error('useLanguage must be used inside a LangToolsStoreProvider');
-    }
+    const { textResources, language, selectedLanguage, ...dataSources } = sources;
 
     return staticUseLanguage(textResources, language, selectedLanguage, {
       ...(dataSources as LimitedTextResourceVariablesDataSources),
@@ -123,10 +117,7 @@ export function useInnerLanguageWithForcedPathSelector(
 
   return useCallback(
     (dataModelPath?: IDataModelReference) => {
-      const { textResources, language, selectedLanguage, ...dataSources } = sources || ({} as LangDataSources);
-      if (!textResources || !language || !selectedLanguage) {
-        throw new Error('useLanguage must be used inside a LangToolsStoreProvider');
-      }
+      const { textResources, language, selectedLanguage, ...dataSources } = sources;
 
       return staticUseLanguage(textResources, language, selectedLanguage, {
         ...dataSources,
