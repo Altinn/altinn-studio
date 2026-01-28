@@ -52,6 +52,29 @@ const accessPackageAreaGroupVanlig: PolicyAccessPackageAreaGroup = {
   areas: [accessPackageAreaTransport],
 };
 
+const skatteforhold: PolicyAccessPackage = {
+  id: 'urn:altinn:accesspackage:innbygger:skatteforhold-privatpersoner',
+  urn: 'urn:altinn:accesspackage:innbygger:skatteforhold-privatpersoner',
+  name: 'Skatteforhold for privatpersoner',
+  description: '',
+  isResourcePolicyAvailable: true,
+};
+const skattOgAvgift: PolicyAccessPackageArea = {
+  id: 'accesspackage:area:skatt_avgift_bank_og_forsikring',
+  urn: 'accesspackage:area:skatt_avgift_bank_og_forsikring',
+  name: 'Skatt, avgift, bank og forsikring',
+  description: '',
+  iconUrl: 'TruckIcon',
+  packages: [skatteforhold],
+};
+const accessPackageAreaGroupPerson: PolicyAccessPackageAreaGroup = {
+  id: 'person',
+  name: 'Person',
+  description: 'Tilgangspakker for privatperson',
+  type: 'Person',
+  areas: [skattOgAvgift],
+};
+
 const revisorRoleSubject = {
   id: 'f76b997a-9bd8-4f7b-899f-fcd85d35669f',
   name: 'Revisor',
@@ -136,7 +159,7 @@ describe('PolicySubjects', () => {
     const user = userEvent.setup();
     renderPolicySubjects();
 
-    const label = `${mockSubject1.name} (${mockSubject1.legacyRoleCode})`;
+    const label = mockSubject1.name;
     const selectedSubjectCheckbox = screen.getByLabelText(label);
     await user.click(selectedSubjectCheckbox);
 
@@ -181,10 +204,10 @@ describe('PolicySubjects', () => {
     const user = userEvent.setup();
     renderPolicySubjects();
 
-    const accessPackagesTab = screen.getByText(
-      textMock('policy_editor.rule_card_subjects_access_packages'),
-    );
-    await user.click(accessPackagesTab);
+    const accessPackagesTab = screen.getAllByRole('tab', {
+      name: textMock('policy_editor.rule_card_subjects_access_packages'),
+    });
+    await user.click(accessPackagesTab[0]);
 
     expect(screen.getByText(accessPackageAreaTransport.name)).toBeInTheDocument();
   });
@@ -208,10 +231,10 @@ describe('PolicySubjects', () => {
     const user = userEvent.setup();
     renderPolicySubjects();
 
-    const otherRolesTab = screen.getByText(
-      textMock('policy_editor.rule_card_subjects_other_roles'),
-    );
-    await user.click(otherRolesTab);
+    const otherRolesTab = screen.getAllByRole('tab', {
+      name: textMock('policy_editor.rule_card_subjects_other_roles'),
+    });
+    await user.click(otherRolesTab[0]);
 
     expect(
       screen.getByText(`${policySubjectOrg.name} (${policySubjectOrg.legacyRoleCode})`),
@@ -243,6 +266,7 @@ const ContextWrapper = () => {
       value={{
         ...mockPolicyEditorContextValue,
         accessPackages: [accessPackageAreaGroupVanlig],
+        accessPackagesPriv: [accessPackageAreaGroupPerson],
         subjects: subjects,
         policyRules: policyRules,
         setPolicyRules,
