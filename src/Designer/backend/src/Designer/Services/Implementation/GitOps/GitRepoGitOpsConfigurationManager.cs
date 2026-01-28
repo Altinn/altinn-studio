@@ -42,7 +42,7 @@ public class GitRepoGitOpsConfigurationManager(
 
     public async Task EnsureGitOpsConfigurationExistsAsync(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
-        AltinnAuthenticatedRepoEditingContext gitOpsAuthenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(context.Org, GitOpsRepoName(context.Org), context.Developer, gitOpsSettings.BotPersonalAccessToken);
+        AltinnAuthenticatedRepoEditingContext gitOpsAuthenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer, gitOpsSettings.BotPersonalAccessToken);
         DeleteLocalRepositoryIfExists(context);
         await EnsureRemoteRepositoryExists(context);
 
