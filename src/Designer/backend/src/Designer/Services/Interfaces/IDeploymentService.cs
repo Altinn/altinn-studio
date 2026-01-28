@@ -20,11 +20,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Creates a document in document db
         /// </summary>
         /// <param name="authenticatedContext"> An <see cref="AltinnAuthenticatedRepoEditingContext"/> holding the data about editing context.</param>
-        /// <param name="app">Application name</param>
         /// <param name="deployment">Release containing data from client</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The created document in db</returns>
-        Task<DeploymentEntity> CreateAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, string app, DeploymentModel deployment, CancellationToken cancellationToken = default);
+        Task<DeploymentEntity> CreateAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, DeploymentModel deployment, CancellationToken cancellationToken = default);
         /// <summary>
         /// Gets deployments
         /// </summary>

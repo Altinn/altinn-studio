@@ -131,7 +131,7 @@ namespace Designer.Tests.Services
 
             // Act
             DeploymentEntity deploymentEntity =
-                await deploymentService.CreateAsync(authenticatedContext, app, deploymentModel);
+                await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
             // Assert
             Assert.NotNull(deploymentEntity);
@@ -278,7 +278,7 @@ namespace Designer.Tests.Services
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             // Act
-            await deploymentService.CreateAsync(authenticatedContext, app, deploymentModel);
+            await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
             // Assert - feature flag is checked twice (once for GitOps logic, once for definition selection)
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
@@ -373,7 +373,7 @@ namespace Designer.Tests.Services
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             // Act
-            await deploymentService.CreateAsync(authenticatedContext, app, deploymentModel);
+            await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
             // Assert - feature flag is checked twice (once for GitOps logic, once for definition selection)
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
@@ -460,7 +460,7 @@ namespace Designer.Tests.Services
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             // Act
-            await deploymentService.CreateAsync(authenticatedContext, app, deploymentModel);
+            await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
             // Assert - feature flag is checked twice (once for GitOps logic, once for definition selection)
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
