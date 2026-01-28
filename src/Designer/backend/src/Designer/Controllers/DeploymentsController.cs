@@ -105,7 +105,7 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
 
-            return Created(string.Empty, await _deploymentService.CreateAsync(authenticatedContext, app, createDeployment.ToDomainModel(), cancellationToken));
+            return Created(string.Empty, await _deploymentService.CreateAsync(authenticatedContext, createDeployment.ToDomainModel(), cancellationToken));
         }
 
         /// <summary>
