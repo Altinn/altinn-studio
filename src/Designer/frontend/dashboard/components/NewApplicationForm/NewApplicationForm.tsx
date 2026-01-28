@@ -83,7 +83,7 @@ export const NewApplicationForm = ({
     const newAppForm: NewAppForm = {
       org: formData.get('org') as string,
       repoName: formData.get('repoName') as string,
-      templates: selectedTemplate ? [selectedTemplate] : undefined,
+      template: selectedTemplate ? selectedTemplate : undefined,
     };
 
     const isFormValid: boolean = validateNewAppForm(newAppForm);

@@ -53,11 +53,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       {
         org,
         repository: repoName,
-        ...(template
-          ? {
-              template: { id: template.id, owner: template.owner },
-            }
-          : {}),
+        template: template ? { id: template.id, owner: template.owner } : {},
       },
       {
         onSuccess: (): void => {
