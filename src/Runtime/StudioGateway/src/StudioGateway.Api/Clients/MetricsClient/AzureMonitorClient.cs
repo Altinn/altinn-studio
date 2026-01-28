@@ -87,7 +87,7 @@ internal sealed class AzureMonitorClient(
                 | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
                 | summarize Count = count() by AppRoleName, OperationName";
 
-            Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
+            Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
                 logAnalyticsWorkspaceId,
                 query,
                 new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
@@ -149,7 +149,7 @@ internal sealed class AzureMonitorClient(
                 | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
-            Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
+            Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
                 logAnalyticsWorkspaceId,
                 query,
                 new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
@@ -222,7 +222,7 @@ internal sealed class AzureMonitorClient(
                 | summarize Count = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
-            Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
+            Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
                 logAnalyticsWorkspaceId,
                 query,
                 new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
