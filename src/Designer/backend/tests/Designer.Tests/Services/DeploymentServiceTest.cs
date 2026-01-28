@@ -129,8 +129,6 @@ namespace Designer.Tests.Services
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
-
             // Act
             DeploymentEntity deploymentEntity =
                 await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
@@ -279,8 +277,6 @@ namespace Designer.Tests.Services
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
-
             // Act
             await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
@@ -376,8 +372,6 @@ namespace Designer.Tests.Services
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
-
             // Act
             await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
@@ -462,8 +456,6 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings);
-
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
@@ -593,8 +585,6 @@ namespace Designer.Tests.Services
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
-
             // Act
             await deploymentService.UndeployAsync(authenticatedContext, env);
 
@@ -682,8 +672,6 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings);
-
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
@@ -777,8 +765,6 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings);
-
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
@@ -877,8 +863,6 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings);
-
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
