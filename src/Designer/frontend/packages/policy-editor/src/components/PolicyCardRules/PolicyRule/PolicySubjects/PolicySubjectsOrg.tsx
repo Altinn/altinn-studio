@@ -8,6 +8,7 @@ import {
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicySubjects.module.css';
+import { Buildings3Icon } from '@studio/icons';
 import { PolicyAccessPackages } from '../PolicyAccessPackages';
 import { useTranslation } from 'react-i18next';
 import { RoleList } from './RoleList/RoleList';
@@ -41,7 +42,7 @@ export const PolicySubjectsOrg = ({ handleSubjectChange }: PolicySubjectsOrgProp
   return (
     <StudioDetails data-color='neutral'>
       <StudioDetails.Summary className={classes.orgAccordion}>
-        {t('policy_editor.org_subjects_header')}
+        <Buildings3Icon fontSize={28} /> {t('policy_editor.org_subjects_header')}
       </StudioDetails.Summary>
       <StudioDetails.Content className={classes.subjectBlock}>
         <StudioTabs defaultValue={TabId.ErRoles}>

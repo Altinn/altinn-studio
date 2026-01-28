@@ -14,6 +14,7 @@ import classes from './PolicySubjects.module.css';
 import { PolicyAccessPackages } from '../PolicyAccessPackages';
 import { useTranslation } from 'react-i18next';
 import { RoleList } from './RoleList/RoleList';
+import { PersonIcon } from '@studio/icons';
 
 enum TabId {
   AccessPackages = 'AccessPackages',
@@ -37,7 +38,7 @@ export const PolicySubjectsPriv = ({ handleSubjectChange }: PolicySubjectsPrivPr
   return (
     <StudioDetails data-color='neutral'>
       <StudioDetails.Summary className={classes.personAccordion}>
-        {t('policy_editor.person_subjects_header')}
+        <PersonIcon fontSize={28} /> {t('policy_editor.person_subjects_header')}
       </StudioDetails.Summary>
       <StudioDetails.Content className={classes.subjectBlock}>
         <StudioTabs defaultValue={TabId.AccessPackages}>
