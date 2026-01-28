@@ -16,6 +16,7 @@ import { PolicySubjectsOrg } from './PolicySubjectsOrg';
 import { ErrorMessage } from '@digdir/designsystemet-react';
 import { ChosenSubjects } from './ChosenSubjects/ChosenSubjects';
 import type { PolicySubject } from '@altinn/policy-editor/types';
+import classes from './PolicySubjects.module.css';
 
 export const PolicySubjects = () => {
   const { t } = useTranslation();
@@ -139,6 +140,10 @@ export const PolicySubjects = () => {
 
   return (
     <div>
+      <div className={classes.subjectHeader}>{t('policy_editor.rule_card_subjects_title')}</div>
+      <div data-color='neutral' className={classes.subjectDescription}>
+        {t('policy_editor.rule_card_subjects_subtitle')}
+      </div>
       <ChosenSubjects groups={orgGroups} />
       <ChosenSubjects groups={personGroups} isPersonSubject />
       <PolicySubjectsOrg handleSubjectChange={handleRemoveSubject} />
