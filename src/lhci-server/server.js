@@ -33,6 +33,9 @@ async function main() {
           rejectUnauthorized: false, // Azure PostgreSQL uses managed certificates
         },
       } : {},
+      sequelizeOptions: {
+        schema: 'lhci',
+      },
     },
   };
 
