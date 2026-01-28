@@ -71,7 +71,7 @@ partial class Telemetry
             "signing_delegation_revokes"
         );
 
-        [EnumExtensions]
+        [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
         internal enum DelegationResult
         {
             [Display(Name = "success")]

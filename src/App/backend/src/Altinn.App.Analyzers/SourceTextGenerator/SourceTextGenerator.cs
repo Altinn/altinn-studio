@@ -53,6 +53,9 @@ public static class SourceTextGenerator
         builder.Append("\r\n    #region Getters\r\n");
         GetterGenerator.Generate(builder, rootNode);
         builder.Append("\r\n    #endregion Getters\r\n");
+        builder.Append("    #region Setters\r\n");
+        SetterGenerator.Generate(builder, rootNode);
+        builder.Append("\r\n    #endregion Setters\r\n");
         builder.Append("    #region AddIndexToPath\r\n");
         AddIndexToPathGenerator.Generate(builder, rootNode);
         builder.Append("\r\n    #endregion AddIndexToPath\r\n");
@@ -68,7 +71,12 @@ public static class SourceTextGenerator
 
         builder.Append(
             $$"""
-                public static global::System.ReadOnlySpan<char> ParseSegment(global::System.ReadOnlySpan<char> path, int offset, out int nextOffset, out int literalIndex)
+                public static global::System.ReadOnlySpan<char> ParseSegment(
+                    global::System.ReadOnlySpan<char> path,
+                    int offset,
+                    out int nextOffset,
+                    out int literalIndex
+                )
                 {
                     if (offset < 0 || offset > path.Length)
                     {
@@ -101,21 +109,30 @@ public static class SourceTextGenerator
                     var bracketOffset = global::System.MemoryExtensions.IndexOf(segment, ']');
                     if (bracketOffset < 0)
                     {
-                        throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"Missing closing bracket ']' in {path}.");
+                        throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException(
+                            $"Missing closing bracket ']' in {path}."
+                        );
                     }
 
-                    if (!int.TryParse(
-                        segment[..bracketOffset],
-                        global::System.Globalization.NumberStyles.None,
-                        global::System.Globalization.CultureInfo.InvariantCulture,
-                        out var index))
+                    if (
+                        !int.TryParse(
+                            segment[..bracketOffset],
+                            global::System.Globalization.NumberStyles.None,
+                            global::System.Globalization.CultureInfo.InvariantCulture,
+                            out var index
+                        )
+                    )
                     {
-                        throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"Invalid index in {path}.");
+                        throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException(
+                            $"Invalid index in {path}."
+                        );
                     }
 
                     if (index < 0)
                     {
-                        throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"Invalid negative index in {path}.");
+                        throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException(
+                            $"Invalid negative index in {path}."
+                        );
                     }
 
                     if (offset + bracketOffset + 1 == path.Length)
@@ -127,7 +144,9 @@ public static class SourceTextGenerator
 
                     if (path[offset + bracketOffset + 1] != '.')
                     {
-                        throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"Invalid character after closing bracket ']' in {path}. Expected '.' or end of path.");
+                        throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException(
+                            $"Invalid character after closing bracket ']' in {path}. Expected '.' or end of path."
+                        );
                     }
 
                     nextOffset = offset + bracketOffset + 2;
@@ -138,7 +157,9 @@ public static class SourceTextGenerator
                 [global::System.Runtime.CompilerServices.ModuleInitializer]
                 internal static void Register()
                 {
-                    global::Altinn.App.Core.Internal.Data.FormDataWrapperFactory.Register<{{rootNode.TypeName}}>(dataModel => new {{className}}(dataModel));
+                    global::Altinn.App.Core.Internal.Data.FormDataWrapperFactory.Register<{{rootNode.TypeName}}>(
+                        dataModel => new {{className}}(dataModel)
+                    );
                 }
 
             """

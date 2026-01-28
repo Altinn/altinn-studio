@@ -50,7 +50,7 @@ partial class Telemetry
         internal const string Prefix = "Data";
         internal static readonly string MetricNameDataPatched = Metrics.CreateLibName("data_patched");
 
-        [EnumExtensions]
+        [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
         internal enum PatchResult
         {
             [Display(Name = "success")]

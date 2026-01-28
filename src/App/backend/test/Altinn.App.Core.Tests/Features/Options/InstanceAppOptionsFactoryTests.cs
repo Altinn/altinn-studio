@@ -19,9 +19,9 @@ public class InstanceAppOptionsFactoryTests
 
         var factory = serviceProvider.GetRequiredService<InstanceAppOptionsFactory>();
 
-        IInstanceAppOptionsProvider optionsProvider = factory.GetOptionsProvider("not-vehicles");
+        IInstanceAppOptionsProvider? optionsProvider = factory.GetOptionsProvider("not-vehicles");
 
-        optionsProvider.Should().BeOfType<NullInstanceAppOptionsProvider>();
+        optionsProvider.Should().Be(null);
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public class InstanceAppOptionsFactoryTests
         using var serviceProvider = services.BuildStrictServiceProvider();
 
         var factory = serviceProvider.GetRequiredService<InstanceAppOptionsFactory>();
-        IInstanceAppOptionsProvider optionsProvider = factory.GetOptionsProvider("vehicles");
+        IInstanceAppOptionsProvider? optionsProvider = factory.GetOptionsProvider("vehicles");
 
         optionsProvider.Should().BeOfType<VehiclesInstanceAppOptionsProvider>();
         optionsProvider.Id.Should().Be("vehicles");
@@ -54,9 +54,9 @@ public class InstanceAppOptionsFactoryTests
             {
                 Options = new List<AppOption>
                 {
-                    new AppOption { Label = "Skoda Octavia 1.6", Value = "DN49525" },
-                    new AppOption { Label = "e-Golf", Value = "EK38470" },
-                    new AppOption { Label = "Tilhenger", Value = "JT5817" },
+                    new() { Label = "Skoda Octavia 1.6", Value = "DN49525" },
+                    new() { Label = "e-Golf", Value = "EK38470" },
+                    new() { Label = "Tilhenger", Value = "JT5817" },
                 },
             };
 

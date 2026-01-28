@@ -312,3 +312,8 @@ export type ProblemDetails = {
   detail: string;
   status: number;
 };
+
+export interface PostalCodesRegistry {
+  places: (string | null)[];
+  mapping: number[];
+}

@@ -18,7 +18,7 @@ export function OrganisationLookupSummary({ targetBaseComponentId }: Summary2Pro
     targetBaseComponentId,
     'OrganisationLookup',
   );
-  const title = textResourceBindings?.title;
+  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
   const { formData } = useDataModelBindings(dataModelBindings);
   const { organisation_lookup_orgnr, organisation_lookup_name } = formData;
   const emptyFieldText = useSummaryOverrides<'OrganisationLookup'>(targetBaseComponentId)?.emptyFieldText;
