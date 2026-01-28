@@ -40,8 +40,8 @@ export const PolicySubjectsOrg = ({ handleSubjectChange }: PolicySubjectsOrgProp
   }, [subjects]);
 
   return (
-    <StudioDetails>
-      <StudioDetails.Summary>
+    <StudioDetails data-color='neutral'>
+      <StudioDetails.Summary className={classes.orgAccordion}>
         <Buildings3Icon fontSize={28} /> For virksomhet
       </StudioDetails.Summary>
       <StudioDetails.Content className={classes.subjectBlock}>

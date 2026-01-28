@@ -1,16 +1,21 @@
 import React, { useMemo } from 'react';
-import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
+import {
+  getAltinnSubjects,
+  getCcrSubjects,
+  getOtherSubjects,
+  getPersonSubjects,
+  getUpdatedRules,
+} from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
-import classes from './PolicySubjects.module.css';
 import { useTranslation } from 'react-i18next';
 import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages';
-import { findSubject, hasSubject } from '@altinn/policy-editor/utils';
-import { SubjectListItem } from './SubjectListItem';
+import { hasSubject } from '@altinn/policy-editor/utils';
 import { PolicySubjectsPriv } from './PolicySubjectsPriv';
 import { PolicySubjectsOrg } from './PolicySubjectsOrg';
-import { PackageIcon, PersonTallShortIcon } from '@studio/icons';
 import { ErrorMessage } from '@digdir/designsystemet-react';
+import { ChosenSubjects } from './ChosenSubjects/ChosenSubjects';
+import type { PolicySubject } from '@altinn/policy-editor/types';
 
 export const PolicySubjects = () => {
   const { t } = useTranslation();
@@ -54,7 +59,7 @@ export const PolicySubjects = () => {
     return [org, priv];
   }, [policyRule.accessPackages, flatAccessPackagesOrg, flatAccessPackagesPriv, t]);
 
-  const handleSubjectChange = (subjectUrn: string, subjectLegacyUrn?: string): void => {
+  const handleRemoveSubject = (subjectUrn: string, subjectLegacyUrn?: string): void => {
     const updatedSubjects = hasSubject(policyRule.subject, subjectUrn, subjectLegacyUrn)
       ? policyRule.subject.filter((s) => s !== subjectUrn && s !== subjectLegacyUrn)
       : [...policyRule.subject, subjectLegacyUrn ?? subjectUrn]; // prefer legacyUrn over urn, until AM is updated to handle new subject urns
@@ -89,86 +94,58 @@ export const PolicySubjects = () => {
     savePolicy(updatedRules);
   };
 
+  const getChosenAccessPackage = (heading: string, list: PolicyAccessPackage[]) => {
+    return {
+      heading: heading,
+      handleRemove: handleRemoveAccessPackage,
+      items: list.map((pkg) => {
+        return {
+          urn: pkg.urn,
+          label: pkg.name,
+        };
+      }),
+    };
+  };
+
+  const getChosenRoles = (heading: string, list: PolicySubject[]) => {
+    const chosenRoles = list.filter(
+      (x) => policyRule.subject.indexOf(x.urn) > -1 || policyRule.subject.indexOf(x.legacyUrn) > -1,
+    );
+    return {
+      heading: heading,
+      handleRemove: handleRemoveSubject,
+      items: chosenRoles.map((role) => {
+        return {
+          urn: role.legacyUrn || role.urn,
+          label: role.name,
+        };
+      }),
+    };
+  };
+
+  const personGroups = [
+    getChosenAccessPackage('Tilgangspakker', chosenPrivAccessPackages),
+    getChosenRoles('Andre roller', getPersonSubjects(subjects)),
+  ];
+
+  const orgGroups = [
+    getChosenAccessPackage('Tilgangspakker', chosenOrgAccessPackages),
+    getChosenRoles('Andre/Altinn roller', [
+      ...getAltinnSubjects(subjects),
+      ...getOtherSubjects(subjects),
+    ]),
+    getChosenRoles('Enhetsregisterroller', getCcrSubjects(subjects)),
+  ];
+
   return (
     <div>
-      <div className={classes.subjectHeader}>{t('policy_editor.rule_card_subjects_title')}</div>
-      <div data-color='neutral' className={classes.subjectDescription}>
-        {t('policy_editor.rule_card_subjects_subtitle')}
-      </div>
-      {policyRule.subject.length > 0 && (
-        <div className={classes.selectedSubjectList}>
-          <div className={classes.selectedListTitle}>
-            {t('policy_editor.rule_card_subjects_chosen_roles')}
-          </div>
-          {policyRule.subject.map((urn) => {
-            const subject = findSubject(subjects, urn);
-            const displayCode = subject?.legacyRoleCode || subject?.code;
-            const legacyRoleCode = displayCode ? ` (${displayCode})` : '';
-
-            return (
-              <SubjectListItem
-                key={`${urn}-selected`}
-                urn={urn}
-                legacyUrn={subject?.legacyUrn}
-                title={`${subject?.name}${legacyRoleCode}`}
-                icon={PersonTallShortIcon}
-                isChecked={true}
-                isSelectedListItem
-                handleChange={handleSubjectChange}
-              />
-            );
-          })}
-        </div>
-      )}
-      {chosenOrgAccessPackages.length > 0 && (
-        <ChosenAccessPackages
-          heading='Valgte tilgangspakker for virksomhet'
-          accessPackages={chosenOrgAccessPackages}
-          handleRemoveAccessPackage={handleRemoveAccessPackage}
-        />
-      )}
-      {chosenPrivAccessPackages.length > 0 && (
-        <ChosenAccessPackages
-          heading='Valgte tilgangspakker for privatperson'
-          accessPackages={chosenPrivAccessPackages}
-          handleRemoveAccessPackage={handleRemoveAccessPackage}
-        />
-      )}
-      <PolicySubjectsOrg handleSubjectChange={handleSubjectChange} />
-      <PolicySubjectsPriv handleSubjectChange={handleSubjectChange} />
+      <ChosenSubjects groups={orgGroups} />
+      <ChosenSubjects groups={personGroups} isPersonSubject />
+      <PolicySubjectsOrg handleSubjectChange={handleRemoveSubject} />
+      <PolicySubjectsPriv handleSubjectChange={handleRemoveSubject} />
       {showAllErrors && policyError.subjectsError && (
         <ErrorMessage size='small'>{t('policy_editor.rule_card_subjects_error')}</ErrorMessage>
       )}
-    </div>
-  );
-};
-
-interface ChosenAccessPackagesProps {
-  heading: string;
-  accessPackages: PolicyAccessPackage[];
-  handleRemoveAccessPackage: (selectedAccessPackageUrn: string) => void;
-}
-const ChosenAccessPackages = ({
-  heading,
-  accessPackages,
-  handleRemoveAccessPackage,
-}: ChosenAccessPackagesProps) => {
-  return (
-    <div className={classes.selectedSubjectList}>
-      <div className={classes.selectedListTitle}>{heading}</div>
-      {accessPackages.map((accessPackage) => {
-        return (
-          <SubjectListItem
-            key={`${accessPackage.urn}-selected`}
-            urn={accessPackage.urn}
-            title={accessPackage.name}
-            icon={PackageIcon}
-            isChecked={true}
-            isSelectedListItem
-            handleChange={handleRemoveAccessPackage}
-          />
-        );
-      })}
     </div>
   );
 };

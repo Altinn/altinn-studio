@@ -1,5 +1,11 @@
 import React, { useMemo } from 'react';
-import { StudioAlert, StudioDetails, StudioTabs } from '@studio/components';
+import {
+  StudioAlert,
+  StudioDetails,
+  StudioHeading,
+  StudioParagraph,
+  StudioTabs,
+} from '@studio/components';
 import { getPersonSubjects } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
@@ -29,8 +35,8 @@ export const PolicySubjectsPriv = ({ handleSubjectChange }: PolicySubjectsPrivPr
   }, [subjects]);
 
   return (
-    <StudioDetails>
-      <StudioDetails.Summary>
+    <StudioDetails data-color='neutral'>
+      <StudioDetails.Summary className={classes.personAccordion}>
         <PersonIcon fontSize={28} /> For privatperson
       </StudioDetails.Summary>
       <StudioDetails.Content className={classes.subjectBlock}>
@@ -45,18 +51,26 @@ export const PolicySubjectsPriv = ({ handleSubjectChange }: PolicySubjectsPrivPr
             </StudioTabs.Tab>
           </StudioTabs.List>
           <StudioTabs.Panel value={TabId.AccessPackages}>
-            <PolicyAccessPackages accessPackages={accessPackagesPriv} />
+            <PolicyAccessPackages accessPackages={accessPackagesPriv} isPersonSubject />
           </StudioTabs.Panel>
           <StudioTabs.Panel value={TabId.Guardian}>
             <StudioAlert data-color='info'>
-              Valg av vergemål er ikke ferdig utviklet enda, men det vil vises her i løpet av våren
-              2026.
+              <StudioHeading level={3}>Snart kommer vergeroller i Altinn</StudioHeading>
+              <StudioParagraph>
+                Vergerollene vil fungere tilsvarende roller fra Enhetsregisteret og tildeles av
+                Statsforvalteren. Rollene vil vises i Altinn, men kan ikke tilgangsstyres. Bruk
+                rollene for å gi verger tilgang til deres tjenester i kraft av rollen som verge.
+              </StudioParagraph>
+              <StudioParagraph>
+                Mer om vergerollene: https://www.vergemal.no/fullmaktstekst
+              </StudioParagraph>
             </StudioAlert>
           </StudioTabs.Panel>
           <StudioTabs.Panel value={TabId.Other}>
             <RoleList
               selectedSubjects={policyRule.subject}
               subjects={personSubjects}
+              isPersonSubject
               heading={t('policy_editor.rule_card_subjects_other_roles')}
               handleChange={handleSubjectChange}
             />

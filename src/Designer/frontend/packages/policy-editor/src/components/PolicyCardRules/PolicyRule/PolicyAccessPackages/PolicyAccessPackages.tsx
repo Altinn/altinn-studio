@@ -15,10 +15,12 @@ import { AllAccessPackages } from './AllAccessPackages';
 import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 
 interface PolicyAccessPackagesProps {
+  isPersonSubject?: boolean;
   accessPackages: PolicyAccessPackageAreaGroup[];
 }
 
 export const PolicyAccessPackages = ({
+  isPersonSubject,
   accessPackages,
 }: PolicyAccessPackagesProps): ReactElement => {
   const { t } = useTranslation();
@@ -90,6 +92,7 @@ export const PolicyAccessPackages = ({
         chosenAccessPackages={policyRule.accessPackages}
         accessPackagesToRender={accessPackagesToRender}
         searchValue={searchValue}
+        isPersonSubject={isPersonSubject}
         handleSelectAccessPackage={handleSelectAccessPackage}
       />
     </div>

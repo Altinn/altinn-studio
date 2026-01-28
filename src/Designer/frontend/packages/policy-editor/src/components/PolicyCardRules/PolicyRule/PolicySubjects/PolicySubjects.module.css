@@ -1,20 +1,7 @@
-.subjectHeader {
-  margin-top: var(--ds-size-8);
-  font-weight: var(--ds-font-weight-medium);
+.personAccordion {
+  background-color: var(--ds-color-success-surface-tinted);
 }
 
-.subjectDescription {
-  color: var(--ds-color-text-subtle);
-}
-
-.selectedSubjectList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-size-2);
-  margin-top: var(--ds-size-4);
-  margin-bottom: var(--ds-size-8);
-}
-
-.selectedListTitle {
-  font-weight: var(--ds-font-weight-medium);
+.orgAccordion {
+  background-color: var(--ds-color-accent-surface-tinted);
 }
