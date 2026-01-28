@@ -40,29 +40,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        public Task<string> CloneRemoteRepository(AltinnRepoEditingContext editingContext)
         {
             try
             {
-                return _decoratedService.CloneRemoteRepository(authenticatedContext);
+                return _decoratedService.CloneRemoteRepository(editingContext);
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(CloneRemoteRepository), authenticatedContext.Org, authenticatedContext.Repo);
+                LogError(ex, nameof(CloneRemoteRepository), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
 
         /// <inheritdoc/>
-        public string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, string destinationPath, string branchName = "")
+        public Task<string> CloneRemoteRepository(AltinnRepoEditingContext editingContext, string destinationPath, string branchName = "")
         {
             try
             {
-                return _decoratedService.CloneRemoteRepository(authenticatedContext, destinationPath, branchName);
+                return _decoratedService.CloneRemoteRepository(editingContext, destinationPath, branchName);
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(CloneRemoteRepository), authenticatedContext.Org, authenticatedContext.Repo, destinationPath, branchName);
+                LogError(ex, nameof(CloneRemoteRepository), editingContext.Org, editingContext.Repo, destinationPath, branchName);
                 throw;
             }
         }
@@ -82,15 +82,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void CommitAndPushChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName, string localPath, string message)
+        public Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string localPath, string message, string accessToken = "")
         {
             try
             {
-                _decoratedService.CommitAndPushChanges(authenticatedContext, branchName, localPath, message);
+                return _decoratedService.CommitAndPushChanges(editingContext, branchName, localPath, message, accessToken);
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(CommitAndPushChanges), authenticatedContext.Org, authenticatedContext.Repo);
+                LogError(ex, nameof(CommitAndPushChanges), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
@@ -138,15 +138,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void FetchRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        public async Task FetchRemoteChanges(AltinnRepoEditingContext editingContext)
         {
             try
             {
-                _decoratedService.FetchRemoteChanges(authenticatedContext);
+                await _decoratedService.FetchRemoteChanges(editingContext);
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(FetchRemoteChanges), authenticatedContext.Org, authenticatedContext.Repo);
+                LogError(ex, nameof(FetchRemoteChanges), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
@@ -180,39 +180,39 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public RepoStatus PullRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        public Task<RepoStatus> PullRemoteChanges(AltinnRepoEditingContext editingContext)
         {
             try
             {
-                return _decoratedService.PullRemoteChanges(authenticatedContext);
+                return _decoratedService.PullRemoteChanges(editingContext);
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(PullRemoteChanges), authenticatedContext.Org, authenticatedContext.Repo);
+                LogError(ex, nameof(PullRemoteChanges), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
 
         /// <inheritdoc/>
-        public bool Push(AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        public Task<bool> Push(AltinnRepoEditingContext editingContext)
         {
             try
             {
-                return _decoratedService.Push(authenticatedContext);
+                return _decoratedService.Push(editingContext);
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(Push), authenticatedContext.Org, authenticatedContext.Repo);
+                LogError(ex, nameof(Push), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
 
         /// <inheritdoc/>
-        public void PushChangesForRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, CommitInfo commitInfo)
+        public Task PushChangesForRepository(CommitInfo commitInfo, AltinnRepoEditingContext editingContext)
         {
             try
             {
-                _decoratedService.PushChangesForRepository(authenticatedContext, commitInfo);
+                return _decoratedService.PushChangesForRepository(commitInfo, editingContext);
             }
             catch (Exception ex)
             {
@@ -236,15 +236,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Dictionary<string, string> GetChangedContent(AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        public Dictionary<string, string> GetChangedContent(AltinnRepoEditingContext editingContext)
         {
             try
             {
-                return _decoratedService.GetChangedContent(authenticatedContext);
+                return _decoratedService.GetChangedContent(editingContext);
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(GetChangedContent), authenticatedContext.Org, authenticatedContext.Repo);
+                LogError(ex, nameof(GetChangedContent), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
@@ -292,15 +292,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void CloneIfNotExists(AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        public async Task CloneIfNotExists(AltinnRepoEditingContext editingContext)
         {
             try
             {
-                _decoratedService.CloneIfNotExists(authenticatedContext);
+                await _decoratedService.CloneIfNotExists(editingContext);
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(CloneIfNotExists), authenticatedContext.Org, authenticatedContext.Repo);
+                LogError(ex, nameof(CloneIfNotExists), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
@@ -390,43 +390,43 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void PublishBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
+        public async Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName)
         {
             try
             {
-                _decoratedService.PublishBranch(authenticatedContext, branchName);
+                await _decoratedService.PublishBranch(editingContext, branchName);
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(PublishBranch), authenticatedContext.Org, authenticatedContext.Repo);
+                LogError(ex, nameof(PublishBranch), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
 
         /// <inheritdoc/>
-        public void FetchGitNotes(AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        public async Task FetchGitNotes(AltinnRepoEditingContext editingContext)
         {
             try
             {
-                _decoratedService.FetchGitNotes(authenticatedContext);
+                await _decoratedService.FetchGitNotes(editingContext);
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(FetchGitNotes), authenticatedContext.Org, authenticatedContext.Repo);
+                LogError(ex, nameof(FetchGitNotes), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
 
         /// <inheritdoc/>
-        public void DeleteRemoteBranchIfExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
+        public async Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
         {
             try
             {
-                _decoratedService.DeleteRemoteBranchIfExists(authenticatedContext, branchName);
+                await _decoratedService.DeleteRemoteBranchIfExists(editingContext, branchName);
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(DeleteRemoteBranchIfExists), authenticatedContext.Org, authenticatedContext.Repo);
+                LogError(ex, nameof(DeleteRemoteBranchIfExists), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
@@ -446,15 +446,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public RepoStatus CheckoutBranchWithValidation(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
+        public async Task<RepoStatus> CheckoutBranchWithValidation(AltinnRepoEditingContext editingContext, string branchName)
         {
             try
             {
-                return _decoratedService.CheckoutBranchWithValidation(authenticatedContext, branchName);
+                return await _decoratedService.CheckoutBranchWithValidation(editingContext, branchName);
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(CheckoutBranchWithValidation), authenticatedContext.Org, authenticatedContext.Repo, authenticatedContext.Developer, branchName);
+                LogError(ex, nameof(CheckoutBranchWithValidation), editingContext.Org, editingContext.Repo, editingContext.Developer, branchName);
                 throw;
             }
         }

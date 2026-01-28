@@ -13,16 +13,16 @@ public class PersistGitOpsConfigurationTests : GitRepoGitOpsConfigurationManager
         await Given.That
                 .RepositoryHasChanges();
 
-        When
+        await When
             .PersistGitOpsConfigurationCalled(environment);
 
         Then
             .ShouldCompleteSuccessfully();
     }
 
-    private void PersistGitOpsConfigurationCalled(string environment)
+    private async Task PersistGitOpsConfigurationCalled(string environment)
     {
-        GitOpsConfigurationManager.PersistGitOpsConfiguration(OrgEditingContext, AltinnEnvironment.FromName(environment));
+        await GitOpsConfigurationManager.PersistGitOpsConfigurationAsync(OrgEditingContext, AltinnEnvironment.FromName(environment));
     }
 
     private async Task RepositoryHasChanges()

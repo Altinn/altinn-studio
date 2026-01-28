@@ -100,12 +100,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return BadRequest(ModelState);
             }
-
-            string token = await HttpContext.GetDeveloperAppTokenAsync();
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
-
-            return Created(string.Empty, await _deploymentService.CreateAsync(authenticatedContext, createDeployment.ToDomainModel(), cancellationToken));
+            return Created(string.Empty, await _deploymentService.CreateAsync(org, app, createDeployment.ToDomainModel(), cancellationToken));
         }
 
         /// <summary>
@@ -121,10 +116,8 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<IActionResult> Undeploy(string org, string app, [FromBody] UndeployRequest undeployRequest, CancellationToken cancellationToken)
         {
             Guard.AssertValidEnvironmentName(undeployRequest.Environment);
-            string token = await HttpContext.GetDeveloperAppTokenAsync();
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
-            await _deploymentService.UndeployAsync(authenticatedContext, undeployRequest.Environment, cancellationToken);
+
+            await _deploymentService.UndeployAsync(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, AuthenticationHelper.GetDeveloperUserName(HttpContext)), undeployRequest.Environment, cancellationToken);
 
             return Accepted();
         }
