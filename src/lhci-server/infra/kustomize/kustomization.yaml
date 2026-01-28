@@ -6,3 +6,15 @@ resources:
   - service.yaml
 
 namespace: lhci
+
+replacements:
+- source:
+    kind: Deployment
+    name: lhci-server
+    fieldPath: metadata.annotations.[altinn.studio/image]
+  targets:
+  - select:
+      kind: Deployment
+      name: lhci-server
+    fieldPaths:
+      - spec.template.spec.containers.[name=lhci-server].image

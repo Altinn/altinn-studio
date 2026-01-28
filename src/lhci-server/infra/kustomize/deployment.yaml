@@ -5,8 +5,8 @@ metadata:
   labels:
     app: lhci-server
   annotations:
-    altinn.studio/image: ""  # Patched by workflow
-    altinn.studio/image-tag: ""  # Patched by workflow
+    altinn.studio/image: "altinn-studio/lhci-server:latest"
+    altinn.studio/image-tag: "latest"
 spec:
   replicas: 1
   selector:
@@ -26,7 +26,7 @@ spec:
         fsGroup: 1000
       containers:
       - name: lhci-server
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/lhci-server:latest
+        image: altinn-studio/lhci-server:latest
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
