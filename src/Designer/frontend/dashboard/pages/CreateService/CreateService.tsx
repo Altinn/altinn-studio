@@ -47,17 +47,15 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   };
 
   const createAppRepo = async (newAppForm: NewAppForm) => {
-    const { org, repoName, templates } = newAppForm;
+    const { org, repoName, template } = newAppForm;
 
     addRepoMutation(
       {
         org,
         repository: repoName,
-        ...(templates && templates.length > 0
+        ...(template
           ? {
-              templates: templates.map(
-                (temp): CustomTemplateReference => ({ id: temp.id, owner: temp.owner }),
-              ),
+              template: { id: template.id, owner: template.owner },
             }
           : {}),
       },
