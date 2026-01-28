@@ -49,7 +49,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         void PushChangesForRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, CommitInfo commitInfo);
 
         /// <summary>
-        /// Commits all changes in repo and pushe them to the provided branch
+        /// Commits all changes in repo and pushes them to the provided branch
         /// </summary>
         /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
         /// <param name="branchName">The name of the branch to push changes to</param>

@@ -19,8 +19,8 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
 {
     private readonly WebApplicationFactory<SourceControlLoggingDecorator> _webApplicationFactory = webApplicationFactory;
 
-    private const string NonExistantOrg = "org-should-not-exist";
-    private const string NonExistantRepo = "repo-should-not-exist";
+    private const string NonExistentOrg = "org-should-not-exist";
+    private const string NonExistentRepo = "repo-should-not-exist";
     private const string TestUser = "testUser";
     private const string RandomToken = "some_random_token";
 
@@ -41,7 +41,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_Status_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistentOrg, NonExistentRepo, TestUser);
         try
         {
             service.Status(editingContext);
@@ -57,7 +57,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_CloneRemoteRepository1_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnAuthenticatedRepoEditingContext authenticatedEditingContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
+        AltinnAuthenticatedRepoEditingContext authenticatedEditingContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistentOrg, NonExistentRepo, TestUser, RandomToken);
         try
         {
             service.CloneRemoteRepository(authenticatedEditingContext);
@@ -73,7 +73,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_CloneRemoteRepository2_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnAuthenticatedRepoEditingContext authenticatedEditingContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
+        AltinnAuthenticatedRepoEditingContext authenticatedEditingContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistentOrg, NonExistentRepo, TestUser, RandomToken);
         try
         {
             service.CloneRemoteRepository(authenticatedEditingContext, "destination_path_should_not_exist", "branch_name_should_not_exist");
@@ -89,7 +89,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public async Task DecoratedISourceControlService_DeleteRepository_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistentOrg, NonExistentRepo, TestUser);
         try
         {
             await service.DeleteRepository(editingContext);
@@ -105,7 +105,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_StageChange_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistentOrg, NonExistentRepo, TestUser);
         try
         {
             service.StageChange(editingContext, "file_should_not_exist");
@@ -121,8 +121,8 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_Commit_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        string org = NonExistantOrg;
-        string repo = NonExistantRepo;
+        string org = NonExistentOrg;
+        string repo = NonExistentRepo;
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, TestUser);
         CommitInfo commitInfo = new() { Org = org, Repository = repo, Message = "should_not_be_commited" };
         try
@@ -140,7 +140,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_CommitAndPushChanges_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistentOrg, NonExistentRepo, TestUser, RandomToken);
         try
         {
             service.CommitAndPushChanges(authenticatedContext, "non-existing-branch", "non-existing-file", "should_not_be_commited");
@@ -156,7 +156,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_CreateBranch_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistentOrg, NonExistentRepo, TestUser);
         try
         {
             service.CreateBranch(editingContext, "non-existing-branch");
@@ -172,7 +172,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_CreatePullRequest_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistentOrg, NonExistentRepo, TestUser);
         try
         {
             service.CreatePullRequest(editingContext, "non-existing-target-branch", "non-existing-source-branch", "could-have-been-a-pull-request-title");
@@ -188,7 +188,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_FetchRemoteChanges_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistentOrg, NonExistentRepo, TestUser, RandomToken);
         try
         {
             service.FetchRemoteChanges(authenticatedContext);
@@ -204,7 +204,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_GetLatestCommitForCurrentUser_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistentOrg, NonExistentRepo, TestUser);
         try
         {
             service.GetLatestCommitForCurrentUser(editingContext);
@@ -220,7 +220,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_Log_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistentOrg, NonExistentRepo, TestUser);
         try
         {
             service.Log(editingContext);
@@ -236,7 +236,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_PullRemoteChanges_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistentOrg, NonExistentRepo, TestUser, RandomToken);
         try
         {
             service.PullRemoteChanges(authenticatedContext);
@@ -252,7 +252,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_Push_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistentOrg, NonExistentRepo, TestUser, RandomToken);
         try
         {
             service.Push(authenticatedContext);
@@ -268,8 +268,8 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_PushChangesForRepository_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
-        CommitInfo commitInfo = new() { Org = NonExistantOrg, Repository = NonExistantRepo, Message = "should_not_be_commited" };
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistentOrg, NonExistentRepo, TestUser, RandomToken);
+        CommitInfo commitInfo = new() { Org = NonExistentOrg, Repository = NonExistentRepo, Message = "should_not_be_commited" };
         try
         {
             service.PushChangesForRepository(authenticatedContext, commitInfo);
@@ -285,7 +285,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_RepositoryStatus_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistantOrg, NonExistantRepo, TestUser);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(NonExistentOrg, NonExistentRepo, TestUser);
         try
         {
             service.RepositoryStatus(editingContext);
@@ -301,7 +301,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     public void DecoratedISourceControlService_CloneIfNotExists_LogsErrorWithAdditionalInfo()
     {
         (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistantOrg, NonExistantRepo, TestUser, RandomToken);
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(NonExistentOrg, NonExistentRepo, TestUser, RandomToken);
         try
         {
             service.CloneIfNotExists(authenticatedContext);
