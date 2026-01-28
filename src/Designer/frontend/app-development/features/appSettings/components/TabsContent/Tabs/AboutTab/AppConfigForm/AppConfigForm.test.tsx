@@ -43,6 +43,19 @@ describe('AppConfigForm', () => {
   //   ).toBeInTheDocument();
   // });
 
+  it('renders error summary when initialShowAppConfigErrors is true and there are validation errors', () => {
+    renderAppConfigForm({
+      appConfig: mockAppConfig,
+      initialShowAppConfigErrors: true,
+    });
+    expect(queryErrorHeader()).toBeInTheDocument();
+  });
+
+  it('does not render error summary when initialShowAppConfigErrors is false', () => {
+    renderAppConfigForm({ appConfig: mockAppConfig });
+    expect(queryErrorHeader()).not.toBeInTheDocument();
+  });
+
   it('does not render error summary when the save button is pressed and there are no errors', async () => {
     const user = userEvent.setup();
     renderAppConfigForm({ appConfig: mockAppConfigComplete });
