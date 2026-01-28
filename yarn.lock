@@ -2408,6 +2408,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@studio/guard@workspace:src/Designer/frontend/libs/studio-guard":
+  version: 0.0.0-use.local
+  resolution: "@studio/guard@workspace:src/Designer/frontend/libs/studio-guard"
+  dependencies:
+    "@types/jest": "npm:29.5.14"
+    eslint: "npm:8.57.1"
+    jest: "npm:29.7.0"
+    jest-environment-jsdom: "npm:29.7.0"
+    ts-jest: "npm:^29.1.1"
+    typescript: "npm:5.9.3"
+  languageName: unknown
+  linkType: soft
+
 "@studio/hooks@workspace:^, @studio/hooks@workspace:src/Designer/frontend/libs/studio-hooks":
   version: 0.0.0-use.local
   resolution: "@studio/hooks@workspace:src/Designer/frontend/libs/studio-hooks"

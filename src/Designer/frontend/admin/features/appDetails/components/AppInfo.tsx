@@ -10,12 +10,12 @@ import { LabelValue } from 'admin/components/LabelValue/LabelValue';
 
 type AppInfoProps = {
   org: string;
-  env: string;
+  environment: string;
   app: string;
 };
 
-export const AppInfo = ({ org, env, app }: AppInfoProps) => {
-  const { data, status } = useAppDetailsQuery(org, env, app);
+export const AppInfo = ({ org, environment, app }: AppInfoProps) => {
+  const { data, status } = useAppDetailsQuery(org, environment, app);
   const { t } = useTranslation();
 
   switch (status) {
@@ -33,7 +33,17 @@ type AppInfoWithDataProps = {
 };
 
 const AppInfoWithData = ({
-  appDetails: { org, env, app, version, commit, createdAt, createdBy },
+  appDetails: {
+    org,
+    env: environment,
+    app,
+    version,
+    appLibVersion,
+    appFrontendVersion,
+    commit,
+    createdAt,
+    createdBy,
+  },
 }: AppInfoWithDataProps) => {
   const { t } = useTranslation();
 
@@ -42,18 +52,28 @@ const AppInfoWithData = ({
 
   return (
     <StudioCard>
-      <StudioHeading data-size='sm'>{t('Informasjon om appen')}</StudioHeading>
+      <StudioHeading data-size='sm'>{t('admin.app.info.title')}</StudioHeading>
       <div className={classes['details-wrapper']}>
-        <LabelValue label={t('Miljø')}>{t(`admin.environment.${env}`)}</LabelValue>
-        <LabelValue label={t('Versjon')}>{version}</LabelValue>
-        <LabelValue label={t('Commit')}>
+        <LabelValue label={t('admin.environment')}>
+          {t('admin.environment.name', { environment })}
+        </LabelValue>
+        <LabelValue label={t('admin.app.info.app_version')}>{version}</LabelValue>
+        {appLibVersion && (
+          <LabelValue label={t('admin.app.info.backend_version')}>{appLibVersion}</LabelValue>
+        )}
+        {appFrontendVersion && (
+          <LabelValue label={t('admin.app.info.frontend_version')}>{appFrontendVersion}</LabelValue>
+        )}
+        <LabelValue label={t('admin.app.info.commit')}>
           <a href={commitPath} target='_blank' rel='noreferrer'>
             {shortenedCommit}
             <ExternalLinkIcon className={classes.external} />
           </a>
         </LabelValue>
-        <LabelValue label={t('Publiseringsdato')}>{formatDateAndTime(createdAt)}</LabelValue>
-        <LabelValue label={t('Publisert av')}>{createdBy}</LabelValue>
+        <LabelValue label={t('admin.app.info.publish_date')}>
+          {formatDateAndTime(createdAt)}
+        </LabelValue>
+        <LabelValue label={t('admin.app.info.published_by')}>{createdBy}</LabelValue>
       </div>
     </StudioCard>
   );

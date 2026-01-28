@@ -5,7 +5,7 @@ import type { IAttachmentsMap } from 'src/features/attachments';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { ILayoutSets } from 'src/features/form/layoutSets/types';
 import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
-import type { IAppLanguage, IApplicationSettings } from 'src/types/shared';
+import type { IAppLanguage, IApplicationSettings, IProfile } from 'src/types/shared';
 
 ///<reference types="cypress-iframe" />
 
@@ -15,6 +15,8 @@ export type AltinnAppGlobalData = {
   layoutSets: ILayoutSets;
   frontendSettings: IApplicationSettings;
   availableLanguages: IAppLanguage[];
+  userProfile?: IProfile;
+  returnUrl?: string;
 };
 
 declare global {

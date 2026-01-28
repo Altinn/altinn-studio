@@ -1,4 +1,5 @@
-import { Guard, FileNameUtils } from '@studio/pure-functions';
+import { Guard } from '@studio/guard';
+import { FileNameUtils } from '@studio/pure-functions';
 
 export class PublishedElements {
   readonly #fileNames: readonly string[];

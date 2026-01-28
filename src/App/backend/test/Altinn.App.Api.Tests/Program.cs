@@ -46,7 +46,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(
 builder.WebHost.UseDefaultServiceProvider(
     (context, options) =>
     {
-        options.ValidateScopes = true; // Allways validate scopes in test
+        options.ValidateScopes = true; // Always validate scopes in test
         options.ValidateOnBuild = true;
     }
 );

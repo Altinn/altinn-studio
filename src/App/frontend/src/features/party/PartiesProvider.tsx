@@ -12,7 +12,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { instanceQueries, useInstanceDataQueryArgs } from 'src/features/instance/InstanceContext';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { flattenParties } from 'src/features/party/partyUtils';
-import { useShouldFetchProfile } from 'src/features/profile/ProfileProvider';
+import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import type { IInstance, IParty } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
@@ -32,9 +32,9 @@ export function usePartiesQueryDef(enabled: boolean) {
 }
 
 const usePartiesAllowedToInstantiateQuery = () => {
-  const enabled = useShouldFetchProfile();
+  const allowAnonymous = useIsAllowAnonymous(false);
 
-  const utils = useQuery(usePartiesQueryDef(enabled));
+  const utils = useQuery(usePartiesQueryDef(allowAnonymous));
 
   useEffect(() => {
     utils.error && window.logError('Fetching parties failed:\n', utils.error);
@@ -42,7 +42,7 @@ const usePartiesAllowedToInstantiateQuery = () => {
 
   return {
     ...utils,
-    enabled,
+    enabled: allowAnonymous,
   };
 };
 
@@ -166,9 +166,8 @@ const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
 };
 
 export function PartyProvider({ children }: PropsWithChildren) {
-  const shouldFetchProfile = useShouldFetchProfile();
-
-  if (!shouldFetchProfile) {
+  const allowAnonymous = useIsAllowAnonymous(false);
+  if (!allowAnonymous) {
     return children;
   }
 

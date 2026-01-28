@@ -16,6 +16,8 @@
 
         public string? LegacyUrn { get; set; }
 
+        public bool IsResourcePolicyAvailable { get; set; }
+
         public required SubjectOptionProvider Provider { get; set; }
     }
 

@@ -18,12 +18,16 @@ public static class AppFrontendVersionHelper
         HtmlNode metaTag = htmlDoc.DocumentNode.SelectSingleNode("//meta[@data-altinn-app-frontend-version]");
         return metaTag?.GetAttributeValue("data-altinn-app-frontend-version", null);
     }
-
     public static bool TryGetFrontendVersionFromIndexFile(string filePath, out string version)
+    {
+        string fileContent = File.ReadAllText(filePath);
+        return TryGetFrontendVersionFromIndexContent(fileContent, out version);
+    }
+
+    public static bool TryGetFrontendVersionFromIndexContent(string fileContent, out string version)
     {
         version = null;
 
-        string fileContent = File.ReadAllText(filePath);
         var htmlDoc = new HtmlDocument();
         htmlDoc.LoadHtml(fileContent);
 

@@ -11,6 +11,7 @@ export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefi
 export const selectedPartyUrl = `${appPath}/api/authorization/parties/current?returnPartyObject=true`;
 export const instancesControllerUrl = `${appPath}/instances`;
 export const refreshJwtTokenUrl = `${appPath}/api/authentication/keepAlive`;
+export const postalCodesUrl = 'https://altinncdn.no/postcodes/registry.json';
 
 export const getInstantiateUrl = (language?: string) => {
   const queryString = getQueryStringFromObject({ language });
@@ -95,12 +96,6 @@ export const getPdfPreviewUrl = (instanceId: string, language: string) => {
 export const getProcessNextUrl = (instanceId: string, language?: string) => {
   const queryString = getQueryStringFromObject({ language });
   return `${appPath}/instances/${instanceId}/process/next${queryString}`;
-};
-
-export const getRedirectUrl = (returnUrl: string) => {
-  const encodedUriComponent = encodeURIComponent(returnUrl);
-
-  return `${appPath}/api/v1/redirect?url=${encodedUriComponent}`;
 };
 
 export const getUpgradeAuthLevelUrl = (reqAuthLevel: string) => {

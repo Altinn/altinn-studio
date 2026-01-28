@@ -76,7 +76,7 @@ export const ContactPage = (): React.ReactElement => {
   ];
 
   return (
-    <StudioPageImageBackgroundContainer image='/designer/img/page-background.svg'>
+    <StudioPageImageBackgroundContainer image='/img/page-background.svg'>
       <div className={classes.container}>
         <div className={classes.content}>
           <div>

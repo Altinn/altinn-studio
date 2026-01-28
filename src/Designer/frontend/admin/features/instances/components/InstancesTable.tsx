@@ -1,4 +1,10 @@
-import { StudioButton, StudioSpinner, StudioTable, StudioError } from '@studio/components';
+import {
+  StudioButton,
+  StudioSpinner,
+  StudioTable,
+  StudioError,
+  StudioAlert,
+} from '@studio/components';
 import { useEnvironmentTitle } from 'admin/hooks/useEnvironmentTitle';
 import classes from './InstancesTable.module.css';
 import React from 'react';
@@ -9,7 +15,7 @@ import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
 import { useMutation } from '@tanstack/react-query';
 import { InstanceStatus } from './InstanceStatus';
 import { isAxiosError } from 'axios';
-import { Alert } from '@digdir/designsystemet-react';
+import { Skeleton } from '@digdir/designsystemet-react';
 import { useCurrentOrg } from 'admin/layout/PageLayout';
 import { Link } from 'react-router-dom';
 
@@ -56,13 +62,13 @@ export const InstancesTable = ({
 
   switch (status) {
     case 'pending':
-      return <StudioSpinner aria-label={t('general.loading')} />;
+      return <InstancesTableSkeleton n={11} />;
     case 'error':
       if (isAxiosError(error) && error.response?.status === 403) {
         return (
-          <Alert severity='info'>
+          <StudioAlert data-color='info'>
             {t('admin.instances.missing_rights', { envTitle, orgName })}
-          </Alert>
+          </StudioAlert>
         );
       }
       return <StudioError>{t('general.page_error_title')}</StudioError>;
@@ -75,6 +81,18 @@ export const InstancesTable = ({
         />
       );
   }
+};
+
+const InstancesTableSkeleton = ({ n }: { n: number }) => {
+  const { t } = useTranslation();
+  return (
+    <div aria-label={t('general.loading')} className={classes.skeletonWrapper}>
+      {Array.from({ length: n }).map((_, i) => (
+        <Skeleton.Rectangle key={i} className={classes.rowSkeleton} />
+      ))}
+      <Skeleton.Rectangle className={classes.buttonSkeleton} />
+    </div>
+  );
 };
 
 type InstancesTableWithDataProps = {
@@ -93,8 +111,12 @@ const InstancesTableWithData = ({
     mutationFn: fetchMoreResults,
   });
 
+  if (!instances.length) {
+    return <StudioAlert data-color='info'>{t('admin.instances.no_results')}</StudioAlert>;
+  }
+
   return (
-    <StudioTable zebra>
+    <StudioTable>
       <StudioTable.Head>
         <StudioTable.Row>
           <StudioTable.Cell>{t('admin.instances.id')}</StudioTable.Cell>
