@@ -46,7 +46,7 @@ public class AuthorizationService(
     private const string ResourceId = "r";
 
     /// <inheritdoc/>>
-    public async Task<List<MessageBoxInstance>> AuthorizeMesseageBoxInstances(List<Instance> instances, bool includeInstantiate)
+    public async Task<List<MessageBoxInstance>> AuthorizeMesseageBoxInstances(List<Instance> instances, bool keyAccessMode)
     {
         if (instances.Count <= 0)
         {
@@ -56,7 +56,7 @@ public class AuthorizationService(
         List<MessageBoxInstance> authorizedInstanceList = [];
         List<string> actionTypes = ["read", "write", "delete"];
 
-        if (includeInstantiate)
+        if (keyAccessMode)
         {
             actionTypes.Add("instantiate");
         }
@@ -231,6 +231,12 @@ public class AuthorizationService(
         }
 
         return false;
+    }
+
+    /// <inheritdoc/>>
+    public bool UserHasRequiredScope(string requiredScope)
+    {
+        return UserHasRequiredScope(new List<string> { requiredScope });
     }
 
     /// <inheritdoc/>>

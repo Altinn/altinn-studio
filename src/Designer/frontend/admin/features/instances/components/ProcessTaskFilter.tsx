@@ -7,14 +7,20 @@ import { useProcessMetadataQuery } from 'admin/hooks/queries/useProcessMetadataQ
 
 type ProcessTaskPickerProps = {
   org: string;
-  env: string;
+  environment: string;
   app: string;
   value: string | undefined;
   setValue: (value: string | undefined) => void;
 };
 
-export const ProcessTaskFilter = ({ org, env, app, value, setValue }: ProcessTaskPickerProps) => {
-  const { data, status } = useProcessMetadataQuery(org, env, app);
+export const ProcessTaskFilter = ({
+  org,
+  environment,
+  app,
+  value,
+  setValue,
+}: ProcessTaskPickerProps) => {
+  const { data, status } = useProcessMetadataQuery(org, environment, app);
   const { t } = useTranslation();
 
   switch (status) {

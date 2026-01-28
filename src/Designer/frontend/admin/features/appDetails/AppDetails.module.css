@@ -1,7 +1,7 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-size-14);
+  gap: var(--ds-size-8);
 }
 
 .metrics {

@@ -189,6 +189,7 @@ export function EditWindowComponent({
                   aria-invalid={hasErrors}
                   aria-label={langAsString('general.choose')}
                 />
+                <Suggestion.Clear onClick={() => setChosenTags([])} />
                 <Suggestion.List>
                   <Suggestion.Empty>
                     <Lang id='form_filler.no_options_found' />
