@@ -90,10 +90,10 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
             It.IsAny<AltinnEnvironment>()
         )).Returns(Task.CompletedTask);
 
-        _gitOpsConfigurationManagerMock.Setup(m => m.PersistGitOpsConfiguration(
+        _gitOpsConfigurationManagerMock.Setup(m => m.PersistGitOpsConfigurationAsync(
             It.IsAny<AltinnOrgEditingContext>(),
             It.IsAny<AltinnEnvironment>()
-        ));
+        )).Returns(Task.CompletedTask);
 
         _mockServerFixture.PrepareQueueBuildResponse(GitOpsManagerDefinitionId, azureDevopsMockQueueBuildResponse);
 
@@ -125,7 +125,7 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
             It.Is<AltinnEnvironment>(e => e.Name == environment)
         ), Times.Once);
 
-        _gitOpsConfigurationManagerMock.Verify(m => m.PersistGitOpsConfiguration(
+        _gitOpsConfigurationManagerMock.Verify(m => m.PersistGitOpsConfigurationAsync(
             It.IsAny<AltinnOrgEditingContext>(),
             It.Is<AltinnEnvironment>(e => e.Name == environment)
         ), Times.Once);
@@ -184,7 +184,7 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
             It.IsAny<AltinnEnvironment>()
         ), Times.Never);
 
-        _gitOpsConfigurationManagerMock.Verify(m => m.PersistGitOpsConfiguration(
+        _gitOpsConfigurationManagerMock.Verify(m => m.PersistGitOpsConfigurationAsync(
             It.IsAny<AltinnOrgEditingContext>(),
             It.IsAny<AltinnEnvironment>()
         ), Times.Never);

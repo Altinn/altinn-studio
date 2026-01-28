@@ -81,35 +81,34 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
     }
 
     /// <inheritdoc />
-    public async Task UpdateSharedResourcesByPath(string org, string developer, string token, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default)
+    public async Task UpdateSharedResourcesByPath(string org, string developer, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string repository = GetStaticContentRepo(org);
-        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
 
         ValidateCommitMessage(request.CommitMessage);
-        string repositoryName = GetStaticContentRepo(authenticatedContext.Org);
+        string repositoryName = GetStaticContentRepo(org);
 
-        sourceControl.CloneIfNotExists(authenticatedContext);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repositoryName, developer);
+        await sourceControl.CloneIfNotExists(editingContext);
 
-        string latestCommitSha = await giteaClient.GetLatestCommitOnBranch(authenticatedContext.Org, repositoryName, General.DefaultBranch, cancellationToken);
+        string latestCommitSha = await giteaClient.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
 
-        sourceControl.CheckoutRepoOnBranch(authenticatedContext.RepoEditingContext, General.DefaultBranch);
-        sourceControl.PullRemoteChanges(authenticatedContext);
-        sourceControl.FetchGitNotes(authenticatedContext);
+        sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
+        await sourceControl.PullRemoteChanges(editingContext);
+        await sourceControl.FetchGitNotes(editingContext);
 
         if (latestCommitSha == request.BaseCommitSha)
         {
-            await HandleCommit(authenticatedContext.RepoEditingContext, request, cancellationToken);
+            await HandleCommit(editingContext, request, cancellationToken);
         }
         else
         {
-            await HandleDivergentCommit(authenticatedContext, request, cancellationToken);
+            await HandleDivergentCommit(editingContext, request, cancellationToken);
         }
-        bool pushOk = sourceControl.Push(authenticatedContext);
+        bool pushOk = await sourceControl.Push(editingContext);
         if (!pushOk)
         {
-            throw new InvalidOperationException($"Push failed for {authenticatedContext.Org}/{repositoryName}. Remote rejected the update.");
+            throw new InvalidOperationException($"Push failed for {org}/{repositoryName}. Remote rejected the update.");
         }
     }
 
@@ -119,13 +118,12 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
     }
 
-    internal async Task HandleDivergentCommit(AltinnAuthenticatedRepoEditingContext authenticatedContext, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default)
+    internal async Task HandleDivergentCommit(AltinnRepoEditingContext editingContext, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default)
     {
-        AltinnRepoEditingContext editingContext = authenticatedContext.RepoEditingContext;
         string branchName = GenerateBranchNameWithHashSuffix(editingContext);
 
         sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
-        sourceControl.DeleteRemoteBranchIfExists(authenticatedContext, branchName);
+        await sourceControl.DeleteRemoteBranchIfExists(editingContext, branchName);
 
         sourceControl.CreateLocalBranch(editingContext, branchName, request.BaseCommitSha);
         sourceControl.CheckoutRepoOnBranch(editingContext, branchName);
@@ -133,18 +131,18 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         await UpdateFiles(editingContext, request, cancellationToken);
         sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
 
-        RebaseWithConflictHandling(authenticatedContext, branchName);
+        await RebaseWithConflictHandling(editingContext, branchName);
         sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
         sourceControl.MergeBranchIntoHead(editingContext, branchName);
         sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
     }
 
-    internal void RebaseWithConflictHandling(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
+    internal async Task RebaseWithConflictHandling(AltinnRepoEditingContext editingContext, string branchName)
     {
-        RebaseResult rebaseResult = sourceControl.RebaseOntoDefaultBranch(authenticatedContext.RepoEditingContext);
+        RebaseResult rebaseResult = sourceControl.RebaseOntoDefaultBranch(editingContext);
         if (rebaseResult.Status == RebaseStatus.Conflicts)
         {
-            sourceControl.PublishBranch(authenticatedContext, branchName);
+            await sourceControl.PublishBranch(editingContext, branchName);
             throw new NonFastForwardException("Rebase onto latest commit on default branch failed during divergent commit handling.");
         }
     }

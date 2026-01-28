@@ -14,18 +14,18 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Clone app repository to local repo
         /// </summary>
-        /// <param name="authenticatedEditingContext">The authenticated altinn repo editing context</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>The result of the cloning</returns>
-        string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedEditingContext);
+        Task<string> CloneRemoteRepository(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Clone repository to specified destination
         /// </summary>
-        /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="destinationPath">Path of destination folder</param>
         /// <param name="branchName">The name of the branch to clone</param>
         /// <returns>Path of the cloned repository</returns>
-        string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, string destinationPath, string branchName = "");
+        Task<string> CloneRemoteRepository(AltinnRepoEditingContext editingContext, string destinationPath, string branchName = "");
 
         /// <summary>
         /// Stores a App token for user
@@ -44,31 +44,32 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Add all changes in app repo and push to remote
         /// </summary>
-        /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
         /// <param name="commitInfo">the commit information for the app</param>
-        void PushChangesForRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, CommitInfo commitInfo);
+        /// <param name="editingContext">The altinn repo editing context</param>
+        Task PushChangesForRepository(CommitInfo commitInfo, AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Commits all changes in repo and pushe them to the provided branch
         /// </summary>
-        /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="branchName">The name of the branch to push changes to</param>
         /// <param name="localPath">Path to local clone of repository</param>
         /// <param name="message">Commit message</param>
-        void CommitAndPushChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName, string localPath, string message);
+        /// <param name="accessToken">Access token for authentication. If empty, uses session-based authentication. Should only be used for special cases like bot operations - avoid for regular user operations.</param>
+        Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string localPath, string message, string accessToken = "");
 
         /// <summary>
         /// Pull remote changes
         /// </summary>
-        /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>The repo status</returns>
-        RepoStatus PullRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext);
+        Task<RepoStatus> PullRemoteChanges(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Pull remote changes
         /// </summary>
-        /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
-        void FetchRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext);
+        /// <param name="editingContext">The altinn repo editing context</param>
+        Task FetchRemoteChanges(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// List Git status for an app repo
@@ -101,16 +102,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Gets a dictionary of all filePaths and corresponding contentChanges as git diff string comparing working directory to current branch HEAD
         /// </summary>
-        /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>A dictionary with the filePath and a string for the git diff</returns>
-        Dictionary<string, string> GetChangedContent(AltinnAuthenticatedRepoEditingContext authenticatedContext);
+        Dictionary<string, string> GetChangedContent(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Push commits to repository
         /// </summary>
-        /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <returns>boolean indicatng success</returns>
-        bool Push(AltinnAuthenticatedRepoEditingContext authenticatedContext);
+        Task<bool> Push(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Commit changes for repository
@@ -129,8 +130,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Ensures repository is cloned if not, it clones it.
         /// </summary>
-        /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
-        void CloneIfNotExists(AltinnAuthenticatedRepoEditingContext authenticatedContext);
+        /// <param name="editingContext">The altinn repo editing context</param>
+        Task CloneIfNotExists(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Creates a new branch in the given repository.
@@ -207,11 +208,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Checks out a branch, validating that there are no uncommitted changes first
         /// </summary>
-        /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="branchName">The name of the branch to checkout</param>
         /// <returns>The updated repository status, or null if there are uncommitted changes</returns>
         /// <exception cref="Exceptions.UncommittedChangesException">Thrown when there are uncommitted changes</exception>
-        RepoStatus CheckoutBranchWithValidation(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName);
+        Task<RepoStatus> CheckoutBranchWithValidation(AltinnRepoEditingContext editingContext, string branchName);
 
         /// <summary>
         /// Discards all local changes in the repository (hard reset + clean untracked files)
@@ -223,21 +224,21 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Deletes a remote branch based on the specified name, if it exists.
         /// </summary>
-        /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="branchName">The name of the branch</param>
-        void DeleteRemoteBranchIfExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName);
+        Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName);
 
         /// <summary>
         /// Publishes branch to remote.
         /// </summary>
-        /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="branchName">The name of the branch</param>
-        void PublishBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName);
+        Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName);
 
         /// <summary>
         /// Fetches git notes.
         /// </summary>
-        /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
-        void FetchGitNotes(AltinnAuthenticatedRepoEditingContext authenticatedContext);
+        /// <param name="editingContext">The altinn repo editing context</param>
+        Task FetchGitNotes(AltinnRepoEditingContext editingContext);
     }
 }
