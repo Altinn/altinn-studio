@@ -43,9 +43,10 @@ public class HomeController : Controller
     /// <param name="antiforgery">The anti forgery service.</param>
     /// <param name="platformSettings">The platform settings.</param>
     /// <param name="env">The current environment.</param>
-    /// <param name="appSettings">The application settings</param>
-    /// <param name="appResources">The application resources service</param>
-    /// <param name="appMetadata">The application metadata service</param>
+    /// <param name="appSettings">The application settings.</param>
+    /// <param name="appResources">The application resources service.</param>
+    /// <param name="appMetadata">The application metadata service.</param>
+    /// <param name="logger">The logger for the controller.</param>
     public HomeController(
         IServiceProvider serviceProvider,
         IAntiforgery antiforgery,
