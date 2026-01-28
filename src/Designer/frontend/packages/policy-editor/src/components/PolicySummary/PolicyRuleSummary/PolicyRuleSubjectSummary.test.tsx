@@ -59,6 +59,7 @@ const mockPolicyEditorContextValue: PolicyEditorContextProps = {
   actions: [mockAction1, mockAction2],
   subjects: mockSubjects,
   accessPackages: [],
+  accessPackagesPriv: [],
   usageType: 'app',
   resourceType: 'urn',
   resourceId: '[app]',
