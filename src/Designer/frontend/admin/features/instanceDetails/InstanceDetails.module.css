@@ -3,8 +3,3 @@
   flex-direction: column;
   gap: var(--ds-size-8);
 }
-
-.metrics {
-  display: flex;
-  gap: var(--ds-size-8);
-}
