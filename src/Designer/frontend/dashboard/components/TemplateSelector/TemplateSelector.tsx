@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 
 export type TemplateSelectorProps = {
   templates: CustomTemplate[];
-  selectedTemplate: CustomTemplate;
-  onChange: (selected: CustomTemplate) => void;
+  selectedTemplate?: CustomTemplate;
+  onChange: (selected?: CustomTemplate) => void;
 };
 
 export const TemplateSelector = ({
