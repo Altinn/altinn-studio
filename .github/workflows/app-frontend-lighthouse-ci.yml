@@ -72,7 +72,7 @@ jobs:
       - name: Run Lighthouse CI
         id: lighthouse-ci
         env:
-          LHCI_SERVER_URL: https://altinn.studio/lhci
+          LHCI_SERVER_URL: https://dev.altinn.studio/lhci
           LHCI_BUILD_TOKEN: ${{ secrets.LHCI_ALTINN_APP_BUILD_TOKEN }}
           LHCI_USERNAME: ${{ secrets.LHCI_BASIC_AUTH_USERNAME }}
           LHCI_PASSWORD: ${{ secrets.LHCI_BASIC_AUTH_PASSWORD }}
