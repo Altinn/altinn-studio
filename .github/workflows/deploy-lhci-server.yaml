@@ -1,7 +1,7 @@
 name: Deploy LHCI Server
 on:
   push:
-    branches: [main]
+    branches: [main, feat/lhci-server]
     paths:
       - 'src/lhci-server/**'
       - '.github/workflows/deploy-lhci-server.yaml'
