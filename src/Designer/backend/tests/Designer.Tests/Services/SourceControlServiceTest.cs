@@ -298,13 +298,13 @@ namespace Designer.Tests.Services
         {
             // Arrange
             string repoName = TestDataHelper.GenerateTestRepoName();
-            var context = CreateTestRepository(repoName);
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromEditingContext(CreateTestRepository(repoName), "dummytoken");
 
             string testFile = Path.Join(_repoDir, "uncommitted-file.txt");
             File.WriteAllText(testFile, "This is new content");
 
             // Act
-            var result = _sourceControlService.GetChangedContent(context);
+            var result = _sourceControlService.GetChangedContent(authenticatedContext);
 
             // Assert
             Assert.Single(result);
@@ -318,6 +318,7 @@ namespace Designer.Tests.Services
             string repoName = TestDataHelper.GenerateTestRepoName();
             const string BranchName = "feature-branch";
             var context = CreateTestRepository(repoName);
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromEditingContext(context, "dummytoken");
 
             // Create feature branch and commit a file
             _sourceControlService.CreateLocalBranch(context, BranchName);
@@ -338,7 +339,7 @@ namespace Designer.Tests.Services
             File.WriteAllText(uncommittedFile, "Uncommitted content");
 
             // Act
-            var result = _sourceControlService.GetChangedContent(context);
+            var result = _sourceControlService.GetChangedContent(authenticatedContext);
 
             // Assert
             Assert.Single(result);
@@ -351,10 +352,10 @@ namespace Designer.Tests.Services
         {
             // Arrange
             string repoName = TestDataHelper.GenerateTestRepoName();
-            var context = CreateTestRepository(repoName);
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromEditingContext(CreateTestRepository(repoName), "dummytoken");
 
             // Act
-            var result = _sourceControlService.GetChangedContent(context);
+            var result = _sourceControlService.GetChangedContent(authenticatedContext);
 
             // Assert
             Assert.Empty(result);
