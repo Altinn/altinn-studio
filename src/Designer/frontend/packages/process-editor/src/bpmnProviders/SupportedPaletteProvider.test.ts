@@ -1,9 +1,15 @@
+import type { AppVersion } from 'app-shared/types/AppVersion';
 import SupportedPaletteProviderModule from './SupportedPaletteProvider';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const SupportedPaletteProvider = SupportedPaletteProviderModule.supportedPaletteProvider[1] as any;
 
 const mockAppLibVersion = '8.9.0';
 const mockFrontendVersion = '4.25.2';
+const mockAppVersion: AppVersion = {
+  backendVersion: mockAppLibVersion,
+  frontendVersion: mockFrontendVersion,
+};
 
 describe('SupportedPaletteProvider', () => {
   let provider: any;
@@ -11,7 +17,6 @@ describe('SupportedPaletteProvider', () => {
   let mockCreate: any;
   let mockElementFactory: any;
   let mockPalette: any;
-  let mockTranslate: any;
   let mockModeling: any;
 
   beforeEach(() => {
@@ -37,8 +42,6 @@ describe('SupportedPaletteProvider', () => {
       registerProvider: jest.fn(),
     };
 
-    mockTranslate = jest.fn((text) => text);
-
     mockModeling = {
       updateProperties: jest.fn(),
     };
@@ -48,10 +51,8 @@ describe('SupportedPaletteProvider', () => {
       mockCreate,
       mockElementFactory,
       mockPalette,
-      mockTranslate,
       mockModeling,
-      mockAppLibVersion,
-      mockFrontendVersion,
+      mockAppVersion,
     );
   });
 
@@ -68,10 +69,8 @@ describe('SupportedPaletteProvider', () => {
       expect(provider.bpmnFactory).toBe(mockBpmnFactory);
       expect(provider.create).toBe(mockCreate);
       expect(provider.elementFactory).toBe(mockElementFactory);
-      expect(provider.translate).toBe(mockTranslate);
       expect(provider.modeling).toBe(mockModeling);
-      expect(provider.appLibVersion).toBe(mockAppLibVersion);
-      expect(provider.frontendVersion).toBe(mockFrontendVersion);
+      expect(provider.appVersion).toBe(mockAppVersion);
     });
   });
 
@@ -91,7 +90,7 @@ describe('SupportedPaletteProvider', () => {
         'bpmn-icon-task-generic bpmn-icon-pdf-task',
       );
       expect(result['create.altinn-pdf-task'].title).toBe(
-        'process_editor.palette_create_pdf_service_task',
+        textMock('process_editor.palette_create_pdf_service_task'),
       );
       expect(result['create.altinn-pdf-task'].action.click).toBeDefined();
       expect(result['create.altinn-pdf-task'].action.dragstart).toBeDefined();
@@ -330,10 +329,8 @@ describe('SupportedPaletteProvider', () => {
         mockCreate,
         mockElementFactory,
         { registerProvider: jest.fn() },
-        mockTranslate,
         mockModeling,
-        '8.0.0',
-        mockFrontendVersion,
+        { backendVersion: '8.0.0', frontendVersion: mockFrontendVersion },
       );
 
       const paletteEntries = providerWithOldAppLibVersion.getPaletteEntries();
@@ -342,7 +339,9 @@ describe('SupportedPaletteProvider', () => {
       result['create.altinn-pdf-task'].action.click({});
 
       expect(alertSpy).toHaveBeenCalledWith(
-        'process_editor.palette_pdf_service_task_version_error',
+        textMock('process_editor.palette_pdf_service_task_version_error', {
+          version: '8.9.0',
+        }),
       );
       expect(mockCreate.start).not.toHaveBeenCalled();
 
@@ -357,10 +356,8 @@ describe('SupportedPaletteProvider', () => {
         mockCreate,
         mockElementFactory,
         { registerProvider: jest.fn() },
-        mockTranslate,
         mockModeling,
-        mockAppLibVersion,
-        '4.0.0',
+        { backendVersion: mockAppLibVersion, frontendVersion: '4.0.0' },
       );
 
       const paletteEntries = providerWithOldFrontendVersion.getPaletteEntries();
@@ -369,7 +366,9 @@ describe('SupportedPaletteProvider', () => {
       result['create.altinn-pdf-task'].action.click({});
 
       expect(alertSpy).toHaveBeenCalledWith(
-        'process_editor.palette_pdf_service_task_frontend_version_error',
+        textMock('process_editor.palette_pdf_service_task_frontend_version_error', {
+          version: '4.25.2',
+        }),
       );
       expect(mockCreate.start).not.toHaveBeenCalled();
 

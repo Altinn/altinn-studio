@@ -110,13 +110,16 @@ describe('ConfigPdfServiceTask', () => {
   });
 
   describe('version warnings', () => {
-    it('should show warning when appLibVersion is below minimum required version', () => {
+    it('should show warning when backendVersion is below minimum required version', () => {
       const pdfBpmnDetails = createPdfBpmnDetails({});
 
       renderConfigPdfServiceTask({
         bpmnContextProps: {
           bpmnDetails: pdfBpmnDetails,
-          appLibVersion: '8.0.0',
+          appVersion: {
+            backendVersion: '8.0.0',
+            frontendVersion: '4.25.2',
+          },
         },
         bpmnApiContextProps: {
           layoutSets: emptyLayoutSets,
@@ -138,8 +141,10 @@ describe('ConfigPdfServiceTask', () => {
       renderConfigPdfServiceTask({
         bpmnContextProps: {
           bpmnDetails: pdfBpmnDetails,
-          appLibVersion: '8.9.0',
-          frontendVersion: '4.0.0',
+          appVersion: {
+            backendVersion: '8.9.0',
+            frontendVersion: '4.0.0',
+          },
         },
         bpmnApiContextProps: {
           layoutSets: emptyLayoutSets,
@@ -161,8 +166,10 @@ describe('ConfigPdfServiceTask', () => {
       renderConfigPdfServiceTask({
         bpmnContextProps: {
           bpmnDetails: pdfBpmnDetails,
-          appLibVersion: '8.9.0',
-          frontendVersion: '4.25.2',
+          appVersion: {
+            backendVersion: '8.9.0',
+            frontendVersion: '4.25.2',
+          },
         },
         bpmnApiContextProps: {
           layoutSets: emptyLayoutSets,

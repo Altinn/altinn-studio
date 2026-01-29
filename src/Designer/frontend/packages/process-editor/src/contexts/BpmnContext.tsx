@@ -3,14 +3,14 @@ import { supportsProcessEditor } from '../utils/processEditorUtils';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import type { BpmnDetails } from '../types/BpmnDetails';
+import type { AppVersion } from 'app-shared/types/AppVersion';
 
 export type BpmnContextProps = {
   bpmnXml: string;
   modelerRef?: MutableRefObject<Modeler>;
   getUpdatedXml: () => Promise<string>;
   isEditAllowed: boolean;
-  appLibVersion: string;
-  frontendVersion: string;
+  appVersion: AppVersion;
   bpmnDetails: BpmnDetails;
   setBpmnDetails: React.Dispatch<React.SetStateAction<BpmnDetails>>;
   isInitialized: boolean;
@@ -23,21 +23,19 @@ export const BpmnContext = createContext<Partial<BpmnContextProps>>(undefined);
 export type BpmnContextProviderProps = {
   children: React.ReactNode;
   bpmnXml: string | undefined | null;
-  appLibVersion: string;
-  frontendVersion: string;
+  appVersion: AppVersion;
 };
 export const BpmnContextProvider = ({
   bpmnXml,
   children,
-  appLibVersion,
-  frontendVersion,
+  appVersion,
 }: Partial<BpmnContextProviderProps>) => {
   const [bpmnDetails, setBpmnDetails] = useState<BpmnDetails>(null);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [initialBpmnXml] = useState<string>(bpmnXml);
 
   const isEditAllowed =
-    supportsProcessEditor(appLibVersion) ||
+    supportsProcessEditor(appVersion.backendVersion) ||
     shouldDisplayFeature(FeatureFlag.ShouldOverrideAppLibCheck);
 
   const modelerRef = useRef<Modeler | null>(null);
@@ -61,8 +59,7 @@ export const BpmnContextProvider = ({
         modelerRef,
         getUpdatedXml,
         isEditAllowed,
-        appLibVersion,
-        frontendVersion,
+        appVersion,
         bpmnDetails,
         setBpmnDetails,
         isInitialized,

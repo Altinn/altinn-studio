@@ -6,7 +6,7 @@ export const MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK = '8.9.0';
 /**
  * Minimum version of app-frontend-react required for PDF service task
  */
-export const MINIMUM_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK = '4.25.2';
+export const MINIMUM_APP_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK = '4.25.2';
 
 /**
  * Returns true if the version is 8 or higher, and false otherwise

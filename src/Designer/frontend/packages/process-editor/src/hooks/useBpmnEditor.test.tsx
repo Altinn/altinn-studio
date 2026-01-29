@@ -22,13 +22,15 @@ import type { BpmnTaskType } from '../types/BpmnTaskType';
 import type { OnProcessTaskEvent } from '../types/OnProcessTask';
 import type { SelectionChangedEvent } from '../types/SelectionChangeEvent';
 import type BpmnModeler from 'bpmn-js/lib/Modeler';
+import type { AppVersion } from 'app-shared/types/AppVersion';
 
 // Test data:
-const appLibVersion = '8.0.0';
-const frontendVersion = '4.0.0';
+const appVersion: AppVersion = {
+  backendVersion: '8.0.0',
+  frontendVersion: '4.0.0',
+};
 const defaultBpmnContextProps: Omit<BpmnContextProviderProps, 'children'> = {
-  appLibVersion,
-  frontendVersion,
+  appVersion,
   bpmnXml: undefined,
 };
 const layoutSetId = 'someLayoutSetId';

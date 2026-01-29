@@ -5,17 +5,19 @@ import { ProcessEditor } from './ProcessEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+import type { AppVersion } from 'app-shared/types/AppVersion';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
-const mockAppLibVersion8: string = '8.0.3';
-const mockFrontendVersion: string = '4.0.0';
+const mockAppVersion: AppVersion = {
+  backendVersion: '8.0.3',
+  frontendVersion: '4.0.0',
+};
 
 const defaultProps: ProcessEditorProps = {
   bpmnXml: mockBPMNXML,
   saveBpmn: jest.fn(),
-  appLibVersion: mockAppLibVersion8,
-  frontendVersion: mockFrontendVersion,
+  appVersion: mockAppVersion,
   availableDataTypeIds: [],
   availableDataModelIds: [],
   allDataModelIds: [],

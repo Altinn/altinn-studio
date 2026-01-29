@@ -2,34 +2,25 @@ import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import {
   isVersionEqualOrGreater,
   MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
-  MINIMUM_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
+  MINIMUM_APP_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
 } from '../utils/processEditorUtils';
 import { t } from 'i18next';
 
 const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];
 
 class SupportedPaletteProvider {
-  constructor(
-    bpmnFactory,
-    create,
-    elementFactory,
-    palette,
-    modeling,
-    appLibVersion,
-    frontendVersion,
-  ) {
+  constructor(bpmnFactory, create, elementFactory, palette, modeling, appVersion) {
     this.bpmnFactory = bpmnFactory;
     this.create = create;
     this.elementFactory = elementFactory;
     this.modeling = modeling;
-    this.appLibVersion = appLibVersion;
-    this.frontendVersion = frontendVersion;
+    this.appVersion = appVersion;
 
     palette.registerProvider(this);
   }
 
   getPaletteEntries() {
-    const { elementFactory, create, bpmnFactory, modeling, appLibVersion, frontendVersion } = this;
+    const { elementFactory, create, bpmnFactory, modeling, appVersion } = this;
 
     function createCustomTask(taskType) {
       return function (event) {
@@ -205,7 +196,12 @@ class SupportedPaletteProvider {
       const taskType = 'pdf';
 
       return function (event) {
-        if (!isVersionEqualOrGreater(appLibVersion, MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK)) {
+        if (
+          !isVersionEqualOrGreater(
+            appVersion.backendVersion,
+            MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
+          )
+        ) {
           window.alert(
             t('process_editor.palette_pdf_service_task_version_error', {
               version: MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
@@ -215,11 +211,14 @@ class SupportedPaletteProvider {
         }
 
         if (
-          !isVersionEqualOrGreater(frontendVersion, MINIMUM_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK)
+          !isVersionEqualOrGreater(
+            appVersion.frontendVersion,
+            MINIMUM_APP_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
+          )
         ) {
           window.alert(
             t('process_editor.palette_pdf_service_task_frontend_version_error', {
-              version: MINIMUM_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
+              version: MINIMUM_APP_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
             }),
           );
           return;
@@ -367,8 +366,7 @@ SupportedPaletteProvider.$inject = [
   'elementFactory',
   'palette',
   'modeling',
-  'appLibVersion',
-  'frontendVersion',
+  'appVersion',
 ];
 
 export default {

@@ -3,15 +3,14 @@ import SupportedPaletteProvider from '../../bpmnProviders/SupportedPaletteProvid
 import SupportedContextPadProvider from '../../bpmnProviders/SupportedContextPadProvider';
 import { altinnCustomTasks } from '../../extensions/altinnCustomTasks';
 import UpdateTaskIdCommandHandler from '@altinn/process-editor/commandHandlers/UpdateTaskIdCommandHandler';
+import type { AppVersion } from 'app-shared/types/AppVersion';
 
 type VersionModule = {
-  appLibVersion: ['value', string];
-  frontendVersion: ['value', string];
+  appVersion: ['value', AppVersion];
 };
 
-const createVersionModule = (appLibVersion: string, frontendVersion: string): VersionModule => ({
-  appLibVersion: ['value', appLibVersion],
-  frontendVersion: ['value', frontendVersion],
+const createVersionModule = (appVersion: AppVersion): VersionModule => ({
+  appVersion: ['value', appVersion],
 });
 
 export class BpmnModelerInstance {
@@ -28,8 +27,7 @@ export class BpmnModelerInstance {
   // Singleton pattern to ensure only one instance of the StudioBpmnModeler is created
   public static getInstance(
     canvasContainer?: HTMLDivElement,
-    appLibVersion?: string,
-    frontendVersion?: string,
+    appVersion?: AppVersion,
   ): BpmnModeler {
     const shouldCreateNewInstance =
       !BpmnModelerInstance.instance && BpmnModelerInstance.currentRefContainer !== canvasContainer;
@@ -38,7 +36,7 @@ export class BpmnModelerInstance {
       BpmnModelerInstance.instance = new BpmnModeler({
         container: canvasContainer,
         additionalModules: [
-          createVersionModule(appLibVersion, frontendVersion),
+          createVersionModule(appVersion),
           SupportedPaletteProvider,
           SupportedContextPadProvider,
           UpdateTaskIdCommandHandler,
