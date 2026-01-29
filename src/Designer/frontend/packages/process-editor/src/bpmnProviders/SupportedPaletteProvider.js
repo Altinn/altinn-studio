@@ -4,6 +4,7 @@ import {
   MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
   MINIMUM_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
 } from '../utils/processEditorUtils';
+import { t } from 'i18next';
 
 const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];
 
@@ -13,7 +14,6 @@ class SupportedPaletteProvider {
     create,
     elementFactory,
     palette,
-    translate,
     modeling,
     appLibVersion,
     frontendVersion,
@@ -21,7 +21,6 @@ class SupportedPaletteProvider {
     this.bpmnFactory = bpmnFactory;
     this.create = create;
     this.elementFactory = elementFactory;
-    this.translate = translate;
     this.modeling = modeling;
     this.appLibVersion = appLibVersion;
     this.frontendVersion = frontendVersion;
@@ -30,15 +29,7 @@ class SupportedPaletteProvider {
   }
 
   getPaletteEntries() {
-    const {
-      elementFactory,
-      create,
-      bpmnFactory,
-      translate,
-      modeling,
-      appLibVersion,
-      frontendVersion,
-    } = this;
+    const { elementFactory, create, bpmnFactory, modeling, appLibVersion, frontendVersion } = this;
 
     function createCustomTask(taskType) {
       return function (event) {
@@ -216,7 +207,7 @@ class SupportedPaletteProvider {
       return function (event) {
         if (!isVersionEqualOrGreater(appLibVersion, MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK)) {
           window.alert(
-            translate('process_editor.palette_pdf_service_task_version_error', {
+            t('process_editor.palette_pdf_service_task_version_error', {
               version: MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
             }),
           );
@@ -227,7 +218,7 @@ class SupportedPaletteProvider {
           !isVersionEqualOrGreater(frontendVersion, MINIMUM_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK)
         ) {
           window.alert(
-            translate('process_editor.palette_pdf_service_task_frontend_version_error', {
+            t('process_editor.palette_pdf_service_task_frontend_version_error', {
               version: MINIMUM_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
             }),
           );
@@ -285,7 +276,7 @@ class SupportedPaletteProvider {
         'create.altinn-data-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-data-task',
-          title: translate('process_editor.palette_create_data_task'),
+          title: t('process_editor.palette_create_data_task'),
           action: {
             click: createCustomTask('data'),
             dragstart: createCustomTask('data'),
@@ -293,7 +284,7 @@ class SupportedPaletteProvider {
         },
         'create.altinn-feedback-task': {
           group: 'activity',
-          title: translate('process_editor.palette_create_feedback_task'),
+          title: t('process_editor.palette_create_feedback_task'),
           className: 'bpmn-icon-task-generic bpmn-icon-feedback-task',
           action: {
             click: createCustomTask('feedback'),
@@ -303,7 +294,7 @@ class SupportedPaletteProvider {
         'create.altinn-signing-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-signing-task',
-          title: translate('process_editor.palette_create_signing_task'),
+          title: t('process_editor.palette_create_signing_task'),
           action: {
             click: createCustomSigningTask(),
             dragstart: createCustomSigningTask(),
@@ -312,7 +303,7 @@ class SupportedPaletteProvider {
         'create.altinn-user-controlled-signing-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-user-controlled-signing-task',
-          title: translate('process_editor.palette_create_user_controlled_signing_task'),
+          title: t('process_editor.palette_create_user_controlled_signing_task'),
           action: {
             click: createUserControlledSigningTask(),
             dragstart: createUserControlledSigningTask(),
@@ -321,7 +312,7 @@ class SupportedPaletteProvider {
         'create.altinn-confirmation-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
-          title: translate('process_editor.palette_create_confirmation_task'),
+          title: t('process_editor.palette_create_confirmation_task'),
           action: {
             click: createCustomConfirmationTask(),
             dragstart: createCustomConfirmationTask(),
@@ -330,7 +321,7 @@ class SupportedPaletteProvider {
         'create.altinn-payment-task': {
           group: 'activity',
           className: `bpmn-icon-task-generic bpmn-icon-payment-task`,
-          title: translate('process_editor.palette_create_payment_task'),
+          title: t('process_editor.palette_create_payment_task'),
           action: {
             click: createCustomPaymentTask(),
             dragstart: createCustomPaymentTask(),
@@ -339,7 +330,7 @@ class SupportedPaletteProvider {
         'create.altinn-pdf-task': {
           group: 'activity',
           className: `bpmn-icon-task-generic bpmn-icon-pdf-task`,
-          title: translate('process_editor.palette_create_pdf_service_task'),
+          title: t('process_editor.palette_create_pdf_service_task'),
           action: {
             click: createCustomPdfServiceTask(),
             dragstart: createCustomPdfServiceTask(),
@@ -375,7 +366,6 @@ SupportedPaletteProvider.$inject = [
   'create',
   'elementFactory',
   'palette',
-  'translate',
   'modeling',
   'appLibVersion',
   'frontendVersion',

@@ -1,7 +1,6 @@
 import BpmnModeler from 'bpmn-js/lib/Modeler';
 import SupportedPaletteProvider from '../../bpmnProviders/SupportedPaletteProvider';
 import SupportedContextPadProvider from '../../bpmnProviders/SupportedContextPadProvider';
-import CustomTranslateModule from '../../bpmnProviders/CustomTranslateModule';
 import { altinnCustomTasks } from '../../extensions/altinnCustomTasks';
 import UpdateTaskIdCommandHandler from '@altinn/process-editor/commandHandlers/UpdateTaskIdCommandHandler';
 
@@ -43,7 +42,6 @@ export class BpmnModelerInstance {
           SupportedPaletteProvider,
           SupportedContextPadProvider,
           UpdateTaskIdCommandHandler,
-          CustomTranslateModule,
         ],
         moddleExtensions: {
           altinn: altinnCustomTasks,
