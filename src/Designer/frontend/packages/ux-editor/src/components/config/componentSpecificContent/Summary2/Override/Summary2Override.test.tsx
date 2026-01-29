@@ -366,7 +366,7 @@ const overrideComponentSelect = () =>
 
 const overrideDisplaySelector = () =>
   screen.getByRole('combobox', {
-    name: /ux_editor\.component_properties\.summary\.override\.display/,
+    name: /ux_editor\.component_properties\.summary\.override\.display(?!_type)/,
   });
 
 const overrideDisplaySelectType = (type: OverrideDisplay) =>
