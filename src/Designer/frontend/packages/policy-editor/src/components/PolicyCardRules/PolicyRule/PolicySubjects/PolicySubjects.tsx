@@ -14,7 +14,7 @@ import { hasSubject } from '@altinn/policy-editor/utils';
 import { PolicySubjectsPerson } from './PolicySubjectsPerson';
 import { PolicySubjectsOrg } from './PolicySubjectsOrg';
 import { ErrorMessage } from '@digdir/designsystemet-react';
-import { ChosenSubjects } from './ChosenSubjects/ChosenSubjects';
+import { ChosenSubjects } from './ChosenSubjects';
 import type { PolicySubject } from '@altinn/policy-editor/types';
 import classes from './PolicySubjects.module.css';
 

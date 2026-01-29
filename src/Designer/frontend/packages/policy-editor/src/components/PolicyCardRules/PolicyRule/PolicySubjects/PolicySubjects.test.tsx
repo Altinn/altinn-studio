@@ -115,6 +115,19 @@ const agentRoleSubject = {
     code: 'sys-altinn3',
   },
 };
+const privRoleSubject = {
+  id: '1c6eeec1-fe70-4fc5-8b45-df4a2255dea6',
+  name: 'Privatperson',
+  description: 'Denne rollen er hentet fra Folkeregisteret og gir rettighet til flere tjenester.',
+  urn: 'urn:altinn:role:privatperson',
+  legacyRoleCode: 'PRIV',
+  legacyUrn: 'urn:altinn:rolecode:PRIV',
+  provider: {
+    id: '0195ea92-2080-777d-8626-69c91ea2a05d',
+    name: 'Altinn 2',
+    code: 'sys-altinn2',
+  },
+};
 const subjects = [
   revisorRoleSubject,
   utinnRoleSubject,
@@ -123,6 +136,7 @@ const subjects = [
   mockSubject2,
   mockSubject3,
   policySubjectOrg,
+  privRoleSubject,
 ];
 
 describe('PolicySubjects', () => {
@@ -200,16 +214,16 @@ describe('PolicySubjects', () => {
     ).toBeInTheDocument();
   });
 
-  it('should show access packages in second tab', async () => {
+  it('should show person access packages in first tab', async () => {
     const user = userEvent.setup();
     renderPolicySubjects();
 
     const accessPackagesTab = screen.getAllByRole('tab', {
       name: textMock('policy_editor.rule_card_subjects_access_packages'),
     });
-    await user.click(accessPackagesTab[0]);
+    await user.click(accessPackagesTab[1]);
 
-    expect(screen.getByText(accessPackageAreaTransport.name)).toBeInTheDocument();
+    expect(screen.getByText(skatteforhold.name)).toBeInTheDocument();
   });
 
   it('should show altinn 2 and altinn 3 roles in third tab', async () => {
@@ -240,6 +254,20 @@ describe('PolicySubjects', () => {
       screen.getByText(`${policySubjectOrg.name} (${policySubjectOrg.legacyRoleCode})`),
     ).toBeInTheDocument();
   });
+
+  it('should show priv subject in person tab', async () => {
+    const user = userEvent.setup();
+    renderPolicySubjects();
+
+    const otherRolesTab = screen.getAllByRole('tab', {
+      name: textMock('policy_editor.rule_card_subjects_other_roles'),
+    });
+    await user.click(otherRolesTab[1]);
+
+    expect(
+      screen.getByText(`${privRoleSubject.name} (${privRoleSubject.legacyRoleCode})`),
+    ).toBeInTheDocument();
+  });
 });
 
 const renderPolicySubjects = () => {
@@ -257,7 +285,12 @@ const ContextWrapper = () => {
   const [policyRules, setPolicyRules] = useState([
     {
       ...mockPolicyRuleContextValue.policyRule,
-      accessPackages: [lufttransportPackage.urn, 'urn:altinn:accesspackage:unknown'],
+      subject: [...mockPolicyRuleContextValue.policyRule.subject, privRoleSubject.legacyUrn],
+      accessPackages: [
+        lufttransportPackage.urn,
+        skatteforhold.urn,
+        'urn:altinn:accesspackage:unknown',
+      ],
     },
   ]);
 
