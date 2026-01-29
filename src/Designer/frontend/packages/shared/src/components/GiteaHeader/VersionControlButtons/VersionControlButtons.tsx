@@ -2,8 +2,8 @@ import React from 'react';
 import classes from './VersionControlButtons.module.css';
 import { useRepoMetadataQuery, useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { FetchChangesPopover } from './components/FetchChangesPopover';
-import { BranchDropdown } from './components/BranchDropdown';
 import { ShareChangesPopover } from './components/ShareChangesPopover';
+import { BranchDropdown } from './components/BranchDropdown';
 import { VersionControlButtonsContextProvider } from './context';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
 

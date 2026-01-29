@@ -9,12 +9,10 @@ import classes from './BranchDropdown.module.css';
 import { useBranchData } from '../../hooks/useBranchData';
 import { useBranchOperations } from '../../hooks/useBranchOperations';
 import type { Branch } from 'app-shared/types/api/BranchTypes';
-import { useLocation } from 'react-router-dom';
 
 export const BranchDropdown = () => {
   const { t } = useTranslation();
   const { owner: org, repoName: app } = useGiteaHeaderContext();
-  const location = useLocation();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const { currentBranch, branchList, isLoading: isLoadingData } = useBranchData(org, app);
@@ -53,16 +51,7 @@ export const BranchDropdown = () => {
           <BranchListItems
             branchList={branchList}
             currentBranch={currentBranch}
-            onBranchClick={(branchName) => {
-              checkoutExistingBranch(branchName);
-              if (location.pathname.includes('/ai-assistant')) {
-                window.dispatchEvent(
-                  new CustomEvent('altinity-repo-reset', {
-                    detail: { branch: branchName, sessionId: 'branch-switch' },
-                  }),
-                );
-              }
-            }}
+            onBranchClick={checkoutExistingBranch}
             onCreateBranchClick={() => setShowCreateDialog(true)}
           />
         </StudioDropdown.List>

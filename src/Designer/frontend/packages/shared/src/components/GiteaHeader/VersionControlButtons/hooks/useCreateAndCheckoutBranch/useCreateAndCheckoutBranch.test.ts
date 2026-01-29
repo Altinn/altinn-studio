@@ -3,7 +3,7 @@ import type { RenderHookResult } from '@testing-library/react';
 import type { UseCreateAndCheckoutBranchResult } from './useCreateAndCheckoutBranch';
 import { useCreateAndCheckoutBranch } from './useCreateAndCheckoutBranch';
 import type { AxiosError } from 'axios';
-import type { RepoStatus } from 'app-shared/types/RepoStatus';
+import type { RepoStatus } from 'app-shared/types/api/BranchTypes';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import {
