@@ -74,6 +74,16 @@ environmentVariables:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: aiConnectionString
+    - name: POSTHOG_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: postHogApiKey
+    - name: POSTHOG_API_HOST
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: postHogApiHost
   staging:
     - name: ASPNETCORE_ENVIRONMENT
       value: Staging
@@ -122,6 +132,16 @@ environmentVariables:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: aiConnectionString
+    - name: POSTHOG_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: postHogApiKey
+    - name: POSTHOG_API_HOST
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: postHogApiHost
   prod:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
@@ -168,6 +188,16 @@ environmentVariables:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: aiConnectionString
+    - name: POSTHOG_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: postHogApiKey
+    - name: POSTHOG_API_HOST
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: postHogApiHost
 
 dbMigrationsEnvironmentVariablesSecretName: altinn-designer-db-migrations-secret
 
@@ -231,4 +261,4 @@ lifecycle:
         - -c
         - >
           mkdir -p wwwroot/designer/config &&
-          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\"}" > wwwroot/designer/config/env.json
+          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\", \"postHogApiKey\": \"${POSTHOG_API_KEY}\", \"postHogApiHost\": \"${POSTHOG_API_HOST}\"}" > wwwroot/designer/config/env.json
