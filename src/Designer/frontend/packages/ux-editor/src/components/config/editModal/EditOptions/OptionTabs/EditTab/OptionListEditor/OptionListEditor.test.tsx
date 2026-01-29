@@ -69,7 +69,7 @@ describe('OptionListEditor', () => {
     ).toBeInTheDocument();
   });
 
-  it('Renders the name and version of the code list when optionsId refers to a published code list', () => {
+  it('Displays the interface for published code lists when optionsId refers to a published code list', () => {
     const codeListName = 'some-published-code-list';
     const version = '12';
     const refValues: PublishedCodeListReferenceValues = { orgName: org, codeListName, version };

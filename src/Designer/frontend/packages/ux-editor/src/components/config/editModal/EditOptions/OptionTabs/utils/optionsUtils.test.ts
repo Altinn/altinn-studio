@@ -185,7 +185,7 @@ describe('optionsUtils', () => {
       expect(hasEditableOptionList(component, { idsFromAppLibrary: [], orgName })).toBe(true);
     });
 
-    it('Returns true when a code list form the app library is selected', () => {
+    it('Returns true when a code list from the app library is selected', () => {
       const optionsId = 'test';
       const component = { ...mockedComponent, options: undefined, optionsId };
       expect(hasEditableOptionList(component, { idsFromAppLibrary: [optionsId], orgName })).toBe(
