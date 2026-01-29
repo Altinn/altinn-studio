@@ -1,11 +1,13 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getMultiPageGroupMock } from 'src/__mocks__/getMultiPageGroupMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
+import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/EditContainer/RepeatingGroupsEditContainer';
 import {
   RepeatingGroupProvider,
@@ -83,6 +85,10 @@ describe('RepeatingGroupsEditContainer', () => {
   });
 
   const render = async () => {
+    jest.mocked(useTextResources).mockImplementation(() => ({
+      'option.label': { value: 'Value to be shown' },
+    }));
+
     const multiPageGroup = getMultiPageGroupMock({ id: 'group' });
     multiPageGroup.edit!.saveAndNextButton = true;
 
@@ -99,15 +105,6 @@ describe('RepeatingGroupsEditContainer', () => {
               layout: [multiPageGroup, ...components],
             },
           },
-        }),
-        fetchTextResources: async () => ({
-          language: 'en',
-          resources: [
-            {
-              id: 'option.label',
-              value: 'Value to be shown',
-            },
-          ],
         }),
         fetchFormData: async () => ({
           multipageGroup: [

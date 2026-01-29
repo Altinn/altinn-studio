@@ -6,7 +6,6 @@ import { loadingAttribute, useHasElementsByAttribute } from 'src/components/Read
 import { useIsLoading } from 'src/core/loading/LoadingContext';
 import { DevTools } from 'src/features/devtools/DevTools';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
-import { LangDataSourcesProvider } from 'src/features/language/LangDataSourcesProvider';
 import { useNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 
 interface Props extends PropsWithChildren {
@@ -21,12 +20,12 @@ interface Props extends PropsWithChildren {
  */
 export function RenderStart({ children, devTools = true, dataModelFetcher = true }: Props) {
   return (
-    <LangDataSourcesProvider>
+    <>
       <RunNavigationEffect />
       {children}
       {devTools && <DevTools />}
       {dataModelFetcher && <DataModelFetcher />}
-    </LangDataSourcesProvider>
+    </>
   );
 }
 

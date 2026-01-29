@@ -2,10 +2,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { cyMockResponses } from 'test/e2e/pageobjects/party-mocks';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { InstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
-import type { ITextResourceResult } from 'src/features/language/textResources';
 
 const appFrontend = new AppFrontend();
 
@@ -65,23 +65,20 @@ describe('Instantiation', () => {
       });
     });
 
-    cy.intercept('GET', '**/texts/nb', (req) => {
-      req.on('response', (res) => {
-        const body = res.body as ITextResourceResult;
-        body.resources.push({
-          id: 'custom_error_too_long',
-          value: 'Verdien kan ikke være lengre enn {0}, den er nå {1}',
-          variables: [
-            {
-              key: 'max_length',
-              dataSource: 'customTextParameters',
-            },
-            {
-              key: 'current_length',
-              dataSource: 'customTextParameters',
-            },
-          ],
-        });
+    interceptAltinnAppGlobalData((globalData) => {
+      globalData.textResources?.resources.push({
+        id: 'custom_error_too_long',
+        value: 'Verdien kan ikke være lengre enn {0}, den er nå {1}',
+        variables: [
+          {
+            key: 'max_length',
+            dataSource: 'customTextParameters',
+          },
+          {
+            key: 'current_length',
+            dataSource: 'customTextParameters',
+          },
+        ],
       });
     });
 
@@ -124,23 +121,20 @@ describe('Instantiation', () => {
       },
     ]);
 
-    cy.intercept('GET', '**/texts/nb', (req) => {
-      req.on('response', (res) => {
-        const body = res.body as ITextResourceResult;
-        body.resources.push({
-          id: 'custom_error_too_long',
-          value: 'Verdien kan ikke være lengre enn {0}, den er nå {1}',
-          variables: [
-            {
-              key: 'max_length',
-              dataSource: 'customTextParameters',
-            },
-            {
-              key: 'current_length',
-              dataSource: 'customTextParameters',
-            },
-          ],
-        });
+    interceptAltinnAppGlobalData((globalData) => {
+      globalData.textResources?.resources.push({
+        id: 'custom_error_too_long',
+        value: 'Verdien kan ikke være lengre enn {0}, den er nå {1}',
+        variables: [
+          {
+            key: 'max_length',
+            dataSource: 'customTextParameters',
+          },
+          {
+            key: 'current_length',
+            dataSource: 'customTextParameters',
+          },
+        ],
       });
     });
 

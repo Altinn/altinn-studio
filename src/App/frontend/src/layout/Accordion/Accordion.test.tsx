@@ -1,7 +1,9 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
+import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { Accordion } from 'src/layout/Accordion/Accordion';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 
@@ -29,8 +31,10 @@ describe('Accordion', () => {
   });
 });
 
-const render = async ({ title, openByDefault }: { title?: string; openByDefault?: boolean } = {}) =>
-  await renderGenericComponentTest<'Accordion'>({
+const render = ({ title, openByDefault }: { title?: string; openByDefault?: boolean } = {}) => {
+  jest.mocked(useTextResources).mockImplementation(() => ({ 'accordion.title': { value: 'This is a title' } }));
+
+  return renderGenericComponentTest<'Accordion'>({
     type: 'Accordion',
     renderer: (props) => <Accordion {...props} />,
     component: {
@@ -41,15 +45,5 @@ const render = async ({ title, openByDefault }: { title?: string; openByDefault?
       },
       children: [],
     },
-    queries: {
-      fetchTextResources: async () => ({
-        language: 'nb',
-        resources: [
-          {
-            id: 'accordion.title',
-            value: 'This is a title',
-          },
-        ],
-      }),
-    },
   });
+};

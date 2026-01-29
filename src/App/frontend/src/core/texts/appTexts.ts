@@ -1,6 +1,5 @@
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useHasTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useHasOrgs, useOrgs } from 'src/features/orgs/OrgsProvider';
 
@@ -17,9 +16,8 @@ export function useTextResourceOr<T extends string | undefined>(resource: string
 
 export function useHasAppTextsYet() {
   const hasOrgs = useHasOrgs();
-  const hasTexts = useHasTextResources();
 
-  return hasOrgs && hasTexts;
+  return hasOrgs;
 }
 
 export function useAppName() {

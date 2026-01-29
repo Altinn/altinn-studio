@@ -1,4 +1,38 @@
-import type { IRawTextResource } from 'src/features/language/textResources';
+import type { IRawTextResource, TextResourceMap } from 'src/features/language/textResources';
+
+export function getTextResourceMapMock(): TextResourceMap {
+  return {
+    'option.from.rep.group.label': {
+      value: 'The value from the group is: {0}',
+      variables: [
+        {
+          dataSource: 'dataModel.default',
+          key: 'someGroup[{0}].labelField',
+        },
+      ],
+    },
+    'option.from.rep.group.description': {
+      value: 'Description: The value from the group is: {0}',
+      variables: [
+        {
+          dataSource: 'dataModel.default',
+          key: 'someGroup[{0}].labelField',
+        },
+      ],
+    },
+    'option.from.rep.group.helpText': {
+      value: 'Help Text: The value from the group is: {0}',
+      variables: [
+        {
+          dataSource: 'dataModel.default',
+          key: 'someGroup[{0}].labelField',
+        },
+      ],
+    },
+    'accordion.title': { value: 'This is a title' },
+    FormLayout: { value: 'This is a page title' },
+  };
+}
 
 export function getTextResourcesMock(): IRawTextResource[] {
   return [

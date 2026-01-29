@@ -6,6 +6,21 @@ import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
+type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
+jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => {
+  const actual = jest.requireActual<TextResourcesProviderImport>(
+    'src/features/language/textResources/TextResourcesProvider',
+  );
+  return {
+    ...actual,
+    useTextResources: jest.fn(() => ({
+      mockGroupTitle: { value: 'Mock group' },
+      mockField1: { value: 'Mock field 1' },
+      mockField2: { value: 'Mock field 2' },
+    })),
+  };
+});
+
 describe('SummaryGroupComponent', () => {
   let mockHandleDataChange: () => void;
 
@@ -80,15 +95,6 @@ describe('SummaryGroupComponent', () => {
             },
           },
         }),
-        fetchTextResources: () =>
-          Promise.resolve({
-            language: 'nb',
-            resources: [
-              { id: 'mockGroupTitle', value: 'Mock group' },
-              { id: 'mockField1', value: 'Mock field 1' },
-              { id: 'mockField2', value: 'Mock field 2' },
-            ],
-          }),
       },
     });
   }

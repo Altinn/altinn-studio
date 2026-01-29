@@ -1,9 +1,11 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
 import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
 import { Lang } from 'src/features/language/Lang';
+import { toTextResourceMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
 import { renderWithMinimalProviders, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -133,22 +135,23 @@ describe('useLanguage', () => {
   });
 
   it('langAsString() should properly convert HTML and markdown to strings', async () => {
+    jest.mocked(useTextResources).mockImplementation(() =>
+      toTextResourceMap({
+        language: 'nb',
+        resources: [
+          { id: 'simpleHtml', value: '<h1>This is my message</h1>' },
+          { id: 'simpleMarkdown', value: '# This is my message' },
+          { id: 'complexHtml', value: '<div><span>This is my message<br/> with newline</span></div>' },
+          {
+            id: 'complexMarkdown',
+            value: '## This is my message\n\n- With bullet\n- And another bullet',
+          },
+        ],
+      }),
+    );
+
     const { rerender } = await renderWithoutInstanceAndLayout({
       renderer: () => <TestSimple input='<h1>This is my message</h1>' />,
-      queries: {
-        fetchTextResources: async () => ({
-          language: 'nb',
-          resources: [
-            { id: 'simpleHtml', value: '<h1>This is my message</h1>' },
-            { id: 'simpleMarkdown', value: '# This is my message' },
-            { id: 'complexHtml', value: '<div><span>This is my message<br/> with newline</span></div>' },
-            {
-              id: 'complexMarkdown',
-              value: '## This is my message\n\n- With bullet\n- And another bullet',
-            },
-          ],
-        }),
-      },
     });
 
     expect(screen.getByTestId('as-string').innerHTML).toEqual('This is my message');
@@ -179,26 +182,27 @@ describe('useLanguage', () => {
       thirdValue: '2019',
     });
 
+    jest.mocked(useTextResources).mockImplementation(() =>
+      toTextResourceMap({
+        language: 'nb',
+        resources: [
+          {
+            id: 'complex',
+            // This complex text resource becomes an array of string elements, and failed to render as string
+            // previously.
+            value: "Hvor mange {0} <p style='text-transform: lowercase;'>{1}<p> brukte gatekjøkkenet i {2}?",
+            variables: [
+              { key: 'firstValue', dataSource: 'applicationSettings' },
+              { key: 'secondValue', dataSource: 'applicationSettings' },
+              { key: 'thirdValue', dataSource: 'applicationSettings' },
+            ],
+          },
+        ],
+      }),
+    );
+
     await renderWithoutInstanceAndLayout({
       renderer: () => <TestSimple input='complex' />,
-      queries: {
-        fetchTextResources: async () => ({
-          language: 'nb',
-          resources: [
-            {
-              id: 'complex',
-              // This complex text resource becomes an array of string elements, and failed to render as string
-              // previously.
-              value: "Hvor mange {0} <p style='text-transform: lowercase;'>{1}<p> brukte gatekjøkkenet i {2}?",
-              variables: [
-                { key: 'firstValue', dataSource: 'applicationSettings' },
-                { key: 'secondValue', dataSource: 'applicationSettings' },
-                { key: 'thirdValue', dataSource: 'applicationSettings' },
-              ],
-            },
-          ],
-        }),
-      },
     });
 
     // We don't exactly parse the HTML, but we do remove the tags.
@@ -216,6 +220,23 @@ describe('useLanguage', () => {
       length: '29',
       max_length: '10',
     };
+    jest.mocked(useTextResources).mockImplementation(() =>
+      toTextResourceMap({
+        language: 'nb',
+        resources: [
+          {
+            id: 'custom',
+            value: 'Teksten "{0}" er for lang ({1} bokstaver), det kan maksimalt være {2} bokstaver.',
+            variables: [
+              { key: 'text', dataSource: 'customTextParameters' },
+              { key: 'length', dataSource: 'customTextParameters' },
+              { key: 'max_length', dataSource: 'customTextParameters' },
+            ],
+          },
+        ],
+      }),
+    );
+
     await renderWithoutInstanceAndLayout({
       renderer: () => (
         <TestCustomParams
@@ -223,22 +244,6 @@ describe('useLanguage', () => {
           customTextParameters={customTextParameters}
         />
       ),
-      queries: {
-        fetchTextResources: async () => ({
-          language: 'nb',
-          resources: [
-            {
-              id: 'custom',
-              value: 'Teksten "{0}" er for lang ({1} bokstaver), det kan maksimalt være {2} bokstaver.',
-              variables: [
-                { key: 'text', dataSource: 'customTextParameters' },
-                { key: 'length', dataSource: 'customTextParameters' },
-                { key: 'max_length', dataSource: 'customTextParameters' },
-              ],
-            },
-          ],
-        }),
-      },
     });
 
     expect(screen.getByTestId('as-string').innerHTML).toEqual(

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { beforeAll } from '@jest/globals';
+import { beforeAll, jest } from '@jest/globals';
 import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { v4 as uuidv4 } from 'uuid';
@@ -20,6 +20,17 @@ import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ILayout } from 'src/layout/layout';
 import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
+
+type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
+jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => ({
+  ...jest.requireActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider'),
+  useTextResources: jest.fn(() => ({
+    'option.label': { value: 'Value to be shown' },
+    'button.open': { value: 'New open text' },
+    'button.close': { value: 'New close text' },
+    'button.save': { value: 'New save text' },
+  })),
+}));
 
 const mockContainer = getFormLayoutRepeatingGroupMock({
   id: 'myGroup',
@@ -112,16 +123,6 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
           },
         },
       }),
-      fetchTextResources: () =>
-        Promise.resolve({
-          language: 'en',
-          resources: [
-            { id: 'option.label', value: 'Value to be shown' },
-            { id: 'button.open', value: 'New open text' },
-            { id: 'button.close', value: 'New close text' },
-            { id: 'button.save', value: 'New save text' },
-          ],
-        }),
       fetchFormData: async () => ({
         Group: Array.from({ length: numRows }).map((_, index) => ({
           [ALTINN_ROW_ID]: uuidv4(),

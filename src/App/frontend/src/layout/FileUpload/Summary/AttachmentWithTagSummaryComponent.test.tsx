@@ -12,6 +12,22 @@ import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompFileUploadWithTagExternal } from 'src/layout/FileUploadWithTag/config.generated';
 import type { IData } from 'src/types/shared';
 
+type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
+jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => {
+  const actual = jest.requireActual<TextResourcesProviderImport>(
+    'src/features/language/textResources/TextResourcesProvider',
+  );
+  return {
+    ...actual,
+    useTextResources: jest.fn(() => ({
+      a: { value: 'the a' },
+      b: { value: 'the b' },
+      c: { value: 'the c' },
+      'ba option value': { value: 'the result' },
+    })),
+  };
+});
+
 const availableOptions = {
   'https://local.altinn.cloud/ttd/test/api/options/a?language=nb': {
     data: [
@@ -143,16 +159,6 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
         availableOptions[url]
           ? Promise.resolve(availableOptions[url])
           : Promise.reject(new Error(`No options available for ${url}`)),
-      fetchTextResources: () =>
-        Promise.resolve({
-          language: 'nb',
-          resources: [
-            { id: 'a', value: 'the a' },
-            { id: 'b', value: 'the b' },
-            { id: 'c', value: 'the c' },
-            { id: 'ba option value', value: 'the result' },
-          ],
-        }),
     },
   });
 };
