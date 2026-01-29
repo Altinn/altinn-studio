@@ -8,16 +8,22 @@ import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages'
 export type PolicyAccessPackageAccordionProps = {
   accessPackage: PolicyAccessPackage;
   isChecked: boolean;
+  isPersonSubject?: boolean;
   handleSelectChange: (accessPackageUrn: string) => void;
 };
 
 export const PolicyAccessPackageAccordion = ({
   accessPackage,
   isChecked,
+  isPersonSubject,
   handleSelectChange,
 }: PolicyAccessPackageAccordionProps): ReactElement => {
   return (
-    <div className={classes.accessPackageAccordion}>
+    <div
+      className={
+        isPersonSubject ? classes.accessPackagePersonAccordion : classes.accessPackageOrgAccordion
+      }
+    >
       <PolicyAccordion
         title={accessPackage.name}
         subTitle={accessPackage.description}

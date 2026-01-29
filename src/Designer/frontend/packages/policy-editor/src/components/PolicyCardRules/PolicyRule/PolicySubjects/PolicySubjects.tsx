@@ -1,51 +1,74 @@
 import React, { useMemo } from 'react';
-import { StudioTabs } from '@studio/components';
 import {
   getAltinnSubjects,
   getCcrSubjects,
   getOtherSubjects,
+  getPersonSubjects,
   getUpdatedRules,
 } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
-import classes from './PolicySubjects.module.css';
-import { PackageIcon, PersonTallShortIcon } from '@studio/icons';
-import { PolicyAccessPackages } from '../PolicyAccessPackages';
-import { ErrorMessage } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages';
-import { RoleList } from './RoleList/RoleList';
-import { findSubject, hasSubject } from '@altinn/policy-editor/utils';
-import { SubjectListItem } from './SubjectListItem';
+import { hasSubject } from '@altinn/policy-editor/utils';
+import { PolicySubjectsPriv } from './PolicySubjectsPriv';
+import { PolicySubjectsOrg } from './PolicySubjectsOrg';
+import { ErrorMessage } from '@digdir/designsystemet-react';
+import { ChosenSubjects } from './ChosenSubjects/ChosenSubjects';
+import type { PolicySubject } from '@altinn/policy-editor/types';
+import classes from './PolicySubjects.module.css';
 
-enum TabId {
-  ErRoles = 'ErRoles',
-  AccessPackages = 'AccessPackages',
-  AltinnRoles = 'AltinnRoles',
-  Other = 'Other',
-}
+const PERSON_ACCESS_PACKAGE_AREA_ID = '413f99ca-19ca-4124-8470-b0c1dba3d2ee';
 
 export const PolicySubjects = () => {
   const { t } = useTranslation();
   const { policyRules, subjects, accessPackages, setPolicyRules, savePolicy } =
     usePolicyEditorContext();
-  const { policyRule, showAllErrors, policyError, setPolicyError } = usePolicyRuleContext();
+  const { policyRule, policyError, showAllErrors, setPolicyError } = usePolicyRuleContext();
 
-  const accessPackageList = useMemo(() => {
-    return accessPackages.flatMap((a) => a.areas).flatMap((a) => a.packages);
+  const flatAccessPackagesOrg = useMemo(() => {
+    return accessPackages
+      .filter((area) => area.id !== PERSON_ACCESS_PACKAGE_AREA_ID)
+      .flatMap((a) => a.areas)
+      .flatMap((a) => a.packages);
+  }, [accessPackages]);
+  const flatAccessPackagesPriv = useMemo(() => {
+    return accessPackages
+      .filter((area) => area.id === PERSON_ACCESS_PACKAGE_AREA_ID)
+      .flatMap((a) => a.areas)
+      .flatMap((a) => a.packages);
   }, [accessPackages]);
 
-  const ccrSubjects = useMemo(() => {
-    return getCcrSubjects(subjects);
-  }, [subjects]);
-  const altinnSubjects = useMemo(() => {
-    return getAltinnSubjects(subjects);
-  }, [subjects]);
-  const otherSubjects = useMemo(() => {
-    return getOtherSubjects(subjects);
-  }, [subjects]);
+  const [chosenOrgAccessPackages, chosenPrivAccessPackages] = useMemo(() => {
+    const org: PolicyAccessPackage[] = [];
+    const priv: PolicyAccessPackage[] = [];
 
-  const handleSubjectChange = (subjectUrn: string, subjectLegacyUrn?: string): void => {
+    policyRule.accessPackages.forEach((urn) => {
+      const orgPackage = flatAccessPackagesOrg.find((p) => p.urn === urn);
+      const privPackage = flatAccessPackagesPriv.find((p) => p.urn === urn);
+
+      if (orgPackage) {
+        org.push(orgPackage);
+      } else if (privPackage) {
+        priv.push(privPackage);
+      } else {
+        // If urn is not found in either org or priv access packages, add unknown access package to org array
+        org.push({
+          id: urn,
+          urn,
+          name: t('policy_editor.access_package_unknown_heading'),
+          description: t('policy_editor.access_package_unknown_description', {
+            accessPackageUrn: urn,
+          }),
+          isResourcePolicyAvailable: true,
+        });
+      }
+    });
+
+    return [org, priv];
+  }, [policyRule.accessPackages, flatAccessPackagesOrg, flatAccessPackagesPriv, t]);
+
+  const handleRemoveSubject = (subjectUrn: string, subjectLegacyUrn?: string): void => {
     const updatedSubjects = hasSubject(policyRule.subject, subjectUrn, subjectLegacyUrn)
       ? policyRule.subject.filter((s) => s !== subjectUrn && s !== subjectLegacyUrn)
       : [...policyRule.subject, subjectLegacyUrn ?? subjectUrn]; // prefer legacyUrn over urn, until AM is updated to handle new subject urns
@@ -64,11 +87,9 @@ export const PolicySubjects = () => {
     });
   };
 
-  const handleRemoveAccessPackage = (selectedAccessPackageUrn: string): void => {
+  const handleRemoveAccessPackage = (selectedUrn: string): void => {
     // access packages can only be removed from this control
-    const updateAccessPackages = policyRule.accessPackages.filter(
-      (s) => s !== selectedAccessPackageUrn,
-    );
+    const updateAccessPackages = policyRule.accessPackages.filter((s) => s !== selectedUrn);
 
     const updatedRules = getUpdatedRules(
       {
@@ -82,17 +103,48 @@ export const PolicySubjects = () => {
     savePolicy(updatedRules);
   };
 
-  const createUnknownAccessPackageData = (urn: string): PolicyAccessPackage => {
+  const getChosenAccessPackage = (heading: string, list: PolicyAccessPackage[]) => {
     return {
-      id: urn,
-      urn,
-      name: t('policy_editor.access_package_unknown_heading'),
-      description: t('policy_editor.access_package_unknown_description', {
-        accessPackageUrn: urn,
+      heading: heading,
+      handleRemove: handleRemoveAccessPackage,
+      items: list.map((pkg) => {
+        return {
+          urn: pkg.urn,
+          label: pkg.name,
+        };
       }),
-      isResourcePolicyAvailable: true,
     };
   };
+
+  const getChosenRoles = (heading: string, list: PolicySubject[]) => {
+    const chosenRoles = list.filter(
+      (x) => policyRule.subject.indexOf(x.urn) > -1 || policyRule.subject.indexOf(x.legacyUrn) > -1,
+    );
+    return {
+      heading: heading,
+      handleRemove: handleRemoveSubject,
+      items: chosenRoles.map((role) => {
+        return {
+          urn: role.legacyUrn || role.urn,
+          label: role.name,
+        };
+      }),
+    };
+  };
+
+  const personGroups = [
+    getChosenAccessPackage(t('policy_editor.access_package_header'), chosenPrivAccessPackages),
+    getChosenRoles(t('policy_editor.rule_card_subjects_other_roles'), getPersonSubjects(subjects)),
+  ];
+
+  const orgGroups = [
+    getChosenAccessPackage(t('policy_editor.access_package_header'), chosenOrgAccessPackages),
+    getChosenRoles(t('policy_editor.rule_card_subjects_other_altinn_roles'), [
+      ...getAltinnSubjects(subjects),
+      ...getOtherSubjects(subjects),
+    ]),
+    getChosenRoles(t('policy_editor.rule_card_subjects_ccr_roles'), getCcrSubjects(subjects)),
+  ];
 
   return (
     <div>
@@ -100,98 +152,10 @@ export const PolicySubjects = () => {
       <div data-color='neutral' className={classes.subjectDescription}>
         {t('policy_editor.rule_card_subjects_subtitle')}
       </div>
-      {policyRule.subject.length > 0 && (
-        <div className={classes.selectedSubjectList}>
-          <div className={classes.selectedListTitle}>
-            {t('policy_editor.rule_card_subjects_chosen_roles')}
-          </div>
-          {policyRule.subject.map((urn) => {
-            const subject = findSubject(subjects, urn);
-            const displayCode = subject?.legacyRoleCode || subject?.code;
-            const legacyRoleCode = displayCode ? ` (${displayCode})` : '';
-
-            return (
-              <SubjectListItem
-                key={`${urn}-selected`}
-                urn={urn}
-                legacyUrn={subject?.legacyUrn}
-                title={`${subject?.name}${legacyRoleCode}`}
-                icon={PersonTallShortIcon}
-                isChecked={true}
-                isSelectedListItem
-                handleChange={handleSubjectChange}
-              />
-            );
-          })}
-        </div>
-      )}
-      {policyRule.accessPackages.length > 0 && (
-        <div className={classes.selectedSubjectList}>
-          <div className={classes.selectedListTitle}>
-            {t('policy_editor.rule_card_subjects_chosen_access_packages')}
-          </div>
-          {policyRule.accessPackages.map((accessPackageUrn) => {
-            let accessPackage = accessPackageList.find((s) => s.urn === accessPackageUrn);
-            if (!accessPackage) {
-              accessPackage = createUnknownAccessPackageData(accessPackageUrn);
-            }
-            return (
-              <SubjectListItem
-                key={`${accessPackageUrn}-selected`}
-                urn={accessPackageUrn}
-                title={accessPackage.name}
-                icon={PackageIcon}
-                isChecked={true}
-                isSelectedListItem
-                handleChange={handleRemoveAccessPackage}
-              />
-            );
-          })}
-        </div>
-      )}
-      <StudioTabs defaultValue={TabId.ErRoles}>
-        <StudioTabs.List>
-          <StudioTabs.Tab value={TabId.ErRoles}>
-            {t('policy_editor.rule_card_subjects_ccr_roles')}
-          </StudioTabs.Tab>
-          <StudioTabs.Tab value={TabId.AccessPackages}>
-            {t('policy_editor.rule_card_subjects_access_packages')}
-          </StudioTabs.Tab>
-          <StudioTabs.Tab value={TabId.AltinnRoles}>
-            {t('policy_editor.rule_card_subjects_altinn_roles')}
-          </StudioTabs.Tab>
-          <StudioTabs.Tab value={TabId.Other}>
-            {t('policy_editor.rule_card_subjects_other_roles')}
-          </StudioTabs.Tab>
-        </StudioTabs.List>
-        <StudioTabs.Panel value={TabId.ErRoles}>
-          <RoleList
-            selectedSubjects={policyRule.subject}
-            subjects={ccrSubjects}
-            heading={t('policy_editor.rule_card_subjects_ccr_roles')}
-            handleChange={handleSubjectChange}
-          />
-        </StudioTabs.Panel>
-        <StudioTabs.Panel value={TabId.AccessPackages}>
-          <PolicyAccessPackages />
-        </StudioTabs.Panel>
-        <StudioTabs.Panel value={TabId.AltinnRoles}>
-          <RoleList
-            selectedSubjects={policyRule.subject}
-            subjects={altinnSubjects}
-            heading={t('policy_editor.rule_card_subjects_altinn_roles')}
-            handleChange={handleSubjectChange}
-          />
-        </StudioTabs.Panel>
-        <StudioTabs.Panel value={TabId.Other}>
-          <RoleList
-            selectedSubjects={policyRule.subject}
-            subjects={otherSubjects}
-            heading={t('policy_editor.rule_card_subjects_other_roles')}
-            handleChange={handleSubjectChange}
-          />
-        </StudioTabs.Panel>
-      </StudioTabs>
+      <ChosenSubjects groups={orgGroups} />
+      <ChosenSubjects groups={personGroups} isPersonSubject />
+      <PolicySubjectsOrg handleSubjectChange={handleRemoveSubject} />
+      <PolicySubjectsPriv handleSubjectChange={handleRemoveSubject} />
       {showAllErrors && policyError.subjectsError && (
         <ErrorMessage size='small'>{t('policy_editor.rule_card_subjects_error')}</ErrorMessage>
       )}

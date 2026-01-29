@@ -188,7 +188,7 @@ const ContextWrapper = () => {
           policyRule: { ...policyRules[0] },
         }}
       >
-        <PolicyAccessPackages />
+        <PolicyAccessPackages accessPackages={[accessPackageAreaGroupVanlig]} />
       </PolicyRuleContext.Provider>
     </PolicyEditorContext.Provider>
   );

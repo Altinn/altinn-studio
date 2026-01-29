@@ -1,10 +1,14 @@
 .accordionIcon {
   font-size: var(--ds-font-size-7);
   color: var(--fds-semantic-text-neutral-default);
-}
-
-.iconContainer {
-  background-color: var(--ds-color-surface-tinted);
   border-radius: var(--fds-border_radius-small);
   padding: var(--fds-sizing-2);
+}
+
+.orgAccordionIcon {
+  background-color: var(--ds-color-surface-tinted);
+}
+
+.personAccordionIcon {
+  background-color: var(--ds-color-success-surface-tinted);
 }

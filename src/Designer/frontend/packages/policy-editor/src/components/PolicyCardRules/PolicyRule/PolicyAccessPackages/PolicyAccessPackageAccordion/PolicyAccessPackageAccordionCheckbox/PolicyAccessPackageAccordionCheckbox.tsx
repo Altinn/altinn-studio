@@ -1,7 +1,7 @@
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './PolicyAccessPackageAccordionCheckbox.module.css';
-import { StudioCheckbox } from '@studio/components-legacy';
+import { StudioCheckbox } from '@studio/components';
 import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages';
 
 export type PolicyAccessPackageAccordionCheckboxProps = {
@@ -24,7 +24,7 @@ export const PolicyAccessPackageAccordionCheckbox = ({
 
   return (
     <StudioCheckbox
-      value='on'
+      data-size='md'
       checked={isChecked}
       className={classes.accordionCheckbox}
       onChange={() => handleSelectChange(accessPackage.urn)}
