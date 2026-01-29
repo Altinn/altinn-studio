@@ -13,7 +13,7 @@ import type {
 } from '@studio/assistant';
 import { MessageAuthor, ErrorMessages } from '@studio/assistant';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useRepoCurrentBranchQuery } from 'app-shared/hooks/queries/useRepoCurrentBranchQuery';
+import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useThreadStorage } from './useThreadStorage';
 import { useAltinityWebSocket } from './useAltinityWebSocket';
@@ -59,7 +59,8 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
 
   const { org, app } = useStudioEnvironmentParams();
   const queryClient = useQueryClient();
-  const { data: currentBranch } = useRepoCurrentBranchQuery(org, app);
+  const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
+  const currentBranch = currentBranchInfo?.branchName;
   const currentBranchRef = useRef<string>('main');
 
   useEffect(() => {
@@ -209,7 +210,7 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
               console.log('Repository reset completed, triggering preview reload');
               currentBranchRef.current = branch;
               queryClient.invalidateQueries({
-                queryKey: [QueryKey.RepoCurrentBranch, org, app],
+              queryKey: [QueryKey.CurrentBranch, org, app],
               });
               window.dispatchEvent(
                 new CustomEvent('altinity-repo-reset', {

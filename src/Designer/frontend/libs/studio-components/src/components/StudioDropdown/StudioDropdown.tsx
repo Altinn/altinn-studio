@@ -13,7 +13,12 @@ export type StudioDropdownProps = {
   iconPlacement?: IconPlacement;
   triggerButtonText?: string;
   triggerButtonVariant?: StudioButtonProps['variant'];
+  triggerButtonDisabled?: boolean;
+  triggerButtonAriaLabel?: string;
+  triggerButtonTitle?: string;
   triggerButtonClassName?: string;
+
+  'data-color-scheme'?: 'light' | 'dark';
 } & Omit<WithoutAsChild<DropdownProps>, 'anchorEl' | 'open' | 'onClose'>;
 
 export function StudioDropdown({
@@ -21,8 +26,13 @@ export function StudioDropdown({
   iconPlacement = 'left',
   triggerButtonText,
   triggerButtonVariant,
+  triggerButtonDisabled = false,
+  triggerButtonAriaLabel,
+  triggerButtonTitle,
   triggerButtonClassName,
   children,
+  'data-color': dataColor,
+  'data-color-scheme': dataColorScheme,
   ...rest
 }: StudioDropdownProps): ReactElement {
   const [open, setOpen] = useState<boolean>(false);
@@ -34,17 +44,26 @@ export function StudioDropdown({
   return (
     <Dropdown.TriggerContext>
       <Dropdown.Trigger
+        data-color={dataColor}
         variant={triggerButtonVariant}
         onClick={handleClick}
         icon={!triggerButtonText}
+        disabled={triggerButtonDisabled}
+        aria-label={triggerButtonAriaLabel}
         aria-expanded={open}
+        title={triggerButtonTitle}
         className={triggerButtonClassName}
       >
         <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
           {triggerButtonText}
         </TextWithIcon>
       </Dropdown.Trigger>
-      <Dropdown onClose={() => setOpen(false)} open={open} {...rest}>
+      <Dropdown
+        onClose={() => setOpen(false)}
+        open={open}
+        data-color-scheme={dataColorScheme}
+        {...rest}
+      >
         <StudioDropdownContextProvider setOpen={setOpen}>{children}</StudioDropdownContextProvider>
       </Dropdown>
     </Dropdown.TriggerContext>

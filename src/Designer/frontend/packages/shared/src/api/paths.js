@@ -78,8 +78,6 @@ export const gitCommitPath = (org, app, commitId) => `/repos/${org}/${app}/commi
 export const repositoryGitPath = (org, app) => `/repos/${org}/${app}.git`;
 export const repositoryPath = (org, app) => `/repos/${org}/${app}`;
 export const repositoryLayoutPath = (org, app, layout) => `/repos/${org}/${app}/src/branch/master/App/ui/form/layouts/${layout}.json`;
-export const repositoryBranchesPath = (org, app) => `/repos/api/v1/repos/${org}/${app}/branches`; // Get
-export const repositoryCurrentBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/current-branch`; // Get
 export const publishPath = (org, app) => `/editor/${org}/${app}/deploy`;
 export const repositoryOwnerPath = (org) => `/repos/${org}`;
 export const repositoryBasePath = () => `/repos`;
@@ -120,6 +118,10 @@ export const undeployAppFromEnvPath = (org, app) => `${apiBasePath}/${org}/${app
 
 // Repositories
 export const branchStatusPath = (org, app, branch) => `${apiBasePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
+export const branchesPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/branches`; // Get, Post
+export const checkoutBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/checkout`; // Post
+export const currentBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/current-branch`; // Get
+export const discardChangesPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/discard-changes`; // Post
 export const copyAppPath = (org, sourceRepository, targetRepository, targetOrg) =>
   `${apiBasePath}/repos/repo/${org}/copy-app?${s({
     sourceRepository,
@@ -135,7 +137,6 @@ export const repoMetaPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${ap
 export const repoPullPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/pull`; // Get
 export const repoPushPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/push`; // Post
 export const repoResetPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/reset`; // Get
-export const setRepoBranchPath = (org, app, branch) => `${apiBasePath}/repos/repo/${org}/${app}/reset?branch=${encodeURIComponent(branch)}`; // Get
 export const repoSearchPath = () => `${apiBasePath}/repos/search`; // Get
 export const repoStatusPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/status`; // Get
 export const repoDiffPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/diff`; // Get

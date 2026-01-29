@@ -1,0 +1,12 @@
+.loading {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--ds-size-2);
+}
+
+/* Style for .branchButton is temporary until we migrate to StudioPageHeader */
+.branchButton {
+  color: var(--ds-base-contrast-default);
+  font-family: var(--studio-font-family);
+  font-size: var(--ds--body-xs-font-size);
+}

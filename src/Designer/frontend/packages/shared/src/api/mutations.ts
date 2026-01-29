@@ -12,7 +12,6 @@ import {
   repoCommitPushPath,
   repoPushPath,
   repoResetPath,
-  setRepoBranchPath,
   ruleConfigPath,
   textResourceIdsPath,
   textResourcesPath,
@@ -60,6 +59,9 @@ import {
   layoutConvertToPageOrderPath,
   taskNavigationGroupPath,
   orgCodeListUpdateIdPath,
+  branchesPath,
+  checkoutBranchPath,
+  discardChangesPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -77,6 +79,8 @@ import type { CreateDataModelPayload } from 'app-shared/types/api/CreateDataMode
 import type { Policy } from '@altinn/policy-editor';
 import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers, HeaderEtag, MigrateDelegationsRequest } from 'app-shared/types/ResourceAdm';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { Branch } from 'app-shared/types/api/BranchTypes';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Repository } from 'app-shared/types/Repository';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
@@ -129,7 +133,6 @@ export const generateModels = (org: string, app: string, modelPath: string, payl
 export const logout = () => post(userLogoutPath());
 export const pushRepoChanges = (org: string, app: string) => post(repoPushPath(org, app));
 export const resetRepoChanges = (org: string, app: string) => get(repoResetPath(org, app)); //Technically a mutation, but currently only implemented as a GET
-export const setRepoBranch = (owner: string, app: string, branch: string) => get(setRepoBranchPath(owner, app, branch));
 export const saveDataModel = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(dataModelPath(org, app, modelPath, true), payload);
 export const saveFormLayout = (org: string, app: string, layoutName: string, layoutSetName: string, payload: FormLayoutRequest) => post<void, FormLayoutRequest>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
 export const saveFormLayoutV3 = (org: string, app: string, layoutName: string, layoutSetName: string, payload: FormLayoutRequest) => post<void, FormLayoutRequest>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
@@ -206,3 +209,11 @@ export const uploadOrgCodeList = async (org: string, payload: FormData): Promise
 // Organisation text resources:
 export const createOrgTextResources = async (org: string, language: string, payload: ITextResourcesWithLanguage): Promise<ITextResourcesWithLanguage> => post<ITextResourcesWithLanguage, ITextResourcesWithLanguage>(orgTextResourcesPath(org, language), payload);
 export const updateOrgTextResources = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);
+
+// Branches:
+export const createBranch = async (org: string, app: string, branchName: string): Promise<Branch> =>
+  post(branchesPath(org, app), { branchName });
+export const checkoutBranch = async (org: string, app: string, branchName: string): Promise<RepoStatus> =>
+  post(checkoutBranchPath(org, app), { branchName });
+export const discardChanges = async (org: string, app: string): Promise<RepoStatus> =>
+  post(discardChangesPath(org, app), {});

@@ -1,5 +1,5 @@
-import React from 'react';
-import type { ReactElement, ReactNode, MouseEvent } from 'react';
+import React, { forwardRef } from 'react';
+import type { ReactElement, ReactNode, MouseEvent, Ref } from 'react';
 import cn from 'classnames';
 import classes from './StudioDropdownButton.module.css';
 import { Dropdown } from '@digdir/designsystemet-react';
@@ -13,14 +13,17 @@ export type StudioDropdownButtonProps = {
   iconPlacement?: IconPlacement;
 } & Omit<DropdownButtonProps, 'icon'>;
 
-export function StudioDropdownButton({
-  children,
-  icon,
-  iconPlacement = 'left',
-  onClick,
-  className,
-  ...rest
-}: StudioDropdownButtonProps): ReactElement {
+function StudioDropdownButton(
+  {
+    children,
+    icon,
+    iconPlacement = 'left',
+    onClick,
+    className,
+    ...rest
+  }: StudioDropdownButtonProps,
+  ref: Ref<HTMLButtonElement>,
+): ReactElement {
   const { setOpen } = useStudioDropdownContext();
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>): void => {
@@ -33,13 +36,22 @@ export function StudioDropdownButton({
       className={cn(className, classes.studioDropdownMenuButton)}
       onClick={handleClick}
       icon={!children}
+      ref={ref}
       {...rest}
     >
-      <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
-        {children}
-      </TextWithIcon>
+      {icon ? (
+        <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
+          {children}
+        </TextWithIcon>
+      ) : (
+        children
+      )}
     </Dropdown.Button>
   );
 }
 
-StudioDropdownButton.displayName = 'StudioDropdown.Button';
+const ForwardedStudioDropdownButton = forwardRef(StudioDropdownButton);
+
+ForwardedStudioDropdownButton.displayName = 'StudioDropdown.Button';
+
+export { ForwardedStudioDropdownButton as StudioDropdownButton };
