@@ -27,6 +27,7 @@ import {
   accessListsPath,
   accessListPath,
   accessListMemberPath,
+  appValidationPath,
   processEditorPath,
   releasesPath,
   repoMetaPath,
@@ -130,6 +131,8 @@ export const getSelectedMaskinportenScopes = (org: string, app: String) => get<M
 
 export const getAppMetadataModelIds = (org: string, app: string, onlyUnReferenced: boolean) => get<string[]>(appMetadataModelIdsPath(org, app, onlyUnReferenced));
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
+export const getAppValidation = (owner: string, app: string) => get<any>(appValidationPath(owner, app));
+
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
 export const getAvailableResourcesFromOrg = (owner: string, contentType?: LibraryContentType) => get<ExternalResource[]>(availableResourcesInOrgLibraryPath(owner, contentType));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));

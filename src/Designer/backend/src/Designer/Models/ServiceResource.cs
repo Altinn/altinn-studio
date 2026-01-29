@@ -1,4 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Enums;
 
@@ -22,17 +25,17 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// The title of service
         /// </summary>
-        public Dictionary<string, string>? Title { get; set; }
+        public ServiceResourceTranslatedString? Title { get; set; }
 
         /// <summary>
         /// Description
         /// </summary>
-        public Dictionary<string, string>? Description { get; set; }
+        public ServiceResourceTranslatedString? Description { get; set; }
 
         /// <summary>
         /// Description explaining the rights a recipient will receive if given access to the resource
         /// </summary>
-        public Dictionary<string, string>? RightDescription { get; set; }
+        public ServiceResourceTranslatedString? RightDescription { get; set; }
 
         /// <summary>
         /// The homepage
@@ -149,6 +152,177 @@ namespace Altinn.Studio.Designer.Models
         public override string ToString()
         {
             return $"Identifier: {Identifier}, ResourceType: {ResourceType}";
+        }
+    }
+
+    public class ServiceResourceTranslatedString
+    {
+        public string? Nb { get; set; }
+        public string? En { get; set; }
+        public string? Nn { get; set; }
+
+        [JsonExtensionData]
+        public Dictionary<string, JsonElement>? OtherLanguages { get; set; }
+
+        public static implicit operator Dictionary<string, string>?(
+            ServiceResourceTranslatedString srts
+        )
+        {
+            if (srts == null)
+                return null;
+            var dict = new Dictionary<string, string>();
+
+            if (srts.Nb != null)
+            {
+                dict["nb"] = srts.Nb;
+            }
+
+            if (srts.En != null)
+            {
+                dict["en"] = srts.En;
+            }
+
+            if (srts.Nn != null)
+            {
+                dict["nn"] = srts.Nn;
+            }
+
+            if (srts.OtherLanguages != null)
+            {
+                foreach (
+                    KeyValuePair<string, JsonElement> kvp in srts.OtherLanguages.Where(kvp =>
+                        kvp.Value.ValueKind == JsonValueKind.String
+                    )
+                )
+                {
+                    dict[kvp.Key] = kvp.ToString();
+                }
+            }
+
+            return dict;
+        }
+    }
+
+    public class AltinnAppServiceResource : ServiceResource, IValidatableObject
+    {
+        [Required]
+        public new string? Identifier { get; set; }
+
+        [Required]
+        public new List<ContactPoint>? ContactPoints { get; set; }
+
+        [Required]
+        public new ServiceResourceTranslatedString? Title { get; set; }
+
+        [Required]
+        public new ServiceResourceTranslatedString? Description { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            const string MissingErrorMessage = "REQUIRED";
+            if (Title?.Nb is null or "")
+            {
+                yield return new ValidationResult(
+                    MissingErrorMessage,
+                    [nameof(Title) + "." + nameof(Title.Nb)]
+                );
+            }
+
+            if (Title?.Nn is null or "")
+            {
+                yield return new ValidationResult(
+                    MissingErrorMessage,
+                    [nameof(Title) + "." + nameof(Title.Nn)]
+                );
+            }
+
+            if (Title?.En is null or "")
+            {
+                yield return new ValidationResult(
+                    MissingErrorMessage,
+                    [nameof(Title) + "." + nameof(Title.En)]
+                );
+            }
+
+            if (Description?.Nb is null or "")
+            {
+                yield return new ValidationResult(
+                    MissingErrorMessage,
+                    [nameof(Description) + "." + nameof(Description.Nb)]
+                );
+            }
+
+            if (Description?.Nn is null or "")
+            {
+                yield return new ValidationResult(
+                    MissingErrorMessage,
+                    [nameof(Description) + "." + nameof(Description.Nn)]
+                );
+            }
+
+            if (Description?.En is null or "")
+            {
+                yield return new ValidationResult(
+                    MissingErrorMessage,
+                    [nameof(Description) + "." + nameof(Description.En)]
+                );
+            }
+
+            if (Delegable == true)
+            {
+                if (RightDescription is null)
+                {
+                    yield return new ValidationResult(
+                        MissingErrorMessage,
+                        [nameof(RightDescription)]
+                    );
+                }
+                else
+                {
+                    if (RightDescription?.Nb is null or "")
+                    {
+                        yield return new ValidationResult(
+                            MissingErrorMessage,
+                            [nameof(RightDescription) + "." + nameof(RightDescription.Nb)]
+                        );
+                    }
+
+                    if (RightDescription?.Nn is null or "")
+                    {
+                        yield return new ValidationResult(
+                            MissingErrorMessage,
+                            [nameof(RightDescription) + "." + nameof(RightDescription.Nn)]
+                        );
+                    }
+
+                    if (RightDescription?.En is null or "")
+                    {
+                        yield return new ValidationResult(
+                            MissingErrorMessage,
+                            [nameof(RightDescription) + "." + nameof(RightDescription.En)]
+                        );
+                    }
+                }
+            }
+
+            if (ContactPoints is null || ContactPoints.Count == 0)
+            {
+                yield return new ValidationResult(MissingErrorMessage, [nameof(ContactPoints)]);
+            }
+            else
+            {
+                foreach (
+                    ContactPoint? _ in ContactPoints.Where(contactPoint =>
+                        contactPoint.Category is null or ""
+                        && contactPoint.Email is null or ""
+                        && contactPoint.Telephone is null or ""
+                        && contactPoint.ContactPage is null or ""
+                    )
+                )
+                {
+                    yield return new ValidationResult(MissingErrorMessage, [nameof(ContactPoints)]);
+                }
+            }
         }
     }
 }

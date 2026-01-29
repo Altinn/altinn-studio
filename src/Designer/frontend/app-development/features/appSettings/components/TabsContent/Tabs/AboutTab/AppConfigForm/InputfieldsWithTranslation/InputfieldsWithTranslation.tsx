@@ -30,6 +30,8 @@ export function InputfieldsWithTranslation({
 }: InputfieldsWithTranslationProps): ReactElement {
   const { t } = useTranslation();
 
+  console.log(id);
+  console.log(value);
   const tagText: string = required ? t('general.required') : t('general.optional');
   const fieldLabel: string = `${label} (${t('language.nb')})`;
   const mainFieldError: string[] | undefined = getErrorMessagesForLanguage(errors, 'nb');
@@ -48,7 +50,7 @@ export function InputfieldsWithTranslation({
         id={`${id}-nb`}
         label={fieldLabel}
         description={description}
-        value={value['nb']}
+        value={value?.['nb'] ?? ''}
         isTextArea={isTextArea}
         onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange(e, 'nb')}
         required={required}
