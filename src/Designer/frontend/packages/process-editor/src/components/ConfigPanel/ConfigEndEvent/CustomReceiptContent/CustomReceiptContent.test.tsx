@@ -11,6 +11,9 @@ import {
   mockBpmnContextValue,
 } from '../../../../../test/mocks/bpmnContextMock';
 import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 describe('CustomReceiptContent', () => {
   afterEach(() => jest.clearAllMocks());
@@ -106,15 +109,18 @@ describe('CustomReceiptContent', () => {
 });
 
 const renderCustomReceiptContent = (bpmnApiContextProps: Partial<BpmnApiContextProps> = {}) => {
+  const queryClient = createQueryClientMock();
   return render(
     <TestAppRouter>
-      <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
-        <BpmnContext.Provider value={mockBpmnContextValue}>
-          <BpmnConfigPanelFormContextProvider>
-            <CustomReceiptContent />
-          </BpmnConfigPanelFormContextProvider>
-        </BpmnContext.Provider>
-      </BpmnApiContext.Provider>
+      <ServicesContextProvider {...queriesMock} client={queryClient}>
+        <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
+          <BpmnContext.Provider value={mockBpmnContextValue}>
+            <BpmnConfigPanelFormContextProvider>
+              <CustomReceiptContent />
+            </BpmnConfigPanelFormContextProvider>
+          </BpmnContext.Provider>
+        </BpmnApiContext.Provider>
+      </ServicesContextProvider>
     </TestAppRouter>,
   );
 };
