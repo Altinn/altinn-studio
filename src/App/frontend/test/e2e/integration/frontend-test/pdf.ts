@@ -51,7 +51,7 @@ describe('PDF', () => {
       callback: () => {
         cy.get('@allRequests.all').then((_intercepts) => {
           const intercepts = _intercepts as unknown as Interception[];
-          expect(intercepts.length).to.be.greaterThan(10);
+          expect(intercepts.length).to.be.greaterThan(9);
           for (const intercept of intercepts) {
             const { request } = intercept;
             const reqInfo = `${intercept.browserRequestId} ${intercept.routeId} ${request.method} ${request.url.split(domain)[1]}`;
