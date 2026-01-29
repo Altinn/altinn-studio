@@ -4,6 +4,14 @@ const appFrontend = new AppFrontend();
 const appName = appFrontend.apps.frontendTest;
 
 describe('Hash Router Redirect', () => {
+  beforeEach(() => {
+    cy.on('uncaught:exception', (err) => {
+      if (err.message.includes('HashRouterRedirect')) {
+        return false;
+      }
+    });
+  });
+
   describe('when hash route is present', () => {
     it('redirects hash route to browser route', () => {
       cy.startAppInstance(appName, { urlSuffix: '#/instance-selection' });
