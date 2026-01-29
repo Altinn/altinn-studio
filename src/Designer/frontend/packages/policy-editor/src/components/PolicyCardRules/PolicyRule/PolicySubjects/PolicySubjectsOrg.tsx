@@ -1,10 +1,5 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { StudioDetails, StudioTabs } from '@studio/components';
-import {
-  getAltinnSubjects,
-  getCcrSubjects,
-  getOtherSubjects,
-} from '../../../../utils/PolicyRuleUtils';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicySubjects.module.css';
 import { Buildings3Icon } from '@studio/icons';
@@ -22,28 +17,22 @@ enum TabId {
 }
 
 interface PolicySubjectsOrgProps {
-  subjects: PolicySubject[];
+  ccrSubjects: PolicySubject[];
+  altinnSubjects: PolicySubject[];
+  otherSubjects: PolicySubject[];
   accessPackages: PolicyAccessPackageAreaGroup[];
   handleSubjectChange: (subjectUrn: string, subjectLegacyUrn?: string) => void;
 }
 
 export const PolicySubjectsOrg = ({
-  subjects,
+  ccrSubjects,
+  altinnSubjects,
+  otherSubjects,
   accessPackages,
   handleSubjectChange,
 }: PolicySubjectsOrgProps) => {
   const { t } = useTranslation();
   const { policyRule } = usePolicyRuleContext();
-
-  const ccrSubjects = useMemo(() => {
-    return getCcrSubjects(subjects);
-  }, [subjects]);
-  const altinnSubjects = useMemo(() => {
-    return getAltinnSubjects(subjects);
-  }, [subjects]);
-  const otherSubjects = useMemo(() => {
-    return getOtherSubjects(subjects);
-  }, [subjects]);
 
   return (
     <StudioDetails data-color='neutral'>

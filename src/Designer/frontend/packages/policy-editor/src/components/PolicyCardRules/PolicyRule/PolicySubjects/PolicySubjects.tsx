@@ -11,7 +11,7 @@ import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { useTranslation } from 'react-i18next';
 import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages';
 import { hasSubject } from '@altinn/policy-editor/utils';
-import { PolicySubjectsPriv } from './PolicySubjectsPriv';
+import { PolicySubjectsPerson } from './PolicySubjectsPerson';
 import { PolicySubjectsOrg } from './PolicySubjectsOrg';
 import { ErrorMessage } from '@digdir/designsystemet-react';
 import { ChosenSubjects } from './ChosenSubjects/ChosenSubjects';
@@ -26,34 +26,55 @@ export const PolicySubjects = () => {
     usePolicyEditorContext();
   const { policyRule, policyError, showAllErrors, setPolicyError } = usePolicyRuleContext();
 
-  const flatAccessPackagesOrg = useMemo(() => {
-    return accessPackages
-      .filter((area) => area.id !== PERSON_ACCESS_PACKAGE_AREA_ID)
-      .flatMap((a) => a.areas)
-      .flatMap((a) => a.packages);
-  }, [accessPackages]);
-  const flatAccessPackagesPriv = useMemo(() => {
-    return accessPackages
-      .filter((area) => area.id === PERSON_ACCESS_PACKAGE_AREA_ID)
-      .flatMap((a) => a.areas)
-      .flatMap((a) => a.packages);
-  }, [accessPackages]);
+  // map access packages
+  const { orgPackageHierarchy, orgPackageList, personPackageHierarchy, personPackageList } =
+    useMemo(() => {
+      const orgHierarchy = accessPackages.filter(
+        (area) => area.id !== PERSON_ACCESS_PACKAGE_AREA_ID,
+      );
+      const orgList = orgHierarchy.flatMap((a) => a.areas).flatMap((a) => a.packages);
 
-  const [chosenOrgAccessPackages, chosenPrivAccessPackages] = useMemo(() => {
-    const org: PolicyAccessPackage[] = [];
-    const priv: PolicyAccessPackage[] = [];
+      const personHierarchy = accessPackages.filter(
+        (area) => area.id === PERSON_ACCESS_PACKAGE_AREA_ID,
+      );
+      const personList = personHierarchy.flatMap((a) => a.areas).flatMap((a) => a.packages);
+
+      return {
+        orgPackageHierarchy: orgHierarchy,
+        orgPackageList: orgList,
+        personPackageHierarchy: personHierarchy,
+        personPackageList: personList,
+      };
+    }, [accessPackages]);
+
+  // map roles/other subjects
+  const { personSubjects, altinnSubjects, otherSubjects, ccrSubjects } = useMemo(() => {
+    return {
+      personSubjects: getPersonSubjects(subjects),
+      altinnSubjects: getAltinnSubjects(subjects),
+      otherSubjects: getOtherSubjects(subjects),
+      ccrSubjects: getCcrSubjects(subjects),
+    };
+  }, [subjects]);
+
+  // map chosen access packages
+  const { chosenOrgAccessPackages, chosenPrivAccessPackages } = useMemo(() => {
+    const orgPackages: PolicyAccessPackage[] = [];
+    const personPackages: PolicyAccessPackage[] = [];
 
     policyRule.accessPackages.forEach((urn) => {
-      const orgPackage = flatAccessPackagesOrg.find((p) => p.urn === urn);
-      const privPackage = flatAccessPackagesPriv.find((p) => p.urn === urn);
+      const orgPackage = orgPackageList.find((p) => p.urn.toLowerCase() === urn.toLowerCase());
+      const personPackage = personPackageList.find(
+        (p) => p.urn.toLowerCase() === urn.toLowerCase(),
+      );
 
       if (orgPackage) {
-        org.push(orgPackage);
-      } else if (privPackage) {
-        priv.push(privPackage);
+        orgPackages.push(orgPackage);
+      } else if (personPackage) {
+        personPackages.push(personPackage);
       } else {
         // If urn is not found in either org or priv access packages, add unknown access package to org array
-        org.push({
+        orgPackages.push({
           id: urn,
           urn,
           name: t('policy_editor.access_package_unknown_heading'),
@@ -65,12 +86,34 @@ export const PolicySubjects = () => {
       }
     });
 
-    return [org, priv];
-  }, [policyRule.accessPackages, flatAccessPackagesOrg, flatAccessPackagesPriv, t]);
+    return { chosenOrgAccessPackages: orgPackages, chosenPrivAccessPackages: personPackages };
+  }, [policyRule.accessPackages, orgPackageList, personPackageList, t]);
+
+  // map chosen roles
+  const { chosenPersonRoles, chosenAltinnRoles, chosenCcrRoles } = useMemo(() => {
+    const filterSelectedRoles = (list: PolicySubject[]) => {
+      const lowerCaseSubjects = policyRule.subject.map((x) => x.toLowerCase());
+      return list.filter(
+        (x) =>
+          lowerCaseSubjects.indexOf(x.urn?.toLowerCase()) > -1 ||
+          lowerCaseSubjects.indexOf(x.legacyUrn?.toLowerCase()) > -1,
+      );
+    };
+
+    return {
+      chosenPersonRoles: filterSelectedRoles(personSubjects),
+      chosenAltinnRoles: filterSelectedRoles([...altinnSubjects, ...otherSubjects]),
+      chosenCcrRoles: filterSelectedRoles(ccrSubjects),
+    };
+  }, [policyRule.subject, personSubjects, altinnSubjects, otherSubjects, ccrSubjects]);
 
   const handleRemoveSubject = (subjectUrn: string, subjectLegacyUrn?: string): void => {
     const updatedSubjects = hasSubject(policyRule.subject, subjectUrn, subjectLegacyUrn)
-      ? policyRule.subject.filter((s) => s !== subjectUrn && s !== subjectLegacyUrn)
+      ? policyRule.subject.filter(
+          (s) =>
+            s.toLowerCase() !== subjectUrn?.toLowerCase() &&
+            s.toLowerCase() !== subjectLegacyUrn?.toLowerCase(),
+        )
       : [...policyRule.subject, subjectLegacyUrn ?? subjectUrn]; // prefer legacyUrn over urn, until AM is updated to handle new subject urns
 
     const updatedRules = getUpdatedRules(
@@ -89,7 +132,9 @@ export const PolicySubjects = () => {
 
   const handleRemoveAccessPackage = (selectedUrn: string): void => {
     // access packages can only be removed from this control
-    const updateAccessPackages = policyRule.accessPackages.filter((s) => s !== selectedUrn);
+    const updateAccessPackages = policyRule.accessPackages.filter(
+      (s) => s.toLowerCase() !== selectedUrn.toLowerCase(),
+    );
 
     const updatedRules = getUpdatedRules(
       {
@@ -117,13 +162,10 @@ export const PolicySubjects = () => {
   };
 
   const getChosenRoles = (heading: string, list: PolicySubject[]) => {
-    const chosenRoles = list.filter(
-      (x) => policyRule.subject.indexOf(x.urn) > -1 || policyRule.subject.indexOf(x.legacyUrn) > -1,
-    );
     return {
       heading: heading,
       handleRemove: handleRemoveSubject,
-      items: chosenRoles.map((role) => {
+      items: list.map((role) => {
         return {
           urn: role.legacyUrn || role.urn,
           label: role.name,
@@ -132,18 +174,15 @@ export const PolicySubjects = () => {
     };
   };
 
-  const personGroups = [
+  const chosenPersonGroups = [
     getChosenAccessPackage(t('policy_editor.access_package_header'), chosenPrivAccessPackages),
-    getChosenRoles(t('policy_editor.rule_card_subjects_other_roles'), getPersonSubjects(subjects)),
+    getChosenRoles(t('policy_editor.rule_card_subjects_other_roles'), chosenPersonRoles),
   ];
 
-  const orgGroups = [
+  const chosenOrgGroups = [
     getChosenAccessPackage(t('policy_editor.access_package_header'), chosenOrgAccessPackages),
-    getChosenRoles(t('policy_editor.rule_card_subjects_other_altinn_roles'), [
-      ...getAltinnSubjects(subjects),
-      ...getOtherSubjects(subjects),
-    ]),
-    getChosenRoles(t('policy_editor.rule_card_subjects_ccr_roles'), getCcrSubjects(subjects)),
+    getChosenRoles(t('policy_editor.rule_card_subjects_other_altinn_roles'), chosenAltinnRoles),
+    getChosenRoles(t('policy_editor.rule_card_subjects_ccr_roles'), chosenCcrRoles),
   ];
 
   return (
@@ -152,10 +191,20 @@ export const PolicySubjects = () => {
       <div data-color='neutral' className={classes.subjectDescription}>
         {t('policy_editor.rule_card_subjects_subtitle')}
       </div>
-      <ChosenSubjects groups={orgGroups} />
-      <ChosenSubjects groups={personGroups} isPersonSubject />
-      <PolicySubjectsOrg handleSubjectChange={handleRemoveSubject} />
-      <PolicySubjectsPriv handleSubjectChange={handleRemoveSubject} />
+      <ChosenSubjects groups={chosenOrgGroups} />
+      <ChosenSubjects groups={chosenPersonGroups} isPersonSubject />
+      <PolicySubjectsOrg
+        accessPackages={orgPackageHierarchy}
+        ccrSubjects={ccrSubjects}
+        altinnSubjects={altinnSubjects}
+        otherSubjects={otherSubjects}
+        handleSubjectChange={handleRemoveSubject}
+      />
+      <PolicySubjectsPerson
+        accessPackages={personPackageHierarchy}
+        personSubjects={personSubjects}
+        handleSubjectChange={handleRemoveSubject}
+      />
       {showAllErrors && policyError.subjectsError && (
         <ErrorMessage size='small'>{t('policy_editor.rule_card_subjects_error')}</ErrorMessage>
       )}

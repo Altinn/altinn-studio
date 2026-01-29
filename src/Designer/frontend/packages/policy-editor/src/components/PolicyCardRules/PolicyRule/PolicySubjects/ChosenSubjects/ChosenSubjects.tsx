@@ -37,19 +37,21 @@ export const ChosenSubjects = ({ isPersonSubject, groups }: ChosenSubjectsProps)
     return (
       <div key={group.heading} className={classes.chosenSubjectList} data-color='neutral'>
         <div>{group.heading}</div>
-        {group.items.map((item) => {
-          return (
-            <SubjectListItem
-              key={item.urn}
-              urn={item.label}
-              isPersonSubject={isPersonSubject}
-              isChecked={true}
-              isSelectedListItem
-              title={item.label}
-              handleChange={() => group.handleRemove(item.urn)}
-            />
-          );
-        })}
+        {group.items
+          .sort((a, b) => a.label.localeCompare(b.label))
+          .map((item) => {
+            return (
+              <SubjectListItem
+                key={item.urn}
+                urn={item.label}
+                isPersonSubject={isPersonSubject}
+                isChecked={true}
+                isSelectedListItem
+                title={item.label}
+                handleChange={() => group.handleRemove(item.urn)}
+              />
+            );
+          })}
       </div>
     );
   };

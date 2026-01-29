@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   StudioAlert,
   StudioDetails,
@@ -7,7 +7,6 @@ import {
   StudioParagraph,
   StudioTabs,
 } from '@studio/components';
-import { getPersonSubjects } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicySubjects.module.css';
 import { PolicyAccessPackages } from '../PolicyAccessPackages';
@@ -23,23 +22,19 @@ enum TabId {
   Other = 'Other',
 }
 
-interface PolicySubjectsPrivProps {
-  subjects: PolicySubject[];
+interface PolicySubjectsPersonProps {
+  personSubjects: PolicySubject[];
   accessPackages: PolicyAccessPackageAreaGroup[];
   handleSubjectChange: (subjectUrn: string, subjectLegacyUrn?: string) => void;
 }
 
-export const PolicySubjectsPriv = ({
-  subjects,
+export const PolicySubjectsPerson = ({
+  personSubjects,
   accessPackages,
   handleSubjectChange,
-}: PolicySubjectsPrivProps) => {
+}: PolicySubjectsPersonProps) => {
   const { t } = useTranslation();
   const { policyRule } = usePolicyRuleContext();
-
-  const personSubjects = useMemo(() => {
-    return getPersonSubjects(subjects);
-  }, [subjects]);
 
   return (
     <StudioDetails data-color='neutral'>
