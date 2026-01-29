@@ -8,3 +8,4 @@ resources:
   - flux-config.yaml
   - altinn-charts.yaml
   - apps-syncroot.yaml
+  - observability.yaml
