@@ -170,13 +170,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of repository.</param>
+        /// <param name="customTemplatePath">Optional path to custom template files to overlay on the standard template.</param>
         /// <returns>
         /// An indication if app was created successful or not.
         /// </returns>
         [Authorize]
         [HttpPost]
         [Route("create-app")]
-        public async Task<ActionResult<RepositoryModel>> CreateApp([FromQuery] string org, [FromQuery] string repository)
+        public async Task<ActionResult<RepositoryModel>> CreateApp([FromQuery] string org, [FromQuery] string repository, [FromQuery] string customTemplatePath = null)
         {
             try
             {
@@ -187,7 +188,11 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest($"{repository} is an invalid repository name.");
             }
 
-            var config = new ServiceConfiguration { RepositoryName = repository, ServiceName = repository };
+            var config = new ServiceConfiguration { 
+                RepositoryName = repository, 
+                ServiceName = repository,
+                CustomTemplatePath = customTemplatePath
+            };
 
             var repositoryResult = await _repository.CreateService(org, config);
             if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
