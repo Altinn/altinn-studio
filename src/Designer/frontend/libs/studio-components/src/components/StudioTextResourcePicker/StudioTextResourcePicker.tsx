@@ -35,7 +35,8 @@ export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextR
     },
     ref,
   ) => {
-    const handleSelectedChange = (item: StudioSuggestionItem): void => onValueChange(item.value);
+    const handleSelectedChange = (item?: StudioSuggestionItem): void =>
+      onValueChange(item?.value ?? null);
 
     const selectedValue: string = useMemo(
       () => retrieveSelectedValues(textResources, value)[0] || '',

@@ -217,5 +217,5 @@ function switchToEditMode(user: UserEvent): Promise<void> {
 }
 
 function getTextResourcePicker(): HTMLInputElement {
-  return screen.getByRole('combobox', { name: texts.textResourcePickerLabel });
+  return screen.getByRole('combobox', { name: new RegExp(texts.textResourcePickerLabel) });
 }
