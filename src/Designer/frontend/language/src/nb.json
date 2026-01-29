@@ -52,7 +52,7 @@
   "admin.instances.status.unread": "Ulest",
   "admin.instances.title": "Instanser",
   "admin.metrics.altinn_app_lib_processes_ended": "fullførte instanser",
-  "admin.metrics.altinn_app_lib_processes_started": "instanser",
+  "admin.metrics.altinn_app_lib_processes_started": "påbegynte instanser",
   "admin.metrics.app.error": "Kunne ikke laste inn applikasjonsmetrikker for denne appen. Prøv igjen senere.",
   "admin.metrics.app.errors.error": "Kunne ikke laste inn applikasjonsfeil for denne appen. Prøv igjen senere.",
   "admin.metrics.app.errors.loading": "Laster inn applikasjonsfeil for denne appen...",
