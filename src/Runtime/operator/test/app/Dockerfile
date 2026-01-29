@@ -8,7 +8,7 @@ COPY /App .
 
 RUN dotnet publish App.csproj --configuration Release --output /app_output
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine@sha256:263b689158ccdd6882d29b96b3f7a907a6659592dc097fd7a9564b8b987ef187 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine@sha256:336cc2392cfbf9c3a1720e3093f909bd402c61d2192355d616a8ce84cab5664d AS final
 EXPOSE 5005
 WORKDIR /App
 COPY --from=build /app_output .
