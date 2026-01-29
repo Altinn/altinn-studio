@@ -194,7 +194,7 @@ internal sealed class AzureMonitorClient(
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
-        List<string> names = ["altinn_app_lib_processes_started", "altinn_app_lib_processes_completed"];
+        List<string> names = ["altinn_app_lib_processes_started", "altinn_app_lib_processes_ended"];
 
         try
         {
