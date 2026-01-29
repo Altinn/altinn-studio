@@ -164,7 +164,6 @@ public class CustomTemplateService : ICustomTemplateService
     {
         string templateRepo = GetContentRepoName(owner);
 
-        string baseCommitSha = await _giteaClient.GetLatestCommitOnBranch(owner, templateRepo);
         string path = Path.Combine(TemplateFolder, id, TemplateFileName);
 
         (FileSystemObject? file, ProblemDetails? problem) = await _giteaClient.GetFileAndErrorAsync(owner, templateRepo, path, null); // passing null as reference to get main branch and latest commit

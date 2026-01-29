@@ -189,7 +189,7 @@ public class GetCustomTemplateListTests : IDisposable
             .ReturnsAsync((new FileSystemObject
             {
                 Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(newManifestJson))
-            }, (ProblemDetails)null));
+            }, null));
 
         var sut = CreateService();
 
@@ -305,7 +305,7 @@ public class GetCustomTemplateListTests : IDisposable
             .ReturnsAsync((new FileSystemObject
             {
                 Content = Convert.ToBase64String(Encoding.UTF8.GetBytes("[]"))
-            }, (ProblemDetails)null));
+            }, null));
 
         var sut = CreateService();
 

@@ -431,7 +431,6 @@ public class ApplyTemplateToRepositoryTests : IDisposable
             .Setup(x => x.GetLatestCommitOnBranch(owner, $"{owner}-content", null, default))
             .ReturnsAsync("abc123def456");
 
-        string path = Path.Combine("Templates", templateId, "template.json");
         _giteaClientMock
             .Setup(x => x.GetFileAndErrorAsync(owner, $"{owner}-content", It.Is<string>(s => s.Contains(templateId) && s.Contains("template.json")), null, default))
             .ReturnsAsync((new FileSystemObject { Content = base64Content }, null));
