@@ -8,6 +8,7 @@ using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
 using Altinn.App.Api.Infrastructure.Lifetime;
 using Altinn.App.Api.Infrastructure.Middleware;
+using Altinn.App.Api.Infrastructure.Routing;
 using Altinn.App.Api.Infrastructure.Telemetry;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
@@ -50,6 +51,12 @@ public static class ServiceCollectionExtensions
         // We add this here because it uses a hosted service and we want it to run as early as possible
         // so that consumers of the cache can rely on it being available.
         services.AddAppConfigurationCache();
+
+        // Add custom route constraint for validating org/app slugs (prevents log injection)
+        services.AddRouting(options =>
+        {
+            options.ConstraintMap.Add(SlugRouteConstraint.ConstraintKey, typeof(SlugRouteConstraint));
+        });
 
         // Add API controllers from Altinn.App.Api
         IMvcBuilder mvcBuilder = services.AddControllersWithViews(options =>

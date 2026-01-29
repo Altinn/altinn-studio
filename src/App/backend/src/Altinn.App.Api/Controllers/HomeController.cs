@@ -15,7 +15,7 @@ namespace Altinn.App.Api.Controllers;
 /// <summary>
 /// Provides access to the default home view.
 /// </summary>
-[Route("{org}/{app}")]
+[Route("{org:slug}/{app:slug}")]
 public class HomeController : Controller
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()

@@ -47,7 +47,7 @@ function useTextResourcesQuery() {
 
 export function useTextResources(): TextResourceMap {
   const query = useTextResourcesQuery();
-  if (!query.data) {
+  if (!query.data && query.isFetched) {
     window.logWarnOnce(
       'Could not find any text resources, even on window. Does the app include any text resource files?',
     );

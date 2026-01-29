@@ -42,6 +42,8 @@ internal sealed class BootstrapGlobalService(
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
     private readonly ILogger<BootstrapGlobalService> _logger = logger;
 
+    private const string DefaultLanguage = LanguageConst.Nb;
+
     public async Task<BootstrapGlobalResponse> GetGlobalState(
         string org,
         string app,
@@ -98,44 +100,34 @@ internal sealed class BootstrapGlobalService(
 
     private async Task<TextResource?> GetTextResources(string org, string app, string? languageFromUrl)
     {
-        var languageCookieValue = GetLanguageFromCookie(org, app);
-        _logger.LogDebug($"languageCookieValue: {languageCookieValue}");
-        _logger.LogDebug(
-            "Fetching text resources for app {App} in org {Org} with language {Language}",
-            app,
-            org,
-            languageCookieValue ?? "user preference"
-        );
         if (
             languageFromUrl is not null
             && await _appResources.GetTexts(org, app, languageFromUrl) is TextResource textResourceFromUrl
         )
         {
-            _logger.LogDebug(
-                "Found text resources with language from query params: {LanguageFromUrl}",
-                languageFromUrl
-            );
+            _logger.LogDebug("Found text resources with language from query params.");
             return textResourceFromUrl;
         }
 
+        var languageFromCookie = GetLanguageFromCookie(org, app);
         if (
-            languageCookieValue is not null
-            && await _appResources.GetTexts(org, app, languageCookieValue) is TextResource textResourceFromCookie
+            languageFromCookie is not null
+            && await _appResources.GetTexts(org, app, languageFromCookie) is TextResource textResourceFromCookie
         )
         {
+            _logger.LogDebug("Found text resources with language from cookie");
             return textResourceFromCookie;
         }
 
         string userLanguage = await _authenticationContext.Current.GetLanguage();
-
-        _logger.LogDebug("Falling back to user preferred language {Language} for text resources", userLanguage);
         if (await _appResources.GetTexts(org, app, userLanguage) is TextResource textResourceFromUserLanguage)
         {
+            _logger.LogDebug("Found text resources with user preferred language {Language}.", userLanguage);
             return textResourceFromUserLanguage;
         }
 
-        _logger.LogDebug("Falling back to default language 'nb' for text resources");
-        return await _appResources.GetTexts(org, app, LanguageConst.Nb);
+        _logger.LogDebug("Falling back to default language '{DefaultLanguage}' for text resources.", DefaultLanguage);
+        return await _appResources.GetTexts(org, app, DefaultLanguage);
     }
 
     private string? GetLanguageFromCookie(string org, string app)
@@ -156,11 +148,20 @@ internal sealed class BootstrapGlobalService(
             _logger.LogInformation("No language cookie found for cookieKey {CookieKey}", cookieKey);
             return null;
         }
-        var languageCookieValue = JsonSerializer.Deserialize<string>(languageCookie);
-        _logger.LogInformation(
-            "Found language cookie for app {AppId}",
-            $"{org}/{app}, language: {languageCookieValue}"
-        );
-        return languageCookieValue;
+
+        try
+        {
+            var languageCookieValue = JsonSerializer.Deserialize<string>(languageCookie);
+            _logger.LogInformation(
+                "Successfully deserialized language cookie value for cookieKey {CookieKey}",
+                cookieKey
+            );
+            return languageCookieValue;
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Language cookie with key {CookieKey} found, but failed deserialize it.", cookieKey);
+            return null;
+        }
     }
 }
