@@ -84,7 +84,7 @@ jobs:
           yarn run lhci 2>&1 | tee lighthouse_output.txt
 
           # Extract the report URL (handles both LHCI server and temporary storage URLs)
-          REPORT_URL=$(grep -oE 'https://(altinn\.studio:9001/app/projects/[^[:space:]]*|storage\.googleapis\.com/lighthouse-infrastructure\.appspot\.com/reports/[^[:space:]]*)' lighthouse_output.txt || echo "")
+          REPORT_URL=$(grep -oE 'https://((dev\.|staging\.)?altinn\.studio:9001/app/projects/[^[:space:]]*|storage\.googleapis\.com/lighthouse-infrastructure\.appspot\.com/reports/[^[:space:]]*)' lighthouse_output.txt || echo "")
           echo "report_url=$REPORT_URL" >> $GITHUB_OUTPUT
       - name: Comment PR with Lighthouse Report
         if: github.event_name == 'pull_request' && steps.lighthouse-ci.outputs.report_url != ''
