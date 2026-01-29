@@ -5,14 +5,6 @@ import { altinnCustomTasks } from '../../extensions/altinnCustomTasks';
 import UpdateTaskIdCommandHandler from '@altinn/process-editor/commandHandlers/UpdateTaskIdCommandHandler';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 
-type VersionModule = {
-  appVersion: ['value', AppVersion];
-};
-
-const createVersionModule = (appVersion: AppVersion): VersionModule => ({
-  appVersion: ['value', appVersion],
-});
-
 export class BpmnModelerInstance {
   private static instance: BpmnModeler | null = null;
   private static currentRefContainer = null;
@@ -36,7 +28,7 @@ export class BpmnModelerInstance {
       BpmnModelerInstance.instance = new BpmnModeler({
         container: canvasContainer,
         additionalModules: [
-          createVersionModule(appVersion),
+          { appVersion: ['value', appVersion] },
           SupportedPaletteProvider,
           SupportedContextPadProvider,
           UpdateTaskIdCommandHandler,
