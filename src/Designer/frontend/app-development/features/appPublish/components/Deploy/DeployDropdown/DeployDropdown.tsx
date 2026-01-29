@@ -48,9 +48,9 @@ export const DeployDropdown = ({
     ? imageOptions.filter((option) => option.value === selectedImageTag)[0]
     : undefined;
 
-  const handleSelectedChange = (item: StudioSuggestionItem) => {
+  const handleSelectedChange = (item: StudioSuggestionItem | null) => {
     if (!disabled) {
-      setSelectedImageTag(item.value || '');
+      setSelectedImageTag(item?.value || '');
     }
   };
 

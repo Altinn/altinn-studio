@@ -36,8 +36,8 @@ export const DataModelBindingsCombobox = ({
       : t(`ux_editor.modal_properties_data_model_label.${key}`);
   };
 
-  const handleSelectedChange = (item: StudioSuggestionItem) => {
-    onValueChange(item.value || '');
+  const handleSelectedChange = (item: StudioSuggestionItem | null) => {
+    onValueChange(item?.value || '');
   };
 
   return (
