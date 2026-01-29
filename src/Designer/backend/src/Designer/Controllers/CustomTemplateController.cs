@@ -25,10 +25,6 @@ namespace Altinn.Studio.Designer.Controllers
             _templateService = templateService;
         }
 
-        /// <summary>
-        /// Endpoint to retrieve a list of available custom templates for application creation.
-        /// </summary>
-        /// <returns>A list of simplified custom template objects</returns>
         [HttpGet]
         public async Task<ActionResult<CustomTemplateListDto>> GetCustomTemplateList()
         {
