@@ -184,36 +184,6 @@ describe('NewApplicationForm', () => {
       screen.queryByText(textMock('dashboard.new_application_form.select_templates')),
     ).not.toBeInTheDocument();
   });
-
-  it('should not show custom template selector when feature is enabled but template list is empty', () => {
-    const availableTemplatesMock = [];
-    (useAvailableTemplatesForOrgQuery as jest.Mock).mockReturnValue({
-      data: availableTemplatesMock,
-    });
-    renderNewApplicationForm(defaultProps, null, { featureFlags: [FeatureFlag.CustomTemplates] });
-    expect(
-      screen.queryByText(textMock('dashboard.new_application_form.select_templates')),
-    ).not.toBeInTheDocument();
-    const serviceOwnerSelect = screen.getByRole('combobox', {
-      name: textMock('general.service_owner'),
-    });
-    expect(serviceOwnerSelect).toBeInTheDocument();
-  });
-
-  it('should not show custom template selector when feature is enabled but template list is undefined', () => {
-    const availableTemplatesMock = undefined;
-    (useAvailableTemplatesForOrgQuery as jest.Mock).mockReturnValue({
-      data: availableTemplatesMock,
-    });
-    renderNewApplicationForm(defaultProps, null, { featureFlags: [FeatureFlag.CustomTemplates] });
-    expect(
-      screen.queryByText(textMock('dashboard.new_application_form.select_templates')),
-    ).not.toBeInTheDocument();
-    const serviceOwnerSelect = screen.getByRole('combobox', {
-      name: textMock('general.service_owner'),
-    });
-    expect(serviceOwnerSelect).toBeInTheDocument();
-  });
 });
 
 function renderNewApplicationForm(

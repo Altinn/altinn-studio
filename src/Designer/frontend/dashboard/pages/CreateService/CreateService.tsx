@@ -7,7 +7,6 @@ import { useAddRepoMutation } from '../../hooks/mutations/useAddRepoMutation';
 import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { NewApplicationForm } from '../../components/NewApplicationForm';
-import type { CustomTemplateReference } from '../../../packages/shared/src/types/CustomTemplateReference';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { type NewAppForm } from '../../types/NewAppForm';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
@@ -47,19 +46,13 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   };
 
   const createAppRepo = async (newAppForm: NewAppForm) => {
-    const { org, repoName, templates } = newAppForm;
+    const { org, repoName, template } = newAppForm;
 
     addRepoMutation(
       {
         org,
         repository: repoName,
-        ...(templates && templates.length > 0
-          ? {
-              templates: templates.map(
-                (temp): CustomTemplateReference => ({ id: temp.id, owner: temp.owner }),
-              ),
-            }
-          : {}),
+        template: template ? { id: template.id, owner: template.owner } : undefined,
       },
       {
         onSuccess: (): void => {

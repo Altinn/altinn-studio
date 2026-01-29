@@ -13,6 +13,7 @@ import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { Subroute } from '../../enums/Subroute';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
+import { FeatureFlagsProvider } from '@studio/feature-flags';
 
 const orgMock: Organization = {
   avatar_url: '',
@@ -53,18 +54,20 @@ const renderWithMockServices = ({
 }: RenderWithMockServicesProps = {}) => {
   const initialEntry = `/${params.subroute}/${params.selectedContext || ''}`;
   render(
-    <MockServicesContextWrapper
-      client={null}
-      customServices={services}
-      initialEntries={[initialEntry]}
-    >
-      <Routes>
-        <Route
-          path=':subroute?/:selectedContext?'
-          element={<CreateService organizations={organizations || []} user={user || mockUser} />}
-        />
-      </Routes>
-    </MockServicesContextWrapper>,
+    <FeatureFlagsProvider>
+      <MockServicesContextWrapper
+        client={null}
+        customServices={services}
+        initialEntries={[initialEntry]}
+      >
+        <Routes>
+          <Route
+            path=':subroute?/:selectedContext?'
+            element={<CreateService organizations={organizations || []} user={user || mockUser} />}
+          />
+        </Routes>
+      </MockServicesContextWrapper>
+    </FeatureFlagsProvider>,
   );
 };
 

@@ -14,7 +14,6 @@ import { type NewAppForm } from '../../types/NewAppForm';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { Link } from 'react-router-dom';
 import { useUserOrgPermissionQuery } from '../../hooks/queries/useUserOrgPermissionsQuery';
-import { useAvailableTemplatesForOrgQuery } from 'dashboard/hooks/queries/useAvailableTemplatesForOrgQuery';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 
 type CancelButton = {
@@ -33,6 +32,7 @@ export type NewApplicationFormProps = {
   user: User;
   organizations: Organization[];
   isLoading: boolean;
+  useCustomTemplate?: boolean;
   submitButtonText: string;
   formError: NewAppForm;
   setFormError: React.Dispatch<React.SetStateAction<NewAppForm>>;
@@ -44,6 +44,7 @@ export const NewApplicationForm = ({
   user,
   organizations,
   isLoading,
+  useCustomTemplate = true,
   submitButtonText,
   formError,
   setFormError,
@@ -62,8 +63,6 @@ export const NewApplicationForm = ({
   const { data: userOrgPermission, isFetching } = useUserOrgPermissionQuery(currentSelectedOrg, {
     enabled: Boolean(currentSelectedOrg),
   });
-  // TODO: Allow for fetching templates based on selected org when org selector is changed
-  const { data: availableTemplates } = useAvailableTemplatesForOrgQuery();
 
   const validateTextValue = (event: ChangeEvent<HTMLInputElement>) => {
     const { errorMessage: repoNameErrorMessage, isValid: isRepoNameValid } = validateRepoName(
@@ -83,7 +82,7 @@ export const NewApplicationForm = ({
     const newAppForm: NewAppForm = {
       org: formData.get('org') as string,
       repoName: formData.get('repoName') as string,
-      templates: selectedTemplate ? [selectedTemplate] : undefined,
+      template: selectedTemplate || undefined,
     };
 
     const isFormValid: boolean = validateNewAppForm(newAppForm);
@@ -134,12 +133,8 @@ export const NewApplicationForm = ({
         errorMessage={formError.repoName}
         onChange={validateTextValue}
       />
-      {isCustomTemplatesEnabled && availableTemplates && availableTemplates.length > 0 && (
-        <TemplateSelector
-          templates={availableTemplates}
-          selectedTemplate={selectedTemplate}
-          onChange={setSelectedTemplate}
-        />
+      {isCustomTemplatesEnabled && useCustomTemplate && (
+        <TemplateSelector selectedTemplate={selectedTemplate} onChange={setSelectedTemplate} />
       )}
       <div className={classes.actionContainer}>
         {isLoading ? (

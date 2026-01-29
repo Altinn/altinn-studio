@@ -66,5 +66,26 @@ namespace Altinn.Studio.Designer.Configuration
         public string EnvironmentsUrl { get; set; }
 
         public string OrganizationsUrl { get; set; }
+
+        /// <summary>
+        /// Gets the origin environment name based on the host name.
+        /// </summary>
+        public string OriginEnvironment
+        {
+            get
+            {
+                if (HostName.StartsWith("dev."))
+                {
+                    return "dev";
+                }
+
+                if (HostName.StartsWith("staging."))
+                {
+                    return "staging";
+                }
+
+                return "prod";
+            }
+        }
     }
 }

@@ -84,6 +84,7 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
             user={user}
             organizations={organizations}
             isLoading={isCopyAppPending || isCopyAppSuccess}
+            useCustomTemplate={false}
             submitButtonText={t('dashboard.make_copy')}
             formError={formError}
             setFormError={setFormError}

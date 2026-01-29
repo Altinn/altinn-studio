@@ -28,12 +28,12 @@ public class InstanceAndEventsRepository : IInstanceAndEventsRepository
     }
 
     /// <inheritdoc/>
-    public async Task<Instance> Update(Instance instance, List<string> updateProperties, List<InstanceEvent> events)
+    public async Task<Instance> Update(Instance instance, List<string> updateProperties, List<InstanceEvent> events, CancellationToken cancellationToken)
     {
-        instance = await _instanceRepository.Update(instance);
+        instance = await _instanceRepository.Update(instance, updateProperties, cancellationToken);
         foreach (var instanceEvent in events)
         {
-            await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
+            await _instanceEventRepository.InsertInstanceEvent(instanceEvent, instance);
         }
 
         return instance;

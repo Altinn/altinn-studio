@@ -9,6 +9,15 @@
   </PropertyGroup>
   <ItemGroup>
     <!--
+      This props file is included in the build/ path of the Altinn.App.Api nuget package
+      but the Rosly analyzer is included transitively, for example in unit test projects or similar.
+      We only need to do app-based analysis on actual app projects, so this let's us distinguish
+      in the Roslyn Analyzer code.
+    -->
+    <CompilerVisibleProperty Include="IsAltinnApp" />
+  </ItemGroup>
+  <ItemGroup>
+    <!--
       We include config files as addition files so that they are more easily referenced
       in analyzers and source generators.
     -->

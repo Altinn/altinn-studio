@@ -718,15 +718,15 @@ Cypress.Commands.add(
         cy.viewport(width, height);
       });
       cy.get('body').invoke('css', 'margin', '');
+      cy.get('#readyForPrint').should('exist');
 
       // Exit pdf by removing pdf queryparam
-      cy.location('search').then((search) => {
-        const params = new URLSearchParams(search);
-        params.delete('pdf');
-        const newSearch = params.toString();
-        cy.location('pathname').then((pathname) => {
-          cy.visit(pathname + (newSearch ? `?${newSearch}` : ''));
-        });
+      cy.location().then((location) => {
+        const params = new URLSearchParams(location.search);
+        if (params.has('pdf')) {
+          params.delete('pdf');
+          cy.visit(location.pathname + (params.size ? `?${params}` : ''));
+        }
       });
 
       cy.get('#readyForPrint').should('not.exist');
