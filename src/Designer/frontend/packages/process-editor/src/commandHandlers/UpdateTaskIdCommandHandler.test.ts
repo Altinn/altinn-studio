@@ -5,6 +5,36 @@ import type { Element } from 'bpmn-js/lib/model/Types';
 const UpdateTaskIdCommandHandler = UpdateTaskIdCommandHandlerModule
   .updateTaskIdCommandHandler[1] as any;
 
+type PdfConfigOptions = {
+  taskType?: string;
+  pdfConfig?: {
+    autoPdfTaskIds?: {
+      taskIds: Array<{ value: string }>;
+    };
+  };
+};
+
+const createPdfTask = (options: PdfConfigOptions = { taskType: 'pdf' }): Element =>
+  ({
+    type: 'bpmn:ServiceTask',
+    businessObject: {
+      extensionElements: {
+        values: [options],
+      },
+    },
+  }) as Element;
+
+const createTaskElement = (id: string = 'task_1'): Element =>
+  ({
+    id,
+    type: 'bpmn:Task',
+  }) as Element;
+
+const createContext = (element: Element, newId: string = 'task_renamed'): UpdateTaskIdContext => ({
+  element,
+  newId,
+});
+
 describe('UpdateTaskIdCommandHandler', () => {
   let handler: any;
   let mockModeling: any;
@@ -45,15 +75,8 @@ describe('UpdateTaskIdCommandHandler', () => {
 
   describe('preExecute', () => {
     it('should update element id using modeling.updateProperties', () => {
-      const element = {
-        id: 'oldTaskId',
-        type: 'bpmn:Task',
-      } as Element;
-
-      const context: UpdateTaskIdContext = {
-        element,
-        newId: 'newTaskId',
-      };
+      const element = createTaskElement('oldTaskId');
+      const context = createContext(element, 'newTaskId');
 
       handler.preExecute(context);
 
@@ -61,16 +84,8 @@ describe('UpdateTaskIdCommandHandler', () => {
     });
 
     it('should call updateAutoPdfTaskIds with old and new ids', () => {
-      const element = {
-        id: 'task_1',
-        type: 'bpmn:Task',
-      } as Element;
-
-      const context: UpdateTaskIdContext = {
-        element,
-        newId: 'task_renamed',
-      };
-
+      const element = createTaskElement('task_1');
+      const context = createContext(element);
       const updateAutoPdfTaskIdsSpy = jest.spyOn(handler as any, 'updateAutoPdfTaskIds');
 
       handler.preExecute(context);
@@ -81,30 +96,15 @@ describe('UpdateTaskIdCommandHandler', () => {
 
   describe('updateAutoPdfTaskIds', () => {
     it('should find all PDF service tasks', () => {
-      const element = {
-        id: 'task_1',
-        type: 'bpmn:Task',
-      } as Element;
-
-      const context: UpdateTaskIdContext = {
-        element,
-        newId: 'task_renamed',
-      };
+      const element = createTaskElement('task_1');
+      const context = createContext(element);
 
       handler.preExecute(context);
 
       expect(mockElementRegistry.filter).toHaveBeenCalled();
       const filterFn = mockElementRegistry.filter.mock.calls[0][0];
 
-      const pdfTask = {
-        type: 'bpmn:ServiceTask',
-        businessObject: {
-          extensionElements: {
-            values: [{ taskType: 'pdf' }],
-          },
-        },
-      };
-
+      const pdfTask = createPdfTask();
       const regularTask = {
         type: 'bpmn:Task',
         businessObject: {
@@ -121,36 +121,15 @@ describe('UpdateTaskIdCommandHandler', () => {
     it('should update autoPdfTaskIds when old task id matches', () => {
       const taskId1 = { value: 'task_1' };
       const taskId2 = { value: 'task_2' };
-
-      const pdfTask = {
-        type: 'bpmn:ServiceTask',
-        businessObject: {
-          extensionElements: {
-            values: [
-              {
-                taskType: 'pdf',
-                pdfConfig: {
-                  autoPdfTaskIds: {
-                    taskIds: [taskId1, taskId2],
-                  },
-                },
-              },
-            ],
-          },
-        },
-      } as Element;
+      const pdfTask = createPdfTask({
+        taskType: 'pdf',
+        pdfConfig: { autoPdfTaskIds: { taskIds: [taskId1, taskId2] } },
+      });
 
       mockElementRegistry.filter.mockReturnValue([pdfTask]);
 
-      const element = {
-        id: 'task_1',
-        type: 'bpmn:Task',
-      } as Element;
-
-      const context: UpdateTaskIdContext = {
-        element,
-        newId: 'task_renamed',
-      };
+      const element = createTaskElement('task_1');
+      const context = createContext(element);
 
       handler.preExecute(context);
 
@@ -167,54 +146,19 @@ describe('UpdateTaskIdCommandHandler', () => {
     it('should update multiple PDF tasks if they reference the renamed task', () => {
       const taskId1 = { value: 'task_1' };
       const taskId2 = { value: 'task_1' };
-
-      const pdfTask1 = {
-        type: 'bpmn:ServiceTask',
-        businessObject: {
-          extensionElements: {
-            values: [
-              {
-                taskType: 'pdf',
-                pdfConfig: {
-                  autoPdfTaskIds: {
-                    taskIds: [taskId1],
-                  },
-                },
-              },
-            ],
-          },
-        },
-      } as Element;
-
-      const pdfTask2 = {
-        type: 'bpmn:ServiceTask',
-        businessObject: {
-          extensionElements: {
-            values: [
-              {
-                taskType: 'pdf',
-                pdfConfig: {
-                  autoPdfTaskIds: {
-                    taskIds: [taskId2],
-                  },
-                },
-              },
-            ],
-          },
-        },
-      } as Element;
+      const pdfTask1 = createPdfTask({
+        taskType: 'pdf',
+        pdfConfig: { autoPdfTaskIds: { taskIds: [taskId1] } },
+      });
+      const pdfTask2 = createPdfTask({
+        taskType: 'pdf',
+        pdfConfig: { autoPdfTaskIds: { taskIds: [taskId2] } },
+      });
 
       mockElementRegistry.filter.mockReturnValue([pdfTask1, pdfTask2]);
 
-      const element = {
-        id: 'task_1',
-        type: 'bpmn:Task',
-      } as Element;
-
-      const context: UpdateTaskIdContext = {
-        element,
-        newId: 'task_renamed',
-      };
+      const element = createTaskElement('task_1');
+      const context = createContext(element);
 
       handler.preExecute(context);
 
@@ -228,31 +172,12 @@ describe('UpdateTaskIdCommandHandler', () => {
     });
 
     it('should not update if PDF task has no autoPdfTaskIds', () => {
-      const pdfTask = {
-        type: 'bpmn:ServiceTask',
-        businessObject: {
-          extensionElements: {
-            values: [
-              {
-                taskType: 'pdf',
-                pdfConfig: {},
-              },
-            ],
-          },
-        },
-      } as Element;
+      const pdfTask = createPdfTask({ taskType: 'pdf', pdfConfig: {} });
 
       mockElementRegistry.filter.mockReturnValue([pdfTask]);
 
-      const element = {
-        id: 'task_1',
-        type: 'bpmn:Task',
-      } as Element;
-
-      const context: UpdateTaskIdContext = {
-        element,
-        newId: 'task_renamed',
-      };
+      const element = createTaskElement('task_1');
+      const context = createContext(element);
 
       handler.preExecute(context);
 
@@ -260,30 +185,12 @@ describe('UpdateTaskIdCommandHandler', () => {
     });
 
     it('should not update if PDF task has no pdfConfig', () => {
-      const pdfTask = {
-        type: 'bpmn:ServiceTask',
-        businessObject: {
-          extensionElements: {
-            values: [
-              {
-                taskType: 'pdf',
-              },
-            ],
-          },
-        },
-      } as Element;
+      const pdfTask = createPdfTask({ taskType: 'pdf' });
 
       mockElementRegistry.filter.mockReturnValue([pdfTask]);
 
-      const element = {
-        id: 'task_1',
-        type: 'bpmn:Task',
-      } as Element;
-
-      const context: UpdateTaskIdContext = {
-        element,
-        newId: 'task_renamed',
-      };
+      const element = createTaskElement('task_1');
+      const context = createContext(element);
 
       handler.preExecute(context);
 
@@ -292,36 +199,15 @@ describe('UpdateTaskIdCommandHandler', () => {
 
     it('should not update if task id does not match', () => {
       const taskId1 = { value: 'task_2' };
-
-      const pdfTask = {
-        type: 'bpmn:ServiceTask',
-        businessObject: {
-          extensionElements: {
-            values: [
-              {
-                taskType: 'pdf',
-                pdfConfig: {
-                  autoPdfTaskIds: {
-                    taskIds: [taskId1],
-                  },
-                },
-              },
-            ],
-          },
-        },
-      } as Element;
+      const pdfTask = createPdfTask({
+        taskType: 'pdf',
+        pdfConfig: { autoPdfTaskIds: { taskIds: [taskId1] } },
+      });
 
       mockElementRegistry.filter.mockReturnValue([pdfTask]);
 
-      const element = {
-        id: 'task_1',
-        type: 'bpmn:Task',
-      } as Element;
-
-      const context: UpdateTaskIdContext = {
-        element,
-        newId: 'task_renamed',
-      };
+      const element = createTaskElement('task_1');
+      const context = createContext(element);
 
       handler.preExecute(context);
 
@@ -329,35 +215,15 @@ describe('UpdateTaskIdCommandHandler', () => {
     });
 
     it('should handle empty taskIds array', () => {
-      const pdfTask = {
-        type: 'bpmn:ServiceTask',
-        businessObject: {
-          extensionElements: {
-            values: [
-              {
-                taskType: 'pdf',
-                pdfConfig: {
-                  autoPdfTaskIds: {
-                    taskIds: [],
-                  },
-                },
-              },
-            ],
-          },
-        },
-      } as Element;
+      const pdfTask = createPdfTask({
+        taskType: 'pdf',
+        pdfConfig: { autoPdfTaskIds: { taskIds: [] } },
+      });
 
       mockElementRegistry.filter.mockReturnValue([pdfTask]);
 
-      const element = {
-        id: 'task_1',
-        type: 'bpmn:Task',
-      } as Element;
-
-      const context: UpdateTaskIdContext = {
-        element,
-        newId: 'task_renamed',
-      };
+      const element = createTaskElement('task_1');
+      const context = createContext(element);
 
       handler.preExecute(context);
 
@@ -365,15 +231,8 @@ describe('UpdateTaskIdCommandHandler', () => {
     });
 
     it('should filter correctly for ServiceTask with pdf taskType', () => {
-      const element = {
-        id: 'task_1',
-        type: 'bpmn:Task',
-      } as Element;
-
-      const context: UpdateTaskIdContext = {
-        element,
-        newId: 'task_renamed',
-      };
+      const element = createTaskElement('task_1');
+      const context = createContext(element);
 
       handler.preExecute(context);
 
