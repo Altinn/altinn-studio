@@ -43,6 +43,7 @@ export const mockRepoStatus: RepoStatus = {
   behindBy: 0,
   contentStatus: [],
   hasMergeConflict: false,
+  currentBranch: 'feature/new-branch',
 };
 
 export const uncommittedChangesErrorMock: UncommittedChangesError = {

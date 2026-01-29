@@ -34,3 +34,14 @@ export interface UncommittedChangesError {
   targetBranch: string;
 }
 
+export interface RepoStatus {
+  behindBy?: number;
+  aheadBy?: number;
+  contentStatus: Array<{
+    filePath: string;
+    fileStatus: string;
+  }>;
+  repositoryStatus: string;
+  hasMergeConflict: boolean;
+  currentBranch: string;
+}
