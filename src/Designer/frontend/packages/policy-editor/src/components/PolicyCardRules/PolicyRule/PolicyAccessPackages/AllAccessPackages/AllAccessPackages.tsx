@@ -52,6 +52,7 @@ const PolicyAccordionIcon = ({ icon, isPersonSubject }: PolicyAccordionIconProps
         [classes.personAccordionIcon]: isPersonSubject,
       })}
       aria-hidden
+      alt=''
     />
   );
 };

@@ -43,12 +43,12 @@ export const ChosenSubjects = ({ isPersonSubject, groups }: ChosenSubjectsProps)
             return (
               <SubjectListItem
                 key={item.urn}
-                urn={item.label}
+                urn={item.urn}
                 isPersonSubject={isPersonSubject}
                 isChecked={true}
                 isSelectedListItem
                 title={item.label}
-                handleChange={() => group.handleRemove(item.urn)}
+                handleChange={group.handleRemove}
               />
             );
           })}

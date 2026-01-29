@@ -72,6 +72,6 @@ describe('ChosenSubjects', () => {
 
     await user.click(screen.getByRole('checkbox', { name: 'Banana' }));
 
-    expect(handleRemoveMock).toHaveBeenCalledWith('u2');
+    expect(handleRemoveMock).toHaveBeenCalledWith('u2', undefined);
   });
 });

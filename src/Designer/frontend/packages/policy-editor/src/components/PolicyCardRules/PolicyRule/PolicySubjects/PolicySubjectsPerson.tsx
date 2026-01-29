@@ -47,7 +47,9 @@ export const PolicySubjectsPerson = ({
             <StudioTabs.Tab value={TabId.AccessPackages}>
               {t('policy_editor.rule_card_subjects_access_packages')}
             </StudioTabs.Tab>
-            <StudioTabs.Tab value={TabId.Guardian}>Vergemål</StudioTabs.Tab>
+            <StudioTabs.Tab value={TabId.Guardian}>
+              {t('policy_editor.rule_card_subjects_guardianships')}
+            </StudioTabs.Tab>
             <StudioTabs.Tab value={TabId.Other}>
               {t('policy_editor.rule_card_subjects_other_roles')}
             </StudioTabs.Tab>
@@ -68,7 +70,7 @@ export const PolicySubjectsPerson = ({
                 <StudioLink
                   href='https://www.vergemal.no/fullmaktstekst'
                   target='_blank'
-                  rel='noreferrer'
+                  rel='noopener noreferrer'
                 >
                   https://www.vergemal.no/fullmaktstekst
                 </StudioLink>

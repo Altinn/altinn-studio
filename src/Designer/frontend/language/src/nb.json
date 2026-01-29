@@ -1010,6 +1010,7 @@
   "policy_editor.rule_card_subjects_chosen_access_packages": "Valgte tilgangspakker",
   "policy_editor.rule_card_subjects_chosen_roles": "Valgte roller",
   "policy_editor.rule_card_subjects_error": "Du må velge minst én rolle eller tilgangspakke.",
+  "policy_editor.rule_card_subjects_guardianships": "Vergemål",
   "policy_editor.rule_card_subjects_other_altinn_roles": "Andre/Altinn roller",
   "policy_editor.rule_card_subjects_other_roles": "Andre roller",
   "policy_editor.rule_card_subjects_search": "Søk i {{searchCollection}}",
