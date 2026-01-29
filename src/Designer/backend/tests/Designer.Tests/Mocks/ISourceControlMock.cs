@@ -23,21 +23,19 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public async Task<string> CloneRemoteRepository(AltinnRepoEditingContext editingContext)
+        public string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedEditingContext)
         {
-            await Task.CompletedTask;
-            string remotePath = TestDataHelper.GetTestDataRemoteRepository(editingContext.Org, editingContext.Repo);
-            string localPath = TestDataHelper.GetTestDataRepositoryDirectory(editingContext.Org, editingContext.Repo, _developer);
+            string remotePath = TestDataHelper.GetTestDataRemoteRepository(authenticatedEditingContext.Org, authenticatedEditingContext.Repo);
+            string localPath = TestDataHelper.GetTestDataRepositoryDirectory(authenticatedEditingContext.Org, authenticatedEditingContext.Repo, _developer);
             Directory.CreateDirectory(localPath);
             TestDataHelper.CopyDirectory(remotePath, localPath, true).Wait();
 
             return localPath;
         }
 
-        public async Task<string> CloneRemoteRepository(AltinnRepoEditingContext editingContext, string destination, string branchName = "")
+        public string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, string destination, string branchName = "")
         {
-            await Task.CompletedTask;
-            string remotePath = TestDataHelper.GetTestDataRemoteRepository(editingContext.Org, editingContext.Repo);
+            string remotePath = TestDataHelper.GetTestDataRemoteRepository(authenticatedContext.Org, authenticatedContext.Repo);
 
             Directory.CreateDirectory(destination);
             TestDataHelper.CopyDirectory(remotePath, destination, true).Wait();
@@ -50,10 +48,9 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public async Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string localPath, string message, string accessToken = "")
+        public void CommitAndPushChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName, string localPath, string message)
         {
-            await Task.CompletedTask;
-            string remotePath = TestDataHelper.GetTestDataRemoteRepository(editingContext.Org, editingContext.Repo);
+            string remotePath = TestDataHelper.GetTestDataRemoteRepository(authenticatedContext.Org, authenticatedContext.Repo);
 
             if (!string.IsNullOrEmpty(branchName))
             {
@@ -78,7 +75,7 @@ namespace Designer.Tests.Mocks
             return Task.CompletedTask;
         }
 
-        public Task FetchRemoteChanges(AltinnRepoEditingContext editingContext)
+        public void FetchRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
             throw new NotImplementedException();
         }
@@ -103,27 +100,26 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<RepoStatus> PullRemoteChanges(AltinnRepoEditingContext editingContext)
+        public RepoStatus PullRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
             throw new NotImplementedException();
         }
 
-        public Dictionary<string, string> GetChangedContent(AltinnRepoEditingContext editingContext)
+        public Dictionary<string, string> GetChangedContent(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> Push(AltinnRepoEditingContext editingContext)
+        public bool Push(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
             throw new NotImplementedException();
         }
 
-        public Task PushChangesForRepository(CommitInfo commitInfo, AltinnRepoEditingContext editingContext)
+        public void PushChangesForRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, CommitInfo commitInfo)
         {
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(commitInfo.Org, commitInfo.Repository);
             string localPath = TestDataHelper.GetTestDataRepositoryDirectory(commitInfo.Org, commitInfo.Repository, _developer);
             TestDataHelper.CopyDirectory(localPath, remotePath, true).Wait();
-            return Task.CompletedTask;
         }
 
         public RepoStatus RepositoryStatus(AltinnRepoEditingContext editingContext)
@@ -146,7 +142,10 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public Task CloneIfNotExists(AltinnRepoEditingContext editingContext) => Task.CompletedTask;
+        public void CloneIfNotExists(AltinnAuthenticatedRepoEditingContext authenticatedContext)
+        {
+            return;
+        }
 
         Task<Branch> ISourceControl.CreateBranch(AltinnRepoEditingContext editingContext, string branchName)
         {
@@ -161,10 +160,10 @@ namespace Designer.Tests.Mocks
         public void CreateLocalBranch(AltinnRepoEditingContext editingContext, string branchName, string commitSha = null) => throw new NotImplementedException();
         public void MergeBranchIntoHead(AltinnRepoEditingContext editingContext, string featureBranch) => throw new NotImplementedException();
         public CurrentBranchInfo GetCurrentBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-        public Task<RepoStatus> CheckoutBranchWithValidation(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
+        public RepoStatus CheckoutBranchWithValidation(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName) => throw new NotImplementedException();
         public RepoStatus DiscardLocalChanges(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-        public Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
-        public Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
-        public Task FetchGitNotes(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
+        public void DeleteRemoteBranchIfExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName) => throw new NotImplementedException();
+        public void PublishBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName) => throw new NotImplementedException();
+        public void FetchGitNotes(AltinnAuthenticatedRepoEditingContext authenticatedContext) => throw new NotImplementedException();
     }
 }

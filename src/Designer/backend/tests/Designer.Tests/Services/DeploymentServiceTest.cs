@@ -127,9 +127,11 @@ namespace Designer.Tests.Services
                 _slackClient.Object,
                 _alertsSettings);
 
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
             // Act
             DeploymentEntity deploymentEntity =
-                await deploymentService.CreateAsync(org, app, deploymentModel);
+                await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
             // Assert
             Assert.NotNull(deploymentEntity);
@@ -226,9 +228,9 @@ namespace Designer.Tests.Services
                 It.IsAny<AltinnRepoEditingContext>(),
                 It.IsAny<AltinnEnvironment>())).Returns(Task.CompletedTask);
 
-            _gitOpsConfigurationManager.Setup(gm => gm.PersistGitOpsConfigurationAsync(
+            _gitOpsConfigurationManager.Setup(gm => gm.PersistGitOpsConfiguration(
                 It.IsAny<AltinnOrgEditingContext>(),
-                It.IsAny<AltinnEnvironment>())).Returns(Task.CompletedTask);
+                It.IsAny<AltinnEnvironment>()));
 
             _releaseRepository.Setup(r => r.GetSucceededReleaseFromDb(
                 It.IsAny<string>(),
@@ -273,8 +275,10 @@ namespace Designer.Tests.Services
                 _slackClient.Object,
                 _alertsSettings);
 
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
             // Act
-            await deploymentService.CreateAsync(org, app, deploymentModel);
+            await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
             // Assert - feature flag is checked twice (once for GitOps logic, once for definition selection)
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
@@ -292,7 +296,7 @@ namespace Designer.Tests.Services
                 It.Is<AltinnRepoEditingContext>(ctx => ctx.Org == org && ctx.Repo == app),
                 It.Is<AltinnEnvironment>(env => env.Name == deploymentModel.EnvName)), Times.Once);
 
-            _gitOpsConfigurationManager.Verify(gm => gm.PersistGitOpsConfigurationAsync(
+            _gitOpsConfigurationManager.Verify(gm => gm.PersistGitOpsConfiguration(
                 It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
                 It.Is<AltinnEnvironment>(env => env.Name == deploymentModel.EnvName)), Times.Once);
 
@@ -366,8 +370,10 @@ namespace Designer.Tests.Services
                 _slackClient.Object,
                 _alertsSettings);
 
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
             // Act
-            await deploymentService.CreateAsync(org, app, deploymentModel);
+            await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
             // Assert - feature flag is checked twice (once for GitOps logic, once for definition selection)
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
@@ -386,7 +392,7 @@ namespace Designer.Tests.Services
                 It.IsAny<AltinnRepoEditingContext>(),
                 It.IsAny<AltinnEnvironment>()), Times.Never);
 
-            _gitOpsConfigurationManager.Verify(gm => gm.PersistGitOpsConfigurationAsync(
+            _gitOpsConfigurationManager.Verify(gm => gm.PersistGitOpsConfiguration(
                 It.IsAny<AltinnOrgEditingContext>(),
                 It.IsAny<AltinnEnvironment>()), Times.Never);
 
@@ -451,8 +457,10 @@ namespace Designer.Tests.Services
                 _slackClient.Object,
                 _alertsSettings);
 
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
             // Act
-            await deploymentService.CreateAsync(org, app, deploymentModel);
+            await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
             // Assert - feature flag is checked twice (once for GitOps logic, once for definition selection)
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
@@ -471,7 +479,7 @@ namespace Designer.Tests.Services
                 It.IsAny<AltinnRepoEditingContext>(),
                 It.IsAny<AltinnEnvironment>()), Times.Never);
 
-            _gitOpsConfigurationManager.Verify(gm => gm.PersistGitOpsConfigurationAsync(
+            _gitOpsConfigurationManager.Verify(gm => gm.PersistGitOpsConfiguration(
                 It.IsAny<AltinnOrgEditingContext>(),
                 It.IsAny<AltinnEnvironment>()), Times.Never);
 
@@ -575,8 +583,10 @@ namespace Designer.Tests.Services
                 _slackClient.Object,
                 _alertsSettings);
 
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
             // Act
-            await deploymentService.UndeployAsync(editingContext, env);
+            await deploymentService.UndeployAsync(authenticatedContext, env);
 
             // Assert
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
@@ -628,9 +638,9 @@ namespace Designer.Tests.Services
                 It.IsAny<AltinnRepoEditingContext>(),
                 It.IsAny<AltinnEnvironment>())).Returns(Task.CompletedTask);
 
-            _gitOpsConfigurationManager.Setup(gm => gm.PersistGitOpsConfigurationAsync(
+            _gitOpsConfigurationManager.Setup(gm => gm.PersistGitOpsConfiguration(
                 It.IsAny<AltinnOrgEditingContext>(),
-                It.IsAny<AltinnEnvironment>())).Returns(Task.CompletedTask);
+                It.IsAny<AltinnEnvironment>()));
 
             _deploymentRepository.Setup(r => r.GetLastDeployed(org, app, env))
                 .ReturnsAsync(GetDeployments("createdDeployment.json").First());
@@ -663,8 +673,10 @@ namespace Designer.Tests.Services
                 _slackClient.Object,
                 _alertsSettings);
 
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
             // Act
-            await deploymentService.UndeployAsync(editingContext, env);
+            await deploymentService.UndeployAsync(authenticatedContext, env);
 
             // Assert
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
@@ -681,7 +693,7 @@ namespace Designer.Tests.Services
                 It.Is<AltinnRepoEditingContext>(ctx => ctx.Org == org && ctx.Repo == app),
                 It.Is<AltinnEnvironment>(e => e.Name == env)), Times.Once);
 
-            _gitOpsConfigurationManager.Verify(gm => gm.PersistGitOpsConfigurationAsync(
+            _gitOpsConfigurationManager.Verify(gm => gm.PersistGitOpsConfiguration(
                 It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
                 It.Is<AltinnEnvironment>(e => e.Name == env)), Times.Once);
 
@@ -754,8 +766,10 @@ namespace Designer.Tests.Services
                 _slackClient.Object,
                 _alertsSettings);
 
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
             // Act
-            await deploymentService.UndeployAsync(editingContext, env);
+            await deploymentService.UndeployAsync(authenticatedContext, env);
 
             // Assert
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
@@ -777,7 +791,7 @@ namespace Designer.Tests.Services
                 It.IsAny<AltinnRepoEditingContext>(),
                 It.IsAny<AltinnEnvironment>()), Times.Never);
 
-            _gitOpsConfigurationManager.Verify(gm => gm.PersistGitOpsConfigurationAsync(
+            _gitOpsConfigurationManager.Verify(gm => gm.PersistGitOpsConfiguration(
                 It.IsAny<AltinnOrgEditingContext>(),
                 It.IsAny<AltinnEnvironment>()), Times.Never);
 
@@ -850,8 +864,10 @@ namespace Designer.Tests.Services
                 _slackClient.Object,
                 _alertsSettings);
 
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
             // Act
-            await deploymentService.UndeployAsync(editingContext, env);
+            await deploymentService.UndeployAsync(authenticatedContext, env);
 
             // Assert
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);

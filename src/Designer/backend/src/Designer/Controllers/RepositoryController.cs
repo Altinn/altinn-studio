@@ -222,10 +222,11 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<RepoStatus> RepoStatus(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-            await _sourceControl.CloneIfNotExists(editingContext);
-            await _sourceControl.FetchRemoteChanges(editingContext);
-            return _sourceControl.RepositoryStatus(editingContext);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+            _sourceControl.CloneIfNotExists(authenticatedContext);
+            _sourceControl.FetchRemoteChanges(authenticatedContext);
+            return _sourceControl.RepositoryStatus(authenticatedContext);
         }
 
         /// <summary>
@@ -239,9 +240,10 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<Dictionary<string, string>> RepoDiff(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-            await _sourceControl.FetchRemoteChanges(editingContext);
-            return _sourceControl.GetChangedContent(editingContext);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+            _sourceControl.FetchRemoteChanges(authenticatedContext);
+            return _sourceControl.GetChangedContent(authenticatedContext);
         }
 
         /// <summary>
@@ -255,10 +257,11 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<RepoStatus> Pull(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-            RepoStatus pullStatus = await _sourceControl.PullRemoteChanges(editingContext);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+            RepoStatus pullStatus = _sourceControl.PullRemoteChanges(authenticatedContext);
 
-            RepoStatus status = _sourceControl.RepositoryStatus(editingContext);
+            RepoStatus status = _sourceControl.RepositoryStatus(authenticatedContext);
 
             if (pullStatus.RepositoryStatus != Enums.RepositoryStatus.Ok)
             {
@@ -303,15 +306,16 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task CommitAndPushRepo(string org, string repository, [FromBody] CommitInfo commitInfo)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
             try
             {
-                await _sourceControl.PushChangesForRepository(commitInfo, editingContext);
+                _sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
             }
             catch (LibGit2Sharp.NonFastForwardException)
             {
-                RepoStatus repoStatus = await _sourceControl.PullRemoteChanges(editingContext);
-                await _sourceControl.Push(editingContext);
+                RepoStatus repoStatus = _sourceControl.PullRemoteChanges(authenticatedContext);
+                _sourceControl.Push(authenticatedContext);
                 foreach (RepositoryContent repoContent in repoStatus?.ContentStatus)
                 {
                     Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
@@ -356,8 +360,9 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> Push(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-            bool pushSuccess = await _sourceControl.Push(editingContext);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+            bool pushSuccess = _sourceControl.Push(authenticatedContext);
             return pushSuccess ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
         }
 
@@ -487,8 +492,9 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-            var repoStatus = await _sourceControl.CheckoutBranchWithValidation(editingContext, request.BranchName);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+            RepoStatus repoStatus = _sourceControl.CheckoutBranchWithValidation(authenticatedContext, request.BranchName);
             return Ok(repoStatus);
         }
 
