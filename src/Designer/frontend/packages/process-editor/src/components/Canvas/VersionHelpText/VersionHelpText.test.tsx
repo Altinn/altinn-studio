@@ -6,6 +6,7 @@ import { VersionHelpText } from './VersionHelpText';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 const mockAppLibVersion7: string = '7.0.3';
+const mockFrontendVersion: string = '4.0.0';
 
 describe('VersionHelpText', () => {
   it('should render VersionHelpText', () => {
@@ -19,6 +20,7 @@ describe('VersionHelpText', () => {
       <BpmnContextProvider
         bpmnXml={mockBPMNXML}
         appLibVersion={appLibVersion || mockAppLibVersion7}
+        frontendVersion={mockFrontendVersion}
       >
         <VersionHelpText />
       </BpmnContextProvider>,

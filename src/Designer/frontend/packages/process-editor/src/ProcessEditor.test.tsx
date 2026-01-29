@@ -9,11 +9,13 @@ import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
 const mockAppLibVersion8: string = '8.0.3';
+const mockFrontendVersion: string = '4.0.0';
 
 const defaultProps: ProcessEditorProps = {
   bpmnXml: mockBPMNXML,
   saveBpmn: jest.fn(),
   appLibVersion: mockAppLibVersion8,
+  frontendVersion: mockFrontendVersion,
   availableDataTypeIds: [],
   availableDataModelIds: [],
   allDataModelIds: [],

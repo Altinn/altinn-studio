@@ -5,12 +5,14 @@ import { mockModelerRef } from './bpmnModelerMock';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
-const mockAppLibVersion8: string = '8.0.3';
+const mockAppLibVersion8: string = '8.9.0';
+const mockFrontendVersion: string = '4.25.2';
 
 export const mockBpmnContextValue: BpmnContextProps = {
   bpmnXml: mockBPMNXML,
   initialBpmnXml: mockBPMNXML,
   appLibVersion: mockAppLibVersion8,
+  frontendVersion: mockFrontendVersion,
   getUpdatedXml: jest.fn(),
   isEditAllowed: true,
   bpmnDetails: mockBpmnDetails,
