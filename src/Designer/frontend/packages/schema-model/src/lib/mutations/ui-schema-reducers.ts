@@ -1,16 +1,9 @@
 import type { CombinationKind, NodePosition, UiSchemaReducer } from '../../types';
 import { FieldType } from '../../types';
-import { isField, isReference, splitPointerInBaseAndName } from '../utils';
-import { convertPropToType } from './convert-node';
+import { isReference } from '../utils';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { castRestrictionType } from '../restrictions';
-import { ArrayUtils } from '@studio/pure-functions';
 import { changeNameInPointer } from '../pointerUtils';
-
-export const promoteProperty: UiSchemaReducer<string> = (uiSchema, path) => {
-  const newSchema = uiSchema.deepClone();
-  return convertPropToType(newSchema, path);
-};
 
 export const deleteNode: UiSchemaReducer<string> = (uiSchema, path) => {
   const newSchema = uiSchema.deepClone();
@@ -73,21 +66,6 @@ export const setRef: UiSchemaReducer<SetRefArgs> = (uiSchema, { path, ref }) => 
   if (isReference(uiSchemaNode)) {
     uiSchemaNode.reference = ref;
     uiSchemaNode.implicitType = true;
-  }
-  return newSchema;
-};
-
-export type SetTypeArgs = {
-  path: string;
-  type: FieldType;
-};
-export const setType: UiSchemaReducer<SetTypeArgs> = (uiSchema, { path, type }) => {
-  const newSchema = uiSchema.deepClone();
-  const uiSchemaNode = newSchema.getNodeBySchemaPointer(path);
-  if (isField(uiSchemaNode)) {
-    uiSchemaNode.children = [];
-    uiSchemaNode.fieldType = type;
-    uiSchemaNode.implicitType = false;
   }
   return newSchema;
 };
@@ -190,23 +168,5 @@ export const setPropertyName: UiSchemaReducer<SetPropertyNameArgs> = (
 export const toggleArrayField: UiSchemaReducer<string> = (uiSchema, newSchemaPointer) => {
   const newSchema = uiSchema.deepClone();
   newSchema.toggleIsArray(newSchemaPointer);
-  return newSchema;
-};
-
-export type ChangeChildrenOrderArgs = {
-  pointerA: string;
-  pointerB: string;
-};
-export const changeChildrenOrder: UiSchemaReducer<ChangeChildrenOrderArgs> = (
-  uiSchema,
-  { pointerA, pointerB },
-) => {
-  const { base: baseA } = splitPointerInBaseAndName(pointerA);
-  const { base: baseB } = splitPointerInBaseAndName(pointerB);
-  if (baseA !== baseB) return uiSchema;
-  const newSchema = uiSchema.deepClone();
-  const parentNode = newSchema.getParentNode(pointerA);
-  if (parentNode)
-    parentNode.children = ArrayUtils.swapArrayElements(parentNode.children, pointerA, pointerB);
   return newSchema;
 };
