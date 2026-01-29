@@ -16,23 +16,18 @@ export function useFormDataQueryDef(url: string | undefined): QueryDefinition<un
   const { fetchFormData } = useAppQueries();
   const queryKey = useFormDataQueryKey(url);
   const options = useFormDataQueryOptions();
-  const isStateless = useApplicationMetadata().isStatelessApp;
-
   const queryFn = url ? () => fetchFormData(url, options) : skipToken;
-
-  if (isStateless) {
-    //  We need to refetch for stateless apps as caching will break some apps.
-    // See this issue: https://github.com/Altinn/app-frontend-react/issues/2564
-    return {
-      queryKey,
-      queryFn,
-      gcTime: 0,
-    };
-  }
 
   return {
     queryKey,
     queryFn,
+
+    // We always have to refetch as caching will break some apps.
+    // See this issue: https://github.com/Altinn/app-frontend-react/issues/2564
+    // This is also important for https://github.com/Altinn/app-frontend-react/issues/3634, and without 'gcTime: 0'
+    // old query cache will be used to initialize FormDataWrite even after invalidateFormDataQueries() has been called.
+    gcTime: 0,
+
     refetchInterval: false,
   };
 }
