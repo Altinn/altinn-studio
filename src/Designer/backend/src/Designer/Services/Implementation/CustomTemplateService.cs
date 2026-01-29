@@ -50,7 +50,28 @@ public class CustomTemplateService : ICustomTemplateService
     {
         List<CustomTemplate> templates = [];
 
-        templates.AddRange(await GetTemplateManifestForOrg(_templateSettings.DefaultTemplateOrganization));
+        List<Task<List<CustomTemplate>>> tasks = [];
+        List<string> organizations = (await _giteaClient.GetUserOrganizations() ?? []).Select(o => o.Username).ToList();
+
+        if (organizations.Count > 0)
+        {
+            organizations.ForEach(org =>
+            {
+                if (org != _templateSettings.DefaultTemplateOrganization)
+                {
+                    tasks.Add(GetTemplateManifestForOrg(org));
+                }
+            });
+        }
+
+        tasks.Add(GetTemplateManifestForOrg(_templateSettings.DefaultTemplateOrganization));
+
+        List<CustomTemplate>[] results = await Task.WhenAll(tasks);
+
+        foreach (var result in results)
+        {
+            templates.AddRange(result);
+        }
 
         return templates;
     }
@@ -67,7 +88,7 @@ public class CustomTemplateService : ICustomTemplateService
 
         await CopyTemplateContentToRepository(templateOwner, templateId, targetOrg, targetRepo, developer);
 
-        await ApplyPackageReferences(targetOrg, targetRepo, developer, template.PackageReferences);
+        ApplyPackageReferences(targetOrg, targetRepo, developer, template.PackageReferences);
     }
 
     /// <summary>
@@ -112,17 +133,21 @@ public class CustomTemplateService : ICustomTemplateService
 
             if (!cacheValid)
             {
-                _logger.LogInformation("Template manifest missing for {templateOwner}. Downloading from API...", templateOwner);
+                _logger.LogInformation("// CustomTemplateService // GetTemplateManifestForOrg // Template manifest missing for {templateOwner}. Downloading from API...", templateOwner);
                 await DownloadTemplateManifestToCache(templateOwner, templateRepo, templateManifestCachePath, latestCommitSha);
             }
             else
             {
-                _logger.LogInformation("Template manifest hit for {templateOwner}. Using cached file.", templateOwner);
+                _logger.LogInformation("// CustomTemplateService // GetTemplateManifestForOrg // Template manifest hit for {templateOwner}. Using cached file.", templateOwner);
             }
 
-            string cachedTemplateList = await File.ReadAllTextAsync(templateManifestCachePath);
-            List<CustomTemplate> templates = JsonSerializer.Deserialize<List<CustomTemplate>>(cachedTemplateList) ?? [];
-            return templates;
+            if (File.Exists(templateManifestCachePath))
+            {
+                string cachedTemplateList = await File.ReadAllTextAsync(templateManifestCachePath);
+                return JsonSerializer.Deserialize<List<CustomTemplate>>(cachedTemplateList) ?? [];
+            }
+
+            return [];
         }
         catch
         {
@@ -141,7 +166,8 @@ public class CustomTemplateService : ICustomTemplateService
             switch (problem.Status)
             {
                 case 404:
-                    throw CustomTemplateException.NotFound($"Template manifest for owner '{owner}' not found");
+                    _logger.LogInformation($"// CustomTemplateService // DownloadTemplateManifestToCache // Template manifest for owner '{owner}' not found");
+                    return;
                 default:
                     throw CustomTemplateException.DeserializationFailed($"An error occurred while retrieving the template manifest for owner '{owner}'.", problem.Detail);
             }
@@ -234,34 +260,47 @@ public class CustomTemplateService : ICustomTemplateService
 
         if (!cacheValid)
         {
-            _logger.LogInformation("Template cache miss for {TemplateId}. Downloading from API...", templateId);
+            _logger.LogInformation("// CustomTemplateService // CopyTemplateContentToRepository // Template cache miss for {TemplateId}. Downloading from API...", templateId);
             await DownloadTemplateToCache(templateOwner, templateRepo, templateId, templateCachePath, latestCommitSha, cancellationToken);
         }
         else
         {
-            _logger.LogInformation("Template cache hit for {TemplateId}. Using cached files.", templateId);
+            _logger.LogInformation("// CustomTemplateService // CopyTemplateContentToRepository // Template cache hit for {TemplateId}. Using cached files.", templateId);
         }
 
-       await DirectoryHelper.CopyDirectoryAsync(cacheTemplateContentPath, _serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer));
+        await DirectoryHelper.CopyDirectoryAsync(cacheTemplateContentPath, _serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer));
     }
 
-    private async Task ApplyPackageReferences(string targetOrg, string targetRepo, string developer, List<PackageReference> packageReferences)
+    private void ApplyPackageReferences(string targetOrg, string targetRepo, string developer, List<PackageReference> packageReferences)
     {
-        foreach (var projectReference in packageReferences)
+        if (packageReferences == null || !packageReferences.Any())
         {
-            var projectFiles = DirectoryHelper.ResolveFilesFromPattern(_serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer), projectReference.Project);
+            return;
+        }
+
+        // Group package references by their project file pattern
+        var groupedByProject = packageReferences
+            .GroupBy(pr => pr.Project, StringComparer.OrdinalIgnoreCase);
+
+        foreach (IGrouping<string, PackageReference> projectGroup in groupedByProject)
+        {
+            string projectPattern = projectGroup.Key;
+            var projectFiles = DirectoryHelper.ResolveFilesFromPattern(
+                _serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer),
+                projectPattern);
 
             if (!projectFiles.Any())
             {
-                throw CustomTemplateException.NotFound($"Project file pattern '{projectReference.Project}' in package reference '{projectReference.Include}' did not match any files in target repository.");
-
+                throw CustomTemplateException.NotFound($"Project file pattern '{projectPattern}' in package reference '{projectGroup.First().Include}' did not match any files in target repository.");
             }
             else if (projectFiles.Count() > 1)
             {
-                throw CustomTemplateException.NotFound($"Project file pattern '{projectReference.Project}' in package reference '{projectReference.Include}' matched multiple files in target repository.");
+                throw CustomTemplateException.NotFound($"Project file pattern '{projectPattern}' in package reference '{projectGroup.First().Include}' matched multiple files in target repository.");
             }
 
-            CsprojPatcher.UpsertPackageReference(projectFiles.First(), projectReference.Include, projectReference.Version);
+            CsprojPatcher.UpsertPackageReferences(
+                projectFiles.First(),
+                projectGroup.Select(pr => (pr.Include, pr.Version)).ToList());
         }
     }
 
@@ -290,7 +329,7 @@ public class CustomTemplateService : ICustomTemplateService
                     FileOptions.DeleteOnClose
                 );
 
-                _logger.LogInformation("Acquired template cache lock: {LockFilePath} at {Time}", lockFilePath, DateTime.UtcNow);
+                _logger.LogInformation("// CustomTemplateService // AcquireFileLockAsync // Acquired template cache lock: {LockFilePath} at {Time}", lockFilePath, DateTime.UtcNow);
 
                 lockStream.Position = 0;
                 return lockStream;
@@ -298,7 +337,7 @@ public class CustomTemplateService : ICustomTemplateService
             catch (IOException)
             {
                 // Lock held by another instance, wait and retry
-                _logger.LogDebug("Template cache lock held by another instance. Retry {RetryCount}/{MaxRetries}", retryCount + 1, maxRetries);
+                _logger.LogDebug("// CustomTemplateService // AcquireFileLockAsync // Template cache lock held by another instance. Retry {RetryCount}/{MaxRetries}", retryCount + 1, maxRetries);
                 await Task.Delay(retryDelayMs, cancellationToken);
                 retryCount++;
             }
@@ -374,7 +413,7 @@ public class CustomTemplateService : ICustomTemplateService
 
         if (contentFiles.Count == 0)
         {
-            _logger.LogWarning("No content found for template '{TemplateId}'", templateId);
+            _logger.LogWarning("// CustomTemplateService // DownloadTemplateToCache // No content found for template '{TemplateId}'", templateId);
         }
 
         // Clear old cache content
@@ -385,7 +424,7 @@ public class CustomTemplateService : ICustomTemplateService
 
         Directory.CreateDirectory(cacheTemplateContentPath);
 
-        _logger.LogInformation("Copying template '{TemplateId}' with {FileCount} files via API download", templateId, contentFiles.Count);
+        _logger.LogInformation("// CustomTemplateService // DownloadTemplateToCache // Copying template '{TemplateId}' with {FileCount} files via API download", templateId, contentFiles.Count);
 
         // Download files in parallel
         ParallelOptions options = new()
@@ -432,7 +471,7 @@ public class CustomTemplateService : ICustomTemplateService
         string metadataJson = JsonSerializer.Serialize(cacheInfo, new JsonSerializerOptions { WriteIndented = true });
         await File.WriteAllTextAsync(metadataPath, metadataJson, cancellationToken);
 
-        _logger.LogInformation("Cached {FileCount} files for template {TemplateId} (commit: {CommitSha})",
+        _logger.LogInformation("// CustomTemplateService // DownloadTemplateToCache // Cached {FileCount} files for template {TemplateId} (commit: {CommitSha})",
             contentFiles.Count, templateId, commitSha[..7]);
     }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -7,15 +8,20 @@ namespace Designer.Helpers;
 public static class CsprojPatcher
 {
     /// <summary>
-    /// Upserts a PackageReference into a .csproj file. If an entry with the same Include exists,
-    /// it updates Version (attribute or child element). Otherwise it adds a new PackageReference.
+    /// Upserts multiple PackageReferences into a .csproj file in a single read/write operation.
     /// </summary>
+    /// <param name="csprojPath">Path to the .csproj file</param>
+    /// <param name="packageReferences">List of (Include, Version) tuples</param>
     /// <returns>true if the file was modified; otherwise false.</returns>
-    public static bool UpsertPackageReference(
+    public static bool UpsertPackageReferences(
         string csprojPath,
-        string include,
-        string version)
+        List<(string Include, string Version)> packageReferences)
     {
+        if (packageReferences == null || !packageReferences.Any())
+        {
+            return false;
+        }
+
         // Preserve whitespace as much as possible.
         var doc = XDocument.Load(csprojPath, LoadOptions.None);
 
@@ -25,64 +31,56 @@ public static class CsprojPatcher
             throw new InvalidOperationException("Not a valid SDK-style .csproj (missing <Project> root).");
         }
 
-        // .csproj may or may not have a default namespace. Use the root's namespace.
         XNamespace ns = project.Name.Namespace;
-
-        // Helper for names with namespace
         XName N(string local) => ns + local;
 
-        var existing = project
-            .Descendants(N("PackageReference"))
-            .FirstOrDefault(pr =>
-            {
-                var inc = (string?)pr.Attribute("Include");
-                if (!string.Equals(inc, include, StringComparison.OrdinalIgnoreCase))
+        bool anyChanged = false;
+
+        foreach (var packageRef in packageReferences)
+        {
+            var existing = project
+                .Descendants(N("PackageReference"))
+                .FirstOrDefault(pr =>
                 {
-                    return false;
+                    var inc = (string?)pr.Attribute("Include");
+                    return string.Equals(inc, packageRef.Include, StringComparison.OrdinalIgnoreCase);
+                });
+
+            if (existing != null)
+            {
+                anyChanged |= EnsureVersion(existing, N("Version"), packageRef.Version);
+            }
+            else
+            {
+                var newRef = new XElement(N("PackageReference"));
+                newRef.SetAttributeValue("Include", packageRef.Include);
+                newRef.SetAttributeValue("Version", packageRef.Version);
+
+                var itemGroupWithPackages = project
+                    .Elements(N("ItemGroup"))
+                    .FirstOrDefault(ig => ig.Elements(N("PackageReference")).Any());
+
+                if (itemGroupWithPackages != null)
+                {
+                    itemGroupWithPackages.Add(newRef);
+                }
+                else
+                {
+                    var newItemGroup = new XElement(N("ItemGroup"));
+                    newItemGroup.Add(newRef);
+                    project.Add(newItemGroup);
                 }
 
-                return true;
-            });
-
-        bool changed = false;
-
-        if (existing != null)
-        {
-            changed |= EnsureVersion(existing, N("Version"), version);
-
-            // Optionally upsert Condition attribute if caller provided it and it's different/missing.
-
-            if (changed)
-            {
-                doc.Save(csprojPath);
+                anyChanged = true;
             }
-
-            return changed;
         }
 
-        // No existing reference. Create it.
-        var newRef = new XElement(N("PackageReference"));
-        newRef.SetAttributeValue("Include", include);
-        newRef.SetAttributeValue("Version", version);
-
-        var itemGroupWithPackages = project
-         .Elements(N("ItemGroup"))
-         .FirstOrDefault(ig => ig.Elements(N("PackageReference")).Any());
-
-        if (itemGroupWithPackages != null)
+        if (anyChanged)
         {
-            itemGroupWithPackages.Add(newRef);
-        }
-        else
-        {
-            var newItemGroup = new XElement(N("ItemGroup"));
-            newItemGroup.Add(newRef);
-
-            project.Add(newItemGroup);
+            doc.Save(csprojPath, SaveOptions.None);
         }
 
-        doc.Save(csprojPath, SaveOptions.None);
-        return true;
+        return anyChanged;
     }
 
     /// <summary>
