@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: lhci
+      POSTGRES_USER: lhci_user
+      POSTGRES_PASSWORD: lhci_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - lhci-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lhci_user -d lhci"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  lhci-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9001:9001"
+    environment:
+      LHCI_STORAGE__SQL_CONNECTION_URL: postgresql://lhci_user:lhci_password@postgres:5432/lhci
+      LHCI_STORAGE__SQL_DIALECT: postgres
+      LHCI_DB_SSL_DISABLED: "true"
+      LHCI_BASIC_AUTH_USERNAME: admin
+      LHCI_BASIC_AUTH_PASSWORD: password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  lhci-db-data:

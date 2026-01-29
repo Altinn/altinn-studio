@@ -42,6 +42,7 @@ jobs:
     name: Lighthouse CI
     runs-on: ubuntu-latest
     needs: [build-frontend, build-localtest]
+    environment: dev
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
@@ -71,14 +72,19 @@ jobs:
 
       - name: Run Lighthouse CI
         id: lighthouse-ci
+        env:
+          LHCI_SERVER_URL: ${{ secrets.LHCI_SERVER_URL }}
+          LHCI_BUILD_TOKEN: ${{ secrets.LHCI_ALTINN_APP_BUILD_TOKEN }}
+          LHCI_USERNAME: ${{ secrets.LHCI_BASIC_AUTH_USERNAME }}
+          LHCI_PASSWORD: ${{ secrets.LHCI_BASIC_AUTH_PASSWORD }}
         working-directory: src/App/frontend
         run: |
           set -e # exit on any failure
           set -o pipefail # preserve exit codes in pipes
           yarn run lhci 2>&1 | tee lighthouse_output.txt
 
-          # Extract the report URL
-          REPORT_URL=$(grep -o 'https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/[^[:space:]]*' lighthouse_output.txt || echo "")
+          # Extract the report URL (handles both LHCI server and temporary storage URLs)
+          REPORT_URL=$(grep -oE 'https://((dev\.|staging\.)?altinn\.studio:9001/app/projects/[^[:space:]]*|storage\.googleapis\.com/lighthouse-infrastructure\.appspot\.com/reports/[^[:space:]]*)' lighthouse_output.txt || echo "")
           echo "report_url=$REPORT_URL" >> $GITHUB_OUTPUT
       - name: Comment PR with Lighthouse Report
         if: github.event_name == 'pull_request' && steps.lighthouse-ci.outputs.report_url != ''

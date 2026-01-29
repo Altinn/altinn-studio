@@ -9,6 +9,7 @@ image:
   containerPorts:
     http: 80
     https: 443
+    lhci: 9001
 
 hosts:
   dev: dev.altinn.studio
@@ -48,6 +49,10 @@ service:
       targetPort: 443
       protocol: TCP
       name: https
+    - port: 9001
+      targetPort: 9001
+      protocol: TCP
+      name: lhci
 
 # insert correct ip
 loadbalancerIP:

@@ -1,3 +1,22 @@
+{{- define "nginx.ssl-config" -}}
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_prefer_server_ciphers on;
+ssl_ciphers ECDH+AESGCM:ECDH+AES256:ECDH+AES128:DH+3DES:!ADH:!AECDH:!MD5;
+
+ssl_certificate /etc/nginx/ssl/altinn_studio/star.altinn.studio.cert;
+ssl_certificate_key /etc/nginx/ssl/altinn_studio/star.altinn.studio.key;
+
+ssl_stapling on;
+ssl_stapling_verify on;
+ssl_trusted_certificate /etc/nginx/ssl/altinn_studio/star.altinn.studio.cert;
+
+ssl_session_cache   shared:SSL:40m;
+ssl_session_timeout 4h;
+ssl_session_tickets on;
+
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+{{- end -}}
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -34,6 +53,10 @@ data:
         server altinn-mcp-server;
       }
 
+      upstream lhci {
+        server lhci-server.lhci:9001;
+      }
+
       map $uri $spa_path {
         ~^/(dashboard|editor|preview|admin|resourceadm|info)(/.*)?$ $1;
         default                                               none;
@@ -53,28 +76,11 @@ data:
       server {
         listen 443 ssl http2;
 
-        ssl_protocols TLSv1.2 TLSv1.3;
-
-        ssl_prefer_server_ciphers on;
-        ssl_ciphers ECDH+AESGCM:ECDH+AES256:ECDH+AES128:DH+3DES:!ADH:!AECDH:!MD5;
-
-        ssl_certificate /etc/nginx/ssl/altinn_studio/star.altinn.studio.cert;
-        ssl_certificate_key /etc/nginx/ssl/altinn_studio/star.altinn.studio.key;
-
-        ssl_stapling on;
-        ssl_stapling_verify on;
-        ssl_trusted_certificate /etc/nginx/ssl/altinn_studio/star.altinn.studio.cert;
-
-        ssl_session_cache   shared:SSL:40m;
-        ssl_session_timeout 4h;
-
-        ssl_session_tickets on;
+        {{- include "nginx.ssl-config" . | nindent 8 }}
 
         server_name {{ $host }};
 
         proxy_cookie_path ~*^/.* /;
-
-        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
         location = / {
           proxy_pass 			    http://designer/;
@@ -151,6 +157,24 @@ data:
           proxy_set_header 	  Host {{ $host }};
           proxy_set_header 	  X-Forwarded-For $remote_addr;
           proxy_set_header    X-Forwarded-Proto $scheme;
+        }
+      }
+
+      server {
+        listen 9001 ssl http2;
+
+        {{- include "nginx.ssl-config" . | nindent 8 }}
+
+        server_name {{ $host }};
+
+        # Proxy everything directly to LHCI
+        location / {
+          proxy_pass            http://lhci/;
+          proxy_set_header      Host $host;
+          proxy_set_header      X-Forwarded-For $remote_addr;
+          proxy_set_header      X-Forwarded-Proto $scheme;
+          proxy_set_header      Authorization $http_authorization;
+          proxy_http_version    1.1;
         }
       }
     # write the log to syslog so it can be read by the sidecar
