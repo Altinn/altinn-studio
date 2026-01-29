@@ -66,8 +66,8 @@ describe('PublishedOptionListSelector', () => {
     await user.typeVersion(version);
     await user.clickSave();
 
-    const exectedReferenceValues = { codeListName, version, orgName };
-    const expectedOptionsId = createPublishedCodeListReferenceString(exectedReferenceValues);
+    const expectedReferenceValues = { codeListName, version, orgName };
+    const expectedOptionsId = createPublishedCodeListReferenceString(expectedReferenceValues);
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith(
       expect.objectContaining({ optionsId: expectedOptionsId }),

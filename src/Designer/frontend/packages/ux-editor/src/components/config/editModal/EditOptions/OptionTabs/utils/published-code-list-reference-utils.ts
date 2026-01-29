@@ -25,4 +25,4 @@ export function createPublishedCodeListReferenceString({
   return `lib**${orgName}**${codeListName}**${version}`;
 }
 
-const publishedCodeListReferenceRegex = /^lib\*\*(.+)\*\*(.+)\*\*(\d+|_latest)$/; // Named capturing groups would make this Regex more readable, but that's not supported by the current Ecmascript version
+const publishedCodeListReferenceRegex = /^lib\*\*([^*]+)\*\*([^*]+)\*\*(\d+|_latest)$/; // Named capturing groups would make this Regex more readable, but that's not supported by the current Ecmascript version

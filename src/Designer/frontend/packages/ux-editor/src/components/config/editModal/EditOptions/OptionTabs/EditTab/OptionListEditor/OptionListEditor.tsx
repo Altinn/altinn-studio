@@ -37,13 +37,17 @@ export function OptionListEditor({
   handleComponentChange,
   onEditButtonClick,
   textResources,
-}: OptionListEditorProps): React.ReactNode {
+}: OptionListEditorProps): React.ReactElement {
   const handleDeleteButtonClick = () => {
     const updatedComponent = resetComponentOptions(component);
     handleOptionsChange(updatedComponent, handleComponentChange);
   };
 
-  switch (retrieveOptionsType(component, codeListIdContextData)) {
+  const type = retrieveOptionsType(component, codeListIdContextData);
+  Guard.againstNull(type);
+  Guard.againstInvalidValue<OptionsType, OptionsType.CustomId>(type, OptionsType.CustomId);
+
+  switch (type) {
     case OptionsType.Internal:
       return (
         <ManualOptionsPanel
