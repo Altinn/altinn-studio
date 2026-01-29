@@ -2,7 +2,6 @@ import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useHasTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useHasOrgs, useOrgs } from 'src/features/orgs/OrgsProvider';
 
 export function useTextResourceOr<T extends string | undefined>(resource: string, fallback: T): string | T {
   const { langAsString } = useLanguage();
@@ -16,10 +15,7 @@ export function useTextResourceOr<T extends string | undefined>(resource: string
 }
 
 export function useHasAppTextsYet() {
-  const hasOrgs = useHasOrgs();
-  const hasTexts = useHasTextResources();
-
-  return hasOrgs && hasTexts;
+  return useHasTextResources();
 }
 
 export function useAppName() {
@@ -51,12 +47,12 @@ export function useAppLogoAltText() {
   return useTextResourceOr('appLogo.altText', fromMetaData);
 }
 
-function useOrgName(org: string | undefined) {
-  const orgs = useOrgs();
+function useOrgName(_org: string | undefined) {
   const currentLanguage = useCurrentLanguage();
+  const orgName = window.altinnAppGlobalData?.orgName;
 
-  if (orgs && typeof org === 'string' && orgs[org]) {
-    return orgs[org].name[currentLanguage] || orgs[org].name.nb;
+  if (orgName) {
+    return orgName[currentLanguage] || orgName.nb;
   }
 
   return undefined;

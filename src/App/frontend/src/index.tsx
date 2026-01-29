@@ -28,7 +28,6 @@ import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
 import { LanguageProvider } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
-import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { AppPrefetcher } from 'src/queries/appPrefetcher';
@@ -86,21 +85,19 @@ function Root() {
           <InstantiationUrlReset />
           <GlobalFormDataReadersProvider>
             <TextResourcesProvider>
-              <OrgsProvider>
-                <PartyProvider>
-                  <KeepAliveProvider>
-                    <ProcessingProvider>
-                      <App />
-                    </ProcessingProvider>
-                    <ToastContainer
-                      position='top-center'
-                      theme='colored'
-                      transition={Slide}
-                      draggable={false}
-                    />
-                  </KeepAliveProvider>
-                </PartyProvider>
-              </OrgsProvider>
+              <PartyProvider>
+                <KeepAliveProvider>
+                  <ProcessingProvider>
+                    <App />
+                  </ProcessingProvider>
+                  <ToastContainer
+                    position='top-center'
+                    theme='colored'
+                    transition={Slide}
+                    draggable={false}
+                  />
+                </KeepAliveProvider>
+              </PartyProvider>
             </TextResourcesProvider>
             <PartyPrefetcher />
           </GlobalFormDataReadersProvider>

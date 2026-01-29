@@ -47,4 +47,16 @@ internal class BootstrapGlobalResponse
     /// </summary>
     [JsonPropertyName("userProfile")]
     public UserProfile? UserProfile { get; set; }
+
+    /// <summary>
+    /// Organisation display name in available languages (language code → name).
+    /// </summary>
+    [JsonPropertyName("orgName")]
+    public Dictionary<string, string>? OrgName { get; set; }
+
+    /// <summary>
+    /// Organisation logo URL from Altinn CDN.
+    /// </summary>
+    [JsonPropertyName("orgLogoUrl")]
+    public string? OrgLogoUrl { get; set; }
 }
