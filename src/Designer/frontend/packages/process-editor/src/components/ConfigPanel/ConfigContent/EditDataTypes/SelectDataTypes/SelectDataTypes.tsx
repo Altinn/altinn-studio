@@ -55,7 +55,7 @@ export const SelectDataTypes = ({
   const selectedItems =
     existingDataType && dataModelOptionsToDisplay.includes(existingDataType)
       ? { value: existingDataType, label: existingDataType }
-      : null;
+      : undefined;
 
   return (
     <div className={classes.dataTypeSelectAndButtons}>
