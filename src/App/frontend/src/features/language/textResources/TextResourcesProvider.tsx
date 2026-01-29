@@ -8,6 +8,8 @@ import { fetchTextResources } from 'src/queries/queries';
 import type { ITextResourceResult, TextResourceMap } from 'src/features/language/textResources/index';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
+const EMPTY_TEXT_RESOURCES: TextResourceMap = {};
+
 export function toTextResourceMap(result: ITextResourceResult): TextResourceMap {
   const { resources } = result;
   return resourcesAsMap(resources);
@@ -53,5 +55,5 @@ export function useTextResources(): TextResourceMap {
     );
   }
 
-  return query.data ?? {};
+  return query.data ?? EMPTY_TEXT_RESOURCES;
 }

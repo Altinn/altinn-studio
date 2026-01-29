@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useDataModelReaders } from 'src/features/formData/FormDataReaders';
 import { useInstanceDataSources } from 'src/features/instance/InstanceContext';
@@ -25,13 +27,16 @@ export function useLangToolsDataSources(): LangDataSources {
   const applicationSettings = useApplicationSettings();
   const instanceDataSources = useInstanceDataSources();
 
-  return {
-    textResources,
-    language: getLanguageFromCode(selectedAppLanguage),
-    selectedLanguage: selectedAppLanguage,
-    dataModels,
-    applicationSettings,
-    instanceDataSources,
-    customTextParameters: null,
-  };
+  return useMemo(
+    () => ({
+      textResources,
+      language: getLanguageFromCode(selectedAppLanguage),
+      selectedLanguage: selectedAppLanguage,
+      dataModels,
+      applicationSettings,
+      instanceDataSources,
+      customTextParameters: null,
+    }),
+    [textResources, selectedAppLanguage, dataModels, applicationSettings, instanceDataSources],
+  );
 }
