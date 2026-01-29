@@ -9,12 +9,11 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.CustomTemplate;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Helpers;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.FileSystemGlobbing;
-using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using Microsoft.Extensions.Logging;
 using NJsonSchema;
 using NJsonSchema.Validation;
@@ -46,7 +45,7 @@ public class CustomTemplateService : ICustomTemplateService
         _logger = logger;
     }
 
-    // <inheritdoc />
+    /// <inheritdoc />
     public async Task<List<CustomTemplate>> GetCustomTemplateList()
     {
         List<CustomTemplate> templates = [];
@@ -56,7 +55,7 @@ public class CustomTemplateService : ICustomTemplateService
         return templates;
     }
 
-    // <inheritdoc />
+    /// <inheritdoc />
     public async Task ApplyTemplateToRepository(string templateOwner, string templateId, string targetOrg, string targetRepo, string developer)
     {
         CustomTemplate template = await GetCustomTemplate(templateOwner, templateId); // called first as it includes validation of the template
@@ -69,38 +68,6 @@ public class CustomTemplateService : ICustomTemplateService
         await CopyTemplateContentToRepository(templateOwner, templateId, targetOrg, targetRepo, developer);
 
         await ApplyPackageReferences(targetOrg, targetRepo, developer, template.PackageReferences);
-    }
-
-    private async Task ApplyPackageReferences(string targetOrg, string targetRepo, string developer, List<PackageReference> packageReferences)
-    {
-        foreach (var projectReference in packageReferences)
-        {
-            var projectFiles = ResolveProjectFiles(_serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer), projectReference.Project);
-
-            if (!projectFiles.Any())
-            {
-                throw CustomTemplateException.NotFound($"Project file pattern '{projectReference.Project}' in package reference '{projectReference.Include}' did not match any files in target repository.");
-
-            }
-            else if (projectFiles.Count() > 1)
-            {
-                throw CustomTemplateException.NotFound($"Project file pattern '{projectReference.Project}' in package reference '{projectReference.Include}' matched multiple files in target repository.");
-            }
-
-            CsprojPatcher.UpsertPackageReference(projectFiles.First(), projectReference.Include, projectReference.Version);
-        }
-    }
-
-    private static IEnumerable<string> ResolveProjectFiles(string baseDirectory, string pattern)
-    {
-        var matcher = new Matcher(StringComparison.OrdinalIgnoreCase);
-        matcher.AddInclude(pattern);
-
-        var result = matcher.Execute(
-            new DirectoryInfoWrapper(new DirectoryInfo(baseDirectory))
-        );
-
-        return result.Files.Select(f => Path.Combine(baseDirectory, f.Path));
     }
 
     /// <summary>
@@ -182,6 +149,7 @@ public class CustomTemplateService : ICustomTemplateService
 
         string jsonString = Encoding.UTF8.GetString(Convert.FromBase64String(file.Content));
 
+        Directory.CreateDirectory(Path.GetDirectoryName(cacheFilePath)!);
         await File.WriteAllTextAsync(cacheFilePath, jsonString);
 
         var cacheInfo = new TemplateCacheInfo
@@ -274,7 +242,27 @@ public class CustomTemplateService : ICustomTemplateService
             _logger.LogInformation("Template cache hit for {TemplateId}. Using cached files.", templateId);
         }
 
-        CopyDirectory(cacheTemplateContentPath, _serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer));
+       await DirectoryHelper.CopyDirectoryAsync(cacheTemplateContentPath, _serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer));
+    }
+
+    private async Task ApplyPackageReferences(string targetOrg, string targetRepo, string developer, List<PackageReference> packageReferences)
+    {
+        foreach (var projectReference in packageReferences)
+        {
+            var projectFiles = DirectoryHelper.ResolveFilesFromPattern(_serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer), projectReference.Project);
+
+            if (!projectFiles.Any())
+            {
+                throw CustomTemplateException.NotFound($"Project file pattern '{projectReference.Project}' in package reference '{projectReference.Include}' did not match any files in target repository.");
+
+            }
+            else if (projectFiles.Count() > 1)
+            {
+                throw CustomTemplateException.NotFound($"Project file pattern '{projectReference.Project}' in package reference '{projectReference.Include}' matched multiple files in target repository.");
+            }
+
+            CsprojPatcher.UpsertPackageReference(projectFiles.First(), projectReference.Include, projectReference.Version);
+        }
     }
 
     /// <summary>
@@ -512,23 +500,7 @@ public class CustomTemplateService : ICustomTemplateService
         return Path.GetFileName(fullPath);
     }
 
-    private static void CopyDirectory(string sourceDir, string targetDir)
-    {
-        DirectoryInfo source = new(sourceDir);
-        DirectoryInfo target = new(targetDir);
 
-        foreach (FileInfo file in source.GetFiles())
-        {
-            File.SetAttributes(file.FullName, FileAttributes.Normal);
-            file.CopyTo(Path.Combine(target.FullName, file.Name), overwrite: true);
-        }
-
-        foreach (DirectoryInfo subDir in source.GetDirectories())
-        {
-            DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subDir.Name);
-            CopyDirectory(subDir.FullName, nextTargetSubDir.FullName);
-        }
-    }
 
     // Helper record for cache metadata
     private record TemplateCacheInfo

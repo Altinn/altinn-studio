@@ -1,5 +1,11 @@
 #nullable disable
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Extensions.FileSystemGlobbing;
+using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 
 namespace Altinn.Studio.Designer.Helpers
 {
@@ -37,6 +43,40 @@ namespace Altinn.Studio.Designer.Helpers
 
             File.SetAttributes(directoryToDeleteInfo.FullName, FileAttributes.Normal);
             Directory.Delete(directoryToDeleteInfo.FullName);
+        }
+
+        public static IEnumerable<string> ResolveFilesFromPattern(string baseDirectory, string pattern)
+        {
+            var matcher = new Matcher(StringComparison.OrdinalIgnoreCase);
+            matcher.AddInclude(pattern);
+
+            var result = matcher.Execute(
+                new DirectoryInfoWrapper(new DirectoryInfo(baseDirectory))
+            );
+
+            return result.Files.Select(f => Path.Combine(baseDirectory, f.Path));
+        }
+
+        public static async Task CopyDirectoryAsync(string sourceDir, string targetDir)
+        {
+            DirectoryInfo source = new(sourceDir);
+            DirectoryInfo target = new(targetDir);
+
+            foreach (FileInfo file in source.GetFiles())
+            {
+                File.SetAttributes(file.FullName, FileAttributes.Normal);
+
+                string targetPath = Path.Combine(target.FullName, file.Name);
+                await using FileStream sourceStream = file.OpenRead();
+                await using FileStream targetStream = File.Create(targetPath);
+                await sourceStream.CopyToAsync(targetStream);
+            }
+
+            foreach (DirectoryInfo subDir in source.GetDirectories())
+            {
+                DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subDir.Name);
+               await CopyDirectoryAsync(subDir.FullName, nextTargetSubDir.FullName);
+            }
         }
     }
 }
