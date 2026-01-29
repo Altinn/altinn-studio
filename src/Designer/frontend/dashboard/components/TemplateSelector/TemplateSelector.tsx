@@ -1,31 +1,33 @@
 import React from 'react';
 import { type CustomTemplate } from 'app-shared/types/CustomTemplate';
 import { StudioCard, StudioParagraph, StudioSelect } from '@studio/components';
+import { useAvailableTemplatesForOrgQuery } from '../../hooks/queries/useAvailableTemplatesForOrgQuery';
 import classes from './TemplateSelector.module.css';
 import { useTranslation } from 'react-i18next';
 
 export type TemplateSelectorProps = {
-  templates: CustomTemplate[];
   selectedTemplate?: CustomTemplate;
   onChange: (selected?: CustomTemplate) => void;
 };
 
 export const TemplateSelector = ({
-  templates,
   selectedTemplate,
   onChange,
 }: TemplateSelectorProps): React.JSX.Element => {
   const { t } = useTranslation();
 
+  // TODO: Allow for fetching templates based on selected org when org selector is changed
+  const { data: availableTemplates } = useAvailableTemplatesForOrgQuery();
+
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = Array.from(event.target.selectedOptions);
-    const selected = templates.find((template) =>
+    const selected = availableTemplates?.find((template) =>
       selectedOptions.some((option) => option.value === template.id),
     );
     onChange(selected);
   };
 
-  if (templates.length === 0) {
+  if (!availableTemplates || availableTemplates.length === 0) {
     return null;
   }
 
@@ -40,7 +42,7 @@ export const TemplateSelector = ({
         <StudioSelect.Option value=''>
           {t('dashboard.new_application_form.select_templates_default')}
         </StudioSelect.Option>
-        {templates.map((template) => (
+        {availableTemplates.map((template) => (
           <StudioSelect.Option key={template.id} value={template.id}>
             {template.name.nb ?? template.id}
           </StudioSelect.Option>

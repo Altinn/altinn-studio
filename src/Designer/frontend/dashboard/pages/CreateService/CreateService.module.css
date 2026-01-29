@@ -3,5 +3,5 @@
   display: flex;
   justify-content: center;
   padding-top: var(--fds-spacing-12);
-  max-height: calc(100vh - 80px);
+  padding-bottom: var(--fds-spacing-12);
 }
