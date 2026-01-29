@@ -21,6 +21,7 @@ import {
   mockSubject2,
   mockSubject3,
 } from '../../../../../test/mocks/policySubjectMocks';
+import type { PolicyError } from '@altinn/policy-editor/types';
 
 const sjofartPackage: PolicyAccessPackage = {
   id: 'urn:altinn:accesspackage:sjofart',
@@ -53,8 +54,8 @@ const accessPackageAreaGroupVanlig: PolicyAccessPackageAreaGroup = {
 };
 
 const skatteforhold: PolicyAccessPackage = {
-  id: 'urn:altinn:accesspackage:innbygger:skatteforhold-privatpersoner',
-  urn: 'urn:altinn:accesspackage:innbygger:skatteforhold-privatpersoner',
+  id: 'urn:altinn:accesspackage:innbygger-skatteforhold-privatpersoner',
+  urn: 'urn:altinn:accesspackage:innbygger-skatteforhold-privatpersoner',
   name: 'Skatteforhold for privatpersoner',
   description: '',
   isResourcePolicyAvailable: true,
@@ -68,7 +69,7 @@ const skattOgAvgift: PolicyAccessPackageArea = {
   packages: [skatteforhold],
 };
 const accessPackageAreaGroupPerson: PolicyAccessPackageAreaGroup = {
-  id: 'person',
+  id: '413f99ca-19ca-4124-8470-b0c1dba3d2ee',
   name: 'Person',
   description: 'Tilgangspakker for privatperson',
   type: 'Person',
@@ -180,6 +181,19 @@ describe('PolicySubjects', () => {
     expect(screen.queryByText(label)).not.toBeInTheDocument();
   });
 
+  it('should not show error even when last subject is removed', async () => {
+    const user = userEvent.setup();
+    renderPolicySubjects();
+
+    await user.click(screen.getByLabelText(mockSubject1.name));
+    await user.click(screen.getByLabelText(mockSubject3.name));
+    await user.click(screen.getByLabelText(privRoleSubject.name));
+
+    expect(
+      screen.queryByText(textMock('policy_editor.rule_card_subjects_error')),
+    ).not.toBeInTheDocument();
+  });
+
   it('should remove access package from selected list when selected access package checkbox is clicked', async () => {
     const user = userEvent.setup();
     renderPolicySubjects();
@@ -188,6 +202,21 @@ describe('PolicySubjects', () => {
     await user.click(selectedAccessPackageCheckbox);
 
     expect(screen.queryByText(lufttransportPackage.name)).not.toBeInTheDocument();
+  });
+
+  it('should not show error even when last access package is removed', async () => {
+    const user = userEvent.setup();
+    renderPolicySubjects();
+
+    await user.click(screen.getByLabelText(lufttransportPackage.name));
+    await user.click(screen.getByLabelText(skatteforhold.name));
+    await user.click(
+      screen.getByLabelText(textMock('policy_editor.access_package_unknown_heading')),
+    );
+
+    expect(
+      screen.queryByText(textMock('policy_editor.rule_card_subjects_error')),
+    ).not.toBeInTheDocument();
   });
 
   it('should show unknown access package if rule contains unknown access package', () => {
@@ -294,6 +323,12 @@ const ContextWrapper = () => {
     },
   ]);
 
+  const [policyError, setPolicyError] = useState<PolicyError>({
+    resourceError: false,
+    actionsError: false,
+    subjectsError: true,
+  });
+
   return (
     <PolicyEditorContext.Provider
       value={{
@@ -307,13 +342,10 @@ const ContextWrapper = () => {
       <PolicyRuleContext.Provider
         value={{
           ...mockPolicyRuleContextValue,
-          policyError: {
-            resourceError: false,
-            actionsError: false,
-            subjectsError: true,
-          },
+          policyError: policyError,
           showAllErrors: true,
           policyRule: { ...policyRules[0] },
+          setPolicyError: setPolicyError,
         }}
       >
         <PolicySubjects />

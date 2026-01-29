@@ -107,7 +107,7 @@ export const PolicySubjects = () => {
     };
   }, [policyRule.subject, personSubjects, altinnSubjects, otherSubjects, ccrSubjects]);
 
-  const handleRemoveSubject = (subjectUrn: string, subjectLegacyUrn?: string): void => {
+  const handleChangeSubject = (subjectUrn: string, subjectLegacyUrn?: string): void => {
     const updatedSubjects = hasSubject(policyRule.subject, subjectUrn, subjectLegacyUrn)
       ? policyRule.subject.filter(
           (s) =>
@@ -126,7 +126,7 @@ export const PolicySubjects = () => {
     savePolicy(updatedRules);
     setPolicyError({
       ...policyError,
-      subjectsError: policyRule.accessPackages.length === 0 && updatedSubjects.length === 0,
+      subjectsError: updatedSubjects.length === 0 && policyRule.accessPackages.length === 0,
     });
   };
 
@@ -146,6 +146,10 @@ export const PolicySubjects = () => {
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
+    setPolicyError({
+      ...policyError,
+      subjectsError: updateAccessPackages.length === 0 && policyRule.subject.length === 0,
+    });
   };
 
   const getChosenAccessPackages = (heading: string, list: PolicyAccessPackage[]) => {
@@ -164,7 +168,7 @@ export const PolicySubjects = () => {
   const getChosenRoles = (heading: string, list: PolicySubject[]) => {
     return {
       heading: heading,
-      handleRemove: handleRemoveSubject,
+      handleRemove: handleChangeSubject,
       items: list.map((role) => {
         return {
           urn: role.legacyUrn || role.urn,
@@ -198,12 +202,12 @@ export const PolicySubjects = () => {
         ccrSubjects={ccrSubjects}
         altinnSubjects={altinnSubjects}
         otherSubjects={otherSubjects}
-        handleSubjectChange={handleRemoveSubject}
+        handleSubjectChange={handleChangeSubject}
       />
       <PolicySubjectsPerson
         accessPackages={personPackageHierarchy}
         personSubjects={personSubjects}
-        handleSubjectChange={handleRemoveSubject}
+        handleSubjectChange={handleChangeSubject}
       />
       {showAllErrors && policyError.subjectsError && (
         <ErrorMessage size='small'>{t('policy_editor.rule_card_subjects_error')}</ErrorMessage>
