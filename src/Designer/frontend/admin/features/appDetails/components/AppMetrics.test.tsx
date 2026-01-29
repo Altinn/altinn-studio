@@ -311,7 +311,7 @@ describe('AppMetrics', () => {
           dataPoints: [],
         },
         {
-          name: 'altinn_app_lib_processes_completed',
+          name: 'altinn_app_lib_processes_ended',
           dataPoints: [],
         },
       ];
