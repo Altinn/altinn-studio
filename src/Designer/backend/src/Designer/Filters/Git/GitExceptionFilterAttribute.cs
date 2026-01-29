@@ -1,6 +1,6 @@
 ﻿using System.Net;
-using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using Altinn.Studio.Designer.Exceptions;
+using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
