@@ -7,6 +7,7 @@ import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOption
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { isOptionsIdReferenceId, hasStaticOptionList } from '../utils/optionsUtils';
 import classes from './ReferenceTab.module.css';
+import type { CodeListIdContextData } from '../types/CodeListIdContextData';
 
 export function ReferenceTab({
   component,
@@ -40,7 +41,8 @@ export function ReferenceTab({
     );
   }
 
-  const shouldDisplayAlert: boolean = hasStaticOptionList(optionListIds, component);
+  const contextData: CodeListIdContextData = { idsFromAppLibrary: optionListIds, orgName: org };
+  const shouldDisplayAlert: boolean = hasStaticOptionList(contextData, component);
 
   return (
     <div className={classes.container}>

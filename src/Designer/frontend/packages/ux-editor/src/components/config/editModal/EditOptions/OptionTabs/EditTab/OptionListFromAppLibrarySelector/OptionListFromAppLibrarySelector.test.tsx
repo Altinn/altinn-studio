@@ -1,5 +1,5 @@
 import React from 'react';
-import { OptionListSelector } from './OptionListSelector';
+import { OptionListFromAppLibrarySelector } from './OptionListFromAppLibrarySelector';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
@@ -19,7 +19,7 @@ const getOptionListIdsMock = jest
   .fn()
   .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock));
 
-describe('OptionListSelector', () => {
+describe('OptionListFromAppLibrarySelector', () => {
   it('should render the component', async () => {
     renderOptionListSelector();
     await waitForElementToBeRemoved(
@@ -110,7 +110,7 @@ function renderOptionListSelector({
   componentProps = {},
 } = {}) {
   return renderWithProviders(
-    <OptionListSelector
+    <OptionListFromAppLibrarySelector
       component={{
         ...mockComponent,
         ...componentProps,
