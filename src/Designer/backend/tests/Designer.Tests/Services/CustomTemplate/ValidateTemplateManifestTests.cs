@@ -13,6 +13,7 @@ public class ValidateCustomTemplateTest
     public async Task ValidateManifestJsonAsync_ValidManifest_ReturnsNoErrors()
     {
         var validManifest = @"{
+        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": { ""nb"": ""Test Template"" },
@@ -24,6 +25,21 @@ public class ValidateCustomTemplateTest
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(validManifest);
         Assert.Empty(errors);
     }
+
+    [Fact]
+    public async Task ValidateManifestJsonAsync_MissingSchemaVersion_ReturnsErrors()
+    {
+        var missingSchemaManifest = @"{
+        ""id"": ""template-12345"",
+        ""owner"": ""altinn"",
+        ""name"": { ""nb"": ""Test Template"" },
+        ""description"": { ""nb"": ""Dette er en norsk beskrivelse."", ""en"":""This is an English description""}
+        }";
+
+        var errors = await CustomTemplateService.ValidateManifestJsonAsync(missingSchemaManifest);
+        Assert.Contains(errors,e =>  e.Kind == ValidationErrorKind.PropertyRequired && e.Property.Equals("schemaVersion"));
+    }
+
     [Theory]
     [InlineData("/absolute/path")]
     [InlineData("../../other/app/templates")]
@@ -32,6 +48,7 @@ public class ValidateCustomTemplateTest
     public async Task ValidateManifestJsonAsync_InvalidRemoveEntries_ReturnsError(string remove)
     {
         var invalidRemoveManifest = $@"{{
+        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": {{ ""nb"": ""Test Template"" }},
@@ -48,6 +65,7 @@ public class ValidateCustomTemplateTest
     public async Task ValidateManifestJsonAsync_UnknownProperty_ReturnsError()
     {
         var unknownPropertyManifest = @"{
+        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": { ""nb"": ""Test Template"" },
@@ -72,6 +90,7 @@ public class ValidateCustomTemplateTest
     public async Task ValidateManifestJsonAsync_MissingNbInName_ReturnsError()
     {
         var missingNbName = @"{
+        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": { ""en"": ""Test Template"" },
@@ -88,6 +107,7 @@ public class ValidateCustomTemplateTest
     public async Task ValidateManifestJsonAsync_MissingNbDescription_ReturnsError()
     {
         var missingNbDescription = @"{
+        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": { ""nb"": ""Test Template"" },
@@ -109,6 +129,7 @@ public class ValidateCustomTemplateTest
     public async Task ValidateManifestJsonAsync_InvalidPackageReferenceProject_ReturnsError(string project)
     {
         var invalidProjectManifest = $@"{{
+        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": {{ ""nb"": ""Test Template"" }},
@@ -133,6 +154,7 @@ public class ValidateCustomTemplateTest
     public async Task ValidateManifestJsonAsync_InvalidPackageReferenceInclude_ReturnsError(string include)
     {
         var invalidIncludeManifest = $@"{{
+        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": {{ ""nb"": ""Test Template"" }},
@@ -156,6 +178,7 @@ public class ValidateCustomTemplateTest
     public async Task ValidateManifestJsonAsync_InvalidPackageReferenceVersion_ReturnsError(string version)
     {
         var invalidVersionManifest = $@"{{
+        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": {{ ""nb"": ""Test Template"" }},
@@ -186,6 +209,7 @@ public class ValidateCustomTemplateTest
         properties.Remove(missingProperty);
 
         var manifest = $@"{{
+        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": {{ ""nb"": ""Test Template"" }},
@@ -203,6 +227,7 @@ public class ValidateCustomTemplateTest
     public async Task ValidateManifestJsonAsync_PackageReferenceWithUnknownProperty_ReturnsError()
     {
         var unknownPropertyManifest = @"{
+        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": { ""nb"": ""Test Template"" },
@@ -229,6 +254,7 @@ public class ValidateCustomTemplateTest
     public async Task ValidateManifestJsonAsync_ValidPackageReferenceVersions_ReturnsNoErrors(string version)
     {
         var validVersionManifest = $@"{{
+        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": {{ ""nb"": ""Test Template"" }},
