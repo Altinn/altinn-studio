@@ -3,6 +3,7 @@
   flex-direction: column;
   gap: 2rem;
   max-width: 600px;
+  margin-bottom: var(--fds-spacing-8);
 }
 
 .actionContainer {

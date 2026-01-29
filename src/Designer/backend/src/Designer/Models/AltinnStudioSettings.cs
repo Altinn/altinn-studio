@@ -15,13 +15,20 @@ public class AltinnStudioSettings
     /// </summary>
     [JsonPropertyName("repoType")]
     public AltinnRepositoryType RepoType { get; set; }
+
     [JsonPropertyName("imports")]
     public ImportedResources Imports { get; set; }
+
     /// <summary>
     /// Toggle nullable for reference types.
     /// </summary>
     [JsonPropertyName("useNullableReferenceTypes")]
     public bool UseNullableReferenceTypes { get; set; }
+
+    /// <summary>
+    /// The list of custom templates used to create this application.
+    /// </summary>
+    public List<CustomTemplateReference> Templates { get; set; } = [];
 }
 
 public class ImportedResources

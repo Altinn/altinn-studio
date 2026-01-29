@@ -76,6 +76,7 @@ import {
   canUseFeaturePath,
   orgLibraryPath,
   publishedResourcesPath,
+  customTemplatesPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -123,6 +124,7 @@ import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { FeatureName } from 'app-shared/enums/CanUseFeature';
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
+import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -132,6 +134,7 @@ export const getAppMetadataModelIds = (org: string, app: string, onlyUnReference
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
 export const getAvailableResourcesFromOrg = (owner: string, contentType?: LibraryContentType) => get<ExternalResource[]>(availableResourcesInOrgLibraryPath(owner, contentType));
+export const getAvailableTemplatesForOrg = (org: string) => get<CustomTemplateList>(customTemplatesPath(org));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getDataModel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(dataModelPath(owner, app, modelPath));
 export const getDataModelMetadata = (owner: string, app: string, layoutSetName: string, dataModelName: string) => get<DataModelMetadataResponse>(dataModelMetadataPath(owner, app, layoutSetName, dataModelName));
