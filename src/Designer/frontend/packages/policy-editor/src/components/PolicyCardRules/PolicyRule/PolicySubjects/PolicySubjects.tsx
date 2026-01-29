@@ -148,7 +148,7 @@ export const PolicySubjects = () => {
     savePolicy(updatedRules);
   };
 
-  const getChosenAccessPackage = (heading: string, list: PolicyAccessPackage[]) => {
+  const getChosenAccessPackages = (heading: string, list: PolicyAccessPackage[]) => {
     return {
       heading: heading,
       handleRemove: handleRemoveAccessPackage,
@@ -175,12 +175,12 @@ export const PolicySubjects = () => {
   };
 
   const chosenPersonGroups = [
-    getChosenAccessPackage(t('policy_editor.access_package_header'), chosenPrivAccessPackages),
+    getChosenAccessPackages(t('policy_editor.access_package_header'), chosenPrivAccessPackages),
     getChosenRoles(t('policy_editor.rule_card_subjects_other_roles'), chosenPersonRoles),
   ];
 
   const chosenOrgGroups = [
-    getChosenAccessPackage(t('policy_editor.access_package_header'), chosenOrgAccessPackages),
+    getChosenAccessPackages(t('policy_editor.access_package_header'), chosenOrgAccessPackages),
     getChosenRoles(t('policy_editor.rule_card_subjects_other_altinn_roles'), chosenAltinnRoles),
     getChosenRoles(t('policy_editor.rule_card_subjects_ccr_roles'), chosenCcrRoles),
   ];

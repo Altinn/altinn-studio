@@ -44,6 +44,7 @@ export const SubjectListItem = ({
         />
       )}
       <div
+        title={isSelectedListItem ? title : null}
         className={cn(classes.subjectTitle, {
           [classes.selectedSubjectTitle]: !!isSelectedListItem,
         })}
