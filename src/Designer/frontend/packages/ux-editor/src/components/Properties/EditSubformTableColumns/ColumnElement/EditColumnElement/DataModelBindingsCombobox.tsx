@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioSuggestion } from '@studio/components';
+import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { IDataModelBindingsKeyValueExplicit } from '../../../../../types/global';
 
@@ -26,9 +26,9 @@ export const DataModelBindingsCombobox = ({
     onDataModelBindingChange(value);
   };
 
-  const selectedItems = dataModelBindingKey
-    ? [{ value: dataModelBindingKey, label: dataModelBindingKey }]
-    : [];
+  const selectedItems: StudioSuggestionItem = dataModelBindingKey
+    ? { value: dataModelBindingKey, label: dataModelBindingKey }
+    : undefined;
 
   const getOptionLabel = (key: string) => {
     return key === 'simpleBinding'
@@ -36,8 +36,8 @@ export const DataModelBindingsCombobox = ({
       : t(`ux_editor.modal_properties_data_model_label.${key}`);
   };
 
-  const handleSelectedChange = (items: { value: string }[]) => {
-    onValueChange(items[0]?.value || '');
+  const handleSelectedChange = (item: StudioSuggestionItem | null) => {
+    onValueChange(item?.value || '');
   };
 
   return (

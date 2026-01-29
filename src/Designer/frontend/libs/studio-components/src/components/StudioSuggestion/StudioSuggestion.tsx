@@ -46,6 +46,7 @@ function StudioSuggestion(
       )}
       <Suggestion {...rest}>
         <Suggestion.Input
+          aria-label={label}
           id={inputId}
           ref={ref}
           required={required}

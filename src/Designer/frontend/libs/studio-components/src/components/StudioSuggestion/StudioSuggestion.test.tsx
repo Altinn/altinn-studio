@@ -4,7 +4,6 @@ import { StudioSuggestion } from '.';
 import { type StudioSuggestionOptionProps } from './StudioSuggestionOption/StudioSuggestionOption';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
-import type { EXPERIMENTAL_Suggestion as Suggestion } from '@digdir/designsystemet-react';
 import type { StudioSuggestionProps } from './StudioSuggestion';
 
 describe('StudioSuggestion', () => {
@@ -37,7 +36,7 @@ describe('StudioSuggestion', () => {
   });
 
   it('Forwards the ref to the button element if given', () => {
-    testRefForwarding<React.ElementRef<typeof Suggestion.Input>>(
+    testRefForwarding<React.ElementRef<typeof StudioSuggestion>>(
       (ref) => renderStudioSuggestion({}, ref),
       () => getInput(),
     );
@@ -71,10 +70,11 @@ function getInput(label: string = defaultProps.label): HTMLInputElement {
 
 function renderStudioSuggestion(
   { suggestionProps, options = defaultOptions }: RenderStudioSuggestionProps = {},
-  ref?: ForwardedRef<React.ElementRef<typeof Suggestion.Input>>,
+  ref?: ForwardedRef<React.ElementRef<typeof StudioSuggestion>>,
 ): RenderResult {
+  const props = { ...defaultProps, ...suggestionProps } as StudioSuggestionProps;
   return render(
-    <StudioSuggestion {...defaultProps} {...suggestionProps} ref={ref}>
+    <StudioSuggestion {...props} ref={ref}>
       {options.map((option) => (
         <StudioSuggestion.Option key={option.label} value={option.value} label={option.label}>
           {option.label}

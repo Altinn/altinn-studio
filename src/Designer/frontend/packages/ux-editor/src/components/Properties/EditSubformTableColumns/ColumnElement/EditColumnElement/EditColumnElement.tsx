@@ -9,6 +9,7 @@ import {
   StudioHeading,
   StudioDeleteButton,
   StudioDivider,
+  type StudioSuggestionItem,
 } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
@@ -46,8 +47,7 @@ export const EditColumnElement = ({
 
   const [selectedComponentId, setSelectedComponentId] = useState<string>();
 
-  const selectComponent = (values: string[]) => {
-    const componentId = values[0];
+  const selectComponent = (componentId: string) => {
     setSelectedComponentId(componentId);
 
     const selectedComponent = availableComponents.find((comp) => comp.id === componentId);
@@ -111,12 +111,12 @@ export const EditColumnElement = ({
       )}
       <div className={classes.buttons}>
         <StudioActionCloseButton
-          data-size='2xs'
+          data-size='sm'
           onClick={onClose}
           title={t('general.save')}
           disabled={isSaveButtonDisabled}
         />
-        <StudioDeleteButton data-size='2xs' title={t('general.delete')} onDelete={onDeleteColumn} />
+        <StudioDeleteButton data-size='sm' title={t('general.delete')} onDelete={onDeleteColumn} />
       </div>
     </StudioCard>
   );
@@ -139,7 +139,7 @@ const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps)
 
 export type EditColumnElementComponentSelectProps = {
   components: FormItem[];
-  onSelectComponent: (values: string[]) => void;
+  onSelectComponent: (value: string) => void;
   selectedId?: string;
 };
 export const EditColumnElementComponentSelect = ({
@@ -149,12 +149,13 @@ export const EditColumnElementComponentSelect = ({
 }: EditColumnElementComponentSelectProps) => {
   const { t } = useTranslation();
 
-  const handleSelectedChange = (items: { value: string }[]) => {
-    const selectedValues = items.map((item) => item.value);
-    onSelectComponent(selectedValues);
+  const handleSelectedChange = (item: StudioSuggestionItem) => {
+    onSelectComponent(item.value);
   };
 
-  const selectedItems = selectedId ? [{ value: selectedId, label: selectedId }] : [];
+  const selectedItem: StudioSuggestionItem = selectedId
+    ? { value: selectedId, label: selectedId }
+    : undefined;
 
   return (
     <StudioSuggestion
@@ -166,7 +167,7 @@ export const EditColumnElementComponentSelect = ({
         'ux_editor.properties_panel.subform_table_columns.no_components_available_message',
       )}
       filter={() => true}
-      selected={selectedItems}
+      selected={selectedItem}
       onSelectedChange={handleSelectedChange}
       id='columncomponentselect'
     >

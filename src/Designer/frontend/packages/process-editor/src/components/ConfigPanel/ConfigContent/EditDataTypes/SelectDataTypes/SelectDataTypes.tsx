@@ -1,5 +1,10 @@
 import React from 'react';
-import { StudioSuggestion, StudioDeleteButton, StudioButton } from '@studio/components';
+import {
+  StudioSuggestion,
+  StudioDeleteButton,
+  StudioButton,
+  type StudioSuggestionItem,
+} from '@studio/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
@@ -24,8 +29,7 @@ export const SelectDataTypes = ({
   const { t } = useTranslation();
   const { mutateDataTypes } = useBpmnApiContext();
 
-  const handleChangeDataModel = (newDataModelIds?: string[]) => {
-    const newDataModelId = newDataModelIds ? newDataModelIds[0] : undefined;
+  const handleChangeDataModel = (newDataModelId?: string) => {
     if (newDataModelId !== existingDataType) {
       const dataTypesChange: DataTypesChange = {
         newDataTypes: [newDataModelId],
@@ -36,9 +40,8 @@ export const SelectDataTypes = ({
     onClose();
   };
 
-  const handleSelectedChange = (items: { value: string }[]) => {
-    const selectedValues = items.map((item) => item.value);
-    handleChangeDataModel(selectedValues);
+  const handleSelectedChange = (item: StudioSuggestionItem) => {
+    handleChangeDataModel(item.value);
   };
 
   const dataModelOptionsToDisplay: string[] = existingDataType
@@ -51,12 +54,13 @@ export const SelectDataTypes = ({
 
   const selectedItems =
     existingDataType && dataModelOptionsToDisplay.includes(existingDataType)
-      ? [{ value: existingDataType, label: existingDataType }]
-      : [];
+      ? { value: existingDataType, label: existingDataType }
+      : undefined;
 
   return (
     <div className={classes.dataTypeSelectAndButtons}>
       <StudioSuggestion
+        multiple={false}
         label={t('process_editor.configuration_panel_set_data_model_label')}
         description={descriptionText}
         selected={selectedItems}

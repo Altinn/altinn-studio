@@ -130,7 +130,7 @@ describe('StudioTextResourceInput', () => {
     renderTextResourceInput();
 
     await switchToSearchMode(user);
-    const chipButton = screen.getByRole('button', { name: /Press to remove/i });
+    const chipButton = screen.getByRole('option', { name: /Press to remove/i });
     await user.click(chipButton);
     await waitFor(() => expect(onChangeCurrentId).toHaveBeenCalled());
 
@@ -217,5 +217,5 @@ function switchToEditMode(user: UserEvent): Promise<void> {
 }
 
 function getTextResourcePicker(): HTMLInputElement {
-  return screen.getByRole('combobox', { name: texts.textResourcePickerLabel });
+  return screen.getByRole('combobox', { name: new RegExp(texts.textResourcePickerLabel) });
 }

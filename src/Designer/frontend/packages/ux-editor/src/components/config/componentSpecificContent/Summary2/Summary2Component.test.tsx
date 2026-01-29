@@ -94,7 +94,7 @@ describe('Summary2ComponentTargetSelector', () => {
     expect(select).toBeInTheDocument();
 
     await waitFor(() => {
-      const selectedChip = screen.getByRole('button', {
+      const selectedChip = screen.getByRole('option', {
         name: (name) => name.includes(component1IdMock),
       });
       expect(selectedChip).toBeInTheDocument();
@@ -109,7 +109,7 @@ describe('Summary2ComponentTargetSelector', () => {
     const select = await pageTargetSelect();
     expect(select).toBeInTheDocument();
     await waitFor(() => {
-      const selectedChip = screen.getByRole('button', {
+      const selectedChip = screen.getByRole('option', {
         name: (name) => name.includes(layout1NameMock),
       });
       expect(selectedChip).toBeInTheDocument();

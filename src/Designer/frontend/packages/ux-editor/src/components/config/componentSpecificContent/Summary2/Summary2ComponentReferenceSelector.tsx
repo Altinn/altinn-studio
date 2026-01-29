@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioSuggestion } from '@studio/components';
+import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './Summary2ComponentReferenceSelector.module.css';
 
@@ -23,12 +23,13 @@ export const Summary2ComponentReferenceSelector = ({
   const requiredMessage = !value && t('ux_editor.component_properties.enum_Required');
   const errorMessage = invalidMessage || requiredMessage || false;
 
-  const selectedItems = value ? [{ value, label: value }] : [];
+  const selectedItems: StudioSuggestionItem = value ? { value, label: value } : undefined;
 
-  const handleSelectedChange = (items: { value: string }[]) => onValueChange(items[0]?.value || '');
+  const handleSelectedChange = (item: StudioSuggestionItem) => onValueChange(item.value || '');
 
   return (
     <StudioSuggestion
+      multiple={false}
       label={label}
       emptyText={t('ux_editor.component_properties.target_empty')}
       selected={selectedItems}
