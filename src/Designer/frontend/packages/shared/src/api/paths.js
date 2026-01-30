@@ -42,6 +42,8 @@ export const dataModelAddXsdFromRepoPath = (org, app, filePath) => `${apiBasePat
 
 // Feedback form
 export const submitFeedbackPath = (org, app) => `${apiBasePath}/${org}/${app}/feedbackform/submit`; // Post
+export const submitFeedbackOrgPath = (org) => `${apiBasePath}/${org}/feedbackform/submit`; // Post
+export const submitFeedbackPublishedAppPath = (org, environment, app) => `${apiBasePath}/${org}/${environment}/${app}/feedbackform/submit`; // Post
 
 // FormEditor
 export const ruleHandlerPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/rule-handler?${s({ layoutSetName })}`; // Get, Post

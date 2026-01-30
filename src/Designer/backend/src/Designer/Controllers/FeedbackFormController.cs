@@ -23,7 +23,7 @@ namespace Altinn.Studio.Designer.Controllers;
 [Authorize]
 [ApiController]
 [ValidateAntiForgeryToken]
-[Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/feedbackform")]
+[Route("designer/api")]
 public class FeedbackFormController(ISlackClient slackClient, GeneralSettings generalSettings, FeedbackFormSettings feedbackFormSettings) : ControllerBase
 {
     private readonly ISlackClient _slackClient = slackClient;
@@ -38,7 +38,7 @@ public class FeedbackFormController(ISlackClient slackClient, GeneralSettings ge
     /// Endpoint for submitting feedback
     /// </summary>
     [HttpPost]
-    [Route("submit")]
+    [Route("{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/feedbackform/submit")]
     public async Task<IActionResult> SubmitFeedback([FromRoute] string org, [FromRoute] string app, [FromBody] FeedbackForm feedback, CancellationToken cancellationToken)
     {
         if (feedback == null)
@@ -54,6 +54,86 @@ public class FeedbackFormController(ISlackClient slackClient, GeneralSettings ge
         if (!feedback.Answers.ContainsKey("org"))
         {
             feedback.Answers.Add("org", org);
+        }
+
+        if (!feedback.Answers.ContainsKey("app"))
+        {
+            feedback.Answers.Add("app", app);
+        }
+
+        if (!feedback.Answers.ContainsKey("env"))
+        {
+            feedback.Answers.Add("env", _generalSettings.HostName);
+        }
+
+        await _slackClient.SendMessageAsync(feedbackFormSettings.SlackWebhookUrl, new SlackMessage
+        {
+            Text = JsonSerializer.Serialize(feedback.Answers, s_jsonSerializerOptions),
+        }, cancellationToken);
+
+        return Ok();
+    }
+
+    /// <summary>
+    /// Endpoint for submitting feedback
+    /// </summary>
+    [HttpPost]
+    [Route("{org}/feedbackform/submit")]
+    public async Task<IActionResult> SubmitFeedbackOrg([FromRoute] string org, [FromBody] FeedbackForm feedback, CancellationToken cancellationToken)
+    {
+        if (feedback == null)
+        {
+            return BadRequest("Feedback object is null");
+        }
+
+        if (feedback.Answers == null || feedback.Answers.Count == 0)
+        {
+            return BadRequest("Feedback answers are null or empty");
+        }
+
+        if (!feedback.Answers.ContainsKey("org"))
+        {
+            feedback.Answers.Add("org", org);
+        }
+
+        if (!feedback.Answers.ContainsKey("env"))
+        {
+            feedback.Answers.Add("env", _generalSettings.HostName);
+        }
+
+        await _slackClient.SendMessageAsync(feedbackFormSettings.SlackWebhookUrl, new SlackMessage
+        {
+            Text = JsonSerializer.Serialize(feedback.Answers, s_jsonSerializerOptions),
+        }, cancellationToken);
+
+        return Ok();
+    }
+
+    /// <summary>
+    /// Endpoint for submitting feedback
+    /// </summary>
+    [HttpPost]
+    [Route("{org}/{altinnEnvironment}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/feedbackform/submit")]
+    public async Task<IActionResult> SubmitFeedbackPublishedApp([FromRoute] string org, [FromRoute] string altinnEnvironment, [FromRoute] string app, [FromBody] FeedbackForm feedback, CancellationToken cancellationToken)
+    {
+        if (feedback == null)
+        {
+            return BadRequest("Feedback object is null");
+        }
+
+        if (feedback.Answers == null || feedback.Answers.Count == 0)
+        {
+            return BadRequest("Feedback answers are null or empty");
+        }
+
+        if (!feedback.Answers.ContainsKey("org"))
+        {
+            feedback.Answers.Add("org", org);
+        }
+
+        if (!feedback.Answers.ContainsKey("altinnEnvironment"))
+        {
+            feedback.Answers.Add("altinnEnvironment", altinnEnvironment);
         }
 
         if (!feedback.Answers.ContainsKey("app"))

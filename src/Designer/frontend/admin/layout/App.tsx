@@ -9,6 +9,7 @@ import en from '../../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { appContentWrapperId } from '@studio/testing/testids';
 import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
+import { FeedbackForm } from 'admin/components/FeedbackForm/FeedbackForm';
 
 i18next.use(initReactI18next).init({
   ns: 'translation',
@@ -40,6 +41,7 @@ export function App() {
           <Outlet />
         </WebSocketSyncWrapper>
       </div>
+      <FeedbackForm />
       <ScrollRestoration />
     </div>
   );
