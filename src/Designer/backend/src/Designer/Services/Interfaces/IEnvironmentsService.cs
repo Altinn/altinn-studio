@@ -21,4 +21,11 @@ public interface IEnvironmentsService
     Task<Uri> GetAppClusterUri(string org, string envName);
 
     Task<string> GetHostNameByEnvName(string envName);
+
+    /// <summary>
+    /// Gets the organization model for a given organization identifier
+    /// </summary>
+    /// <param name="org">Organization identifier</param>
+    /// <returns>Organization model, or null if not found</returns>
+    Task<AltinnOrgModel> GetAltinnOrg(string org);
 }
