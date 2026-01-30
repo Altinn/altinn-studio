@@ -31,13 +31,21 @@ function useTextResourcesQuery() {
   const query = useQuery<TextResourceMap, HttpClientError>({
     queryKey: getTextResourceQueryKey(selectedLanguage),
     queryFn: async () => {
+      if (!textResourcesFromWindow) {
+        window.logWarnOnce(
+          'Could not find any text resources, even on window. Does the app include any text resource files?',
+        );
+        // Backend couldn't find any text resources, to no point in fetching anything.
+        return EMPTY_TEXT_RESOURCES;
+      }
       const textResourceResult =
-        textResourcesFromWindow && textResourcesFromWindow.language === selectedLanguage
+        textResourcesFromWindow.language === selectedLanguage
           ? textResourcesFromWindow
           : await fetchTextResources(selectedLanguage);
 
       return toTextResourceMap(textResourceResult);
     },
+    placeholderData: (placeholderData) => placeholderData ?? EMPTY_TEXT_RESOURCES,
   });
 
   useEffect(() => {
@@ -49,11 +57,11 @@ function useTextResourcesQuery() {
 
 export function useTextResources(): TextResourceMap {
   const query = useTextResourcesQuery();
-  if (!query.data && query.isFetched) {
-    window.logWarnOnce(
-      'Could not find any text resources, even on window. Does the app include any text resource files?',
+  if (!query.data) {
+    throw new Error(
+      'Text resources query did not return data. This should not happen. Something is possibly wrong with the query.',
     );
   }
 
-  return query.data ?? EMPTY_TEXT_RESOURCES;
+  return query.data;
 }

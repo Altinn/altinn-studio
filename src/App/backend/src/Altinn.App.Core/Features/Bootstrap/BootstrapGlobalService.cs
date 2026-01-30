@@ -100,8 +100,19 @@ internal sealed class BootstrapGlobalService(
 
     private async Task<TextResource?> GetTextResources(string org, string app, string? languageFromUrl)
     {
+        string[] availableLanguages =
+        [
+            .. (await _applicationLanguage.GetApplicationLanguages()).Select(it => it.Language),
+        ];
+        if (availableLanguages.IsNullOrEmpty())
+        {
+            _logger.LogDebug("No text resources configured for any language on app.");
+            return null;
+        }
+
         if (
             languageFromUrl is not null
+            && availableLanguages.Contains(languageFromUrl)
             && await _appResources.GetTexts(org, app, languageFromUrl) is TextResource textResourceFromUrl
         )
         {
@@ -112,6 +123,7 @@ internal sealed class BootstrapGlobalService(
         var languageFromCookie = GetLanguageFromCookie(org, app);
         if (
             languageFromCookie is not null
+            && availableLanguages.Contains(languageFromCookie)
             && await _appResources.GetTexts(org, app, languageFromCookie) is TextResource textResourceFromCookie
         )
         {
@@ -120,14 +132,35 @@ internal sealed class BootstrapGlobalService(
         }
 
         string userLanguage = await _authenticationContext.Current.GetLanguage();
-        if (await _appResources.GetTexts(org, app, userLanguage) is TextResource textResourceFromUserLanguage)
+        if (
+            availableLanguages.Contains(userLanguage)
+            && await _appResources.GetTexts(org, app, userLanguage) is TextResource textResourceFromUserLanguage
+        )
         {
             _logger.LogDebug("Found text resources with user preferred language {Language}.", userLanguage);
             return textResourceFromUserLanguage;
         }
 
         _logger.LogDebug("Falling back to default language '{DefaultLanguage}' for text resources.", DefaultLanguage);
-        return await _appResources.GetTexts(org, app, DefaultLanguage);
+        if (await _appResources.GetTexts(org, app, DefaultLanguage) is TextResource textResourceFromDefaultLanguage)
+        {
+            return textResourceFromDefaultLanguage;
+        }
+
+        _logger.LogDebug(
+            "Could not find any text resources for the default language. Checking all other available languages"
+        );
+        foreach (string availableLanguage in availableLanguages)
+        {
+            TextResource? availableLangTextResource = await _appResources.GetTexts(org, app, availableLanguage);
+            if (availableLangTextResource is not null)
+            {
+                _logger.LogDebug("Found text resource with language {AvailableLanguage}", availableLanguage);
+                return availableLangTextResource;
+            }
+        }
+
+        return null;
     }
 
     private string? GetLanguageFromCookie(string org, string app)
