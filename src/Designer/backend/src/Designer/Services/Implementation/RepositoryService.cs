@@ -394,7 +394,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (File.Exists(contentPath))
             {
-                FileSystemObject f = GetFileSystemObjectForFile(contentPath);
+                // When a specific file path is requested, include the file content
+                FileSystemObject f = GetFileSystemObjectForFile(contentPath, includeContent: true);
                 contents.Add(f);
             }
             else if (Directory.Exists(contentPath))
@@ -584,7 +585,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return string.Format("{0}_resource.json", identifier);
         }
 
-        private FileSystemObject GetFileSystemObjectForFile(string path)
+        private FileSystemObject GetFileSystemObjectForFile(string path, bool includeContent = false)
         {
             FileInfo fi = new(path);
             string encoding;
@@ -594,12 +595,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 encoding = sr.CurrentEncoding.EncodingName;
             }
 
+            string content = null;
+            if (includeContent)
+            {
+                content = File.ReadAllText(path, Encoding.UTF8);
+            }
+
             FileSystemObject fso = new()
             {
                 Type = FileSystemObjectType.File.ToString(),
                 Name = fi.Name,
                 Encoding = encoding,
                 Path = fi.FullName,
+                Content = content,
             };
 
             return fso;

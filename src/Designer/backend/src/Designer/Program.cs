@@ -20,6 +20,7 @@ using Altinn.Studio.Designer.Infrastructure.Maskinporten;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Extensions;
 using Altinn.Studio.Designer.Scheduling;
+using Altinn.Studio.Designer.Services.Altinity;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;
@@ -187,6 +188,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureMaskinportenIntegrationSettings(configuration.GetSection("MaskinportenClientSettings"));
 
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
+    services.Configure<AltinitySettings>(configuration.GetSection("AltinitySettings"));
+    services.AddSingleton<IAltinityWebSocketService, AltinityWebSocketService>();
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));
     services.AddHttpClient<IResourceRegistry, ResourceRegistryService>();
