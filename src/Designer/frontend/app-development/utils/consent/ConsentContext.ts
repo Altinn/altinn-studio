@@ -11,10 +11,10 @@ export type ConsentContextValue = {
 
 const NullableConsentContext = createContext<ConsentContextValue | null>(null);
 
-export function useConsentContext(): ConsentContextValue {
+export function useConsent(): ConsentContextValue {
   const context = useContext<ConsentContextValue | null>(NullableConsentContext);
   if (context === null) {
-    throw new Error('useConsentContext must be used within a ConsentProvider');
+    throw new Error('useConsent must be used within a ConsentProvider');
   }
   return context;
 }

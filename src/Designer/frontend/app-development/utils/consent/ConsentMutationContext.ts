@@ -10,10 +10,10 @@ export type ConsentMutationContextValue = {
 
 const NullableConsentMutationContext = createContext<ConsentMutationContextValue | null>(null);
 
-export function useConsentMutationContext(): ConsentMutationContextValue {
+export function useConsentMutation(): ConsentMutationContextValue {
   const context = useContext<ConsentMutationContextValue | null>(NullableConsentMutationContext);
   if (context === null) {
-    throw new Error('useConsentMutationContext must be used within a ConsentProvider');
+    throw new Error('useConsentMutation must be used within a ConsentProvider');
   }
   return context;
 }
