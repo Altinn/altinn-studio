@@ -1,4 +1,10 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .icon {
-  font-size: var(--fds-sizing-14);
-  color: var(--fds-semantic-surface-success-default);
+  font-size: var(--ds-size-14);
+  color: var(--ds-color-success-base-default);
 }

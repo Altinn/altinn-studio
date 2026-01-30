@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StudioPageHeader, StudioPopover, useMediaQuery } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/components-legacy';
+import { StudioPopover } from '@studio/components';
 import { DownloadIcon } from '@studio/icons';
 import classes from './FetchChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
@@ -60,22 +61,35 @@ export const FetchChangesPopover = (): React.ReactElement => {
   };
 
   return (
-    <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
-      <StudioPageHeader.PopoverTrigger
+    <StudioPopover.TriggerContext>
+      {/* Used StudioPopover insted of StudioPageHeader because StudioPageHeader has not replaced with v1 yet,
+       and the component maybe needs some style before migration to v1.
+       */}
+      <StudioPopover.Trigger
+        className={classes.fetchButton}
         onClick={handleOpenPopover}
         disabled={hasMergeConflict}
         icon={<DownloadIcon />}
-        color='light'
-        variant='regular'
+        variant='tertiary'
         aria-label={t('sync_header.fetch_changes')}
       >
         {shouldDisplayText && t('sync_header.fetch_changes')}
         {displayNotification && <Notification numChanges={repoStatus?.behindBy ?? 0} />}
-      </StudioPageHeader.PopoverTrigger>
-      <StudioPopover.Content data-color-scheme='light' className={classes.popoverContent}>
-        {isLoading && <SyncLoadingIndicator heading={t('sync_header.fetching_latest_version')} />}
-        {!isLoading && <GiteaFetchCompleted heading={t('sync_header.service_updated_to_latest')} />}
-      </StudioPopover.Content>
-    </StudioPopover>
+      </StudioPopover.Trigger>
+      {popoverOpen && (
+        <StudioPopover
+          open={popoverOpen}
+          onClose={handleClosePopover}
+          placement='bottom-end'
+          data-color-scheme='light'
+          className={classes.popoverContent}
+        >
+          {isLoading && <SyncLoadingIndicator heading={t('sync_header.fetching_latest_version')} />}
+          {!isLoading && (
+            <GiteaFetchCompleted heading={t('sync_header.service_updated_to_latest')} />
+          )}
+        </StudioPopover>
+      )}
+    </StudioPopover.TriggerContext>
   );
 };

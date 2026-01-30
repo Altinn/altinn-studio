@@ -1,7 +1,6 @@
 import React from 'react';
-import { Heading } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner, StudioHeading } from '@studio/components';
 
 export type SyncLoadingIndicatorProps = {
   heading: string;
@@ -14,10 +13,10 @@ export const SyncLoadingIndicator = ({
 
   return (
     <>
-      <Heading size='xxsmall' spacing level={3}>
+      <StudioHeading spacing data-size='2xs' level={3}>
         {heading}
-      </Heading>
-      <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('sync_modal.loading')} />
+      </StudioHeading>
+      <StudioSpinner aria-hidden spinnerTitle={t('sync_modal.loading')} />
     </>
   );
 };

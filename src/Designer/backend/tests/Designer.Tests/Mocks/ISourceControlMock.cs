@@ -158,5 +158,20 @@ namespace Designer.Tests.Mocks
         {
             return Task.FromResult(new Branch { Name = branchName });
         }
+
+        public CurrentBranchInfo GetCurrentBranch(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public RepoStatus DiscardLocalChanges(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
