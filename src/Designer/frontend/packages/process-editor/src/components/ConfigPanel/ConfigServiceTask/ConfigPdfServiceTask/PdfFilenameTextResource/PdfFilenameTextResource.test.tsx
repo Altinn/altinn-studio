@@ -2,7 +2,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PdfFilenameTextResource } from './PdfFilenameTextResource';
-import { createPdfBpmnDetails, renderWithProviders } from './testUtils';
+import { createPdfBpmnDetails, renderWithProviders } from '../testUtils';
 
 jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: () => ({ org: 'test-org', app: 'test-app' }),

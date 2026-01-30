@@ -1,11 +1,11 @@
 import React, { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Combobox } from '@digdir/designsystemet-react';
-import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
-import { useUpdatePdfConfigTaskIds } from '../../../../hooks/useUpdatePdfConfigTaskIds';
-import { usePdfConfig } from './usePdfConfig';
-import { filterCurrentTaskIds, getAvailableTasks } from './utils';
-import classes from './ConfigPdfServiceTask.module.css';
+import { StudioModeler } from '../../../../../utils/bpmnModeler/StudioModeler';
+import { useUpdatePdfConfigTaskIds } from '../../../../../hooks/useUpdatePdfConfigTaskIds';
+import { usePdfConfig } from '../usePdfConfig';
+import { filterCurrentTaskIds, getAvailableTasks } from '../utils';
+import classes from './PdfAutomaticTaskSelection.module.css';
 
 export const PdfAutomaticTaskSelection = (): React.ReactElement => {
   const { t } = useTranslation();

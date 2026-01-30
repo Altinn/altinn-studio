@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { Combobox } from '@digdir/designsystemet-react';
 import { StudioButton, StudioCard, StudioTextfield } from '@studio/components';
 import { PencilIcon } from '@studio/icons';
-import { useBpmnContext } from '../../../../contexts/BpmnContext';
-import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
+import { useBpmnContext } from '../../../../../contexts/BpmnContext';
+import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
-import { useCurrentLayoutSet } from './useCurrentLayoutSet';
-import classes from './ConfigPdfServiceTask.module.css';
+import { useCurrentLayoutSet } from '../useCurrentLayoutSet';
+import classes from './PdfLayoutBasedSection.module.css';
 
 export const PdfLayoutBasedSection = (): React.ReactElement => {
   const { t } = useTranslation();

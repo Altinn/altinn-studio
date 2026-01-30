@@ -26,32 +26,6 @@ ol > li::marker {
   font-weight: var(--ds-font-weight-medium);
 }
 
-.taskIdSelectContainer {
-  display: grid;
-  gap: var(--fds-spacing-2);
-}
-
-.taskIdSelectAndButtons {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: var(--fds-spacing-4);
-}
-
-.taskIdSelect {
-  flex: 1;
-}
-
-.createLayoutSet {
-  display: flex;
-  flex-direction: column;
-  gap: var(--fds-spacing-3);
-}
-
 .description {
   margin-top: calc(var(--fds-spacing-2) * -1);
-}
-
-.filenameContent {
-  margin-top: var(--fds-spacing-3);
 }

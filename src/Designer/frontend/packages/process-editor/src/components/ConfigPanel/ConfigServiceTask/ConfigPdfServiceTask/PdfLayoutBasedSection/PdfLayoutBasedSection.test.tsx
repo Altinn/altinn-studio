@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PdfLayoutBasedSection } from './PdfLayoutBasedSection';
-import { createPdfBpmnDetails, renderWithProviders } from './testUtils';
+import { createPdfBpmnDetails, renderWithProviders } from '../testUtils';
 
 jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: () => ({ org: 'test-org', app: 'test-app' }),

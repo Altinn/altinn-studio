@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PdfAutomaticTaskSelection } from './PdfAutomaticTaskSelection';
-import { createPdfBpmnDetails, renderWithProviders } from './testUtils';
+import { createPdfBpmnDetails, renderWithProviders } from '../testUtils';
 
 let mockTasks: any[] = [];
 
@@ -28,7 +28,7 @@ const defaultMockTasks = [
   },
 ];
 
-jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
+jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {
@@ -39,7 +39,7 @@ jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
 });
 
 const mockUpdateTaskIds = jest.fn();
-jest.mock('../../../../hooks/useUpdatePdfConfigTaskIds', () => ({
+jest.mock('../../../../../hooks/useUpdatePdfConfigTaskIds', () => ({
   useUpdatePdfConfigTaskIds: () => mockUpdateTaskIds,
 }));
 

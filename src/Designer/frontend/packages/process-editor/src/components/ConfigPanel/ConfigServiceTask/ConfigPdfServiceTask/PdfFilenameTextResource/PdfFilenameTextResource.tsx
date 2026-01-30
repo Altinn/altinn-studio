@@ -8,11 +8,11 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
-import { useBpmnContext } from '../../../../contexts/BpmnContext';
-import { usePdfConfig } from './usePdfConfig';
-import { useStickyBottomScroll } from './useStickyBottomScroll';
-import { generateTextResourceId } from './utils';
-import classes from './ConfigPdfServiceTask.module.css';
+import { useBpmnContext } from '../../../../../contexts/BpmnContext';
+import { usePdfConfig } from '../usePdfConfig';
+import { useStickyBottomScroll } from '../useStickyBottomScroll';
+import { generateTextResourceId } from '../utils';
+import classes from './PdfFilenameTextResource.module.css';
 
 type TextResource = { id: string; value: string };
 
