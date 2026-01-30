@@ -304,15 +304,43 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<string> GetCurrentBranchName(string org, string repository)
+        public CurrentBranchInfo GetCurrentBranch(string org, string repository)
         {
             try
             {
-                return _decoratedService.GetCurrentBranchName(org, repository);
+                return _decoratedService.GetCurrentBranch(org, repository);
             }
             catch (Exception ex)
             {
-                LogError(ex, "GetCurrentBranchName", org, repository);
+                LogError(ex, "GetCurrentBranch", org, repository);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName)
+        {
+            try
+            {
+                return _decoratedService.CheckoutBranchWithValidation(org, repository, branchName);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "CheckoutBranchWithValidation", org, repository);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public RepoStatus DiscardLocalChanges(string org, string repository)
+        {
+            try
+            {
+                return _decoratedService.DiscardLocalChanges(org, repository);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "DiscardLocalChanges", org, repository);
                 throw;
             }
         }

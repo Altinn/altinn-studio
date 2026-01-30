@@ -81,11 +81,6 @@ namespace Designer.Tests.Mocks
             return Task.CompletedTask;
         }
 
-        public Task<string> GetCurrentBranchName(string org, string repository)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task FetchRemoteChanges(string org, string repository)
         {
             throw new NotImplementedException();
@@ -162,6 +157,21 @@ namespace Designer.Tests.Mocks
         Task<Branch> ISourceControl.CreateBranch(string org, string repository, string branchName)
         {
             return Task.FromResult(new Branch { Name = branchName });
+        }
+
+        public CurrentBranchInfo GetCurrentBranch(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public RepoStatus DiscardLocalChanges(string org, string repository)
+        {
+            throw new NotImplementedException();
         }
     }
 }

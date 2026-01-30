@@ -35,5 +35,10 @@ namespace Altinn.Studio.Designer.Models
         /// Defines if there is any merge conflicts
         /// </summary>
         public bool HasMergeConflict { get; set; }
+
+        /// <summary>
+        /// The current branch name
+        /// </summary>
+        public string CurrentBranch { get; set; }
     }
 }
