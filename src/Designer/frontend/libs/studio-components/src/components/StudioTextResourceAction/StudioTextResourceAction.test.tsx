@@ -22,7 +22,7 @@ describe('StudioTextResourceAction', () => {
     await user.click(getSearchTab());
     await user.selectOptions(getPicker(), textResourceId);
     await user.click(getTypeTab());
-    expect(screen.getByText(textResourceId)).toBeInTheDocument();
+    expect(screen.getAllByText(textResourceId)).toHaveLength(2);
   });
 
   it('uses generated id when user selects empty option in picker', async () => {
