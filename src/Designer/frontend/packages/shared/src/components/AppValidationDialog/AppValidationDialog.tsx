@@ -51,25 +51,23 @@ const AltinnAppServiceResourceValidation = ({ validationResult }: { validationRe
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
 
-  const errorMembers = Object.entries(validationResult.errors);
+  const errorKeys = Object.keys(validationResult.errors);
 
   return (
     <StudioErrorSummary>
       <StudioErrorSummary.Heading>
-        For å kunne publisere appen til ressursregisteret må disse feilene rettes:
+        {t('app_validation.app_metadata.errors_need_fixing')}
       </StudioErrorSummary.Heading>
       <StudioErrorSummary.List>
-        {errorMembers.map(([key, _value]) => {
-          const navigationBase = `/editor/${org}/${app}/app-settings?currentTab=about`;
-          const navigationSuffix = ALTINNAPP_VALIDATION_ERROR_FIELD_MAP[key]?.navigationAnchor
-            ? `#${ALTINNAPP_VALIDATION_ERROR_FIELD_MAP[key].navigationAnchor}`
-            : '';
-          const navigationLink = `${navigationBase}${navigationSuffix}`;
-          const errorDetails = t(ALTINNAPP_VALIDATION_ERROR_FIELD_MAP[key]?.errorName) || key;
+        {errorKeys.map((errorKey) => {
+          const fieldConfig = getFieldConfig(errorKey);
+          const anchor = fieldConfig?.anchor ?? '';
+          const navigationLink = `/editor/${org}/${app}/app-settings?currentTab=about#${anchor}`;
+          const errorMessage = t(fieldConfig?.translationKey ?? errorKey);
 
           return (
-            <StudioErrorSummary.Item key={key}>
-              <StudioLink href={navigationLink}>{errorDetails}</StudioLink>
+            <StudioErrorSummary.Item key={errorKey}>
+              <StudioLink href={navigationLink}>{errorMessage}</StudioLink>
             </StudioErrorSummary.Item>
           );
         })}
@@ -78,59 +76,83 @@ const AltinnAppServiceResourceValidation = ({ validationResult }: { validationRe
   );
 };
 
-const ALTINNAPP_VALIDATION_ERROR_FIELD_MAP: {
-  [key: string]: { navigationAnchor: string; errorName: string };
-} = {
-  Title: {
-    navigationAnchor: 'serviceName-nb',
-    errorName: 'app_validation.app_metadata.title.required',
+const getFieldConfig = (errorKey: string): FieldConfig | undefined => {
+  if (VALIDATION_FIELD_CONFIG[errorKey]) {
+    return VALIDATION_FIELD_CONFIG[errorKey];
+  }
+
+  const contactPointMatch = errorKey.match(/^contactPoints\[(\d+)\]$/);
+  if (contactPointMatch) {
+    const index = contactPointMatch[1];
+    return {
+      anchor: `contactPoints-${index}`,
+      translationKey: 'app_validation.app_metadata.contact_points.incomplete',
+    };
+  }
+
+  return undefined;
+};
+
+type FieldConfig = {
+  anchor: string;
+  translationKey: string;
+};
+
+const VALIDATION_FIELD_CONFIG: Record<string, FieldConfig> = {
+  identifier: {
+    anchor: 'identifier',
+    translationKey: 'app_validation.app_metadata.identifier.required',
   },
-  'Title.Nb': {
-    navigationAnchor: 'serviceName-nb',
-    errorName: 'app_validation.app_metadata.title.nb.required',
+  serviceName: {
+    anchor: 'serviceName-nb',
+    translationKey: 'app_validation.app_metadata.title.required',
   },
-  'Title.En': {
-    navigationAnchor: 'serviceName-en',
-    errorName: 'app_validation.app_metadata.title.en.required',
+  'serviceName.nb': {
+    anchor: 'serviceName-nb',
+    translationKey: 'app_validation.app_metadata.title.nb.required',
   },
-  'Title.Nn': {
-    navigationAnchor: 'serviceName-nn',
-    errorName: 'app_validation.app_metadata.title.nn.required',
+  'serviceName.nn': {
+    anchor: 'serviceName-nn',
+    translationKey: 'app_validation.app_metadata.title.nn.required',
   },
-  ContactPoints: {
-    navigationAnchor: 'contactPoints-0',
-    errorName: 'app_validation.app_metadata.contact_points.required',
+  'serviceName.en': {
+    anchor: 'serviceName-en',
+    translationKey: 'app_validation.app_metadata.title.en.required',
   },
-  Description: {
-    navigationAnchor: 'description-nb',
-    errorName: 'app_validation.app_metadata.description.required',
+  description: {
+    anchor: 'description-nb',
+    translationKey: 'app_validation.app_metadata.description.required',
   },
-  'Description.Nb': {
-    navigationAnchor: 'description-nb',
-    errorName: 'app_validation.app_metadata.description.nb.required',
+  'description.nb': {
+    anchor: 'description-nb',
+    translationKey: 'app_validation.app_metadata.description.nb.required',
   },
-  'Description.En': {
-    navigationAnchor: 'description-en',
-    errorName: 'app_validation.app_metadata.description.en.required',
+  'description.nn': {
+    anchor: 'description-nn',
+    translationKey: 'app_validation.app_metadata.description.nn.required',
   },
-  'Description.Nn': {
-    navigationAnchor: 'description-nn',
-    errorName: 'app_validation.app_metadata.description.nn.required',
+  'description.en': {
+    anchor: 'description-en',
+    translationKey: 'app_validation.app_metadata.description.en.required',
   },
-  RightDescription: {
-    navigationAnchor: 'rightDescription-nb',
-    errorName: 'app_validation.app_metadata.right_description.required',
+  'access.rightDescription': {
+    anchor: 'rightDescription-nb',
+    translationKey: 'app_validation.app_metadata.right_description.required',
   },
-  'RightDescription.Nb': {
-    navigationAnchor: 'rightDescription-nb',
-    errorName: 'app_validation.app_metadata.right_description.nb.required',
+  'access.rightDescription.nb': {
+    anchor: 'rightDescription-nb',
+    translationKey: 'app_validation.app_metadata.right_description.nb.required',
   },
-  'RightDescription.En': {
-    navigationAnchor: 'rightDescription-en',
-    errorName: 'app_validation.app_metadata.right_description.en.required',
+  'access.rightDescription.nn': {
+    anchor: 'rightDescription-nn',
+    translationKey: 'app_validation.app_metadata.right_description.nn.required',
   },
-  'RightDescription.Nn': {
-    navigationAnchor: 'rightDescription-nn',
-    errorName: 'app_validation.app_metadata.right_description.nn.required',
+  'access.rightDescription.en': {
+    anchor: 'rightDescription-en',
+    translationKey: 'app_validation.app_metadata.right_description.en.required',
+  },
+  contactPoints: {
+    anchor: 'contactPoints-0',
+    translationKey: 'app_validation.app_metadata.contact_points.required',
   },
 };

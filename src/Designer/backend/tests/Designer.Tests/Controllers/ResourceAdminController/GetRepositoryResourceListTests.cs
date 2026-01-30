@@ -30,9 +30,9 @@ namespace Designer.Tests.Controllers.ResourceAdminController
                     new ServiceResource
                     {
                         Identifier = "testresource",
-                        Title = new(),
-                        Description = new(),
-                        RightDescription = new(),
+                        Title = new Dictionary<string, string>(),
+                        Description = new Dictionary<string, string>(),
+                        RightDescription = new Dictionary<string, string>(),
                         Homepage = "test.no",
                         Status = string.Empty,
                         IsPartOf = string.Empty,

@@ -239,7 +239,7 @@ namespace Altinn.Studio.Designer.Controllers
                     return new ServiceResource
                     {
                         Identifier = file.Name,
-                        Title = new ServiceResourceTranslatedString()
+                        Title = new Dictionary<string, string>()
                     };
                 }).ToList();
             }
@@ -612,7 +612,10 @@ namespace Altinn.Studio.Designer.Controllers
                         && resource.ResourceType == ResourceType.Altinn2Service)
                     {
                         AvailableService service = new AvailableService();
-                        service.ServiceName = resource.Title?.Nb;
+                        if (resource.Title.ContainsKey("nb"))
+                        {
+                            service.ServiceName = resource.Title["nb"];
+                        }
 
                         service.ExternalServiceCode = resource.ResourceReferences.First(r => r.ReferenceType.Equals(ResourceReferenceType.ServiceCode)).Reference;
                         service.ExternalServiceEditionCode = Convert.ToInt32(resource.ResourceReferences.First(r => r.ReferenceType.Equals(ResourceReferenceType.ServiceEditionCode)).Reference);

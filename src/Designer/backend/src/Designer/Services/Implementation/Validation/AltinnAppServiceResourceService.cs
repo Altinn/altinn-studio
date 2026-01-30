@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -15,7 +14,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.Validation;
 public class AltinnAppServiceResourceService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
     : IAltinnAppServiceResourceService
 {
-    public async Task<AltinnAppServiceResource> GenerateServiceResourceFromApp(
+    public async Task<ServiceResource> GenerateServiceResourceFromApp(
         string org,
         string repo,
         string developer
@@ -25,71 +24,174 @@ public class AltinnAppServiceResourceService(IAltinnGitRepositoryFactory altinnG
             altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
         ApplicationMetadata applicationMetadata =
             await altinnAppGitRepository.GetApplicationMetadata();
-        AltinnAppServiceResource serviceResource = applicationMetadata.ToServiceConfiguration();
+        ServiceResource serviceResource = applicationMetadata.ToServiceResource();
         return serviceResource;
     }
 
-    public (bool isValid, ValidationProblemDetails? errors) ValidateAltinnAppServiceResource(
-        AltinnAppServiceResource altinnAppServiceResource
+    public (bool isValid, ValidationProblemDetails? errors) ValidateServiceResource(
+        ServiceResource serviceResource
     )
     {
-        ValidationContext validationContext = new(altinnAppServiceResource);
-        ICollection<ValidationResult> validationResults = [];
+        var result = AltinnAppServiceResourceValidator.Validate(serviceResource);
 
-        if (
-            Validator.TryValidateObject(
-                altinnAppServiceResource,
-                validationContext,
-                validationResults,
-                true
-            )
-        )
+        if (result.Errors.Count == 0)
         {
             return (true, null);
         }
 
-        var errorMap = validationResults
-            .SelectMany(r =>
-                r.MemberNames.Select(m => new { Key = m, Error = r.ErrorMessage ?? string.Empty })
-            )
-            .GroupBy(x => x.Key)
-            .ToDictionary(g => g.Key, g => g.Select(x => x.Error).ToArray());
-        var validationProblemDetails = new ValidationProblemDetails(errorMap);
-        return (false, validationProblemDetails);
+        return (false, new ValidationProblemDetails(result.Errors));
     }
+}
+
+public static class AltinnAppServiceResourceValidator
+{
+    private const string Required = "REQUIRED";
+
+    public static ValidationResult Validate(ServiceResource resource)
+    {
+        var errors = new Dictionary<string, List<string>>();
+
+        if (string.IsNullOrEmpty(resource.Identifier))
+        {
+            AddError(errors, "identifier", Required);
+        }
+
+        if (resource.Title is null)
+        {
+            AddError(errors, "serviceName", Required);
+        }
+        else
+        {
+            ValidateTranslatedString(errors, "serviceName", resource.Title);
+        }
+
+        if (resource.Description is null)
+        {
+            AddError(errors, "description", Required);
+        }
+        else
+        {
+            ValidateTranslatedString(errors, "description", resource.Description);
+        }
+
+        if (resource.Delegable == true)
+        {
+            if (resource.RightDescription is null)
+            {
+                AddError(errors, "access.rightDescription", Required);
+            }
+            else
+            {
+                ValidateTranslatedString(
+                    errors,
+                    "access.rightDescription",
+                    resource.RightDescription
+                );
+            }
+        }
+
+        if (resource.ContactPoints is null || resource.ContactPoints.Count == 0)
+        {
+            AddError(errors, "contactPoints", Required);
+        }
+        else
+        {
+            for (int i = 0; i < resource.ContactPoints.Count; i++)
+            {
+                ContactPoint contactPoint = resource.ContactPoints[i];
+                if (
+                    string.IsNullOrEmpty(contactPoint.Category)
+                    && string.IsNullOrEmpty(contactPoint.Email)
+                    && string.IsNullOrEmpty(contactPoint.Telephone)
+                    && string.IsNullOrEmpty(contactPoint.ContactPage)
+                )
+                {
+                    AddError(errors, $"contactPoints[{i}]", Required);
+                }
+            }
+        }
+
+        return new ValidationResult(errors.ToDictionary(k => k.Key, v => v.Value.ToArray()));
+    }
+
+    private static void ValidateTranslatedString(
+        Dictionary<string, List<string>> errors,
+        string fieldPrefix,
+        Dictionary<string, string> translations
+    )
+    {
+        if (!translations.TryGetValue("nb", out var nb) || string.IsNullOrEmpty(nb))
+        {
+            AddError(errors, $"{fieldPrefix}.nb", Required);
+        }
+
+        if (!translations.TryGetValue("nn", out var nn) || string.IsNullOrEmpty(nn))
+        {
+            AddError(errors, $"{fieldPrefix}.nn", Required);
+        }
+
+        if (!translations.TryGetValue("en", out var en) || string.IsNullOrEmpty(en))
+        {
+            AddError(errors, $"{fieldPrefix}.en", Required);
+        }
+    }
+
+    private static void AddError(
+        Dictionary<string, List<string>> errors,
+        string key,
+        string message
+    )
+    {
+        if (!errors.TryGetValue(key, out var list))
+        {
+            list = [];
+            errors[key] = list;
+        }
+        list.Add(message);
+    }
+
+    public record ValidationResult(Dictionary<string, string[]> Errors);
 }
 
 public static class ApplicationMetadataMapper
 {
-    public static AltinnAppServiceResource ToServiceConfiguration(
-        this ApplicationMetadata applicationmetadata
-    )
+    public static ServiceResource ToServiceResource(this ApplicationMetadata applicationmetadata)
     {
-        return new AltinnAppServiceResource
+        return new ServiceResource
         {
             ResourceType = ResourceType.AltinnApp,
             Identifier = applicationmetadata?.Id,
-            Title = applicationmetadata?.ServiceName?.ToServiceTranslatedString(),
-            Description = applicationmetadata?.Description?.ToServiceTranslatedString(),
+            Title = applicationmetadata?.ServiceName?.ToDictionary(),
+            Description = applicationmetadata?.Description?.ToDictionary(),
             ContactPoints = applicationmetadata?.ContactPoints?.ToServiceContactPoints(),
-            RightDescription =
-                applicationmetadata?.Access?.RightDescription?.ToServiceTranslatedString(),
+            RightDescription = applicationmetadata?.Access?.RightDescription?.ToDictionary(),
             Delegable = applicationmetadata?.Access?.Delegable,
             AvailableForType = applicationmetadata?.Access?.AvailableForType,
         };
     }
 
-    public static ServiceResourceTranslatedString ToServiceTranslatedString(
+    public static Dictionary<string, string> ToDictionary(
         this AppMetadataTranslatedString appMetadataTranslatedString
     )
     {
-        return new ServiceResourceTranslatedString
+        var dict = new Dictionary<string, string>();
+
+        if (appMetadataTranslatedString?.Nb != null)
         {
-            Nb = appMetadataTranslatedString?.Nb,
-            En = appMetadataTranslatedString?.En,
-            Nn = appMetadataTranslatedString?.Nn,
-            OtherLanguages = appMetadataTranslatedString?.OtherLanguages,
-        };
+            dict["nb"] = appMetadataTranslatedString.Nb;
+        }
+
+        if (appMetadataTranslatedString?.Nn != null)
+        {
+            dict["nn"] = appMetadataTranslatedString.Nn;
+        }
+
+        if (appMetadataTranslatedString?.En != null)
+        {
+            dict["en"] = appMetadataTranslatedString.En;
+        }
+
+        return dict;
     }
 
     public static List<ContactPoint> ToServiceContactPoints(

@@ -21,7 +21,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> ValidateAltinnAppResource(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnAppServiceResource serviceResource =
+            ServiceResource serviceResource =
                 await altinnAppServiceResourceService.GenerateServiceResourceFromApp(
                     org,
                     app,
@@ -29,7 +29,7 @@ namespace Altinn.Studio.Designer.Controllers
                 );
 
             (bool isValid, ValidationProblemDetails? errors) =
-                altinnAppServiceResourceService.ValidateAltinnAppServiceResource(serviceResource);
+                altinnAppServiceResourceService.ValidateServiceResource(serviceResource);
 
             return Ok(new { errors?.Errors, isValid });
         }

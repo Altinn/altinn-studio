@@ -10,8 +10,7 @@ using Moq;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public abstract class ResourceAdminControllerTestsBaseClass<TTesetClass> : DesignerEndpointsTestsBase<TTesetClass>
-        where TTesetClass : class
+    public abstract class ResourceAdminControllerTestsBaseClass<TTesetClass> : DesignerEndpointsTestsBase<TTesetClass> where TTesetClass : class
     {
         protected readonly string VersionPrefix = "/designer/api";
         protected readonly Mock<IRepository> RepositoryMock;
@@ -37,12 +36,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         {
             List<ResourceReference> resourceReferences = new List<ResourceReference>
             {
-                new ResourceReference
-                {
-                    Reference = string.Empty,
-                    ReferenceSource = ResourceReferenceSource.Default,
-                    ReferenceType = ResourceReferenceType.Default
-                }
+                new ResourceReference { Reference = string.Empty, ReferenceSource = ResourceReferenceSource.Default, ReferenceType = ResourceReferenceType.Default }
             };
 
             return resourceReferences;
@@ -54,8 +48,8 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             {
                 ServiceResource serviceResource = new ServiceResource();
                 serviceResource.Identifier = "ttdresource";
-                serviceResource.Title = new ServiceResourceTranslatedString { Nb = "ttdTitle" };
-                serviceResource.Description = new ServiceResourceTranslatedString { Nb = "ttdDescription" };
+                serviceResource.Title = new Dictionary<string, string> { { "nb", "ttdTitle" } };
+                serviceResource.Description = new Dictionary<string, string> { { "nb", "ttdDescription" } };
                 serviceResource.ResourceType = ResourceType.Default;
                 serviceResource.ThematicArea = "ttdThematicArea";
                 return serviceResource;
@@ -79,8 +73,8 @@ namespace Designer.Tests.Controllers.ResourceAdminController
                 List<ServiceResource> resourceList = new List<ServiceResource>();
                 ServiceResource serviceResource = new ServiceResource();
                 serviceResource.Identifier = "ttdresource";
-                serviceResource.Title = new ServiceResourceTranslatedString { Nb = "ttdTitle" };
-                serviceResource.Description = new ServiceResourceTranslatedString { Nb = "ttdDescription" };
+                serviceResource.Title = new Dictionary<string, string> { { "nb", "ttdTitle" } };
+                serviceResource.Description = new Dictionary<string, string> { { "nb", "ttdDescription" } };
                 serviceResource.ResourceType = ResourceType.Default;
                 serviceResource.ThematicArea = "ttdThematicArea";
                 resourceList.Add(serviceResource);
