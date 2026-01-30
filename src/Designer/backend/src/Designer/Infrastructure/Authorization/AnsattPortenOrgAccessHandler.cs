@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
@@ -24,15 +25,18 @@ public sealed class AnsattPortenOrgAccessHandler : AuthorizationHandler<AnsattPo
     private const int PrefixLength = 5;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IEnvironmentsService _environmentsService;
+    private readonly IHostEnvironment _hostEnvironment;
     private readonly ILogger<AnsattPortenOrgAccessHandler> _logger;
 
     public AnsattPortenOrgAccessHandler(
         IHttpContextAccessor httpContextAccessor,
         IEnvironmentsService environmentsService,
+        IHostEnvironment hostEnvironment,
         ILogger<AnsattPortenOrgAccessHandler> logger)
     {
         _httpContextAccessor = httpContextAccessor;
         _environmentsService = environmentsService;
+        _hostEnvironment = hostEnvironment;
         _logger = logger;
     }
 
@@ -65,28 +69,35 @@ public sealed class AnsattPortenOrgAccessHandler : AuthorizationHandler<AnsattPo
             return;
         }
 
-        var reporteeOrgNumbers = ExtractReporteeOrgNumbers(accessToken);
-        if (reporteeOrgNumbers.Length == 0)
+        if (_hostEnvironment.IsProduction())
         {
-            context.Fail();
-            return;
-        }
+            var reporteeOrgNumbers = ExtractReporteeOrgNumbers(accessToken);
+            if (reporteeOrgNumbers.Length == 0)
+            {
+                context.Fail();
+                return;
+            }
 
-        var orgNr = await _environmentsService.GetAltinnOrgNumber(org);
-        if (orgNr is null)
-        {
-            context.Fail();
-            return;
-        }
+            var orgNr = await _environmentsService.GetAltinnOrgNumber(org);
+            if (orgNr is null)
+            {
+                context.Fail();
+                return;
+            }
 
-        if (!string.IsNullOrWhiteSpace(orgNr) &&
-            reporteeOrgNumbers.Contains(orgNr))
-        {
-            context.Succeed(requirement);
+            if (!string.IsNullOrWhiteSpace(orgNr) &&
+                reporteeOrgNumbers.Contains(orgNr))
+            {
+                context.Succeed(requirement);
+            }
+            else
+            {
+                context.Fail();
+            }
         }
         else
         {
-            context.Fail();
+            context.Succeed(requirement);
         }
     }
 

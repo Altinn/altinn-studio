@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -28,15 +29,7 @@ public class AnsattPortenOrgAccessHandlerTests
     [Fact]
     public async Task HandleRequirementAsync_ShouldFail_WhenHttpContextIsNull()
     {
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext?)null);
-
-        var environmentsServiceMock = new Mock<IEnvironmentsService>();
-        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
-        var handler = new AnsattPortenOrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            loggerMock.Object);
+        var handler = CreateHandler(null);
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal();
@@ -55,15 +48,7 @@ public class AnsattPortenOrgAccessHandlerTests
     public async Task HandleRequirementAsync_ShouldFail_WhenOrgRouteValueIsMissing()
     {
         var httpContextMock = CreateMockHttpContext(null, null);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var environmentsServiceMock = new Mock<IEnvironmentsService>();
-        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
-        var handler = new AnsattPortenOrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            loggerMock.Object);
+        var handler = CreateHandler(httpContextMock);
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
@@ -83,15 +68,7 @@ public class AnsattPortenOrgAccessHandlerTests
     public async Task HandleRequirementAsync_ShouldFail_WhenAccessTokenIsMissing()
     {
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, null);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var environmentsServiceMock = new Mock<IEnvironmentsService>();
-        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
-        var handler = new AnsattPortenOrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            loggerMock.Object);
+        var handler = CreateHandler(httpContextMock);
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
@@ -112,15 +89,7 @@ public class AnsattPortenOrgAccessHandlerTests
     {
         var token = CreateJwtToken([]);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var environmentsServiceMock = new Mock<IEnvironmentsService>();
-        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
-        var handler = new AnsattPortenOrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            loggerMock.Object);
+        var handler = CreateHandler(httpContextMock);
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
@@ -142,19 +111,11 @@ public class AnsattPortenOrgAccessHandlerTests
         var reportees = new[] { TestOrgNumber };
         var token = CreateJwtToken(reportees);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var environmentsServiceMock = new Mock<IEnvironmentsService>();
-        environmentsServiceMock
-            .Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
-            .ReturnsAsync((string?)null);
-
-        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
-        var handler = new AnsattPortenOrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            loggerMock.Object);
+        var handler = CreateHandler(httpContextMock, envService =>
+        {
+            envService.Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
+                .ReturnsAsync((string?)null);
+        });
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
@@ -176,19 +137,11 @@ public class AnsattPortenOrgAccessHandlerTests
         var reportees = new[] { TestOrgNumber };
         var token = CreateJwtToken(reportees);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var environmentsServiceMock = new Mock<IEnvironmentsService>();
-        environmentsServiceMock
-            .Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
-            .ReturnsAsync(TestOrgNumber);
-
-        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
-        var handler = new AnsattPortenOrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            loggerMock.Object);
+        var handler = CreateHandler(httpContextMock, envService =>
+        {
+            envService.Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
+                .ReturnsAsync(TestOrgNumber);
+        });
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
@@ -210,19 +163,11 @@ public class AnsattPortenOrgAccessHandlerTests
         var reportees = new[] { OtherOrgNumber };
         var token = CreateJwtToken(reportees);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var environmentsServiceMock = new Mock<IEnvironmentsService>();
-        environmentsServiceMock
-            .Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
-            .ReturnsAsync(TestOrgNumber);
-
-        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
-        var handler = new AnsattPortenOrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            loggerMock.Object);
+        var handler = CreateHandler(httpContextMock, envService =>
+        {
+            envService.Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
+                .ReturnsAsync(TestOrgNumber);
+        });
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
@@ -244,19 +189,11 @@ public class AnsattPortenOrgAccessHandlerTests
         var reportees = new[] { OtherOrgNumber, TestOrgNumber, "123456789" };
         var token = CreateJwtToken(reportees);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var environmentsServiceMock = new Mock<IEnvironmentsService>();
-        environmentsServiceMock
-            .Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
-            .ReturnsAsync(TestOrgNumber);
-
-        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
-        var handler = new AnsattPortenOrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            loggerMock.Object);
+        var handler = CreateHandler(httpContextMock, envService =>
+        {
+            envService.Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
+                .ReturnsAsync(TestOrgNumber);
+        });
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
@@ -279,19 +216,11 @@ public class AnsattPortenOrgAccessHandlerTests
         var reportees = new[] { TestOrgNumber };
         var token = CreateJwtToken(reportees);
         var httpContextMock = CreateMockHttpContext("ttd", token);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var environmentsServiceMock = new Mock<IEnvironmentsService>();
-        environmentsServiceMock
-            .Setup(x => x.GetAltinnOrgNumber("ttd"))
-            .ReturnsAsync(TestOrgNumber);
-
-        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
-        var handler = new AnsattPortenOrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            loggerMock.Object);
+        var handler = CreateHandler(httpContextMock, envService =>
+        {
+            envService.Setup(x => x.GetAltinnOrgNumber("ttd"))
+                .ReturnsAsync(TestOrgNumber);
+        });
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
@@ -312,15 +241,7 @@ public class AnsattPortenOrgAccessHandlerTests
     {
         var token = CreateJwtTokenWithCustomReportees(new[] { new { ID = "0192:" } });
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var environmentsServiceMock = new Mock<IEnvironmentsService>();
-        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
-        var handler = new AnsattPortenOrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            loggerMock.Object);
+        var handler = CreateHandler(httpContextMock);
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
@@ -341,15 +262,7 @@ public class AnsattPortenOrgAccessHandlerTests
     {
         var token = CreateJwtTokenWithCustomReportees(new[] { new { ID = "991825827" } });
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var environmentsServiceMock = new Mock<IEnvironmentsService>();
-        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
-        var handler = new AnsattPortenOrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            loggerMock.Object);
+        var handler = CreateHandler(httpContextMock);
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
@@ -370,15 +283,7 @@ public class AnsattPortenOrgAccessHandlerTests
     {
         var token = "not.a.valid.jwt";
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var environmentsServiceMock = new Mock<IEnvironmentsService>();
-        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
-        var handler = new AnsattPortenOrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            loggerMock.Object);
+        var handler = CreateHandler(httpContextMock);
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
@@ -407,19 +312,11 @@ public class AnsattPortenOrgAccessHandlerTests
         };
 
         var token = new JwtSecurityToken(header, payload);
-        var handler = new JwtSecurityTokenHandler();
-        var tokenString = handler.WriteToken(token);
+        var jwtHandler = new JwtSecurityTokenHandler();
+        var tokenString = jwtHandler.WriteToken(token);
 
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, tokenString);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var environmentsServiceMock = new Mock<IEnvironmentsService>();
-        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
-        var authHandler = new AnsattPortenOrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            loggerMock.Object);
+        var handler = CreateHandler(httpContextMock);
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
@@ -429,7 +326,7 @@ public class AnsattPortenOrgAccessHandlerTests
             resource: null
         );
 
-        await authHandler.HandleAsync(context);
+        await handler.HandleAsync(context);
 
         Assert.False(context.HasSucceeded);
         Assert.True(context.HasFailed);
@@ -440,15 +337,7 @@ public class AnsattPortenOrgAccessHandlerTests
     {
         var token = CreateJwtTokenWithCustomReportees(new[] { new { ID = "" } });
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var environmentsServiceMock = new Mock<IEnvironmentsService>();
-        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
-        var handler = new AnsattPortenOrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            loggerMock.Object);
+        var handler = CreateHandler(httpContextMock);
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
@@ -568,5 +457,29 @@ public class AnsattPortenOrgAccessHandlerTests
         var token = new JwtSecurityToken(header, payload);
         var handler = new JwtSecurityTokenHandler();
         return handler.WriteToken(token);
+    }
+
+    private static AnsattPortenOrgAccessHandler CreateHandler(
+        HttpContext? httpContext,
+        Action<Mock<IEnvironmentsService>>? configureEnvironmentsService = null,
+        bool isProduction = true)
+    {
+        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
+
+        var environmentsServiceMock = new Mock<IEnvironmentsService>();
+        configureEnvironmentsService?.Invoke(environmentsServiceMock);
+
+        var hostEnvironmentMock = new Mock<IHostEnvironment>();
+        hostEnvironmentMock.Setup(x => x.EnvironmentName)
+            .Returns(isProduction ? "Production" : "Development");
+
+        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
+
+        return new AnsattPortenOrgAccessHandler(
+            httpContextAccessorMock.Object,
+            environmentsServiceMock.Object,
+            hostEnvironmentMock.Object,
+            loggerMock.Object);
     }
 }
