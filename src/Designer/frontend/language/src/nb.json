@@ -51,6 +51,7 @@
   "admin.instances.status.deleted": "Slettet",
   "admin.instances.status.unread": "Ulest",
   "admin.instances.title": "Instanser",
+  "admin.instances.unavailable": "Instansoversikt er ikke tilgjengelig for {{orgName}} i {{envTitle}}.",
   "admin.metrics.altinn_app_lib_processes_ended": "fullførte instanser",
   "admin.metrics.altinn_app_lib_processes_started": "påbegynte instanser",
   "admin.metrics.app.error": "Kunne ikke laste inn applikasjonsmetrikker for denne appen. Prøv igjen senere.",
