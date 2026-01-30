@@ -1,4 +1,4 @@
-using Common;
+using Altinn.Studio.Runtime.Common;
 
 namespace StudioGateway.Api.Endpoints.Local;
 

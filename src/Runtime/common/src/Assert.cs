@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace Common;
+namespace Altinn.Studio.Runtime.Common;
 
 public static class Assert
 {

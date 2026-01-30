@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Common;
+namespace Altinn.Studio.Runtime.Common;
 
 public static class Hosting
 {

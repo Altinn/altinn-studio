@@ -1,8 +1,8 @@
+using Altinn.Studio.Runtime.Common;
 using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.Query.Logs;
 using Azure.ResourceManager;
-using Common;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using StudioGateway.Api;

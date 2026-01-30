@@ -1,4 +1,4 @@
-using Common;
+using Altinn.Studio.Runtime.Common;
 using StudioGateway.Api.Application;
 using StudioGateway.Api.Authentication;
 

@@ -6,5 +6,5 @@
   <Folder Name="/tests/">
     <Project Path="tests/StudioGateway.Api.Tests/StudioGateway.Api.Tests.csproj" />
   </Folder>
-  <Project Path="../common/Common.csproj" />
+  <Project Path="../common/Altinn.Studio.Runtime.Common.csproj" />
 </Solution>
