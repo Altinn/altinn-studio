@@ -72,7 +72,7 @@ describe('useConsentContext', () => {
     };
 
     expect(() => render(<ThrowingComponent />)).toThrow(
-      'useConsentContext must be used within a ConsentProvider',
+      'useConsent must be used within a ConsentProvider',
     );
 
     consoleErrorSpy.mockRestore();
@@ -89,7 +89,7 @@ describe('useConsentMutationContext', () => {
     };
 
     expect(() => render(<ThrowingComponent />)).toThrow(
-      'useConsentMutationContext must be used within a ConsentProvider',
+      'useConsentMutation must be used within a ConsentProvider',
     );
 
     consoleErrorSpy.mockRestore();
