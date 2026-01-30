@@ -1,0 +1,16 @@
+{
+  "UserId": 2001,
+  "UserName": "TestBruker",
+  "PhoneNumber": "12345678",
+  "Email": "test2001@test.com",
+  "PartyId": 512001,
+  "Party": {
+    "partyId": "512001",
+    "ssn": "01019012345"
+  },
+  "UserType": 0,
+  "ProfileSettingPreference": {
+    "Language": "nb",
+    "doNotPromptForParty": false
+  }
+}

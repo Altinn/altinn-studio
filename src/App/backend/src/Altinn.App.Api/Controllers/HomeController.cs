@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
@@ -34,6 +35,7 @@ public class HomeController : Controller
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
     private readonly IBootstrapGlobalService _bootstrapGlobalService;
     private readonly IIndexPageGenerator _indexPageGenerator;
+    private readonly IAuthenticationContext _authenticationContext;
 
     /// <summary>
     /// Initialize a new instance of the <see cref="HomeController"/> class.
@@ -63,6 +65,7 @@ public class HomeController : Controller
         _appMetadata = appMetadata;
         _bootstrapGlobalService = serviceProvider.GetRequiredService<IBootstrapGlobalService>();
         _indexPageGenerator = serviceProvider.GetRequiredService<IIndexPageGenerator>();
+        _authenticationContext = serviceProvider.GetRequiredService<IAuthenticationContext>();
     }
 
     /// <summary>
@@ -103,6 +106,12 @@ public class HomeController : Controller
 
         if (await ShouldShowAppView())
         {
+            var partyRedirect = await GetPartySelectionRedirect(org, app);
+            if (partyRedirect is not null)
+            {
+                return partyRedirect;
+            }
+
             if (_indexPageGenerator.HasLegacyIndexCshtml)
             {
                 ViewBag.org = org;
@@ -225,6 +234,62 @@ public class HomeController : Controller
         Response.Headers["Content-Security-Policy"] = $"default-src 'self'; script-src 'nonce-{nonce}';";
 
         return Content(htmlContent, "text/html");
+    }
+
+    private async Task<IActionResult?> GetPartySelectionRedirect(string org, string app)
+    {
+        // Only redirect for authenticated users
+        if (_authenticationContext.Current is not Authenticated.User user)
+        {
+            return null;
+        }
+
+        // Don't redirect if the user is already on a party-selection or instance route
+        var path = HttpContext.Request.Path.Value ?? "";
+        if (
+            path.Contains("/party-selection", StringComparison.OrdinalIgnoreCase)
+            || path.Contains("/instance/", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            return null;
+        }
+
+        var details = await user.LoadDetails(validateSelectedParty: true);
+
+        // If the selected party is not valid, redirect to party-selection/403
+        if (details.CanRepresent == false)
+        {
+            return Redirect($"/{org}/{app}/party-selection/403");
+        }
+
+        // If only one valid party, no need to prompt
+        if (details.PartiesAllowedToInstantiate.Count <= 1)
+        {
+            return null;
+        }
+
+        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+
+        // If promptForParty is "always", always redirect regardless of user preference
+        if (string.Equals(application.PromptForParty, "always", StringComparison.OrdinalIgnoreCase))
+        {
+            return Redirect($"/{org}/{app}/party-selection/explained");
+        }
+
+        // If promptForParty is "never", skip party selection
+        if (string.Equals(application.PromptForParty, "never", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        // If the user profile has doNotPromptForParty set, skip party selection
+        if (details.Profile.ProfileSettingPreference?.DoNotPromptForParty == true)
+        {
+            return null;
+        }
+
+        // Default behavior with multiple parties: redirect to party selection
+        return Redirect($"/{org}/{app}/party-selection/explained");
     }
 
     private async Task<bool> ShouldShowAppView()

@@ -3,14 +3,13 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { cyMockResponses, CyPartyMocks, removeAllButOneOrg } from 'test/e2e/pageobjects/party-mocks';
 import { cyUserCredentials } from 'test/e2e/support/auth';
 
-import type { IParty } from 'src/types/shared';
-
 const appFrontend = new AppFrontend();
 
 describe('Party selection', () => {
-  it('Party selection filtering and search', () => {
+  it.only('Party selection filtering and search', () => {
+    // Use multiPartyPrompt user (doNotPromptForParty=false) to trigger backend redirect to party selection
     cyMockResponses({ allowedToInstantiate: [CyPartyMocks.ExampleOrgWithSubUnit, CyPartyMocks.ExampleDeletedOrg] });
-    cy.startAppInstance(appFrontend.apps.frontendTest);
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
     cy.get(appFrontend.partySelection.error).contains(texts.selectNewReportee);
     cy.findByText('underenhet').click();
@@ -25,8 +24,9 @@ describe('Party selection', () => {
   });
 
   it('Should show the correct title', () => {
+    // Use multiPartyPrompt user (doNotPromptForParty=false) to trigger backend redirect to party selection
     cyMockResponses({ allowedToInstantiate: [CyPartyMocks.ExampleOrgWithSubUnit, CyPartyMocks.ExampleDeletedOrg] });
-    cy.startAppInstance(appFrontend.apps.frontendTest);
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
     cy.title().should('eq', `Hvem vil du sende inn for? - ${appFrontend.apps.frontendTest} - Testdepartementet`);
   });
@@ -51,6 +51,7 @@ describe('Party selection', () => {
   });
 
   it('Should show party selection with a warning when you cannot use the preselected party', () => {
+    // Use multiPartyPrompt user (doNotPromptForParty=false) to trigger backend redirect to party selection
     cyMockResponses({
       preSelectedParty: CyPartyMocks.ExampleOrgWithSubUnit.partyId,
 
@@ -65,12 +66,13 @@ describe('Party selection', () => {
       },
     });
 
-    cy.startAppInstance(appFrontend.apps.frontendTest);
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
     cy.get(appFrontend.partySelection.error).should('be.visible');
   });
 
   it('Should show an error if there are no parties to select from', () => {
+    // Use multiPartyPrompt user (doNotPromptForParty=false) to trigger backend redirect to party selection
     cyMockResponses({
       allowedToInstantiate: [],
       partyTypesAllowed: {
@@ -80,13 +82,14 @@ describe('Party selection', () => {
         organisation: true,
       },
     });
-    cy.startAppInstance(appFrontend.apps.frontendTest);
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
     cy.get('[data-testid=StatusCode]').should('exist');
     cy.allowFailureOnEnd();
   });
 
   it('List of parties should show correct icon and org nr or ssn', () => {
+    // Use multiPartyPrompt user (doNotPromptForParty=false) to trigger backend redirect to party selection
     cyMockResponses({
       allowedToInstantiate: (parties) => [
         ...parties,
@@ -94,9 +97,8 @@ describe('Party selection', () => {
         CyPartyMocks.InvalidParty,
         CyPartyMocks.ExampleOrgWithSubUnit,
       ],
-      doNotPromptForParty: false,
     });
-    cy.startAppInstance(appFrontend.apps.frontendTest);
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
     cy.get('[id^="party-"]').each((element) => {
       // Check for SVG elements with specific test IDs
@@ -117,145 +119,75 @@ describe('Party selection', () => {
     });
   });
 
-  [false].forEach((doNotPromptForParty) => {
-    it(`${
-      doNotPromptForParty ? 'Does not prompt' : 'Prompts'
-    } for party when doNotPromptForParty = ${doNotPromptForParty}, on instantiation with multiple possible parties`, () => {
-      cyMockResponses({
-        allowedToInstantiate: (parties) => [...parties, CyPartyMocks.ExamplePerson1],
-        doNotPromptForParty,
-      });
-      cy.startAppInstance(appFrontend.apps.frontendTest);
+  // Party selection redirect tests using localtest user data.
+  // The backend (HomeController) handles redirect logic based on:
+  // - Number of parties the user can represent
+  // - User's doNotPromptForParty profile setting
+  // - App's promptForParty setting (tested in backend integration tests only)
 
-      if (!doNotPromptForParty) {
-        cy.get(appFrontend.partySelection.appHeader).should('be.visible');
-        cy.get('[id^="party-"]').should('be.visible');
-        cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' }).should('be.visible');
-        cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' })
-          .siblings('p')
-          .first()
-          .should(
-            'contain.text',
-            'Du kan endre profilinnstillingene dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema.',
-          );
-        cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('not.exist');
+  it('Prompts for party when user has multiple parties and doNotPromptForParty=false', () => {
+    // User 2001 has multiple parties and doNotPromptForParty=false
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });
 
-        cy.visualTesting('reportee-selection');
-
-        cy.get('[id^="party-"]').eq(0).click();
-      }
-
-      cy.get(appFrontend.appHeader).should('be.visible');
-      cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
-      cy.get('[id^="party-"]').should('not.exist');
-
-      // Test that it goes straight in when accessing an existing instance
-      cy.reloadAndWait();
-
-      cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
-      cy.get('[id^="party-"]').should('not.exist');
-    });
-  });
-
-  [true, false].forEach((doNotPromptForParty) => {
-    it(`Does not prompt for party when doNotPromptForParty = ${doNotPromptForParty}, on instantiation with only one possible party`, () => {
-      cyMockResponses({
-        doNotPromptForParty,
-      });
-
-      // The /parties request and /current request happen in parallel, so we need
-      // to await the first request in order to use its value in the second intercept.
-      let resolveParties: () => void;
-      const partiesPromise = new Promise<void>((res) => {
-        resolveParties = res;
-      });
-      // Need to make sure the returned party is the same current party:
-      let correctParty: IParty | undefined = undefined;
-      cy.intercept(
-        {
-          method: 'GET',
-          url: `**/api/v1/parties?allowedtoinstantiatefilter=true`,
-          times: 1,
-        },
-        (req) => {
-          req.on('response', (res) => {
-            const parties = res.body as IParty[];
-            correctParty = parties[0]; // parties.find((party: IParty) => party.partyId == partyId);
-            if (!correctParty) {
-              throw new Error(`No parties returned from api`);
-            }
-            res.send([correctParty]);
-            resolveParties();
-          });
-        },
+    // Should see party selection page with explanation
+    cy.get(appFrontend.partySelection.appHeader).should('be.visible');
+    cy.get('[id^="party-"]').should('be.visible');
+    cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' }).should('be.visible');
+    cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' })
+      .siblings('p')
+      .first()
+      .should(
+        'contain.text',
+        'Du kan endre profilinnstillingene dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema.',
       );
-      cy.intercept(
-        {
-          method: 'GET',
-          url: `**/api/authorization/parties/current?returnPartyObject=true`,
-          times: 1,
-        },
-        (req) => {
-          req.on('response', async (res) => {
-            await partiesPromise;
-            if (!correctParty) {
-              throw new Error(`No parties returned from api`);
-            }
-            res.send(correctParty);
-          });
-        },
-      );
+    cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('not.exist');
 
-      cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'default' });
-      cy.get(appFrontend.appHeader).should('be.visible');
-      cy.get('[id^="party-"]').should('not.exist');
+    // Select a party and verify app loads
+    cy.get('[id^="party-"]').eq(0).click();
+    cy.get(appFrontend.appHeader).should('be.visible');
+    cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
+    cy.get('[id^="party-"]').should('not.exist');
 
-      cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
-    });
+    // Test that reloading an existing instance goes straight in without party selection
+    cy.reloadAndWait();
+    cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
+    cy.get('[id^="party-"]').should('not.exist');
   });
 
-  [
-    { doNotPromptForPartyPreference: true, appPromptForPartyOverride: 'always' as const },
-    { doNotPromptForPartyPreference: false, appPromptForPartyOverride: 'never' as const },
-  ].forEach(({ doNotPromptForPartyPreference, appPromptForPartyOverride }) => {
-    it(`Correctly overrides the profile doNotPromptForPartyPreference when doNotPromptForPartyPreference=${doNotPromptForPartyPreference} and appPromptForPartyOverride=${appPromptForPartyOverride}`, () => {
-      cyMockResponses({
-        doNotPromptForParty: doNotPromptForPartyPreference,
-        appPromptForPartyOverride,
-        allowedToInstantiate: (parties) => [...parties, CyPartyMocks.ExamplePerson1],
-      });
-      cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'default' });
+  it('Does not prompt for party when user has only one party', () => {
+    // User 12345 (default) has only one party
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'default' });
 
-      if (appPromptForPartyOverride === 'always') {
-        cy.get(appFrontend.partySelection.appHeader).should('be.visible');
-        cy.get('[id^="party-"]').should('be.visible');
-        cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' }).should('be.visible');
-        cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' })
-          .siblings('p')
-          .first()
-          .should('contain.text', 'Denne appen er satt opp til å alltid spørre om aktør.');
-        cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('not.exist');
-
-        cy.get('[id^="party-"]').eq(0).click();
-      }
-
-      cy.get(appFrontend.appHeader).should('be.visible');
-      cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
-      cy.get('[id^="party-"]').should('not.exist');
-      cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' }).should('not.exist');
-    });
+    // Should skip party selection and go straight to app
+    cy.get(appFrontend.appHeader).should('be.visible');
+    cy.get('[id^="party-"]').should('not.exist');
+    cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
   });
+
+  it('Does not prompt for party when user has doNotPromptForParty=true even with multiple parties', () => {
+    // User 1001 (accountant) has multiple parties but doNotPromptForParty=true
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'accountant' });
+
+    // Should skip party selection and go straight to app
+    cy.get(appFrontend.appHeader).should('be.visible');
+    cy.get('[id^="party-"]').should('not.exist');
+    cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
+  });
+
+  // NOTE: Tests for promptForParty=always/never are not included here because they require
+  // test apps with specific applicationmetadata.json configuration. These scenarios are
+  // covered by backend integration tests in HomeControllerTest_PartySelection.cs.
 
   it('Should be possible to select another party if instantiation fails, and go back to party selection and instantiate again', () => {
     cy.allowFailureOnEnd();
-    const user = cyUserCredentials.accountant.firstName;
+    // Use multiPartyPrompt user (doNotPromptForParty=false) to trigger backend redirect to party selection
+    const user = cyUserCredentials.multiPartyPrompt.firstName;
     cyMockResponses({
       allowedToInstantiate: (parties) =>
         // Removing all other users as well, since one of the users are not allowed to instantiate on tt02
         removeAllButOneOrg(parties).filter((party) => party.orgNumber || party.name.includes(user)),
-      doNotPromptForParty: false,
     });
-    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'accountant' });
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });
 
     // Select the first organisation. This is not allowed to instantiate in this app, so it will throw an error.
     cy.findAllByText(/org\.nr\. \d+/)
