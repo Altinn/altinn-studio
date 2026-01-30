@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.Models;
 using Altinn.Platform.Authorization.Constants;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Repositories.Interface;
@@ -15,6 +12,10 @@ using Altinn.Platform.Storage.Interface.Models;
 using Authorization.Interface.Models;
 using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.Profile.Interface;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Altinn.Platform.Authorization.Services.Implementation
 {
@@ -34,6 +35,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private readonly IUserProfiles _profilesWrapper;
         private readonly LocalTest.Services.Register.Interface.IParties _partiesWrapper;
         protected readonly IPolicyRetrievalPoint _prp;
+        protected readonly IAccessManagementWrapper _accessManagementWrapper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ContextHandler"/> class
@@ -397,6 +399,39 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             foreach (Role role in roles)
             {
                 attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), role.Value));
+            }
+
+            return attribute;
+        }
+
+        /// <summary>
+        /// Enriches the context with all access package attributes the given subject has access to on behalf of the party
+        /// </summary>
+        /// <param name="subjectContextAttributes">The subject attribute collection to enrich with access packages (if any) the subject user has for the party</param>
+        /// <param name="toSubjectPartyUuid">The subject party uuid to check if has any access packages for the party</param>
+        /// <param name="resourceParty">The party to check if subject party has any access packages for.</param>
+        protected async Task AddAccessPackageAttributes(XacmlContextAttributes subjectContextAttributes, Guid toSubjectPartyUuid, Guid resourceParty)
+        {
+            IEnumerable<AccessPackageUrn> accessPackages = await _accessManagementWrapper.GetAccessPackages(toSubjectPartyUuid, resourceParty);
+            foreach (AccessPackageUrn accessPackage in accessPackages)
+            {
+                subjectContextAttributes.Attributes.Add(GetStringAttribute(accessPackage.PrefixSpan.ToString(), accessPackage.ValueSpan.ToString()));
+            }
+        }
+
+        /// <summary>
+        /// Gets a XacmlAttribute model for a list of party ids
+        /// </summary>
+        /// <param name="attributeId">The attribute id for the type of value(s)</param>
+        /// <param name="values">The collection of values</param>
+        /// <param name="dataType">Optional: specify datatype. Default: XMLString</param>
+        /// <returns>XacmlAttribute</returns>
+        protected static XacmlAttribute GetStringAttribute(string attributeId, IEnumerable<string> values, string dataType = XacmlConstants.DataTypes.XMLString)
+        {
+            XacmlAttribute attribute = new XacmlAttribute(new Uri(attributeId), false);
+            foreach (string value in values)
+            {
+                attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(dataType), value));
             }
 
             return attribute;
