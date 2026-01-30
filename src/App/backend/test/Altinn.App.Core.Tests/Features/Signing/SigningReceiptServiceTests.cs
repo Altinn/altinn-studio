@@ -76,24 +76,15 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         Mock<IHostEnvironment> hostEnvironmentMock = new();
         hostEnvironmentMock.Setup(m => m.EnvironmentName).Returns("tt02");
 
-        var orgs = new Dictionary<string, AltinnCdnOrgDetails>
+        var orgDetails = new AltinnCdnOrgDetails
         {
-            {
-                "brg",
-                new AltinnCdnOrgDetails
-                {
-                    Name = new AltinnCdnOrgName { Nb = "Brønnøysundregistrene" },
-                    Orgnr = "974760673",
-                    Environments = ["tt02"],
-                }
-            },
+            Name = new AltinnCdnOrgName { Nb = "Brønnøysundregistrene" },
+            Orgnr = "974760673",
+            Environments = ["tt02"],
         };
 
-        AltinnCdnOrgs altinnCdnOrgs = new() { Orgs = orgs };
         Mock<IAltinnCdnClient> altinnCdnClientMock = new();
-        altinnCdnClientMock
-            .Setup(x => x.GetOrgs(It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult(altinnCdnOrgs));
+        altinnCdnClientMock.Setup(x => x.GetOrgDetails(It.IsAny<CancellationToken>())).ReturnsAsync(orgDetails);
 
         ApplicationMetadata applicationMetadata = new("org/app")
         {

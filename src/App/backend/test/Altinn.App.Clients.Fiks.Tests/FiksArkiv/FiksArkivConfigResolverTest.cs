@@ -471,28 +471,26 @@ public class FiksArkivConfigResolverTest
     {
         // Arrange
         var appMetadata = new ApplicationMetadata(appMetaId) { Org = appMetaOrg };
-        var orgs = new AltinnCdnOrgs()
-        {
-            Orgs = new Dictionary<string, AltinnCdnOrgDetails>
+        AltinnCdnOrgDetails? orgDetails = appMetaOrg is not null
+            ? new AltinnCdnOrgDetails
             {
-                [appMetaOrg ?? "unknown"] = new()
+                Orgnr = orgNumber,
+                Name = new AltinnCdnOrgName
                 {
-                    Orgnr = orgNumber,
-                    Name = new AltinnCdnOrgName
-                    {
-                        Nb = orgNameNb,
-                        Nn = orgNameNn,
-                        En = orgNameEn,
-                    },
+                    Nb = orgNameNb,
+                    Nn = orgNameNn,
+                    En = orgNameEn,
                 },
-            },
-        };
+            }
+            : null;
 
         await using var fixture = TestFixture.Create(services =>
         {
             services.AddFiksArkiv();
             services.AddSingleton(
-                Mock.Of<IAltinnCdnClient>(x => x.GetOrgs(It.IsAny<CancellationToken>()) == Task.FromResult(orgs))
+                Mock.Of<IAltinnCdnClient>(x =>
+                    x.GetOrgDetails(It.IsAny<CancellationToken>()) == Task.FromResult(orgDetails)
+                )
             );
         });
         fixture.AppMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);

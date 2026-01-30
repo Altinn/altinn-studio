@@ -10,7 +10,6 @@ using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Features.Bootstrap;
@@ -23,8 +22,7 @@ internal sealed class BootstrapGlobalService(
     IReturnUrlService returnUrlService,
     IProfileClient profileClient,
     IHttpContextAccessor httpContextAccessor,
-    IAltinnCdnClient altinnCdnClient,
-    ILogger<BootstrapGlobalService> logger
+    IAltinnCdnClient altinnCdnClient
 ) : IBootstrapGlobalService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -89,15 +87,8 @@ internal sealed class BootstrapGlobalService(
 
     private async Task<(AltinnCdnOrgName? OrgName, string? OrgLogoUrl)> GetOrgData()
     {
-        var appMeta = await appMetadata.GetApplicationMetadata();
-        var org = appMeta.Org;
-        if (string.IsNullOrEmpty(org))
-        {
-            return (null, null);
-        }
-
-        var cdnOrgs = await altinnCdnClient.GetOrgs();
-        if (cdnOrgs.Orgs is null || !cdnOrgs.Orgs.TryGetValue(org, out var orgDetails))
+        var orgDetails = await altinnCdnClient.GetOrgDetails();
+        if (orgDetails is null)
         {
             return (null, null);
         }

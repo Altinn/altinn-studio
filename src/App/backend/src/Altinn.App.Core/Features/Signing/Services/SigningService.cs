@@ -300,9 +300,7 @@ internal sealed class SigningService(
         Party serviceOwnerParty;
         try
         {
-            ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
-            AltinnCdnOrgs altinnCdnOrgs = await _altinnCdnClient.GetOrgs(ct);
-            AltinnCdnOrgDetails? serviceOwnerDetails = altinnCdnOrgs.Orgs?.GetValueOrDefault(applicationMetadata.Org);
+            AltinnCdnOrgDetails? serviceOwnerDetails = await _altinnCdnClient.GetOrgDetails(ct);
             PartyLookup partyLookup = new() { OrgNo = serviceOwnerDetails?.Orgnr };
             serviceOwnerParty = await altinnPartyClient.LookupParty(partyLookup);
 

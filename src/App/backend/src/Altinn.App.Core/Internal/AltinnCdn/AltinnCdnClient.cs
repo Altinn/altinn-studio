@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using Altinn.App.Core.Internal.App;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Internal.AltinnCdn;
@@ -20,19 +21,21 @@ internal sealed class AltinnCdnClient : IAltinnCdnClient
     private static readonly TimeSpan _retryDelay = TimeSpan.FromMinutes(5);
 
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IAppMetadata _appMetadata;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-    private AltinnCdnOrgs? _cached;
+    private AltinnCdnOrgDetails? _cached;
     private DateTimeOffset _cacheExpiry = DateTimeOffset.MinValue;
 
-    public AltinnCdnClient(IHttpClientFactory httpClientFactory)
+    public AltinnCdnClient(IHttpClientFactory httpClientFactory, IAppMetadata appMetadata)
     {
         _httpClientFactory = httpClientFactory;
+        _appMetadata = appMetadata;
     }
 
-    public async Task<AltinnCdnOrgs> GetOrgs(CancellationToken cancellationToken = default)
+    public async Task<AltinnCdnOrgDetails?> GetOrgDetails(CancellationToken cancellationToken = default)
     {
-        if (_cached is not null && DateTimeOffset.UtcNow < _cacheExpiry)
+        if (_cached != null && DateTimeOffset.UtcNow < _cacheExpiry)
         {
             return _cached;
         }
@@ -41,7 +44,7 @@ internal sealed class AltinnCdnClient : IAltinnCdnClient
         try
         {
             // Double-check after acquiring semaphore
-            if (_cached is not null && DateTimeOffset.UtcNow < _cacheExpiry)
+            if (_cached != null && DateTimeOffset.UtcNow < _cacheExpiry)
             {
                 return _cached;
             }
@@ -54,22 +57,26 @@ internal sealed class AltinnCdnClient : IAltinnCdnClient
                     cancellationToken: cancellationToken
                 ) ?? throw new JsonException("Received literal \"null\" response from Altinn CDN");
 
+            var appMetadata = await _appMetadata.GetApplicationMetadata();
+            AltinnCdnOrgDetails? orgDetails = orgs.Orgs?.GetValueOrDefault(appMetadata.Org);
+
             // Inject Digdir's organisation number for TTD, because TTD does not have an organisation number
             if (
-                !orgs.Orgs.IsNullOrEmpty()
-                && orgs.Orgs.TryGetValue("ttd", out var ttdOrgDetails)
+                orgDetails is not null
+                && string.Equals(appMetadata.Org, "ttd", StringComparison.OrdinalIgnoreCase)
+                && string.IsNullOrEmpty(orgDetails.Orgnr)
+                && !orgs.Orgs.IsNullOrEmpty()
                 && orgs.Orgs.TryGetValue("digdir", out var digdirOrgDetails)
-                && string.IsNullOrEmpty(ttdOrgDetails.Orgnr)
             )
             {
-                ttdOrgDetails.Orgnr = digdirOrgDetails.Orgnr;
+                orgDetails.Orgnr = digdirOrgDetails.Orgnr;
             }
 
-            _cached = orgs;
+            _cached = orgDetails;
             _cacheExpiry = DateTimeOffset.UtcNow + _cacheDuration;
-            return orgs;
+            return orgDetails;
         }
-        catch when (_cached is not null)
+        catch when (_cached != null)
         {
             // Return stale cached data on failure, but retry sooner
             _cacheExpiry = DateTimeOffset.UtcNow + _retryDelay;
