@@ -72,15 +72,15 @@ public sealed class AnsattPortenOrgAccessHandler : AuthorizationHandler<AnsattPo
             return;
         }
 
-        var altinnOrg = await _environmentsService.GetAltinnOrg(org);
-        if (altinnOrg is null)
+        var orgNr = await _environmentsService.GetAltinnOrgNumber(org);
+        if (orgNr is null)
         {
             context.Fail();
             return;
         }
 
-        if (!string.IsNullOrWhiteSpace(altinnOrg.OrgNr) &&
-            reporteeOrgNumbers.Contains(altinnOrg.OrgNr))
+        if (!string.IsNullOrWhiteSpace(orgNr) &&
+            reporteeOrgNumbers.Contains(orgNr))
         {
             context.Succeed(requirement);
         }

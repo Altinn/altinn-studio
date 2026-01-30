@@ -49,17 +49,8 @@ where TControllerTest : class
 
         var environmentsServiceMock = new Mock<IEnvironmentsService>();
         environmentsServiceMock
-            .Setup(x => x.GetAltinnOrg(It.IsAny<string>()))
-            .ReturnsAsync((string org) =>
-            {
-                var orgModel = new AltinnOrgModel
-                {
-                    OrgNr = "991825827",
-                    Name = new Dictionary<string, string> { { "nb", org == "ttd" ? "Testdepartementet" : "Test Org" } },
-                    Environments = new List<string> { "test" }
-                };
-                return orgModel;
-            });
+            .Setup(x => x.GetAltinnOrgNumber(It.IsAny<string>()))
+            .ReturnsAsync((string org) => "991825827");
 
         services.AddSingleton(environmentsServiceMock.Object);
     }

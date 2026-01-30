@@ -23,9 +23,9 @@ public interface IEnvironmentsService
     Task<string> GetHostNameByEnvName(string envName);
 
     /// <summary>
-    /// Gets the organization model for a given organization identifier
+    /// Gets the organization number for a given organization identifier, e.g. "ttd"
     /// </summary>
     /// <param name="org">Organization identifier</param>
-    /// <returns>Organization model, or null if not found</returns>
-    Task<AltinnOrgModel> GetAltinnOrg(string org);
+    /// <returns>Organization number</returns>
+    Task<string> GetAltinnOrgNumber(string org);
 }

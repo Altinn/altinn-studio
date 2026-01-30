@@ -130,10 +130,10 @@ public class EnvironmentsService : IEnvironmentsService
         );
     }
 
-    public async Task<AltinnOrgModel> GetAltinnOrg(string org)
+    public async Task<string> GetAltinnOrgNumber(string org)
     {
         var orgs = await GetAltinnOrgs();
-        if (!orgs.TryGetValue(org, out var orgModel))
+        if (!orgs.TryGetValue(org, out var orgModel) || orgModel is null)
         {
             return null;
         }
@@ -148,15 +148,12 @@ public class EnvironmentsService : IEnvironmentsService
         // We match the established behavior to ensure consistent authorization across all services
         // See: src/App/backend/src/Altinn.App.Core/Internal/AltinnCdn/AltinnCdnClient.cs:32
         // See: src/Runtime/operator/internal/operatorcontext/operatorcontext.go:88
-        if (org == "ttd" && string.IsNullOrWhiteSpace(orgModel.OrgNr))
+        if (org == "ttd" && string.IsNullOrWhiteSpace(orgModel.OrgNr) && orgs.TryGetValue("digdir", out var digdirOrg) && digdirOrg is not null)
         {
-            if (orgs.TryGetValue("digdir", out var digdirOrg))
-            {
-                orgModel.OrgNr = digdirOrg.OrgNr;
-            }
+            return digdirOrg.OrgNr;
         }
 
-        return orgModel;
+        return orgModel.OrgNr;
     }
 
     private Task<Dictionary<string, AltinnOrgModel>> GetAltinnOrgs()

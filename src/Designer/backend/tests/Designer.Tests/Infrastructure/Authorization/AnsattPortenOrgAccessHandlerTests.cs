@@ -147,8 +147,8 @@ public class AnsattPortenOrgAccessHandlerTests
 
         var environmentsServiceMock = new Mock<IEnvironmentsService>();
         environmentsServiceMock
-            .Setup(x => x.GetAltinnOrg(TestOrgIdentifier))
-            .ReturnsAsync((AltinnOrgModel?)null);
+            .Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
+            .ReturnsAsync((string?)null);
 
         var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
         var handler = new AnsattPortenOrgAccessHandler(
@@ -179,17 +179,10 @@ public class AnsattPortenOrgAccessHandlerTests
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var altinnOrg = new AltinnOrgModel
-        {
-            OrgNr = TestOrgNumber,
-            Name = new Dictionary<string, string> { { "nb", "Test Org" } },
-            Environments = new List<string> { "test" }
-        };
-
         var environmentsServiceMock = new Mock<IEnvironmentsService>();
         environmentsServiceMock
-            .Setup(x => x.GetAltinnOrg(TestOrgIdentifier))
-            .ReturnsAsync(altinnOrg);
+            .Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
+            .ReturnsAsync(TestOrgNumber);
 
         var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
         var handler = new AnsattPortenOrgAccessHandler(
@@ -220,17 +213,10 @@ public class AnsattPortenOrgAccessHandlerTests
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var altinnOrg = new AltinnOrgModel
-        {
-            OrgNr = TestOrgNumber,
-            Name = new Dictionary<string, string> { { "nb", "Test Org" } },
-            Environments = new List<string> { "test" }
-        };
-
         var environmentsServiceMock = new Mock<IEnvironmentsService>();
         environmentsServiceMock
-            .Setup(x => x.GetAltinnOrg(TestOrgIdentifier))
-            .ReturnsAsync(altinnOrg);
+            .Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
+            .ReturnsAsync(TestOrgNumber);
 
         var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
         var handler = new AnsattPortenOrgAccessHandler(
@@ -261,17 +247,10 @@ public class AnsattPortenOrgAccessHandlerTests
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var altinnOrg = new AltinnOrgModel
-        {
-            OrgNr = TestOrgNumber,
-            Name = new Dictionary<string, string> { { "nb", "Test Org" } },
-            Environments = new List<string> { "test" }
-        };
-
         var environmentsServiceMock = new Mock<IEnvironmentsService>();
         environmentsServiceMock
-            .Setup(x => x.GetAltinnOrg(TestOrgIdentifier))
-            .ReturnsAsync(altinnOrg);
+            .Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
+            .ReturnsAsync(TestOrgNumber);
 
         var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
         var handler = new AnsattPortenOrgAccessHandler(
@@ -303,17 +282,10 @@ public class AnsattPortenOrgAccessHandlerTests
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var ttdOrg = new AltinnOrgModel
-        {
-            OrgNr = TestOrgNumber, // ttd should use Digdir's org number
-            Name = new Dictionary<string, string> { { "nb", "Testdepartementet" } },
-            Environments = new List<string> { "test", "production" }
-        };
-
         var environmentsServiceMock = new Mock<IEnvironmentsService>();
         environmentsServiceMock
-            .Setup(x => x.GetAltinnOrg("ttd"))
-            .ReturnsAsync(ttdOrg);
+            .Setup(x => x.GetAltinnOrgNumber("ttd"))
+            .ReturnsAsync(TestOrgNumber);
 
         var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
         var handler = new AnsattPortenOrgAccessHandler(
