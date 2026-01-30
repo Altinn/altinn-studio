@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
 
@@ -49,10 +50,10 @@ internal class BootstrapGlobalResponse
     public UserProfile? UserProfile { get; set; }
 
     /// <summary>
-    /// Organisation display name in available languages (language code → name).
+    /// Organisation display name in available languages.
     /// </summary>
     [JsonPropertyName("orgName")]
-    public Dictionary<string, string>? OrgName { get; set; }
+    public AltinnCdnOrgName? OrgName { get; set; }
 
     /// <summary>
     /// Organisation logo URL from Altinn CDN.

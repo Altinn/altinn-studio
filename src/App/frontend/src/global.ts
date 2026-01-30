@@ -9,6 +9,12 @@ import type { IAppLanguage, IApplicationSettings, IProfile } from 'src/types/sha
 
 ///<reference types="cypress-iframe" />
 
+export interface OrgName {
+  nb?: string;
+  nn?: string;
+  en?: string;
+}
+
 export type AltinnAppGlobalData = {
   applicationMetadata: ApplicationMetadata;
   footer: IFooterLayout;
@@ -17,7 +23,7 @@ export type AltinnAppGlobalData = {
   availableLanguages: IAppLanguage[];
   userProfile?: IProfile;
   returnUrl?: string;
-  orgName?: Record<string, string>;
+  orgName?: OrgName;
   orgLogoUrl?: string;
 };
 

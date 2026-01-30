@@ -52,7 +52,8 @@ function useOrgName(_org: string | undefined) {
   const orgName = window.altinnAppGlobalData?.orgName;
 
   if (orgName) {
-    return orgName[currentLanguage] || orgName.nb;
+    const lang = currentLanguage as keyof typeof orgName;
+    return orgName[lang] || orgName.nb;
   }
 
   return undefined;

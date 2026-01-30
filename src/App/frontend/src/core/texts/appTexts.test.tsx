@@ -8,6 +8,7 @@ import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource } from 'src/features/language/textResources';
+import type { OrgName } from 'src/global';
 
 function AppTextsRenderer() {
   const appName = useAppName();
@@ -22,7 +23,7 @@ function AppTextsRenderer() {
 
 interface RenderProps {
   textResources?: IRawTextResource[];
-  orgName?: Record<string, string>;
+  orgName?: OrgName;
   nbTitle?: string;
 }
 
