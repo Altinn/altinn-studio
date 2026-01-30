@@ -71,7 +71,6 @@ describe('CommitAndPushContent', () => {
   });
 
   it('should close fileChangesInfoModal when clicking close', async () => {
-    const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
     const user = userEvent.setup();
     renderCommitAndPushContent();
     await user.click(getReviewChangesButton());
@@ -79,10 +78,6 @@ describe('CommitAndPushContent', () => {
       name: 'Lukk dialogvindu',
     });
     await user.click(closeModalButton);
-    const dialog = screen.getByRole('dialog') as HTMLDialogElement;
-    dialog.close();
-    dialog.dispatchEvent(new Event('close', { bubbles: true }));
-    consoleErrorMock.mockRestore();
 
     expect(queryDialog()).not.toBeInTheDocument();
   });

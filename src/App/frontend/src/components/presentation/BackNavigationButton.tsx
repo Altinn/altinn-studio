@@ -5,13 +5,13 @@ import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
 import classes from 'src/components/presentation/BackNavigationButton.module.css';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { getDialogIdFromDataValues, getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 
 export function BackNavigationButton(props: { className?: string }) {
@@ -21,7 +21,9 @@ export function BackNavigationButton(props: { className?: string }) {
   const isSubform = useIsSubformPage();
 
   const { exitSubform } = useNavigatePage();
-  const { performProcess, isAnyProcessing, isThisProcessing: isExitingSubform } = useIsProcessing();
+  const performProcess = useProcessingMutation('exit-subform');
+  const isExitingSubform = useIsThisProcessing('exit-subform');
+  const isAnyProcessing = useIsAnyProcessing();
 
   const dataValues = useInstanceDataQuery({ select: (instance) => instance.dataValues }).data;
   const dialogId = getDialogIdFromDataValues(dataValues);
