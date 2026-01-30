@@ -1,4 +1,5 @@
 mcp>=1.12.1
+fastmcp==2.11.0
 pydantic>=2.11.7
 pydantic-core>=2.33.2
 pydantic-settings>=2.10.1
