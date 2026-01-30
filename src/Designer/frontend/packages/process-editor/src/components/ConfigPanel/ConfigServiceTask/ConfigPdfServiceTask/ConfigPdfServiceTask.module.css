@@ -51,3 +51,7 @@ ol > li::marker {
 .description {
   margin-top: calc(var(--fds-spacing-2) * -1);
 }
+
+.filenameContent {
+  margin-top: var(--fds-spacing-3);
+}

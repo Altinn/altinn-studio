@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
-import { StudioParagraph, StudioProperty, StudioTextResourceAction } from '@studio/components';
+import { StudioFieldset, StudioProperty, StudioTextResourceAction } from '@studio/components';
 import type { StudioTextResourceActionTexts } from '@studio/components';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -98,17 +98,12 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
   };
 
   return (
-    <div className={classes.createLayoutSet}>
-      <StudioParagraph data-size='sm' className={classes.boldFont}>
-        {t('process_editor.configuration_panel_filename')}
-      </StudioParagraph>
-
-      <StudioParagraph data-size='sm'>
-        {t('process_editor.configuration_panel_pdf_filename_description')}
-      </StudioParagraph>
-
+    <StudioFieldset
+      legend={t('process_editor.configuration_panel_filename')}
+      description={t('process_editor.configuration_panel_pdf_filename_description')}
+    >
       {isTextResourceEditorOpen ? (
-        <div ref={textResourceActionRef}>
+        <div ref={textResourceActionRef} className={classes.filenameContent}>
           <StudioTextResourceAction
             textResources={textResources}
             textResourceId={currentTextResourceId}
@@ -121,12 +116,14 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
           />
         </div>
       ) : (
-        <StudioProperty.Button
-          onClick={handleOpenTextResourceEditor}
-          property={t('process_editor.configuration_panel_pdf_filename_label')}
-          value={displayTextResourceValue}
-        />
+        <div className={classes.filenameContent}>
+          <StudioProperty.Button
+            onClick={handleOpenTextResourceEditor}
+            property={t('process_editor.configuration_panel_pdf_filename_label')}
+            value={displayTextResourceValue}
+          />
+        </div>
       )}
-    </div>
+    </StudioFieldset>
   );
 };
