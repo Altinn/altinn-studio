@@ -185,4 +185,82 @@ describe('Group summary test', () => {
         cy.contains('span', validationMessage).should('exist');
       });
   });
+
+  it('Should hide edit buttons in Summary2 when edit.editButton is set to false', () => {
+    cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
+    cy.gotoNavPage('Repeterende gruppe');
+
+    // The first repeating group
+    cy.findAllByRole('button', { name: /Legg til ny/ })
+      .first()
+      .click();
+    cy.findByRole('textbox', { name: /Navn/ }).type('Test Navn 1');
+    cy.findByRole('textbox', { name: /Poeng/ }).type('10');
+    cy.findByRole('textbox', { name: /Dato/ }).type('01.01.2026');
+    cy.findAllByRole('button', { name: /Lagre og lukk/ })
+      .first()
+      .click();
+
+    // Repeating group with nested RepeatingGroup
+    cy.findAllByRole('button', { name: /Legg til ny/ })
+      .eq(2)
+      .click();
+    cy.findByRole('textbox', { name: /Navn/ }).type('Test Navn 2');
+    cy.findByRole('textbox', { name: /Poeng/ }).type('20');
+    cy.findByRole('textbox', { name: /Dato/ }).type('02.01.2026');
+
+    // Nested repeating group
+    cy.findAllByRole('button', { name: /Legg til ny/ })
+      .last()
+      .click();
+    cy.findByRole('textbox', { name: /Bilmerke/ }).type('Toyota');
+    cy.findByRole('textbox', { name: /Modell/ }).type('Corolla');
+    cy.findByRole('textbox', { name: /Årsmodell/ }).type('2024');
+
+    cy.findAllByRole('button', { name: /Lagre og lukk/ })
+      .first()
+      .click();
+
+    cy.findAllByRole('button', { name: /Endre/ }).should('have.length', 13);
+    cy.changeLayout((component) => {
+      if (component.type === 'RepeatingGroup') {
+        component.edit = component.edit ?? {};
+        component.edit.editButton = false; // Hiding the edit button hides every edit button in summary
+      }
+    });
+
+    // The remaining 3 ones are edit buttons for the whole repeating groups from legacy Summary
+    cy.findAllByRole('button', { name: /Endre/ }).should('have.length', 3);
+
+    cy.changeLayout((component) => {
+      if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
+        component.tableColumns = {
+          'RepeatingGroup-Input-Points': {
+            editInTable: true, // It can still be edited if editable in the table even when the edit button is gone
+          },
+        };
+      }
+      if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup-With-RepeatingGroup') {
+        component.tableColumns = {
+          'RepeatingGroup-With-RepeatingGroup-Input-Points': {
+            editInTable: true,
+          },
+        };
+      }
+    });
+
+    cy.findAllByRole('button', { name: /Endre/ }).should('have.length', 3 + 3);
+    cy.get('button[data-target-id="RepeatingGroup-Input-Points-0"]').should('have.length', 2);
+    cy.get('button[data-target-id="RepeatingGroup-With-RepeatingGroup-Input-Points-0"]').should('have.length', 1);
+
+    cy.changeLayout((component) => {
+      if (component.type === 'Input' && component.id.match(/^RepeatingGroup-.*?Input-Points$/)) {
+        component.readOnly = true; // No point in having an edit button for a readOnly component
+      }
+    });
+
+    cy.findAllByRole('button', { name: /Endre/ }).should('have.length', 3);
+    cy.get('button[data-target-id="RepeatingGroup-Input-Points-0"]').should('have.length', 0);
+    cy.get('button[data-target-id="RepeatingGroup-With-RepeatingGroup-Input-Points-0"]').should('have.length', 0);
+  });
 });

@@ -15,7 +15,8 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
   const item = useItemWhenType(targetBaseComponentId, 'Address');
   const { textResourceBindings, dataModelBindings, simplified, required } = item;
-  const { title, careOfTitle, zipCodeTitle, postPlaceTitle, houseNumberTitle } = textResourceBindings ?? {};
+  const { title, summaryTitle, careOfTitle, zipCodeTitle, postPlaceTitle, houseNumberTitle } =
+    textResourceBindings ?? {};
   const { formData } = useDataModelBindings(dataModelBindings);
   const { address, postPlace, zipCode, careOf, houseNumber } = formData;
   const emptyFieldText = useSummaryOverrides<'Address'>(targetBaseComponentId)?.emptyFieldText;
@@ -38,7 +39,7 @@ export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
       <div className={classes.addressSummaryComponent}>
         <div>
           <SingleValueSummary
-            title={<Lang id={title || 'address_component.address'} />}
+            title={<Lang id={summaryTitle || title || 'address_component.address'} />}
             displayData={address}
             targetBaseComponentId={targetBaseComponentId}
             isCompact={isCompact}

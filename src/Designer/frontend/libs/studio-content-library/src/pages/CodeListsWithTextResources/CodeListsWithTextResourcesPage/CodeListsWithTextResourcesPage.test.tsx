@@ -12,7 +12,8 @@ import {
   codeList2Data,
   codeListDataList,
 } from '../../../test-data/codeListDataList';
-import { ArrayUtils, Guard } from '@studio/pure-functions';
+import { Guard } from '@studio/guard';
+import { ArrayUtils } from '@studio/pure-functions';
 import { label1ResourceNb, textResources } from '../../../test-data/textResources';
 import type { TextResource } from '../../../types/TextResource';
 import type { TextResourceWithLanguage } from '../../../types/TextResourceWithLanguage';

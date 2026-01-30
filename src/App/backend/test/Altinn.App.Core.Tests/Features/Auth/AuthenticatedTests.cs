@@ -121,6 +121,18 @@ public class AuthenticatedTests
                 AuthenticationTypes.Org,
                 true
             },
+            {
+                "Custom token with unknown type",
+                "eyJhbGciOiJSUzI1NiIsImtpZCI6Im9lZC1hZG1pbi1jbGllbnQta2V5IiwidHlwIjoiSldUIn0.eyJhdWQiOiJodHRwczovL3Rlc3QubWFza2lucG9ydGVuLm5vLyIsInNjb3BlIjoiZGlnZGlyOmRkOnByb2JhdGVkZWNsYXJhdGlvbnMiLCJpc3MiOiI3ZDdjM2M4OC1kNGZlLTRkZDEtOTI0NC0wYzYzNWIxZGZkMDMiLCJleHAiOjE3NjQyNDk3NTksImlhdCI6MTc2NDI0OTc0OSwianRpIjoiYmI0NmJmYmQtMjM4ZS00ZTRlLWEyOGEtN2JjY2I5N2U3OTk5In0.mnYdN2OEzL3xRC37ZXbnsMqBCI1uQPxGBYhOKS85y0XnwvajUwi4e5yJ643MZy3L_N41b-U7pi4km-nfUmbCAIAjGwsTNO9mXyPCrp14Xf51RqoYHbEfvIkHxY0QbFkDijyGrNttSqI3UOhf3RnyT0Ev86IFSHc0zdqDqZoKjwshqAvok18YW6o_IyyNloCoKqLWYVVXy4Fg9eALph76QsqdEh9YAUojUN14ngG3Qs76xUAJefMmJcQWzgoBhwZlU0KiEMbwe8PdJuCaEd7dRX71wTMK8pKhZRIxXjVmNfTtgdgyW5YE37C9uTwMYyuZhJXJ3F6bWCS_joYrn7m-SQ",
+                AuthenticationTypes.Unknown,
+                true
+            },
+            {
+                "Custom Maskinporten token",
+                "eyJraWQiOiJiZFhMRVduRGpMSGpwRThPZnl5TUp4UlJLbVo3MUxCOHUxeUREbVBpdVQwIiwiYWxnIjoiUlMyNTYifQ.eyJzY29wZSI6ImRnbTpwb2xpY2UiLCJpc3MiOiJodHRwczovL3Rlc3QubWFza2lucG9ydGVuLm5vLyIsImNsaWVudF9hbXIiOiJwcml2YXRlX2tleV9qd3QiLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiZXhwIjoxNzY0NjI3MjAxLCJpYXQiOjE3NjQ2MjcwODEsImNsaWVudF9pZCI6ImY0ODExZTE4LTA1YWEtNGE1MC1iNWQ1LTg0OTBkYTc4YWFjZSIsImp0aSI6Ik1CSzQ2Tk9hdGx6VldVdjgzZ0VRalBsTVQ2Z0VpYlgzaWI5X3VaWVRwQVEiLCJjb25zdW1lciI6eyJhdXRob3JpdHkiOiJpc282NTIzLWFjdG9yaWQtdXBpcyIsIklEIjoiMDE5Mjo5OTE4MjU4MjcifX0.iZCrY4qGZrAiR2vGq4VuH7X8Ta9ZJU68F6hcQMAAijlEnqGs1PPvnQhLh4DZRI1QDvbub_k6zjmpYJvAPXKYb1hS9IdBbX3kWxX4dtPaiKcHHpz1W9i5t3pbKnxkoI1Tk7xfuY4Cv8hkz00VKZHWh631mSz9vG3w_3TeRW0g5NYCUVMJ7OmA3ZO9Y7f6IeYw3Z4-1LLVTLRSh1ie0-riCKBDpfPDTgCcRN_W5mio8CyWGey_l9kzVjwbLftix-FCNPIVe5GJIqQVU-RlfApmNFazgeCn8Yq5EOD9z7ypY3SFGMsKPsGQ86mRExCMituZ0w6nfMf2vebdch5G0OQvs_o5FIb8gg7E05ZlWI0Enh9HH3hyeYK8IhJZF0ODzb87i0-4h7v6orGtezz0qmpZ1WvwSdG2saHVlsCsa-pyBzGlAYYwYcjKOmP5u2NQgwPi8z--ZaokXHFjr2PSJJZXmbknGPOL0MulDd412eiW_7TTYfSq438KHf2amQ_DnOpD",
+                AuthenticationTypes.Unknown,
+                true
+            },
         };
 
     [Theory]
@@ -174,6 +186,10 @@ public class AuthenticatedTests
                 var systemUser = Assert.IsType<Authenticated.SystemUser>(auth);
                 Assert.Equal(token, auth.Token);
                 details = await systemUser.LoadDetails();
+                break;
+            case AuthenticationTypes.Unknown:
+                Assert.IsType<Authenticated.Unknown>(auth);
+                Assert.Equal(token, auth.Token);
                 break;
             default:
                 Assert.Fail("Unknown token type: " + tokenType);
@@ -438,6 +454,22 @@ public class AuthenticatedTests
                                 }
                             );
                         },
+                        getPartyList: null!,
+                        validateSelectedParty: null!
+                    );
+                }
+                break;
+            case AuthenticationTypes.Unknown:
+                {
+                    auth = Authenticated.From(
+                        tokenStr: token,
+                        parsedToken: null,
+                        isAuthenticated: true,
+                        appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
+                        getSelectedParty: null!,
+                        getUserProfile: null!,
+                        lookupUserParty: null!,
+                        lookupOrgParty: null!,
                         getPartyList: null!,
                         validateSelectedParty: null!
                     );

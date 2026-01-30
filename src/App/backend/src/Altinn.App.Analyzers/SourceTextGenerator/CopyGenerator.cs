@@ -61,7 +61,14 @@ internal static class CopyGenerator
         }
         else
         {
-            builder.Append("        return new()\r\n        {\r\n");
+            builder.Append(
+                """
+                        return new()
+                        {
+                            // Initialize properties
+
+                """
+            );
             foreach (var property in node.Properties)
             {
                 builder.Append(
@@ -91,16 +98,17 @@ internal static class CopyGenerator
             $$"""
 
                 [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("list")]
-                private static {{node.ListType}}? CopyRecursive(
-                    {{node.ListType}}? list
+                private static {{node.ListTypeWithNullable}} CopyRecursive(
+                    {{node.ListTypeWithNullable}} list
                 )
                 {
                     if (list is null)
                     {
                         return null;
                     }
+                    // csharpier-ignore
+                    {{node.ListType}} result = new (list.Count);
 
-                    {{node.ListType}} result = new(list.Count);
                     foreach (var item in list)
                     {
                         result.Add({{(node.IsJsonValueType ? "item" : "CopyRecursive(item)")}});

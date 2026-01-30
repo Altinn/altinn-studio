@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Models.Layout.Components;
 /// <summary>
 /// This class represents multiple component types with children as List[string] that are not repeating.
 /// </summary>
-public sealed class NonRepeatingGroupComponent : SimpleReferenceComponent
+public sealed class NonRepeatingGroupComponent : ReferenceComponent
 {
     /// <summary>
     /// Parser for NonRepeatingGroupComponent.
@@ -16,7 +16,7 @@ public sealed class NonRepeatingGroupComponent : SimpleReferenceComponent
         var id = ParseId(componentElement);
         var type = ParseType(componentElement);
 
-        var children = ParseChildReferences(componentElement, pageId, layoutId);
+        var children = ParseChildReferences(componentElement, layoutId, pageId);
 
         return new NonRepeatingGroupComponent()
         {
