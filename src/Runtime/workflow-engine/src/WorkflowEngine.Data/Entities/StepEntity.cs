@@ -15,7 +15,7 @@ internal sealed class StepEntity : IHasCommonMetadata
     public long Id { get; set; }
 
     [MaxLength(500)]
-    public required string Key { get; set; }
+    public required string IdempotencyKey { get; set; }
 
     public PersistentItemStatus Status { get; set; }
 
@@ -52,11 +52,12 @@ internal sealed class StepEntity : IHasCommonMetadata
     public long JobId { get; set; }
     public WorkflowEntity? Job { get; set; }
 
-    public static StepEntity FromDomainModel(Step step) =>
-        new()
+    public static StepEntity FromDomainModel(Step step)
+    {
+        return new StepEntity
         {
             Id = step.DatabaseId,
-            Key = step.Key,
+            IdempotencyKey = step.IdempotencyKey,
             Status = step.Status,
             ProcessingOrder = step.ProcessingOrder,
             InitialStartTime = step.InitialStartTime,
@@ -68,6 +69,7 @@ internal sealed class StepEntity : IHasCommonMetadata
             CommandJson = JsonSerializer.Serialize(step.Command),
             RetryStrategyJson = step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy) : null,
         };
+    }
 
     public Step ToDomainModel(string? traceContext = null)
     {
@@ -80,7 +82,7 @@ internal sealed class StepEntity : IHasCommonMetadata
         return new Step
         {
             DatabaseId = Id,
-            Key = Key,
+            IdempotencyKey = IdempotencyKey,
             Status = Status,
             ProcessingOrder = ProcessingOrder,
             InitialStartTime = InitialStartTime,

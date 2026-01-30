@@ -63,8 +63,8 @@ internal partial class Engine
         {
             // TODO: Not sure about this logic...
             // Only add if not already in memory to avoid duplicates
-            if (_inbox.TryAdd(job.Key, job))
-                _logger.RestoredWorkflowFromDb(job.Key);
+            if (_inbox.TryAdd(job.IdempotencyKey, job))
+                _logger.RestoredWorkflowFromDb(job.IdempotencyKey);
         }
     }
 

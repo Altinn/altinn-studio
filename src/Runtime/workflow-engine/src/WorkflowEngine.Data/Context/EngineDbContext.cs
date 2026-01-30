@@ -21,7 +21,7 @@ internal sealed class EngineDbContext : DbContext
             // Indexes
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => e.Key);
+            entity.HasIndex(e => e.IdempotencyKey);
             entity.HasIndex(e => new
             {
                 e.InstanceOrg,
@@ -43,7 +43,7 @@ internal sealed class EngineDbContext : DbContext
             entity.HasIndex(e => e.BackoffUntil);
             entity.HasIndex(e => e.CreatedAt);
             entity.HasIndex(e => e.ProcessingOrder);
-            entity.HasIndex(e => e.Key);
+            entity.HasIndex(e => e.IdempotencyKey);
 
             // CreatedAt property
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()").ValueGeneratedOnAdd();

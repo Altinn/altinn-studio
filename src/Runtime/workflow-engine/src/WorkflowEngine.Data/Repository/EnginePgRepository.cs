@@ -202,7 +202,7 @@ internal sealed class EnginePgRepository : IEngineRepository
         }
         catch (Exception ex)
         {
-            _logger.FailedToUpdateWorkflow(workflow.Key, workflow.DatabaseId, ex.Message, ex);
+            _logger.FailedToUpdateWorkflow(workflow.IdempotencyKey, workflow.DatabaseId, ex.Message, ex);
             throw;
         }
     }
@@ -236,7 +236,7 @@ internal sealed class EnginePgRepository : IEngineRepository
         }
         catch (Exception ex)
         {
-            _logger.FailedToUpdateStep(step.Key, step.DatabaseId, ex.Message, ex);
+            _logger.FailedToUpdateStep(step.IdempotencyKey, step.DatabaseId, ex.Message, ex);
             throw;
         }
     }

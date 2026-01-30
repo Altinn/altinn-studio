@@ -2,6 +2,7 @@ namespace WorkflowEngine.Models;
 
 public sealed record Workflow : PersistentItem
 {
+    public string? InstanceLockKey { get; init; }
     public required Actor Actor { get; init; }
     public required InstanceInformation InstanceInformation { get; init; }
     public DateTimeOffset? BackoffUntil { get; set; }
@@ -10,7 +11,7 @@ public sealed record Workflow : PersistentItem
     public static Workflow FromRequest(EngineRequest engineRequest) =>
         new()
         {
-            Key = engineRequest.Key,
+            IdempotencyKey = engineRequest.Key,
             InstanceInformation = engineRequest.InstanceInformation,
             Actor = engineRequest.Actor,
             TraceContext = engineRequest.TraceContext,
@@ -19,5 +20,5 @@ public sealed record Workflow : PersistentItem
                 .ToList(),
         };
 
-    public override string ToString() => $"[{GetType().Name}] {Key} ({Status})";
+    public override string ToString() => $"[{GetType().Name}] {IdempotencyKey} ({Status})";
 };

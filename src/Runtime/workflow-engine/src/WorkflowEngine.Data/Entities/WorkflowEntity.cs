@@ -13,7 +13,9 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     public long Id { get; set; }
 
     [MaxLength(500)]
-    public required string Key { get; set; }
+    public required string IdempotencyKey { get; set; }
+
+    public string? InstanceLockKey { get; set; }
 
     public PersistentItemStatus Status { get; set; }
 
@@ -47,7 +49,8 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
         new()
         {
             Id = workflow.DatabaseId,
-            Key = workflow.Key,
+            IdempotencyKey = workflow.IdempotencyKey,
+            InstanceLockKey = workflow.InstanceLockKey,
             Status = workflow.Status,
             ActorUserIdOrOrgNumber = workflow.Actor.UserIdOrOrgNumber,
             ActorLanguage = workflow.Actor.Language,
@@ -63,7 +66,8 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
         new()
         {
             DatabaseId = Id,
-            Key = Key,
+            IdempotencyKey = IdempotencyKey,
+            InstanceLockKey = InstanceLockKey,
             Status = Status,
             Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
             InstanceInformation = new InstanceInformation

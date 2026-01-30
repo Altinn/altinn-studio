@@ -95,9 +95,9 @@ internal partial class Engine
     private void RemoveJobAndReleaseQueueSlot(Workflow workflow)
     {
         _logger.ReleasingQueueSlot();
-        bool removed = _inbox.TryRemove(workflow.Key, out _);
+        bool removed = _inbox.TryRemove(workflow.IdempotencyKey, out _);
         if (!removed)
-            throw new EngineException($"Unable to release queue slot {workflow.Key}");
+            throw new EngineException($"Unable to release queue slot {workflow.IdempotencyKey}");
 
         _inboxCapacityLimit.Release();
     }

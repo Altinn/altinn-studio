@@ -24,7 +24,7 @@ public sealed record Step : PersistentItem
         new()
         {
             DatabaseId = 0,
-            Key = $"{jobIdentifier}/{request.Command}",
+            IdempotencyKey = $"{jobIdentifier}/{request.Command}",
             Actor = actor,
             StartTime = request.StartTime,
             InitialStartTime = request.StartTime,
@@ -33,7 +33,7 @@ public sealed record Step : PersistentItem
             RetryStrategy = request.RetryStrategy,
         };
 
-    public override string ToString() => $"[{nameof(Step)}.{Command.GetType().Name}] {Key} ({Status})";
+    public override string ToString() => $"[{nameof(Step)}.{Command.GetType().Name}] {IdempotencyKey} ({Status})";
 
     protected override void Dispose(bool disposing)
     {

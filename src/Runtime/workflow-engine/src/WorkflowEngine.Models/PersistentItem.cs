@@ -3,7 +3,7 @@ namespace WorkflowEngine.Models;
 public abstract record PersistentItem : IDisposable
 {
     public long DatabaseId { get; set; }
-    public required string Key { get; init; }
+    public required string IdempotencyKey { get; init; }
     public PersistentItemStatus Status { get; set; }
     public string? TraceContext { get; set; }
 
@@ -11,9 +11,9 @@ public abstract record PersistentItem : IDisposable
 
     // TODO: Write a test for equality for inheritors. A bit suss on the persistence of these overrides during inheritance
     public virtual bool Equals(PersistentItem? other) =>
-        other?.Key.Equals(Key, StringComparison.OrdinalIgnoreCase) is true;
+        other?.IdempotencyKey.Equals(IdempotencyKey, StringComparison.OrdinalIgnoreCase) is true;
 
-    public override int GetHashCode() => Key.GetHashCode(StringComparison.InvariantCulture);
+    public override int GetHashCode() => IdempotencyKey.GetHashCode(StringComparison.InvariantCulture);
 
     protected virtual void Dispose(bool disposing)
     {

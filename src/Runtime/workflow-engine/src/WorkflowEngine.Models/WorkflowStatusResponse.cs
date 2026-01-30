@@ -64,7 +64,7 @@ public sealed record StepDetail
     internal static StepDetail FromStep(Step step) =>
         new()
         {
-            Identifier = step.Key,
+            Identifier = step.IdempotencyKey,
             CommandType = step.Command.GetType().Name,
             Status = step.Status,
             RetryCount = step.RequeueCount,

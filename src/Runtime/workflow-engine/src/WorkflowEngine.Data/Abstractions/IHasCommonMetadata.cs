@@ -1,3 +1,3 @@
 namespace WorkflowEngine.Data.Abstractions;
 
-internal interface IHasCommonMetadata : IHasId, IHasKey, IHasStatus, IHasTimestamps;
+internal interface IHasCommonMetadata : IHasId, IHasIdempotencyKey, IHasStatus, IHasTimestamps;
