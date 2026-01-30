@@ -76,12 +76,6 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
 
   const handleOpenTextResourceEditor = (event: React.MouseEvent<HTMLButtonElement>): void => {
     onOpenTextResourceEditor(event.currentTarget);
-
-    if (!storedFilenameTextResourceId) {
-      setCurrentTextResourceId(generateTextResourceId());
-    } else {
-      setCurrentTextResourceId(storedFilenameTextResourceId);
-    }
     setIsTextResourceEditorOpen(true);
   };
 
@@ -100,6 +94,7 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
 
   const handleDeleteTextResource = (): void => {
     updateBpmnFilenameTextResourceKey('');
+    setCurrentTextResourceId('');
   };
 
   return (
