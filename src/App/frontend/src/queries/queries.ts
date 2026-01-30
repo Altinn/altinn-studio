@@ -29,11 +29,11 @@ import {
   getPdfFormatUrl,
   getProcessNextUrl,
   getProcessStateUrl,
-  getRedirectUrl,
   getSetSelectedPartyUrl,
   getUpdateFileTagsUrl,
   getValidationUrl,
   instancesControllerUrl,
+  postalCodesUrl,
   profileApiUrl,
   refreshJwtTokenUrl,
   selectedPartyUrl,
@@ -57,7 +57,16 @@ import type { ILayoutSettings, IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { ISimpleInstance, LooseAutocomplete } from 'src/types';
-import type { IActionType, IAltinnOrgs, IData, IInstance, IParty, IProcess, IProfile } from 'src/types/shared';
+import type {
+  IActionType,
+  IAltinnOrgs,
+  IData,
+  IInstance,
+  IParty,
+  IProcess,
+  IProfile,
+  PostalCodesRegistry,
+} from 'src/types/shared';
 
 export const doSetSelectedParty = (partyId: number | string) =>
   putWithoutConfig<LooseAutocomplete<'Party successfully updated'> | null>(getSetSelectedPartyUrl(partyId));
@@ -226,8 +235,6 @@ export const fetchOrgs = (): Promise<{ orgs: IAltinnOrgs }> =>
   });
 
 export const fetchPartiesAllowedToInstantiate = (): Promise<IParty[]> => httpGet(validPartiesUrl);
-export const fetchReturnUrl = (queryParameterReturnUrl: string): Promise<string> =>
-  httpGet(getRedirectUrl(queryParameterReturnUrl));
 
 export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTokenUrl);
 
@@ -274,14 +281,6 @@ export const fetchLayoutSchema = async (): Promise<JSONSchema7 | undefined> => {
   return (await axios.get(`${schemaBaseUrl}${LAYOUT_SCHEMA_NAME}`)).data ?? undefined;
 };
 
-export const fetchPostPlace = (zipCode: string): Promise<{ result: string; valid: boolean }> =>
-  httpGet('https://api.bring.com/shippingguide/api/postalCode.json', {
-    params: {
-      clientUrl: window.location.href,
-      pnr: zipCode,
-    },
-  });
-
 export function fetchExternalApi({
   instanceId,
   externalApiId,
@@ -292,3 +291,5 @@ export function fetchExternalApi({
   const externalApiUrl = `${appPath}/instances/${instanceId}/api/external/${externalApiId}`;
   return httpGet(externalApiUrl);
 }
+
+export const fetchPostalCodes = async (): Promise<PostalCodesRegistry> => (await axios.get(postalCodesUrl)).data;

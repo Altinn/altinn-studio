@@ -19,6 +19,7 @@ import { Errors } from './Errors';
 
 export type CodeListsPageProps = {
   codeLists: CodeListData[];
+  isPublishing: (codeListName: string) => boolean;
   publishedCodeLists: string[];
   onPublish: (data: CodeListData) => void;
   onSave: (data: CodeListData[]) => void;
@@ -26,6 +27,7 @@ export type CodeListsPageProps = {
 
 export function CodeListsPage({
   codeLists,
+  isPublishing,
   onPublish,
   onSave,
   publishedCodeLists,
@@ -79,6 +81,7 @@ export function CodeListsPage({
       </StudioButton>
       <ListOfCodeLists
         codeListMap={codeListMap}
+        isPublishing={isPublishing}
         onDeleteCodeList={handleDeleteCodeList}
         onPublish={onPublish}
         onUpdateCodeListData={handleUpdateCodeListData}
@@ -94,6 +97,7 @@ export function CodeListsPage({
 
 type ListOfCodeListsProps = Readonly<{
   codeListMap: CodeListMap;
+  isPublishing: (codeListName: string) => boolean;
   onDeleteCodeList: (key: string) => void;
   onPublish: (data: CodeListData) => void;
   onUpdateCodeListData: (key: string, newData: CodeListData) => void;
@@ -102,6 +106,7 @@ type ListOfCodeListsProps = Readonly<{
 
 function ListOfCodeLists({
   codeListMap,
+  isPublishing,
   onDeleteCodeList,
   onPublish,
   onUpdateCodeListData,
@@ -118,6 +123,7 @@ function ListOfCodeLists({
         {[...codeListMap].map(([key, data]) => (
           <CodeListDataEditor
             data={data}
+            isPublishing={isPublishing(data.name)}
             key={key}
             onDelete={() => onDeleteCodeList(key)}
             onPublish={onPublish}

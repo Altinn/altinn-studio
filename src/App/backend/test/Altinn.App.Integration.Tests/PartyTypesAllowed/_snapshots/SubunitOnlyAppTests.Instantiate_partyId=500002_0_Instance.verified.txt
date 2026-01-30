@@ -108,7 +108,7 @@
         BlobStoragePath: ttd/basic/<instanceGuid>/data/<dataElementId[0]>,
         SelfLinks: {
           Apps: https://app:5005/ttd/basic/instances/500002/<instanceGuid>/data/<dataElementId[0]>,
-          Platform: https://platform./storage/api/v1/instances/500002/<instanceGuid>/data/<dataElementId[0]>
+          Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/500002/<instanceGuid>/data/<dataElementId[0]>
         },
         Size: 146,
         Locked: false,

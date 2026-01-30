@@ -148,6 +148,7 @@ type CommandSnapshot struct {
 	Scopes    []string `json:"scopes,omitempty"`
 	Authority string   `json:"authority,omitempty"`
 	KeyIds    []string `json:"keyIds,omitempty"`
+	Expiries  []string `json:"expiries,omitempty"` // ISO 8601 timestamps of certificate NotAfter
 }
 
 type CommandListSnapshot []CommandSnapshot
@@ -163,6 +164,21 @@ func extractKeyIds(jwks *crypto.Jwks) []string {
 	return ids
 }
 
+func extractExpiries(jwks *crypto.Jwks) []string {
+	if jwks == nil {
+		return nil
+	}
+	expiries := make([]string, 0, len(jwks.Keys))
+	for _, k := range jwks.Keys {
+		certs := k.Certificates()
+		if len(certs) > 0 {
+			// Use the first certificate's NotAfter, format as ISO 8601
+			expiries = append(expiries, certs[0].NotAfter.UTC().Format(time.RFC3339))
+		}
+	}
+	return expiries
+}
+
 func toSnapshot(commands CommandList) CommandListSnapshot {
 	result := make(CommandListSnapshot, len(commands))
 	for i, cmd := range commands {
@@ -172,6 +188,7 @@ func toSnapshot(commands CommandList) CommandListSnapshot {
 		case *CreateClientInApiCommand:
 			snap.Scopes = c.Api.Req.Scopes
 			snap.KeyIds = extractKeyIds(c.Api.Jwks)
+			snap.Expiries = extractExpiries(c.Api.Jwks)
 		case *UpdateClientInApiCommand:
 			snap.ClientId = c.Api.ClientId
 			if c.Api.Req != nil {
@@ -179,11 +196,13 @@ func toSnapshot(commands CommandList) CommandListSnapshot {
 			}
 			if c.Api.Jwks != nil {
 				snap.KeyIds = extractKeyIds(c.Api.Jwks)
+				snap.Expiries = extractExpiries(c.Api.Jwks)
 			}
 		case *UpdateSecretContentCommand:
 			snap.ClientId = c.SecretContent.ClientId
 			snap.Authority = c.SecretContent.Authority
 			snap.KeyIds = extractKeyIds(c.SecretContent.Jwks)
+			snap.Expiries = extractExpiries(c.SecretContent.Jwks)
 		case *DeleteClientInApiCommand:
 			snap.ClientId = c.ClientId
 		}

@@ -4,7 +4,7 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useQueryWithStaleData } from 'src/core/queries/useQueryWithStaleData';
-import { useCurrentLanguage, useIsCurrentLanguageResolved } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsMap';
 import type { ITextResourceResult, TextResourceMap } from 'src/features/language/textResources/index';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
@@ -18,16 +18,13 @@ const useTextResourcesQuery = () => {
   const { fetchTextResources } = useAppQueries();
   const selectedLanguage = useCurrentLanguage();
 
-  // This makes sure to await potential profile fetching before fetching text resources
-  const enabled = useIsCurrentLanguageResolved();
-
   const utils = {
     ...useQueryWithStaleData<TextResourceMap, HttpClientError>({
-      enabled,
+      enabled: true,
       queryKey: ['fetchTextResources', selectedLanguage],
       queryFn: async () => convertResult(await fetchTextResources(selectedLanguage)),
     }),
-    enabled,
+    enabled: true,
   };
 
   useEffect(() => {

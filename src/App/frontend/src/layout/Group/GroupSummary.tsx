@@ -58,7 +58,7 @@ function ChildComponent({ id, hierarchyLevel }: ChildComponentProps) {
 
 export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: GroupComponentSummaryProps) => {
   const item = useItemWhenType(targetBaseComponentId, 'Group');
-  const title = item.textResourceBindings?.title;
+  const title = item.textResourceBindings?.summaryTitle || item.textResourceBindings?.title;
   const summaryTitle = item.textResourceBindings?.summaryTitle;
   const headingLevel = getHeadingLevel(hierarchyLevel);
   const isNestedGroup = hierarchyLevel > 0;

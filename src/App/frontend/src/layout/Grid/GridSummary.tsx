@@ -54,7 +54,7 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const indexedId = useIndexedId(targetBaseComponentId);
   const { rows, textResourceBindings } = useItemWhenType(targetBaseComponentId, 'Grid');
-  const { title } = textResourceBindings ?? {};
+  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
 
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();

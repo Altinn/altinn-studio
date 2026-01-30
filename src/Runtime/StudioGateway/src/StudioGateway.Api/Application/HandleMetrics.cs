@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using StudioGateway.Api.Clients.K8s;
 using StudioGateway.Api.Clients.MetricsClient;
 using StudioGateway.Api.Settings;
@@ -88,22 +89,24 @@ internal static class HandleMetrics
         GatewayContext gatewayContext,
         IServiceProvider serviceProvider,
         MetricsClientSettings metricsClientSettings,
-        string app,
-        string metric,
-        int range
+        [FromQuery] string[] apps,
+        [FromQuery] string metric,
+        [FromQuery] DateTimeOffset from,
+        [FromQuery] DateTimeOffset to
     )
     {
         IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
             metricsClientSettings.Provider
         );
 
-        Uri azureUrl = metricsClient.GetLogsUrl(
+        Uri? azureUrl = metricsClient.GetLogsUrl(
             gatewayContext.AzureSubscriptionId,
             gatewayContext.ServiceOwner,
             gatewayContext.Environment,
-            app,
+            apps,
             metric,
-            range
+            from,
+            to
         );
 
         return Results.Ok(new AzureUrl(azureUrl));

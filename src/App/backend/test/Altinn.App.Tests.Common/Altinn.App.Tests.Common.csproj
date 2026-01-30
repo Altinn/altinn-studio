@@ -21,6 +21,7 @@
     <PackageReference Include="Verify.Http"/>
     <PackageReference Include="xunit.assert"/>
     <PackageReference Include="OpenTelemetry"/>
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
     <PackageReference Include="System.Linq.Async"/>
   </ItemGroup>
 

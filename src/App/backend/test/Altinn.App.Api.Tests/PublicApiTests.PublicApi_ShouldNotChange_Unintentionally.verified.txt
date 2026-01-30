@@ -92,7 +92,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi=true)]
     public class CustomOpenApiController : Microsoft.AspNetCore.Mvc.Controller
     {
-        public CustomOpenApiController(Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Swashbuckle.AspNetCore.SwaggerGen.ISerializerDataContractResolver dataContractResolver, Altinn.App.Core.Internal.Process.IProcessReader processReader) { }
+        public CustomOpenApiController(Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Swashbuckle.AspNetCore.SwaggerGen.ISerializerDataContractResolver dataContractResolver, Altinn.App.Core.Internal.Process.IProcessReader processReader, System.IServiceProvider serviceProvider, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> settings) { }
         public static string InfoDescriptionWarningText { get; }
         [Microsoft.AspNetCore.Mvc.HttpGet("/{org}/{app}/v1/customOpenapi.json")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> Index() { }
@@ -253,7 +253,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.Route("party-selection")]
         [Microsoft.AspNetCore.Mvc.Route("party-selection/{errorCode}")]
         [Microsoft.AspNetCore.Mvc.Route("{pageName:int}")]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Index([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] bool dontChooseReportee) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Index([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] bool dontChooseReportee, [Microsoft.AspNetCore.Mvc.FromQuery] string? returnUrl) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "text/html", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
@@ -377,16 +377,24 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/options")]
     public class OptionsController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public OptionsController(Altinn.App.Core.Features.Options.IAppOptionsService appOptionsService) { }
-        [Microsoft.AspNetCore.Mvc.HttpGet("{optionsId}")]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Get([Microsoft.AspNetCore.Mvc.FromRoute] string optionsId, [Microsoft.AspNetCore.Mvc.FromQuery] System.Collections.Generic.Dictionary<string, string> queryParams, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
+        public OptionsController(Altinn.App.Core.Features.Options.IAppOptionsService appOptionsService, Altinn.App.Core.Features.Options.Altinn3LibraryCodeList.IAltinn3LibraryCodeListService altinn3LibraryCodeListService) { }
+        [Microsoft.AspNetCore.Mvc.HttpGet("{optionsIdOrLibraryRef}")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 500)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 502)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(System.Collections.Generic.List<Altinn.App.Core.Models.AppOption>), 200)]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Get([Microsoft.AspNetCore.Mvc.FromRoute] string optionsIdOrLibraryRef, [Microsoft.AspNetCore.Mvc.FromQuery] System.Collections.Generic.Dictionary<string, string> queryParams, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
         [Microsoft.AspNetCore.Mvc.HttpGet]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 500)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 502)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(System.Collections.Generic.List<Altinn.App.Core.Models.AppOption>), 200)]
         [Microsoft.AspNetCore.Mvc.Route("/{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/options/{op" +
-            "tionsId}")]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Get([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] string optionsId, [Microsoft.AspNetCore.Mvc.FromQuery] string? language, [Microsoft.AspNetCore.Mvc.FromQuery] System.Collections.Generic.Dictionary<string, string> queryParams) { }
+            "tionsIdOrLibraryRef}")]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Get([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] string optionsIdOrLibraryRef, [Microsoft.AspNetCore.Mvc.FromQuery] string? language, [Microsoft.AspNetCore.Mvc.FromQuery] System.Collections.Generic.Dictionary<string, string> queryParams) { }
     }
     [Microsoft.AspNetCore.Authorization.Authorize]
     [Microsoft.AspNetCore.Mvc.ApiController]
@@ -513,7 +521,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/v1/redirect")]
     public class RedirectController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public RedirectController(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> settings) { }
+        public RedirectController(Altinn.App.Core.Features.Redirect.IReturnUrlService returnUrlService) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(400)]
@@ -576,15 +584,15 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.SigningAuthorizedOrganizationsResponse), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAuthorizedOrganizations([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken ct, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAuthorizedOrganizations([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken ct, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? taskId = null) { }
         [Microsoft.AspNetCore.Mvc.HttpGet("data-elements")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.SigningDataElementsResponse), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetDataElements([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetDataElements([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? taskId = null) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.SigningStateResponse), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetSigneesState([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken ct, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetSigneesState([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken ct, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? taskId = null) { }
     }
     public static class Snippets
     {

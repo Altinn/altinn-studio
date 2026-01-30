@@ -6,5 +6,101 @@
       Id: Guid_1,
       DataTypeId: default
     }
+  },
+  {
+    Field: some.data[0],
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: some.data[0].prodBeskrivelse,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: some.data[0].prodMengde,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: some.data[0].prodMengdeEnhet,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: some.data[0].prodMengdeEnhetNavn,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: some.data[0].prodType,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: some.data[1],
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: some.data[1].prodBeskrivelse,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: some.data[1].prodMengde,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: some.data[1].prodMengdeEnhet,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: some.data[1].prodMengdeEnhetNavn,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: some.data[1].prodType,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
   }
 ]

@@ -30,7 +30,6 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
       errors={instantiation.error ? <ErrorListFromInstantiation error={instantiation.error} /> : undefined}
     >
       <Button
-        {...props}
         id={useIndexedId(props.baseComponentId)}
         onClick={() =>
           performProcess(() =>
