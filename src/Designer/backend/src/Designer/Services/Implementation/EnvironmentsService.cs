@@ -130,6 +130,32 @@ public class EnvironmentsService : IEnvironmentsService
         );
     }
 
+    public async Task<string> GetAltinnOrgNumber(string org)
+    {
+        var orgs = await GetAltinnOrgs();
+        if (!orgs.TryGetValue(org, out var orgModel) || orgModel is null)
+        {
+            return null;
+        }
+
+        // Special case for ttd test org - use Digdir's org number if ttd has none
+        // TTD org number situation is complex:
+        // - ttd has no org number in altinn-orgs.json
+        // - ttd has no org number in Register service for tt02 and other non-prod environments
+        // - ttd has an org number in production (405003309) and localtest (405003309)
+        // - App backend (AltinnCdnClient.cs) and operator (operatorcontext.go) both interpret ttd as digdir (991825827)
+        // - Apps for ttd typically include authorization rules for digdir in addition to [org]
+        // We match the established behavior to ensure consistent authorization across all services
+        // See: src/App/backend/src/Altinn.App.Core/Internal/AltinnCdn/AltinnCdnClient.cs:32
+        // See: src/Runtime/operator/internal/operatorcontext/operatorcontext.go:88
+        if (org == "ttd" && string.IsNullOrWhiteSpace(orgModel.OrgNr) && orgs.TryGetValue("digdir", out var digdirOrg) && digdirOrg is not null)
+        {
+            return digdirOrg.OrgNr;
+        }
+
+        return orgModel.OrgNr;
+    }
+
     private Task<Dictionary<string, AltinnOrgModel>> GetAltinnOrgs()
     {
         return _cache.GetOrCreateAsync(

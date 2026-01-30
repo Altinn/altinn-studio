@@ -96,6 +96,7 @@ describe('ActionsEditor', () => {
 
     (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
       deleteActionFromTask: deleteActionFromTaskMock,
+      getTypeForAction: jest.fn(),
     }));
 
     renderActionsEditor({ mode: 'edit' });
@@ -130,6 +131,7 @@ describe('ActionsEditor', () => {
 
     (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
       deleteActionFromTask: deleteActionFromTaskMock,
+      getTypeForAction: jest.fn(),
     }));
     renderActionsEditor({ mode: 'edit' });
 
@@ -148,6 +150,7 @@ describe('ActionsEditor', () => {
 
     (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
       deleteActionFromTask: deleteActionFromTaskMock,
+      getTypeForAction: jest.fn(),
     }));
     renderActionsEditor({
       actionElement: { ...actionElementMock, action: undefined },
