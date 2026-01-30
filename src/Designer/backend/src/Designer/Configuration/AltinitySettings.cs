@@ -8,7 +8,7 @@ public class AltinitySettings
     /// <summary>
     /// URL to the Altinity agent service (e.g., http://localhost:8071)
     /// </summary>
-    public string AgentUrl { get; set; }
+    public required string AgentUrl { get; set; }
 
     /// <summary>
     /// Timeout in seconds for agent operations

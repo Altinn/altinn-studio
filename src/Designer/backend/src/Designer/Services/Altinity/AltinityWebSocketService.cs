@@ -272,9 +272,9 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
 
     private class WebSocketConnection
     {
-        public ClientWebSocket WebSocket { get; set; }
-        public string SessionId { get; set; }
-        public Func<object, Task> OnMessageReceived { get; set; }
-        public CancellationTokenSource CancellationTokenSource { get; set; }
+        public required ClientWebSocket WebSocket { get; set; }
+        public required string SessionId { get; set; }
+        public required Func<object, Task> OnMessageReceived { get; set; }
+        public required CancellationTokenSource CancellationTokenSource { get; set; }
     }
 }

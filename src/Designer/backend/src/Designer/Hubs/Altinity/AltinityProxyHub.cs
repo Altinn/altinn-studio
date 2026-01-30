@@ -86,7 +86,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         await base.OnConnectedAsync();
     }
 
-    public override async Task OnDisconnectedAsync(Exception exception)
+    public override async Task OnDisconnectedAsync(Exception? exception)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         string connectionId = Context.ConnectionId;
@@ -320,7 +320,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
-        if (s_sessionOwners.TryGetValue(sessionId, out string owner))
+        if (s_sessionOwners.TryGetValue(sessionId, out string? owner))
         {
             if (owner == developer)
             {
