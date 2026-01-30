@@ -44,18 +44,14 @@ describe('ConfigPdfServiceTask', () => {
 
   describe('version warnings', () => {
     it('should show warning when backendVersion is below minimum required version', () => {
-      const pdfBpmnDetails = createPdfBpmnDetails({});
-
       renderConfigPdfServiceTask({
-        bpmnContextProps: {
-          bpmnDetails: pdfBpmnDetails,
-          appVersion: {
-            backendVersion: '8.0.0',
-            frontendVersion: '4.25.2',
+        contextProps: {
+          bpmnContextProps: {
+            appVersion: {
+              backendVersion: '8.0.0',
+              frontendVersion: '4.25.2',
+            },
           },
-        },
-        bpmnApiContextProps: {
-          layoutSets: { sets: [] },
         },
       });
 
@@ -69,18 +65,14 @@ describe('ConfigPdfServiceTask', () => {
     });
 
     it('should show warning when frontendVersion is below minimum required version', () => {
-      const pdfBpmnDetails = createPdfBpmnDetails({});
-
       renderConfigPdfServiceTask({
-        bpmnContextProps: {
-          bpmnDetails: pdfBpmnDetails,
-          appVersion: {
-            backendVersion: '8.9.0',
-            frontendVersion: '4.0.0',
+        contextProps: {
+          bpmnContextProps: {
+            appVersion: {
+              backendVersion: '8.9.0',
+              frontendVersion: '4.0.0',
+            },
           },
-        },
-        bpmnApiContextProps: {
-          layoutSets: { sets: [] },
         },
       });
 
@@ -94,18 +86,14 @@ describe('ConfigPdfServiceTask', () => {
     });
 
     it('should not show version warning when both versions meet requirements', () => {
-      const pdfBpmnDetails = createPdfBpmnDetails({});
-
       renderConfigPdfServiceTask({
-        bpmnContextProps: {
-          bpmnDetails: pdfBpmnDetails,
-          appVersion: {
-            backendVersion: '8.9.0',
-            frontendVersion: '4.25.2',
+        contextProps: {
+          bpmnContextProps: {
+            appVersion: {
+              backendVersion: '8.9.0',
+              frontendVersion: '4.25.2',
+            },
           },
-        },
-        bpmnApiContextProps: {
-          layoutSets: { sets: [] },
         },
       });
 
@@ -129,16 +117,7 @@ describe('ConfigPdfServiceTask', () => {
 
   describe('PDF mode radio group', () => {
     it('should render PDF mode radio group with automatic and layout-based options', () => {
-      const pdfBpmnDetails = createPdfBpmnDetails({});
-
-      renderConfigPdfServiceTask({
-        bpmnContextProps: {
-          bpmnDetails: pdfBpmnDetails,
-        },
-        bpmnApiContextProps: {
-          layoutSets: { sets: [] },
-        },
-      });
+      renderConfigPdfServiceTask();
 
       expect(
         screen.getByRole('group', {
@@ -160,16 +139,7 @@ describe('ConfigPdfServiceTask', () => {
     });
 
     it('should default to automatic mode when no layout set exists for the task', () => {
-      const pdfBpmnDetails = createPdfBpmnDetails({});
-
-      renderConfigPdfServiceTask({
-        bpmnContextProps: {
-          bpmnDetails: pdfBpmnDetails,
-        },
-        bpmnApiContextProps: {
-          layoutSets: { sets: [] },
-        },
-      });
+      renderConfigPdfServiceTask();
 
       const automaticRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_automatic'),
@@ -178,23 +148,7 @@ describe('ConfigPdfServiceTask', () => {
     });
 
     it('should default to layout-based mode when a layout set exists for the task', () => {
-      const pdfBpmnDetails = createPdfBpmnDetails({});
-
-      renderConfigPdfServiceTask({
-        bpmnContextProps: {
-          bpmnDetails: pdfBpmnDetails,
-        },
-        bpmnApiContextProps: {
-          layoutSets: {
-            sets: [
-              {
-                id: 'pdf-layout-set',
-                tasks: [pdfBpmnDetails.id],
-              },
-            ],
-          },
-        },
-      });
+      renderConfigPdfServiceTask({ withLayoutSet: true });
 
       const layoutBasedRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_layout_based'),
@@ -204,16 +158,8 @@ describe('ConfigPdfServiceTask', () => {
 
     it('should switch from automatic to layout-based mode when clicking layout-based radio', async () => {
       const user = userEvent.setup();
-      const pdfBpmnDetails = createPdfBpmnDetails({});
 
-      renderConfigPdfServiceTask({
-        bpmnContextProps: {
-          bpmnDetails: pdfBpmnDetails,
-        },
-        bpmnApiContextProps: {
-          layoutSets: { sets: [] },
-        },
-      });
+      renderConfigPdfServiceTask();
 
       const layoutBasedRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_layout_based'),
@@ -227,24 +173,15 @@ describe('ConfigPdfServiceTask', () => {
   describe('mode switching with layout set deletion', () => {
     it('should call deleteLayoutSet when switching from layout-based to automatic mode and confirming', async () => {
       const user = userEvent.setup();
-      const pdfBpmnDetails = createPdfBpmnDetails({});
       const deleteLayoutSetMock = jest.fn();
       jest.spyOn(window, 'confirm').mockReturnValue(true);
 
       renderConfigPdfServiceTask({
-        bpmnContextProps: {
-          bpmnDetails: pdfBpmnDetails,
-        },
-        bpmnApiContextProps: {
-          layoutSets: {
-            sets: [
-              {
-                id: 'pdf-layout-set',
-                tasks: [pdfBpmnDetails.id],
-              },
-            ],
+        withLayoutSet: true,
+        contextProps: {
+          bpmnApiContextProps: {
+            deleteLayoutSet: deleteLayoutSetMock,
           },
-          deleteLayoutSet: deleteLayoutSetMock,
         },
       });
 
@@ -261,24 +198,15 @@ describe('ConfigPdfServiceTask', () => {
 
     it('should not change mode when switching from layout-based to automatic mode and canceling', async () => {
       const user = userEvent.setup();
-      const pdfBpmnDetails = createPdfBpmnDetails({});
       const deleteLayoutSetMock = jest.fn();
       jest.spyOn(window, 'confirm').mockReturnValue(false);
 
       renderConfigPdfServiceTask({
-        bpmnContextProps: {
-          bpmnDetails: pdfBpmnDetails,
-        },
-        bpmnApiContextProps: {
-          layoutSets: {
-            sets: [
-              {
-                id: 'pdf-layout-set',
-                tasks: [pdfBpmnDetails.id],
-              },
-            ],
+        withLayoutSet: true,
+        contextProps: {
+          bpmnApiContextProps: {
+            deleteLayoutSet: deleteLayoutSetMock,
           },
-          deleteLayoutSet: deleteLayoutSetMock,
         },
       });
 
@@ -298,17 +226,9 @@ describe('ConfigPdfServiceTask', () => {
 
     it('should not show confirmation when switching to automatic mode without existing layout set', async () => {
       const user = userEvent.setup();
-      const pdfBpmnDetails = createPdfBpmnDetails({});
       const confirmSpy = jest.spyOn(window, 'confirm');
 
-      renderConfigPdfServiceTask({
-        bpmnContextProps: {
-          bpmnDetails: pdfBpmnDetails,
-        },
-        bpmnApiContextProps: {
-          layoutSets: { sets: [] },
-        },
-      });
+      renderConfigPdfServiceTask();
 
       // First switch to layout-based
       const layoutBasedRadio = screen.getByRole('radio', {
@@ -329,16 +249,7 @@ describe('ConfigPdfServiceTask', () => {
 
   describe('renders child components', () => {
     it('should render PdfAutomaticTaskSelection when in automatic mode', () => {
-      const pdfBpmnDetails = createPdfBpmnDetails({});
-
-      renderConfigPdfServiceTask({
-        bpmnContextProps: {
-          bpmnDetails: pdfBpmnDetails,
-        },
-        bpmnApiContextProps: {
-          layoutSets: { sets: [] },
-        },
-      });
+      renderConfigPdfServiceTask();
 
       // PdfAutomaticTaskSelection renders a combobox
       expect(screen.getByRole('combobox')).toBeInTheDocument();
@@ -346,16 +257,8 @@ describe('ConfigPdfServiceTask', () => {
 
     it('should render PdfLayoutBasedSection when in layout-based mode', async () => {
       const user = userEvent.setup();
-      const pdfBpmnDetails = createPdfBpmnDetails({});
 
-      renderConfigPdfServiceTask({
-        bpmnContextProps: {
-          bpmnDetails: pdfBpmnDetails,
-        },
-        bpmnApiContextProps: {
-          layoutSets: { sets: [] },
-        },
-      });
+      renderConfigPdfServiceTask();
 
       const layoutBasedRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_layout_based'),
@@ -371,16 +274,7 @@ describe('ConfigPdfServiceTask', () => {
     });
 
     it('should render PdfFilenameTextResource component', () => {
-      const pdfBpmnDetails = createPdfBpmnDetails({});
-
-      renderConfigPdfServiceTask({
-        bpmnContextProps: {
-          bpmnDetails: pdfBpmnDetails,
-        },
-        bpmnApiContextProps: {
-          layoutSets: { sets: [] },
-        },
-      });
+      renderConfigPdfServiceTask();
 
       expect(
         screen.getByRole('button', {
@@ -391,6 +285,33 @@ describe('ConfigPdfServiceTask', () => {
   });
 });
 
-const renderConfigPdfServiceTask = (props: Parameters<typeof renderWithProviders>[1] = {}) => {
-  return renderWithProviders(<ConfigPdfServiceTask />, props);
+type RenderOptions = {
+  withLayoutSet?: boolean;
+  contextProps?: Parameters<typeof renderWithProviders>[1];
+};
+
+const renderConfigPdfServiceTask = (options: RenderOptions = {}) => {
+  const { withLayoutSet = false, contextProps = {} } = options;
+  const bpmnDetails = createPdfBpmnDetails();
+
+  return renderWithProviders(<ConfigPdfServiceTask />, {
+    ...contextProps,
+    bpmnContextProps: {
+      bpmnDetails,
+      ...contextProps?.bpmnContextProps,
+    },
+    bpmnApiContextProps: {
+      layoutSets: {
+        sets: withLayoutSet
+          ? [
+              {
+                id: 'pdf-layout-set',
+                tasks: [bpmnDetails.id],
+              },
+            ]
+          : [],
+      },
+      ...contextProps?.bpmnApiContextProps,
+    },
+  });
 };
