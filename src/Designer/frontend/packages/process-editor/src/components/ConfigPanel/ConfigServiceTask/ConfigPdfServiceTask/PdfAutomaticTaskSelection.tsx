@@ -39,7 +39,7 @@ export const PdfAutomaticTaskSelection = (): React.ReactElement => {
           placeholder={t('process_editor.configuration_panel_select_tasks_placeholder')}
         >
           <Combobox.Empty>
-            {t('process_editor.configuration_panel_no_data_types_to_sign_to_select')}
+            {t('process_editor.configuration_panel_pdf_no_tasks_to_select')}
           </Combobox.Empty>
           {availableTasks.map((task) => (
             <Combobox.Option key={task.id} value={task.id}>

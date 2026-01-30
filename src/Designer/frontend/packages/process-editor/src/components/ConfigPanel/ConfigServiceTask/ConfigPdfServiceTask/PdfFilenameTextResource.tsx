@@ -26,12 +26,6 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
   const { bpmnDetails, modelerRef } = useBpmnContext();
   const { pdfConfig, storedFilenameTextResourceId } = usePdfConfig();
 
-  const modelerInstance = modelerRef.current;
-  const modeling: Modeling = modelerInstance.get('modeling');
-  const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
-
-  const textResources: TextResource[] = textResourcesData?.[DEFAULT_LANGUAGE] ?? [];
-
   const [isTextResourceEditorOpen, setIsTextResourceEditorOpen] = useState(false);
   const [currentTextResourceId, setCurrentTextResourceId] = useState<string>(
     storedFilenameTextResourceId,
@@ -39,6 +33,16 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
 
   const { ref: textResourceActionRef, onOpen: onOpenTextResourceEditor } =
     useStickyBottomScroll<HTMLDivElement>(isTextResourceEditorOpen);
+  const modelerInstance = modelerRef?.current;
+
+  if (!modelerInstance || !bpmnDetails) {
+    return null;
+  }
+
+  const modeling: Modeling = modelerInstance.get('modeling');
+  const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
+
+  const textResources: TextResource[] = textResourcesData?.[DEFAULT_LANGUAGE] ?? [];
 
   const displayTextResourceValue =
     textResources.find((tr) => tr.id === storedFilenameTextResourceId)?.value ?? '';

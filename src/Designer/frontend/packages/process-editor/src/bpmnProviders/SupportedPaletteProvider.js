@@ -197,6 +197,7 @@ class SupportedPaletteProvider {
 
       return function (event) {
         if (
+          appVersion &&
           !isVersionEqualOrGreater(
             appVersion.backendVersion,
             MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
@@ -211,6 +212,7 @@ class SupportedPaletteProvider {
         }
 
         if (
+          appVersion &&
           !isVersionEqualOrGreater(
             appVersion.frontendVersion,
             MINIMUM_APP_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,

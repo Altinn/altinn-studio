@@ -201,9 +201,7 @@ describe('PdfAutomaticTaskSelection', () => {
       await user.click(combobox);
 
       expect(
-        screen.getByText(
-          textMock('process_editor.configuration_panel_no_data_types_to_sign_to_select'),
-        ),
+        screen.getByText(textMock('process_editor.configuration_panel_pdf_no_tasks_to_select')),
       ).toBeInTheDocument();
     });
   });

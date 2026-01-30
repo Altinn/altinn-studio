@@ -7,10 +7,11 @@ import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 
 export const useUpdatePdfConfigTaskIds = () => {
   const { bpmnDetails, modelerRef } = useBpmnContext();
-  const modelerInstance = modelerRef.current;
+  const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
+
+  const modelerInstance = modelerRef.current!;
   const modeling: Modeling = modelerInstance.get('modeling');
   const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
-  const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
 
   return (updatedTaskIds: string[]) =>
     debounce(() => updatePdfConfigTaskIds(bpmnFactory, modeling, bpmnDetails, updatedTaskIds));
@@ -22,7 +23,10 @@ const updatePdfConfigTaskIds = (
   bpmnDetails: BpmnDetails,
   updatedTaskIds: string[],
 ) => {
-  const pdfConfig = bpmnDetails.element.businessObject.extensionElements.values[0].pdfConfig;
+  const pdfConfig = bpmnDetails.element.businessObject.extensionElements?.values?.[0]?.pdfConfig;
+  if (!pdfConfig) {
+    return;
+  }
   const autoPdfTaskIds = bpmnFactory.create('altinn:AutoPdfTaskIds');
 
   autoPdfTaskIds.taskIds = updatedTaskIds.map((taskId) =>

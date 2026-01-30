@@ -1145,6 +1145,7 @@
   "process_editor.configuration_panel_pdf_mode_description": "Velg oppsett for PDF-generering. Ved standard oppsett genereres PDF-en automatisk basert på de valgte oppgavene. Velg eget oppsett dersom du ønsker å tilpasse PDF-en selv ved hjelp av utformingsverktøyet.",
   "process_editor.configuration_panel_pdf_mode_layout_based": "Eget oppsett",
   "process_editor.configuration_panel_pdf_no_data_models": "Ingen datamodeller tilgjengelig",
+  "process_editor.configuration_panel_pdf_no_tasks_to_select": "Ingen oppgaver tilgjengelig.",
   "process_editor.configuration_panel_pdf_select_data_model_description": "Velg en datamodell å knytte til oppgaven.",
   "process_editor.configuration_panel_pdf_select_data_model_label": "Datamodell",
   "process_editor.configuration_panel_pdf_task": "Oppgave: Lag PDF",

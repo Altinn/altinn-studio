@@ -17,7 +17,7 @@ export const PdfLayoutBasedSection = (): React.ReactElement => {
 
   const { org, app } = useStudioEnvironmentParams();
   const { bpmnDetails } = useBpmnContext();
-  const { addLayoutSet, layoutSets, allDataModelIds } = useBpmnApiContext();
+  const { addLayoutSet, layoutSets, allDataModelIds = [] } = useBpmnApiContext();
   const { validateLayoutSetName } = useValidateLayoutSetName();
   const { currentLayoutSet } = useCurrentLayoutSet();
 

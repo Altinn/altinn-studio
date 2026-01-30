@@ -35,7 +35,7 @@ export const BpmnContextProvider = ({
   const [initialBpmnXml] = useState<string>(bpmnXml);
 
   const isEditAllowed =
-    supportsProcessEditor(appVersion.backendVersion) ||
+    supportsProcessEditor(appVersion?.backendVersion ?? '') ||
     shouldDisplayFeature(FeatureFlag.ShouldOverrideAppLibCheck);
 
   const modelerRef = useRef<Modeler | null>(null);

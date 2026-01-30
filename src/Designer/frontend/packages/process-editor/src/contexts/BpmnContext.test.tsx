@@ -57,4 +57,13 @@ describe('BpmnContext', () => {
     const { getUpdatedXml } = result.current;
     await expect(async () => await getUpdatedXml()).rejects.toThrow('Modeler not initialized');
   });
+
+  describe('isEditAllowed', () => {
+    it('should be false when appVersion is undefined', () => {
+      const { result } = renderHook(() => useBpmnContext(), {
+        wrapper: ({ children }) => <BpmnContextProvider>{children}</BpmnContextProvider>,
+      });
+      expect(result.current.isEditAllowed).toBe(false);
+    });
+  });
 });

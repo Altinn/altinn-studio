@@ -580,6 +580,7 @@
   "process_editor.configuration_panel_pdf_mode_description": "Choose layout for PDF generation. With standard layout, the PDF is generated automatically based on the selected tasks. Choose custom layout if you want to customise the PDF yourself using the design tool.",
   "process_editor.configuration_panel_pdf_mode_layout_based": "Custom layout",
   "process_editor.configuration_panel_pdf_no_data_models": "No data models available",
+  "process_editor.configuration_panel_pdf_no_tasks_to_select": "No tasks available to select.",
   "process_editor.configuration_panel_pdf_select_data_model_description": "Select a data model to link to the task.",
   "process_editor.configuration_panel_pdf_select_data_model_label": "Data model",
   "process_editor.configuration_panel_pdf_task": "Task: Generate PDF",
