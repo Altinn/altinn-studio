@@ -88,11 +88,9 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
 
         ValidateCommitMessage(request.CommitMessage);
-        string repositoryName = GetStaticContentRepo(authenticatedContext.Org);
-
         sourceControl.CloneIfNotExists(authenticatedContext);
 
-        string latestCommitSha = await giteaClient.GetLatestCommitOnBranch(authenticatedContext.Org, repositoryName, General.DefaultBranch, cancellationToken);
+        string latestCommitSha = await giteaClient.GetLatestCommitOnBranch(authenticatedContext.Org, authenticatedContext.Repo, General.DefaultBranch, cancellationToken);
 
         sourceControl.CheckoutRepoOnBranch(authenticatedContext.RepoEditingContext, General.DefaultBranch);
         sourceControl.PullRemoteChanges(authenticatedContext);
@@ -109,7 +107,7 @@ public class OrgLibraryService(IGiteaClient giteaClient, ISourceControl sourceCo
         bool pushOk = sourceControl.Push(authenticatedContext);
         if (!pushOk)
         {
-            throw new InvalidOperationException($"Push failed for {authenticatedContext.Org}/{repositoryName}. Remote rejected the update.");
+            throw new InvalidOperationException($"Push failed for {authenticatedContext.Org}/{authenticatedContext.Repo}. Remote rejected the update.");
         }
     }
 
