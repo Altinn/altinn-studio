@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Net.WebSockets;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
@@ -76,7 +77,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
             _logger.LogInformation("Established WebSocket to Altinity for session {SessionId}", sessionId);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is WebSocketException or HttpRequestException or OperationCanceledException)
         {
             _logger.LogError(ex, "Failed to establish WebSocket to Altinity for session {SessionId}", sessionId);
         }
@@ -95,15 +96,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         if (s_webSocketConnections.TryRemove(connectionId, out var wsConnectionId))
         {
-            try
-            {
-                await _webSocketService.DisconnectSessionAsync(wsConnectionId);
-                _logger.LogInformation("Disconnected Altinity WebSocket for connection {ConnectionId}", connectionId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error disconnecting Altinity WebSocket for connection {ConnectionId}", connectionId);
-            }
+            await _webSocketService.DisconnectSessionAsync(wsConnectionId);
         }
 
         _logger.LogInformation("Altinity hub disconnected for user: {Developer}", developer);

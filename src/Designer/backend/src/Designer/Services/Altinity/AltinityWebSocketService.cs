@@ -92,27 +92,20 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
     {
         if (_connections.TryRemove(connectionId, out var connection))
         {
-            try
+            connection.CancellationTokenSource.Cancel();
+
+            if (connection.WebSocket.State == WebSocketState.Open)
             {
-                connection.CancellationTokenSource.Cancel();
-
-                if (connection.WebSocket.State == WebSocketState.Open)
-                {
-                    await connection.WebSocket.CloseAsync(
-                        WebSocketCloseStatus.NormalClosure,
-                        "Session closed",
-                        CancellationToken.None);
-                }
-
-                connection.WebSocket.Dispose();
-                connection.CancellationTokenSource.Dispose();
-
-                _logger.LogInformation($"Disconnected WebSocket for session {connection.SessionId}");
+                await connection.WebSocket.CloseAsync(
+                    WebSocketCloseStatus.NormalClosure,
+                    "Session closed",
+                    CancellationToken.None);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error disconnecting WebSocket for session {connection.SessionId}");
-            }
+
+            connection.WebSocket.Dispose();
+            connection.CancellationTokenSource.Dispose();
+
+            _logger.LogInformation("Disconnected WebSocket for session {SessionId}", connection.SessionId);
         }
     }
 
@@ -161,7 +154,7 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         {
             _logger.LogInformation("WebSocket listener cancelled for session {SessionId}", connection.SessionId);
         }
-        catch (Exception ex)
+        catch (WebSocketException ex)
         {
             await HandleWebSocketErrorAsync(connection, cancellationToken, ex);
         }
@@ -204,15 +197,18 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
     {
         var messageJson = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
+        JsonElement message;
         try
         {
-            var message = DeserializeMessage(messageJson);
-            await connection.OnMessageReceived(message);
+            message = DeserializeMessage(messageJson);
         }
-        catch (Exception ex)
+        catch (JsonException ex)
         {
-            _logger.LogError(ex, "Failed to parse WebSocket message: {MessageJson}", messageJson);
+            _logger.LogWarning(ex, "Invalid JSON in WebSocket message: {MessageJson}", messageJson);
+            return;
         }
+
+        await connection.OnMessageReceived(message);
     }
 
     private static JsonElement DeserializeMessage(string messageJson)
@@ -225,7 +221,7 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         CancellationToken cancellationToken,
         Exception ex)
     {
-        _logger.LogError(ex, "Error in WebSocket listener for session {SessionId}", connection.SessionId);
+        _logger.LogError(ex, "{ExceptionType} in WebSocket listener for session {SessionId}", ex.GetType().Name, connection.SessionId);
 
         await Task.Delay(ReconnectionDelayMilliseconds, cancellationToken);
 
@@ -256,16 +252,9 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
     {
         foreach (var connection in _connections.Values)
         {
-            try
-            {
-                connection.CancellationTokenSource.Cancel();
-                connection.WebSocket.Dispose();
-                connection.CancellationTokenSource.Dispose();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error disposing WebSocket connection");
-            }
+            connection.CancellationTokenSource.Cancel();
+            connection.WebSocket.Dispose();
+            connection.CancellationTokenSource.Dispose();
         }
         _connections.Clear();
     }
