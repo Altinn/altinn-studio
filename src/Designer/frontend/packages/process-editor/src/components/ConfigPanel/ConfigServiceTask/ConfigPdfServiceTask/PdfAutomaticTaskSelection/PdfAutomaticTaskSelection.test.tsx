@@ -50,24 +50,15 @@ describe('PdfAutomaticTaskSelection', () => {
   });
 
   it('should render task selector combobox', () => {
-    const pdfBpmnDetails = createPdfBpmnDetails({});
-
-    renderWithProviders(<PdfAutomaticTaskSelection />, {
-      bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-      bpmnApiContextProps: { layoutSets: { sets: [] } },
-    });
+    renderPdfAutomaticTaskSelection();
 
     expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
   it('should display available tasks as options', async () => {
     const user = userEvent.setup();
-    const pdfBpmnDetails = createPdfBpmnDetails({});
 
-    renderWithProviders(<PdfAutomaticTaskSelection />, {
-      bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-      bpmnApiContextProps: { layoutSets: { sets: [] } },
-    });
+    renderPdfAutomaticTaskSelection();
 
     const combobox = screen.getByRole('combobox');
     await user.click(combobox);
@@ -78,12 +69,8 @@ describe('PdfAutomaticTaskSelection', () => {
 
   it('should call updateTaskIds when selecting a task', async () => {
     const user = userEvent.setup();
-    const pdfBpmnDetails = createPdfBpmnDetails({ taskIds: [] });
 
-    renderWithProviders(<PdfAutomaticTaskSelection />, {
-      bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-      bpmnApiContextProps: { layoutSets: { sets: [] } },
-    });
+    renderPdfAutomaticTaskSelection();
 
     const combobox = screen.getByRole('combobox');
     await user.click(combobox);
@@ -97,12 +84,8 @@ describe('PdfAutomaticTaskSelection', () => {
 
   it('should call updateTaskIds when deselecting a task', async () => {
     const user = userEvent.setup();
-    const pdfBpmnDetails = createPdfBpmnDetails({ taskIds: ['task_1'] });
 
-    renderWithProviders(<PdfAutomaticTaskSelection />, {
-      bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-      bpmnApiContextProps: { layoutSets: { sets: [] } },
-    });
+    renderPdfAutomaticTaskSelection(['task_1']);
 
     const combobox = screen.getByRole('combobox');
     await user.click(combobox);
@@ -115,12 +98,8 @@ describe('PdfAutomaticTaskSelection', () => {
 
   it('should call updateTaskIds when selecting multiple tasks', async () => {
     const user = userEvent.setup();
-    const pdfBpmnDetails = createPdfBpmnDetails({ taskIds: [] });
 
-    renderWithProviders(<PdfAutomaticTaskSelection />, {
-      bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-      bpmnApiContextProps: { layoutSets: { sets: [] } },
-    });
+    renderPdfAutomaticTaskSelection();
 
     const combobox = screen.getByRole('combobox');
     await user.click(combobox);
@@ -147,12 +126,7 @@ describe('PdfAutomaticTaskSelection', () => {
         },
       ];
 
-      const pdfBpmnDetails = createPdfBpmnDetails({ taskIds: [] });
-
-      renderWithProviders(<PdfAutomaticTaskSelection />, {
-        bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-        bpmnApiContextProps: { layoutSets: { sets: [] } },
-      });
+      renderPdfAutomaticTaskSelection();
 
       const combobox = screen.getByRole('combobox');
       await user.click(combobox);
@@ -173,12 +147,7 @@ describe('PdfAutomaticTaskSelection', () => {
         },
       ];
 
-      const pdfBpmnDetails = createPdfBpmnDetails({ taskIds: [] });
-
-      renderWithProviders(<PdfAutomaticTaskSelection />, {
-        bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-        bpmnApiContextProps: { layoutSets: { sets: [] } },
-      });
+      renderPdfAutomaticTaskSelection();
 
       const combobox = screen.getByRole('combobox');
       await user.click(combobox);
@@ -190,12 +159,7 @@ describe('PdfAutomaticTaskSelection', () => {
       const user = userEvent.setup();
       mockTasks = [];
 
-      const pdfBpmnDetails = createPdfBpmnDetails({});
-
-      renderWithProviders(<PdfAutomaticTaskSelection />, {
-        bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-        bpmnApiContextProps: { layoutSets: { sets: [] } },
-      });
+      renderPdfAutomaticTaskSelection();
 
       const combobox = screen.getByRole('combobox');
       await user.click(combobox);
@@ -206,3 +170,12 @@ describe('PdfAutomaticTaskSelection', () => {
     });
   });
 });
+
+const renderPdfAutomaticTaskSelection = (taskIds: string[] = []) => {
+  const bpmnDetails = createPdfBpmnDetails({ taskIds });
+
+  return renderWithProviders(<PdfAutomaticTaskSelection />, {
+    bpmnContextProps: { bpmnDetails },
+    bpmnApiContextProps: { layoutSets: { sets: [] } },
+  });
+};

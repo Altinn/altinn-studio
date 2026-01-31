@@ -30,12 +30,7 @@ describe('PdfFilenameTextResource', () => {
   });
 
   it('should render filename section with title', () => {
-    const pdfBpmnDetails = createPdfBpmnDetails({});
-
-    renderWithProviders(<PdfFilenameTextResource />, {
-      bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-      bpmnApiContextProps: { layoutSets: { sets: [] } },
-    });
+    renderPdfFilenameTextResource();
 
     expect(
       screen.getByText(textMock('process_editor.configuration_panel_filename')),
@@ -43,12 +38,7 @@ describe('PdfFilenameTextResource', () => {
   });
 
   it('should render filename description', () => {
-    const pdfBpmnDetails = createPdfBpmnDetails({});
-
-    renderWithProviders(<PdfFilenameTextResource />, {
-      bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-      bpmnApiContextProps: { layoutSets: { sets: [] } },
-    });
+    renderPdfFilenameTextResource();
 
     expect(
       screen.getByText(textMock('process_editor.configuration_panel_pdf_filename_description')),
@@ -56,12 +46,7 @@ describe('PdfFilenameTextResource', () => {
   });
 
   it('should render filename property button', () => {
-    const pdfBpmnDetails = createPdfBpmnDetails({});
-
-    renderWithProviders(<PdfFilenameTextResource />, {
-      bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-      bpmnApiContextProps: { layoutSets: { sets: [] } },
-    });
+    renderPdfFilenameTextResource();
 
     expect(
       screen.getByRole('button', {
@@ -71,25 +56,13 @@ describe('PdfFilenameTextResource', () => {
   });
 
   it('should display current filename value when text resource exists', () => {
-    const pdfBpmnDetails = createPdfBpmnDetails({
-      filenameTextResourceKey: 'existing-text-resource',
-    });
-
-    renderWithProviders(<PdfFilenameTextResource />, {
-      bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-      bpmnApiContextProps: { layoutSets: { sets: [] } },
-    });
+    renderPdfFilenameTextResource('existing-text-resource');
 
     expect(screen.getByText('Existing filename')).toBeInTheDocument();
   });
 
   it('should display empty value when no filename text resource is set', () => {
-    const pdfBpmnDetails = createPdfBpmnDetails({});
-
-    renderWithProviders(<PdfFilenameTextResource />, {
-      bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-      bpmnApiContextProps: { layoutSets: { sets: [] } },
-    });
+    renderPdfFilenameTextResource();
 
     const button = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_pdf_filename_label'),
@@ -97,3 +70,12 @@ describe('PdfFilenameTextResource', () => {
     expect(button).toBeInTheDocument();
   });
 });
+
+const renderPdfFilenameTextResource = (filenameTextResourceKey?: string) => {
+  const bpmnDetails = createPdfBpmnDetails({ filenameTextResourceKey });
+
+  return renderWithProviders(<PdfFilenameTextResource />, {
+    bpmnContextProps: { bpmnDetails },
+    bpmnApiContextProps: { layoutSets: { sets: [] } },
+  });
+};
