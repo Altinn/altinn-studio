@@ -43,9 +43,11 @@ describe('AppConfigForm', () => {
     const user = userEvent.setup();
     renderAppConfigForm({ appConfig: mockAppConfigComplete });
 
-    const anInputField = getOptionalTextbox(textMock('app_settings.about_tab_alt_id_label'));
+    const altIdLabel = textMock('app_settings.about_tab_alt_id_label');
+    const anInputField = await getOptionalInlineEditTextbox(user, altIdLabel);
     const newValue: string = 'A';
     await user.type(anInputField, newValue);
+    await user.click(getInlineEditSaveButton());
 
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     await user.click(saveButton);
@@ -80,7 +82,8 @@ describe('AppConfigForm', () => {
     const user = userEvent.setup();
     renderAppConfigForm();
 
-    const altId = getOptionalTextbox(textMock('app_settings.about_tab_alt_id_label'));
+    const altIdLabel = textMock('app_settings.about_tab_alt_id_label');
+    const altId = await getOptionalInlineEditTextbox(user, altIdLabel);
     expect(altId).toHaveValue(mockAppConfig.serviceId);
 
     const newText: string = 'A';
@@ -113,10 +116,14 @@ describe('AppConfigForm', () => {
     expect(description).toHaveValue('');
   });
 
-  it('displays homepage as empty when there is no homepage set', () => {
+  it('displays homepage as empty when there is no homepage set', async () => {
+    const user = userEvent.setup();
     renderAppConfigForm();
 
-    const homepage = getOptionalTextbox(textMock('app_settings.about_tab_homepage_field_label'));
+    const homepage = await getOptionalInlineEditTextbox(
+      user,
+      textMock('app_settings.about_tab_homepage_field_label'),
+    );
     expect(homepage).toHaveValue('');
   });
 
@@ -124,7 +131,10 @@ describe('AppConfigForm', () => {
     const user = userEvent.setup();
     renderAppConfigForm({ appConfig: { ...mockAppConfig, homepage: mockHomepage } });
 
-    const homepage = getOptionalTextbox(textMock('app_settings.about_tab_homepage_field_label'));
+    const homepage = await getOptionalInlineEditTextbox(
+      user,
+      textMock('app_settings.about_tab_homepage_field_label'),
+    );
     expect(homepage).toHaveValue(mockHomepage);
 
     const newText: string = 'A';
@@ -198,7 +208,10 @@ describe('AppConfigForm', () => {
     const user = userEvent.setup();
     renderAppConfigForm();
 
-    const keywords = getOptionalTextbox(textMock('app_settings.about_tab_keywords_label'));
+    const keywords = await getOptionalInlineEditTextbox(
+      user,
+      textMock('app_settings.about_tab_keywords_label'),
+    );
     expect(keywords).toHaveValue('');
 
     const newText: string = 'keyword1, keyword2';
@@ -269,9 +282,13 @@ describe('AppConfigForm', () => {
     const user = userEvent.setup();
     renderAppConfigForm();
 
-    const altId = getOptionalTextbox(textMock('app_settings.about_tab_alt_id_label'));
+    const altId = await getOptionalInlineEditTextbox(
+      user,
+      textMock('app_settings.about_tab_alt_id_label'),
+    );
     const newText: string = 'A';
     await user.type(altId, newText);
+    await user.click(getInlineEditSaveButton());
 
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     expect(saveButton).not.toBeDisabled();
@@ -305,10 +322,13 @@ describe('AppConfigForm', () => {
       saveAppConfig,
     });
 
-    const altId = getOptionalTextbox(textMock('app_settings.about_tab_alt_id_label'));
+    const altId = await getOptionalInlineEditTextbox(
+      user,
+      textMock('app_settings.about_tab_alt_id_label'),
+    );
     const newText: string = 'A';
     await user.type(altId, newText);
-    await user.tab();
+    await user.click(getInlineEditSaveButton());
 
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     await user.click(saveButton);
@@ -343,18 +363,19 @@ describe('AppConfigForm', () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => false);
     renderAppConfigForm();
 
-    const altId = getOptionalTextbox(textMock('app_settings.about_tab_alt_id_label'));
+    const altIdLabel = textMock('app_settings.about_tab_alt_id_label');
+    const altId = await getOptionalInlineEditTextbox(user, altIdLabel);
     const newText: string = 'A';
     await user.type(altId, newText);
-    await user.tab();
+    await user.click(getInlineEditSaveButton());
 
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     await user.click(saveButton);
-    expect(altId).toHaveValue(`${mockAppConfig.serviceId}${newText}`);
+    await expectInlineEditViewModeValue(altIdLabel, `${mockAppConfig.serviceId}${newText}`);
 
     const cancelButton = getButton(textMock('app_settings.about_tab_reset_button'));
     await user.click(cancelButton);
-    expect(altId).toHaveValue(`${mockAppConfig.serviceId}${newText}`);
+    await expectInlineEditViewModeValue(altIdLabel, `${mockAppConfig.serviceId}${newText}`);
   });
 
   it('should reset the form to the original values when the cancel button is clicked', async () => {
@@ -363,20 +384,21 @@ describe('AppConfigForm', () => {
 
     renderAppConfigForm();
 
-    const altId = getOptionalTextbox(textMock('app_settings.about_tab_alt_id_label'));
+    const altIdLabel = textMock('app_settings.about_tab_alt_id_label');
+    const altId = await getOptionalInlineEditTextbox(user, altIdLabel);
     const newText: string = 'A';
     await user.type(altId, newText);
-    await user.tab();
+    await user.click(getInlineEditSaveButton());
 
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     await user.click(saveButton);
 
-    expect(altId).toHaveValue(`${mockAppConfig.serviceId}${newText}`);
+    await expectInlineEditViewModeValue(altIdLabel, `${mockAppConfig.serviceId}${newText}`);
 
     const cancelButton = getButton(textMock('app_settings.about_tab_reset_button'));
     await user.click(cancelButton);
 
-    expect(altId).toHaveValue(mockAppConfig.serviceId);
+    await expectInlineEditViewModeValue(altIdLabel, mockAppConfig.serviceId);
   });
 
   // it('should hide the alert when the required fields are filled in correctly', async () => {
@@ -505,11 +527,30 @@ const getRequiredTextbox = (name: string): HTMLInputElement =>
   getTextbox(`${name} ${requiredText}`);
 const queryRequiredTextbox = (name: string): HTMLInputElement | null =>
   queryTextbox(`${name} ${requiredText}`) || null;
-const getOptionalTextbox = (name: string): HTMLInputElement =>
-  getTextbox(`${name} ${optionalText}`);
+
+// const getOptionalTextbox = (name: string): HTMLInputElement =>
+//   getTextbox(`${name} ${optionalText}`);
 const getTextbox = (name: string): HTMLInputElement => screen.getByRole('textbox', { name });
 const queryTextbox = (name: string): HTMLInputElement | null =>
   screen.queryByRole('textbox', { name });
+
+async function getOptionalInlineEditTextbox(
+  user: ReturnType<typeof userEvent.setup>,
+  label: string,
+): Promise<HTMLInputElement> {
+  const viewButton = screen.getByRole('button', { name: label });
+  await user.click(viewButton);
+  return screen.getByRole('textbox', { name: `${label} ${optionalText}` }) as HTMLInputElement;
+}
+
+function getInlineEditSaveButton(): HTMLElement {
+  return screen.getByTestId('studio-inline-edit-save');
+}
+
+async function expectInlineEditViewModeValue(label: string, expectedValue: string): Promise<void> {
+  const viewButton = await screen.findByRole('button', { name: label });
+  expect(viewButton).toHaveTextContent(expectedValue);
+}
 // const getLink = (name: string): HTMLAnchorElement => screen.getByRole('link', { name });
 // const queryLink = (name: string): HTMLAnchorElement | null => screen.queryByRole('link', { name });
 const getButton = (name: string): HTMLButtonElement => screen.getByRole('button', { name });

@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import type { ChangeEvent, MutableRefObject, ReactElement } from 'react';
 import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioTextfield } from '@studio/components';
+import { StudioTextfield, StudioInlineEdit } from '@studio/components';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type {
   AppConfigNew,
@@ -24,6 +24,7 @@ import { mapKeywordsArrayToString, mapStringToKeywords } from '../utils/appConfi
 // import { AvailableForTypeCheckboxGroup } from './AvailableForTypeRadioGroup';
 import { ContactPoints } from './ContactPoints';
 import { APP_CONFIG_RESOURCE_TYPE } from 'app-development/features/appSettings/constants/appConfigResourceType';
+import { PlusCircleIcon } from '@studio/icons';
 
 export type AppConfigFormProps = {
   appConfig: AppConfigNew;
@@ -92,10 +93,10 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     }));
   };
 
-  const onChangeServiceId = (e: ChangeEvent<HTMLInputElement>): void => {
+  const onChangeServiceId = (newValue: string): void => {
     setUpdatedAppConfig((oldVal: AppConfigNew) => ({
       ...oldVal,
-      serviceId: e.target.value,
+      serviceId: newValue,
     }));
   };
 
@@ -106,10 +107,10 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     }));
   };
 
-  const onChangeHomepage = (e: ChangeEvent<HTMLInputElement>): void => {
+  const onChangeHomepage = (newValue: string): void => {
     setUpdatedAppConfig((oldVal: AppConfigNew) => ({
       ...oldVal,
-      homepage: e.target.value,
+      homepage: newValue,
     }));
   };
 
@@ -127,11 +128,10 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     }));
   };
 
-  const onChangeKeywords = (e: ChangeEvent<HTMLInputElement>): void => {
-    const keywordsString: string = e.target.value;
-    setKeywordsInputValue(keywordsString);
+  const onChangeKeywords = (newValue: string): void => {
+    setKeywordsInputValue(newValue);
 
-    const keywords: Keyword[] = mapStringToKeywords(keywordsString);
+    const keywords: Keyword[] = mapStringToKeywords(newValue);
     setUpdatedAppConfig((oldVal: AppConfigNew) => ({
       ...oldVal,
       keywords,
@@ -201,13 +201,14 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           errors={serviceNameErrors}
           required
         />
-        <StudioTextfield
+        <StudioInlineEdit
           label={t('app_settings.about_tab_alt_id_label')}
           description={t('app_settings.about_tab_alt_id_description')}
-          value={updatedAppConfig.serviceId}
+          value={updatedAppConfig.serviceId ?? ''}
           onChange={onChangeServiceId}
           required={false}
           tagText={t('general.optional')}
+          icon={<PlusCircleIcon />}
         />
         <InputfieldsWithTranslation
           label={t('app_settings.about_tab_description_field_label')}
@@ -219,13 +220,14 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           isTextArea
           errors={descriptionErrors}
         />
-        <StudioTextfield
+        <StudioInlineEdit
           label={t('app_settings.about_tab_homepage_field_label')}
           description={t('app_settings.about_tab_homepage_field_description')}
           value={updatedAppConfig.homepage ?? ''}
           onChange={onChangeHomepage}
           required={false}
           tagText={t('general.optional')}
+          icon={<PlusCircleIcon />}
         />
         <SwitchInput
           switchAriaLabel={t('app_settings.about_tab_delegable_show_text', {
@@ -250,13 +252,14 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
             errors={rightDescriptionErrors}
           />
         )}
-        <StudioTextfield
+        <StudioInlineEdit
           label={t('app_settings.about_tab_keywords_label')}
           description={t('app_settings.about_tab_keywords_description')}
           value={keywordsInputValue}
           onChange={onChangeKeywords}
           required={false}
           tagText={t('general.optional')}
+          icon={<PlusCircleIcon />}
         />
         {/* TODO (`#17439`): Temporarily hidden - may be re-enabled in future. Related tests also disabled. */}
         {/*
