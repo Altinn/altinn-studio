@@ -416,7 +416,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return fullParent;
             }
 
-            string resolvedPath = Path.GetFullPath(Path.Combine(fullParent, relativePath));
+            string resolvedPath = Path.GetFullPath(Path.Join(fullParent, relativePath));
             string parentWithSeparator = fullParent.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
                                          + Path.DirectorySeparatorChar;
 
