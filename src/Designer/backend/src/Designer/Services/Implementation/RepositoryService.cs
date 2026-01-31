@@ -382,41 +382,72 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public List<FileSystemObject> GetContents(string org, string repository, string path = "")
         {
-            List<FileSystemObject> contents = new();
             string repositoryPath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string contentPath = Path.Combine(repositoryPath, path);
 
-            // repository was not found
             if (!Directory.Exists(repositoryPath))
             {
                 return null;
             }
 
+            string contentPath = ResolvePathWithinParentDirectory(repositoryPath, path);
+            if (contentPath is null)
+            {
+                return null;
+            }
+
+            List<FileSystemObject> contents = GetFileSystemObjects(contentPath);
+
+            string repositoryFullPath = Path.GetFullPath(repositoryPath);
+            contents.ForEach(c => c.Path = Path.GetRelativePath(repositoryFullPath, c.Path).Replace("\\", "/"));
+
+            return contents;
+        }
+
+        /// <summary>
+        /// Resolves and validates that a requested path is within a parent directory.
+        /// Returns the resolved full path, or null if the path escapes the parent.
+        /// </summary>
+        private static string ResolvePathWithinParentDirectory(string parentDirectory, string relativePath)
+        {
+            string fullParent = Path.GetFullPath(parentDirectory);
+
+            if (string.IsNullOrEmpty(relativePath))
+            {
+                return fullParent;
+            }
+
+            string resolvedPath = Path.GetFullPath(Path.Combine(fullParent, relativePath));
+            string parentWithSeparator = fullParent.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                                         + Path.DirectorySeparatorChar;
+
+            if (!resolvedPath.StartsWith(parentWithSeparator, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(resolvedPath, fullParent, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            return resolvedPath;
+        }
+
+        private List<FileSystemObject> GetFileSystemObjects(string contentPath)
+        {
+            List<FileSystemObject> contents = new();
+
             if (File.Exists(contentPath))
             {
-                // When a specific file path is requested, include the file content
-                FileSystemObject f = GetFileSystemObjectForFile(contentPath, includeContent: true);
-                contents.Add(f);
+                contents.Add(GetFileSystemObjectForFile(contentPath, includeContent: true));
             }
             else if (Directory.Exists(contentPath))
             {
-                string[] dirs = Directory.GetDirectories(contentPath);
-                foreach (string directoryPath in dirs)
+                foreach (string directoryPath in Directory.GetDirectories(contentPath))
                 {
-                    FileSystemObject d = GetFileSystemObjectForDirectory(directoryPath);
-                    contents.Add(d);
+                    contents.Add(GetFileSystemObjectForDirectory(directoryPath));
                 }
-
-                string[] files = Directory.GetFiles(contentPath);
-                foreach (string filePath in files)
+                foreach (string filePath in Directory.GetFiles(contentPath))
                 {
-                    FileSystemObject f = GetFileSystemObjectForFile(filePath);
-                    contents.Add(f);
+                    contents.Add(GetFileSystemObjectForFile(filePath));
                 }
             }
-
-            // setting all paths relative to repository
-            contents.ForEach(c => c.Path = Path.GetRelativePath(repositoryPath, c.Path).Replace("\\", "/"));
 
             return contents;
         }
