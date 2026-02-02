@@ -1,7 +1,7 @@
 name: Deploy LHCI Server
 on:
   push:
-    branches: [main, feat/lhci-server]
+    branches: [main]
     paths:
       - 'src/lhci-server/**'
       - '.github/workflows/deploy-lhci-server.yaml'
@@ -23,7 +23,7 @@ jobs:
   construct-environments-array:
     uses: ./.github/workflows/template-construct-environments.yaml
     with:
-      environments: ${{ github.event.inputs.environments || 'dev' }}
+      environments: ${{ github.event.inputs.environments || 'dev,staging,prod' }}
 
   push-artifact:
     name: Push LHCI server as OCI artifact
