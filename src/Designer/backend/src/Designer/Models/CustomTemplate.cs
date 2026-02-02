@@ -1,5 +1,4 @@
-﻿#nullable disable
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models;
@@ -10,16 +9,16 @@ namespace Altinn.Studio.Designer.Models;
 public class CustomTemplate
 {
     [JsonPropertyName("id")]
-    public string Id { get; set; }
+    public required string Id { get; set; }
 
     [JsonPropertyName("owner")]
-    public string Owner { get; set; }
+    public required string Owner { get; set; }
 
     [JsonPropertyName("name")]
-    public Dictionary<string, string> Name { get; set; }
+    public Dictionary<string, string> Name { get; set; } = new();
 
     [JsonPropertyName("description")]
-    public Dictionary<string, string> Description { get; set; }
+    public Dictionary<string, string> Description { get; set; }= new();
 
     [JsonPropertyName("remove")]
     public List<string> Remove { get; set; } = [];

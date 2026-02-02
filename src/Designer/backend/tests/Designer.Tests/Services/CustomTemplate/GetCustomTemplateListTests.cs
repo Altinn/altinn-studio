@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -63,8 +64,8 @@ public class GetCustomTemplateListTests : IDisposable
         string commitSha = "abc123def456";
         var expectedTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "template-1", Owner = "als", Name = new(){ { "nb", "Template 1" } } },
-            new() { Id = "template-2", Owner = "als", Name = new(){ { "nb", "Template 2" } } }
+            new() { Id = "template-1", Owner = "als", Name = new(){ { "nb", "Template 1" } }, Description = new(){ { "nb", "Description for Template 1" } } },
+            new() { Id = "template-2", Owner = "als", Name = new(){ { "nb", "Template 2" } }, Description = new(){ { "nb", "Description for Template 2" } } }
         };
 
         string manifestJson = JsonSerializer.Serialize(expectedTemplates);
@@ -81,7 +82,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateModel> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -117,7 +118,7 @@ public class GetCustomTemplateListTests : IDisposable
         string commitSha = "abc123def456";
         var cachedTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "cached-template", Owner = "als", Name =new() { { "nb", "Cached Template" } } }
+            new() { Id = "cached-template", Owner = "als", Name =new() { { "nb", "Cached Template" } }, Description = new() { { "nb", "Description for Cached Template" } } }
         };
 
         // Setup cache manually
@@ -142,7 +143,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateModel> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
 
         // Assert
         Assert.Single(result);
@@ -176,7 +177,7 @@ public class GetCustomTemplateListTests : IDisposable
 
         var newTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "new-template", Owner = "als", Name = new() { { "nb", "New Template" } } }
+            new() { Id = "new-template", Owner = "als", Name = new() { { "nb", "New Template" } }, Description = new() { { "nb", "Description for New Template" } } }
         };
         string newManifestJson = JsonSerializer.Serialize(newTemplates);
 
@@ -194,7 +195,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateModel> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
 
         // Assert
         Assert.Single(result);
@@ -232,7 +233,7 @@ public class GetCustomTemplateListTests : IDisposable
 
         var updatedTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "updated-template", Owner = "als", Name = new(){ { "nb", "Updated Template" } } }
+            new() { Id = "updated-template", Owner = "als", Name = new(){ { "nb", "Updated Template" } }, Description = new(){ { "nb", "Description for Updated Template" } } }
         };
 
         _giteaClientMock
@@ -249,7 +250,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateModel> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
 
         // Assert
         Assert.Single(result);
@@ -267,7 +268,7 @@ public class GetCustomTemplateListTests : IDisposable
         string commitSha = "abc123def456";
         var templates = new List<CustomTemplateModel>
         {
-            new() { Id = "test-template", Owner = "als", Name = new() { { "nb", "Test" } } }
+            new() { Id = "test-template", Owner = "als", Name = new() { { "nb", "Test" } }, Description = new() { { "nb", "Description for Test Template" } } }
         };
 
         _giteaClientMock
@@ -284,7 +285,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateModel> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
 
         // Assert
         string cachePath = Path.Combine(_testCacheRoot, ".template-cache", "als");
@@ -310,14 +311,14 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateModel> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
 
         // Assert
         Assert.Empty(result);
     }
 
     [Fact]
-    public async Task GetCustomTemplateList_ManifestNotFound_ThrowsException()
+    public async Task GetCustomTemplateList_ManifestNotFound_SilentlyReturnsEmptyList()
     {
         // Arrange
         _giteaClientMock
@@ -331,7 +332,8 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act & Assert
-        await Assert.ThrowsAsync<CustomTemplateException>(sut.GetCustomTemplateList);
+        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
+        Assert.Empty(result);
     }
 
     private CustomTemplateService CreateService()

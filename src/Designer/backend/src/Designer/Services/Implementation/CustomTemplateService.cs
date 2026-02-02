@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -9,6 +10,7 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -43,12 +45,13 @@ public class CustomTemplateService : ICustomTemplateService
     }
 
     // <inheritdoc />
-    public async Task<List<CustomTemplate>> GetCustomTemplateList()
+    public async Task<List<CustomTemplateDto>> GetCustomTemplateList()
     {
-        List<CustomTemplate> templates = [];
+        List<CustomTemplateDto> templates = [];
 
-        templates.AddRange(await GetTemplateManifestForOrg(_templateSettings.DefaultTemplateOrganization));
+        var templateList  = await GetTemplateManifestForOrg(_templateSettings.DefaultTemplateOrganization);
 
+        templates.AddRange(templateList.Where(t => t.IsListable()).ToList());
         return templates;
     }
 
@@ -90,7 +93,7 @@ public class CustomTemplateService : ICustomTemplateService
         return errors;
     }
 
-    private async Task<List<CustomTemplate>> GetTemplateManifestForOrg(string templateOwner, CancellationToken cancellationToken = default)
+    private async Task<List<CustomTemplateDto>> GetTemplateManifestForOrg(string templateOwner, CancellationToken cancellationToken = default)
     {
         string templateRepo = GetContentRepoName(templateOwner);
         string templateCacheFolderPath = Path.Combine(_serviceRepoSettings.RepositoryLocation, _templateSettings.Cache.LocalCacheFolder, templateOwner);
@@ -116,13 +119,13 @@ public class CustomTemplateService : ICustomTemplateService
             }
 
             string cachedTemplateList = await File.ReadAllTextAsync(templateManifestCachePath);
-            List<CustomTemplate> templates = JsonSerializer.Deserialize<List<CustomTemplate>>(cachedTemplateList) ?? [];
+            List<CustomTemplateDto> templates = JsonSerializer.Deserialize<List<CustomTemplateDto>>(cachedTemplateList) ?? [];
             return templates;
         }
-        catch
+        catch (Exception e)
         {
-            _logger.LogError("// CustomTemplateService // GetTemplateManifestForOrg // Failed to get template manifest for org {TemplateOwner}", templateOwner);
-            throw;
+            _logger.LogError(e, "// CustomTemplateService // GetTemplateManifestForOrg // Exception occurred. Failed to get template manifest for org {TemplateOwner}.", templateOwner);
+            return [];
         }
     }
 
@@ -136,7 +139,8 @@ public class CustomTemplateService : ICustomTemplateService
             switch (problem.Status)
             {
                 case 404:
-                    throw CustomTemplateException.NotFound($"Template manifest for owner '{owner}' not found");
+                    _logger.LogInformation($"// CustomTemplateService // DownloadTemplateManifestToCache // Template manifest for owner '{owner}' not found");
+                    return;
                 default:
                     throw CustomTemplateException.DeserializationFailed($"An error occurred while retrieving the template manifest for owner '{owner}'.", problem.Detail);
             }
