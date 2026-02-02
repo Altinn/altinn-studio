@@ -86,7 +86,7 @@ export function CreateRelease() {
         {appValidationStatus === false && (
           <StudioDialog.TriggerContext>
             <StudioDialog.Trigger data-color='danger'>
-              Det er valideringsfeil som må rettes før publisering
+              {t('app_create_release.validation_errors')}
             </StudioDialog.Trigger>
             <AppValidationDialog />
           </StudioDialog.TriggerContext>

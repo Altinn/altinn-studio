@@ -64,7 +64,6 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   const persistAppDetails = (): void => {
     setShowAppConfigErrors(false);
     saveAppConfig({ ...updatedAppConfig });
-    console.log('AppConfig saved: ', updatedAppConfig); // Will be removed when endpoint is implemented
   };
 
   const resetAppConfig = (): void => {

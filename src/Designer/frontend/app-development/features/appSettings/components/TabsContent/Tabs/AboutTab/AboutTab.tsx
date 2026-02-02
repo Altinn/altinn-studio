@@ -39,11 +39,8 @@ function AboutTabContent(): ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const repositoryType: RepositoryType = getRepositoryType(org, app);
 
-  // TODO - This is a temporary solution to handle the new app resource structure. Will be replaced with API calls when available.
   const { mutate: saveApplicationMetadata } = useAppMetadataMutation(org, app);
   const { data: appMetadata } = useAppMetadataQuery(org, app);
-
-  //const [appConfigNew, setApplicationMetadata] = useState<AppConfigNew>(mockAppConfig);
 
   const setApplicationMetadata = (updatedConfig: ApplicationMetadata) => {
     saveApplicationMetadata(updatedConfig);
@@ -118,10 +115,3 @@ function AboutTabContent(): ReactElement {
     }
   }
 }
-
-// const mockAppConfig: ApplicationMetadata = {
-//   repositoryName: 'example-repo',
-//   serviceName: { nb: 'test', nn: '', en: '' },
-//   serviceId: 'example-service-id',
-//   description: { nb: 'Test Tjeneste', nn: '', en: '' },
-// };
