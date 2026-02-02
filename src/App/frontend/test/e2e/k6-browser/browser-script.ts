@@ -98,7 +98,7 @@ export default async function () {
     await editLastPet(page);
     await addPetManually(page, 'Lady');
 
-    // // Round 3
+    // Round 3 - TODO: comment in when performance is good enough to handle it
     // await generate250MorePets(page, /generer enda en gård/i);
     // await editLastPet(page);
     // await takeScreenshot(page, 'after-edit-round3', 'Edited last pet - Round 3');
