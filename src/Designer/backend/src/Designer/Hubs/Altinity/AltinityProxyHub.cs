@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Services.Altinity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -120,7 +121,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     /// <returns>Agent response</returns>
     public async Task<object> StartWorkflow(JsonElement request)
     {
-        string developer = GetCurrentDeveloperUserName();
+        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         string userToken = await GetCurrentDeveloperTokenAsync();
 
         string sessionId = ExtractSessionIdFromRequest(request);
@@ -131,11 +132,6 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         var agentResponse = await ForwardRequestToAltinityAgentAsync(request, developer, userToken, sessionId);
 
         return agentResponse;
-    }
-
-    private string GetCurrentDeveloperUserName()
-    {
-        return AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
     }
 
     private async Task<string> GetCurrentDeveloperTokenAsync()
@@ -150,7 +146,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         }
         else
         {
-            _logger.LogInformation("Retrieved OAuth access_token: {TokenLength} chars", token.Length);
+            _logger.LogInformation("Retrieved OAuth access_token");
         }
 
         return token;
@@ -208,32 +204,19 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     /// <returns>Enriched request with repo_url field</returns>
     private JsonElement EnrichRequestWithRepoUrl(JsonElement request)
     {
-        // Extract org and app from the request
         if (!request.TryGetProperty("org", out var orgElement) || !request.TryGetProperty("app", out var appElement))
         {
-            // If org and app are not present, return the request as-is (backward compatibility)
             return request;
         }
 
         string? org = orgElement.GetString();
         string? app = appElement.GetString();
 
-        // Validate org and app are not null or empty
-        if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(app))
-        {
-            throw new HubException("org and app identifiers cannot be empty");
-        }
+        org.ValidPathSegment(nameof(org));
+        app.ValidPathSegment(nameof(app));
 
-        // Validate no path traversal or special characters
-        if (ContainsInvalidPathCharacters(org) || ContainsInvalidPathCharacters(app))
-        {
-            throw new HubException("org and app identifiers contain invalid characters");
-        }
-
-        // Build the repo URL using the configured Gitea base URL
         string repoUrl = $"{_serviceRepositorySettings.RepositoryBaseURL}/{org}/{app}.git";
 
-        // Create a new JSON object with the repo_url added
         var requestDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(request.GetRawText());
         if (requestDict == null)
         {
@@ -243,17 +226,6 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         requestDict["repo_url"] = JsonSerializer.SerializeToElement(repoUrl);
 
         return JsonSerializer.SerializeToElement(requestDict);
-    }
-
-    /// <summary>
-    /// Validates that a path segment doesn't contain invalid characters
-    /// </summary>
-    private static bool ContainsInvalidPathCharacters(string value)
-    {
-        return value.Contains("..") ||
-               value.Contains("/") ||
-               value.Contains("\\") ||
-               value.Contains("~");
     }
 
     private HttpRequestMessage CreateAltinityHttpRequest(
@@ -300,7 +272,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
     /// <summary>
     /// Called by the backend when agent sends a message via webhook or polling
-    /// This forwards the message to the appropriate frontend client
+    /// This forwards the message to the frontend client
     /// </summary>
     public async Task SendMessageToSession(string sessionId, object message)
     {
