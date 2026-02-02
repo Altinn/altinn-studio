@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Net.WebSockets;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
@@ -250,8 +251,9 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private async Task<JsonElement> SendRequestToAltinityAsync(HttpRequestMessage httpRequest)
     {
         var httpClient = _httpClientFactory.CreateClient();
-        var response = await httpClient.SendAsync(httpRequest);
-        string responseContent = await response.Content.ReadAsStringAsync();
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_altinitySettings.TimeoutSeconds));
+        var response = await httpClient.SendAsync(httpRequest, cts.Token);
+        string responseContent = await response.Content.ReadAsStringAsync(cts.Token);
 
         if (!response.IsSuccessStatusCode)
         {

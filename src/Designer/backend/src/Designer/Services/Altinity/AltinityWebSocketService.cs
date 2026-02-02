@@ -39,7 +39,8 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
     public async Task<string> ConnectAndRegisterSessionAsync(string sessionId, Func<object, Task> onMessageReceived)
     {
         var wsUri = BuildWebSocketUri(_settings.AgentUrl);
-        var webSocket = await CreateAndConnectWebSocketAsync(wsUri);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_settings.TimeoutSeconds));
+        var webSocket = await CreateAndConnectWebSocketAsync(wsUri, cts.Token);
 
         _logger.LogInformation("Connected to Altinity WebSocket for session {SessionId}", sessionId);
 
@@ -76,10 +77,10 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         };
     }
 
-    private async Task<ClientWebSocket> CreateAndConnectWebSocketAsync(Uri wsUri)
+    private async Task<ClientWebSocket> CreateAndConnectWebSocketAsync(Uri wsUri, CancellationToken cancellationToken)
     {
         var webSocket = new ClientWebSocket();
-        await webSocket.ConnectAsync(wsUri, CancellationToken.None);
+        await webSocket.ConnectAsync(wsUri, cancellationToken);
         return webSocket;
     }
 
