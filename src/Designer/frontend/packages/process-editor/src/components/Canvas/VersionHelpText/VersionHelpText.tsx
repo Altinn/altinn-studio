@@ -24,7 +24,7 @@ export const VersionHelpText = (): JSX.Element => {
       >
         <Paragraph spacing size='small' className={classes.helpTextContent}>
           {t('process_editor.too_old_version_helptext_content', {
-            version: appVersion.backendVersion,
+            version: appVersion?.backendVersion,
           })}
         </Paragraph>
         {/*
