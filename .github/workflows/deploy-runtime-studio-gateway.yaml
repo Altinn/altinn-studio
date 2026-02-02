@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - src/Runtime/common/**
       - src/Runtime/StudioGateway/**
       - infra/runtime/syncroot/base/studio-gateway.yaml
       - infra/runtime/flux-config/**
@@ -74,7 +75,7 @@ jobs:
         uses: fluxcd/flux2/action@8454b02a32e48d775b9f563cb51fdcb1787b5b93 # v2.7.5
 
       - name: docker build
-        run: docker build -t ${{ env.IMAGE_REPO }} -f Dockerfile .
+        run: docker build -t ${{ env.IMAGE_REPO }} -f Dockerfile ../
 
       - name: scan image
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
