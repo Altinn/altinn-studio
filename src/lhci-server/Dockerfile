@@ -15,8 +15,6 @@ COPY .yarn/releases ./.yarn/releases
 
 RUN yarn --immutable
 
-COPY lighthouserc.json ./
-
 COPY server.js ./
 
 EXPOSE 9001
