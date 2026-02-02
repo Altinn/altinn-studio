@@ -23,7 +23,15 @@ module.exports = {
       chromePath: require('puppeteer').executablePath(),
     },
     upload: {
-      target: 'temporary-public-storage',
+      target: process.env.LHCI_SERVER_URL ? 'lhci' : 'temporary-public-storage',
+      serverBaseUrl: process.env.LHCI_SERVER_URL,
+      token: process.env.LHCI_BUILD_TOKEN,
+      basicAuth: process.env.LHCI_USERNAME && process.env.LHCI_PASSWORD
+        ? {
+            username: process.env.LHCI_USERNAME,
+            password: process.env.LHCI_PASSWORD,
+          }
+        : undefined,
     },
   },
 };

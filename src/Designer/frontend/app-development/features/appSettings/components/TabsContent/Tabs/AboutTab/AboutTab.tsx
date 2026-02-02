@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { ReactElement } from 'react';
 import classes from './AboutTab.module.css';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +7,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import type { RepositoryType } from 'app-shared/types/global';
-import type { AppConfig, AppConfigNew } from 'app-shared/types/AppConfig';
+import type { AppConfig } from 'app-shared/types/AppConfig';
 import { useAppMetadataQuery, useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
@@ -19,7 +19,8 @@ import { CreatedFor } from './CreatedFor';
 import { InputFields } from './InputFields';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { AppConfigForm } from './AppConfigForm';
-import { APP_CONFIG_RESOURCE_TYPE } from 'app-development/features/appSettings/constants/appConfigResourceType';
+import { useAppMetadataMutation } from 'app-development/hooks/mutations/useAppMetadataMutation';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 export function AboutTab(): ReactElement {
   const { t } = useTranslation();
@@ -38,8 +39,12 @@ function AboutTabContent(): ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const repositoryType: RepositoryType = getRepositoryType(org, app);
 
-  // TODO - This is a temporary solution to handle the new app resource structure. Will be replaced with API calls when available.
-  const [appConfigNew, setAppConfigNew] = useState<AppConfigNew>(mockAppConfig);
+  const { mutate: saveApplicationMetadata } = useAppMetadataMutation(org, app);
+  const { data: appMetadata } = useAppMetadataQuery(org, app);
+
+  const setApplicationMetadata = (updatedConfig: ApplicationMetadata) => {
+    saveApplicationMetadata(updatedConfig);
+  };
 
   const {
     status: appConfigStatus,
@@ -91,8 +96,10 @@ function AboutTabContent(): ReactElement {
             authorName={applicationMetadataData?.createdBy}
           />
           <AppConfigForm
-            appConfig={appConfigNew}
-            saveAppConfig={(updatedAppConfig: AppConfigNew) => setAppConfigNew(updatedAppConfig)}
+            appConfig={appMetadata}
+            saveAppConfig={(updatedAppConfig: ApplicationMetadata) =>
+              setApplicationMetadata(updatedAppConfig)
+            }
           />
         </div>
       ) : (
@@ -108,11 +115,3 @@ function AboutTabContent(): ReactElement {
     }
   }
 }
-
-const mockAppConfig: AppConfigNew = {
-  resourceType: APP_CONFIG_RESOURCE_TYPE,
-  repositoryName: 'example-repo',
-  serviceName: { nb: 'test', nn: '', en: '' },
-  serviceId: 'example-service-id',
-  description: { nb: 'Test Tjeneste', nn: '', en: '' },
-};

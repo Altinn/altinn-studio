@@ -1,5 +1,4 @@
-﻿#nullable disable
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +11,20 @@ public class AnsattPortenTokenDelegatingHandler(IHttpContextAccessor httpContext
 {
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        string token = await httpContextAccessor.HttpContext!.GetTokenAsync(AnsattPortenConstants.AnsattpotenCookiesAuthenticationScheme, "access_token");
+        var httpContext = httpContextAccessor.HttpContext;
+        if (httpContext is null)
+        {
+            throw new HttpRequestException("No HttpContext available to retrieve Ansattporten token from");
+        }
+
+        string? token = await httpContext.GetTokenAsync(
+            AnsattPortenConstants.AnsattportenCookiesAuthenticationScheme, "access_token"
+        );
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            throw new HttpRequestException("No Ansattporten access token available in HttpContext");
+        }
+
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return await base.SendAsync(request, cancellationToken);
     }

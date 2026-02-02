@@ -17,6 +17,7 @@ export const useAppMetadataMutation = (org: string, app: string) => {
     mutationFn: (payload: ApplicationMetadata) => updateAppMetadata(org, app, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadata, org, app] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.AppValidation, org, app] });
     },
   });
 };

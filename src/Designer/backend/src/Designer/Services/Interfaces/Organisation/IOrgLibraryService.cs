@@ -33,9 +33,10 @@ public interface IOrgLibraryService
     /// </summary>
     /// <param name="org">Organisation.</param>
     /// <param name="developer">Developer.</param>
+    /// <param name="token">The developer token.</param>
     /// <param name="request">The request.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    Task UpdateSharedResourcesByPath(string org, string developer, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default);
+    Task UpdateSharedResourcesByPath(string org, string developer, string token, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all the published library elements for the organisation.
