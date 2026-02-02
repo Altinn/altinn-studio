@@ -133,14 +133,6 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           updateLanguage={onChangeTitle}
           required
         />
-        <StudioTextfield
-          label={t('app_settings.about_tab_alt_id_label')}
-          description={t('app_settings.about_tab_alt_id_description')}
-          value={updatedAppConfig.serviceId}
-          onChange={onChangeServiceId}
-          required={false}
-          tagText={t('general.optional')}
-        />
         <InputfieldsWithTranslation
           label={t('app_settings.about_tab_name_label')}
           description={t('app_settings.about_tab_name_description')}

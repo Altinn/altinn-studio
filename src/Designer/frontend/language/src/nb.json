@@ -259,8 +259,6 @@
   "app_release.release_title": "Appen bygges basert på",
   "app_release.release_title_link": "siste endringstransaksjon til master",
   "app_release.release_version": "Versjon:",
-  "app_settings.about_tab_alt_id_description": "Hvis appen har en annen ID i andre systemer, kan du legge den til her. For eksempel et referansenummer.",
-  "app_settings.about_tab_alt_id_label": "Alternativ ID",
   "app_settings.about_tab_available_for_type_bankruptcy": "Konkursbo",
   "app_settings.about_tab_available_for_type_company": "Underenhet (bedrift)",
   "app_settings.about_tab_available_for_type_field_description": "Velg minst en fra listen under.",
