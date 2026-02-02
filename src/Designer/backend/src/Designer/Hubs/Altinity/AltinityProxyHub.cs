@@ -139,12 +139,10 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         if (string.IsNullOrEmpty(token))
         {
-            _logger.LogWarning("No access_token found in authentication context");
+            throw new HubException("Missing access_token in authentication context");
         }
-        else
-        {
-            _logger.LogInformation("Retrieved OAuth access_token");
-        }
+
+        _logger.LogInformation("Retrieved OAuth access_token");
 
         return token;
     }
