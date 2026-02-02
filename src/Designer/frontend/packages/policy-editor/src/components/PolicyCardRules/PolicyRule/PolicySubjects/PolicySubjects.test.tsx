@@ -175,10 +175,10 @@ describe('PolicySubjects', () => {
     renderPolicySubjects();
 
     const label = mockSubject1.name;
-    const selectedSubjectCheckbox = screen.getByLabelText(label);
+    const selectedSubjectCheckbox = screen.getByRole('checkbox', { name: label });
     await user.click(selectedSubjectCheckbox);
 
-    expect(screen.queryByText(label)).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: label })).not.toBeInTheDocument();
   });
 
   it('should not show error even when last subject is removed', async () => {

@@ -37,6 +37,8 @@ export function CreateRelease() {
     }
   };
 
+  const validVersionName = tagName && versionNameValid(releases, tagName);
+  const canBuild = validVersionName;
   return (
     <div className={classes.createReleaseForm}>
       <FormField
@@ -74,10 +76,7 @@ export function CreateRelease() {
         )}
       />
       <div>
-        <StudioButton
-          onClick={handleBuildVersionClick}
-          disabled={!versionNameValid(releases, tagName) || !tagName}
-        >
+        <StudioButton onClick={handleBuildVersionClick} disabled={!canBuild}>
           {t('app_create_release.build_version')}
         </StudioButton>
       </div>
