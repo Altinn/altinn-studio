@@ -1,46 +1,34 @@
 import React from 'react';
 
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
-import { skipToken, useQuery } from '@tanstack/react-query';
 import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
-import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import classes from 'src/components/presentation/BackNavigationButton.module.css';
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { getDialogIdFromDataValues, getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 
-export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
-  const { langAsString } = useLanguage();
+export function BackNavigationButton(props: { className?: string }) {
   const isMobile = useIsMobile();
   const party = useSelectedParty();
   const mainPageKey = useNavigationParam('mainPageKey');
   const isSubform = useIsSubformPage();
-  const { returnUrl, isFetchingReturnUrl } = useReturnUrl();
+
   const { exitSubform } = useNavigatePage();
-  const { performProcess, isAnyProcessing, isThisProcessing: isExitingSubform } = useIsProcessing();
+  const performProcess = useProcessingMutation('exit-subform');
+  const isExitingSubform = useIsThisProcessing('exit-subform');
+  const isAnyProcessing = useIsAnyProcessing();
 
   const dataValues = useInstanceDataQuery({ select: (instance) => instance.dataValues }).data;
   const dialogId = getDialogIdFromDataValues(dataValues);
   const messageBoxUrl = getMessageBoxUrl(party?.partyId, dialogId);
-
-  if (isFetchingReturnUrl) {
-    return (
-      <Spinner
-        data-size='sm'
-        className={classes.spinner}
-        aria-label={langAsString('general.loading')}
-      />
-    );
-  }
+  const returnUrl = window.altinnAppGlobalData.returnUrl;
 
   if (isSubform) {
     return (
@@ -50,7 +38,6 @@ export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
         isLoading={isExitingSubform}
         variant='tertiary'
         size='sm'
-        {...props}
         className={cn(classes.button, props.className)}
       >
         {!isExitingSubform && (
@@ -73,7 +60,6 @@ export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
         asChild
         variant='tertiary'
         size='sm'
-        {...props}
         className={cn(classes.button, props.className)}
       >
         <a href={returnUrl}>
@@ -93,7 +79,6 @@ export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
         asChild
         variant='tertiary'
         size='sm'
-        {...props}
         className={cn(classes.button, props.className)}
       >
         <a href={messageBoxUrl}>
@@ -108,23 +93,4 @@ export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
   }
 
   return null;
-}
-
-function useReturnUrl() {
-  const { fetchReturnUrl } = useAppQueries();
-  // Note that this looks at the actual query parameters, not the hash, this is intentional
-  // as this feature is used for linking to the app with this query parameter set so that
-  // we can return the user back where they came from.
-  // Unfortunately, since it is used like this it means it is not reactive and will not update
-  // if the query parameter changes during the apps lifetime. But this is not likely to be an issue
-  // as the value has to be base64 encoded so there will likely not be any valid update to this
-  // after the app loads. We certainly don't touch it.
-  const queryParameterReturnUrl = new URLSearchParams(window.location.search).get('returnUrl');
-
-  const { data, isFetching } = useQuery({
-    queryKey: ['returnUrl', queryParameterReturnUrl],
-    queryFn: queryParameterReturnUrl ? () => fetchReturnUrl(queryParameterReturnUrl) : skipToken,
-  });
-
-  return { returnUrl: data, isFetchingReturnUrl: isFetching };
 }

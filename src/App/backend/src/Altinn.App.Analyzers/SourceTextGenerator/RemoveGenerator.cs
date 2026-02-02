@@ -12,7 +12,10 @@ internal static class RemoveGenerator
                 """
 
                     /// <inheritdoc />
-                    public void RemoveField(global::System.ReadOnlySpan<char> path, global::Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption) { }
+                    public void RemoveField(
+                        global::System.ReadOnlySpan<char> path,
+                        global::Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption
+                    ) { }
 
                 """
             );
@@ -22,7 +25,10 @@ internal static class RemoveGenerator
             """
 
                 /// <inheritdoc />
-                public void RemoveField(global::System.ReadOnlySpan<char> path, global::Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption)
+                public void RemoveField(
+                    global::System.ReadOnlySpan<char> path,
+                    global::Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption
+                )
                 {
                     if (path.IsEmpty)
                     {
@@ -50,7 +56,7 @@ internal static class RemoveGenerator
                 $$"""
 
                     private static void RemoveRecursive(
-                        {{modelPathNode.ListType}}? model,
+                        {{modelPathNode.ListTypeWithNullable}} model,
                         global::System.ReadOnlySpan<char> path,
                         int offset,
                         int index,

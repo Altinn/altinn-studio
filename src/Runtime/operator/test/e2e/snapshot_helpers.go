@@ -315,6 +315,10 @@ func SanitizeJwk(keyMap map[string]any) {
 	if keyMap["n"] != nil {
 		keyMap["n"] = "<rsa-modulus>"
 	}
+	// Sanitize exp field (certificate expiry timestamp) - non-deterministic
+	if keyMap["exp"] != nil {
+		keyMap["exp"] = "<cert-expiry>"
+	}
 }
 
 // SanitizeSecretContent sanitizes the maskinporten-settings.json content

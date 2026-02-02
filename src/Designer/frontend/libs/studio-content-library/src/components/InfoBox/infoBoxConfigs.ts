@@ -7,11 +7,11 @@ export const infoBoxConfigs: InfoBoxConfigs = {
   codeListsWithTextResources: {
     titleTextKey: 'app_content_library.code_lists_with_text_resources.info_box.title',
     descriptionTextKey: 'app_content_library.code_lists_with_text_resources.info_box.description',
-    illustrationReference: '/designer/img/Altinn-studio-code-list-illustration.svg',
+    illustrationReference: '/img/Altinn-studio-code-list-illustration.svg',
   },
   images: {
     titleTextKey: 'app_content_library.images.info_box.title',
     descriptionTextKey: 'app_content_library.images.info_box.description',
-    illustrationReference: '/designer/img/Altinn-studio-images-illustration.svg',
+    illustrationReference: '/img/Altinn-studio-images-illustration.svg',
   },
 };

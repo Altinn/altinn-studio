@@ -66,7 +66,10 @@ HTMLDialogElement.prototype.showModal = jest.fn(function mock(this: HTMLDialogEl
   this.open = true;
 });
 HTMLDialogElement.prototype.close = jest.fn(function mock(this: HTMLDialogElement) {
-  this.open = false;
+  if (this.open) {
+    this.open = false;
+    this.dispatchEvent(new Event('close'));
+  }
 });
 
 // I18next mocks. The useTranslation and Trans mocks apply the textMock function on the text key, so that it can be used to address the texts in the tests.
@@ -81,6 +84,7 @@ jest.mock('react-i18next', () => ({
     t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
     i18n: {
       exists: () => true,
+      language: 'nb',
     },
   }),
   withTranslation:

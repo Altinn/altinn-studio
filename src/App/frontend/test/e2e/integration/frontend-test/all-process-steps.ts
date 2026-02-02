@@ -1,6 +1,7 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { customReceiptPageAnother, customReceiptPageReceipt } from 'test/e2e/support/customReceipt';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { ILayoutCollection } from 'src/layout/layout';
@@ -128,17 +129,16 @@ function testReceiptSubStatus() {
 }
 
 function interceptAndAddCustomReceipt() {
-  cy.intercept('**/layoutsets', (req) => {
-    req.on('response', (res) => {
-      const layoutSets = JSON.parse(res.body);
-      layoutSets.sets.push({
+  interceptAltinnAppGlobalData((globalData) => {
+    globalData.layoutSets.sets = [
+      ...globalData.layoutSets.sets,
+      {
         id: 'custom-receipt',
         dataType: 'likert',
         tasks: ['CustomReceipt'],
-      });
-      res.body = JSON.stringify(layoutSets);
-    });
-  }).as('LayoutSets');
+      },
+    ];
+  });
 
   cy.intercept('**/layoutsettings/custom-receipt**', { pages: { order: ['receipt', 'another'] } }).as('LayoutSettings');
 
@@ -188,7 +188,7 @@ function testInstanceData() {
     const instanceId = maybeInstanceId ? maybeInstanceId[1] : 'instance-id-not-found';
 
     const host = Cypress.env('type') === 'localtest' ? urlParsed.origin : 'https://ttd.apps.tt02.altinn.no';
-    const instanceUrl = [host, urlParsed.pathname, `/instances/`, instanceId].join('');
+    const instanceUrl = `${host}/ttd/${appFrontend.apps.frontendTest}/instances/${instanceId}`;
 
     cy.request({ url: instanceUrl }).then((response) => {
       const instanceData = response.body as IInstance;

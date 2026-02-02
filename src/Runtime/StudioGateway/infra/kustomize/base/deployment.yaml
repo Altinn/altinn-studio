@@ -33,6 +33,7 @@ spec:
     metadata:
       labels:
         app: studio-gateway
+        azure.workload.identity/use: 'true'
       annotations:
         # for mTLS mainly
         linkerd.io/inject: enabled

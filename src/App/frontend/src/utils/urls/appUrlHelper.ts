@@ -6,14 +6,12 @@ const origin = window.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
 export const profileApiUrl = `${appPath}/api/v1/profile/user`;
-export const applicationMetadataApiUrl = `${appPath}/api/v1/applicationmetadata`;
-export const applicationSettingsApiUrl = `${appPath}/api/v1/applicationsettings`;
 export const invalidateCookieUrl = `${appPath}/api/authentication/invalidatecookie`;
 export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
 export const selectedPartyUrl = `${appPath}/api/authorization/parties/current?returnPartyObject=true`;
 export const instancesControllerUrl = `${appPath}/instances`;
 export const refreshJwtTokenUrl = `${appPath}/api/authentication/keepAlive`;
-export const applicationLanguagesUrl = `${appPath}/api/v1/applicationlanguages`;
+export const postalCodesUrl = 'https://altinncdn.no/postcodes/registry.json';
 
 export const getInstantiateUrl = (language?: string) => {
   const queryString = getQueryStringFromObject({ language });
@@ -100,12 +98,6 @@ export const getProcessNextUrl = (instanceId: string, language?: string) => {
   return `${appPath}/instances/${instanceId}/process/next${queryString}`;
 };
 
-export const getRedirectUrl = (returnUrl: string) => {
-  const encodedUriComponent = encodeURIComponent(returnUrl);
-
-  return `${appPath}/api/v1/redirect?url=${encodedUriComponent}`;
-};
-
 export const getUpgradeAuthLevelUrl = (reqAuthLevel: string) => {
   const redirect: string =
     `https://platform.${getHostname()}` + `/authentication/api/v1/authentication?goto=${appPath}`;
@@ -164,13 +156,11 @@ export const redirectToUpgrade = (reqAuthLevel: string) => {
 export const getJsonSchemaUrl = () => `${appPath}/api/jsonschema/`;
 export const getCustomValidationConfigUrl = (dataTypeId: string) => `${appPath}/api/validationconfig/${dataTypeId}`;
 export const getLayoutSettingsUrl = (layoutSetId: string) => `${appPath}/api/layoutsettings/${layoutSetId}`;
-export const getLayoutSetsUrl = () => `${appPath}/api/layoutsets`;
-export const getFooterLayoutUrl = () => `${appPath}/api/v1/footer`;
 export const getLayoutsUrl = (layoutSetId: string) => `${appPath}/api/layouts/${layoutSetId}`;
 export const getInstanceLayoutsUrl = (layoutSetId: string, instanceId: string) =>
   `${appPath}/instances/${instanceId}/layouts/${layoutSetId}`;
 export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;
-export const getInstanceUiUrl = (instanceId: string) => `${appPath}#/instance/${instanceId}`;
+export const getInstanceUiUrl = (instanceId: string) => `${appPath}/instance/${instanceId}`;
 
 export const appFrontendCDNPath = 'https://altinncdn.no/toolkits/altinn-app-frontend';
 export const frontendVersionsCDN = `${appFrontendCDNPath}/index.json`;

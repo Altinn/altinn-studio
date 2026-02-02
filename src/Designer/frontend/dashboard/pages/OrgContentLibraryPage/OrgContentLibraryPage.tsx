@@ -39,7 +39,12 @@ import { useOrgRepoName } from 'dashboard/hooks/useOrgRepoName';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
 import { useOrgTextResourcesQuery } from 'app-shared/hooks/queries/useOrgTextResourcesQuery';
-import { CODE_LIST_FOLDER, DEFAULT_LANGUAGE } from 'app-shared/constants';
+import {
+  CODE_LIST_FOLDER,
+  DEFAULT_LANGUAGE,
+  ORG_LIBRARY_BASENAME,
+  PUBLISHED_CODE_LIST_FOLDER,
+} from 'app-shared/constants';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
@@ -50,8 +55,10 @@ import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import { useSharedCodeListsQuery } from 'app-shared/hooks/queries/useSharedCodeListsQuery';
 import { useUpdateSharedResourcesMutation } from 'app-shared/hooks/mutations/useUpdateSharedResourcesMutation';
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
-import { usePublishCodeListMutation } from 'app-shared/hooks/mutations/usePublishCodeListMutation';
+import { usePublishCodeList } from './usePublishCodeList';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
+import { usePublishedResourcesQuery } from 'app-shared/hooks/queries/usePublishedResourcesQuery';
+import { useContentLibraryRouter } from 'app-shared/hooks/useContentLibraryRouter';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -94,11 +101,16 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
     DEFAULT_LANGUAGE,
   );
   const { data: sharedCodeList, status: sharedCodeListStatus } = useSharedCodeListsQuery(orgName);
+  const { status: publishedCodeListsStatus } = usePublishedResourcesQuery(
+    orgName,
+    PUBLISHED_CODE_LIST_FOLDER,
+  );
 
   const status = mergeQueryStatuses(
     codeListDataListStatus,
     textResourcesStatus,
     sharedCodeListStatus,
+    publishedCodeListsStatus,
   );
 
   switch (status) {
@@ -137,6 +149,7 @@ function OrgContentLibraryWithContextAndData({
   const { mutate: updateTextResources } = useUpdateOrgTextResourcesMutation(orgName);
   const { t } = useTranslation();
   const pagesFromFeatureFlags = usePagesFromFeatureFlags(orgName);
+  const router = useContentLibraryRouter(`/${ORG_LIBRARY_BASENAME}/${orgName}`);
 
   const handleUpload = useUploadCodeList(orgName);
 
@@ -168,6 +181,7 @@ function OrgContentLibraryWithContextAndData({
     <div>
       <ContentLibrary
         heading={t('org_content_library.library_heading')}
+        router={router}
         pages={{
           codeListsWithTextResources: {
             codeListDataList,
@@ -202,8 +216,12 @@ function usePagesFromFeatureFlags(orgName: string): Partial<PagesConfig> {
 function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
   const { data } = useSharedCodeListsQuery(orgName);
   const { mutate } = useUpdateSharedResourcesMutation(orgName, CODE_LIST_FOLDER);
-  const { mutate: publish } = usePublishCodeListMutation(orgName);
+  const { publish, isPublishing } = usePublishCodeList(orgName);
   const { t } = useTranslation();
+  const { data: publishedCodeLists } = usePublishedResourcesQuery(
+    orgName,
+    PUBLISHED_CODE_LIST_FOLDER,
+  );
 
   const libraryCodeLists = backendCodeListsToLibraryCodeLists(data);
 
@@ -227,7 +245,13 @@ function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
     [publish],
   );
 
-  return { codeLists: libraryCodeLists, onPublish: handlePublish, onSave: handleSave };
+  return {
+    codeLists: libraryCodeLists,
+    isPublishing,
+    onPublish: handlePublish,
+    onSave: handleSave,
+    publishedCodeLists,
+  };
 }
 
 function ContextWithoutLibraryAccess(): ReactElement {

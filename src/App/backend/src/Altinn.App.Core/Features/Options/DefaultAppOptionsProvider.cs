@@ -6,25 +6,29 @@ namespace Altinn.App.Core.Features.Options;
 /// <inheritdoc/>
 public class DefaultAppOptionsProvider : IAppOptionsProvider
 {
-    private readonly IServiceProvider _serviceProvider;
     private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultAppOptionsProvider"/> class.
+    /// The default app options implementation will resolve static
+    /// json files in the options folder of the app.
     /// </summary>
-    public DefaultAppOptionsProvider(IServiceProvider serviceProvider)
+    /// <param name="id">
+    /// The id/name that is used in the <c>optionsId</c> parameter in the SelectionComponents (Checkboxes, RadioButtons, Dropdown ...)
+    /// The id is used to resolve the file name. Should equal the file name without the .json extension.
+    /// </param>
+    /// <param name="serviceProvider">The service provider used to resolve <see cref="AppImplementationFactory"/></param>
+    public DefaultAppOptionsProvider(string id, IServiceProvider serviceProvider)
     {
-        _serviceProvider = serviceProvider;
+        Id = id;
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
     /// <summary>
-    /// This is the default app options implementation and will resolve static
-    /// json files in the options folder of the app. As the id is used to resolve
-    /// the file name, this particular Id=Default will be replaced run-time by
-    /// the <see cref="AppOptionsFactory"/> when providing the class.
+    /// The id/name that is used in the <c>optionsId</c> parameter in the SelectionComponents (Checkboxes, RadioButtons, Dropdown ...)
+    /// The id is used to resolve the file name. Should equal the file name without the .json extension.
     /// </summary>
-    public string Id { get; internal set; } = "default";
+    public string Id { get; private set; }
 
     /// <inheritdoc/>
     public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
@@ -34,17 +38,5 @@ public class DefaultAppOptionsProvider : IAppOptionsProvider
         var appOptions = new AppOptions { Options = await appOptionsFileHandler.ReadOptionsFromFileAsync(Id) };
 
         return appOptions;
-    }
-
-    /// <summary>
-    /// Internal method for cloning the default implementation and setting the id
-    /// as the implementation will use the id when finding the configured option files.
-    /// </summary>
-    /// <param name="cloneToOptionId">The actual option id to use.</param>
-    /// <returns></returns>
-    internal IAppOptionsProvider CloneDefaultTo(string cloneToOptionId)
-    {
-        var clone = new DefaultAppOptionsProvider(_serviceProvider) { Id = cloneToOptionId };
-        return clone;
     }
 }

@@ -1,6 +1,34 @@
-const adminApiBasePath = `/designer/api/admin`;
+import { getIsoRangeFromMinutes } from './formatDateAndTime';
 
+const adminApiBasePath = `/designer/api/admin`;
+const adminApiBasePathV1 = `/designer/api/v1/admin`;
+
+export const errorMetricsPath = (org: string, env: string, range: number) =>
+  `${adminApiBasePathV1}/metrics/${org}/${env}/errors?range=${range}`; // Get
+export const appMetricsPath = (org: string, env: string, app: string, range: number) =>
+  `${adminApiBasePathV1}/metrics/${org}/${env}/app?app=${app}&range=${range}`; // Get
+export const appErrorMetricsPath = (org: string, env: string, app: string, range: number) =>
+  `${adminApiBasePathV1}/metrics/${org}/${env}/app/errors?app=${app}&range=${range}`; // Get
+export const appErrorMetricsLogsPath = (
+  org: string,
+  env: string,
+  apps: string[],
+  metric: string,
+  range: number,
+) => {
+  const { from, to } = getIsoRangeFromMinutes(range);
+  const queryParams = new URLSearchParams();
+  apps.forEach((app) => queryParams.append('apps', app));
+  queryParams.set('metric', metric);
+  queryParams.set('from', from);
+  queryParams.set('to', to);
+  return `${adminApiBasePathV1}/metrics/${org}/${env}/app/errors/logs?${queryParams.toString()}`; // Get
+};
+export const appHealthMetricsPath = (org: string, env: string, app: string) =>
+  `${adminApiBasePathV1}/metrics/${org}/${env}/app/health?app=${app}`; // Get
 export const runningAppsPath = (org: string) => `${adminApiBasePath}/applications/${org}`; // Get
+export const appDetailsPath = (org: string, env: string, app: string) =>
+  `${adminApiBasePath}/applications/${org}/${env}/${app}`; // Get
 export const instancesListPath = (
   org: string,
   env: string,

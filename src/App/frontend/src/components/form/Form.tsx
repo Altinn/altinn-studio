@@ -9,7 +9,7 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { NavigateToStartUrl } from 'src/components/wrappers/ProcessWrapper';
 import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
 import { useExpandedWidthLayouts, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
@@ -152,7 +152,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
 function useRedirectToStoredPage() {
   const pageKey = useCurrentView();
   const { isValidPageId, navigateToPage } = useNavigatePage();
-  const applicationMetadataId = useApplicationMetadata()?.id;
+  const applicationMetadataId = getApplicationMetadata()?.id;
 
   const instanceId = useLaxInstanceId();
   const currentViewCacheKey = instanceId ?? applicationMetadataId;
@@ -243,20 +243,20 @@ function HandleNavigationFocusComponent() {
   const exitSubform = useQueryKey(SearchParams.ExitSubform)?.toLocaleLowerCase() === 'true';
   const validate = useQueryKey(SearchParams.Validate)?.toLocaleLowerCase() === 'true';
   const navigate = useNavigate();
-  const searchStringRef = useAsRef(useLocation().search);
+  const locationRef = useAsRef(useLocation());
 
   React.useEffect(() => {
     (async () => {
       // Replace URL if we have query params
       if (exitSubform || validate) {
-        const location = new URLSearchParams(searchStringRef.current);
-        location.delete(SearchParams.ExitSubform);
-        const baseHash = window.location.hash.slice(1).split('?')[0];
-        const nextLocation = location.size > 0 ? `${baseHash}?${location.toString()}` : baseHash;
+        const searchParams = new URLSearchParams(locationRef.current.search);
+        searchParams.delete(SearchParams.ExitSubform);
+        const basePath = locationRef.current.pathname;
+        const nextLocation = searchParams.size > 0 ? `${basePath}?${searchParams.toString()}` : basePath;
         navigate(nextLocation, { replace: true });
       }
     })();
-  }, [navigate, searchStringRef, exitSubform, validate, onFormSubmitValidation]);
+  }, [navigate, locationRef, exitSubform, validate, onFormSubmitValidation]);
 
   return null;
 }

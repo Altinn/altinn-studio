@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import type { PagesConfig, CodeListDataWithTextResources } from '../src';
 import { textResources } from '../src/test-data/textResources';
 
@@ -23,8 +24,10 @@ export const mockPagesConfig: PagesConfig = {
   },
   codeLists: {
     codeLists: [],
+    isPublishing: () => false,
     onPublish: () => {},
     onSave: () => {},
+    publishedCodeLists: [],
   },
   images: {
     images: [{ title: 'image', imageSrc: 'www.external-image-url.com' }],

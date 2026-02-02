@@ -1,11 +1,10 @@
-#nullable disable
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Altinn.Studio.Designer.TypedHttpClients.Slack
+namespace Altinn.Studio.Designer.TypedHttpClients.Slack;
+
+public interface ISlackClient
 {
-    public interface ISlackClient
-    {
-        public Task SendMessage(SlackRequest request, CancellationToken cancellationToken = default);
-    }
+    Task SendMessageAsync(Uri webhookUrl, SlackMessage message, CancellationToken cancellationToken = default);
 }

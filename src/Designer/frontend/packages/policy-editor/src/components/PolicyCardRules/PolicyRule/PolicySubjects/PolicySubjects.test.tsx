@@ -27,14 +27,14 @@ const sjofartPackage: PolicyAccessPackage = {
   urn: 'urn:altinn:accesspackage:sjofart',
   name: 'Sjøfart',
   description: '',
-  isDelegable: true,
+  isResourcePolicyAvailable: true,
 };
 const lufttransportPackage: PolicyAccessPackage = {
   id: 'urn:altinn:accesspackage:lufttransport',
   urn: 'urn:altinn:accesspackage:lufttransport',
   name: 'Lufttransport',
   description: '',
-  isDelegable: true,
+  isResourcePolicyAvailable: true,
 };
 const accessPackageAreaTransport: PolicyAccessPackageArea = {
   id: 'transport-area',
@@ -137,10 +137,10 @@ describe('PolicySubjects', () => {
     renderPolicySubjects();
 
     const label = `${mockSubject1.name} (${mockSubject1.legacyRoleCode})`;
-    const selectedSubjectCheckbox = screen.getByLabelText(label);
+    const selectedSubjectCheckbox = screen.getByRole('checkbox', { name: label });
     await user.click(selectedSubjectCheckbox);
 
-    expect(screen.queryByText(label)).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: label })).not.toBeInTheDocument();
   });
 
   it('should remove access package from selected list when selected access package checkbox is clicked', async () => {

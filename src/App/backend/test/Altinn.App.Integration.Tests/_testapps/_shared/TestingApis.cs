@@ -55,7 +55,8 @@ public static class TestingApis
                         configuration["PlatformSettings:ApiPdf2Endpoint"]
                         ?? throw new Exception("PlatformSettings.ApiPdf2Endpoint not configured");
 
-                    var activeEndpoint = pdfServiceUrl.Replace("/pdf", "/config");
+                    var uri = new Uri(pdfServiceUrl);
+                    var activeEndpoint = $"{uri.Scheme}://{uri.Authority}/health/startup";
 
                     var response = await httpClient.GetAsync(activeEndpoint);
                     var content = await response.Content.ReadAsStringAsync();

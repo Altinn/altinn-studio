@@ -30,12 +30,8 @@ describe('StudioSpinner', () => {
   });
 });
 
-const defaultProps: StudioSpinnerProps = {
-  'aria-label': 'Loading',
-  'data-size': 'md',
-  'aria-hidden': true,
-};
-
 const renderStudioSpinner = (props: Partial<StudioSpinnerProps>): RenderResult => {
-  return render(<StudioSpinner {...defaultProps} {...props} />);
+  return render(
+    <StudioSpinner aria-label={'aria-label'} data-size='md' aria-hidden={true} {...props} />,
+  );
 };

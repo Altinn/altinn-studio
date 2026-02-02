@@ -1,20 +1,20 @@
-import { ContextNotProvided } from 'src/core/contexts/context';
-import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { getDataTypeByLayoutSetId } from 'src/features/applicationMetadata/appMetadataUtils';
-import { useLayoutSetsQuery } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
+import { getLayoutSets } from 'src/features/form/layoutSets';
+import { getDataTypeByLayoutSetId } from 'src/features/instance/instanceUtils';
 
 export const useAllowAnonymous = () => {
-  const application = useLaxApplicationMetadata();
-  const { data: layoutSets } = useLayoutSetsQuery();
+  const isStateless = useIsStateless();
 
-  if (!layoutSets || application === ContextNotProvided || !application.isStatelessApp) {
+  if (!isStateless) {
     return false;
   }
 
+  const application = getApplicationMetadata();
+  const layoutSets = getLayoutSets();
+
   const dataTypeId = getDataTypeByLayoutSetId({
     layoutSetId: application.onEntry.show,
-    layoutSets: layoutSets.sets,
-    appMetaData: application,
+    layoutSets,
   });
   const dataType = application.dataTypes.find((d) => d.id === dataTypeId);
   const allowAnonymous = dataType?.appLogic?.allowAnonymousOnStateless;

@@ -2,7 +2,6 @@ import React, { useCallback } from 'react';
 import type { ChangeEventHandler, ReactElement, ReactNode } from 'react';
 import { useCodeListEditorTexts } from '../useCodeListEditorTexts';
 import {
-  StudioButton,
   StudioCodeListEditor,
   StudioDeleteButton,
   StudioDetails,
@@ -13,19 +12,24 @@ import type { CodeListData } from '../../../../types/CodeListData';
 import { updateCodes, updateName } from './utils';
 import { useTranslation } from 'react-i18next';
 import classes from './CodeListDataEditor.module.css';
+import { Publishing } from './Publishing';
 
 export type CodeListDataEditorProps = Readonly<{
   data: CodeListData;
+  isPublishing: boolean;
   onDelete: () => void;
   onPublish: (data: CodeListData) => void;
   onUpdate: (newData: CodeListData) => void;
+  publishedCodeLists: string[];
 }>;
 
 export function CodeListDataEditor({
   data,
+  isPublishing,
   onDelete,
   onPublish,
   onUpdate,
+  publishedCodeLists,
 }: CodeListDataEditorProps): ReactElement {
   const texts = useCodeListEditorTexts();
   const { t } = useTranslation();
@@ -49,8 +53,6 @@ export function CodeListDataEditor({
 
   const handlePublish = useCallback((): void => onPublish(data), [data, onPublish]);
 
-  const canPublish = !!data.name;
-
   return (
     <StudioDetails>
       <StudioDetails.Summary>
@@ -66,14 +68,13 @@ export function CodeListDataEditor({
         <StudioDeleteButton className={classes.deleteButton} onDelete={onDelete}>
           {t('general.delete')}
         </StudioDeleteButton>
-        <StudioButton
-          className={classes.publishButton}
-          disabled={!canPublish}
-          onClick={handlePublish}
-          variant='secondary'
-        >
-          {t('app_content_library.code_lists.publish')}
-        </StudioButton>
+        <Publishing
+          className={classes.publishing}
+          codeListName={data.name}
+          isPending={isPublishing}
+          onPublish={handlePublish}
+          publishedCodeLists={publishedCodeLists}
+        />
         <StudioCodeListEditor
           className={classes.codes}
           codeList={data.codes}

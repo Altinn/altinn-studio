@@ -224,6 +224,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, serviceConfig.RepositoryName, developer, token);
             string repoPath = _settings.GetServicePath(org, serviceConfig.RepositoryName, developer);
             var options = new CreateRepoOption(serviceConfig.RepositoryName);
 
@@ -236,7 +238,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     FireDeletionOfLocalRepo(org, serviceConfig.RepositoryName, developer);
                 }
 
-                await _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName);
+                _sourceControl.CloneRemoteRepository(authenticatedContext);
 
                 ModelMetadata metadata = new()
                 {
@@ -253,7 +255,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
-                await _sourceControl.PushChangesForRepository(commitInfo);
+                _sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
             }
 
             return repository;
@@ -271,6 +273,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             targetOrg ??= org;
             var options = new CreateRepoOption(targetRepository);
+            string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext sourceContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceRepository, developer, token);
+            AltinnAuthenticatedRepoEditingContext targetContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(targetOrg, targetRepository, developer, token);
 
             RepositoryClient.Model.Repository repository = await CreateRemoteRepository(targetOrg, options);
 
@@ -286,10 +291,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 FireDeletionOfLocalRepo(targetOrg, targetRepository, developer);
             }
 
-            await _sourceControl.CloneRemoteRepository(org, sourceRepository, targetRepositoryPath);
+            _sourceControl.CloneRemoteRepository(sourceContext, targetRepositoryPath);
             var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepository, developer);
 
-            await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
+            await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{targetOrg}/{targetRepository}.git");
 
             ApplicationMetadata appMetadata = await targetAppRepository.GetApplicationMetadata();
             appMetadata.Id = $"{targetOrg}/{targetRepository}";
@@ -309,7 +314,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             CommitInfo commitInfo = new() { Org = targetOrg, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
-            await _sourceControl.PushChangesForRepository(commitInfo);
+            _sourceControl.PushChangesForRepository(targetContext, commitInfo);
 
             return repository;
         }
@@ -318,11 +323,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<bool> ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext)
         {
             string repoPath = _settings.GetServicePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromEditingContext(altinnRepoEditingContext, token);
 
             if (Directory.Exists(repoPath))
             {
                 FireDeletionOfLocalRepo(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-                await _sourceControl.CloneRemoteRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo);
+                _sourceControl.CloneRemoteRepository(authenticatedContext);
                 return true;
             }
 
@@ -621,7 +628,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task DeleteRepository(string org, string repository)
         {
-            await _sourceControl.DeleteRepository(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            AltinnRepoEditingContext altinnRepoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            await _sourceControl.DeleteRepository(altinnRepoEditingContext);
         }
 
         public async Task<bool> SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy)

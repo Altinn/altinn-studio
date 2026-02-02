@@ -47,6 +47,12 @@ public class AltinnTaskExtension
     public AltinnEFormidlingConfiguration? EFormidlingConfiguration { get; set; }
 
     /// <summary>
+    /// Gets or sets the configuration for subform PDF
+    /// </summary>
+    [XmlElement("subformPdfConfig", Namespace = "http://altinn.no/process")]
+    public AltinnSubformPdfConfiguration? SubformPdfConfiguration { get; set; }
+
+    /// <summary>
     /// Retrieves a configuration item for given environment, in a predictable manner.
     /// Specific configurations (those specifying an environment) takes precedence over global configurations.
     /// </summary>

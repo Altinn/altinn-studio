@@ -9,13 +9,16 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { quirks } from 'src/features/form/layout/quirks';
+import { getGlobalUiSettings, getLayoutSets } from 'src/features/form/layoutSets';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
-import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState } from 'src/queries/queries';
+import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
+import type { GlobalPageSettings } from 'src/features/form/layoutSets/types';
 import type { ExternalAppLayoutSet } from 'src/test/allApps';
 
 const env = dotenv.config({ quiet: true });
@@ -86,10 +89,10 @@ const windowLoggers = ['logError', 'logErrorOnce', 'logWarn', 'logWarnOnce', 'lo
 const consoleLoggers = ['error', 'warn', 'log'];
 
 describe('All known layout sets should evaluate as a hierarchy', () => {
-  let hashWas: string;
+  let pathnameWas: string;
   beforeAll(() => {
     window.forceNodePropertiesValidation = 'on';
-    hashWas = window.location.hash.toString();
+    pathnameWas = window.location.pathname.toString();
     for (const func of windowLoggers) {
       jest
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -112,7 +115,7 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
 
   afterAll(() => {
     window.forceNodePropertiesValidation = 'off';
-    window.location.hash = hashWas;
+    window.location.pathname = pathnameWas;
     jest.restoreAllMocks();
   });
 
@@ -133,13 +136,16 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
   allSets.sort(() => Math.random() - 0.5);
 
   async function testSet(set: ExternalAppLayoutSet) {
-    const { hash, mainSet, subformComponent } = set.initialize();
-    window.location.hash = hash;
+    const { pathname, mainSet, subformComponent } = set.initialize();
+    window.location.pathname = pathname;
     const [org, app] = set.app.getOrgApp();
     window.org = org;
     window.app = app;
 
-    jest.mocked(fetchApplicationMetadata).mockImplementation(async () => set.app.getAppMetadata());
+    jest.mocked(getApplicationMetadata).mockImplementation(() => set.app.getAppMetadata());
+    jest.mocked(getLayoutSets).mockReturnValue(set.app.getRawLayoutSets().sets);
+    // Real apps have backend-populated uiSettings, cast to GlobalPageSettings
+    jest.mocked(getGlobalUiSettings).mockReturnValue(set.app.getRawLayoutSets().uiSettings as GlobalPageSettings);
     jest.mocked(fetchProcessState).mockImplementation(async () => mainSet.simulateProcessData());
     jest.mocked(fetchInstanceData).mockImplementation(async () => set.simulateInstance());
 
@@ -149,7 +155,6 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
       renderer: () =>
         subformComponent ? <SubformTestWrapper baseId={subformComponent.id}>{children}</SubformTestWrapper> : children,
       queries: {
-        fetchLayoutSets: async () => set.app.getRawLayoutSets(),
         fetchLayouts: async (setId) => set.app.getLayoutSet(setId).getLayouts(),
         fetchLayoutSettings: async (setId) => set.app.getLayoutSet(setId).getSettings(),
         fetchFormData: async (url) => set.getModel({ url }).simulateDataModel(),

@@ -18,10 +18,12 @@ using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
+using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
 
@@ -47,6 +49,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IGitOpsConfigurationManager _gitOpsConfigurationManager;
         private readonly IFeatureManager _featureManager;
         private readonly IRuntimeGatewayClient _runtimeGatewayClient;
+        private readonly ISlackClient _slackClient;
+        private readonly AlertsSettings _alertsSettings;
 
         /// <summary>
         /// Constructor
@@ -66,7 +70,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             TimeProvider timeProvider,
             IGitOpsConfigurationManager gitOpsConfigurationManager,
             IFeatureManager featureManager,
-            IRuntimeGatewayClient runtimeGatewayClient)
+            IRuntimeGatewayClient runtimeGatewayClient,
+            ISlackClient slackClient,
+            AlertsSettings alertsSettings)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _deploymentRepository = deploymentRepository;
@@ -83,27 +89,28 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _gitOpsConfigurationManager = gitOpsConfigurationManager;
             _featureManager = featureManager;
             _runtimeGatewayClient = runtimeGatewayClient;
+            _slackClient = slackClient;
+            _alertsSettings = alertsSettings;
         }
 
         /// <inheritdoc/>
-        public async Task<DeploymentEntity> CreateAsync(string org, string app, DeploymentModel deployment, CancellationToken cancellationToken = default)
+        public async Task<DeploymentEntity> CreateAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, DeploymentModel deployment, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             DeploymentEntity deploymentEntity = new();
-            deploymentEntity.PopulateBaseProperties(org, app, _httpContext);
+            deploymentEntity.PopulateBaseProperties(authenticatedContext.Org, authenticatedContext.Repo, _httpContext);
             deploymentEntity.TagName = deployment.TagName;
             deploymentEntity.EnvName = deployment.EnvName;
 
-            ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(org, app, deploymentEntity.TagName);
-
+            ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(authenticatedContext.Org, authenticatedContext.Repo, deploymentEntity.TagName);
             await _applicationInformationService
-                .UpdateApplicationInformationAsync(org, app, release.TargetCommitish, deployment.EnvName, cancellationToken);
+                .UpdateApplicationInformationAsync(authenticatedContext.Org, authenticatedContext.Repo, release.TargetCommitish, deployment.EnvName, cancellationToken);
 
             bool shouldPushSyncRootImage = false;
 
             if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
             {
-                shouldPushSyncRootImage = await AddAppToGitOpsRepoIfNotExists(AltinnOrgEditingContext.FromOrgDeveloper(org, deploymentEntity.CreatedBy), AltinnRepoName.FromName(app), AltinnEnvironment.FromName(deployment.EnvName));
+                shouldPushSyncRootImage = await AddAppToGitOpsRepoIfNotExists(authenticatedContext, AltinnRepoName.FromName(authenticatedContext.Repo), AltinnEnvironment.FromName(deployment.EnvName));
             }
 
             bool useGitOpsDefinition = await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy);
@@ -119,32 +126,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var createdEntity = await _deploymentRepository.Create(deploymentEntity);
 
-            await _deployEventRepository.AddAsync(org, deploymentEntity.Build.Id, new DeployEvent
+            await _deployEventRepository.AddAsync(authenticatedContext.Org, deploymentEntity.Build.Id, new DeployEvent
             {
                 EventType = DeployEventType.PipelineScheduled,
                 Message = $"Pipeline {queuedBuild.Id} scheduled",
                 Timestamp = _timeProvider.GetUtcNow()
             }, cancellationToken);
 
-            await PublishDeploymentPipelineQueued(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, deploymentEntity.CreatedBy), queuedBuild, PipelineType.Deploy, deployment.EnvName, CancellationToken.None);
+            await PublishDeploymentPipelineQueued(AltinnRepoEditingContext.FromOrgRepoDeveloper(authenticatedContext.Org, authenticatedContext.Repo, deploymentEntity.CreatedBy), queuedBuild, PipelineType.Deploy, deployment.EnvName, CancellationToken.None);
             return createdEntity;
         }
 
-        private async Task<bool> AddAppToGitOpsRepoIfNotExists(AltinnOrgEditingContext context, AltinnRepoName app, AltinnEnvironment environment)
+        private async Task<bool> AddAppToGitOpsRepoIfNotExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, AltinnRepoName app, AltinnEnvironment environment)
         {
-            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(context, environment);
+            AltinnOrgEditingContext orgContext = authenticatedContext.OrgEditingContext;
+            AltinnRepoEditingContext repoContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(orgContext.Org, app.Name, orgContext.Developer);
+
+            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(orgContext, environment);
 
             bool appAlreadyExists =
-                await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(context, app, environment);
+                await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(orgContext, app, environment);
 
             if (appAlreadyExists)
             {
                 return false;
             }
 
-            await _gitOpsConfigurationManager.AddAppToGitOpsConfigurationAsync(AltinnRepoEditingContext.FromOrgRepoDeveloper(context.Org, app.Name, context.Developer), environment);
+            await _gitOpsConfigurationManager.AddAppToGitOpsConfigurationAsync(repoContext, environment);
 
-            await _gitOpsConfigurationManager.PersistGitOpsConfigurationAsync(context, environment);
+            _gitOpsConfigurationManager.PersistGitOpsConfiguration(orgContext, environment);
             return true;
         }
 
@@ -161,24 +171,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new SearchResults<DeploymentEntity> { Results = deploymentEntities.Where(item => environmentNames.Contains(item.EnvName)).ToList() };
         }
 
-        public async Task UndeployAsync(AltinnRepoEditingContext editingContext, string env,
+        public async Task UndeployAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, string env,
             CancellationToken cancellationToken = default)
         {
             Guard.AssertValidEnvironmentName(env);
             GitOpsManagementBuildParameters gitOpsManagementBuildParameters = new()
             {
-                AppOwner = editingContext.Org,
-                AppRepo = editingContext.Repo,
+                AppOwner = authenticatedContext.Org,
+                AppRepo = authenticatedContext.Repo,
                 AppEnvironment = env,
                 AltinnStudioHostname = _generalSettings.HostName,
-                AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
+                AppDeployToken = authenticatedContext.DeveloperAppToken,
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos"
             };
 
             // find the deployed tag
-            DeploymentEntity lastDeployed = await _deploymentRepository.GetLastDeployed(editingContext.Org, editingContext.Repo, env);
+            DeploymentEntity lastDeployed = await _deploymentRepository.GetLastDeployed(authenticatedContext.Org, authenticatedContext.Repo, env);
 
-            bool useGitOpsDecommission = await ShouldUseGitOpsDecommission(editingContext, env, cancellationToken);
+            bool useGitOpsDecommission = await ShouldUseGitOpsDecommission(authenticatedContext, env, cancellationToken);
             int definitionId = useGitOpsDecommission
                 ? _azureDevOpsSettings.GitOpsManagerDefinitionId
                 : _azureDevOpsSettings.DecommissionDefinitionId;
@@ -197,28 +207,28 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     Started = build.StartTime
                 }
             };
-            deploymentEntity.PopulateBaseProperties(editingContext, _timeProvider);
+            deploymentEntity.PopulateBaseProperties(authenticatedContext, _timeProvider);
 
             await _deploymentRepository.Create(deploymentEntity);
 
-            await _deployEventRepository.AddAsync(editingContext.Org, deploymentEntity.Build.Id, new DeployEvent
+            await _deployEventRepository.AddAsync(authenticatedContext.Org, deploymentEntity.Build.Id, new DeployEvent
             {
                 EventType = useGitOpsDecommission ? DeployEventType.PipelineScheduled : DeployEventType.DeprecatedPipelineScheduled,
                 Message = $"Undeploy pipeline {build.Id} scheduled",
                 Timestamp = _timeProvider.GetUtcNow()
             }, cancellationToken);
 
-            await PublishDeploymentPipelineQueued(editingContext, build, PipelineType.Undeploy, env, CancellationToken.None);
+            await PublishDeploymentPipelineQueued(authenticatedContext, build, PipelineType.Undeploy, env, CancellationToken.None);
         }
 
-        private async Task<bool> ShouldUseGitOpsDecommission(AltinnRepoEditingContext editingContext, string env, CancellationToken cancellationToken)
+        private async Task<bool> ShouldUseGitOpsDecommission(AltinnAuthenticatedRepoEditingContext authenticatedContext, string env, CancellationToken cancellationToken)
         {
             if (!await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
             {
                 return false;
             }
 
-            bool removedFromGitOps = await RemoveAppFromGitOpsRepoIfExists(editingContext, env);
+            bool removedFromGitOps = await RemoveAppFromGitOpsRepoIfExists(authenticatedContext, env);
             if (removedFromGitOps)
             {
                 return true;
@@ -226,24 +236,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var environment = AltinnEnvironment.FromName(env);
             return await _runtimeGatewayClient.IsAppDeployedWithGitOpsAsync(
-                editingContext.Org,
-                editingContext.Repo,
+                authenticatedContext.Org,
+                authenticatedContext.Repo,
                 environment,
                 cancellationToken);
         }
 
-        private async Task<bool> RemoveAppFromGitOpsRepoIfExists(AltinnRepoEditingContext editingContext, string env)
+        private async Task<bool> RemoveAppFromGitOpsRepoIfExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, string env)
         {
-            var orgContext = AltinnOrgEditingContext.FromOrgDeveloper(editingContext.Org, editingContext.Developer);
+            var orgContext = AltinnOrgEditingContext.FromOrgDeveloper(authenticatedContext.Org, authenticatedContext.Developer);
 
             if (!await _gitOpsConfigurationManager.GitOpsConfigurationExistsAsync(orgContext))
             {
                 return false;
             }
             var environment = AltinnEnvironment.FromName(env);
-            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(AltinnOrgEditingContext.FromAltinnRepoEditingContext(editingContext), environment);
+            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(orgContext, environment);
 
-            var appName = AltinnRepoName.FromName(editingContext.Repo);
+            var appName = AltinnRepoName.FromName(authenticatedContext.Repo);
 
             bool appExistsInGitOps = await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(orgContext, appName, environment);
 
@@ -252,8 +262,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return false;
             }
 
-            await _gitOpsConfigurationManager.RemoveAppFromGitOpsEnvironmentConfigurationAsync(editingContext, environment);
-            await _gitOpsConfigurationManager.PersistGitOpsConfigurationAsync(orgContext, environment);
+            await _gitOpsConfigurationManager.RemoveAppFromGitOpsEnvironmentConfigurationAsync(authenticatedContext, environment);
+            _gitOpsConfigurationManager.PersistGitOpsConfiguration(orgContext, environment);
 
             return true;
         }
@@ -313,6 +323,94 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 : _azureDevOpsSettings.DeployDefinitionId;
 
             return await _azureDevOpsBuildClient.QueueAsync(queueBuildParameters, definitionId);
+        }
+
+        /// <inheritdoc />
+        public async Task SendToSlackAsync(string org, AltinnEnvironment environment, string app, DeployEventType eventType, string buildId, DateTimeOffset? startedDate, CancellationToken cancellationToken)
+        {
+            if (eventType == DeployEventType.InstallSucceeded || eventType == DeployEventType.UpgradeSucceeded || eventType == DeployEventType.UninstallSucceeded)
+            {
+                return;
+            }
+
+            string studioEnv = _generalSettings.OriginEnvironment;
+
+            var links = new List<SlackText>
+            {
+                new() { Type = "mrkdwn", Text = $"<{GrafanaPodLogsUrl(org, environment, app, startedDate, _timeProvider.GetUtcNow())}|Grafana>" },
+            };
+
+            if (!string.IsNullOrWhiteSpace(buildId))
+            {
+                links.Add(new SlackText { Type = "mrkdwn", Text = $"<https://dev.azure.com/brreg/altinn-studio/_build/results?buildId={buildId}&view=logs|Build log>" });
+            }
+
+            string emoji = ":x:";
+            var status = eventType switch
+            {
+                DeployEventType.InstallFailed or DeployEventType.UpgradeFailed => "Deploy failed",
+                DeployEventType.UninstallFailed => "Undeploy failed",
+                _ => eventType.ToString(),
+            };
+
+            var message = new SlackMessage
+            {
+                Text = $"{emoji} `{org}` - `{environment.Name}` - `{app}` - *{status}*",
+                Blocks =
+                [
+                    new SlackBlock
+                    {
+                        Type = "section",
+                        Text = new SlackText { Type = "mrkdwn", Text = $"{emoji} *{status}*" },
+                    },
+                    new SlackBlock
+                    {
+                        Type = "context",
+                        Elements = new List<SlackText>
+                        {
+                            new() { Type = "mrkdwn", Text = $"Org: `{org}`" },
+                            new() { Type = "mrkdwn", Text = $"Env: `{environment.Name}`" },
+                            new() { Type = "mrkdwn", Text = $"App: `{app}`" },
+                            new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
+                        },
+                    },
+                    new SlackBlock
+                    {
+                        Type = "context",
+                        Elements = links,
+                    },
+                ],
+            };
+
+            try
+            {
+                await _slackClient.SendMessageAsync(_alertsSettings.GetSlackWebhookUrl(environment), message, cancellationToken);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogError(ex, "Failed to send Slack deploy notification");
+            }
+        }
+
+        private static string GrafanaPodLogsUrl(string org, AltinnEnvironment environment, string app, DateTimeOffset? startedDate, DateTimeOffset finishedDate)
+        {
+            var baseDomain = environment.IsProd() ? $"https://{org}.apps.altinn.no" : $"https://{org}.apps.tt02.altinn.no";
+
+            var path = "/monitor/d/ae1906c2hbjeoe/pod-console-error-logs";
+
+            var queryParams = new Dictionary<string, string>
+            {
+                ["var-rg"] = $"altinnapps-{org}-{(environment.IsProd() ? "prod" : environment.Name)}-rg",
+                ["var-PodName"] = $"{org}-{app}-deployment-v2",
+            };
+
+            if (startedDate is not null)
+            {
+                queryParams["from"] = startedDate.Value.ToUnixTimeMilliseconds().ToString();
+                queryParams["to"] = finishedDate.ToUnixTimeMilliseconds().ToString();
+            }
+
+            return QueryHelpers.AddQueryString($"{baseDomain}{path}", queryParams);
         }
     }
 }

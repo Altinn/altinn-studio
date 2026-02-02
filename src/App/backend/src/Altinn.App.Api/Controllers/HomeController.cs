@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -14,11 +15,14 @@ namespace Altinn.App.Api.Controllers;
 /// <summary>
 /// Provides access to the default home view.
 /// </summary>
+[Route("{org}/{app}")]
 public class HomeController : Controller
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };
 
     private readonly IAntiforgery _antiforgery;
@@ -28,10 +32,13 @@ public class HomeController : Controller
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
+    private readonly IBootstrapGlobalService _bootstrapGlobalService;
+    private readonly IIndexPageGenerator _indexPageGenerator;
 
     /// <summary>
     /// Initialize a new instance of the <see cref="HomeController"/> class.
     /// </summary>
+    /// <param name="serviceProvider">The serviceProvider service used to inject internal services.</param>
     /// <param name="antiforgery">The anti forgery service.</param>
     /// <param name="platformSettings">The platform settings.</param>
     /// <param name="env">The current environment.</param>
@@ -39,6 +46,7 @@ public class HomeController : Controller
     /// <param name="appResources">The application resources service</param>
     /// <param name="appMetadata">The application metadata service</param>
     public HomeController(
+        IServiceProvider serviceProvider,
         IAntiforgery antiforgery,
         IOptions<PlatformSettings> platformSettings,
         IWebHostEnvironment env,
@@ -53,6 +61,8 @@ public class HomeController : Controller
         _appSettings = appSettings.Value;
         _appResources = appResources;
         _appMetadata = appMetadata;
+        _bootstrapGlobalService = serviceProvider.GetRequiredService<IBootstrapGlobalService>();
+        _indexPageGenerator = serviceProvider.GetRequiredService<IIndexPageGenerator>();
     }
 
     /// <summary>
@@ -61,12 +71,20 @@ public class HomeController : Controller
     /// <param name="org">The application owner short name.</param>
     /// <param name="app">The name of the app</param>
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
+    /// <param name="returnUrl">Custom returnUrl param that will be verified</param>
     [HttpGet]
-    [Route("{org}/{app}/")]
+    [Route("")]
+    [Route("instance-selection")]
+    [Route("party-selection")]
+    [Route("party-selection/{errorCode}")]
+    [Route("{pageName:int}")]
+    [Route("instance/{partyId}/{instanceGuid}")]
+    [Route("instance/{partyId}/{instanceGuid}/{*rest}")]
     public async Task<IActionResult> Index(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromQuery] bool dontChooseReportee
+        [FromQuery] bool dontChooseReportee,
+        [FromQuery] string? returnUrl
     )
     {
         // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
@@ -85,9 +103,22 @@ public class HomeController : Controller
 
         if (await ShouldShowAppView())
         {
-            ViewBag.org = org;
-            ViewBag.app = app;
-            return PartialView("Index");
+            if (_indexPageGenerator.HasLegacyIndexCshtml)
+            {
+                ViewBag.org = org;
+                ViewBag.app = app;
+                return PartialView("Index");
+            }
+
+            string? frontendVersionOverride = null;
+            if (_env.IsDevelopment() && HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var cookie))
+            {
+                frontendVersionOverride = cookie.TrimEnd('/');
+            }
+
+            var appGlobalState = await _bootstrapGlobalService.GetGlobalState(returnUrl);
+            var html = await _indexPageGenerator.Generate(org, app, appGlobalState, frontendVersionOverride);
+            return Content(html, "text/html; charset=utf-8");
         }
 
         string scheme = _env.IsDevelopment() ? "http" : "https";
@@ -130,7 +161,7 @@ public class HomeController : Controller
     [HttpGet]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "text/html")]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
-    [Route("{org}/{app}/set-query-params")]
+    [Route("set-query-params")]
     public async Task<IActionResult> SetQueryParams(string org, string app)
     {
         ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
@@ -231,7 +262,7 @@ public class HomeController : Controller
 
     private DataType? GetStatelessDataType(ApplicationMetadata application)
     {
-        string layoutSetsString = _appResources.GetLayoutSets();
+        string? layoutSetsString = _appResources.GetLayoutSetsString();
 
         // Stateless apps only work with layousets
         if (!string.IsNullOrEmpty(layoutSetsString))

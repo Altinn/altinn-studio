@@ -13,7 +13,7 @@ import { codeListsDataMock } from '../../../../../mocks/mockPagesConfig';
 import { CodeListUsageTaskType } from '../../../../types/CodeListUsageTaskType';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import { textResourcesNb } from '../../../../test-data/textResources';
-import { Guard } from '@studio/pure-functions';
+import { Guard } from '@studio/guard';
 
 const onDeleteCodeListMock = jest.fn();
 const onUpdateCodeListIdMock = jest.fn();

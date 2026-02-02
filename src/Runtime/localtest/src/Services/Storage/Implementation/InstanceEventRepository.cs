@@ -31,7 +31,7 @@ namespace LocalTest.Services.Storage.Implementation
             throw new NotImplementedException();
         }
 
-        public Task<InstanceEvent> InsertInstanceEvent(InstanceEvent instanceEvent)
+        public Task<InstanceEvent> InsertInstanceEvent(InstanceEvent instanceEvent, Instance instance = null)
         {
             instanceEvent.Id = Guid.NewGuid();
 

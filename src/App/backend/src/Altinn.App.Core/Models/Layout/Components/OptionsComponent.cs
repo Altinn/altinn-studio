@@ -1,9 +1,11 @@
 using System.Text.Json;
+using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Models.Layout.Components;
 
 /// <summary>
-/// Custom component for handeling the special fields that represents an option.
+/// Custom component for handling the special fields that represents an option.
 /// </summary>
 public sealed class OptionsComponent : Base.NoReferenceComponent
 {
@@ -13,12 +15,12 @@ public sealed class OptionsComponent : Base.NoReferenceComponent
     public required string? OptionsId { get; init; }
 
     /// <summary>
-    /// Alternaltive to <see cref="OptionsId" /> where the options are listed inline instead of referencing an external generator
+    /// Alternative to <see cref="OptionsId" /> where the options are listed inline instead of referencing an external generator
     /// </summary>
     public required List<AppOption>? Options { get; init; }
 
     /// <summary>
-    /// Alternaltive to <see cref="OptionsId" /> where the options are sourced from a repeating group in the datamodel
+    /// Alternative to <see cref="OptionsId" /> where the options are sourced from a repeating group in the datamodel
     /// </summary>
     public required OptionsSource? OptionsSource { get; init; }
 
@@ -89,6 +91,52 @@ public sealed class OptionsComponent : Base.NoReferenceComponent
         };
     }
 
+    /// <inheritdoc />
+    public override async Task<IEnumerable<DataReference>> GetDataReferencesToRemoveWhenHidden(ComponentContext context)
+    {
+        // Return only the group binding when we have group backing
+        // Otherwise call base implementation to return all data bindings
+        if (DataModelBindings.TryGetValue("group", out var groupBinding))
+        {
+            return [await context.AddIndexes(groupBinding)];
+        }
+
+        return await base.GetDataReferencesToRemoveWhenHidden(context);
+    }
+
+    /// <inheritdoc />
+    public override async Task<ComponentContext> GetContext(
+        LayoutEvaluatorState state,
+        DataElementIdentifier defaultDataElementIdentifier,
+        int[]? rowIndexes,
+        Dictionary<string, LayoutSetComponent> layoutsLookup
+    )
+    {
+        // Context works normally when we don't have a group binding
+        if (!DataModelBindings.TryGetValue("group", out var groupBinding))
+        {
+            return await base.GetContext(state, defaultDataElementIdentifier, rowIndexes, layoutsLookup);
+        }
+
+        // For group backed options, we create a child context for each item in the group
+        var numRows = await state.GetModelDataCount(groupBinding, defaultDataElementIdentifier, rowIndexes) ?? 0;
+        var component = OptionsRowComponent.FromOptionsComponent(this);
+        var childContexts = Enumerable
+            .Range(0, numRows)
+            .Select(i =>
+            {
+                return new ComponentContext(
+                    state,
+                    component,
+                    RepeatingGroupComponent.GetSubRowIndexes(rowIndexes, i),
+                    defaultDataElementIdentifier
+                );
+            })
+            .ToList();
+
+        return new ComponentContext(state, this, rowIndexes, defaultDataElementIdentifier, childContexts);
+    }
+
     private static string? ParseStringOrNull(JsonElement componentElement, string propertyName) =>
         componentElement.TryGetProperty(propertyName, out JsonElement optionsIdElement)
             ? optionsIdElement.GetString()
@@ -133,4 +181,51 @@ public record OptionsSource
     /// it is recommended to add a field to the data model that can be used as identificator, for instance a GUID.
     /// </remarks>
     public string Value { get; }
+}
+
+/// <summary>
+/// Component for each row of an <see cref="OptionsComponent" /> to use in the generation of contexts.
+/// </summary>
+public class OptionsRowComponent : Base.BaseComponent
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OptionsRowComponent"/> class from the
+    /// surrounding group component.
+    /// </summary>
+    public static OptionsRowComponent FromOptionsComponent(OptionsComponent parent)
+    {
+        Expression hidden;
+        if (!parent.DataModelBindings.TryGetValue("checked", out var checkedBinding))
+        {
+            // All rows are visible if there is no checked binding
+            hidden = Expression.False;
+        }
+        else
+        {
+            // Hidden for a row is based on the checked binding being false
+            hidden = new Expression(
+                ExpressionFunction.not,
+                checkedBinding.DataType is null
+                    ? new Expression(ExpressionFunction.dataModel, new Expression(checkedBinding.Field))
+                    : new Expression(
+                        ExpressionFunction.dataModel,
+                        new Expression(checkedBinding.Field),
+                        new Expression(checkedBinding.DataType)
+                    )
+            );
+        }
+        return new OptionsRowComponent()
+        {
+            Id = $"{parent.Id}_row",
+            PageId = parent.PageId,
+            LayoutId = parent.LayoutId,
+            Type = "optionsrow",
+            Required = Expression.False,
+            ReadOnly = parent.ReadOnly,
+            Hidden = hidden,
+            RemoveWhenHidden = parent.RemoveWhenHidden,
+            DataModelBindings = parent.DataModelBindings,
+            TextResourceBindings = parent.TextResourceBindings,
+        };
+    }
 }

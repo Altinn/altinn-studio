@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -41,10 +42,11 @@ public class GitRepoGitOpsConfigurationManager(
 
     public async Task EnsureGitOpsConfigurationExistsAsync(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
+        AltinnAuthenticatedRepoEditingContext gitOpsAuthenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer, gitOpsSettings.BotPersonalAccessToken);
         DeleteLocalRepositoryIfExists(context);
         await EnsureRemoteRepositoryExists(context);
 
-        await sourceControl.CloneRemoteRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org));
+        sourceControl.CloneRemoteRepository(gitOpsAuthenticatedContext);
 
         await EnsureBaseManifests(context);
         await EnsureEnvironmentManifests(context, environment);
@@ -183,11 +185,11 @@ public class GitRepoGitOpsConfigurationManager(
         await WriteManifestsToFiles(AltinnOrgEditingContext.FromOrgDeveloper(context.Org, context.Developer), envManifests);
     }
 
-    public async Task PersistGitOpsConfigurationAsync(AltinnOrgEditingContext context, AltinnEnvironment environment)
+    public void PersistGitOpsConfiguration(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
         var repository = gitRepositoryFactory.GetAltinnGitRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer);
-
-        await sourceControl.CommitAndPushChanges(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), "master", repository.RepositoryDirectory, $"Update GitOps configuration for environment {environment}", gitOpsSettings.BotPersonalAccessToken);
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer, gitOpsSettings.BotPersonalAccessToken);
+        sourceControl.CommitAndPushChanges(authenticatedContext, General.DefaultBranch, repository.RepositoryDirectory, $"Update GitOps configuration for environment {environment}");
     }
     private async Task WriteManifestsToFiles(AltinnOrgEditingContext context, Dictionary<string, string> manifests)
     {
