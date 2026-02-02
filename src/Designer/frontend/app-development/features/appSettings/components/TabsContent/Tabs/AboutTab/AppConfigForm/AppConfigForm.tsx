@@ -58,13 +58,6 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     }));
   };
 
-  const onChangeServiceId = (newValue: string): void => {
-    setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
-      ...oldVal,
-      serviceId: newValue,
-    }));
-  };
-
   const onChangeDescription = (updatedLanguage: SupportedLanguage): void => {
     setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
       ...oldVal,
@@ -140,15 +133,6 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           updateLanguage={onChangeTitle}
           required
         />
-        <StudioInlineEdit
-          label={t('app_settings.about_tab_alt_id_label')}
-          description={t('app_settings.about_tab_alt_id_description')}
-          value={updatedAppConfig.id}
-          onChange={onChangeServiceId}
-          required={false}
-          tagText={t('general.optional')}
-          icon={<PlusCircleIcon />}
-        />
         <InputfieldsWithTranslation
           label={t('app_settings.about_tab_description_field_label')}
           description={t('app_settings.about_tab_description_field_description')}
@@ -198,44 +182,6 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           tagText={t('general.optional')}
           icon={<PlusCircleIcon />}
         />
-        {/* TODO (`#17439`): Temporarily hidden - may be re-enabled in future. Related tests also disabled. */}
-        {/*
-         <StatusRadioGroup
-              selectedStatus={updatedAppConfig.status}
-              onChangeStatus={onChangeStatus}
-              errors={statusErrors}
-              id={AppResourceFormFieldIds.Status}
-            />
-
-            <SwitchInput
-              switchAriaLabel={t('app_settings.about_tab_self_identified_user_show_text', {
-                shouldText: !updatedAppConfig.selfIdentifiedUserEnabled
-                  ? t('app_settings.about_tab_switch_should_not')
-                  : '',
-              })}
-              cardHeading={t('app_settings.about_tab_self_identified_user_field_label')}
-              description={t('app_settings.about_tab_self_identified_user_field_description')}
-              checked={updatedAppConfig?.selfIdentifiedUserEnabled ?? false}
-              onChange={onChangeSelfIdentifiedUser}
-            />
-            <SwitchInput
-              switchAriaLabel={t('app_settings.about_tab_enterprise_user_show_text', {
-                shouldText: !updatedAppConfig.enterpriseUserEnabled
-                  ? t('app_settings.about_tab_switch_should_not')
-                  : '',
-              })}
-              cardHeading={t('app_settings.about_tab_enterprise_user_field_label')}
-              description={t('app_settings.about_tab_enterprise_user_field_description')}
-              checked={updatedAppConfig?.enterpriseUserEnabled ?? false}
-              onChange={onChangeEnterpriseUser}
-            />
-
-            <AvailableForTypeCheckboxGroup
-              initialValues={updatedAppConfig.availableForType}
-              onChangeAvailableForType={onChangeAvailableForType}
-              errors={availableForTypeErrors}
-              id={AppResourceFormFieldIds.AvailableForType}
-            /> */}
         <ContactPoints
           contactPointList={updatedAppConfig.contactPoints}
           onContactPointsChanged={onChangeContactPoints}
