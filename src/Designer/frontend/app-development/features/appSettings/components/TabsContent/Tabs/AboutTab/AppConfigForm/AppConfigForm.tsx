@@ -150,6 +150,8 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           required={false}
           tagText={t('general.optional')}
           icon={<PlusCircleIcon />}
+          saveAriaLabel={t('general.save')}
+          cancelAriaLabel={t('general.cancel')}
         />
         <SwitchInput
           switchAriaLabel={t('app_settings.about_tab_delegable_show_text', {
@@ -181,6 +183,8 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           required={false}
           tagText={t('general.optional')}
           icon={<PlusCircleIcon />}
+          saveAriaLabel={t('general.save')}
+          cancelAriaLabel={t('general.cancel')}
         />
         <ContactPoints
           contactPointList={updatedAppConfig.contactPoints}

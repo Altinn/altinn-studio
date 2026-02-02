@@ -17,6 +17,8 @@ export type StudioInlineEditProps = {
   tagText?: string;
   className?: string;
   icon?: React.ReactNode;
+  saveAriaLabel?: string;
+  cancelAriaLabel?: string;
 };
 
 export const StudioInlineEdit = ({
@@ -28,6 +30,8 @@ export const StudioInlineEdit = ({
   tagText,
   className,
   icon,
+  saveAriaLabel,
+  cancelAriaLabel,
 }: StudioInlineEditProps): React.ReactElement => {
   const [isEditMode, setIsEditMode] = React.useState(false);
   const [inputValue, setInputValue] = React.useState(value);
@@ -84,8 +88,14 @@ export const StudioInlineEdit = ({
         data-testid='studio-inline-edit-save'
         icon={<StudioSaveIcon />}
         onClick={saveValue}
+        aria-label={saveAriaLabel}
       />
-      <StudioButton variant='secondary' icon={<StudioCancelIcon />} onClick={cancelEditing} />
+      <StudioButton
+        variant='secondary'
+        icon={<StudioCancelIcon />}
+        onClick={cancelEditing}
+        aria-label={cancelAriaLabel}
+      />
     </div>
   );
 };

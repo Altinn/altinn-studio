@@ -363,8 +363,7 @@ const getRequiredTextbox = (name: string): HTMLInputElement =>
   getTextbox(`${name} ${requiredText}`);
 const queryRequiredTextbox = (name: string): HTMLInputElement | null =>
   queryTextbox(`${name} ${requiredText}`) || null;
-const getOptionalTextbox = (name: string): HTMLInputElement =>
-  getTextbox(`${name} ${optionalText}`);
+
 const getTextbox = (name: string | RegExp): HTMLInputElement =>
   screen.getByRole('textbox', { name });
 const queryTextbox = (name: string): HTMLInputElement | null =>
