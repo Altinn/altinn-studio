@@ -13,6 +13,7 @@ import {
   isCombination,
   isDefinition,
   isDefinitionPointer,
+  isDefinitionRoot,
   isFieldOrCombination,
   isNodeValidParent,
   isReference,
@@ -32,7 +33,6 @@ import {
   defaultFieldNode,
   defaultReferenceNode,
 } from '../../config/default-nodes';
-import { convertPropToType } from '../mutations/convert-node';
 import { SchemaModelBase } from './SchemaModelBase';
 import { CircularReferenceDetector } from './CircularReferenceDetector';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
@@ -486,11 +486,50 @@ export class SchemaModel extends SchemaModelBase {
   }
 
   public convertToDefinition(schemaPointer: string): SchemaModel {
-    // TODO: Make this method independent of convertPropToType: https://github.com/Altinn/altinn-studio/issues/11841
-    const newModel = convertPropToType(this.deepClone(), schemaPointer);
-    this.nodeMap.clear();
-    newModel.getNodeMap().forEach((node) => this.nodeMap.set(node.schemaPointer, node));
+    const node = this.getNodeBySchemaPointer(schemaPointer);
+    SchemaModel.assertCanBeConvertedToDefinition(node);
+    const name = extractNameFromPointer(schemaPointer);
+    const position = this.getPosition(schemaPointer);
+    const newDefName = this.createDefinitionName(name);
+    this.changeToDefinition(schemaPointer, newDefName);
+    this.addReference(name, newDefName, position);
+    this.convertArrayReferenceToArrayOfReferences(schemaPointer);
     return this;
+  }
+
+  private static assertCanBeConvertedToDefinition(
+    node: UiSchemaNode,
+  ): asserts node is FieldNode | CombinationNode {
+    if (isDefinitionRoot(node)) throw new Error('Node is already a definition.');
+    if (isReference(node)) throw new Error('Cannot convert a reference node to a definition.');
+  }
+
+  private getPosition(schemaPointer: string): NodePosition {
+    const parentNode = this.getParentNode(schemaPointer);
+    const index = this.getIndexOfChildNode(schemaPointer);
+    return { parentPointer: parentNode.schemaPointer, index };
+  }
+
+  private createDefinitionName(preferredName: string): string {
+    return this.hasNode(createDefinitionPointer(preferredName))
+      ? this.generateUniqueDefinitionName(preferredName)
+      : preferredName;
+  }
+
+  private changeToDefinition(schemaPointer: string, newName: string): void {
+    const newPointer = createDefinitionPointer(newName);
+    this.changePointer(schemaPointer, newPointer);
+    this.removeNodeFromParent(newPointer);
+    this.getRootNode().children.push(newPointer);
+  }
+
+  private convertArrayReferenceToArrayOfReferences(referencePointer: string): void {
+    const referenceNode = this.getNodeBySchemaPointer(referencePointer) as ReferenceNode;
+    const definitionNode = this.getReferredNode(referenceNode);
+    if (definitionNode.isArray && !referenceNode.isArray) {
+      this.toggleIsArray(definitionNode.schemaPointer);
+      this.toggleIsArray(referencePointer);
+    }
   }
 
   public willResultInCircularReferences(

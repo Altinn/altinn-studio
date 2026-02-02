@@ -7,3 +7,4 @@ resources:
   - kuberneteswrapper.yaml
   - gitea-runners.yaml
   - altinn-mcp-server.yaml
+  - lhci.yaml

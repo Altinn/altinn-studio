@@ -21,6 +21,7 @@ spec:
           ports:
             - containerPort: {{ .Values.image.containerPorts.http }}
             - containerPort: {{ .Values.image.containerPorts.https }}
+            - containerPort: {{ .Values.image.containerPorts.lhci }}
           {{- if .Values.volumeMounts }}
           volumeMounts:
           {{- range $mount := .Values.volumeMounts }}

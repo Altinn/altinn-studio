@@ -3,19 +3,17 @@ import React, { useLayoutEffect, useState } from 'react';
 import { CheckmarkIcon, ChevronDownIcon, InformationIcon, XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { Page } from 'src/features/navigation/components/Page';
 import classes from 'src/features/navigation/components/PageGroup.module.css';
 import { SubformsForPage } from 'src/features/navigation/components/SubformsForPage';
 import { getTaskIcon, useValidationsForPages, useVisiblePages } from 'src/features/navigation/utils';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import type {
   NavigationPageGroup,
   NavigationPageGroupMultiple,
@@ -74,7 +72,7 @@ function PageGroupSingle({
   onNavigate,
 }: PageGroupProps<NavigationPageGroupSingle>) {
   const { navigateToPage } = useNavigatePage();
-  const { performProcess, isAnyProcessing, isThisProcessing: isNavigating } = useIsProcessing();
+  const performProcess = useProcessingMutation('navigate-page');
   const page = group.order[0];
 
   const pageGroupHasErrors = validations !== ContextNotProvided && validations.hasErrors.group;
@@ -83,7 +81,6 @@ function PageGroupSingle({
   return (
     <li>
       <button
-        disabled={isAnyProcessing}
         aria-current={isCurrentPage ? 'page' : undefined}
         className={cn(classes.groupButton, classes.groupButtonSingle, 'fds-focus')}
         onClick={() =>
@@ -101,7 +98,6 @@ function PageGroupSingle({
           active={isCurrentPage}
           error={validations !== ContextNotProvided && validations.hasErrors.group}
           complete={validations !== ContextNotProvided && validations.isCompleted.group}
-          isLoading={isNavigating}
         />
         <span className={cn(classes.groupName, { [classes.groupNameActive]: isCurrentPage })}>
           <Lang id={page} />
@@ -200,7 +196,6 @@ function PageGroupSymbol({
   active,
   single = false,
   open = false,
-  isLoading = false,
 }: {
   type: NavigationPageGroup['type'];
   error: boolean;
@@ -208,9 +203,7 @@ function PageGroupSymbol({
   active: boolean;
   single?: boolean;
   open?: boolean;
-  isLoading?: boolean;
 }) {
-  const { langAsString } = useLanguage();
   const getTaskType = useGetAltinnTaskType();
   const currentTaskId = useProcessTaskId();
 
@@ -229,15 +222,6 @@ function PageGroupSymbol({
           : null;
 
   const testid = showError ? 'state-error' : showComplete ? 'state-complete' : undefined;
-
-  if (isLoading) {
-    return (
-      <Spinner
-        style={{ width: 28, height: 28 }}
-        aria-label={langAsString('general.loading')}
-      />
-    );
-  }
 
   return (
     <div

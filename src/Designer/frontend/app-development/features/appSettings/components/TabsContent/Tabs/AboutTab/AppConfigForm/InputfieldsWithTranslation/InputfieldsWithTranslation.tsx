@@ -48,7 +48,7 @@ export function InputfieldsWithTranslation({
         id={`${id}-nb`}
         label={fieldLabel}
         description={description}
-        value={value['nb']}
+        value={value?.['nb'] ?? ''}
         isTextArea={isTextArea}
         onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange(e, 'nb')}
         required={required}
