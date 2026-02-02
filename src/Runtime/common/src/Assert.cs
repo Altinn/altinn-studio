@@ -19,9 +19,7 @@ public static class Assert
         if (!condition)
         {
             var location = $"{filePath}:{lineNumber}";
-            var errorMessage = message is not null
-                ? $"{message} at {location}"
-                : $"Assertion failed at {location}";
+            var errorMessage = message is not null ? $"{message} at {location}" : $"Assertion failed at {location}";
             throw new InvalidOperationException(errorMessage);
         }
     }

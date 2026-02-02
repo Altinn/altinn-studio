@@ -54,12 +54,8 @@ public static class Hosting
                     // IP ranges used internally in the deployed clusters
                     // This makes sure we only trust the X-Forwarded-* headers for requests
                     // originating from these ranges.
-                    options.KnownIPNetworks.Add(
-                        new System.Net.IPNetwork(IPAddress.Parse("10.240.0.0"), 16)
-                    );
-                    options.KnownIPNetworks.Add(
-                        new System.Net.IPNetwork(IPAddress.Parse("fd10:59f0:8c79:240::"), 64)
-                    );
+                    options.KnownIPNetworks.Add(new System.Net.IPNetwork(IPAddress.Parse("10.240.0.0"), 16));
+                    options.KnownIPNetworks.Add(new System.Net.IPNetwork(IPAddress.Parse("fd10:59f0:8c79:240::"), 64));
                 }
             });
 
@@ -94,9 +90,7 @@ public static class Hosting
                 ActivatorUtilities.CreateInstance<AppHostLifetime>(sp, shutdownDelay)
             );
 
-            builder.Services.Configure<HostOptions>(options =>
-                options.ShutdownTimeout = shutdownTimeout
-            );
+            builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = shutdownTimeout);
 
             return builder;
         }
@@ -121,10 +115,7 @@ public static class Hosting
 
         public Task WaitForStartAsync(CancellationToken cancellationToken)
         {
-            Debug.Assert(
-                !environment.IsDevelopment(),
-                "We don't need graceful shutdown in development environments"
-            );
+            Debug.Assert(!environment.IsDevelopment(), "We don't need graceful shutdown in development environments");
             PosixSignalRegistration? sigint = null;
             PosixSignalRegistration? sigquit = null;
             PosixSignalRegistration? sigterm = null;
@@ -152,10 +143,7 @@ public static class Hosting
 
         private void HandleSignal(PosixSignalContext ctx)
         {
-            logger.LogInformation(
-                "Received shutdown signal: {Signal}, delaying shutdown",
-                ctx.Signal
-            );
+            logger.LogInformation("Received shutdown signal: {Signal}, delaying shutdown", ctx.Signal);
             ctx.Cancel = true; // Signal intercepted here, we are now responsible for calling `StopApplication`
 
             _ = Task.Delay(delay)
@@ -185,11 +173,7 @@ public static class Hosting
             }
             catch (Exception ex)
             {
-                logger.LogError(
-                    ex,
-                    "Error during disposal of {Type}",
-                    disposable.GetType().FullName
-                );
+                logger.LogError(ex, "Error during disposal of {Type}", disposable.GetType().FullName);
             }
         }
     }

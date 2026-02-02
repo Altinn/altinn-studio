@@ -9,8 +9,7 @@ public static class Ports
     private static int? _publicPort;
     private static int? _internalPort;
 
-    private static int PublicPort =>
-        _publicPort ?? throw new InvalidOperationException("Public port not configured.");
+    private static int PublicPort => _publicPort ?? throw new InvalidOperationException("Public port not configured.");
 
     private static int InternalPort =>
         _internalPort ?? throw new InvalidOperationException("Internal port not configured.");
@@ -47,8 +46,7 @@ public static class Ports
         /// <remarks>
         /// Requires a call to <see cref="ConfigureKestrelPorts"/> to configure Kestrel to listen on the internal port.
         /// </remarks>
-        public RouteHandlerBuilder RequireInternalPort() =>
-            builder.RequirePort(InternalPort, PortScope.Internal);
+        public RouteHandlerBuilder RequireInternalPort() => builder.RequirePort(InternalPort, PortScope.Internal);
 
         /// <summary>
         /// Adds an endpoint filter that restricts the endpoint to only accept requests on the public port.
@@ -57,8 +55,7 @@ public static class Ports
         /// <remarks>
         /// Requires a call to <see cref="ConfigureKestrelPorts"/> to configure Kestrel to listen on the public port.
         /// </remarks>
-        public RouteHandlerBuilder RequirePublicPort() =>
-            builder.RequirePort(PublicPort, PortScope.Public);
+        public RouteHandlerBuilder RequirePublicPort() => builder.RequirePort(PublicPort, PortScope.Public);
 
         /// <summary>
         /// Adds an endpoint filter that restricts the endpoint to only accept requests on the specified port.
