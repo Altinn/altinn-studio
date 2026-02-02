@@ -7,9 +7,7 @@ import { useCreateReleaseMutation } from '../../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormField } from 'app-shared/components/FormField';
-import { StudioButton, StudioDialog, StudioTextarea, StudioTextfield } from '@studio/components';
-import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
-import { AppValidationDialog } from 'app-shared/components/AppValidationDialog/AppValidationDialog';
+import { StudioButton, StudioTextarea, StudioTextfield } from '@studio/components';
 
 export function CreateRelease() {
   const { org, app } = useStudioEnvironmentParams();
@@ -17,7 +15,6 @@ export function CreateRelease() {
   const [body, setBody] = useState<string>('');
   const { data: releases = [] } = useAppReleasesQuery(org, app);
   const { refetch: getMasterBranchStatus } = useBranchStatusQuery(org, app, 'master');
-  const { data: validationResult } = useAppValidationQuery(org, app);
   const { t } = useTranslation();
 
   const handleTagNameChange = (e: ChangeEvent<HTMLInputElement>) =>
@@ -40,9 +37,8 @@ export function CreateRelease() {
     }
   };
 
-  const appValidationStatus = validationResult?.isValid;
   const validVersionName = tagName && versionNameValid(releases, tagName);
-  const canBuild = validVersionName && appValidationStatus;
+  const canBuild = validVersionName;
   return (
     <div className={classes.createReleaseForm}>
       <FormField
@@ -83,14 +79,6 @@ export function CreateRelease() {
         <StudioButton onClick={handleBuildVersionClick} disabled={!canBuild}>
           {t('app_create_release.build_version')}
         </StudioButton>
-        {appValidationStatus === false && (
-          <StudioDialog.TriggerContext>
-            <StudioDialog.Trigger data-color='danger'>
-              {t('app_create_release.validation_errors')}
-            </StudioDialog.Trigger>
-            <AppValidationDialog />
-          </StudioDialog.TriggerContext>
-        )}
       </div>
     </div>
   );

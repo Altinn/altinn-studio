@@ -9,6 +9,7 @@ import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValid
 import { StudioButton, StudioDialog } from '@studio/components';
 import { CheckmarkCircleFillIcon, SectionHeaderWarningIcon } from '@studio/icons';
 import { AppValidationDialog } from '../AppValidationDialog/AppValidationDialog';
+import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 
 type GiteaHeaderProps = {
   menuOnlyHasRepository?: boolean;
@@ -31,12 +32,13 @@ export const GiteaHeader = ({
   owner,
   repoName,
 }: GiteaHeaderProps): ReactElement => {
+  const appMetadataFlag = useFeatureFlag(FeatureFlag.AppMetadata);
   return (
     <GiteaHeaderContext.Provider value={{ owner, repoName }}>
       <div className={classes.wrapper}>
         <div className={classes.leftContentWrapper}>{leftComponent}</div>
         <div className={`${classes.rightContentWrapper} ${rightContentClassName}`}>
-          <ProblemStatusIndicator />
+          {appMetadataFlag && <ProblemStatusIndicator />}
           {!hasRepoError && <VersionControlButtons onPullSuccess={onPullSuccess} />}
           <ThreeDotsMenu isClonePossible={!menuOnlyHasRepository && hasCloneModal} />
         </div>
