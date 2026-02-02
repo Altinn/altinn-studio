@@ -51,10 +51,10 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     }
   };
 
-  const onChangeServiceName = (updatedLanguage: SupportedLanguage): void => {
+  const onChangeTitle = (updatedLanguage: SupportedLanguage): void => {
     setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
       ...oldVal,
-      serviceName: updatedLanguage,
+      title: updatedLanguage,
     }));
   };
 
@@ -135,9 +135,9 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
         <InputfieldsWithTranslation
           label={t('app_settings.about_tab_name_label')}
           description={t('app_settings.about_tab_name_description')}
-          id={AppResourceFormFieldIds.ServiceName}
-          value={updatedAppConfig.serviceName}
-          updateLanguage={onChangeServiceName}
+          id={AppResourceFormFieldIds.Title}
+          value={updatedAppConfig.title}
+          updateLanguage={onChangeTitle}
           required
         />
         <StudioInlineEdit
@@ -263,7 +263,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
 }
 
 enum AppResourceFormFieldIds {
-  ServiceName = 'serviceName',
+  Title = 'title',
   Description = 'description',
   RightDescription = 'rightDescription',
   Status = 'status',

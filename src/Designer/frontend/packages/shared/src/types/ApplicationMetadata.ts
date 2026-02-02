@@ -22,7 +22,6 @@ export interface ApplicationMetadata {
   validTo?: string;
   versionId?: string;
 
-  serviceName?: SupportedLanguage;
   keywords?: Keyword[];
   description?: SupportedLanguage;
   homepage?: string;
