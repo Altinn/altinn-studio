@@ -272,7 +272,7 @@
   "app_settings.about_tab_error_translation_missing_en": "Det mangler oversettelse for {{field}} på engelsk",
   "app_settings.about_tab_error_translation_missing_nb": "Det mangler oversettelse for {{field}} på bokmål",
   "app_settings.about_tab_error_translation_missing_nn": "Det mangler oversettelse for {{field}} på nynorsk",
-  "app_settings.about_tab_error_usage_string_description": "Beskrive av appen",
+  "app_settings.about_tab_error_usage_string_description": "Beskriv av appen",
   "app_settings.about_tab_error_usage_string_right_description": "delegeringstekst",
   "app_settings.about_tab_error_usage_string_service_name": "Navngi appen",
   "app_settings.about_tab_heading": "Om appen",
