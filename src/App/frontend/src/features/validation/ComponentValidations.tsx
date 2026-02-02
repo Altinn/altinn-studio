@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Alert as AlertDesignSystem, ValidationMessage } from '@digdir/designsystemet-react';
+import { Alert, ValidationMessage } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/validation/ComponentValidations.module.css';
@@ -65,30 +65,29 @@ export function ComponentValidations({ validations, baseComponentId }: Props) {
 
   return (
     <div
+      id={`${baseId}-validations`}
+      data-validation={indexedId}
       aria-live='assertive'
-      style={{ display: 'contents' }}
     >
-      <div data-validation={indexedId}>
-        {errors.length > 0 && <ErrorValidations validations={errors} />}
-        {warnings.length > 0 && (
-          <SoftValidations
-            validations={warnings}
-            severity='warning'
-          />
-        )}
-        {info.length > 0 && (
-          <SoftValidations
-            validations={info}
-            severity='info'
-          />
-        )}
-        {success.length > 0 && (
-          <SoftValidations
-            validations={success}
-            severity='success'
-          />
-        )}
-      </div>
+      {errors.length > 0 && <ErrorValidations validations={errors} />}
+      {warnings.length > 0 && (
+        <SoftValidations
+          validations={warnings}
+          severity='warning'
+        />
+      )}
+      {info.length > 0 && (
+        <SoftValidations
+          validations={info}
+          severity='info'
+        />
+      )}
+      {success.length > 0 && (
+        <SoftValidations
+          validations={success}
+          severity='success'
+        />
+      )}
     </div>
   );
 }
@@ -126,25 +125,25 @@ function SoftValidations({
   severity: AlertSeverity;
 }) {
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
+  const alertRole = severity === 'info' || severity === 'success' ? 'status' : 'alert';
 
   return (
-    <div style={{ paddingTop: 'var(--ds-size-2)' }}>
-      <AlertDesignSystem
-        style={{ breakInside: 'avoid' }}
-        data-color={severity}
-      >
-        <ul style={{ paddingLeft: 0, listStyleType: 'none' }}>
-          {validations.map((validation) => (
-            <li key={getUniqueKeyFromObject(validation)}>
-              <Lang
-                id={validation.message.key}
-                params={validation.message.params}
-                customTextParameters={validation.message.customTextParameters}
-              />
-            </li>
-          ))}
-        </ul>
-      </AlertDesignSystem>
-    </div>
+    <Alert
+      className={classes.softValidation}
+      data-color={severity}
+      role={alertRole}
+    >
+      <ul className={classes.softValidationListItem}>
+        {validations.map((validation) => (
+          <li key={getUniqueKeyFromObject(validation)}>
+            <Lang
+              id={validation.message.key}
+              params={validation.message.params}
+              customTextParameters={validation.message.customTextParameters}
+            />
+          </li>
+        ))}
+      </ul>
+    </Alert>
   );
 }

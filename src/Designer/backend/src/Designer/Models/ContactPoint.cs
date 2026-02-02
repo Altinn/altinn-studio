@@ -1,4 +1,5 @@
 ﻿#nullable disable
+
 namespace Altinn.Studio.Designer.Models
 {
     /// <summary>

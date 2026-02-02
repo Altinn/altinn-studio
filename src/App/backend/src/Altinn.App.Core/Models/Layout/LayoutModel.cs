@@ -1,5 +1,6 @@
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Expressions;
+using Altinn.App.Core.Models.Layout.Components.Base;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Models.Layout;
@@ -29,6 +30,11 @@ public sealed class LayoutModel
     public DataType DefaultDataType => _defaultLayoutSet.DefaultDataType;
 
     /// <summary>
+    /// All components in the layout model
+    /// </summary>
+    public IEnumerable<BaseComponent> AllComponents => _defaultLayoutSet.Pages.SelectMany(page => page.AllComponents);
+
+    /// <summary>
     /// Generate a list of <see cref="ComponentContext"/> for all components in the layout model
     /// taking repeating groups into account.
     /// </summary>
@@ -43,7 +49,7 @@ public sealed class LayoutModel
         var pageContexts = new List<ComponentContext>();
         foreach (var page in _defaultLayoutSet.Pages)
         {
-            pageContexts.Add(await page.GetContext(state, defaultElementId.Value, null, _layoutsLookup));
+            pageContexts.Add(await page.GetContextForPage(state, defaultElementId.Value, null, _layoutsLookup));
         }
 
         return pageContexts;

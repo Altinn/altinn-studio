@@ -1,21 +1,21 @@
 namespace Altinn.App.Analyzers.SourceTextGenerator;
 
-internal static class SourceReaderUtils
+public static class SourceReaderUtils
 {
-    public static ITypeSymbol UnwrapNullable(ITypeSymbol symbol)
+    public static (ITypeSymbol UnwrappedSymbol, bool IsNullable) UnwrapNullable(ITypeSymbol symbol)
     {
         if (
             symbol is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } namedTypeSymbol
         )
         {
-            return namedTypeSymbol.TypeArguments[0];
+            return (namedTypeSymbol.TypeArguments[0], true);
         }
         if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
         {
-            return symbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+            return (symbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated), true);
         }
 
-        return symbol;
+        return (symbol, false);
     }
 
     public static string? GetJsonName(IPropertySymbol symbol)
@@ -52,9 +52,21 @@ internal static class SourceReaderUtils
         return typeSymbol.ToDisplayString(_format);
     }
 
-    public static (ITypeSymbol, ITypeSymbol?) GetTypeFromProperty(ITypeSymbol propertyTypeSymbol)
+    public record PropertyTypeInfo(
+        ITypeSymbol PropertyType,
+        bool IsNullable,
+        ITypeSymbol? PropertyCollectionType,
+        bool IsNullableCollection
+    )
     {
-        var unwrappedTypeSymbol = UnwrapNullable(propertyTypeSymbol);
+        public string PropertyTypeString => TypeSymbolToString(PropertyType);
+        public string? PropertyCollectionTypeString =>
+            PropertyCollectionType is null ? null : TypeSymbolToString(PropertyCollectionType);
+    };
+
+    public static PropertyTypeInfo GetTypeFromProperty(ITypeSymbol propertyTypeSymbol)
+    {
+        var (unwrappedTypeSymbol, isNullable) = UnwrapNullable(propertyTypeSymbol);
 
         switch (unwrappedTypeSymbol)
         {
@@ -73,7 +85,15 @@ internal static class SourceReaderUtils
 
                 if (collectionTypeSymbol is not null)
                 {
-                    return (UnwrapNullable(collectionTypeSymbol.TypeArguments[0]), namedTypeSymbol);
+                    var (collectionValueProperty, isValueNullable) = UnwrapNullable(
+                        collectionTypeSymbol.TypeArguments[0]
+                    );
+                    return new PropertyTypeInfo(
+                        PropertyType: collectionValueProperty,
+                        IsNullable: isValueNullable,
+                        PropertyCollectionType: unwrappedTypeSymbol,
+                        IsNullableCollection: isNullable
+                    );
                 }
 
                 break;
@@ -86,6 +106,52 @@ internal static class SourceReaderUtils
                 );
         }
 
-        return (unwrappedTypeSymbol, null);
+        return new PropertyTypeInfo(unwrappedTypeSymbol, isNullable, null, false);
+    }
+
+    public static bool HasJsonIgnoreAttribute(IPropertySymbol property)
+    {
+        foreach (var attributeData in property.GetAttributes())
+        {
+            if (
+                attributeData.AttributeClass is { Name: "JsonIgnoreAttribute" } attr
+                && attr.ContainingNamespace?.ToDisplayString() == "System.Text.Json.Serialization"
+            )
+            {
+                // Check for named arguments (e.g., Condition = ...)
+                foreach (var namedArg in attributeData.NamedArguments)
+                {
+                    if (namedArg.Key == "Condition")
+                    {
+                        // If Condition is specified, only return true if it's Always (value 1)
+                        // Never = 0, WhenWritingDefault = 2, WhenWritingNull = 3
+                        if (namedArg.Value.Value is int conditionValue)
+                        {
+                            return conditionValue == 1; // JsonIgnoreCondition.Always
+                        }
+                    }
+                }
+
+                return true; // No Condition specified, so ignore unconditionally
+            }
+        }
+
+        return false;
+    }
+
+    public static bool HasBindNeverAttribute(IPropertySymbol property)
+    {
+        foreach (var attributeData in property.GetAttributes())
+        {
+            if (
+                attributeData.AttributeClass is { Name: "BindNeverAttribute" } attr
+                && attr.ContainingNamespace?.ToDisplayString() == "Microsoft.AspNetCore.Mvc.ModelBinding"
+            )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

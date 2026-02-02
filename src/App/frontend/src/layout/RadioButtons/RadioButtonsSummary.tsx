@@ -17,7 +17,7 @@ export const RadioButtonsSummary = ({ targetBaseComponentId }: Summary2Props) =>
   const displayData = useDisplayData(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
   const { textResourceBindings, required } = useItemWhenType(targetBaseComponentId, 'RadioButtons');
-  const title = textResourceBindings?.title;
+  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
 
   return (
     <SummaryFlex

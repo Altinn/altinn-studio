@@ -1,10 +1,11 @@
+using System.Globalization;
+using System.Text.Json;
 using Azure;
+using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.Query.Logs;
 using Azure.Monitor.Query.Logs.Models;
-using Azure.ResourceManager;
 using Azure.ResourceManager.OperationalInsights;
-using Azure.ResourceManager.Resources;
 using StudioGateway.Api.Clients.MetricsClient.Contracts.AzureMonitor;
 using StudioGateway.Api.Settings;
 
@@ -12,12 +13,11 @@ namespace StudioGateway.Api.Clients.MetricsClient;
 
 internal sealed class AzureMonitorClient(
     GatewayContext gatewayContext,
-    ArmClient armClient,
     LogsQueryClient logsQueryClient,
     ILogger<AzureMonitorClient> logger
 ) : IMetricsClient
 {
-    private string? _workspaceId;
+    private ResourceIdentifier? _workspaceId;
 
     private const int MaxRange = 10080;
 
@@ -41,30 +41,20 @@ internal sealed class AzureMonitorClient(
         },
     };
 
+    internal static IReadOnlyCollection<string> OperationNameKeys { get; } = _operationNames.Keys.ToArray();
+
     private static string GetInterval(int range)
     {
         return range < 360 ? "5m" : "1h";
     }
 
-    private async Task<string> GetApplicationLogAnalyticsWorkspaceIdAsync()
+    private async Task<ResourceIdentifier> GetApplicationLogAnalyticsWorkspaceIdAsync()
     {
-        if (_workspaceId != null)
-            return _workspaceId;
-
-        string resourceGroupName = $"monitor-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-rg";
-        string workspaceName = $"application-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-law";
-
-        var subscription = armClient.GetSubscriptionResource(
-            SubscriptionResource.CreateResourceIdentifier(gatewayContext.AzureSubscriptionId)
+        return _workspaceId ??= OperationalInsightsWorkspaceResource.CreateResourceIdentifier(
+            gatewayContext.AzureSubscriptionId,
+            $"monitor-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-rg",
+            $"application-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-law"
         );
-        var rg = await subscription.GetResourceGroups().GetAsync(resourceGroupName);
-        var workspace = await rg.Value.GetOperationalInsightsWorkspaces().GetAsync(workspaceName);
-
-        _workspaceId =
-            workspace.Value.Data.CustomerId?.ToString()
-            ?? throw new InvalidOperationException("Log Analytics Workspace ID not found.");
-
-        return _workspaceId;
     }
 
     public async Task<IEnumerable<FailedRequest>> GetFailedRequestsAsync(int range, CancellationToken cancellationToken)
@@ -85,7 +75,7 @@ internal sealed class AzureMonitorClient(
                 | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
                 | summarize Count = count() by AppRoleName, OperationName";
 
-            Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
+            Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
                 logAnalyticsWorkspaceId,
                 query,
                 new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
@@ -147,7 +137,7 @@ internal sealed class AzureMonitorClient(
                 | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
-            Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
+            Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
                 logAnalyticsWorkspaceId,
                 query,
                 new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
@@ -204,7 +194,7 @@ internal sealed class AzureMonitorClient(
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
-        List<string> names = ["altinn_app_lib_processes_started", "altinn_app_lib_processes_completed"];
+        List<string> names = ["altinn_app_lib_processes_started", "altinn_app_lib_processes_ended"];
 
         try
         {
@@ -220,7 +210,7 @@ internal sealed class AzureMonitorClient(
                 | summarize Count = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
-            Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
+            Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
                 logAnalyticsWorkspaceId,
                 query,
                 new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
@@ -267,23 +257,44 @@ internal sealed class AzureMonitorClient(
         }
     }
 
-    public Uri GetLogsUrl(string subscriptionId, string org, string env, string appName, string metricName, int range)
+    public Uri? GetLogsUrl(
+        string subscriptionId,
+        string org,
+        string env,
+        IReadOnlyCollection<string> apps,
+        string? metricName,
+        DateTimeOffset from,
+        DateTimeOffset to
+    )
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
-
-        if (!_operationNames.TryGetValue(metricName, out var operationNames))
+        if (metricName is null || !_operationNames.TryGetValue(metricName, out var operationNames))
         {
-            throw new ArgumentException($"Unknown metric name: {metricName}", nameof(metricName));
+            return null;
+        }
+
+        var normalizedApps = apps.Where(appName => !string.IsNullOrWhiteSpace(appName))
+            .Select(appName => appName.Trim())
+            .ToList();
+        if (normalizedApps.Count == 0)
+        {
+            return null;
         }
 
         string jsonPath = Path.Combine(AppContext.BaseDirectory, "Clients", "MetricsClient", "logsQueryTemplate.json");
+        var fromUtc = from.ToUniversalTime();
+        var toUtc = to.ToUniversalTime();
+        var durationMs = (long)(toUtc - fromUtc).TotalMilliseconds;
         string jsonTemplate = File.ReadAllText(jsonPath);
         string json = jsonTemplate
-            .Replace("{range}", range.ToString())
-            .Replace("{durationMs}", (range * 60 * 1000).ToString())
-            .Replace("{appName}", appName.Replace("'", "''"))
+            .Replace("{from}", fromUtc.ToString("O", CultureInfo.InvariantCulture))
+            .Replace("{to}", toUtc.ToString("O", CultureInfo.InvariantCulture))
+            .Replace("{durationMs}", durationMs.ToString(CultureInfo.InvariantCulture))
+            .Replace("{app_Names}", string.Join(", ", normalizedApps.Select(n => $"'{n.Replace("'", "''")}'")))
             .Replace("{operation_Names}", string.Join(", ", operationNames.Select(n => $"'{n}'")))
+            .Replace(
+                "\"{appNames}\"",
+                string.Join(", ", normalizedApps.Select(name => $"\"{JsonEncodedText.Encode(name)}\""))
+            )
             .Replace("\"{operationNames}\"", string.Join(",", operationNames.Select(n => $"\"{n}\"")));
         var minifiedJson = System.Text.Json.Nodes.JsonNode.Parse(json)?.ToJsonString() ?? string.Empty;
 

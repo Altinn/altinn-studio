@@ -2,21 +2,18 @@ import React from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import classes from './ContactPointCard.module.css';
 import type { ContactPoint } from 'app-shared/types/AppConfig';
-import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import {
   StudioCard,
   StudioDeleteButton,
   StudioFieldset,
   StudioTag,
   StudioTextfield,
-  StudioValidationMessage,
 } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 export type ContactPointCardProps = {
   contactPoint: ContactPoint;
   onContactPointsChanged: (contactPoint: ContactPoint) => void;
-  errors: AppConfigFormError[];
   index: number;
   id: string;
   onRemoveButtonClick?: (contactPoint: ContactPoint) => void;
@@ -25,15 +22,11 @@ export type ContactPointCardProps = {
 export function ContactPointCard({
   contactPoint,
   onContactPointsChanged,
-  errors,
   index,
   id,
   onRemoveButtonClick,
 }: ContactPointCardProps): ReactElement {
   const { t } = useTranslation();
-
-  const fieldErrors: AppConfigFormError | undefined = getErrorForContactPoint(errors, index);
-  const hasError: boolean = !!fieldErrors;
 
   const handleChangeCategory = (event: ChangeEvent<HTMLInputElement>): void => {
     const updatedContactPoint = { ...contactPoint, category: event.target.value };
@@ -66,25 +59,21 @@ export function ContactPointCard({
           description={t('app_settings.about_tab_contact_point_fieldset_category_description')}
           value={contactPoint.category}
           onChange={handleChangeCategory}
-          aria-invalid={hasError}
         />
         <StudioTextfield
           label={t('app_settings.about_tab_contact_point_fieldset_email_label')}
           value={contactPoint.email}
           onChange={handleChangeEmail}
-          aria-invalid={hasError}
         />
         <StudioTextfield
           label={t('app_settings.about_tab_contact_point_fieldset_telephone_label')}
           value={contactPoint.telephone}
           onChange={handleChangeTelephone}
-          aria-invalid={hasError}
         />
         <StudioTextfield
           label={t('app_settings.about_tab_contact_point_fieldset_contact_page_label')}
           value={contactPoint.contactPage}
           onChange={handleChangeContactPage}
-          aria-invalid={hasError}
         />
         {onRemoveButtonClick && (
           <StudioDeleteButton
@@ -93,11 +82,6 @@ export function ContactPointCard({
           >
             {t('app_settings.about_tab_contact_point_delete_button_text', { index: index + 1 })}
           </StudioDeleteButton>
-        )}
-        {hasError && (
-          <StudioValidationMessage>
-            {t('app_settings.about_tab_error_contact_points', { index: String(index + 1) })}
-          </StudioValidationMessage>
         )}
       </StudioFieldset>
     </StudioCard>
@@ -118,17 +102,4 @@ function FieldsetWithTag({ cardNumber }: FieldsetWithTagProps): ReactElement {
       <StudioTag data-color='warning'>{t('general.required')}</StudioTag>
     </span>
   );
-}
-
-function getErrorForContactPoint(
-  errors: AppConfigFormError[],
-  index: number,
-): AppConfigFormError | undefined {
-  return errors?.find(
-    (error: AppConfigFormError) => isFieldContactPoints(error) && error.index === index,
-  );
-}
-
-function isFieldContactPoints(error: AppConfigFormError): boolean {
-  return error.field === 'contactPoints';
 }

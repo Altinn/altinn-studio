@@ -5,7 +5,6 @@ import { ContactPointCard } from './ContactPointCard';
 import type { ContactPointCardProps } from './ContactPointCard';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ContactPoint } from 'app-shared/types/AppConfig';
-import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 
 describe('ContactPointCard', () => {
   afterEach(jest.clearAllMocks);
@@ -107,16 +106,6 @@ describe('ContactPointCard', () => {
 
     expect(onRemoveButtonClick).toHaveBeenCalled();
   });
-
-  it('renders error message if error exists for the correct index', () => {
-    renderComponent({ errors });
-    expect(getText(errorMessage)).toBeInTheDocument();
-  });
-
-  it('does not render error message if no error matches the index', () => {
-    renderComponent({ errors: [{ ...error, index: 1 }] });
-    expect(screen.queryByText(errorMessage)).not.toBeInTheDocument();
-  });
 });
 
 const defaultContactPoint: ContactPoint = {
@@ -129,7 +118,6 @@ const defaultContactPoint: ContactPoint = {
 const defaultProps: ContactPointCardProps = {
   contactPoint: defaultContactPoint,
   onContactPointsChanged: jest.fn(),
-  errors: [],
   index: 0,
   id: 'contact-point-0',
   onRemoveButtonClick: jest.fn(),
@@ -150,14 +138,3 @@ const telephoneLabel = textMock('app_settings.about_tab_contact_point_fieldset_t
 const contactPageLabel = textMock(
   'app_settings.about_tab_contact_point_fieldset_contact_page_label',
 );
-const cardIndex: number = 0;
-const errorMessage = textMock('app_settings.about_tab_error_contact_points', {
-  index: String(cardIndex + 1),
-});
-const error: AppConfigFormError = {
-  field: 'contactPoints',
-  index: cardIndex,
-  error: errorMessage,
-};
-
-const errors: AppConfigFormError[] = [error];

@@ -23,7 +23,7 @@ namespace LocalTest.Services.Storage.Implementation
             _localPlatformSettings = localPlatformSettings.Value;
         }
 
-        public async Task<DataElement> Create(DataElement dataElement)
+        public async Task<DataElement> Create(DataElement dataElement, long instanceInternalId = 0, CancellationToken cancellationToken = default)
         {
             string path = GetDataPath(dataElement.InstanceGuid, dataElement.Id);
 
@@ -35,21 +35,25 @@ namespace LocalTest.Services.Storage.Implementation
             return dataElement;
         }
 
-        public Task<bool> Delete(DataElement dataElement)
+        public Task<bool> Delete(DataElement dataElement, CancellationToken cancellationToken = default)
         {
             string path = GetDataPath(dataElement.InstanceGuid, dataElement.Id);
             File.Delete(path);
             return Task.FromResult(true);
         }
 
-        public Task<bool> DeleteDataInStorage(string org, string blobStoragePath)
+        public Task<bool> DeleteForInstance(string instanceId, CancellationToken cancellationToken = default)
         {
-            string path = GetFilePath(blobStoragePath);
-            File.Delete(path);
+            string path = GetDataForInstanceFolder(instanceId);
+            if (Directory.Exists(path))
+            {
+                Directory.Delete(path, true);
+            }
             return Task.FromResult(true);
         }
 
-        public async Task<DataElement> Read(Guid instanceGuid, Guid dataElementId)
+
+        public async Task<DataElement> Read(Guid instanceGuid, Guid dataElementId, CancellationToken cancellationToken = default)
         {
             string dataPath = GetDataPath(instanceGuid.ToString(), dataElementId.ToString());
             string content = await ReadFileAsString(dataPath);
@@ -74,12 +78,6 @@ namespace LocalTest.Services.Storage.Implementation
             return dataElements.OrderBy(x => x.Created).ToList();
         }
 
-        public async Task<Stream> ReadDataFromStorage(string org, string blobStoragePath)
-        {
-            string filePath = GetFilePath(blobStoragePath);
-
-            return await ReadFileAsStream(filePath);
-        }
 
         public async Task<DataElement> Update(DataElement dataElement)
         {
@@ -93,7 +91,7 @@ namespace LocalTest.Services.Storage.Implementation
             return dataElement;
         }
 
-        public async Task<DataElement> Update(Guid instanceGuid, Guid dataElementId, Dictionary<string, object> propertylist)
+        public async Task<DataElement> Update(Guid instanceGuid, Guid dataElementId, Dictionary<string, object> propertylist, CancellationToken cancellationToken = default)
         {
             string path = GetDataPath($"{instanceGuid}", $"{dataElementId}");
 
@@ -187,21 +185,6 @@ namespace LocalTest.Services.Storage.Implementation
             throw new RepositoryException("Error occured");
         }
 
-        public async Task<(long ContentLength, DateTimeOffset LastModified)> WriteDataToStorage(string org, Stream stream, string blobStoragePath)
-        {
-            string filePath = GetFilePath(blobStoragePath);
-            if (!Directory.Exists(Path.GetDirectoryName(filePath)))
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-            }
-
-            return await WriteToFile(filePath, stream);
-        }
-
-        private string GetFilePath(string fileName)
-        {
-            return _localPlatformSettings.LocalTestingStorageBasePath + _localPlatformSettings.BlobStorageFolder + fileName;
-        }
 
         private string GetDataPath(string instanceId, string dataId)
         {
