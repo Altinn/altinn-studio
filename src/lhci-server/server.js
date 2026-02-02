@@ -77,8 +77,12 @@ async function main() {
     console.log(`Project "${PROJECT_SLUG}" already exists (ID: ${existingProject.id})`);
   }
 
-  // createServer already handles starting the server on the configured port
+  const environment = process.env.LHCI_ENVIRONMENT;
+  const host = environment === 'prod' ? 'altinn.studio' : environment ? `${environment}.altinn.studio` : 'localhost';
+  const serverUrl = environment ? `https://${host}:9001` : `http://${host}:9001`;
+
   console.log(`LHCI server listening on port 9001`);
+  console.log(`Server URL: ${serverUrl}`);
   if (basicAuthUsername) {
     console.log('BasicAuth is enabled');
   }
