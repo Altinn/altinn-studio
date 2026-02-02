@@ -104,20 +104,20 @@ const VALIDATION_FIELD_CONFIG: Record<string, FieldConfig> = {
     anchor: 'identifier',
     translationKey: 'app_validation.app_metadata.identifier.required',
   },
-  serviceName: {
-    anchor: 'serviceName-nb',
+  title: {
+    anchor: 'title-nb',
     translationKey: 'app_validation.app_metadata.title.required',
   },
-  'serviceName.nb': {
-    anchor: 'serviceName-nb',
+  'title.nb': {
+    anchor: 'title-nb',
     translationKey: 'app_validation.app_metadata.title.nb.required',
   },
-  'serviceName.nn': {
-    anchor: 'serviceName-nn',
+  'title.nn': {
+    anchor: 'title-nn',
     translationKey: 'app_validation.app_metadata.title.nn.required',
   },
-  'serviceName.en': {
-    anchor: 'serviceName-en',
+  'title.en': {
+    anchor: 'title-en',
     translationKey: 'app_validation.app_metadata.title.en.required',
   },
   description: {
