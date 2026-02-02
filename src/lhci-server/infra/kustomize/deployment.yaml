@@ -50,6 +50,8 @@ spec:
             secretKeyRef:
               name: lhci-credentials
               key: basicAuthPassword
+        - name: LHCI_ENVIRONMENT
+          value: "${ENVIRONMENT}"
         livenessProbe:
           httpGet:
             path: /healthz
