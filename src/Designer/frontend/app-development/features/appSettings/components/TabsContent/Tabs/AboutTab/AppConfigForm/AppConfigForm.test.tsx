@@ -39,7 +39,7 @@ describe('AppConfigForm', () => {
     expect(repoNameInput).toHaveAttribute('readonly');
   });
 
-  it('displays correct value in "serviceName" input field, and updates the value on change', async () => {
+  it('displays correct value in "title" input field, and updates the value on change', async () => {
     const user = userEvent.setup();
     renderAppConfigForm();
 
@@ -59,12 +59,12 @@ describe('AppConfigForm', () => {
     renderAppConfigForm();
 
     const altId = getServiceNameNbTextbox();
-    expect(altId).toHaveValue(mockAppConfig.serviceName.nb);
+    expect(altId).toHaveValue(mockAppConfig.title.nb);
 
     const newText: string = 'A';
     await user.type(altId, newText);
 
-    expect(altId).toHaveValue(`${mockAppConfig.serviceName.nb}${newText}`);
+    expect(altId).toHaveValue(`${mockAppConfig.title.nb}${newText}`);
   });
 
   it('displays correct value in "description" input field, and updates the value on change', async () => {
@@ -261,10 +261,10 @@ describe('AppConfigForm', () => {
     await user.type(altId, newText);
     await user.tab();
 
-    expect(altId).toHaveValue(`${mockAppConfig.serviceName.nb}${newText}`);
+    expect(altId).toHaveValue(`${mockAppConfig.title.nb}${newText}`);
     const cancelButton = getButton(textMock('app_settings.about_tab_reset_button'));
     await user.click(cancelButton);
-    expect(altId).toHaveValue(`${mockAppConfig.serviceName.nb}${newText}`);
+    expect(altId).toHaveValue(`${mockAppConfig.title.nb}${newText}`);
   });
 
   it('should reset the form to the original values when the cancel button is clicked', async () => {
@@ -281,12 +281,12 @@ describe('AppConfigForm', () => {
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     await user.click(saveButton);
 
-    expect(altId).toHaveValue(`${mockAppConfig.serviceName.nb}${newText}`);
+    expect(altId).toHaveValue(`${mockAppConfig.title.nb}${newText}`);
 
     const cancelButton = getButton(textMock('app_settings.about_tab_reset_button'));
     await user.click(cancelButton);
 
-    expect(altId).toHaveValue(mockAppConfig.serviceName.nb);
+    expect(altId).toHaveValue(mockAppConfig.title.nb);
   });
 });
 
@@ -310,7 +310,7 @@ const mockServiceNameComplete: SupportedLanguage = {
 const mockAppConfig: ApplicationMetadata = {
   id: 'ttd/some-id',
   org: 'ttd',
-  serviceName: mockServiceName,
+  title: mockServiceName,
 };
 const mockContactPoints: ContactPoint = {
   category: 'category',
@@ -321,7 +321,7 @@ const mockContactPoints: ContactPoint = {
 const mockAppConfigComplete: ApplicationMetadata = {
   id: 'ttd/some-id',
   org: 'ttd',
-  serviceName: mockServiceNameComplete,
+  title: mockServiceNameComplete,
   description: mockDescription,
   homepage: mockHomepage,
   access: {
