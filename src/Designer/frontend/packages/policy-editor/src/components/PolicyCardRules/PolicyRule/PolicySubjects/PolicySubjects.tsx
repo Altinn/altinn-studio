@@ -17,8 +17,7 @@ import { ErrorMessage } from '@digdir/designsystemet-react';
 import { ChosenSubjects } from './ChosenSubjects';
 import type { PolicySubject } from '@altinn/policy-editor/types';
 import classes from './PolicySubjects.module.css';
-
-const PERSON_ACCESS_PACKAGE_AREA_ID = '413f99ca-19ca-4124-8470-b0c1dba3d2ee';
+import { PERSON_ACCESS_PACKAGE_AREA_ID } from '@altinn/policy-editor/constants';
 
 export const PolicySubjects = () => {
   const { t } = useTranslation();
