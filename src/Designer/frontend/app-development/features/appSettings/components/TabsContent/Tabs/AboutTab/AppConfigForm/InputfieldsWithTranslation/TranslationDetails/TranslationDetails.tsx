@@ -64,13 +64,13 @@ export function TranslationDetails({
     {
       lang: 'nn',
       label: fieldLabelNN,
-      value: value['nn'],
+      value: value?.['nn'],
       error: errorMessageNN,
     },
     {
       lang: 'en',
       label: fieldLabelEN,
-      value: value['en'],
+      value: value?.['en'],
       error: errorMessageEN,
     },
   ];
