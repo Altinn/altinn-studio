@@ -75,7 +75,7 @@ const ProblemStatusIndicator = () => {
   const members = validationResult ? Object.entries(validationResult.errors) : [];
   return (
     <StudioDialog.TriggerContext>
-      <StudioDialog.Trigger variant='tertiary' icon=<SectionHeaderWarningIcon />>
+      <StudioDialog.Trigger variant='tertiary' icon={<SectionHeaderWarningIcon />}>
         {members.length}
       </StudioDialog.Trigger>
       <AppValidationDialog />

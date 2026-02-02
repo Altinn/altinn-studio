@@ -16,6 +16,7 @@ export const AppValidationDialog = () => {
     org,
     app,
   );
+  const { t } = useTranslation();
 
   return (
     <StudioDialog
@@ -28,7 +29,7 @@ export const AppValidationDialog = () => {
       <StudioDialog.Block>
         <StudioHeading>Valideringsfeil</StudioHeading>
         <StudioParagraph>
-          Oppdatert {new Date(validationUpdatedAt).toLocaleString()}
+          {t('general.updatedAt')} {new Date(validationUpdatedAt).toLocaleString()}
         </StudioParagraph>
       </StudioDialog.Block>
       <StudioDialog.Block>
