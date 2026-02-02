@@ -245,7 +245,13 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
 
     private static Uri ConstructWebSocketUri(string scheme, Uri httpUri)
     {
-        return new Uri($"{scheme}://{httpUri.Host}:{httpUri.Port}{WebSocketPath}");
+        var builder = new UriBuilder(httpUri)
+        {
+            Scheme = scheme,
+            Port = httpUri.Port
+        };
+        builder.Path = builder.Path.TrimEnd('/') + WebSocketPath;
+        return builder.Uri;
     }
 
     public void Dispose()
