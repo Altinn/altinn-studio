@@ -30,7 +30,6 @@ async function main() {
       sqlDialectOptions: requireSsl ? {
         ssl: {
           require: true,
-          rejectUnauthorized: false, // Azure PostgreSQL uses managed certificates
         },
       } : {},
       sequelizeOptions: {
