@@ -17,11 +17,51 @@ export interface ApplicationMetadata {
   partyTypesAllowed?: PartyTypesAllowed;
   presentationFields?: DataFieldElement[];
   processId?: string;
-  title?: KeyValuePairs<string>;
+  title?: SupportedLanguage;
   validFrom?: string;
   validTo?: string;
   versionId?: string;
+
+  serviceName?: SupportedLanguage;
+  keywords?: Keyword[];
+  description?: SupportedLanguage;
+  homepage?: string;
+  access?: ApplicationAccessMetadata;
+  contactPoints?: ContactPoint[];
+  visible?: boolean;
 }
+
+export type Keyword = {
+  language: ValidLanguage;
+  word: string;
+};
+
+export type ValidLanguage = 'nb' | 'nn' | 'en';
+
+export type SupportedLanguage = Record<ValidLanguage, string>;
+
+export type ApplicationAccessMetadata = {
+  delegable?: boolean;
+  rightDescription?: SupportedLanguage;
+};
+
+export type StatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
+
+export type AvailableForTypeOption =
+  | 'PrivatePerson'
+  | 'LegalEntityEnterprise'
+  | 'Company'
+  | 'BankruptcyEstate'
+  | 'SelfRegisteredUser';
+
+export type ResourceType = 'altinnapp';
+
+export type ContactPoint = {
+  category: string;
+  email: string;
+  telephone: string;
+  contactPage: string;
+};
 
 export interface CopyInstanceSettings {
   enabled: boolean;
