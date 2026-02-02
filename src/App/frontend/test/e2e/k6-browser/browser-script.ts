@@ -64,7 +64,7 @@ async function takeScreenshot(page: Page, name: string, description?: string) {
 
     console.log(`Screenshot saved: ${filename}${description ? ` - ${description}` : ''}`);
   } catch (error) {
-    console.log(`Failed to take screenshot ${name}: ${error instanceof Error ? error.message : String(error)}`);
+    console.log(`Failed to take screenshot ${name}: ${errorToMessage(error)}`);
   }
 }
 
@@ -105,12 +105,8 @@ export default async function () {
     // await addPetManually(page, 'Herman');
     // await takeScreenshot(page, 'test-completed', 'Test completed successfully - Added Herman');
   } catch (error) {
-    await takeScreenshot(
-      page,
-      'main-test-error',
-      `Browser iteration failed: ${error instanceof Error ? error.message : String(error)}`,
-    );
-    fail(`Browser iteration failed: ${error instanceof Error ? error.message : String(error)}`);
+    await takeScreenshot(page, 'main-test-error', `Browser iteration failed: ${errorToMessage(error)}`);
+    fail(`Browser iteration failed: ${errorToMessage(error)}`);
   } finally {
     await page.close();
   }
@@ -161,12 +157,8 @@ async function localtestLogin(page: Page) {
       await page.getByRole('button', { name: /start på nytt/i }).click();
     }
   } catch (error) {
-    await takeScreenshot(
-      page,
-      'localtest-login-error',
-      `Localtest login failed: ${error instanceof Error ? error.message : String(error)}`,
-    );
-    console.log(`Localtest login failed: ${error instanceof Error ? error.message : String(error)}`);
+    await takeScreenshot(page, 'localtest-login-error', `Localtest login failed: ${errorToMessage(error)}`);
+    console.log(`Localtest login failed: ${errorToMessage(error)}`);
     throw error; // Re-throw to fail the test
   }
 }
@@ -186,12 +178,8 @@ async function goToCorrectPage(page: Page) {
 
     await page.getByRole('button', { name: /3\. kjæledyr/i }).click();
   } catch (error) {
-    await takeScreenshot(
-      page,
-      'go-to-correct-page-error',
-      `Going to correct page failed: ${error instanceof Error ? error.message : String(error)}`,
-    );
-    console.log(`Going to correct page failed: ${error instanceof Error ? error.message : String(error)}`);
+    await takeScreenshot(page, 'go-to-correct-page-error', `Going to correct page failed: ${errorToMessage(error)}`);
+    console.log(`Going to correct page failed: ${errorToMessage(error)}`);
     throw error; // Re-throw to fail the test
   }
 }
@@ -213,12 +201,8 @@ async function generate250MorePets(screen: Page, buttonName: RegExp) {
 
     add250RepeatingGroupRowsMetric.add(endTime - startTime);
   } catch (error) {
-    await takeScreenshot(
-      screen,
-      'generate-more-pets-error',
-      `Generating more pets failed: ${error instanceof Error ? error.message : String(error)}`,
-    );
-    console.log(`Generating more pets failed: ${error instanceof Error ? error.message : String(error)}`);
+    await takeScreenshot(screen, 'generate-more-pets-error', `Generating more pets failed: ${errorToMessage(error)}`);
+    console.log(`Generating more pets failed: ${errorToMessage(error)}`);
     throw error;
   }
 }
@@ -271,12 +255,8 @@ async function editLastPet(page: Page) {
       },
     });
   } catch (error) {
-    await takeScreenshot(
-      page,
-      'edit-last-pet-error',
-      `Edit last pet test failed: ${error instanceof Error ? error.message : String(error)}`,
-    );
-    console.log(`Edit last pet test failed: ${error instanceof Error ? error.message : String(error)}`);
+    await takeScreenshot(page, 'edit-last-pet-error', `Edit last pet test failed: ${errorToMessage(error)}`);
+    console.log(`Edit last pet test failed: ${errorToMessage(error)}`);
     throw error;
   }
 }
@@ -328,12 +308,24 @@ async function addPetManually(page: Page, petName: string) {
 
     manualRowAdditionTimeMetric.add(endTime - startTime);
   } catch (error) {
-    await takeScreenshot(
-      page,
-      'add-pet-manually-error',
-      `Adding pet manually failed: ${error instanceof Error ? error.message : String(error)}`,
-    );
-    console.log(`Adding pet manually failed: ${error instanceof Error ? error.message : String(error)}`);
+    await takeScreenshot(page, 'add-pet-manually-error', `Adding pet manually failed: ${errorToMessage(error)}`);
+    console.log(`Adding pet manually failed: ${errorToMessage(error)}`);
     throw error;
+  }
+}
+
+function errorToMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
   }
 }
