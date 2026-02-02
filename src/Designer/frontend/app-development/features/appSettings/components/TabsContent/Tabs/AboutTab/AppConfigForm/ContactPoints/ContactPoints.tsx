@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import classes from './ContactPoints.module.css';
 import type { ContactPoint } from 'app-shared/types/AppConfig';
-import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { ContactPointCard } from './ContactPointCard';
@@ -18,7 +17,6 @@ const emptyContactPoint: ContactPoint = {
 
 type ContactPointCommonProps = {
   contactPointList: ContactPoint[];
-  errors: AppConfigFormError[];
   id: string;
 };
 
@@ -29,7 +27,6 @@ export type ContactPointsProps = {
 export function ContactPoints({
   contactPointList,
   onContactPointsChanged,
-  errors,
   id,
 }: ContactPointsProps): ReactElement {
   const { t } = useTranslation();
@@ -63,7 +60,6 @@ export function ContactPoints({
         onRemoveContactPoint={handleClickRemoveButton}
         onChangeContactPoint={onChangeContactPointField}
         id={id}
-        errors={errors}
       />
       <div>
         <StudioButton
@@ -89,7 +85,6 @@ function ContactPointFields({
   onRemoveContactPoint,
   onChangeContactPoint,
   id,
-  errors,
 }: ContactPointFieldsProps): ReactElement[] {
   return contactPointList.map((contactPoint: ContactPoint, position: number) => (
     <div key={`${position}/${contactPointList.length}`}>
@@ -98,7 +93,6 @@ function ContactPointFields({
         onContactPointsChanged={(updatedContactPoint: ContactPoint) =>
           onChangeContactPoint(updatedContactPoint, position)
         }
-        errors={errors}
         index={position}
         id={`${id}-${position}`}
         onRemoveButtonClick={contactPointList.length > 1 ? onRemoveContactPoint : undefined}

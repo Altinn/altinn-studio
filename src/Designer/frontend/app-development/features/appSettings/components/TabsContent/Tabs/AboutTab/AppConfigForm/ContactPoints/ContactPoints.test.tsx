@@ -5,7 +5,6 @@ import { ContactPoints } from './ContactPoints';
 import type { ContactPointsProps } from './ContactPoints';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ContactPoint } from 'app-shared/types/AppConfig';
-import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 
 describe('ContactPoints', () => {
   afterEach(jest.clearAllMocks);
@@ -85,11 +84,6 @@ describe('ContactPoints', () => {
       },
     ]);
   });
-
-  it('displays error message if provided', () => {
-    renderComponent({ errors: [error] });
-    expect(getText(error.error)).toBeInTheDocument();
-  });
 });
 
 const contactPoint1: ContactPoint = {
@@ -106,19 +100,8 @@ const contactPoint2: ContactPoint = {
   contactPage: 'https://example.com/2',
 };
 
-const cardIndex: number = 0;
-const errorMessage = textMock('app_settings.about_tab_error_contact_points', {
-  index: String(cardIndex + 1),
-});
-const error: AppConfigFormError = {
-  field: 'contactPoints',
-  index: cardIndex,
-  error: errorMessage,
-};
-
 const defaultProps: ContactPointsProps = {
   contactPointList: [],
-  errors: [],
   id: 'contact-points',
   onContactPointsChanged: jest.fn(),
 };
