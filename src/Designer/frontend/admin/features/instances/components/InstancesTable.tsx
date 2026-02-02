@@ -21,7 +21,7 @@ import { Link } from 'react-router-dom';
 
 type InstancesTableProps = {
   org: string;
-  env: string;
+  environment: string;
   app: string;
   currentTask?: string;
   isArchived?: boolean;
@@ -34,7 +34,7 @@ type InstancesTableProps = {
 
 export const InstancesTable = ({
   org,
-  env,
+  environment,
   app,
   currentTask,
   isArchived,
@@ -46,7 +46,7 @@ export const InstancesTable = ({
 }: InstancesTableProps) => {
   const { data, status, error, fetchNextPage, hasNextPage } = useAppInstancesQuery(
     org,
-    env,
+    environment,
     app,
     currentTask,
     isArchived,
@@ -58,7 +58,7 @@ export const InstancesTable = ({
   );
   const { t, i18n } = useTranslation();
   const orgName = useCurrentOrg().name[i18n.language];
-  const envTitle = useEnvironmentTitle(env);
+  const envTitle = useEnvironmentTitle(environment);
 
   switch (status) {
     case 'pending':
@@ -68,6 +68,13 @@ export const InstancesTable = ({
         return (
           <StudioAlert data-color='info'>
             {t('admin.instances.missing_rights', { envTitle, orgName })}
+          </StudioAlert>
+        );
+      }
+      if (isAxiosError(error) && error.response?.status === 404) {
+        return (
+          <StudioAlert data-color='info'>
+            {t('admin.instances.unavailable', { envTitle, orgName })}
           </StudioAlert>
         );
       }

@@ -94,7 +94,7 @@ export const Instances = () => {
       </div>
       <InstancesTable
         org={org}
-        env={environment}
+        environment={environment}
         app={app}
         currentTask={currentTask}
         isArchived={isArchived}
