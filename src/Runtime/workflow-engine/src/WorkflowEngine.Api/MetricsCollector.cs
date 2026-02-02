@@ -18,28 +18,25 @@ internal sealed class MetricsCollector(
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                try
-                {
-                    var active = await engineRepository.CountActiveWorkflows(stoppingToken);
-                    var scheduled = await engineRepository.CountScheduledWorkflows(stoppingToken);
-                    var failed = await engineRepository.CountFailedWorkflows(stoppingToken);
-                    Telemetry.SetActiveWorkflowsCount(active);
-                    Telemetry.SetScheduledWorkflowsCount(scheduled);
-                    Telemetry.SetFailedWorkflowsCount(failed);
+                var active = await engineRepository.CountActiveWorkflows(stoppingToken);
+                var scheduled = await engineRepository.CountScheduledWorkflows(stoppingToken);
+                var failed = await engineRepository.CountFailedWorkflows(stoppingToken);
+                Telemetry.SetActiveWorkflowsCount(active);
+                Telemetry.SetScheduledWorkflowsCount(scheduled);
+                Telemetry.SetFailedWorkflowsCount(failed);
 
-                    await Task.Delay(_pollInterval, timeProvider, stoppingToken);
-                }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-                {
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    logger.FailedToQueryCounts(ex.Message, ex);
-                    await Task.Delay(_retryTimeout, timeProvider, stoppingToken);
-                }
+                await Task.Delay(_pollInterval, timeProvider, stoppingToken);
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                break;
+            }
+            catch (Exception ex)
+            {
+                logger.FailedToQueryCounts(ex.Message, ex);
+                await Task.Delay(_retryTimeout, timeProvider, stoppingToken);
             }
         }
 
