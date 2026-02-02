@@ -30,11 +30,11 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private readonly ServiceRepositorySettings _serviceRepositorySettings;
     private readonly IAltinityWebSocketService _webSocketService;
 
-    private static readonly ConcurrentDictionary<string, string> s_sessionOwners = new();
+    private static readonly ConcurrentDictionary<string, string> s_sessionIdToDeveloper = new();
 
-    private static readonly ConcurrentDictionary<string, string> s_webSocketConnections = new();
+    private static readonly ConcurrentDictionary<string, string> s_signalRConnectionToWebSocket = new();
 
-    private static readonly ConcurrentDictionary<string, string> s_connectionToSession = new();
+    private static readonly ConcurrentDictionary<string, string> s_signalRConnectionToSessionId = new();
 
     public AltinityProxyHub(
         IHttpContextAccessor httpContextAccessor,
@@ -73,9 +73,9 @@ public class AltinityProxyHub : Hub<IAltinityClient>
                     await Clients.Group(developer).ReceiveAgentMessage(message);
                 });
 
-            s_webSocketConnections.TryAdd(connectionId, wsConnectionId);
-            s_sessionOwners.TryAdd(sessionId, developer);
-            s_connectionToSession.TryAdd(connectionId, sessionId);
+            s_signalRConnectionToWebSocket.TryAdd(connectionId, wsConnectionId);
+            s_sessionIdToDeveloper.TryAdd(sessionId, developer);
+            s_signalRConnectionToSessionId.TryAdd(connectionId, sessionId);
 
             _logger.LogInformation("Established WebSocket to Altinity for session {SessionId}", sessionId);
 
@@ -98,14 +98,14 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         await Groups.RemoveFromGroupAsync(connectionId, developer);
 
-        if (s_webSocketConnections.TryRemove(connectionId, out string? wsConnectionId))
+        if (s_signalRConnectionToWebSocket.TryRemove(connectionId, out string? wsConnectionId))
         {
             await _webSocketService.DisconnectSessionAsync(wsConnectionId);
         }
 
-        if (s_connectionToSession.TryRemove(connectionId, out string? sessionId))
+        if (s_signalRConnectionToSessionId.TryRemove(connectionId, out string? sessionId))
         {
-            s_sessionOwners.TryRemove(sessionId, out _);
+            s_sessionIdToDeveloper.TryRemove(sessionId, out _);
         }
 
         _logger.LogInformation("Altinity hub disconnected for user: {Developer}", developer);
@@ -174,7 +174,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
     private void ValidateSessionOwnership(string sessionId, string developer)
     {
-        if (!s_sessionOwners.TryGetValue(sessionId, out string? sessionOwner))
+        if (!s_sessionIdToDeveloper.TryGetValue(sessionId, out string? sessionOwner))
         {
             _logger.LogWarning("User {Developer} attempted to use non-existent session {SessionId}", developer, sessionId);
             throw new HubException("Invalid session: Session does not exist");
@@ -304,7 +304,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     /// </summary>
     public async Task SendMessageToSession(string sessionId, object message)
     {
-        if (!s_sessionOwners.TryGetValue(sessionId, out string? sessionOwner))
+        if (!s_sessionIdToDeveloper.TryGetValue(sessionId, out string? sessionOwner))
         {
             _logger.LogWarning("Attempted to send message to unknown session: {SessionId}", sessionId);
             return;
@@ -322,11 +322,11 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
-        if (s_sessionOwners.TryGetValue(sessionId, out string? owner))
+        if (s_sessionIdToDeveloper.TryGetValue(sessionId, out string? owner))
         {
             if (owner == developer)
             {
-                s_sessionOwners.TryRemove(sessionId, out _);
+                s_sessionIdToDeveloper.TryRemove(sessionId, out _);
                 _logger.LogInformation("Session {SessionId} closed by owner {Developer}", sessionId, developer);
             }
             else
