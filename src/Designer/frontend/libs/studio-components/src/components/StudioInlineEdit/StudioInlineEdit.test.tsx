@@ -26,12 +26,18 @@ describe('StudioInlineEdit', () => {
   it('should call onChange and close edit mode when Save is clicked', async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
-    renderStudioInlineEdit({ label, value, onChange });
+    renderStudioInlineEdit({
+      label,
+      value,
+      onChange,
+      saveAriaLabel: 'Save',
+      cancelAriaLabel: 'Cancel',
+    });
     await user.click(screen.getByRole('button', { name: label }));
     const newValue = 'Updated value';
     await user.clear(screen.getByRole('textbox', { name: label }));
     await user.type(screen.getByRole('textbox', { name: label }), newValue);
-    await user.click(screen.getByTestId('studio-inline-edit-save'));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(onChange).toHaveBeenCalledWith(newValue);
     expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: label })).not.toBeInTheDocument();

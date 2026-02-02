@@ -200,6 +200,35 @@ describe('AppConfigForm', () => {
     expect(keywords).toHaveValue(newText);
   });
 
+  it('updates keywords in app config when keywords inline edit is saved and form is saved', async () => {
+    const user = userEvent.setup();
+    const saveAppConfig = jest.fn();
+    renderAppConfigForm({
+      appConfig: mockAppConfigComplete,
+      saveAppConfig,
+    });
+
+    const keywordsInput = await getOptionalInlineEditTextbox(
+      user,
+      textMock('app_settings.about_tab_keywords_label'),
+    );
+    const newKeywordsText = 'Krav, Betaling';
+    await user.type(keywordsInput, newKeywordsText);
+    await user.click(getInlineEditSaveButton());
+
+    const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
+    await user.click(saveButton);
+
+    expect(saveAppConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        keywords: [
+          { language: 'nb', word: 'Krav' },
+          { language: 'nb', word: 'Betaling' },
+        ],
+      }),
+    );
+  });
+
   it('updates "visible" input field with correct value on change', async () => {
     const user = userEvent.setup();
     renderAppConfigForm();
@@ -379,7 +408,7 @@ async function getOptionalInlineEditTextbox(
 }
 
 function getInlineEditSaveButton(): HTMLElement {
-  return screen.getByTestId('studio-inline-edit-save');
+  return screen.getByRole('button', { name: textMock('general.save') });
 }
 
 const getServiceNameNbTextbox = (): HTMLInputElement =>

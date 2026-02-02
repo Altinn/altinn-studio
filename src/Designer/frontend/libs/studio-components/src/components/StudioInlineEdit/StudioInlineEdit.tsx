@@ -84,12 +84,7 @@ export const StudioInlineEdit = ({
         value={inputValue}
         onChange={handleInputChange}
       />
-      <StudioButton
-        data-testid='studio-inline-edit-save'
-        icon={<StudioSaveIcon />}
-        onClick={saveValue}
-        aria-label={saveAriaLabel}
-      />
+      <StudioButton icon={<StudioSaveIcon />} onClick={saveValue} aria-label={saveAriaLabel} />
       <StudioButton
         variant='secondary'
         icon={<StudioCancelIcon />}
