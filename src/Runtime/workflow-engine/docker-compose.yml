@@ -1,8 +1,8 @@
 services:
   workflow-engine:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../
+      dockerfile: workflow-engine/Dockerfile
     container_name: workflow-engine-api
     ports:
       - "8080:8080"
