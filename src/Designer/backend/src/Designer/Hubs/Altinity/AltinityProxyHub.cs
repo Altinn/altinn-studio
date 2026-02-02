@@ -34,6 +34,8 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
     private static readonly ConcurrentDictionary<string, string> s_webSocketConnections = new();
 
+    private static readonly ConcurrentDictionary<string, string> s_connectionToSession = new();
+
     public AltinityProxyHub(
         IHttpContextAccessor httpContextAccessor,
         IHttpClientFactory httpClientFactory,
@@ -59,14 +61,12 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         string sessionId = Guid.NewGuid().ToString();
 
-        s_sessionOwners.TryAdd(sessionId, developer);
-
         _logger.LogInformation("Altinity hub connection established for user: {Developer}, connectionId: {ConnectionId}, sessionId: {SessionId}",
             developer, connectionId, sessionId);
 
         try
         {
-            var wsConnectionId = await _webSocketService.ConnectAndRegisterSessionAsync(
+            string wsConnectionId = await _webSocketService.ConnectAndRegisterSessionAsync(
                 sessionId,
                 async (message) =>
                 {
@@ -74,15 +74,19 @@ public class AltinityProxyHub : Hub<IAltinityClient>
                 });
 
             s_webSocketConnections.TryAdd(connectionId, wsConnectionId);
+            s_sessionOwners.TryAdd(sessionId, developer);
+            s_connectionToSession.TryAdd(connectionId, sessionId);
 
             _logger.LogInformation("Established WebSocket to Altinity for session {SessionId}", sessionId);
+
+            await Clients.Caller.SessionCreated(sessionId);
         }
         catch (Exception ex) when (ex is WebSocketException or HttpRequestException or OperationCanceledException)
         {
-            _logger.LogError(ex, "Failed to establish WebSocket to Altinity for session {SessionId}", sessionId);
+            _logger.LogError(ex, "Failed to establish WebSocket to Altinity for session {SessionId}. Aborting connection.", sessionId);
+            Context.Abort();
+            return;
         }
-
-        await Clients.Caller.SessionCreated(sessionId);
 
         await base.OnConnectedAsync();
     }
@@ -94,9 +98,14 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         await Groups.RemoveFromGroupAsync(connectionId, developer);
 
-        if (s_webSocketConnections.TryRemove(connectionId, out var wsConnectionId))
+        if (s_webSocketConnections.TryRemove(connectionId, out string? wsConnectionId))
         {
             await _webSocketService.DisconnectSessionAsync(wsConnectionId);
+        }
+
+        if (s_connectionToSession.TryRemove(connectionId, out string? sessionId))
+        {
+            s_sessionOwners.TryRemove(sessionId, out _);
         }
 
         _logger.LogInformation("Altinity hub disconnected for user: {Developer}", developer);
@@ -111,10 +120,10 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     /// <returns>Agent response</returns>
     public async Task<object> StartWorkflow(JsonElement request)
     {
-        var developer = GetCurrentDeveloperUserName();
-        var userToken = await GetCurrentDeveloperTokenAsync();
+        string developer = GetCurrentDeveloperUserName();
+        string userToken = await GetCurrentDeveloperTokenAsync();
 
-        var sessionId = ExtractSessionIdFromRequest(request);
+        string sessionId = ExtractSessionIdFromRequest(request);
         ValidateSessionOwnership(sessionId, developer);
 
         _logger.LogInformation("Starting Altinity workflow for user: {Developer}, session: {SessionId}", developer, sessionId);
@@ -133,7 +142,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     {
         // Use the same method as GiteaTokenDelegatingHandler - OAuth JWT token
         // Gitea in Altinn Studio is configured to accept JWT tokens from OIDC
-        var token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
+        string? token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
 
         if (string.IsNullOrEmpty(token))
         {
@@ -154,7 +163,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
             throw new HubException("Missing session_id in request");
         }
 
-        var sessionId = sessionIdElement.GetString();
+        string? sessionId = sessionIdElement.GetString();
         if (string.IsNullOrWhiteSpace(sessionId))
         {
             throw new HubException("session_id cannot be empty");
@@ -165,7 +174,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
     private void ValidateSessionOwnership(string sessionId, string developer)
     {
-        if (!s_sessionOwners.TryGetValue(sessionId, out var sessionOwner))
+        if (!s_sessionOwners.TryGetValue(sessionId, out string? sessionOwner))
         {
             _logger.LogWarning("User {Developer} attempted to use non-existent session {SessionId}", developer, sessionId);
             throw new HubException("Invalid session: Session does not exist");
@@ -206,8 +215,8 @@ public class AltinityProxyHub : Hub<IAltinityClient>
             return request;
         }
 
-        var org = orgElement.GetString();
-        var app = appElement.GetString();
+        string? org = orgElement.GetString();
+        string? app = appElement.GetString();
 
         // Validate org and app are not null or empty
         if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(app))
@@ -222,7 +231,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         }
 
         // Build the repo URL using the configured Gitea base URL
-        var repoUrl = $"{_serviceRepositorySettings.RepositoryBaseURL}/{org}/{app}.git";
+        string repoUrl = $"{_serviceRepositorySettings.RepositoryBaseURL}/{org}/{app}.git";
 
         // Create a new JSON object with the repo_url added
         var requestDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(request.GetRawText());
@@ -278,7 +287,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     {
         var httpClient = _httpClientFactory.CreateClient();
         var response = await httpClient.SendAsync(httpRequest);
-        var responseContent = await response.Content.ReadAsStringAsync();
+        string responseContent = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
         {
@@ -295,7 +304,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     /// </summary>
     public async Task SendMessageToSession(string sessionId, object message)
     {
-        if (!s_sessionOwners.TryGetValue(sessionId, out var sessionOwner))
+        if (!s_sessionOwners.TryGetValue(sessionId, out string? sessionOwner))
         {
             _logger.LogWarning("Attempted to send message to unknown session: {SessionId}", sessionId);
             return;
