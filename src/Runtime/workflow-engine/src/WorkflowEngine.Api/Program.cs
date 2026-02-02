@@ -1,3 +1,4 @@
+using Altinn.Studio.Runtime.Common;
 using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Api.Endpoints;
 using WorkflowEngine.Api.Extensions;
@@ -10,6 +11,9 @@ var dbConnectionString =
     ?? throw new EngineConfigurationException(
         "Database connection string 'WorkflowEngine' is required, but has not been configured."
     );
+
+// Hosting config
+builder.UseCommonHostingConfiguration();
 
 // Services
 builder.Services.AddWorkflowEngineHost();

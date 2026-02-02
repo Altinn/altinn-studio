@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="../WorkflowEngine.Models/WorkflowEngine.Models.csproj" />
     <ProjectReference Include="../WorkflowEngine.Data/WorkflowEngine.Data.csproj" />
+    <ProjectReference Include="../../../common/Altinn.Studio.Runtime.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
