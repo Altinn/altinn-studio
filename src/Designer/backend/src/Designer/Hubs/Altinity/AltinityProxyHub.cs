@@ -69,10 +69,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         {
             string wsConnectionId = await _webSocketService.ConnectAndRegisterSessionAsync(
                 sessionId,
-                async (message) =>
-                {
-                    await Clients.Group(developer).ReceiveAgentMessage(message);
-                });
+                async (message) => { await Clients.Group(developer).ReceiveAgentMessage(message); });
 
             s_signalRConnectionToWebSocket.TryAdd(connectionId, wsConnectionId);
             s_sessionIdToDeveloper.TryAdd(sessionId, developer);
@@ -234,10 +231,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         string userToken,
         string sessionId)
     {
-        var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_altinitySettings.AgentUrl}/api/agent/start")
-        {
-            Content = JsonContent.Create(request)
-        };
+        var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_altinitySettings.AgentUrl}/api/agent/start") { Content = JsonContent.Create(request) };
 
         AddUserCredentialsToRequest(httpRequest, developer, userToken, sessionId);
 
@@ -268,45 +262,5 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         }
 
         return JsonSerializer.Deserialize<JsonElement>(responseContent);
-    }
-
-    /// <summary>
-    /// Called by the backend when agent sends a message via webhook or polling
-    /// This forwards the message to the frontend client
-    /// </summary>
-    public async Task SendMessageToSession(string sessionId, object message)
-    {
-        if (!s_sessionIdToDeveloper.TryGetValue(sessionId, out string? sessionOwner))
-        {
-            _logger.LogWarning("Attempted to send message to unknown session: {SessionId}", sessionId);
-            return;
-        }
-
-        await Clients.Group(sessionOwner).ReceiveAgentMessage(message);
-
-        _logger.LogDebug("Sent message to session {SessionId} owner: {SessionOwner}", sessionId, sessionOwner);
-    }
-
-    /// <summary>
-    /// Cleanup method to remove completed sessions
-    /// </summary>
-    public async Task CloseSession(string sessionId)
-    {
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-
-        if (s_sessionIdToDeveloper.TryGetValue(sessionId, out string? owner))
-        {
-            if (owner == developer)
-            {
-                s_sessionIdToDeveloper.TryRemove(sessionId, out _);
-                _logger.LogInformation("Session {SessionId} closed by owner {Developer}", sessionId, developer);
-            }
-            else
-            {
-                throw new HubException("Cannot close session you don't own");
-            }
-        }
-
-        await Task.CompletedTask;
     }
 }
