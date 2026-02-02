@@ -21,8 +21,6 @@ public class ApplicationMetadata(string id) : Altinn.App.Core.Models.Application
     public AppMetadataAccess? Access { get; set; }
 
     public List<AppMetadataContactPoint>? ContactPoints { get; set; }
-
-    public AppMetadataTranslatedString? ServiceName { get; set; }
 }
 
 public class AppMetadataContactPoint
