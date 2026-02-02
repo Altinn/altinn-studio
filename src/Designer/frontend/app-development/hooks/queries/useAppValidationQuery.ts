@@ -3,7 +3,15 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
-export const useAppValidationQuery = (org: string, app: string): UseQueryResult<any> => {
+export type AppValidationResult = {
+  isValid: boolean;
+  errors: Map<string, string[]>;
+};
+
+export const useAppValidationQuery = (
+  org: string,
+  app: string,
+): UseQueryResult<AppValidationResult> => {
   const { getAppValidation } = useServicesContext();
 
   return useQuery<any>({
