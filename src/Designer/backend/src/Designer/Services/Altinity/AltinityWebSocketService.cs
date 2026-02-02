@@ -158,6 +158,11 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         {
             await HandleWebSocketErrorAsync(connection, cancellationToken, ex);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unhandled exception in WebSocket listener for session {SessionId}", connection.SessionId);
+            await DisconnectSessionAsync(connectionId);
+        }
     }
 
     private async Task ProcessWebSocketMessagesAsync(
