@@ -58,11 +58,11 @@ public static class AltinnAppServiceResourceValidator
 
         if (resource.Title is null)
         {
-            AddError(errors, "serviceName", Required);
+            AddError(errors, "title", Required);
         }
         else
         {
-            ValidateTranslatedString(errors, "serviceName", resource.Title);
+            ValidateTranslatedString(errors, "title", resource.Title);
         }
 
         if (resource.Description is null)
@@ -161,7 +161,7 @@ public static class ApplicationMetadataMapper
         {
             ResourceType = ResourceType.AltinnApp,
             Identifier = applicationmetadata?.Id,
-            Title = applicationmetadata?.ServiceName?.ToDictionary(),
+            Title = applicationmetadata?.Title?.ToDictionary(),
             Description = applicationmetadata?.Description?.ToDictionary(),
             ContactPoints = applicationmetadata?.ContactPoints?.ToServiceContactPoints(),
             RightDescription = applicationmetadata?.Access?.RightDescription?.ToDictionary(),
