@@ -441,7 +441,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private static async Task AddInitialPdfServiceTaskLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSetConfig)
         {
             string pdfLayoutFilename = "PdfLayout";
-            string errorLayoutFilename = "ErrorPage";
+            string errorLayoutFilename = "ServiceTask";
             await altinnAppGitRepository.SaveLayout(
                 layoutSetConfig.Id,
                 pdfLayoutFilename,
