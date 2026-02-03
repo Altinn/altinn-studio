@@ -14,8 +14,8 @@ export type StudioInlineTextFieldProps = {
   required?: boolean;
   tagText?: string;
   className?: string;
-  saveAriaLabel?: string;
-  cancelAriaLabel?: string;
+  saveAriaLabel: string;
+  cancelAriaLabel: string;
 };
 
 export const StudioInlineTextField = ({

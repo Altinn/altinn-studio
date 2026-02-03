@@ -56,6 +56,8 @@ const defaultProps: StudioInlineTextFieldProps = {
   label,
   value,
   onChange: () => {},
+  saveAriaLabel: '',
+  cancelAriaLabel: '',
 };
 
 const renderStudioInlineTextField = (
