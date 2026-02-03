@@ -49,7 +49,7 @@ public class CustomTemplateService : ICustomTemplateService
     {
         List<CustomTemplateDto> templates = [];
 
-        var templateList  = await GetTemplateManifestForOrg(_templateSettings.DefaultTemplateOrganization);
+        var templateList = await GetTemplateManifestForOrg(_templateSettings.DefaultTemplateOrganization);
 
         templates.AddRange(templateList.Where(t => t.IsListable()).ToList());
         return templates;

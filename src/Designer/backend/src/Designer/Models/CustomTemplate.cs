@@ -18,7 +18,7 @@ public class CustomTemplate
     public Dictionary<string, string> Name { get; set; } = new();
 
     [JsonPropertyName("description")]
-    public Dictionary<string, string> Description { get; set; }= new();
+    public Dictionary<string, string> Description { get; set; } = new();
 
     [JsonPropertyName("remove")]
     public List<string> Remove { get; set; } = [];
