@@ -2,6 +2,7 @@ import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { Button } from 'src/app-components/Button/Button';
+import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
@@ -81,7 +82,7 @@ function NavigationButtonsComponentInner({
   const { langAsString } = useLanguage();
 
   const [searchParams] = useSearchParams();
-  const backToPage = searchParams.get('backToPage');
+  const backToPage = searchParams.get(SearchParams.BackToPage);
   const showBackToPageButton = !!backToPage;
 
   const performProcess = useProcessingMutationWithKey<NavigatePageProcessKey>('navigate-page');
