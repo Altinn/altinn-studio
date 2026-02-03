@@ -254,7 +254,16 @@ public class HomeController : Controller
             return null;
         }
 
-        var details = await user.LoadDetails(validateSelectedParty: true);
+        Authenticated.User.Details details;
+        try
+        {
+            details = await user.LoadDetails(validateSelectedParty: true);
+        }
+        catch (AuthenticationContextException)
+        {
+            // Selected party doesn't exist or couldn't be loaded - redirect to party selection with error
+            return Redirect($"/{org}/{app}/party-selection/403");
+        }
 
         // If the selected party is not valid, redirect to party-selection/403
         if (details.CanRepresent == false)

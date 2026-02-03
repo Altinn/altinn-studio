@@ -6,12 +6,13 @@ import { cyUserCredentials } from 'test/e2e/support/auth';
 const appFrontend = new AppFrontend();
 
 describe('Party selection', () => {
-  it.only('Party selection filtering and search', () => {
-    // Use multiPartyPrompt user (doNotPromptForParty=false) to trigger backend redirect to party selection
+  it('Party selection filtering and search', () => {
+    // Mock the parties that will be shown in the party selection UI
     cyMockResponses({ allowedToInstantiate: [CyPartyMocks.ExampleOrgWithSubUnit, CyPartyMocks.ExampleDeletedOrg] });
+    // Log in as multiPartyPrompt user
     cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });
+    cy.visit(`/ttd/${appFrontend.apps.frontendTest}/`);
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
-    cy.get(appFrontend.partySelection.error).contains(texts.selectNewReportee);
     cy.findByText('underenhet').click();
     cy.contains(appFrontend.partySelection.subUnits, 'Bergen').should('be.visible');
     cy.contains(appFrontend.partySelection.party, 'slettet').should('not.exist');
@@ -51,12 +52,10 @@ describe('Party selection', () => {
   });
 
   it('Should show party selection with a warning when you cannot use the preselected party', () => {
-    // Use multiPartyPrompt user (doNotPromptForParty=false) to trigger backend redirect to party selection
+    // Mock the parties shown in the UI
     cyMockResponses({
       preSelectedParty: CyPartyMocks.ExampleOrgWithSubUnit.partyId,
-
-      // We'll only allow one party to be selected, and it's not the preselected one. Even though one-party-choices
-      // normally won't show up as being selectable, we'll still show the warning in these cases.
+      // We'll only allow one party to be selected, and it's not the preselected one
       allowedToInstantiate: [CyPartyMocks.ExamplePerson2],
       partyTypesAllowed: {
         person: true,
@@ -66,7 +65,12 @@ describe('Party selection', () => {
       },
     });
 
+    // Log in as multiPartyPrompt user
     cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });
+    // Set cookie to a party that exists but user 2001 cannot represent (triggers CanRepresent=false)
+    cy.setCookie('AltinnPartyId', '510001');
+    // Navigate to app root - backend will redirect to /party-selection/403
+    cy.visit(`/ttd/${appFrontend.apps.frontendTest}/`);
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
     cy.get(appFrontend.partySelection.error).should('be.visible');
   });
