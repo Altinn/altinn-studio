@@ -75,7 +75,7 @@ namespace Altinn.Studio.Designer.Helpers
             foreach (DirectoryInfo subDir in source.GetDirectories())
             {
                 DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subDir.Name);
-               await CopyDirectoryAsync(subDir.FullName, nextTargetSubDir.FullName);
+                await CopyDirectoryAsync(subDir.FullName, nextTargetSubDir.FullName);
             }
         }
     }

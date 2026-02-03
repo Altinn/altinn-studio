@@ -37,7 +37,7 @@ public class ValidateCustomTemplateTest
         }";
 
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(missingSchemaManifest);
-        Assert.Contains(errors,e =>  e.Kind == ValidationErrorKind.PropertyRequired && e.Property.Equals("schemaVersion"));
+        Assert.Contains(errors, e => e.Kind == ValidationErrorKind.PropertyRequired && e.Property.Equals("schemaVersion"));
     }
 
     [Theory]
@@ -268,5 +268,5 @@ public class ValidateCustomTemplateTest
 
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(validVersionManifest);
         Assert.Empty(errors);
-    }    
+    }
 }

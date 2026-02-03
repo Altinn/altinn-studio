@@ -207,7 +207,7 @@ namespace Altinn.Studio.Designer.Controllers
                     error = nameof(CustomTemplateException),
                     message = ex.Message
                 });
-            }   
+            }
         }
 
         /// <summary>
