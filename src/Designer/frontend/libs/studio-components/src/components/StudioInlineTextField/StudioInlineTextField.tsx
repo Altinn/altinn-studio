@@ -38,14 +38,7 @@ export const StudioInlineTextField = ({
   };
 
   if (!isEditMode) {
-    return (
-      <StudioProperty.Button
-        property={label}
-        value={value}
-        onClick={openEditMode}
-        className={classes.viewMode}
-      />
-    );
+    return <StudioProperty.Button property={label} value={value} onClick={openEditMode} />;
   }
 
   const saveValue = (): void => {

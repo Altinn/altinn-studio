@@ -4,10 +4,3 @@
   align-items: flex-end;
   gap: var(--ds-size-3);
 }
-
-.viewMode {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: var(--ds-font-weight-regular);
-}
