@@ -1,5 +1,4 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { altinityWebSocketHub } from 'app-shared/api/paths';
 import type { WorkflowEvent, WorkflowRequest, AgentResponse } from '@studio/assistant';
@@ -26,30 +25,8 @@ export const useAltinityWebSocket = (): UseAltinityWebSocketResult => {
   const wsInstanceRef = useRef<any>(null);
   const messageCallbackRef = useRef<((message: WorkflowEvent) => void) | null>(null);
 
-  useWebSocket<WorkflowEvent | string>({
-    webSocketUrls: [altinityWebSocketHub()],
-    clientsName: [AltinityClientsName.SessionCreated, AltinityClientsName.ReceiveAgentMessage],
-    webSocketConnector: WSConnector,
-    onWSMessageReceived: (message: WorkflowEvent | string): void => {
-      if (typeof message === 'string') {
-        return;
-      }
-
-      if (
-        message.type === 'workflow_status' &&
-        message.data?.message?.toLowerCase() === 'session created'
-      ) {
-        return;
-      }
-
-      if (messageCallbackRef.current) {
-        messageCallbackRef.current(message);
-      }
-    },
-  });
-
   useEffect(() => {
-    const wsInstance = WSConnector.getInstance(
+    const wsInstance = new WSConnector(
       [altinityWebSocketHub()],
       [AltinityClientsName.SessionCreated, AltinityClientsName.ReceiveAgentMessage],
     );
@@ -66,6 +43,7 @@ export const useAltinityWebSocket = (): UseAltinityWebSocketResult => {
     if (!connection) return;
 
     registerSessionCreatedHandler(connection, setSessionId);
+    registerAgentMessageHandler(connection, messageCallbackRef);
 
     return () => cleanupConnectionHandlers(connection);
   }, []);
@@ -111,6 +89,25 @@ function registerSessionCreatedHandler(
 
 function cleanupConnectionHandlers(connection: any): void {
   connection.off(AltinityClientsName.SessionCreated);
+  connection.off(AltinityClientsName.ReceiveAgentMessage);
+}
+
+function registerAgentMessageHandler(
+  connection: any,
+  messageCallbackRef: React.MutableRefObject<((message: WorkflowEvent) => void) | null>,
+): void {
+  connection.on(AltinityClientsName.ReceiveAgentMessage, (message: WorkflowEvent) => {
+    if (
+      message.type === 'workflow_status' &&
+      message.data?.message?.toLowerCase() === 'session created'
+    ) {
+      return;
+    }
+
+    if (messageCallbackRef.current) {
+      messageCallbackRef.current(message);
+    }
+  });
 }
 
 async function invokeStartWorkflowOnServer(
