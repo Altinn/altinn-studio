@@ -467,7 +467,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             ["type"] = "Header",
                             ["textResourceBindings"] = new JsonObject
                             {
-                                ["title"] = "service_task.title"
+                                ["title"] = "service_task_custom_pdf_default.title"
                             }
                         },
                         new JsonObject
@@ -476,7 +476,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             ["type"] = "Paragraph",
                             ["textResourceBindings"] = new JsonObject
                             {
-                                ["title"] = "service_task.body"
+                                ["title"] = "service_task_custom_pdf_default.body"
                             }
                         },
                         new JsonObject
@@ -485,7 +485,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             ["type"] = "Paragraph",
                             ["textResourceBindings"] = new JsonObject
                             {
-                                ["title"] = "service_task.help_text"
+                                ["title"] = "service_task_custom_pdf_default.help_text"
                             }
                         },
                         new JsonObject
@@ -502,7 +502,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             ["type"] = "Button",
                             ["textResourceBindings"] = new JsonObject
                             {
-                                ["title"] = "service_task.retry_button"
+                                ["title"] = "service_task_custom_pdf_default.retry_button"
                             }
                         },
                         new JsonObject
@@ -511,7 +511,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             ["type"] = "ActionButton",
                             ["textResourceBindings"] = new JsonObject
                             {
-                                ["title"] = "service_task.back_button"
+                                ["title"] = "service_task_custom_pdf_default.back_button"
                             },
                             ["action"] = "reject",
                             ["buttonStyle"] = "secondary"
