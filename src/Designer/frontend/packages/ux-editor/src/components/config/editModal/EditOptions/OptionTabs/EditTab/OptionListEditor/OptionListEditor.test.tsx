@@ -20,6 +20,7 @@ import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
 import type { CodeListIdContextData } from '../../types/CodeListIdContextData';
 import type { PublishedCodeListReferenceValues } from '../../types/PublishedCodeListReferenceValues';
 import { createPublishedCodeListReferenceString } from '../../utils/published-code-list-reference-utils';
+import { FeatureFlag } from '@studio/feature-flags';
 
 // Mocks:
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
@@ -40,7 +41,7 @@ const appRouteParams: AppRouteParams = { org, app };
 const textResources: ITextResources = {
   [DEFAULT_LANGUAGE]: textResourcesMock.resources,
 };
-const onEditButtonClick = jest.fn();
+const onEditInternalButtonClick = jest.fn();
 const codeListIdContextData: CodeListIdContextData = {
   idsFromAppLibrary: [optionListId],
   orgName: org,
@@ -54,7 +55,7 @@ describe('OptionListEditor', () => {
     renderOptionListEditor();
 
     await user.click(getEditButton());
-    expect(onEditButtonClick).toHaveBeenCalledTimes(1);
+    expect(onEditInternalButtonClick).toHaveBeenCalledTimes(1);
   });
 
   it('should render library options editor when the given optionsId exists in the list of code list IDs from the app library', async () => {
@@ -70,14 +71,27 @@ describe('OptionListEditor', () => {
   });
 
   it('Displays the interface for published code lists when optionsId refers to a published code list', () => {
-    const codeListName = 'some-published-code-list';
-    const version = '12';
-    const refValues: PublishedCodeListReferenceValues = { orgName: org, codeListName, version };
-    const optionsId = createPublishedCodeListReferenceString(refValues);
-    renderOptionListEditor({ props: { component: { ...componentWithOptionsId, optionsId } } });
-
+    renderOptionListEditorWithPublishedCodeList();
     const expectedText = textMock('ux_editor.options.published_code_list_in_use');
     expect(screen.getByText(expectedText)).toBeInTheDocument();
+  });
+
+  it('Opens the published code list form when optionsId refers to a published code list and the user clicks the edit button', async () => {
+    const user = userEvent.setup();
+    renderOptionListEditorWithPublishedCodeList();
+    await user.click(getEditButton());
+    const formLegend = textMock('ux_editor.options.published_code_list.choose');
+    expect(screen.getByRole('group', { name: formLegend })).toBeInTheDocument();
+  });
+
+  it('Removes the optionsId setting when it refers to a published code list and the user clicks the delete button', async () => {
+    const user = userEvent.setup();
+    renderOptionListEditorWithPublishedCodeList();
+    await user.click(getDeleteButton());
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      expect.objectContaining({ optionsId: undefined }),
+    );
   });
 
   it('should render a spinner when there is no data', () => {
@@ -127,21 +141,17 @@ describe('OptionListEditor', () => {
 });
 
 function getEditButton() {
-  return screen.getByRole('button', {
-    name: textMock('general.edit'),
-  });
+  return screen.getByRole('button', { name: textMock('general.edit') });
 }
 
 function getDeleteButton() {
-  return screen.getByRole('button', {
-    name: textMock('general.delete'),
-  });
+  return screen.getByRole('button', { name: textMock('general.delete') });
 }
 
 const defaultProps: OptionListEditorProps = {
   codeListIdContextData,
   component: mockComponent,
-  onEditButtonClick,
+  onEditInternalButtonClick,
   handleComponentChange,
   textResources,
 };
@@ -164,16 +174,30 @@ type RenderOptionListEditorArgs = {
   queries?: Partial<ServicesContextProps>;
   props?: Partial<OptionListEditorProps>;
   queryClient?: QueryClient;
+  featureFlags?: FeatureFlag[];
 };
 
 function renderOptionListEditor({
   queries = {},
   props = {},
   queryClient = createQueryClientMock(),
+  featureFlags = [],
 }: RenderOptionListEditorArgs = {}): void {
   renderWithProviders(<OptionListEditor {...defaultProps} {...props} />, {
     queries,
     queryClient,
     appRouteParams,
+    featureFlags,
+  });
+}
+
+function renderOptionListEditorWithPublishedCodeList(): void {
+  const codeListName = 'some-published-code-list';
+  const version = '12';
+  const refValues: PublishedCodeListReferenceValues = { orgName: org, codeListName, version };
+  const optionsId = createPublishedCodeListReferenceString(refValues);
+  renderOptionListEditor({
+    props: { component: { ...componentWithOptionsId, optionsId } },
+    featureFlags: [FeatureFlag.NewCodeLists],
   });
 }
