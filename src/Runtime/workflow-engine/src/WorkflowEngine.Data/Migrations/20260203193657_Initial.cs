@@ -22,7 +22,12 @@ namespace WorkflowEngine.Data.Migrations
                             "Npgsql:ValueGenerationStrategy",
                             NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
                         ),
-                    Key = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    IdempotencyKey = table.Column<string>(
+                        type: "character varying(500)",
+                        maxLength: 500,
+                        nullable: false
+                    ),
+                    InstanceLockKey = table.Column<string>(type: "text", nullable: true),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(
                         type: "timestamp with time zone",
@@ -58,7 +63,11 @@ namespace WorkflowEngine.Data.Migrations
                             "Npgsql:ValueGenerationStrategy",
                             NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
                         ),
-                    Key = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    IdempotencyKey = table.Column<string>(
+                        type: "character varying(500)",
+                        maxLength: 500,
+                        nullable: false
+                    ),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(
                         type: "timestamp with time zone",
@@ -67,8 +76,8 @@ namespace WorkflowEngine.Data.Migrations
                     ),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     ProcessingOrder = table.Column<int>(type: "integer", nullable: false),
-                    InitialStartTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    StartTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    FirstSeenAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    StartAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     BackoffUntil = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     RequeueCount = table.Column<int>(type: "integer", nullable: false),
                     ActorUserIdOrOrgNumber = table.Column<string>(
@@ -98,9 +107,9 @@ namespace WorkflowEngine.Data.Migrations
 
             migrationBuilder.CreateIndex(name: "IX_Steps_CreatedAt", table: "Steps", column: "CreatedAt");
 
-            migrationBuilder.CreateIndex(name: "IX_Steps_JobId", table: "Steps", column: "JobId");
+            migrationBuilder.CreateIndex(name: "IX_Steps_IdempotencyKey", table: "Steps", column: "IdempotencyKey");
 
-            migrationBuilder.CreateIndex(name: "IX_Steps_Key", table: "Steps", column: "Key");
+            migrationBuilder.CreateIndex(name: "IX_Steps_JobId", table: "Steps", column: "JobId");
 
             migrationBuilder.CreateIndex(name: "IX_Steps_ProcessingOrder", table: "Steps", column: "ProcessingOrder");
 
@@ -109,12 +118,16 @@ namespace WorkflowEngine.Data.Migrations
             migrationBuilder.CreateIndex(name: "IX_Workflows_CreatedAt", table: "Workflows", column: "CreatedAt");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Workflows_IdempotencyKey",
+                table: "Workflows",
+                column: "IdempotencyKey"
+            );
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Workflows_InstanceOrg_InstanceApp_InstanceGuid",
                 table: "Workflows",
                 columns: new[] { "InstanceOrg", "InstanceApp", "InstanceGuid" }
             );
-
-            migrationBuilder.CreateIndex(name: "IX_Workflows_Key", table: "Workflows", column: "Key");
 
             migrationBuilder.CreateIndex(name: "IX_Workflows_Status", table: "Workflows", column: "Status");
         }

@@ -51,16 +51,16 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("NOW()");
 
-                    b.Property<DateTimeOffset?>("InitialStartTime")
+                    b.Property<DateTimeOffset>("FirstSeenAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("JobId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Key")
+                    b.Property<string>("IdempotencyKey")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<long>("JobId")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("ProcessingOrder")
                         .HasColumnType("integer");
@@ -71,7 +71,7 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<string>("RetryStrategyJson")
                         .HasColumnType("jsonb");
 
-                    b.Property<DateTimeOffset?>("StartTime")
+                    b.Property<DateTimeOffset?>("StartAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
@@ -87,9 +87,9 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("CreatedAt");
 
-                    b.HasIndex("JobId");
+                    b.HasIndex("IdempotencyKey");
 
-                    b.HasIndex("Key");
+                    b.HasIndex("JobId");
 
                     b.HasIndex("ProcessingOrder");
 
@@ -120,6 +120,11 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("NOW()");
 
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<string>("InstanceApp")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -128,6 +133,9 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<Guid>("InstanceGuid")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("InstanceLockKey")
+                        .HasColumnType("text");
+
                     b.Property<string>("InstanceOrg")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -135,11 +143,6 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.Property<int>("InstanceOwnerPartyId")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -155,7 +158,7 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("CreatedAt");
 
-                    b.HasIndex("Key");
+                    b.HasIndex("IdempotencyKey");
 
                     b.HasIndex("Status");
 
@@ -167,7 +170,7 @@ namespace WorkflowEngine.Data.Migrations
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>
                 {
                     b.HasOne("WorkflowEngine.Data.Entities.WorkflowEntity", "Job")
-                        .WithMany("Tasks")
+                        .WithMany("Steps")
                         .HasForeignKey("JobId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -177,7 +180,7 @@ namespace WorkflowEngine.Data.Migrations
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.WorkflowEntity", b =>
                 {
-                    b.Navigation("Tasks");
+                    b.Navigation("Steps");
                 });
 #pragma warning restore 612, 618
         }

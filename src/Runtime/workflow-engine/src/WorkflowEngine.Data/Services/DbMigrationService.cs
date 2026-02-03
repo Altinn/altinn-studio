@@ -4,6 +4,9 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using WorkflowEngine.Data.Context;
 
+// CA1822: Mark members as static
+#pragma warning disable CA1822
+
 namespace WorkflowEngine.Data.Services;
 
 // CA2100: Review SQL queries for security vulnerabilities

@@ -4,13 +4,16 @@ services:
       context: ../
       dockerfile: workflow-engine/Dockerfile
     container_name: workflow-engine-api
+    networks:
+      - workflow-engine-network
     ports:
       - "8080:8080"
       - "8081:8081"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Docker
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   postgres:
     image: postgres:16
@@ -19,12 +22,19 @@ services:
       POSTGRES_DB: workflow_engine
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres123
+      TZ: Europe/Oslo
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - workflow-engine-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -48,12 +58,14 @@ services:
     image: grafana/otel-lgtm:0.17.0
     container_name: workflow-engine-lgtm
     restart: unless-stopped
+    networks:
+      - workflow-engine-network
     ports:
       - '3000:3000'
       - '4317:4317'
       - '4318:4318'
     volumes:
-      - ./docker/grafana-datasources.yml:/etc/grafana/provisioning/datasources/postgres.yml:ro
+      - ./.docker/grafana-datasources.yml:/etc/grafana/provisioning/datasources/postgres.yml:ro
 
 volumes:
   postgres_data:
