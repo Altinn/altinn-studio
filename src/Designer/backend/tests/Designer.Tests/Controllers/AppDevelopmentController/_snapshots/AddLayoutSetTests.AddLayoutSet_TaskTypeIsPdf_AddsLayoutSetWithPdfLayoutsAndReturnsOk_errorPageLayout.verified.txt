@@ -7,21 +7,21 @@
         "id": "service-task-title",
         "type": "Header",
         "textResourceBindings": {
-          "title": "service_task.title"
+          "title": "service_task_custom_pdf_default.title"
         }
       },
       {
         "id": "service-task-body",
         "type": "Paragraph",
         "textResourceBindings": {
-          "title": "service_task.body"
+          "title": "service_task_custom_pdf_default.body"
         }
       },
       {
         "id": "service-task-help-text",
         "type": "Paragraph",
         "textResourceBindings": {
-          "title": "service_task.help_text"
+          "title": "service_task_custom_pdf_default.help_text"
         }
       },
       {
@@ -36,14 +36,14 @@
         "id": "service-task-retry-button",
         "type": "Button",
         "textResourceBindings": {
-          "title": "service_task.retry_button"
+          "title": "service_task_custom_pdf_default.retry_button"
         }
       },
       {
         "id": "service-task-back-button",
         "type": "ActionButton",
         "textResourceBindings": {
-          "title": "service_task.back_button"
+          "title": "service_task_custom_pdf_default.back_button"
         },
         "action": "reject",
         "buttonStyle": "secondary"

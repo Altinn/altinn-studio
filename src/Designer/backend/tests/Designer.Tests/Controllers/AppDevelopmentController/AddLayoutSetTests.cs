@@ -210,7 +210,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             JsonNode pdfLayout = await GetLayoutFile(org, targetRepository, developer, layoutSetId, "PdfLayout");
-            JsonNode errorPageLayout = await GetLayoutFile(org, targetRepository, developer, layoutSetId, "ErrorPage");
+            JsonNode errorPageLayout = await GetLayoutFile(org, targetRepository, developer, layoutSetId, "ServiceTask");
             LayoutSettings layoutSettings = await GetLayoutSettingsFile(org, targetRepository, developer, layoutSetId);
 
             var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
