@@ -76,7 +76,15 @@ internal sealed class AltinnCdnClient : IAltinnCdnClient
             _cacheExpiry = DateTimeOffset.UtcNow + _cacheDuration;
             return orgDetails;
         }
-        catch when (_cached != null)
+        catch (Exception ex)
+            when (_cached != null
+                && (
+                    ex is HttpRequestException
+                    || ex is TaskCanceledException
+                    || ex is OperationCanceledException
+                    || ex is JsonException
+                )
+            )
         {
             // Return stale cached data on failure, but retry sooner
             _cacheExpiry = DateTimeOffset.UtcNow + _retryDelay;

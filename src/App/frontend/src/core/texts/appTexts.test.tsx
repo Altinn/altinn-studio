@@ -147,9 +147,10 @@ describe('appTexts', () => {
       cleanup();
     });
 
-    it('should return undefined value is not set by appOwner key and no org name in global data', async () => {
-      await render({});
+    it('should return undefined when appOwner key is not set and no org name in global data', async () => {
+      const { cleanup } = await render({});
       expect(screen.getByTestId('appOwner')).toHaveTextContent('');
+      cleanup();
     });
   });
 });
