@@ -11,3 +11,17 @@
   gap: var(--field-spacing);
   margin-inline: var(--inline-spacing-size);
 }
+
+.inlineTextFieldWithIcon {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-3);
+}
+
+/* .inlineTextFieldWithIcon > *:first-child {
+  flex: 1;
+}
+
+.emptyIcon {
+  flex-shrink: 0;
+} */

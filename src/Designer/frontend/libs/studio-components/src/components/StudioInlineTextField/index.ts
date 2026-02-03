@@ -1,2 +1,2 @@
-export { StudioInlineEdit } from './StudioInlineEdit';
-export type { StudioInlineEditProps } from './StudioInlineEdit';
+export { StudioInlineTextField } from './StudioInlineTextField';
+export type { StudioInlineTextFieldProps } from './StudioInlineTextField';

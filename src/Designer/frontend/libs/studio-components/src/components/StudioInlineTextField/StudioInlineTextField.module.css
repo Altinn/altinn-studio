@@ -11,7 +11,3 @@
   align-items: center;
   font-weight: var(--ds-font-weight-regular);
 }
-
-.viewModeContent {
-  color: var(--ds-color-text-default);
-}

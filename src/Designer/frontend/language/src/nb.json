@@ -299,7 +299,7 @@
   "app_settings.about_tab_error_usage_string_right_description": "delegeringstekst",
   "app_settings.about_tab_error_usage_string_service_name": "navn på appen",
   "app_settings.about_tab_heading": "Om appen",
-  "app_settings.about_tab_homepage_field_description": "Lim inn lenke n til siden der sluttbrukere finner appen og informasjon om den.",
+  "app_settings.about_tab_homepage_field_description": "Lim inn lenke til siden der sluttbrukere finner appen og informasjon om den.",
   "app_settings.about_tab_homepage_field_label": "Legg inn lenke til egen hjemmeside",
   "app_settings.about_tab_keywords_description": "Skill hvert nøkkelord med komma \",\".",
   "app_settings.about_tab_keywords_label": "Skriv nøkkelord som gjør det enkelt å søke på appen",

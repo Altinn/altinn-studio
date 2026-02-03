@@ -1,27 +1,24 @@
 import React from 'react';
 import type { ChangeEvent } from 'react';
-import { StudioButton } from '../StudioButton/StudioButton';
+import { StudioFormActions } from '../StudioFormActions/StudioFormActions';
+import { StudioProperty } from '../StudioProperty';
 import { StudioTextfield } from '../StudioTextfield/StudioTextfield';
-import { StudioCancelIcon, StudioEditIcon, StudioSaveIcon } from '@studio/icons';
-import { StudioLabel } from '../StudioLabel';
-import { StudioParagraph } from '../StudioParagraph';
 import cn from 'classnames';
-import classes from './StudioInlineEdit.module.css';
+import classes from './StudioInlineTextField.module.css';
 
-export type StudioInlineEditProps = {
+export type StudioInlineTextFieldProps = {
   value: string;
-  onChange?: (newValue: string) => void;
-  label?: string;
-  description?: React.ReactNode;
+  onChange: (newValue: string) => void;
+  label: string;
+  description?: string;
   required?: boolean;
   tagText?: string;
   className?: string;
-  icon?: React.ReactNode;
   saveAriaLabel?: string;
   cancelAriaLabel?: string;
 };
 
-export const StudioInlineEdit = ({
+export const StudioInlineTextField = ({
   value,
   onChange,
   label,
@@ -29,34 +26,25 @@ export const StudioInlineEdit = ({
   required,
   tagText,
   className,
-  icon,
   saveAriaLabel,
   cancelAriaLabel,
-}: StudioInlineEditProps): React.ReactElement => {
+}: StudioInlineTextFieldProps): React.ReactElement => {
   const [isEditMode, setIsEditMode] = React.useState(false);
   const [inputValue, setInputValue] = React.useState(value);
-  const toggleViewModeContent = value ? classes.viewModeContent : undefined;
 
-  const handleClick = (): void => {
+  const openEditMode = (): void => {
     setInputValue(value);
     setIsEditMode(true);
   };
 
   if (!isEditMode) {
     return (
-      <StudioButton
-        variant='tertiary'
+      <StudioProperty.Button
+        property={label}
+        value={value}
+        onClick={openEditMode}
         className={classes.viewMode}
-        onClick={handleClick}
-        aria-label={label}
-        icon={!value && icon}
-      >
-        <div className={toggleViewModeContent}>
-          <StudioLabel>{label}</StudioLabel>
-          <StudioParagraph>{value}</StudioParagraph>
-        </div>
-        {value && <StudioEditIcon />}
-      </StudioButton>
+      />
     );
   }
 
@@ -84,15 +72,20 @@ export const StudioInlineEdit = ({
         value={inputValue}
         onChange={handleInputChange}
       />
-      <StudioButton icon={<StudioSaveIcon />} onClick={saveValue} aria-label={saveAriaLabel} />
-      <StudioButton
-        variant='secondary'
-        icon={<StudioCancelIcon />}
-        onClick={cancelEditing}
-        aria-label={cancelAriaLabel}
+      <StudioFormActions
+        primary={{
+          label: saveAriaLabel,
+          onClick: saveValue,
+        }}
+        secondary={{
+          label: cancelAriaLabel,
+          onClick: cancelEditing,
+        }}
+        isLoading={false}
+        iconOnly
       />
     </div>
   );
 };
 
-StudioInlineEdit.displayName = 'StudioInlineEdit';
+StudioInlineTextField.displayName = 'StudioInlineTextField';

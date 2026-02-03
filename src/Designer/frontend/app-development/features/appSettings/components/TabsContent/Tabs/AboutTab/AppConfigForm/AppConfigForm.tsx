@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import type { ChangeEvent, MutableRefObject, ReactElement } from 'react';
 import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioTextfield, StudioInlineEdit } from '@studio/components';
+import { StudioTextfield, StudioInlineTextField } from '@studio/components';
 import type { ContactPoint, Keyword } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
 import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
@@ -13,7 +13,6 @@ import { SwitchInput } from './SwitchInput';
 import { mapKeywordsArrayToString, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
 import { ContactPoints } from './ContactPoints';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import { PlusCircleIcon } from '@studio/icons';
 
 export type AppConfigFormProps = {
   appConfig: ApplicationMetadata;
@@ -142,14 +141,13 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           required
           isTextArea
         />
-        <StudioInlineEdit
+        <StudioInlineTextField
           label={t('app_settings.about_tab_homepage_field_label')}
           description={t('app_settings.about_tab_homepage_field_description')}
           value={updatedAppConfig.homepage ?? ''}
           onChange={onChangeHomepage}
           required={false}
           tagText={t('general.optional')}
-          icon={<PlusCircleIcon />}
           saveAriaLabel={t('general.save')}
           cancelAriaLabel={t('general.cancel')}
         />
@@ -175,14 +173,13 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
             isTextArea
           />
         )}
-        <StudioInlineEdit
+        <StudioInlineTextField
           label={t('app_settings.about_tab_keywords_label')}
           description={t('app_settings.about_tab_keywords_description')}
           value={keywordsInputValue}
           onChange={onChangeKeywords}
           required={false}
           tagText={t('general.optional')}
-          icon={<PlusCircleIcon />}
           saveAriaLabel={t('general.save')}
           cancelAriaLabel={t('general.cancel')}
         />
