@@ -42,37 +42,20 @@ jobs:
     name: Lighthouse CI
     runs-on: ubuntu-latest
     needs: [build-frontend, build-localtest]
-    environment: dev
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-      - name: Download built frontend
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
-        with:
-          name: app-frontend-dist
-          path: src/App/frontend/dist
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
-          run-frontend: false
+          run-frontend: true
           run-localtest: true
           docker-profile: test-apps
-
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: '22'
-          cache: 'yarn'
-          cache-dependency-path: src/App/frontend/yarn.lock
-
-      - name: Install dependencies
-        working-directory: src/App/frontend
-        run: yarn install --immutable
 
       - name: Run Lighthouse CI
         id: lighthouse-ci
         env:
+          ENV: 'CI' # Signals to src/App/frontend/lighthouserc.js that we're running in CI
           LHCI_SERVER_URL: ${{ secrets.LHCI_SERVER_URL }}
           LHCI_BUILD_TOKEN: ${{ secrets.LHCI_ALTINN_APP_BUILD_TOKEN }}
           LHCI_USERNAME: ${{ secrets.LHCI_BASIC_AUTH_USERNAME }}
