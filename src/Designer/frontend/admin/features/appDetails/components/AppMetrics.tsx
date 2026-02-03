@@ -1,7 +1,14 @@
 import React from 'react';
+import { useEnvironmentTitle } from 'admin/hooks/useEnvironmentTitle';
 import classes from './AppMetrics.module.css';
 import { useParams } from 'react-router-dom';
-import { StudioCard, StudioError, StudioHeading, StudioSpinner } from '@studio/components';
+import {
+  StudioAlert,
+  StudioCard,
+  StudioError,
+  StudioHeading,
+  StudioSpinner,
+} from '@studio/components';
 import { useAppMetricsQuery } from 'admin/hooks/queries/useAppMetricsQuery';
 import { useTranslation } from 'react-i18next';
 import 'chartjs-adapter-date-fns';
@@ -9,7 +16,7 @@ import 'chartjs-adapter-date-fns';
 import { AppMetric } from './AppMetric';
 import { useAppHealthMetricsQuery } from 'admin/hooks/queries/useAppHealthMetricsQuery';
 import { AppHealthMetric } from './AppHealthMetric';
-import { TimeRangeSelect } from 'admin/shared/TimeRangeSelect/TimeRangeSelect';
+import { TimeRangeSelect } from 'admin/components/TimeRangeSelect/TimeRangeSelect';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -25,6 +32,8 @@ import {
 } from 'chart.js';
 import { useAppErrorMetricsQuery } from 'admin/hooks/queries/useAppErrorMetricsQuery';
 import { AppErrorMetric } from './AppErrorMetric';
+import { isAxiosError } from 'axios';
+import { useCurrentOrg } from 'admin/layout/PageLayout';
 
 ChartJS.register(
   CategoryScale,
@@ -45,30 +54,40 @@ export type AppMetricsProps = {
 };
 
 export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
-  const { org, env, app } = useParams() as { org: string; env: string; app: string };
-  const { t } = useTranslation();
+  const { org, environment, app } = useParams() as {
+    org: string;
+    environment: string;
+    app: string;
+  };
+  const { t, i18n } = useTranslation();
+
+  const envTitle = useEnvironmentTitle(environment);
+  const orgName = useCurrentOrg().name[i18n.language];
 
   const {
     data: appHealthMetrics,
     isPending: appHealthMetricsIsPending,
+    error: appHealthMetricsError,
     isError: appHealthMetricsIsError,
-  } = useAppHealthMetricsQuery(org, env, app, {
+  } = useAppHealthMetricsQuery(org, environment, app, {
     hideDefaultError: true,
   });
 
   const {
     data: appErrorMetrics,
     isPending: appErrorMetricsIsPending,
+    error: appErrorMetricsError,
     isError: appErrorMetricsIsError,
-  } = useAppErrorMetricsQuery(org, env, app, range!, {
+  } = useAppErrorMetricsQuery(org, environment, app, range!, {
     hideDefaultError: true,
   });
 
   const {
     data: appMetrics,
     isPending: appMetricsIsPending,
+    error: appMetricsError,
     isError: appMetricsIsError,
-  } = useAppMetricsQuery(org, env, app, range!, {
+  } = useAppMetricsQuery(org, environment, app, range!, {
     hideDefaultError: true,
   });
 
@@ -78,9 +97,22 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
     }
 
     if (appHealthMetricsIsError) {
-      return (
-        <StudioError className={classes.metric}>{t('admin.metrics.app.health.error')}</StudioError>
-      );
+      if (isAxiosError(appHealthMetricsError) && appHealthMetricsError.response?.status === 403) {
+        return (
+          <StudioAlert data-color='info' className={classes.metric}>
+            {t('admin.metrics.app.health.missing_rights', {
+              envTitle,
+              orgName,
+            })}
+          </StudioAlert>
+        );
+      } else {
+        return (
+          <StudioError className={classes.metric}>
+            {t('admin.metrics.app.health.error')}
+          </StudioError>
+        );
+      }
     }
 
     return appHealthMetrics?.map((metric) => <AppHealthMetric key={metric.name} metric={metric} />);
@@ -92,9 +124,22 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
     }
 
     if (appErrorMetricsIsError) {
-      return (
-        <StudioError className={classes.metric}>{t('admin.metrics.app.errors.error')}</StudioError>
-      );
+      if (isAxiosError(appErrorMetricsError) && appErrorMetricsError.response?.status === 403) {
+        return (
+          <StudioAlert data-color='info' className={classes.metric}>
+            {t('admin.metrics.app.errors.missing_rights', {
+              envTitle,
+              orgName,
+            })}
+          </StudioAlert>
+        );
+      } else {
+        return (
+          <StudioError className={classes.metric}>
+            {t('admin.metrics.app.errors.error')}
+          </StudioError>
+        );
+      }
     }
 
     return appErrorMetrics?.map((metric) => (
@@ -103,8 +148,8 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
         metric={metric}
         range={range}
         org={org}
-        env={env}
-        app={app}
+        environment={environment}
+        apps={[app]}
       />
     ));
   };
@@ -115,7 +160,15 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
     }
 
     if (appMetricsIsError) {
-      return <StudioError className={classes.metric}>{t('admin.metrics.app.error')}</StudioError>;
+      if (isAxiosError(appMetricsError) && appMetricsError.response?.status === 403) {
+        return (
+          <StudioAlert data-color='info' className={classes.metric}>
+            {t('admin.metrics.app.missing_rights', { envTitle, orgName })}
+          </StudioAlert>
+        );
+      } else {
+        return <StudioError className={classes.metric}>{t('admin.metrics.app.error')}</StudioError>;
+      }
     }
 
     return appMetrics?.map((metric) => (

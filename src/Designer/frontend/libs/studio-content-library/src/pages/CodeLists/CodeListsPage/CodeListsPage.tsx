@@ -19,11 +19,19 @@ import { Errors } from './Errors';
 
 export type CodeListsPageProps = {
   codeLists: CodeListData[];
+  isPublishing: (codeListName: string) => boolean;
+  publishedCodeLists: string[];
   onPublish: (data: CodeListData) => void;
   onSave: (data: CodeListData[]) => void;
 };
 
-export function CodeListsPage({ codeLists, onPublish, onSave }: CodeListsPageProps): ReactElement {
+export function CodeListsPage({
+  codeLists,
+  isPublishing,
+  onPublish,
+  onSave,
+  publishedCodeLists,
+}: CodeListsPageProps): ReactElement {
   const { t } = useTranslation();
   const [codeListMap, setCodeListMap] = useState<CodeListMap>(createCodeListMap(codeLists));
   const [errors, setErrors] = useState<CodeListMapError[]>([]);
@@ -73,9 +81,11 @@ export function CodeListsPage({ codeLists, onPublish, onSave }: CodeListsPagePro
       </StudioButton>
       <ListOfCodeLists
         codeListMap={codeListMap}
+        isPublishing={isPublishing}
         onDeleteCodeList={handleDeleteCodeList}
         onPublish={onPublish}
         onUpdateCodeListData={handleUpdateCodeListData}
+        publishedCodeLists={publishedCodeLists}
       />
       <Errors errors={errors} />
       <StudioButton data-color='success' icon={<FloppydiskIcon />} onClick={handleSave}>
@@ -87,16 +97,20 @@ export function CodeListsPage({ codeLists, onPublish, onSave }: CodeListsPagePro
 
 type ListOfCodeListsProps = Readonly<{
   codeListMap: CodeListMap;
+  isPublishing: (codeListName: string) => boolean;
   onDeleteCodeList: (key: string) => void;
   onPublish: (data: CodeListData) => void;
   onUpdateCodeListData: (key: string, newData: CodeListData) => void;
+  publishedCodeLists: string[];
 }>;
 
 function ListOfCodeLists({
   codeListMap,
+  isPublishing,
   onDeleteCodeList,
   onPublish,
   onUpdateCodeListData,
+  publishedCodeLists,
 }: ListOfCodeListsProps): ReactElement {
   const { t } = useTranslation();
   const isEmpty = codeListMap.size === 0;
@@ -109,10 +123,12 @@ function ListOfCodeLists({
         {[...codeListMap].map(([key, data]) => (
           <CodeListDataEditor
             data={data}
+            isPublishing={isPublishing(data.name)}
             key={key}
             onDelete={() => onDeleteCodeList(key)}
             onPublish={onPublish}
             onUpdate={(newData) => onUpdateCodeListData(key, newData)}
+            publishedCodeLists={publishedCodeLists}
           />
         ))}
       </StudioCard>

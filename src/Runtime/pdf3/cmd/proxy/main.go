@@ -16,6 +16,7 @@ import (
 	"unicode/utf8"
 
 	"altinn.studio/pdf3/internal/assert"
+	"altinn.studio/pdf3/internal/config"
 	ihttp "altinn.studio/pdf3/internal/http"
 	"altinn.studio/pdf3/internal/log"
 	iruntime "altinn.studio/pdf3/internal/runtime"
@@ -36,10 +37,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	cfg := config.ReadConfig()
+	hostParams := config.ResolveHostParametersForEnvironment(cfg.Environment)
+
 	host := iruntime.NewHost(
-		5*time.Second,
-		45*time.Second,
-		3*time.Second,
+		hostParams.ReadinessDrainDelay,
+		hostParams.ShutdownPeriod,
+		hostParams.ShutdownHardPeriod,
 	)
 	defer host.Stop()
 

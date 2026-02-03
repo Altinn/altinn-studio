@@ -11,5 +11,7 @@ namespace PolicyAdmin.Models
         public string? Description { get; set; }
 
         public bool IsDelegable { get; set; }
+
+        public bool IsResourcePolicyAvailable { get; set; }
     }
 }

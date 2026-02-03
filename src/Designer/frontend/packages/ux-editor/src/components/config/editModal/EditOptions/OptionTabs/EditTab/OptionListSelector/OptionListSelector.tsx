@@ -22,7 +22,7 @@ export function OptionListSelector({
 }: OptionListSelectorProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionListIds, status, error } = useOptionListIdsQuery(org, app);
+  const { data: optionListIdsFromLibrary, status, error } = useOptionListIdsQuery(org, app);
 
   switch (status) {
     case 'pending':
@@ -43,7 +43,7 @@ export function OptionListSelector({
     case 'success':
       return (
         <OptionListSelectorWithData
-          optionListIds={optionListIds}
+          optionListIdsFromLibrary={optionListIdsFromLibrary}
           component={component}
           handleComponentChange={handleComponentChange}
         />
@@ -52,13 +52,13 @@ export function OptionListSelector({
 }
 
 type OptionListSelectorWithDataProps = {
-  optionListIds: string[];
+  optionListIdsFromLibrary: string[];
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 function OptionListSelectorWithData({
   component,
   handleComponentChange,
-  optionListIds,
+  optionListIdsFromLibrary,
 }: OptionListSelectorWithDataProps): React.ReactNode {
   const { t } = useTranslation();
   const modalRef = createRef<HTMLDialogElement>();
@@ -67,7 +67,7 @@ function OptionListSelectorWithData({
     modalRef.current?.showModal();
   };
 
-  if (!optionListIds.length) return null;
+  if (!optionListIdsFromLibrary.length) return null;
   return (
     <>
       <StudioButton onClick={handleClick} variant={'secondary'}>
@@ -84,7 +84,7 @@ function OptionListSelectorWithData({
         </StudioDialog.Block>
         <StudioDialog.Block className={classes.modalContent}>
           <ModalContent
-            optionListIds={optionListIds}
+            optionListIdsFromLibrary={optionListIdsFromLibrary}
             component={component}
             handleComponentChange={handleComponentChange}
             modalRef={modalRef}
@@ -100,7 +100,7 @@ type ModalContentProps = OptionListSelectorWithDataProps & {
 };
 
 function ModalContent({
-  optionListIds,
+  optionListIdsFromLibrary,
   component,
   handleComponentChange,
   modalRef,
@@ -113,7 +113,7 @@ function ModalContent({
 
   return (
     <>
-      {optionListIds.map((optionsId: string) => (
+      {optionListIdsFromLibrary.map((optionsId: string) => (
         <StudioButton
           key={optionsId}
           className={classes.codeListButton}

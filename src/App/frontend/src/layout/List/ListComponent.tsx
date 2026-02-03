@@ -108,7 +108,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
     return JSON.stringify(selectedRow) === JSON.stringify(row);
   }
 
-  const title = item.textResourceBindings?.title;
+  const title = item.textResourceBindings?.summaryTitle || item.textResourceBindings?.title;
   const description = item.textResourceBindings?.description;
 
   const handleRowClick = (row: Row) => {

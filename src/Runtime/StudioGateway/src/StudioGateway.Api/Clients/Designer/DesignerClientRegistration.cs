@@ -28,7 +28,7 @@ internal static class DesignerClientRegistration
                             args.Outcome switch
                             {
                                 { Exception: not null } => true,
-                                { Result.IsSuccessStatusCode: false } => true,
+                                { Result.StatusCode: >= System.Net.HttpStatusCode.InternalServerError } => true,
                                 _ => false,
                             }
                         );

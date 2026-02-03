@@ -1,6 +1,8 @@
 using StudioGateway.Api.Clients.AlertsClient;
 using StudioGateway.Api.Clients.AlertsClient.Contracts;
 using StudioGateway.Api.Clients.Designer;
+using StudioGateway.Api.Clients.Designer.Contracts;
+using StudioGateway.Api.Clients.MetricsClient;
 using StudioGateway.Api.Settings;
 using StudioGateway.Contracts.Alerts;
 
@@ -40,11 +42,35 @@ internal static class HandleAlerts
 
     internal static async Task<IResult> NotifyAlertsUpdatedAsync(
         DesignerClient designerClient,
+        AlertPayload alertPayload,
         CancellationToken cancellationToken,
-        string environment = "prod"
+        string environment = AltinnEnvironments.Prod
     )
     {
-        await designerClient.NotifyAlertsUpdatedAsync(environment, cancellationToken);
+        var alerts = alertPayload
+            .Alerts.Where(a =>
+            {
+                var ruleId = a.Labels.GetValueOrDefault("RuleId");
+                return !string.IsNullOrEmpty(ruleId) && AzureMonitorClient.OperationNameKeys.Contains(ruleId);
+            })
+            .GroupBy(a => a.Labels["alertname"])
+            .Select(alerts =>
+            {
+                return new Alert
+                {
+                    Id = alerts.First().Labels["RuleId"],
+                    Name = alerts.Key,
+                    Alerts = alerts.Select(a => new AlertInstance
+                    {
+                        Status = a.Status,
+                        App = a.Labels.GetValueOrDefault("cloud_RoleName", "unknown"),
+                    }),
+                    URL = alerts.First().GeneratorURL,
+                };
+            });
+
+        await designerClient.NotifyAlertsUpdatedAsync(alerts, environment, cancellationToken);
+
         return Results.Ok();
     }
 }

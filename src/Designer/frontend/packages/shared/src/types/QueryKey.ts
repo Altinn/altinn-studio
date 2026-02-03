@@ -4,6 +4,7 @@ export enum QueryKey {
   AppMetadataModelIds = 'AppMetadataModelIds',
   AppPolicy = 'AppPolicy',
   AppReleases = 'AppReleases',
+  AppValidation = 'AppValidation',
   AppVersion = 'AppVersion',
   AvailableOrgResources = 'AvailableOrgResources',
   BelongsToOrg = 'BelongsToOrg',
@@ -74,6 +75,7 @@ export enum QueryKey {
   ProcessHistory = 'ProcessHistory',
   InstanceEvents = 'InstanceEvents',
   PublishedApps = 'PublishedApps',
+  PublishedAppDetails = 'PublishedAppDetails',
 
   // Resourceadm
   ResourceList = 'ResourceList',

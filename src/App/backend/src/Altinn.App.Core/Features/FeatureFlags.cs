@@ -12,4 +12,19 @@ public static class FeatureFlags
     /// return validation errors in the response body instead of a string.
     /// </summary>
     public const string JsonObjectInDataResponse = "JsonObjectInDataResponse";
+
+    /// <summary>
+    /// Enables new PDF generation
+    /// </summary>
+    public const string BetaPDFenabled = "BetaPDFenabled";
+
+    /// <summary>
+    /// Enables adding instance identifier to layout requests.
+    /// </summary>
+    public const string AddInstanceIdentifierToLayoutRequests = "addInstanceIdentifierToLayoutRequests";
+
+    /// <summary>
+    /// Enables experimental SimpleTable component
+    /// </summary>
+    public const string SimpleTableEnabled = "SimpleTableEnabled";
 }

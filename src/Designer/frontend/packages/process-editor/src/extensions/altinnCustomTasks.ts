@@ -99,6 +99,11 @@ export const altinnCustomTasks = {
           isMany: false,
           type: 'String',
         },
+        {
+          name: 'runDefaultValidator',
+          isMany: false,
+          type: 'RunDefaultValidator',
+        },
       ],
     },
     {
@@ -146,6 +151,17 @@ export const altinnCustomTasks = {
           isMany: true,
           isAttr: false,
           type: 'DataType',
+        },
+      ],
+    },
+    {
+      name: 'RunDefaultValidator',
+      properties: [
+        {
+          name: 'value',
+          isMany: false,
+          isBody: true,
+          type: 'Boolean',
         },
       ],
     },

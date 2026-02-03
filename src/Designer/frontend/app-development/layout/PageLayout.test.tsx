@@ -13,6 +13,7 @@ import { syncEntityUpdateWebSocketHub, syncEventsWebSocketHub } from 'app-shared
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 jest.mock('app-shared/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
@@ -57,12 +58,11 @@ describe('PageLayout', () => {
     });
     await waitForElementToBeRemoved(() => screen.queryByLabelText(textMock('repo_status.loading')));
 
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('version_dialog.unsupported_version_title'),
-        level: 2,
-      }),
-    ).toBeInTheDocument();
+    const unsupportedVersionHeading = await screen.findByRole('heading', {
+      name: textMock('version_dialog.unsupported_version_title'),
+      level: 2,
+    });
+    expect(unsupportedVersionHeading).toBeInTheDocument();
   });
 
   it('renders "OutdatedVersion" when version is outdated', async () => {
@@ -71,12 +71,11 @@ describe('PageLayout', () => {
     });
     await waitForElementToBeRemoved(() => screen.queryByLabelText(textMock('repo_status.loading')));
 
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('version_dialog.outdated_version_title'),
-        level: 2,
-      }),
-    ).toBeInTheDocument();
+    const outdatedVersionHeading = await screen.findByRole('heading', {
+      name: textMock('version_dialog.outdated_version_title'),
+      level: 2,
+    });
+    expect(outdatedVersionHeading).toBeInTheDocument();
   });
 
   it('renders the page content and no errors when there are no errors', async () => {
@@ -188,8 +187,13 @@ const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesCont
 };
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
-  renderWithProviders(<PageLayout />, {
-    startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app/${RoutePaths.Overview}`,
-    queries,
-  });
+  renderWithProviders(
+    <FeatureFlagsContextProvider value={{ flags: [] }}>
+      <PageLayout />
+    </FeatureFlagsContextProvider>,
+    {
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app/${RoutePaths.Overview}`,
+      queries,
+    },
+  );
 };

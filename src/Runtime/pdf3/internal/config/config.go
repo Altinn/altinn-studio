@@ -61,3 +61,29 @@ func ReadConfig() *Config {
 		BrowserRestartInterval: browserRestartInterval,
 	}
 }
+
+// HostParameters contains timeout values for runtime.NewHost
+type HostParameters struct {
+	ReadinessDrainDelay time.Duration
+	ShutdownPeriod      time.Duration
+	ShutdownHardPeriod  time.Duration
+}
+
+// ResolveHostParametersForEnvironment returns appropriate host parameters based on environment.
+// Localtest uses zero timeouts for fast restarts, production uses full graceful shutdown periods.
+func ResolveHostParametersForEnvironment(environment string) HostParameters {
+	if environment == "localtest" {
+		// Minimal delays for local development - fast restarts
+		return HostParameters{
+			ReadinessDrainDelay: 0,
+			ShutdownPeriod:      0,
+			ShutdownHardPeriod:  0,
+		}
+	}
+	// Production timeouts - aligned with k8s terminationGracePeriodSeconds
+	return HostParameters{
+		ReadinessDrainDelay: 5 * time.Second,
+		ShutdownPeriod:      45 * time.Second,
+		ShutdownHardPeriod:  3 * time.Second,
+	}
+}

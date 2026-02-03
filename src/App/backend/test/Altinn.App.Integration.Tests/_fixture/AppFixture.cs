@@ -20,7 +20,7 @@ public sealed partial class AppFixture : IAsyncDisposable
     private const ushort LocaltestPort = 5101;
     private const ushort AppPort = 5005;
     private const ushort ConfigPort = 5006;
-    private const ushort PdfServicePort = 3000;
+    private const ushort PdfServicePort = 5031;
     private const string LocaltestHostname = "localtest";
     private const string AppHostname = "app";
     private const string PdfServiceHostname = "pdf-service";
@@ -43,12 +43,10 @@ public sealed partial class AppFixture : IAsyncDisposable
     private static long _fixtureInstance = -1;
     private static readonly SemaphoreSlim _localtestBuildLock = new(1, 1);
     private static readonly SemaphoreSlim _appBuildLock = new(1, 1);
-    private static readonly SemaphoreSlim _pdfServiceLock = new(1, 1);
     private static readonly SemaphoreSlim _packLibrariesLock = new(1, 1);
     private static readonly SemaphoreSlim _buildFrontendLock = new(1, 1);
     private static IFutureDockerImage? _localtestContainerImage;
-    private static readonly Dictionary<string, IFutureDockerImage> _appContainerImages = [];
-    private static IContainer? _pdfServiceContainer;
+    private static readonly Dictionary<string, IFutureDockerImage> _appContainerImages = new();
     private static bool _librariesPacked;
     private static bool _frontendBuilt;
     private static Exception? _frontendBuildException;
@@ -59,6 +57,7 @@ public sealed partial class AppFixture : IAsyncDisposable
     private static long NextFixtureInstance() => Interlocked.Increment(ref _fixtureInstance);
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions _jsonSerializerOptionsIndented = new() { WriteIndented = true };
 
     private readonly ILogger _logger;
     private long _currentFixtureInstance;
@@ -69,18 +68,20 @@ public sealed partial class AppFixture : IAsyncDisposable
     private readonly INetwork _network;
     private readonly IContainer _localtestContainer;
     private readonly IContainer _appContainer;
+    private readonly IContainer _pdfContainer;
     private readonly bool _isClassFixture;
     private readonly LogsConsumer _localtestLogsConsumer;
     private readonly LogsConsumer _appLogsConsumer;
+    private readonly LogsConsumer _pdfLogsConsumer;
 
     internal ScopedVerifier ScopedVerifier { get; private set; }
 
     private HttpClient? _appClient;
     private HttpClient? _localtestClient;
 
-    public bool TestErrored { get; set; } = false;
+    public bool TestErrored { get; set; }
 
-    public ushort? PdfHostPort => _pdfServiceContainer?.GetMappedPublicPort(PdfServicePort);
+    public ushort? PdfHostPort => _pdfContainer?.GetMappedPublicPort(PdfServicePort);
     public ushort? LocaltestHostPort => _localtestContainer?.GetMappedPublicPort(LocaltestPort);
     public ushort? AppHostPort => _appContainer?.GetMappedPublicPort(AppPort);
 
@@ -92,9 +93,11 @@ public sealed partial class AppFixture : IAsyncDisposable
         INetwork network,
         IContainer localtestContainer,
         IContainer appContainer,
+        IContainer pdfContainer,
         bool isClassFixture,
         LogsConsumer localtestLogsConsumer,
-        LogsConsumer appLogsConsumer
+        LogsConsumer appLogsConsumer,
+        LogsConsumer pdfLogsConsumer
     )
     {
         _logger = logger;
@@ -104,9 +107,11 @@ public sealed partial class AppFixture : IAsyncDisposable
         _network = network;
         _localtestContainer = localtestContainer;
         _appContainer = appContainer;
+        _pdfContainer = pdfContainer;
         _isClassFixture = isClassFixture;
         _localtestLogsConsumer = localtestLogsConsumer;
         _appLogsConsumer = appLogsConsumer;
+        _pdfLogsConsumer = pdfLogsConsumer;
         ScopedVerifier = new ScopedVerifier(this);
     }
 
@@ -136,39 +141,43 @@ public sealed partial class AppFixture : IAsyncDisposable
 
         try
         {
-            // Build images and start PDF service in parallel for better performance
+            // Build images in parallel for better performance
+            // Cloning localtest repo has to occur before building the localtest image since
+            // the image build relies on the repository being present.
             // Packing has to occur before building the app image since
             // the app image rely on local nupkg's and built frontend files to be present.
             // The rest can happen in parallel
-            var hostIp = await ContainerRuntimeService.GetHostIP(cancellationToken);
-            logger.LogInformation("Detected host IP for container communication: {HostIP}", hostIp);
-
             var frontendBuildTask = EnsureFrontendBuilt(logger, cancellationToken);
             var librariesPackedTask = EnsureLibrariesPacked(logger, cancellationToken);
             await Task.WhenAll(frontendBuildTask, librariesPackedTask);
 
             var localtestImageTask = EnsureLocaltestImageBuilt(logger, testContainersLogger, cancellationToken);
-            var pdfServiceTask = EnsurePdfServiceStarted(logger, testContainersLogger, hostIp, cancellationToken);
+            await EnsureLibrariesPacked(logger, cancellationToken);
             var appImageTask = EnsureAppImageBuilt(app, logger, testContainersLogger, cancellationToken);
 
-            await Task.WhenAll(localtestImageTask, pdfServiceTask, appImageTask);
+            await Task.WhenAll(localtestImageTask, appImageTask);
             var localtestContainerImage = await localtestImageTask;
             var appContainerImage = await appImageTask;
-            await pdfServiceTask; // We don't capture and dispose this anywhere. Testcontainers will take care of it
 
             // Initialize containers (including network creation and PDF service)
-            var (network, localtestContainer, appContainer, localtestLogsConsumer, appLogsConsumer) =
-                await InitializeContainers(
-                    fixtureInstance,
-                    app,
-                    scenario,
-                    localtestContainerImage,
-                    appContainerImage,
-                    logger,
-                    testContainersLogger,
-                    hostIp,
-                    cancellationToken
-                );
+            var (
+                network,
+                localtestContainer,
+                appContainer,
+                pdfContainer,
+                localtestLogsConsumer,
+                appLogsConsumer,
+                pdfLogsConsumer
+            ) = await InitializeContainers(
+                fixtureInstance,
+                app,
+                scenario,
+                localtestContainerImage,
+                appContainerImage,
+                logger,
+                testContainersLogger,
+                cancellationToken
+            );
 
             logger.LogInformation("Fixture created in {ElapsedSeconds}s", timer.Elapsed.TotalSeconds.ToString("0.00"));
             return new AppFixture(
@@ -179,9 +188,11 @@ public sealed partial class AppFixture : IAsyncDisposable
                 network,
                 localtestContainer,
                 appContainer,
+                pdfContainer,
                 isClassFixture,
                 localtestLogsConsumer,
-                appLogsConsumer
+                appLogsConsumer,
+                pdfLogsConsumer
             );
         }
         catch (Exception ex)
@@ -207,7 +218,7 @@ public sealed partial class AppFixture : IAsyncDisposable
             _appClient.DefaultRequestHeaders.Add("User-Agent", "Altinn.App.Integration.Tests");
 
             // Add frontendVersion cookie with the app's external URL
-            var appExternalUrl = $"http://host.containers.internal:{_appContainer.GetMappedPublicPort(AppPort)}";
+            var appExternalUrl = $"/ttd/{_app}/altinn-app-frontend/";
             var baseUri = _appClient.BaseAddress!;
             cookieContainer.Add(baseUri, new Cookie("frontendVersion", appExternalUrl));
         }
@@ -369,10 +380,6 @@ public sealed partial class AppFixture : IAsyncDisposable
 
     private static Dictionary<string, string?> CreateAppEnv()
     {
-        Assert.NotNull(_pdfServiceContainer);
-        var pdfServiceUrl =
-            $"http://host.containers.internal:{_pdfServiceContainer.GetMappedPublicPort(PdfServicePort)}/pdf";
-
         return new()
         {
             { "DOTNET_ENVIRONMENT", "Development" },
@@ -383,7 +390,7 @@ public sealed partial class AppFixture : IAsyncDisposable
             { "PlatformSettings__ApiAuthenticationEndpoint", $"{_localtestUrl}/authentication/api/v1/" },
             { "PlatformSettings__ApiAuthorizationEndpoint", $"{_localtestUrl}/authorization/api/v1/" },
             { "PlatformSettings__ApiEventsEndpoint", $"{_localtestUrl}/events/api/v1/" },
-            { "PlatformSettings__ApiPdf2Endpoint", pdfServiceUrl },
+            { "PlatformSettings__ApiPdf2Endpoint", $"http://{PdfServiceHostname}:{PdfServicePort}/pdf" },
             { "PlatformSettings__ApiNotificationEndpoint", $"{_localtestUrl}/notifications/api/v1/" },
             { "PlatformSettings__ApiCorrespondenceEndpoint", $"{_localtestUrl}/correspondence/api/v1/" },
         };
@@ -469,61 +476,14 @@ public sealed partial class AppFixture : IAsyncDisposable
         }
     }
 
-    private static async Task<IContainer> EnsurePdfServiceStarted(
-        ILogger logger,
-        ILogger testContainersLogger,
-        string hostIp,
-        CancellationToken cancellationToken
-    )
-    {
-        if (_pdfServiceContainer is not null)
-            return _pdfServiceContainer;
-
-        await _pdfServiceLock.WaitAsync(cancellationToken);
-        try
-        {
-            if (_pdfServiceContainer is not null)
-                return _pdfServiceContainer;
-
-            logger.LogInformation("Starting shared PDF service container");
-
-            var pdfServiceContainerBuilder = new ContainerBuilder()
-                .WithName("applib-pdf-service-shared")
-                .WithImage("browserless/chrome:1-puppeteer-21.3.6")
-                .WithHostname(PdfServiceHostname)
-                .WithEnvironment("HOST", "0.0.0.0")
-                .WithPortBinding(PdfServicePort, assignRandomHostPort: true)
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r.ForPort(PdfServicePort)))
-                .WithReuse(_reuseContainers)
-                .WithCleanUp(!_keepContainers)
-                // The PDF service is very slow so we start it as part of "static initialization" (it runs as a single instance with a host port for the whole testrun).
-                // So we communicate between app and PDF service over host network through `host.containers.internal`.
-                // The PDF calls back to the host over `local.altinn.cloud`. It normally points to 127.0.0.1 so we have to override it in the container.
-                .WithExtraHost("host.containers.internal", hostIp)
-                .WithExtraHost("local.altinn.cloud", hostIp);
-
-            if (_logFromTestContainers)
-                pdfServiceContainerBuilder = pdfServiceContainerBuilder.WithLogger(testContainersLogger);
-
-            var pdfServiceContainer = pdfServiceContainerBuilder.Build();
-            await pdfServiceContainer.StartAsync(cancellationToken);
-            logger.LogInformation("Started PDF service container");
-            _pdfServiceContainer = pdfServiceContainer;
-
-            return _pdfServiceContainer;
-        }
-        finally
-        {
-            _pdfServiceLock.Release();
-        }
-    }
-
     private static async Task<(
         INetwork network,
         IContainer localtestContainer,
         IContainer appContainer,
+        IContainer pdfContainer,
         LogsConsumer localtestLogsConsumer,
-        LogsConsumer appLogsConsumer
+        LogsConsumer appLogsConsumer,
+        LogsConsumer pdfLogsConsumer
     )> InitializeContainers(
         long fixtureInstance,
         string name,
@@ -532,7 +492,6 @@ public sealed partial class AppFixture : IAsyncDisposable
         IFutureDockerImage appContainerImage,
         ILogger logger,
         ILogger testContainersLogger,
-        string hostIp,
         CancellationToken cancellationToken
     )
     {
@@ -542,9 +501,11 @@ public sealed partial class AppFixture : IAsyncDisposable
         INetwork? network = null;
         IContainer? localtestContainer = null;
         IContainer? appContainer = null;
+        IContainer? pdfContainer = null;
 
         var localtestLogsConsumer = new LogsConsumer(logger, fixtureInstance, cancellationToken);
         var appLogsConsumer = new LogsConsumer(logger, fixtureInstance, cancellationToken);
+        var pdfLogsConsumer = new LogsConsumer(logger, fixtureInstance, cancellationToken);
         try
         {
             logger.LogInformation("Starting containers");
@@ -570,8 +531,7 @@ public sealed partial class AppFixture : IAsyncDisposable
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilContainerIsHealthy(failingStreak: 20))
                 .WithOutputConsumer(localtestLogsConsumer)
                 .WithReuse(_reuseContainers)
-                .WithCleanUp(!_keepContainers)
-                .WithExtraHost("host.containers.internal", hostIp);
+                .WithCleanUp(!_keepContainers);
 
             if (_logFromTestContainers)
                 localtestContainerBuilder = localtestContainerBuilder.WithLogger(testContainersLogger);
@@ -590,8 +550,7 @@ public sealed partial class AppFixture : IAsyncDisposable
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilContainerIsHealthy(failingStreak: 20))
                 .WithOutputConsumer(appLogsConsumer)
                 .WithReuse(_reuseContainers)
-                .WithCleanUp(!_keepContainers)
-                .WithExtraHost("host.containers.internal", hostIp);
+                .WithCleanUp(!_keepContainers);
 
             if (_logFromTestContainers)
                 appContainerBuilder = appContainerBuilder.WithLogger(testContainersLogger);
@@ -602,6 +561,28 @@ public sealed partial class AppFixture : IAsyncDisposable
                 logger.LogInformation("Mounting scenario directory: {ScenarioDirectory}", scenarioDirectory);
                 appContainerBuilder = appContainerBuilder.WithBindMount(scenarioDirectory, "/App/scenario-overrides");
             }
+
+            var pdfContainerBuilder = new ContainerBuilder()
+                .WithName($"applib-{name}-pdf-{fixtureInstance:00}")
+                .WithImage("ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:55a277005d")
+                .WithHostname(PdfServiceHostname)
+                .WithNetwork(network)
+                .WithEnvironment("TZ", "Europe/Oslo")
+                .WithEnvironment("PDF3_ENVIRONMENT", "localtest")
+                .WithEnvironment("PDF3_QUEUE_SIZE", "3")
+                .WithPortBinding(PdfServicePort, assignRandomHostPort: true)
+                .WithWaitStrategy(
+                    Wait.ForUnixContainer()
+                        .UntilHttpRequestIsSucceeded(r => r.ForPort(PdfServicePort).ForPath("/health/startup"))
+                )
+                .WithOutputConsumer(pdfLogsConsumer)
+                .WithReuse(_reuseContainers)
+                .WithCleanUp(!_keepContainers);
+
+            if (_logFromTestContainers)
+                pdfContainerBuilder = pdfContainerBuilder.WithLogger(testContainersLogger);
+
+            pdfContainer = pdfContainerBuilder.Build();
 
             // Configuration is now sent via HTTP once the container reaches the `Starting` state
             appContainer = appContainerBuilder.Build();
@@ -614,14 +595,23 @@ public sealed partial class AppFixture : IAsyncDisposable
 
             var localtestStartup = localtestContainer.StartAsync(cancellationToken);
             var appStartup = appContainer.StartAsync(cancellationToken);
+            var pdfStartup = pdfContainer.StartAsync(cancellationToken);
 
-            // When the `Starting` event is raise we can proceed by writing fixture configuration to the mounted volume
+            // When the `Starting` event is raised we can proceed by writing fixture configuration
             await tcs.Task.WaitAsync(cancellationToken);
             await SendFixtureConfiguration(name, scenario, appContainer, fixtureInstance, logger, cancellationToken);
 
-            await Task.WhenAll(localtestStartup, appStartup);
+            await Task.WhenAll(localtestStartup, appStartup, pdfStartup);
             logger.LogInformation("Started fixture in {ElapsedSeconds}s", timer.Elapsed.TotalSeconds.ToString("0.0"));
-            return (network, localtestContainer, appContainer, localtestLogsConsumer, appLogsConsumer);
+            return (
+                network,
+                localtestContainer,
+                appContainer,
+                pdfContainer,
+                localtestLogsConsumer,
+                appLogsConsumer,
+                pdfLogsConsumer
+            );
         }
         catch (Exception ex)
         {
@@ -630,13 +620,14 @@ public sealed partial class AppFixture : IAsyncDisposable
             try
             {
                 logger.LogError("Crashed during fixture creation, dumping logs:");
-                LogContainerLogs(logger, localtestLogsConsumer, appLogsConsumer);
+                LogContainerLogs(logger, localtestLogsConsumer, appLogsConsumer, pdfLogsConsumer);
             }
             catch (Exception lex)
             {
                 logger.LogError(lex, "Failed to retrieve app container logs");
             }
 
+            await TryDispose(logger, pdfContainer);
             await TryDispose(logger, appContainer);
             await TryDispose(logger, localtestContainer);
             await TryDispose(logger, network);
@@ -667,13 +658,10 @@ public sealed partial class AppFixture : IAsyncDisposable
                     scenario,
                     fixtureInstance,
                     appPort,
-                    $"http://local.altinn.cloud:{appPort}/{{org}}/{{app}}/"
+                    $"http://{LocaltestHostname}:{LocaltestPort}/{{org}}/{{app}}/"
                 );
 
-                var configJson = JsonSerializer.Serialize(
-                    fixtureConfig,
-                    new JsonSerializerOptions { WriteIndented = true }
-                );
+                var configJson = JsonSerializer.Serialize(fixtureConfig, _jsonSerializerOptionsIndented);
 
                 using var httpClient = new HttpClient();
                 httpClient.Timeout = TimeSpan.FromSeconds(10);
@@ -726,19 +714,27 @@ public sealed partial class AppFixture : IAsyncDisposable
             // is easier to debug.
             await _localtestContainer.StopAsync();
             await _appContainer.StopAsync();
+            await _pdfContainer.StopAsync();
 
             _logger.LogError("Test errored, logging container output");
             LogContainerLogs();
         }
 
+        await TryDispose(_pdfContainer);
         await TryDispose(_appContainer);
         await TryDispose(_localtestContainer);
         await TryDispose(_network);
     }
 
-    internal void LogContainerLogs() => LogContainerLogs(_logger, _localtestLogsConsumer, _appLogsConsumer);
+    internal void LogContainerLogs() =>
+        LogContainerLogs(_logger, _localtestLogsConsumer, _appLogsConsumer, _pdfLogsConsumer);
 
-    private static void LogContainerLogs(ILogger logger, LogsConsumer localtestLogs, LogsConsumer appLogs)
+    private static void LogContainerLogs(
+        ILogger logger,
+        LogsConsumer localtestLogs,
+        LogsConsumer appLogs,
+        LogsConsumer pdfLogs
+    )
     {
         {
             var logs = string.Join("\n", localtestLogs.GetLines());
@@ -747,6 +743,10 @@ public sealed partial class AppFixture : IAsyncDisposable
         {
             var logs = string.Join("\n", appLogs.GetLines());
             logger.LogError("App container logs:\n{Logs}", logs);
+        }
+        {
+            var logs = string.Join("\n", pdfLogs.GetLines());
+            logger.LogError("PDF container logs:\n{Logs}", logs);
         }
     }
 

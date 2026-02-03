@@ -19,6 +19,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -308,7 +309,7 @@ namespace Designer.Tests.Services
             string repository = "apps-test";
 
             Mock<ISourceControl> mock = new();
-            mock.Setup(m => m.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()))
+            mock.Setup(m => m.DeleteRepository(It.IsAny<AltinnRepoEditingContext>()))
                 .Returns(Task.CompletedTask);
 
             RepositoryService sut = GetServiceForTest(developer, mock.Object);
@@ -330,6 +331,27 @@ namespace Designer.Tests.Services
             ClaimsPrincipal principal = new(identity);
             HttpContext c = new DefaultHttpContext();
             c.Request.HttpContext.User = principal;
+
+            // Setup for the access token retrieval - TODO: remove when httpContextAccessor is removed from the service
+            var authTicket = new AuthenticationTicket(principal, "TestScheme");
+            authTicket.Properties.StoreTokens(
+            [
+                new AuthenticationToken { Name = "access_token", Value = "test-access-token" }
+            ]);
+
+            var authResult = AuthenticateResult.Success(authTicket);
+
+            var authServiceMock = new Mock<IAuthenticationService>();
+            authServiceMock
+                .Setup(x => x.AuthenticateAsync(It.IsAny<HttpContext>(), It.IsAny<string>()))
+                .ReturnsAsync(authResult);
+
+            var serviceProviderMock = new Mock<IServiceProvider>();
+            serviceProviderMock
+                .Setup(x => x.GetService(typeof(IAuthenticationService)))
+                .Returns(authServiceMock.Object);
+
+            c.RequestServices = serviceProviderMock.Object;
 
             return c;
         }

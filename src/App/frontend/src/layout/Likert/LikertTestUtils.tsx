@@ -11,7 +11,7 @@ import { LikertComponent } from 'src/layout/Likert/LikertComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource, ITextResourceResult } from 'src/features/language/textResources';
-import type { IRawOption } from 'src/layout/common.generated';
+import type { IPagesSettingsWithOrder, IRawOption } from 'src/layout/common.generated';
 import type { CompLikertExternal } from 'src/layout/Likert/config.generated';
 import type { CompLikertItemExternal } from 'src/layout/LikertItem/config.generated';
 
@@ -137,7 +137,7 @@ export const render = async ({
       fetchLayoutSettings: async () => ({
         pages: {
           order: ['FormLayout'],
-        },
+        } as unknown as IPagesSettingsWithOrder,
       }),
       fetchBackendValidations: async () => validationIssues,
     },

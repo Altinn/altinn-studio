@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Designer.Controllers;
 
 [ApiController]
-[Route("designer/api/admin/[controller]/{org}/{env}")]
+[Route("designer/api/v1/admin/[controller]/{org}/{env}")]
 public class AlertsController(IAlertsService alertsService) : ControllerBase
 {
     private readonly IAlertsService _alertsService = alertsService;
@@ -35,11 +35,12 @@ public class AlertsController(IAlertsService alertsService) : ControllerBase
     public async Task<ActionResult> NotifyAlertsUpdated(
         string org,
         string env,
+        IEnumerable<Alert> alerts,
         CancellationToken cancellationToken
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        await _alertsService.NotifyAlertsUpdatedAsync(org, environment, cancellationToken);
+        await _alertsService.NotifyAlertsUpdatedAsync(org, environment, alerts, cancellationToken);
         return Ok();
     }
 }

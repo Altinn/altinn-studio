@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace Altinn.Studio.Designer.Controllers;
 
 [ApiController]
 [Authorize(Policy = AltinnPolicy.MustHaveAdminPermission)]
-[Route("designer/api/admin/[controller]/{org}/{env}")]
+[Route("designer/api/v1/admin/[controller]/{org}/{env}")]
 public class MetricsController(IMetricsService metricsService) : ControllerBase
 {
     private readonly IMetricsService _metricsService = metricsService;
@@ -62,15 +63,22 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     public async Task<ActionResult> GetAppErrorMetricsLogs(
         string org,
         string env,
-        string app,
-        string metric,
-        int range,
+        [FromQuery] string[] apps,
+        [FromQuery] string metric,
+        [FromQuery] DateTimeOffset from,
+        [FromQuery] DateTimeOffset to,
         CancellationToken cancellationToken
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        string url = await _metricsService.GetAppErrorMetricsLogsAsync(org, environment, app, metric, range, cancellationToken);
-        return Redirect(url);
+        Uri? url = await _metricsService.GetAppErrorMetricsLogsAsync(org, environment, apps, metric,
+            from,
+            to, cancellationToken);
+        if (url is null)
+        {
+            return NotFound();
+        }
+        return Redirect(url.ToString());
     }
 
     [HttpGet("app/health")]

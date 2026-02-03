@@ -11,9 +11,24 @@ import axios from 'axios';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import userEvent from '@testing-library/user-event';
+import { OrgContext } from '../../../layout/PageLayout';
 
 const env = 'test';
+const envTitle = `${textMock('general.test_environment_alt').toLowerCase()} ${env.toUpperCase()}`;
+const orgName = org;
 const range = 5;
+
+const orgMock = {
+  name: {
+    en: org,
+    nb: org,
+    nn: org,
+  },
+  logo: '',
+  orgnr: '',
+  homepage: '',
+  environments: [],
+};
 
 jest.mock('react-chartjs-2');
 jest.mock('react-router-dom', () => {
@@ -22,12 +37,15 @@ jest.mock('react-router-dom', () => {
     ...originalModule,
     useParams: jest.fn(() => ({
       org,
-      env,
+      environment: env,
       app,
     })),
   };
 });
-jest.mock('axios');
+jest.mock('axios', () => ({
+  ...jest.requireActual('axios'),
+  get: jest.fn(),
+}));
 jest.mock('admin/hooks/useQueryParamState');
 
 const defaultProps: AppMetricsProps = {
@@ -44,6 +62,25 @@ describe('AppMetrics', () => {
 
       expect(
         screen.getByLabelText(textMock('admin.metrics.app.health.loading')),
+      ).toBeInTheDocument();
+    });
+
+    it('should render info alert when missing rights', async () => {
+      const axiosError = createApiErrorMock(ServerCodes.Forbidden);
+      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+
+      renderAppMetrics();
+
+      await waitFor(() => {
+        expect(
+          screen.queryByLabelText(textMock('admin.metrics.app.health.loading')),
+        ).not.toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText(
+          textMock('admin.metrics.app.health.missing_rights', { envTitle, orgName }),
+        ),
       ).toBeInTheDocument();
     });
 
@@ -123,6 +160,25 @@ describe('AppMetrics', () => {
       ).toBeInTheDocument();
     });
 
+    it('should render info alert when missing rights', async () => {
+      const axiosError = createApiErrorMock(ServerCodes.Forbidden);
+      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+
+      renderAppMetrics();
+
+      await waitFor(() => {
+        expect(
+          screen.queryByLabelText(textMock('admin.metrics.app.errors.loading')),
+        ).not.toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText(
+          textMock('admin.metrics.app.errors.missing_rights', { envTitle, orgName }),
+        ),
+      ).toBeInTheDocument();
+    });
+
     it('should render error state', async () => {
       const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
       (axios.get as jest.Mock).mockRejectedValue(axiosError);
@@ -147,7 +203,7 @@ describe('AppMetrics', () => {
           dataPoints: [],
         },
         {
-          name: 'failed_instances_requests',
+          name: 'failed_instance_creation_requests',
           dataPoints: [],
         },
       ];
@@ -167,7 +223,7 @@ describe('AppMetrics', () => {
 
       const mockData = [
         {
-          name: 'failed_instances_requests',
+          name: 'failed_instance_creation_requests',
           dataPoints: [],
         },
       ];
@@ -214,6 +270,23 @@ describe('AppMetrics', () => {
       expect(screen.getByLabelText(textMock('admin.metrics.app.loading'))).toBeInTheDocument();
     });
 
+    it('should render info alert when missing rights', async () => {
+      const axiosError = createApiErrorMock(ServerCodes.Forbidden);
+      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+
+      renderAppMetrics();
+
+      await waitFor(() => {
+        expect(
+          screen.queryByLabelText(textMock('admin.metrics.app.loading')),
+        ).not.toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText(textMock('admin.metrics.app.missing_rights', { envTitle, orgName })),
+      ).toBeInTheDocument();
+    });
+
     it('should render error state', async () => {
       const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
       (axios.get as jest.Mock).mockRejectedValue(axiosError);
@@ -238,7 +311,7 @@ describe('AppMetrics', () => {
           dataPoints: [],
         },
         {
-          name: 'altinn_app_lib_processes_completed',
+          name: 'altinn_app_lib_processes_ended',
           dataPoints: [],
         },
       ];
@@ -274,9 +347,11 @@ const renderAppMetrics = (
 ) => {
   render(
     <MemoryRouter>
-      <QueryClientProvider client={client}>
-        <AppMetrics {...props} />
-      </QueryClientProvider>
+      <OrgContext.Provider value={orgMock}>
+        <QueryClientProvider client={client}>
+          <AppMetrics {...props} />
+        </QueryClientProvider>
+      </OrgContext.Provider>
     </MemoryRouter>,
   );
 };
