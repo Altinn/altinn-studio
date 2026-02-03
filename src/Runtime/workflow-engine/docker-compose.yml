@@ -44,6 +44,17 @@ services:
       - pgadmin_data:/var/lib/pgadmin
       - ./.docker/servers.json:/pgadmin4/servers.json
 
+  lgtm:
+    image: grafana/otel-lgtm:0.17.0
+    container_name: workflow-engine-lgtm
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+      - '4317:4317'
+      - '4318:4318'
+    volumes:
+      - ./docker/grafana-datasources.yml:/etc/grafana/provisioning/datasources/postgres.yml:ro
+
 volumes:
   postgres_data:
   pgadmin_data:

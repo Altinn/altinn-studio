@@ -158,7 +158,7 @@ internal sealed class EnginePgRepository : IEngineRepository
         {
             _logger.AddingWorkflow(engineRequest);
 
-            var workflow = Workflow.FromRequest(engineRequest);
+            var workflow = Workflow.FromRequest(engineRequest, _timeProvider);
             var entity = WorkflowEntity.FromDomainModel(workflow);
             var dbRecord = _context.Workflows.Add(entity);
             await _context.SaveChangesAsync(cancellationToken);
@@ -323,14 +323,14 @@ internal static class EnginePgRepositoryQueries
             dbContext
                 .Workflows.Include(j => j.Steps)
                 .Where(x =>
-                    x.Steps.Any(y => y.StartTime <= DateTime.UtcNow && _incompleteItemStatuses.Contains(y.Status))
+                    x.Steps.Any(y => y.StartAt <= DateTime.UtcNow && _incompleteItemStatuses.Contains(y.Status))
                 );
 
         public IQueryable<WorkflowEntity> GetScheduledWorkflows() =>
             dbContext
                 .Workflows.Include(j => j.Steps)
                 .Where(x =>
-                    x.Steps.Any(y => y.StartTime > DateTime.UtcNow && _incompleteItemStatuses.Contains(y.Status))
+                    x.Steps.Any(y => y.StartAt > DateTime.UtcNow && _incompleteItemStatuses.Contains(y.Status))
                 );
 
         public IQueryable<WorkflowEntity> GetFailedWorkflows() =>

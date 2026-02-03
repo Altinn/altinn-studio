@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Microsoft.Extensions.Options;
+using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
@@ -227,18 +228,31 @@ internal partial class Engine : IEngine, IDisposable
         }
         catch (EngineConfigurationException ex)
         {
-            _logger.WorkflowCriticalError(workflow, ex.Message, ex);
             activity?.Errored(ex);
+            Telemetry.Errors.Add(
+                1,
+                ("operation", "workflowProcessing"),
+                ("target", workflow.InstanceInformation.ToString())
+            );
+
+            _logger.WorkflowCriticalError(workflow, ex.Message, ex);
+
             workflow.Status = PersistentItemStatus.Failed;
             await UpdateWorkflowInDb(workflow, cancellationToken);
         }
         catch (Exception ex)
         {
+            activity?.Errored(ex);
+            Telemetry.Errors.Add(
+                1,
+                ("operation", "workflowProcessing"),
+                ("target", workflow.InstanceInformation.ToString())
+            );
+
             TimeSpan delay =
                 _settings.DefaultStepRetryStrategy.MaxDelay ?? _settings.DefaultStepRetryStrategy.BaseInterval;
             workflow.BackoffUntil = _timeProvider.GetUtcNow().Add(delay);
 
-            activity?.Errored(ex);
             _logger.WorkflowProcessingFailed(workflow, delay, ex.Message, ex);
 
             return;
@@ -312,6 +326,10 @@ internal partial class Engine : IEngine, IDisposable
                         // Clean up and dispose associated tasks
                         step.CleanupExecutionTask();
                         step.CleanupDatabaseTask();
+
+                        var totalDuration = _timeProvider.GetUtcNow().Subtract(step.FirstSeenAt).TotalSeconds;
+                        Telemetry.StepTotalTime.Record(totalDuration);
+
                         return;
 
                     // Waiting for execution step to complete
@@ -335,8 +353,12 @@ internal partial class Engine : IEngine, IDisposable
                     // Step is new
                     default:
                         _logger.ExecutingStep(step);
-                        step.InitialStartTime ??= _timeProvider.GetUtcNow();
+
+                        var queueDuration = step.GetQueueDeltaTime(_timeProvider).TotalSeconds;
+                        Telemetry.StepQueueTime.Record(queueDuration);
+
                         step.ExecutionTask = _workflowExecutor.Execute(workflow, step, cancellationToken);
+                        step.ExecutionStartedAt = _timeProvider.GetUtcNow();
                         return;
                 }
             }
@@ -344,6 +366,18 @@ internal partial class Engine : IEngine, IDisposable
             {
                 activity?.Errored(ex);
                 throw;
+            }
+            finally
+            {
+                if (step.IsDone())
+                {
+                    var serviceDuration = _timeProvider
+                        .GetUtcNow()
+                        .Subtract(step.ExecutionStartedAt ?? step.FirstSeenAt)
+                        .TotalSeconds;
+
+                    Telemetry.StepServiceTime.Record(serviceDuration);
+                }
             }
         }
 
@@ -354,7 +388,10 @@ internal partial class Engine : IEngine, IDisposable
             if (result.IsSuccess())
             {
                 step.Status = PersistentItemStatus.Completed;
+
+                Telemetry.StepsSucceeded.Add(1);
                 _logger.StepCompletedSuccessfully(step);
+
                 return;
             }
 
@@ -362,25 +399,32 @@ internal partial class Engine : IEngine, IDisposable
             {
                 step.Status = PersistentItemStatus.Failed;
                 step.BackoffUntil = null;
+
+                Telemetry.StepsFailed.Add(1);
                 _logger.FailingStepCritical(step, step.RequeueCount);
+
                 return;
             }
 
             _logger.StepFailed(step);
             RetryStrategy retryStrategy = GetRetryStrategy(step);
-            DateTimeOffset initialStartTime = GetInitialStartTime(step);
 
-            if (retryStrategy.CanRetry(step.RequeueCount + 1, initialStartTime, _timeProvider))
+            if (retryStrategy.CanRetry(step.RequeueCount + 1, step.FirstSeenAt, _timeProvider))
             {
                 step.RequeueCount++;
                 step.Status = PersistentItemStatus.Requeued;
-                step.BackoffUntil = GetNextRetryBackoff(step, retryStrategy);
+                step.BackoffUntil = GetExecutionRetryBackoff(step, retryStrategy);
+
+                Telemetry.StepsRequeued.Add(1);
                 _logger.SlatingStepForRetry(step, step.RequeueCount);
+
                 return;
             }
 
             step.Status = PersistentItemStatus.Failed;
             step.BackoffUntil = null;
+
+            Telemetry.StepsFailed.Add(1);
             _logger.FailingStepRetries(step, step.RequeueCount);
         }
 
@@ -389,12 +433,7 @@ internal partial class Engine : IEngine, IDisposable
             return step.RetryStrategy ?? _settings.DefaultStepRetryStrategy;
         }
 
-        DateTimeOffset GetInitialStartTime(Step step)
-        {
-            return step.InitialStartTime ?? _timeProvider.GetUtcNow();
-        }
-
-        DateTimeOffset GetNextRetryBackoff(Step step, RetryStrategy retryStrategy)
+        DateTimeOffset GetExecutionRetryBackoff(Step step, RetryStrategy retryStrategy)
         {
             return _timeProvider.GetUtcNow().Add(retryStrategy.CalculateDelay(step.RequeueCount));
         }

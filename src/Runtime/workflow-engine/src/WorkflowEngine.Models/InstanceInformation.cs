@@ -46,4 +46,6 @@ public sealed record InstanceInformation
     /// <inheritdoc />
     public override int GetHashCode() =>
         HashCode.Combine(Org.ToUpperInvariant(), App.ToUpperInvariant(), InstanceOwnerPartyId, InstanceGuid);
+
+    public override string ToString() => $"{Org}/{App}/{InstanceOwnerPartyId}/{InstanceGuid}";
 };

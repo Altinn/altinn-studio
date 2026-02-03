@@ -177,7 +177,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
         }
         catch (Exception ex)
         {
-            activity.Errored(ex);
+            activity?.Errored(ex);
             _logger.LogDelegateExecutionOfStepStepFailedMessage(step, ex.Message, ex);
             return ExecutionResult.RetryableError(ex.Message);
         }

@@ -25,7 +25,7 @@ public static class StepExtensions
             if (step.BackoffUntil.HasValue && step.BackoffUntil > now)
                 return false;
 
-            if (step.StartTime.HasValue && step.StartTime > now)
+            if (step.StartAt.HasValue && step.StartAt > now)
                 return false;
 
             return true;
@@ -35,5 +35,17 @@ public static class StepExtensions
             step.IsReadyForExecution(timeProvider.GetUtcNow());
 
         public bool IsDone() => step.Status.IsDone();
+
+        /// <summary>
+        /// Returns the duration a step spent waiting in the queue before being picked up by a worker.
+        /// Takes into consideration <see cref="Step.StartAt"/> and <see cref="Step.BackoffUntil"/> constraints.
+        /// </summary>
+        public TimeSpan GetQueueDeltaTime(TimeProvider timeProvider)
+        {
+            List<DateTimeOffset?> candidates = [step.FirstSeenAt, step.StartAt, step.BackoffUntil];
+            DateTimeOffset latest = candidates.OfType<DateTimeOffset>().Max();
+
+            return timeProvider.GetUtcNow().Subtract(latest);
+        }
     }
 }

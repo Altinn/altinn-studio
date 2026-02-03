@@ -18,7 +18,7 @@ public sealed record CommandRequest
     /// An optional start time for when the task should be executed.
     /// </summary>
     [JsonPropertyName("startTime")]
-    public DateTimeOffset? StartTime { get; init; }
+    public DateTimeOffset? StartAt { get; init; }
 
     /// <summary>
     /// An optional retry strategy for the task. If none given, the default strategy will be used.

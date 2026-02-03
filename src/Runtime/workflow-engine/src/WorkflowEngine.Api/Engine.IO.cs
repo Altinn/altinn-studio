@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Api;
@@ -66,6 +66,9 @@ internal partial class Engine
 
         await AcquireQueueSlot(cancellationToken);
         _inbox[engineRequest.IdempotencyKey] = await _repository.AddWorkflow(engineRequest, cancellationToken);
+
+        Telemetry.WorkflowRequestsAccepted.Add(1);
+        Telemetry.StepRequestsAccepted.Add(engineRequest.Commands.Count());
 
         return EngineResponse.Accepted();
     }

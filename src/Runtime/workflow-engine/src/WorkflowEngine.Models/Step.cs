@@ -8,26 +8,29 @@ public sealed record Step : PersistentItem
     public required Command Command { get; init; }
     public required Actor Actor { get; init; }
 
-    public DateTimeOffset? StartTime { get; init; }
+    public DateTimeOffset FirstSeenAt { get; set; }
+    public DateTimeOffset? StartAt { get; init; }
     public DateTimeOffset? BackoffUntil { get; set; }
     public RetryStrategy? RetryStrategy { get; init; }
     public int RequeueCount { get; set; }
     public Task<ExecutionResult>? ExecutionTask { get; set; }
 
-    /// <summary>
-    /// The initial start time representing the first time this step was scheduled to run.
-    /// Used to calculate the deadline for the associated <see cref="RetryStrategy"/>.
-    /// </summary>
-    public DateTimeOffset? InitialStartTime { get; set; }
+    public DateTimeOffset? ExecutionStartedAt { get; set; }
 
-    public static Step FromRequest(string jobIdentifier, CommandRequest request, Actor actor, int index) =>
+    public static Step FromRequest(
+        string jobIdentifier,
+        CommandRequest request,
+        Actor actor,
+        DateTimeOffset now,
+        int index
+    ) =>
         new()
         {
             DatabaseId = 0,
             IdempotencyKey = $"{jobIdentifier}/{request.Command}",
             Actor = actor,
-            StartTime = request.StartTime,
-            InitialStartTime = request.StartTime,
+            StartAt = request.StartAt,
+            FirstSeenAt = now,
             ProcessingOrder = index,
             Command = request.Command,
             RetryStrategy = request.RetryStrategy,

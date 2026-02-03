@@ -6,5 +6,7 @@ public static class WorkflowEngineItemStatusExtensions
     {
         public bool IsDone() =>
             status is PersistentItemStatus.Completed or PersistentItemStatus.Failed or PersistentItemStatus.Canceled;
+
+        public bool IsSuccessful() => status is PersistentItemStatus.Completed;
     }
 }

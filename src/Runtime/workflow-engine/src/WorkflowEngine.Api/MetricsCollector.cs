@@ -1,4 +1,4 @@
-using WorkflowEngine.Api.Constants;
+using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data.Repository;
 
 namespace WorkflowEngine.Api;
@@ -35,6 +35,7 @@ internal sealed class MetricsCollector(
             }
             catch (Exception ex)
             {
+                Telemetry.Errors.Add(1, ("operation", "metricsCollector"));
                 logger.FailedToQueryCounts(ex.Message, ex);
                 await Task.Delay(_retryTimeout, timeProvider, stoppingToken);
             }

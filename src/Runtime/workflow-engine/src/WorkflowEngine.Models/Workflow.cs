@@ -8,7 +8,7 @@ public sealed record Workflow : PersistentItem
     public DateTimeOffset? BackoffUntil { get; set; }
     public required IReadOnlyList<Step> Steps { get; init; }
 
-    public static Workflow FromRequest(EngineRequest engineRequest) =>
+    public static Workflow FromRequest(EngineRequest engineRequest, TimeProvider timeProvider) =>
         new()
         {
             IdempotencyKey = engineRequest.IdempotencyKey,
@@ -17,7 +17,14 @@ public sealed record Workflow : PersistentItem
             TraceContext = engineRequest.TraceContext,
             Steps = engineRequest
                 .Commands.Select(
-                    (cmd, i) => Step.FromRequest(engineRequest.IdempotencyKey, cmd, engineRequest.Actor, i)
+                    (cmd, i) =>
+                        Step.FromRequest(
+                            engineRequest.IdempotencyKey,
+                            cmd,
+                            engineRequest.Actor,
+                            timeProvider.GetUtcNow(),
+                            i
+                        )
                 )
                 .ToList(),
         };

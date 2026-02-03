@@ -1,6 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
+using WorkflowEngine.Models.Extensions;
 using Task = System.Threading.Tasks.Task;
 
 namespace WorkflowEngine.Api;
@@ -102,11 +104,21 @@ internal partial class Engine
         bool removed = _inbox.TryRemove(workflow.IdempotencyKey, out _);
         if (!removed)
         {
+            Telemetry.Errors.Add(1, ("operation", "queueSlotRelease"));
             activity?.Errored(errorMessage: $"Unable to release queue slot {workflow.IdempotencyKey}");
             throw new EngineException($"Unable to release queue slot {workflow.IdempotencyKey}");
         }
 
         _inboxCapacityLimit.Release();
+
+        if (workflow.OverallStatus().IsSuccessful())
+        {
+            Telemetry.WorkflowsSucceeded.Add(1);
+        }
+        else
+        {
+            Telemetry.WorkflowsFailed.Add(1);
+        }
     }
 
     [MemberNotNull(nameof(_inbox), nameof(_inboxCapacityLimit))]

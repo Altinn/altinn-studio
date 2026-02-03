@@ -38,6 +38,8 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
+        Telemetry.WorkflowRequestsReceived.Add(1);
+
         var traceContext = Activity.Current?.Id;
         var processEngineRequest = request.ToProcessEngineRequest(instanceParams, traceContext);
 
@@ -54,6 +56,8 @@ internal static class EngineRequestHandlers
         [FromServices] IEngine engine
     )
     {
+        Telemetry.WorkflowQueriesReceived.Add(1);
+
         var job = engine.GetWorkflowForInstance(instanceParams);
 
         return job is null

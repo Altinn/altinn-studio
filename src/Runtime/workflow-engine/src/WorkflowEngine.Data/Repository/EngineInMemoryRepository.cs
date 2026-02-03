@@ -10,6 +10,13 @@ namespace WorkflowEngine.Data.Repository;
 /// </summary>
 internal sealed class EngineInMemoryRepository : IEngineRepository
 {
+    private readonly TimeProvider _timeProvider;
+
+    public EngineInMemoryRepository(TimeProvider? timeProvider = null)
+    {
+        _timeProvider = timeProvider ?? TimeProvider.System;
+    }
+
     public async Task<IReadOnlyList<Workflow>> GetActiveWorkflows(CancellationToken cancellationToken = default)
     {
         await SimulateDatabaseDelay(cancellationToken);
@@ -49,7 +56,7 @@ internal sealed class EngineInMemoryRepository : IEngineRepository
     public async Task<Workflow> AddWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default)
     {
         await SimulateDatabaseDelay(cancellationToken);
-        return Workflow.FromRequest(engineRequest);
+        return Workflow.FromRequest(engineRequest, _timeProvider);
     }
 
     public async Task UpdateWorkflow(Workflow workflow, CancellationToken cancellationToken = default) =>
