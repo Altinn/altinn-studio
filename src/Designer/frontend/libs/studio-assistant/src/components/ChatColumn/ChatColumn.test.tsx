@@ -5,6 +5,9 @@ import type { ChatColumnProps } from './ChatColumn';
 import { MessageAuthor } from '../../types/MessageAuthor';
 import type { Message } from '../../types/ChatThread';
 import { mockTexts } from '../../mocks/mockTexts';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 // Test data
 const userMessageContent = 'User message';
@@ -19,6 +22,7 @@ const mockMessages: Message[] = [
     author: MessageAuthor.Assistant,
     content: assistantMessageContent,
     timestamp: new Date(),
+    filesChanged: [],
   },
 ];
 
@@ -28,7 +32,7 @@ describe('ChatColumn', () => {
 
     const userMessage = screen.getByText(userMessageContent);
     const assistantMessage = screen.getByText(assistantMessageContent);
-    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
     const sendButton = screen.getByRole('button', { name: mockTexts.send });
 
     expect(userMessage).toBeInTheDocument();
@@ -46,5 +50,10 @@ const defaultProps: ChatColumnProps = {
 };
 
 const renderChatColumn = (props?: Partial<ChatColumnProps>): void => {
-  render(<ChatColumn {...defaultProps} {...props} />);
+  const queryClient = createQueryClientMock();
+  render(
+    <ServicesContextProvider {...queriesMock} client={queryClient}>
+      <ChatColumn {...defaultProps} {...props} />
+    </ServicesContextProvider>,
+  );
 };

@@ -3,6 +3,9 @@ import { CompactInterface } from './CompactInterface';
 import { render, screen } from '@testing-library/react';
 import type { CompactInterfaceProps } from './CompactInterface';
 import { mockTexts } from '../../mocks/mockTexts';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 // Test data
 const onSubmitMessage = jest.fn();
@@ -17,7 +20,7 @@ describe('CompactInterface', () => {
 
   it('should render the chat input', () => {
     renderCompactInterface();
-    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
 
     expect(textarea).toBeInTheDocument();
   });
@@ -59,5 +62,10 @@ const defaultProps: CompactInterfaceProps = {
 };
 
 const renderCompactInterface = (props?: Partial<CompactInterfaceProps>): void => {
-  render(<CompactInterface {...defaultProps} {...props} />);
+  const queryClient = createQueryClientMock();
+  render(
+    <ServicesContextProvider {...queriesMock} client={queryClient}>
+      <CompactInterface {...defaultProps} {...props} />
+    </ServicesContextProvider>,
+  );
 };

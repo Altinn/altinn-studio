@@ -6,8 +6,12 @@ import type { ReactElement } from 'react';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
 import { createAssistantMessage } from '../../utils/utils';
 import type { AssistantProps } from '../../Assistant/Assistant';
+import type { AssistantTexts } from '../../types/AssistantTexts';
 
-export type CompactInterfaceProps = Omit<AssistantProps, 'enableCompactInterface' | 'chatThreads'>;
+export type CompactInterfaceProps = {
+  texts: AssistantTexts;
+  onSubmitMessage: AssistantProps['onSubmitMessage'];
+};
 
 /**
  * A one-column version of the chat interface without thread history, preview and code viewer.

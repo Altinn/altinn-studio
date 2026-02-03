@@ -1,24 +1,26 @@
 import type { ReactElement } from 'react';
-import React, { useState } from 'react';
-import {
-  type UserMessage,
-  type ChatThread,
-  type AssistantTexts,
-  Assistant,
-  mockChatThreads,
-} from '@studio/assistant';
+import React from 'react';
+import type { AssistantTexts } from '@studio/assistant';
+import { Assistant } from '@studio/assistant';
 import { useTranslation } from 'react-i18next';
+import { useAltinityAssistant } from './hooks';
+import { Preview } from './components/Preview';
+import { FileBrowser } from './components/FileBrowser';
+import classes from './AiAssistant.module.css';
 
-export default function AiAssistant(): ReactElement {
+function AiAssistant(): ReactElement {
   const { t } = useTranslation();
 
-  // TODO: Fetch data from backend
-  const [chatThreads] = useState<ChatThread[]>(mockChatThreads);
-
-  // TODO: Connect to backend
-  const onSubmitMessage = (message: UserMessage): void => {
-    alert(`Du har trykket på send-knappen.\nMelding fra tekstfelt: ${message.content}`);
-  };
+  const {
+    connectionStatus,
+    workflowStatus,
+    chatThreads,
+    currentSessionId,
+    onSubmitMessage,
+    selectThread,
+    createNewThread,
+    deleteThread,
+  } = useAltinityAssistant();
 
   const texts: AssistantTexts = {
     heading: t('ai_assistant.heading'),
@@ -29,19 +31,36 @@ export default function AiAssistant(): ReactElement {
     newThread: t('ai_assistant.new_thread'),
     previousThreads: t('ai_assistant.threads'),
     aboutAssistant: t('ai_assistant.about_assistant'),
-    textareaPlaceholder: t('ai_assistant.textarea_placeholder'),
+    textarea: {
+      placeholder: t('ai_assistant.textarea_placeholder'),
+      wait: 'Vent litt ...',
+      waitingForConnection: 'Venter på forbindelse med Altinity ...',
+    },
     addAttachment: t('ai_assistant.add_attachment'),
     allowAppChangesSwitch: t('ai_assistant.allow_app_changes'),
     send: t('ai_assistant.send'),
+    cancel: 'Avbryt',
     assistantFirstMessage: t('ai_assistant.assistant_first_message'),
   };
 
   return (
-    <Assistant
-      texts={texts}
-      enableCompactInterface={false}
-      chatThreads={chatThreads}
-      onSubmitMessage={onSubmitMessage}
-    />
+    <div className={classes.container}>
+      <Assistant
+        texts={texts}
+        enableCompactInterface={false}
+        chatThreads={chatThreads}
+        activeThreadId={currentSessionId}
+        onSubmitMessage={onSubmitMessage}
+        onSelectThread={selectThread}
+        onCreateThread={createNewThread}
+        onDeleteThread={deleteThread}
+        connectionStatus={connectionStatus}
+        workflowStatus={workflowStatus}
+        previewContent={<Preview />}
+        fileBrowserContent={<FileBrowser />}
+      />
+    </div>
   );
 }
+
+export default AiAssistant;
