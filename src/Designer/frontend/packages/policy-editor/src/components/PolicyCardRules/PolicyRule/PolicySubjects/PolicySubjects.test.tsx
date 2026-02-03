@@ -22,6 +22,10 @@ import {
   mockSubject3,
 } from '../../../../../test/mocks/policySubjectMocks';
 import type { PolicyError } from '@altinn/policy-editor/types';
+import {
+  GUARDIANSHIP_ACCESS_PACKAGE_GROUP_ID,
+  PERSON_ACCESS_PACKAGE_GROUP_ID,
+} from '@altinn/policy-editor/constants';
 
 const sjofartPackage: PolicyAccessPackage = {
   id: 'urn:altinn:accesspackage:sjofart',
@@ -69,11 +73,34 @@ const skattOgAvgift: PolicyAccessPackageArea = {
   packages: [skatteforhold],
 };
 const accessPackageAreaGroupPerson: PolicyAccessPackageAreaGroup = {
-  id: '413f99ca-19ca-4124-8470-b0c1dba3d2ee',
+  id: PERSON_ACCESS_PACKAGE_GROUP_ID,
   name: 'Person',
   description: 'Tilgangspakker for privatperson',
   type: 'Person',
   areas: [skattOgAvgift],
+};
+
+const navHjelpemidler: PolicyAccessPackage = {
+  id: 'urn:altinn:accesspackage:vergemal-nav-hjelpemidler',
+  urn: 'urn:altinn:accesspackage:vergemal-nav-hjelpemidler',
+  name: 'Nav - Hjelpemidler',
+  description: '',
+  isResourcePolicyAvailable: true,
+};
+const nav: PolicyAccessPackageArea = {
+  id: 'accesspackage:area:vergemal-nav',
+  urn: 'accesspackage:area:vergemal-nav',
+  name: 'NAV',
+  description: '',
+  iconUrl: 'TruckIcon',
+  packages: [navHjelpemidler],
+};
+const accessPackageAreaGroupGuardianship: PolicyAccessPackageAreaGroup = {
+  id: GUARDIANSHIP_ACCESS_PACKAGE_GROUP_ID,
+  name: 'Vergemål',
+  description: 'For Vergemål',
+  type: 'Person',
+  areas: [nav],
 };
 
 const revisorRoleSubject = {
@@ -210,6 +237,7 @@ describe('PolicySubjects', () => {
 
     await user.click(screen.getByLabelText(lufttransportPackage.name));
     await user.click(screen.getByLabelText(skatteforhold.name));
+    await user.click(screen.getByLabelText(navHjelpemidler.name));
     await user.click(
       screen.getByLabelText(textMock('policy_editor.access_package_unknown_heading')),
     );
@@ -318,6 +346,7 @@ const ContextWrapper = () => {
       accessPackages: [
         lufttransportPackage.urn,
         skatteforhold.urn,
+        navHjelpemidler.urn,
         'urn:altinn:accesspackage:unknown',
       ],
     },
@@ -333,7 +362,11 @@ const ContextWrapper = () => {
     <PolicyEditorContext.Provider
       value={{
         ...mockPolicyEditorContextValue,
-        accessPackages: [accessPackageAreaGroupVanlig, accessPackageAreaGroupPerson],
+        accessPackages: [
+          accessPackageAreaGroupVanlig,
+          accessPackageAreaGroupPerson,
+          accessPackageAreaGroupGuardianship,
+        ],
         subjects: subjects,
         policyRules: policyRules,
         setPolicyRules,
