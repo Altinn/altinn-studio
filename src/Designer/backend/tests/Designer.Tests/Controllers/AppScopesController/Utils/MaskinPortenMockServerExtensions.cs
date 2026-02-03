@@ -7,22 +7,34 @@ namespace Designer.Tests.Controllers.AppScopesController.Utils;
 
 public static class MaskinPortenMockServerExtensions
 {
-    public static void PrepareMaskinPortenScopesResponse(this MockServerFixture mockServerFixture, string responseJson)
+    public static void PrepareMaskinPortenScopesResponse(
+        this MockServerFixture mockServerFixture,
+        string allScopesJson,
+        string accessScopesJson)
     {
-        var request = Request.Create()
+        var allScopesRequest = Request.Create()
             .UsingGet()
-            .WithPath("/datasharing/consumer/scope/access");
+            .WithPath("/api/v1/scopes/all")
+            .WithParam("accessible_for_all", "true");
 
-        var response = Response.Create()
+        var allScopesResponse = Response.Create()
             .WithStatusCode(200)
             .WithHeader("content-type", MediaTypeNames.Application.Json)
-            .WithBody(responseJson);
+            .WithBody(allScopesJson);
 
-        mockServerFixture.MockApi.Given(request)
-            .RespondWith(
-                response
-                );
+        mockServerFixture.MockApi.Given(allScopesRequest)
+            .RespondWith(allScopesResponse);
 
+        var accessScopesRequest = Request.Create()
+            .UsingGet()
+            .WithPath("/api/v1/scopes/access/all");
+
+        var accessScopesResponse = Response.Create()
+            .WithStatusCode(200)
+            .WithHeader("content-type", MediaTypeNames.Application.Json)
+            .WithBody(accessScopesJson);
+
+        mockServerFixture.MockApi.Given(accessScopesRequest)
+            .RespondWith(accessScopesResponse);
     }
-
 }

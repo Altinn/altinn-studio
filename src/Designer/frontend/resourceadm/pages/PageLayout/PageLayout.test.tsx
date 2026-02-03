@@ -7,6 +7,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { PageLayout } from './PageLayout';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -82,9 +83,11 @@ const renderComponent = (queries: Partial<ServicesContextProps> = {}) => {
 
   return render(
     <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <PageLayout />
-      </ServicesContextProvider>
+      <FeatureFlagsContextProvider value={{ flags: [] }}>
+        <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
+          <PageLayout />
+        </ServicesContextProvider>
+      </FeatureFlagsContextProvider>
     </MemoryRouter>,
   );
 };

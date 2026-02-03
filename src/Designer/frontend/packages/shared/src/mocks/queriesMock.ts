@@ -85,6 +85,7 @@ import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourc
 export const queriesMock: ServicesContextProps = {
   // Queries
   getAppMetadataModelIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getAppValidation: jest.fn().mockImplementation(() => Promise.resolve<any>({})),
   getAppReleases: jest
     .fn()
     .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),
