@@ -49,32 +49,20 @@ public class CustomTemplateService : ICustomTemplateService
     /// <inheritdoc />
     public async Task<List<CustomTemplateDto>> GetCustomTemplateList()
     {
-        List<CustomTemplateDto> templates = [];
-
-        List<Task<List<CustomTemplateDto>>> tasks = [];
         List<string> organizations = (await _giteaClient.GetUserOrganizations() ?? []).Select(o => o.Username).ToList();
 
-        if (organizations.Count > 0)
-        {
-            organizations.ForEach(org =>
-            {
-                if (org != _templateSettings.DefaultTemplateOrganization)
-                {
-                    tasks.Add(GetTemplateManifestForOrg(org));
-                }
-            });
-        }
+        List<Task<List<CustomTemplateDto>>> tasks = organizations
+            .Where(org => org != _templateSettings.DefaultTemplateOrganization)
+            .Select(org => GetTemplateManifestForOrg(org))
+            .ToList();
 
         tasks.Add(GetTemplateManifestForOrg(_templateSettings.DefaultTemplateOrganization));
 
         List<CustomTemplateDto>[] results = await Task.WhenAll(tasks);
 
-        foreach (var result in results)
-        {
-            templates.AddRange(result.Where(t => t.IsListable()).ToList());
-        }
-
-        return templates;
+        return results
+        .SelectMany(result => result.Where(t => t.IsListable()))
+        .ToList();
     }
 
     /// <inheritdoc />

@@ -8,6 +8,9 @@ namespace Altinn.Studio.Designer.Models;
 /// </summary>
 public class CustomTemplate
 {
+    [JsonPropertyName("schemaVersion")]
+    public string SchemaVersion { get; set; } = "1.0";
+
     [JsonPropertyName("id")]
     public required string Id { get; set; }
 

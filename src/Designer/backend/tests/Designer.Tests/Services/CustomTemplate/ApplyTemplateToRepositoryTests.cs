@@ -135,6 +135,7 @@ public class ApplyTemplateToRepositoryTests : IDisposable
 
         var template = new CustomTemplateModel
         {
+
             Id = templateId,
             Owner = templateOwner,
             Name = new() { { "nb", "Simple Template" } },
