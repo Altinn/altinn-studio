@@ -4,6 +4,7 @@ export enum QueryKey {
   AppMetadataModelIds = 'AppMetadataModelIds',
   AppPolicy = 'AppPolicy',
   AppReleases = 'AppReleases',
+  AppValidation = 'AppValidation',
   AppVersion = 'AppVersion',
   AvailableOrgResources = 'AvailableOrgResources',
   BelongsToOrg = 'BelongsToOrg',

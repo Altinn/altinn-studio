@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -28,11 +26,11 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         public async Task<ActionResult<CustomTemplateListDto>> GetCustomTemplateList()
         {
-            List<CustomTemplate> templates = await _templateService.GetCustomTemplateList();
+            List<CustomTemplateDto> templates = await _templateService.GetCustomTemplateList();
 
             return Ok(new CustomTemplateListDto()
             {
-                Templates = [.. templates.Select(t => CustomTemplateDto.From(t))]
+                Templates = templates
             });
         }
     }

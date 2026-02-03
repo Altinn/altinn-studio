@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;
 
@@ -9,7 +9,8 @@ public interface ICustomTemplateService
     /// <summary>
     /// Retrieves a list containing metadata for all available custom templates.
     /// </summary>
-    public Task<List<CustomTemplate>> GetCustomTemplateList();
+    /// <remarks>Lenient deserialization accepting invalid elements in the list and filtering them out before completing the full list</remarks>
+    public Task<List<CustomTemplateDto>> GetCustomTemplateList();
 
     /// <summary>
     /// Applies a custom template to a target repository.

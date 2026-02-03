@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Helpers;
 using Microsoft.AspNetCore.Mvc;
@@ -46,11 +47,11 @@ public class CustomTemplateService : ICustomTemplateService
     }
 
     /// <inheritdoc />
-    public async Task<List<CustomTemplate>> GetCustomTemplateList()
+    public async Task<List<CustomTemplateDto>> GetCustomTemplateList()
     {
-        List<CustomTemplate> templates = [];
+        List<CustomTemplateDto> templates = [];
 
-        List<Task<List<CustomTemplate>>> tasks = [];
+        List<Task<List<CustomTemplateDto>>> tasks = [];
         List<string> organizations = (await _giteaClient.GetUserOrganizations() ?? []).Select(o => o.Username).ToList();
 
         if (organizations.Count > 0)
@@ -66,11 +67,11 @@ public class CustomTemplateService : ICustomTemplateService
 
         tasks.Add(GetTemplateManifestForOrg(_templateSettings.DefaultTemplateOrganization));
 
-        List<CustomTemplate>[] results = await Task.WhenAll(tasks);
+        List<CustomTemplateDto> results = await Task.WhenAll(tasks);
 
         foreach (var result in results)
         {
-            templates.AddRange(result);
+            templates.AddRange(result.Where(t => t.IsListable()).ToList());
         }
 
         return templates;
@@ -116,7 +117,7 @@ public class CustomTemplateService : ICustomTemplateService
         return errors;
     }
 
-    private async Task<List<CustomTemplate>> GetTemplateManifestForOrg(string templateOwner, CancellationToken cancellationToken = default)
+    private async Task<List<CustomTemplateDto>> GetTemplateManifestForOrg(string templateOwner, CancellationToken cancellationToken = default)
     {
         string templateRepo = GetContentRepoName(templateOwner);
         string templateCacheFolderPath = Path.Combine(_serviceRepoSettings.RepositoryLocation, _templateSettings.Cache.LocalCacheFolder, templateOwner);
@@ -144,15 +145,16 @@ public class CustomTemplateService : ICustomTemplateService
             if (File.Exists(templateManifestCachePath))
             {
                 string cachedTemplateList = await File.ReadAllTextAsync(templateManifestCachePath);
-                return JsonSerializer.Deserialize<List<CustomTemplate>>(cachedTemplateList) ?? [];
+                List<CustomTemplateDto> templates = JsonSerializer.Deserialize<List<CustomTemplateDto>>(cachedTemplateList) ?? [];
+                return templates;
             }
 
             return [];
         }
-        catch
+        catch (Exception e)
         {
-            _logger.LogError("// CustomTemplateService // GetTemplateManifestForOrg // Failed to get template manifest for org {TemplateOwner}", templateOwner);
-            throw;
+            _logger.LogError(e, "// CustomTemplateService // GetTemplateManifestForOrg // Exception occurred. Failed to get template manifest for org {TemplateOwner}.", templateOwner);
+            return [];
         }
     }
 
