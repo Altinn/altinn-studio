@@ -9,7 +9,7 @@ public interface ICustomTemplateService
     /// <summary>
     /// Retrieves a list containing metadata for all available custom templates.
     /// </summary>
-    /// <remarks>Lenient deserialization accepting invalid eleents in the list and filtering them out before completing the full list</remarks>
+    /// <remarks>Lenient deserialization accepting invalid elements in the list and filtering them out before completing the full list</remarks>
     public Task<List<CustomTemplateDto>> GetCustomTemplateList();
 
     /// <summary>
