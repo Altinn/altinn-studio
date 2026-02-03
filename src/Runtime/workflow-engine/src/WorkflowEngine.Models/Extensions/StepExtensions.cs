@@ -32,7 +32,7 @@ public static class StepExtensions
         }
 
         public bool IsReadyForExecution(TimeProvider timeProvider) =>
-            IsReadyForExecution(step, timeProvider.GetUtcNow());
+            step.IsReadyForExecution(timeProvider.GetUtcNow());
 
         public bool IsDone() => step.Status.IsDone();
     }

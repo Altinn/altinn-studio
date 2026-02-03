@@ -28,10 +28,9 @@ internal class WorkflowExecutor : IWorkflowExecutor
         _logger = serviceProvider.GetRequiredService<ILogger<WorkflowExecutor>>();
     }
 
-    // TODO: Inject Workflow.TraceContext into outgoing requests
-
     public async Task<ExecutionResult> Execute(Workflow workflow, Step step, CancellationToken cancellationToken)
     {
+        using var activity = Telemetry.Source.StartActivity("WorkflowExecutor.Execute");
         _logger.ExecutingStep(step, workflow);
 
         using CancellationTokenSource cts = CreateExecutionTokenSource(step, cancellationToken);
@@ -59,6 +58,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
         }
         catch (Exception e)
         {
+            activity?.Errored(e);
             _logger.UnhandledExecutionError(step, stopwatch.Elapsed, e.Message, e);
             return ExecutionResult.RetryableError(e);
         }
@@ -75,6 +75,12 @@ internal class WorkflowExecutor : IWorkflowExecutor
         CancellationToken cancellationToken
     )
     {
+        using var activity = Telemetry.Source.StartActivity(
+            "WorkflowExecutor.AppCommand",
+            kind: ActivityKind.Client,
+            tags: [("command.key", command.CommandKey)]
+        );
+
         using var httpClient = GetAuthorizedAppClient(workflow.InstanceInformation);
         httpClient.Timeout = command.MaxExecutionTime ?? _engineSettings.DefaultStepCommandTimeout;
 
@@ -84,12 +90,12 @@ internal class WorkflowExecutor : IWorkflowExecutor
             Actor = step.Actor,
             Payload = command.Payload,
         };
+        var endpoint = command.CommandKey.ToUri(UriKind.Relative);
         using var jsonPayload = JsonContent.Create(payload);
-        using var response = await httpClient.PostAsync(
-            command.CommandKey.ToUri(UriKind.Relative),
-            jsonPayload,
-            cancellationToken
-        );
+
+        _logger.SendingAppCommandToEndpoint(endpoint, payload);
+
+        using var response = await httpClient.PostAsync(endpoint, jsonPayload, cancellationToken);
 
         return response.IsSuccessStatusCode
             ? ExecutionResult.Success()
@@ -105,6 +111,8 @@ internal class WorkflowExecutor : IWorkflowExecutor
         CancellationToken cancellationToken
     )
     {
+        using var activity = Telemetry.Source.StartActivity("WorkflowExecutor.Timeout", kind: ActivityKind.Internal);
+
         await Task.Delay(command.Duration, cancellationToken);
         return ExecutionResult.Success();
     }
@@ -116,6 +124,13 @@ internal class WorkflowExecutor : IWorkflowExecutor
         CancellationToken cancellationToken
     )
     {
+        using var activity = Telemetry.Source.StartActivity(
+            "WorkflowExecutor.Webhook",
+            kind: ActivityKind.Client,
+            tags: [("command.uri", command.Uri)]
+        );
+
+        var endpoint = command.Uri.ToUri(UriKind.Absolute);
         using var httpClient = _httpClientFactory.CreateClient();
         HttpResponseMessage response;
 
@@ -125,10 +140,14 @@ internal class WorkflowExecutor : IWorkflowExecutor
             content.Headers.ContentType = command.ContentType is not null
                 ? new MediaTypeHeaderValue(command.ContentType)
                 : null;
+
+            _logger.SendingWebhookToEndpoint(endpoint, command.Payload);
+
             response = await httpClient.PostAsync(command.Uri.ToUri(UriKind.Absolute), content, cancellationToken);
         }
         else
         {
+            _logger.SendingWebhookToEndpoint(endpoint);
             response = await httpClient.GetAsync(command.Uri.ToUri(UriKind.Absolute), cancellationToken);
         }
 
@@ -149,6 +168,8 @@ internal class WorkflowExecutor : IWorkflowExecutor
         CancellationToken cancellationToken
     )
     {
+        using var activity = Telemetry.Source.StartActivity("WorkflowExecutor.Delegate", kind: ActivityKind.Internal);
+
         try
         {
             await command.Action(workflow, step, cancellationToken);
@@ -156,6 +177,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
         }
         catch (Exception ex)
         {
+            activity.Errored(ex);
             _logger.LogDelegateExecutionOfStepStepFailedMessage(step, ex.Message, ex);
             return ExecutionResult.RetryableError(ex.Message);
         }
@@ -212,4 +234,21 @@ internal static partial class WorkflowExecutorLogs
         string message,
         Exception ex
     );
+
+    [LoggerMessage(LogLevel.Information, "Sending AppCommand to {Endpoint} with payload: {Payload}")]
+    public static partial void SendingAppCommandToEndpoint(
+        this ILogger<WorkflowExecutor> logger,
+        Uri endpoint,
+        AppCallbackPayload payload
+    );
+
+    [LoggerMessage(LogLevel.Information, "[POST] Sending Webhook to {Endpoint} with payload: {Payload}")]
+    public static partial void SendingWebhookToEndpoint(
+        this ILogger<WorkflowExecutor> logger,
+        Uri endpoint,
+        string payload
+    );
+
+    [LoggerMessage(LogLevel.Information, "[GET] Sending Webhook to {Endpoint} without payload")]
+    public static partial void SendingWebhookToEndpoint(this ILogger<WorkflowExecutor> logger, Uri endpoint);
 }

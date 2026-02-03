@@ -81,7 +81,9 @@ internal partial class Engine
 
     private async Task AcquireQueueSlot(CancellationToken cancellationToken = default)
     {
+        using var activity = Telemetry.Source.StartActivity("Engine.AcquireQueueSlot");
         _logger.AcquiringQueueSlot();
+
         await _inboxCapacityLimit.WaitAsync(cancellationToken);
 
         if (InboxCount >= _settings.QueueCapacity)
@@ -94,10 +96,15 @@ internal partial class Engine
 
     private void RemoveJobAndReleaseQueueSlot(Workflow workflow)
     {
+        using var activity = Telemetry.Source.StartActivity("Engine.RemoveJobAndReleaseQueueSlot");
         _logger.ReleasingQueueSlot();
+
         bool removed = _inbox.TryRemove(workflow.IdempotencyKey, out _);
         if (!removed)
+        {
+            activity?.Errored(errorMessage: $"Unable to release queue slot {workflow.IdempotencyKey}");
             throw new EngineException($"Unable to release queue slot {workflow.IdempotencyKey}");
+        }
 
         _inboxCapacityLimit.Release();
     }

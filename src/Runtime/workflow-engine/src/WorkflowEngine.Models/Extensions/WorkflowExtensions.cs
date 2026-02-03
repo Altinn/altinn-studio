@@ -41,6 +41,6 @@ public static class WorkflowExtensions
             !workflow.BackoffUntil.HasValue || now >= workflow.BackoffUntil;
 
         public bool IsReadyForExecution(TimeProvider timeProvider) =>
-            IsReadyForExecution(workflow, timeProvider.GetUtcNow());
+            workflow.IsReadyForExecution(timeProvider.GetUtcNow());
     }
 }

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Api;
@@ -9,51 +10,101 @@ internal partial class Engine
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = Telemetry.Source.StartActivity(
+            "Engine.EnqueueWorkflow",
+            tags:
+            [
+                ("request.idempotency.key", engineRequest.IdempotencyKey),
+                ("request.actor.id", engineRequest.Actor.UserIdOrOrgNumber),
+                ("request.instance.guid", engineRequest.InstanceInformation.InstanceGuid),
+                ("request.instance.party.id", engineRequest.InstanceInformation.InstanceOwnerPartyId),
+                (
+                    "request.instance.app",
+                    $"{engineRequest.InstanceInformation.Org}/{engineRequest.InstanceInformation.App}"
+                ),
+            ]
+        );
+
         _logger.EnqueuingWorkflow(engineRequest);
 
         if (!engineRequest.IsValid())
+        {
+            activity?.Errored(errorMessage: "Invalid request");
             return EngineResponse.Rejected($"Invalid request: {engineRequest}");
+        }
 
-        if (HasDuplicateWorkflow(engineRequest.Key))
+        if (HasDuplicateWorkflow(engineRequest.IdempotencyKey))
+        {
+            activity?.Errored(errorMessage: "Duplicate workflow request");
             return EngineResponse.Rejected(
                 "Duplicate request. A job with the same identifier is already being processed"
             );
+        }
 
+        // TODO: We need to implement support for concurrency!
         if (HasQueuedWorkflowForInstance(engineRequest.InstanceInformation))
+        {
+            activity?.Errored(errorMessage: "Instance already has an active job. Concurrency not supported");
             return EngineResponse.Rejected(
                 "A job for this instance is already processing. Concurrency is currently not supported"
             );
+        }
 
         if (_mainLoopTask is null)
-            return EngineResponse.Rejected("Process engine is not running. Did you call Start()?");
+        {
+            activity?.Errored(errorMessage: "Workflow engine not started");
+            return EngineResponse.Rejected("Workflow engine is not running. Did you call Start()?");
+        }
 
+        // TODO: We probably don't need these `ShouldRun` checks now that we are running standalone.
         var enabled = await _isEnabledHistory.Latest() ?? await ShouldRun(cancellationToken);
         if (!enabled)
-            return EngineResponse.Rejected("Process engine is currently inactive. Did you call the right instance?");
+        {
+            activity?.Errored(errorMessage: "Workflow engine inactive (disabled)");
+            return EngineResponse.Rejected("Workflow engine is currently inactive. Did you call the right instance?");
+        }
 
         await AcquireQueueSlot(cancellationToken);
-        _inbox[engineRequest.Key] = await _repository.AddWorkflow(engineRequest, cancellationToken);
+        _inbox[engineRequest.IdempotencyKey] = await _repository.AddWorkflow(engineRequest, cancellationToken);
 
         return EngineResponse.Accepted();
     }
 
     public bool HasDuplicateWorkflow(string jobIdentifier)
     {
-        return _inbox.ContainsKey(jobIdentifier);
+        bool isDupe = _inbox.ContainsKey(jobIdentifier);
+
+        using var activity = Telemetry.Source.StartActivity(
+            "Engine.HasDuplicateWorkflow",
+            tags: [("workflow.isDuplicate", isDupe)]
+        );
+
+        return isDupe;
     }
 
     public bool HasQueuedWorkflowForInstance(InstanceInformation instanceInformation)
     {
-        return _inbox.Values.Any(x => x.InstanceInformation.Equals(instanceInformation));
+        var instanceHasActiveWorkflow = _inbox.Values.Any(x => x.InstanceInformation.Equals(instanceInformation));
+
+        using var activity = Telemetry.Source.StartActivity(
+            "Engine.HasQueuedWorkflowForInstance",
+            tags: [("instance.hasActiveWorkflow", instanceHasActiveWorkflow)]
+        );
+
+        return instanceHasActiveWorkflow;
     }
 
     public Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation)
     {
+        using var activity = Telemetry.Source.StartActivity("Engine.GetWorkflowForInstance");
+
         return _inbox.Values.FirstOrDefault(x => x.InstanceInformation.Equals(instanceInformation));
     }
 
     private async Task PopulateWorkflowsFromDb(CancellationToken cancellationToken)
     {
+        using var activity = Telemetry.Source.StartActivity("Engine.PopulateWorkflowsFromDb");
+
         // TODO: Disabled for now. We don't necessarily want to resume jobs after restart while testing.
         return;
 
@@ -68,9 +119,32 @@ internal partial class Engine
         }
     }
 
-    private Task UpdateWorkflowInDb(Workflow workflow, CancellationToken cancellationToken) =>
-        _repository.UpdateWorkflow(workflow, cancellationToken);
+    private Task UpdateWorkflowInDb(Workflow workflow, CancellationToken cancellationToken)
+    {
+        using var activity = Telemetry.Source.StartActivity(
+            "Engine.UpdateWorkflowInDb",
+            tags: [("workflow.status", workflow.Status.ToString())]
+        );
 
-    private Task UpdateStepInDb(Step step, CancellationToken cancellationToken) =>
-        _repository.UpdateStep(step: step, cancellationToken);
+        if (workflow.BackoffUntil.HasValue)
+            activity?.SetTag("workflow.backoffUntil", workflow.BackoffUntil.Value.ToString("o"));
+
+        return _repository.UpdateWorkflow(workflow, cancellationToken);
+    }
+
+    private Task UpdateStepInDb(Step step, CancellationToken cancellationToken)
+    {
+        using var activity = Telemetry.Source.StartActivity(
+            "Engine.UpdateStepInDb",
+            tags: [("step.status", step.Status.ToString())]
+        );
+
+        if (step.RequeueCount > 0)
+            activity?.SetTag("step.requeueCount", step.RequeueCount);
+
+        if (step.BackoffUntil.HasValue)
+            activity?.SetTag("step.backoffUntil", step.BackoffUntil.Value.ToString("o"));
+
+        return _repository.UpdateStep(step: step, cancellationToken);
+    }
 }

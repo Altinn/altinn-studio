@@ -28,7 +28,7 @@ internal partial class Engine : IEngine, IDisposable
     private readonly IServiceProvider _serviceProvider;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<Engine> _logger;
-    private readonly IWorkflowExecutor _taskHandler;
+    private readonly IWorkflowExecutor _workflowExecutor;
     private readonly EngineSettings _settings;
     private readonly ConcurrentBuffer<bool> _isEnabledHistory = new();
     private readonly SemaphoreSlim _cleanupLock = new(1, 1);
@@ -53,7 +53,7 @@ internal partial class Engine : IEngine, IDisposable
     {
         _serviceProvider = serviceProvider;
         _logger = serviceProvider.GetRequiredService<ILogger<Engine>>();
-        _taskHandler = serviceProvider.GetRequiredService<IWorkflowExecutor>();
+        _workflowExecutor = serviceProvider.GetRequiredService<IWorkflowExecutor>();
         _timeProvider = serviceProvider.GetService<TimeProvider>() ?? TimeProvider.System;
         _settings = serviceProvider.GetRequiredService<IOptions<EngineSettings>>().Value;
 
@@ -130,6 +130,7 @@ internal partial class Engine : IEngine, IDisposable
 
     private async Task MainLoop(CancellationToken cancellationToken)
     {
+        using var activity = Telemetry.Source.StartActivity("Engine.MainLoop");
         _logger.EnteringMainLoop(InboxCount, _inboxCapacityLimit.CurrentCount);
 
         // Should we run?
@@ -162,6 +163,21 @@ internal partial class Engine : IEngine, IDisposable
             _logger.NotReadyForExecution(workflow);
             return;
         }
+
+        using var activity = Telemetry.Source.StartLinkedRootActivity(
+            "Engine.ProcessWorkflow",
+            additionalLinks: Telemetry.ParseSourceContext(workflow.TraceContext),
+            tags:
+            [
+                ("workflow.actor.id", workflow.Actor.UserIdOrOrgNumber),
+                ("workflow.database.id", workflow.DatabaseId),
+                ("workflow.idempotency.key", workflow.IdempotencyKey),
+                ("workflow.instance.guid", workflow.InstanceInformation.InstanceGuid),
+                ("workflow.instance.party.id", workflow.InstanceInformation.InstanceOwnerPartyId),
+                ("workflow.instance.lock.key", workflow.InstanceLockKey),
+                ("workflow.instance.app", $"{workflow.InstanceInformation.Org}/{workflow.InstanceInformation.App}"),
+            ]
+        );
 
         try
         {
@@ -212,6 +228,7 @@ internal partial class Engine : IEngine, IDisposable
         catch (EngineConfigurationException ex)
         {
             _logger.WorkflowCriticalError(workflow, ex.Message, ex);
+            activity?.Errored(ex);
             workflow.Status = PersistentItemStatus.Failed;
             await UpdateWorkflowInDb(workflow, cancellationToken);
         }
@@ -221,6 +238,7 @@ internal partial class Engine : IEngine, IDisposable
                 _settings.DefaultStepRetryStrategy.MaxDelay ?? _settings.DefaultStepRetryStrategy.BaseInterval;
             workflow.BackoffUntil = _timeProvider.GetUtcNow().Add(delay);
 
+            activity?.Errored(ex);
             _logger.WorkflowProcessingFailed(workflow, delay, ex.Message, ex);
 
             return;
@@ -251,62 +269,81 @@ internal partial class Engine : IEngine, IDisposable
                 return;
             }
 
+            using var activity = Telemetry.Source.StartActivity(
+                "Engine.ProcessSteps",
+                tags:
+                [
+                    ("step.database.id", step.DatabaseId),
+                    ("step.actor.id", step.Actor.UserIdOrOrgNumber),
+                    ("step.idempotency.key", step.IdempotencyKey),
+                    ("step.command.type", step.Command.GetType()),
+                ]
+            );
+
             var currentState = new
             {
                 DatabaseUpdateStatus = step.DatabaseUpdateStatus(),
                 ExecutionStatus = step.ExecutionStatus(),
             };
 
-            switch (currentState)
+            try
             {
-                // Waiting for database operation to complete
-                case { DatabaseUpdateStatus: TaskStatus.Started }:
-                    _logger.WaitingForStepDbTask(step);
-                    return;
+                switch (currentState)
+                {
+                    // Waiting for database operation to complete
+                    case { DatabaseUpdateStatus: TaskStatus.Started }:
+                        _logger.WaitingForStepDbTask(step);
+                        return;
 
-                // Database operation failed
-                case { DatabaseUpdateStatus: TaskStatus.Failed }:
-                    Exception? ex = step.DatabaseTask?.Exception;
-                    _logger.StepDbTaskFailed(step, ex);
+                    // Database operation failed
+                    case { DatabaseUpdateStatus: TaskStatus.Failed }:
+                        Exception? ex = step.DatabaseTask?.Exception;
+                        _logger.StepDbTaskFailed(step, ex);
 
-                    step.CleanupDatabaseTask();
-                    step.BackoffUntil = GetDbRetryBackoff(step);
+                        step.CleanupDatabaseTask();
+                        step.BackoffUntil = GetDbRetryBackoff(step);
 
-                    throw new EngineTaskException($"Database operation failed for step {step}", ex);
+                        throw new EngineTaskException($"Database operation failed for step {step}", ex);
 
-                // Database operation completed successfully
-                case { DatabaseUpdateStatus: TaskStatus.Finished }:
-                    _logger.CleaningUpStepDbTask(step);
+                    // Database operation completed successfully
+                    case { DatabaseUpdateStatus: TaskStatus.Finished }:
+                        _logger.CleaningUpStepDbTask(step);
 
-                    // Clean up and dispose associated tasks
-                    step.CleanupExecutionTask();
-                    step.CleanupDatabaseTask();
-                    return;
+                        // Clean up and dispose associated tasks
+                        step.CleanupExecutionTask();
+                        step.CleanupDatabaseTask();
+                        return;
 
-                // Waiting for execution step to complete
-                case { ExecutionStatus: TaskStatus.Started }:
-                    _logger.WaitingForStepExecutionTask(step);
-                    return;
+                    // Waiting for execution step to complete
+                    case { ExecutionStatus: TaskStatus.Started }:
+                        _logger.WaitingForStepExecutionTask(step);
+                        return;
 
-                // Execution step completed
-                case { ExecutionStatus: TaskStatus.Finished }:
-                    _logger.StepExecutionCompleted(step);
-                    Debug.Assert(step.ExecutionTask is not null); // TODO: This is annoying
+                    // Execution step completed
+                    case { ExecutionStatus: TaskStatus.Finished }:
+                        _logger.StepExecutionCompleted(step);
+                        Debug.Assert(step.ExecutionTask is not null); // TODO: This is annoying
 
-                    // Unwrap result and handle outcome
-                    ExecutionResult result = await step.ExecutionTask;
-                    UpdateStepStatusAndRetryDecision(step, result);
+                        // Unwrap result and handle outcome
+                        ExecutionResult result = await step.ExecutionTask;
+                        UpdateStepStatusAndRetryDecision(step, result);
 
-                    // Update database
-                    step.DatabaseTask = UpdateStepInDb(step, cancellationToken);
-                    return;
+                        // Update database
+                        step.DatabaseTask = UpdateStepInDb(step, cancellationToken);
+                        return;
 
-                // Step is new
-                default:
-                    _logger.ExecutingStep(step);
-                    step.InitialStartTime ??= _timeProvider.GetUtcNow();
-                    step.ExecutionTask = _taskHandler.Execute(workflow, step, cancellationToken);
-                    return;
+                    // Step is new
+                    default:
+                        _logger.ExecutingStep(step);
+                        step.InitialStartTime ??= _timeProvider.GetUtcNow();
+                        step.ExecutionTask = _workflowExecutor.Execute(workflow, step, cancellationToken);
+                        return;
+                }
+            }
+            catch (Exception ex)
+            {
+                activity?.Errored(ex);
+                throw;
             }
         }
 

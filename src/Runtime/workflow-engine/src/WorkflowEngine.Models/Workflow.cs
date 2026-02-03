@@ -11,12 +11,14 @@ public sealed record Workflow : PersistentItem
     public static Workflow FromRequest(EngineRequest engineRequest) =>
         new()
         {
-            IdempotencyKey = engineRequest.Key,
+            IdempotencyKey = engineRequest.IdempotencyKey,
             InstanceInformation = engineRequest.InstanceInformation,
             Actor = engineRequest.Actor,
             TraceContext = engineRequest.TraceContext,
             Steps = engineRequest
-                .Commands.Select((cmd, i) => Step.FromRequest(engineRequest.Key, cmd, engineRequest.Actor, i))
+                .Commands.Select(
+                    (cmd, i) => Step.FromRequest(engineRequest.IdempotencyKey, cmd, engineRequest.Actor, i)
+                )
                 .ToList(),
         };
 

@@ -40,7 +40,6 @@ public sealed record Step : PersistentItem
         if (disposing)
         {
             ExecutionTask?.Dispose();
-            DatabaseTask?.Dispose();
             base.Dispose(disposing);
         }
     }

@@ -41,7 +41,7 @@ internal static class EngineRequestHandlers
         var traceContext = Activity.Current?.Id;
         var processEngineRequest = request.ToProcessEngineRequest(instanceParams, traceContext);
 
-        if (engine.HasDuplicateWorkflow(processEngineRequest.Key))
+        if (engine.HasDuplicateWorkflow(processEngineRequest.IdempotencyKey))
             return TypedResults.NoContent(); // 204 - Duplicate request
 
         var response = await engine.EnqueueWorkflow(processEngineRequest, cancellationToken);
