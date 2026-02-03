@@ -30,11 +30,11 @@ public class CustomTemplate
 public class PackageReference
 {
     [JsonPropertyName("include")]
-    public string Include { get; set; }
+    public required string Include { get; set; }
 
     [JsonPropertyName("version")]
-    public string Version { get; set; }
+    public string Version { get; set; } = string.Empty;
 
     [JsonPropertyName("project")]
-    public string Project { get; set; }
+    public string Project { get; set; } = string.Empty;
 }

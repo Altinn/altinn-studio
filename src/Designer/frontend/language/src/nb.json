@@ -557,6 +557,7 @@
   "dashboard.service_saved_name_description_cannot_be_changed": "Du kan ikke endre dette navnet.",
   "dashboard.show_repo": "Vis repositoriet til {{appName}}",
   "dashboard.star": "Legg til {{appName}} i favoritter",
+  "dashboard.template_error": "Kunne ikke bruke malen ved opprettelse av appen. Vennligst kontakt eieren av malen hvis feilen vedvarer.",
   "dashboard.total_count": "Rader totalt:",
   "dashboard.unstar": "Fjern {{appName}} fra favoritter",
   "dashboard.view_apps_error_title": "Kan ikke vise listen over apper",

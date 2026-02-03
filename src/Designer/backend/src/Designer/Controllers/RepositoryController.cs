@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Hubs.Sync;
 using Altinn.Studio.Designer.Models;
@@ -187,15 +188,26 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest($"{request.Repository} is an invalid repository name.");
             }
 
-            var config = new ServiceConfiguration { RepositoryName = request.Repository, ServiceName = request.Repository };
-
-            var repositoryResult = await _repository.CreateService(request.Org, config, request.Template != null ? [request.Template] : []);
-
-            if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
+            try
             {
-                return Created(repositoryResult.CloneUrl, repositoryResult);
+                var config = new ServiceConfiguration { RepositoryName = request.Repository, ServiceName = request.Repository };
+
+                var repositoryResult = await _repository.CreateService(request.Org, config, request.Template != null ? [request.Template] : []);
+
+                if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
+                {
+                    return Created(repositoryResult.CloneUrl, repositoryResult);
+                }
+                return StatusCode((int)repositoryResult.RepositoryCreatedStatus, repositoryResult);
             }
-            return StatusCode((int)repositoryResult.RepositoryCreatedStatus, repositoryResult);
+            catch (CustomTemplateException ex)
+            {
+                return BadRequest(new
+                {
+                    error = nameof(CustomTemplateException),
+                    message = ex.Message
+                });
+            }   
         }
 
         /// <summary>

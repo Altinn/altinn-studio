@@ -67,7 +67,7 @@ public class CustomTemplateService : ICustomTemplateService
 
         tasks.Add(GetTemplateManifestForOrg(_templateSettings.DefaultTemplateOrganization));
 
-        List<CustomTemplateDto> results = await Task.WhenAll(tasks);
+        List<CustomTemplateDto>[] results = await Task.WhenAll(tasks);
 
         foreach (var result in results)
         {
