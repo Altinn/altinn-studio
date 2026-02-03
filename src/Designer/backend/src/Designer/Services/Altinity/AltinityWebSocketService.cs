@@ -77,11 +77,20 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         };
     }
 
-    private async Task<ClientWebSocket> CreateAndConnectWebSocketAsync(Uri wsUri, CancellationToken cancellationToken)
+    private static async Task<ClientWebSocket> CreateAndConnectWebSocketAsync(Uri wsUri, CancellationToken cancellationToken)
     {
         var webSocket = new ClientWebSocket();
-        await webSocket.ConnectAsync(wsUri, cancellationToken);
-        return webSocket;
+        try
+        {
+            await webSocket.ConnectAsync(wsUri, cancellationToken);
+            return webSocket;
+        }
+        catch
+        {
+            webSocket.Abort();
+            webSocket.Dispose();
+            throw;
+        }
     }
 
     private void StartListeningForMessages(string connectionId, WebSocketConnection connection)
