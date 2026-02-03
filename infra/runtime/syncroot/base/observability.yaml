@@ -31,7 +31,7 @@ spec:
   prune: true
   force: false
   wait: true
-  path: ./runtime
+  path: ./runtime/env/${ENVIRONMENT}
   sourceRef:
     kind: OCIRepository
     name: observability-repo

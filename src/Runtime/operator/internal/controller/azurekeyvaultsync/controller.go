@@ -67,13 +67,23 @@ func DefaultMappings(runtime rt.Runtime) []KeyVaultSecretMapping {
 			},
 		},
 		{
-			Name:      "azure-monitor-secret",
+			Name:      "control-plane-azure-monitor-secret",
 			Namespace: "runtime-obs",
 			FileName:  "connection-string",
-			Secrets:   []string{"PlatformAzureMonitor--ConnectionString"},
+			Secrets:   []string{"AzureMonitor--ControlPlane--ConnectionString"},
 			Raw:       true,
 			BuildOutput: func(secrets map[string]string) any {
-				return secrets["PlatformAzureMonitor--ConnectionString"]
+				return secrets["AzureMonitor--ControlPlane--ConnectionString"]
+			},
+		},
+		{
+			Name:      "data-plane-azure-monitor-secret",
+			Namespace: "runtime-obs",
+			FileName:  "connection-string",
+			Secrets:   []string{"AzureMonitor--DataPlane--ConnectionString"},
+			Raw:       true,
+			BuildOutput: func(secrets map[string]string) any {
+				return secrets["AzureMonitor--DataPlane--ConnectionString"]
 			},
 		},
 	}

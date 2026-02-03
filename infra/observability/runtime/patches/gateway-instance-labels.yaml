@@ -1,0 +1,23 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-gateway
+spec:
+  podAnnotations:
+    app.kubernetes.io/instance: runtime-obs.otel-gateway
+  topologySpreadConstraints:
+    - labelSelector:
+        matchLabels:
+          app.kubernetes.io/instance: runtime-obs.otel-gateway
+---
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-router
+spec:
+  podAnnotations:
+    app.kubernetes.io/instance: runtime-obs.otel-router
+  topologySpreadConstraints:
+    - labelSelector:
+        matchLabels:
+          app.kubernetes.io/instance: runtime-obs.otel-router

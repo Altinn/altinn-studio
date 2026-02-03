@@ -8,3 +8,4 @@ resources:
   - gitea-runners.yaml
   - altinn-mcp-server.yaml
   - lhci.yaml
+  - observability.yaml

@@ -3,42 +3,8 @@ kind: OpenTelemetryCollector
 metadata:
   name: otel-gateway
 spec:
-  mode: deployment
-  replicas: 1
-  resources:
-    requests:
-      cpu: 100m
-      memory: 512Mi
-    limits:
-      cpu: 500m
-      memory: 1Gi
-  env:
-    - name: APPLICATIONINSIGHTS_CONNECTION_STRING
-      valueFrom:
-        secretKeyRef:
-          name: azure-monitor-secret
-          key: connection-string
-  topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: topology.kubernetes.io/zone
-      whenUnsatisfiable: ScheduleAnyway
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/component: opentelemetry-collector
-          app.kubernetes.io/instance: runtime-obs.otel-gateway
   config:
-    receivers:
-      otlp:
-        protocols:
-          grpc:
-            endpoint: 0.0.0.0:4317
-          http:
-            endpoint: 0.0.0.0:4318
-
     processors:
-      batch:
-        send_batch_size: 1024
-        timeout: 5s
       tail_sampling:
         decision_wait: 40s
         num_traces: 50000
@@ -55,6 +21,9 @@ spec:
             type: probabilistic
             probabilistic:
               sampling_percentage: 10
+      batch:
+        send_batch_size: 1024
+        timeout: 5s
 
     exporters:
       azuremonitor:

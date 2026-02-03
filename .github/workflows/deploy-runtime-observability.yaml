@@ -5,7 +5,8 @@ on:
     branches:
       - main
     paths:
-      - infra/runtime/observability/**
+      - infra/observability/base/**
+      - infra/observability/runtime/**
       - .github/workflows/deploy-runtime-observability.yaml
   workflow_dispatch:
     inputs:
@@ -52,7 +53,7 @@ jobs:
       config-repo: altinncr.azurecr.io/studio-apps/runtime-observability:${{ needs.get-short-sha.outputs.short-sha }}
     defaults:
       run:
-        working-directory: infra/runtime/observability
+        working-directory: infra/observability
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
@@ -69,12 +70,15 @@ jobs:
       - name: flux install
         uses: fluxcd/flux2/action@8454b02a32e48d775b9f563cb51fdcb1787b5b93 # v2.7.5
 
+      - name: build manifests
+        run: ./build.sh runtime
+
       - name: push artifact
         run: |
           flux push artifact oci://${{ env.CONFIG_REPO }} \
             --provider=azure \
             --reproducible \
-            --path="." \
+            --path="./dist/runtime" \
             --source="$(git config --get remote.origin.url)" \
             --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
 

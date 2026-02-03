@@ -6,3 +6,4 @@ resources:
   - router.yaml
   - router-svc.yaml
   - network-policy.yaml
+  - serviceaccount.yaml

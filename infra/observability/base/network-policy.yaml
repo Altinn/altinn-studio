@@ -11,9 +11,7 @@ spec:
     - Ingress
   ingress:
     - from:
-        - namespaceSelector:
-            matchLabels:
-              altinn.studio/runtime: "true"
+        - namespaceSelector: {}
       ports:
         - protocol: TCP
           port: 4317
