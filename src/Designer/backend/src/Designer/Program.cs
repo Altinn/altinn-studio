@@ -20,7 +20,6 @@ using Altinn.Studio.Designer.Infrastructure.Maskinporten;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Extensions;
 using Altinn.Studio.Designer.Scheduling;
-using Altinn.Studio.Designer.Services.Altinity;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;

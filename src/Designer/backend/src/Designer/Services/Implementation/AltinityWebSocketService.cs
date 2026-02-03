@@ -6,10 +6,11 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.Studio.Designer.Services.Altinity;
+namespace Altinn.Studio.Designer.Services.Implementation;
 
 /// <summary>
 /// Service for managing WebSocket connections to Altinity agent
