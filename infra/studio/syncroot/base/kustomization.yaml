@@ -9,3 +9,4 @@ resources:
   - altinn-mcp-server.yaml
   - lhci.yaml
   - observability.yaml
+  - otel-operator.yaml
