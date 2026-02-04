@@ -110,7 +110,7 @@ internal sealed class BootstrapGlobalService(
             return null;
         }
 
-        var languageFromCookie = GetLanguageFromCookie(org, app);
+        var languageFromCookie = GetLanguageFromCookie();
         if (
             languageFromCookie is not null
             && availableLanguages.Contains(languageFromCookie)
@@ -155,7 +155,7 @@ internal sealed class BootstrapGlobalService(
         return null;
     }
 
-    private string? GetLanguageFromCookie(string org, string app)
+    private string? GetLanguageFromCookie()
     {
         if (_authenticationContext.Current is not Authenticated.User user)
         {
@@ -167,7 +167,7 @@ internal sealed class BootstrapGlobalService(
             return null;
         }
 
-        string cookieKey = $"{org}_{app}_{user.UserPartyId}_lang";
+        string cookieKey = $"lang_{user.UserPartyId}";
         if (!_httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(cookieKey, out var languageCookie))
         {
             return null;
