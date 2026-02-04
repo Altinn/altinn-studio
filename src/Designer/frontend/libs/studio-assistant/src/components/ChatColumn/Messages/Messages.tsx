@@ -13,12 +13,7 @@ import type { User } from '../../../types/User';
 import { MessageAuthor } from '../../../types/MessageAuthor';
 import classes from './Messages.module.css';
 import assistantLogo from '../../../../../../app-development/features/aiAssistant/altinity-logo.png';
-import type {
-  Message,
-  UserAttachment,
-  UserMessage,
-  Source,
-} from 'libs/studio-assistant/src/types/ChatThread';
+import type { Message, UserAttachment, UserMessage, Source } from '../../../types/ChatThread';
 
 export type MessagesProps = {
   messages: Message[];
