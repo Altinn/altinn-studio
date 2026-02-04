@@ -39,15 +39,6 @@ export interface WorkflowStatusEvent extends WorkflowEventBase {
 
 export type WorkflowEvent = AssistantMessageEvent | WorkflowStatusEvent;
 
-export interface WorkflowStatus {
-  isActive: boolean;
-  sessionId?: string;
-  currentStep?: string;
-  message?: string;
-  lastCompletedAt?: Date;
-  filesChanged?: string[];
-}
-
 export interface WorkflowRequest {
   session_id: string;
   goal: string;
@@ -72,5 +63,3 @@ export interface AgentResponse {
   app_name?: string;
   parsed_intent?: ParsedIntent;
 }
-
-export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
