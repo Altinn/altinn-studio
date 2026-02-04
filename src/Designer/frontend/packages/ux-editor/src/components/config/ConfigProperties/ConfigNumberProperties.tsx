@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
-import { useComponentPropertyLabel } from '../../../hooks';
+import React from 'react';
 import { SelectPropertyEditor } from '../SelectPropertyEditor';
 import { EditNumberValue } from '../editModal/EditNumberValue';
 import type { SchemaConfigProps } from './types';
-import type { FormItem } from '../../../types/FormItem';
 import { componentComparison } from './ConfigPropertiesUtils';
+import { useConfigProperty } from './useConfigProperty';
 
 export interface ConfigNumberPropertiesProps extends SchemaConfigProps {
   numberPropertyKeys: string[];
@@ -20,9 +19,6 @@ export const ConfigNumberProperties = ({
   className,
   keepEditOpen = false,
 }: ConfigNumberPropertiesProps) => {
-  const componentPropertyLabel = useComponentPropertyLabel();
-  const [currentComponent, setCurrentComponent] = useState<FormItem>(initialComponent);
-
   if (keepEditOpen) {
     return numberPropertyKeys.map((propertyKey) => (
       <EditNumberValue
@@ -38,26 +34,56 @@ export const ConfigNumberProperties = ({
   return (
     <>
       {numberPropertyKeys.map((propertyKey) => (
-        <SelectPropertyEditor
+        <ConfigNumberProperty
           key={propertyKey}
-          property={componentPropertyLabel(
-            `${propertyKey}${propertyKey === 'preselectedOptionIndex' ? '_button' : ''}`,
-          )}
-          title={componentPropertyLabel(propertyKey)}
-          value={currentComponent[propertyKey]}
+          propertyKey={propertyKey}
+          schema={schema}
+          component={initialComponent}
+          handleComponentUpdate={handleComponentUpdate}
           className={className}
-          onSave={() => handleComponentUpdate(currentComponent)}
-          onCancel={() => setCurrentComponent(initialComponent)}
-          isSaveDisabled={componentComparison({ initialComponent, currentComponent })}
-        >
-          <EditNumberValue
-            component={currentComponent}
-            handleComponentChange={setCurrentComponent}
-            propertyKey={propertyKey}
-            enumValues={schema.properties[propertyKey]?.enum}
-          />
-        </SelectPropertyEditor>
+          enumValues={schema.properties[propertyKey]?.enum}
+        />
       ))}
     </>
+  );
+};
+
+type ConfigNumberPropertyProps = Partial<SchemaConfigProps> & {
+  propertyKey: string;
+  className?: string;
+  enumValues?: number[];
+};
+
+const ConfigNumberProperty = ({
+  component: initialComponent,
+  propertyKey,
+  handleComponentUpdate,
+  className,
+  enumValues,
+}: ConfigNumberPropertyProps) => {
+  const {
+    initialPropertyValue,
+    currentComponent,
+    handleComponentChange,
+    setCurrentPropertyValue,
+    propertyLabel,
+  } = useConfigProperty({ initialComponent, propertyKey });
+
+  return (
+    <SelectPropertyEditor
+      property={propertyLabel}
+      value={currentComponent[propertyKey]}
+      className={className}
+      onSave={() => handleComponentUpdate(currentComponent)}
+      onCancel={() => setCurrentPropertyValue(initialPropertyValue)}
+      isSaveDisabled={componentComparison({ initialComponent, currentComponent })}
+    >
+      <EditNumberValue
+        component={currentComponent}
+        handleComponentChange={handleComponentChange}
+        propertyKey={propertyKey}
+        enumValues={enumValues}
+      />
+    </SelectPropertyEditor>
   );
 };
