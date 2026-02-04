@@ -72,6 +72,8 @@ type ThreadMenuTabProps = {
 };
 
 const ThreadMenuTab = ({ thread, onDelete }: ThreadMenuTabProps): ReactElement => {
+  const title = 'Delete thread';
+
   return (
     <div className={classes.threadMenuTab}>
       <StudioContentMenu.ButtonTab tabId={thread.id} tabName={thread.title} icon='' />
@@ -79,11 +81,12 @@ const ThreadMenuTab = ({ thread, onDelete }: ThreadMenuTabProps): ReactElement =
         <StudioButton
           variant='tertiary'
           className={classes.deleteButton}
+          aria-label={title}
           onClick={(e) => {
             e.stopPropagation();
             onDelete();
           }}
-          title='Delete thread'
+          title={title}
         >
           ×
         </StudioButton>
