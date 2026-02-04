@@ -16,7 +16,7 @@ func Test_FatalError_FailsImmediately(t *testing.T) {
 	t.Run("FailsImmediatelyOnFatalError", func(t *testing.T) {
 		// Prepare a request that would normally time out, but points to a page with a fatal error.
 		req := &types.PdfRequest{
-			URL: harness.TestServerURL + "/app/?fatalerror=true",
+			URL: harness.TestServerURL + "/app/?fatalerror=true&render=light",
 			WaitFor: types.NewWaitForOptions(types.WaitForOptions{
 				Selector: "#this-will-never-be-ready",
 			}),

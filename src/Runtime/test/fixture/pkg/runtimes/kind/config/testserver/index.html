@@ -62,15 +62,6 @@
 
         // Start simulation when page fully loads
         window.onload = async function() {
-            // If fatalerror is set, add the fatal error element and stop
-            if (fatalError) {
-                const fatalDiv = document.createElement('div');
-                fatalDiv.dataset.fatalError = '';
-                fatalDiv.textContent = 'A fatal error occurred!';
-                document.body.appendChild(fatalDiv);
-                console.log('Injected fatal error element.');
-                return; // Stop further execution
-            }
 
             // Set cookies if requested (before any other work)
             if (setCookie) {
@@ -147,7 +138,13 @@
 
                 // Wait for remaining time, then show ready state (unless neverready is set)
                 setTimeout(() => {
-                    if (!neverReady) {
+                    if (fatalError) {
+                        const fatalDiv = document.createElement('div');
+                        fatalDiv.dataset.fatalError = '';
+                        fatalDiv.textContent = `A fatal error occurred after ${remainingTime}ms!`; // Use remainingTime for message
+                        document.body.appendChild(fatalDiv);
+                        console.log(`Injected fatal error element after ${remainingTime}ms.`);
+                    } else if (!neverReady) { // Original condition for readyDiv
                         if (!becomesHidden) {
                           document.body.appendChild(readyDiv);
                         }
