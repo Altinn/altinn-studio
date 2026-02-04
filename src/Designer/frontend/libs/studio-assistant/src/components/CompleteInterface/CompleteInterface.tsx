@@ -43,8 +43,8 @@ export function CompleteInterface({
     }
 
     // If no active thread is selected, return empty chat thread for blank state
-    return emptyChatThread;
-  }, [activeThreadId, chatThreads]);
+    return createEmptyChatThread(texts.newThread);
+  }, [activeThreadId, chatThreads, texts]);
 
   const handleToggleCollapse = (): void => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
 
@@ -111,8 +111,8 @@ export function CompleteInterface({
   );
 }
 
-const emptyChatThread: ChatThread = {
+const createEmptyChatThread = (title: string): ChatThread => ({
   id: 'new-chat',
-  title: 'Ny tråd',
+  title,
   messages: [],
-};
+});
