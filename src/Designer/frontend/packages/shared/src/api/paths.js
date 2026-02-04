@@ -218,4 +218,4 @@ export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;
 export const canUseFeaturePath = (featureName) => `${apiBasePath}/canUseFeature?featureName=${featureName}`;
 
 // Custom Templates
-export const customTemplatesPath = (org) => `${apiBasePath}/customtemplates/${org || ''}`; // GET
+export const customTemplatesPath = () => `${apiBasePath}/customtemplates`; // GET

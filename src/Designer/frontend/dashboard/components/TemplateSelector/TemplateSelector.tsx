@@ -1,29 +1,27 @@
 import React from 'react';
 import { type CustomTemplate } from 'app-shared/types/CustomTemplate';
 import { StudioCard, StudioParagraph, StudioSelect } from '@studio/components';
-import { useAvailableTemplatesForOrgQuery } from '../../hooks/queries/useAvailableTemplatesForOrgQuery';
+import { useAvailableTemplatesForUserQuery } from '../../hooks/queries/useAvailableTemplatesForOrgQuery';
 import classes from './TemplateSelector.module.css';
 import { useTranslation } from 'react-i18next';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 export type TemplateSelectorProps = {
   selectedTemplate?: CustomTemplate;
   onChange: (selected?: CustomTemplate) => void;
+  username: string;
 };
 
 export const TemplateSelector = ({
   selectedTemplate,
   onChange,
-}: TemplateSelectorProps): React.JSX.Element => {
+  username,
+}: TemplateSelectorProps): React.ReactNode => {
   const { t } = useTranslation();
-
-  // TODO: Allow for fetching templates based on selected org when org selector is changed
-  const { data: availableTemplates } = useAvailableTemplatesForOrgQuery();
+  const { data: availableTemplates } = useAvailableTemplatesForUserQuery(username);
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = Array.from(event.target.selectedOptions);
-    const selected = availableTemplates?.find((template) =>
-      selectedOptions.some((option) => option.value === template.id),
-    );
+    const selected = availableTemplates?.find(({ id }) => id === event.target.value);
     onChange(selected);
   };
 
@@ -44,17 +42,19 @@ export const TemplateSelector = ({
         </StudioSelect.Option>
         {availableTemplates.map((template) => (
           <StudioSelect.Option key={template.id} value={template.id}>
-            {template.name.nb ?? template.id}
+            {template.name[DEFAULT_LANGUAGE] ?? template.id}
           </StudioSelect.Option>
         ))}
       </StudioSelect>
       {selectedTemplate && (
         <StudioCard key={selectedTemplate.id}>
           <StudioParagraph className={classes.templateName} spacing>
-            {selectedTemplate.name.nb ?? selectedTemplate.id}
+            {selectedTemplate.name[DEFAULT_LANGUAGE] ?? selectedTemplate.id}
           </StudioParagraph>
           {selectedTemplate.description && (
-            <StudioParagraph>{selectedTemplate.description.nb ?? ''}</StudioParagraph>
+            <StudioParagraph>
+              {selectedTemplate.description[DEFAULT_LANGUAGE] ?? ''}
+            </StudioParagraph>
           )}
         </StudioCard>
       )}

@@ -15,6 +15,7 @@ import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { Link } from 'react-router-dom';
 import { useUserOrgPermissionQuery } from '../../hooks/queries/useUserOrgPermissionsQuery';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
+import { useUserQuery } from 'app-shared/hooks/queries';
 
 type CancelButton = {
   onClick: () => void;
@@ -32,7 +33,7 @@ export type NewApplicationFormProps = {
   user: User;
   organizations: Organization[];
   isLoading: boolean;
-  useCustomTemplate?: boolean;
+  shouldUseCustomTemplate?: boolean;
   submitButtonText: string;
   formError: NewAppForm;
   setFormError: React.Dispatch<React.SetStateAction<NewAppForm>>;
@@ -44,7 +45,7 @@ export const NewApplicationForm = ({
   user,
   organizations,
   isLoading,
-  useCustomTemplate = true,
+  shouldUseCustomTemplate = true,
   submitButtonText,
   formError,
   setFormError,
@@ -63,6 +64,7 @@ export const NewApplicationForm = ({
   const { data: userOrgPermission, isFetching } = useUserOrgPermissionQuery(currentSelectedOrg, {
     enabled: Boolean(currentSelectedOrg),
   });
+  const { data: currentUser } = useUserQuery();
 
   const validateTextValue = (event: ChangeEvent<HTMLInputElement>) => {
     const { errorMessage: repoNameErrorMessage, isValid: isRepoNameValid } = validateRepoName(
@@ -108,6 +110,10 @@ export const NewApplicationForm = ({
     return isOrgValid && isRepoNameValid;
   };
 
+  if (!currentUser) {
+    return <StudioSpinner aria-hidden spinnerTitle={t('dashboard.loading')} />;
+  }
+
   const createRepoAccessError: string =
     !userOrgPermission?.canCreateOrgRepo && !isFetching
       ? t('dashboard.missing_service_owner_rights_error_message')
@@ -133,8 +139,12 @@ export const NewApplicationForm = ({
         errorMessage={formError.repoName}
         onChange={validateTextValue}
       />
-      {isCustomTemplatesEnabled && useCustomTemplate && (
-        <TemplateSelector selectedTemplate={selectedTemplate} onChange={setSelectedTemplate} />
+      {isCustomTemplatesEnabled && shouldUseCustomTemplate && (
+        <TemplateSelector
+          selectedTemplate={selectedTemplate}
+          onChange={setSelectedTemplate}
+          username={currentUser.login}
+        />
       )}
       <div className={classes.actionContainer}>
         {isLoading ? (
