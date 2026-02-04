@@ -11,7 +11,6 @@ WORKDIR /build
 COPY common/ common/
 COPY workflow-engine/ app/
 
-
 WORKDIR /build/app/src/WorkflowEngine.Api
 RUN dotnet restore "WorkflowEngine.Api.csproj"
 RUN dotnet build "WorkflowEngine.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build

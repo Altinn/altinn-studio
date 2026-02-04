@@ -62,12 +62,11 @@ services:
     container_name: workflow-engine-blackbox
     volumes:
       - ./.docker/blackbox.yml:/config/blackbox.yml:ro
-    command: --config.file=/config/blackbox.yml
-    depends_on:
-      - workflow-engine
+    entrypoint: ["/bin/sh", "-c", "/bin/blackbox_exporter --config.file=/config/blackbox.yml 2>/dev/null"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - workflow-engine-network
-    profiles: [app, full]
 
   postgres-exporter:
     image: quay.io/prometheuscommunity/postgres-exporter
@@ -88,6 +87,8 @@ services:
     image: grafana/otel-lgtm:0.17.0
     container_name: workflow-engine-lgtm
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - workflow-engine-network
     ports:

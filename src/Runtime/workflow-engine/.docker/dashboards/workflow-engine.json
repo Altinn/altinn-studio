@@ -80,7 +80,23 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Failed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 14,
@@ -122,6 +138,7 @@
             "uid": "prometheus"
           },
           "editorMode": "builder",
+          "exemplar": false,
           "expr": "engine_workflows_failed",
           "hide": false,
           "instant": false,
@@ -218,7 +235,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "probe_success{instance=\"http://workflow-engine-api:8080/api/v1/health/live\"}",
+          "expr": "probe_success{instance=\"http://host.docker.internal:8080/api/v1/health/live\"}",
           "legendFormat": "Live",
           "refId": "A"
         },
@@ -227,7 +244,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "probe_success{instance=\"http://workflow-engine-api:8080/api/v1/health/ready\"}",
+          "expr": "probe_success{instance=\"http://host.docker.internal:8080/api/v1/health/ready\"}",
           "legendFormat": "Ready",
           "refId": "B"
         },
@@ -236,7 +253,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "probe_success{instance=\"http://workflow-engine-api:8080/api/v1/health\"}",
+          "expr": "probe_success{instance=\"http://host.docker.internal:8080/api/v1/health\"}",
           "legendFormat": "Overall",
           "refId": "C"
         }
