@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ReactElement } from 'react';
+import DOMPurify from 'dompurify';
 import {
   StudioCard,
   StudioParagraph,
@@ -222,7 +223,7 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
       html = html.replace(`___CODE_BLOCK_${index}___`, block);
     });
 
-    return html;
+    return DOMPurify.sanitize(html);
   };
 
   const renderFilesChanged = (): ReactElement | null => {
