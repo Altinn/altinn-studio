@@ -1,0 +1,17 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-gateway
+spec:
+  podAnnotations:
+    linkerd.io/inject: "enabled"
+    config.linkerd.io/skip-outbound-ports: "443"
+---
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-router
+spec:
+  podAnnotations:
+    linkerd.io/inject: "enabled"
+    config.linkerd.io/skip-outbound-ports: "443"

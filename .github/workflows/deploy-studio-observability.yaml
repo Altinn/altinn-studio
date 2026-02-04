@@ -1,0 +1,99 @@
+name: Deploy Studio Observability
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - infra/observability/base/**
+      - infra/observability/studio/**
+      - infra/observability/build.sh
+      - .github/workflows/deploy-studio-observability.yaml
+  workflow_dispatch:
+    inputs:
+      environments:
+        description: 'Environments to deploy to. Multiple environments can be specified by separating them with a comma.'
+        required: false
+        default: 'dev'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  get-short-sha:
+    uses: ./.github/workflows/template-short-sha.yaml
+
+  construct-environments-array:
+    uses: ./.github/workflows/template-construct-environments.yaml
+    with:
+      environments: ${{ github.event.inputs.environments || 'dev,staging,prod' }}
+
+  push-artifact:
+    name: Push observability as OCI artifact
+    needs: get-short-sha
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry
+      CONFIG_REPO: altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/observability-repo:${{ needs.get-short-sha.outputs.short-sha }}
+    outputs:
+      CONFIG_REPO: altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/observability-repo:${{ needs.get-short-sha.outputs.short-sha }}
+    defaults:
+      run:
+        working-directory: infra/observability
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name ${{ env.REGISTRY_NAME }}
+
+      - name: flux install
+        uses: fluxcd/flux2/action@8454b02a32e48d775b9f563cb51fdcb1787b5b93 # v2.7.5
+
+      - name: build manifests
+        run: ./build.sh studio
+
+      - name: push artifact
+        run: |
+          flux push artifact oci://${{ env.CONFIG_REPO }} \
+            --provider=azure \
+            --reproducible \
+            --path="./dist/studio" \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+  tag:
+    name: Tag artifact
+    needs: [push-artifact, construct-environments-array]
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry
+    strategy:
+      matrix:
+        environment: ${{ fromJSON(needs.construct-environments-array.outputs.environmentsjson) }}
+    steps:
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name ${{ env.REGISTRY_NAME }}
+
+      - name: flux install
+        uses: fluxcd/flux2/action@8454b02a32e48d775b9f563cb51fdcb1787b5b93 # v2.7.5
+
+      - name: tag artifact
+        run: |
+          flux tag artifact oci://${{ needs.push-artifact.outputs.CONFIG_REPO }} \
+            --tag ${{ matrix.environment }}

@@ -1,0 +1,64 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-gateway
+spec:
+  config:
+    connectors:
+      routing/traces:
+        default_pipelines: [traces/control_plane]
+        table:
+          - condition: attributes["service.name"] == "pdf3"
+            pipelines: [traces/data_plane]
+      routing/metrics:
+        default_pipelines: [metrics/control_plane]
+        table:
+          - condition: attributes["service.name"] == "pdf3"
+            pipelines: [metrics/data_plane]
+      routing/logs:
+        default_pipelines: [logs/control_plane]
+        table:
+          - condition: attributes["service.name"] == "pdf3"
+            pipelines: [logs/data_plane]
+
+    exporters:
+      azuremonitor/control_plane:
+        connection_string: $${env:CONTROL_PLANE_CONNECTION_STRING}
+      azuremonitor/data_plane:
+        connection_string: $${env:DATA_PLANE_CONNECTION_STRING}
+
+    service:
+      pipelines:
+        traces/in:
+          receivers: [otlp]
+          exporters: [routing/traces]
+        traces/control_plane:
+          receivers: [routing/traces]
+          processors: [transform/azuremonitor, tail_sampling, batch]
+          exporters: [azuremonitor/control_plane]
+        traces/data_plane:
+          receivers: [routing/traces]
+          processors: [transform/azuremonitor, tail_sampling, batch]
+          exporters: [azuremonitor/data_plane]
+        metrics/in:
+          receivers: [otlp]
+          exporters: [routing/metrics]
+        metrics/control_plane:
+          receivers: [routing/metrics]
+          processors: [batch]
+          exporters: [azuremonitor/control_plane]
+        metrics/data_plane:
+          receivers: [routing/metrics]
+          processors: [batch]
+          exporters: [azuremonitor/data_plane]
+        logs/in:
+          receivers: [otlp]
+          exporters: [routing/logs]
+        logs/control_plane:
+          receivers: [routing/logs]
+          processors: [batch]
+          exporters: [azuremonitor/control_plane]
+        logs/data_plane:
+          receivers: [routing/logs]
+          processors: [batch]
+          exporters: [azuremonitor/data_plane]
