@@ -7,6 +7,7 @@ import type {
   PolicyRuleResource,
   PolicySubject,
 } from '../types';
+import { INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE } from '../constants';
 
 /**
  * Empty rule when new card added
@@ -28,12 +29,11 @@ export const policySubjectOrg: PolicySubject = {
   urn: 'urn:altinn:org:[org]',
   legacyUrn: 'urn:altinn:org:[org]',
   provider: {
-    code: 'sys-internal',
+    code: INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE,
     id: '',
     name: 'Intern',
   },
 };
-export const accessListSubjectSource = 'urn:altinn:access-list';
 
 export const organizationSubject: PolicySubject = {
   id: 'organization',
@@ -222,7 +222,7 @@ export const createNewSubjectFromSubjectString = (subjectString: string): Policy
     description: '',
     id: subjectString,
     provider: {
-      code: 'sys-internal',
+      code: INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE,
       id: '',
       name: '',
     },

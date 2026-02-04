@@ -15,11 +15,11 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import type { Policy, PolicyRule, PolicySubject } from '@altinn/policy-editor/types';
 import type { TFunction } from 'i18next';
 import {
-  accessListSubjectSource,
   emptyPolicyRule,
   organizationSubject,
   policySubjectOrg,
 } from '@altinn/policy-editor/utils';
+import { ACCESS_LIST_SUBJECT_SOURCE } from '@altinn/policy-editor/constants';
 
 /**
  * The map of resource type
@@ -567,7 +567,7 @@ export const getResourcePolicyRules = (
 };
 
 export const createAccessListSubject = (accessList: AccessList, org: string): PolicySubject => {
-  const urn = `${accessListSubjectSource}:${org}:${accessList.identifier}`;
+  const urn = `${ACCESS_LIST_SUBJECT_SOURCE}:${org}:${accessList.identifier}`;
   return {
     id: accessList.identifier,
     description: accessList.description,

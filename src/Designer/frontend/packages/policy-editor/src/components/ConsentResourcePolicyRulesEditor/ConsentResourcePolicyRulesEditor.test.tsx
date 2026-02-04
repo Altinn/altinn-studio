@@ -8,13 +8,14 @@ import {
   type PolicyEditorContextProps,
 } from '../../contexts/PolicyEditorContext';
 import { ConsentResourcePolicyRulesEditor } from './ConsentResourcePolicyRulesEditor';
-import { accessListSubjectSource, emptyPolicyRule, organizationSubject } from '../../utils';
+import { emptyPolicyRule, organizationSubject } from '../../utils';
+import { ACCESS_LIST_SUBJECT_SOURCE } from '@altinn/policy-editor/constants';
 
 const accessListSubject = {
   id: 'test-liste',
   description: 'Dette er en testliste',
-  legacyUrn: `${accessListSubjectSource}:ttd:test-liste`,
-  urn: `${accessListSubjectSource}:ttd:test-liste`,
+  legacyUrn: `${ACCESS_LIST_SUBJECT_SOURCE}:ttd:test-liste`,
+  urn: `${ACCESS_LIST_SUBJECT_SOURCE}:ttd:test-liste`,
   name: 'Testliste',
   legacyRoleCode: 'test-liste',
   provider: {
@@ -27,8 +28,8 @@ const accessListSubject = {
 const accessListSubject2 = {
   id: 'test-liste2',
   description: 'Dette er en testliste2',
-  legacyUrn: `${accessListSubjectSource}:ttd:test-liste2`,
-  urn: `${accessListSubjectSource}:ttd:test-liste2`,
+  legacyUrn: `${ACCESS_LIST_SUBJECT_SOURCE}:ttd:test-liste2`,
+  urn: `${ACCESS_LIST_SUBJECT_SOURCE}:ttd:test-liste2`,
   name: 'Testliste2',
   legacyRoleCode: 'test-liste2',
   provider: {

@@ -14,6 +14,7 @@ import type {
   PolicyAccessPackageAreaGroup,
 } from 'app-shared/types/PolicyAccessPackages';
 import { policySubjectOrg } from '@altinn/policy-editor/utils';
+import { INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE } from '@altinn/policy-editor/constants';
 
 const mockSubjects: PolicySubject[] = [
   {
@@ -24,7 +25,7 @@ const mockSubjects: PolicySubject[] = [
     description: 'Subject 1 description',
     id: '',
     provider: {
-      code: 'sys-internal',
+      code: INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE,
       id: '',
       name: '',
     },
