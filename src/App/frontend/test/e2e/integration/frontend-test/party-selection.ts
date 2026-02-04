@@ -130,6 +130,11 @@ describe('Party selection', () => {
   // - App's promptForParty setting (tested in backend integration tests only)
 
   it('Prompts for party when user has multiple parties and doNotPromptForParty=false', () => {
+    // Mock active instances to prevent instance-selection redirect from accumulated test data
+    cy.intercept('**/active', []).as('activeInstances');
+    // Clear party cookie from previous tests to avoid cross-test state pollution
+    cy.clearCookie('AltinnPartyId');
+
     // User 2001 has multiple parties and doNotPromptForParty=false
     cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });
 
@@ -159,6 +164,11 @@ describe('Party selection', () => {
   });
 
   it('Does not prompt for party when user has only one party', () => {
+    // Mock active instances to prevent instance-selection redirect from accumulated test data
+    cy.intercept('**/active', []).as('activeInstances');
+    // Clear party cookie from previous tests to avoid cross-test state pollution
+    cy.clearCookie('AltinnPartyId');
+
     // User 12345 (default) has only one party
     cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'default' });
 
@@ -169,8 +179,14 @@ describe('Party selection', () => {
   });
 
   it('Does not prompt for party when user has doNotPromptForParty=true even with multiple parties', () => {
-    // User 1001 (accountant) has multiple parties but doNotPromptForParty=true
-    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'accountant' });
+    // Use cyMockResponses to mock doNotPromptForParty=true and ensure proper authorization
+    // This is needed because user 1001 may not have proper instantiation rights in localtest
+    cyMockResponses({
+      doNotPromptForParty: true,
+      allowedToInstantiate: (parties) => [...parties, CyPartyMocks.ExamplePerson1],
+    });
+
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'default' });
 
     // Should skip party selection and go straight to app
     cy.get(appFrontend.appHeader).should('be.visible');
