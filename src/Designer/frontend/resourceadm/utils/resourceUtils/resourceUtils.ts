@@ -19,7 +19,11 @@ import {
   organizationSubject,
   policySubjectOrg,
 } from '@altinn/policy-editor/utils';
-import { ACCESS_LIST_SUBJECT_SOURCE } from '@altinn/policy-editor/constants';
+import {
+  ACCESS_LIST_SUBJECT_SOURCE,
+  CONSENT_ACTION,
+  REQUEST_CONSENT_ACTION,
+} from '@altinn/policy-editor/constants';
 
 /**
  * The map of resource type
@@ -518,13 +522,13 @@ const getConsentResourceDefaultRules = (resourceId: string): PolicyRule[] => {
   const requestConsentRule = {
     ...emptyPolicyRule,
     subject: [organizationSubject.urn],
-    actions: ['requestconsent'],
+    actions: [REQUEST_CONSENT_ACTION],
     ruleId: '1',
     resources: [[`urn:altinn:resource:${resourceId}`]],
   };
   const acceptConsentRule = {
     ...emptyPolicyRule,
-    actions: ['consent'],
+    actions: [CONSENT_ACTION],
     ruleId: '2',
     resources: [[`urn:altinn:resource:${resourceId}`]],
   };
@@ -536,9 +540,11 @@ const hasPolicyAction = (rule: PolicyRule, targetAction: string): boolean => {
   return rule.actions.some((action) => action === targetAction);
 };
 const hasConsentRules = (policyData: Policy): boolean => {
-  const hasAcceptConsentAction = policyData.rules.some((rule) => hasPolicyAction(rule, 'consent'));
+  const hasAcceptConsentAction = policyData.rules.some((rule) =>
+    hasPolicyAction(rule, CONSENT_ACTION),
+  );
   const hasRequestConsentAction = policyData.rules.some((rule) =>
-    hasPolicyAction(rule, 'requestconsent'),
+    hasPolicyAction(rule, REQUEST_CONSENT_ACTION),
   );
 
   return hasAcceptConsentAction && hasRequestConsentAction;
@@ -559,7 +565,8 @@ export const getResourcePolicyRules = (
     return {
       ...policyData,
       rules: policyData.rules.filter(
-        (rule) => !hasPolicyAction(rule, 'consent') && !hasPolicyAction(rule, 'requestconsent'),
+        (rule) =>
+          !hasPolicyAction(rule, CONSENT_ACTION) && !hasPolicyAction(rule, REQUEST_CONSENT_ACTION),
       ),
     };
   }

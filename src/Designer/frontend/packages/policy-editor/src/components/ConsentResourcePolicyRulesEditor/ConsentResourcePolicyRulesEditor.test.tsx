@@ -9,7 +9,11 @@ import {
 } from '../../contexts/PolicyEditorContext';
 import { ConsentResourcePolicyRulesEditor } from './ConsentResourcePolicyRulesEditor';
 import { emptyPolicyRule, organizationSubject } from '../../utils';
-import { ACCESS_LIST_SUBJECT_SOURCE } from '@altinn/policy-editor/constants';
+import {
+  ACCESS_LIST_SUBJECT_SOURCE,
+  CONSENT_ACTION,
+  REQUEST_CONSENT_ACTION,
+} from '@altinn/policy-editor/constants';
 
 const accessListSubject = {
   id: 'test-liste',
@@ -43,14 +47,14 @@ const resourceId = 'consent-resource';
 const requestConsentRule = {
   ...emptyPolicyRule,
   subject: [],
-  actions: ['requestconsent'],
+  actions: [REQUEST_CONSENT_ACTION],
   ruleId: '1',
   resources: [[{ id: resourceId, type: 'urn:altinn:resource' }]],
 };
 const acceptConsentRule = {
   ...emptyPolicyRule,
   subject: [],
-  actions: ['consent'],
+  actions: [CONSENT_ACTION],
   ruleId: '2',
   resources: [[{ id: resourceId, type: 'urn:altinn:resource' }]],
 };
