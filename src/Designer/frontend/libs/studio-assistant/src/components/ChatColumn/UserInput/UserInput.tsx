@@ -5,7 +5,7 @@ import { PaperclipIcon, PaperplaneFillIcon, XMarkIcon } from '@studio/icons';
 import type { UserAttachment, UserMessage } from '../../../types/ChatThread';
 import classes from './UserInput.module.css';
 import { createUserMessage } from '../../../utils/utils';
-import type { AssistantTexts } from 'libs/studio-assistant/src/types/AssistantTexts';
+import type { AssistantTexts } from '../../../types/AssistantTexts';
 
 export type UserInputProps = {
   texts: AssistantTexts;
