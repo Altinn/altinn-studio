@@ -12,7 +12,7 @@ class SupportedContextPadProvider {
         ...deleteEntry,
         action: {
           click: function (event, element) {
-            if (element.type !== 'bpmn:Task') {
+            if (element.type !== 'bpmn:Task' && element.type !== 'bpmn:ServiceTask') {
               deleteEntry.action.click(event, element);
               return;
             }
