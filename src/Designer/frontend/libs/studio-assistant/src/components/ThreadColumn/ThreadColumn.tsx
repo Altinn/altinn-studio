@@ -12,7 +12,7 @@ export type ThreadColumnProps = {
   selectedThreadId?: string;
   currentSessionId?: string;
   onToggleCollapse?: () => void;
-  onSelectThread: (threadId: string) => void;
+  onSelectThread?: (threadId: string) => void;
   onDeleteThread?: (threadId: string) => void;
   onCreateThread?: () => void;
 };
@@ -23,7 +23,7 @@ export function ThreadColumn({
   selectedThreadId,
   currentSessionId,
   onToggleCollapse,
-  onSelectThread,
+  onSelectThread = (): void => {},
   onDeleteThread,
   onCreateThread,
 }: ThreadColumnProps): ReactElement {

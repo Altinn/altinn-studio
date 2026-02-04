@@ -44,7 +44,7 @@ const defaultProps: AssistantProps = {
   chatThreads: [],
   activeThreadId: '',
   connectionStatus: 'error',
-  workflowStatus: undefined,
+  workflowStatus: { isActive: false },
   previewContent: <p>Preview placeholder</p>,
 };
 

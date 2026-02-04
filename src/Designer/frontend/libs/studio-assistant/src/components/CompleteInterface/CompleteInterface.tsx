@@ -34,7 +34,7 @@ export function CompleteInterface({
   // Get the current thread - prefer activeThreadId, then most recently updated thread
   const currentThread = React.useMemo(() => {
     // First try to find the explicitly requested thread
-    if (activeThreadId) {
+    if (activeThreadId && chatThreads) {
       const thread = chatThreads.find((t) => t.id === activeThreadId);
       if (thread) {
         return thread;
@@ -79,7 +79,7 @@ export function CompleteInterface({
           ) : (
             <ThreadColumn
               texts={texts}
-              chatThreads={chatThreads}
+              chatThreads={chatThreads ?? []}
               selectedThreadId={activeThreadId ? currentThread.id : undefined}
               currentSessionId={activeThreadId}
               onSelectThread={onSelectThread}

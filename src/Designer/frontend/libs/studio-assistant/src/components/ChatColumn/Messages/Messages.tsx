@@ -53,7 +53,7 @@ type MessageItemProps = {
 function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemProps): ReactElement {
   const isUser = message.author === MessageAuthor.User;
 
-  const renderUserAttachments = (attachments: UserAttachment[]): ReactElement => {
+  const renderUserAttachments = (attachments: UserAttachment[]): ReactElement | null => {
     if (!attachments || attachments.length === 0) {
       return null;
     }
@@ -225,7 +225,7 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
     return html;
   };
 
-  const renderFilesChanged = (): ReactElement => {
+  const renderFilesChanged = (): ReactElement | null => {
     if (message.author !== MessageAuthor.Assistant) return null;
 
     const assistantMessage = message;
@@ -264,7 +264,11 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  const renderSourceItem = (source: Source, index: number, isCited: boolean) => (
+  const renderSourceItem = (
+    source: Source,
+    index: number,
+    isCited: boolean,
+  ): ReactElement | null => (
     <div
       key={`${source.tool}-${index}`}
       className={`${classes.sourceItem} ${!isCited ? classes.sourceItemSecondary : ''}`}
@@ -300,7 +304,7 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
     </div>
   );
 
-  const renderSources = (): ReactElement => {
+  const renderSources = (): ReactElement | null => {
     if (message.author !== MessageAuthor.Assistant) return null;
 
     const assistantMessage = message;
