@@ -3,7 +3,10 @@ import type { SelectionComponentType } from '../../../../../../../types/FormComp
 import { componentMocks } from '../../../../../../../testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { PublishedCodeListReferenceValues } from '../../types/PublishedCodeListReferenceValues';
-import { createPublishedCodeListReferenceString } from '../../utils/published-code-list-reference-utils';
+import {
+  createPublishedCodeListReferenceString,
+  latestVersionString,
+} from '../../utils/published-code-list-reference-utils';
 import {
   extractPublishedCodeListNameFromComponent,
   extractPublishedCodeListVersionFromComponent,
@@ -42,14 +45,14 @@ describe('PublishedOptionListSelector utils', () => {
       expect(extractPublishedCodeListVersionFromComponent(component)).toBe(version);
     });
 
-    it('Returns an empty string when the optionsId is not a published code list reference', () => {
+    it('Returns the latest version string when the optionsId is not a published code list reference', () => {
       const component = createTestComponent('some-other-id');
-      expect(extractPublishedCodeListVersionFromComponent(component)).toBe('');
+      expect(extractPublishedCodeListVersionFromComponent(component)).toBe(latestVersionString);
     });
 
-    it('Returns an empty string when no optionsId is set', () => {
+    it('Returns the latest version string when no optionsId is set', () => {
       const component = createTestComponent(undefined);
-      expect(extractPublishedCodeListVersionFromComponent(component)).toBe('');
+      expect(extractPublishedCodeListVersionFromComponent(component)).toBe(latestVersionString);
     });
   });
 

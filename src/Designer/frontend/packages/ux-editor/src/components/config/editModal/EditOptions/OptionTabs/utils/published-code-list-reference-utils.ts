@@ -26,3 +26,5 @@ export function createPublishedCodeListReferenceString({
 }
 
 const publishedCodeListReferenceRegex = /^lib\*\*([^*]+)\*\*([^*]+)\*\*(\d+|_latest)$/; // Named capturing groups would make this Regex more readable, but that's not supported by the current Ecmascript version
+
+export const latestVersionString = '_latest';
