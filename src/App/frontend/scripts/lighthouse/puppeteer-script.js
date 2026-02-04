@@ -20,7 +20,7 @@ module.exports = async (browser) => {
   });
 
   await page.goto(BASE_URL, { waitUntil: 'networkidle0' });
-  console.log('📝 Filling login form...');
+  console.log('📝 Filling in login form...');
 
   // Wait max 10s for login elements to be present before interacting
   await page.waitForSelector('select#UserSelect', { timeout: 10000 });
@@ -30,11 +30,8 @@ module.exports = async (browser) => {
   await page.select('select#AuthenticationLevel', AUTH_LEVEL);
   console.log(`✅ Selected auth level: ${AUTH_LEVEL}`);
 
-  const appSelect = await page.$('select#AppPathSelection');
-  if (appSelect) {
-    await appSelect.select(APP_PATH);
-    console.log(`✅ Selected app path: ${APP_PATH}`);
-  }
+  await page.select('select#AppPathSelection', APP_PATH);
+  console.log(`✅ Selected app path: ${APP_PATH}`);
 
   console.log('🚀 Submitting login form...');
   await Promise.all([

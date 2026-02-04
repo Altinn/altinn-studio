@@ -52,10 +52,6 @@ Altinn, and making sure they are consistent. */
 }
 /* ==== */
 
-.repeatingGroupTable > tbody > tr:hover td {
-  background-color: unset;
-}
-
 .nestedTable {
   background-color: var(--ds-color-neutral-background-default);
 }
@@ -124,6 +120,19 @@ table > tbody > tr.editingRow:hover {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   text-align: var(--cell-text-alignment);
+}
+
+.contentFormatting input {
+  text-align: var(--cell-text-alignment) !important;
+}
+
+.contentFormattingEditable {
+  overflow: visible;
+  display: block;
+}
+
+.contentFormattingEditable input {
+  text-align: var(--cell-text-alignment) !important;
 }
 
 .spaceAfterContent {

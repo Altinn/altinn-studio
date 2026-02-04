@@ -9,6 +9,7 @@ metadata:
   name: runtime-environment
   namespace: runtime-gateway
 data:
+  azure_subscription_id: ${AZURE_SUBSCRIPTION_ID}
   upgrade_channel: ${UPGRADE_CHANNEL}
   environment: ${ENVIRONMENT}
   serviceowner: ${SERVICEOWNER_ID}
@@ -47,3 +48,4 @@ spec:
   postBuild:
     substitute:
       SERVICEOWNER_ID: ${SERVICEOWNER_ID}
+      GATEWAY_ENTRA_CLIENT_ID: ${STUDIO_GATEWAY_CLIENT_ID}

@@ -147,6 +147,33 @@ describe('RepeatingGroupTable', () => {
       await userEvent.click(screen.getAllByRole('button', { name: /rediger/i })[0]);
       expect(screen.getByTestId('editIndex')).toHaveTextContent('0');
     });
+
+    it('should render EditableCell when editInTable is enabled for a column', async () => {
+      const groupWithEditInTable = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        tableColumns: { field1: { editInTable: true } },
+      });
+      const layout = getLayout(groupWithEditInTable, components);
+      await render(layout);
+      const inputs = screen.getAllByRole('textbox');
+      expect(inputs.length).toBeGreaterThan(0);
+      const field1Inputs = inputs.filter((input) => input.getAttribute('id')?.includes('field1'));
+      expect(field1Inputs.length).toBeGreaterThan(0);
+    });
+
+    it('should render EditableCell when edit mode is onlyTable', async () => {
+      const groupWithOnlyTableMode = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        edit: { mode: 'onlyTable' },
+        tableColumns: { field1: { editInTable: true } },
+      });
+      const layout = getLayout(groupWithOnlyTableMode, components);
+      await render(layout);
+      const inputs = screen.getAllByRole('textbox');
+      expect(inputs.length).toBeGreaterThan(0);
+      const field1Inputs = inputs.filter((input) => input.getAttribute('id')?.includes('field1'));
+      expect(field1Inputs.length).toBeGreaterThan(0);
+    });
   });
 
   describe('mobile view', () => {
@@ -172,6 +199,49 @@ describe('RepeatingGroupTable', () => {
     });
   });
 
+  describe('compactButtons', () => {
+    const { setScreenWidth } = mockMediaQuery(992);
+    beforeEach(() => {
+      setScreenWidth(1337);
+    });
+
+    it('should hide button text in view mode when compactButtons is true', async () => {
+      const groupWithCompactButtons = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        edit: { compactButtons: true },
+      });
+      const layout = getLayout(groupWithCompactButtons, components);
+      await render(layout);
+      const editButtons = screen.getAllByRole('button', { name: /Rediger/i });
+      const deleteButtons = screen.getAllByRole('button', { name: /Slett/i });
+      expect(editButtons).toHaveLength(4);
+      expect(deleteButtons).toHaveLength(4);
+      editButtons.forEach((button) => {
+        expect(button).not.toHaveTextContent('Rediger');
+      });
+      deleteButtons.forEach((button) => {
+        expect(button).not.toHaveTextContent('Slett');
+      });
+    });
+
+    it('should show button text in edit mode when compactButtons is true', async () => {
+      const groupWithCompactButtons = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        edit: { compactButtons: true },
+      });
+      const layout = getLayout(groupWithCompactButtons, components);
+      await render(layout);
+      await userEvent.click(screen.getAllByRole('button', { name: /Rediger/i })[0]);
+      expect(screen.getByTestId('editIndex')).toHaveTextContent('0');
+      const editButtonsInEditMode = screen.getAllByRole('button', { name: /Lagre og lukk/i });
+      const tableEditButton = editButtonsInEditMode.find((btn) => btn.classList.contains('tableButton'));
+      expect(tableEditButton).toHaveTextContent('Lagre og lukk');
+      const deleteButtons = screen.getAllByRole('button', { name: /Slett/i });
+      expect(deleteButtons[0]).toHaveTextContent('Slett');
+      expect(deleteButtons[1]).not.toHaveTextContent('Slett');
+    });
+  });
+
   const render = async (layout = getLayout(group, components)) =>
     await renderWithInstanceAndLayout({
       renderer: (
@@ -188,6 +258,18 @@ describe('RepeatingGroupTable', () => {
             {
               id: 'option.label',
               value: 'Value to be shown',
+            },
+            {
+              id: 'general.delete',
+              value: 'Slett',
+            },
+            {
+              id: 'general.edit_alt',
+              value: 'Rediger',
+            },
+            {
+              id: 'general.save_and_close',
+              value: 'Lagre og lukk',
             },
           ],
         }),

@@ -1,6 +1,6 @@
 module altinn.studio/runtime-fixture
 
-go 1.25.5
+go 1.25.6
 
 require (
 	github.com/fluxcd/flux2/v2 v2.7.5

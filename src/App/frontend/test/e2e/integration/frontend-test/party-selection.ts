@@ -1,6 +1,7 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { cyMockResponses, CyPartyMocks, removeAllButOneOrg } from 'test/e2e/pageobjects/party-mocks';
+import { cyUserCredentials } from 'test/e2e/support/auth';
 
 import type { IParty } from 'src/types/shared';
 
@@ -27,7 +28,7 @@ describe('Party selection', () => {
     cyMockResponses({ allowedToInstantiate: [CyPartyMocks.ExampleOrgWithSubUnit, CyPartyMocks.ExampleDeletedOrg] });
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
-    cy.title().should('eq', 'Hvem vil du sende inn for? - frontend-test - Testdepartementet');
+    cy.title().should('eq', `Hvem vil du sende inn for? - ${appFrontend.apps.frontendTest} - Testdepartementet`);
   });
 
   it('Should skip party selection if you can only represent one person', () => {
@@ -38,7 +39,7 @@ describe('Party selection', () => {
     });
     cy.intercept(
       'POST',
-      `/ttd/frontend-test/instances?instanceOwnerPartyId=${CyPartyMocks.ExamplePerson1.partyId}*`,
+      `/ttd/${appFrontend.apps.frontendTest}/instances?instanceOwnerPartyId=${CyPartyMocks.ExamplePerson1.partyId}*`,
     ).as('loadInstance');
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.partySelection.party).should('not.exist');
@@ -247,8 +248,11 @@ describe('Party selection', () => {
 
   it('Should be possible to select another party if instantiation fails, and go back to party selection and instantiate again', () => {
     cy.allowFailureOnEnd();
+    const user = cyUserCredentials.accountant.firstName;
     cyMockResponses({
-      allowedToInstantiate: removeAllButOneOrg,
+      allowedToInstantiate: (parties) =>
+        // Removing all other users as well, since one of the users are not allowed to instantiate on tt02
+        removeAllButOneOrg(parties).filter((party) => party.orgNumber || party.name.includes(user)),
       doNotPromptForParty: false,
     });
     cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'accountant' });
@@ -281,7 +285,7 @@ describe('Party selection', () => {
 
     // Navigate directly to /#/party-selection to test that instantiation once more works
     cy.window().then((win) => {
-      win.location.hash = '#/party-selection';
+      win.location.pathname = `/ttd/${appFrontend.apps.frontendTest}/party-selection`;
     });
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
 

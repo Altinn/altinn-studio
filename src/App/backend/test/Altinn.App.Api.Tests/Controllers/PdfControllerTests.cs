@@ -14,6 +14,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -103,6 +104,8 @@ public class PdfControllerTests
         var httpClient = new HttpClient(handler.Object);
 
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var hostEnvironment = new Mock<IHostEnvironment>();
+        hostEnvironment.Setup(x => x.EnvironmentName).Returns(Environments.Development);
 
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
@@ -110,7 +113,8 @@ public class PdfControllerTests
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
             _userTokenProvider.Object,
-            httpContextAccessor.Object
+            httpContextAccessor.Object,
+            hostEnvironment.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -153,7 +157,7 @@ public class PdfControllerTests
         requestBody
             .Should()
             .Contain(
-                @"url"":""http://local.altinn.cloud/org/app/#/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
+                @"url"":""http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
             );
         requestBody.Should().NotContain(@"name"":""frontendVersion");
     }
@@ -176,6 +180,8 @@ public class PdfControllerTests
         var httpClient = new HttpClient(handler.Object);
 
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var hostEnvironment = new Mock<IHostEnvironment>();
+        hostEnvironment.Setup(x => x.EnvironmentName).Returns(Environments.Development);
 
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
@@ -183,7 +189,8 @@ public class PdfControllerTests
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
             _userTokenProvider.Object,
-            httpContextAccessor.Object
+            httpContextAccessor.Object,
+            hostEnvironment.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -226,7 +233,7 @@ public class PdfControllerTests
         requestBody
             .Should()
             .Contain(
-                @"url"":""http://local.altinn.cloud/org/app/#/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
+                @"url"":""http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
             );
         requestBody
             .Should()
@@ -251,6 +258,8 @@ public class PdfControllerTests
         var httpClient = new HttpClient(handler.Object);
 
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var hostEnvironment = new Mock<IHostEnvironment>();
+        hostEnvironment.Setup(x => x.EnvironmentName).Returns(Environments.Production);
 
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
@@ -258,7 +267,8 @@ public class PdfControllerTests
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
             _userTokenProvider.Object,
-            httpContextAccessor.Object
+            httpContextAccessor.Object,
+            hostEnvironment.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -301,7 +311,7 @@ public class PdfControllerTests
         requestBody
             .Should()
             .Contain(
-                @"url"":""http://org.apps.tt02.altinn.no/org/app/#/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
+                @"url"":""http://org.apps.tt02.altinn.no/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
             );
         requestBody.Should().NotContain(@"name"":""frontendVersion");
     }

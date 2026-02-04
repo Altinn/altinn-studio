@@ -1,0 +1,31 @@
+.pdfConfig {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-3);
+  padding-inline: var(--fds-spacing-5);
+  margin-top: var(--fds-spacing-3);
+  margin-bottom: var(--fds-spacing-3);
+  list-style-type: none;
+}
+
+ol > li::marker {
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-5);
+}
+
+.displayTile {
+  padding-inline: var(--fds-spacing-5);
+}
+
+.boldFont {
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.description {
+  margin-top: calc(var(--fds-spacing-2) * -1);
+}

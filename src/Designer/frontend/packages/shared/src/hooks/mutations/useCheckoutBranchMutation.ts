@@ -16,13 +16,13 @@ export const useCheckoutBranchMutation = (
 
   return useMutation({
     mutationFn: (branchName: string) => checkoutBranch(org, app, branchName),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.CurrentBranch, org, app] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.RepoStatus, org, app] });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
-    onError: (error, variables, context) => {
-      options?.onError?.(error, variables, context);
+    onError: (error, variables, onMutateResult, context) => {
+      options?.onError?.(error, variables, onMutateResult, context);
     },
     meta: {
       hideDefaultError: (error: AxiosError) => HttpResponseUtils.isConflict(error),

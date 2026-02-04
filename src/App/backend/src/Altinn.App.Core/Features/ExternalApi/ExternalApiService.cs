@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Features.ExternalApi;
 /// <summary>
 /// Result of external api data retrieval
 /// </summary>
-sealed public record ExternalApiDataResult(object? Data, bool WasExternalApiFound);
+public sealed record ExternalApiDataResult(object? Data, bool WasExternalApiFound);
 
 /// <summary>
 /// Interface for handling external api data

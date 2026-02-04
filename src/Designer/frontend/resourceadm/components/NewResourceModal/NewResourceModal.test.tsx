@@ -12,7 +12,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const mockButtonText: string = 'Mock Button';
-const org = 'orgname';
+const org = 'skd';
 
 const mockOnClose = jest.fn();
 
@@ -73,10 +73,26 @@ describe('NewResourceModal', () => {
     const user = userEvent.setup();
     await renderAndOpenModal();
 
-    const titleInput = screen.getByLabelText(
-      textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
+    const idInput = screen.getByLabelText(
+      textMock('resourceadm.dashboard_resource_name_and_id_resource_id'),
     );
-    await user.type(titleInput, 'test');
+    await user.type(idInput, 'test');
+
+    const createButton = screen.getByRole('button', {
+      name: textMock('resourceadm.dashboard_create_modal_create_button'),
+    });
+    expect(createButton).toHaveAttribute('aria-disabled', 'false');
+  });
+
+  test('that create button should be enabled when the form is valid and "skd" uses prefix "ske"', async () => {
+    const user = userEvent.setup();
+    await renderAndOpenModal();
+
+    const idInput = screen.getByLabelText(
+      textMock('resourceadm.dashboard_resource_name_and_id_resource_id'),
+    );
+    await user.clear(idInput);
+    await user.type(idInput, 'ske-test');
 
     const createButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_create_modal_create_button'),
@@ -88,53 +104,19 @@ describe('NewResourceModal', () => {
     const user = userEvent.setup();
     await renderAndOpenModal();
 
-    const titleInput = screen.getByLabelText(
-      textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
+    const idInput = screen.getByLabelText(
+      textMock('resourceadm.dashboard_resource_name_and_id_resource_id'),
     );
-    await user.type(titleInput, 'test');
+    await user.type(idInput, 'test');
 
     const createButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_create_modal_create_button'),
     });
 
     await user.click(createButton);
-    expect(mockedNavigate).toHaveBeenCalledWith(`/${org}/${org}-resources/resource/test/about`);
-  });
-
-  test('should show error message if resource id starts with app_', async () => {
-    const user = userEvent.setup();
-    await renderAndOpenModal({
-      createResource: jest
-        .fn()
-        .mockImplementation(() => Promise.reject({ response: { status: ServerCodes.Conflict } })),
-    });
-
-    const titleInput = screen.getByLabelText(
-      textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
+    expect(mockedNavigate).toHaveBeenCalledWith(
+      `/${org}/${org}-resources/resource/${org}-test/about`,
     );
-    await user.type(titleInput, 'app_test');
-
-    expect(
-      screen.getByText(textMock('resourceadm.dashboard_resource_id_cannot_be_app')),
-    ).toBeInTheDocument();
-  });
-
-  test('should show error message if resource id starts with se_', async () => {
-    const user = userEvent.setup();
-    await renderAndOpenModal({
-      createResource: jest
-        .fn()
-        .mockImplementation(() => Promise.reject({ response: { status: ServerCodes.Conflict } })),
-    });
-
-    const titleInput = screen.getByLabelText(
-      textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
-    );
-    await user.type(titleInput, 'se_test');
-
-    expect(
-      screen.getByText(textMock('resourceadm.dashboard_resource_id_cannot_be_se')),
-    ).toBeInTheDocument();
   });
 
   test('should show error message if resource id is already in use', async () => {
@@ -145,10 +127,10 @@ describe('NewResourceModal', () => {
         .mockImplementation(() => Promise.reject({ response: { status: ServerCodes.Conflict } })),
     });
 
-    const titleInput = screen.getByLabelText(
-      textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
+    const idInput = screen.getByLabelText(
+      textMock('resourceadm.dashboard_resource_name_and_id_resource_id'),
     );
-    await user.type(titleInput, 'test');
+    await user.type(idInput, 'test');
 
     const createButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_create_modal_create_button'),
@@ -157,7 +139,11 @@ describe('NewResourceModal', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(textMock('resourceadm.dashboard_resource_name_and_id_error')),
+        screen.getByText(
+          textMock('resourceadm.dashboard_resource_name_and_id_error', {
+            orgPrefix: `skd-, skd_, ske- ${textMock('expression.or')} ske_`,
+          }),
+        ),
       ).toBeInTheDocument();
     });
   });

@@ -300,7 +300,7 @@ Cypress.Commands.add('clearSelectionAndWait', (viewport) => {
   });
 });
 
-Cypress.Commands.add('getCurrentPageId', () => cy.location('hash').then((hash) => hash.split('/').slice(-1)[0]));
+Cypress.Commands.add('getCurrentPageId', () => cy.location('pathname').then((pathname) => pathname.split('/').at(-1)));
 
 const defaultSnapshotOptions: SnapshotOptions = {
   wcag: true,
@@ -537,18 +537,6 @@ Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
   cy.findByRole('progressbar').should('not.exist');
 });
 
-Cypress.Commands.add('interceptLayoutSetsUiSettings', (uiSettings) => {
-  cy.intercept('GET', '**/api/layoutsets', (req) => {
-    req.continue((res) => {
-      const body = JSON.parse(res.body);
-      res.body = JSON.stringify({
-        ...body,
-        uiSettings: { ...body.uiSettings, ...uiSettings },
-      });
-    });
-  }).as('layoutSets');
-});
-
 Cypress.Commands.add('getSummary', (label) => {
   cy.get(`[data-testid^=summary-]:has(span:contains(${label}))`);
 });
@@ -652,9 +640,6 @@ Cypress.Commands.add(
     // Store initial viewport size for later
     cy.getCurrentViewportSize().as('testPdfViewportSize');
 
-    // Make sure instantiation is completed before we get the url
-    cy.location('hash', { log: false }).should('contain', '#/instance/').as('hashBeforePdf');
-
     // Make sure we blur any selected component before reload to trigger save
     cy.get('body').click({ log: false });
 
@@ -733,11 +718,15 @@ Cypress.Commands.add(
         cy.viewport(width, height);
       });
       cy.get('body').invoke('css', 'margin', '');
+      cy.get('#readyForPrint').should('exist');
 
-      cy.get('@hashBeforePdf').then((hashBeforePdf) => {
-        cy.window().then((win) => {
-          win.location.hash = hashBeforePdf.toString();
-        });
+      // Exit pdf by removing pdf queryparam
+      cy.location().then((location) => {
+        const params = new URLSearchParams(location.search);
+        if (params.has('pdf')) {
+          params.delete('pdf');
+          cy.visit(location.pathname + (params.size ? `?${params}` : ''));
+        }
       });
 
       cy.get('#readyForPrint').should('not.exist');

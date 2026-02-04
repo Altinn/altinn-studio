@@ -13,7 +13,7 @@ import { codeListsDataMock } from '../../../../../mocks/mockPagesConfig';
 import { CodeListUsageTaskType } from '../../../../types/CodeListUsageTaskType';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import { textResourcesNb } from '../../../../test-data/textResources';
-import { Guard } from '@studio/pure-functions';
+import { Guard } from '@studio/guard';
 
 const onDeleteCodeListMock = jest.fn();
 const onUpdateCodeListIdMock = jest.fn();
@@ -299,7 +299,11 @@ describe('CodeListsWithTextResources', () => {
   });
 });
 
-const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeListId: string) => {
+const changeCodeListId = async (
+  user: UserEvent,
+  oldCodeListId: string,
+  newCodeListId: string,
+): Promise<void> => {
   const codeListIdToggleTextfield = screen.getByTitle(
     textMock('app_content_library.code_lists_with_text_resources.code_list_view_id_title', {
       codeListName: oldCodeListId,
@@ -362,7 +366,7 @@ describe('updateCodeListWithMetadata', () => {
   });
 });
 
-const getButton = (name: string, expanded?: boolean) =>
+const getButton = (name: string, expanded?: boolean): HTMLElement =>
   screen.getByRole('button', { name, expanded });
 
-const queryButton = (name: string) => screen.queryByRole('button', { name });
+const queryButton = (name: string): HTMLElement | null => screen.queryByRole('button', { name });

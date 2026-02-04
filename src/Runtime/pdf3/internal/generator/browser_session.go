@@ -286,27 +286,40 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 				sameSite = "None"
 			}
 
-			cookieValue := map[string]any{
+			cookieValue := cookie.Value
+			if strings.HasSuffix(cookie.Name, "tracestate") && strings.ContainsRune(cookieValue, ';') {
+				// w3c tracestate values are e.g. baggage and can contain semicolons
+				// semicolons are invalid cookie values (CDP/chrome will complain).
+				// App backend and frontend are being updated to handle this through base64 encoding,
+				// but for now we need to handle this here as well since apps are not updated right away.
+				w.logger.Warn(
+					"Cookie value looks like a tracestate and has semicolons skipping",
+					"name", cookie.Name,
+				)
+				continue
+			}
+
+			cookieData := map[string]any{
 				"name":     cookie.Name,
-				"value":    cookie.Value,
+				"value":    cookieValue,
 				"sameSite": sameSite,
 			}
 			if cookie.Domain != "" {
-				cookieValue["domain"] = cookie.Domain
+				cookieData["domain"] = cookie.Domain
 			}
 			if cookie.Path != "" {
-				cookieValue["path"] = cookie.Path
+				cookieData["path"] = cookie.Path
 			}
 			if cookie.Secure != nil {
-				cookieValue["secure"] = *cookie.Secure
+				cookieData["secure"] = *cookie.Secure
 			}
 			if cookie.HttpOnly != nil {
-				cookieValue["httpOnly"] = *cookie.HttpOnly
+				cookieData["httpOnly"] = *cookie.HttpOnly
 			}
 			if cookie.Url != "" {
-				cookieValue["url"] = cookie.Url
+				cookieData["url"] = cookie.Url
 			}
-			cookies = append(cookies, cookieValue)
+			cookies = append(cookies, cookieData)
 		}
 
 		startedProcessing = true

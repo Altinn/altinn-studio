@@ -9,9 +9,8 @@ import { Pagination } from 'src/app-components/Pagination/Pagination';
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import {
   ActiveInstancesProvider,
   useActiveInstances,
@@ -24,6 +23,7 @@ import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffect
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { focusMainContent } from 'src/hooks/useNavigatePage';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
 import type { ISimpleInstance } from 'src/types';
@@ -51,7 +51,7 @@ export const InstanceSelectionWrapper = () => (
 
 function InstanceSelection() {
   const _instances = useActiveInstances();
-  const applicationMetadata = useApplicationMetadata();
+  const applicationMetadata = getApplicationMetadata();
   const instanceSelectionOptions = applicationMetadata?.onEntry.instanceSelection;
   const selectedIndex = instanceSelectionOptions?.defaultSelectedOption;
   const { langAsString } = useLanguage();
@@ -60,7 +60,9 @@ function InstanceSelection() {
   const instantiation = useInstantiation();
   const selectedParty = useSelectedParty();
   const setNavigationEffect = useSetNavigationEffect();
-  const { performProcess, isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
+  const performProcess = useProcessingMutation('instantiation');
+  const isLoading = useIsThisProcessing('instantiation');
+  const isAnyProcessing = useIsAnyProcessing();
   const navigate = useNavigate();
 
   const appName = useAppName();

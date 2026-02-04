@@ -6,7 +6,6 @@ import type { CyUser, TenorUser } from 'test/e2e/support/auth';
 
 import type { IFeatureToggles } from 'src/features/toggles';
 import type { BackendValidationIssue, BackendValidationIssuesWithSource } from 'src/features/validation';
-import type { ILayoutSets } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { LooseAutocomplete } from 'src/types';
 
@@ -165,8 +164,6 @@ declare global {
         allLayoutsMutator?: (layouts: ILayouts) => void,
       ): Chainable<null>;
 
-      interceptLayoutSetsUiSettings(uiSettings: Partial<ILayoutSets['uiSettings']>): Chainable<null>;
-
       iframeCustom(): Chainable<null>;
 
       assertUser(user: CyUser): Chainable<null>;
@@ -205,7 +202,7 @@ declare global {
       /**
        * Select from a dropdown in the design system
        */
-      dsSelect(selector: string, value: string, debounce?: boolean): Chainable<null>;
+      dsSelect(selector: string, value: string | RegExp, debounce?: boolean): Chainable<null>;
 
       /**
        * Shortcut for clicking an element and waiting for it to disappear

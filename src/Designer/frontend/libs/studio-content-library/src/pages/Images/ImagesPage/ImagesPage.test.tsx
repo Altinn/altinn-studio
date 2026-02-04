@@ -53,6 +53,6 @@ const defaultImagesProps: ImagesPageProps = {
   onUpdateImage: onUpdateImageMock,
 };
 
-const renderImages = (props: Partial<ImagesPageProps> = {}) => {
+const renderImages = (props: Partial<ImagesPageProps> = {}): void => {
   render(<ImagesPage {...defaultImagesProps} {...props} />);
 };

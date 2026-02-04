@@ -3,6 +3,7 @@ using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
@@ -108,7 +109,8 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         public IActionResult AppToken(AppKey appKey)
         {
-            _sourceControl.StoreAppTokenForUser(appKey.Key);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            _sourceControl.StoreAppTokenForUser(appKey.Key, developer);
             return Redirect("/");
         }
     }
