@@ -117,7 +117,6 @@ internal sealed class BootstrapGlobalService(
             && await _appResources.GetTexts(org, app, languageFromCookie) is TextResource textResourceFromCookie
         )
         {
-            _logger.LogDebug("Found text resources with language from cookie");
             return textResourceFromCookie;
         }
 
@@ -127,7 +126,6 @@ internal sealed class BootstrapGlobalService(
             && await _appResources.GetTexts(org, app, languageFromUrl) is TextResource textResourceFromUrl
         )
         {
-            _logger.LogDebug("Found text resources with language from query params.");
             return textResourceFromUrl;
         }
 
@@ -137,25 +135,19 @@ internal sealed class BootstrapGlobalService(
             && await _appResources.GetTexts(org, app, userLanguage) is TextResource textResourceFromUserLanguage
         )
         {
-            _logger.LogDebug("Found text resources with user preferred language {Language}.", userLanguage);
             return textResourceFromUserLanguage;
         }
 
-        _logger.LogDebug("Falling back to default language '{DefaultLanguage}' for text resources.", DefaultLanguage);
         if (await _appResources.GetTexts(org, app, DefaultLanguage) is TextResource textResourceFromDefaultLanguage)
         {
             return textResourceFromDefaultLanguage;
         }
 
-        _logger.LogDebug(
-            "Could not find any text resources for the default language. Checking all other available languages"
-        );
         foreach (string availableLanguage in availableLanguages)
         {
             TextResource? availableLangTextResource = await _appResources.GetTexts(org, app, availableLanguage);
             if (availableLangTextResource is not null)
             {
-                _logger.LogDebug("Found text resource with language {AvailableLanguage}", availableLanguage);
                 return availableLangTextResource;
             }
         }
@@ -178,18 +170,12 @@ internal sealed class BootstrapGlobalService(
         string cookieKey = $"{org}_{app}_{user.UserPartyId}_lang";
         if (!_httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(cookieKey, out var languageCookie))
         {
-            _logger.LogInformation("No language cookie found for cookieKey {CookieKey}", cookieKey);
             return null;
         }
 
         try
         {
-            var languageCookieValue = JsonSerializer.Deserialize<string>(languageCookie);
-            _logger.LogInformation(
-                "Successfully deserialized language cookie value for cookieKey {CookieKey}",
-                cookieKey
-            );
-            return languageCookieValue;
+            return JsonSerializer.Deserialize<string>(languageCookie);
         }
         catch (JsonException ex)
         {
