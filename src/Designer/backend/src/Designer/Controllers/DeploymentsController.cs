@@ -89,12 +89,11 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Organisation</param>
         /// <param name="app">Application name</param>
         /// <param name="createDeployment">Release model</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Created deployment</returns>
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        public async Task<ActionResult<DeploymentEntity>> Create(string org, string app, [FromBody] CreateDeploymentRequestViewModel createDeployment, CancellationToken cancellationToken)
+        public async Task<ActionResult<DeploymentEntity>> Create(string org, string app, [FromBody] CreateDeploymentRequestViewModel createDeployment)
         {
             if (!ModelState.IsValid)
             {
@@ -105,7 +104,7 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
 
-            return Created(string.Empty, await _deploymentService.CreateAsync(authenticatedContext, createDeployment.ToDomainModel(), cancellationToken));
+            return Created(string.Empty, await _deploymentService.CreateAsync(authenticatedContext, createDeployment.ToDomainModel()));
         }
 
         /// <summary>
@@ -114,17 +113,16 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Organisation name</param>
         /// <param name="app">Application name</param>
         /// <param name="undeployRequest">Undeployment request containing the target environment</param>
-        /// <param name="cancellationToken">Cancellation token to abort the operation</param>
         /// <returns>Accepted response with tracking information</returns>
         [HttpPost("undeploy")]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
-        public async Task<IActionResult> Undeploy(string org, string app, [FromBody] UndeployRequest undeployRequest, CancellationToken cancellationToken)
+        public async Task<IActionResult> Undeploy(string org, string app, [FromBody] UndeployRequest undeployRequest)
         {
             Guard.AssertValidEnvironmentName(undeployRequest.Environment);
             string token = await HttpContext.GetDeveloperAppTokenAsync();
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
-            await _deploymentService.UndeployAsync(authenticatedContext, undeployRequest.Environment, cancellationToken);
+            await _deploymentService.UndeployAsync(authenticatedContext, undeployRequest.Environment);
 
             return Accepted();
         }

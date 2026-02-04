@@ -25,7 +25,6 @@ import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataRea
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
-import { LanguageProvider } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
@@ -316,23 +315,21 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <LanguageProvider>
-        <LangToolsStoreProvider>
-          <UiConfigProvider>
-            <PageNavigationProvider>
-              <Router>
-                <NavigationEffectProvider>
-                  <GlobalFormDataReadersProvider>
-                    <PartyProvider>
-                      <TextResourcesProvider>{children}</TextResourcesProvider>
-                    </PartyProvider>
-                  </GlobalFormDataReadersProvider>
-                </NavigationEffectProvider>
-              </Router>
-            </PageNavigationProvider>
-          </UiConfigProvider>
-        </LangToolsStoreProvider>
-      </LanguageProvider>
+      <LangToolsStoreProvider>
+        <UiConfigProvider>
+          <PageNavigationProvider>
+            <Router>
+              <NavigationEffectProvider>
+                <GlobalFormDataReadersProvider>
+                  <PartyProvider>
+                    <TextResourcesProvider>{children}</TextResourcesProvider>
+                  </PartyProvider>
+                </GlobalFormDataReadersProvider>
+              </NavigationEffectProvider>
+            </Router>
+          </PageNavigationProvider>
+        </UiConfigProvider>
+      </LangToolsStoreProvider>
     </AppQueriesProvider>
   );
 }

@@ -1,0 +1,1 @@
+export { PdfFilenameTextResource } from './PdfFilenameTextResource';
