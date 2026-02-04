@@ -1,11 +1,9 @@
 package simple
 
 import (
+	"strings"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"altinn.studio/pdf3/internal/types"
 	"altinn.studio/pdf3/test/harness"
@@ -39,8 +37,13 @@ func Test_FatalError_FailsImmediately(t *testing.T) {
 		select {
 		case err := <-errChan:
 			// This is the expected outcome.
-			require.Error(t, err, "Expected an error for fatal error case")
-			assert.Contains(t, err.Error(), types.ErrFatalApplicationError.Error(), "Error message should contain fatal application error text")
+			if err == nil {
+				t.Fatalf("Expected an error for fatal error case, but got none.")
+			}
+			expectedErrMsg := types.ErrFatalApplicationError.Error()
+			if !strings.Contains(err.Error(), expectedErrMsg) {
+				t.Errorf("Error message should contain fatal application error text. Expected substring %q, got: %q", expectedErrMsg, err.Error())
+			}
 		case <-resultChan:
 			t.Fatal("Expected an error, but got a successful PDF result instead")
 		case <-time.After(10 * time.Second):
@@ -49,3 +52,4 @@ func Test_FatalError_FailsImmediately(t *testing.T) {
 		}
 	})
 }
+
