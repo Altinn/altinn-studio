@@ -29,15 +29,6 @@ public static class ServiceCollectionExtensions
         }
 
         /// <summary>
-        /// Adds the in-memory repository for the workflow engine.
-        /// </summary>
-        public IServiceCollection AddInMemoryRepository()
-        {
-            services.AddSingleton<IEngineRepository, EngineInMemoryRepository>();
-            return services;
-        }
-
-        /// <summary>
         /// Adds a health check for the EngineDbContext, testing database connectivity.
         /// </summary>
         public IServiceCollection AddDbContextHealthCheck(string name, IEnumerable<string>? tags = null)
