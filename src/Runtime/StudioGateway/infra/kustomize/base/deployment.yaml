@@ -87,6 +87,13 @@ spec:
               name: http-public
               protocol: TCP
           env:
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.uid=$(POD_UID)"
             - name: ASPNETCORE_ENVIRONMENT
               valueFrom:
                 # Configmap is created in syncroot
