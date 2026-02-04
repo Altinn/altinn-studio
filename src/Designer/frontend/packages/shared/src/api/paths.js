@@ -115,7 +115,7 @@ export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout,
 // Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
 export const releasesPath = (org, app, sortDirection) => `${apiBasePath}/${org}/${app}/releases?${s({ sortDirection })}`; // Get, Post
-export const deploymentsPath = (org, app, sortDirection) => `${apiBasePath}/${org}/${app}/deployments?${s({ sortDirection })}`; // Get, Post
+export const deploymentsPath = (org, app, publishServiceResource, sortDirection) => `${apiBasePath}/${org}/${app}/deployments?${s({ sortDirection, publishServiceResource })}`; // Get, Post
 export const deployPermissionsPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/permissions`; // Get
 export const envConfigPath = () => `${apiBasePath}/environments`; // Get
 export const undeployAppFromEnvPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/undeploy`;
