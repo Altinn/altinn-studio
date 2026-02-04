@@ -7,9 +7,11 @@ import { useAltinityAssistant } from './hooks';
 import { Preview } from './components/Preview';
 import { FileBrowser } from './components/FileBrowser';
 import classes from './AiAssistant.module.css';
+import { useUserQuery } from 'app-shared/hooks/queries';
 
 function AiAssistant(): ReactElement {
   const { t } = useTranslation();
+  const { data: currentUser } = useUserQuery();
 
   const {
     connectionStatus,
@@ -58,6 +60,7 @@ function AiAssistant(): ReactElement {
         workflowStatus={workflowStatus}
         previewContent={<Preview />}
         fileBrowserContent={<FileBrowser />}
+        currentUser={currentUser}
       />
     </div>
   );

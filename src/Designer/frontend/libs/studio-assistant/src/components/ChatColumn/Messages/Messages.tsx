@@ -8,7 +8,7 @@ import {
   StudioSpinner,
 } from '@studio/components';
 import { PaperclipIcon } from '@studio/icons';
-import type { User } from 'app-shared/types/Repository';
+import type { User } from '../../../types/User';
 import { MessageAuthor } from '../../../types/MessageAuthor';
 import classes from './Messages.module.css';
 import assistantLogo from '../../../../../../app-development/features/aiAssistant/altinity-logo.png';

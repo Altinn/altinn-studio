@@ -6,9 +6,6 @@ import userEvent from '@testing-library/user-event';
 import { mockTexts } from '../../mocks/mockTexts';
 import type { ChatThread } from '../../types/ChatThread';
 import { MessageAuthor } from '../../types/MessageAuthor';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 // Test data
 const onSubmitMessage = jest.fn();
@@ -141,10 +138,5 @@ const defaultProps: CompleteInterfaceProps = {
 };
 
 const renderCompleteInterface = (props?: Partial<CompleteInterfaceProps>): void => {
-  const queryClient = createQueryClientMock();
-  render(
-    <ServicesContextProvider {...queriesMock} client={queryClient}>
-      <CompleteInterface {...defaultProps} {...props} />
-    </ServicesContextProvider>,
-  );
+  render(<CompleteInterface {...defaultProps} {...props} />);
 };

@@ -27,6 +27,7 @@ export function CompleteInterface({
   onCreateThread,
   previewContent,
   fileBrowserContent,
+  currentUser,
 }: CompleteInterfaceProps): ReactElement {
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
   const [toolColumnMode, setToolColumnMode] = useState<ToolColumnMode>(ToolColumnMode.Preview);
@@ -95,6 +96,7 @@ export function CompleteInterface({
             messages={currentThread?.messages ?? []}
             onSubmitMessage={onSubmitMessage}
             enableCompactInterface={false}
+            currentUser={currentUser}
           />
         </StudioResizableLayout.Element>
         <StudioResizableLayout.Element minimumSize={200}>

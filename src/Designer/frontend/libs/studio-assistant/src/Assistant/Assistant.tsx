@@ -6,6 +6,7 @@ import { CompleteInterface } from '../components/CompleteInterface/CompleteInter
 import type { AssistantTexts } from '../types/AssistantTexts';
 import type { ConnectionStatus } from '../types/ConnectionStatus';
 import type { WorkflowStatus } from '../types/WorkflowStatus';
+import type { User } from '../types/User';
 
 export type AssistantProps = {
   texts: AssistantTexts;
@@ -20,6 +21,7 @@ export type AssistantProps = {
   workflowStatus: WorkflowStatus;
   previewContent: ReactElement;
   fileBrowserContent?: ReactElement;
+  currentUser?: User;
 };
 
 export function Assistant({
@@ -35,9 +37,10 @@ export function Assistant({
   onCreateThread,
   previewContent,
   fileBrowserContent,
+  currentUser,
 }: AssistantProps): React.ReactElement {
   return enableCompactInterface ? (
-    <CompactInterface texts={texts} onSubmitMessage={onSubmitMessage} />
+    <CompactInterface texts={texts} onSubmitMessage={onSubmitMessage} currentUser={currentUser} />
   ) : (
     <CompleteInterface
       texts={texts}
@@ -51,6 +54,7 @@ export function Assistant({
       onCreateThread={onCreateThread}
       previewContent={previewContent}
       fileBrowserContent={fileBrowserContent}
+      currentUser={currentUser}
     />
   );
 }

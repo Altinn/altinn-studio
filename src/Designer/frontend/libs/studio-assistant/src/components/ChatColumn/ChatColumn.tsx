@@ -4,16 +4,17 @@ import cn from 'classnames';
 import { Messages } from './Messages/Messages';
 import { UserInput } from './UserInput/UserInput';
 import classes from './ChatColumn.module.css';
-import { useUserQuery } from 'app-shared/hooks/queries';
 import { StudioParagraph } from '@studio/components';
 import type { Message } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
+import type { User } from '../../types/User';
 
 export type ChatColumnProps = {
   texts: AssistantTexts;
   messages: Message[];
   onSubmitMessage: (message: Message) => void;
   enableCompactInterface: boolean;
+  currentUser?: User;
 };
 
 export function ChatColumn({
@@ -21,8 +22,8 @@ export function ChatColumn({
   messages,
   onSubmitMessage,
   enableCompactInterface,
+  currentUser,
 }: ChatColumnProps): ReactElement {
-  const { data: currentUser } = useUserQuery();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive

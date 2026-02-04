@@ -5,3 +5,4 @@ export type { ChatThread, UserMessage, UserAttachment, Source, Message } from '.
 export { Assistant } from './Assistant/Assistant';
 export type { AssistantTexts } from './types/AssistantTexts';
 export type { AssistantMessage } from './types/ChatThread';
+export type { User } from './types/User';
