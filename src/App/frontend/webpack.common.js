@@ -5,7 +5,7 @@ const path = require('node:path');
 const { defineReactCompilerLoaderOption, reactCompilerLoader } = require('react-compiler-webpack');
 
 module.exports = {
-  entry: './src/index.tsx',
+  entry: './nextsrc/index.tsx',
   target: 'web',
   output: {
     filename: 'altinn-app-frontend.js',
@@ -14,6 +14,7 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
     alias: {
       src: path.resolve(__dirname, './src'),
+      nextsrc: path.resolve(__dirname, './nextsrc'),
       axios: require.resolve('./node_modules/axios/dist/browser/axios.cjs'),
     },
   },
