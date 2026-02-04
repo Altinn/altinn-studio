@@ -265,45 +265,58 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const isUrlSafe = (url: string): boolean => {
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   const renderSourceItem = (
     source: Source,
     index: number,
     isCited: boolean,
-  ): ReactElement | null => (
-    <div
-      key={`${source.tool}-${index}`}
-      className={`${classes.sourceItem} ${!isCited ? classes.sourceItemSecondary : ''}`}
-    >
-      <div className={classes.sourceHeader}>
-        {source.url ? (
-          <a
-            href={source.url}
-            target='_blank'
-            rel='noopener noreferrer'
-            className={classes.sourceTitle}
-          >
-            {isCited ? '✅' : '🔗'} {source.title}
-          </a>
-        ) : (
-          <span className={classes.sourceTitle}>
-            {isCited ? '✅' : '📄'} {source.title}
-          </span>
-        )}
-        <div className={classes.sourceMetadata}>
-          {source.relevance !== undefined && (
-            <span className={classes.sourceRelevance}>{Math.round(source.relevance * 100)}%</span>
+  ): ReactElement | null => {
+    const safeUrl = source.url && isUrlSafe(source.url) ? source.url : null;
+
+    return (
+      <div
+        key={`${source.tool}-${index}`}
+        className={`${classes.sourceItem} ${!isCited ? classes.sourceItemSecondary : ''}`}
+      >
+        <div className={classes.sourceHeader}>
+          {safeUrl ? (
+            <a
+              href={safeUrl}
+              target='_blank'
+              rel='noopener noreferrer'
+              className={classes.sourceTitle}
+            >
+              {isCited ? '✅' : '🔗'} {source.title}
+            </a>
+          ) : (
+            <span className={classes.sourceTitle}>
+              {isCited ? '✅' : '📄'} {source.title}
+            </span>
           )}
-          {source.content_length !== undefined && (
-            <span className={classes.sourceSize}>{formatFileSize(source.content_length)}</span>
-          )}
+          <div className={classes.sourceMetadata}>
+            {source.relevance !== undefined && (
+              <span className={classes.sourceRelevance}>{Math.round(source.relevance * 100)}%</span>
+            )}
+            {source.content_length !== undefined && (
+              <span className={classes.sourceSize}>{formatFileSize(source.content_length)}</span>
+            )}
+          </div>
         </div>
+        {source.matched_terms && (
+          <div className={classes.sourceMatched}>Matched: {source.matched_terms}</div>
+        )}
+        {source.preview && <div className={classes.sourcePreview}>{source.preview}</div>}
       </div>
-      {source.matched_terms && (
-        <div className={classes.sourceMatched}>Matched: {source.matched_terms}</div>
-      )}
-      {source.preview && <div className={classes.sourcePreview}>{source.preview}</div>}
-    </div>
-  );
+    );
+  };
 
   const renderSources = (): ReactElement | null => {
     if (message.author !== MessageAuthor.Assistant) return null;
