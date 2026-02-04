@@ -5,7 +5,7 @@ metadata:
 spec:
   clusterIP: None
   selector:
-    app.kubernetes.io/component: opentelemetry-collector
+    app.kubernetes.io/name: otel-gateway
   ports:
     - name: otlp-grpc
       port: 4317

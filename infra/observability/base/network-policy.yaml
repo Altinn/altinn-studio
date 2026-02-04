@@ -5,8 +5,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/component: opentelemetry-collector
-      app.kubernetes.io/name: otel-router-collector
+      app.kubernetes.io/name: otel-router
   policyTypes:
     - Ingress
   ingress:

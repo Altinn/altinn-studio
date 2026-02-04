@@ -7,8 +7,17 @@ resources:
   - ../base
 
 patches:
-  - path: patches/gateway-instance-labels.yaml
+  - path: patches/linkerd-injection.yaml
   - path: patches/router-config.yaml
   - path: patches/network-policy-labels.yaml
   - path: patches/gateway-config.yaml
   - path: patches/gateway-secrets.yaml
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: ClusterRoleBinding
+      name: otel-collector
+    patch: |-
+      - op: replace
+        path: /subjects/0/namespace
+        value: runtime-obs

@@ -78,6 +78,36 @@ if [[ "$validate" == "true" ]]; then
   kubectl kustomize "$overlay_dir" >/dev/null
 fi
 
+if [[ -z "$output_dir" ]]; then
+  echo "output directory is empty" >&2
+  exit 1
+fi
+
+if [[ "$output_dir" != /* ]]; then
+  echo "output directory must be an absolute path: $output_dir" >&2
+  exit 1
+fi
+
+if [[ "$output_dir" == "/" ]]; then
+  echo "refusing to use root as output directory" >&2
+  exit 1
+fi
+
+if [[ "$output_dir" == "$root_dir" ]]; then
+  echo "refusing to use repository root as output directory: $output_dir" >&2
+  exit 1
+fi
+
+if [[ "$output_dir" != "$root_dir"/* ]]; then
+  echo "output directory must be inside repository root: $output_dir" >&2
+  exit 1
+fi
+
+if [[ "$output_dir" == *"/../"* || "$output_dir" == */.. || "$output_dir" == *"/./"* || "$output_dir" == */. ]]; then
+  echo "output directory must not contain dot segments: $output_dir" >&2
+  exit 1
+fi
+
 rm -rf "$output_dir"
 mkdir -p "$output_dir"
 

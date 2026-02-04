@@ -8,3 +8,8 @@ spec:
         - namespaceSelector:
             matchLabels:
               altinn.studio/runtime: "true"
+      ports:
+        - protocol: TCP
+          port: 4317
+        - protocol: TCP
+          port: 4318

@@ -4,7 +4,7 @@ metadata:
   name: otel-gateway
 spec:
   mode: deployment
-  image: otel/opentelemetry-collector-contrib:0.143.0
+  image: otel/opentelemetry-collector-contrib:0.145.0
   serviceAccount: otel-collector
   upgradeStrategy: automatic
   replicas: 1
@@ -21,7 +21,7 @@ spec:
       whenUnsatisfiable: ScheduleAnyway
       labelSelector:
         matchLabels:
-          app.kubernetes.io/component: opentelemetry-collector
+          app.kubernetes.io/name: otel-gateway
   config:
     receivers:
       otlp:
@@ -55,6 +55,9 @@ spec:
       tail_sampling:
         decision_wait: 40s
         num_traces: 50000
+        decision_cache:
+          # Keep sampled decisions longer than in-memory traces to include late spans.
+          sampled_cache_size: 100000
         policies:
           - name: always-sample-attr
             type: string_attribute

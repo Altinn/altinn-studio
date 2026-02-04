@@ -4,7 +4,7 @@ metadata:
   name: otel-router
 spec:
   mode: deployment
-  image: otel/opentelemetry-collector-contrib:0.143.0
+  image: otel/opentelemetry-collector-contrib:0.145.0
   serviceAccount: otel-collector
   upgradeStrategy: automatic
   replicas: 1
@@ -21,7 +21,7 @@ spec:
       whenUnsatisfiable: ScheduleAnyway
       labelSelector:
         matchLabels:
-          app.kubernetes.io/component: opentelemetry-collector
+          app.kubernetes.io/name: otel-router
   config:
     receivers:
       otlp:
