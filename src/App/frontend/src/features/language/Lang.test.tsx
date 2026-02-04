@@ -25,9 +25,6 @@ describe('Lang', () => {
     jest.mocked(fetchUserProfile).mockImplementation(async () => getProfileMock());
     jest.mocked(fetchInstanceData).mockImplementation(async () => getInstanceDataMock());
   });
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
   afterAll(() => {
     jest.clearAllMocks();
   });

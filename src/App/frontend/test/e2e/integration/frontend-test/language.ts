@@ -10,11 +10,8 @@ describe('Language', () => {
         globalData.userProfile.profileSettingPreference.language = null;
       }
     });
-    cy.intercept('GET', '**/texts/nb').as('texts');
 
     cy.goto('changename');
-
-    cy.wait('@texts');
 
     cy.waitForLoad();
     cy.findByRole('heading', { name: 'Ukjent feil' }).should('not.exist');
@@ -26,21 +23,16 @@ describe('Language', () => {
         globalData.userProfile.profileSettingPreference.language = null;
       }
     });
-    cy.intercept('GET', '**/texts/nb').as('texts');
 
     cy.goto('changename').then(() => {
-      window.localStorage.setItem('selectedAppLanguagefrontend-test10000', 'null');
+      cy.clearCookie('test_10000_lang');
     });
-
-    cy.wait('@texts');
 
     cy.waitForLoad();
     cy.findByRole('heading', { name: 'Ukjent feil' }).should('not.exist');
   });
 
   it('should be possible to change language with arrow keys and space', () => {
-    cy.intercept('GET', '**/texts/en').as('texts');
-
     cy.goto('changename');
     cy.get(appFrontend.languageSelector).click();
     cy.press('Tab');
@@ -50,6 +42,5 @@ describe('Language', () => {
     cy.press('Space');
 
     cy.waitForLoad();
-    cy.wait('@texts');
   });
 });
