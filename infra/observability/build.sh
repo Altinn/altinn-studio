@@ -2,7 +2,8 @@
 set -euo pipefail
 
 usage() {
-  echo "usage: $0 <runtime|studio> [output-dir]" >&2
+  echo "usage: $0 <runtime|studio> [output-dir] [--validate]" >&2
+  echo "       $0 <runtime|studio> --output-dir <dir> [--validate]" >&2
 }
 
 overlay=${1:-}
@@ -10,6 +11,7 @@ if [[ -z "$overlay" ]]; then
   usage
   exit 2
 fi
+shift
 
 case "$overlay" in
   runtime|studio)
@@ -24,6 +26,35 @@ esac
 root_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 base_dir="$root_dir/base"
 overlay_dir="$root_dir/$overlay"
+output_dir=""
+validate=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --validate)
+      validate=true
+      ;;
+    -o|--output-dir)
+      if [[ $# -lt 2 ]]; then
+        echo "missing value for $1" >&2
+        usage
+        exit 2
+      fi
+      output_dir="$2"
+      shift
+      ;;
+    *)
+      if [[ -z "$output_dir" ]]; then
+        output_dir="$1"
+      else
+        echo "unexpected argument: $1" >&2
+        usage
+        exit 2
+      fi
+      ;;
+  esac
+  shift
+done
 
 if [[ ! -d "$base_dir" ]]; then
   echo "base directory not found: $base_dir" >&2
@@ -35,7 +66,18 @@ if [[ ! -d "$overlay_dir" ]]; then
   exit 1
 fi
 
-output_dir=${2:-"$root_dir/dist/$overlay"}
+if [[ -z "$output_dir" ]]; then
+  output_dir="$root_dir/dist/$overlay"
+fi
+
+if [[ "$validate" == "true" ]]; then
+  if ! command -v kubectl >/dev/null 2>&1; then
+    echo "kubectl not found; cannot validate kustomize output" >&2
+    exit 1
+  fi
+  kubectl kustomize "$overlay_dir" >/dev/null
+fi
+
 rm -rf "$output_dir"
 mkdir -p "$output_dir"
 

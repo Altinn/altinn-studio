@@ -4,27 +4,6 @@ metadata:
   name: otel-gateway
 spec:
   config:
-    processors:
-      tail_sampling:
-        decision_wait: 40s
-        num_traces: 50000
-        policies:
-          - name: errors
-            type: status_code
-            status_code:
-              status_codes: [ERROR]
-          - name: slow-traces
-            type: latency
-            latency:
-              threshold_ms: 1000
-          - name: probabilistic
-            type: probabilistic
-            probabilistic:
-              sampling_percentage: 10
-      batch:
-        send_batch_size: 1024
-        timeout: 5s
-
     exporters:
       azuremonitor:
         connection_string: ${APPLICATIONINSIGHTS_CONNECTION_STRING}
@@ -33,7 +12,7 @@ spec:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: [tail_sampling, batch]
+          processors: [transform/azuremonitor, tail_sampling, batch]
           exporters: [azuremonitor]
         metrics:
           receivers: [otlp]

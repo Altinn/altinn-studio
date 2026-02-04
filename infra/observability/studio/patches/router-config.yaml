@@ -4,9 +4,6 @@ metadata:
   name: otel-router
 spec:
   config:
-    processors:
-      batch: {}
-
     exporters:
       loadbalancing/traces:
         routing_key: traceID
@@ -43,13 +40,13 @@ spec:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: [batch]
+          processors: [resourcedetection/aks, k8sattributes, resource/environment, batch]
           exporters: [loadbalancing/traces]
         metrics:
           receivers: [otlp]
-          processors: [batch]
+          processors: [resourcedetection/aks, k8sattributes, resource/environment, batch]
           exporters: [loadbalancing/metrics]
         logs:
           receivers: [otlp]
-          processors: [batch]
+          processors: [filter/logs, resourcedetection/aks, k8sattributes, resource/environment, batch]
           exporters: [loadbalancing/logs]

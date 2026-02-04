@@ -7,3 +7,5 @@ resources:
   - router-svc.yaml
   - network-policy.yaml
   - serviceaccount.yaml
+  - clusterrole.yaml
+  - clusterrolebinding.yaml

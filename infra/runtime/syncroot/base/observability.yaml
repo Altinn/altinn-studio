@@ -36,3 +36,6 @@ spec:
     kind: OCIRepository
     name: observability-repo
     namespace: runtime-obs
+  postBuild:
+    substitute:
+      ENVIRONMENT: ${ENVIRONMENT}
