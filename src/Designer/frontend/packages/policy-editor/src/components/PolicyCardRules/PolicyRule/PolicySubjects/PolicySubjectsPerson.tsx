@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  StudioAlert,
-  StudioDetails,
-  StudioHeading,
-  StudioLink,
-  StudioParagraph,
-  StudioTabs,
-} from '@studio/components';
+import { StudioDetails, StudioTabs } from '@studio/components';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicySubjects.module.css';
 import { PolicyAccessPackages } from '../PolicyAccessPackages';
@@ -24,13 +17,15 @@ enum TabId {
 
 interface PolicySubjectsPersonProps {
   personSubjects: PolicySubject[];
-  accessPackages: PolicyAccessPackageAreaGroup[];
+  personAccessPackages: PolicyAccessPackageAreaGroup[];
+  guardianshipAccessPackages: PolicyAccessPackageAreaGroup[];
   handleSubjectChange: (subjectUrn: string, subjectLegacyUrn?: string) => void;
 }
 
 export const PolicySubjectsPerson = ({
   personSubjects,
-  accessPackages,
+  personAccessPackages,
+  guardianshipAccessPackages,
   handleSubjectChange,
 }: PolicySubjectsPersonProps) => {
   const { t } = useTranslation();
@@ -55,27 +50,10 @@ export const PolicySubjectsPerson = ({
             </StudioTabs.Tab>
           </StudioTabs.List>
           <StudioTabs.Panel value={TabId.AccessPackages}>
-            <PolicyAccessPackages accessPackages={accessPackages} isPersonSubject />
+            <PolicyAccessPackages accessPackages={personAccessPackages} isPersonSubject />
           </StudioTabs.Panel>
           <StudioTabs.Panel value={TabId.Guardian}>
-            <StudioAlert data-color='info'>
-              <StudioHeading level={3} spacing>
-                {t('policy_editor.guardianship_alert_header')}
-              </StudioHeading>
-              <StudioParagraph spacing>
-                {t('policy_editor.guardianship_alert_first_line')}
-              </StudioParagraph>
-              <StudioParagraph>
-                {t('policy_editor.guardianship_alert_second_line')}{' '}
-                <StudioLink
-                  href='https://www.vergemal.no/fullmaktstekst'
-                  target='_blank'
-                  rel='noopener noreferrer'
-                >
-                  https://www.vergemal.no/fullmaktstekst
-                </StudioLink>
-              </StudioParagraph>
-            </StudioAlert>
+            <PolicyAccessPackages accessPackages={guardianshipAccessPackages} isPersonSubject />
           </StudioTabs.Panel>
           <StudioTabs.Panel value={TabId.Other}>
             <RoleList

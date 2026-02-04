@@ -133,6 +133,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           updateLanguage={onChangeTitle}
           required
         />
+
         <InputfieldsWithTranslation
           label={t('app_settings.about_tab_description_field_label')}
           description={t('app_settings.about_tab_description_field_description')}

@@ -176,7 +176,7 @@ services:
 
   studio_db:
     container_name: studio-db
-    image: postgres:alpine
+    image: postgres:16-alpine
     restart: always
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

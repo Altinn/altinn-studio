@@ -17,7 +17,10 @@ import { ErrorMessage } from '@digdir/designsystemet-react';
 import { ChosenSubjects } from './ChosenSubjects';
 import type { PolicySubject } from '@altinn/policy-editor/types';
 import classes from './PolicySubjects.module.css';
-import { PERSON_ACCESS_PACKAGE_AREA_ID } from '@altinn/policy-editor/constants';
+import {
+  GUARDIANSHIP_ACCESS_PACKAGE_GROUP_ID,
+  PERSON_ACCESS_PACKAGE_GROUP_ID,
+} from '@altinn/policy-editor/constants';
 
 export const PolicySubjects = () => {
   const { t } = useTranslation();
@@ -26,25 +29,42 @@ export const PolicySubjects = () => {
   const { policyRule, policyError, showAllErrors, setPolicyError } = usePolicyRuleContext();
 
   // map access packages
-  const { orgPackageHierarchy, orgPackageList, personPackageHierarchy, personPackageList } =
-    useMemo(() => {
-      const orgHierarchy = accessPackages.filter(
-        (area) => area.id !== PERSON_ACCESS_PACKAGE_AREA_ID,
-      );
-      const orgList = orgHierarchy.flatMap((a) => a.areas).flatMap((a) => a.packages);
+  const {
+    orgPackageHierarchy,
+    orgPackageList,
+    personPackageHierarchy,
+    personPackageList,
+    guardianshipPackageHierarchy,
+    guardianshipPackageList,
+  } = useMemo(() => {
+    const orgHierarchy = accessPackages.filter(
+      (group) =>
+        group.id !== PERSON_ACCESS_PACKAGE_GROUP_ID &&
+        group.id !== GUARDIANSHIP_ACCESS_PACKAGE_GROUP_ID,
+    );
+    const orgList = orgHierarchy.flatMap((a) => a.areas).flatMap((a) => a.packages);
 
-      const personHierarchy = accessPackages.filter(
-        (area) => area.id === PERSON_ACCESS_PACKAGE_AREA_ID,
-      );
-      const personList = personHierarchy.flatMap((a) => a.areas).flatMap((a) => a.packages);
+    const personHierarchy = accessPackages.filter(
+      (group) => group.id === PERSON_ACCESS_PACKAGE_GROUP_ID,
+    );
+    const personList = personHierarchy.flatMap((a) => a.areas).flatMap((a) => a.packages);
 
-      return {
-        orgPackageHierarchy: orgHierarchy,
-        orgPackageList: orgList,
-        personPackageHierarchy: personHierarchy,
-        personPackageList: personList,
-      };
-    }, [accessPackages]);
+    const guardianshipHierarchy = accessPackages.filter(
+      (group) => group.id === GUARDIANSHIP_ACCESS_PACKAGE_GROUP_ID,
+    );
+    const guardianshipList = guardianshipHierarchy
+      .flatMap((a) => a.areas)
+      .flatMap((a) => a.packages);
+
+    return {
+      orgPackageHierarchy: orgHierarchy,
+      orgPackageList: orgList,
+      personPackageHierarchy: personHierarchy,
+      personPackageList: personList,
+      guardianshipPackageHierarchy: guardianshipHierarchy,
+      guardianshipPackageList: guardianshipList,
+    };
+  }, [accessPackages]);
 
   // map roles/other subjects
   const { personSubjects, altinnSubjects, otherSubjects, ccrSubjects } = useMemo(() => {
@@ -57,36 +77,47 @@ export const PolicySubjects = () => {
   }, [subjects]);
 
   // map chosen access packages
-  const { chosenOrgAccessPackages, chosenPrivAccessPackages } = useMemo(() => {
-    const orgPackages: PolicyAccessPackage[] = [];
-    const personPackages: PolicyAccessPackage[] = [];
+  const { chosenOrgAccessPackages, chosenPersonAccessPackages, chosenGuardianshipAccessPackages } =
+    useMemo(() => {
+      const orgPackages: PolicyAccessPackage[] = [];
+      const personPackages: PolicyAccessPackage[] = [];
+      const guardianshipPackages: PolicyAccessPackage[] = [];
 
-    policyRule.accessPackages.forEach((urn) => {
-      const orgPackage = orgPackageList.find((p) => p.urn.toLowerCase() === urn.toLowerCase());
-      const personPackage = personPackageList.find(
-        (p) => p.urn.toLowerCase() === urn.toLowerCase(),
-      );
+      policyRule.accessPackages.forEach((urn) => {
+        const orgPackage = orgPackageList.find((p) => p.urn.toLowerCase() === urn.toLowerCase());
+        const personPackage = personPackageList.find(
+          (p) => p.urn.toLowerCase() === urn.toLowerCase(),
+        );
+        const guardianshipPackage = guardianshipPackageList.find(
+          (p) => p.urn.toLowerCase() === urn.toLowerCase(),
+        );
 
-      if (orgPackage) {
-        orgPackages.push(orgPackage);
-      } else if (personPackage) {
-        personPackages.push(personPackage);
-      } else {
-        // If urn is not found in either org or priv access packages, add unknown access package to org array
-        orgPackages.push({
-          id: urn,
-          urn,
-          name: t('policy_editor.access_package_unknown_heading'),
-          description: t('policy_editor.access_package_unknown_description', {
-            accessPackageUrn: urn,
-          }),
-          isResourcePolicyAvailable: true,
-        });
-      }
-    });
+        if (orgPackage) {
+          orgPackages.push(orgPackage);
+        } else if (personPackage) {
+          personPackages.push(personPackage);
+        } else if (guardianshipPackage) {
+          guardianshipPackages.push(guardianshipPackage);
+        } else {
+          // If urn is not found in either org or priv access packages, add unknown access package to org array
+          orgPackages.push({
+            id: urn,
+            urn,
+            name: t('policy_editor.access_package_unknown_heading'),
+            description: t('policy_editor.access_package_unknown_description', {
+              accessPackageUrn: urn,
+            }),
+            isResourcePolicyAvailable: true,
+          });
+        }
+      });
 
-    return { chosenOrgAccessPackages: orgPackages, chosenPrivAccessPackages: personPackages };
-  }, [policyRule.accessPackages, orgPackageList, personPackageList, t]);
+      return {
+        chosenOrgAccessPackages: orgPackages,
+        chosenPersonAccessPackages: personPackages,
+        chosenGuardianshipAccessPackages: guardianshipPackages,
+      };
+    }, [policyRule.accessPackages, orgPackageList, personPackageList, guardianshipPackageList, t]);
 
   // map chosen roles
   const { chosenPersonRoles, chosenAltinnRoles, chosenCcrRoles } = useMemo(() => {
@@ -178,7 +209,11 @@ export const PolicySubjects = () => {
   };
 
   const chosenPersonGroups = [
-    getChosenAccessPackages(t('policy_editor.access_package_header'), chosenPrivAccessPackages),
+    getChosenAccessPackages(t('policy_editor.access_package_header'), chosenPersonAccessPackages),
+    getChosenAccessPackages(
+      t('policy_editor.rule_card_subjects_guardianships'),
+      chosenGuardianshipAccessPackages,
+    ),
     getChosenRoles(t('policy_editor.rule_card_subjects_other_roles'), chosenPersonRoles),
   ];
 
@@ -204,7 +239,8 @@ export const PolicySubjects = () => {
         handleSubjectChange={handleChangeSubject}
       />
       <PolicySubjectsPerson
-        accessPackages={personPackageHierarchy}
+        personAccessPackages={personPackageHierarchy}
+        guardianshipAccessPackages={guardianshipPackageHierarchy}
         personSubjects={personSubjects}
         handleSubjectChange={handleChangeSubject}
       />
