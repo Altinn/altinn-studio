@@ -5,14 +5,14 @@ import { Messages } from './Messages/Messages';
 import { UserInput } from './UserInput/UserInput';
 import classes from './ChatColumn.module.css';
 import { StudioParagraph } from '@studio/components';
-import type { Message } from '../../types/ChatThread';
+import type { Message, UserMessage } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 import type { User } from '../../types/User';
 
 export type ChatColumnProps = {
   texts: AssistantTexts;
   messages: Message[];
-  onSubmitMessage: (message: Message) => void;
+  onSubmitMessage: (message: UserMessage) => void;
   enableCompactInterface: boolean;
   currentUser?: User;
 };
@@ -42,8 +42,8 @@ export function ChatColumn({
         </span>
       </div>
       <StudioParagraph data-size='lg'>
-        Her var det tomt.
-        <br /> La oss starte et skjemaeventyr sammen 💌
+        Velkommen til Altinity!
+        <br /> Skriv i feltet under for å begynne.
       </StudioParagraph>
     </div>
   );

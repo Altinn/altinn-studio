@@ -1,7 +1,12 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { altinityWebSocketHub } from 'app-shared/api/paths';
-import type { WorkflowEvent, WorkflowRequest, AgentResponse } from '@studio/assistant';
+import type {
+  WorkflowEvent,
+  WorkflowRequest,
+  AgentResponse,
+  ConnectionStatus,
+} from '@studio/assistant';
 
 const ALTINITY_CONNECTION_INDEX = 0; // WSConnector uses single connection for Altinity hub
 
@@ -18,9 +23,7 @@ export interface UseAltinityWebSocketResult {
 }
 
 export const useAltinityWebSocket = (): UseAltinityWebSocketResult => {
-  const [connectionStatus, setConnectionStatus] = useState<
-    'connected' | 'connecting' | 'disconnected' | 'error'
-  >('disconnected');
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const wsInstanceRef = useRef<any>(null);
   const messageCallbackRef = useRef<((message: WorkflowEvent) => void) | null>(null);

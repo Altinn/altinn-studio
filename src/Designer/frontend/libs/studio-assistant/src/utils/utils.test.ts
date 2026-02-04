@@ -1,7 +1,7 @@
 import { createAssistantMessage, createNewChatThread, createUserMessage } from './utils';
 import { MessageAuthor } from '../types/MessageAuthor';
 
-if (!globalThis.crypto?.randomUUID) {
+if (!globalThis.crypto) {
   Object.defineProperty(globalThis, 'crypto', {
     value: {
       randomUUID: () => `${Math.random().toString(36).substring(2)}-${Date.now()}`,
