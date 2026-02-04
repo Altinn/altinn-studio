@@ -7933,6 +7933,10 @@
             "type": "string",
             "nullable": true
           },
+          "promptForParty": {
+            "type": "string",
+            "nullable": true
+          },
           "externalApiIds": {
             "type": "array",
             "items": {
