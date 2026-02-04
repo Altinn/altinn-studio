@@ -213,6 +213,13 @@ spec:
             failureThreshold: 5
             timeoutSeconds: 2
           env:
+          - name: POD_UID
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.uid
+          - name: OTEL_RESOURCE_ATTRIBUTES
+            value: "k8s.pod.uid=$(POD_UID)"
           - name: TZ
             value: Europe/Oslo
           - name: PDF3_UPGRADE_CHANNEL

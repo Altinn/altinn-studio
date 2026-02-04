@@ -4,13 +4,14 @@ import { StudioCheckbox } from '@studio/components';
 import classes from './SubjectListItem.module.css';
 
 interface SubjectListItemProps {
-  icon: ElementType;
+  icon?: ElementType;
   urn: string;
   legacyUrn?: string;
   isChecked: boolean;
   isSelectedListItem?: boolean;
   title: string;
   description?: string;
+  isPersonSubject?: boolean;
   handleChange: (urn: string, legacyUrn?: string) => void;
 }
 
@@ -22,14 +23,32 @@ export const SubjectListItem = ({
   description,
   isChecked,
   isSelectedListItem,
+  isPersonSubject,
   handleChange,
 }: SubjectListItemProps) => {
   const Icon = icon;
 
   return (
-    <div className={cn(classes.subjectItem, { [classes.selectedSubject]: isSelectedListItem })}>
-      <Icon className={classes.iconContainer} />
-      <div className={classes.subjectTitle}>
+    <div
+      className={cn(classes.subjectItem, {
+        [classes.personSubject]: isSelectedListItem && isPersonSubject,
+        [classes.orgSubject]: isSelectedListItem && !isPersonSubject,
+      })}
+    >
+      {icon && (
+        <Icon
+          className={cn(classes.iconContainer, {
+            [classes.personSubject]: isPersonSubject,
+            [classes.orgSubject]: !isPersonSubject,
+          })}
+        />
+      )}
+      <div
+        title={isSelectedListItem ? title : null}
+        className={cn(classes.subjectTitle, {
+          [classes.selectedSubjectTitle]: !!isSelectedListItem,
+        })}
+      >
         {title}
         {description && (
           <div data-color='neutral' className={classes.subjectSubTitle}>
@@ -39,7 +58,7 @@ export const SubjectListItem = ({
       </div>
       <StudioCheckbox
         data-size='md'
-        className={classes.subjectCheckbox}
+        className={isSelectedListItem ? '' : classes.subjectCheckbox}
         checked={isChecked}
         onChange={() => handleChange(urn, legacyUrn)}
         aria-label={title}

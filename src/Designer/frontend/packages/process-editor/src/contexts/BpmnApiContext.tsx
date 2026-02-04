@@ -3,6 +3,7 @@ import React, { createContext, useContext } from 'react';
 import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 import type { OnProcessTaskEvent } from '../types/OnProcessTask';
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
+import type { BpmnTaskType } from 'app-shared/types/BpmnTaskType';
 
 type QueryOptions = {
   onSuccess: () => void;
@@ -16,7 +17,11 @@ export type BpmnApiContextProps = {
   pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetId: string | undefined;
   addLayoutSet: (
-    data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig },
+    data: {
+      layoutSetIdToUpdate: string;
+      taskType?: BpmnTaskType;
+      layoutSetConfig: LayoutSetConfig;
+    },
     options?: QueryOptions,
   ) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
