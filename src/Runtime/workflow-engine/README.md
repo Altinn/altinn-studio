@@ -35,12 +35,13 @@ docker compose --profile app up -d
 
 ### Ports & URLs
 
-| Service    | URL                                            | Notes                                                   |
-|------------|------------------------------------------------|---------------------------------------------------------|
-| Engine API | [http://localhost:8080](http://localhost:8080) | Swagger UI at [/swagger](http://localhost:8080/swagger) |
-| Grafana    | [http://localhost:3000](http://localhost:3000) | Dashboards, logs, traces, metrics                       |
-| PgAdmin    | [http://localhost:5050](http://localhost:5050) | Db password: postgres123                                |
-| PostgreSQL | `localhost:5432`                               |                                                         |
+| Service    | URL                                                             | Notes                                                   |
+|------------|-----------------------------------------------------------------|---------------------------------------------------------|
+| Engine API | [http://localhost:8080](http://localhost:8080)                  | Swagger UI at [/swagger](http://localhost:8080/swagger) |
+| Grafana    | [http://localhost:7070](http://localhost:7070)                  | Dashboards, logs, traces, metrics                       |
+| WireMock   | [http://localhost:6060](http://localhost:6060/__admin/requests) | Mock app/webhook target                                 |
+| PgAdmin    | [http://localhost:5050](http://localhost:5050)                  | Db password: postgres123                                |
+| PostgreSQL | `localhost:5432`                                                |                                                         |
 
 ### Authentication
 

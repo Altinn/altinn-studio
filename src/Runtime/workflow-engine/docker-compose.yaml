@@ -92,7 +92,7 @@ services:
     networks:
       - workflow-engine-network
     ports:
-      - '3000:3000'
+      - '7070:3000'
       - '4317:4317'
       - '4318:4318'
     volumes:
@@ -100,6 +100,19 @@ services:
       - ./.docker/grafana-dashboards.yml:/otel-lgtm/grafana/conf/provisioning/dashboards/workflow-engine.yaml:ro
       - ./.docker/dashboards:/etc/grafana/dashboards:ro
       - ./.docker/prometheus.yaml:/otel-lgtm/prometheus.yaml:ro
+
+  wiremock:
+    image: wiremock/wiremock:3.13.2
+    container_name: workflow-engine-wiremock
+    ports:
+      - "6060:8080"
+    networks:
+      - workflow-engine-network
+    volumes:
+      - ./.docker/wiremock:/home/wiremock
+    command:
+      - "--global-response-templating"
+      - "--verbose"
 
 volumes:
   postgres_data:
