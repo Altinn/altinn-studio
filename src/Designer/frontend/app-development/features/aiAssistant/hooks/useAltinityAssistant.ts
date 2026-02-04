@@ -73,65 +73,6 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     currentSessionIdRef.current = currentSessionId;
   }, [currentSessionId]);
 
-  useEffect(() => {
-    onAgentMessage((event: WorkflowEvent) => {
-      const currentSession = currentSessionIdRef.current;
-
-      if (event.session_id && event.session_id !== currentSession) {
-        return;
-      }
-
-      handleWorkflowEvent(event);
-    });
-  }, [onAgentMessage]);
-
-  const addMessageToThread = useCallback(
-    (threadId: string, message: UserMessage | AssistantMessage) => {
-      const existingThread = getThread(threadId);
-      if (existingThread) {
-        const updatedMessages = [...existingThread.messages, message];
-        updateThread(threadId, {
-          messages: updatedMessages,
-        });
-      } else {
-        const newThread: ChatThread = {
-          id: threadId,
-          title:
-            message.author === MessageAuthor.User
-              ? message.content.slice(0, 50) + (message.content.length > 50 ? '...' : '')
-              : `Session ${threadId}`,
-          messages: [message],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        addThread(newThread);
-      }
-    },
-    [addThread, updateThread, getThread],
-  );
-
-  const selectThread = useCallback((threadId: string | null) => {
-    setCurrentSessionId(threadId);
-    currentSessionIdRef.current = threadId;
-  }, []);
-
-  const createNewThread = useCallback(() => {
-    setCurrentSessionId(null);
-    currentSessionIdRef.current = null;
-    setWorkflowStatus({ isActive: false });
-  }, []);
-
-  const deleteThread = useCallback(
-    (threadId: string) => {
-      deleteThreadFromStorage(threadId);
-      if (currentSessionId === threadId) {
-        setCurrentSessionId(null);
-        currentSessionIdRef.current = null;
-      }
-    },
-    [deleteThreadFromStorage, currentSessionId],
-  );
-
   const handleWorkflowEvent = useCallback(
     (event: WorkflowEvent) => {
       if (event.type === 'assistant_message') {
@@ -243,7 +184,66 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
         }
       }
     },
-    [currentSessionId, getThread],
+    [currentSessionId, getThread, org, app, queryClient, chatThreads, updateThread],
+  );
+
+  useEffect(() => {
+    onAgentMessage((event: WorkflowEvent) => {
+      const currentSession = currentSessionIdRef.current;
+
+      if (event.session_id && event.session_id !== currentSession) {
+        return;
+      }
+
+      handleWorkflowEvent(event);
+    });
+  }, [onAgentMessage, handleWorkflowEvent]);
+
+  const addMessageToThread = useCallback(
+    (threadId: string, message: UserMessage | AssistantMessage) => {
+      const existingThread = getThread(threadId);
+      if (existingThread) {
+        const updatedMessages = [...existingThread.messages, message];
+        updateThread(threadId, {
+          messages: updatedMessages,
+        });
+      } else {
+        const newThread: ChatThread = {
+          id: threadId,
+          title:
+            message.author === MessageAuthor.User
+              ? message.content.slice(0, 50) + (message.content.length > 50 ? '...' : '')
+              : `Session ${threadId}`,
+          messages: [message],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        addThread(newThread);
+      }
+    },
+    [addThread, updateThread, getThread],
+  );
+
+  const selectThread = useCallback((threadId: string | null) => {
+    setCurrentSessionId(threadId);
+    currentSessionIdRef.current = threadId;
+  }, []);
+
+  const createNewThread = useCallback(() => {
+    setCurrentSessionId(null);
+    currentSessionIdRef.current = null;
+    setWorkflowStatus({ isActive: false });
+  }, []);
+
+  const deleteThread = useCallback(
+    (threadId: string) => {
+      deleteThreadFromStorage(threadId);
+      if (currentSessionId === threadId) {
+        setCurrentSessionId(null);
+        currentSessionIdRef.current = null;
+      }
+    },
+    [deleteThreadFromStorage, currentSessionId],
   );
 
   const startAgentWorkflow = async (
