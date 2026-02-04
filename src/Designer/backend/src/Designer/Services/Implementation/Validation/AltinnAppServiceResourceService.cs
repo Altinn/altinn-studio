@@ -160,12 +160,12 @@ public static class ApplicationMetadataMapper
         return new ServiceResource
         {
             ResourceType = ResourceType.AltinnApp,
-            Identifier = applicationmetadata?.Id,
+            Identifier = applicationmetadata?.Id.Replace('/', '_'),
             Title = applicationmetadata?.Title?.ToDictionary(),
             Description = applicationmetadata?.Description?.ToDictionary(),
             ContactPoints = applicationmetadata?.ContactPoints?.ToServiceContactPoints(),
             RightDescription = applicationmetadata?.Access?.RightDescription?.ToDictionary(),
-            Delegable = applicationmetadata?.Access?.Delegable,
+            Delegable = applicationmetadata?.Access?.Delegable ?? false,
             AvailableForType = applicationmetadata?.Access?.AvailableForType,
         };
     }
