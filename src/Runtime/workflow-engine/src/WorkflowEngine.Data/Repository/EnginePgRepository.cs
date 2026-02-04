@@ -191,7 +191,7 @@ internal sealed class EnginePgRepository : IEngineRepository
                             setters =>
                                 setters
                                     .SetProperty(t => t.Status, workflow.Status)
-                                    .SetProperty(t => t.UpdatedAt, DateTime.Now),
+                                    .SetProperty(t => t.UpdatedAt, DateTime.UtcNow),
                             ct
                         );
                 },
@@ -225,7 +225,7 @@ internal sealed class EnginePgRepository : IEngineRepository
                                     .SetProperty(t => t.Status, step.Status)
                                     .SetProperty(t => t.BackoffUntil, step.BackoffUntil)
                                     .SetProperty(t => t.RequeueCount, step.RequeueCount)
-                                    .SetProperty(t => t.UpdatedAt, DateTime.Now),
+                                    .SetProperty(t => t.UpdatedAt, DateTime.UtcNow),
                             ct
                         );
                 },
