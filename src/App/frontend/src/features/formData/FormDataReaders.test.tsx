@@ -11,7 +11,7 @@ import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { getLayoutSets } from 'src/features/form/layoutSets';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
-import { toTextResourceMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
+import { resourcesAsMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { fetchInstanceData } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource } from 'src/features/language/textResources';
@@ -64,12 +64,7 @@ async function render(props: TestProps) {
     .mockReturnValue(getLayoutSetsMock().sets.map((set) => ({ ...set, dataType: props.defaultDataModel })));
 
   jest.mocked(fetchInstanceData).mockImplementationOnce(async () => instanceData);
-  jest.mocked(useTextResources).mockImplementation(() =>
-    toTextResourceMap({
-      resources: props.textResources,
-      language: 'nb',
-    }),
-  );
+  jest.mocked(useTextResources).mockImplementation(() => resourcesAsMap(props.textResources));
 
   function generateDataElements(instanceId: string): IData[] {
     return dataModelNames.map((name) => {

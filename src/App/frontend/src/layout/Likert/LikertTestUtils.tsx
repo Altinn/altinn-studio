@@ -7,12 +7,12 @@ import type { AxiosResponse } from 'axios';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
-import { toTextResourceMap } from 'src/features/language/textResources/TextResourcesProvider';
+import { resourcesAsMap } from 'src/features/language/textResources/TextResourcesProvider';
 import { BackendValidationSeverity } from 'src/features/validation';
 import { LikertComponent } from 'src/layout/Likert/LikertComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { IRawTextResource, ITextResourceResult, TextResourceMap } from 'src/features/language/textResources';
+import type { IRawTextResource, TextResourceMap } from 'src/features/language/textResources';
 import type { BackendValidationIssue } from 'src/features/validation';
 import type { IPagesSettingsWithOrder, IRawOption } from 'src/layout/common.generated';
 import type { CompLikertExternal } from 'src/layout/Likert/config.generated';
@@ -83,26 +83,23 @@ const createLikertLayout = (props: Partial<CompLikertExternal> | undefined): Com
   ...props,
 });
 
-const createTextResource = (questions: IQuestion[], extraResources: IRawTextResource[]): ITextResourceResult => ({
-  resources: [
-    {
-      id: 'likert-questions',
-      value: '{0}',
-      variables: [
-        {
-          key: `${groupBinding}[{0}].${questionBinding}`,
-          dataSource: 'dataModel.default',
-        },
-      ],
-    },
-    ...questions.map((question, index) => ({
-      id: `likert-questions-${index}`,
-      value: question.Question,
-    })),
-    ...extraResources,
-  ],
-  language: 'nb',
-});
+const createTextResource = (questions: IQuestion[], extraResources: IRawTextResource[]): IRawTextResource[] => [
+  {
+    id: 'likert-questions',
+    value: '{0}',
+    variables: [
+      {
+        key: `${groupBinding}[{0}].${questionBinding}`,
+        dataSource: 'dataModel.default',
+      },
+    ],
+  },
+  ...questions.map((question, index) => ({
+    id: `likert-questions-${index}`,
+    value: question.Question,
+  })),
+  ...extraResources,
+];
 
 const { setScreenWidth } = mockMediaQuery(992);
 
@@ -132,7 +129,7 @@ export const render = async ({
   const mockLikertLayout = createLikertLayout(likertProps);
 
   // Set the mutable mock value before rendering
-  mockTextResourcesValue = toTextResourceMap(createTextResource(mockQuestions, extraTextResources));
+  mockTextResourcesValue = resourcesAsMap(createTextResource(mockQuestions, extraTextResources));
 
   setScreenWidth(mobileView ? 600 : 1200);
   const result = await renderWithInstanceAndLayout({

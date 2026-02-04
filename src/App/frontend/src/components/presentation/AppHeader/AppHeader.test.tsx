@@ -10,7 +10,7 @@ import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AppHeader } from 'src/components/presentation/AppHeader/AppHeader';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { toTextResourceMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
+import { resourcesAsMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
@@ -51,9 +51,7 @@ describe('presentation/AppHeader', () => {
   }
   const render = async ({ logo, showLanguageSelector = false, textResources = [] }: IRenderComponentProps) => {
     jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock({ logo }));
-    jest
-      .mocked(useTextResources)
-      .mockImplementation(() => toTextResourceMap({ language: 'nb', resources: textResources }));
+    jest.mocked(useTextResources).mockImplementation(() => resourcesAsMap(textResources));
 
     return await renderWithInstanceAndLayout({
       renderer: () => (

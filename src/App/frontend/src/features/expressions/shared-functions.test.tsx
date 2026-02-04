@@ -22,7 +22,7 @@ import {
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
 import { getLayoutSets } from 'src/features/form/layoutSets';
-import { toTextResourceMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
+import { resourcesAsMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {
@@ -186,12 +186,7 @@ describe('Expressions shared function tests', () => {
         stateless,
       } = test;
 
-      jest.mocked(useTextResources).mockReturnValue(
-        toTextResourceMap({
-          language: 'nb',
-          resources: textResources || [],
-        }),
-      );
+      jest.mocked(useTextResources).mockReturnValue(resourcesAsMap(textResources ?? []));
 
       if (disabledFrontend) {
         // Skipped tests usually means that the frontend does not support the feature yet

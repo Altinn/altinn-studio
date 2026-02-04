@@ -6,7 +6,7 @@ import { screen } from '@testing-library/react';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { toTextResourceMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
+import { resourcesAsMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IAltinnOrg, IAltinnOrgs } from 'src/types/shared';
@@ -31,12 +31,7 @@ interface RenderProps {
 async function render({ nbTitle, textResources = [], orgs = {} }: RenderProps) {
   const overrides = nbTitle ? { title: { nb: nbTitle } } : {};
   jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock(overrides));
-  jest.mocked(useTextResources).mockImplementation(() =>
-    toTextResourceMap({
-      language: 'nb',
-      resources: textResources,
-    }),
-  );
+  jest.mocked(useTextResources).mockImplementation(() => resourcesAsMap(textResources));
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => <AppTextsRenderer />,

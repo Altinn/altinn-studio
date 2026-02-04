@@ -24,21 +24,18 @@ jest.mock<TextResourcesProviderImport>('src/features/language/textResources/Text
   return {
     ...actual,
     useTextResources: jest.fn(() =>
-      actual.toTextResourceMap({
-        resources: [
-          {
-            id: 'myLabel',
-            value: '{0}',
-            variables: [
-              {
-                dataSource: 'dataModel.default',
-                key: 'Group[{0}].label',
-              },
-            ],
-          },
-        ],
-        language: 'nb',
-      }),
+      actual.resourcesAsMap([
+        {
+          id: 'myLabel',
+          value: '{0}',
+          variables: [
+            {
+              dataSource: 'dataModel.default',
+              key: 'Group[{0}].label',
+            },
+          ],
+        },
+      ]),
     ),
   };
 });

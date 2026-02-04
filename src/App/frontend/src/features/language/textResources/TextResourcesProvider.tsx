@@ -3,16 +3,14 @@ import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsMap';
 import { fetchTextResources } from 'src/queries/queries';
-import type { ITextResourceResult, TextResourceMap } from 'src/features/language/textResources/index';
+import type { IRawTextResource, TextResourceMap } from 'src/features/language/textResources/index';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 const EMPTY_TEXT_RESOURCES: TextResourceMap = {};
 
-export function toTextResourceMap(result: ITextResourceResult): TextResourceMap {
-  const { resources } = result;
-  return resourcesAsMap(resources);
+export function resourcesAsMap(resources: IRawTextResource[]): TextResourceMap {
+  return resources.reduce((acc, { id, ...resource }) => ({ ...acc, [id]: resource }), {});
 }
 
 function getTextResourcesFromWindow() {
@@ -43,7 +41,7 @@ function useTextResourcesQuery() {
           ? textResourcesFromWindow
           : await fetchTextResources(selectedLanguage);
 
-      return toTextResourceMap(textResourceResult);
+      return resourcesAsMap(textResourceResult.resources);
     },
     placeholderData: (placeholderData) => placeholderData ?? EMPTY_TEXT_RESOURCES,
   });
