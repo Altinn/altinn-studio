@@ -24,7 +24,6 @@ import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { LanguageProvider } from 'src/features/language/LanguageProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
@@ -315,21 +314,19 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <LanguageProvider>
-        <UiConfigProvider>
-          <PageNavigationProvider>
-            <Router>
-              <NavigationEffectProvider>
-                <GlobalFormDataReadersProvider>
-                  <OrgsProvider>
-                    <PartyProvider>{children}</PartyProvider>
-                  </OrgsProvider>
-                </GlobalFormDataReadersProvider>
-              </NavigationEffectProvider>
-            </Router>
-          </PageNavigationProvider>
-        </UiConfigProvider>
-      </LanguageProvider>
+      <UiConfigProvider>
+        <PageNavigationProvider>
+          <Router>
+            <NavigationEffectProvider>
+              <GlobalFormDataReadersProvider>
+                <OrgsProvider>
+                  <PartyProvider>{children}</PartyProvider>
+                </OrgsProvider>
+              </GlobalFormDataReadersProvider>
+            </NavigationEffectProvider>
+          </Router>
+        </PageNavigationProvider>
+      </UiConfigProvider>
     </AppQueriesProvider>
   );
 }

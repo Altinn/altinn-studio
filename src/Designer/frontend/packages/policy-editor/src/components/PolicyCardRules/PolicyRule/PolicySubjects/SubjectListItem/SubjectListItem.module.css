@@ -5,14 +5,16 @@
   box-shadow: var(--ds-shadow-sm);
   padding: var(--ds-size-3);
 }
-.subjectItem.selectedSubject {
-  background-color: var(--ds-color-surface-tinted);
-  padding: var(--ds-size-1);
-}
 
 .subjectTitle {
   font-weight: var(--ds-font-weight-medium);
   flex: 1;
+}
+.selectedSubjectTitle {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  min-width: 0px;
 }
 
 .subjectCheckbox {
@@ -31,4 +33,12 @@
   font-size: var(--ds-font-size-1);
   font-weight: var(--ds-font-weight-regular);
   line-height: normal;
+}
+
+.personSubject {
+  background-color: var(--ds-color-success-surface-tinted);
+}
+
+.orgSubject {
+  background-color: var(--ds-color-accent-surface-tinted);
 }
