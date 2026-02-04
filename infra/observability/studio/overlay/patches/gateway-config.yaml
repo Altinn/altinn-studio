@@ -6,7 +6,7 @@ spec:
   config:
     exporters:
       azuremonitor:
-        connection_string: ${APPLICATIONINSIGHTS_CONNECTION_STRING}
+        connection_string: $${env:APPLICATIONINSIGHTS_CONNECTION_STRING}
 
     service:
       pipelines:

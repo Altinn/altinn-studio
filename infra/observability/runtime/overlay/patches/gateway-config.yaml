@@ -23,9 +23,9 @@ spec:
 
     exporters:
       azuremonitor/control_plane:
-        connection_string: ${CONTROL_PLANE_CONNECTION_STRING}
+        connection_string: $${env:CONTROL_PLANE_CONNECTION_STRING}
       azuremonitor/data_plane:
-        connection_string: ${DATA_PLANE_CONNECTION_STRING}
+        connection_string: $${env:DATA_PLANE_CONNECTION_STRING}
 
     service:
       pipelines:

@@ -13,8 +13,8 @@ spec:
               insecure: true
         resolver:
           dns:
-            hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
-            port: 4317
+            hostname: otel-gateway-collector-headless.observability.svc.cluster.local
+            port: '4317'
       loadbalancing/metrics:
         routing_key: resource
         protocol:
@@ -23,8 +23,8 @@ spec:
               insecure: true
         resolver:
           dns:
-            hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
-            port: 4317
+            hostname: otel-gateway-collector-headless.observability.svc.cluster.local
+            port: '4317'
       loadbalancing/logs:
         routing_key: traceID
         protocol:
@@ -33,8 +33,8 @@ spec:
               insecure: true
         resolver:
           dns:
-            hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
-            port: 4317
+            hostname: otel-gateway-collector-headless.observability.svc.cluster.local
+            port: '4317'
 
     service:
       pipelines:

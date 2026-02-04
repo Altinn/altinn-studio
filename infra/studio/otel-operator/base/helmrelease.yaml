@@ -19,7 +19,7 @@ spec:
         kind: HelmRepository
         name: otel-oci
         namespace: otel-operator
-      version: 0.144.0
+      version: 0.105.0
   values:
     manager:
       serviceMonitor:

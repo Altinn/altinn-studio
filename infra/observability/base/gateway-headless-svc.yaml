@@ -5,7 +5,7 @@ metadata:
 spec:
   clusterIP: None
   selector:
-    app.kubernetes.io/name: otel-gateway
+    altinn.studio/otel-collector: otel-gateway
   ports:
     - name: otlp-grpc
       port: 4317
