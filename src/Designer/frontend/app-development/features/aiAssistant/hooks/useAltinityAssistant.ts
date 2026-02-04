@@ -341,7 +341,7 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
       try {
         const result = await startAgentWorkflow(
           sessionId,
-          message.content,
+          trimmedContent,
           message.allowAppChanges ?? false,
           message.attachments,
         );
