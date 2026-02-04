@@ -1,94 +1,75 @@
-# Process engine
+# Workflow Engine
 
-This library provides runtime process engine capabilities for Altinn 3 applications, with optional database persistence for job and task tracking.
+An asynchronous workflow orchestration service for Altinn Studio. It accepts process-advancement requests for app instances, queues them internally, and executes each step sequentially with idempotency guarantees, automatic retries (exponential backoff), and distributed tracing. Step execution is carried out by issuing HTTP callbacks to the originating Altinn app.
 
-![Overview](docs/overview.drawio.svg)
+Built on .NET 10, PostgreSQL, and OpenTelemetry.
 
-![Sequence flow](docs/sequenceFlow.drawio.svg)
+## Getting started
 
-## Database Setup (Development)
+### Prerequisites
 
-The ProcessEngine supports optional database persistence using PostgreSQL and Entity Framework Core.
+- [.NET 10 SDK](https://dotnet.microsoft.com/)
+- [Docker](https://docs.docker.com/get-docker/)
 
-### Quick Start with Docker
+### Running locally
 
-1. **Start the database:**
-   ```bash
-   cd src/Altinn.App.ProcessEngine
-   docker-compose up -d
-   ```
+Start the infrastructure (Postgres, PgAdmin, Grafana/LGTM, exporters):
 
-2. **Create migrations (if required):**
-
-   See [Creating New Migrations](#creating-new-migrations) below.
-
-3. **Apply migrations:**
-   ```bash
-   dotnet ef database update
-   ```
-
-4. **Access pgAdmin:**
-   - URL: http://localhost:5050
-   - Database password: postgres123
-
-### Configuration
-
-```csharp
-// Add ProcessEngine with database persistence
-services.AddProcessEngine(true, "Host=localhost;Database=altinn_processengine;Username=postgres;Password=postgres123");
-
-// Or add ProcessEngine without database (in-memory only)
-services.AddProcessEngine();
+```sh
+docker compose up -d
 ```
 
-### Database Schema
+Then run the API on the host:
 
-The ProcessEngine creates these tables:
-- `process_engine_jobs` - Stores job information and metadata
-- `process_engine_tasks` - Stores individual tasks within jobs
-
-### Development Notes
-
-- **Connection String:** Default setup uses `postgres/postgres123` on port 5432
-- **Database Name:** `altinn_processengine`
-- **Migrations Location:** `Data/Migrations/`
-- **In-Memory Fallback:** ProcessEngine works without database - jobs are only kept in memory
-
-### Creating New Migrations
-
-After modifying the data models and/or database context, create new migrations with:
-
-```bash
-dotnet ef migrations add TheMigrationName --output-dir Data/Migrations
+```sh
+dotnet run --project src/WorkflowEngine.Api
 ```
 
-# Misc notes
+The database is migrated automatically on startup (EF Core). No manual migration step needed.
 
-## Performance testing
+To run everything in Docker, including the API itself:
 
-### Setup
-#### The test jobs
-Each job consists of two tasks that each simply wait for half a second, before returning a successful response.
+```sh
+docker compose --profile app up -d
+```
 
-#### Random delays
-Each test scenario will will encounter the following delays, which serves to simulate database writes.
-- Queue writes: 50-500ms
-- Job updates: 50-500ms
-- Task updates: 50-500ms
+### Ports & URLs
 
-The concurrency limit for the engine is 10 threads and the queue size is variable as noted in the table below. Adding items beyond the queue limit will encounter additional wait times for the caller while the queue frees up slots. However, a very large queue limit seems to be detrimental to the efficiency of the system.
+| Service    | URL                                            | Notes                                                   |
+|------------|------------------------------------------------|---------------------------------------------------------|
+| Engine API | [http://localhost:8080](http://localhost:8080) | Swagger UI at [/swagger](http://localhost:8080/swagger) |
+| Grafana    | [http://localhost:3000](http://localhost:3000) | Dashboards, logs, traces, metrics                       |
+| PgAdmin    | [http://localhost:5050](http://localhost:5050) | Db password: postgres123                                |
+| PostgreSQL | `localhost:5432`                               |                                                         |
 
-### Results
-| Jobs | Queue size | Processing time |
-|------|------------|-----------------|
-| 1    | 10k        | 2.3s            |
-| 10   | 10k        | 3.2s            |
-| 100  | 10k        | 3.2s            |
-| 1k   | 10k        | 3.5s            |
-| 10k  | 10k        | 5.8s            |
-| 100k | 1k         | 4m 19s          |
-| 100k | 10k        | 29.8s           |
-| 100k | 100k       | 45.5s           |
-| 1m   | 10k        | 4m 44s          |
-| 1m   | 100k       | 10m 8s          |
-| 1m   | 1m         | 19m 40s         |
+### Authentication
+
+All workflow endpoints require an API key via header. The development key is configured in `appsettings.json` under `ApiSettings:ApiKeys`.
+
+### App command callbacks
+
+Details regarding where and how to send app command callbacks are configured in `appsettings.json` under `AppCommandSettings`.
+
+### API endpoints
+
+See swagger for a [full list](http://localhost:8080/swagger) of endpoints. The main ones so far:
+
+```
+POST /api/v1/workflow/{org}/{app}/{instanceOwnerPartyId}/{instanceGuid}/next
+GET  /api/v1/workflow/{org}/{app}/{instanceOwnerPartyId}/{instanceGuid}/status
+```
+
+## Migrations
+
+Migrations are applied automatically on startup. To add a new migration after modifying entities:
+
+```sh
+dotnet ef migrations add <Name> \
+  --project src/WorkflowEngine.Data \
+  --startup-project src/WorkflowEngine.Api
+```
+
+## Further reading
+
+- [Architectural overview](docs/architecture.md)
+- [Performance testing](docs/performance.md)
