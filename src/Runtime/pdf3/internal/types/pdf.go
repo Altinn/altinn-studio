@@ -138,6 +138,7 @@ var (
 	ErrClientDropped         = errors.New("client dropped the connection")
 	ErrSetCookieFail         = errors.New("setting cookie failed")
 	ErrElementNotReady       = errors.New("waitFor element not ready within timeout")
+	ErrFatalApplicationError = errors.New("PDF generation failed: A fatal application error was detected on the page")
 	ErrGenerationFail        = errors.New("PDF generation failed")
 	ErrUnhandledBrowserError = errors.New("browser operation unhandled failure")
 )

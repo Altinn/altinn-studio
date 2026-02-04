@@ -43,11 +43,12 @@
         const becomesHidden = parseInt(urlParams.get('becomeshidden') || '0', 10);
         const useClass = urlParams.has('useclass'); // Use class-based visibility instead of style attribute
         const setCookie = urlParams.has('setcookie');
+        const fatalError = urlParams.has('fatalerror');
 
         const readyDiv = document.createElement('div');
         readyDiv.id = 'readyForPrint';
         readyDiv.textContent = 'Ready for PDF generation!';
-
+        
         if (initiallyHidden) {
             if (useClass) {
                 readyDiv.classList.add('hidden');
@@ -61,6 +62,16 @@
 
         // Start simulation when page fully loads
         window.onload = async function() {
+            // If fatalerror is set, add the fatal error element and stop
+            if (fatalError) {
+                const fatalDiv = document.createElement('div');
+                fatalDiv.dataset.fatalError = '';
+                fatalDiv.textContent = 'A fatal error occurred!';
+                document.body.appendChild(fatalDiv);
+                console.log('Injected fatal error element.');
+                return; // Stop further execution
+            }
+
             // Set cookies if requested (before any other work)
             if (setCookie) {
                 console.log('Setting test cookies...');

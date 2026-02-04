@@ -563,17 +563,29 @@ func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResp
 		return w.handleWaitError(req, "missing or invalid result object", result, "malformed result object")
 	}
 
-	value, ok := resultObj["value"].(bool)
+	value, ok := resultObj["value"]
 	if !ok {
-		return w.handleWaitError(req, "result value is not boolean", resultObj, "expected boolean result")
+		return w.handleWaitError(req, "result value is missing", resultObj, "expected a result value")
 	}
 
-	if !value {
-		waitForData := waitForToJson(req.request.WaitFor)
-		w.logger.Warn("Wait condition not satisfied within timeout", "waitFor", waitForData)
-		err := fmt.Errorf("timeout")
-		req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
-		return err
+	switch v := value.(type) {
+	case bool:
+		if !v {
+			waitForData := waitForToJson(req.request.WaitFor)
+			w.logger.Warn("Wait condition not satisfied within timeout", "waitFor", waitForData)
+			err := fmt.Errorf("timeout")
+			req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
+			return err
+		}
+	case string:
+		if v == "fatal" {
+			waitForData := waitForToJson(req.request.WaitFor)
+			w.logger.Warn("Fatal error detected on page", "waitFor", waitForData)
+			req.tryRespondError(types.NewPDFError(types.ErrFatalApplicationError, "", nil))
+			return types.ErrFatalApplicationError
+		}
+	default:
+		return w.handleWaitError(req, "result value has unexpected type", resultObj, fmt.Sprintf("expected boolean or string, got %T", v))
 	}
 
 	return nil
@@ -613,174 +625,151 @@ func waitForToJson(waitFor *types.WaitFor) string {
 // loadWaitSnippet returns JavaScript code that creates a promise which resolves when the page load event fires.
 // This can be used in Promise.all() to ensure load event completes along with other conditions.
 func loadWaitSnippet() string {
-	return `(document.readyState === 'complete' ? Promise.resolve(true) : new Promise(r => {
+	return `new Promise(r => {
+	if (document.readyState === 'complete') return r(true);
 	let timeoutId;
-	let resolveSuccess;
 	const resolve = (success) => {
 		if (timeoutId !== undefined) clearTimeout(timeoutId);
 		window.removeEventListener('load', resolveSuccess);
 		r(success);
 	};
-	resolveSuccess = () => resolve(true);
+	const resolveSuccess = () => resolve(true);
 	window.addEventListener('load', resolveSuccess, { once: true });
-	if (document.readyState === 'complete') resolveSuccess();
 	timeoutId = setTimeout(() => resolve(false), timeoutMs);
-  }))`
+  })`
 }
 
 // buildSimpleWaitExpression generates JavaScript for simple element existence checking.
 // Uses MutationObserver only, no polling (original behavior).
 // Also waits for the page 'load' event to ensure the page is fully loaded.
 func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs int32) string {
+	var elementWait, fatalWait string
+
+	// Promise for the target selector
 	if htmlIDSelectorPattern.MatchString(selector) {
-		// ID-optimized path
 		id := selector[1:]
-		return fmt.Sprintf(`(function(){
-		  const id = %q; const timeoutMs = %d;
-		  const loadWait = %s;
-		  const elementWait = new Promise((resolve) => {
-		    const e = document.getElementById(id);
-		    if (e) return requestAnimationFrame(() => resolve(true));
-		    let obs, timeoutId;
-		    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} if (timeoutId !== undefined) clearTimeout(timeoutId); requestAnimationFrame(() => resolve(v)); };
+		elementWait = fmt.Sprintf(`new Promise(resolve => {
+		    if (document.getElementById(%q)) return requestAnimationFrame(() => resolve(true));
+		    let obs;
+		    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} requestAnimationFrame(() => resolve(v)); };
 		    obs = new MutationObserver(recs => {
 		      for (const m of recs) {
-		        if (m.type === 'attributes' && m.attributeName === 'id' && m.target.id === id) { return done(true); }
+		        if (m.type === 'attributes' && m.attributeName === 'id' && m.target.id === %q) { done(true); return; }
 		        if (m.type === 'childList') for (const n of m.addedNodes) {
-		          if (n.nodeType === 1) {
-		            if (n.id === id) return done(true);
-		            const hit = n.querySelector && n.querySelector('#' + CSS.escape(id));
-		            if (hit) return done(true);
-		          }
+		          if (n.nodeType === 1 && (n.id === %q || (n.querySelector && n.querySelector('#' + CSS.escape(%q))))) { done(true); return; }
 		        }
 		      }
 		    });
 		    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['id']});
-		    timeoutId = setTimeout(() => done(false), timeoutMs);
-		  });
-		  return Promise.all([loadWait, elementWait]).then(([loaded, found]) => loaded && found);
-		})()`, id, timeoutMs, loadWaitSnippet())
+		  })`, id, id, id, id)
+	} else {
+		elementWait = fmt.Sprintf(`new Promise(resolve => {
+		    if (document.querySelector(%q)) return requestAnimationFrame(() => resolve(true));
+		    let obs;
+		    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} requestAnimationFrame(() => resolve(v)); };
+		    obs = new MutationObserver(() => {
+		      if (document.querySelector(%q)) done(true);
+		    });
+		    obs.observe(document, {subtree:true, childList:true, attributes:true});
+		  })`, selector, selector)
 	}
 
-	// General selector path
-	return fmt.Sprintf(`(function(){
-	  const selector = %q; const timeoutMs = %d;
-	  const loadWait = %s;
-	  const elementWait = new Promise((resolve) => {
-	    if (document.querySelector(selector)) return requestAnimationFrame(() => resolve(true));
-	    let obs, timeoutId;
-	    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} if (timeoutId !== undefined) clearTimeout(timeoutId); requestAnimationFrame(() => resolve(v)); };
+	// Promise for the fatal error selector
+	fatalWait = `new Promise(resolve => {
+	    if (document.querySelector('[data-fatal-error]')) return requestAnimationFrame(() => resolve('fatal'));
+	    let obs;
+	    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} requestAnimationFrame(() => resolve(v)); };
 	    obs = new MutationObserver(() => {
-	      if (document.querySelector(selector)) done(true);
+	      if (document.querySelector('[data-fatal-error]')) done('fatal');
 	    });
-	    obs.observe(document, {subtree:true, childList:true, attributes:true});
-	    timeoutId = setTimeout(() => done(false), timeoutMs);
-	  });
-	  return Promise.all([loadWait, elementWait]).then(([loaded, found]) => loaded && found);
-	})()`, selector, timeoutMs, loadWaitSnippet())
+	    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['data-fatal-error']});
+	  })`
+
+	// Race elementWait and fatalWait against a timeout
+	return fmt.Sprintf(`(async function(){
+		  const timeoutMs = %d;
+		  const loadPromise = %s;
+		  const racePromise = new Promise(resolve => {
+			const timeoutId = setTimeout(() => resolve(false), timeoutMs);
+			Promise.race([%s, %s]).then(result => {
+			  clearTimeout(timeoutId);
+			  resolve(result);
+			});
+		  });
+		  const [loaded, raceResult] = await Promise.all([loadPromise, racePromise]);
+		  return loaded ? raceResult : false;
+		})()`, timeoutMs, loadWaitSnippet(), elementWait, fatalWait)
 }
 
 // buildVisibilityWaitExpression generates JavaScript for visibility checking with polling fallback.
 // Uses MutationObserver for attribute changes + polling for CSS rule changes.
 // Also waits for the page 'load' event to ensure the page is fully loaded.
 func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutMs int32, checkVisible, checkHidden bool) string {
-	// Visibility helper function
 	visibilityHelper := `
-	  // Check if element is visible using computed styles
 	  const isVisible = (el) => {
 	    if (!el) return false;
 	    const style = window.getComputedStyle(el);
-	    if (style.display === 'none') return false;
-	    if (style.visibility === 'hidden' || style.visibility === 'collapse') return false;
-	    if (style.opacity === '0') return false;
-	    const rect = el.getBoundingClientRect();
-	    if (rect.width === 0 || rect.height === 0) return false;
-	    return true;
+	    return style.display !== 'none' && style.visibility !== 'hidden' && style.visibility !== 'collapse' && style.opacity !== '0' && el.getBoundingClientRect().width !== 0 && el.getBoundingClientRect().height !== 0;
 	  };`
 
-	var checkElementDef string
+	var checkElementDef, elementWait, fatalWait string
 	if checkVisible {
 		checkElementDef = `const checkElement = (el) => el && isVisible(el);`
-	} else if checkHidden {
+	} else { // checkHidden
 		checkElementDef = `const checkElement = (el) => !el || !isVisible(el);`
 	}
 
+	// Promise for the target selector (with visibility check)
 	if htmlIDSelectorPattern.MatchString(selector) {
-		// ID-optimized path with visibility checking
 		id := selector[1:]
-		return fmt.Sprintf(`(function(){
-		  const id = %q; const timeoutMs = %d;
-		  %s
-		  %s
-		  const loadWait = %s;
-		  const elementWait = new Promise((resolve) => {
-		    const e = document.getElementById(id);
-		    if (checkElement(e)) return requestAnimationFrame(() => resolve(true));
-		    let obs, pollInterval, timeoutId;
-		    const done = (v) => {
-		      try { obs && obs.disconnect(); } catch(e){}
-		      if (pollInterval !== undefined) clearInterval(pollInterval);
-		      if (timeoutId !== undefined) clearTimeout(timeoutId);
-		      requestAnimationFrame(() => resolve(v));
-		    };
-		    const check = () => {
-		      const el = document.getElementById(id);
-		      if (checkElement(el)) done(true);
-		    };
-		    obs = new MutationObserver(recs => {
-		      for (const m of recs) {
-		        if (m.type === 'attributes' && m.attributeName === 'id' && m.target.id === id) { check(); return; }
-		        if (m.type === 'childList') for (const n of m.addedNodes) {
-		          if (n.nodeType === 1) {
-		            if (n.id === id) { check(); return; }
-		            const hit = n.querySelector && n.querySelector('#' + CSS.escape(id));
-		            if (hit) { check(); return; }
-		          }
-		        }
-		      }
-		      check();
-		    });
+		elementWait = fmt.Sprintf(`new Promise(resolve => {
+		    const check = () => { if (checkElement(document.getElementById(%q))) { done(true); } };
+		    let obs, pollInterval;
+		    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} if (pollInterval !== undefined) clearInterval(pollInterval); requestAnimationFrame(() => resolve(v)); };
+		    obs = new MutationObserver(check);
 		    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['id', 'style', 'class']});
-		    // Fallback polling for visibility changes via CSS rules (media queries, animations, etc.)
 		    pollInterval = setInterval(check, 100);
-		    timeoutId = setTimeout(() => done(false), timeoutMs);
-		  });
-		  return Promise.all([loadWait, elementWait]).then(([loaded, found]) => loaded && found);
-		})()`, id, timeoutMs, visibilityHelper, checkElementDef, loadWaitSnippet())
+		    check();
+		  })`, id)
+	} else {
+		elementWait = fmt.Sprintf(`new Promise(resolve => {
+		    const check = () => { if (checkElement(document.querySelector(%q))) { done(true); } };
+		    let obs, pollInterval;
+		    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} if (pollInterval !== undefined) clearInterval(pollInterval); requestAnimationFrame(() => resolve(v)); };
+		    obs = new MutationObserver(check);
+		    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['style', 'class']});
+		    pollInterval = setInterval(check, 100);
+		    check();
+		  })`, selector)
 	}
 
-	// General selector path with visibility checking
-	return fmt.Sprintf(`(function(){
-	  const selector = %q; const timeoutMs = %d;
-	  %s
-	  %s
-	  const loadWait = %s;
-	  const elementWait = new Promise((resolve) => {
-	    const e = document.querySelector(selector);
-	    if (checkElement(e)) return requestAnimationFrame(() => resolve(true));
-	    let obs, pollInterval, timeoutId;
-	    const done = (v) => {
-	      try { obs && obs.disconnect(); } catch(e){}
-	      if (pollInterval !== undefined) clearInterval(pollInterval);
-	      if (timeoutId !== undefined) clearTimeout(timeoutId);
-	      requestAnimationFrame(() => resolve(v));
-	    };
-	    const check = () => {
-	      const el = document.querySelector(selector);
-	      if (checkElement(el)) done(true);
-	    };
-	    obs = new MutationObserver(() => {
-	      check();
-	    });
-	    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['style', 'class']});
-	    // Fallback polling for visibility changes via CSS rules (media queries, animations, etc.)
-	    pollInterval = setInterval(check, 100);
-	    timeoutId = setTimeout(() => done(false), timeoutMs);
-	  });
-	  return Promise.all([loadWait, elementWait]).then(([loaded, found]) => loaded && found);
-	})()`, selector, timeoutMs, visibilityHelper, checkElementDef, loadWaitSnippet())
-}
+	// Promise for the fatal error selector
+	fatalWait = `new Promise(resolve => {
+	    const checkFatal = () => { if (document.querySelector('[data-fatal-error]')) { done('fatal'); } };
+	    let obs;
+	    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} requestAnimationFrame(() => resolve(v)); };
+	    obs = new MutationObserver(checkFatal);
+	    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['data-fatal-error']});
+	    checkFatal();
+	  })`
 
+	// Main logic to race promises
+	return fmt.Sprintf(`(async function(){
+		  const timeoutMs = %d;
+		  %s
+		  %s
+		  const loadPromise = %s;
+		  const racePromise = new Promise(resolve => {
+			const timeoutId = setTimeout(() => resolve(false), timeoutMs);
+			Promise.race([%s, %s]).then(result => {
+			  clearTimeout(timeoutId);
+			  resolve(result);
+			});
+		  });
+		  const [loaded, raceResult] = await Promise.all([loadPromise, racePromise]);
+		  return loaded ? raceResult : false;
+		})()`, timeoutMs, visibilityHelper, checkElementDef, loadWaitSnippet(), elementWait, fatalWait)
+}
 func (w *browserSession) getCookies() ([]map[string]any, error) {
 	w.assert(runtime.IsTestInternalsMode, "Should only run as part of testing")
 
