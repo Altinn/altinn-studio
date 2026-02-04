@@ -11,6 +11,8 @@ namespace Altinn.Studio.Runtime.Common;
 
 public static class Hosting
 {
+    private static readonly string[] _localEnvironments = ["local", "development"];
+
     extension(WebApplicationBuilder builder)
     {
         /// <summary>
@@ -43,7 +45,7 @@ public static class Hosting
 #pragma warning restore ASPDEPR005 // Type or member is obsolete
                 options.KnownProxies.Clear();
 
-                if (builder.Environment.IsEnvironment("local"))
+                if (_localEnvironments.Contains(builder.Environment.EnvironmentName, StringComparer.OrdinalIgnoreCase))
                 {
                     // Running locally, let's just trust any network
                     options.KnownIPNetworks.Add(new System.Net.IPNetwork(IPAddress.Any, 0));
@@ -83,6 +85,9 @@ public static class Hosting
         /// </summary>
         public WebApplicationBuilder UseGracefulShutdown()
         {
+            if (builder.Environment.IsDevelopment())
+                return builder;
+
             var shutdownDelay = TimeSpan.FromSeconds(5);
             var shutdownTimeout = TimeSpan.FromSeconds(20);
 
