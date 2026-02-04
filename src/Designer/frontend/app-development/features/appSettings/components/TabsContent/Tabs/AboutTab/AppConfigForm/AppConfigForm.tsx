@@ -46,6 +46,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   const resetAppConfig = (): void => {
     if (confirm(t('app_settings.about_tab_reset_confirmation'))) {
       setUpdatedAppConfig(appConfig);
+      setKeywordsInputValue(mapKeywordsArrayToString(appConfig.keywords ?? []));
       setShowAppConfigErrors(false);
     }
   };

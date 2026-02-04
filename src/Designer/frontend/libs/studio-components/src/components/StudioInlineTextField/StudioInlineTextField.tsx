@@ -30,29 +30,80 @@ export const StudioInlineTextField = ({
   cancelAriaLabel,
 }: StudioInlineTextFieldProps): React.ReactElement => {
   const [isEditMode, setIsEditMode] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState(value);
 
-  const openEditMode = (): void => {
-    setInputValue(value);
-    setIsEditMode(true);
-  };
+  const openEditMode = (): void => setIsEditMode(true);
 
   if (!isEditMode) {
     return <StudioProperty.Button property={label} value={value} onClick={openEditMode} />;
   }
 
-  const saveValue = (): void => {
-    onChange?.(inputValue);
+  const handleSaveFieldInput = (newValue: string): void => {
+    onChange(newValue);
     setIsEditMode(false);
   };
 
-  const cancelEditing = (): void => {
-    setInputValue(value);
-    setIsEditMode(false);
-  };
+  const handleCancelFieldInput = (): void => setIsEditMode(false);
+
+  return (
+    <InlineTextFieldEdit
+      value={value}
+      label={label}
+      description={description}
+      required={required}
+      tagText={tagText}
+      className={className}
+      saveAriaLabel={saveAriaLabel}
+      cancelAriaLabel={cancelAriaLabel}
+      onSave={handleSaveFieldInput}
+      onCancel={handleCancelFieldInput}
+    />
+  );
+};
+
+StudioInlineTextField.displayName = 'StudioInlineTextField';
+
+type InlineTextFieldEditProps = {
+  value: string;
+  label: string;
+  description?: string;
+  required?: boolean;
+  tagText?: string;
+  className?: string;
+  saveAriaLabel: string;
+  cancelAriaLabel: string;
+  onSave: (newValue: string) => void;
+  onCancel: () => void;
+};
+
+const InlineTextFieldEdit = ({
+  value,
+  label,
+  description,
+  required,
+  tagText,
+  className,
+  saveAriaLabel,
+  cancelAriaLabel,
+  onSave,
+  onCancel,
+}: InlineTextFieldEditProps): React.ReactElement => {
+  const [inputValue, setInputValue] = React.useState(value);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
     setInputValue(e.target.value);
+  };
+
+  const handleSave = (): void => onSave(inputValue);
+  const handleCancel = (): void => onCancel();
+
+  const primary = {
+    label: saveAriaLabel,
+    onClick: handleSave,
+  };
+
+  const secondary = {
+    label: cancelAriaLabel,
+    onClick: handleCancel,
   };
 
   return (
@@ -65,20 +116,7 @@ export const StudioInlineTextField = ({
         value={inputValue}
         onChange={handleInputChange}
       />
-      <StudioFormActions
-        primary={{
-          label: saveAriaLabel,
-          onClick: saveValue,
-        }}
-        secondary={{
-          label: cancelAriaLabel,
-          onClick: cancelEditing,
-        }}
-        isLoading={false}
-        iconOnly
-      />
+      <StudioFormActions primary={primary} secondary={secondary} isLoading={false} iconOnly />
     </div>
   );
 };
-
-StudioInlineTextField.displayName = 'StudioInlineTextField';
