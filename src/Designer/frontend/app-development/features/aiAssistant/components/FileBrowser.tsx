@@ -58,6 +58,8 @@ export const FileBrowser = (): ReactElement => {
   const loadFile = async (file: FileSystemObject): Promise<void> => {
     if (!canBrowse) return;
 
+    setSelectedFile(file);
+    setFileContent(null);
     setIsLoadingFile(true);
     setError(null);
     try {
@@ -72,7 +74,6 @@ export const FileBrowser = (): ReactElement => {
           : null
         : data;
 
-      setSelectedFile(file);
       if (!entry || entry.content == null) {
         setFileContent('');
         setError('Filinnhold er ikke tilgjengelig fra tjeneren for denne filen.');
