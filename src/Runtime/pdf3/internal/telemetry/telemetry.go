@@ -106,7 +106,7 @@ var httpDurationView = metric.NewView(
 		Aggregation: metric.AggregationExplicitBucketHistogram{
 			Boundaries: []float64{
 				0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 5, 7.5,
-				10, 12.5, 15, 17.5, 20, 22.25, 25, 27.5, 30, 32.5, 35,
+				10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5, 30, 32.5, 35,
 			},
 		},
 	},
