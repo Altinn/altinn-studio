@@ -9,14 +9,6 @@ import { AppRoutes } from 'nextsrc/utils/AppRoutes';
 
 import type { IInstance } from 'src/types/shared';
 
-// import { getCreateInstancesUrl } from 'src/utils/urls/appUrlHelper';
-
-// 1. Enkel router for første side
-// 2. App Shell
-// 3. Instansierings modul
-
-///  (await httpPost<IInstance>(getCreateInstancesUrl(partyId, language))).data)
-
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('root');
   const root = container && createRoot(container);
@@ -31,7 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return redirect(AppRoutes.selectInstanceUrl);
               }
 
-              if (!AltinnGlobalData.applicationMetaData.onEntry.show) {
+              if (
+                AltinnGlobalData.applicationMetaData.onEntry.show !== 'select-instance' &&
+                AltinnGlobalData.applicationMetaData.onEntry.show !== 'new-instance'
+              ) {
                 return redirect('/stateless');
               }
 
@@ -39,8 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 AltinnGlobalData.applicationMetaData.onEntry.show === 'new-instance' &&
                 AltinnGlobalData.userProfile
               ) {
-                // no party?
-                // do I have lots of instances?
                 const res = await axios.post<IInstance>(
                   ApiRoutes.createInstanceUrl(AltinnGlobalData.userProfile.partyId, 'nb'),
                 );
@@ -49,8 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return redirect(AppRoutes.instanceUrl(instanceOwnerPartyId, instanceGuid));
               }
 
-              // Skal vi til instance selection?
-              // skal vi til party selection?
               return true;
             },
             path: '/',
@@ -63,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
           },
           {
             path: '/instance/:partyId/:instanceGuid',
-            element: <div>I am instnace</div>,
+            element: <div>I am instance</div>,
           },
           {
             path: '/party-selection',
