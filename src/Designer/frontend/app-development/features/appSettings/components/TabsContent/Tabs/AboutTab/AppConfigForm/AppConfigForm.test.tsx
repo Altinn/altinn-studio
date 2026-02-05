@@ -43,7 +43,7 @@ describe('AppConfigForm', () => {
     const user = userEvent.setup();
     renderAppConfigForm();
 
-    const appName = getRequiredTextbox(
+    const appName = getTextbox(
       `${textMock('app_settings.about_tab_name_label')} (${textMock('language.nb')})`,
     );
     expect(appName).toHaveValue(mockServiceName.nb);
@@ -71,7 +71,7 @@ describe('AppConfigForm', () => {
     const user = userEvent.setup();
     renderAppConfigForm({ appConfig: { ...mockAppConfig, description: mockDescription } });
 
-    const description = getRequiredTextbox(
+    const description = getTextbox(
       `${textMock('app_settings.about_tab_description_field_label')} (${textMock('language.nb')})`,
     );
     expect(description).toHaveValue(mockDescription.nb);
@@ -85,7 +85,7 @@ describe('AppConfigForm', () => {
   it('displays description as empty when there is no description set', () => {
     renderAppConfigForm();
 
-    const description = getRequiredTextbox(
+    const description = getTextbox(
       `${textMock('app_settings.about_tab_description_field_label')} (${textMock('language.nb')})`,
     );
     expect(description).toHaveValue('');
@@ -155,7 +155,7 @@ describe('AppConfigForm', () => {
       },
     });
 
-    const rightDescription = getRequiredTextbox(
+    const rightDescription = getTextbox(
       `${textMock('app_settings.about_tab_right_description_field_label')} (${textMock('language.nb')})`,
     );
     expect(rightDescription).toHaveValue(mockRightDescription.nb);
@@ -169,7 +169,7 @@ describe('AppConfigForm', () => {
   it('displays rightDescription as empty when there is no description set', () => {
     renderAppConfigForm({ appConfig: { ...mockAppConfig, access: { delegable: true } } });
 
-    const rightDescription = getRequiredTextbox(
+    const rightDescription = getTextbox(
       `${textMock('app_settings.about_tab_right_description_field_label')} (${textMock('language.nb')})`,
     );
     expect(rightDescription).toHaveValue('');
@@ -341,8 +341,6 @@ function renderAppConfigForm(props: Partial<AppConfigFormProps> = {}) {
   return renderWithProviders()(<AppConfigForm {...defaultProps} {...props} />);
 }
 
-const getRequiredTextbox = (name: string): HTMLInputElement =>
-  getTextbox(`${name} ${requiredText}`);
 const queryRequiredTextbox = (name: string): HTMLInputElement | null =>
   queryTextbox(`${name} ${requiredText}`) || null;
 const getOptionalTextbox = (name: string): HTMLInputElement =>

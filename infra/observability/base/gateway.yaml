@@ -1,0 +1,83 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-gateway
+  labels:
+    altinn.studio/otel-collector: otel-gateway
+spec:
+  mode: deployment
+  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.144.0
+  serviceAccount: otel-collector
+  upgradeStrategy: automatic
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          altinn.studio/otel-collector: otel-gateway
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      # Processor definitions sourced from https://github.com/dis-way/gitops-manifests/blob/1b96cf749be6e5cedfbfc09eb6caf3bd72bfb4c0/oci/otel-collector/base/collector.yaml to keep parity with existing collector behavior.
+      transform/azuremonitor:
+        error_mode: ignore
+        trace_statements:
+          - context: span
+            statements:
+              - set(attributes["http.host"], attributes["server.address"]) where attributes["server.address"] != nil
+              - set(attributes["http.method"], attributes["http.request.method"]) where attributes["http.request.method"] != nil
+              - set(attributes["http.scheme"], attributes["url.scheme"]) where attributes["url.scheme"] != nil
+              - set(attributes["http.target"], attributes["url.path"]) where attributes["url.path"] != nil and (attributes["url.query"] == nil or attributes["url.query"] == "")
+              - set(attributes["http.target"], Concat([attributes["url.path"], attributes["url.query"]], "?")) where attributes["url.path"] != nil and (attributes["url.query"] != nil and attributes["url.query"] != "")
+              - set(attributes["http.url"], attributes["url.full"]) where attributes["url.full"] != nil and attributes["http.url"] == nil
+              - set(attributes["http.status_code"], attributes["http.response.status_code"]) where attributes["http.response.status_code"] != nil
+              - set(attributes["http.client_ip"], attributes["client.address"]) where attributes["client.address"] != nil
+              - set(attributes["db.statement"], attributes["sql.query.text"]) where attributes["sql.query.text"] != nil
+              - set(attributes["db.system"], attributes["db.system.name"]) where attributes["db.system.name"] != nil
+              - set(attributes["http.route"], attributes["url.path"]) where attributes["url.path"] != nil and attributes["http.route"] == nil
+              - replace_pattern(attributes["http.route"], "/(.*?)/(.*?)?/(.*?)?$","/$$1/$$2") where resource.attributes["k8s.deployment.name"] == "traefik" and attributes["http.route"] != nil
+              - set(attributes["http.host"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
+              - set(attributes["http.target"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
+              - set(attributes["server.address"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
+      tail_sampling:
+        decision_wait: 40s
+        num_traces: 50000
+        decision_cache:
+          # Keep sampled decisions longer than in-memory traces to include late spans.
+          sampled_cache_size: 100000
+        policies:
+          - name: always-sample-attr
+            type: string_attribute
+            string_attribute:
+              key: altinn.studio.sampling
+              values: [always]
+          - name: errors
+            type: status_code
+            status_code:
+              status_codes: [ERROR]
+          - name: slow-traces
+            type: latency
+            latency:
+              threshold_ms: 1000
+          - name: probabilistic
+            type: probabilistic
+            probabilistic:
+              sampling_percentage: 10
+      batch:
+        send_batch_size: 1024
+        timeout: 5s

@@ -415,6 +415,34 @@ func TestReconciler_RecoversFromTransientError(t *testing.T) {
 	g.Expect(parsed[mapping.Secrets[0]]).To(Equal("recovered-value"))
 }
 
+func TestReconciler_RawOutputStoresPlainString(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := KeyVaultSecretMapping{
+		Name:      "raw-secret",
+		Namespace: "default",
+		FileName:  "connection-string",
+		Secrets:   []string{"ConnectionString"},
+		Raw:       true,
+		BuildOutput: func(secrets map[string]string) any {
+			return secrets["ConnectionString"]
+		},
+	}
+
+	h := newTestHarness(t, []KeyVaultSecretMapping{mapping})
+	h.kvClient.SetSecret("ConnectionString", "InstrumentationKey=abc123")
+
+	err := h.reconciler.SyncAll(h.ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	secret := &corev1.Secret{}
+	err = h.k8sClient.Get(h.ctx, mapping.objectKey(), secret)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Raw output should NOT be JSON-encoded (no quotes)
+	g.Expect(string(mapping.fileData(secret))).To(Equal("InstrumentationKey=abc123"))
+}
+
 func TestReconciler_StartExitsOnContextCancellation(t *testing.T) {
 	g := NewWithT(t)
 
