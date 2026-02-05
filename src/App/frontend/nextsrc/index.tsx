@@ -27,46 +27,47 @@ document.addEventListener('DOMContentLoaded', () => {
         [
           {
             loader: async () => {
-              console.log('load');
-              // Hva skjal vi gjøre?
-              // Instansiere?
+              if (AltinnGlobalData.applicationMetaData.onEntry.show === 'select-instance') {
+                return redirect(AppRoutes.selectInstanceUrl);
+              }
+
               if (
                 AltinnGlobalData.applicationMetaData.onEntry.show === 'new-instance' &&
                 AltinnGlobalData.userProfile
               ) {
+                // no party?
+                // do I have lots of instances?
                 const res = await axios.post<IInstance>(
                   ApiRoutes.createInstanceUrl(AltinnGlobalData.userProfile.partyId, 'nb'),
                 );
-
-                // Hva gjør vi med dette?:
-                // Hvilken TYPE er dataen?
                 const data = res.data;
-
                 const [instanceOwnerPartyId, instanceGuid] = data.id.split('/');
-                // 1. redirect til instanceId
-
                 return redirect(AppRoutes.instanceUrl(instanceOwnerPartyId, instanceGuid));
-
-                // 2. hvis det feiler, vis error komponent
-                // console.log(JSON.stringify(data, null, 2));
               }
 
               // Skal vi til instance selection?
               // skal vi til party selection?
-
               return true;
             },
             path: '/',
+            errorElement: <div>WOOPSIES!!!</div>,
             element: (
               <div>
                 <pre>{JSON.stringify(AltinnGlobalData.applicationMetaData, null, 2)}</pre>
               </div>
             ),
           },
-
           {
             path: '/instance/:partyId/:instanceGuid',
             element: <div>I am instnace</div>,
+          },
+          {
+            path: '/party-selection',
+            element: <div>I am party</div>,
+          },
+          {
+            path: '/instance-selection',
+            element: <div>I am instance selection</div>,
           },
         ],
         {

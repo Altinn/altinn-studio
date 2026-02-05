@@ -2,7 +2,7 @@ import { AltinnGlobalData } from 'nextsrc/utils/AltinnGlobalData';
 
 export class ApiRoutes {
   public static createInstanceUrl(partyId: number, language?: string) {
-    const url = `${ApiRoutes.origin}/instances?instanceOwnerPartyId=${partyId}`;
+    const url = `${ApiRoutes.origin}/instance?instanceOwnerPartyId=${partyId}`;
 
     if (!language) {
       return url;
