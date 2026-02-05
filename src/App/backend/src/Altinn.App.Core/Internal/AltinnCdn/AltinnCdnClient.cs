@@ -60,7 +60,7 @@ internal sealed class AltinnCdnClient : IAltinnCdnClient
 
     private async ValueTask<AltinnCdnOrgDetails?> FetchOrgDetails(CancellationToken cancellationToken)
     {
-        var httpClient = _httpClientFactory.CreateClient(nameof(AltinnCdnClient));
+        using var httpClient = _httpClientFactory.CreateClient(nameof(AltinnCdnClient));
         using var response = await httpClient.GetAsync("https://altinncdn.no/orgs/altinn-orgs.json", cancellationToken);
         response.EnsureSuccessStatusCode();
 
