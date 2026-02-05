@@ -94,7 +94,7 @@ export const queriesMock: ServicesContextProps = {
   getAvailableResourcesFromOrg: jest
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
-  getAvailableTemplatesForOrg: jest
+  getAvailableTemplates: jest
     .fn()
     .mockImplementation(() =>
       Promise.resolve<CustomTemplateList>({ templates: [], totalCount: 0 }),
