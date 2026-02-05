@@ -24,7 +24,6 @@ import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
-import { LanguageProvider } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
@@ -79,31 +78,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function Root() {
   return (
-    <LanguageProvider>
-      <ViewportWrapper>
-        <UiConfigProvider>
-          <InstantiationUrlReset />
-          <GlobalFormDataReadersProvider>
-            <TextResourcesProvider>
-              <OrgsProvider>
-                <PartyProvider>
-                  <KeepAliveProvider>
-                    <App />
-                    <ToastContainer
-                      position='top-center'
-                      theme='colored'
-                      transition={Slide}
-                      draggable={false}
-                    />
-                  </KeepAliveProvider>
-                </PartyProvider>
-              </OrgsProvider>
-            </TextResourcesProvider>
-            <PartyPrefetcher />
-          </GlobalFormDataReadersProvider>
-        </UiConfigProvider>
-      </ViewportWrapper>
-    </LanguageProvider>
+    <ViewportWrapper>
+      <UiConfigProvider>
+        <InstantiationUrlReset />
+        <GlobalFormDataReadersProvider>
+          <TextResourcesProvider>
+            <OrgsProvider>
+              <PartyProvider>
+                <KeepAliveProvider>
+                  <App />
+                  <ToastContainer
+                    position='top-center'
+                    theme='colored'
+                    transition={Slide}
+                    draggable={false}
+                  />
+                </KeepAliveProvider>
+              </PartyProvider>
+            </OrgsProvider>
+          </TextResourcesProvider>
+          <PartyPrefetcher />
+        </GlobalFormDataReadersProvider>
+      </UiConfigProvider>
+    </ViewportWrapper>
   );
 }
 
