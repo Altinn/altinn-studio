@@ -31,7 +31,7 @@
         <altinn:taskExtension>
           <altinn:taskType>pdf</altinn:taskType>
           <altinn:pdfConfig>
-            <altinn:filenameTextResourceKey>layoutSetBasedPdf</altinn:filenameTextResourceKey>
+            <altinn:filenameTextResourceKey>layoutSetBasedPdfFileName</altinn:filenameTextResourceKey>
           </altinn:pdfConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
@@ -54,10 +54,38 @@
       <bpmn:incoming>Flow_0er70tq</bpmn:incoming>
       <bpmn:outgoing>Flow_19ikt1z</bpmn:outgoing>
     </bpmn:serviceTask>
+    <bpmn:serviceTask id="SubformPdf" name="Subform PDF">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>subformPdf</altinn:taskType>
+          <altinn:subformPdfConfig>
+            <altinn:filenameTextResourceKey>SubformPdfFileName</altinn:filenameTextResourceKey>
+            <altinn:subformComponentId>Subform</altinn:subformComponentId>
+            <altinn:subformDataTypeId>SubformModel</altinn:subformDataTypeId>
+          </altinn:subformPdfConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0wi2fss</bpmn:incoming>
+      <bpmn:outgoing>Flow_1038xje</bpmn:outgoing>
+    </bpmn:serviceTask>
     <bpmn:serviceTask id="Task_eFormidling" name="eFormidling">
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>eFormidling</altinn:taskType>
+          <altinn:eFormidlingConfig>
+            <altinn:disabled env="local">true</altinn:disabled>
+            <altinn:receiver>991825827</altinn:receiver>
+            <altinn:process>urn:no:difi:profile:arkivmelding:administrasjon:ver1.0</altinn:process>
+            <altinn:standard>urn:no:difi:arkivmelding:xsd::arkivmelding</altinn:standard>
+            <altinn:typeVersion>2.0</altinn:typeVersion>
+            <altinn:type>arkivmelding</altinn:type>
+            <altinn:securityLevel>3</altinn:securityLevel>
+            <altinn:dpfShipmentType>digital</altinn:dpfShipmentType>
+            <altinn:dataTypes>
+              <altinn:dataType>model</altinn:dataType>
+              <altinn:dataType>ref-data-as-pdf</altinn:dataType>
+            </altinn:dataTypes>
+          </altinn:eFormidlingConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1uewkmg</bpmn:incoming>
@@ -133,18 +161,6 @@
     <bpmn:sequenceFlow id="Flow_0wi2fss" sourceRef="Gateway_19sxbsr" targetRef="SubformPdf">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:serviceTask id="SubformPdf" name="Subform PDF">
-      <bpmn:extensionElements>
-        <altinn:taskExtension>
-          <altinn:taskType>pdf</altinn:taskType>
-          <altinn:pdfConfig>
-            <altinn:filenameTextResourceKey>pdf-filename-Hx54atQQ</altinn:filenameTextResourceKey>
-          </altinn:pdfConfig>
-        </altinn:taskExtension>
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0wi2fss</bpmn:incoming>
-      <bpmn:outgoing>Flow_1038xje</bpmn:outgoing>
-    </bpmn:serviceTask>
     <bpmn:sequenceFlow id="Flow_1038xje" sourceRef="SubformPdf" targetRef="Task_Fail" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
