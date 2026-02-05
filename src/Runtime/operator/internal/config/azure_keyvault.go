@@ -9,7 +9,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -72,7 +71,7 @@ func (a *azureKeyVaultClient) tryGetSecret(ctx context.Context, name string) (st
 }
 
 func newAzureKeyVaultClient(ctx context.Context, environment string) (*azureKeyVaultClient, error) {
-	tracer := otel.Tracer(telemetry.ServiceName)
+	tracer := telemetry.Tracer()
 	_, span := tracer.Start(ctx, "NewAzureKeyVaultClient")
 	defer span.End()
 

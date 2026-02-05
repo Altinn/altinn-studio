@@ -43,6 +43,10 @@ spec:
                 fieldPath: metadata.uid
           - name: OTEL_RESOURCE_ATTRIBUTES
             value: "k8s.pod.uid=$(POD_UID)"
+          - name: OTEL_SERVICE_NAME
+            value: "operator"
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "http://otel-router.runtime-obs.svc.cluster.local:4317"
           - name: OPERATOR_UPGRADE_CHANNEL
             valueFrom:
               configMapKeyRef:
