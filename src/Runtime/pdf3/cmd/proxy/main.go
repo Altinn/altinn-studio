@@ -141,7 +141,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		if r.Method != http.MethodPost {
-			ihttp.WriteProblemDetails(logger, w, http.StatusMethodNotAllowed, ihttp.ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, r, http.StatusMethodNotAllowed, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.5",
 				Title:  "Method Not Allowed",
 				Status: http.StatusMethodNotAllowed,
@@ -151,7 +151,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 		}
 		ct := strings.ToLower(r.Header.Get("Content-Type"))
 		if !strings.HasPrefix(ct, "application/json") {
-			ihttp.WriteProblemDetails(logger, w, http.StatusUnsupportedMediaType, ihttp.ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, r, http.StatusUnsupportedMediaType, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.13",
 				Title:  "Unsupported Media Type",
 				Status: http.StatusUnsupportedMediaType,
@@ -161,7 +161,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 		}
 		const maxBodySize = 1024 * 64 // 64K should be plenty for the JSON request
 		if r.ContentLength > maxBodySize {
-			ihttp.WriteProblemDetails(logger, w, http.StatusRequestEntityTooLarge, ihttp.ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, r, http.StatusRequestEntityTooLarge, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.11",
 				Title:  "Request Entity Too Large",
 				Status: http.StatusRequestEntityTooLarge,
@@ -170,7 +170,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 			return
 		}
 		if !iruntime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
-			ihttp.WriteProblemDetails(logger, w, http.StatusBadRequest, ihttp.ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, r, http.StatusBadRequest, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:  "Bad Request",
 				Status: http.StatusBadRequest,
@@ -184,7 +184,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			ihttp.WriteProblemDetails(logger, w, http.StatusBadRequest, ihttp.ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, r, http.StatusBadRequest, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:  "Bad Request",
 				Status: http.StatusBadRequest,
@@ -195,7 +195,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 
 		// Validate request
 		if err := req.Validate(); err != nil {
-			ihttp.WriteProblemDetails(logger, w, http.StatusBadRequest, ihttp.ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, r, http.StatusBadRequest, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:  "Bad Request",
 				Status: http.StatusBadRequest,
@@ -217,7 +217,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 		// Prepare request body
 		reqBody, err := json.Marshal(req)
 		if err != nil {
-			ihttp.WriteProblemDetails(reqLogger, w, http.StatusInternalServerError, ihttp.ProblemDetails{
+			ihttp.WriteProblemDetails(reqLogger, w, r, http.StatusInternalServerError, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.1",
 				Title:  "Internal Server Error",
 				Status: http.StatusInternalServerError,
@@ -273,7 +273,7 @@ func callWorker(
 	// Call worker via HTTP
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, workerEndpoint, bytes.NewReader(reqBody))
 	if err != nil {
-		ihttp.WriteProblemDetails(logger, w, http.StatusInternalServerError, ihttp.ProblemDetails{
+		ihttp.WriteProblemDetails(logger, w, r, http.StatusInternalServerError, ihttp.ProblemDetails{
 			Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.1",
 			Title:  "Internal Server Error",
 			Status: http.StatusInternalServerError,
@@ -316,7 +316,7 @@ func callWorker(
 			}
 			return false
 		}
-		ihttp.WriteProblemDetails(logger, w, http.StatusInternalServerError, ihttp.ProblemDetails{
+		ihttp.WriteProblemDetails(logger, w, r, http.StatusInternalServerError, ihttp.ProblemDetails{
 			Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.1",
 			Title:  "Internal Server Error",
 			Status: http.StatusInternalServerError,
@@ -399,7 +399,7 @@ func callWorker(
 		w.Header().Set("X-Worker-Id", workerId)
 	}
 
-	ihttp.WriteProblemDetails(logger, w, statusCode, ihttp.ProblemDetails{
+	ihttp.WriteProblemDetails(logger, w, r, statusCode, ihttp.ProblemDetails{
 		Type:   problemType,
 		Title:  problemTitle,
 		Status: statusCode,
