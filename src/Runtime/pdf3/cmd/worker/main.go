@@ -33,8 +33,7 @@ func main() {
 
 	baseLogger.Info("Starting", "GOMAXPROCS", runtime.GOMAXPROCS(0), "NumCPU", runtime.NumCPU())
 
-	// Initialize telemetry with Prometheus exporter
-	tel, err := telemetry.New("pdf3-worker")
+	otelShutdown, err := telemetry.ConfigureOTel(context.Background())
 	if err != nil {
 		baseLogger.Error("Failed to initialize telemetry", "error", err)
 		os.Exit(1)
@@ -108,12 +107,10 @@ func main() {
 	// The localtest harness will run on all dev machines
 	// We can avoid some overhead by just running the single container
 	if cfg.Environment == "localtest" {
-		http.Handle("/pdf", tel.WrapHandler("POST /pdf", generateLocalPdfHandler(logger, gen)))
+		http.Handle("/pdf", telemetry.WrapHandler("POST /pdf", generateLocalPdfHandler(logger, gen)))
 	} else {
-		http.Handle("/generate", tel.WrapHandler("POST /generate", generatePdfHandler(logger, gen)))
+		http.Handle("/generate", telemetry.WrapHandler("POST /generate", generatePdfHandler(logger, gen)))
 	}
-	http.Handle("/metrics", tel.Handler())
-
 	// Only register test output endpoint in test internals mode
 	if iruntime.IsTestInternalsMode {
 		http.HandleFunc("/testoutput/", getTestOutputHandler(logger))
@@ -146,11 +143,10 @@ func main() {
 		logger.Info("Gracefully shut down HTTP server")
 	}
 
-	// Shutdown telemetry to flush pending metrics
 	logger.Info("Shutting down telemetry")
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := tel.Close(shutdownCtx); err != nil {
+	if err := otelShutdown(shutdownCtx); err != nil {
 		logger.Warn("Failed to gracefully shut down telemetry", "error", err)
 	}
 
