@@ -4,6 +4,8 @@ using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using FluentAssertions;
+using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Moq.Protected;
 
@@ -11,6 +13,14 @@ namespace Altinn.App.Core.Tests.Internal.AltinnCdn;
 
 public class AltinnCdnClientTest
 {
+    private static HybridCache CreateHybridCache()
+    {
+        var services = new ServiceCollection();
+        services.AddHybridCache();
+        var provider = services.BuildServiceProvider();
+        return provider.GetRequiredService<HybridCache>();
+    }
+
     private static (Mock<IHttpClientFactory> Mock, HttpClient Client) CreateHttpClientFactoryMock(
         HttpMessageHandler handler
     )
@@ -102,7 +112,8 @@ public class AltinnCdnClientTest
         var (factoryMock, httpClient) = CreateHttpClientFactoryMock(httpMessageHandlerMock.Object);
         using var _ = httpClient;
         var appMetadataMock = CreateAppMetadataMock("udi");
-        var client = new AltinnCdnClient(factoryMock.Object, appMetadataMock.Object);
+        var cache = CreateHybridCache();
+        var client = new AltinnCdnClient(cache, factoryMock.Object, appMetadataMock.Object);
 
         // Act
         var result = await client.GetOrgDetails();
@@ -133,7 +144,8 @@ public class AltinnCdnClientTest
         var (factoryMock, httpClient) = CreateHttpClientFactoryMock(httpMessageHandlerMock.Object);
         using var _ = httpClient;
         var appMetadataMock = CreateAppMetadataMock("nonexistent");
-        var client = new AltinnCdnClient(factoryMock.Object, appMetadataMock.Object);
+        var cache = CreateHybridCache();
+        var client = new AltinnCdnClient(cache, factoryMock.Object, appMetadataMock.Object);
 
         // Act
         var result = await client.GetOrgDetails();
@@ -160,7 +172,8 @@ public class AltinnCdnClientTest
         var (factoryMock, httpClient) = CreateHttpClientFactoryMock(httpMessageHandlerMock.Object);
         using var _ = httpClient;
         var appMetadataMock = CreateAppMetadataMock("ttd");
-        var client = new AltinnCdnClient(factoryMock.Object, appMetadataMock.Object);
+        var cache = CreateHybridCache();
+        var client = new AltinnCdnClient(cache, factoryMock.Object, appMetadataMock.Object);
 
         // Act
         var act = new Func<Task>(() => client.GetOrgDetails());
@@ -190,12 +203,13 @@ public class AltinnCdnClientTest
         var (factoryMock, httpClient) = CreateHttpClientFactoryMock(httpMessageHandlerMock.Object);
         using var _ = httpClient;
         var appMetadataMock = CreateAppMetadataMock("ttd");
-        var altinnCdnClient = new AltinnCdnClient(factoryMock.Object, appMetadataMock.Object);
+        var cache = CreateHybridCache();
+        var altinnCdnClient = new AltinnCdnClient(cache, factoryMock.Object, appMetadataMock.Object);
 
         // Act
         var act = new Func<Task>(() => altinnCdnClient.GetOrgDetails(cancellationTokenSource.Token));
 
         // Assert
-        await act.Should().ThrowAsync<TaskCanceledException>();
+        await act.Should().ThrowAsync<OperationCanceledException>();
     }
 }
