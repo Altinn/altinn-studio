@@ -8,7 +8,7 @@ describe('Viewer', () => {
   it('should render the BPMN viewer', async () => {
     const user = userEvent.setup();
     render(
-      <BpmnContextProvider appLibVersion={'8.0.0'}>
+      <BpmnContextProvider appVersion={{ backendVersion: '8.0.0', frontendVersion: '4.0.0' }}>
         <BPMNViewer />
       </BpmnContextProvider>,
     );

@@ -224,7 +224,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnRepoEditingContext altinnRepoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, serviceConfig.RepositoryName, developer);
+            string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, serviceConfig.RepositoryName, developer, token);
             string repoPath = _settings.GetServicePath(org, serviceConfig.RepositoryName, developer);
             var options = new CreateRepoOption(serviceConfig.RepositoryName);
 
@@ -237,7 +238,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     FireDeletionOfLocalRepo(org, serviceConfig.RepositoryName, developer);
                 }
 
-                await _sourceControl.CloneRemoteRepository(altinnRepoEditingContext);
+                _sourceControl.CloneRemoteRepository(authenticatedContext);
 
                 ModelMetadata metadata = new()
                 {
@@ -254,7 +255,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
-                await _sourceControl.PushChangesForRepository(commitInfo, altinnRepoEditingContext);
+                _sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
             }
 
             return repository;
@@ -272,7 +273,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             targetOrg ??= org;
             var options = new CreateRepoOption(targetRepository);
-            AltinnRepoEditingContext altinnRepoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, sourceRepository, developer);
+            string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext sourceContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceRepository, developer, token);
+            AltinnAuthenticatedRepoEditingContext targetContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(targetOrg, targetRepository, developer, token);
 
             RepositoryClient.Model.Repository repository = await CreateRemoteRepository(targetOrg, options);
 
@@ -288,10 +291,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 FireDeletionOfLocalRepo(targetOrg, targetRepository, developer);
             }
 
-            await _sourceControl.CloneRemoteRepository(altinnRepoEditingContext, targetRepositoryPath);
+            _sourceControl.CloneRemoteRepository(sourceContext, targetRepositoryPath);
             var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepository, developer);
 
-            await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
+            await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{targetOrg}/{targetRepository}.git");
 
             ApplicationMetadata appMetadata = await targetAppRepository.GetApplicationMetadata();
             appMetadata.Id = $"{targetOrg}/{targetRepository}";
@@ -311,7 +314,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             CommitInfo commitInfo = new() { Org = targetOrg, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
-            await _sourceControl.PushChangesForRepository(commitInfo, altinnRepoEditingContext);
+            _sourceControl.PushChangesForRepository(targetContext, commitInfo);
 
             return repository;
         }
@@ -320,11 +323,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<bool> ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext)
         {
             string repoPath = _settings.GetServicePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromEditingContext(altinnRepoEditingContext, token);
 
             if (Directory.Exists(repoPath))
             {
                 FireDeletionOfLocalRepo(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-                await _sourceControl.CloneRemoteRepository(altinnRepoEditingContext);
+                _sourceControl.CloneRemoteRepository(authenticatedContext);
                 return true;
             }
 
@@ -382,40 +387,72 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public List<FileSystemObject> GetContents(string org, string repository, string path = "")
         {
-            List<FileSystemObject> contents = new();
             string repositoryPath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string contentPath = Path.Combine(repositoryPath, path);
 
-            // repository was not found
             if (!Directory.Exists(repositoryPath))
             {
                 return null;
             }
 
+            string contentPath = ResolvePathWithinParentDirectory(repositoryPath, path);
+            if (contentPath is null)
+            {
+                return null;
+            }
+
+            List<FileSystemObject> contents = GetFileSystemObjects(contentPath);
+
+            string repositoryFullPath = Path.GetFullPath(repositoryPath);
+            contents.ForEach(c => c.Path = Path.GetRelativePath(repositoryFullPath, c.Path).Replace("\\", "/"));
+
+            return contents;
+        }
+
+        /// <summary>
+        /// Resolves and validates that a requested path is within a parent directory.
+        /// Returns the resolved full path, or null if the path escapes the parent.
+        /// </summary>
+        private static string ResolvePathWithinParentDirectory(string parentDirectory, string relativePath)
+        {
+            string fullParent = Path.GetFullPath(parentDirectory);
+
+            if (string.IsNullOrEmpty(relativePath))
+            {
+                return fullParent;
+            }
+
+            string resolvedPath = Path.GetFullPath(Path.Join(fullParent, relativePath));
+            string parentWithSeparator = fullParent.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                                         + Path.DirectorySeparatorChar;
+
+            if (!resolvedPath.StartsWith(parentWithSeparator, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(resolvedPath, fullParent, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            return resolvedPath;
+        }
+
+        private List<FileSystemObject> GetFileSystemObjects(string contentPath)
+        {
+            List<FileSystemObject> contents = new();
+
             if (File.Exists(contentPath))
             {
-                FileSystemObject f = GetFileSystemObjectForFile(contentPath);
-                contents.Add(f);
+                contents.Add(GetFileSystemObjectForFile(contentPath, includeContent: true));
             }
             else if (Directory.Exists(contentPath))
             {
-                string[] dirs = Directory.GetDirectories(contentPath);
-                foreach (string directoryPath in dirs)
+                foreach (string directoryPath in Directory.GetDirectories(contentPath))
                 {
-                    FileSystemObject d = GetFileSystemObjectForDirectory(directoryPath);
-                    contents.Add(d);
+                    contents.Add(GetFileSystemObjectForDirectory(directoryPath));
                 }
-
-                string[] files = Directory.GetFiles(contentPath);
-                foreach (string filePath in files)
+                foreach (string filePath in Directory.GetFiles(contentPath))
                 {
-                    FileSystemObject f = GetFileSystemObjectForFile(filePath);
-                    contents.Add(f);
+                    contents.Add(GetFileSystemObjectForFile(filePath));
                 }
             }
-
-            // setting all paths relative to repository
-            contents.ForEach(c => c.Path = Path.GetRelativePath(repositoryPath, c.Path).Replace("\\", "/"));
 
             return contents;
         }
@@ -584,7 +621,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return string.Format("{0}_resource.json", identifier);
         }
 
-        private FileSystemObject GetFileSystemObjectForFile(string path)
+        private FileSystemObject GetFileSystemObjectForFile(string path, bool includeContent = false)
         {
             FileInfo fi = new(path);
             string encoding;
@@ -594,12 +631,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 encoding = sr.CurrentEncoding.EncodingName;
             }
 
+            string content = null;
+            if (includeContent)
+            {
+                content = File.ReadAllText(path, Encoding.UTF8);
+            }
+
             FileSystemObject fso = new()
             {
                 Type = FileSystemObjectType.File.ToString(),
                 Name = fi.Name,
                 Encoding = encoding,
                 Path = fi.FullName,
+                Content = content,
             };
 
             return fso;

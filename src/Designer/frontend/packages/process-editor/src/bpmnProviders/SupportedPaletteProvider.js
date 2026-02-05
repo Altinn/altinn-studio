@@ -1,20 +1,26 @@
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
+import {
+  isVersionEqualOrGreater,
+  MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
+  MINIMUM_APP_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
+} from '../utils/processEditorUtils';
+import { t } from 'i18next';
 
 const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];
 
 class SupportedPaletteProvider {
-  constructor(bpmnFactory, create, elementFactory, palette, translate, modeling) {
+  constructor(bpmnFactory, create, elementFactory, palette, modeling, appVersion) {
     this.bpmnFactory = bpmnFactory;
     this.create = create;
     this.elementFactory = elementFactory;
-    this.translate = translate;
     this.modeling = modeling;
+    this.appVersion = appVersion;
 
     palette.registerProvider(this);
   }
 
   getPaletteEntries() {
-    const { elementFactory, create, bpmnFactory, translate, modeling } = this;
+    const { elementFactory, create, bpmnFactory, modeling, appVersion } = this;
 
     function createCustomTask(taskType) {
       return function (event) {
@@ -186,6 +192,59 @@ class SupportedPaletteProvider {
       };
     }
 
+    function createCustomPdfServiceTask() {
+      const taskType = 'pdf';
+
+      return function (event) {
+        if (
+          appVersion &&
+          !isVersionEqualOrGreater(
+            appVersion.backendVersion,
+            MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
+          )
+        ) {
+          window.alert(
+            t('process_editor.palette_pdf_service_task_version_error', {
+              version: MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
+            }),
+          );
+          return;
+        }
+
+        if (
+          appVersion &&
+          !isVersionEqualOrGreater(
+            appVersion.frontendVersion,
+            MINIMUM_APP_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
+          )
+        ) {
+          window.alert(
+            t('process_editor.palette_pdf_service_task_frontend_version_error', {
+              version: MINIMUM_APP_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
+            }),
+          );
+          return;
+        }
+
+        const task = buildAltinnServiceTask(taskType);
+
+        const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
+          values: [
+            bpmnFactory.create('altinn:TaskExtension', {
+              taskType: taskType,
+              pdfConfig: bpmnFactory.create('altinn:PdfConfig'),
+            }),
+          ],
+        });
+
+        modeling.updateProperties(task, {
+          extensionElements,
+        });
+
+        create.start(event, task);
+      };
+    }
+
     const buildAltinnTask = (taskType) => {
       const businessObject = bpmnFactory.create('bpmn:Task', {
         name: `Altinn ${taskType} task`,
@@ -199,13 +258,26 @@ class SupportedPaletteProvider {
       return task;
     };
 
+    const buildAltinnServiceTask = (taskType) => {
+      const businessObject = bpmnFactory.create('bpmn:ServiceTask', {
+        name: `Altinn ${taskType} task`,
+      });
+
+      const task = elementFactory.createShape({
+        type: 'bpmn:ServiceTask',
+        businessObject,
+      });
+
+      return task;
+    };
+
     return (entries) => {
       this._deleteUnsupportedEntries(entries);
       const customEntries = {
         'create.altinn-data-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-data-task',
-          title: translate('Create data task'),
+          title: t('process_editor.palette_create_data_task'),
           action: {
             click: createCustomTask('data'),
             dragstart: createCustomTask('data'),
@@ -213,7 +285,7 @@ class SupportedPaletteProvider {
         },
         'create.altinn-feedback-task': {
           group: 'activity',
-          title: translate('Create feedback task'),
+          title: t('process_editor.palette_create_feedback_task'),
           className: 'bpmn-icon-task-generic bpmn-icon-feedback-task',
           action: {
             click: createCustomTask('feedback'),
@@ -223,7 +295,7 @@ class SupportedPaletteProvider {
         'create.altinn-signing-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-signing-task',
-          title: translate('Create signing task'),
+          title: t('process_editor.palette_create_signing_task'),
           action: {
             click: createCustomSigningTask(),
             dragstart: createCustomSigningTask(),
@@ -232,7 +304,7 @@ class SupportedPaletteProvider {
         'create.altinn-user-controlled-signing-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-user-controlled-signing-task',
-          title: translate('Create user-controlled signing task'),
+          title: t('process_editor.palette_create_user_controlled_signing_task'),
           action: {
             click: createUserControlledSigningTask(),
             dragstart: createUserControlledSigningTask(),
@@ -241,7 +313,7 @@ class SupportedPaletteProvider {
         'create.altinn-confirmation-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
-          title: translate('Create confirm task'),
+          title: t('process_editor.palette_create_confirmation_task'),
           action: {
             click: createCustomConfirmationTask(),
             dragstart: createCustomConfirmationTask(),
@@ -250,10 +322,19 @@ class SupportedPaletteProvider {
         'create.altinn-payment-task': {
           group: 'activity',
           className: `bpmn-icon-task-generic bpmn-icon-payment-task`,
-          title: translate('Create payment task'),
+          title: t('process_editor.palette_create_payment_task'),
           action: {
             click: createCustomPaymentTask(),
             dragstart: createCustomPaymentTask(),
+          },
+        },
+        'create.altinn-pdf-task': {
+          group: 'activity',
+          className: `bpmn-icon-task-generic bpmn-icon-pdf-task`,
+          title: t('process_editor.palette_create_pdf_service_task'),
+          action: {
+            click: createCustomPdfServiceTask(),
+            dragstart: createCustomPdfServiceTask(),
           },
         },
       };
@@ -286,8 +367,8 @@ SupportedPaletteProvider.$inject = [
   'create',
   'elementFactory',
   'palette',
-  'translate',
   'modeling',
+  'appVersion',
 ];
 
 export default {

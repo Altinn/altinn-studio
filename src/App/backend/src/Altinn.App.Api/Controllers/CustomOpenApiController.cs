@@ -100,7 +100,7 @@ public class CustomOpenApiController : Controller
                 Contact = new()
                 {
                     Name = "Digitaliseringsdirektoratet (altinn)",
-                    Url = new("https://altinn.slack.com"),
+                    Url = new("https://digdir-samarbeid.slack.com"),
                 },
                 Version = appMetadata.AltinnNugetVersion,
                 Description = GetIntroDoc(appMetadata),

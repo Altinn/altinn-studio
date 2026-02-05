@@ -2526,6 +2526,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2572,6 +2580,14 @@
             "name": "returnUrl",
             "in": "query",
             "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "The chosen language to use for default text resources",
             "schema": {
               "type": "string"
             }
@@ -2624,6 +2640,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2670,6 +2694,14 @@
             "name": "returnUrl",
             "in": "query",
             "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "The chosen language to use for default text resources",
             "schema": {
               "type": "string"
             }
@@ -2732,6 +2764,14 @@
             }
           },
           {
+            "name": "lang",
+            "in": "query",
+            "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "pageName",
             "in": "path",
             "required": true,
@@ -2784,6 +2824,14 @@
             "name": "returnUrl",
             "in": "query",
             "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "The chosen language to use for default text resources",
             "schema": {
               "type": "string"
             }
@@ -2849,6 +2897,14 @@
             "name": "returnUrl",
             "in": "query",
             "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "The chosen language to use for default text resources",
             "schema": {
               "type": "string"
             }
@@ -8889,6 +8945,10 @@
             "nullable": true
           },
           "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
             "type": "string",
             "nullable": true
           }
