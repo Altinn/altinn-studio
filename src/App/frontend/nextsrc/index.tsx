@@ -31,6 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return redirect(AppRoutes.selectInstanceUrl);
               }
 
+              if (!AltinnGlobalData.applicationMetaData.onEntry.show) {
+                return redirect('/stateless');
+              }
+
               if (
                 AltinnGlobalData.applicationMetaData.onEntry.show === 'new-instance' &&
                 AltinnGlobalData.userProfile
@@ -68,6 +72,11 @@ document.addEventListener('DOMContentLoaded', () => {
           {
             path: '/instance-selection',
             element: <div>I am instance selection</div>,
+          },
+
+          {
+            path: '/:pageId',
+            element: <div>I am stateless</div>,
           },
         ],
         {
