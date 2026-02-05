@@ -78,6 +78,7 @@ const ConfigStringProperty = ({
   return (
     <SelectPropertyEditor
       property={propertyLabel}
+      title={propertyLabel}
       value={translatedKeyValue}
       className={className}
       onSave={() => handleComponentUpdate(currentComponent)}

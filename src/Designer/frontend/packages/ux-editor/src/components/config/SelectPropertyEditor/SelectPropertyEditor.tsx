@@ -8,6 +8,7 @@ export type SelectPropertyEditorProps = {
   children: React.ReactNode;
   value?: string | React.ReactNode;
   property?: string;
+  title?: string;
   className?: string;
   onSave: () => void;
   onCancel: () => void;
@@ -18,6 +19,7 @@ export const SelectPropertyEditor = ({
   children,
   value,
   property,
+  title,
   className,
   onSave,
   onCancel,
@@ -31,7 +33,7 @@ export const SelectPropertyEditor = ({
       <StudioProperty.Button
         onClick={() => setEditMode(true)}
         property={property}
-        title={property}
+        title={title}
         value={value}
         className={className}
       />

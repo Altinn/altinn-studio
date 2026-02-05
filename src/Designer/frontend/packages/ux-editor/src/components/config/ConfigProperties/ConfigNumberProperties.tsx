@@ -4,6 +4,7 @@ import { EditNumberValue } from '../editModal/EditNumberValue';
 import type { SchemaConfigProps } from './types';
 import { componentComparison } from './ConfigPropertiesUtils';
 import { useConfigProperty } from './useConfigProperty';
+import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
 
 export interface ConfigNumberPropertiesProps extends SchemaConfigProps {
   numberPropertyKeys: string[];
@@ -61,6 +62,7 @@ const ConfigNumberProperty = ({
   className,
   enumValues,
 }: ConfigNumberPropertyProps) => {
+  const componentPropertyLabel = useComponentPropertyLabel();
   const {
     initialPropertyValue,
     currentComponent,
@@ -69,9 +71,13 @@ const ConfigNumberProperty = ({
     propertyLabel,
   } = useConfigProperty({ initialComponent, propertyKey });
 
+  const propertyLabelWithSuffix =
+    propertyKey === 'preselectedOptionIndex' && componentPropertyLabel(`${propertyKey}_button`);
+
   return (
     <SelectPropertyEditor
-      property={propertyLabel}
+      title={propertyLabel}
+      property={propertyLabelWithSuffix || propertyLabel}
       value={currentComponent[propertyKey]}
       className={className}
       onSave={() => handleComponentUpdate(currentComponent)}
