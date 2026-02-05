@@ -13,7 +13,6 @@ import (
 	"altinn.studio/operator/internal/telemetry"
 	"github.com/go-logr/logr"
 	"github.com/jonboulle/clockwork"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -66,7 +65,7 @@ func NewRuntime(ctx context.Context, opts ...RuntimeOption) (rt.Runtime, error) 
 		opt(options)
 	}
 
-	tracer := otel.Tracer(telemetry.ServiceName)
+	tracer := telemetry.Tracer()
 	ctx, span := tracer.Start(ctx, "NewRuntime")
 	defer span.End()
 
@@ -142,7 +141,7 @@ func NewRuntime(ctx context.Context, opts ...RuntimeOption) (rt.Runtime, error) 
 		crypto:                *cryptoService,
 		maskinportenApiClient: maskinportenApiClient,
 		tracer:                tracer,
-		meter:                 otel.Meter(telemetry.ServiceName),
+		meter:                 telemetry.Meter(),
 		clock:                 clock,
 	}
 

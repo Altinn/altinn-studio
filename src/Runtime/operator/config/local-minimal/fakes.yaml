@@ -47,6 +47,8 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.uid
+        - name: OTEL_SERVICE_NAME
+          value: "fakes"
         - name: OTEL_RESOURCE_ATTRIBUTES
           value: "k8s.pod.uid=$(POD_UID)"
         ports:

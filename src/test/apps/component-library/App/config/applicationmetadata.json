@@ -33,9 +33,8 @@
         "classRef": "Altinn.App.Models.Model.Model",
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false,
-        "allowUserCreate": false,
-        "allowUserDelete": false,
-        "allowInSubform": false
+        "disallowUserCreate": false,
+        "disallowUserDelete": false
       },
       "taskId": "Task_1",
       "maxCount": 1,
@@ -56,9 +55,8 @@
         "classRef": "Altinn.App.Models.model2.model2",
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false,
-        "allowUserCreate": false,
-        "allowUserDelete": false,
-        "allowInSubform": false
+        "disallowUserCreate": false,
+        "disallowUserDelete": false
       },
       "taskId": "PreviousProcessSummary",
       "maxCount": 1,
