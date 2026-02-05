@@ -14,8 +14,8 @@ public class ValidateCustomTemplateTest
         var validManifest = @"{
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": { ""nb"": ""Test Template"" },
-        ""description"": { ""nb"": ""Dette er en norsk beskrivelse."", ""en"":""This is an English description""},
+        ""name"": ""Test Template"",
+        ""description"": ""Dette er en norsk beskrivelse."",
         ""remove"": [""src/oldfile.txt""]
         }";
 
@@ -32,8 +32,8 @@ public class ValidateCustomTemplateTest
         var invalidRemoveManifest = $@"{{
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": {{ ""nb"": ""Test Template"" }},
-        ""description"": {{ ""nb"": ""This is a valid description for the template."" }},
+        ""name"": ""Test Template"",
+        ""description"": ""This is a valid description for the template."",
         ""contentPath"": ""templates/test"",
         ""remove"": [""{remove}""]
         }}";
@@ -48,8 +48,8 @@ public class ValidateCustomTemplateTest
         var unknownPropertyManifest = @"{
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": { ""nb"": ""Test Template"" },
-        ""description"": { ""nb"": ""This is a valid description for the template."" },
+        ""name"": ""Test Template"",
+        ""description"": ""This is a valid description for the template."",
         ""contentPath"": ""templates/test"",
         ""remove"": [""src/oldfile.txt""],
         ""unknownProperty"": ""shouldBeRejected""
@@ -67,13 +67,12 @@ public class ValidateCustomTemplateTest
     }
 
     [Fact]
-    public async Task ValidateManifestJsonAsync_MissingNbInName_ReturnsError()
+    public async Task ValidateManifestJsonAsync_MissingName_ReturnsError()
     {
         var missingNbName = @"{
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": { ""en"": ""Test Template"" },
-        ""description"": { ""nb"": ""This is a valid description for the template."" },
+        ""description"": ""This is a valid description for the template."",
         ""contentPath"": ""templates/test"",
         ""remove"": [""src/oldfile.txt""]
         }";
@@ -83,13 +82,12 @@ public class ValidateCustomTemplateTest
     }
 
     [Fact]
-    public async Task ValidateManifestJsonAsync_MissingNbDescription_ReturnsError()
+    public async Task ValidateManifestJsonAsync_MissingDescription_ReturnsError()
     {
         var missingNbDescription = @"{
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": { ""nb"": ""Test Template"" },
-        ""description"": { ""en"": ""This is a valid description for the template."" },
+        ""name"": ""Test Template"",
         ""contentPath"": ""templates/test"",
         ""remove"": [""src/oldfile.txt""]
         }";
