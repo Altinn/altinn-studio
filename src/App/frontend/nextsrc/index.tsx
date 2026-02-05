@@ -1,10 +1,13 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, redirect, RouterProvider } from 'react-router-dom';
 
 import axios from 'axios';
 import { AltinnGlobalData } from 'nextsrc/utils/AltinnGlobalData';
 import { ApiRoutes } from 'nextsrc/utils/ApiRoutes';
+import { AppRoutes } from 'nextsrc/utils/AppRoutes';
+
+import type { IInstance } from 'src/types/shared';
 
 // import { getCreateInstancesUrl } from 'src/utils/urls/appUrlHelper';
 
@@ -31,9 +34,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 AltinnGlobalData.applicationMetaData.onEntry.show === 'new-instance' &&
                 AltinnGlobalData.userProfile
               ) {
-                const res = await axios.post(ApiRoutes.createInstanceUrl(AltinnGlobalData.userProfile.partyId, 'nb'));
+                const res = await axios.post<IInstance>(
+                  ApiRoutes.createInstanceUrl(AltinnGlobalData.userProfile.partyId, 'nb'),
+                );
+
+                // Hva gjør vi med dette?:
+                // Hvilken TYPE er dataen?
                 const data = res.data;
-                console.log(JSON.stringify(data, null, 2));
+
+                const [instanceOwnerPartyId, instanceGuid] = data.id.split('/');
+                // 1. redirect til instanceId
+
+                return redirect(AppRoutes.instanceUrl(instanceOwnerPartyId, instanceGuid));
+
+                // 2. hvis det feiler, vis error komponent
+                // console.log(JSON.stringify(data, null, 2));
               }
 
               // Skal vi til instance selection?
@@ -41,13 +56,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
               return true;
             },
-
             path: '/',
             element: (
               <div>
                 <pre>{JSON.stringify(AltinnGlobalData.applicationMetaData, null, 2)}</pre>
               </div>
             ),
+          },
+
+          {
+            path: '/instance/:partyId/:instanceGuid',
+            element: <div>I am instnace</div>,
           },
         ],
         {
