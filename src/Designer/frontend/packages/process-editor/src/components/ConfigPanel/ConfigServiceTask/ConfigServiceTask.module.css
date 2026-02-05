@@ -1,4 +1,3 @@
-.accordion,
 .configContent {
   display: flex;
   flex-direction: column;
@@ -7,4 +6,10 @@
 
 .displayTile {
   padding-inline: var(--fds-spacing-5);
+}
+
+.detailsContent {
+  margin: 0;
+  padding: var(--fds-spacing-5);
+  padding-inline: 0;
 }

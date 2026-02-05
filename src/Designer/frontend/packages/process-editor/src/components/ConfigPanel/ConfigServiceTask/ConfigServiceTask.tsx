@@ -5,8 +5,7 @@ import { ConfigContentContainer } from '../ConfigContent/ConfigContentContainer'
 import classes from './ConfigServiceTask.module.css';
 import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
 import { EditTaskId } from '../ConfigContent/EditTaskId/EditTaskId';
-import { StudioDisplayTile } from '@studio/components';
-import { Accordion } from '@digdir/designsystemet-react';
+import { StudioDetails, StudioDisplayTile } from '@studio/components';
 import { EditActions } from '../ConfigContent/EditActions';
 import { EditPolicy } from '../ConfigContent/EditPolicy';
 
@@ -26,24 +25,24 @@ export const ConfigServiceTask = (): React.ReactElement => {
           showPadlock={false}
         />
         {isPdfTask && <ConfigPdfServiceTask />}
-        <Accordion color='neutral'>
-          <Accordion.Item>
-            <Accordion.Header>
+        <div>
+          <StudioDetails>
+            <StudioDetails.Summary>
               {t('process_editor.configuration_panel_actions_title')}
-            </Accordion.Header>
-            <Accordion.Content className={classes.accordion}>
+            </StudioDetails.Summary>
+            <StudioDetails.Content className={classes.detailsContent}>
               <EditActions />
-            </Accordion.Content>
-          </Accordion.Item>
-          <Accordion.Item>
-            <Accordion.Header>
+            </StudioDetails.Content>
+          </StudioDetails>
+          <StudioDetails>
+            <StudioDetails.Summary>
               {t('process_editor.configuration_panel_policy_title')}
-            </Accordion.Header>
-            <Accordion.Content className={classes.accordion}>
+            </StudioDetails.Summary>
+            <StudioDetails.Content className={classes.detailsContent}>
               <EditPolicy />
-            </Accordion.Content>
-          </Accordion.Item>
-        </Accordion>
+            </StudioDetails.Content>
+          </StudioDetails>
+        </div>
       </div>
     </ConfigContentContainer>
   );

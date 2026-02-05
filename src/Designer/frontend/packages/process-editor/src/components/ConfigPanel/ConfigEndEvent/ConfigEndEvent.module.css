@@ -14,6 +14,8 @@
   padding-bottom: var(--fds-spacing-1);
 }
 
-.accordionContent {
+.detailsContent {
+  margin: 0;
+  padding: var(--fds-spacing-5);
   padding-inline: 0;
 }
