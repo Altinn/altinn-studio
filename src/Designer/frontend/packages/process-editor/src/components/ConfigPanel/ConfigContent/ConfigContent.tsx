@@ -3,7 +3,11 @@ import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { EditTaskId } from './EditTaskId/EditTaskId';
-import { StudioDetails, StudioDisplayTile, useStudioRecommendedNextActionContext } from '@studio/components';
+import {
+  StudioDetails,
+  StudioDisplayTile,
+  useStudioRecommendedNextActionContext,
+} from '@studio/components';
 import { EditDataTypes } from './EditDataTypes';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { EditActions } from './EditActions';
