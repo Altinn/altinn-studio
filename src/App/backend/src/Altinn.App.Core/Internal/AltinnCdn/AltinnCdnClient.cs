@@ -90,9 +90,4 @@ internal sealed class AltinnCdnClient : IAltinnCdnClient
 
     private static bool IsTransientError(Exception ex) =>
         ex is HttpRequestException or TaskCanceledException or OperationCanceledException or JsonException;
-
-    public void Dispose()
-    {
-        // No resources to dispose - HybridCache is managed by DI
-    }
 }
