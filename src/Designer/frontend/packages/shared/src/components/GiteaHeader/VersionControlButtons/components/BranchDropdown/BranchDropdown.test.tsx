@@ -11,9 +11,11 @@ import {
 } from '../../test/mocks/branchingMocks';
 import { useBranchData } from '../../hooks/useBranchData/useBranchData';
 import { useBranchOperations } from '../../hooks/useBranchOperations/useBranchOperations';
+import { useMediaQuery } from '@studio/hooks';
 
 jest.mock('../../hooks/useBranchData/useBranchData');
 jest.mock('../../hooks/useBranchOperations/useBranchOperations');
+jest.mock('@studio/hooks/src/hooks/useMediaQuery');
 
 const mockUseBranchData = jest.mocked(useBranchData);
 const mockUseBranchOperations = jest.mocked(useBranchOperations);
@@ -67,6 +69,21 @@ describe('BranchDropdown', () => {
     renderBranchDropdown();
     const loadingSpinner = getLoadingSpinner();
     expect(loadingSpinner).toBeInTheDocument();
+  });
+
+  it('should render dropdown trigger with text on a large screen', () => {
+    renderBranchDropdown();
+
+    const dropdownTrigger = getDropdownTrigger();
+    expect(dropdownTrigger).toHaveTextContent(currentBranchInfoMock.branchName);
+  });
+
+  it('should not render the button text on a small screen', () => {
+    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    renderBranchDropdown();
+
+    const dropdownTrigger = getDropdownTrigger();
+    expect(dropdownTrigger).not.toHaveTextContent(currentBranchInfoMock.branchName);
   });
 
   it('Should list branches and disable current branch', async () => {
@@ -180,7 +197,7 @@ const getLoadingSpinner = () => {
 };
 
 const getDropdownTrigger = () => {
-  return screen.getByTitle(textMock('branching.select_branch'));
+  return screen.getByRole('button', { name: textMock('branching.select_branch') });
 };
 
 const getNewBranchDialogTrigger = () => {
