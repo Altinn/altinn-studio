@@ -175,6 +175,7 @@ function useHandleServerActionMutationFn(acquireLock: FormDataLocking) {
 export const buttonStyles: { [style in CBTypes.ButtonStyle]: { color: ButtonColor; variant: ButtonVariant } } = {
   primary: { variant: 'primary', color: 'success' },
   secondary: { variant: 'secondary', color: 'first' },
+  tertiary: { variant: 'tertiary', color: 'second' },
 };
 
 function toShorthandSize(size?: CBTypes.CustomButtonSize): 'sm' | 'md' | 'lg' {

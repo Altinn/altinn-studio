@@ -4,7 +4,6 @@ metadata:
   name: pdf3-proxy-allow-ingress-from-apps
 spec:
   # Allow ingress traffic to proxy pods from default namespace
-  # and monitoring agents
   podSelector:
     matchLabels:
       app: pdf3-proxy
@@ -15,10 +14,6 @@ spec:
     - namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: default
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: monitoring # Prometheus (locally)
   - from:
     - namespaceSelector:
         matchLabels:
@@ -41,10 +36,6 @@ spec:
     - podSelector:
         matchLabels:
           app: pdf3-proxy
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: monitoring # Prometheus (locally)
   - from:
     - namespaceSelector:
         matchLabels:

@@ -1,0 +1,52 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-router
+spec:
+  config:
+    exporters:
+      loadbalancing/traces:
+        routing_key: traceID
+        protocol:
+          otlp:
+            tls:
+              insecure: true
+        resolver:
+          dns:
+            hostname: otel-gateway-collector-headless.observability.svc.cluster.local
+            port: '4317'
+      loadbalancing/metrics:
+        routing_key: resource
+        protocol:
+          otlp:
+            tls:
+              insecure: true
+        resolver:
+          dns:
+            hostname: otel-gateway-collector-headless.observability.svc.cluster.local
+            port: '4317'
+      loadbalancing/logs:
+        routing_key: traceID
+        protocol:
+          otlp:
+            tls:
+              insecure: true
+        resolver:
+          dns:
+            hostname: otel-gateway-collector-headless.observability.svc.cluster.local
+            port: '4317'
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [resourcedetection/aks, k8sattributes, resource/environment, transform/drop, batch]
+          exporters: [loadbalancing/traces]
+        metrics:
+          receivers: [otlp]
+          processors: [resourcedetection/aks, k8sattributes, resource/environment, transform/drop, batch]
+          exporters: [loadbalancing/metrics]
+        logs:
+          receivers: [otlp]
+          processors: [filter/logs, resourcedetection/aks, k8sattributes, resource/environment, transform/drop, batch]
+          exporters: [loadbalancing/logs]

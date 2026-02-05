@@ -24,7 +24,6 @@ func BuildTestserver(nginxConf, indexHtml, eur1Html, jumpboxNginxConf []byte, re
 		buildJumpboxService(),
 		buildJumpboxDeployment(replicas),
 		buildJumpboxIngressRoute(),
-		buildGrafanaIngressRoute(),
 	}
 }
 
@@ -323,36 +322,6 @@ func buildJumpboxIngressRoute() *unstructured.Unstructured {
 								"name":   "jumpbox",
 								"port":   80,
 								"scheme": "http",
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-func buildGrafanaIngressRoute() *unstructured.Unstructured {
-	return &unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"apiVersion": "traefik.io/v1alpha1",
-			"kind":       "IngressRoute",
-			"metadata": map[string]interface{}{
-				"name":      "grafana",
-				"namespace": "monitoring",
-			},
-			"spec": map[string]interface{}{
-				"entryPoints": []interface{}{"web", "traefik"},
-				"routes": []interface{}{
-					map[string]interface{}{
-						"match":    "PathPrefix(`/grafana`)",
-						"kind":     "Rule",
-						"priority": 100,
-						"services": []interface{}{
-							map[string]interface{}{
-								"name":      "kube-prometheus-stack-grafana",
-								"port":      80,
-								"namespace": "monitoring",
 							},
 						},
 					},

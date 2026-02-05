@@ -15,7 +15,6 @@ import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
-import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { FormProvider } from 'src/features/form/FormContext';
@@ -24,8 +23,6 @@ import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
-import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
@@ -133,7 +130,6 @@ const defaultQueryMocks: AppQueries = {
   fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IRawOption[], unknown>,
   fetchDataList: async () => getDataListMock(),
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
-  fetchTextResources: async (language) => ({ language, resources: getTextResourcesMock() }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
   fetchLayoutSettings: async () => ({ pages: { order: [] } as unknown as IPagesSettingsWithOrder }),
   fetchLayouts: () => Promise.reject(new Error('fetchLayouts not mocked')),
@@ -315,21 +311,17 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <LangToolsStoreProvider>
-        <UiConfigProvider>
-          <PageNavigationProvider>
-            <Router>
-              <NavigationEffectProvider>
-                <GlobalFormDataReadersProvider>
-                  <PartyProvider>
-                    <TextResourcesProvider>{children}</TextResourcesProvider>
-                  </PartyProvider>
-                </GlobalFormDataReadersProvider>
-              </NavigationEffectProvider>
-            </Router>
-          </PageNavigationProvider>
-        </UiConfigProvider>
-      </LangToolsStoreProvider>
+      <UiConfigProvider>
+        <PageNavigationProvider>
+          <Router>
+            <NavigationEffectProvider>
+              <GlobalFormDataReadersProvider>
+                <PartyProvider>{children}</PartyProvider>
+              </GlobalFormDataReadersProvider>
+            </NavigationEffectProvider>
+          </Router>
+        </PageNavigationProvider>
+      </UiConfigProvider>
     </AppQueriesProvider>
   );
 }
@@ -354,11 +346,9 @@ function MinimalProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <LangToolsStoreProvider>
-        <Router>
-          <NavigationEffectProvider>{children}</NavigationEffectProvider>
-        </Router>
-      </LangToolsStoreProvider>
+      <Router>
+        <NavigationEffectProvider>{children}</NavigationEffectProvider>
+      </Router>
     </AppQueriesProvider>
   );
 }

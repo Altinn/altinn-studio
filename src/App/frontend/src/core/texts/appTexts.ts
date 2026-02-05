@@ -1,6 +1,5 @@
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useHasTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 
 export function useTextResourceOr<T extends string | undefined>(resource: string, fallback: T): string | T {
@@ -12,10 +11,6 @@ export function useTextResourceOr<T extends string | undefined>(resource: string
   }
 
   return fallback;
-}
-
-export function useHasAppTextsYet() {
-  return useHasTextResources();
 }
 
 export function useAppName() {

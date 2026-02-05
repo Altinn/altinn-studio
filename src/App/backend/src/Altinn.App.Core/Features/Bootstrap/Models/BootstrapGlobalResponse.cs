@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Features.Bootstrap.Models;
 
@@ -48,6 +49,12 @@ internal class BootstrapGlobalResponse
     /// </summary>
     [JsonPropertyName("userProfile")]
     public UserProfile? UserProfile { get; set; }
+
+    /// <summary>
+    /// Default text resources.
+    /// </summary>
+    [JsonPropertyName("textResources")]
+    public TextResource? TextResources { get; set; }
 
     /// <summary>
     /// Organisation display name in available languages.
