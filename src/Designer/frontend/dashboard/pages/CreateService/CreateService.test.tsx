@@ -13,6 +13,7 @@ import { SelectedContextType } from '../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
 import { type ProviderData, renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { FeatureFlag } from '@studio/feature-flags';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 const orgMock: Organization = {
@@ -45,12 +46,9 @@ const renderCreateService = (
     organizations: [],
   };
 
-  const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
-
   const defaultProviderData: ProviderData = {
     queries: {},
-    queryClient,
+    queryClient: createQueryClientMock(),
     featureFlags: [],
     initialEntries: [`/${Subroute.AppDashboard}/`],
   };
@@ -298,6 +296,61 @@ describe('CreateService', () => {
     await user.click(createBtn);
 
     expect(windowLocationAssignMock).toHaveBeenCalled();
+  });
+
+  it('should call onSubmit with correct data when form is submitted', async () => {
+    const user = userEvent.setup();
+    const addRepo = jest.fn().mockResolvedValue(repository);
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData(
+      [QueryKey.CustomTemplates, mockUser.login],
+      [
+        {
+          id: 'template1',
+          name: 'Template One',
+          description: 'Description One',
+          owner: 'owner1',
+        },
+      ],
+    );
+    renderCreateService(
+      { user: mockUser, organizations: [orgMock] },
+      { queries: { addRepo }, queryClient, featureFlags: [FeatureFlag.CustomTemplates] },
+    );
+
+    const select = screen.getByRole('combobox', { name: textMock('general.service_owner') });
+    await user.click(select);
+    await user.selectOptions(select, mockUser.login);
+
+    const repoTextField = screen.getByRole('textbox', { name: textMock('general.service_name') });
+    expect(repoTextField).toHaveValue('');
+    const newRepoValue: string = 'repo';
+    await user.type(repoTextField, newRepoValue);
+    await user.tab();
+    expect(screen.getByRole('textbox', { name: textMock('general.service_name') })).toHaveValue(
+      newRepoValue,
+    );
+
+    const templateSelect = screen.getByRole('combobox', {
+      name: textMock('dashboard.new_application_form.select_templates'),
+    });
+    await user.selectOptions(templateSelect, 'template1');
+    expect(templateSelect).toHaveValue('template1');
+
+    const createButton = screen.getByRole('button', {
+      name: textMock('dashboard.create_service_btn'),
+    });
+    await user.click(createButton);
+
+    expect(addRepo).toHaveBeenCalledTimes(1);
+    expect(addRepo).toHaveBeenCalledWith({
+      org: mockUser.login,
+      repository: newRepoValue,
+      template: {
+        id: 'template1',
+        owner: 'owner1',
+      },
+    });
   });
 
   it('should set cancel link to /self when selected context is self', async () => {

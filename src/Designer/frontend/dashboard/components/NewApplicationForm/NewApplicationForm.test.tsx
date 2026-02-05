@@ -12,7 +12,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { type ProviderData, renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { FeatureFlag } from '@studio/feature-flags';
-import { type CustomTemplateList } from 'app-shared/types/CustomTemplate';
+import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 const mockOnSubmit = jest.fn();
@@ -47,9 +47,7 @@ describe('NewApplicationForm', () => {
 
   it('calls onSubmit when form is submitted with valid data', async () => {
     const user = userEvent.setup();
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
-    renderNewApplicationForm({}, { queryClient });
+    renderNewApplicationForm();
 
     const select = screen.getByRole('combobox', { name: textMock('general.service_owner') });
     await user.click(select);
@@ -73,19 +71,9 @@ describe('NewApplicationForm', () => {
     });
   });
 
-  it('shows spinner while user data is loading', () => {
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CurrentUser], undefined);
-    renderNewApplicationForm({}, { queryClient });
-
-    expect(screen.getByText(textMock('dashboard.loading'))).toBeInTheDocument();
-  });
-
   it('does not call onSubmit when form is submitted with invalid data', async () => {
     const user = userEvent.setup();
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
-    renderNewApplicationForm({}, { queryClient });
+    renderNewApplicationForm();
 
     const select = screen.getByRole('combobox', { name: textMock('general.service_owner') });
     await user.click(select);
@@ -104,7 +92,6 @@ describe('NewApplicationForm', () => {
   it('should notify the user if they lack permission to create a new application for the organization and disable the "Create" button', async () => {
     const user = userEvent.setup();
     const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
     queryClient.setQueryData([QueryKey.UserOrgPermissions, mockOrg.username], {
       canCreateOrgRepo: false,
     });
@@ -124,7 +111,6 @@ describe('NewApplicationForm', () => {
   it('should enable the "Create" button and not display an error if the user has permission to create an organization', async () => {
     const user = userEvent.setup();
     const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
     queryClient.setQueryData([QueryKey.UserOrgPermissions, mockOrg.username], {
       canCreateOrgRepo: true,
     });
@@ -142,24 +128,17 @@ describe('NewApplicationForm', () => {
   });
 
   it('should show custom template selector when feature is enabled', () => {
-    const availableTemplatesMock: CustomTemplateList = {
-      totalCount: 1,
-      templates: [
-        {
-          id: 'template-1',
-          name: { nb: 'Template 1' },
-          description: { nb: 'Description 1' },
-          owner: mockOrg.username,
-        },
-      ],
-    };
+    const templates: CustomTemplate[] = [
+      {
+        id: 'template-1',
+        name: 'Template 1',
+        description: 'Description 1',
+        owner: mockOrg.username,
+      },
+    ];
 
     const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
-    queryClient.setQueryData(
-      [QueryKey.CustomTemplates, mockUser.login],
-      availableTemplatesMock.templates,
-    );
+    queryClient.setQueryData([QueryKey.CustomTemplates, mockUser.login], templates);
 
     renderNewApplicationForm(
       { shouldUseCustomTemplate: true },
@@ -171,24 +150,17 @@ describe('NewApplicationForm', () => {
   });
 
   it('should not show custom template selector when shouldUseCustomTemplate is false', () => {
-    const availableTemplatesMock: CustomTemplateList = {
-      totalCount: 1,
-      templates: [
-        {
-          id: 'template-1',
-          name: { nb: 'Template 1' },
-          description: { nb: 'Description 1' },
-          owner: mockOrg.username,
-        },
-      ],
-    };
+    const templates: CustomTemplate[] = [
+      {
+        id: 'template-1',
+        name: 'Template 1',
+        description: 'Description 1',
+        owner: mockOrg.username,
+      },
+    ];
 
     const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
-    queryClient.setQueryData(
-      [QueryKey.CustomTemplates, mockUser.login],
-      availableTemplatesMock.templates,
-    );
+    queryClient.setQueryData([QueryKey.CustomTemplates, mockUser.login], templates);
 
     renderNewApplicationForm(
       { shouldUseCustomTemplate: false },
@@ -200,27 +172,75 @@ describe('NewApplicationForm', () => {
   });
 
   it('should not show custom template selector when feature is disabled', () => {
-    const availableTemplatesMock: CustomTemplateList = {
-      totalCount: 1,
-      templates: [
-        {
-          id: 'template-1',
-          name: { nb: 'Template 1' },
-          description: { nb: 'Description 1' },
-          owner: mockOrg.username,
-        },
-      ],
-    };
+    const templates: CustomTemplate[] = [
+      {
+        id: 'template-1',
+        name: 'Template 1',
+        description: 'Description 1',
+        owner: mockOrg.username,
+      },
+    ];
     const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
-    queryClient.setQueryData(
-      [QueryKey.CustomTemplates, mockUser.login],
-      availableTemplatesMock.templates,
-    );
+    queryClient.setQueryData([QueryKey.CustomTemplates, mockUser.login], templates);
     renderNewApplicationForm({}, { featureFlags: [], queryClient });
     expect(
       screen.queryByText(textMock('dashboard.new_application_form.select_templates')),
     ).not.toBeInTheDocument();
+  });
+
+  it('should submit selected template when form is submitted', async () => {
+    const user = userEvent.setup();
+    const templates: CustomTemplate[] = [
+      {
+        id: 'template1',
+        name: 'Template One',
+        description: 'Description One',
+        owner: 'owner1',
+      },
+      {
+        id: 'template2',
+        name: 'Template Two',
+        description: 'Description Two',
+        owner: 'owner2',
+      },
+    ];
+
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.CustomTemplates, mockUser.login], templates);
+
+    renderNewApplicationForm(
+      { shouldUseCustomTemplate: true },
+      { featureFlags: [FeatureFlag.CustomTemplates], queryClient },
+    );
+
+    const templateSelect = screen.getByRole('combobox', {
+      name: textMock('dashboard.new_application_form.select_templates'),
+    });
+    await user.selectOptions(templateSelect, 'template1');
+    expect(templateSelect).toHaveValue('template1');
+
+    const select = screen.getByRole('combobox', { name: textMock('general.service_owner') });
+    await user.click(select);
+    const orgOption = screen.getByRole('option', { name: mockUser.full_name });
+    await user.click(orgOption);
+
+    const repoTextField = screen.getByRole('textbox', { name: textMock('general.service_name') });
+    expect(repoTextField).toHaveValue('');
+    const newRepoValue: string = 'repo-with-template';
+    await user.type(repoTextField, newRepoValue);
+    expect(screen.getByRole('textbox', { name: textMock('general.service_name') })).toHaveValue(
+      newRepoValue,
+    );
+
+    const submitButton = screen.getByRole('button', { name: mockSubmitbuttonText });
+    await user.click(submitButton);
+
+    expect(mockOnSubmit).toHaveBeenCalledTimes(1);
+    expect(mockOnSubmit).toHaveBeenCalledWith({
+      org: mockUser.login,
+      repoName: newRepoValue,
+      template: templates[0],
+    });
   });
 });
 

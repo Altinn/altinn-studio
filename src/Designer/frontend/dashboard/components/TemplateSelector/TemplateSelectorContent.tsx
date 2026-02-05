@@ -1,9 +1,8 @@
 import React from 'react';
 import { type CustomTemplate } from 'app-shared/types/CustomTemplate';
-import { StudioCard, StudioParagraph, StudioSelect } from '@studio/components';
+import { StudioCard, StudioHeading, StudioParagraph, StudioSelect } from '@studio/components';
 import classes from './TemplateSelector.module.css';
 import { useTranslation } from 'react-i18next';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 export type TemplateSelectorContentProps = {
   availableTemplates: CustomTemplate[];
@@ -36,19 +35,17 @@ export const TemplateSelectorContent = ({
         </StudioSelect.Option>
         {availableTemplates.map((template) => (
           <StudioSelect.Option key={template.id} value={template.id}>
-            {template.name[DEFAULT_LANGUAGE] ?? template.id}
+            {template.name || template.id}
           </StudioSelect.Option>
         ))}
       </StudioSelect>
       {selectedTemplate && (
-        <StudioCard key={selectedTemplate.id}>
-          <StudioParagraph className={classes.templateName} spacing>
-            {selectedTemplate.name[DEFAULT_LANGUAGE] ?? selectedTemplate.id}
-          </StudioParagraph>
+        <StudioCard variant='tinted' key={selectedTemplate.id}>
+          <StudioHeading level={2} data-size='2xs' className={classes.templateName} spacing>
+            {selectedTemplate.name || selectedTemplate.id}
+          </StudioHeading>
           {selectedTemplate.description && (
-            <StudioParagraph>
-              {selectedTemplate.description[DEFAULT_LANGUAGE] ?? ''}
-            </StudioParagraph>
+            <StudioParagraph>{selectedTemplate.description}</StudioParagraph>
           )}
         </StudioCard>
       )}
