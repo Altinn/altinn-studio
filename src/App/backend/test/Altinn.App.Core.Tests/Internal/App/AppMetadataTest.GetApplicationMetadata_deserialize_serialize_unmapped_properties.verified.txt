@@ -7,7 +7,6 @@
   },
   "Logo": null,
   "AltinnNugetVersion": "--AltinnNugetVersion--",
-  "PromptForParty": null,
   "ExternalApiIds": [],
   "VersionId": null,
   "Org": "tdd",
