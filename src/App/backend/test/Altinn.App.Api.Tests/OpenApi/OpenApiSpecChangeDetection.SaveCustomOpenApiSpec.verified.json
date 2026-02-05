@@ -3399,6 +3399,10 @@
           "altinnNugetVersion": {
             "type": "string"
           },
+          "promptForParty": {
+            "type": "string",
+            "nullable": true
+          },
           "externalApiIds": {
             "type": "array",
             "items": {
