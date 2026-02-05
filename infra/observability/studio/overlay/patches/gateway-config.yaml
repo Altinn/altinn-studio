@@ -1,0 +1,24 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-gateway
+spec:
+  config:
+    exporters:
+      azuremonitor:
+        connection_string: $${env:APPLICATIONINSIGHTS_CONNECTION_STRING}
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [transform/azuremonitor, tail_sampling, batch]
+          exporters: [azuremonitor]
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [azuremonitor]
+        logs:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [azuremonitor]

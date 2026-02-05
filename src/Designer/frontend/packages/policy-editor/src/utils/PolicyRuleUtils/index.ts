@@ -69,7 +69,12 @@ export const getAltinnSubjects = (subjects: PolicySubject[]) => {
 export const getOtherSubjects = (subjects: PolicySubject[]) => {
   return subjects.filter((s) => {
     const isOther = s.provider?.code === 'sys-internal';
-    const isPersonRole = isPersonSubject(s.legacyUrn);
-    return isOther || isPersonRole;
+    return isOther;
+  });
+};
+
+export const getPersonSubjects = (subjects: PolicySubject[]) => {
+  return subjects.filter((s) => {
+    return isPersonSubject(s.legacyUrn);
   });
 };

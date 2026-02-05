@@ -408,7 +408,9 @@ public class PdfService : IPdfService
             ?? throw new InvalidOperationException("LayoutEvaluatorState should not be null. No current task?");
 
         DataElementIdentifier? dataElementIdentifier =
-            subformDataElementId != null ? new DataElementIdentifier(subformDataElementId) : default;
+            subformDataElementId != null
+                ? new DataElementIdentifier(subformDataElementId)
+                : (DataElementIdentifier?)null;
 
         var componentContext = new ComponentContext(
             state,

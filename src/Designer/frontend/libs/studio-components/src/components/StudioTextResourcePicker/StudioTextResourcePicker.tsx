@@ -1,7 +1,11 @@
 import type { ReactElement } from 'react';
 import React, { useMemo, forwardRef } from 'react';
 import type { TextResource } from '../../../../studio-pure-functions/src/types/TextResource';
-import { StudioSuggestion, type StudioSuggestionProps } from '../StudioSuggestion';
+import {
+  StudioSuggestion,
+  type StudioSuggestionProps,
+  type StudioSuggestionItem,
+} from '../StudioSuggestion';
 import type { Override } from '../../types/Override';
 import classes from './StudioTextResourcePicker.module.css';
 import { retrieveSelectedValues } from './utils';
@@ -31,28 +35,29 @@ export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextR
     },
     ref,
   ) => {
-    const handleSelectedChange = (items: { value: string }[]): void =>
-      onValueChange(items[0]?.value || null);
+    const handleSelectedChange = (item: StudioSuggestionItem): void =>
+      onValueChange(item?.value ?? null);
 
-    const selectedValues: string[] = useMemo(
-      () => retrieveSelectedValues(textResources, value),
+    const selectedValue: string = useMemo(
+      () => retrieveSelectedValues(textResources, value)[0] || '',
       [textResources, value],
     );
 
-    const selectedItems = useMemo(
-      () =>
-        selectedValues.map((id) => ({
-          value: id,
-          label: textResources.find((tr) => tr.id === id)?.value ?? id,
-        })),
-      [selectedValues, textResources],
+    const selectedItem: StudioSuggestionItem = useMemo(
+      () => ({
+        value: selectedValue,
+        label: textResources.find((tr) => tr.id === selectedValue)?.value ?? selectedValue,
+      }),
+      [selectedValue, textResources],
     );
 
     return (
       <StudioSuggestion
         {...rest}
+        defaultSelected={selectedItem}
+        multiple={false}
         onSelectedChange={handleSelectedChange}
-        selected={selectedItems}
+        selected={selectedItem}
         ref={ref}
       >
         {!required && renderNoTextResourceOption(noTextResourceOptionLabel)}

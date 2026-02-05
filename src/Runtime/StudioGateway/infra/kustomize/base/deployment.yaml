@@ -33,6 +33,7 @@ spec:
     metadata:
       labels:
         app: studio-gateway
+        azure.workload.identity/use: 'true'
       annotations:
         # for mTLS mainly
         linkerd.io/inject: enabled
@@ -86,6 +87,17 @@ spec:
               name: http-public
               protocol: TCP
           env:
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.uid=$(POD_UID)"
+            - name: OTEL_SERVICE_NAME
+              value: "gateway"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-router.runtime-obs.svc.cluster.local:4317"
             - name: ASPNETCORE_ENVIRONMENT
               valueFrom:
                 # Configmap is created in syncroot

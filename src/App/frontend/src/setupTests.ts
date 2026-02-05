@@ -22,6 +22,7 @@ import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
+import { getTextResourceMapMock, getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import type {
   doProcessNext,
   doUpdateAttachmentTags,
@@ -83,6 +84,7 @@ window.altinnAppGlobalData = {
   layoutSets: getLayoutSetsMock(),
   availableLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
   selectedParty: getPartyMock(),
+  textResources: { language: 'en', resources: getTextResourcesMock() },
 };
 
 window.logError = (...args) => {
@@ -139,6 +141,14 @@ jest.mock('src/features/form/layoutSets', () => ({
   ...jest.requireActual<typeof import('src/features/form/layoutSets')>('src/features/form/layoutSets'),
   getLayoutSets: jest.fn(() => getLayoutSetsMock().sets),
   getGlobalUiSettings: jest.fn(() => getLayoutSetsMock().uiSettings),
+}));
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
+jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => ({
+  __esModule: true,
+  ...jest.requireActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider'),
+  useTextResources: jest.fn(() => getTextResourceMapMock()),
 }));
 
 jest.mock('src/queries/queries', () => ({

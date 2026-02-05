@@ -27,6 +27,7 @@ import {
   accessListsPath,
   accessListPath,
   accessListMemberPath,
+  appValidationPath,
   processEditorPath,
   releasesPath,
   repoMetaPath,
@@ -123,6 +124,7 @@ import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { FeatureName } from 'app-shared/enums/CanUseFeature';
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
+import type { AppValidationResult } from 'app-development/hooks/queries/useAppValidationQuery';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -130,6 +132,8 @@ export const getSelectedMaskinportenScopes = (org: string, app: String) => get<M
 
 export const getAppMetadataModelIds = (org: string, app: string, onlyUnReferenced: boolean) => get<string[]>(appMetadataModelIdsPath(org, app, onlyUnReferenced));
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
+export const getAppValidation = (owner: string, app: string) => get<AppValidationResult>(appValidationPath(owner, app));
+
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
 export const getAvailableResourcesFromOrg = (owner: string, contentType?: LibraryContentType) => get<ExternalResource[]>(availableResourcesInOrgLibraryPath(owner, contentType));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));

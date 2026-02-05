@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Models;
 
 namespace Altinn.App.Core.Features.Bootstrap.Models;
 
@@ -50,8 +49,14 @@ internal class BootstrapGlobalResponse
     public UserProfile? UserProfile { get; set; }
 
     /// <summary>
-    /// Verified returnUrl
+    /// selectedParty
     /// </summary>
     [JsonPropertyName("selectedParty")]
     public Party? SelectedParty { get; set; }
+
+    /// <summary>
+    /// Default text resources.
+    /// </summary>
+    [JsonPropertyName("textResources")]
+    public TextResource? TextResources { get; set; }
 }

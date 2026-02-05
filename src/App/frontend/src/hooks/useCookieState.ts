@@ -23,15 +23,10 @@ function subscribe(listener: () => void) {
   };
 }
 
-function getFullCookieKey(cookieName: CookieName, partyId: number | undefined): string {
-  const parts = [window.org, window.app, partyId, cookieName].filter(isNotNullUndefinedOrEmpty);
-  return parts.join('_');
-}
-
 export function useCookieState<T>(cookieName: CookieName, defaultValue: T): [T, (value: T) => void] {
   const profile = useProfile();
   const partyId = profile?.partyId;
-  const fullCookieKey = getFullCookieKey(cookieName, partyId);
+  const fullCookieKey = [cookieName, partyId].filter(isNotNullUndefinedOrEmpty).join('_');
 
   const getSnapshot = useCallback(() => {
     const value = CookieStorage.getItem<T>(fullCookieKey);

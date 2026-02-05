@@ -10,7 +10,9 @@ using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Features.Bootstrap;
@@ -22,8 +24,9 @@ internal sealed class BootstrapGlobalService(
     IApplicationLanguage applicationLanguage,
     IReturnUrlService returnUrlService,
     IProfileClient profileClient,
+    IAuthenticationContext authenticationContext,
     IHttpContextAccessor httpContextAccessor,
-    IAuthenticationContext authenticationContext
+    ILogger<BootstrapGlobalService> logger
 ) : IBootstrapGlobalService
 {
     private readonly IAppMetadata _appMetadata = appMetadata;
@@ -37,13 +40,22 @@ internal sealed class BootstrapGlobalService(
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
+    private readonly IAuthenticationContext _authenticationContext = authenticationContext;
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+    private readonly ILogger<BootstrapGlobalService> _logger = logger;
 
-    public async Task<BootstrapGlobalResponse> GetGlobalState(string? redirectUrl)
+    private const string DefaultLanguage = LanguageConst.Nb;
+
+    public async Task<BootstrapGlobalResponse> GetGlobalState(
+        string org,
+        string app,
+        string? redirectUrl,
+        string? language
+    )
     {
         var appMetadataTask = _appMetadata.GetApplicationMetadata();
-
         var footerTask = GetFooterLayout();
-
+        var textResourcesTask = GetTextResources(org, app, language);
         var availableLanguagesTask = _applicationLanguage.GetApplicationLanguages();
 
         var layoutSets = _appResources.GetLayoutSets() ?? new LayoutSets { Sets = [] };
@@ -55,14 +67,22 @@ internal sealed class BootstrapGlobalService(
 
         var currentPartyTask = GetCurrentParty();
 
-        await Task.WhenAll(appMetadataTask, footerTask, availableLanguagesTask, userProfileTask, currentPartyTask);
+        await Task.WhenAll(
+            appMetadataTask,
+            footerTask,
+            availableLanguagesTask,
+            userProfileTask,
+            textResourcesTask,
+            currentPartyTask
+        );
 
         return new BootstrapGlobalResponse
         {
+            AvailableLanguages = await availableLanguagesTask,
+            TextResources = await textResourcesTask,
             ApplicationMetadata = await appMetadataTask,
             Footer = await footerTask,
             LayoutSets = layoutSets,
-            AvailableLanguages = await availableLanguagesTask,
             FrontEndSettings = _frontEndSettings.Value,
             ReturnUrl = validatedUrl.DecodedUrl is not null ? validatedUrl.DecodedUrl : null,
             UserProfile = await userProfileTask,
@@ -72,7 +92,7 @@ internal sealed class BootstrapGlobalService(
 
     private async Task<UserProfile?> GetUserProfileOrNull()
     {
-        var user = httpContextAccessor.HttpContext?.User;
+        var user = _httpContextAccessor.HttpContext?.User;
         var userId = user?.GetUserIdAsInt();
         if (userId == null)
         {
@@ -121,6 +141,92 @@ internal sealed class BootstrapGlobalService(
             }
             default:
                 throw new Exception($"Unknown authentication context: {context.GetType().Name}");
+        }
+    }
+
+    private async Task<TextResource?> GetTextResources(string org, string app, string? languageFromUrl)
+    {
+        string[] availableLanguages =
+        [
+            .. (await _applicationLanguage.GetApplicationLanguages()).Select(it => it.Language),
+        ];
+        if (availableLanguages.IsNullOrEmpty())
+        {
+            _logger.LogDebug("No text resources configured for any language on app.");
+            return null;
+        }
+
+        if (
+            languageFromUrl is not null
+            && availableLanguages.Contains(languageFromUrl)
+            && await _appResources.GetTexts(org, app, languageFromUrl) is TextResource textResourceFromUrl
+        )
+        {
+            return textResourceFromUrl;
+        }
+
+        var languageFromCookie = GetLanguageFromCookie();
+        if (
+            languageFromCookie is not null
+            && availableLanguages.Contains(languageFromCookie)
+            && await _appResources.GetTexts(org, app, languageFromCookie) is TextResource textResourceFromCookie
+        )
+        {
+            return textResourceFromCookie;
+        }
+
+        string userLanguage = await _authenticationContext.Current.GetLanguage();
+        if (
+            availableLanguages.Contains(userLanguage)
+            && await _appResources.GetTexts(org, app, userLanguage) is TextResource textResourceFromUserLanguage
+        )
+        {
+            return textResourceFromUserLanguage;
+        }
+
+        if (await _appResources.GetTexts(org, app, DefaultLanguage) is TextResource textResourceFromDefaultLanguage)
+        {
+            return textResourceFromDefaultLanguage;
+        }
+
+        foreach (string availableLanguage in availableLanguages)
+        {
+            TextResource? availableLangTextResource = await _appResources.GetTexts(org, app, availableLanguage);
+            if (availableLangTextResource is not null)
+            {
+                return availableLangTextResource;
+            }
+        }
+
+        return null;
+    }
+
+    private string? GetLanguageFromCookie()
+    {
+        if (_authenticationContext.Current is not Authenticated.User user)
+        {
+            return null;
+        }
+
+        if (_httpContextAccessor.HttpContext is null)
+        {
+            return null;
+        }
+
+        string cookieKey = $"lang_{user.UserPartyId}";
+        if (!_httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(cookieKey, out var languageCookie))
+        {
+            return null;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<string>(languageCookie);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Language cookie with key {CookieKey} found, but failed deserialize it.", cookieKey);
+            return null;
         }
     }
 }

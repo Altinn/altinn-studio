@@ -19,13 +19,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Starts a deployment in the pipeline
         /// Creates a document in document db
         /// </summary>
-        /// <param name="org">Organisation</param>
-        /// <param name="app">Application name</param>
+        /// <param name="authenticatedContext"> An <see cref="AltinnAuthenticatedRepoEditingContext"/> holding the data about editing context.</param>
         /// <param name="deployment">Release containing data from client</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The created document in db</returns>
-        Task<DeploymentEntity> CreateAsync(string org, string app, DeploymentModel deployment, CancellationToken cancellationToken = default);
-
+        Task<DeploymentEntity> CreateAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, DeploymentModel deployment);
         /// <summary>
         /// Gets deployments
         /// </summary>
@@ -40,14 +37,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Undeploys an application from a specified environment.
         /// </summary>
-        /// <param name="editingContext"> An <see cref="AltinnRepoEditingContext"/> holding the data about editing context.</param>
+        /// <param name="authenticatedContext"> An <see cref="AltinnAuthenticatedRepoEditingContext"/> holding the data about editing context.</param>
         /// <param name="env">The environment from which the application should be undeployed.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if the operation is cancelled.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         /// <remarks>
         /// This method handles the undeploy of an application from the specified environment.
         /// </remarks>
-        Task UndeployAsync(AltinnRepoEditingContext editingContext, string env, CancellationToken cancellationToken = default);
+        Task UndeployAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, string env);
 
         /// <summary>
         /// Publishes the sync-root GitOps OCI image to the container registry.

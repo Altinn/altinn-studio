@@ -4,5 +4,5 @@ namespace Altinn.App.Core.Features.Bootstrap;
 
 internal interface IBootstrapGlobalService
 {
-    Task<BootstrapGlobalResponse> GetGlobalState(string? redirectUrl);
+    Task<BootstrapGlobalResponse> GetGlobalState(string org, string app, string? redirectUrl, string? language);
 }

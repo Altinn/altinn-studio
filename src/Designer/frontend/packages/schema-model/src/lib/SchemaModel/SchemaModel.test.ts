@@ -839,6 +839,42 @@ describe('SchemaModel', () => {
       validateTestUiSchema(model.asArray());
     });
 
+    test('When an array node is converted, it becomes an array with references to the item type', () => {
+      const model = schemaModel.deepClone();
+      const pointerToConvert = simpleArrayMock.schemaPointer;
+      model.convertToDefinition(pointerToConvert);
+      const convertedNode = model.getNodeBySchemaPointer(pointerToConvert) as ReferenceNode;
+      expect(convertedNode.objectKind).toEqual(ObjectKind.Reference);
+      expect(convertedNode.isArray).toBe(true);
+      const referredNode = model.getReferredNode(convertedNode) as FieldNode;
+      expect(referredNode.isArray).toBe(false);
+      validateTestUiSchema(model.asArray());
+    });
+
+    it('Can convert a field within a definition', () => {
+      const model = schemaModel.deepClone();
+      const pointerToConvert = defNodeWithChildrenChildMock.schemaPointer;
+      const nodeName = extractNameFromPointer(pointerToConvert);
+      const result = model.convertToDefinition(pointerToConvert);
+      const convertedNode = result.getNodeBySchemaPointer(pointerToConvert) as ReferenceNode;
+      expect(convertedNode.objectKind).toEqual(ObjectKind.Reference);
+      const referredNode = result.getReferredNode(convertedNode) as FieldNode;
+      const referredNodeName = extractNameFromPointer(convertedNode.reference);
+      expect(referredNodeName).toEqual(nodeName);
+      expect(referredNode.fieldType).toEqual(FieldType.Object);
+      validateTestUiSchema(model.asArray());
+    });
+
+    it('Includes children in the new type', () => {
+      const model = schemaModel.deepClone();
+      const pointerToConvert = parentNodeMock.schemaPointer;
+      const result = model.convertToDefinition(pointerToConvert);
+      const convertedNode = result.getNodeBySchemaPointer(pointerToConvert) as ReferenceNode;
+      const referredNode = result.getReferredNode(convertedNode) as FieldNode;
+      expect(referredNode.children).toHaveLength(parentNodeMock.children.length);
+      validateTestUiSchema(model.asArray());
+    });
+
     it('Throws an error and keeps the model unchanged when the node to convert is already a definition', () => {
       const model = schemaModel.deepClone();
       const pointerToConvert = defNodeMock.schemaPointer;
