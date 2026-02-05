@@ -54,7 +54,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         };
 
         /// <inheritdoc />
-        public async Task UpdateApplicationInformationAsync(
+        public async Task<ActionResult> UpdateApplicationInformationAsync(
             string org,
             string app,
             string shortCommitId,
@@ -99,8 +99,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // TODO: publish policy with `PublishServiceResource` policyPath, requires renaming of rules like above probably
             if (envName == "tt02" && publishServiceResource)
             {
-                await PublishAltinnAppServiceResource(org, app, shortCommitId, envName);
+                var result = await PublishAltinnAppServiceResource(org, app, shortCommitId, envName);
+                return result;
             }
+            return new CreatedResult();
         }
 
         private async Task<ActionResult> PublishAltinnAppServiceResource(
@@ -141,24 +143,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return new CreatedResult();
             }
 
-            if (publishResponse is ContentResult contentResult)
-            {
-                throw new InvalidOperationException(
-                    $"Publishing service resource failed for {org}/{app}/{shortCommitId}: {contentResult.Content}"
-                );
-            }
-            if (publishResponse is ObjectResult objectResult && objectResult.StatusCode == 400)
-            {
-                if (objectResult.Value is ValidationProblemDetails validationProblemDetails)
-                {
-                    throw new InvalidOperationException(
-                        $"Publishing service resource failed for {org}/{app}/{shortCommitId}: {JsonSerializer.Serialize(validationProblemDetails.Errors)}"
-                    );
-                }
-            }
-            throw new InvalidOperationException(
-                $"Publishing service resource failed for {org}/{app}/{shortCommitId}"
-            );
+            return publishResponse;
         }
     }
 }
