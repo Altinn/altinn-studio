@@ -23,6 +23,8 @@ import (
 	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 func main() {
@@ -30,8 +32,7 @@ func main() {
 
 	logger.Info("Starting", "GOMAXPROCS", runtime.GOMAXPROCS(0), "NumCPU", runtime.NumCPU())
 
-	// Initialize telemetry with Prometheus exporter
-	tel, err := telemetry.New("pdf3-proxy")
+	otelShutdown, err := telemetry.ConfigureOTel(context.Background())
 	if err != nil {
 		logger.Error("Failed to initialize telemetry", "error", err)
 		os.Exit(1)
@@ -54,7 +55,8 @@ func main() {
 	}
 
 	httpClient := &http.Client{
-		Timeout: types.RequestTimeout(),
+		Timeout:   types.RequestTimeout(),
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
 	}
 
 	// Setup HTTP server
@@ -91,8 +93,7 @@ func main() {
 		}
 	})
 
-	http.Handle("/pdf", tel.WrapHandler("POST /pdf", generatePdf(logger, httpClient, workerHTTPAddr)))
-	http.Handle("/metrics", tel.Handler())
+	http.Handle("/pdf", telemetry.WrapHandler("POST /pdf", generatePdf(logger, httpClient, workerHTTPAddr)))
 
 	// Only register test output endpoint in test internals mode
 	if iruntime.IsTestInternalsMode {
@@ -126,11 +127,10 @@ func main() {
 		logger.Info("Gracefully shut down HTTP server")
 	}
 
-	// Shutdown telemetry to flush pending metrics
 	logger.Info("Shutting down telemetry")
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := tel.Close(shutdownCtx); err != nil {
+	if err := otelShutdown(shutdownCtx); err != nil {
 		logger.Warn("Failed to gracefully shut down telemetry", "error", err)
 	}
 

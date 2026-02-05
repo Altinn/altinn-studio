@@ -193,6 +193,10 @@ spec:
                 fieldPath: metadata.uid
           - name: OTEL_RESOURCE_ATTRIBUTES
             value: "k8s.pod.uid=$(POD_UID)"
+          - name: OTEL_SERVICE_NAME
+            value: "pdf3-proxy"
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "http://otel-router.runtime-obs.svc.cluster.local:4317"
           - name: PDF3_WORKER_HTTP_ADDR
             value: http://pdf3-worker:80
           - name: PDF3_UPGRADE_CHANNEL
@@ -246,16 +250,3 @@ spec:
             requests:
               cpu: 50m
               memory: 128Mi
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: pdf3-proxy
-spec:
-  selector:
-    matchLabels:
-      app: pdf3-proxy
-  endpoints:
-  - port: http
-    path: /metrics
-    interval: 10s
