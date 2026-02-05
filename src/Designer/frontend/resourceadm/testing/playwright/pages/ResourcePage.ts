@@ -104,7 +104,9 @@ export class ResourcePage extends ResourceEnvironment {
     this.policyActionDropdown = this.page.getByLabel(
       textMock('policy_editor.rule_card_actions_title'),
     );
-    this.policySubjectAccordion = this.page.getByLabel('policy_editor.org_subjects_header"');
+    this.policySubjectAccordion = this.page.getByRole('button', {
+      name: 'policy_editor.org_subjects_header',
+    });
     this.policySubjectCheckbox = this.page.getByRole('checkbox').first();
     this.publishTab = this.page.getByRole('tab', {
       name: textMock('resourceadm.left_nav_bar_deploy'),
