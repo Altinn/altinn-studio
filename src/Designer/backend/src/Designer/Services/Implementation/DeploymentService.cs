@@ -25,6 +25,8 @@ using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
@@ -105,7 +107,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<DeploymentEntity> CreateAsync(
+        public async Task<ActionResult<DeploymentEntity>> CreateAsync(
             AltinnAuthenticatedRepoEditingContext authenticatedContext,
             DeploymentModel deployment,
             bool publishServiceResource = false
@@ -129,13 +131,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 authenticatedContext.Repo,
                 deploymentEntity.TagName
             );
-            await _applicationInformationService.UpdateApplicationInformationAsync(
+
+            var updateApplicationInformationResult = await _applicationInformationService.UpdateApplicationInformationAsync(
                 authenticatedContext.Org,
                 authenticatedContext.Repo,
                 release.TargetCommitish,
                 deployment.EnvName,
                 publishServiceResource
             );
+            if (updateApplicationInformationResult is not CreatedResult)
+            {
+                return updateApplicationInformationResult;
+            }
 
             // NOTE: these codepaths are sensitive to leaving partial state/progress if the user/caller
             // cancels the request, but we prefer to at least attempt completion once we've started mutating state
@@ -199,7 +206,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 traceContext.TraceParent,
                 traceContext.TraceState
             );
-            return createdEntity;
+            return new CreatedResult("", createdEntity);
         }
 
         private async Task<bool> AddAppToGitOpsRepoIfNotExists(

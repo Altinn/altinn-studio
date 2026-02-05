@@ -138,14 +138,11 @@ namespace Altinn.Studio.Designer.Controllers
                     token
                 );
 
-            return Created(
-                string.Empty,
-                await _deploymentService.CreateAsync(
-                    authenticatedContext,
-                    createDeployment.ToDomainModel(),
-                    publishServiceResource
-                )
-            );
+            var createResult = await _deploymentService.CreateAsync(
+                authenticatedContext,
+                createDeployment.ToDomainModel(),
+                publishServiceResource);
+            return createResult;
         }
 
         /// <summary>
