@@ -8,17 +8,17 @@ spec:
       routing/traces:
         default_pipelines: [traces/control_plane]
         table:
-          - condition: attributes["service.name"] == "pdf3"
+          - condition: HasPrefix(attributes["service.name"], "pdf3-")
             pipelines: [traces/data_plane]
       routing/metrics:
         default_pipelines: [metrics/control_plane]
         table:
-          - condition: attributes["service.name"] == "pdf3"
+          - condition: HasPrefix(attributes["service.name"], "pdf3-")
             pipelines: [metrics/data_plane]
       routing/logs:
         default_pipelines: [logs/control_plane]
         table:
-          - condition: attributes["service.name"] == "pdf3"
+          - condition: HasPrefix(attributes["service.name"], "pdf3-")
             pipelines: [logs/data_plane]
 
     exporters:
