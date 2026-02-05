@@ -1,72 +1,94 @@
 export const altinnAppsIllustrationHelpCircleSvgUrl = 'https://altinncdn.no/img/illustration-help-circle.svg';
 export const orgsListUrl = 'https://altinncdn.no/orgs/altinn-orgs.json';
 
-const redirectAndChangeParty = (goTo: string, partyId: number) =>
-  `ui/Reportee/ChangeReporteeAndRedirect?goTo=${encodeURIComponent(goTo)}&R=${partyId}`;
-
 const prodStagingRegex = /^\w+\.apps\.((\w+\.)?altinn\.(no|cloud))$/;
 const localRegex = /^local\.altinn\.cloud(:\d+)?$/;
 
+export function isLocalEnvironment(host: string): boolean {
+  return localRegex.test(host);
+}
+
+function extractAltinnHost(host: string): string | undefined {
+  const match = host.match(prodStagingRegex);
+  return match?.[1];
+}
+
+function isProductionEnvironment(altinnHost: string): boolean {
+  return altinnHost === 'altinn.no';
+}
+
+function buildArbeidsflateUrl(altinnHost: string): string {
+  if (isProductionEnvironment(altinnHost)) {
+    return 'https://af.altinn.no/';
+  }
+
+  return `https://af.${altinnHost}/`;
+}
+
+function redirectAndChangeParty(goTo: string, partyId: number): string {
+  return `ui/Reportee/ChangeReporteeAndRedirect?goTo=${encodeURIComponent(goTo)}&R=${partyId}`;
+}
+
 export const returnBaseUrlToAltinn = (host: string): string | undefined => {
-  const prodStagingMatch = host.match(prodStagingRegex);
-  if (prodStagingMatch) {
-    const altinnHost = prodStagingMatch[1];
-
-    return `https://${altinnHost}/`;
+  const altinnHost = extractAltinnHost(host);
+  if (!altinnHost) {
+    return undefined;
   }
+  return `https://${altinnHost}/`;
 };
 
-export const getMessageBoxUrl = (partyId?: number | undefined): string | undefined => {
-  const host = window.location.host;
-
-  if (host.match(localRegex)) {
+function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?: string): string | undefined {
+  if (isLocalEnvironment(host)) {
     return `http://${host}/`;
   }
 
   const baseUrl = returnBaseUrlToAltinn(host);
-  if (!baseUrl) {
-    return;
+  const altinnHost = extractAltinnHost(host);
+  if (!baseUrl || !altinnHost) {
+    return undefined;
   }
 
-  const messageBoxUrl = `${baseUrl}ui/messagebox`;
+  const arbeidsflateUrl = buildArbeidsflateUrl(altinnHost);
+  const targetUrl = dialogId ? `${arbeidsflateUrl.replace(/\/$/, '')}/inbox/${dialogId}` : arbeidsflateUrl;
 
   if (partyId === undefined) {
-    return messageBoxUrl;
+    return targetUrl;
   }
 
-  return `${baseUrl}${redirectAndChangeParty(messageBoxUrl, partyId)}`;
-};
+  // Use A2 redirect mechanism with A3 arbeidsflate URL to maintain party context
+  return `${baseUrl}${redirectAndChangeParty(targetUrl, partyId)}`;
+}
 
-export const returnUrlToArchive = (host: string): string | undefined => {
-  if (host.match(localRegex)) {
-    return `http://${host}/`;
+export const getMessageBoxUrl = (partyId?: number, dialogId?: string): string | undefined =>
+  buildArbeidsflateRedirectUrl(window.location.host, partyId, dialogId);
+
+export function getDialogIdFromDataValues(dataValues: unknown): string | undefined {
+  const data = dataValues as Record<string, unknown> | null | undefined;
+  const id = data?.['dialog.id'];
+  if (typeof id === 'string') {
+    return id;
+  }
+  if (typeof id === 'number') {
+    return String(id);
+  }
+  return undefined;
+}
+
+export const returnUrlToArchive = (host: string, partyId?: number, dialogId?: string): string | undefined =>
+  buildArbeidsflateRedirectUrl(host, partyId, dialogId);
+
+export const returnUrlToProfile = (host: string, _partyId?: number | undefined): string | undefined => {
+  if (isLocalEnvironment(host)) {
+    return `http://${host}/profile`;
   }
 
-  const baseUrl = returnBaseUrlToAltinn(host);
-  if (!baseUrl) {
-    return;
+  const altinnHost = extractAltinnHost(host);
+  if (!altinnHost) {
+    return undefined;
   }
 
-  return `${baseUrl}ui/messagebox/archive`;
-};
-
-export const returnUrlToProfile = (host: string, partyId?: number | undefined): string | undefined => {
-  if (host.match(localRegex)) {
-    return `http://${host}/`;
-  }
-
-  const baseUrl = returnBaseUrlToAltinn(host);
-  if (!baseUrl) {
-    return;
-  }
-
-  const profileUrl = `${baseUrl}ui/profile`;
-
-  if (partyId === undefined) {
-    return profileUrl;
-  }
-
-  return `${baseUrl}${redirectAndChangeParty(profileUrl, partyId)}`;
+  const arbeidsflateUrl = buildArbeidsflateUrl(altinnHost);
+  return `${arbeidsflateUrl.replace(/\/$/, '')}/profile`;
 };
 
 export const returnUrlToAllForms = (host: string): string | undefined => {

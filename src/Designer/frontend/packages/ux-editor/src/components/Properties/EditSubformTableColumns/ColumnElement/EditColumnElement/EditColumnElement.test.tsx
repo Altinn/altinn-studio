@@ -178,9 +178,7 @@ describe('EditColumnElementComponentSelect', () => {
     await user.click(componentWitMultipleBindings);
 
     const dataModelBindingsSelect = await screen.findByRole('combobox', {
-      name: textMock(
-        'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
-      ),
+      name: /ux_editor\.properties_panel\.subform_table_columns\.column_multiple_data_model_bindings_label/,
     });
 
     await user.click(dataModelBindingsSelect);
@@ -294,9 +292,7 @@ describe('EditColumnElementComponentSelect', () => {
       }),
     );
     const dataModelBindingsSelect = await screen.findByRole('combobox', {
-      name: textMock(
-        'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
-      ),
+      name: /ux_editor\.properties_panel\.subform_table_columns\.column_multiple_data_model_bindings_label/,
     });
     await user.click(dataModelBindingsSelect);
     expect(onChangeMock).toHaveBeenCalledTimes(1);

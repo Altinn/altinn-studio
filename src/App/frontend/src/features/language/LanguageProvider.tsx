@@ -1,112 +1,63 @@
-import React, { useEffect } from 'react';
-import type { PropsWithChildren } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
-import { createContext } from 'src/core/contexts/context';
-import { useGetAppLanguageQuery } from 'src/features/language/textResources/useGetAppLanguagesQuery';
-import { useProfileQuery } from 'src/features/profile/ProfileProvider';
-import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
+import { SearchParams } from 'src/core/routing/types';
+import { useProfile } from 'src/features/profile/ProfileProvider';
+import { useCookieState } from 'src/hooks/useCookieState';
 
-interface LanguageCtx {
-  current: string;
-  languageResolved: boolean;
-  appLanguages: string[] | undefined;
-  setWithLanguageSelector: (language: string) => void;
+export function getAppLanguages() {
+  return window.altinnAppGlobalData.availableLanguages.map((lang) => lang.language);
 }
 
-const { Provider, useCtx } = createContext<LanguageCtx>({
-  name: 'Language',
-  required: false,
-  default: {
-    current: 'nb',
-    languageResolved: false,
-    appLanguages: undefined,
-    setWithLanguageSelector: () => {
-      throw new Error('LanguageProvider not initialized');
-    },
-  },
-});
+export function useSetCurrentLanguage() {
+  const [_, setLanguageCookie] = useCookieState<string | null>('lang', null);
 
-export const LanguageProvider = ({ children }: PropsWithChildren) => {
-  const { data: profile, isLoading: isProfileLoading } = useProfileQuery();
+  return (lang: string) => {
+    setLanguageCookie(lang);
+  };
+}
 
-  const userId = isProfileLoading ? undefined : profile?.userId;
-  const languageFromProfile = isProfileLoading ? undefined : profile?.profileSettingPreference.language;
+export function useCurrentLanguage() {
+  const languageFromProfile = useProfile()?.profileSettingPreference.language;
+  const [searchParams] = useSearchParams();
+  const languageFromUrl = searchParams.get(SearchParams.Language);
+  const [languageFromCookie] = useCookieState<string | null>('lang', null);
 
-  const languageFromUrl = getLanguageFromUrl();
-  const [languageFromSelector, setWithLanguageSelector] = useLocalStorageState(['selectedLanguage', userId], null);
-
-  const { data: appLanguages, error, isFetching } = useGetAppLanguageQuery();
-  // TODO(Error handling): Should failing to fetch app languages cause PDF generation to fail?
-
-  useEffect(() => {
-    error && window.logError('Fetching app languages failed:\n', error);
-  }, [error]);
-
-  const current = useResolveCurrentLanguage(appLanguages, {
-    languageFromSelector,
+  const currentLanguage = useResolveCurrentLanguage({
+    languageFromCookie,
     languageFromUrl,
     languageFromProfile,
   });
 
-  const languageResolved = !isProfileLoading && !isFetching;
-
-  return (
-    <Provider
-      value={{
-        current,
-        appLanguages,
-        languageResolved,
-        setWithLanguageSelector,
-      }}
-    >
-      <div lang={current}>{children}</div>
-    </Provider>
-  );
-};
-
-export const useCurrentLanguage = () => useCtx().current;
-export const useIsCurrentLanguageResolved = () => useCtx().languageResolved;
-export const useAppLanguages = () => useCtx().appLanguages;
-export const useSetLanguageWithSelector = () => useCtx().setWithLanguageSelector;
-
-/**
- * AppRoutingContext is not provided yet, so we have to get this manually.
- * This unfortunately means that the value is not reactive, and will not update
- * if this query param changes after initial load.
- */
-function getLanguageFromUrl() {
-  const params = new URLSearchParams(window.location.hash.split('?')[1]);
-  return params.get('lang');
+  return currentLanguage;
 }
 
+type ResolveLanguageProps = {
+  languageFromCookie: string | null | undefined;
+  languageFromUrl: string | null | undefined;
+  languageFromProfile: string | null | undefined;
+};
 /**
  * Determines the current language based on the user's preferences and what the app has available
  */
-function useResolveCurrentLanguage(
-  appLanguages: string[] | undefined,
-  {
-    languageFromSelector,
-    languageFromUrl,
-    languageFromProfile,
-  }: {
-    languageFromSelector?: string | null;
-    languageFromUrl?: string | null;
-    languageFromProfile?: string | null;
-  },
-): string {
+function useResolveCurrentLanguage({
+  languageFromCookie,
+  languageFromUrl,
+  languageFromProfile,
+}: ResolveLanguageProps): string {
+  const appLanguages = getAppLanguages();
   // We don't know what languages the app has available yet, so we just use whatever the user wants for now
   if (!appLanguages) {
-    return languageFromSelector ?? languageFromUrl ?? languageFromProfile ?? 'nb';
+    return languageFromCookie ?? languageFromUrl ?? languageFromProfile ?? 'nb';
   }
 
   // Try to fulfill the user's preferences in order of priority
 
-  if (languageFromSelector) {
-    if (appLanguages.includes(languageFromSelector)) {
-      return languageFromSelector;
+  if (languageFromCookie) {
+    if (appLanguages.includes(languageFromCookie)) {
+      return languageFromCookie;
     }
     window.logWarnOnce(
-      `User's preferred language (${languageFromSelector}) from language selector / localstorage is not supported by the app, supported languages: [${appLanguages.join(', ')}]`,
+      `User's preferred language (${languageFromCookie}) from language selector / cookie is not supported by the app, supported languages: [${appLanguages.join(', ')}]`,
     );
   }
 

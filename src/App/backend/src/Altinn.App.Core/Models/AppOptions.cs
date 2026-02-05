@@ -15,7 +15,7 @@ public class AppOptions
     /// The dictionary key is the name of the parameter and the value is the value of the parameter.
     /// This can be used to document the parameters used to generate the options.
     /// </summary>
-    public Dictionary<string, string?> Parameters { get; set; } = new Dictionary<string, string?>();
+    public Dictionary<string, string?> Parameters { get; set; } = new();
 
     /// <summary>
     /// Gets or sets a value indicating whether the options can be cached.

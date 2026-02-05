@@ -1,5 +1,18 @@
-.data-element-field {
-  margin-bottom: 1rem;
+.info-wrapper {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+/* If card contains details anywhere it will set padding to 0 */
+.cardFix {
+  padding: var(--dsc-card-padding);
+}
+
+.data-elements {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .data-element-label-wrapper {
@@ -14,4 +27,11 @@
 
 .data-element-icon {
   font-size: 22px;
+  margin-right: 0.25rem;
+}
+
+.data-element-details-wrapper {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
 }

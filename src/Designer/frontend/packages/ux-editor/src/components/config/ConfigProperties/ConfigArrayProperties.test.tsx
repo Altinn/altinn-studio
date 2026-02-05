@@ -2,7 +2,7 @@ import React from 'react';
 import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigArrayProperties, type ConfigArrayPropertiesProps } from './ConfigArrayProperties';
 import { componentMocks } from '../../../testing/componentMocks';
-import { screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import {
@@ -13,7 +13,7 @@ import {
 } from './testConfigUtils';
 
 describe('ConfigArrayProperties', () => {
-  it('should call handleComponentUpdate and setSelectedValue when array property is updated', async () => {
+  it('should call handleComponentUpdate when array property is updated', async () => {
     const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
     renderConfigArrayProperties({ props: { handleComponentUpdate: handleComponentUpdateMock } });
@@ -26,13 +26,6 @@ describe('ConfigArrayProperties', () => {
         [supportedKey]: ['option1'],
       }),
     );
-
-    const selectedValueDisplay = getPropertyByRole('button', supportedKey);
-    const buttonContent = within(selectedValueDisplay).getByText(
-      textMock('ux_editor.component_properties.enum_option1'),
-    );
-    expect(buttonContent).toBeInTheDocument();
-    expect(selectedValueDisplay).toBeInTheDocument();
   });
 
   it('should only render array properties with items of type string AND enum values', async () => {

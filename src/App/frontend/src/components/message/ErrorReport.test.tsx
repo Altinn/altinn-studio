@@ -7,6 +7,7 @@ import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { Form } from 'src/components/form/Form';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
+import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { doProcessNext } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
@@ -20,7 +21,7 @@ describe('ErrorReport', () => {
         fetchLayoutSettings: async () => ({
           pages: {
             order: ['form', 'submit'],
-          },
+          } as unknown as IPagesSettingsWithOrder,
         }),
         fetchLayouts: async () => ({
           form: {

@@ -18,10 +18,12 @@ using Altinn.Studio.Designer.Services.Implementation.GitOps;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
 using Altinn.Studio.Designer.Services.Implementation.Preview;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
+using Altinn.Studio.Designer.Services.Implementation.Validation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
+using Altinn.Studio.Designer.Services.Interfaces.Validation;
 using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -72,6 +74,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IAppScopesService, AppScopesService>();
             services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
             services.AddTransient<IAppResourcesService, AppResourcesService>();
+            services.AddTransient<IAlertsService, AlertsService>();
+            services.AddTransient<IMetricsService, MetricsService>();
             services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
             services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
             services.AddTransient<IAuthorizationPolicyService, AuthorizationPolicyService>();
@@ -103,6 +107,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();
             services.AddTransient<IGitOpsManifestsRenderer, ScribanGitOpsManifestsRenderer>();
             services.AddTransient<IOrgLibraryService, OrgLibraryService>();
+            services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
 
             return services;
         }

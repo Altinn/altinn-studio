@@ -1,8 +1,12 @@
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
+using Altinn.App.Core.Features.Maskinporten.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.App.Core.Tests.Features.Maskinporten.Models;
@@ -233,5 +237,99 @@ public class MaskinportenSettingsTest
 
         // Assert
         act.Should().Throw<MaskinportenConfigurationException>().WithMessage("No private key configured*");
+    }
+
+    [Theory]
+    [InlineData("https://maskinporten.dev/")]
+    [InlineData("https://maskinporten.dev")]
+    public async Task LoadFromJsonFile_WithJwkBase64_BindsCorrectly(string authority)
+    {
+        // Arrange
+        var tempDir = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString());
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            var json = $$"""
+                {
+                    "MaskinportenSettings": {
+                        "authority": "{{authority}}",
+                        "clientId": "test-client-id",
+                        "jwkBase64": "{{_validJwkBase64}}"
+                    }
+                }
+                """;
+            var filePath = Path.Join(tempDir, "maskinporten-settings.json");
+            await File.WriteAllTextAsync(filePath, json);
+
+            var configuration = new ConfigurationBuilder().AddJsonFile(filePath).Build();
+
+            var services = new ServiceCollection();
+            services.AddSingleton<IConfiguration>(configuration);
+            services.ConfigureMaskinportenClient("MaskinportenSettings");
+
+            await using var serviceProvider = services.BuildStrictServiceProvider();
+
+            // Act
+            var options = serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>();
+            var settings = options.Value;
+
+            // Assert
+            Assert.Equal(authority, settings.Authority);
+            Assert.Equal("test-client-id", settings.ClientId);
+            Assert.NotNull(settings.GetJsonWebKey());
+            Assert.Equal("test-kid", settings.GetJsonWebKey().KeyId);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Theory]
+    [InlineData("https://maskinporten.dev/")]
+    [InlineData("https://maskinporten.dev")]
+    public async Task LoadFromJsonFile_WithJwk_BindsCorrectly(string authority)
+    {
+        // Arrange
+        var tempDir = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString());
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            var json = $$"""
+                {
+                    "MaskinportenSettings": {
+                        "authority": "{{authority}}",
+                        "clientId": "test-client-id",
+                        "jwk": {{_validJwk}}
+                    }
+                }
+                """;
+            var filePath = Path.Join(tempDir, "maskinporten-settings.json");
+            await File.WriteAllTextAsync(filePath, json);
+
+            var configuration = new ConfigurationBuilder().AddJsonFile(filePath).Build();
+
+            var services = new ServiceCollection();
+            services.AddSingleton<IConfiguration>(configuration);
+            services.ConfigureMaskinportenClient("MaskinportenSettings");
+
+            await using var serviceProvider = services.BuildStrictServiceProvider();
+
+            // Act
+            var options = serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>();
+            var settings = options.Value;
+
+            // Assert
+            Assert.Equal(authority, settings.Authority);
+            Assert.Equal("test-client-id", settings.ClientId);
+            Assert.NotNull(settings.GetJsonWebKey());
+            Assert.Equal("test-kid", settings.GetJsonWebKey().KeyId);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
     }
 }

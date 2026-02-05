@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Controllers;
 public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
     IAppScopesService appScopesService) : ControllerBase
 {
-    [Authorize(AnsattPortenConstants.AnsattportenAuthorizationPolicy)]
+    [Authorize(AnsattPortenConstants.AnsattportenAuthorizationPolicyWithOrgAccess)]
     [HttpGet("maskinporten")]
     public async Task<IActionResult> GetScopesFromMaskinPorten(string org, string app, CancellationToken cancellationToken)
     {

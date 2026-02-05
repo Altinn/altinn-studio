@@ -85,7 +85,7 @@ public class OrgLibraryServiceTests
 
         OrgLibraryService orgLibraryService = Setup(overrideGitea: giteaClient);
 
-        //Act
+        // Act
         GetSharedResourcesResponse response = await orgLibraryService.GetSharedResourcesByPath(Org, path);
 
         // Assert
@@ -93,6 +93,34 @@ public class OrgLibraryServiceTests
         Assert.Equal(expectedFileCount, response.Files.Count);
     }
 
+    [Fact]
+    public async Task GetSharedResourcesByPath_ReturnsEmptyListWhenDirectoryNotFoundExceptionIsThrown()
+    {
+        // Arrange
+        const string Path = "Non-existent path";
+        const string CommitSha = "123abc";
+
+        Mock<IGiteaClient> giteaClient = new();
+
+        giteaClient
+            .Setup(g => g.GetDirectoryAsync(Org, "ttd-content", Path, null, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DirectoryNotFoundException())
+            .Verifiable();
+
+        giteaClient.Setup(g => g.GetLatestCommitOnBranch(Org, "ttd-content", null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CommitSha)
+            .Verifiable();
+
+        OrgLibraryService orgLibraryService = Setup(overrideGitea: giteaClient);
+
+        // Act
+        GetSharedResourcesResponse response = await orgLibraryService.GetSharedResourcesByPath(Org, Path);
+
+        // Assert
+        Assert.Equal(CommitSha, response.CommitSha);
+        Assert.Empty(response.Files);
+        giteaClient.VerifyAll();
+    }
 
     [Fact]
     public async Task UpdateFile_WithNullContent_DeletesFile()

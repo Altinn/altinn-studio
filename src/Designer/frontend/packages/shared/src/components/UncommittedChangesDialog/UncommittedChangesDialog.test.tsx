@@ -3,19 +3,15 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UncommittedChangesDialogProps } from './UncommittedChangesDialog';
 import { UncommittedChangesDialog } from './UncommittedChangesDialog';
-import { org, app } from '@studio/testing/testids';
 import type { UncommittedChangesError, UncommittedFile } from 'app-shared/types/api/BranchTypes';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const onClose = jest.fn();
+const onDiscardAndSwitch = jest.fn();
 const filePath1 = 'App/ui/form/layouts/Side1.json';
 const filePath2 = 'App/ui/form/layouts/Side2.json';
 const fileStatus1 = 'ModifiedInWorkdir';
 const fileStatus2 = 'DeletedFromWorkdir';
-
 const uncommittedFiles: UncommittedFile[] = [
   {
     filePath: filePath1,
@@ -26,59 +22,39 @@ const uncommittedFiles: UncommittedFile[] = [
     status: fileStatus2,
   },
 ];
-
-const targetBranch = 'master';
-
 const error: UncommittedChangesError = {
   error: 'Cannot switch branches with uncommitted changes',
   message: 'You have uncommitted changes',
   uncommittedFiles,
   currentBranch: 'feat/new-feature',
-  targetBranch,
+  targetBranch: 'master',
 };
 
 describe('UncommittedChangesDialog', () => {
-  const originalLocation = window.location;
-
-  beforeEach(() => {
-    Object.defineProperty(window, 'location', {
-      writable: true,
-      value: { reload: jest.fn() },
-    });
-  });
-
   afterEach(() => {
     jest.clearAllMocks();
-    Object.defineProperty(window, 'location', {
-      writable: true,
-      value: originalLocation,
-    });
   });
 
   it('should render dialog', () => {
     renderUncommittedChangesDialog();
-    const dialog = screen.getByRole('dialog');
+    const dialog = getDialog();
     expect(dialog).toBeInTheDocument();
   });
 
-  it('should render headings', () => {
+  it('should render dialog content', () => {
     renderUncommittedChangesDialog();
 
-    const dialogHeading = screen.getByRole('heading', {
-      name: textMock('branching.uncommitted_changes_dialog.heading'),
-    });
-    const filesHeading = screen.getByRole('heading', {
-      name: textMock('branching.uncommitted_changes_dialog.uncommitted_files', { count: 2 }),
-    });
+    const dialogHeading = getDialogHeading();
+    const alert = screen.getByText(textMock('branching.uncommitted_changes_dialog.alert'));
+    const filesHeading = getFilesHeading();
+    const discardChangesButton = getDiscardChangesButton();
+    const cancelButton = getCancelButton();
 
     expect(dialogHeading).toBeInTheDocument();
-    expect(filesHeading).toBeInTheDocument();
-  });
-
-  it('should render alert', () => {
-    renderUncommittedChangesDialog();
-    const alert = screen.getByText(textMock('branching.uncommitted_changes_dialog.alert'));
     expect(alert).toBeInTheDocument();
+    expect(filesHeading).toBeInTheDocument();
+    expect(discardChangesButton).toBeInTheDocument();
+    expect(cancelButton).toBeInTheDocument();
   });
 
   it('should render file paths and statuses', () => {
@@ -95,28 +71,11 @@ describe('UncommittedChangesDialog', () => {
     expect(status2).toBeInTheDocument();
   });
 
-  it('should render buttons', () => {
-    renderUncommittedChangesDialog();
-
-    const cancelButton = screen.getByRole('button', {
-      name: textMock('branching.uncommitted_changes_dialog.cancel'),
-    });
-    const discardChangesButton = screen.getByRole('button', {
-      name: textMock('branching.uncommitted_changes_dialog.discard_and_switch'),
-    });
-
-    expect(cancelButton).toBeInTheDocument();
-    expect(discardChangesButton).toBeInTheDocument();
-  });
-
   it('should call onClose when pressing cancel button', async () => {
     const user = userEvent.setup();
     renderUncommittedChangesDialog();
 
-    const cancelButton = screen.getByRole('button', {
-      name: textMock('branching.uncommitted_changes_dialog.cancel'),
-    });
-
+    const cancelButton = getCancelButton();
     await user.click(cancelButton);
 
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -127,10 +86,7 @@ describe('UncommittedChangesDialog', () => {
     const confirm = jest.spyOn(window, 'confirm').mockImplementation();
     renderUncommittedChangesDialog();
 
-    const discardChangesButton = screen.getByRole('button', {
-      name: textMock('branching.uncommitted_changes_dialog.discard_and_switch'),
-    });
-
+    const discardChangesButton = getDiscardChangesButton();
     await user.click(discardChangesButton);
 
     expect(confirm).toHaveBeenCalledWith(
@@ -139,120 +95,80 @@ describe('UncommittedChangesDialog', () => {
     expect(confirm).toHaveBeenCalledTimes(1);
   });
 
-  it('should not call discard changes query when canceling the browser alert', async () => {
+  it('should call onDiscardAndSwitch when confirming the browser alert', async () => {
+    const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    renderUncommittedChangesDialog();
+
+    const discardChangesButton = getDiscardChangesButton();
+    await user.click(discardChangesButton);
+
+    expect(onDiscardAndSwitch).toHaveBeenCalledTimes(1);
+    expect(onDiscardAndSwitch).toHaveBeenCalledWith(error.targetBranch);
+  });
+
+  it('should not call onDiscardAndSwitch when canceling the browser alert', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockReturnValue(false);
     renderUncommittedChangesDialog();
 
-    const discardChangesButton = screen.getByRole('button', {
-      name: textMock('branching.uncommitted_changes_dialog.discard_and_switch'),
-    });
-
+    const discardChangesButton = getDiscardChangesButton();
     await user.click(discardChangesButton);
 
-    expect(queriesMock.discardChanges).not.toHaveBeenCalled();
+    expect(onDiscardAndSwitch).not.toHaveBeenCalled();
   });
 
-  it('should call discard changes query when confirming the browser alert', async () => {
-    const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
-    renderUncommittedChangesDialog();
+  it('should alter button label when isLoading is true', async () => {
+    renderUncommittedChangesDialog({ isLoading: true });
 
-    const discardChangesButton = screen.getByRole('button', {
-      name: textMock('branching.uncommitted_changes_dialog.discard_and_switch'),
-    });
-
-    await user.click(discardChangesButton);
-
-    expect(queriesMock.discardChanges).toHaveBeenCalledTimes(1);
-  });
-
-  it('should call checkout branch query after successfully discarding changes', async () => {
-    const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
-    renderUncommittedChangesDialog();
-
-    const discardChangesButton = screen.getByRole('button', {
-      name: textMock('branching.uncommitted_changes_dialog.discard_and_switch'),
-    });
-
-    await user.click(discardChangesButton);
-
-    expect(queriesMock.checkoutBranch).toHaveBeenCalledWith(org, app, targetBranch);
-    expect(queriesMock.checkoutBranch).toHaveBeenCalledTimes(1);
-  });
-
-  it('should refresh the page when calling the checkout query', async () => {
-    const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
-    renderUncommittedChangesDialog();
-
-    const discardChangesButton = screen.getByRole('button', {
-      name: textMock('branching.uncommitted_changes_dialog.discard_and_switch'),
-    });
-
-    await user.click(discardChangesButton);
-
-    expect(window.location.reload).toHaveBeenCalledTimes(1);
-  });
-
-  it('should disable discard button and show loading text when discard changes query is pending', async () => {
-    const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
-
-    (queriesMock.discardChanges as jest.Mock).mockImplementation(() => new Promise(() => {}));
-
-    renderUncommittedChangesDialog();
-
-    const discardChangesButton = screen.getByRole('button', {
-      name: textMock('branching.uncommitted_changes_dialog.discard_and_switch'),
-    });
-
-    await user.click(discardChangesButton);
-
-    const loadingButton = screen.getByRole('button', {
-      name: textMock('branching.uncommitted_changes_dialog.discarding'),
-    });
+    const loadingButton = getLoadingButton();
+    const discardChangesButton = queryDiscardChangesButton();
 
     expect(loadingButton).toBeInTheDocument();
     expect(loadingButton).toBeDisabled();
-  });
-
-  it('should disable discard button and show loading text when checkout branch query is pending', async () => {
-    const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
-
-    (queriesMock.checkoutBranch as jest.Mock).mockImplementation(() => new Promise(() => {}));
-
-    renderUncommittedChangesDialog();
-
-    const discardChangesButton = screen.getByRole('button', {
-      name: textMock('branching.uncommitted_changes_dialog.discard_and_switch'),
-    });
-
-    await user.click(discardChangesButton);
-
-    const loadingButton = screen.getByRole('button', {
-      name: textMock('branching.uncommitted_changes_dialog.discarding'),
-    });
-
-    expect(loadingButton).toBeInTheDocument();
-    expect(loadingButton).toBeDisabled();
+    expect(discardChangesButton).not.toBeInTheDocument();
   });
 });
 
 const defaultProps: UncommittedChangesDialogProps = {
   error,
-  targetBranch,
   onClose,
-  org,
-  app,
+  onDiscardAndSwitch,
+  isLoading: false,
 };
 
-const renderUncommittedChangesDialog = (props?: UncommittedChangesDialogProps) => {
-  return render(
-    <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
-      <UncommittedChangesDialog {...defaultProps} {...props} />
-    </ServicesContextProvider>,
-  );
+const renderUncommittedChangesDialog = (props?: Partial<UncommittedChangesDialogProps>) => {
+  return render(<UncommittedChangesDialog {...defaultProps} {...props} />);
 };
+
+const getDialog = () => screen.getByRole('dialog');
+
+const getDialogHeading = () =>
+  screen.getByRole('heading', {
+    name: textMock('branching.uncommitted_changes_dialog.heading'),
+  });
+
+const getFilesHeading = () =>
+  screen.getByRole('heading', {
+    name: textMock('branching.uncommitted_changes_dialog.uncommitted_files', { count: 2 }),
+  });
+
+const getDiscardChangesButton = () =>
+  screen.getByRole('button', {
+    name: textMock('branching.uncommitted_changes_dialog.discard_and_switch'),
+  });
+
+const queryDiscardChangesButton = () =>
+  screen.queryByRole('button', {
+    name: textMock('branching.uncommitted_changes_dialog.discard_and_switch'),
+  });
+
+const getCancelButton = () =>
+  screen.getByRole('button', {
+    name: textMock('branching.uncommitted_changes_dialog.cancel'),
+  });
+
+const getLoadingButton = () =>
+  screen.getByRole('button', {
+    name: textMock('general.loading'),
+  });

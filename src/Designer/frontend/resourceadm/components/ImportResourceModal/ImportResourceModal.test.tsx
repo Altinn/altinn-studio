@@ -17,7 +17,7 @@ jest.useFakeTimers({ advanceTimers: true });
 
 const mockButtonText: string = 'Mock Button';
 const mockAltinn2LinkService: Altinn2LinkService = {
-  serviceOwnerCode: 'ttd',
+  serviceOwnerCode: 'digdir',
   externalServiceCode: 'code1',
   externalServiceEditionCode: 'edition1',
   serviceName: 'TestService',
@@ -37,7 +37,7 @@ const defaultProps: ImportResourceModalProps = {
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    org: 'ttd',
+    org: 'digdir',
   }),
 }));
 
@@ -129,7 +129,9 @@ describe('ImportResourceModal', () => {
 
   it('calls import resource from Altinn 2 when import is clicked', async () => {
     const user = userEvent.setup();
-    const importResourceFromAltinn2 = jest.fn();
+    const importResourceFromAltinn2 = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ identifier: 'test-resource-id' }));
     await renderAndOpenModal(user, { importResourceFromAltinn2 });
 
     const environmentSelect = screen.getByLabelText(
@@ -185,40 +187,7 @@ describe('ImportResourceModal', () => {
     );
     await user.type(idField, '?/test');
 
-    expect(idField).toHaveValue(`${mockAltinn2LinkService.serviceName.toLowerCase()}--test`);
-  });
-
-  it('displays error message when resource identifier starts with _app', async () => {
-    const user = userEvent.setup();
-    await renderAndOpenModal(user);
-
-    const environmentSelect = screen.getByLabelText(
-      textMock('resourceadm.dashboard_import_modal_select_env'),
-    );
-    await user.selectOptions(environmentSelect, textMock('resourceadm.deploy_at22_env'));
-
-    // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
-    // (sometimes the spinner disappears) too quick and the test will fail
-    await waitFor(() => {
-      expect(
-        screen.getByLabelText(textMock('resourceadm.dashboard_import_modal_select_service')),
-      ).toBeInTheDocument();
-    });
-
-    const serviceSelect = screen.getByLabelText(
-      textMock('resourceadm.dashboard_import_modal_select_service'),
-    );
-    await user.selectOptions(serviceSelect, mockOption);
-
-    const idField = await screen.findByLabelText(
-      textMock('resourceadm.dashboard_resource_name_and_id_resource_id'),
-    );
-    await user.clear(idField);
-    await user.type(idField, 'app_');
-
-    expect(
-      screen.getByText(textMock('resourceadm.dashboard_resource_id_cannot_be_app')),
-    ).toBeInTheDocument();
+    expect(idField).toHaveValue(`digdir-${mockAltinn2LinkService.serviceName.toLowerCase()}--test`);
   });
 
   it('displays conflict message if identifier is in use', async () => {
@@ -254,7 +223,11 @@ describe('ImportResourceModal', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(textMock('resourceadm.dashboard_resource_name_and_id_error')),
+        screen.getByText(
+          textMock('resourceadm.dashboard_resource_name_and_id_error', {
+            orgPrefix: `digdir-, digdir_, altinn- ${textMock('expression.or')} altinn_`,
+          }),
+        ),
       ).toBeInTheDocument();
     });
   });

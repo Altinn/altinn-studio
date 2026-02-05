@@ -16,7 +16,7 @@ public interface IAppResourcesService
         CancellationToken ct
     );
 
-    public Task<IEnumerable<ProcessTask>> GetProcessTasks(
+    public Task<IEnumerable<ProcessTaskMetadata>> GetProcessMetadata(
         string org,
         string env,
         string app,

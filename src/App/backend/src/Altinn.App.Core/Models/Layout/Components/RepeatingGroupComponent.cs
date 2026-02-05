@@ -1,11 +1,13 @@
 using System.Text.Json;
+using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Models.Layout.Components;
 
 /// <summary>
 /// Component specialization for repeating groups with maxCount > 1
 /// </summary>
-public sealed class RepeatingGroupComponent : Base.RepeatingReferenceComponent
+public sealed class RepeatingGroupComponent : Base.ReferenceComponent
 {
     /// <summary>
     /// Parser for RepeatingGroupComponent
@@ -73,11 +75,15 @@ public sealed class RepeatingGroupComponent : Base.RepeatingReferenceComponent
             MaxCount = maxCount,
             GroupModelBinding = groupModelBinding,
             RepeatingChildReferences = repeatingChildReferences,
-            HiddenRow = ParseExpression(componentElement, "hiddenRow"),
+            HiddenRow = ParseExpression(componentElement, "hiddenRow", ExpressionValue.False),
             RowsBefore = rowsBefore,
             RowsAfter = rowsAfter,
             BeforeChildReferences = beforeChildReferences,
             AfterChildReferences = afterChildReferences,
+            ChildReferences = beforeChildReferences
+                .Concat(repeatingChildReferences)
+                .Concat(afterChildReferences)
+                .ToList(),
         };
     }
 
@@ -115,4 +121,165 @@ public sealed class RepeatingGroupComponent : Base.RepeatingReferenceComponent
     /// List of rows after the repeating group, used to associate components that are not repeated to the repeating group for layout purposes
     /// </summary>
     public required IReadOnlyList<GridComponent.GridRowConfig> RowsAfter { get; init; }
+
+    /// <summary>
+    /// Model binding for the group that defines the number of repetitions of the repeating group.
+    /// </summary>
+    public required ModelBinding GroupModelBinding { get; init; }
+
+    /// <summary>
+    /// The expression that determines if the row is hidden.
+    /// </summary>
+    public required Expression HiddenRow { get; init; }
+
+    /// <summary>
+    /// List of references to child components that are repeated for each row in the repeating group.
+    /// </summary>
+    public required IReadOnlyList<string> RepeatingChildReferences { get; init; }
+
+    /// <summary>
+    /// References to child components that are not repeated and comes before the repeating group
+    /// </summary>
+    public required IReadOnlyList<string> BeforeChildReferences { get; init; }
+
+    /// <summary>
+    /// References to child components that are not repeated and comes after the repeating group
+    /// </summary>
+    public required IReadOnlyList<string> AfterChildReferences { get; init; }
+
+    internal static int[] GetSubRowIndexes(int[]? baseIndexes, int index)
+    {
+        if (baseIndexes is null || baseIndexes.Length == 0)
+        {
+            return new[] { index };
+        }
+        var result = new int[baseIndexes.Length + 1];
+        Array.Copy(baseIndexes, result, baseIndexes.Length);
+        result[^1] = index;
+        return result;
+    }
+
+    private RepeatingGroupRowComponent? _repeatingGroupRowComponent;
+
+    /// <inheritdoc />
+    public override async Task<ComponentContext> GetContext(
+        LayoutEvaluatorState state,
+        DataElementIdentifier defaultDataElementIdentifier,
+        int[]? rowIndexes,
+        Dictionary<string, LayoutSetComponent> layoutsLookup
+    )
+    {
+        var childContexts = new List<ComponentContext>();
+
+        foreach (var componentId in BeforeChildReferences)
+        {
+            childContexts.Add(
+                await GetClaimedChildComponentContext(
+                    componentId,
+                    state,
+                    defaultDataElementIdentifier,
+                    rowIndexes,
+                    layoutsLookup
+                )
+            );
+        }
+
+        var rowCount = await state.GetModelDataCount(GroupModelBinding, defaultDataElementIdentifier, rowIndexes) ?? 0;
+
+        _repeatingGroupRowComponent ??= RepeatingGroupRowComponent.FromGroup(this);
+
+        for (int i = 0; i < rowCount; i++)
+        {
+            var subRowIndexes = GetSubRowIndexes(rowIndexes, i);
+            List<ComponentContext> rowChildren = [];
+            foreach (var componentId in RepeatingChildReferences)
+            {
+                rowChildren.Add(
+                    await GetClaimedChildComponentContext(
+                        componentId,
+                        state,
+                        defaultDataElementIdentifier,
+                        subRowIndexes,
+                        layoutsLookup
+                    )
+                );
+            }
+
+            childContexts.Add(
+                new ComponentContext(
+                    state,
+                    _repeatingGroupRowComponent,
+                    subRowIndexes,
+                    defaultDataElementIdentifier,
+                    rowChildren
+                )
+            );
+        }
+
+        foreach (var componentId in AfterChildReferences)
+        {
+            childContexts.Add(
+                await GetClaimedChildComponentContext(
+                    componentId,
+                    state,
+                    defaultDataElementIdentifier,
+                    rowIndexes,
+                    layoutsLookup
+                )
+            );
+        }
+
+        return new ComponentContext(state, this, rowIndexes, defaultDataElementIdentifier, childContexts);
+    }
+}
+
+/// <summary>
+/// Component for each row (not read from JSON layout, but created when generating contexts for repeating groups).
+/// </summary>
+public class RepeatingGroupRowComponent : Base.BaseComponent
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RepeatingGroupRowComponent"/> class from the surrounding group component.
+    /// </summary>
+    public static RepeatingGroupRowComponent FromGroup(RepeatingGroupComponent repeatingGroupComponent)
+    {
+        return new RepeatingGroupRowComponent()
+        {
+            Id = $"{repeatingGroupComponent.Id}__group_row",
+            PageId = repeatingGroupComponent.PageId,
+            LayoutId = repeatingGroupComponent.LayoutId,
+            DataModelBindings = repeatingGroupComponent.DataModelBindings,
+            RemoveWhenHidden = repeatingGroupComponent.RemoveWhenHidden,
+            Type = "repeatingGroupRow",
+            // We don't have a row level readOnly, only at the group or child component level
+            ReadOnly = Expression.False,
+            // We don't have a row level required, only at the group or child component level
+            Required = Expression.False,
+            TextResourceBindings = repeatingGroupComponent.TextResourceBindings,
+            Hidden = repeatingGroupComponent.HiddenRow,
+            GroupModelBinding = repeatingGroupComponent.GroupModelBinding,
+        };
+    }
+
+    /// <summary>
+    /// Model binding for the group
+    /// </summary>
+    public required ModelBinding GroupModelBinding { get; init; }
+
+    /// <inheritdoc />
+    public override async Task<bool> IsHidden(ComponentContext context)
+    {
+        var rowValue = await context.State.GetModelData(
+            GroupModelBinding,
+            context.DataElementIdentifier,
+            context.RowIndices
+        );
+        // The row is always considered hidden if the row is null in the data model
+        if (rowValue is null)
+        {
+            return true;
+        }
+
+        return await base.IsHidden(context);
+    }
 }

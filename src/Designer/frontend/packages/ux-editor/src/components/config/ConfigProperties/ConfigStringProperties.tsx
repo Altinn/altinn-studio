@@ -1,11 +1,10 @@
-import React, { useMemo, useState } from 'react';
-import { useComponentPropertyLabel } from '../../../hooks';
+import React from 'react';
 import { SelectPropertyEditor } from '../SelectPropertyEditor';
-import { useComponentPropertyEnumValue } from '../../../hooks/useComponentPropertyEnumValue';
 import { EditStringValue } from '../editModal/EditStringValue';
 import type { SchemaConfigProps } from './types';
-import type { FormItem } from '../../../types/FormItem';
 import { componentComparison } from './ConfigPropertiesUtils';
+import { useTranslateKeyValue } from './useTranslateKeyValue';
+import { useConfigProperty } from './useConfigProperty';
 
 export interface ConfigStringPropertiesProps extends SchemaConfigProps {
   stringPropertyKeys: string[];
@@ -21,19 +20,6 @@ export const ConfigStringProperties = ({
   className,
   keepEditOpen = false,
 }: ConfigStringPropertiesProps) => {
-  const componentPropertyLabel = useComponentPropertyLabel();
-  const selectedDataType = useComponentPropertyEnumValue();
-  const [currentComponent, setCurrentComponent] = useState<FormItem>(initialComponent);
-
-  const memoizedSelectedStringPropertiesDisplay = useMemo(
-    () => (propertyKey: string) => {
-      const value = currentComponent[propertyKey];
-      if (Array.isArray(value)) return value.map((dataType) => selectedDataType(dataType));
-      return value ? selectedDataType(value) : undefined;
-    },
-    [currentComponent, selectedDataType],
-  );
-
   if (keepEditOpen) {
     return stringPropertyKeys.map((propertyKey) => (
       <EditStringValue
@@ -51,26 +37,60 @@ export const ConfigStringProperties = ({
   return (
     <>
       {stringPropertyKeys.map((propertyKey) => (
-        <SelectPropertyEditor
+        <ConfigStringProperty
           key={propertyKey}
-          property={componentPropertyLabel(propertyKey)}
-          title={componentPropertyLabel(propertyKey)}
-          value={memoizedSelectedStringPropertiesDisplay(propertyKey)}
+          propertyKey={propertyKey}
+          component={initialComponent}
+          handleComponentUpdate={handleComponentUpdate}
           className={className}
-          onSave={() => handleComponentUpdate(currentComponent)}
-          onCancel={() => setCurrentComponent(initialComponent)}
-          isSaveDisabled={componentComparison({ initialComponent, currentComponent })}
-        >
-          <EditStringValue
-            component={currentComponent}
-            handleComponentChange={setCurrentComponent}
-            propertyKey={propertyKey}
-            enumValues={
-              schema.properties[propertyKey]?.enum || schema.properties[propertyKey]?.examples
-            }
-          />
-        </SelectPropertyEditor>
+          enumValues={
+            schema.properties[propertyKey]?.enum || schema.properties[propertyKey]?.examples
+          }
+        />
       ))}
     </>
+  );
+};
+
+type ConfigStringPropertyProps = Partial<SchemaConfigProps> & {
+  propertyKey: string;
+  className?: string;
+  enumValues?: string[];
+};
+
+const ConfigStringProperty = ({
+  component: initialComponent,
+  propertyKey,
+  handleComponentUpdate,
+  className,
+  enumValues,
+}: ConfigStringPropertyProps) => {
+  const {
+    initialPropertyValue,
+    currentComponent,
+    handleComponentChange,
+    setCurrentPropertyValue,
+    propertyLabel,
+  } = useConfigProperty({ initialComponent, propertyKey });
+
+  const translatedKeyValue = useTranslateKeyValue(initialPropertyValue);
+
+  return (
+    <SelectPropertyEditor
+      property={propertyLabel}
+      title={propertyLabel}
+      value={translatedKeyValue}
+      className={className}
+      onSave={() => handleComponentUpdate(currentComponent)}
+      onCancel={() => setCurrentPropertyValue(initialPropertyValue)}
+      isSaveDisabled={componentComparison({ initialComponent, currentComponent })}
+    >
+      <EditStringValue
+        component={currentComponent}
+        handleComponentChange={handleComponentChange}
+        propertyKey={propertyKey}
+        enumValues={enumValues}
+      />
+    </SelectPropertyEditor>
   );
 };

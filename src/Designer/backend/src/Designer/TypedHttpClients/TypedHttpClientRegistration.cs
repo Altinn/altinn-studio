@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -38,8 +39,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients
         /// </summary>
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         /// <param name="config">The Microsoft.Extensions.Configuration.IConfiguration for </param>
+        /// <param name="env">The Microsoft.Extensions.Hosting.IHostEnvironment</param>
         /// <returns>IServiceCollection</returns>
-        public static IServiceCollection RegisterTypedHttpClients(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection RegisterTypedHttpClients(this IServiceCollection services, IConfiguration config, IHostEnvironment env)
         {
             services.AddHttpClient();
             services.AddTransient<AzureDevOpsTokenDelegatingHandler>();
@@ -67,8 +69,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddTransient<GitOpsBotTokenDelegatingHandler>();
             services.AddTransient<PlatformSubscriptionAuthDelegatingHandler>();
             services.AddMaskinportenHttpClient();
-            services.AddSlackClient(config);
-            services.AddRuntimeGatewayHttpClient(config);
+            services.AddHttpClient<ISlackClient, SlackClient>();
+            services.AddRuntimeGatewayHttpClient(config, env);
 
             return services;
         }
@@ -177,18 +179,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                     })
             .AddHttpMessageHandler<AnsattPortenTokenDelegatingHandler>();
 
-        }
-
-        private static IHttpClientBuilder AddSlackClient(this IServiceCollection services, IConfiguration config)
-        {
-            FeedbackFormSettings feedbackFormSettings = config.GetSection("FeedbackFormSettings").Get<FeedbackFormSettings>();
-            string token = config["FeedbackFormSlackToken"];
-            return services.AddHttpClient<ISlackClient, SlackClient>(client =>
-            {
-                client.BaseAddress = new Uri(feedbackFormSettings.SlackSettings.WebhookUrl + config["FeedbackFormSlackWebhookSecret"]);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
-            }).AddHttpMessageHandler<EnsureSuccessHandler>();
         }
     }
 }

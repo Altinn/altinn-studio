@@ -1,11 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React from 'react';
 import { EditStringValue } from '../editModal/EditStringValue';
-import { useComponentPropertyLabel } from '../../../hooks';
-import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
 import { SelectPropertyEditor } from '../SelectPropertyEditor';
 import type { SchemaConfigProps } from './types';
-import type { FormItem } from '../../../types/FormItem';
 import { componentComparison } from './ConfigPropertiesUtils';
+import { useTranslateKeyValue } from './useTranslateKeyValue';
+import { useConfigProperty } from './useConfigProperty';
 
 export interface ConfigArrayPropertiesProps extends SchemaConfigProps {
   arrayPropertyKeys: string[];
@@ -21,20 +20,6 @@ export const ConfigArrayProperties = ({
   className,
   keepEditOpen = false,
 }: ConfigArrayPropertiesProps) => {
-  const [currentComponent, setCurrentComponent] = useState<FormItem>(initialComponent);
-  const componentPropertyLabel = useComponentPropertyLabel();
-  const selectedDataType = useComponentPropertyEnumValue();
-
-  const memoizedGetSelectedValuesDisplay = useMemo(
-    () => (propertyKey: string) => {
-      if (!currentComponent[propertyKey]?.length) return undefined;
-      return currentComponent[propertyKey].map((dataType: string) => (
-        <div key={dataType}>{selectedDataType(dataType)}</div>
-      ));
-    },
-    [currentComponent, selectedDataType],
-  );
-
   if (keepEditOpen) {
     return arrayPropertyKeys.map((propertyKey) => (
       <EditStringValue
@@ -51,25 +36,60 @@ export const ConfigArrayProperties = ({
   return (
     <>
       {arrayPropertyKeys.map((propertyKey) => (
-        <SelectPropertyEditor
+        <ConfigArrayProperty
           key={propertyKey}
-          property={componentPropertyLabel(propertyKey)}
-          title={componentPropertyLabel(propertyKey)}
-          value={memoizedGetSelectedValuesDisplay(propertyKey)}
+          propertyKey={propertyKey}
+          schema={schema}
+          component={initialComponent}
+          handleComponentUpdate={handleComponentUpdate}
           className={className}
-          onSave={() => handleComponentUpdate(currentComponent)}
-          onCancel={() => setCurrentComponent(initialComponent)}
-          isSaveDisabled={componentComparison({ initialComponent, currentComponent })}
-        >
-          <EditStringValue
-            component={currentComponent}
-            handleComponentChange={setCurrentComponent}
-            propertyKey={propertyKey}
-            enumValues={schema.properties[propertyKey]?.items?.enum}
-            multiple={true}
-          />
-        </SelectPropertyEditor>
+          enumValues={schema.properties[propertyKey]?.items?.enum}
+        />
       ))}
     </>
+  );
+};
+
+type ConfigArrayPropertyProps = Partial<SchemaConfigProps> & {
+  propertyKey: string;
+  className?: string;
+  enumValues?: string[];
+};
+
+const ConfigArrayProperty = ({
+  component: initialComponent,
+  propertyKey,
+  handleComponentUpdate,
+  className,
+  enumValues,
+}: ConfigArrayPropertyProps) => {
+  const {
+    initialPropertyValue,
+    currentComponent,
+    handleComponentChange,
+    setCurrentPropertyValue,
+    propertyLabel,
+  } = useConfigProperty({ initialComponent, propertyKey });
+
+  const translatedKeyValue = useTranslateKeyValue(initialPropertyValue);
+
+  return (
+    <SelectPropertyEditor
+      property={propertyLabel}
+      title={propertyLabel}
+      value={translatedKeyValue}
+      className={className}
+      onSave={() => handleComponentUpdate(currentComponent)}
+      onCancel={() => setCurrentPropertyValue(initialPropertyValue)}
+      isSaveDisabled={componentComparison({ initialComponent, currentComponent })}
+    >
+      <EditStringValue
+        component={currentComponent}
+        handleComponentChange={handleComponentChange}
+        propertyKey={propertyKey}
+        enumValues={enumValues}
+        multiple={true}
+      />
+    </SelectPropertyEditor>
   );
 };

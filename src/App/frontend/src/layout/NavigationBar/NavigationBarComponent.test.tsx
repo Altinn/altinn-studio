@@ -4,6 +4,7 @@ import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { NavigationBarComponent } from 'src/layout/NavigationBar/NavigationBarComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -19,7 +20,9 @@ const render = async () =>
     },
     initialPage: 'page1',
     queries: {
-      fetchLayoutSettings: async () => ({ pages: { order: ['page1', 'page2', 'page3'] } }),
+      fetchLayoutSettings: async () => ({
+        pages: { order: ['page1', 'page2', 'page3'] } as unknown as IPagesSettingsWithOrder,
+      }),
       fetchLayouts: async () => ({
         page1: {
           data: {

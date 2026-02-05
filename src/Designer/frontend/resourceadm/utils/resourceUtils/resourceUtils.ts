@@ -11,7 +11,6 @@ import type {
   ConsentMetadata,
   AccessList,
 } from 'app-shared/types/ResourceAdm';
-import { isAppPrefix, isSePrefix } from '../stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import type { Policy, PolicyRule, PolicySubject } from '@altinn/policy-editor/types';
 import type { TFunction } from 'i18next';
@@ -131,17 +130,31 @@ export const mapKeywordStringToKeywordTypeArray = (keywrodString: string): Resou
     .map((val) => ({ language: 'nb', word: val.trim() }));
 };
 
-export const getResourceIdentifierErrorMessage = (identifier: string, isConflict?: boolean) => {
-  const hasAppPrefix = isAppPrefix(identifier);
-  const hasSePrefix = isSePrefix(identifier);
-  if (hasAppPrefix) {
-    return 'resourceadm.dashboard_resource_id_cannot_be_app';
-  } else if (hasSePrefix) {
-    return 'resourceadm.dashboard_resource_id_cannot_be_se';
-  } else if (isConflict) {
+export const getResourceIdentifierErrorMessage = (
+  identifier: string,
+  org: string,
+  isConflict?: boolean,
+) => {
+  if (isConflict) {
     return 'resourceadm.dashboard_resource_name_and_id_error';
+  } else if (!hasOrgPrefixInIdentifier(identifier, org)) {
+    return 'resourceadm.dashboard_resource_id_must_start_with_org';
   }
   return '';
+};
+
+export const getValidIdentifierPrefixes = (org: string): string[] => {
+  if (org === 'skd') {
+    return ['skd-', 'skd_', 'ske-', 'ske_'];
+  }
+  if (org === 'digdir') {
+    return ['digdir-', 'digdir_', 'altinn-', 'altinn_'];
+  }
+  return [`${org}-`, `${org}_`];
+};
+
+export const hasOrgPrefixInIdentifier = (identifier: string, org: string): boolean => {
+  return getValidIdentifierPrefixes(org).some((prefix) => identifier.startsWith(prefix));
 };
 
 /**
