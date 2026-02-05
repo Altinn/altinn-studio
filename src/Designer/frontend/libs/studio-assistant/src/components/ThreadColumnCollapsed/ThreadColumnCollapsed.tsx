@@ -7,11 +7,13 @@ import type { AssistantTexts } from '../../types/AssistantTexts';
 export type ThreadColumnHiddenProps = {
   texts: AssistantTexts;
   onToggleCollapse: () => void;
+  onCreateThread?: () => void;
 };
 
 export function ThreadColumnCollapsed({
   texts,
   onToggleCollapse,
+  onCreateThread,
 }: ThreadColumnHiddenProps): React.ReactElement {
   return (
     <div className={classes.threadColumnCollapsed}>
@@ -24,7 +26,7 @@ export function ThreadColumnCollapsed({
         >
           <SidebarLeftIcon />
         </StudioButton>
-        <StudioButton aria-label={texts.newThread} title={texts.newThread}>
+        <StudioButton onClick={onCreateThread} aria-label={texts.newThread} title={texts.newThread}>
           <PlusIcon />
         </StudioButton>
       </div>

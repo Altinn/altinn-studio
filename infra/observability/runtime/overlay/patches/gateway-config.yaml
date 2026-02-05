@@ -23,8 +23,10 @@ spec:
 
     exporters:
       azuremonitor/control_plane:
+        spaneventsenabled: true
         connection_string: $${env:CONTROL_PLANE_CONNECTION_STRING}
       azuremonitor/data_plane:
+        spaneventsenabled: true
         connection_string: $${env:DATA_PLANE_CONNECTION_STRING}
 
     service:

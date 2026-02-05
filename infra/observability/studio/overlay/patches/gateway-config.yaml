@@ -6,6 +6,7 @@ spec:
   config:
     exporters:
       azuremonitor:
+        spaneventsenabled: true
         connection_string: $${env:APPLICATIONINSIGHTS_CONNECTION_STRING}
 
     service:

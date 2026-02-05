@@ -39,6 +39,10 @@ const defaultProps: AssistantProps = {
   onSubmitMessage,
   texts: mockTexts,
   chatThreads: [],
+  activeThreadId: '',
+  connectionStatus: 'error',
+  workflowStatus: { isActive: false },
+  previewContent: <p>Preview placeholder</p>,
 };
 
 const renderAssistant = (props?: Partial<AssistantProps>): void => {
