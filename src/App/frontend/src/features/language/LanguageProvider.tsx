@@ -1,141 +1,114 @@
-import React from 'react';
-import type { PropsWithChildren } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
-import { createContext } from 'src/core/contexts/context';
+import { SearchParams } from 'src/core/routing/types';
 import { useProfile } from 'src/features/profile/ProfileProvider';
 import { useCookieState } from 'src/hooks/useCookieState';
 
-interface LanguageCtx {
-  current: string;
-  appLanguages: string[] | undefined;
-  setWithLanguageSelector: (language: string) => void;
+/**
+  URL search param = temporary override (e.g., shared link)
+  Cookie = persistent user preference (set via language selector)
+  Profile = fallback from profile settings
+ */
+
+export function getAvailableLanguages() {
+  return window.altinnAppGlobalData.availableLanguages.map((lang) => lang.language);
 }
 
-const { Provider, useCtx } = createContext<LanguageCtx>({
-  name: 'Language',
-  required: false,
-  default: {
-    current: 'nb',
-    appLanguages: undefined,
-    setWithLanguageSelector: () => {
-      throw new Error('LanguageProvider not initialized');
-    },
-  },
-});
+function useLanguageCookie() {
+  return useCookieState<string | null>('lang', null);
+}
 
-export const LanguageProvider = ({ children }: PropsWithChildren) => {
-  const profile = useProfile();
+export function useSetCurrentLanguage() {
+  const [_, setLanguageCookie] = useLanguageCookie();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const languageFromProfile = profile?.profileSettingPreference.language;
+  return (lang: string) => {
+    setLanguageCookie(lang);
 
-  const languageFromUrl = getLanguageFromUrl();
-  const [languageFromSelector, setWithLanguageSelector] = useCookieState<string | null>('lang', null);
+    if (searchParams.has(SearchParams.Language)) {
+      searchParams.delete(SearchParams.Language);
+      setSearchParams(searchParams);
+    }
+  };
+}
 
-  const appLanguages = window.altinnAppGlobalData.availableLanguages.map((lang) => lang.language);
+/**
+ * Determines the current language based on the url, cookie or user's
+ * profile preferences within the available languages of the app
+ */
+export function useCurrentLanguage() {
+  const [searchParams] = useSearchParams();
+  const availableLanguages = getAvailableLanguages();
 
-  const current = useResolveCurrentLanguage(appLanguages, {
-    languageFromSelector,
+  const languageFromUrl = searchParams.get(SearchParams.Language);
+  const [languageFromCookie] = useLanguageCookie();
+  const languageFromProfile = useProfile()?.profileSettingPreference.language;
+
+  return resolveCurrentLanguage({
+    availableLanguages,
     languageFromUrl,
+    languageFromCookie,
     languageFromProfile,
   });
-
-  return (
-    <Provider
-      value={{
-        current,
-        appLanguages,
-        setWithLanguageSelector,
-      }}
-    >
-      <div lang={current}>{children}</div>
-    </Provider>
-  );
-};
-
-export const useCurrentLanguage = () => useCtx().current;
-export const useAppLanguages = () => useCtx().appLanguages;
-export const useSetLanguageWithSelector = () => useCtx().setWithLanguageSelector;
-
-/**
- * AppRoutingContext is not provided yet, so we have to get this manually.
- * This unfortunately means that the value is not reactive, and will not update
- * if this query param changes after initial load.
- */
-function getLanguageFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('lang');
 }
 
-/**
- * Determines the current language based on the user's preferences and what the app has available
- */
-function useResolveCurrentLanguage(
-  appLanguages: string[] | undefined,
-  {
-    languageFromSelector,
-    languageFromUrl,
-    languageFromProfile,
-  }: {
-    languageFromSelector?: string | null;
-    languageFromUrl?: string | null;
-    languageFromProfile?: string | null;
-  },
-): string {
-  // We don't know what languages the app has available yet, so we just use whatever the user wants for now
-  if (!appLanguages) {
-    return languageFromSelector ?? languageFromUrl ?? languageFromProfile ?? 'nb';
-  }
+type ResolveCurrentLanguageProps = {
+  availableLanguages: string[];
+  languageFromUrl: string | null;
+  languageFromCookie: string | null;
+  languageFromProfile: string | null | undefined;
+};
 
-  // Try to fulfill the user's preferences in order of priority
-
-  if (languageFromSelector) {
-    if (appLanguages.includes(languageFromSelector)) {
-      return languageFromSelector;
-    }
-    window.logWarnOnce(
-      `User's preferred language (${languageFromSelector}) from language selector / cookie is not supported by the app, supported languages: [${appLanguages.join(', ')}]`,
-    );
+export function resolveCurrentLanguage({
+  availableLanguages,
+  languageFromUrl,
+  languageFromCookie,
+  languageFromProfile,
+}: ResolveCurrentLanguageProps): string {
+  if (availableLanguages.length === 0) {
+    // The app has not defined any languages, something is probably wrong.
+    window.logErrorOnce('Cannot find any available languages for this app. Are there any text resource files defined?');
+    return 'nb';
   }
 
   if (languageFromUrl) {
-    if (appLanguages.includes(languageFromUrl)) {
+    if (availableLanguages.includes(languageFromUrl)) {
       return languageFromUrl;
     }
     window.logWarnOnce(
-      `User's preferred language from query parameter (lang=${languageFromUrl}) is not supported by the app, supported languages: [${appLanguages.join(', ')}]`,
+      `User's preferred language from query parameter (lang=${languageFromUrl}) is not supported by the app, supported languages: [${availableLanguages.join(', ')}]`,
+    );
+  }
+
+  if (languageFromCookie) {
+    if (availableLanguages.includes(languageFromCookie)) {
+      return languageFromCookie;
+    }
+    window.logWarnOnce(
+      `User's preferred language (${languageFromCookie}) from language selector / cookie is not supported by the app, supported languages: [${availableLanguages.join(', ')}]`,
     );
   }
 
   if (languageFromProfile) {
-    if (appLanguages.includes(languageFromProfile)) {
+    if (availableLanguages.includes(languageFromProfile)) {
       return languageFromProfile;
     }
     window.logInfoOnce(
-      `User's preferred language (${languageFromProfile}) from Altinn profile is not supported by the app, supported languages: [${appLanguages.join(', ')}]`,
+      `User's preferred language (${languageFromProfile}) from Altinn profile is not supported by the app, supported languages: [${availableLanguages.join(', ')}]`,
     );
   }
 
   // The user has no valid preference, try to fall back to one of the standard languages that the app supports
-
-  if (appLanguages.includes('nb')) {
+  if (availableLanguages.includes('nb')) {
     return 'nb';
   }
-  if (appLanguages.includes('nn')) {
+  if (availableLanguages.includes('nn')) {
     return 'nn';
   }
-  if (appLanguages.includes('en')) {
+  if (availableLanguages.includes('en')) {
     return 'en';
   }
 
-  // None of the standard languages are supported, try the first supported language
-
-  if (appLanguages.length) {
-    return appLanguages[0];
-  }
-
-  // The app has not defined any languages, something is probably wrong
-
-  window.logErrorOnce('When fetching app languages the app returned 0 languages');
-
-  return 'nb';
+  // None of the standard or preferred languages are supported, return the first supported language.
+  return availableLanguages[0];
 }

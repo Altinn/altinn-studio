@@ -17,7 +17,7 @@ const initialFormError: NewAppForm = {
   repoName: '',
 };
 
-type CreateServiceProps = {
+export type CreateServiceProps = {
   user: User;
   organizations: Organization[];
 };

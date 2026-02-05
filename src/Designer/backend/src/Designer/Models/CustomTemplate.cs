@@ -18,10 +18,10 @@ public class CustomTemplate
     public required string Owner { get; set; }
 
     [JsonPropertyName("name")]
-    public Dictionary<string, string> Name { get; set; } = new();
+    public string Name { get; set; } = string.Empty;
 
     [JsonPropertyName("description")]
-    public Dictionary<string, string> Description { get; set; } = new();
+    public string Description { get; set; } = string.Empty;
 
     [JsonPropertyName("remove")]
     public List<string> Remove { get; set; } = [];

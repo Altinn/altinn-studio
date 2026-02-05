@@ -6,7 +6,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -65,8 +64,8 @@ public class GetCustomTemplateListTests : IDisposable
         string commitSha = "abc123def456";
         var expectedTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "template-1", Owner = "als", Name = new(){ { "nb", "Template 1" } }, Description = new(){ { "nb", "Description for Template 1" } } },
-            new() { Id = "template-2", Owner = "als", Name = new(){ { "nb", "Template 2" } }, Description = new(){ { "nb", "Description for Template 2" } } }
+            new() { Id = "template-1", Owner = "als", Name = "Template 1", Description = "Description for Template 1" },
+            new() { Id = "template-2", Owner = "als", Name = "Template 2", Description = "Description for Template 2" }
         };
 
         string manifestJson = JsonSerializer.Serialize(expectedTemplates);
@@ -119,7 +118,7 @@ public class GetCustomTemplateListTests : IDisposable
         string commitSha = "abc123def456";
         var cachedTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "cached-template", Owner = "als", Name =new() { { "nb", "Cached Template" } }, Description = new() { { "nb", "Description for Cached Template" } } }
+            new() { Id = "cached-template", Owner = "als", Name = "Cached Template", Description = "Description for Cached Template" }
         };
 
         // Setup cache manually
@@ -178,7 +177,7 @@ public class GetCustomTemplateListTests : IDisposable
 
         var newTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "new-template", Owner = "als", Name = new() { { "nb", "New Template" } }, Description = new() { { "nb", "Description for New Template" } } }
+            new() { Id = "new-template", Owner = "als", Name = "New Template", Description = "Description for New Template" }
         };
         string newManifestJson = JsonSerializer.Serialize(newTemplates);
 
@@ -234,7 +233,7 @@ public class GetCustomTemplateListTests : IDisposable
 
         var updatedTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "updated-template", Owner = "als", Name = new(){ { "nb", "Updated Template" } }, Description = new(){ { "nb", "Description for Updated Template" } } }
+            new() { Id = "updated-template", Owner = "als", Name = "Updated Template" , Description =  "Description for Updated Template" }
         };
 
         _giteaClientMock
@@ -269,7 +268,7 @@ public class GetCustomTemplateListTests : IDisposable
         string commitSha = "abc123def456";
         var templates = new List<CustomTemplateModel>
         {
-            new() { Id = "test-template", Owner = "als", Name = new() { { "nb", "Test" } }, Description = new() { { "nb", "Description for Test Template" } } }
+            new() { Id = "test-template", Owner = "als", Name = "Test", Description = "Description for Test Template" }
         };
 
         _giteaClientMock

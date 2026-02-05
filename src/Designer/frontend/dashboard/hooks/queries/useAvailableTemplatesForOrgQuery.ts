@@ -4,14 +4,14 @@ import { useQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 
-export const useAvailableTemplatesForOrgQuery = (
-  org?: string,
+export const useAvailableTemplatesForUserQuery = (
+  user?: string,
   options?: { enabled: boolean },
 ): UseQueryResult<CustomTemplate[]> => {
-  const { getAvailableTemplatesForOrg } = useServicesContext();
+  const { getAvailableTemplates } = useServicesContext();
   return useQuery({
-    queryKey: [QueryKey.CustomTemplates, org],
-    queryFn: () => getAvailableTemplatesForOrg(org).then((data) => data.templates),
+    queryKey: [QueryKey.CustomTemplates, user],
+    queryFn: () => getAvailableTemplates().then((data) => data.templates),
     ...options,
   });
 };

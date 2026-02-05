@@ -9,12 +9,11 @@ import { type User } from 'app-shared/types/Repository';
 import { type Organization } from 'app-shared/types/Organization';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { type ProviderData, renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { useUserOrgPermissionQuery } from '../../hooks/queries/useUserOrgPermissionsQuery';
-import { useAvailableTemplatesForOrgQuery } from '../../hooks/queries/useAvailableTemplatesForOrgQuery';
 import { FeatureFlag } from '@studio/feature-flags';
+import { type CustomTemplateList } from 'app-shared/types/CustomTemplate';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const mockOnSubmit = jest.fn();
 
@@ -43,37 +42,14 @@ const mockCancelComponentButton: ActionableElement = {
 
 const mockSubmitbuttonText: string = 'Submit';
 
-const defaultProps: NewApplicationFormProps = {
-  onSubmit: mockOnSubmit,
-  user: mockUser,
-  organizations: mockOrganizations,
-  isLoading: false,
-  submitButtonText: mockSubmitbuttonText,
-  formError: {
-    org: '',
-    repoName: '',
-  },
-  setFormError: jest.fn(),
-  actionableElement: mockCancelComponentButton,
-};
-
-jest.mock('../../hooks/queries/useUserOrgPermissionsQuery');
-jest.mock('../../hooks/queries/useAvailableTemplatesForOrgQuery');
-
-(useUserOrgPermissionQuery as jest.Mock).mockReturnValue({
-  data: { canCreateOrgRepo: true },
-});
-
-(useAvailableTemplatesForOrgQuery as jest.Mock).mockReturnValue({
-  data: [],
-});
-
 describe('NewApplicationForm', () => {
   afterEach(jest.clearAllMocks);
 
   it('calls onSubmit when form is submitted with valid data', async () => {
     const user = userEvent.setup();
-    renderNewApplicationForm();
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
+    renderNewApplicationForm({}, { queryClient });
 
     const select = screen.getByRole('combobox', { name: textMock('general.service_owner') });
     await user.click(select);
@@ -97,9 +73,19 @@ describe('NewApplicationForm', () => {
     });
   });
 
+  it('shows spinner while user data is loading', () => {
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.CurrentUser], undefined);
+    renderNewApplicationForm({}, { queryClient });
+
+    expect(screen.getByText(textMock('dashboard.loading'))).toBeInTheDocument();
+  });
+
   it('does not call onSubmit when form is submitted with invalid data', async () => {
     const user = userEvent.setup();
-    renderNewApplicationForm();
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
+    renderNewApplicationForm({}, { queryClient });
 
     const select = screen.getByRole('combobox', { name: textMock('general.service_owner') });
     await user.click(select);
@@ -117,10 +103,13 @@ describe('NewApplicationForm', () => {
 
   it('should notify the user if they lack permission to create a new application for the organization and disable the "Create" button', async () => {
     const user = userEvent.setup();
-    (useUserOrgPermissionQuery as jest.Mock).mockReturnValue({
-      data: { canCreateOrgRepo: false },
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
+    queryClient.setQueryData([QueryKey.UserOrgPermissions, mockOrg.username], {
+      canCreateOrgRepo: false,
     });
-    renderNewApplicationForm(defaultProps);
+
+    renderNewApplicationForm({}, { queryClient });
 
     const serviceOwnerSelect = screen.getByRole('combobox', {
       name: textMock('general.service_owner'),
@@ -134,10 +123,13 @@ describe('NewApplicationForm', () => {
 
   it('should enable the "Create" button and not display an error if the user has permission to create an organization', async () => {
     const user = userEvent.setup();
-    (useUserOrgPermissionQuery as jest.Mock).mockReturnValue({
-      data: { canCreateOrgRepo: true },
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
+    queryClient.setQueryData([QueryKey.UserOrgPermissions, mockOrg.username], {
+      canCreateOrgRepo: true,
     });
-    renderNewApplicationForm(defaultProps);
+
+    renderNewApplicationForm({}, { queryClient });
 
     const serviceOwnerSelect = screen.getByRole('combobox', {
       name: textMock('general.service_owner'),
@@ -150,36 +142,82 @@ describe('NewApplicationForm', () => {
   });
 
   it('should show custom template selector when feature is enabled', () => {
-    const availableTemplatesMock = [
-      {
-        id: 'template-1',
-        name: { nb: 'Template 1' },
-        description: { nb: 'Description 1' },
-        owner: 'owner-1',
-      },
-    ];
-    (useAvailableTemplatesForOrgQuery as jest.Mock).mockReturnValue({
-      data: availableTemplatesMock,
-    });
-    renderNewApplicationForm(defaultProps, null, { featureFlags: [FeatureFlag.CustomTemplates] });
+    const availableTemplatesMock: CustomTemplateList = {
+      totalCount: 1,
+      templates: [
+        {
+          id: 'template-1',
+          name: { nb: 'Template 1' },
+          description: { nb: 'Description 1' },
+          owner: mockOrg.username,
+        },
+      ],
+    };
+
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
+    queryClient.setQueryData(
+      [QueryKey.CustomTemplates, mockUser.login],
+      availableTemplatesMock.templates,
+    );
+
+    renderNewApplicationForm(
+      { shouldUseCustomTemplate: true },
+      { featureFlags: [FeatureFlag.CustomTemplates], queryClient },
+    );
     expect(
       screen.getByText(textMock('dashboard.new_application_form.select_templates')),
     ).toBeInTheDocument();
   });
 
+  it('should not show custom template selector when shouldUseCustomTemplate is false', () => {
+    const availableTemplatesMock: CustomTemplateList = {
+      totalCount: 1,
+      templates: [
+        {
+          id: 'template-1',
+          name: { nb: 'Template 1' },
+          description: { nb: 'Description 1' },
+          owner: mockOrg.username,
+        },
+      ],
+    };
+
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
+    queryClient.setQueryData(
+      [QueryKey.CustomTemplates, mockUser.login],
+      availableTemplatesMock.templates,
+    );
+
+    renderNewApplicationForm(
+      { shouldUseCustomTemplate: false },
+      { featureFlags: [FeatureFlag.CustomTemplates], queryClient },
+    );
+    expect(
+      screen.queryByText(textMock('dashboard.new_application_form.select_templates')),
+    ).not.toBeInTheDocument();
+  });
+
   it('should not show custom template selector when feature is disabled', () => {
-    const availableTemplatesMock = [
-      {
-        id: 'template-1',
-        name: { nb: 'Template 1' },
-        description: { nb: 'Description 1' },
-        owner: 'owner-1',
-      },
-    ];
-    (useAvailableTemplatesForOrgQuery as jest.Mock).mockReturnValue({
-      data: availableTemplatesMock,
-    });
-    renderNewApplicationForm(defaultProps, null, { featureFlags: [] });
+    const availableTemplatesMock: CustomTemplateList = {
+      totalCount: 1,
+      templates: [
+        {
+          id: 'template-1',
+          name: { nb: 'Template 1' },
+          description: { nb: 'Description 1' },
+          owner: mockOrg.username,
+        },
+      ],
+    };
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
+    queryClient.setQueryData(
+      [QueryKey.CustomTemplates, mockUser.login],
+      availableTemplatesMock.templates,
+    );
+    renderNewApplicationForm({}, { featureFlags: [], queryClient });
     expect(
       screen.queryByText(textMock('dashboard.new_application_form.select_templates')),
     ).not.toBeInTheDocument();
@@ -188,11 +226,23 @@ describe('NewApplicationForm', () => {
 
 function renderNewApplicationForm(
   newApplicationFormProps?: Partial<NewApplicationFormProps>,
-  services?: Partial<ServicesContextProps>,
-  providerData: ProviderData = {},
+  providerData: Partial<ProviderData> = {},
 ) {
+  const defaultProps: NewApplicationFormProps = {
+    onSubmit: mockOnSubmit,
+    user: mockUser,
+    organizations: mockOrganizations,
+    isLoading: false,
+    submitButtonText: mockSubmitbuttonText,
+    formError: {
+      org: '',
+      repoName: '',
+    },
+    setFormError: jest.fn(),
+    actionableElement: mockCancelComponentButton,
+  };
   const defaultProviderData: ProviderData = {
-    queries: services,
+    queries: {},
     queryClient: createQueryClientMock(),
     featureFlags: [],
   };

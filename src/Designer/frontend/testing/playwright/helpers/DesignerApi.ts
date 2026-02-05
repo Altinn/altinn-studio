@@ -14,7 +14,7 @@ export class DesignerApi extends StudioEnvironment {
   ): Promise<APIResponse> {
     const headers = this.generateHeaders(storageState);
     const requestBody = {
-      org: org,
+      org,
       repository: this.app,
     };
     return request.post(`/designer/api/repos/create-app`, { headers, data: requestBody });

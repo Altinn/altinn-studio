@@ -31,12 +31,10 @@ func BuildBaseInfrastructure(caCrt, issuerCrt, issuerKey []byte, includeLinkerd 
 		buildHelmRepository("traefik", "https://traefik.github.io/charts"),
 		buildHelmRepository("traefik-crds", "https://traefik.github.io/charts"),
 		buildHelmRepository("altinn-studio", "https://charts.altinn.studio"),
-		buildHelmRepository("prometheus-community", "https://prometheus-community.github.io/helm-charts"),
 
 		// HelmReleases
 		buildMetricsServerRelease(),
 		buildTraefikCRDsRelease(),
-		buildPrometheusOperatorCRDsRelease(),
 		buildTraefikRelease(includeLinkerd),
 	}
 
@@ -196,33 +194,6 @@ func buildLinkerdCRDsRelease() *helmv2.HelmRelease {
 	}
 }
 
-func buildPrometheusOperatorCRDsRelease() *helmv2.HelmRelease {
-	return &helmv2.HelmRelease{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "helm.toolkit.fluxcd.io/v2",
-			Kind:       "HelmRelease",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "prometheus-operator-crds",
-			Namespace: "monitoring",
-		},
-		Spec: helmv2.HelmReleaseSpec{
-			Interval: metav1.Duration{Duration: interval1h},
-			Chart: &helmv2.HelmChartTemplate{
-				Spec: helmv2.HelmChartTemplateSpec{
-					Chart:   "prometheus-operator-crds",
-					Version: "24.0.1",
-					SourceRef: helmv2.CrossNamespaceObjectReference{
-						Kind:      "HelmRepository",
-						Name:      "prometheus-community",
-						Namespace: fluxSystemNamespace,
-					},
-				},
-			},
-		},
-	}
-}
-
 func buildLinkerdControlPlaneRelease() *helmv2.HelmRelease {
 	values := map[string]interface{}{
 		"policyController": map[string]interface{}{
@@ -245,9 +216,6 @@ func buildLinkerdControlPlaneRelease() *helmv2.HelmRelease {
 				"name": "ghcr.io/linkerd/debug",
 			},
 		},
-		"podMonitor": map[string]interface{}{
-			"enabled": true,
-		},
 	}
 
 	return &helmv2.HelmRelease{
@@ -269,7 +237,6 @@ func buildLinkerdControlPlaneRelease() *helmv2.HelmRelease {
 			},
 			DependsOn: []helmv2.DependencyReference{
 				{Name: "linkerd-crds", Namespace: "linkerd"},
-				{Name: "prometheus-operator-crds", Namespace: "monitoring"},
 			},
 			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{

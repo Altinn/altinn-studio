@@ -16,8 +16,8 @@ public class ValidateCustomTemplateTest
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": { ""nb"": ""Test Template"" },
-        ""description"": { ""nb"": ""Dette er en norsk beskrivelse."", ""en"":""This is an English description""},
+         ""name"": ""Test Template"",
+        ""description"": ""Dette er en norsk beskrivelse."",
         ""remove"": [""src/oldfile.txt""],
         ""packageReferences"": [{""project"":""App/*.csproj"", ""include"":""MyPackage"", ""version"":""1.0.0""}]
         }";
@@ -32,9 +32,8 @@ public class ValidateCustomTemplateTest
         var missingSchemaManifest = @"{
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": { ""nb"": ""Test Template"" },
-        ""description"": { ""nb"": ""Dette er en norsk beskrivelse."", ""en"":""This is an English description""}
-        }";
+        ""name"": ""Test Template"",
+        ""description"": ""Dette er en norsk beskrivelse."", }";
 
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(missingSchemaManifest);
         Assert.Contains(errors, e => e.Kind == ValidationErrorKind.PropertyRequired && e.Property.Equals("schemaVersion"));
@@ -51,8 +50,8 @@ public class ValidateCustomTemplateTest
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": {{ ""nb"": ""Test Template"" }},
-        ""description"": {{ ""nb"": ""This is a valid description for the template."" }},
+        ""name"": ""Test Template"",
+        ""description"": ""This is a valid description for the template."",
         ""contentPath"": ""templates/test"",
         ""remove"": [""{remove}""]
         }}";
@@ -68,8 +67,8 @@ public class ValidateCustomTemplateTest
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": { ""nb"": ""Test Template"" },
-        ""description"": { ""nb"": ""This is a valid description for the template."" },
+        ""name"": ""Test Template"",
+        ""description"": ""This is a valid description for the template."",
         ""contentPath"": ""templates/test"",
         ""remove"": [""src/oldfile.txt""],
         ""unknownProperty"": ""shouldBeRejected""
@@ -87,14 +86,13 @@ public class ValidateCustomTemplateTest
     }
 
     [Fact]
-    public async Task ValidateManifestJsonAsync_MissingNbInName_ReturnsError()
+    public async Task ValidateManifestJsonAsync_MissingName_ReturnsError()
     {
         var missingNbName = @"{
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": { ""en"": ""Test Template"" },
-        ""description"": { ""nb"": ""This is a valid description for the template."" },
+        ""description"": ""This is a valid description for the template."",
         ""contentPath"": ""templates/test"",
         ""remove"": [""src/oldfile.txt""]
         }";
@@ -104,14 +102,13 @@ public class ValidateCustomTemplateTest
     }
 
     [Fact]
-    public async Task ValidateManifestJsonAsync_MissingNbDescription_ReturnsError()
+    public async Task ValidateManifestJsonAsync_MissingDescription_ReturnsError()
     {
         var missingNbDescription = @"{
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": { ""nb"": ""Test Template"" },
-        ""description"": { ""en"": ""This is a valid description for the template."" },
+        ""name"": ""Test Template"",
         ""contentPath"": ""templates/test"",
         ""remove"": [""src/oldfile.txt""]
         }";

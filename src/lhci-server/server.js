@@ -14,7 +14,9 @@ async function main() {
   }
 
   if (!basicAuthUsername || !basicAuthPassword) {
-    console.warn('Warning: LHCI_BASIC_AUTH_USERNAME and LHCI_BASIC_AUTH_PASSWORD not set. BasicAuth is disabled.');
+    console.warn(
+      'Warning: LHCI_BASIC_AUTH_USERNAME and LHCI_BASIC_AUTH_PASSWORD not set. BasicAuth is disabled.',
+    );
   }
 
   // SSL configuration for database connection
@@ -27,11 +29,13 @@ async function main() {
       storageMethod: 'sql',
       sqlDialect: sqlDialect,
       sqlConnectionUrl: sqlConnectionUrl,
-      sqlDialectOptions: requireSsl ? {
-        ssl: {
-          require: true,
-        },
-      } : {},
+      sqlDialectOptions: requireSsl
+        ? {
+            ssl: {
+              require: true,
+            },
+          }
+        : {},
       sequelizeOptions: {
         schema: 'lhci',
       },
@@ -78,7 +82,12 @@ async function main() {
   }
 
   const environment = process.env.LHCI_ENVIRONMENT;
-  const host = environment === 'prod' ? 'altinn.studio' : environment ? `${environment}.altinn.studio` : 'localhost';
+  const host =
+    environment === 'prod'
+      ? 'altinn.studio'
+      : environment
+        ? `${environment}.altinn.studio`
+        : 'localhost';
   const serverUrl = environment ? `https://${host}:9001` : `http://${host}:9001`;
 
   console.log(`LHCI server listening on port 9001`);
