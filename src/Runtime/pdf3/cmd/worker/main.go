@@ -21,6 +21,8 @@ import (
 	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -157,33 +159,42 @@ func generateLocalPdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.H
 	assert.That(!iruntime.IsTestInternalsMode, "Localtest env should not run internals test mode")
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		data := telemetry.NewRequestEventData()
+		r = r.WithContext(telemetry.WithRequestEventData(r.Context(), data))
+		span := trace.SpanFromContext(r.Context())
+		setWorkerSpanAttrs(span)
+		defer telemetry.EmitRequestSummary(span, data)
+
 		if r.Method != http.MethodPost {
-			ihttp.WriteProblemDetails(logger, w, http.StatusMethodNotAllowed, ihttp.ProblemDetails{
-				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.5",
-				Title:  "Method Not Allowed",
-				Status: http.StatusMethodNotAllowed,
-				Detail: "Only POST method is allowed",
+			ihttp.WriteProblemDetails(logger, w, r, http.StatusMethodNotAllowed, ihttp.ProblemDetails{
+				Type:                 "https://tools.ietf.org/html/rfc7231#section-6.5.5",
+				Title:                "Method Not Allowed",
+				Status:               http.StatusMethodNotAllowed,
+				Detail:               "Only POST method is allowed",
+				TraceRejectionReason: "method_not_allowed",
 			})
 			return
 		}
 
 		ct := strings.ToLower(r.Header.Get("Content-Type"))
 		if !strings.HasPrefix(ct, "application/json") {
-			ihttp.WriteProblemDetails(logger, w, http.StatusUnsupportedMediaType, ihttp.ProblemDetails{
-				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.13",
-				Title:  "Unsupported Media Type",
-				Status: http.StatusUnsupportedMediaType,
-				Detail: "Content-Type must be application/json",
+			ihttp.WriteProblemDetails(logger, w, r, http.StatusUnsupportedMediaType, ihttp.ProblemDetails{
+				Type:                 "https://tools.ietf.org/html/rfc7231#section-6.5.13",
+				Title:                "Unsupported Media Type",
+				Status:               http.StatusUnsupportedMediaType,
+				Detail:               "Content-Type must be application/json",
+				TraceRejectionReason: "unsupported_media_type",
 			})
 			return
 		}
 		const maxBodySize = 1024 * 64 // 64K should be plenty for the JSON request
 		if r.ContentLength > maxBodySize {
-			ihttp.WriteProblemDetails(logger, w, http.StatusRequestEntityTooLarge, ihttp.ProblemDetails{
-				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.11",
-				Title:  "Request Entity Too Large",
-				Status: http.StatusRequestEntityTooLarge,
-				Detail: fmt.Sprintf("Request body too large (max %d bytes)", maxBodySize),
+			ihttp.WriteProblemDetails(logger, w, r, http.StatusRequestEntityTooLarge, ihttp.ProblemDetails{
+				Type:                 "https://tools.ietf.org/html/rfc7231#section-6.5.11",
+				Title:                "Request Entity Too Large",
+				Status:               http.StatusRequestEntityTooLarge,
+				Detail:               fmt.Sprintf("Request body too large (max %d bytes)", maxBodySize),
+				TraceRejectionReason: "request_entity_too_large",
 			})
 			return
 		}
@@ -193,23 +204,28 @@ func generateLocalPdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.H
 
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			ihttp.WriteProblemDetails(logger, w, http.StatusBadRequest, ihttp.ProblemDetails{
-				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-				Title:  "Bad Request",
-				Status: http.StatusBadRequest,
-				Detail: fmt.Sprintf("Invalid JSON payload: %v", err),
+			ihttp.WriteProblemDetails(logger, w, r, http.StatusBadRequest, ihttp.ProblemDetails{
+				Type:                 "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+				Title:                "Bad Request",
+				Status:               http.StatusBadRequest,
+				Detail:               fmt.Sprintf("Invalid JSON payload: %v", err),
+				TraceRejectionReason: "invalid_json",
+				TraceRejectionError:  err,
 			})
 			return
 		}
 
 		logger = logger.With("url", req.URL)
+		data.SetPdfRequest(req)
 
 		if err := req.Validate(); err != nil {
-			ihttp.WriteProblemDetails(logger, w, http.StatusBadRequest, ihttp.ProblemDetails{
-				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-				Title:  "Bad Request",
-				Status: http.StatusBadRequest,
-				Detail: fmt.Sprintf("Validation error: %v", err),
+			ihttp.WriteProblemDetails(logger, w, r, http.StatusBadRequest, ihttp.ProblemDetails{
+				Type:                 "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+				Title:                "Bad Request",
+				Status:               http.StatusBadRequest,
+				Detail:               fmt.Sprintf("Validation error: %v", err),
+				TraceRejectionReason: "validation_error",
+				TraceRejectionError:  err,
 			})
 			return
 		}
@@ -218,6 +234,7 @@ func generateLocalPdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.H
 		result, pdfErr := gen.Generate(requestContext, req)
 
 		if pdfErr != nil {
+			recordPDFError(span, pdfErr)
 			errStr := pdfErr.Error()
 			errorCode := http.StatusInternalServerError
 
@@ -229,7 +246,9 @@ func generateLocalPdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.H
 				errorCode = http.StatusTooManyRequests
 			}
 
-			ihttp.WriteProblemDetails(logger, w, errorCode, ihttp.ProblemDetails{
+			data.SetPDFError(pdfErr)
+			data.SetResponseStatus(errorCode)
+			ihttp.WriteProblemDetails(logger, w, r, errorCode, ihttp.ProblemDetails{
 				Type:   problemType,
 				Title:  problemTitle,
 				Status: errorCode,
@@ -244,6 +263,8 @@ func generateLocalPdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.H
 		}
 
 		// Success - return PDF bytes
+		data.SetResponseStatus(http.StatusOK)
+		data.SetResponseSize(len(result.Data))
 		w.Header().Set("Content-Type", "application/pdf")
 
 		w.WriteHeader(http.StatusOK)
@@ -258,7 +279,16 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 		w.Header().Set("X-Worker-Id", workerId)
 		w.Header().Set("X-Worker-IP", workerIP)
 
+		data := telemetry.NewRequestEventData()
+		r = r.WithContext(telemetry.WithRequestEventData(r.Context(), data))
+		span := trace.SpanFromContext(r.Context())
+		setWorkerSpanAttrs(span)
+		defer telemetry.EmitRequestSummary(span, data)
+
 		if r.Method != http.MethodPost {
+			data.SetRejection("method_not_allowed", nil)
+			data.SetErrorMessageIfEmpty("Only POST method is allowed")
+			data.SetResponseStatus(http.StatusMethodNotAllowed)
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			if _, err := w.Write([]byte("Only POST method is allowed")); err != nil {
 				logger.Error("Failed to write error response", "error", err)
@@ -268,6 +298,9 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 
 		ct := strings.ToLower(r.Header.Get("Content-Type"))
 		if !strings.HasPrefix(ct, "application/json") {
+			data.SetRejection("unsupported_media_type", nil)
+			data.SetErrorMessageIfEmpty("Content-Type must be application/json")
+			data.SetResponseStatus(http.StatusUnsupportedMediaType)
 			w.WriteHeader(http.StatusUnsupportedMediaType)
 			if _, err := w.Write([]byte("Content-Type must be application/json")); err != nil {
 				logger.Error("Failed to write error response", "error", err)
@@ -275,6 +308,9 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 			return
 		}
 		if !iruntime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
+			data.SetRejection("illegal_test_header", nil)
+			data.SetErrorMessageIfEmpty("Illegal internals test mode header")
+			data.SetResponseStatus(http.StatusBadRequest)
 			w.WriteHeader(http.StatusBadRequest)
 			if _, err := w.Write([]byte("Illegal internals test mode header")); err != nil {
 				logger.Error("Failed to write error response", "error", err)
@@ -286,6 +322,9 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			data.SetRejection("invalid_json", err)
+			data.SetErrorMessageIfEmpty(fmt.Sprintf("Invalid JSON payload: %v", err))
+			data.SetResponseStatus(http.StatusBadRequest)
 			w.WriteHeader(http.StatusBadRequest)
 			if _, err := fmt.Fprintf(w, "Invalid JSON payload: %v", err); err != nil {
 				logger.Error("Failed to write error response", "error", err)
@@ -294,6 +333,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 		}
 
 		logger = logger.With("url", req.URL)
+		data.SetPdfRequest(req)
 
 		requestContext := r.Context()
 		if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
@@ -306,6 +346,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 		result, pdfErr := gen.Generate(requestContext, req)
 
 		if pdfErr != nil {
+			recordPDFError(span, pdfErr)
 			errStr := pdfErr.Error()
 			errorCode := http.StatusInternalServerError
 
@@ -314,6 +355,8 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 				errorCode = http.StatusTooManyRequests
 			}
 
+			data.SetPDFError(pdfErr)
+			data.SetResponseStatus(errorCode)
 			w.WriteHeader(errorCode)
 			if _, err := w.Write([]byte(errStr)); err != nil {
 				logger.Error("Failed to write error response", "error", err)
@@ -322,6 +365,8 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 		}
 
 		// Success - return PDF bytes
+		data.SetResponseStatus(http.StatusOK)
+		data.SetResponseSize(len(result.Data))
 		w.Header().Set("Content-Type", "application/pdf")
 
 		w.WriteHeader(http.StatusOK)
@@ -409,4 +454,21 @@ func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {
 			logger.Error("Failed to write test output response", "error", err)
 		}
 	}
+}
+
+func setWorkerSpanAttrs(span trace.Span) {
+	if !span.IsRecording() {
+		return
+	}
+	span.SetAttributes(
+		attribute.String("worker.id", workerId),
+		attribute.String("worker.ip", workerIP),
+	)
+}
+
+func recordPDFError(span trace.Span, pdfErr *types.PDFError) {
+	if pdfErr == nil || !span.IsRecording() {
+		return
+	}
+	span.RecordError(pdfErr)
 }
