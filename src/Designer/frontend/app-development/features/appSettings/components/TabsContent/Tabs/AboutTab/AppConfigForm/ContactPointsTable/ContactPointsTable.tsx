@@ -3,24 +3,25 @@ import type { ChangeEvent, ReactElement } from 'react';
 import {
   StudioButton,
   StudioTable,
-  StudioDialog,
-  StudioFieldset,
   StudioTag,
-  StudioTextfield,
-  StudioDeleteButton,
-  StudioFormActions,
   StudioParagraph,
   StudioLabel,
 } from '@studio/components';
-import { type ContactPoint, ContactPointField } from 'app-shared/types/AppConfig';
-import { LinkIcon, PencilIcon, PlusIcon } from '@studio/icons';
+import type { ContactPoint, ContactPointField } from 'app-shared/types/AppConfig';
+import { PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './ContactPointsTable.module.css';
 import { getValidExternalUrl } from 'app-shared/utils/urlUtils';
+import { ContactPointDialog } from './ContactPointDialog';
+import { ContactPointTableHeader } from './ContactPointTableHeader';
+import { ContactPointTableRow } from './ContactPointTableRow';
 
-//TODO: Refactore ContactPointsTable
-//TODO: Remove ContactPoints component and related files after ContactPointsTable is in use
-//TODO: Add tests for ContactPointsTable
+//TODO: Refactore ContactPointsTable         ✅
+//TODO: Remove ContactPoints component and related files after ContactPointsTable is in use.  ⌛
+//TODO: Add tests for ContactPointsTable.  ⌛
+//TODO: Add tests for ContactPointDialog  ⌛
+//TODO: Add tests for ContactPointTableRow  ⌛
+//TODO: Add tests for ContactPointTableHeader  ⌛
 
 const emptyContactPoint: ContactPoint = {
   email: '',
@@ -109,57 +110,17 @@ export const ContactPointsTable = ({
       </div>
       <div className={classes.tableWrapper}>
         <StudioTable border={true}>
-          <StudioTable.Head>
-            <StudioTable.Row className={classes.headerNoWrap}>
-              <StudioTable.Cell>
-                {t('app_settings.about_tab_contact_point_fieldset_email_label')}
-              </StudioTable.Cell>
-              <StudioTable.Cell>
-                {t('app_settings.about_tab_contact_point_fieldset_telephone_label')}
-              </StudioTable.Cell>
-              <StudioTable.Cell>
-                {t('app_settings.about_tab_contact_point_fieldset_title_desc_label')}
-              </StudioTable.Cell>
-              <StudioTable.Cell>
-                {t('app_settings.about_tab_contact_point_fieldset_link_label')}
-              </StudioTable.Cell>
-              <StudioTable.Cell aria-label={t('general.edit')} />
-              <StudioTable.Cell aria-label={t('general.delete')} />
-            </StudioTable.Row>
-          </StudioTable.Head>
+          <ContactPointTableHeader />
           <StudioTable.Body>
             {listItems.map((contactPoint, index) => (
-              <StudioTable.Row key={`${id}-${index}`}>
-                <StudioTable.Cell>
-                  {contactPoint.email && (
-                    <span className={classes.emailText}>{contactPoint.email}</span>
-                  )}
-                </StudioTable.Cell>
-                <StudioTable.Cell>{contactPoint.telephone}</StudioTable.Cell>
-                <StudioTable.Cell>{contactPoint.category}</StudioTable.Cell>
-                <StudioTable.Cell>
-                  {getValidExternalUrl(contactPoint.contactPage) && (
-                    <StudioButton
-                      variant='tertiary'
-                      icon={<LinkIcon />}
-                      aria-label={t('app_settings.about_tab_contact_point_table_link_open')}
-                      onClick={() => handleLinkClick(contactPoint.contactPage)}
-                    />
-                  )}
-                </StudioTable.Cell>
-                <StudioTable.Cell>
-                  <StudioButton variant='tertiary' onClick={() => openEditDialog(index)}>
-                    {<PencilIcon />}
-                  </StudioButton>
-                </StudioTable.Cell>
-                <StudioTable.Cell>
-                  <StudioDeleteButton
-                    variant='tertiary'
-                    onDelete={() => handleRemove(index)}
-                    confirmMessage={t('app_settings.about_tab_contact_point_delete_confirm')}
-                  ></StudioDeleteButton>
-                </StudioTable.Cell>
-              </StudioTable.Row>
+              <ContactPointTableRow
+                key={`${id}-${index}`}
+                contactPoint={contactPoint}
+                index={index}
+                onEdit={openEditDialog}
+                onRemove={handleRemove}
+                onLinkClick={handleLinkClick}
+              />
             ))}
           </StudioTable.Body>
         </StudioTable>
@@ -175,50 +136,13 @@ export const ContactPointsTable = ({
           {t('app_settings.about_tab_contact_point_add_button_text')}
         </StudioButton>
       </div>
-      <StudioDialog ref={dialogRef} onClose={closeDialog}>
-        <StudioDialog.Block>
-          <StudioFieldset
-            className={classes.fieldset}
-            legend={t('app_settings.about_tab_contact_point_dialog_add_title')}
-            description={t('app_settings.about_tab_contact_point_fieldset_description')}
-          >
-            <StudioTextfield
-              label={t('app_settings.about_tab_contact_point_fieldset_email_label')}
-              value={draftContactPoint.email}
-              onChange={handleFieldChange(ContactPointField.Email)}
-            />
-            <StudioTextfield
-              label={t('app_settings.about_tab_contact_point_fieldset_telephone_label')}
-              value={draftContactPoint.telephone}
-              onChange={handleFieldChange(ContactPointField.Telephone)}
-            />
-            <StudioTextfield
-              label={t('app_settings.about_tab_contact_point_fieldset_contact_page_label')}
-              value={draftContactPoint.contactPage}
-              onChange={handleFieldChange(ContactPointField.ContactPage)}
-            />
-            <StudioTextfield
-              className={classes.descriptionColumn}
-              label={t('app_settings.about_tab_contact_point_fieldset_category_label')}
-              description={t('app_settings.about_tab_contact_point_fieldset_category_description')}
-              value={draftContactPoint.category}
-              onChange={handleFieldChange(ContactPointField.Category)}
-            />
-            <StudioFormActions
-              className={classes.formActions}
-              isLoading={false}
-              primary={{
-                label: t('general.save'),
-                onClick: handleSave,
-              }}
-              secondary={{
-                label: t('general.cancel'),
-                onClick: closeDialog,
-              }}
-            />
-          </StudioFieldset>
-        </StudioDialog.Block>
-      </StudioDialog>
+      <ContactPointDialog
+        dialogRef={dialogRef}
+        draftContactPoint={draftContactPoint}
+        onFieldChange={handleFieldChange}
+        onSave={handleSave}
+        onClose={closeDialog}
+      />
     </>
   );
 };
