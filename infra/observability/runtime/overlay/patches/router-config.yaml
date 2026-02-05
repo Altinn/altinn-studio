@@ -48,5 +48,5 @@ spec:
           exporters: [loadbalancing/metrics]
         logs:
           receivers: [otlp]
-          processors: [filter/logs, resourcedetection/aks, k8sattributes, resource/environment, batch]
+          processors: [filter/logs, resourcedetection/aks, k8sattributes, resource/environment, transform/drop, batch]
           exporters: [loadbalancing/logs]
