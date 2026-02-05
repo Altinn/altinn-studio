@@ -64,6 +64,7 @@ builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<Metri
 builder.ConfigureKestrelPorts();
 builder.AddHostingConfiguration();
 builder.AddMaskinportenAuthentication();
+builder.AddOpenTelemetry();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
