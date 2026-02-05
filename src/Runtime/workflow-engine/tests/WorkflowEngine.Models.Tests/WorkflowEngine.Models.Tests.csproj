@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <RootNamespace>WorkflowEngine.Api.Tests</RootNamespace>
+    <RootNamespace>WorkflowEngine.Models.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +17,10 @@
 
   <ItemGroup>
     <Using Include="Xunit"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/WorkflowEngine.Models/WorkflowEngine.Models.csproj" />
   </ItemGroup>
 
 </Project>

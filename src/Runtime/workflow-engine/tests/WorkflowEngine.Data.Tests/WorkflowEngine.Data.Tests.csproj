@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <RootNamespace>WorkflowEngine.Api.Tests</RootNamespace>
+    <RootNamespace>WorkflowEngine.Data.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
