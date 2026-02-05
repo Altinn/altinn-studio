@@ -1,4 +1,3 @@
-using System.Net.Http.Json;
 using System.Text.Json;
 using Altinn.App.Core.Internal.App;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -62,26 +61,44 @@ internal sealed class AltinnCdnClient : IAltinnCdnClient
     private async ValueTask<AltinnCdnOrgDetails?> FetchOrgDetails(CancellationToken cancellationToken)
     {
         var httpClient = _httpClientFactory.CreateClient(nameof(AltinnCdnClient));
-        AltinnCdnOrgs orgs =
-            await httpClient.GetFromJsonAsync<AltinnCdnOrgs>(
-                requestUri: "https://altinncdn.no/orgs/altinn-orgs.json",
-                options: _jsonOptions,
-                cancellationToken: cancellationToken
-            ) ?? throw new JsonException("Received literal \"null\" response from Altinn CDN");
+        using var response = await httpClient.GetAsync("https://altinncdn.no/orgs/altinn-orgs.json", cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+
+        if (
+            doc.RootElement.ValueKind != JsonValueKind.Object
+            || !doc.RootElement.TryGetProperty("orgs", out var orgsElement)
+        )
+        {
+            throw new JsonException("Missing 'orgs' property in Altinn CDN response");
+        }
 
         var appMetadata = await _appMetadata.GetApplicationMetadata();
-        AltinnCdnOrgDetails? orgDetails = orgs.Orgs?.GetValueOrDefault(appMetadata.Org);
+
+        // Only deserialize the org we care about - other orgs with bad data won't affect us
+        if (!orgsElement.TryGetProperty(appMetadata.Org, out var orgElement))
+        {
+            return null;
+        }
+
+        var orgDetails =
+            orgElement.Deserialize<AltinnCdnOrgDetails>(_jsonOptions)
+            ?? throw new JsonException($"Org '{appMetadata.Org}' deserialized to null");
 
         // Inject Digdir's organisation number for TTD, because TTD does not have an organisation number
         if (
-            orgDetails is not null
-            && string.Equals(appMetadata.Org, "ttd", StringComparison.OrdinalIgnoreCase)
+            string.Equals(appMetadata.Org, "ttd", StringComparison.OrdinalIgnoreCase)
             && string.IsNullOrEmpty(orgDetails.Orgnr)
-            && !orgs.Orgs.IsNullOrEmpty()
-            && orgs.Orgs.TryGetValue("digdir", out var digdirOrgDetails)
+            && orgsElement.TryGetProperty("digdir", out var digdirElement)
         )
         {
-            orgDetails.Orgnr = digdirOrgDetails.Orgnr;
+            var digdirDetails = digdirElement.Deserialize<AltinnCdnOrgDetails>(_jsonOptions);
+            if (!string.IsNullOrEmpty(digdirDetails?.Orgnr))
+            {
+                orgDetails.Orgnr = digdirDetails.Orgnr;
+            }
         }
 
         _lastKnownGood = orgDetails;

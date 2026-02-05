@@ -481,6 +481,7 @@ public class FiksArkivConfigResolverTest
                     Nn = orgNameNn,
                     En = orgNameEn,
                 },
+                Environments = [],
             }
             : null;
 

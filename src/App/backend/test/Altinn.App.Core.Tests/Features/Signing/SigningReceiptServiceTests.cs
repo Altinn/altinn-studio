@@ -78,7 +78,12 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
 
         var orgDetails = new AltinnCdnOrgDetails
         {
-            Name = new AltinnCdnOrgName { Nb = "Brønnøysundregistrene" },
+            Name = new AltinnCdnOrgName
+            {
+                Nb = "Brønnøysundregistrene",
+                Nn = "Brønnøysundregistrene",
+                En = "Brønnøysund Register Centre",
+            },
             Orgnr = "974760673",
             Environments = ["tt02"],
         };
@@ -301,6 +306,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
                 Nn = "Sender NN",
                 En = "Sender EN",
             },
+            Environments = [],
         };
 
         // Act
@@ -351,6 +357,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
                 Nn = "Sender NN",
                 En = "Sender EN",
             },
+            Environments = [],
         };
 
         // Act
