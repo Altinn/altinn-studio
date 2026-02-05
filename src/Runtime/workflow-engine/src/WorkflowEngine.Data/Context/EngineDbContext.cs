@@ -28,12 +28,6 @@ internal sealed class EngineDbContext : DbContext
                 e.InstanceApp,
                 e.InstanceGuid,
             });
-
-            // CreatedAt property
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()").ValueGeneratedOnAdd();
-
-            // UpdatedAt property
-            entity.Property(e => e.UpdatedAt).ValueGeneratedOnAddOrUpdate();
         });
 
         // Configure Step entity
@@ -44,12 +38,6 @@ internal sealed class EngineDbContext : DbContext
             entity.HasIndex(e => e.CreatedAt);
             entity.HasIndex(e => e.ProcessingOrder);
             entity.HasIndex(e => e.IdempotencyKey);
-
-            // CreatedAt property
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()").ValueGeneratedOnAdd();
-
-            // UpdatedAt property
-            entity.Property(e => e.UpdatedAt).ValueGeneratedOnAddOrUpdate();
         });
     }
 }

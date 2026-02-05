@@ -26,20 +26,29 @@ public sealed record ProcessNextRequest
     public required Actor Actor { get; init; }
 
     /// <summary>
-    /// Process engine tasks associated with this request.
+    /// Workflow steps associated with this request.
     /// </summary>
-    [JsonPropertyName("tasks")]
-    public required IEnumerable<CommandRequest> Tasks { get; init; }
+    [JsonPropertyName("steps")]
+    public required IEnumerable<StepRequest> Steps { get; init; }
 
     /// <summary>
-    /// Converts this request to a <see cref="EngineRequest"/> with the provided instance information.
+    /// Converts this request to an <see cref="EngineRequest"/> with the provided instance information.
     /// </summary>
-    public EngineRequest ToProcessEngineRequest(InstanceInformation instanceInformation, string? traceContext) =>
+    /// <param name="instanceInformation">The instance information.</param>
+    /// <param name="createdAt">The creation time of the request (eg. now).</param>
+    /// <param name="traceContext">The trace context, if available.</param>
+    public EngineRequest ToEngineRequest(
+        InstanceInformation instanceInformation,
+        DateTimeOffset createdAt,
+        string? traceContext
+    ) =>
         new(
             $"{instanceInformation.InstanceGuid}/next/from-{CurrentElementId}-to-{DesiredElementId}",
+            "next",
             instanceInformation,
             Actor,
-            Tasks,
+            createdAt,
+            Steps,
             traceContext
         );
 };

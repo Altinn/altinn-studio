@@ -2,6 +2,11 @@ using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using WorkflowEngine.Resilience.Models;
 
+// CA2208: Instantiate argument exceptions correctly
+// S3928: Parameter names used into ArgumentException constructors should match an existing one
+#pragma warning disable S3928
+#pragma warning disable CA2208
+
 namespace WorkflowEngine.Resilience.Extensions;
 
 public static class RetryStrategyExtensions

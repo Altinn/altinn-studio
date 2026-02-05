@@ -1,5 +1,8 @@
 using WorkflowEngine.Models;
 
+// CA1716: Identifiers should not match keywords (https://github.com/dotnet/roslyn-analyzers/issues/1858)
+#pragma warning disable CA1716
+
 namespace WorkflowEngine.Data.Repository;
 
 public interface IEngineRepository

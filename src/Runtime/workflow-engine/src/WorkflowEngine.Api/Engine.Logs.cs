@@ -55,19 +55,15 @@ internal static partial class EngineLogs
     [LoggerMessage(LogLevel.Error, "Step {Step} database operation has failed!")]
     internal static partial void StepDbTaskFailed(this ILogger<Engine> logger, Step step, Exception? ex);
 
-    [LoggerMessage(
-        LogLevel.Error,
-        "Processing of workflow {Workflow} resulted in an unhandled exception: {Message}. Backing off for {Timeout}."
-    )]
+    [LoggerMessage(LogLevel.Error, "Processing of workflow {Workflow} resulted in an error: {Message}.")]
     internal static partial void WorkflowProcessingFailed(
         this ILogger<Engine> logger,
         Workflow workflow,
-        TimeSpan timeout,
         string message,
         Exception? ex
     );
 
-    [LoggerMessage(LogLevel.Error, "The workflow {Workflow} has produced an unrecoverable error: {Message}.")]
+    [LoggerMessage(LogLevel.Critical, "The workflow {Workflow} has produced an unrecoverable error: {Message}.")]
     internal static partial void WorkflowCriticalError(
         this ILogger<Engine> logger,
         Workflow workflow,

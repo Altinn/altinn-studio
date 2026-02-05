@@ -17,17 +17,16 @@ internal sealed class StepEntity : IHasCommonMetadata
     [MaxLength(500)]
     public required string IdempotencyKey { get; set; }
 
+    [MaxLength(100)]
+    public required string OperationId { get; set; }
+
     public PersistentItemStatus Status { get; set; }
 
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public DateTimeOffset CreatedAt { get; set; }
 
-    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
     public DateTimeOffset? UpdatedAt { get; set; }
 
     public int ProcessingOrder { get; set; }
-
-    public DateTimeOffset FirstSeenAt { get; set; }
 
     public DateTimeOffset? StartAt { get; set; }
 
@@ -58,9 +57,11 @@ internal sealed class StepEntity : IHasCommonMetadata
         {
             Id = step.DatabaseId,
             IdempotencyKey = step.IdempotencyKey,
+            OperationId = step.OperationId,
             Status = step.Status,
+            CreatedAt = step.CreatedAt,
+            UpdatedAt = step.UpdatedAt,
             ProcessingOrder = step.ProcessingOrder,
-            FirstSeenAt = step.FirstSeenAt,
             StartAt = step.StartAt,
             BackoffUntil = step.BackoffUntil,
             RequeueCount = step.RequeueCount,
@@ -83,9 +84,11 @@ internal sealed class StepEntity : IHasCommonMetadata
         {
             DatabaseId = Id,
             IdempotencyKey = IdempotencyKey,
+            OperationId = OperationId,
             Status = Status,
             ProcessingOrder = ProcessingOrder,
-            FirstSeenAt = FirstSeenAt,
+            CreatedAt = CreatedAt,
+            UpdatedAt = UpdatedAt,
             StartAt = StartAt,
             BackoffUntil = BackoffUntil,
             RequeueCount = RequeueCount,

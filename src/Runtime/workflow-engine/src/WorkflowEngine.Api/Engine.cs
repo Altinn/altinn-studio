@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
+using Altinn.Studio.Runtime.Common;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data.Repository;
@@ -168,16 +168,7 @@ internal partial class Engine : IEngine, IDisposable
         using var activity = Telemetry.Source.StartLinkedRootActivity(
             "Engine.ProcessWorkflow",
             additionalLinks: Telemetry.ParseSourceContext(workflow.TraceContext),
-            tags:
-            [
-                ("workflow.actor.id", workflow.Actor.UserIdOrOrgNumber),
-                ("workflow.database.id", workflow.DatabaseId),
-                ("workflow.idempotency.key", workflow.IdempotencyKey),
-                ("workflow.instance.guid", workflow.InstanceInformation.InstanceGuid),
-                ("workflow.instance.party.id", workflow.InstanceInformation.InstanceOwnerPartyId),
-                ("workflow.instance.lock.key", workflow.InstanceLockKey),
-                ("workflow.instance.app", $"{workflow.InstanceInformation.Org}/{workflow.InstanceInformation.App}"),
-            ]
+            tags: workflow.GetActivityTags()
         );
 
         try
@@ -207,12 +198,23 @@ internal partial class Engine : IEngine, IDisposable
                     Exception? ex = workflow.DatabaseTask?.Exception;
                     _logger.WorkflowDbTaskFailed(workflow, ex);
 
+                    workflow.DatabaseTaskFails++;
                     workflow.CleanupDatabaseTask();
 
-                    throw new EngineTaskException(
-                        $"Database operation failed or timed out for workflow {workflow}",
-                        ex
+                    workflow.DatabaseTask = Task.Run(
+                        async () =>
+                        {
+                            await Task.Delay(
+                                _settings.DatabaseRetryStrategy.CalculateDelay(workflow.DatabaseTaskFails),
+                                cancellationToken
+                            );
+                            await UpdateWorkflowInDb(workflow, cancellationToken);
+                            workflow.DatabaseTaskFails = 0;
+                        },
+                        cancellationToken
                     );
+
+                    throw new EngineDbException($"Database operation failed or timed out for workflow {workflow}", ex);
 
                 // Database operation finished successfully
                 case TaskStatus.Finished:
@@ -220,25 +222,17 @@ internal partial class Engine : IEngine, IDisposable
                     workflow.CleanupDatabaseTask();
                     break;
 
+                // Something insane has happened
                 default:
-                    throw new EngineConfigurationException(
-                        $"Unknown database update status: {workflow.DatabaseUpdateStatus()}"
+                    workflow.Status = PersistentItemStatus.Failed;
+                    await UpdateWorkflowInDb(workflow, cancellationToken);
+                    _logger.WorkflowCriticalError(
+                        workflow,
+                        $"Unknown database update status: {workflow.DatabaseUpdateStatus()}",
+                        null
                     );
+                    break;
             }
-        }
-        catch (EngineConfigurationException ex)
-        {
-            activity?.Errored(ex);
-            Telemetry.Errors.Add(
-                1,
-                ("operation", "workflowProcessing"),
-                ("target", workflow.InstanceInformation.ToString())
-            );
-
-            _logger.WorkflowCriticalError(workflow, ex.Message, ex);
-
-            workflow.Status = PersistentItemStatus.Failed;
-            await UpdateWorkflowInDb(workflow, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -249,11 +243,7 @@ internal partial class Engine : IEngine, IDisposable
                 ("target", workflow.InstanceInformation.ToString())
             );
 
-            TimeSpan delay =
-                _settings.DefaultStepRetryStrategy.MaxDelay ?? _settings.DefaultStepRetryStrategy.BaseInterval;
-            workflow.BackoffUntil = _timeProvider.GetUtcNow().Add(delay);
-
-            _logger.WorkflowProcessingFailed(workflow, delay, ex.Message, ex);
+            _logger.WorkflowProcessingFailed(workflow, ex.Message, ex);
 
             return;
         }
@@ -272,9 +262,16 @@ internal partial class Engine : IEngine, IDisposable
 
     private async Task ProcessSteps(Workflow workflow, CancellationToken cancellationToken)
     {
-        foreach (Step step in workflow.OrderedIncompleteTasks())
+        List<Step> orderedSteps = workflow.OrderedSteps().ToList();
+
+        for (int i = 0; i < orderedSteps.Count; i++)
         {
-            _logger.ProcessingStep(step);
+            var step = orderedSteps[i];
+            var previous = i > 0 ? workflow.Steps[i - 1] : null;
+
+            // Step is already complete
+            if (step.IsComplete())
+                continue;
 
             // Not time to process yet
             if (!step.IsReadyForExecution(_timeProvider))
@@ -283,16 +280,8 @@ internal partial class Engine : IEngine, IDisposable
                 return;
             }
 
-            using var activity = Telemetry.Source.StartActivity(
-                "Engine.ProcessSteps",
-                tags:
-                [
-                    ("step.database.id", step.DatabaseId),
-                    ("step.actor.id", step.Actor.UserIdOrOrgNumber),
-                    ("step.idempotency.key", step.IdempotencyKey),
-                    ("step.command.type", step.Command.GetType()),
-                ]
-            );
+            _logger.ProcessingStep(step);
+            using var activity = Telemetry.Source.StartActivity("Engine.ProcessSteps", tags: step.GetActivityTags());
 
             var currentState = new
             {
@@ -304,7 +293,7 @@ internal partial class Engine : IEngine, IDisposable
             {
                 switch (currentState)
                 {
-                    // Waiting for database operation to complete
+                    // Waiting for the database operation to complete
                     case { DatabaseUpdateStatus: TaskStatus.Started }:
                         _logger.WaitingForStepDbTask(step);
                         return;
@@ -314,10 +303,23 @@ internal partial class Engine : IEngine, IDisposable
                         Exception? ex = step.DatabaseTask?.Exception;
                         _logger.StepDbTaskFailed(step, ex);
 
+                        step.DatabaseTaskFails++;
                         step.CleanupDatabaseTask();
-                        step.BackoffUntil = GetDbRetryBackoff(step);
 
-                        throw new EngineTaskException($"Database operation failed for step {step}", ex);
+                        step.DatabaseTask = Task.Run(
+                            async () =>
+                            {
+                                await Task.Delay(
+                                    _settings.DatabaseRetryStrategy.CalculateDelay(step.DatabaseTaskFails),
+                                    cancellationToken
+                                );
+                                await UpdateStepInDb(step, cancellationToken);
+                                step.DatabaseTaskFails = 0;
+                            },
+                            cancellationToken
+                        );
+
+                        throw new EngineDbException($"Database operation failed for step {step}", ex);
 
                     // Database operation completed successfully
                     case { DatabaseUpdateStatus: TaskStatus.Finished }:
@@ -327,12 +329,15 @@ internal partial class Engine : IEngine, IDisposable
                         step.CleanupExecutionTask();
                         step.CleanupDatabaseTask();
 
-                        var totalDuration = _timeProvider.GetUtcNow().Subtract(step.FirstSeenAt).TotalSeconds;
-                        Telemetry.StepTotalTime.Record(totalDuration);
+                        var totalDuration = _timeProvider
+                            .GetUtcNow()
+                            .Subtract(previous?.UpdatedAt ?? step.CreatedAt)
+                            .TotalSeconds;
+                        Telemetry.StepTotalTime.Record(totalDuration, step.GetHistorgramTags());
 
                         return;
 
-                    // Waiting for execution step to complete
+                    // Waiting for the execution step to complete
                     case { ExecutionStatus: TaskStatus.Started }:
                         _logger.WaitingForStepExecutionTask(step);
                         return;
@@ -340,11 +345,11 @@ internal partial class Engine : IEngine, IDisposable
                     // Execution step completed
                     case { ExecutionStatus: TaskStatus.Finished }:
                         _logger.StepExecutionCompleted(step);
-                        Debug.Assert(step.ExecutionTask is not null); // TODO: This is annoying
+                        Assert.That(step.ExecutionTask is not null);
 
-                        // Unwrap result and handle outcome
+                        // Unwrap result and handle the outcome
                         ExecutionResult result = await step.ExecutionTask;
-                        UpdateStepStatusAndRetryDecision(step, result);
+                        UpdateStepStatusAndRetryDecision(step, previous, result);
 
                         // Update database
                         step.DatabaseTask = UpdateStepInDb(step, cancellationToken);
@@ -355,10 +360,10 @@ internal partial class Engine : IEngine, IDisposable
                         _logger.ExecutingStep(step);
 
                         var queueDuration = step.GetQueueDeltaTime(_timeProvider).TotalSeconds;
-                        Telemetry.StepQueueTime.Record(queueDuration);
+                        Telemetry.StepQueueTime.Record(queueDuration, step.GetHistorgramTags());
 
-                        step.ExecutionTask = _workflowExecutor.Execute(workflow, step, cancellationToken);
                         step.ExecutionStartedAt = _timeProvider.GetUtcNow();
+                        step.ExecutionTask = _workflowExecutor.Execute(workflow, step, cancellationToken);
                         return;
                 }
             }
@@ -373,59 +378,60 @@ internal partial class Engine : IEngine, IDisposable
                 {
                     var serviceDuration = _timeProvider
                         .GetUtcNow()
-                        .Subtract(step.ExecutionStartedAt ?? step.FirstSeenAt)
+                        .Subtract(step.ExecutionStartedAt ?? step.CreatedAt)
                         .TotalSeconds;
 
-                    Telemetry.StepServiceTime.Record(serviceDuration);
+                    Telemetry.StepServiceTime.Record(serviceDuration, step.GetHistorgramTags());
                 }
             }
         }
 
         return;
 
-        void UpdateStepStatusAndRetryDecision(Step step, ExecutionResult result)
+        void UpdateStepStatusAndRetryDecision(Step currentStep, Step? previousStep, ExecutionResult result)
         {
             if (result.IsSuccess())
             {
-                step.Status = PersistentItemStatus.Completed;
+                currentStep.Status = PersistentItemStatus.Completed;
 
                 Telemetry.StepsSucceeded.Add(1);
-                _logger.StepCompletedSuccessfully(step);
+                _logger.StepCompletedSuccessfully(currentStep);
 
                 return;
             }
 
             if (result.IsCriticalError())
             {
-                step.Status = PersistentItemStatus.Failed;
-                step.BackoffUntil = null;
+                currentStep.Status = PersistentItemStatus.Failed;
+                currentStep.BackoffUntil = null;
 
                 Telemetry.StepsFailed.Add(1);
-                _logger.FailingStepCritical(step, step.RequeueCount);
+                _logger.FailingStepCritical(currentStep, currentStep.RequeueCount);
 
                 return;
             }
 
-            _logger.StepFailed(step);
-            RetryStrategy retryStrategy = GetRetryStrategy(step);
+            _logger.StepFailed(currentStep);
+            var retryStrategy = GetRetryStrategy(currentStep);
+            var intialStartTime = previousStep?.UpdatedAt ?? currentStep.CreatedAt;
 
-            if (retryStrategy.CanRetry(step.RequeueCount + 1, step.FirstSeenAt, _timeProvider))
+            if (retryStrategy.CanRetry(currentStep.RequeueCount + 1, intialStartTime, _timeProvider))
             {
-                step.RequeueCount++;
-                step.Status = PersistentItemStatus.Requeued;
-                step.BackoffUntil = GetExecutionRetryBackoff(step, retryStrategy);
+                currentStep.RequeueCount++;
+                currentStep.Status = PersistentItemStatus.Requeued;
+                currentStep.BackoffUntil = GetExecutionRetryBackoff(currentStep, retryStrategy);
 
                 Telemetry.StepsRequeued.Add(1);
-                _logger.SlatingStepForRetry(step, step.RequeueCount);
+                _logger.SlatingStepForRetry(currentStep, currentStep.RequeueCount);
 
                 return;
             }
 
-            step.Status = PersistentItemStatus.Failed;
-            step.BackoffUntil = null;
+            currentStep.Status = PersistentItemStatus.Failed;
+            currentStep.BackoffUntil = null;
 
             Telemetry.StepsFailed.Add(1);
-            _logger.FailingStepRetries(step, step.RequeueCount);
+            _logger.FailingStepRetries(currentStep, currentStep.RequeueCount);
         }
 
         RetryStrategy GetRetryStrategy(Step step)
@@ -436,12 +442,6 @@ internal partial class Engine : IEngine, IDisposable
         DateTimeOffset GetExecutionRetryBackoff(Step step, RetryStrategy retryStrategy)
         {
             return _timeProvider.GetUtcNow().Add(retryStrategy.CalculateDelay(step.RequeueCount));
-        }
-
-        DateTimeOffset GetDbRetryBackoff(Step step)
-        {
-            var retryStrategy = GetRetryStrategy(step);
-            return _timeProvider.GetUtcNow().Add(retryStrategy.MaxDelay ?? retryStrategy.BaseInterval);
         }
     }
 }

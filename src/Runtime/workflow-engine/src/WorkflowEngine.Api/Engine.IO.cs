@@ -14,6 +14,7 @@ internal partial class Engine
             "Engine.EnqueueWorkflow",
             tags:
             [
+                ("request.operation.id", engineRequest.OperationId),
                 ("request.idempotency.key", engineRequest.IdempotencyKey),
                 ("request.actor.id", engineRequest.Actor.UserIdOrOrgNumber),
                 ("request.instance.guid", engineRequest.InstanceInformation.InstanceGuid),
@@ -68,7 +69,7 @@ internal partial class Engine
         _inbox[engineRequest.IdempotencyKey] = await _repository.AddWorkflow(engineRequest, cancellationToken);
 
         Telemetry.WorkflowRequestsAccepted.Add(1);
-        Telemetry.StepRequestsAccepted.Add(engineRequest.Commands.Count());
+        Telemetry.StepRequestsAccepted.Add(engineRequest.Steps.Count());
 
         return EngineResponse.Accepted();
     }
@@ -128,9 +129,6 @@ internal partial class Engine
             "Engine.UpdateWorkflowInDb",
             tags: [("workflow.status", workflow.Status.ToString())]
         );
-
-        if (workflow.BackoffUntil.HasValue)
-            activity?.SetTag("workflow.backoffUntil", workflow.BackoffUntil.Value.ToString("o"));
 
         return _repository.UpdateWorkflow(workflow, cancellationToken);
     }

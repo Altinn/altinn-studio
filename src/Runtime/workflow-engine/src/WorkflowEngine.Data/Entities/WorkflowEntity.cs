@@ -15,14 +15,16 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     [MaxLength(500)]
     public required string IdempotencyKey { get; set; }
 
+    [MaxLength(100)]
+    public required string OperationId { get; set; }
+
+    [MaxLength(100)]
     public string? InstanceLockKey { get; set; }
 
     public PersistentItemStatus Status { get; set; }
 
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public DateTimeOffset CreatedAt { get; set; }
 
-    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
     public DateTimeOffset? UpdatedAt { get; set; }
 
     [MaxLength(50)]
@@ -41,6 +43,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
 
     public Guid InstanceGuid { get; set; }
 
+    [MaxLength(100)]
     public string? TraceContext { get; set; }
 
     public ICollection<StepEntity> Steps { get; set; } = [];
@@ -51,6 +54,9 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             Id = workflow.DatabaseId,
             IdempotencyKey = workflow.IdempotencyKey,
             InstanceLockKey = workflow.InstanceLockKey,
+            OperationId = workflow.OperationId,
+            CreatedAt = workflow.CreatedAt,
+            UpdatedAt = workflow.UpdatedAt,
             Status = workflow.Status,
             ActorUserIdOrOrgNumber = workflow.Actor.UserIdOrOrgNumber,
             ActorLanguage = workflow.Actor.Language,
@@ -59,7 +65,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             InstanceOwnerPartyId = workflow.InstanceInformation.InstanceOwnerPartyId,
             InstanceGuid = workflow.InstanceInformation.InstanceGuid,
             TraceContext = workflow.TraceContext,
-            Steps = workflow.Steps.Select(StepEntity.FromDomainModel).ToList(),
+            Steps = workflow.Steps.OrderBy(x => x.ProcessingOrder).Select(StepEntity.FromDomainModel).ToList(),
         };
 
     public Workflow ToDomainModel() =>
@@ -68,6 +74,9 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             DatabaseId = Id,
             IdempotencyKey = IdempotencyKey,
             InstanceLockKey = InstanceLockKey,
+            OperationId = OperationId,
+            CreatedAt = CreatedAt,
+            UpdatedAt = UpdatedAt,
             Status = Status,
             Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
             InstanceInformation = new InstanceInformation
@@ -78,6 +87,6 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
                 InstanceGuid = InstanceGuid,
             },
             TraceContext = TraceContext,
-            Steps = Steps.Select(t => t.ToDomainModel(TraceContext)).ToList(),
+            Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(t => t.ToDomainModel(TraceContext)).ToList(),
         };
 }

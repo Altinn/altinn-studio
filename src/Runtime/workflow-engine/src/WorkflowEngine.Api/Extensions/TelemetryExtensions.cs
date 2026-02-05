@@ -100,12 +100,9 @@ internal static class TelemetryExtensions
 
     extension(Counter<long> counter)
     {
-        public void Add(long value, (string tag, object? value)? tag = null)
+        public void Add(long value, (string tag, object? value) tag)
         {
-            if (tag.HasValue)
-                counter.Add(value, new KeyValuePair<string, object?>(tag.Value.tag, tag.Value.value));
-            else
-                counter.Add(value);
+            counter.Add(value, new KeyValuePair<string, object?>(tag.tag, tag.value));
         }
 
         public void Add(long value, (string tag, object? value) tag1, (string tag, object? value) tag2)
@@ -115,6 +112,19 @@ internal static class TelemetryExtensions
                 new KeyValuePair<string, object?>(tag1.tag, tag1.value),
                 new KeyValuePair<string, object?>(tag2.tag, tag2.value)
             );
+        }
+    }
+
+    extension(Histogram<double> histogram)
+    {
+        public void Record(double value, (string tag, object? value) tag)
+        {
+            histogram.Record(value, new KeyValuePair<string, object?>(tag.tag, tag.value));
+        }
+
+        public void Record(double value, params (string tag, object? value)[] tags)
+        {
+            histogram.Record(value, tags.Select(t => new KeyValuePair<string, object?>(t.tag, t.value)).ToArray());
         }
     }
 }

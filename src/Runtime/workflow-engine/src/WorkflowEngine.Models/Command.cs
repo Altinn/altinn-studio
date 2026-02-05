@@ -20,10 +20,9 @@ namespace WorkflowEngine.Models;
 public abstract record Command
 {
     /// <summary>
-    /// A general description of this command, used for log output etc.
+    /// An identifier for this operation
     /// </summary>
-    [JsonIgnore]
-    public string? Description { get; init; }
+    public string OperationId { get; init; }
 
     /// <summary>
     /// The maximum allowed execution time for the command.
@@ -32,9 +31,9 @@ public abstract record Command
     [JsonPropertyName("maxExecutionTime")]
     public TimeSpan? MaxExecutionTime { get; init; }
 
-    private Command(string description, TimeSpan? maxExecutionTime = null)
+    private Command(string operationId, TimeSpan? maxExecutionTime = null)
     {
-        Description = description;
+        OperationId = operationId;
         MaxExecutionTime = maxExecutionTime;
     }
 
@@ -102,5 +101,5 @@ public abstract record Command
     }
 
     /// <inheritdoc/>
-    public sealed override string ToString() => Description ?? GetType().Name;
+    public sealed override string ToString() => OperationId;
 }

@@ -36,18 +36,19 @@ internal static class EngineRequestHandlers
         [AsParameters] InstanceRouteParams instanceParams,
         [FromBody] ProcessNextRequest request,
         [FromServices] IEngine engine,
+        [FromServices] TimeProvider timeProvider,
         CancellationToken cancellationToken
     )
     {
         Telemetry.WorkflowRequestsReceived.Add(1, ("endpoint", "next"));
 
         var traceContext = Activity.Current?.Id;
-        var processEngineRequest = request.ToProcessEngineRequest(instanceParams, traceContext);
+        var engineRequest = request.ToEngineRequest(instanceParams, timeProvider.GetUtcNow(), traceContext);
 
-        if (engine.HasDuplicateWorkflow(processEngineRequest.IdempotencyKey))
+        if (engine.HasDuplicateWorkflow(engineRequest.IdempotencyKey))
             return TypedResults.NoContent(); // 204 - Duplicate request
 
-        var response = await engine.EnqueueWorkflow(processEngineRequest, cancellationToken);
+        var response = await engine.EnqueueWorkflow(engineRequest, cancellationToken);
 
         return response.IsAccepted() ? TypedResults.Ok() : TypedResults.BadRequest(response.Message);
     }

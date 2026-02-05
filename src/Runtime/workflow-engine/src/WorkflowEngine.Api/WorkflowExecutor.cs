@@ -6,6 +6,9 @@ using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Extensions;
 
+// CA1305: Specify IFormatProvider
+#pragma warning disable CA1305
+
 namespace WorkflowEngine.Api;
 
 internal interface IWorkflowExecutor

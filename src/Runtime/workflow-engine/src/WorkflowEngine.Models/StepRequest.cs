@@ -6,7 +6,7 @@ namespace WorkflowEngine.Models;
 /// <summary>
 /// Represents a single task to be processed by the process engine.
 /// </summary>
-public sealed record CommandRequest
+public sealed record StepRequest
 {
     /// <summary>
     /// The command to be executed by the process engine.

@@ -7,6 +7,8 @@ using WorkflowEngine.Api.Constants;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
 
+// ReSharper disable NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
+
 namespace WorkflowEngine.Api.Extensions;
 
 internal static class ServiceCollectionExtensions

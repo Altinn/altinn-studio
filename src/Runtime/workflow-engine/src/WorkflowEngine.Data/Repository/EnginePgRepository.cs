@@ -158,7 +158,7 @@ internal sealed class EnginePgRepository : IEngineRepository
         {
             _logger.AddingWorkflow(engineRequest);
 
-            var workflow = Workflow.FromRequest(engineRequest, _timeProvider);
+            var workflow = Workflow.FromRequest(engineRequest);
             var entity = WorkflowEntity.FromDomainModel(workflow);
             var dbRecord = _context.Workflows.Add(entity);
             await _context.SaveChangesAsync(cancellationToken);
@@ -166,7 +166,7 @@ internal sealed class EnginePgRepository : IEngineRepository
 
             _logger.SuccessfullyAddedWorkflow(workflow);
 
-            return result;
+            return result; // Result contains updated `Id`
         }
         catch (Exception ex)
         {
@@ -181,6 +181,7 @@ internal sealed class EnginePgRepository : IEngineRepository
         try
         {
             _logger.UpdatingWorkflow(workflow);
+            workflow.UpdatedAt = _timeProvider.GetUtcNow();
 
             await ExecuteWithRetry(
                 async ct =>
@@ -191,7 +192,7 @@ internal sealed class EnginePgRepository : IEngineRepository
                             setters =>
                                 setters
                                     .SetProperty(t => t.Status, workflow.Status)
-                                    .SetProperty(t => t.UpdatedAt, DateTime.UtcNow),
+                                    .SetProperty(t => t.UpdatedAt, workflow.UpdatedAt),
                             ct
                         );
                 },
@@ -213,6 +214,7 @@ internal sealed class EnginePgRepository : IEngineRepository
         try
         {
             _logger.UpdatingStep(step);
+            step.UpdatedAt = _timeProvider.GetUtcNow();
 
             await ExecuteWithRetry(
                 async ct =>
@@ -225,7 +227,7 @@ internal sealed class EnginePgRepository : IEngineRepository
                                     .SetProperty(t => t.Status, step.Status)
                                     .SetProperty(t => t.BackoffUntil, step.BackoffUntil)
                                     .SetProperty(t => t.RequeueCount, step.RequeueCount)
-                                    .SetProperty(t => t.UpdatedAt, DateTime.UtcNow),
+                                    .SetProperty(t => t.UpdatedAt, step.UpdatedAt),
                             ct
                         );
                 },

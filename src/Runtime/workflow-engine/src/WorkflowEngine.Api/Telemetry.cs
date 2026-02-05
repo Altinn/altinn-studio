@@ -26,6 +26,22 @@ internal static class Telemetry
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
         "engine.workflows.execution.failed"
     );
+    public static readonly Histogram<double> WorkflowQueueTime = Meter.CreateHistogram<double>(
+        "engine.workflows.time.queue",
+        "s",
+        "Amount of time a workflow spent in the queue before and between executions (seconds)"
+    );
+    public static readonly Histogram<double> WorkflowServiceTime = Meter.CreateHistogram<double>(
+        "engine.workflows.time.service",
+        "s",
+        "Amount of time a workflow's steps spent being actively executed (seconds). Includes time spent on database IO."
+    );
+    public static readonly Histogram<double> WorkflowTotalTime = Meter.CreateHistogram<double>(
+        "engine.workflows.time.total",
+        "s",
+        "Amount of time a workflow spent in the engine, start to finish (seconds). Includes time spend on the queue due to retries."
+    );
+
     public static readonly Counter<long> StepRequestsAccepted = Meter.CreateCounter<long>(
         "engine.steps.request.accepted"
     );
