@@ -32,6 +32,13 @@
     {
       "id": "TestSubform",
       "dataType": "SubformModel"
+    },
+    {
+      "id": "SubformPdf",
+      "dataType": "SubformModel",
+      "tasks": [
+        "SubformPdf"
+      ]
     }
   ],
   "uiSettings": {
