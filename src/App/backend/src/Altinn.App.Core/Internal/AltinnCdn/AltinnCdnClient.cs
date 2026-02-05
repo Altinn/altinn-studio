@@ -50,9 +50,10 @@ internal sealed class AltinnCdnClient : IAltinnCdnClient
                 cancellationToken: cancellationToken
             );
         }
-        catch (Exception ex) when (_lastKnownGood is not null && IsTransientError(ex))
+        catch (Exception ex)
+            when (_lastKnownGood is not null && !cancellationToken.IsCancellationRequested && IsTransientError(ex))
         {
-            // Return stale data on transient errors
+            // Return stale data on transient errors (but not caller cancellation)
             // Cache miss means next call will retry (with stampede protection from HybridCache)
             return _lastKnownGood;
         }
