@@ -393,8 +393,8 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         {
             Id = templateId,
             Owner = templateOwner,
-            Name = new() { { "nb", "Package reference repo" } },
-            Description = new() { { "nb", "A simple template with package references." } },
+            Name = "Package reference repo",
+            Description = "A simple template with package references.",
             PackageReferences = new List<PackageReference>
             {
                 new ()
@@ -443,8 +443,8 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         {
             Id = templateId,
             Owner = templateOwner,
-            Name = new() { { "nb", "Package reference repo" } },
-            Description = new() { { "nb", "A simple template with package references." } },
+            Name = "Package reference repo",
+            Description = "A simple template with package references.",
             PackageReferences = new List<PackageReference>
             {
                 new ()

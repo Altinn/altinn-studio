@@ -129,8 +129,8 @@ public class ValidateCustomTemplateTest
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": {{ ""nb"": ""Test Template"" }},
-        ""description"": {{ ""nb"": ""Dette er en norsk beskrivelse.""}},      
+        ""name"": ""Test Template"",
+        ""description"": ""Dette er en norsk beskrivelse."",  
         ""packageReferences"": [{{
             ""project"": ""{project}"",
             ""include"": ""MyPackage"",
@@ -154,8 +154,8 @@ public class ValidateCustomTemplateTest
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": {{ ""nb"": ""Test Template"" }},
-        ""description"": {{ ""nb"": ""This is a valid description for the template."" }},
+        ""name"": ""Test Template"",
+        ""description"": ""Dette er en norsk beskrivelse."",
         ""packageReferences"": [{{
             ""project"": ""App/*.csproj"",
             ""include"": ""{include}"",
@@ -178,8 +178,8 @@ public class ValidateCustomTemplateTest
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": {{ ""nb"": ""Test Template"" }},
-        ""description"": {{ ""nb"": ""This is a valid description for the template."" }},
+        ""name"": ""Test Template"",
+        ""description"": ""Dette er en norsk beskrivelse."",
         ""packageReferences"": [{{
             ""project"": ""App/*.csproj"",
             ""include"": ""MyPackage"",
@@ -209,8 +209,8 @@ public class ValidateCustomTemplateTest
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": {{ ""nb"": ""Test Template"" }},
-        ""description"": {{ ""nb"": ""This is a valid description for the template."" }},
+        ""name"": ""Test Template"",
+        ""description"": ""Dette er en norsk beskrivelse."",
         ""packageReferences"": [{{
             {string.Join(",\n            ", properties.Select(p => $@"""{p.Key}"": ""{p.Value}"""))}
         }}]
@@ -227,8 +227,8 @@ public class ValidateCustomTemplateTest
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": { ""nb"": ""Test Template"" },
-        ""description"": { ""nb"": ""This is a valid description for the template."" },
+        ""name"": ""Test Template"",
+        ""description"": ""Dette er en norsk beskrivelse."",
         ""packageReferences"": [{
             ""project"": ""App/*.csproj"",
             ""include"": ""MyPackage"",
@@ -254,8 +254,8 @@ public class ValidateCustomTemplateTest
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-        ""name"": {{ ""nb"": ""Test Template"" }},
-        ""description"": {{ ""nb"": ""This is a valid description for the template."" }},
+        ""name"": ""Test Template"",
+        ""description"": ""Dette er en norsk beskrivelse."",
         ""packageReferences"": [{{
             ""project"": ""App/*.csproj"",
             ""include"": ""MyPackage"",
