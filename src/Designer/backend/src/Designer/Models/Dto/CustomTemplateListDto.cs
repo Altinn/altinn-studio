@@ -20,10 +20,10 @@ namespace Altinn.Studio.Designer.Models.Dto
         public string Owner { get; set; } = string.Empty;
 
         [JsonPropertyName("name")]
-        public Dictionary<string, string> Name { get; set; } = new();
+        public string Name { get; set; } = string.Empty;
 
         [JsonPropertyName("description")]
-        public Dictionary<string, string> Description { get; set; } = new();
+        public string Description { get; set; } = string.Empty;
 
         public static CustomTemplateDto From(CustomTemplate template)
         {
@@ -43,7 +43,7 @@ namespace Altinn.Studio.Designer.Models.Dto
                 return false;
             }
 
-            if (Name is null || Name.Count == 0)
+            if (string.IsNullOrWhiteSpace(Name))
 
             {
                 return false;

@@ -78,8 +78,8 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         {
             Id = templateId,
             Owner = templateOwner,
-            Name = new() { { "nb", "Test Template" } },
-            Description = new() { { "nb", "A template for testing." } },
+            Name = "Test Template",
+            Description = "A template for testing.",
             Remove = new List<string> { "App/config/oldfile.json", "OldFolder" }
         };
 
@@ -137,8 +137,8 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         {
             Id = templateId,
             Owner = templateOwner,
-            Name = new() { { "nb", "Simple Template" } },
-            Description = new() { { "nb", "A simple template without removals." } },
+            Name = "Simple Template",
+            Description = "A simple template without removals.",
             Remove = new List<string>() // Empty remove list
         };
 
@@ -176,8 +176,8 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         {
             Id = templateId,
             Owner = templateOwner,
-            Name = new() { { "nb", "Update Template" } },
-            Description = new() { { "nb", "A template that updates existing files." } }
+            Name = "Update Template",
+            Description = "A template that updates existing files."
         };
 
         string targetRepoPath = CreateTargetRepository(targetOrg, targetRepo, developer);
@@ -214,8 +214,8 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         {
             Id = templateId,
             Owner = templateOwner,
-            Name = new() { { "nb", "Safe Template" } },
-            Description = new() { { "nb", "A template that tries to remove non-existent paths." } },
+            Name = "Safe Template",
+            Description = "A template that tries to remove non-existent paths.",
             Remove = new List<string> { "NonExistent/file.txt", "AlsoNotThere.json" }
         };
 
@@ -250,8 +250,8 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         {
             Id = templateId,
             Owner = templateOwner,
-            Name = new() { { "nb", "Nested Template" } },
-            Description = new() { { "nb", "A template with nested directories." } }
+            Name = "Nested Template",
+            Description = "A template with nested directories."
         };
 
         string targetRepoPath = CreateTargetRepository(targetOrg, targetRepo, developer);
@@ -348,8 +348,8 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         {
             Id = templateId,
             Owner = templateOwner,
-            Name = new() { { "nb", "Cached Template" } },
-            Description = new() { { "nb", "A template to test caching." } },
+            Name = "Cached Template",
+            Description = "A template to test caching.",
             Remove = new List<string>()
         };
 
