@@ -1,0 +1,35 @@
+.contactField {
+  display: flex;
+  justify-content: space-between;
+}
+
+.fieldset {
+  padding: var(--ds-size-3);
+}
+
+.tableWrapper {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.emailText {
+  color: var(--ds-color-text-subtle);
+}
+
+.formActions {
+  margin-top: var(--ds-size-13);
+  gap: var(--ds-size-4);
+}
+
+.headerNoWrap {
+  white-space: nowrap;
+}
+
+.addButtonContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.addButton {
+  padding-inline: var(--ds-size-18);
+}
