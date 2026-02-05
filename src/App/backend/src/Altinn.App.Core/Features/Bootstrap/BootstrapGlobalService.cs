@@ -34,8 +34,6 @@ internal sealed class BootstrapGlobalService(
     private readonly IOptions<FrontEndSettings> _frontEndSettings = frontEndSettings;
     private readonly IApplicationLanguage _applicationLanguage = applicationLanguage;
     private readonly IProfileClient _profileClient = profileClient;
-    private readonly IAuthenticationContext _authenticationContext = authenticationContext;
-
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
