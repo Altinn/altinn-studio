@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useMediaQuery } from '@studio/hooks';
 import { StudioDropdown, StudioSpinner } from '@studio/components';
 import { BranchingIcon, PlusIcon } from '@studio/icons';
 import { UncommittedChangesDialog } from 'app-shared/components/UncommittedChangesDialog';
 import { CreateBranchDialog } from 'app-shared/components/CreateBranchDialog';
-import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 import classes from './BranchDropdown.module.css';
 import { useBranchData } from '../../hooks/useBranchData';
@@ -16,7 +14,6 @@ export const BranchDropdown = () => {
   const { t } = useTranslation();
   const { owner: org, repoName: app } = useGiteaHeaderContext();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   const { currentBranch, branchList, isLoading: isLoadingData } = useBranchData(org, app);
   const {
@@ -29,7 +26,6 @@ export const BranchDropdown = () => {
     isLoading: isLoadingOperations,
   } = useBranchOperations(org, app);
 
-  const triggerButtonText = shouldDisplayText ? currentBranch : undefined;
   const isLoading = isLoadingData || isLoadingOperations;
 
   if (isLoading) {
@@ -44,10 +40,9 @@ export const BranchDropdown = () => {
     <>
       <StudioDropdown
         icon={<BranchingIcon />}
-        triggerButtonText={triggerButtonText}
+        triggerButtonText={currentBranch}
         triggerButtonVariant='tertiary'
         triggerButtonTitle={t('branching.select_branch')}
-        triggerButtonAriaLabel={t('branching.select_branch')}
         data-color='light'
         data-color-scheme='light'
         triggerButtonClassName={classes.branchButton}

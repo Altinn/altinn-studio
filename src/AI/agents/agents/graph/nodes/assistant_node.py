@@ -140,8 +140,7 @@ async def handle(state: AgentState) -> AgentState:
             
         except Exception as e:
             log.error(f"Assistant query failed: {e}")
-            main_span.set_attribute("error", True)
-            main_span.set_attribute("error_message", str(e))
+            main_span.update(metadata={"error": True, "error_message": str(e)})
             raise
 
 
@@ -149,7 +148,7 @@ async def _scan_repository(state: AgentState) -> Dict[str, Any]:
     """Scan repository and extract context."""
     langfuse = get_client()
     with langfuse.start_as_current_span(name="repository_scan", metadata={"span_type": "TOOL"}) as span:
-        span.set_inputs({"repo_path": state.repo_path})
+        span.update(input={"repo_path": state.repo_path})
         
         repo_context = discover_repository_context(state.repo_path)
         repo_summary = {
@@ -193,7 +192,7 @@ async def _select_relevant_tools(
     """Use LLM to intelligently select relevant tools, always starting with planning_tool."""
     langfuse = get_client()
     with langfuse.start_as_current_span(name="tool_selection", metadata={"span_type": "AGENT"}) as span:
-        span.set_inputs({
+        span.update(input={
             "query": query,
             "available_tools": tool_names,
             "has_conversation_history": bool(conversation_history)
@@ -222,7 +221,6 @@ async def _select_relevant_tools(
                 role = "User" if msg.role == "user" else "Assistant"
                 history_lines.append(f"{role}: {msg.content[:200]}")  # Truncate long messages
             history_context = "CONVERSATION HISTORY:\n" + "\n".join(history_lines) + "\n\n"
-        
         user_prompt = render_template(
             "assistant_tool_selection_user",
             history_context=history_context,
@@ -231,8 +229,8 @@ async def _select_relevant_tools(
             repo_context=repo_context,
             tool_names=', '.join(tool_names)
         )
-        
-        span.set_inputs({
+
+        span.update(input={
             "system_prompt": system_prompt,
             "user_prompt": user_prompt[:500] + "...",
             "semantic_query": semantic_query
@@ -293,7 +291,7 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Execute selected MCP tools according to the plan."""
     langfuse = get_client()
     with langfuse.start_as_current_span(name="tool_execution", metadata={"span_type": "TOOL"}) as span:
-        span.set_inputs({"tool_plan": tool_plan})
+        span.update(input={"tool_plan": tool_plan})
         
         mcp_client = get_mcp_client()
         tool_results = {}
@@ -328,7 +326,7 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                 arguments = {"query": query or ""}
             
             with langfuse.start_as_current_span(name=f"call_{tool_name}", metadata={"span_type": "TOOL"}) as tool_span:
-                tool_span.set_inputs({
+                tool_span.update(input={
                     "tool": tool_name,
                     "arguments": arguments,
                     "objective": objective
@@ -336,8 +334,9 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                 
                 try:
                     result = await mcp_client.call_tool(tool_name, arguments)
-                    
+
                     # Handle CallToolResult objects
+                    extracted = None
                     if hasattr(result, 'structured_content') and result.structured_content:
                         extracted = result.structured_content
                         tool_results[tool_name] = extracted
@@ -355,8 +354,9 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                             extracted = content
                         tool_results[tool_name] = extracted
                     else:
+                        extracted = result
                         tool_results[tool_name] = result
-                    
+
                     result_size = len(str(extracted)) if extracted else 0
                     
                     # Extract text content for markdown display
@@ -702,7 +702,7 @@ async def _generate_response(
     """Generate natural language response using LLM."""
     langfuse = get_client()
     with langfuse.start_as_current_span(name="response_generation", metadata={"span_type": "LLM"}) as span:
-        span.set_inputs({
+        span.update(input={
             "query": query,
             "repo_summary": repo_summary,
             "tools_used": list(tool_results.keys()),
@@ -787,8 +787,8 @@ REPOSITORY CONTEXT:
             tool_context=tool_context,
             citation_note=citation_note
         )
-        
-        span.set_inputs({
+
+        span.update(input={
             "system_prompt": system_prompt,
             "user_prompt": user_prompt[:500] + "...",  # Truncate for logging
             "model": client.model,
