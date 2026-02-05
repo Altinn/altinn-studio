@@ -2281,6 +2281,7 @@ __metadata:
   dependencies:
     "@digdir/designsystemet-theme": "npm:^1.0.8"
     "@studio/components": "workspace:^"
+    dompurify: "npm:^3.2.6"
   languageName: unknown
   linkType: soft
 

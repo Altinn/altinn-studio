@@ -166,6 +166,8 @@ export const getRepoMetadata = (owner: string, app: string) => get<Repository>(r
 export const getRepoPull = (owner: string, app: string) => get<RepoStatus>(repoPullPath(owner, app));
 export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(repoStatusPath(owner, app));
 export const getRepoDiff = (owner: string, app: string) => get<RepoDiffResponse>(repoDiffPath(owner, app));
+export const getBranches = (org: string, app: string) => get<Branch[]>(branchesPath(org, app));
+export const getCurrentBranch = (org: string, app: string) => get<CurrentBranchInfo>(currentBranchPath(org, app));
 export const getRuleConfig = (owner: string, app: string, layoutSetName: string) => get<RuleConfig>(ruleConfigPath(owner, app, layoutSetName));
 export const getRuleModel = (owner: string, app: string, layoutSetName: string) => get<string>(ruleHandlerPath(owner, app, layoutSetName));
 export const getStarredRepos = () => get<Repository[]>(userStarredListPath());
@@ -223,7 +225,3 @@ export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeLi
 export const getOrgTextLanguages = (org: string): Promise<string[] | null> => get<string[] | null>(orgTextLanguagesPath(org));
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
 export const getPublishedResources = (org: string, path?: string): Promise<string[]> => get<string[]>(publishedResourcesPath(org, path));
-
-// Branches
-export const getBranches = (org: string, app: string) => get<Branch[]>(branchesPath(org, app));
-export const getCurrentBranch = (org: string, app: string) => get<CurrentBranchInfo>(currentBranchPath(org, app));
