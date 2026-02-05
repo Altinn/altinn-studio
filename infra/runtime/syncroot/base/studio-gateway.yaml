@@ -2,6 +2,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: runtime-gateway
+  labels:
+    altinn.studio/runtime: "true"
 ---
 apiVersion: v1
 kind: ConfigMap

@@ -144,6 +144,17 @@
           "dataSource": "dataModel.modell2"
         }
       ]
+    },
+    {
+      "id": "sharedperson-header",
+      "value": "Navn fra delt modell {0}. Dette fylles ut i neste steg.",
+      "variables": [
+        {
+          "key": "name",
+          "dataSource": "dataModel.sharedperson",
+          "defaultValue": "(ikke satt)"
+        }
+      ]
     }
   ]
 }
