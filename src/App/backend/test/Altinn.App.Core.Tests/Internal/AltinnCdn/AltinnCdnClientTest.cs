@@ -314,23 +314,6 @@ public class AltinnCdnClientTest
     public async Task GetOrgDetails_ReturnsStaleData_WhenFetchFailsAfterPreviousSuccess()
     {
         // Arrange
-        var validResponse = new HttpResponseMessage(HttpStatusCode.OK)
-        {
-            Content = new StringContent(
-                """
-                {
-                    "orgs": {
-                        "udi": {
-                            "name": { "en": "Immigration", "nb": "UDI", "nn": "UDI" },
-                            "orgnr": "974760746",
-                            "environments": ["tt02"]
-                        }
-                    }
-                }
-                """
-            ),
-        };
-
         var callCount = 0;
         var httpMessageHandlerMock = new Mock<HttpMessageHandler>();
         httpMessageHandlerMock
@@ -345,13 +328,32 @@ public class AltinnCdnClientTest
                 callCount++;
                 if (callCount == 1)
                 {
-                    return validResponse;
+                    return new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            """
+                            {
+                                "orgs": {
+                                    "udi": {
+                                        "name": { "en": "Immigration", "nb": "UDI", "nn": "UDI" },
+                                        "orgnr": "974760746",
+                                        "environments": ["tt02"]
+                                    }
+                                }
+                            }
+                            """
+                        ),
+                    };
                 }
                 throw new HttpRequestException("CDN is down");
             });
 
-        var (factoryMock, httpClient) = CreateHttpClientFactoryMock(httpMessageHandlerMock.Object);
-        using var _ = httpClient;
+        // Factory returns a new HttpClient each time (mimics real IHttpClientFactory behavior)
+        var factoryMock = new Mock<IHttpClientFactory>();
+        factoryMock
+            .Setup(f => f.CreateClient(nameof(AltinnCdnClient)))
+            .Returns(() => new HttpClient(httpMessageHandlerMock.Object));
+
         var appMetadataMock = CreateAppMetadataMock("udi");
         var cache = CreateHybridCache();
         var client = new AltinnCdnClient(cache, factoryMock.Object, appMetadataMock.Object);
