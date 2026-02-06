@@ -34,7 +34,7 @@ describe('useTranslateKeyValue', () => {
     const objectToBeDisplayed = { key1: 'value1', key2: 'value2' };
     const { result: resultObj } = renderHook(() => useTranslateKeyValue(objectToBeDisplayed));
     expect(resultObj.current).toBe(
-      `${textMock('ux_editor.component_properties.enum_value1')}, ${textMock('ux_editor.component_properties.enum_value2')}`,
+      `${textMock('ux_editor.component_properties.enum_key1')}: ${textMock('ux_editor.component_properties.enum_value1')}, ${textMock('ux_editor.component_properties.enum_key2')}: ${textMock('ux_editor.component_properties.enum_value2')}`,
     );
   });
 });
