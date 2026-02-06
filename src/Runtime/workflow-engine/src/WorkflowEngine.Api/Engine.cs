@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Altinn.Studio.Runtime.Common;
 using Microsoft.Extensions.Options;
+using WorkflowEngine.Api.Constants;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -42,6 +43,7 @@ internal partial class Engine : IEngine, IDisposable
     private CancellationTokenSource? _cancellationTokenSource;
     private Task? _mainLoopTask;
     private SemaphoreSlim _inboxCapacityLimit;
+    private volatile TaskCompletionSource _newWorkSignal;
     private volatile bool _cleanupRequired;
     private bool _disposed;
 
@@ -67,14 +69,7 @@ internal partial class Engine : IEngine, IDisposable
 
         // TODO: Replace this with actual check
         // TODO: This may longer be required. Discuss more in depth later.
-        bool placeholderEnabledResponse = await Task.Run(
-            async () =>
-            {
-                await Task.Delay(100, cancellationToken);
-                return true;
-            },
-            cancellationToken
-        );
+        bool placeholderEnabledResponse = await Task.Run(() => true, cancellationToken);
 
         await _isEnabledHistory.Add(placeholderEnabledResponse);
 
@@ -109,7 +104,7 @@ internal partial class Engine : IEngine, IDisposable
         return placeholderEnabledResponse;
     }
 
-    private async Task<bool> HaveWork(CancellationToken cancellationToken)
+    private bool HaveWork()
     {
         _logger.CheckHaveWork();
         bool havePending = InboxCount > 0;
@@ -123,7 +118,6 @@ internal partial class Engine : IEngine, IDisposable
         {
             _logger.NoWork();
             Status |= EngineHealthStatus.Idle;
-            await Task.Delay(250, cancellationToken);
         }
 
         return havePending;
@@ -138,20 +132,69 @@ internal partial class Engine : IEngine, IDisposable
         if (!await ShouldRun(cancellationToken))
             return;
 
-        // Do we have jobs to process?
-        if (!await HaveWork(cancellationToken))
-            return;
+        // Fresh signal for this cycle. Any EnqueueWorkflow call from this
+        // point forward signals this specific instance.
+        var signal = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        Interlocked.Exchange(ref _newWorkSignal, signal);
 
-        // Process jobs in parallel
+        // Do we have jobs to process?
+        if (!HaveWork())
+        {
+            // Idle: wait until new work arrives (or cancellation)
+            await signal.Task.WaitAsync(cancellationToken);
+            return;
+        }
+
         _logger.ProcessingAllWorkflowsInQueue(InboxCount);
+        var parallelOptions = new ParallelOptions
+        {
+            CancellationToken = cancellationToken,
+            MaxDegreeOfParallelism =
+                _settings.MaxDegreeOfParallelism > 0
+                    ? _settings.MaxDegreeOfParallelism
+                    : Defaults.EngineSettings.MaxDegreeOfParallelism,
+        };
+
+        // Process all workflows in the queue in parallel, but don't await tasks
         await Parallel.ForEachAsync(
-            _inbox.Values.ToList(), // Copy so we can modify the original collection during iteration
-            cancellationToken,
-            async (job, ct) =>
+            _inbox,
+            parallelOptions,
+            async (item, ct) =>
             {
-                await ProcessWorkflow(job, ct);
+                var (_, workflow) = item;
+                await ProcessWorkflow(workflow, ct);
             }
         );
+
+        // Wait for at least one task to complete or for new work to be added
+        await WaitForPendingTasks(signal, cancellationToken);
+    }
+
+    private async Task WaitForPendingTasks(TaskCompletionSource newWorkSignal, CancellationToken cancellationToken)
+    {
+        var awaitables = _inbox
+            .Values.SelectMany(workflow =>
+            {
+                var step = workflow.OrderedIncompleteSteps().FirstOrDefault();
+
+                // Order is important here, since we keep completed ExecutionTasks for the processing logic
+                var stepTask = step?.DatabaseTask ?? step?.ExecutionTask;
+                var workflowTask = workflow.DatabaseTask;
+                var circuitBreakerTask =
+                    stepTask is null && step?.IsReadyForExecution(_timeProvider) is true ? Task.CompletedTask : null;
+
+                return new[] { workflowTask, stepTask, circuitBreakerTask }.OfType<Task>();
+            })
+            .Append(newWorkSignal.Task) // Always wait for new work signal
+            .ToList();
+
+        // We already have finished tasks, no need to wait
+        if (awaitables.Any(x => x.IsCompleted))
+            return;
+
+        // Wait for at least one task to complete
+        _logger.WaitingForPendingTasks(awaitables.Count - 1);
+        await Task.WhenAny(awaitables).WaitAsync(cancellationToken);
     }
 
     private async Task ProcessWorkflow(Workflow workflow, CancellationToken cancellationToken)

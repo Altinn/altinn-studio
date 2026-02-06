@@ -15,6 +15,11 @@ public sealed record EngineSettings
     public required int QueueCapacity { get; set; }
 
     /// <summary>
+    /// The maximum number of parallel queue items that can be processed at the same time.
+    /// </summary>
+    public required int MaxDegreeOfParallelism { get; set; }
+
+    /// <summary>
     /// The default timeout for command execution. Max allowed time to wait for a command to complete.
     /// </summary>
     [JsonPropertyName("defaultStepCommandTimeout")]

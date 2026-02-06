@@ -121,11 +121,15 @@ internal partial class Engine
         }
     }
 
-    [MemberNotNull(nameof(_inbox), nameof(_inboxCapacityLimit))]
+    [MemberNotNull(nameof(_inbox), nameof(_inboxCapacityLimit), nameof(_newWorkSignal))]
     private void InitializeInbox()
     {
         _inbox = [];
         _inboxCapacityLimit = new SemaphoreSlim(_settings.QueueCapacity, _settings.QueueCapacity);
+        Interlocked.Exchange(
+            ref _newWorkSignal,
+            new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
+        );
     }
 
     private async Task Cleanup()

@@ -11,6 +11,7 @@ internal static class Defaults
     public static readonly EngineSettings EngineSettings = new()
     {
         QueueCapacity = 10000,
+        MaxDegreeOfParallelism = 100,
         DefaultStepCommandTimeout = TimeSpan.FromSeconds(100),
         DefaultStepRetryStrategy = RetryStrategy.Exponential(
             baseInterval: TimeSpan.FromSeconds(1),

@@ -28,8 +28,11 @@ internal static partial class EngineLogs
     [LoggerMessage(LogLevel.Trace, "We have work to process: {InboxCount}")]
     internal static partial void HaveWork(this ILogger<Engine> logger, int inboxCount);
 
-    [LoggerMessage(LogLevel.Trace, "No work, taking a short nap")]
+    [LoggerMessage(LogLevel.Trace, "No work, waiting for signal")]
     internal static partial void NoWork(this ILogger<Engine> logger);
+
+    [LoggerMessage(LogLevel.Trace, "Waiting for {Count} pending task(s) to complete")]
+    internal static partial void WaitingForPendingTasks(this ILogger<Engine> logger, int count);
 
     [LoggerMessage(
         LogLevel.Trace,

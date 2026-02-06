@@ -67,6 +67,7 @@ internal partial class Engine
 
         await AcquireQueueSlot(cancellationToken);
         _inbox[engineRequest.IdempotencyKey] = await _repository.AddWorkflow(engineRequest, cancellationToken);
+        _newWorkSignal.TrySetResult();
 
         Telemetry.WorkflowRequestsAccepted.Add(1);
         Telemetry.StepRequestsAccepted.Add(engineRequest.Steps.Count());
