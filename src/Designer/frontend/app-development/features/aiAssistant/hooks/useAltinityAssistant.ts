@@ -4,34 +4,30 @@ import type {
   ChatThread,
   UserMessage,
   AssistantMessage,
-  Message,
   WorkflowEvent,
   WorkflowStatus,
   AgentResponse,
   ConnectionStatus,
   UserAttachment,
+  AssistantMessageData,
 } from '@studio/assistant';
-import { MessageAuthor, ErrorMessages } from '@studio/assistant';
+import { MessageAuthor } from '@studio/assistant';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useThreadStorage } from './useThreadStorage';
 import { useAltinityWebSocket } from './useAltinityWebSocket';
+import {
+  formatErrorMessage,
+  formatRejectionMessage,
+  parseBackendErrorContent,
+} from '../utils/messageFormattingUtils';
 
 export interface UseAltinityAssistantResult {
-  // Connection state
   connectionStatus: ConnectionStatus;
-
-  // Workflow state
   workflowStatus: WorkflowStatus;
-
-  // Messages
   chatThreads: ChatThread[];
-
-  // Current session
   currentSessionId: string | null;
-
-  // Actions
   onSubmitMessage: (message: UserMessage) => Promise<void>;
   selectThread: (threadId: string | null) => void;
   createNewThread: () => void;
@@ -73,118 +69,132 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     currentSessionIdRef.current = currentSessionId;
   }, [currentSessionId]);
 
+  const updateWorkflowCompletedStatus = useCallback(
+    (assistantMessage: AssistantMessageData, messageTimestamp: Date) => {
+      setWorkflowStatus((prev) => ({
+        ...prev,
+        currentStep: 'Completed',
+        message: 'AI agent workflow completed successfully',
+        isActive: false,
+        lastCompletedAt: messageTimestamp,
+        filesChanged: assistantMessage.filesChanged || [],
+      }));
+    },
+    [],
+  );
+
+  const upsertAssistantMessage = useCallback(
+    (
+      sessionId: string,
+      assistantMessage: AssistantMessageData,
+      content: string,
+      timestamp: Date,
+    ) => {
+      const existingThread = getThread(sessionId);
+      if (!existingThread) return;
+
+      const lastMessage = existingThread.messages[existingThread.messages.length - 1];
+      const assistantUpdate: AssistantMessage = {
+        author: MessageAuthor.Assistant,
+        content,
+        timestamp,
+        filesChanged: assistantMessage.filesChanged || [],
+        sources: assistantMessage.sources || [],
+        isLoading: false,
+      };
+      const updatedMessages =
+        lastMessage && lastMessage.author === MessageAuthor.Assistant
+          ? [...existingThread.messages.slice(0, -1), { ...lastMessage, ...assistantUpdate }]
+          : [...existingThread.messages, assistantUpdate];
+      updateThread(sessionId, { messages: updatedMessages });
+    },
+    [getThread, updateThread],
+  );
+
+  const updateWorkflowStatusMessage = useCallback(
+    (sessionId: string, statusMessage: string) => {
+      const existingThread = getThread(sessionId);
+      if (!existingThread) return;
+
+      const updatedMessages = existingThread.messages.map((msg, index) => {
+        if (
+          msg.author === MessageAuthor.Assistant &&
+          index === existingThread.messages.length - 1
+        ) {
+          return { ...msg, content: `${statusMessage}` };
+        }
+        return msg;
+      });
+      updateThread(sessionId, { messages: updatedMessages });
+    },
+    [getThread, updateThread],
+  );
+
+  const resetRepoForSession = useCallback(
+    (sessionId: string) => {
+      const branch = buildSessionBranch(sessionId);
+      const resetUrl = `/designer/api/repos/repo/${org}/${app}/reset${branch !== 'main' ? `?branch=${encodeURIComponent(branch)}` : ''}`;
+      fetch(resetUrl, {
+        method: 'GET',
+        credentials: 'same-origin',
+      })
+        .then(() => {
+          console.log('Repository reset completed, triggering preview reload');
+          currentBranchRef.current = branch;
+          queryClient.invalidateQueries({
+            queryKey: [QueryKey.CurrentBranch, org, app],
+          });
+          window.dispatchEvent(
+            new CustomEvent('altinity-repo-reset', {
+              detail: { branch, sessionId },
+            }),
+          );
+        })
+        .catch((error) => {
+          console.warn('Failed to reset repository:', error);
+        });
+    },
+    [app, org, queryClient],
+  );
+
   const handleWorkflowEvent = useCallback(
     (event: WorkflowEvent) => {
       if (event.type === 'assistant_message') {
         const assistantMessage = event.data;
-        const messageContent =
-          assistantMessage.response || assistantMessage.message || assistantMessage.content || '';
-
-        const messageTimestamp = new Date(assistantMessage.timestamp || Date.now());
-
-        setWorkflowStatus((prev) => ({
-          ...prev,
-          currentStep: 'Completed',
-          message: 'AI agent workflow completed successfully',
-          isActive: false,
-          lastCompletedAt: messageTimestamp,
-          filesChanged: assistantMessage.filesChanged || [],
-        }));
+        const messageContent = getAssistantMessageContent(assistantMessage);
+        const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
+        updateWorkflowCompletedStatus(assistantMessage, messageTimestamp);
 
         const currentSession = currentSessionIdRef.current;
 
         if (currentSession) {
-          const existingThread = getThread(currentSession);
-
-          if (existingThread) {
-            const lastMessage = existingThread.messages[existingThread.messages.length - 1];
-
-            if (lastMessage && lastMessage.author === MessageAuthor.Assistant) {
-              const updatedMessages: Message[] = [
-                ...existingThread.messages.slice(0, -1),
-                {
-                  ...lastMessage,
-                  content: messageContent,
-                  timestamp: messageTimestamp,
-                  filesChanged: assistantMessage.filesChanged || [],
-                  sources: assistantMessage.sources || [],
-                  isLoading: false,
-                } as AssistantMessage,
-              ];
-              updateThread(currentSession, { messages: updatedMessages });
-            } else {
-              const updatedMessages: Message[] = [
-                ...existingThread.messages,
-                {
-                  author: MessageAuthor.Assistant,
-                  content: messageContent,
-                  timestamp: messageTimestamp,
-                  filesChanged: assistantMessage.filesChanged || [],
-                  sources: assistantMessage.sources || [],
-                  isLoading: false,
-                } as AssistantMessage,
-              ];
-              updateThread(currentSession, { messages: updatedMessages });
-            }
-          }
+          upsertAssistantMessage(
+            currentSession,
+            assistantMessage,
+            messageContent,
+            messageTimestamp,
+          );
         }
 
-        const mode = assistantMessage.mode;
-        const noBranchOps = assistantMessage.no_branch_operations;
-        const shouldSkipBranchOps = mode === 'chat' || noBranchOps === true;
-
-        if (!shouldSkipBranchOps) {
+        if (!shouldSkipBranchOps(assistantMessage)) {
           const sessionId = event.session_id || currentSession;
           if (!sessionId) return;
 
-          const uniqueId = sessionId.startsWith('session_')
-            ? sessionId.substring(8, 16)
-            : sessionId.substring(0, 8);
-          const branch = `altinity_session_${uniqueId}`;
-
-          const resetUrl = `/designer/api/repos/repo/${org}/${app}/reset${branch !== 'main' ? `?branch=${encodeURIComponent(branch)}` : ''}`;
-          fetch(resetUrl, {
-            method: 'GET',
-            credentials: 'same-origin',
-          })
-            .then(() => {
-              console.log('Repository reset completed, triggering preview reload');
-              currentBranchRef.current = branch;
-              queryClient.invalidateQueries({
-                queryKey: [QueryKey.CurrentBranch, org, app],
-              });
-              window.dispatchEvent(
-                new CustomEvent('altinity-repo-reset', {
-                  detail: { branch, sessionId },
-                }),
-              );
-            })
-            .catch((error) => {
-              console.warn('Failed to reset repository:', error);
-            });
+          resetRepoForSession(sessionId);
         }
       } else if (event.type === 'workflow_status') {
         if (currentSessionId) {
-          const existingThread = chatThreads.find((t) => t.id === currentSessionId);
-          if (existingThread) {
-            const updatedMessages = existingThread.messages.map((msg, index) => {
-              if (
-                msg.author === MessageAuthor.Assistant &&
-                index === existingThread.messages.length - 1
-              ) {
-                return {
-                  ...msg,
-                  content: `${event.data.message || 'Vent litt...'}`,
-                };
-              }
-              return msg;
-            });
-            updateThread(currentSessionId, { messages: updatedMessages });
-          }
+          updateWorkflowStatusMessage(currentSessionId, event.data.message || 'Vent litt...');
         }
       }
     },
-    [currentSessionId, getThread, org, app, queryClient, chatThreads, updateThread],
+    [
+      currentSessionId,
+      resetRepoForSession,
+      updateWorkflowCompletedStatus,
+      updateWorkflowStatusMessage,
+      upsertAssistantMessage,
+    ],
   );
 
   useEffect(() => {
@@ -222,6 +232,41 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
       }
     },
     [addThread, updateThread, getThread],
+  );
+
+  const addRejectionMessage = useCallback(
+    (sessionId: string, result: AgentResponse) => {
+      const rejectionMessage: AssistantMessage = {
+        author: MessageAuthor.Assistant,
+        content: formatRejectionMessage(result),
+        timestamp: new Date(),
+        filesChanged: [],
+      };
+      addMessageToThread(sessionId, rejectionMessage);
+    },
+    [addMessageToThread],
+  );
+
+  const addErrorMessage = useCallback(
+    (sessionId: string, content: string) => {
+      const errorMessage: AssistantMessage = {
+        author: MessageAuthor.Assistant,
+        content,
+        timestamp: new Date(),
+        filesChanged: [],
+      };
+      addMessageToThread(sessionId, errorMessage);
+    },
+    [addMessageToThread],
+  );
+
+  const handleWorkflowResult = useCallback(
+    (sessionId: string, result: AgentResponse) => {
+      if (!result.accepted) {
+        addRejectionMessage(sessionId, result);
+      }
+    },
+    [addRejectionMessage],
   );
 
   const selectThread = useCallback((threadId: string | null) => {
@@ -308,24 +353,10 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
           message.allowAppChanges ?? false,
           message.attachments,
         );
-        if (!result.accepted) {
-          const rejectionMessage: AssistantMessage = {
-            author: MessageAuthor.Assistant,
-            content: formatRejectionMessage(result),
-            timestamp: new Date(),
-            filesChanged: [],
-          };
-          addMessageToThread(sessionId, rejectionMessage);
-        }
+        handleWorkflowResult(sessionId, result);
       } catch (error) {
         console.error('Failed to continue workflow:', error);
-        const errorMessage: AssistantMessage = {
-          author: MessageAuthor.Assistant,
-          content: formatErrorMessage(error),
-          timestamp: new Date(),
-          filesChanged: [],
-        };
-        addMessageToThread(sessionId, errorMessage);
+        addErrorMessage(sessionId, formatErrorMessage(error));
       }
     } else {
       if (!backendSessionId) {
@@ -346,122 +377,12 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
           message.attachments,
         );
 
-        if (result.accepted) {
-          // Initial message already added in startAgentWorkflow - don't add another one
-        } else {
-          // Handle rejection with agent message
-          const rejectionMessage: AssistantMessage = {
-            author: MessageAuthor.Assistant,
-            content: formatRejectionMessage(result),
-            timestamp: new Date(),
-            filesChanged: [],
-          };
-          addMessageToThread(sessionId, rejectionMessage);
-        }
+        handleWorkflowResult(sessionId, result);
       } catch (error) {
         console.error('Failed to start workflow:', error);
 
-        // Parse detailed error from backend
-        let errorContent = formatErrorMessage(error);
-
         if (error instanceof Error) {
-          try {
-            // The error message contains the full response body as a string
-            const responseBody = JSON.parse(error.message);
-            if (responseBody.detail) {
-              const detail = responseBody.detail;
-              if (typeof detail === 'string') {
-                // Detail is a string like "400: {'message': '...', 'suggestions': [...]}"
-                const colonIndex = detail.indexOf(': ');
-                if (colonIndex !== -1) {
-                  const jsonPart = detail.substring(colonIndex + 2);
-
-                  // Try to extract message and suggestions manually using regex
-                  // This handles the case where the JSON has single quotes and nested content
-                  const messageMatch = jsonPart.match(/'message':\s*'([^']*)'/);
-
-                  if (messageMatch) {
-                    errorContent = `${ErrorMessages.REQUEST_REJECTED}\n\n${messageMatch[1]}`;
-
-                    // For suggestions, we need to handle the array more carefully
-                    // Look for the suggestions array and extract each string
-                    const suggestionsStart = jsonPart.indexOf("'suggestions':");
-                    if (suggestionsStart !== -1) {
-                      const arrayStart = jsonPart.indexOf('[', suggestionsStart);
-                      const arrayEnd = jsonPart.lastIndexOf(']');
-                      if (arrayStart !== -1 && arrayEnd !== -1 && arrayEnd > arrayStart) {
-                        const arrayContent = jsonPart.substring(arrayStart + 1, arrayEnd);
-                        // Split by ',' but be careful about commas within quoted strings
-                        const suggestions = [];
-                        let current = '';
-                        let inQuotes = false;
-                        let quoteChar = '';
-
-                        for (let i = 0; i < arrayContent.length; i++) {
-                          const char = arrayContent[i];
-
-                          if (!inQuotes && (char === "'" || char === '"')) {
-                            inQuotes = true;
-                            quoteChar = char;
-                          } else if (
-                            inQuotes &&
-                            char === quoteChar &&
-                            arrayContent[i - 1] !== '\\'
-                          ) {
-                            inQuotes = false;
-                            quoteChar = '';
-                          } else if (!inQuotes && char === ',') {
-                            if (current.trim()) {
-                              suggestions.push(
-                                current
-                                  .trim()
-                                  .replace(/^['"]|['"]$/g, '')
-                                  .replace(/\\(['"])/g, '$1'),
-                              );
-                            }
-                            current = '';
-                            continue;
-                          }
-
-                          if (inQuotes || (char !== "'" && char !== '"')) {
-                            current += char;
-                          }
-                        }
-
-                        // Add the last item
-                        if (current.trim()) {
-                          suggestions.push(
-                            current
-                              .trim()
-                              .replace(/^['"]|['"]$/g, '')
-                              .replace(/\\(['"])/g, '$1'),
-                          );
-                        }
-
-                        if (suggestions.length > 0) {
-                          errorContent += `\n\n**Suggestions:**\n${suggestions.map((s: string) => `• ${s}`).join('\n')}`;
-                        }
-                      }
-                    }
-                  } else {
-                    // Last resort: show the raw detail
-                    errorContent = `${ErrorMessages.REQUEST_REJECTED}\n\n${detail}`;
-                  }
-                }
-              }
-            }
-          } catch (parseError) {
-            // If parsing fails, use the original error message
-            console.warn('Failed to parse error response:', parseError);
-          }
-
-          const errorMessageObj: AssistantMessage = {
-            author: MessageAuthor.Assistant,
-            content: errorContent,
-            timestamp: new Date(),
-            filesChanged: [],
-          };
-          addMessageToThread(sessionId, errorMessageObj);
+          addErrorMessage(sessionId, parseBackendErrorContent(error));
         }
       }
     }
@@ -479,15 +400,21 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
   };
 };
 
-function formatRejectionMessage(result: AgentResponse): string {
-  const suggestions = result.parsed_intent?.suggestions
-    ? 'Suggestions:\n' + result.parsed_intent.suggestions.join('\n')
-    : '';
-
-  return `${ErrorMessages.REQUEST_REJECTED}\n\n${result.message}\n\n${suggestions}`;
+function getAssistantMessageContent(assistantMessage: AssistantMessageData): string {
+  return assistantMessage.response || assistantMessage.message || assistantMessage.content || '';
 }
 
-function formatErrorMessage(error: unknown): string {
-  const errorMessage = error instanceof Error ? error.message : ErrorMessages.UNKNOWN_ERROR;
-  return `${ErrorMessages.REQUEST_FAILED}\n\n${errorMessage}`;
+function getAssistantMessageTimestamp(assistantMessage: AssistantMessageData): Date {
+  return new Date(assistantMessage.timestamp || Date.now());
+}
+
+function shouldSkipBranchOps(assistantMessage: AssistantMessageData): boolean {
+  return assistantMessage.mode === 'chat' || assistantMessage.no_branch_operations === true;
+}
+
+function buildSessionBranch(sessionId: string): string {
+  const uniqueId = sessionId.startsWith('session_')
+    ? sessionId.substring(8, 16)
+    : sessionId.substring(0, 8);
+  return `altinity_session_${uniqueId}`;
 }
