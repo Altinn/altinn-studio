@@ -69,19 +69,63 @@ jobs:
           # Extract the report URL (handles both LHCI server and temporary storage URLs)
           REPORT_URL=$(grep -oE 'https://((dev\.|staging\.)?altinn\.studio:9001/app/projects/[^[:space:]]*|storage\.googleapis\.com/lighthouse-infrastructure\.appspot\.com/reports/[^[:space:]]*)' lighthouse_output.txt || echo "")
           echo "report_url=$REPORT_URL" >> $GITHUB_OUTPUT
+      - name: Compare Lighthouse results
+        id: lighthouse-compare
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        uses: adevinta/actions-lighthouseci-compare@10b06f197bf31d8f6d66021376c79164cab167c9 # v1.1.7
+        with:
+          links-filepath: 'src/App/frontend/.lighthouseci/links.json'
+          base-url: ${{ secrets.LHCI_SERVER_URL }}
+          project-id: ${{ secrets.LHCI_ALTINN_APP_PROJECT_ID }}
+          current-commit-sha: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          basic-auth-username: ${{ secrets.LHCI_BASIC_AUTH_USERNAME }}
+          basic-auth-password: ${{ secrets.LHCI_BASIC_AUTH_PASSWORD }}
+
       - name: Comment PR with Lighthouse Report
-        if: github.event_name == 'pull_request' && steps.lighthouse-ci.outputs.report_url != ''
+        if: github.event_name == 'pull_request' && (steps.lighthouse-ci.outputs.report_url != '' || steps.lighthouse-compare.outputs.markdown != '')
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         env:
           REPORT_URL: ${{ steps.lighthouse-ci.outputs.report_url }}
+          COMPARE_MARKDOWN: ${{ steps.lighthouse-compare.outputs.markdown }}
         with:
           script: |
-            github.rest.issues.createComment({
+            const marker = '<!-- lighthouse-ci-report -->';
+            const reportUrl = process.env.REPORT_URL;
+            const compareMarkdown = process.env.COMPARE_MARKDOWN;
+
+            let body = marker + '\n🔍 **Lighthouse Report**\n\n';
+            if (compareMarkdown) {
+              body += compareMarkdown + '\n\n';
+            }
+            if (reportUrl) {
+              body += `📊 [View Full Report](${reportUrl})\n`;
+            }
+
+            const { data: comments } = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '🔍 **Lighthouse Report**\n\n📊 [View Performance Report](${{ env.REPORT_URL }})'
             });
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              body += `\n---\n*Edited*`;
+
+              await github.rest.issues.updateComment({
+                comment_id: existing.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              });
+            }
 
       - name: Stop localtest
         if: always()
