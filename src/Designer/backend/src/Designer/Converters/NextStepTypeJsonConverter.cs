@@ -15,7 +15,7 @@ public class NextStepTypeJsonConverter : JsonConverter<NextStepType>
         { "konfigurasjon", NextStepType.Configuration },
 
         { "code-change", NextStepType.CodeChange },
-        { "kode-endring", NextStepType.CodeChange },
+        { "kodeendring", NextStepType.CodeChange },
 
         { "documentation", NextStepType.Documentation },
         { "dokumentasjon", NextStepType.Documentation }

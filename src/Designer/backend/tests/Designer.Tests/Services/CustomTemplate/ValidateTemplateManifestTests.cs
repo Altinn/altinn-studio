@@ -304,7 +304,7 @@ public class ValidateCustomTemplateTest
     [InlineData("configuration")]
     [InlineData("konfigurasjon")]
     [InlineData("code-change")]
-    [InlineData("kode-endring")]
+    [InlineData("kodeendring")]
     [InlineData("documentation")]
     [InlineData("dokumentasjon")]
     public async Task ValidateManifestJsonAsync_ValidNextStepTypes_ReturnsNoErrors(string nextStepType)

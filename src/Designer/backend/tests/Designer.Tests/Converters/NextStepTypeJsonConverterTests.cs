@@ -21,7 +21,7 @@ namespace Altinn.Studio.Designer.Tests.Converters
         [InlineData("\"configuration\"", NextStepType.Configuration)]
         [InlineData("\"konfigurasjon\"", NextStepType.Configuration)]
         [InlineData("\"code-change\"", NextStepType.CodeChange)]
-        [InlineData("\"kode-endring\"", NextStepType.CodeChange)]
+        [InlineData("\"kodeendring\"", NextStepType.CodeChange)]
         [InlineData("\"documentation\"", NextStepType.Documentation)]
         [InlineData("\"dokumentasjon\"", NextStepType.Documentation)]
         public void Read_ValidStrings_ReturnsExpectedEnum(string json, NextStepType expected)
