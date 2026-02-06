@@ -101,5 +101,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation., e.g. "app-name-with-spaces".</param>
         /// <param name="appTitle">The application title in default language (nb), e.g. "App name with spaces"</param>
         public Task CreateApplicationMetadata(string org, string app, string appTitle);
+
+        /// <summary>
+        /// Sets the core properties of existing application metadata including organization, application ID, title, and audit fields.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="appTitle">The application title in default language (nb).</param>
+        public Task SetCoreProperties(string org, string app, string appTitle);
     }
 }
