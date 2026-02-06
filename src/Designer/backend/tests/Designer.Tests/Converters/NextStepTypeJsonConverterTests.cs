@@ -40,9 +40,9 @@ namespace Altinn.Studio.Designer.Tests.Converters
         }
 
         [Theory]
-        [InlineData(NextStepType.Configuration, "\"Configuration\"")]
-        [InlineData(NextStepType.CodeChange, "\"CodeChange\"")]
-        [InlineData(NextStepType.Documentation, "\"Documentation\"")]
+        [InlineData(NextStepType.Configuration, "\"configuration\"")]
+        [InlineData(NextStepType.CodeChange, "\"code-change\"")]
+        [InlineData(NextStepType.Documentation, "\"documentation\"")]
         public void Write_EnumValue_WritesPreferredString(NextStepType value, string expectedJson)
         {
             var json = JsonSerializer.Serialize(value, _options);
