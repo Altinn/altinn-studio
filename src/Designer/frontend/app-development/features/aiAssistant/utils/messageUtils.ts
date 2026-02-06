@@ -1,4 +1,4 @@
-import type { AgentResponse } from '@studio/assistant';
+import type { AgentResponse, AssistantMessageData } from '@studio/assistant';
 import { ErrorMessages } from '@studio/assistant';
 
 export function formatRejectionMessage(result: AgentResponse): string {
@@ -46,6 +46,18 @@ export function parseBackendErrorContent(error: Error): string {
   }
 
   return errorContent;
+}
+
+export function getAssistantMessageContent(assistantMessage: AssistantMessageData): string {
+  return assistantMessage.response || assistantMessage.message || assistantMessage.content || '';
+}
+
+export function getAssistantMessageTimestamp(assistantMessage: AssistantMessageData): Date {
+  return new Date(assistantMessage.timestamp || Date.now());
+}
+
+export function shouldSkipBranchOps(assistantMessage: AssistantMessageData): boolean {
+  return assistantMessage.mode === 'chat' || assistantMessage.no_branch_operations === true;
 }
 
 function parseSuggestions(jsonPart: string): string[] {

@@ -19,8 +19,11 @@ import type { AltinityThreadState } from './useAltinityThreads';
 import {
   formatErrorMessage,
   formatRejectionMessage,
+  getAssistantMessageContent,
+  getAssistantMessageTimestamp,
   parseBackendErrorContent,
-} from '../utils/messageFormattingUtils';
+  shouldSkipBranchOps,
+} from '../utils/messageUtils';
 
 export interface UseAltinityWorkflowResult {
   connectionStatus: ConnectionStatus;
@@ -311,18 +314,6 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     resetWorkflowStatus,
   };
 };
-
-function getAssistantMessageContent(assistantMessage: AssistantMessageData): string {
-  return assistantMessage.response || assistantMessage.message || assistantMessage.content || '';
-}
-
-function getAssistantMessageTimestamp(assistantMessage: AssistantMessageData): Date {
-  return new Date(assistantMessage.timestamp || Date.now());
-}
-
-function shouldSkipBranchOps(assistantMessage: AssistantMessageData): boolean {
-  return assistantMessage.mode === 'chat' || assistantMessage.no_branch_operations === true;
-}
 
 function buildSessionBranch(sessionId: string): string {
   const uniqueId = sessionId.startsWith('session_')
