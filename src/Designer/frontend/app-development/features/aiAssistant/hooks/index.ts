@@ -1,3 +1,3 @@
-export * from './useAltinityAssistant';
-export * from './useAltinityThreads';
-export * from './useAltinityWorkflow';
+export * from './useAltinityAssistant/useAltinityAssistant';
+export * from './useAltinityThreads/useAltinityThreads';
+export * from './useAltinityWorkflow/useAltinityWorkflow';

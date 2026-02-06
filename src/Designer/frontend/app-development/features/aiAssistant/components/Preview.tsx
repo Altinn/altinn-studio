@@ -5,7 +5,7 @@ import { useUserQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioCenter, StudioSpinner } from '@studio/components';
 import type { ReactElement } from 'react';
-import { usePreviewLayoutMetadata } from '../hooks/usePreviewLayoutMetadata';
+import { usePreviewLayoutMetadata } from '../hooks/usePreviewLayoutMetadata/usePreviewLayoutMetadata';
 import classes from './Preview.module.css';
 
 export const Preview = (): ReactElement => {

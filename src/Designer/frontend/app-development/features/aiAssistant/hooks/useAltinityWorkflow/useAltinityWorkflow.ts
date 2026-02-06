@@ -14,8 +14,8 @@ import { MessageAuthor } from '@studio/assistant';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { useAltinityWebSocket } from './useAltinityWebSocket';
-import type { AltinityThreadState } from './useAltinityThreads';
+import { useAltinityWebSocket } from '../useAltinityWebSocket/useAltinityWebSocket';
+import type { AltinityThreadState } from '../useAltinityThreads/useAltinityThreads';
 import {
   formatErrorMessage,
   formatRejectionMessage,
@@ -23,7 +23,7 @@ import {
   getAssistantMessageTimestamp,
   parseBackendErrorContent,
   shouldSkipBranchOps,
-} from '../utils/messageUtils';
+} from '../../utils/messageUtils';
 
 export interface UseAltinityWorkflowResult {
   connectionStatus: ConnectionStatus;

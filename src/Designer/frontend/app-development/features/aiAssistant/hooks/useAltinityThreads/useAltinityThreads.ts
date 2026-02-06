@@ -7,7 +7,7 @@ import type {
 } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
 import type { MutableRefObject } from 'react';
-import { useThreadStorage } from './useThreadStorage';
+import { useThreadStorage } from '../useThreadStorage/useThreadStorage';
 
 export interface AltinityThreadState {
   chatThreads: ChatThread[];

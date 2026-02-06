@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import type { ChatThread, UserMessage, WorkflowStatus, ConnectionStatus } from '@studio/assistant';
-import { useAltinityThreads } from './useAltinityThreads';
-import { useAltinityWorkflow } from './useAltinityWorkflow';
+import { useAltinityThreads } from '../useAltinityThreads/useAltinityThreads';
+import { useAltinityWorkflow } from '../useAltinityWorkflow/useAltinityWorkflow';
 
 export interface UseAltinityAssistantResult {
   connectionStatus: ConnectionStatus;
