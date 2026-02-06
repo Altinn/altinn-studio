@@ -40,6 +40,11 @@ describe('ContactPointsTable', () => {
     const user = userEvent.setup();
     const onContactPointsChanged = jest.fn();
     renderContactPointsTable({ contactPointList: [], onContactPointsChanged });
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('app_settings.about_tab_contact_point_add_button_text'),
+      }),
+    );
     await user.type(screen.getByLabelText(textMock(fieldLabelKeys.email)), newContact.email);
     await user.type(
       screen.getByLabelText(textMock(fieldLabelKeys.telephone)),
@@ -50,7 +55,7 @@ describe('ContactPointsTable', () => {
       newContact.contactPage,
     );
     await user.type(screen.getByLabelText(textMock(fieldLabelKeys.category)), newContact.category);
-    await user.click(screen.getByRole('button', { name: textMock('general.save'), hidden: true }));
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
     expect(onContactPointsChanged).toHaveBeenCalledTimes(1);
     const updatedList = onContactPointsChanged.mock.calls[0][0] as typeof mockContactPoints;
     expect(updatedList).toHaveLength(1);

@@ -42,7 +42,11 @@ export const ContactPointTableRow = ({
         )}
       </StudioTable.Cell>
       <StudioTable.Cell>
-        <StudioButton variant='tertiary' onClick={() => onEdit(index)}>
+        <StudioButton
+          variant='tertiary'
+          aria-label={t('general.edit')}
+          onClick={() => onEdit(index)}
+        >
           <PencilIcon />
         </StudioButton>
       </StudioTable.Cell>
