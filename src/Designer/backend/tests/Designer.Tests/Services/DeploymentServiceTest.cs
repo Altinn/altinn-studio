@@ -169,8 +169,8 @@ namespace Designer.Tests.Services
         public async Task CreateAsync_WithW3cActivity_SetsAlwaysSamplingTag()
         {
             // Arrange
-            const string org = "ttd";
-            const string app = "test-app";
+            const string Org = "ttd";
+            const string App = "test-app";
             DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
 
             _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
@@ -195,9 +195,9 @@ namespace Designer.Tests.Services
             _deploymentRepository.Setup(r => r.Create(
                 It.IsAny<DeploymentEntity>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
             _deploymentRepository.Setup(r => r.Get(
-                org,
-                app,
-                It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == org && d.App == app));
+                Org,
+                App,
+                It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == Org && d.App == App));
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -218,7 +218,7 @@ namespace Designer.Tests.Services
                 _slackClient.Object,
                 _alertsSettings);
 
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(Org, App, "testUser", "dummyToken");
             using var activity = new Activity("test-create");
             activity.SetIdFormat(ActivityIdFormat.W3C);
             activity.Start();
