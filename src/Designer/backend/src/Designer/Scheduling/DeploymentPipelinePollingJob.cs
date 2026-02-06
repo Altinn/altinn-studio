@@ -97,8 +97,8 @@ public class DeploymentPipelinePollingJob : IJob
         }
         catch (Exception ex)
         {
-            (activity ?? Activity.Current)?.SetStatus(ActivityStatusCode.Error);
-            (activity ?? Activity.Current)?.AddException(ex);
+            activity?.SetStatus(ActivityStatusCode.Error);
+            activity?.AddException(ex);
             throw;
         }
     }
