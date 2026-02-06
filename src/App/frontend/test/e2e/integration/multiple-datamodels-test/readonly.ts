@@ -119,7 +119,7 @@ describe('readonly data models', () => {
 
     cy.findByRole('button', { name: 'Neste' }).click();
 
-    cy.findByRole('heading', { name: /tittel/i }).should('be.visible');
+    cy.findByRole('heading', { name: /Test av delt modell/ }).should('be.visible');
     cy.waitUntilSaved();
 
     cy.then(() => expect(formDataRequests.length).to.be.eq(1));

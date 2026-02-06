@@ -39,6 +39,29 @@
           }
         },
         {
+          "id": "MapPage-MapComponent-Geometries",
+          "type": "Map",
+          "textResourceBindings": {
+            "title": "MapPage.Map.title"
+          },
+          "dataModelBindings": {
+            "geometries": "Geometries",
+            "geometryData": "Geometries.Data",
+            "geometryLabel": "Geometries.Label",
+            "geometryIsEditable": "Geometries.Editable"
+          },
+          "toolbar": {
+            "polygon": true,
+            "polyline": true
+          },
+          "zoom": 6,
+          "geometryType": "GeoJSON",
+          "centerLocation": {
+            "latitude": 59.93080398894555,
+            "longitude": 10.8012469132984
+          }
+        },
+        {
           "id": "MapPage-Header-Summary",
           "type": "Header",
           "size": "h3",
