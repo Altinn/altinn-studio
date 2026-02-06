@@ -21,8 +21,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
         public string Parameters { get; set; }
 
         // DEV ONLY - uncomment temporarily to trigger pipeline on a specific branch
-        [JsonPropertyName("sourceBranch")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string SourceBranch { get; set; } = "refs/heads/chore/app-publish-trace-propagation";
+        // [JsonPropertyName("sourceBranch")]
+        // [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        // public string SourceBranch { get; set; } = "";
     }
 }
