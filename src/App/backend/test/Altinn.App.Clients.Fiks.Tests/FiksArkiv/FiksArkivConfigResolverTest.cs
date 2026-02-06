@@ -477,9 +477,9 @@ public class FiksArkivConfigResolverTest
                 Orgnr = orgNumber,
                 Name = new AltinnCdnOrgName
                 {
-                    Nb = orgNameNb,
-                    Nn = orgNameNn,
-                    En = orgNameEn,
+                    Nb = orgNameNb!,
+                    Nn = orgNameNn!,
+                    En = orgNameEn!,
                 },
                 Environments = [],
             }

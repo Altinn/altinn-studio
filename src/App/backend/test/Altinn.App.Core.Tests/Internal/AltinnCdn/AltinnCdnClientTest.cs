@@ -13,12 +13,12 @@ namespace Altinn.App.Core.Tests.Internal.AltinnCdn;
 
 public class AltinnCdnClientTest
 {
-    private static HybridCache CreateHybridCache()
+    private static (HybridCache Cache, ServiceProvider Provider) CreateHybridCache()
     {
         var services = new ServiceCollection();
         services.AddHybridCache();
         var provider = services.BuildServiceProvider();
-        return provider.GetRequiredService<HybridCache>();
+        return (provider.GetRequiredService<HybridCache>(), provider);
     }
 
     private static (Mock<IHttpClientFactory> Mock, HttpClient Client) CreateHttpClientFactoryMock(
@@ -112,7 +112,8 @@ public class AltinnCdnClientTest
         var (factoryMock, httpClient) = CreateHttpClientFactoryMock(httpMessageHandlerMock.Object);
         using var _ = httpClient;
         var appMetadataMock = CreateAppMetadataMock("udi");
-        var cache = CreateHybridCache();
+        var (cache, cacheProvider) = CreateHybridCache();
+        using var __ = cacheProvider;
         var client = new AltinnCdnClient(cache, factoryMock.Object, appMetadataMock.Object);
 
         // Act
@@ -144,7 +145,8 @@ public class AltinnCdnClientTest
         var (factoryMock, httpClient) = CreateHttpClientFactoryMock(httpMessageHandlerMock.Object);
         using var _ = httpClient;
         var appMetadataMock = CreateAppMetadataMock("nonexistent");
-        var cache = CreateHybridCache();
+        var (cache, cacheProvider) = CreateHybridCache();
+        using var __ = cacheProvider;
         var client = new AltinnCdnClient(cache, factoryMock.Object, appMetadataMock.Object);
 
         // Act
@@ -172,7 +174,8 @@ public class AltinnCdnClientTest
         var (factoryMock, httpClient) = CreateHttpClientFactoryMock(httpMessageHandlerMock.Object);
         using var _ = httpClient;
         var appMetadataMock = CreateAppMetadataMock("ttd");
-        var cache = CreateHybridCache();
+        var (cache, cacheProvider) = CreateHybridCache();
+        using var __ = cacheProvider;
         var client = new AltinnCdnClient(cache, factoryMock.Object, appMetadataMock.Object);
 
         // Act
@@ -203,7 +206,8 @@ public class AltinnCdnClientTest
         var (factoryMock, httpClient) = CreateHttpClientFactoryMock(httpMessageHandlerMock.Object);
         using var _ = httpClient;
         var appMetadataMock = CreateAppMetadataMock("ttd");
-        var cache = CreateHybridCache();
+        var (cache, cacheProvider) = CreateHybridCache();
+        using var __ = cacheProvider;
         var altinnCdnClient = new AltinnCdnClient(cache, factoryMock.Object, appMetadataMock.Object);
 
         // Act
@@ -255,7 +259,8 @@ public class AltinnCdnClientTest
         var (factoryMock, httpClient) = CreateHttpClientFactoryMock(httpMessageHandlerMock.Object);
         using var _ = httpClient;
         var appMetadataMock = CreateAppMetadataMock("udi");
-        var cache = CreateHybridCache();
+        var (cache, cacheProvider) = CreateHybridCache();
+        using var __ = cacheProvider;
         var client = new AltinnCdnClient(cache, factoryMock.Object, appMetadataMock.Object);
 
         // Act
@@ -300,7 +305,8 @@ public class AltinnCdnClientTest
         var (factoryMock, httpClient) = CreateHttpClientFactoryMock(httpMessageHandlerMock.Object);
         using var _ = httpClient;
         var appMetadataMock = CreateAppMetadataMock("udi");
-        var cache = CreateHybridCache();
+        var (cache, cacheProvider) = CreateHybridCache();
+        using var __ = cacheProvider;
         var client = new AltinnCdnClient(cache, factoryMock.Object, appMetadataMock.Object);
 
         // Act
@@ -355,7 +361,8 @@ public class AltinnCdnClientTest
             .Returns(() => new HttpClient(httpMessageHandlerMock.Object));
 
         var appMetadataMock = CreateAppMetadataMock("udi");
-        var cache = CreateHybridCache();
+        var (cache, cacheProvider) = CreateHybridCache();
+        using var _ = cacheProvider;
         var client = new AltinnCdnClient(cache, factoryMock.Object, appMetadataMock.Object);
 
         // Act - first call succeeds and populates _lastKnownGood
@@ -414,7 +421,8 @@ public class AltinnCdnClientTest
         var (factoryMock, httpClient) = CreateHttpClientFactoryMock(httpMessageHandlerMock.Object);
         using var _ = httpClient;
         var appMetadataMock = CreateAppMetadataMock("ttd");
-        var cache = CreateHybridCache();
+        var (cache, cacheProvider) = CreateHybridCache();
+        using var __ = cacheProvider;
         var client = new AltinnCdnClient(cache, factoryMock.Object, appMetadataMock.Object);
 
         // Act
@@ -465,7 +473,8 @@ public class AltinnCdnClientTest
         var (factoryMock, httpClient) = CreateHttpClientFactoryMock(httpMessageHandlerMock.Object);
         using var _ = httpClient;
         var appMetadataMock = CreateAppMetadataMock("ttd");
-        var cache = CreateHybridCache();
+        var (cache, cacheProvider) = CreateHybridCache();
+        using var __ = cacheProvider;
         var client = new AltinnCdnClient(cache, factoryMock.Object, appMetadataMock.Object);
 
         // Act
