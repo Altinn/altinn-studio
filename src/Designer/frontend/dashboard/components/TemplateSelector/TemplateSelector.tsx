@@ -1,6 +1,6 @@
 import React from 'react';
 import { type CustomTemplate } from 'app-shared/types/CustomTemplate';
-import { useAvailableTemplatesForUserQuery } from '../../hooks/queries/useAvailableTemplatesForOrgQuery';
+import { useAvailableTemplatesForUserQuery } from '../../hooks/queries/useAvailableTemplatesForUserQuery';
 import { TemplateSelectorContent } from './TemplateSelectorContent';
 
 export type TemplateSelectorProps = {

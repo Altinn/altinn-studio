@@ -15,7 +15,6 @@ import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { Link } from 'react-router-dom';
 import { useUserOrgPermissionQuery } from '../../hooks/queries/useUserOrgPermissionsQuery';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
-import { useUserQuery } from 'app-shared/hooks/queries';
 
 type CancelButton = {
   onClick: () => void;
@@ -64,7 +63,6 @@ export const NewApplicationForm = ({
   const { data: userOrgPermission, isFetching } = useUserOrgPermissionQuery(currentSelectedOrg, {
     enabled: Boolean(currentSelectedOrg),
   });
-  const { data: currentUser } = useUserQuery();
 
   const validateTextValue = (event: ChangeEvent<HTMLInputElement>) => {
     const { errorMessage: repoNameErrorMessage, isValid: isRepoNameValid } = validateRepoName(
@@ -110,10 +108,6 @@ export const NewApplicationForm = ({
     return isOrgValid && isRepoNameValid;
   };
 
-  if (!currentUser) {
-    return <StudioSpinner aria-hidden spinnerTitle={t('dashboard.loading')} />;
-  }
-
   const createRepoAccessError: string =
     !userOrgPermission?.canCreateOrgRepo && !isFetching
       ? t('dashboard.missing_service_owner_rights_error_message')
@@ -143,7 +137,7 @@ export const NewApplicationForm = ({
         <TemplateSelector
           selectedTemplate={selectedTemplate}
           onChange={setSelectedTemplate}
-          username={currentUser.login}
+          username={user.login}
         />
       )}
       <div className={classes.actionContainer}>

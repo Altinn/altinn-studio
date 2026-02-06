@@ -5,12 +5,12 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 
 export const useAvailableTemplatesForUserQuery = (
-  user?: string,
+  username?: string,
   options?: { enabled: boolean },
 ): UseQueryResult<CustomTemplate[]> => {
   const { getAvailableTemplates } = useServicesContext();
   return useQuery({
-    queryKey: [QueryKey.CustomTemplates, user],
+    queryKey: [QueryKey.CustomTemplates, username],
     queryFn: () => getAvailableTemplates().then((data) => data.templates),
     ...options,
   });
