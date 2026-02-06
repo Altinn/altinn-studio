@@ -35,7 +35,11 @@ function getCurrentDateOnlyStringMinusDays(days: number | undefined) {
 
 export const Instances = () => {
   const { t } = useTranslation();
-  const { org, env, app } = useParams() as { org: string; env: string; app: string };
+  const { org, environment, app } = useParams() as {
+    org: string;
+    environment: string;
+    app: string;
+  };
   const [archiveReference, setArchiveReference] = useQueryParamState<string>(
     'archiveReference',
     undefined,
@@ -58,7 +62,7 @@ export const Instances = () => {
         <ArchiveReferenceSearch value={archiveReference} setValue={setArchiveReference} />
         <ProcessTaskFilter
           org={org}
-          env={env}
+          environment={environment}
           app={app}
           value={currentTask}
           setValue={setCurrentTask}
@@ -90,7 +94,7 @@ export const Instances = () => {
       </div>
       <InstancesTable
         org={org}
-        env={env}
+        environment={environment}
         app={app}
         currentTask={currentTask}
         isArchived={isArchived}

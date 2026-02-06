@@ -27,6 +27,10 @@ service:
 
 environmentVariables:
   dev:
+    - name: OTEL_SERVICE_NAME
+      value: studio-designer
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: http://otel-router.observability.svc.cluster.local:4317
     - name: ASPNETCORE_ENVIRONMENT
       value: Staging
     - name: ASPNETCORE_URLS
@@ -85,6 +89,10 @@ environmentVariables:
           name: altinn-studio-env-secret
           key: postHogApiHost
   staging:
+    - name: OTEL_SERVICE_NAME
+      value: studio-designer
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: http://otel-router.observability.svc.cluster.local:4317
     - name: ASPNETCORE_ENVIRONMENT
       value: Staging
     - name: ASPNETCORE_URLS
@@ -143,6 +151,10 @@ environmentVariables:
           name: altinn-studio-env-secret
           key: postHogApiHost
   prod:
+    - name: OTEL_SERVICE_NAME
+      value: studio-designer
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: http://otel-router.observability.svc.cluster.local:4317
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
     - name: ASPNETCORE_URLS

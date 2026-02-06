@@ -38,17 +38,12 @@ describe('ThreeDotsMenu', () => {
   });
 
   it('Reopens the local changes modal when the user clicks the button after having closed it', async () => {
-    const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
     const user = userEvent.setup();
     renderThreeDotsMenu();
     await user.click(getGiteaMenuButton());
     await user.click(getLocalChangesButton());
     expect(getLocalChangesHeading()).toBeInTheDocument();
     await user.click(getCloseLocalChangesButton());
-    const dialog = screen.getByRole('dialog', { name: '' }) as HTMLDialogElement;
-    dialog.close();
-    dialog.dispatchEvent(new Event('close', { bubbles: true }));
-    consoleErrorMock.mockRestore();
 
     expect(queryLocalChangesHeading()).not.toBeInTheDocument();
     await user.click(getLocalChangesButton());

@@ -8,10 +8,13 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { PreviewButton } from './PreviewButton';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioDialog } from '@studio/components';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeftIcon } from '@studio/icons';
+import { ArrowLeftIcon, CheckmarkCircleFillIcon, SectionHeaderWarningIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
+import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
+import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
+import { AppValidationDialog } from 'app-shared/components/AppValidationDialog/AppValidationDialog';
 
 export type SubHeaderProps = {
   hasRepoError?: boolean;
@@ -21,11 +24,13 @@ export const SubHeader = ({ hasRepoError }: SubHeaderProps): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const repositoryType = getRepositoryType(org, app);
   const { doReloadPreview } = usePreviewContext();
+  const appMetadataFlag = useFeatureFlag(FeatureFlag.AppMetadata);
 
   return (
     <GiteaHeader
       hasCloneModal
       leftComponent={<LeftContent repositoryType={repositoryType} />}
+      rightContent={appMetadataFlag && <ProblemStatusIndicator />}
       hasRepoError={hasRepoError}
       onPullSuccess={doReloadPreview}
       owner={org}
@@ -67,5 +72,41 @@ const SubHeaderLeftContent = () => {
       <SettingsPageButton />
       <PreviewButton />
     </div>
+  );
+};
+
+const ProblemStatusIndicator = () => {
+  const { org, app } = useStudioEnvironmentParams();
+  const {
+    data: validationResult,
+    refetch: refetchValidation,
+    isFetching: validationPending,
+  } = useAppValidationQuery(org, app);
+
+  const revalidate = () => {
+    refetchValidation();
+  };
+
+  if (validationPending) {
+    return <StudioButton variant='tertiary' loading></StudioButton>;
+  }
+  if (!validationResult?.errors) {
+    return (
+      <StudioButton
+        variant='tertiary'
+        icon={<CheckmarkCircleFillIcon />}
+        onClick={revalidate}
+      ></StudioButton>
+    );
+  }
+
+  const members = validationResult ? Object.entries(validationResult.errors) : [];
+  return (
+    <StudioDialog.TriggerContext>
+      <StudioDialog.Trigger variant='tertiary' icon={<SectionHeaderWarningIcon />}>
+        {members.length}
+      </StudioDialog.Trigger>
+      <AppValidationDialog />
+    </StudioDialog.TriggerContext>
   );
 };

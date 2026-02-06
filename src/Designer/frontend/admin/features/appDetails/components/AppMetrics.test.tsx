@@ -37,7 +37,7 @@ jest.mock('react-router-dom', () => {
     ...originalModule,
     useParams: jest.fn(() => ({
       org,
-      env,
+      environment: env,
       app,
     })),
   };
@@ -311,7 +311,7 @@ describe('AppMetrics', () => {
           dataPoints: [],
         },
         {
-          name: 'altinn_app_lib_processes_completed',
+          name: 'altinn_app_lib_processes_ended',
           dataPoints: [],
         },
       ];

@@ -3,13 +3,13 @@ import React from 'react';
 import { Alert } from '@digdir/designsystemet-react';
 
 import { Button } from 'src/app-components/Button/Button';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { Lang } from 'src/features/language/Lang';
 import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';
 import { usePayment } from 'src/features/payment/PaymentProvider';
 import { PaymentStatus } from 'src/features/payment/types';
 import { useIsSubformPage } from 'src/hooks/navigation';
+import { useIsAnyProcessing } from 'src/hooks/useProcessingMutation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Payment/PaymentComponent.module.css';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
@@ -19,7 +19,7 @@ import type { PropsFromGenericComponent } from 'src/layout';
 export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<'Payment'>) => {
   const { mutate: processConfirm, isPending: isConfirming } = useProcessNext({ action: 'confirm' });
   const { mutate: processReject, isPending: isRejecting } = useProcessNext({ action: 'reject' });
-  const { isAnyProcessing } = useIsProcessing<'next' | 'reject'>();
+  const isAnyProcessing = useIsAnyProcessing();
   const paymentInfo = usePaymentInformation();
   const { performPayment, paymentError } = usePayment();
   const { title, description } = useItemWhenType(baseComponentId, 'Payment').textResourceBindings ?? {};

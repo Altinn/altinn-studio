@@ -13,7 +13,7 @@ describe('InputfieldsWithTranslation', () => {
   it('renders NB field with correct label and description', () => {
     renderInputfieldsWithTranslation();
 
-    expect(getTextbox(`${label} (${textMock('language.nb')}) ${required}`)).toBeInTheDocument();
+    expect(getTextbox(`${label} (${textMock('language.nb')})`)).toBeInTheDocument();
     expect(getText(description)).toBeInTheDocument();
   });
 
@@ -30,7 +30,7 @@ describe('InputfieldsWithTranslation', () => {
     const updateLanguage = jest.fn();
     renderInputfieldsWithTranslation({ updateLanguage });
 
-    const input = getTextbox(`${label} (${textMock('language.nb')}) ${required}`);
+    const input = getTextbox(`${label} (${textMock('language.nb')})`);
     const newText: string = 'A';
     await user.type(input, newText);
 
@@ -44,7 +44,6 @@ describe('InputfieldsWithTranslation', () => {
 
 const label = textMock('label');
 const description = textMock('some_description_translation');
-const required = textMock('general.required');
 const value: SupportedLanguage = { nb: 'Tjeneste', nn: '', en: '' };
 
 const defaultProps: InputfieldsWithTranslationProps = {

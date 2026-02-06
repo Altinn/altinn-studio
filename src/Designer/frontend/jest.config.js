@@ -62,6 +62,7 @@ const config = {
     '^@altinn/text-editor/(.*)': path.join(__dirname, 'packages/text-editor/src/$1'),
     '^@altinn/ux-editor/(.*)': path.join(__dirname, 'packages/ux-editor/src/$1'),
     '^@altinn/ux-editor-v3/(.*)': path.join(__dirname, 'packages/ux-editor-v3/src/$1'),
+    '^@studio/guard/(.*)': path.join(__dirname, 'libs/studio-guard/$1'),
     '^@studio/icons/(.*)': path.join(__dirname, 'libs/studio-icons/$1'),
     '^@studio/components/(.*)': path.join(__dirname, 'libs/studio-components/$1'),
     '^@studio/components-legacy/(.*)': path.join(__dirname, 'libs/studio-components-legacy/$1'),
