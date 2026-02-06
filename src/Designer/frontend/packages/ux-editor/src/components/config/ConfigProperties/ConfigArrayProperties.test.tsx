@@ -4,41 +4,35 @@ import { ConfigArrayProperties, type ConfigArrayPropertiesProps } from './Config
 import { componentMocks } from '../../../testing/componentMocks';
 import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import userEvent from '@testing-library/user-event';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
+import {
+  cancelConfigAndVerify,
+  getPropertyByRole,
+  openConfigAndVerify,
+  saveConfigChanges,
+} from './testConfigUtils';
 
 describe('ConfigArrayProperties', () => {
-  it('should call handleComponentUpdate and setSelectedValue when array property is updated', async () => {
+  it('should call handleComponentUpdate when array property is updated', async () => {
     const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
     renderConfigArrayProperties({ props: { handleComponentUpdate: handleComponentUpdateMock } });
-    const arrayPropertyButton = screen.getByRole('button', {
-      name: textMock(`ux_editor.component_properties.${supportedKey}`),
-    });
-    await user.click(arrayPropertyButton);
-    await selectOption('option1');
+    await openConfigAndVerify({ user, property: supportedKey });
+    await selectOption(user, 'option1');
 
-    await waitFor(() => {
-      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          [supportedKey]: ['option1'],
-        }),
-      );
-    });
-    const selectedValueDisplay = screen.getByRole('option', {
-      name: textMock('ux_editor.component_properties.enum_option1'),
-    });
-    expect(selectedValueDisplay).toBeInTheDocument();
+    await saveConfigChanges(user);
+    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        [supportedKey]: ['option1'],
+      }),
+    );
   });
 
   it('should only render array properties with items of type string AND enum values', async () => {
     const user = userEvent.setup();
     renderConfigArrayProperties({});
-    await user.click(screen.getByText(textMock(`ux_editor.component_properties.${supportedKey}`)));
-    expect(
-      screen.getByRole('combobox', {
-        name: textMock(`ux_editor.component_properties.${supportedKey}`),
-      }),
-    ).toBeInTheDocument();
+    await openConfigAndVerify({ user, property: supportedKey });
+    expect(getPropertyByRole('combobox', supportedKey)).toBeInTheDocument();
   });
 
   it('should render array properties with enum values correctly', async () => {
@@ -52,10 +46,7 @@ describe('ConfigArrayProperties', () => {
         },
       },
     });
-    const arrayPropertyButton = screen.getByRole('button', {
-      name: textMock(`ux_editor.component_properties.${supportedKey}`),
-    });
-    await user.click(arrayPropertyButton);
+    await openConfigAndVerify({ user, property: supportedKey });
     for (const dataType of enumValues) {
       expect(
         screen.getByText(textMock(`ux_editor.component_properties.enum_${dataType}`)),
@@ -65,13 +56,11 @@ describe('ConfigArrayProperties', () => {
 
   it("should render in edit mode when 'keepEditOpen' is true", async () => {
     renderConfigArrayProperties({ props: { keepEditOpen: true } });
-    const combobox = screen.getByRole('combobox', {
-      name: textMock(`ux_editor.component_properties.${supportedKey}`),
-    });
-    expect(combobox).toBeInTheDocument();
+    expect(getPropertyByRole('combobox', supportedKey)).toBeInTheDocument();
   });
 
   it('should call handleComponentUpdate in keepEditOpen mode when array property is updated', async () => {
+    const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
     renderConfigArrayProperties({
       props: {
@@ -79,7 +68,7 @@ describe('ConfigArrayProperties', () => {
         keepEditOpen: true,
       },
     });
-    await selectOption('option2');
+    await selectOption(user, 'option2');
     await waitFor(() => {
       expect(handleComponentUpdateMock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -87,6 +76,13 @@ describe('ConfigArrayProperties', () => {
         }),
       );
     });
+  });
+
+  it('should close the select editor when clicking cancel button', async () => {
+    const user = userEvent.setup();
+    renderConfigArrayProperties({});
+    await openConfigAndVerify({ user, property: supportedKey });
+    await cancelConfigAndVerify(user);
   });
 });
 
@@ -103,16 +99,16 @@ const defaultArraySchema = {
   },
 };
 
-const selectOption = async (optionText: string) => {
-  const user = userEvent.setup();
-  const combobox = screen.getByRole('combobox', {
-    name: textMock(`ux_editor.component_properties.${supportedKey}`),
-  });
+const selectOption = async (user: UserEvent, optionText: string) => {
+  const combobox = getPropertyByRole('combobox', supportedKey);
   await user.click(combobox);
+
   const option = screen.getByRole('option', {
     name: textMock(`ux_editor.component_properties.enum_${optionText}`),
   });
   await user.click(option);
+  await waitFor(() => expect(option).toHaveAttribute('aria-selected', 'true'));
+  await user.click(document.body);
 };
 
 const renderConfigArrayProperties = ({

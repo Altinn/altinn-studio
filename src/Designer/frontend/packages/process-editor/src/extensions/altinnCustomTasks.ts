@@ -31,6 +31,11 @@ export const altinnCustomTasks = {
           isMany: false,
           type: 'PaymentConfig',
         },
+        {
+          name: 'pdfConfig',
+          isMany: false,
+          type: 'PdfConfig',
+        },
       ],
     },
     {
@@ -162,6 +167,55 @@ export const altinnCustomTasks = {
           isMany: false,
           isBody: true,
           type: 'Boolean',
+        },
+      ],
+    },
+    {
+      name: 'PdfConfig',
+      properties: [
+        {
+          name: 'filenameTextResourceKey',
+          isMany: false,
+          isAttr: false,
+          type: 'FilenameTextResourceKey',
+        },
+        {
+          name: 'autoPdfTaskIds',
+          isMany: false,
+          type: 'AutoPdfTaskIds',
+        },
+      ],
+    },
+    {
+      name: 'FilenameTextResourceKey',
+      properties: [
+        {
+          name: 'value',
+          isMany: false,
+          isBody: true,
+          type: 'String',
+        },
+      ],
+    },
+    {
+      name: 'AutoPdfTaskIds',
+      properties: [
+        {
+          name: 'taskIds',
+          isMany: true,
+          isAttr: false,
+          type: 'TaskId',
+        },
+      ],
+    },
+    {
+      name: 'TaskId',
+      properties: [
+        {
+          name: 'value',
+          isMany: false,
+          isBody: true,
+          type: 'String',
         },
       ],
     },

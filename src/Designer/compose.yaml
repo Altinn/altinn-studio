@@ -56,6 +56,7 @@ services:
       - 'designer-git-data:/AltinnCore/Repos'
       - 'keys:/mnt/keys'
     environment:
+      - OTEL_SERVICE_NAME=studio-designer
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:6000
       - GeneralSettings:AltinnStudioEndpoint=http://studio.localhost/
@@ -176,7 +177,7 @@ services:
 
   studio_db:
     container_name: studio-db
-    image: postgres:alpine
+    image: postgres:16-alpine
     restart: always
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

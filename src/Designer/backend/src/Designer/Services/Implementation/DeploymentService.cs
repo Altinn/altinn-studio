@@ -94,9 +94,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<DeploymentEntity> CreateAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, DeploymentModel deployment, CancellationToken cancellationToken = default)
+        public async Task<DeploymentEntity> CreateAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, DeploymentModel deployment)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             DeploymentEntity deploymentEntity = new();
             deploymentEntity.PopulateBaseProperties(authenticatedContext.Org, authenticatedContext.Repo, _httpContext);
             deploymentEntity.TagName = deployment.TagName;
@@ -104,7 +103,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(authenticatedContext.Org, authenticatedContext.Repo, deploymentEntity.TagName);
             await _applicationInformationService
-                .UpdateApplicationInformationAsync(authenticatedContext.Org, authenticatedContext.Repo, release.TargetCommitish, deployment.EnvName, cancellationToken);
+                .UpdateApplicationInformationAsync(authenticatedContext.Org, authenticatedContext.Repo, release.TargetCommitish, deployment.EnvName);
 
             bool shouldPushSyncRootImage = false;
 
@@ -131,9 +130,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 EventType = DeployEventType.PipelineScheduled,
                 Message = $"Pipeline {queuedBuild.Id} scheduled",
                 Timestamp = _timeProvider.GetUtcNow()
-            }, cancellationToken);
+            });
 
-            await PublishDeploymentPipelineQueued(AltinnRepoEditingContext.FromOrgRepoDeveloper(authenticatedContext.Org, authenticatedContext.Repo, deploymentEntity.CreatedBy), queuedBuild, PipelineType.Deploy, deployment.EnvName, CancellationToken.None);
+            await PublishDeploymentPipelineQueued(AltinnRepoEditingContext.FromOrgRepoDeveloper(authenticatedContext.Org, authenticatedContext.Repo, deploymentEntity.CreatedBy), queuedBuild, PipelineType.Deploy, deployment.EnvName);
             return createdEntity;
         }
 
@@ -171,8 +170,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new SearchResults<DeploymentEntity> { Results = deploymentEntities.Where(item => environmentNames.Contains(item.EnvName)).ToList() };
         }
 
-        public async Task UndeployAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, string env,
-            CancellationToken cancellationToken = default)
+        public async Task UndeployAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, string env)
         {
             Guard.AssertValidEnvironmentName(env);
             GitOpsManagementBuildParameters gitOpsManagementBuildParameters = new()
@@ -188,7 +186,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // find the deployed tag
             DeploymentEntity lastDeployed = await _deploymentRepository.GetLastDeployed(authenticatedContext.Org, authenticatedContext.Repo, env);
 
-            bool useGitOpsDecommission = await ShouldUseGitOpsDecommission(authenticatedContext, env, cancellationToken);
+            bool useGitOpsDecommission = await ShouldUseGitOpsDecommission(authenticatedContext, env);
             int definitionId = useGitOpsDecommission
                 ? _azureDevOpsSettings.GitOpsManagerDefinitionId
                 : _azureDevOpsSettings.DecommissionDefinitionId;
@@ -216,12 +214,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 EventType = useGitOpsDecommission ? DeployEventType.PipelineScheduled : DeployEventType.DeprecatedPipelineScheduled,
                 Message = $"Undeploy pipeline {build.Id} scheduled",
                 Timestamp = _timeProvider.GetUtcNow()
-            }, cancellationToken);
+            });
 
-            await PublishDeploymentPipelineQueued(authenticatedContext, build, PipelineType.Undeploy, env, CancellationToken.None);
+            await PublishDeploymentPipelineQueued(authenticatedContext, build, PipelineType.Undeploy, env);
         }
 
-        private async Task<bool> ShouldUseGitOpsDecommission(AltinnAuthenticatedRepoEditingContext authenticatedContext, string env, CancellationToken cancellationToken)
+        private async Task<bool> ShouldUseGitOpsDecommission(AltinnAuthenticatedRepoEditingContext authenticatedContext, string env)
         {
             if (!await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
             {
@@ -239,7 +237,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 authenticatedContext.Org,
                 authenticatedContext.Repo,
                 environment,
-                cancellationToken);
+                CancellationToken.None);
         }
 
         private async Task<bool> RemoveAppFromGitOpsRepoIfExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, string env)
@@ -268,15 +266,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return true;
         }
 
-        private async Task PublishDeploymentPipelineQueued(AltinnRepoEditingContext editingContext, Build build, PipelineType pipelineType, string environment,
-            CancellationToken cancellationToken) =>
+        private async Task PublishDeploymentPipelineQueued(AltinnRepoEditingContext editingContext, Build build, PipelineType pipelineType, string environment) =>
             await _mediatr.Publish(new DeploymentPipelineQueued
             {
                 EditingContext = editingContext,
                 BuildId = build.Id,
                 PipelineType = pipelineType,
                 Environment = environment
-            }, cancellationToken);
+            });
 
         /// <inheritdoc/>
         public async Task PublishSyncRootAsync(AltinnOrgEditingContext editingContext, AltinnEnvironment environment, CancellationToken cancellationToken = default)

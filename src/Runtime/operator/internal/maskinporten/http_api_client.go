@@ -22,7 +22,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/jonboulle/clockwork"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -80,7 +79,7 @@ func NewHttpApiClient(
 		context:       opCtx,
 		client:        http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)},
 		hydrated:      false,
-		tracer:        otel.Tracer(telemetry.ServiceName),
+		tracer:        telemetry.Tracer(),
 		clock:         clock,
 		logger:        log.Log.WithName("maskinporten-client"),
 

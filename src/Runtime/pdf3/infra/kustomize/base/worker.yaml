@@ -213,6 +213,17 @@ spec:
             failureThreshold: 5
             timeoutSeconds: 2
           env:
+          - name: POD_UID
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.uid
+          - name: OTEL_RESOURCE_ATTRIBUTES
+            value: "k8s.pod.uid=$(POD_UID)"
+          - name: OTEL_SERVICE_NAME
+            value: "pdf3-worker"
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "http://otel-router.runtime-obs.svc.cluster.local:4317"
           - name: TZ
             value: Europe/Oslo
           - name: PDF3_UPGRADE_CHANNEL
@@ -246,16 +257,3 @@ spec:
           volumeMounts:
           - mountPath: /tmp
             name: tmpdisk
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: pdf3-worker
-spec:
-  selector:
-    matchLabels:
-      app: pdf3-worker
-  endpoints:
-  - port: http
-    path: /metrics
-    interval: 10s
