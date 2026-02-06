@@ -81,7 +81,7 @@ jobs:
           links-filepath: 'src/App/frontend/.lighthouseci/links.json'
           base-url: '${{ secrets.LHCI_SERVER_URL }}/v1'
           project-id: ${{ secrets.LHCI_ALTINN_APP_PROJECT_ID }}
-          current-commit-sha: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          current-commit-sha: ${{ github.event.pull_request.head.sha }}
           basic-auth-username: ${{ secrets.LHCI_BASIC_AUTH_USERNAME }}
           basic-auth-password: ${{ secrets.LHCI_BASIC_AUTH_PASSWORD }}
 
