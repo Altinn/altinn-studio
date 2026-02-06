@@ -91,14 +91,6 @@ export const DeploymentEnvironmentLogList = ({
                 const areLogsAvailable = DateUtils.isDateWithinDays(deploy.build.started, 30);
 
                 const tableCellStatusClassName = classes[deploymentStatus];
-                const firstEvent = deploy.events.at(0);
-                const lastEvent = deploy.events.at(-1);
-                const deployStartTime = firstEvent?.created
-                  ? new Date(firstEvent.created).getTime()
-                  : undefined;
-                const deployFinishTime = lastEvent?.created
-                  ? new Date(lastEvent.created).getTime()
-                  : undefined;
 
                 return (
                   <Table.Row key={deploy.build.id} className={tableCellStatusClassName}>
@@ -125,26 +117,42 @@ export const DeploymentEnvironmentLogList = ({
                           <Trans
                             i18nKey={`app_deployment.pipeline_deployment.build_result.failed.details`}
                             components={{
-                              grafana: (
-                                <StudioLink
-                                  href={grafanaPodLogsUrl({
-                                    org,
-                                    env: envName,
-                                    app,
-                                    isProduction,
-                                    deployStartTime,
-                                    deployFinishTime,
-                                  })}
-                                  rel='noopener noreferrer'
-                                  target='_blank'
-                                  icon={
-                                    <ExternalLinkIcon title={t('general.open_app_in_new_window')} />
-                                  }
-                                  iconPlacement={'right'}
-                                >
-                                  Grafana
-                                </StudioLink>
-                              ),
+                              grafana: (() => {
+                                const deployStart =
+                                  deploy.events.at(0)?.created ?? deploy.build.started;
+                                const deployStartTime = deployStart
+                                  ? new Date(deployStart).getTime()
+                                  : undefined;
+
+                                const deployFinish =
+                                  deploy.events.at(-1)?.created ?? deploy.build.finished;
+                                const deployFinishTime = deployFinish
+                                  ? new Date(deployFinish).getTime()
+                                  : undefined;
+
+                                return (
+                                  <StudioLink
+                                    href={grafanaPodLogsUrl({
+                                      org,
+                                      env: envName,
+                                      app,
+                                      isProduction,
+                                      deployStartTime,
+                                      deployFinishTime,
+                                    })}
+                                    rel='noopener noreferrer'
+                                    target='_blank'
+                                    icon={
+                                      <ExternalLinkIcon
+                                        title={t('general.open_app_in_new_window')}
+                                      />
+                                    }
+                                    iconPlacement={'right'}
+                                  >
+                                    Grafana
+                                  </StudioLink>
+                                );
+                              })(),
                               buildLog: (
                                 <StudioLink
                                   href={getAzureDevopsBuildResultUrl(deploy.build.id)}
