@@ -44,6 +44,8 @@ jobs:
     needs: [build-frontend, build-localtest]
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
 
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
@@ -53,35 +55,64 @@ jobs:
           docker-profile: test-apps
 
       - name: Run Lighthouse CI
-        id: lighthouse-ci
         env:
           ENV: 'CI' # Signals to src/App/frontend/lighthouserc.js that we're running in CI
           LHCI_SERVER_URL: ${{ secrets.LHCI_SERVER_URL }}
           LHCI_BUILD_TOKEN: ${{ secrets.LHCI_ALTINN_APP_BUILD_TOKEN }}
           LHCI_USERNAME: ${{ secrets.LHCI_BASIC_AUTH_USERNAME }}
           LHCI_PASSWORD: ${{ secrets.LHCI_BASIC_AUTH_PASSWORD }}
+          LHCI_BUILD_CONTEXT__ANCESTOR_HASH: ${{ github.event.pull_request.base.sha || '' }}
         working-directory: src/App/frontend
-        run: |
-          set -e # exit on any failure
-          set -o pipefail # preserve exit codes in pipes
-          yarn run lhci 2>&1 | tee lighthouse_output.txt
+        run: yarn run lhci
+      - name: Compare Lighthouse results
+        id: lighthouse-compare
+        if: github.event_name == 'pull_request'
+        continue-on-error: false
+        uses: adevinta/actions-lighthouseci-compare@10b06f197bf31d8f6d66021376c79164cab167c9 # v1.1.7
+        with:
+          links-filepath: 'src/App/frontend/.lighthouseci/links.json'
+          base-url: '${{ secrets.LHCI_SERVER_URL }}/v1'
+          project-id: ${{ secrets.LHCI_ALTINN_APP_PROJECT_ID }}
+          current-commit-sha: ${{ github.event.pull_request.head.sha }}
+          basic-auth-username: ${{ secrets.LHCI_BASIC_AUTH_USERNAME }}
+          basic-auth-password: ${{ secrets.LHCI_BASIC_AUTH_PASSWORD }}
 
-          # Extract the report URL (handles both LHCI server and temporary storage URLs)
-          REPORT_URL=$(grep -oE 'https://((dev\.|staging\.)?altinn\.studio:9001/app/projects/[^[:space:]]*|storage\.googleapis\.com/lighthouse-infrastructure\.appspot\.com/reports/[^[:space:]]*)' lighthouse_output.txt || echo "")
-          echo "report_url=$REPORT_URL" >> $GITHUB_OUTPUT
       - name: Comment PR with Lighthouse Report
-        if: github.event_name == 'pull_request' && steps.lighthouse-ci.outputs.report_url != ''
+        if: github.event_name == 'pull_request' && steps.lighthouse-compare.outputs.markdown != ''
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         env:
-          REPORT_URL: ${{ steps.lighthouse-ci.outputs.report_url }}
+          COMPARE_MARKDOWN: ${{ steps.lighthouse-compare.outputs.markdown }}
         with:
           script: |
-            github.rest.issues.createComment({
+            const marker = '<!-- lighthouse-ci-report -->';
+            const compareMarkdown = process.env.COMPARE_MARKDOWN;
+
+            let body = marker + '\n🔍 **Lighthouse Report**\n\n' + compareMarkdown;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '🔍 **Lighthouse Report**\n\n📊 [View Performance Report](${{ env.REPORT_URL }})'
             });
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              body += `\n\n---\n*Edited*`;
+
+              await github.rest.issues.updateComment({
+                comment_id: existing.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              });
+            }
 
       - name: Stop localtest
         if: always()
