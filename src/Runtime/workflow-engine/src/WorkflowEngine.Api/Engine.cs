@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using Altinn.Studio.Runtime.Common;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Api.Constants;
@@ -71,6 +72,8 @@ internal partial class Engine : IEngine, IDisposable
         // TODO: This may longer be required. Discuss more in depth later.
         bool placeholderEnabledResponse = await Task.Run(() => true, cancellationToken);
 
+        // await Task.Delay(TimeSpan.FromSeconds(0.5), cancellationToken);
+
         await _isEnabledHistory.Add(placeholderEnabledResponse);
 
         var latest = await _isEnabledHistory.Latest();
@@ -125,7 +128,7 @@ internal partial class Engine : IEngine, IDisposable
 
     private async Task MainLoop(CancellationToken cancellationToken)
     {
-        using var activity = Telemetry.Source.StartActivity("Engine.MainLoop");
+        using var activity = StartMainLoopActivity();
         _logger.EnteringMainLoop(InboxCount, _inboxCapacityLimit.CurrentCount);
 
         // Should we run?
@@ -208,11 +211,7 @@ internal partial class Engine : IEngine, IDisposable
             return;
         }
 
-        using var activity = Telemetry.Source.StartLinkedRootActivity(
-            "Engine.ProcessWorkflow",
-            additionalLinks: Telemetry.ParseSourceContext(workflow.TraceContext),
-            tags: workflow.GetActivityTags()
-        );
+        using var activity = StartProcessWorkflowActivity(workflow);
 
         try
         {
@@ -220,6 +219,14 @@ internal partial class Engine : IEngine, IDisposable
             {
                 // Process the steps
                 case TaskStatus.None:
+
+                    // If this is the first time we're seeing this workflow
+                    if (workflow.ExecutionStartedAt is null)
+                    {
+                        RecordWorkflowQueueTime(workflow);
+                        workflow.ExecutionStartedAt = _timeProvider.GetUtcNow();
+                    }
+
                     await ProcessSteps(workflow, cancellationToken);
 
                     PersistentItemStatus updatedJobStatus = workflow.OverallStatus();
@@ -249,6 +256,10 @@ internal partial class Engine : IEngine, IDisposable
                 case TaskStatus.Finished:
                     _logger.CleaningUpWorkflowDbTask(workflow);
                     workflow.CleanupDatabaseTask();
+
+                    RecordWorkflowServiceTime(workflow);
+                    RecordWorkflowTotalTime(workflow);
+
                     break;
 
                 // Something insane has happened
@@ -289,7 +300,7 @@ internal partial class Engine : IEngine, IDisposable
             return;
         }
 
-        // Workflow is done (success or permanent failure). Remove and release queue slot
+        // Workflow is done (success or permanent failure)
         RemoveJobAndReleaseQueueSlot(workflow);
         _logger.WorkflowCompleted(workflow);
     }
@@ -315,7 +326,7 @@ internal partial class Engine : IEngine, IDisposable
             }
 
             _logger.ProcessingStep(step);
-            using var activity = Telemetry.Source.StartActivity("Engine.ProcessSteps", tags: step.GetActivityTags());
+            using var activity = StartProcessStepActivity(step);
 
             var currentState = new
             {
@@ -349,11 +360,8 @@ internal partial class Engine : IEngine, IDisposable
                         step.CleanupExecutionTask();
                         step.CleanupDatabaseTask();
 
-                        var totalDuration = _timeProvider
-                            .GetUtcNow()
-                            .Subtract(previous?.UpdatedAt ?? step.CreatedAt)
-                            .TotalSeconds;
-                        Telemetry.StepTotalTime.Record(totalDuration, step.GetHistorgramTags());
+                        RecordStepServiceTime(step);
+                        RecordStepTotalTime(step, previous);
 
                         return;
 
@@ -378,9 +386,7 @@ internal partial class Engine : IEngine, IDisposable
                     // Step is new
                     default:
                         _logger.ExecutingStep(step);
-
-                        var queueDuration = step.GetQueueDeltaTime(_timeProvider).TotalSeconds;
-                        Telemetry.StepQueueTime.Record(queueDuration, step.GetHistorgramTags());
+                        RecordStepQueueTime(step);
 
                         step.ExecutionStartedAt = _timeProvider.GetUtcNow();
                         step.ExecutionTask = _workflowExecutor.Execute(workflow, step, cancellationToken);
@@ -391,18 +397,6 @@ internal partial class Engine : IEngine, IDisposable
             {
                 activity?.Errored(ex);
                 throw;
-            }
-            finally
-            {
-                if (step.IsDone())
-                {
-                    var serviceDuration = _timeProvider
-                        .GetUtcNow()
-                        .Subtract(step.ExecutionStartedAt ?? step.CreatedAt)
-                        .TotalSeconds;
-
-                    Telemetry.StepServiceTime.Record(serviceDuration, step.GetHistorgramTags());
-                }
             }
         }
 

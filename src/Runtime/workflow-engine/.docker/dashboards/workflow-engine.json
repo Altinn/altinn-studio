@@ -16,6 +16,7 @@
     ]
   },
   "editable": true,
+  "refresh": "10s",
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 5,
@@ -65,7 +66,9 @@
               "mode": "off"
             }
           },
+          "fieldMinMax": false,
           "mappings": [],
+          "max": 5,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -92,6 +95,30 @@
                 "value": {
                   "fixedColor": "semi-dark-red",
                   "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "__systemRef": "hideSeriesFrom",
+            "matcher": {
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": [
+                  "Active"
+                ],
+                "prefix": "All except:",
+                "readOnly": true
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": true,
+                  "viz": true
                 }
               }
             ]

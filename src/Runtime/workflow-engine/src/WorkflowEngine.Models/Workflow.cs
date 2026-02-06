@@ -7,6 +7,8 @@ public sealed record Workflow : PersistentItem
     public required InstanceInformation InstanceInformation { get; init; }
     public required IReadOnlyList<Step> Steps { get; init; }
 
+    public DateTimeOffset? ExecutionStartedAt { get; set; }
+
     public static Workflow FromRequest(EngineRequest engineRequest) =>
         new()
         {

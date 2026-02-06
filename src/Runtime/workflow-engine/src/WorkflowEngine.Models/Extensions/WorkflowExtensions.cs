@@ -79,5 +79,10 @@ public static class WorkflowExtensions
                 ("workflow.instance.lock.key", workflow.InstanceLockKey),
                 ("workflow.instance.app", $"{workflow.InstanceInformation.Org}/{workflow.InstanceInformation.App}"),
             ];
+
+        /// <summary>
+        /// Step metadata useful for enriching telemetry histograms.
+        /// </summary>
+        public (string key, object? value)[] GetHistorgramTags() => [("workflow.operation.id", workflow.OperationId)];
     }
 }

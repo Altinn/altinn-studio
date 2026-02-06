@@ -1,3 +1,6 @@
+// CA1024: Use properties where appropriate
+#pragma warning disable CA1024
+
 namespace WorkflowEngine.Models.Extensions;
 
 public static class StepExtensions
@@ -55,10 +58,22 @@ public static class StepExtensions
         /// </summary>
         public TimeSpan GetQueueDeltaTime(TimeProvider timeProvider)
         {
-            List<DateTimeOffset?> candidates = [step.CreatedAt, step.StartAt, step.BackoffUntil];
+            List<DateTimeOffset?> candidates = [step.GetActualStartTime(), step.BackoffUntil];
             DateTimeOffset latest = candidates.OfType<DateTimeOffset>().Max();
 
             return timeProvider.GetUtcNow().Subtract(latest);
+        }
+
+        /// <summary>
+        /// Returns the actual start time of the step, which can be <see cref="Step.StartAt"/> if set,
+        /// or <see cref="Step.CreatedAt"/> by default.
+        /// </summary>
+        public DateTimeOffset GetActualStartTime()
+        {
+            if (step.StartAt is null)
+                return step.CreatedAt;
+
+            return step.StartAt > step.CreatedAt ? step.StartAt.Value : step.CreatedAt;
         }
 
         /// <summary>
