@@ -304,6 +304,7 @@ public class ValidateCustomTemplateTest
     [InlineData("configuration")]
     [InlineData("konfigurasjon")]
     [InlineData("code-change")]
+    [InlineData("codechange")]
     [InlineData("kodeendring")]
     [InlineData("documentation")]
     [InlineData("dokumentasjon")]

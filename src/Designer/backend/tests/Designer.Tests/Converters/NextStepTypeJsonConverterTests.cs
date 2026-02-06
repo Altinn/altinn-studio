@@ -21,6 +21,7 @@ namespace Altinn.Studio.Designer.Tests.Converters
         [InlineData("\"configuration\"", NextStepType.Configuration)]
         [InlineData("\"konfigurasjon\"", NextStepType.Configuration)]
         [InlineData("\"code-change\"", NextStepType.CodeChange)]
+        [InlineData("\"codechange\"", NextStepType.CodeChange)]
         [InlineData("\"kodeendring\"", NextStepType.CodeChange)]
         [InlineData("\"documentation\"", NextStepType.Documentation)]
         [InlineData("\"dokumentasjon\"", NextStepType.Documentation)]
@@ -41,7 +42,7 @@ namespace Altinn.Studio.Designer.Tests.Converters
 
         [Theory]
         [InlineData(NextStepType.Configuration, "\"configuration\"")]
-        [InlineData(NextStepType.CodeChange, "\"code-change\"")]
+        [InlineData(NextStepType.CodeChange, "\"codechange\"")]
         [InlineData(NextStepType.Documentation, "\"documentation\"")]
         public void Write_EnumValue_WritesPreferredString(NextStepType value, string expectedJson)
         {

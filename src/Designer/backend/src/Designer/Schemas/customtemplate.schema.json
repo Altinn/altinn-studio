@@ -79,7 +79,7 @@
                     },
                     "type": {
                         "type": "string",
-                        "enum": [ "configuration", "konfigurasjon", "code-change", "kodeendring", "documentation", "dokumentasjon" ]
+                        "enum": [ "configuration", "konfigurasjon", "codechange", "code-change", "kodeendring", "documentation", "dokumentasjon" ]
                     },
                     "links": {
                         "type": "array",

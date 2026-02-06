@@ -15,6 +15,7 @@ public class NextStepTypeJsonConverter : JsonConverter<NextStepType>
         { "konfigurasjon", NextStepType.Configuration },
 
         { "code-change", NextStepType.CodeChange },
+        { "codechange", NextStepType.CodeChange },
         { "kodeendring", NextStepType.CodeChange },
 
         { "documentation", NextStepType.Documentation },
@@ -25,7 +26,7 @@ public class NextStepTypeJsonConverter : JsonConverter<NextStepType>
     private static readonly Dictionary<NextStepType, string> s_enumToString = new()
     {
         { NextStepType.Configuration, "configuration" },
-        { NextStepType.CodeChange, "code-change" },
+        { NextStepType.CodeChange, "codechange" },
         { NextStepType.Documentation, "documentation" }
     };
 
