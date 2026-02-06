@@ -16,7 +16,7 @@ public class ValidateCustomTemplateTest
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
-         ""name"": ""Test Template"",
+        ""name"": ""Test Template"",
         ""description"": ""Dette er en norsk beskrivelse."",
         ""remove"": [""src/oldfile.txt""],
         ""packageReferences"": [{""project"":""App/*.csproj"", ""include"":""MyPackage"", ""version"":""1.0.0""}],

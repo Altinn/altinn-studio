@@ -93,6 +93,33 @@ namespace Designer.Tests.Controllers.RepositoryController
             {
                 Org = "ttd",
                 Repository = "test",
+
+            }), System.Text.Encoding.UTF8, "application/json");
+
+            _repositoryMock
+                .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<ServiceConfiguration>(), It.IsAny<List<CustomTemplateReference>>()))
+                .ReturnsAsync(new Repository() { RepositoryCreatedStatus = HttpStatusCode.Created, CloneUrl = "https://some.site/this/is/not/relevant" });
+
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            httpRequestMessage.Content = content;
+
+            // Act
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task CreateApp_TemplateIncluded_Created()
+        {
+
+            // Arrange
+            string uri = $"{VersionPrefix}/create-app";
+            var content = new StringContent(JsonSerializer.Serialize(new CreateAppRequest
+            {
+                Org = "ttd",
+                Repository = "test",
                 Template = new CustomTemplateReference
                 {
                     Owner = "ttd",

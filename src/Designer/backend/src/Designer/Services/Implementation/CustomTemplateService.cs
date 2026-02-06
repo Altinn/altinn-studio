@@ -138,10 +138,10 @@ public class CustomTemplateService : ICustomTemplateService
 
             if (File.Exists(templateManifestCachePath))
             {
-                string cachedTemplateList = await File.ReadAllTextAsync(templateManifestCachePath);
-                List<CustomTemplateDto> templates = JsonSerializer.Deserialize<List<CustomTemplateDto>>(cachedTemplateList) ?? [];
-                return templates;
-            }
+            string cachedTemplateList = await File.ReadAllTextAsync(templateManifestCachePath);
+            List<CustomTemplateDto> templates = JsonSerializer.Deserialize<List<CustomTemplateDto>>(cachedTemplateList) ?? [];
+            return templates;
+        }
 
             return [];
         }
@@ -534,7 +534,23 @@ public class CustomTemplateService : ICustomTemplateService
         return Path.GetFileName(fullPath);
     }
 
+    private static void CopyDirectory(string sourceDir, string targetDir)
+    {
+        DirectoryInfo source = new(sourceDir);
+        DirectoryInfo target = new(targetDir);
 
+        foreach (FileInfo file in source.GetFiles())
+        {
+            File.SetAttributes(file.FullName, FileAttributes.Normal);
+            file.CopyTo(Path.Combine(target.FullName, file.Name), overwrite: true);
+        }
+
+        foreach (DirectoryInfo subDir in source.GetDirectories())
+        {
+            DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subDir.Name);
+            CopyDirectory(subDir.FullName, nextTargetSubDir.FullName);
+        }
+    }
 
     // Helper record for cache metadata
     private record TemplateCacheInfo

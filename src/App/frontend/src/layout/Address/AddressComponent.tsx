@@ -49,14 +49,14 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
   const { address, careOf, postPlace, zipCode, houseNumber } = formData;
 
   const updatePostPlace = useOurEffectEvent((newPostPlace) => {
-    if (newPostPlace != null && newPostPlace != postPlace) {
+    if (newPostPlace != null && newPostPlace != postPlace && !readOnly) {
       setValue('postPlace', newPostPlace);
     }
   });
 
   const zipCodeDebounced = FD.useDebouncedPick(dataModelBindings.zipCode);
   const slowZip = typeof zipCodeDebounced === 'string' ? zipCodeDebounced : undefined;
-  const postPlaceQueryData = usePostPlace(slowZip, !hasValidationErrors(bindingValidations?.zipCode));
+  const postPlaceQueryData = usePostPlace(slowZip, !hasValidationErrors(bindingValidations?.zipCode) && !readOnly);
   useEffect(() => updatePostPlace(postPlaceQueryData), [postPlaceQueryData, updatePostPlace]);
 
   return (
