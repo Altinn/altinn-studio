@@ -55,7 +55,6 @@ jobs:
           docker-profile: test-apps
 
       - name: Run Lighthouse CI
-        id: lighthouse-ci
         env:
           ENV: 'CI' # Signals to src/App/frontend/lighthouserc.js that we're running in CI
           LHCI_SERVER_URL: ${{ secrets.LHCI_SERVER_URL }}
@@ -64,14 +63,7 @@ jobs:
           LHCI_PASSWORD: ${{ secrets.LHCI_BASIC_AUTH_PASSWORD }}
           LHCI_BUILD_CONTEXT__ANCESTOR_HASH: ${{ github.event.pull_request.base.sha || '' }}
         working-directory: src/App/frontend
-        run: |
-          set -e # exit on any failure
-          set -o pipefail # preserve exit codes in pipes
-          yarn run lhci 2>&1 | tee lighthouse_output.txt
-
-          # Extract the report URL (handles both LHCI server and temporary storage URLs)
-          REPORT_URL=$(grep -oE 'https://((dev\.|staging\.)?altinn\.studio:9001/app/projects/[^[:space:]]*|storage\.googleapis\.com/lighthouse-infrastructure\.appspot\.com/reports/[^[:space:]]*)' lighthouse_output.txt || echo "")
-          echo "report_url=$REPORT_URL" >> $GITHUB_OUTPUT
+        run: yarn run lhci
       - name: Compare Lighthouse results
         id: lighthouse-compare
         if: github.event_name == 'pull_request'
@@ -86,24 +78,16 @@ jobs:
           basic-auth-password: ${{ secrets.LHCI_BASIC_AUTH_PASSWORD }}
 
       - name: Comment PR with Lighthouse Report
-        if: github.event_name == 'pull_request' && (steps.lighthouse-ci.outputs.report_url != '' || steps.lighthouse-compare.outputs.markdown != '')
+        if: github.event_name == 'pull_request' && steps.lighthouse-compare.outputs.markdown != ''
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         env:
-          REPORT_URL: ${{ steps.lighthouse-ci.outputs.report_url }}
           COMPARE_MARKDOWN: ${{ steps.lighthouse-compare.outputs.markdown }}
         with:
           script: |
             const marker = '<!-- lighthouse-ci-report -->';
-            const reportUrl = process.env.REPORT_URL;
             const compareMarkdown = process.env.COMPARE_MARKDOWN;
 
-            let body = marker + '\n🔍 **Lighthouse Report**\n\n';
-            if (compareMarkdown) {
-              body += compareMarkdown + '\n\n';
-            }
-            if (reportUrl) {
-              body += `📊 [View Full Report](${reportUrl})\n`;
-            }
+            let body = marker + '\n🔍 **Lighthouse Report**\n\n' + compareMarkdown;
 
             const comments = await github.paginate(github.rest.issues.listComments, {
               issue_number: context.issue.number,
@@ -113,7 +97,7 @@ jobs:
             const existing = comments.find(c => c.body.includes(marker));
 
             if (existing) {
-              body += `\n---\n*Edited*`;
+              body += `\n\n---\n*Edited*`;
 
               await github.rest.issues.updateComment({
                 comment_id: existing.id,
