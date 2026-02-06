@@ -267,7 +267,6 @@
   "app_settings.about_tab_available_for_type_private": "Privatperson",
   "app_settings.about_tab_available_for_type_self_registered": "Selvregistrert bruker",
   "app_settings.about_tab_contact_point_add_button_text": "Legg til ny kontakt",
-  "app_settings.about_tab_contact_point_delete_button_text": "Slett kontakt {{index}}",
   "app_settings.about_tab_contact_point_delete_confirm": "Er du sikker på at du vil slette denne kontakten?",
   "app_settings.about_tab_contact_point_dialog_add_title": "Legg til kontaktinformasjon",
   "app_settings.about_tab_contact_point_fieldset_category_description": "Legg inn en beskrivende tittel, for eksempel \"Ring oss\", \"Brukerstøtte\" eller \"Chat med oss\".",
