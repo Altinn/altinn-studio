@@ -47,7 +47,7 @@ describe('ContactPointTableRow', () => {
     });
     await user.click(linkButton);
     expect(onLinkClick).toHaveBeenCalledTimes(1);
-    expect(onLinkClick).toHaveBeenCalledWith(contactPage);
+    expect(onLinkClick).toHaveBeenCalledWith(`https://${contactPage}`);
   });
 
   it('calls onEdit and onRemove with the row index when their buttons are clicked', async () => {
