@@ -61,6 +61,10 @@ namespace Altinn.Studio.Designer.Helpers
         {
             DirectoryInfo source = new(sourceDir);
             DirectoryInfo target = new(targetDir);
+            if (!target.Exists)
+            {
+                target.Create();
+            }
 
             foreach (FileInfo file in source.GetFiles())
             {
