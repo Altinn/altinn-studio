@@ -50,9 +50,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ILogger _logger;
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly IApplicationMetadataService _applicationMetadataService;
-        private readonly IAppDevelopmentService _appDevelopmentService;
         private readonly ITextsService _textsService;
         private readonly IResourceRegistry _resourceRegistryService;
+        private readonly ICustomTemplateService _templateService;
         private readonly JsonSerializerOptions _serializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
 
         /// <summary>
@@ -66,9 +66,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="logger">The logger</param>
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
         /// <param name="applicationMetadataService">The service for handling the application metadata file</param>
-        /// <param name="appDevelopmentService">The service for handling files concerning app-development</param>
         /// <param name="textsService">The service for handling texts</param>
         /// <param name="resourceRegistryService">The service for publishing resource in the ResourceRegistry</param>
+        /// <param name="templateService">The service for handling custom templates</param>
         public RepositoryService(
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
@@ -78,9 +78,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ILogger<RepositoryService> logger,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             IApplicationMetadataService applicationMetadataService,
-            IAppDevelopmentService appDevelopmentService,
             ITextsService textsService,
-            IResourceRegistry resourceRegistryService)
+            IResourceRegistry resourceRegistryService,
+            ICustomTemplateService templateService)
         {
             _settings = repositorySettings;
             _generalSettings = generalSettings;
@@ -90,9 +90,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _logger = logger;
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _applicationMetadataService = applicationMetadataService;
-            _appDevelopmentService = appDevelopmentService;
             _textsService = textsService;
             _resourceRegistryService = resourceRegistryService;
+            _templateService = templateService;
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.AppSlnFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.GitIgnoreFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerIgnoreFileName);
-            UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName);
+
             return true;
         }
 
@@ -214,14 +214,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return deleted;
         }
 
-        /// <summary>
-        /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
-        /// given <paramref name="serviceConfig"/>
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="serviceConfig">The ServiceConfiguration to save</param>
-        /// <returns>The repository created in gitea</returns>
-        public async Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig)
+        /// <inheritdoc/>
+        public async Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig, List<CustomTemplateReference> templates)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
@@ -247,24 +241,42 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     RepositoryName = serviceConfig.RepositoryName,
                 };
 
-                // This creates all files
-                CreateServiceMetadata(metadata);
-                await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
-                await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
-                await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer);
+                try
+                {
+                    // This creates all files
+                    CreateServiceMetadata(metadata);
+                    await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
+                    await ApplyCustomTemplates(org, serviceConfig.RepositoryName, developer, templates);
+                    await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer, templates);
 
-                CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
+                    await _applicationMetadataService.SetCoreProperties(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
 
-                _sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
+                    CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
+                    _sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
+                }
+                catch (Exception)
+                {
+                    // Cleanup repository on failure
+                    await DeleteRepository(org, serviceConfig.RepositoryName);
+                    throw;
+                }
             }
 
             return repository;
         }
 
-        private async Task CreateAltinnStudioSettings(string org, string repository, string developer)
+        private async Task ApplyCustomTemplates(string org, string repositoryName, string developer, List<CustomTemplateReference> templates)
+        {
+            foreach (CustomTemplateReference templateRef in templates)
+            {
+                await _templateService.ApplyTemplateToRepository(templateRef.Owner, templateRef.Id, org, repositoryName, developer);
+            }
+        }
+
+        private async Task CreateAltinnStudioSettings(string org, string repository, string developer, List<CustomTemplateReference> templates)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
-            var settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, UseNullableReferenceTypes = true };
+            var settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, UseNullableReferenceTypes = true, Templates = templates };
             await altinnGitRepository.SaveAltinnStudioSettings(settings);
         }
 
@@ -345,17 +357,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<RepositoryClient.Model.Repository> CreateRemoteRepository(string org, CreateRepoOption options)
         {
             return await _giteaClient.CreateRepository(org, options);
-        }
-
-        // IKKE SLETT
-        private void UpdateAuthorizationPolicyFile(string org, string app)
-        {
-            // Read the authorization policy template (XACML file).
-            string path = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string policyPath = Path.Combine(path, _generalSettings.AuthorizationPolicyTemplate);
-            string authorizationPolicyData = File.ReadAllText(policyPath, Encoding.UTF8);
-
-            File.WriteAllText(policyPath, authorizationPolicyData, Encoding.UTF8);
         }
 
         private void CopyFolderToApp(string org, string app, string sourcePath, string path)

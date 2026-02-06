@@ -160,6 +160,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public async Task SetCoreProperties(string org, string app, string appTitle)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+
+            var appMetadata = await GetApplicationMetadataFromRepository(org, app);
+            string id = ApplicationHelper.GetFormattedApplicationId(org, app);
+
+            appMetadata.Org = org;
+            appMetadata.Id = id;
+            appMetadata.Title = new Dictionary<string, string> { { "nb", appTitle ?? app } };
+            appMetadata.LastChanged = DateTime.UtcNow;
+            appMetadata.LastChangedBy = developer;
+            await UpdateApplicationMetaDataLocally(org, app, appMetadata);
+        }
+
+        /// <inheritdoc/>
         public async Task AddMetadataForAttachment(string org, string app, string applicationMetadata)
         {
             DataType formMetadata = JsonConvert.DeserializeObject<DataType>(applicationMetadata);
