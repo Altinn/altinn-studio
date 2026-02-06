@@ -9,6 +9,9 @@ using WorkflowEngine.Models.Extensions;
 // CA1305: Specify IFormatProvider
 #pragma warning disable CA1305
 
+// Keep unused parameters in worker methods for now
+#pragma warning disable S1172
+
 namespace WorkflowEngine.Api;
 
 internal interface IWorkflowExecutor
@@ -58,6 +61,10 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 _logger.FailedExecution(step, stopwatch.Elapsed, result.Message ?? "no details specified");
 
             return result;
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            throw; // handle this gracefully upstream
         }
         catch (Exception e)
         {

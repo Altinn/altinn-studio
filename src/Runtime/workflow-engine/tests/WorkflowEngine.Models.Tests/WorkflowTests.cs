@@ -16,7 +16,7 @@ public class WorkflowTests
                 InstanceGuid = Guid.NewGuid(),
             };
 
-        using var sharedKey1 = new Workflow
+        var sharedKey1 = new Workflow
         {
             IdempotencyKey = "shared-idempotency-key",
             OperationId = "workflow-1-operation",
@@ -24,7 +24,7 @@ public class WorkflowTests
             InstanceInformation = getRandomInstance(),
             Steps = [],
         };
-        using var sharedKey2 = new Workflow
+        var sharedKey2 = new Workflow
         {
             IdempotencyKey = "shared-idempotency-key",
             OperationId = "workflow-2-operation",
@@ -32,7 +32,7 @@ public class WorkflowTests
             InstanceInformation = getRandomInstance(),
             Steps = [],
         };
-        using var uniqueKey = new Workflow
+        var uniqueKey = new Workflow
         {
             IdempotencyKey = "unique-idempotency-key",
             OperationId = "workflow-3-operation",

@@ -8,6 +8,11 @@ public enum ExecutionStatus
     Success,
 
     /// <summary>
+    /// The execution was canceled.
+    /// </summary>
+    Canceled,
+
+    /// <summary>
     /// The execution failed with a retryable error. This indicates a failure that may succeed when retried.
     /// </summary>
     RetryableError,

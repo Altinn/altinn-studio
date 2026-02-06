@@ -1,6 +1,6 @@
 namespace WorkflowEngine.Models;
 
-public abstract record PersistentItem : IDisposable
+public abstract record PersistentItem
 {
     public long DatabaseId { get; internal set; }
     public required string IdempotencyKey { get; init; }
@@ -11,19 +11,4 @@ public abstract record PersistentItem : IDisposable
     public string? TraceContext { get; set; }
 
     public Task? DatabaseTask { get; set; }
-    public int DatabaseTaskFails { get; set; }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            DatabaseTask?.Dispose();
-        }
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
 }

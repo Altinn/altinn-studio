@@ -39,13 +39,4 @@ public sealed record Step : PersistentItem
 
     public bool Equals(Step? other) =>
         other?.IdempotencyKey.Equals(IdempotencyKey, StringComparison.OrdinalIgnoreCase) is true;
-
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            ExecutionTask?.Dispose();
-            base.Dispose(disposing);
-        }
-    }
 }

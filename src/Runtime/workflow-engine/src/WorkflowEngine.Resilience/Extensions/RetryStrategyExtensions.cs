@@ -130,12 +130,13 @@ public static class RetryStrategyExtensions
 
                     return result;
                 }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
                 catch (Exception ex)
                 {
                     logger?.ExecutionFailed(operationName, attempt, ex.Message, ex);
-
-                    if (cancellationToken.IsCancellationRequested)
-                        throw;
 
                     if (errorHandler?.Invoke(ex) is RetryDecision.Abort)
                     {

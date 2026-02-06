@@ -260,7 +260,10 @@ internal sealed class EnginePgRepository : IEngineRepository
         );
     }
 
+    // Keep this unused method for now, we will probably need it later
+#pragma warning disable S1144
     private async Task<T> ExecuteWithRetry<T>(
+#pragma warning restore S1144
         Func<CancellationToken, Task<T>> operation,
         CancellationToken cancellationToken = default,
         [CallerMemberName] string operationName = ""

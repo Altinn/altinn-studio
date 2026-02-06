@@ -9,7 +9,7 @@ public class StepTests
         var getRandomAppCommand = () => new Command.AppCommand(Guid.NewGuid().ToString());
         var getRandomActor = () => new Actor { UserIdOrOrgNumber = Guid.NewGuid().ToString() };
 
-        using var sharedKey1 = new Step
+        var sharedKey1 = new Step
         {
             IdempotencyKey = "shared-idempotency-key",
             OperationId = "step-1-command",
@@ -17,7 +17,7 @@ public class StepTests
             ProcessingOrder = 0,
             Command = getRandomAppCommand(),
         };
-        using var sharedKey2 = new Step
+        var sharedKey2 = new Step
         {
             IdempotencyKey = "shared-idempotency-key",
             OperationId = "step-2-command",
@@ -25,7 +25,7 @@ public class StepTests
             ProcessingOrder = 0,
             Command = getRandomAppCommand(),
         };
-        using var uniqueKey = new Step
+        var uniqueKey = new Step
         {
             IdempotencyKey = "unique-idempotency-key",
             OperationId = "step-3-command",

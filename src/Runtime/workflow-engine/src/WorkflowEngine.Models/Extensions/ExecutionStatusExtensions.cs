@@ -10,6 +10,11 @@ public static class ExecutionStatusExtensions
         public bool IsSuccess() => result.Status == ExecutionStatus.Success;
 
         /// <summary>
+        /// Determines if the execution result indicates a canceled execution.
+        /// </summary>
+        public bool IsCanceled() => result.Status == ExecutionStatus.Canceled;
+
+        /// <summary>
         /// Determines if the execution result indicates a retryable error.
         /// </summary>
         public bool IsRetryableError() => result.Status == ExecutionStatus.RetryableError;

@@ -198,21 +198,7 @@ internal partial class Engine : IEngine, IDisposable
                     Exception? ex = workflow.DatabaseTask?.Exception;
                     _logger.WorkflowDbTaskFailed(workflow, ex);
 
-                    workflow.DatabaseTaskFails++;
                     workflow.CleanupDatabaseTask();
-
-                    workflow.DatabaseTask = Task.Run(
-                        async () =>
-                        {
-                            await Task.Delay(
-                                _settings.DatabaseRetryStrategy.CalculateDelay(workflow.DatabaseTaskFails),
-                                cancellationToken
-                            );
-                            await UpdateWorkflowInDb(workflow, cancellationToken);
-                            workflow.DatabaseTaskFails = 0;
-                        },
-                        cancellationToken
-                    );
 
                     throw new EngineDbException($"Database operation failed or timed out for workflow {workflow}", ex);
 
@@ -233,6 +219,11 @@ internal partial class Engine : IEngine, IDisposable
                     );
                     break;
             }
+        }
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            activity?.Errored(ex);
+            return;
         }
         catch (Exception ex)
         {
@@ -303,21 +294,7 @@ internal partial class Engine : IEngine, IDisposable
                         Exception? ex = step.DatabaseTask?.Exception;
                         _logger.StepDbTaskFailed(step, ex);
 
-                        step.DatabaseTaskFails++;
                         step.CleanupDatabaseTask();
-
-                        step.DatabaseTask = Task.Run(
-                            async () =>
-                            {
-                                await Task.Delay(
-                                    _settings.DatabaseRetryStrategy.CalculateDelay(step.DatabaseTaskFails),
-                                    cancellationToken
-                                );
-                                await UpdateStepInDb(step, cancellationToken);
-                                step.DatabaseTaskFails = 0;
-                            },
-                            cancellationToken
-                        );
 
                         throw new EngineDbException($"Database operation failed for step {step}", ex);
 
@@ -325,7 +302,7 @@ internal partial class Engine : IEngine, IDisposable
                     case { DatabaseUpdateStatus: TaskStatus.Finished }:
                         _logger.CleaningUpStepDbTask(step);
 
-                        // Clean up and dispose associated tasks
+                        // Clean up tasks
                         step.CleanupExecutionTask();
                         step.CleanupDatabaseTask();
 

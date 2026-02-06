@@ -9,6 +9,11 @@ public record struct ExecutionResult(ExecutionStatus Status, string? Message = n
     public static ExecutionResult Success() => new(ExecutionStatus.Success);
 
     /// <summary>
+    /// Creates a canceled execution result.
+    /// </summary>
+    public static ExecutionResult Canceled() => new(ExecutionStatus.Canceled);
+
+    /// <summary>
     /// Creates a retryable error execution result. This indicates a failure that may succeed when retried.
     /// </summary>
     public static ExecutionResult RetryableError(string message, Exception? exception = null) =>
