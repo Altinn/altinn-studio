@@ -17,11 +17,11 @@ import { ContactPointTableHeader } from './ContactPointTableHeader';
 import { ContactPointTableRow } from './ContactPointTableRow';
 
 //TODO: Refactore ContactPointsTable         ✅
+//TODO: Add tests for ContactPointDialog  ✅
+//TODO: Add tests for ContactPointTableRow   ✅
+//TODO: Add tests for ContactPointTableHeader ✅
+//TODO: Add tests for ContactPointsTable.  ✅
 //TODO: Remove ContactPoints component and related files after ContactPointsTable is in use.  ⌛
-//TODO: Add tests for ContactPointsTable.  ⌛
-//TODO: Add tests for ContactPointDialog  ⌛
-//TODO: Add tests for ContactPointTableRow  ⌛
-//TODO: Add tests for ContactPointTableHeader  ⌛
 
 const emptyContactPoint: ContactPoint = {
   email: '',
