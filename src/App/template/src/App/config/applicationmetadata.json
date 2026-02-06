@@ -35,10 +35,10 @@
     }
   ],
   "partyTypesAllowed": {
-    "bankruptcyEstate": true,
-    "organisation": true,
-    "person": true,
-    "subUnit": true
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
   },
   "autoDeleteOnProcessEnd": false
 }
