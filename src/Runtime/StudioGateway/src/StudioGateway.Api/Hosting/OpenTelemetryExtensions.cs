@@ -1,6 +1,7 @@
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using StudioGateway.Api.Telemetry;
 
 namespace StudioGateway.Api.Hosting;
 
@@ -13,6 +14,7 @@ internal static class OpenTelemetryExtensions
             .WithTracing(tracing =>
             {
                 tracing
+                    .AddSource(ServiceTelemetry.Source.Name)
                     .AddAspNetCoreInstrumentation(options =>
                     {
                         options.RecordException = true;
