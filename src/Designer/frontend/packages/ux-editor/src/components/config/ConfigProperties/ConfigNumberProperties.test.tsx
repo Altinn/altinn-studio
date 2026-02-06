@@ -3,73 +3,66 @@ import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigNumberProperties, type ConfigNumberPropertiesProps } from './ConfigNumberProperties';
 import { componentMocks } from '../../../testing/componentMocks';
 import InputSchema from '../../../testing/schemas/json/component/Input.schema.v1.json';
-import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
+import {
+  cancelConfigAndVerify,
+  getPropertyByRole,
+  openConfigAndVerify,
+  saveConfigChanges,
+} from './testConfigUtils';
+
+const defaultProperty = 'someNumberProperty';
 
 describe('ConfigNumberProperties', () => {
   it('should render property text for "preselectedOptionIndex" with button suffix', () => {
     renderConfigNumberProperties({
       numberPropertyKeys: ['preselectedOptionIndex'],
-      schema: {
-        properties: {
-          preselectedOptionIndex: {
-            type: 'number',
-            enum: [0, 1, 2],
-          },
-        },
-      },
     });
-    expect(
-      screen.getByText(textMock('ux_editor.component_properties.preselectedOptionIndex_button')),
-    ).toBeInTheDocument();
-  });
-
-  it('should render number properties with enum values', async () => {
-    const user = userEvent.setup();
-    renderConfigNumberProperties({
-      numberPropertyKeys: ['someNumberProperty'],
-    });
-    const propertyButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_properties.someNumberProperty'),
-    });
-    await user.click(propertyButton);
-    expect(
-      screen.getByRole('combobox', {
-        name: textMock('ux_editor.component_properties.someNumberProperty'),
-      }),
-    ).toBeInTheDocument();
-  });
-
-  it('should render regular number properties without button suffix', () => {
-    renderConfigNumberProperties({
-      numberPropertyKeys: ['someNumberProperty'],
-      schema: {
-        properties: {
-          someNumberProperty: {
-            description: 'A sample number property',
-          },
-        },
-      },
-    });
-    expect(
-      screen.getByText(textMock('ux_editor.component_properties.someNumberProperty')),
-    ).toBeInTheDocument();
+    expect(getPropertyByRole('button', 'preselectedOptionIndex_button')).toBeInTheDocument();
   });
 
   it('should render EditNumberValue components when keepEditOpen is true', () => {
     renderConfigNumberProperties({
       keepEditOpen: true,
     });
-    expect(
-      screen.getByRole('combobox', {
-        name: textMock('ux_editor.component_properties.someNumberProperty'),
-      }),
-    ).toBeInTheDocument();
+    expect(getPropertyByRole('combobox', defaultProperty)).toBeInTheDocument();
+  });
+
+  it('should be able to toggle number property config', async () => {
+    const user = userEvent.setup();
+    renderConfigNumberProperties();
+    await openConfigAndVerify({ user, property: defaultProperty });
+    await cancelConfigAndVerify(user);
+  });
+
+  it('should call handleComponentUpdate when saving a new value', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdate = jest.fn();
+    renderConfigNumberProperties({
+      handleComponentUpdate,
+      schema: {
+        ...InputSchema,
+        properties: {
+          someNumberProperty: {
+            type: 'number',
+          },
+        },
+      },
+    });
+
+    await openConfigAndVerify({ user, property: defaultProperty });
+    const textBox = getPropertyByRole('textbox', defaultProperty);
+    await user.type(textBox, '2');
+    await saveConfigChanges(user);
+
+    expect(handleComponentUpdate).toHaveBeenCalledWith({
+      ...componentMocks.Input,
+      someNumberProperty: 2,
+    });
   });
 
   const defaultProps: ConfigNumberPropertiesProps = {
-    numberPropertyKeys: ['someNumberProperty'],
+    numberPropertyKeys: [defaultProperty],
     schema: {
       ...InputSchema,
       properties: {
