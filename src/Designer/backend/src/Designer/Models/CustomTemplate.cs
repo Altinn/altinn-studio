@@ -67,7 +67,7 @@ public class NextStepLink
     [JsonPropertyName("label")]
     public required string Label { get; set; }
     [JsonPropertyName("ref")]
-    public required string Ref { get; set; } 
+    public required string Ref { get; set; }
 }
 
 public enum NextStepType

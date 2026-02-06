@@ -138,10 +138,10 @@ public class CustomTemplateService : ICustomTemplateService
 
             if (File.Exists(templateManifestCachePath))
             {
-            string cachedTemplateList = await File.ReadAllTextAsync(templateManifestCachePath);
-            List<CustomTemplateDto> templates = JsonSerializer.Deserialize<List<CustomTemplateDto>>(cachedTemplateList) ?? [];
-            return templates;
-        }
+                string cachedTemplateList = await File.ReadAllTextAsync(templateManifestCachePath);
+                List<CustomTemplateDto> templates = JsonSerializer.Deserialize<List<CustomTemplateDto>>(cachedTemplateList) ?? [];
+                return templates;
+            }
 
             return [];
         }
