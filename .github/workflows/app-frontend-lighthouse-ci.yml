@@ -102,7 +102,7 @@ jobs:
               body += `📊 [View Full Report](${reportUrl})\n`;
             }
 
-            const { data: comments } = await github.rest.issues.listComments({
+            const comments = await github.paginate(github.rest.issues.listComments, {
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
