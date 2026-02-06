@@ -4,7 +4,8 @@ import { EditGrid } from '../editModal/EditGrid';
 import { StudioProperty, StudioConfigCard } from '@studio/components';
 import cn from 'classnames';
 import type { BaseConfigProps } from './types';
-import { componentComparison, getDisplayValue, propHasValues } from './ConfigPropertiesUtils';
+import { componentComparison, propHasValues } from './ConfigPropertiesUtils';
+import { useTranslateKeyValue } from './useTranslateKeyValue';
 
 export interface ConfigGridPropertiesProps extends BaseConfigProps {
   className?: string;
@@ -19,6 +20,7 @@ export const ConfigGridProperties = ({
   const [currentComponent, setCurrentComponent] = useState(initialComponent);
   const t = useText();
   const propertyKey = 'grid';
+  const translatedGridValue = useTranslateKeyValue(initialComponent[propertyKey]);
 
   if (!showGrid) {
     return (
@@ -26,7 +28,7 @@ export const ConfigGridProperties = ({
         className={cn(className)}
         onClick={() => setShowGrid(true)}
         property={t('ux_editor.component_properties.grid')}
-        value={getDisplayValue({ component: initialComponent, propertyKey })}
+        value={translatedGridValue}
       />
     );
   }
