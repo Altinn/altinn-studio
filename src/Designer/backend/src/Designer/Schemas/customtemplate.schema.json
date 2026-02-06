@@ -61,6 +61,39 @@
                     }
                 }
             }
+        },
+        "nextSteps": {
+            "type": "array",
+            "description": "Optional list of next steps for the template user.",
+            "items": {
+                "type": "object",
+                "required": [ "title", "description"],
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "minLength": 5
+                    },
+                    "description": {
+                        "type": "string",
+                        "minLength": 20
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [ "configuration", "code-change", "documentation" ]
+                    },
+                    "links": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [ "label", "ref" ],
+                            "properties": {
+                                "label": { "type": "string" },
+                                "ref": { "type": "string" }
+                            }
+                        }
+                    }                 
+                }
+            }
         }
     }
 }

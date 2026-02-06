@@ -21,7 +21,6 @@ namespace Designer.Tests.Services.CustomTemplate;
 public class ApplyTemplateToRepositoryTests : IDisposable
 {
     private readonly string _testCacheRoot;
-    private readonly string _targetRepoRoot;
     private readonly ServiceRepositorySettings _repoSettings;
     private readonly CustomTemplateSettings _templateSettings;
     private readonly Mock<IGiteaClient> _giteaClientMock;
@@ -31,7 +30,6 @@ public class ApplyTemplateToRepositoryTests : IDisposable
     {
         string testRoot = Path.Combine(Path.GetTempPath(), "AltinnStudioTests", Guid.NewGuid().ToString());
         _testCacheRoot = Path.Combine(testRoot, "Cache");
-        _targetRepoRoot = Path.Combine(testRoot, "Repos");
 
         _repoSettings = new ServiceRepositorySettings
         {
@@ -534,7 +532,7 @@ public class ApplyTemplateToRepositoryTests : IDisposable
 
     private void MockTemplateJsonFile(string owner, string templateId, CustomTemplateModel template)
     {
-        string templateJson = JsonSerializer.Serialize(template);
+        string templateJson = JsonSerializer.Serialize(template, CustomTemplateService.JsonOptions);
         string base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(templateJson));
 
         _giteaClientMock

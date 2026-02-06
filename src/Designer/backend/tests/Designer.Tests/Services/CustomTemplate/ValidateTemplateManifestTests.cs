@@ -19,7 +19,8 @@ public class ValidateCustomTemplateTest
          ""name"": ""Test Template"",
         ""description"": ""Dette er en norsk beskrivelse."",
         ""remove"": [""src/oldfile.txt""],
-        ""packageReferences"": [{""project"":""App/*.csproj"", ""include"":""MyPackage"", ""version"":""1.0.0""}]
+        ""packageReferences"": [{""project"":""App/*.csproj"", ""include"":""MyPackage"", ""version"":""1.0.0""}],
+        ""nextSteps"": [{""title"":""Get Started"", ""description"":""Follow these steps to get started."", ""type"":""documentation"", ""links"":[{ ""label"": ""Fiks integration guide"", ""ref"": ""https://fiks.ksdigi.no"" }]}]
         }";
 
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(validManifest);
@@ -265,5 +266,37 @@ public class ValidateCustomTemplateTest
 
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(validVersionManifest);
         Assert.Empty(errors);
+    }
+
+    [Fact]
+    public async Task ValidateManifestJsonAsync_InvalidNextStep_MissingLinkRef_ReturnsErrors()
+    {
+        var invalidNextLinkManifest = @"{
+        ""schemaVersion"": ""0.1"",
+        ""id"": ""template-12345"",
+        ""owner"": ""altinn"",
+         ""name"": ""Test Template"",
+        ""description"": ""Dette er en norsk beskrivelse."",
+        ""nextSteps"": [{""title"":""Get Started"", ""description"":""Follow these steps to get started."", ""type"":""documentation"", ""links"":[{ ""label"": ""Fiks integration guide"" }]}]
+        }";
+
+        var errors = await CustomTemplateService.ValidateManifestJsonAsync(invalidNextLinkManifest);
+        Assert.Contains(errors, e => e.Path.Contains("nextSteps[0]") && e.Kind == ValidationErrorKind.ArrayItemNotValid);
+    }
+
+    [Fact]
+    public async Task ValidateManifestJsonAsync_InvalidNextStep_MissingLinkLabel_ReturnsErrors()
+    {
+        var invalidNextLinkManifest = @"{
+        ""schemaVersion"": ""0.1"",
+        ""id"": ""template-12345"",
+        ""owner"": ""altinn"",
+         ""name"": ""Test Template"",
+        ""description"": ""Dette er en norsk beskrivelse."",
+        ""nextSteps"": [{""title"":""Get Started"", ""description"":""Follow these steps to get started."", ""type"":""documentation"", ""links"":[{""ref"": ""https://fiks.ksdigi.no"" }]}]
+        }";
+
+        var errors = await CustomTemplateService.ValidateManifestJsonAsync(invalidNextLinkManifest);
+        Assert.Contains(errors, e => e.Path.Contains("nextSteps[0]") && e.Kind == ValidationErrorKind.ArrayItemNotValid);
     }
 }

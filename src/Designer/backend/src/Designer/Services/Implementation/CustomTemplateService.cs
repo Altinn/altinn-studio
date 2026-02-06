@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Converters;
 using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -32,6 +33,12 @@ public class CustomTemplateService : ICustomTemplateService
     private readonly ServiceRepositorySettings _serviceRepoSettings;
     private readonly ILogger<CustomTemplateService> _logger;
     private readonly CustomTemplateSettings _templateSettings;
+
+    internal static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new NextStepTypeJsonConverter() }
+    };
 
     public CustomTemplateService(
         IGiteaClient giteaClient,
@@ -69,14 +76,14 @@ public class CustomTemplateService : ICustomTemplateService
     {
         CustomTemplate template = await GetCustomTemplate(templateOwner, templateId); // called first as it includes validation of the template
 
-        foreach (string removePath in template.Remove)
+        foreach (string removePath in template.Remove ?? [])
         {
             DeleteContent(targetOrg, targetRepo, developer, removePath);
         }
 
         await CopyTemplateContentToRepository(templateOwner, templateId, targetOrg, targetRepo, developer);
 
-        ApplyPackageReferences(targetOrg, targetRepo, developer, template.PackageReferences);
+        ApplyPackageReferences(targetOrg, targetRepo, developer, template.PackageReferences ?? []);
     }
 
     /// <summary>
@@ -208,7 +215,7 @@ public class CustomTemplateService : ICustomTemplateService
             throw CustomTemplateException.ValidationFailed("Template validation failed.", validationResult);
         }
 
-        CustomTemplate? template = JsonSerializer.Deserialize<CustomTemplate>(templateContent);
+        CustomTemplate? template = JsonSerializer.Deserialize<CustomTemplate>(templateContent, JsonOptions);
         if (template == null)
         {
             throw CustomTemplateException.DeserializationFailed("An error occurred while deserializing the template.");
