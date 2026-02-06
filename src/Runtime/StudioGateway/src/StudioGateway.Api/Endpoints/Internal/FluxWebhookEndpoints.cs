@@ -96,7 +96,6 @@ internal static class FluxWebhookEndpoints
         Activity? activity = null;
         try
         {
-            Activity.Current.SetAlwaysSample();
             activity = TryStartTraceActivity(info.TraceParent, info.TraceState, logger);
             activity?.SetTag("org", info.Org);
             activity?.SetTag("app", info.App);
@@ -239,7 +238,6 @@ internal static class FluxWebhookEndpoints
             parentContext,
             links: links
         );
-        activity.SetAlwaysSample();
         return activity;
     }
 
