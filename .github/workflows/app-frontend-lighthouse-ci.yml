@@ -60,6 +60,7 @@ jobs:
           LHCI_BUILD_TOKEN: ${{ secrets.LHCI_ALTINN_APP_BUILD_TOKEN }}
           LHCI_USERNAME: ${{ secrets.LHCI_BASIC_AUTH_USERNAME }}
           LHCI_PASSWORD: ${{ secrets.LHCI_BASIC_AUTH_PASSWORD }}
+          LHCI_BUILD_CONTEXT__ANCESTOR_HASH: ${{ github.event.pull_request.base.sha || '' }}
         working-directory: src/App/frontend
         run: |
           set -e # exit on any failure
