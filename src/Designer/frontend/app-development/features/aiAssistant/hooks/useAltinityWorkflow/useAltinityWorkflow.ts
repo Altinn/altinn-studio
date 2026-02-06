@@ -316,8 +316,8 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 };
 
 function buildSessionBranch(sessionId: string): string {
-  const uniqueId = sessionId.startsWith('session_')
+  const uniqueIdWithoutPrefix = sessionId.startsWith('session_')
     ? sessionId.substring(8, 16)
     : sessionId.substring(0, 8);
-  return `altinity_session_${uniqueId}`;
+  return `altinity_session_${uniqueIdWithoutPrefix}`;
 }
