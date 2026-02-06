@@ -91,11 +91,13 @@ export const DeploymentEnvironmentLogList = ({
                 const areLogsAvailable = DateUtils.isDateWithinDays(deploy.build.started, 30);
 
                 const tableCellStatusClassName = classes[deploymentStatus];
-                const buildStartTime = deploy.build.started
-                  ? new Date(deploy.build.started).getTime()
+                const firstEvent = deploy.events.at(0);
+                const lastEvent = deploy.events.at(-1);
+                const deployStartTime = firstEvent?.created
+                  ? new Date(firstEvent.created).getTime()
                   : undefined;
-                const buildFinishTime = deploy.build.finished
-                  ? new Date(deploy.build.finished).getTime()
+                const deployFinishTime = lastEvent?.created
+                  ? new Date(lastEvent.created).getTime()
                   : undefined;
 
                 return (
@@ -130,8 +132,8 @@ export const DeploymentEnvironmentLogList = ({
                                     env: envName,
                                     app,
                                     isProduction,
-                                    buildStartTime,
-                                    buildFinishTime,
+                                    deployStartTime,
+                                    deployFinishTime,
                                   })}
                                   rel='noopener noreferrer'
                                   target='_blank'
