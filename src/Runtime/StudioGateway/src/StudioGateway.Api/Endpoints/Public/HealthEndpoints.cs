@@ -1,4 +1,4 @@
-using StudioGateway.Api.Hosting;
+using Altinn.Studio.Runtime.Common;
 
 namespace StudioGateway.Api.Endpoints.Public;
 

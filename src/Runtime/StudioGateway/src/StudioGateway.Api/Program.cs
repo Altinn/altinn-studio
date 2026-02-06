@@ -1,3 +1,4 @@
+using Altinn.Studio.Runtime.Common;
 using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.Query.Logs;
@@ -61,8 +62,8 @@ builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<Gatew
 builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<AlertsClientSettings>>().Value);
 builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<MetricsClientSettings>>().Value);
 
-builder.ConfigureKestrelPorts();
-builder.AddHostingConfiguration();
+builder.ConfigureKestrelPorts(publicPort: PortConfiguration.PublicPort, internalPort: PortConfiguration.InternalPort);
+builder.UseCommonHostingConfiguration();
 builder.AddMaskinportenAuthentication();
 builder.AddOpenTelemetry();
 

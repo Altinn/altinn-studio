@@ -6,19 +6,21 @@ RUN apt-get update && apt-get install -y clang zlib1g-dev && rm -rf /var/lib/apt
 WORKDIR /build
 
 # Copy project files and package management
-COPY Directory.Packages.props .
-COPY src/StudioGateway.Api/StudioGateway.Api.csproj StudioGateway.Api/
-COPY src/StudioGateway.Contracts/StudioGateway.Contracts.csproj StudioGateway.Contracts/
+COPY common/Altinn.Studio.Runtime.Common.csproj common/
+COPY StudioGateway/Directory.Packages.props .
+COPY StudioGateway/src/StudioGateway.Api/StudioGateway.Api.csproj app/studio-gateway/StudioGateway.Api/
+COPY StudioGateway/src/StudioGateway.Contracts/StudioGateway.Contracts.csproj app/studio-gateway/StudioGateway.Contracts/
 
 # Restore dependencies
-RUN dotnet restore StudioGateway.Api/StudioGateway.Api.csproj
+RUN dotnet restore app/studio-gateway/StudioGateway.Api/StudioGateway.Api.csproj
 
 # Copy source code
-COPY src/StudioGateway.Api/ StudioGateway.Api/
-COPY src/StudioGateway.Contracts/ StudioGateway.Contracts/
+COPY common/src/ common/
+COPY StudioGateway/src/StudioGateway.Api/ app/studio-gateway/StudioGateway.Api/
+COPY StudioGateway/src/StudioGateway.Contracts/ app/studio-gateway/StudioGateway.Contracts/
 
 # Build and publish native AOT
-WORKDIR /build/StudioGateway.Api
+WORKDIR /build/app/studio-gateway/StudioGateway.Api/
 RUN dotnet publish -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:9416d3afd6060895c906a7fd5bda9c520b39f4cc4a2f3e755d079b63220800c7
