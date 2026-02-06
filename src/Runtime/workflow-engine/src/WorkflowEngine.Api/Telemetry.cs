@@ -45,9 +45,9 @@ internal static class Telemetry
     public static readonly Counter<long> StepRequestsAccepted = Meter.CreateCounter<long>(
         "engine.steps.request.accepted"
     );
-    public static readonly Counter<long> StepsSucceeded = Meter.CreateCounter<long>("engine.step.executions.success");
-    public static readonly Counter<long> StepsRequeued = Meter.CreateCounter<long>("engine.step.executions.requeued");
-    public static readonly Counter<long> StepsFailed = Meter.CreateCounter<long>("engine.step.executions.failed");
+    public static readonly Counter<long> StepsSucceeded = Meter.CreateCounter<long>("engine.steps.execution.success");
+    public static readonly Counter<long> StepsRequeued = Meter.CreateCounter<long>("engine.steps.execution.requeued");
+    public static readonly Counter<long> StepsFailed = Meter.CreateCounter<long>("engine.steps.execution.failed");
 
     public static readonly Histogram<double> StepQueueTime = Meter.CreateHistogram<double>(
         "engine.steps.time.queue",
