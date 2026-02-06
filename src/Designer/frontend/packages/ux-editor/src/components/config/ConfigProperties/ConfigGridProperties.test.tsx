@@ -7,17 +7,19 @@ import userEvent from '@testing-library/user-event';
 import { cancelConfigAndVerify, openConfigAndVerify, saveConfigChanges } from './testConfigUtils';
 
 describe('ConfigGridProperties', () => {
+  const propertyKey = 'grid';
   it('should be able to toggle config for grid property', async () => {
+    const user = userEvent.setup();
     renderConfigGridProperties();
-    await openConfigAndVerify('grid');
-    await cancelConfigAndVerify();
+    await openConfigAndVerify({ user, property: propertyKey });
+    await cancelConfigAndVerify(user);
   });
 
   it('should call handleComponentUpdate when saving a new grid value', async () => {
     const user = userEvent.setup();
     const handleComponentUpdate = jest.fn();
     renderConfigGridProperties({ props: { handleComponentUpdate } });
-    await openConfigAndVerify('grid');
+    await openConfigAndVerify({ user, property: propertyKey });
     const switchDefaultGrid = screen.getByRole('checkbox', {
       name: textMock('ux_editor.modal_properties_grid_use_default'),
     });
@@ -25,7 +27,7 @@ describe('ConfigGridProperties', () => {
     await user.click(switchDefaultGrid);
     expect(switchDefaultGrid).not.toBeChecked();
 
-    await saveConfigChanges();
+    await saveConfigChanges(user);
     expect(handleComponentUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         grid: { xs: 12 },
@@ -43,7 +45,7 @@ describe('ConfigGridProperties', () => {
 
     const handleComponentUpdate = jest.fn();
     renderConfigGridProperties({ props: { component: componentWithGrid, handleComponentUpdate } });
-    await openConfigAndVerify('grid');
+    await openConfigAndVerify({ user, property: propertyKey });
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('general.delete'),

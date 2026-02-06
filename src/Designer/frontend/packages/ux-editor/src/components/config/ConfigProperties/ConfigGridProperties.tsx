@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useText } from '../../../hooks';
 import { EditGrid } from '../editModal/EditGrid';
 import { StudioProperty, StudioConfigCard } from '@studio/components';
-import { PlusCircleIcon } from '@studio/icons';
 import cn from 'classnames';
 import type { BaseConfigProps } from './types';
 import { componentComparison, getDisplayValue, propHasValues } from './ConfigPropertiesUtils';
@@ -20,13 +19,11 @@ export const ConfigGridProperties = ({
   const [currentComponent, setCurrentComponent] = useState(initialComponent);
   const t = useText();
   const propertyKey = 'grid';
-  const hasInitialGridValues = propHasValues(initialComponent[propertyKey]);
 
   if (!showGrid) {
     return (
       <StudioProperty.Button
         className={cn(className)}
-        icon={!hasInitialGridValues && <PlusCircleIcon />}
         onClick={() => setShowGrid(true)}
         property={t('ux_editor.component_properties.grid')}
         value={getDisplayValue({ component: initialComponent, propertyKey })}
@@ -59,7 +56,7 @@ export const ConfigGridProperties = ({
         deleteAriaLabel={t('general.delete')}
         onDelete={handleDelete}
         confirmDeleteMessage={t('ux_editor.properties_text.value_confirm_delete')}
-        isDeleteDisabled={!hasInitialGridValues}
+        isDeleteDisabled={!propHasValues(initialComponent[propertyKey])}
       />
       <StudioConfigCard.Body>
         <EditGrid
