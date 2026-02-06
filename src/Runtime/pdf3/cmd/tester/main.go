@@ -12,9 +12,9 @@ import (
 	"time"
 
 	localharness "altinn.studio/pdf3/test/harness"
-	"altinn.studio/runtime-fixture/pkg/harness"
-	"altinn.studio/runtime-fixture/pkg/kubernetes"
-	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
+	"altinn.studio/devenv/pkg/harness"
+	"altinn.studio/devenv/pkg/kubernetes"
+	"altinn.studio/devenv/pkg/runtimes/kind"
 )
 
 func main() {
@@ -231,6 +231,7 @@ func runTest() {
 		}
 	}
 	defer func() {
+		defer func() { _ = runtime.Close() }()
 		if *keepRunning {
 			fmt.Println("\n=== Keeping cluster running (--keep-running flag set) ===")
 			return
@@ -555,6 +556,7 @@ func runLoadtestLocal() {
 	}
 
 	defer func() {
+		defer func() { _ = runtime.Close() }()
 		if *keepRunning {
 			fmt.Println("\n=== Keeping cluster running (--keep-running flag set) ===")
 			return

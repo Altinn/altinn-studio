@@ -9,12 +9,21 @@ import (
 	"strings"
 	"time"
 
+	"altinn.studio/devenv/pkg/harness"
+	"altinn.studio/devenv/pkg/kubernetes"
+	"altinn.studio/devenv/pkg/runtimes/kind"
 	"altinn.studio/operator/internal/config"
-	"altinn.studio/runtime-fixture/pkg/container"
-	"altinn.studio/runtime-fixture/pkg/harness"
-	"altinn.studio/runtime-fixture/pkg/kubernetes"
-	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
+
+func containerCLI() string {
+	if _, err := exec.LookPath("docker"); err == nil {
+		return "docker"
+	}
+	if _, err := exec.LookPath("podman"); err == nil {
+		return "podman"
+	}
+	return "docker"
+}
 
 func main() {
 	if len(os.Args) < 2 {
@@ -84,23 +93,18 @@ func runUnitTest() {
 		os.Exit(1)
 	}
 
-	// Step 1: Detect container runtime and start compose
-	containerClient, err := container.Detect()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to detect container runtime: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Printf("Starting %s compose...\n", containerClient.Name())
-	composeCmd := exec.Command(containerClient.Name(), "compose", "up", "-d", "--build")
+	// Step 1: Start compose
+	cli := containerCLI()
+	fmt.Printf("Starting %s compose...\n", cli)
+	composeCmd := exec.Command(cli, "compose", "up", "-d", "--build")
 	composeCmd.Dir = projectRoot
 	composeCmd.Stdout = os.Stdout
 	composeCmd.Stderr = os.Stderr
 	if err := composeCmd.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to start %s compose: %v\n", containerClient.Name(), err)
+		fmt.Fprintf(os.Stderr, "Failed to start %s compose: %v\n", cli, err)
 		os.Exit(1)
 	}
-	fmt.Printf("✓ %s compose started\n", containerClient.Name())
+	fmt.Printf("✓ %s compose started\n", cli)
 
 	// Step 2: Setup envtest binaries
 	fmt.Println("Setting up envtest binaries...")
@@ -247,11 +251,12 @@ func runStart() {
 		os.Exit(1)
 	}
 
-	_, err = setupRuntime(variant)
+	runtime, err := setupRuntime(variant)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start runtime: %v\n", err)
 		os.Exit(1)
 	}
+	defer func() { _ = runtime.Close() }()
 
 	fmt.Println("")
 	fmt.Println("=== Runtime is Running ===")
@@ -280,22 +285,17 @@ func runStop() {
 	}
 
 	// Stop docker/podman compose
-	containerClient, err := container.Detect()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to detect container runtime: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Printf("Stopping %s compose...\n", containerClient.Name())
-	composeCmd := exec.Command(containerClient.Name(), "compose", "down")
+	cli := containerCLI()
+	fmt.Printf("Stopping %s compose...\n", cli)
+	composeCmd := exec.Command(cli, "compose", "down")
 	composeCmd.Dir = projectRoot
 	composeCmd.Stdout = os.Stdout
 	composeCmd.Stderr = os.Stderr
 	if err := composeCmd.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to stop %s compose: %v\n", containerClient.Name(), err)
+		fmt.Fprintf(os.Stderr, "Failed to stop %s compose: %v\n", cli, err)
 		os.Exit(1)
 	}
-	fmt.Printf("✓ %s compose stopped\n", containerClient.Name())
+	fmt.Printf("✓ %s compose stopped\n", cli)
 
 	// Load existing runtime
 	cachePath := filepath.Join(projectRoot, ".cache")
@@ -304,6 +304,7 @@ func runStop() {
 		fmt.Fprintf(os.Stderr, "Failed to load runtime: %v\n", err)
 		os.Exit(1)
 	}
+	defer func() { _ = runtime.Close() }()
 
 	// Stop the runtime
 	if err := runtime.Stop(); err != nil {
@@ -352,6 +353,7 @@ func runE2ETest() {
 		}
 	}
 	defer func() {
+		defer func() { _ = runtime.Close() }()
 		if *keepRunning {
 			fmt.Println("\n=== Keeping cluster running (--keep-running flag set) ===")
 			return
