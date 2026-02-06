@@ -22,7 +22,7 @@ export const ContactPointTableRow = ({
   onLinkClick,
 }: ContactPointTableRowProps): ReactElement => {
   const { t } = useTranslation();
-  const hasValidLink = Boolean(getValidExternalUrl(contactPoint.contactPage));
+  const validUrl = getValidExternalUrl(contactPoint.contactPage);
 
   return (
     <StudioTable.Row>
@@ -32,12 +32,12 @@ export const ContactPointTableRow = ({
       <StudioTable.Cell>{contactPoint.telephone}</StudioTable.Cell>
       <StudioTable.Cell>{contactPoint.category}</StudioTable.Cell>
       <StudioTable.Cell>
-        {hasValidLink && (
+        {validUrl && (
           <StudioButton
             variant='tertiary'
             icon={<LinkIcon />}
             aria-label={t('app_settings.about_tab_contact_point_table_link_open')}
-            onClick={() => onLinkClick(contactPoint.contactPage)}
+            onClick={() => onLinkClick(validUrl)}
           />
         )}
       </StudioTable.Cell>

@@ -153,9 +153,14 @@ describe('AboutTab', () => {
   });
 
   it('renders AppConfigForm when AppMetadata feature flag is enabled', async () => {
+    const originalUrl = window.location.search;
     window.history.pushState({}, 'test', `/?featureFlags=${FeatureFlag.AppMetadata}`);
     await resolveAndWaitForSpinnerToDisappear();
-    expect(screen.getByText(textMock('app_settings.about_tab_name_label'))).toBeInTheDocument();
+    const matches = screen.getAllByText(
+      textMock('app_settings.about_tab_contact_point_dialog_add_title'),
+    );
+    expect(matches.length).toBeGreaterThan(0);
+    window.history.pushState({}, '', `/${originalUrl}`);
   });
 });
 
