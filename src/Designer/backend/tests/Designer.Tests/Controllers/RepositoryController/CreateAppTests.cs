@@ -82,7 +82,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Assert
             Assert.Equal(HttpStatusCode.Created, res.StatusCode);
         }
-    
+
         [Fact]
         public async Task CreateApp_TemplateIncluded_Created()
         {
