@@ -64,10 +64,10 @@ start-minimal: ## Start with minimal variant
 start-standard: ## Start with standard variant
 	@go run ./cmd/tester start standard
 
-start-minimal-monitoring: ## Start minimal with Prometheus/Grafana
+start-minimal-monitoring: ## Start minimal with monitoring stack
 	@go run ./cmd/tester start minimal --monitoring
 
-start-standard-monitoring: ## Start standard with Prometheus/Grafana
+start-standard-monitoring: ## Start standard with monitoring stack
 	@go run ./cmd/tester start standard --monitoring
 
 stop: ## Stop the runtime fixture/cluster

@@ -213,21 +213,9 @@
         }
       },
       {
-        "id": "btngroup",
-        "type": "ButtonGroup",
-        "children": ["submit", "nav1"]
-      },
-      {
         "id": "nav1",
         "type": "NavigationButtons",
         "textResourceBindings": { "next": "Neste" }
-      },
-      {
-        "id": "submit",
-        "type": "Button",
-        "textResourceBindings": {
-          "title": "Side1.Button-Sjnxbg.title"
-        }
       }
     ]
   }

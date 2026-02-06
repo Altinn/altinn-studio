@@ -15,7 +15,6 @@ import (
 	"altinn.studio/operator/internal/telemetry"
 	"github.com/go-logr/logr"
 	"github.com/go-playground/validator/v10"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -216,7 +215,7 @@ func (m *MaskinportenApiConfig) SafeLogValue() map[string]any {
 // The returned ConfigMonitor automatically starts background refresh.
 // Send SIGHUP to the process to trigger an immediate config reload.
 func GetConfig(ctx context.Context, environment string, configFilePath string) (*ConfigMonitor, error) {
-	tracer := otel.Tracer(telemetry.ServiceName)
+	tracer := telemetry.Tracer()
 	ctx, span := tracer.Start(ctx, "GetConfig")
 	defer span.End()
 
@@ -278,7 +277,7 @@ func NewConfigMonitorForTesting(cfg *Config) *ConfigMonitor {
 	monitor := &ConfigMonitor{
 		environment: "test",
 		baseConfig:  cfg,
-		tracer:      otel.Tracer(telemetry.ServiceName),
+		tracer:      telemetry.Tracer(),
 	}
 	monitor.current.Store(cfg)
 	return monitor
