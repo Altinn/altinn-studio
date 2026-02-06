@@ -65,10 +65,6 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     }
   }, [currentBranch]);
 
-  useEffect(() => {
-    currentSessionIdRef.current = currentSessionId;
-  }, [currentSessionId]);
-
   const updateWorkflowCompletedStatus = useCallback(
     (assistantMessage: AssistantMessageData, messageTimestamp: Date) => {
       setWorkflowStatus((prev) => ({
@@ -269,66 +265,99 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     [addRejectionMessage],
   );
 
-  const selectThread = useCallback((threadId: string | null) => {
-    setCurrentSessionId(threadId);
-    currentSessionIdRef.current = threadId;
+  const setCurrentSession = useCallback((sessionId: string | null) => {
+    setCurrentSessionId(sessionId);
+    currentSessionIdRef.current = sessionId;
   }, []);
 
+  const selectThread = useCallback(
+    (threadId: string | null) => {
+      setCurrentSession(threadId);
+    },
+    [setCurrentSession],
+  );
+
   const createNewThread = useCallback(() => {
-    setCurrentSessionId(null);
-    currentSessionIdRef.current = null;
+    setCurrentSession(null);
     setWorkflowStatus({ isActive: false });
-  }, []);
+  }, [setCurrentSession]);
 
   const deleteThread = useCallback(
     (threadId: string) => {
       deleteThreadFromStorage(threadId);
       if (currentSessionId === threadId) {
-        setCurrentSessionId(null);
-        currentSessionIdRef.current = null;
+        setCurrentSession(null);
       }
     },
-    [deleteThreadFromStorage, currentSessionId],
+    [deleteThreadFromStorage, currentSessionId, setCurrentSession],
   );
 
-  const startAgentWorkflow = async (
-    sessionId: string,
-    goal: string,
-    allowAppChanges: boolean,
-    attachments?: UserAttachment[],
-  ): Promise<AgentResponse> => {
-    const branchToUse = currentBranch ?? currentBranchRef.current ?? 'main';
+  const startAgentWorkflow = useCallback(
+    async (
+      sessionId: string,
+      goal: string,
+      allowAppChanges: boolean,
+      attachments?: UserAttachment[],
+    ): Promise<AgentResponse> => {
+      const branchToUse = currentBranch ?? currentBranchRef.current ?? 'main';
 
-    const result = await startWorkflow({
-      session_id: sessionId,
-      goal: goal,
-      org: org,
-      app: app,
-      branch: branchToUse,
-      allow_app_changes: allowAppChanges,
-      attachments,
-    });
-
-    if (result.accepted) {
-      const initialAgentMessage: AssistantMessage = {
-        author: MessageAuthor.Assistant,
-        content: `\n\nVent litt...`,
-        timestamp: new Date(),
-        filesChanged: [],
-        isLoading: true,
-      };
-      addMessageToThread(sessionId, initialAgentMessage);
-
-      setWorkflowStatus({
-        isActive: true,
-        sessionId: sessionId,
-        currentStep: 'Initializing',
-        message: 'Starter AI agent workflow...',
+      const result = await startWorkflow({
+        session_id: sessionId,
+        goal: goal,
+        org: org,
+        app: app,
+        branch: branchToUse,
+        allow_app_changes: allowAppChanges,
+        attachments,
       });
-    }
 
-    return result;
-  };
+      if (result.accepted) {
+        const initialAgentMessage: AssistantMessage = {
+          author: MessageAuthor.Assistant,
+          content: `\n\nVent litt...`,
+          timestamp: new Date(),
+          filesChanged: [],
+          isLoading: true,
+        };
+        addMessageToThread(sessionId, initialAgentMessage);
+
+        setWorkflowStatus({
+          isActive: true,
+          sessionId: sessionId,
+          currentStep: 'Initializing',
+          message: 'Starter AI agent workflow...',
+        });
+      }
+
+      return result;
+    },
+    [addMessageToThread, app, currentBranch, org, startWorkflow],
+  );
+
+  const runWorkflowForSession = useCallback(
+    async (
+      sessionId: string,
+      userMessage: UserMessage,
+      onError: (error: unknown) => void,
+      errorContext: string,
+    ): Promise<void> => {
+      addMessageToThread(sessionId, userMessage);
+
+      try {
+        const result = await startAgentWorkflow(
+          sessionId,
+          userMessage.content,
+          userMessage.allowAppChanges ?? false,
+          userMessage.attachments,
+        );
+        handleWorkflowResult(sessionId, result);
+      } catch (error) {
+        console.error(errorContext, error);
+        onError(error);
+      }
+    },
+    [addMessageToThread, handleWorkflowResult, startAgentWorkflow],
+  );
 
   const onSubmitMessage = async (message: UserMessage): Promise<void> => {
     const trimmedContent = message.content?.trim();
@@ -344,48 +373,33 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
 
     if (currentSessionId) {
       sessionId = currentSessionId;
-      addMessageToThread(sessionId, userMessage);
+      await runWorkflowForSession(
+        sessionId,
+        userMessage,
+        (error) => addErrorMessage(sessionId, formatErrorMessage(error)),
+        'Failed to continue workflow:',
+      );
+      return;
+    }
 
-      try {
-        const result = await startAgentWorkflow(
-          sessionId,
-          trimmedContent,
-          message.allowAppChanges ?? false,
-          message.attachments,
-        );
-        handleWorkflowResult(sessionId, result);
-      } catch (error) {
-        console.error('Failed to continue workflow:', error);
-        addErrorMessage(sessionId, formatErrorMessage(error));
-      }
-    } else {
-      if (!backendSessionId) {
-        console.error('No backend session ID available - connection not established');
-        return;
-      }
+    if (!backendSessionId) {
+      console.error('No backend session ID available - connection not established');
+      return;
+    }
 
-      sessionId = backendSessionId;
-      selectThread(sessionId);
+    sessionId = backendSessionId;
+    selectThread(sessionId);
 
-      addMessageToThread(sessionId, userMessage);
-
-      try {
-        const result = await startAgentWorkflow(
-          sessionId,
-          trimmedContent,
-          message.allowAppChanges ?? false,
-          message.attachments,
-        );
-
-        handleWorkflowResult(sessionId, result);
-      } catch (error) {
-        console.error('Failed to start workflow:', error);
-
+    await runWorkflowForSession(
+      sessionId,
+      userMessage,
+      (error) => {
         if (error instanceof Error) {
           addErrorMessage(sessionId, parseBackendErrorContent(error));
         }
-      }
-    }
+      },
+      'Failed to start workflow:',
+    );
   };
 
   return {
