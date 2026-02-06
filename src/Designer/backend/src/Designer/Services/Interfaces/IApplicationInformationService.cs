@@ -1,6 +1,7 @@
 #nullable disable
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
@@ -16,12 +17,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application</param>
         /// <param name="shortCommitId">Commit Id</param>
         /// <param name="envName">Environment Name</param>
+        /// <param name="publishServiceResource">Publish service resource</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        Task UpdateApplicationInformationAsync(
+        Task<ActionResult> UpdateApplicationInformationAsync(
             string org,
             string app,
             string shortCommitId,
             string envName,
+            bool publishServiceResource = false,
             CancellationToken cancellationToken = default);
     }
 }
