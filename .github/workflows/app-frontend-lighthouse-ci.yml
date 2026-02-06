@@ -75,11 +75,11 @@ jobs:
       - name: Compare Lighthouse results
         id: lighthouse-compare
         if: github.event_name == 'pull_request'
-        continue-on-error: true
+        continue-on-error: false
         uses: adevinta/actions-lighthouseci-compare@10b06f197bf31d8f6d66021376c79164cab167c9 # v1.1.7
         with:
           links-filepath: 'src/App/frontend/.lighthouseci/links.json'
-          base-url: ${{ secrets.LHCI_SERVER_URL }}
+          base-url: '${{ secrets.LHCI_SERVER_URL }}/v1'
           project-id: ${{ secrets.LHCI_ALTINN_APP_PROJECT_ID }}
           current-commit-sha: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           basic-auth-username: ${{ secrets.LHCI_BASIC_AUTH_USERNAME }}
