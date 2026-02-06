@@ -299,4 +299,65 @@ public class ValidateCustomTemplateTest
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(invalidNextLinkManifest);
         Assert.Contains(errors, e => e.Path.Contains("nextSteps[0]") && e.Kind == ValidationErrorKind.ArrayItemNotValid);
     }
+
+    [Theory]
+    [InlineData("configuration")]
+    [InlineData("konfigurasjon")]
+    [InlineData("code-change")]
+    [InlineData("kode-endring")]
+    [InlineData("documentation")]
+    [InlineData("dokumentasjon")]
+    public async Task ValidateManifestJsonAsync_ValidNextStepTypes_ReturnsNoErrors(string nextStepType)
+    {
+        var validManifest = $@"{{
+        ""schemaVersion"": ""0.1"",
+        ""id"": ""template-12345"",
+        ""owner"": ""altinn"",
+        ""name"": ""Test Template"",
+        ""description"": ""Dette er en norsk beskrivelse."",
+        ""nextSteps"": [{{
+            ""title"": ""Get Started"",
+            ""description"": ""Follow these steps to get started."",
+            ""type"": ""{nextStepType}"",
+            ""links"": [{{
+                ""label"": ""Integration guide"",
+                ""ref"": ""https://example.com""
+            }}]
+        }}]
+    }}";
+
+        var errors = await CustomTemplateService.ValidateManifestJsonAsync(validManifest);
+        Assert.Empty(errors);
+    }
+
+    [Theory]
+    [InlineData("invalid-type")]
+    [InlineData("Konfigurasjon")]
+    [InlineData("config")]
+    [InlineData("code")]
+    [InlineData("docs")]
+    [InlineData("")]
+    [InlineData("unknown")]
+    public async Task ValidateManifestJsonAsync_InvalidNextStepTypes_ReturnsErrors(string nextStepType)
+    {
+        var invalidManifest = $@"{{
+        ""schemaVersion"": ""0.1"",
+        ""id"": ""template-12345"",
+        ""owner"": ""altinn"",
+        ""name"": ""Test Template"",
+        ""description"": ""Dette er en norsk beskrivelse."",
+        ""nextSteps"": [{{
+            ""title"": ""Get Started"",
+            ""description"": ""Follow these steps to get started."",
+            ""type"": ""{nextStepType}"",
+            ""links"": [{{
+                ""label"": ""Integration guide"",
+                ""ref"": ""https://example.com""
+            }}]
+        }}]
+    }}";
+
+        var errors = await CustomTemplateService.ValidateManifestJsonAsync(invalidManifest);
+        Assert.NotEmpty(errors);
+    }
 }

@@ -15,10 +15,6 @@ public class NextStepTypeJsonConverter : JsonConverter<NextStepType>
         { "konfigurasjon", NextStepType.Configuration },
 
         { "code-change", NextStepType.CodeChange },
-        { "codeChange", NextStepType.CodeChange },
-        { "codechange", NextStepType.CodeChange },
-        { "kodeEndring", NextStepType.CodeChange },
-        { "kodeendring", NextStepType.CodeChange },
         { "kode-endring", NextStepType.CodeChange },
 
         { "documentation", NextStepType.Documentation },
@@ -28,9 +24,9 @@ public class NextStepTypeJsonConverter : JsonConverter<NextStepType>
     // Map enum values to preferred string (English)
     private static readonly Dictionary<NextStepType, string> s_enumToString = new()
     {
-        { NextStepType.Configuration, "Configuration" },
-        { NextStepType.CodeChange, "CodeChange" },
-        { NextStepType.Documentation, "Documentation" }
+        { NextStepType.Configuration, "configuration" },
+        { NextStepType.CodeChange, "code-change" },
+        { NextStepType.Documentation, "documentation" }
     };
 
     public override NextStepType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
