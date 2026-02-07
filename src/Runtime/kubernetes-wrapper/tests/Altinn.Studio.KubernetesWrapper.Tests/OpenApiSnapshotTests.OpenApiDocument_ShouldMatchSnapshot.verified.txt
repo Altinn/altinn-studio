@@ -1,5 +1,5 @@
 ﻿{
-  openapi: 3.0.1,
+  openapi: 3.0.4,
   info: {
     title: Altinn Kuberneteswrapper,
     version: v1
@@ -113,5 +113,13 @@
         additionalProperties: false
       }
     }
-  }
+  },
+  tags: [
+    {
+      name: DaemonSets
+    },
+    {
+      name: Deployments
+    }
+  ]
 }

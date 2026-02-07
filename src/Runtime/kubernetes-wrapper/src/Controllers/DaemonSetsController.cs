@@ -24,14 +24,15 @@ public class DaemonSetsController(IKubernetesApiWrapper apiWrapper) : Controller
     [HttpGet]
     [EnableCors]
     [ProducesResponseType(typeof(IReadOnlyList<DaemonSet>), StatusCodes.Status200OK, "application/json")]
-    public async Task<ActionResult> GetDaemonSets(string labelSelector, string fieldSelector)
+    public async Task<ActionResult> GetDaemonSets(
+        [FromQuery] string? labelSelector = null,
+        [FromQuery] string? fieldSelector = null
+    )
     {
         var daemonSets = await apiWrapper.GetDeployedResources(
-            ResourceType.DaemonSet,
-            null,
-            null,
-            fieldSelector,
-            labelSelector
+            resourceType: ResourceType.DaemonSet,
+            fieldSelector: fieldSelector,
+            labelSelector: labelSelector
         );
         return Ok(daemonSets);
     }

@@ -24,14 +24,15 @@ public class DeploymentsController(IKubernetesApiWrapper apiWrapper) : Controlle
     [HttpGet]
     [EnableCors]
     [ProducesResponseType(typeof(IReadOnlyList<Deployment>), StatusCodes.Status200OK, "application/json")]
-    public async Task<ActionResult> GetDeployments(string labelSelector, string fieldSelector)
+    public async Task<ActionResult> GetDeployments(
+        [FromQuery] string? labelSelector = null,
+        [FromQuery] string? fieldSelector = null
+    )
     {
         var deployments = await apiWrapper.GetDeployedResources(
-            ResourceType.Deployment,
-            null,
-            null,
-            fieldSelector,
-            labelSelector
+            resourceType: ResourceType.Deployment,
+            fieldSelector: fieldSelector,
+            labelSelector: labelSelector
         );
         return Ok(deployments);
     }
