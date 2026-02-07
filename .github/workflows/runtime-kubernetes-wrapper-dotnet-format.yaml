@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - 'src/Runtime/KubernetesWrapper/src/**'
+      - 'src/Runtime/kubernetes-wrapper/src/**'
       - '.github/workflows/runtime-kubernetes-wrapper-dotnet-format.yaml'
   workflow_dispatch:
 
@@ -23,4 +23,4 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: FormatCheck
         run: |
-          dotnet format src/Runtime/KubernetesWrapper/src/KubernetesWrapper.csproj --verify-no-changes
+          dotnet format src/Runtime/kubernetes-wrapper/src/Altinn.Studio.KubernetesWrapper.csproj --verify-no-changes
