@@ -1,7 +1,4 @@
 using System.Reflection;
-using Azure.Identity;
-using Azure.Monitor.Query;
-using Altinn.Studio.KubernetesWrapper.Configuration;
 using Altinn.Studio.KubernetesWrapper.Services.Implementation;
 using Altinn.Studio.KubernetesWrapper.Services.Interfaces;
 
@@ -10,9 +7,6 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.Configure<GeneralSettings>(builder.Configuration.GetSection("GeneralSettings"));
-builder.Services.AddSingleton(new LogsQueryClient(new DefaultAzureCredential()));
 
 RegisterServices(builder.Services);
 
@@ -60,9 +54,6 @@ static void RegisterServices(IServiceCollection services)
     });
     services.AddControllers();
     services.AddSingleton<IKubernetesApiWrapper, KubernetesApiWrapper>();
-    services.AddTransient<IAppExceptionsService, AppExceptionsService>();
-    services.AddTransient<IAppFailedRequestsService, AppFailedRequestsService>();
-    services.AddTransient<IContainerLogsService, ContainerLogsService>();
 
     services.AddSwaggerGen(c =>
     {
