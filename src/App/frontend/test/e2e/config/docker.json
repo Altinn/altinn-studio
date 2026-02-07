@@ -23,6 +23,10 @@
 
     "selfIdentifiedFullName": "Selvregistrert Bruker",
     "selfIdentifiedFirstName": "Selvregistrert",
-    "selfIdentifiedPartyId": "1004.510004"
+    "selfIdentifiedPartyId": "1004.510004",
+
+    "multiPartyPromptFullName": "MultiParty Prompt",
+    "multiPartyPromptFirstName": "MultiParty",
+    "multiPartyPromptPartyId": "2001.512001"
   }
 }
