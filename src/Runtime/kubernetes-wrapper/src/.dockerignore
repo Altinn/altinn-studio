@@ -1,2 +1,5 @@
-*/bin
-*/obj
+.config/
+infra/
+tests/
+**/bin
+**/obj
