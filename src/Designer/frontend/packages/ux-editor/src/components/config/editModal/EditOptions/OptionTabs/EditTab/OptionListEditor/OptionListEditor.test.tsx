@@ -17,6 +17,9 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { textResourcesMock } from 'app-shared/mocks/textResourcesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
+import type { CodeListIdContextData } from '../../types/CodeListIdContextData';
+import type { PublishedCodeListReferenceValues } from '../../types/PublishedCodeListReferenceValues';
+import { createPublishedCodeListReferenceString } from '../../utils/published-code-list-reference-utils';
 
 // Mocks:
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
@@ -38,6 +41,10 @@ const textResources: ITextResources = {
   [DEFAULT_LANGUAGE]: textResourcesMock.resources,
 };
 const onEditButtonClick = jest.fn();
+const codeListIdContextData: CodeListIdContextData = {
+  idsFromAppLibrary: [optionListId],
+  orgName: org,
+};
 
 describe('OptionListEditor', () => {
   afterEach(jest.clearAllMocks);
@@ -50,7 +57,7 @@ describe('OptionListEditor', () => {
     expect(onEditButtonClick).toHaveBeenCalledTimes(1);
   });
 
-  it('should render LibraryOptionsEditor when component has optionId property', async () => {
+  it('should render library options editor when the given optionsId exists in the list of code list IDs from the app library', async () => {
     const user = userEvent.setup();
     renderOptionListEditorWithData();
 
@@ -60,6 +67,17 @@ describe('OptionListEditor', () => {
     expect(
       screen.getByText(textMock('ux_editor.options.modal_header_library_code_list')),
     ).toBeInTheDocument();
+  });
+
+  it('Displays the interface for published code lists when optionsId refers to a published code list', () => {
+    const codeListName = 'some-published-code-list';
+    const version = '12';
+    const refValues: PublishedCodeListReferenceValues = { orgName: org, codeListName, version };
+    const optionsId = createPublishedCodeListReferenceString(refValues);
+    renderOptionListEditor({ props: { component: { ...componentWithOptionsId, optionsId } } });
+
+    const expectedText = textMock('ux_editor.options.published_code_list_in_use');
+    expect(screen.getByText(expectedText)).toBeInTheDocument();
   });
 
   it('should render a spinner when there is no data', () => {
@@ -121,6 +139,7 @@ function getDeleteButton() {
 }
 
 const defaultProps: OptionListEditorProps = {
+  codeListIdContextData,
   component: mockComponent,
   onEditButtonClick,
   handleComponentChange,

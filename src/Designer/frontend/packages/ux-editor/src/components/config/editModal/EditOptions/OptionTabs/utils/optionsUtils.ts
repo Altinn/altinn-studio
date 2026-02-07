@@ -5,12 +5,13 @@ import type { FormContainer } from '../../../../../../types/FormContainer';
 import { retrieveOptionsType } from './retrieveOptionsType';
 import { OptionsType } from '../enums/OptionsType';
 import { OptionsTabKey } from '../enums/OptionsTabKey';
+import type { CodeListIdContextData } from '../types/CodeListIdContextData';
 
 export function determineInitialTab(
   component: Readonly<FormItem<SelectionComponentType>>,
-  optionListIdsFromLibrary: string[],
+  codeListIdContextData: CodeListIdContextData,
 ): OptionsTabKey {
-  const type = retrieveOptionsType(component, optionListIdsFromLibrary);
+  const type = retrieveOptionsType(component, codeListIdContextData);
   return type === OptionsType.CustomId ? OptionsTabKey.Reference : OptionsTabKey.CodeList;
 }
 
@@ -53,13 +54,21 @@ export function isOptionsIdReferenceId(
 }
 
 export function hasStaticOptionList(
-  optionListIdsFromLibrary: string[],
+  codeListIdContextData: CodeListIdContextData,
   component: FormComponent<SelectionComponentType>,
 ): boolean {
-  const type = retrieveOptionsType(component, optionListIdsFromLibrary);
+  const type = retrieveOptionsType(component, codeListIdContextData);
   return type === OptionsType.Internal || type === OptionsType.FromAppLibrary;
 }
 
 function isOptionsIdInList(optionListIds: string[], optionsId: undefined | string): boolean {
   return optionListIds.some((id: string) => id.toLowerCase() === optionsId?.toLowerCase());
+}
+
+export function hasEditableOptionList(
+  component: FormComponent<SelectionComponentType>,
+  codeListIdContextData: CodeListIdContextData,
+): boolean {
+  const type = retrieveOptionsType(component, codeListIdContextData);
+  return type !== null && type !== OptionsType.CustomId;
 }
