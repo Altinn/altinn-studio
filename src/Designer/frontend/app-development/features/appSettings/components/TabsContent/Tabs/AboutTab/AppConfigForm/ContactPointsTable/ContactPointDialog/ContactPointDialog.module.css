@@ -1,0 +1,8 @@
+.fieldset {
+  padding: var(--ds-size-3);
+}
+
+.formActions {
+  margin-top: var(--ds-size-13);
+  gap: var(--ds-size-4);
+}

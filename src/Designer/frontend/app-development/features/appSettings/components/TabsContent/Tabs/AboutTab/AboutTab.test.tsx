@@ -18,6 +18,7 @@ import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 jest.mock('app-development/hooks/mutations/useAppConfigMutation');
 const updateAppConfigMutation = jest.fn();
@@ -149,6 +150,17 @@ describe('AboutTab', () => {
     const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve(updatedMockMetadata));
     await resolveAndWaitForSpinnerToDisappear({ getAppMetadata });
     expect(screen.getByText(updatedMockMetadata.createdBy)).toBeInTheDocument();
+  });
+
+  it('renders AppConfigForm when AppMetadata feature flag is enabled', async () => {
+    const originalUrl = window.location.search;
+    window.history.pushState({}, 'test', `/?featureFlags=${FeatureFlag.AppMetadata}`);
+    await resolveAndWaitForSpinnerToDisappear();
+    const matches = screen.getAllByText(
+      textMock('app_settings.about_tab_contact_point_dialog_add_title'),
+    );
+    expect(matches.length).toBeGreaterThan(0);
+    window.history.pushState({}, '', `/${originalUrl}`);
   });
 });
 
