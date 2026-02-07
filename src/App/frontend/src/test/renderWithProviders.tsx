@@ -123,7 +123,6 @@ const defaultPostalCodesMock = (() => {
 const defaultQueryMocks: AppQueries = {
   fetchLogo: async () => getLogoMock(),
   fetchActiveInstances: async () => [],
-  fetchSelectedParty: async () => getPartyMock(),
   fetchOrgs: async () => ({ orgs: getOrgsMock() }),
   fetchDataModelSchema: async () => ({}),
   fetchPartiesAllowedToInstantiate: async () => [getPartyMock()],

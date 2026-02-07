@@ -19,6 +19,7 @@ import { getFooterLayoutMock } from 'src/__mocks__/getFooterLayoutMock';
 // Importing CSS for jest-preview to look nicer
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { getTextResourceMapMock, getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
@@ -82,6 +83,7 @@ window.altinnAppGlobalData = {
   footer: getFooterLayoutMock(),
   layoutSets: getLayoutSetsMock(),
   availableLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
+  selectedParty: getPartyMock(),
   textResources: { language: 'en', resources: getTextResourcesMock() },
 };
 
