@@ -40,7 +40,7 @@ import {
   textResourcesUrl,
   validPartiesUrl,
 } from 'src/utils/urls/appUrlHelper';
-import { customEncodeURI, orgsListUrl } from 'src/utils/urls/urlHelper';
+import { customEncodeURI } from 'src/utils/urls/urlHelper';
 import type { DataPostResponse } from 'src/features/attachments';
 import type { IDataList } from 'src/features/dataLists';
 import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
@@ -57,16 +57,7 @@ import type { ILayoutSettings, IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { ISimpleInstance, LooseAutocomplete } from 'src/types';
-import type {
-  IActionType,
-  IAltinnOrgs,
-  IData,
-  IInstance,
-  IParty,
-  IProcess,
-  IProfile,
-  PostalCodesRegistry,
-} from 'src/types/shared';
+import type { IActionType, IData, IInstance, IParty, IProcess, IProfile, PostalCodesRegistry } from 'src/types/shared';
 
 export const doSetSelectedParty = (partyId: number | string) =>
   putWithoutConfig<LooseAutocomplete<'Party successfully updated'> | null>(getSetSelectedPartyUrl(partyId));
@@ -228,11 +219,6 @@ export const fetchLayoutSettings = (layoutSetId: string): Promise<ILayoutSetting
 export const fetchOptions = (url: string): Promise<AxiosResponse<IRawOption[]> | null> => httpGetRaw<IRawOption[]>(url);
 
 export const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
-
-export const fetchOrgs = (): Promise<{ orgs: IAltinnOrgs }> =>
-  httpGet(orgsListUrl, {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  });
 
 export const fetchPartiesAllowedToInstantiate = (): Promise<IParty[]> => httpGet(validPartiesUrl);
 

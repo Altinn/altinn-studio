@@ -1,14 +1,11 @@
 import { useTextResourceOr } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { useOrgs } from 'src/features/orgs/OrgsProvider';
 
 export function useAppLogoUrl() {
-  const orgs = useOrgs();
   const application = getApplicationMetadata();
-  const org = application?.org;
 
   const useOrgAsSource = (application.logo?.source ?? 'org') === 'org';
-  const fromOrg = useOrgAsSource && orgs && org ? orgs[org]?.logo : undefined;
+  const fromOrg = useOrgAsSource ? window.altinnAppGlobalData?.orgLogoUrl : undefined;
   const fromTextResources = useTextResourceOr('appLogo.url', undefined);
 
   return fromOrg || fromTextResources;

@@ -4,6 +4,7 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Features.Redirect;
+using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Profile;
@@ -17,30 +18,22 @@ using Microsoft.Extensions.Options;
 namespace Altinn.App.Core.Features.Bootstrap;
 
 internal sealed class BootstrapGlobalService(
-    IAppMetadata appMetadata,
-    IAppResources appResources,
-    IOptions<FrontEndSettings> frontEndSettings,
-    IApplicationLanguage applicationLanguage,
-    IReturnUrlService returnUrlService,
-    IProfileClient profileClient,
-    IAuthenticationContext authenticationContext,
-    IHttpContextAccessor httpContextAccessor,
-    ILogger<BootstrapGlobalService> logger
+    IAppMetadata _appMetadata,
+    IAppResources _appResources,
+    IOptions<FrontEndSettings> _frontEndSettings,
+    IApplicationLanguage _applicationLanguage,
+    IReturnUrlService _returnUrlService,
+    IProfileClient _profileClient,
+    IAuthenticationContext _authenticationContext,
+    IHttpContextAccessor _httpContextAccessor,
+    IAltinnCdnClient _altinnCdnClient,
+    ILogger<BootstrapGlobalService> _logger
 ) : IBootstrapGlobalService
 {
-    private readonly IAppMetadata _appMetadata = appMetadata;
-    private readonly IAppResources _appResources = appResources;
-    private readonly IOptions<FrontEndSettings> _frontEndSettings = frontEndSettings;
-    private readonly IApplicationLanguage _applicationLanguage = applicationLanguage;
-    private readonly IProfileClient _profileClient = profileClient;
-
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
-    private readonly IAuthenticationContext _authenticationContext = authenticationContext;
-    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
-    private readonly ILogger<BootstrapGlobalService> _logger = logger;
 
     private const string DefaultLanguage = LanguageConst.Nb;
 
@@ -59,11 +52,22 @@ internal sealed class BootstrapGlobalService(
         var layoutSets = _appResources.GetLayoutSets() ?? new LayoutSets { Sets = [] };
         layoutSets.UiSettings ??= new GlobalPageSettings();
 
-        var validatedUrl = returnUrlService.Validate(redirectUrl);
+        var validatedUrl = _returnUrlService.Validate(redirectUrl);
 
         var userProfileTask = GetUserProfileOrNull();
 
-        await Task.WhenAll(appMetadataTask, footerTask, availableLanguagesTask, userProfileTask, textResourcesTask);
+        var orgDataTask = GetOrgData();
+
+        await Task.WhenAll(
+            appMetadataTask,
+            footerTask,
+            availableLanguagesTask,
+            userProfileTask,
+            textResourcesTask,
+            orgDataTask
+        );
+
+        var (orgName, orgLogoUrl) = await orgDataTask;
 
         return new BootstrapGlobalResponse
         {
@@ -75,6 +79,8 @@ internal sealed class BootstrapGlobalService(
             FrontEndSettings = _frontEndSettings.Value,
             ReturnUrl = validatedUrl.DecodedUrl is not null ? validatedUrl.DecodedUrl : null,
             UserProfile = await userProfileTask,
+            OrgName = orgName,
+            OrgLogoUrl = orgLogoUrl,
         };
     }
 
@@ -182,5 +188,16 @@ internal sealed class BootstrapGlobalService(
             _logger.LogWarning(ex, "Language cookie with key {CookieKey} found, but failed deserialize it.", cookieKey);
             return null;
         }
+    }
+
+    private async Task<(AltinnCdnOrgName? OrgName, string? OrgLogoUrl)> GetOrgData()
+    {
+        var orgDetails = await _altinnCdnClient.GetOrgDetails();
+        if (orgDetails is null)
+        {
+            return (null, null);
+        }
+
+        return (orgDetails.Name, orgDetails.Logo);
     }
 }

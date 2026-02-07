@@ -18,7 +18,17 @@ const render = async (logo: ApplicationMetadata['logo']) => {
 };
 
 describe('OrganisationLogo', () => {
-  it('Should get img src from organisations when logo.source is set to "org" in applicationMetadata', async () => {
+  beforeEach(() => {
+    window.altinnAppGlobalData.orgLogoUrl = 'https://altinncdn.no/orgs/mockOrg/mockOrg.png';
+    window.altinnAppGlobalData.orgName = { nb: 'Mockdepartementet', en: 'Mock Ministry', nn: 'Mockdepartementet' };
+  });
+
+  afterEach(() => {
+    window.altinnAppGlobalData.orgLogoUrl = undefined;
+    window.altinnAppGlobalData.orgName = undefined;
+  });
+
+  it('Should get img src from global data when logo.source is set to "org" in applicationMetadata', async () => {
     await render({
       source: 'org',
       displayAppOwnerNameInHeader: false,
