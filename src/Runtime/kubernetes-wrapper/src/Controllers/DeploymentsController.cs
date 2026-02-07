@@ -1,5 +1,4 @@
 using Altinn.Studio.KubernetesWrapper.Services.Interfaces;
-
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,7 +24,13 @@ public class DeploymentsController(IKubernetesApiWrapper apiWrapper) : Controlle
     [EnableCors]
     public async Task<ActionResult> GetDeployments(string labelSelector, string fieldSelector)
     {
-        var deployments = await apiWrapper.GetDeployedResources(Models.ResourceType.Deployment, null, null, fieldSelector, labelSelector);
+        var deployments = await apiWrapper.GetDeployedResources(
+            Models.ResourceType.Deployment,
+            null,
+            null,
+            fieldSelector,
+            labelSelector
+        );
         return Ok(deployments);
     }
 }

@@ -1,8 +1,7 @@
-using k8s;
-using k8s.Models;
-
 using Altinn.Studio.KubernetesWrapper.Models;
 using Altinn.Studio.KubernetesWrapper.Services.Interfaces;
+using k8s;
+using k8s.Models;
 
 namespace Altinn.Studio.KubernetesWrapper.Services.Implementation;
 
@@ -44,7 +43,8 @@ public class KubernetesApiWrapper : IKubernetesApiWrapper
         string resourceVersion,
         int? timeoutSeconds,
         bool? watch,
-        bool? pretty)
+        bool? pretty
+    )
     {
         IList<DeployedResource> mappedResources = new List<DeployedResource>();
 
@@ -53,11 +53,37 @@ public class KubernetesApiWrapper : IKubernetesApiWrapper
             switch (resourceType)
             {
                 case ResourceType.Deployment:
-                    V1DeploymentList deployments = await _client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, null, timeoutSeconds, watch, pretty);
+                    V1DeploymentList deployments = await _client.ListNamespacedDeploymentAsync(
+                        "default",
+                        allowWatchBookmarks,
+                        continueParameter,
+                        fieldSelector,
+                        labelSelector,
+                        limit,
+                        resourceVersion,
+                        null,
+                        null,
+                        timeoutSeconds,
+                        watch,
+                        pretty
+                    );
                     mappedResources = MapDeployments(deployments.Items);
                     break;
                 case ResourceType.DaemonSet:
-                    V1DaemonSetList daemonSets = await _client.ListNamespacedDaemonSetAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, null, timeoutSeconds, watch, pretty);
+                    V1DaemonSetList daemonSets = await _client.ListNamespacedDaemonSetAsync(
+                        "default",
+                        allowWatchBookmarks,
+                        continueParameter,
+                        fieldSelector,
+                        labelSelector,
+                        limit,
+                        resourceVersion,
+                        null,
+                        null,
+                        timeoutSeconds,
+                        watch,
+                        pretty
+                    );
                     mappedResources = MapDaemonSets(daemonSets.Items);
                     break;
             }

@@ -31,5 +31,6 @@ public interface IKubernetesApiWrapper
         string resourceVersion = null,
         int? timeoutSeconds = null,
         bool? watch = null,
-        bool? pretty = null);
+        bool? pretty = null
+    );
 }

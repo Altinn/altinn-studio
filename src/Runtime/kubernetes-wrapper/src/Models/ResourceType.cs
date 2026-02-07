@@ -6,5 +6,5 @@ namespace Altinn.Studio.KubernetesWrapper.Models;
 public enum ResourceType
 {
     Deployment,
-    DaemonSet
+    DaemonSet,
 }

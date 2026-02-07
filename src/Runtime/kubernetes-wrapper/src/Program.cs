@@ -1,9 +1,7 @@
 using System.Reflection;
 using Altinn.Studio.KubernetesWrapper.Services.Implementation;
 using Altinn.Studio.KubernetesWrapper.Services.Interfaces;
-
 using Microsoft.OpenApi.Models;
-
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -11,8 +11,7 @@ public class ErrorController() : ControllerBase
 {
     [Route("/error-development")]
     [ApiExplorerSettings(IgnoreApi = true)]
-    public IActionResult HandleErrorDevelopment(
-        [FromServices] IHostEnvironment hostEnvironment)
+    public IActionResult HandleErrorDevelopment([FromServices] IHostEnvironment hostEnvironment)
     {
         if (!hostEnvironment.IsDevelopment())
         {
@@ -25,9 +24,7 @@ public class ErrorController() : ControllerBase
             return NotFound();
         }
 
-        return Problem(
-            detail: exceptionHandlerFeature.Error.StackTrace,
-            title: exceptionHandlerFeature.Error.Message);
+        return Problem(detail: exceptionHandlerFeature.Error.StackTrace, title: exceptionHandlerFeature.Error.Message);
     }
 
     [Route("/error")]

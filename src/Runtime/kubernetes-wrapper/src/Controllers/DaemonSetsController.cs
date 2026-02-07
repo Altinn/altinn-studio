@@ -1,5 +1,4 @@
 using Altinn.Studio.KubernetesWrapper.Services.Interfaces;
-
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,7 +14,6 @@ namespace Altinn.Studio.KubernetesWrapper.Controllers;
 [ApiController]
 public class DaemonSetsController(IKubernetesApiWrapper apiWrapper) : ControllerBase
 {
-
     /// <summary>
     /// Get a list of daemonSets. For a more detailed spec of parameters see Kubernetes API DOC
     /// </summary>
@@ -26,7 +24,13 @@ public class DaemonSetsController(IKubernetesApiWrapper apiWrapper) : Controller
     [EnableCors]
     public async Task<ActionResult> GetDaemonSets(string labelSelector, string fieldSelector)
     {
-        var daemonSets = await apiWrapper.GetDeployedResources(Models.ResourceType.DaemonSet, null, null, fieldSelector, labelSelector);
+        var daemonSets = await apiWrapper.GetDeployedResources(
+            Models.ResourceType.DaemonSet,
+            null,
+            null,
+            fieldSelector,
+            labelSelector
+        );
         return Ok(daemonSets);
     }
 }
