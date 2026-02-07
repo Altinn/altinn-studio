@@ -65,5 +65,5 @@ async def extract_semantic_query(user_input: str, context: str = "general") -> s
                 "error": str(e),
                 "fallback_query": user_input
             })
-            span.set_attribute("error", True)
+            span.update(metadata={"error": True})
             return user_input

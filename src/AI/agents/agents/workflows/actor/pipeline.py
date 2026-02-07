@@ -99,6 +99,7 @@ def get_looked_up_component_types(tool_results: List[Dict[str, Any]]) -> Set[str
 async def ensure_component_schemas_looked_up(
     mcp_client,
     tool_results: List[Dict[str, Any]],
+    gitea_token: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Ensure all component types found in layout files have their schemas looked up.
     
@@ -127,7 +128,8 @@ async def ensure_component_schemas_looked_up(
                 {
                     "component_type": comp_type,
                     "schema_url": schema_url,
-                }
+                },
+                gitea_token=gitea_token,
             )
             
             # Extract text from result
@@ -162,12 +164,13 @@ async def run_actor_pipeline(
     tool_results_override: Optional[List[Dict[str, Any]]] = None,
     implementation_plan_override: Optional[Dict[str, Any]] = None,
     attachments: Optional[List[AgentAttachment]] = None,
+    gitea_token: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Execute the full actor workflow pipeline."""
 
     # Ensure MCP client is connected and has available tools populated
     if not hasattr(mcp_client, '_available_tools') or not mcp_client._available_tools:
-        await mcp_client.connect()
+        await mcp_client.connect(gitea_token)
 
     attachments = attachments or repo_facts.get("attachments")
     general_plan = general_plan_override or await create_general_plan(user_goal, planner_step, attachments=attachments)
@@ -178,7 +181,7 @@ async def run_actor_pipeline(
         tool_results = tool_results_override
     else:
         tool_results = await execute_tool_plan(
-            mcp_client, repository_path, user_goal, repo_facts, tool_plan, planner_step, general_plan
+            mcp_client, repository_path, user_goal, repo_facts, tool_plan, planner_step, general_plan, gitea_token
         )
     
     # 🚨 CRITICAL: Ensure all component types found in layout files have their schemas looked up
@@ -187,6 +190,7 @@ async def run_actor_pipeline(
     tool_results = await ensure_component_schemas_looked_up(
         mcp_client,
         tool_results,
+        gitea_token,
     )
     
     # Skip the separate implementation_planning_llm step - it was taking ~99s and only
@@ -442,6 +446,7 @@ async def execute_tool_plan(
     tool_plan: List[Dict[str, Any]],
     planner_step: Optional[str] = None,
     general_plan: Optional[Dict[str, Any]] = None,
+    gitea_token: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     results: List[Dict[str, Any]] = []
     langfuse = get_client()
@@ -520,7 +525,7 @@ async def execute_tool_plan(
                 input={"arguments": arguments},
                 metadata={"span_type": "TOOL", "tool": tool_name, "objective": objective}
             ) as tool_span:
-                result = await mcp_client.call_tool(tool_name, arguments)
+                result = await mcp_client.call_tool(tool_name, arguments, gitea_token=gitea_token)
                 if isinstance(result, dict) and "error" in result:
                     error_message = result["error"]
                     tool_span.update(output={"success": False, "error": error_message})
