@@ -21,6 +21,9 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Restore tools
+        run: dotnet tool restore
+        working-directory: src/Runtime/kubernetes-wrapper
       - name: FormatCheck
-        run: |
-          dotnet format src/Runtime/kubernetes-wrapper/src/Altinn.Studio.KubernetesWrapper.csproj --verify-no-changes
+        run: dotnet csharpier check .
+        working-directory: src/Runtime/kubernetes-wrapper
