@@ -56,5 +56,16 @@ public class GitOpsManagementBuildParameters
     /// </summary>
     [JsonPropertyName("PUSH_APPS_OCI_IMAGE")]
     public string PushAppsOciImage { get; set; } = "false";
-}
 
+    /// <summary>
+    /// W3C traceparent propagated from the request that queued the pipeline.
+    /// </summary>
+    [JsonPropertyName("TRACEPARENT")]
+    public string TraceParent { get; set; }
+
+    /// <summary>
+    /// W3C tracestate propagated from the request that queued the pipeline.
+    /// </summary>
+    [JsonPropertyName("TRACESTATE")]
+    public string TraceState { get; set; }
+}
