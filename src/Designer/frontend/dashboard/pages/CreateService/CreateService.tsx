@@ -8,7 +8,7 @@ import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { NewApplicationForm } from '../../components/NewApplicationForm';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
-import { type NewAppForm } from '../../types/NewAppForm';
+import type { NewAppForm } from '../../types/NewAppForm';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useSubroute } from '../../hooks/useSubRoute';
 
@@ -60,6 +60,10 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
         },
         onError: (error: AxiosError): void => {
           const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
+          const templateError =
+            error.response?.status === ServerCodes.BadRequest &&
+            error.response?.data?.error == 'CustomTemplateException';
+
           if (appNameAlreadyExists) {
             setFormError(
               (prevErrors): NewAppForm => ({
@@ -67,6 +71,8 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
                 repoName: t('dashboard.app_already_exists'),
               }),
             );
+          } else if (templateError) {
+            // error message when template application fails
           }
         },
       },

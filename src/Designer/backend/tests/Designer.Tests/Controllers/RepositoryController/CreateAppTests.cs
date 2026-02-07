@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
@@ -111,6 +112,39 @@ namespace Designer.Tests.Controllers.RepositoryController
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task CreateApp_TemplateExceptionThrown_BadRequestReturned()
+        {
+
+            // Arrange
+            string uri = $"{VersionPrefix}/create-app";
+            var content = new StringContent(JsonSerializer.Serialize(new CreateAppRequest
+            {
+                Org = "ttd",
+                Repository = "test",
+                Template = new CustomTemplateReference
+                {
+                    Owner = "ttd",
+                    Id = "custom-template"
+                }
+            }), System.Text.Encoding.UTF8, "application/json");
+
+            _repositoryMock
+                .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<ServiceConfiguration>(), It.Is<List<CustomTemplateReference>>(l => l.Count == 1 && l[0].Id == "custom-template")))
+                .ThrowsAsync(CustomTemplateException.ValidationFailed("Template validation failed", []));
+
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            httpRequestMessage.Content = content;
+
+            // Act
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+            string resString = await res.Content.ReadAsStringAsync();
+            Assert.Contains("CustomTemplateException", resString);
         }
     }
 }
