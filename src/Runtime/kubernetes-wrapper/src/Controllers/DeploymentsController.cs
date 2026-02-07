@@ -22,14 +22,15 @@ public class DeploymentsController(IKubernetesApiWrapper apiWrapper) : Controlle
     /// <returns>A list of deployments in the cluster</returns>
     [HttpGet]
     [EnableCors]
-    public async Task<ActionResult> GetDeployments(string labelSelector, string fieldSelector)
+    public async Task<ActionResult> GetDeployments(
+        [FromQuery] string? labelSelector = null,
+        [FromQuery] string? fieldSelector = null
+    )
     {
         var deployments = await apiWrapper.GetDeployedResources(
-            Models.ResourceType.Deployment,
-            null,
-            null,
-            fieldSelector,
-            labelSelector
+            resourceType: Models.ResourceType.Deployment,
+            fieldSelector: fieldSelector,
+            labelSelector: labelSelector
         );
         return Ok(deployments);
     }

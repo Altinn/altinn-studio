@@ -4,7 +4,7 @@ setup-kind:
 
 .PHONY: build-docker-image
 build-docker-image:
-	docker build src -t altinn-kuberneteswrapper:local
+	docker build -f src/Dockerfile . -t altinn-kuberneteswrapper:local
 
 .PHONY: load-image
 load-image: build-docker-image

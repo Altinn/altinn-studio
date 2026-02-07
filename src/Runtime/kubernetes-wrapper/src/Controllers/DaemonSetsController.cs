@@ -22,14 +22,15 @@ public class DaemonSetsController(IKubernetesApiWrapper apiWrapper) : Controller
     /// <returns>A list of daemonSets in the cluster</returns>
     [HttpGet]
     [EnableCors]
-    public async Task<ActionResult> GetDaemonSets(string labelSelector, string fieldSelector)
+    public async Task<ActionResult> GetDaemonSets(
+        [FromQuery] string? labelSelector = null,
+        [FromQuery] string? fieldSelector = null
+    )
     {
         var daemonSets = await apiWrapper.GetDeployedResources(
-            Models.ResourceType.DaemonSet,
-            null,
-            null,
-            fieldSelector,
-            labelSelector
+            resourceType: Models.ResourceType.DaemonSet,
+            fieldSelector: fieldSelector,
+            labelSelector: labelSelector
         );
         return Ok(daemonSets);
     }
