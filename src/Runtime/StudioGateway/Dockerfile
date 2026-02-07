@@ -21,7 +21,7 @@ COPY src/StudioGateway.Contracts/ StudioGateway.Contracts/
 WORKDIR /build/StudioGateway.Api
 RUN dotnet publish -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:9416d3afd6060895c906a7fd5bda9c520b39f4cc4a2f3e755d079b63220800c7
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:63a9bb50127de1c5ef7258a3dad27a7769d18a4f5558ab4ae1c243bce7517770
 WORKDIR /app
 COPY --from=build /app/publish .
 
