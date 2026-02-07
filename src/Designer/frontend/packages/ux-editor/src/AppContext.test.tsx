@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import type { AppContextProps, WindowWithQueryClient } from './AppContext';
+import type { AppContextProps, SelectedItem, WindowWithQueryClient } from './AppContext';
 import { AppContextProvider } from './AppContext';
 import userEvent from '@testing-library/user-event';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -13,6 +13,15 @@ import { layout1NameMock } from './testing/layoutMock';
 import { app, layoutSet, org } from '@studio/testing/testids';
 import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
 import { AppRouter } from './testing/mocks';
+import { useSearchParams } from 'react-router-dom';
+import { ItemType } from './components/Properties/ItemType';
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useSearchParams: jest.fn(),
+}));
+
+const mockUseSearchParams = useSearchParams as unknown as jest.Mock;
 
 const mockSelectedFormLayoutSetName = layoutSet;
 const mockSelectedFormLayoutName = layout1NameMock;
@@ -49,6 +58,30 @@ const clickButton = async () => {
   const button = screen.getByTestId(buttonTestId);
   await user.click(button);
 };
+
+const ItemSelector = ({
+  setSelectedItem,
+  selectedItem,
+  type,
+  id,
+}: {
+  setSelectedItem: AppContextProps['setSelectedItem'];
+  selectedItem: SelectedItem | null;
+  type: ItemType.Component | ItemType.Page;
+  id: string;
+}) => (
+  <>
+    <Button
+      onClick={() =>
+        setSelectedItem({
+          type,
+          id,
+        } as SelectedItem)
+      }
+    />
+    <div data-testid='selectedItemId'>{selectedItem ? String(selectedItem.id) : ''}</div>
+  </>
+);
 
 const renderAppContext = (children: (appContext: AppContextProps) => React.ReactNode) => {
   const queryClient = createQueryClientMock();
@@ -91,9 +124,15 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
 };
 
 describe('AppContext', () => {
+  beforeEach(() => {
+    mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()]);
+  });
+
   afterEach(jest.clearAllMocks);
 
   it('sets selectedFormLayoutName correctly', async () => {
+    const setSearchParamsMock = jest.fn();
+    mockUseSearchParams.mockReturnValue([new URLSearchParams(), setSearchParamsMock]);
     renderAppContext(({ selectedFormLayoutName, setSelectedFormLayoutName }: AppContextProps) => (
       <>
         <Button onClick={() => setSelectedFormLayoutName(mockSelectedFormLayoutName)} />
@@ -104,11 +143,60 @@ describe('AppContext', () => {
     expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual('');
 
     await clickButton();
+    await waitFor(() => expect(setSearchParamsMock).toHaveBeenCalledTimes(1));
+  });
 
+  it('initializes selectedItem from layout query parameter', async () => {
+    const layoutFromUrl = 'Side1';
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams(`layout=${layoutFromUrl}`),
+      jest.fn(),
+    ]);
+    renderAppContext(({ selectedItem }: AppContextProps) => (
+      <div data-testid='selectedItemId'>{selectedItem ? selectedItem.id : ''}</div>
+    ));
     await waitFor(async () =>
-      expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual(
-        mockSelectedFormLayoutName,
-      ),
+      expect((await screen.findByTestId('selectedItemId')).textContent).toEqual(layoutFromUrl),
+    );
+  });
+
+  it('setSelectedItem updates selectedItem at runtime', async () => {
+    const layoutFromUrl = 'Side1';
+    const componentId = 'component-1';
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams(`layout=${layoutFromUrl}`),
+      jest.fn(),
+    ]);
+    renderAppContext(({ selectedItem, setSelectedItem }: AppContextProps) => (
+      <ItemSelector
+        setSelectedItem={setSelectedItem}
+        selectedItem={selectedItem}
+        type={ItemType.Component}
+        id={componentId}
+      />
+    ));
+    expect((await screen.findByTestId('selectedItemId')).textContent).toEqual(layoutFromUrl);
+    await clickButton();
+    await waitFor(async () =>
+      expect((await screen.findByTestId('selectedItemId')).textContent).toEqual(componentId),
+    );
+  });
+
+  it('initializes selectedItem as null when no layout query parameter is set', async () => {
+    const pageId = 'override-page';
+    mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()]);
+    renderAppContext(({ selectedItem, setSelectedItem }: AppContextProps) => (
+      <ItemSelector
+        setSelectedItem={setSelectedItem}
+        selectedItem={selectedItem}
+        type={ItemType.Page}
+        id={pageId}
+      />
+    ));
+    expect((await screen.findByTestId('selectedItemId')).textContent).toEqual('');
+    await clickButton();
+    await waitFor(async () =>
+      expect((await screen.findByTestId('selectedItemId')).textContent).toEqual(pageId),
     );
   });
 
