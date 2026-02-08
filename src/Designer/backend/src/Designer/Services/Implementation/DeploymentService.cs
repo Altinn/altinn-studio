@@ -1,6 +1,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Models;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
@@ -96,6 +98,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<DeploymentEntity> CreateAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, DeploymentModel deployment)
         {
+            var traceContext = GetCurrentTraceContext();
             DeploymentEntity deploymentEntity = new();
             deploymentEntity.PopulateBaseProperties(authenticatedContext.Org, authenticatedContext.Repo, _httpContext);
             deploymentEntity.TagName = deployment.TagName;
@@ -113,7 +116,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             bool useGitOpsDefinition = await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy);
-            Build queuedBuild = await QueueDeploymentBuild(release, deploymentEntity, deployment.EnvName, shouldPushSyncRootImage, useGitOpsDefinition);
+            Build queuedBuild = await QueueDeploymentBuild(
+                release,
+                deploymentEntity,
+                deployment.EnvName,
+                shouldPushSyncRootImage,
+                useGitOpsDefinition,
+                traceContext.TraceParent,
+                traceContext.TraceState
+            );
 
             deploymentEntity.Build = new BuildEntity
             {
@@ -132,7 +143,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Timestamp = _timeProvider.GetUtcNow()
             });
 
-            await PublishDeploymentPipelineQueued(AltinnRepoEditingContext.FromOrgRepoDeveloper(authenticatedContext.Org, authenticatedContext.Repo, deploymentEntity.CreatedBy), queuedBuild, PipelineType.Deploy, deployment.EnvName);
+            await PublishDeploymentPipelineQueued(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                    authenticatedContext.Org,
+                    authenticatedContext.Repo,
+                    deploymentEntity.CreatedBy
+                ),
+                queuedBuild,
+                PipelineType.Deploy,
+                deployment.EnvName,
+                traceContext.TraceParent,
+                traceContext.TraceState
+            );
             return createdEntity;
         }
 
@@ -173,6 +195,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task UndeployAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, string env)
         {
             Guard.AssertValidEnvironmentName(env);
+            var traceContext = GetCurrentTraceContext();
             GitOpsManagementBuildParameters gitOpsManagementBuildParameters = new()
             {
                 AppOwner = authenticatedContext.Org,
@@ -180,7 +203,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 AppEnvironment = env,
                 AltinnStudioHostname = _generalSettings.HostName,
                 AppDeployToken = authenticatedContext.DeveloperAppToken,
-                GiteaEnvironment = $"{_generalSettings.HostName}/repos"
+                GiteaEnvironment = $"{_generalSettings.HostName}/repos",
+                TraceParent = traceContext.TraceParent,
+                TraceState = traceContext.TraceState
             };
 
             // find the deployed tag
@@ -216,7 +241,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Timestamp = _timeProvider.GetUtcNow()
             });
 
-            await PublishDeploymentPipelineQueued(authenticatedContext, build, PipelineType.Undeploy, env);
+            await PublishDeploymentPipelineQueued(
+                authenticatedContext,
+                build,
+                PipelineType.Undeploy,
+                env,
+                traceContext.TraceParent,
+                traceContext.TraceState
+            );
         }
 
         private async Task<bool> ShouldUseGitOpsDecommission(AltinnAuthenticatedRepoEditingContext authenticatedContext, string env)
@@ -266,26 +298,38 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return true;
         }
 
-        private async Task PublishDeploymentPipelineQueued(AltinnRepoEditingContext editingContext, Build build, PipelineType pipelineType, string environment) =>
+        private async Task PublishDeploymentPipelineQueued(
+            AltinnRepoEditingContext editingContext,
+            Build build,
+            PipelineType pipelineType,
+            string environment,
+            string traceParent,
+            string traceState
+        ) =>
             await _mediatr.Publish(new DeploymentPipelineQueued
             {
                 EditingContext = editingContext,
                 BuildId = build.Id,
                 PipelineType = pipelineType,
-                Environment = environment
+                Environment = environment,
+                TraceParent = traceParent,
+                TraceState = traceState
             });
 
         /// <inheritdoc/>
         public async Task PublishSyncRootAsync(AltinnOrgEditingContext editingContext, AltinnEnvironment environment, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var traceContext = GetCurrentTraceContext();
             GitOpsManagementBuildParameters buildParameters = new()
             {
                 AppOwner = editingContext.Org,
                 AppEnvironment = environment.Name,
                 AltinnStudioHostname = _generalSettings.HostName,
                 AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
-                GiteaEnvironment = $"{_generalSettings.HostName}/repos"
+                GiteaEnvironment = $"{_generalSettings.HostName}/repos",
+                TraceParent = traceContext.TraceParent,
+                TraceState = traceContext.TraceState
             };
 
             await _azureDevOpsBuildClient.QueueAsync(buildParameters, _azureDevOpsSettings.GitOpsManagerDefinitionId);
@@ -296,7 +340,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             DeploymentEntity deploymentEntity,
             string envName,
             bool shouldPushSyncRootImage,
-            bool useGitOpsDefinition)
+            bool useGitOpsDefinition,
+            string traceParent,
+            string traceState)
         {
             QueueBuildParameters queueBuildParameters = new()
             {
@@ -308,7 +354,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 TagName = deploymentEntity.TagName,
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos",
                 AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
-                AltinnStudioHostname = _generalSettings.HostName
+                AltinnStudioHostname = _generalSettings.HostName,
+                TraceParent = traceParent,
+                TraceState = traceState
             };
             if (shouldPushSyncRootImage)
             {
@@ -320,6 +368,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 : _azureDevOpsSettings.DeployDefinitionId;
 
             return await _azureDevOpsBuildClient.QueueAsync(queueBuildParameters, definitionId);
+        }
+
+        private static (string TraceParent, string TraceState) GetCurrentTraceContext()
+        {
+            var activity = Activity.Current;
+            if (activity is null || activity.IdFormat != ActivityIdFormat.W3C)
+            {
+                return (null, null);
+            }
+
+            activity.SetAlwaysSample();
+
+            var traceParent = activity.Id;
+            if (string.IsNullOrWhiteSpace(traceParent))
+            {
+                return (null, null);
+            }
+
+            var traceState = string.IsNullOrWhiteSpace(activity.TraceStateString) ? null : activity.TraceStateString;
+
+            return (traceParent, traceState);
         }
 
         /// <inheritdoc />

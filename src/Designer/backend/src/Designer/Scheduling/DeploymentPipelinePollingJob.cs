@@ -1,5 +1,7 @@
 #nullable disable
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Utils;
@@ -8,6 +10,7 @@ using Altinn.Studio.Designer.Hubs.EntityUpdate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -44,50 +47,113 @@ public class DeploymentPipelinePollingJob : IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
-        string org = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Org);
-        string app = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.App);
-        string developer = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Developer);
-        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-        string buildId = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.BuildId);
-        PipelineType type = Enum.Parse<PipelineType>(context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.PipelineType)!, true);
-        string environment = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Environment);
-        Guard.ArgumentNotNull(buildId, nameof(buildId));
+        using var activity = TryStartTraceActivity(context);
 
-        var build = await _azureDevOpsBuildClient.Get(buildId);
-
-        var deploymentEntity = await _deploymentRepository.Get(editingContext.Org, buildId);
-
-        if (deploymentEntity.Build.Status == BuildStatus.Completed)
+        try
         {
-            CancelJob(context);
-            return;
-        }
-        deploymentEntity.Build.Status = build.Status;
-        deploymentEntity.Build.Started = build.Started;
-        deploymentEntity.Build.Finished = build.Finished;
-        deploymentEntity.Build.Result = build.Result;
+            string org = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Org);
+            string app = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.App);
+            string developer = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Developer);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            string buildId = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.BuildId);
+            PipelineType type = Enum.Parse<PipelineType>(context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.PipelineType)!, true);
+            string environment = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Environment);
+            Guard.ArgumentNotNull(buildId, nameof(buildId));
 
-        if (build.Status == BuildStatus.Completed && deploymentEntity.Events.All(e => e.EventType != DeployEventType.PipelineSucceeded && e.EventType != DeployEventType.PipelineFailed))
-        {
-            await AddDeployEventIfNotExist(build.Status, build, org, buildId);
-        }
+            var build = await _azureDevOpsBuildClient.Get(buildId);
 
-        await _deploymentRepository.Update(deploymentEntity);
+            var deploymentEntity = await _deploymentRepository.Get(editingContext.Org, buildId);
 
-        if (build.Status == BuildStatus.Completed)
-        {
-            if (type == PipelineType.Undeploy && build.Result == BuildResult.Succeeded)
+            if (deploymentEntity.Build.Status == BuildStatus.Completed)
             {
-                await UpdateMetadataInStorage(editingContext, environment);
+                CancelJob(context);
+                return;
             }
-            await _entityUpdatedHubContext.Clients.Group(editingContext.Developer)
-                .EntityUpdated(new EntityUpdated(EntityConstants.Deployment));
+            deploymentEntity.Build.Status = build.Status;
+            deploymentEntity.Build.Started = build.Started;
+            deploymentEntity.Build.Finished = build.Finished;
+            deploymentEntity.Build.Result = build.Result;
 
-            await PublishCompletedEvent(editingContext, type, environment, build.Result == BuildResult.Succeeded);
+            if (build.Status == BuildStatus.Completed && deploymentEntity.Events.All(e => e.EventType != DeployEventType.PipelineSucceeded && e.EventType != DeployEventType.PipelineFailed))
+            {
+                await AddDeployEventIfNotExist(build.Status, build, org, buildId);
+            }
 
-            CancelJob(context);
+            await _deploymentRepository.Update(deploymentEntity);
+
+            if (build.Status == BuildStatus.Completed)
+            {
+                if (type == PipelineType.Undeploy && build.Result == BuildResult.Succeeded)
+                {
+                    await UpdateMetadataInStorage(editingContext, environment);
+                }
+                await _entityUpdatedHubContext.Clients.Group(editingContext.Developer)
+                    .EntityUpdated(new EntityUpdated(EntityConstants.Deployment));
+
+                await PublishCompletedEvent(editingContext, type, environment, build.Result == BuildResult.Succeeded);
+
+                CancelJob(context);
+            }
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error);
+            activity?.AddException(ex);
+            throw;
+        }
+    }
+
+    private Activity TryStartTraceActivity(IJobExecutionContext context)
+    {
+        var jobDataMap = context.JobDetail.JobDataMap;
+        string traceParent = GetOptionalString(jobDataMap, DeploymentPipelinePollingJobConstants.Arguments.TraceParent);
+        if (string.IsNullOrWhiteSpace(traceParent))
+        {
+            return null;
         }
 
+        string traceState = GetOptionalString(jobDataMap, DeploymentPipelinePollingJobConstants.Arguments.TraceState);
+        if (!ActivityContext.TryParse(traceParent, traceState, out var parentContext))
+        {
+            string buildId = GetOptionalString(jobDataMap, DeploymentPipelinePollingJobConstants.Arguments.BuildId);
+            _logger.LogWarning("Invalid trace context in polling job for build {BuildId}", buildId ?? "<unknown>");
+            return null;
+        }
+
+        IEnumerable<ActivityLink> links = null;
+        if (Activity.Current?.Context is { } currentContext && !currentContext.Equals(parentContext))
+        {
+            links = [new ActivityLink(currentContext)];
+        }
+
+        var activity = ServiceTelemetry.Source.StartActivity(
+            $"{nameof(DeploymentPipelinePollingJob)}.{nameof(Execute)}",
+            kind: ActivityKind.Internal,
+            parentContext: parentContext,
+            links: links
+        );
+        activity.SetAlwaysSample();
+        return activity;
+    }
+
+    private static string GetOptionalString(JobDataMap jobDataMap, string key)
+    {
+        if (jobDataMap is null)
+        {
+            throw new ArgumentNullException(nameof(jobDataMap));
+        }
+
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(key));
+        }
+
+        if (!jobDataMap.TryGetValue(key, out var value) || value is null)
+        {
+            return null;
+        }
+
+        return value as string ?? value.ToString();
     }
 
     private async Task AddDeployEventIfNotExist(BuildStatus buildStatus, BuildEntity build, string org, string buildId)
