@@ -36,6 +36,11 @@ export const altinnCustomTasks = {
           isMany: false,
           type: 'PdfConfig',
         },
+        {
+          name: 'eFormidlingConfig',
+          isMany: false,
+          type: 'EFormidlingConfig',
+        },
       ],
     },
     {
@@ -215,6 +220,113 @@ export const altinnCustomTasks = {
           name: 'value',
           isMany: false,
           isBody: true,
+          type: 'String',
+        },
+      ],
+    },
+    {
+      name: 'EFormidlingConfig',
+      properties: [
+        {
+          name: 'disabled',
+          isMany: true,
+          type: 'EnvironmentConfig',
+          xml: {
+            serialize: 'property'
+          }
+        },
+        {
+          name: 'receiver',
+          isMany: true,
+          type: 'EnvironmentConfig',
+          xml: {
+            serialize: 'property'
+          }
+        },
+        {
+          name: 'process',
+          isMany: true,
+          type: 'EnvironmentConfig',
+          xml: {
+            serialize: 'property'
+          }
+        },
+        {
+          name: 'standard',
+          isMany: true,
+          type: 'EnvironmentConfig',
+          xml: {
+            serialize: 'property'
+          }
+        },
+        {
+          name: 'typeVersion',
+          isMany: true,
+          type: 'EnvironmentConfig',
+          xml: {
+            serialize: 'property'
+          }
+        },
+        {
+          name: 'type',
+          isMany: true,
+          type: 'EnvironmentConfig',
+          xml: {
+            serialize: 'property'
+          }
+        },
+        {
+          name: 'securityLevel',
+          isMany: true,
+          type: 'EnvironmentConfig',
+          xml: {
+            serialize: 'property'
+          }
+        },
+        {
+          name: 'dpfShipmentType',
+          isMany: true,
+          type: 'EnvironmentConfig',
+          xml: {
+            serialize: 'property'
+          }
+        },
+        {
+          name: 'dataTypes',
+          isMany: true,
+          type: 'EFormidlingDataTypes',
+          xml: {
+            serialize: 'property'
+          }
+        },
+      ],
+    },
+    {
+      name: 'EnvironmentConfig',
+      properties: [
+        {
+          name: 'value',
+          isBody: true,
+          type: 'String',
+        },
+        {
+          name: 'env',
+          isAttr: true,
+          type: 'String',
+        },
+      ],
+    },
+    {
+      name: 'EFormidlingDataTypes',
+      properties: [
+        {
+          name: 'values',
+          isMany: true,
+          type: 'DataType',
+        },
+        {
+          name: 'env',
+          isAttr: true,
           type: 'String',
         },
       ],
