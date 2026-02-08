@@ -1,3 +1,4 @@
+import { INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE } from '@altinn/policy-editor/constants';
 import type { PolicyAction, PolicyRuleCard, PolicySubject } from '../../types';
 
 /**
@@ -68,7 +69,7 @@ export const getAltinnSubjects = (subjects: PolicySubject[]) => {
 };
 export const getOtherSubjects = (subjects: PolicySubject[]) => {
   return subjects.filter((s) => {
-    const isOther = s.provider?.code === 'sys-internal';
+    const isOther = s.provider?.code === INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE;
     return isOther;
   });
 };
