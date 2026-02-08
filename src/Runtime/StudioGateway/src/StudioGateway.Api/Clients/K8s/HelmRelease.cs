@@ -43,17 +43,25 @@ internal sealed class HelmRelease
         return null;
     }
 
-    public IReadOnlyDictionary<string, string> GetLabels()
+    public IReadOnlyDictionary<string, string> GetLabels() => GetMetadataMap("labels");
+
+    public IReadOnlyDictionary<string, string> GetAnnotations() => GetMetadataMap("annotations");
+
+    private IReadOnlyDictionary<string, string> GetMetadataMap(string fieldName)
     {
-        if (!_root.TryGetProperty("metadata", out var metadata) || !metadata.TryGetProperty("labels", out var labels))
+        if (
+            !_root.TryGetProperty("metadata", out var metadata)
+            || !metadata.TryGetProperty(fieldName, out var values)
+            || values.ValueKind != JsonValueKind.Object
+        )
         {
             return new Dictionary<string, string>();
         }
 
         var result = new Dictionary<string, string>();
-        foreach (var prop in labels.EnumerateObject())
+        foreach (var prop in values.EnumerateObject())
         {
-            if (prop.Value.GetString() is { } value)
+            if (prop.Value.ValueKind == JsonValueKind.String && prop.Value.GetString() is { } value)
                 result[prop.Name] = value;
         }
 

@@ -110,6 +110,15 @@ internal sealed class BootstrapGlobalService(
             return null;
         }
 
+        if (
+            languageFromUrl is not null
+            && availableLanguages.Contains(languageFromUrl)
+            && await _appResources.GetTexts(org, app, languageFromUrl) is TextResource textResourceFromUrl
+        )
+        {
+            return textResourceFromUrl;
+        }
+
         var languageFromCookie = GetLanguageFromCookie();
         if (
             languageFromCookie is not null
@@ -118,15 +127,6 @@ internal sealed class BootstrapGlobalService(
         )
         {
             return textResourceFromCookie;
-        }
-
-        if (
-            languageFromUrl is not null
-            && availableLanguages.Contains(languageFromUrl)
-            && await _appResources.GetTexts(org, app, languageFromUrl) is TextResource textResourceFromUrl
-        )
-        {
-            return textResourceFromUrl;
         }
 
         string userLanguage = await _authenticationContext.Current.GetLanguage();

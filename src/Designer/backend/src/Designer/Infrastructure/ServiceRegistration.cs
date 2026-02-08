@@ -108,6 +108,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IGitOpsManifestsRenderer, ScribanGitOpsManifestsRenderer>();
             services.AddTransient<IOrgLibraryService, OrgLibraryService>();
             services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
+            services.AddTransient<ICustomTemplateService, CustomTemplateService>();
+            services.RegisterSettingsSingleton<CustomTemplateSettings>(configuration);
 
             return services;
         }

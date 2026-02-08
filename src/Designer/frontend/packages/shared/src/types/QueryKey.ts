@@ -11,6 +11,7 @@ export enum QueryKey {
   BranchStatus = 'BranchStatus',
   CanUseFeature = 'CanUseFeature',
   CurrentUser = 'CurrentUser',
+  CustomTemplates = 'CustomTemplates',
   DataModelMetadata = 'DataModelMetadata',
   DataModelsJson = 'DataModelsJson',
   DataModelsMetadata = 'DataModelsMetadata',

@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import type { ChangeEvent, MutableRefObject, ReactElement } from 'react';
 import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioTextfield } from '@studio/components';
+import { StudioTextfield, StudioInlineTextField } from '@studio/components';
 import type { ContactPoint, Keyword } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
 import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
@@ -46,6 +46,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   const resetAppConfig = (): void => {
     if (confirm(t('app_settings.about_tab_reset_confirmation'))) {
       setUpdatedAppConfig(appConfig);
+      setKeywordsInputValue(mapKeywordsArrayToString(appConfig.keywords ?? []));
       setShowAppConfigErrors(false);
     }
   };
@@ -64,10 +65,10 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     }));
   };
 
-  const onChangeHomepage = (e: ChangeEvent<HTMLInputElement>): void => {
+  const onChangeHomepage = (newValue: string): void => {
     setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
       ...oldVal,
-      homepage: e.target.value,
+      homepage: newValue,
     }));
   };
 
@@ -91,11 +92,10 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     }));
   };
 
-  const onChangeKeywords = (e: ChangeEvent<HTMLInputElement>): void => {
-    const keywordsString: string = e.target.value;
-    setKeywordsInputValue(keywordsString);
+  const onChangeKeywords = (newValue: string): void => {
+    setKeywordsInputValue(newValue);
 
-    const keywords: Keyword[] = mapStringToKeywords(keywordsString);
+    const keywords: Keyword[] = mapStringToKeywords(newValue);
     setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
       ...oldVal,
       keywords,
@@ -143,13 +143,15 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           required
           isTextArea
         />
-        <StudioTextfield
+        <StudioInlineTextField
           label={t('app_settings.about_tab_homepage_field_label')}
           description={t('app_settings.about_tab_homepage_field_description')}
           value={updatedAppConfig.homepage ?? ''}
           onChange={onChangeHomepage}
           required={false}
           tagText={t('general.optional')}
+          saveAriaLabel={t('general.save')}
+          cancelAriaLabel={t('general.cancel')}
         />
         <SwitchInput
           switchAriaLabel={t('app_settings.about_tab_delegable_show_text', {
@@ -173,13 +175,15 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
             isTextArea
           />
         )}
-        <StudioTextfield
+        <StudioInlineTextField
           label={t('app_settings.about_tab_keywords_label')}
           description={t('app_settings.about_tab_keywords_description')}
           value={keywordsInputValue}
           onChange={onChangeKeywords}
           required={false}
           tagText={t('general.optional')}
+          saveAriaLabel={t('general.save')}
+          cancelAriaLabel={t('general.cancel')}
         />
         <ContactPoints
           contactPointList={updatedAppConfig.contactPoints}

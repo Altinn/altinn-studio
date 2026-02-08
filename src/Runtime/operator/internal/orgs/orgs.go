@@ -11,7 +11,6 @@ import (
 
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/telemetry"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -66,7 +65,7 @@ func WithRetryConfig(initialBackoff, maxBackoff time.Duration, maxRetries int) O
 
 // NewOrgRegistry creates a new OrgRegistry and performs the initial fetch with retry.
 func NewOrgRegistry(ctx context.Context, url string, opts ...OrgRegistryOption) (*OrgRegistry, error) {
-	tracer := otel.Tracer(telemetry.ServiceName)
+	tracer := telemetry.Tracer()
 	ctx, span := tracer.Start(ctx, "OrgRegistry.New")
 	defer span.End()
 
@@ -162,7 +161,7 @@ func (r *OrgRegistry) fetchWithRetry(ctx context.Context) error {
 }
 
 func (r *OrgRegistry) fetch(ctx context.Context) error {
-	tracer := otel.Tracer(telemetry.ServiceName)
+	tracer := telemetry.Tracer()
 	ctx, span := tracer.Start(ctx, "OrgRegistry.Fetch")
 	defer span.End()
 

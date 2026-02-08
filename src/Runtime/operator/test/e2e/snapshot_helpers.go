@@ -187,6 +187,7 @@ func SanitizeMetadata(meta map[string]any) {
 }
 
 const sanitizedClientId = "<sanitized-client-id>"
+const sanitizedTraceId = "<sanitized-trace-id>"
 
 // SanitizeMaskinportenClientStatus sanitizes status timestamps and dynamic fields
 func SanitizeMaskinportenClientStatus(status map[string]any) {
@@ -244,6 +245,12 @@ func sanitizeConditionMessage(msg string) string {
 func SanitizeActionRecord(action map[string]any) {
 	if action["timestamp"] != nil {
 		action["timestamp"] = sanitizedTimestamp
+	}
+	if action["traceId"] != nil {
+		action["traceId"] = sanitizedTraceId
+	}
+	if action["trace_id"] != nil {
+		action["trace_id"] = sanitizedTraceId
 	}
 	if details, ok := action["details"].(string); ok {
 		// Replace clientId UUIDs in details string
