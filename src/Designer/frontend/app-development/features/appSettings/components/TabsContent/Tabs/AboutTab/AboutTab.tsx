@@ -46,7 +46,7 @@ function AboutTabContent(): ReactElement {
     saveApplicationMetadata(updatedConfig);
   };
 
-  const { data: appConfigData } = useAppConfigQuery(org, app);
+  const { data: appConfigData, status: appConfigQueryStatus } = useAppConfigQuery(org, app);
 
   const { mutate: updateAppConfigMutation } = useAppConfigMutation(org, app);
 
@@ -54,7 +54,7 @@ function AboutTabContent(): ReactElement {
     updateAppConfigMutation(updatedConfig);
   };
 
-  switch (mergeQueryStatuses(applicationMetadataStatus)) {
+  switch (mergeQueryStatuses(applicationMetadataStatus, appConfigQueryStatus)) {
     case 'pending': {
       return <LoadingTabData />;
     }
