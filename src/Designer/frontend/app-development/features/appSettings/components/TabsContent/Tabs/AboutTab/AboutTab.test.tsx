@@ -7,7 +7,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { mockAppConfig } from 'app-development/features/appSettings/mocks/appConfigMock';
-import { mockRepository1 } from 'app-development/features/appSettings/mocks/repositoryMock';
 import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
 import userEvent from '@testing-library/user-event';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
@@ -37,32 +36,23 @@ describe('AboutTab', () => {
     expect(getAppConfig).toHaveBeenCalledTimes(1);
   });
 
-  it('fetches repoMetadata on mount', () => {
-    const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
-    renderAboutTab({ getRepoMetadata });
-    expect(getRepoMetadata).toHaveBeenCalledTimes(1);
-  });
-
   it('fetches applicationMetadata on mount', () => {
     const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
     renderAboutTab({ getAppMetadata });
     expect(getAppMetadata).toHaveBeenCalledTimes(1);
   });
 
-  it.each(['getAppConfig', 'getRepoMetadata', 'getAppMetadata'])(
-    'shows an error message if an error occured on the %s query',
-    async (queryName) => {
-      const errorMessage = 'error-message-test';
+  it('shows an error message if an error occurred on the getAppMetadata query', async () => {
+    const errorMessage = 'error-message-test';
 
-      await resolveAndWaitForSpinnerToDisappear({
-        [queryName]: () => Promise.reject({ message: errorMessage }),
-      });
+    await resolveAndWaitForSpinnerToDisappear({
+      getAppMetadata: () => Promise.reject({ message: errorMessage }),
+    });
 
-      expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
-      expect(screen.getByText(errorMessage)).toBeInTheDocument();
-    },
-  );
+    expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+  });
 
   it('displays the "repo" input as readonly', async () => {
     await resolveAndWaitForSpinnerToDisappear();
@@ -124,12 +114,10 @@ const renderAboutTab = (queries: Partial<ServicesContextProps> = {}) => {
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
   const getAppConfig = jest.fn().mockImplementation(() => Promise.resolve(mockAppConfig));
-  const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve(mockRepository1));
   const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve(mockAppMetadata));
 
   renderAboutTab({
     getAppConfig,
-    getRepoMetadata,
     getAppMetadata,
     ...queries,
   });

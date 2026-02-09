@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { Repository } from 'app-shared/types/Repository';
 import { StudioParagraph } from '@studio/components';
 import { DateUtils } from '@studio/pure-functions';
+import { createdForOrganization } from '@studio/testing/testids';
 
 export type CreatedForProps = {
   repository: Repository;
@@ -21,7 +22,7 @@ export function CreatedFor({ repository, authorName }: CreatedForProps): ReactEl
       <StudioParagraph>
         {authorName} ({formattedDate})
       </StudioParagraph>
-      <StudioParagraph data-testid='created-for-organization'>
+      <StudioParagraph data-testid={createdForOrganization}>
         {t('general.for')} {repository.owner.full_name || repository.owner.login}
       </StudioParagraph>
     </div>

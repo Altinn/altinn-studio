@@ -6,7 +6,7 @@ import { StudioValidationMessage } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { AppConfig } from 'app-shared/types/AppConfig';
-import { useAppMetadataQuery, useRepoMetadataQuery } from 'app-shared/hooks/queries';
+import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import { LoadingTabData } from '../../LoadingTabData';
@@ -36,20 +36,17 @@ function AboutTabContent(): ReactElement {
   const { org, app } = useStudioEnvironmentParams();
 
   const { mutate: saveApplicationMetadata } = useAppMetadataMutation(org, app);
-  const { data: appMetadata } = useAppMetadataQuery(org, app);
+  const {
+    status: applicationMetadataStatus,
+    error: applicationMetadataError,
+    data: appMetadata,
+  } = useAppMetadataQuery(org, app);
 
   const setApplicationMetadata = (updatedConfig: ApplicationMetadata) => {
     saveApplicationMetadata(updatedConfig);
   };
 
-  const {
-    status: appConfigStatus,
-    data: appConfigData,
-    error: appConfigError,
-  } = useAppConfigQuery(org, app);
-  const { status: repositoryStatus, error: repositoryError } = useRepoMetadataQuery(org, app);
-  const { status: applicationMetadataStatus, error: applicationMetadataError } =
-    useAppMetadataQuery(org, app);
+  const { data: appConfigData } = useAppConfigQuery(org, app);
 
   const { mutate: updateAppConfigMutation } = useAppConfigMutation(org, app);
 
@@ -57,19 +54,13 @@ function AboutTabContent(): ReactElement {
     updateAppConfigMutation(updatedConfig);
   };
 
-  switch (mergeQueryStatuses(appConfigStatus, repositoryStatus, applicationMetadataStatus)) {
+  switch (mergeQueryStatuses(applicationMetadataStatus)) {
     case 'pending': {
       return <LoadingTabData />;
     }
     case 'error': {
       return (
         <TabDataError>
-          {appConfigError && (
-            <StudioValidationMessage>{appConfigError.message}</StudioValidationMessage>
-          )}
-          {repositoryError && (
-            <StudioValidationMessage>{repositoryError.message}</StudioValidationMessage>
-          )}
           {applicationMetadataError && (
             <StudioValidationMessage>{applicationMetadataError.message}</StudioValidationMessage>
           )}
