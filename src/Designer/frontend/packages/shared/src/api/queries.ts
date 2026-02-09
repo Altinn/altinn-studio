@@ -77,6 +77,7 @@ import {
   canUseFeaturePath,
   orgLibraryPath,
   publishedResourcesPath,
+  customTemplatesPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -125,6 +126,7 @@ import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { FeatureName } from 'app-shared/enums/CanUseFeature';
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
 import type { AppValidationResult } from 'app-development/hooks/queries/useAppValidationQuery';
+import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -136,6 +138,7 @@ export const getAppValidation = (owner: string, app: string) => get<AppValidatio
 
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
 export const getAvailableResourcesFromOrg = (owner: string, contentType?: LibraryContentType) => get<ExternalResource[]>(availableResourcesInOrgLibraryPath(owner, contentType));
+export const getAvailableTemplates = () => get<CustomTemplateList>(customTemplatesPath());
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getDataModel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(dataModelPath(owner, app, modelPath));
 export const getDataModelMetadata = (owner: string, app: string, layoutSetName: string, dataModelName: string) => get<DataModelMetadataResponse>(dataModelMetadataPath(owner, app, layoutSetName, dataModelName));
@@ -163,6 +166,8 @@ export const getRepoMetadata = (owner: string, app: string) => get<Repository>(r
 export const getRepoPull = (owner: string, app: string) => get<RepoStatus>(repoPullPath(owner, app));
 export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(repoStatusPath(owner, app));
 export const getRepoDiff = (owner: string, app: string) => get<RepoDiffResponse>(repoDiffPath(owner, app));
+export const getBranches = (org: string, app: string) => get<Branch[]>(branchesPath(org, app));
+export const getCurrentBranch = (org: string, app: string) => get<CurrentBranchInfo>(currentBranchPath(org, app));
 export const getRuleConfig = (owner: string, app: string, layoutSetName: string) => get<RuleConfig>(ruleConfigPath(owner, app, layoutSetName));
 export const getRuleModel = (owner: string, app: string, layoutSetName: string) => get<string>(ruleHandlerPath(owner, app, layoutSetName));
 export const getStarredRepos = () => get<Repository[]>(userStarredListPath());
@@ -220,7 +225,3 @@ export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeLi
 export const getOrgTextLanguages = (org: string): Promise<string[] | null> => get<string[] | null>(orgTextLanguagesPath(org));
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
 export const getPublishedResources = (org: string, path?: string): Promise<string[]> => get<string[]>(publishedResourcesPath(org, path));
-
-// Branches
-export const getBranches = (org: string, app: string) => get<Branch[]>(branchesPath(org, app));
-export const getCurrentBranch = (org: string, app: string) => get<CurrentBranchInfo>(currentBranchPath(org, app));

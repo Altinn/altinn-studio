@@ -49,9 +49,7 @@ const (
 
 // KindContainerRuntimeOptions holds configuration options for the Kind runtime
 type KindContainerRuntimeOptions struct {
-	// IncludeMonitoring controls whether the Prometheus/Grafana stack is deployed.
-	// When false (default), only prometheus-operator-crds are installed for CRD support.
-	// When true, the full kube-prometheus-stack is deployed.
+	// IncludeMonitoring is currently a no-op (reserved for future lightweight monitoring).
 	IncludeMonitoring bool
 
 	// IncludeTestserver controls whether the testserver deployment is deployed.

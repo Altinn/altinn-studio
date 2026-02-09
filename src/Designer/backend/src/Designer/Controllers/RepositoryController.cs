@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Hubs.Sync;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -166,30 +167,30 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action used to create a new app under the current org.
+        /// Action used to create a new app
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of repository.</param>
+        /// <param name="request">Create app request object containing the necessary information to create the app.</param>
         /// <returns>
         /// An indication if app was created successful or not.
         /// </returns>
         [Authorize]
         [HttpPost]
         [Route("create-app")]
-        public async Task<ActionResult<RepositoryModel>> CreateApp([FromQuery] string org, [FromQuery] string repository)
+        public async Task<ActionResult<RepositoryModel>> CreateApp([FromBody] CreateAppRequest request)
         {
             try
             {
-                Guard.AssertValidAppRepoName(repository);
+                Guard.AssertValidAppRepoName(request.Repository);
             }
             catch (ArgumentException)
             {
-                return BadRequest($"{repository} is an invalid repository name.");
+                return BadRequest($"{request.Repository} is an invalid repository name.");
             }
 
-            var config = new ServiceConfiguration { RepositoryName = repository, ServiceName = repository };
+            var config = new ServiceConfiguration { RepositoryName = request.Repository, ServiceName = request.Repository };
 
-            var repositoryResult = await _repository.CreateService(org, config);
+            var repositoryResult = await _repository.CreateService(request.Org, config, request.Template != null ? [request.Template] : []);
+
             if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
             {
                 return Created(repositoryResult.CloneUrl, repositoryResult);

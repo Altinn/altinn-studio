@@ -1,13 +1,22 @@
+using System.Diagnostics;
 using StudioGateway.Api.Clients.Designer.Contracts;
 using StudioGateway.Api.Clients.K8s;
 using StudioGateway.Api.Endpoints.Internal.Contracts;
 using StudioGateway.Api.Hosting;
+using StudioGateway.Api.Telemetry;
 
 namespace StudioGateway.Api.Endpoints.Internal;
 
 internal static class FluxWebhookEndpoints
 {
-    private sealed record HelmReleaseInfo(string Org, string App, string SourceEnvironment, string? BuildId);
+    private sealed record HelmReleaseInfo(
+        string Org,
+        string App,
+        string SourceEnvironment,
+        string? BuildId,
+        string? TraceParent,
+        string? TraceState
+    );
 
     public static WebApplication MapFluxWebhookEndpoint(this WebApplication app)
     {
@@ -84,8 +93,15 @@ internal static class FluxWebhookEndpoints
             Environment = targetEnvironment,
         };
 
+        Activity? activity = null;
         try
         {
+            activity = TryStartTraceActivity(info.TraceParent, info.TraceState, logger);
+            activity?.SetTag("org", info.Org);
+            activity?.SetTag("app", info.App);
+            activity?.SetTag("flux.reason", fluxEvent.Reason);
+            activity?.SetTag("flux.build_id", info.BuildId);
+
             var httpClient = httpClientFactory.CreateClient(info.SourceEnvironment);
             var response = await httpClient.PostAsJsonAsync(
                 $"designer/api/v1/{info.Org}/{info.App}/deployments/webhooks/events",
@@ -98,7 +114,13 @@ internal static class FluxWebhookEndpoints
         }
         catch (Exception ex)
         {
+            activity?.SetStatus(ActivityStatusCode.Error);
+            activity?.AddException(ex);
             logger.LogError(ex, "Failed to send deploy event for {Name}", helmReleaseName);
+        }
+        finally
+        {
+            activity?.Dispose();
         }
 
         return Results.Ok();
@@ -116,6 +138,7 @@ internal static class FluxWebhookEndpoints
         if (helmRelease is not null)
         {
             var labels = helmRelease.GetLabels();
+            var annotations = helmRelease.GetAnnotations();
 
             string[] requiredLabels =
             [
@@ -138,7 +161,9 @@ internal static class FluxWebhookEndpoints
                 labels[StudioLabels.Org],
                 labels[StudioLabels.App],
                 labels[StudioLabels.SourceEnvironment],
-                labels[StudioLabels.BuildId]
+                labels[StudioLabels.BuildId],
+                ResolveTraceContextValue(annotations, StudioLabels.TraceParent),
+                ResolveTraceContextValue(annotations, StudioLabels.TraceState)
             );
         }
 
@@ -161,7 +186,59 @@ internal static class FluxWebhookEndpoints
             env
         );
 
-        return new HelmReleaseInfo(org, app, env, null);
+        return new HelmReleaseInfo(
+            org,
+            app,
+            env,
+            null,
+            ResolveTraceContextValue(annotations: null, StudioLabels.TraceParent),
+            ResolveTraceContextValue(annotations: null, StudioLabels.TraceState)
+        );
+    }
+
+    private static string? ResolveTraceContextValue(
+        IReadOnlyDictionary<string, string>? annotations,
+        string annotationKey
+    )
+    {
+        if (
+            annotations is not null
+            && annotations.TryGetValue(annotationKey, out var annotationValue)
+            && !string.IsNullOrWhiteSpace(annotationValue)
+        )
+        {
+            return annotationValue;
+        }
+
+        return null;
+    }
+
+    private static Activity? TryStartTraceActivity(string? traceParent, string? traceState, ILogger logger)
+    {
+        if (string.IsNullOrWhiteSpace(traceParent))
+        {
+            return null;
+        }
+
+        if (!ActivityContext.TryParse(traceParent, traceState, out var parentContext))
+        {
+            logger.LogWarning("Invalid trace context received in Flux webhook annotations");
+            return null;
+        }
+
+        IEnumerable<ActivityLink>? links = null;
+        if (Activity.Current?.Context is { } currentContext && !currentContext.Equals(parentContext))
+        {
+            links = [new ActivityLink(currentContext)];
+        }
+
+        var activity = ServiceTelemetry.Source.StartActivity(
+            "FluxWebhook.ProcessEvent",
+            ActivityKind.Internal,
+            parentContext,
+            links: links
+        );
+        return activity;
     }
 
     /// <summary>

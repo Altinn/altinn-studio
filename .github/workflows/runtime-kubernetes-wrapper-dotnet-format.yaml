@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - 'src/Runtime/KubernetesWrapper/src/**'
+      - 'src/Runtime/kubernetes-wrapper/src/**'
       - '.github/workflows/runtime-kubernetes-wrapper-dotnet-format.yaml'
   workflow_dispatch:
 
@@ -21,6 +21,9 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Restore tools
+        run: dotnet tool restore
+        working-directory: src/Runtime/kubernetes-wrapper
       - name: FormatCheck
-        run: |
-          dotnet format src/Runtime/KubernetesWrapper/src/KubernetesWrapper.csproj --verify-no-changes
+        run: dotnet csharpier check .
+        working-directory: src/Runtime/kubernetes-wrapper
