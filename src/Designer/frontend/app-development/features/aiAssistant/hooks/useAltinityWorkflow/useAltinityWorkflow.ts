@@ -106,45 +106,45 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     [app, org, queryClient],
   );
 
+  const handleAssistantMessage = useCallback(
+    (event: WorkflowEvent & { type: 'assistant_message' }) => {
+      const assistantMessage = event.data;
+      const messageContent = getAssistantMessageContent(assistantMessage);
+      const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
+      updateWorkflowCompletedStatus(assistantMessage, messageTimestamp);
+
+      const currentSession = currentSessionIdRef.current;
+
+      if (currentSession) {
+        upsertAssistantMessage(currentSession, assistantMessage, messageContent, messageTimestamp);
+      }
+
+      if (!shouldSkipBranchOps(assistantMessage)) {
+        const sessionId = event.session_id || currentSession;
+        if (!sessionId) return;
+
+        resetRepoForSession(sessionId);
+      }
+    },
+    [
+      currentSessionIdRef,
+      resetRepoForSession,
+      updateWorkflowCompletedStatus,
+      upsertAssistantMessage,
+    ],
+  );
+
   const handleWorkflowEvent = useCallback(
     (event: WorkflowEvent) => {
       if (event.type === 'assistant_message') {
-        const assistantMessage = event.data;
-        const messageContent = getAssistantMessageContent(assistantMessage);
-        const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
-        updateWorkflowCompletedStatus(assistantMessage, messageTimestamp);
-
-        const currentSession = currentSessionIdRef.current;
-
-        if (currentSession) {
-          upsertAssistantMessage(
-            currentSession,
-            assistantMessage,
-            messageContent,
-            messageTimestamp,
-          );
-        }
-
-        if (!shouldSkipBranchOps(assistantMessage)) {
-          const sessionId = event.session_id || currentSession;
-          if (!sessionId) return;
-
-          resetRepoForSession(sessionId);
-        }
+        handleAssistantMessage(event);
       } else if (event.type === 'workflow_status') {
         if (currentSessionId) {
           updateWorkflowStatusMessage(currentSessionId, event.data.message || 'Vent litt...');
         }
       }
     },
-    [
-      currentSessionId,
-      currentSessionIdRef,
-      resetRepoForSession,
-      updateWorkflowCompletedStatus,
-      updateWorkflowStatusMessage,
-      upsertAssistantMessage,
-    ],
+    [currentSessionId, handleAssistantMessage, updateWorkflowStatusMessage],
   );
 
   useEffect(() => {
