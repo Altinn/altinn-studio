@@ -1,4 +1,5 @@
 using WorkflowEngine.Api.Extensions;
+using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Api;
@@ -66,7 +67,11 @@ internal partial class Engine
         }
 
         await AcquireQueueSlot(cancellationToken);
-        _inbox[engineRequest.IdempotencyKey] = await _repository.AddWorkflow(engineRequest, cancellationToken);
+        using (var scope = _serviceProvider.CreateScope())
+        {
+            var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+            _inbox[engineRequest.IdempotencyKey] = await repository.AddWorkflow(engineRequest, cancellationToken);
+        }
         _newWorkSignal.TrySetResult();
 
         Telemetry.WorkflowRequestsAccepted.Add(1);
@@ -114,7 +119,9 @@ internal partial class Engine
         // TODO: Disabled for now. We don't necessarily want to resume jobs after restart while testing.
         return;
 
-        IReadOnlyList<Workflow> incompleteJobs = await _repository.GetActiveWorkflows(cancellationToken);
+        using var scope = _serviceProvider.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+        IReadOnlyList<Workflow> incompleteJobs = await repository.GetActiveWorkflows(cancellationToken);
 
         foreach (var job in incompleteJobs)
         {
@@ -125,17 +132,19 @@ internal partial class Engine
         }
     }
 
-    private Task UpdateWorkflowInDb(Workflow workflow, CancellationToken cancellationToken)
+    private async Task UpdateWorkflowInDb(Workflow workflow, CancellationToken cancellationToken)
     {
         using var activity = Telemetry.Source.StartActivity(
             "Engine.UpdateWorkflowInDb",
             tags: [("workflow.status", workflow.Status.ToString())]
         );
 
-        return _repository.UpdateWorkflow(workflow, cancellationToken);
+        using var scope = _serviceProvider.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+        await repository.UpdateWorkflow(workflow: workflow, force: false, cancellationToken: cancellationToken);
     }
 
-    private Task UpdateStepInDb(Step step, CancellationToken cancellationToken)
+    private async Task UpdateStepInDb(Step step, CancellationToken cancellationToken)
     {
         using var activity = Telemetry.Source.StartActivity(
             "Engine.UpdateStepInDb",
@@ -148,6 +157,8 @@ internal partial class Engine
         if (step.BackoffUntil.HasValue)
             activity?.SetTag("step.backoffUntil", step.BackoffUntil.Value.ToString("o"));
 
-        return _repository.UpdateStep(step: step, cancellationToken);
+        using var scope = _serviceProvider.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+        await repository.UpdateStep(step: step, force: false, cancellationToken: cancellationToken);
     }
 }

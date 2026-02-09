@@ -6,6 +6,7 @@ using OpenTelemetry.Trace;
 using WorkflowEngine.Api.Constants;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
+using WorkflowEngine.Resilience;
 
 // ReSharper disable NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
 
@@ -34,6 +35,11 @@ internal static class ServiceCollectionExtensions
                 services.ConfigureAppCommand(appCommandConfigSection);
 
             services.AddHttpClient();
+            services.AddSingleton<ConcurrencyLimiter>(sp =>
+            {
+                var settings = sp.GetRequiredService<IOptions<EngineSettings>>().Value;
+                return new ConcurrencyLimiter(settings.MaxConcurrentDbOperations, settings.MaxConcurrentHttpCalls);
+            });
             services.AddSingleton<IEngine, Engine>();
             services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
             services.AddHostedService<EngineHost>();
@@ -199,6 +205,12 @@ internal static class OptionsBuilderExtensions
 
                 config.DefaultStepRetryStrategy ??= Defaults.EngineSettings.DefaultStepRetryStrategy;
                 config.DatabaseRetryStrategy ??= Defaults.EngineSettings.DatabaseRetryStrategy;
+
+                if (config.MaxConcurrentDbOperations <= 0)
+                    config.MaxConcurrentDbOperations = Defaults.EngineSettings.MaxConcurrentDbOperations;
+
+                if (config.MaxConcurrentHttpCalls <= 0)
+                    config.MaxConcurrentHttpCalls = Defaults.EngineSettings.MaxConcurrentHttpCalls;
             });
 
             return builder;
@@ -224,6 +236,16 @@ internal static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.DatabaseCommandTimeout > TimeSpan.Zero,
                 $"{ns}.{nameof(EngineSettings.DatabaseCommandTimeout)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.MaxConcurrentDbOperations > 0,
+                $"{ns}.{nameof(EngineSettings.MaxConcurrentDbOperations)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.MaxConcurrentHttpCalls > 0,
+                $"{ns}.{nameof(EngineSettings.MaxConcurrentHttpCalls)} must be greater than zero."
             );
 
             return builder;

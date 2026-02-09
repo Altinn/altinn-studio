@@ -5,6 +5,7 @@ using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Extensions;
+using WorkflowEngine.Resilience;
 
 // CA1305: Specify IFormatProvider
 #pragma warning disable CA1305
@@ -25,6 +26,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
     private readonly AppCommandSettings _appCommandSettings;
     private readonly ILogger<WorkflowExecutor> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ConcurrencyLimiter _limiter;
 
     public WorkflowExecutor(IServiceProvider serviceProvider)
     {
@@ -32,15 +34,19 @@ internal class WorkflowExecutor : IWorkflowExecutor
         _engineSettings = serviceProvider.GetRequiredService<IOptions<EngineSettings>>().Value;
         _appCommandSettings = serviceProvider.GetRequiredService<IOptions<AppCommandSettings>>().Value;
         _logger = serviceProvider.GetRequiredService<ILogger<WorkflowExecutor>>();
+        _limiter = serviceProvider.GetRequiredService<ConcurrencyLimiter>();
     }
 
     public async Task<ExecutionResult> Execute(Workflow workflow, Step step, CancellationToken cancellationToken)
     {
         using var activity = Telemetry.Source.StartActivity("WorkflowExecutor.Execute");
+        using var slot = await _limiter.AcquireHttpSlotAsync(cancellationToken); // TODO: Perhaps move to actual http methods?
         _logger.ExecutingStep(step, workflow);
 
         using CancellationTokenSource cts = CreateExecutionTokenSource(step, cancellationToken);
         var stopwatch = Stopwatch.StartNew();
+
+        //await Task.Delay(250, cancellationToken);
 
         try
         {

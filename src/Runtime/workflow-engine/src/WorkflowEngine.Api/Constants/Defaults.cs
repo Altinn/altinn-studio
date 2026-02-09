@@ -12,6 +12,8 @@ internal static class Defaults
     {
         QueueCapacity = 10000,
         MaxDegreeOfParallelism = 100,
+        MaxConcurrentDbOperations = 80,
+        MaxConcurrentHttpCalls = 100,
         DefaultStepCommandTimeout = TimeSpan.FromSeconds(100),
         DefaultStepRetryStrategy = RetryStrategy.Exponential(
             baseInterval: TimeSpan.FromSeconds(1),

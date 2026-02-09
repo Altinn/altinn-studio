@@ -42,4 +42,17 @@ public sealed record EngineSettings
     /// </summary>
     [JsonPropertyName("databaseRetryStrategy")]
     public required RetryStrategy DatabaseRetryStrategy { get; set; }
+
+    /// <summary>
+    /// Maximum number of concurrent database operations. Should be less than the Npgsql connection pool size
+    /// to leave headroom for health checks and non-engine access.
+    /// </summary>
+    [JsonPropertyName("maxConcurrentDbOperations")]
+    public required int MaxConcurrentDbOperations { get; set; }
+
+    /// <summary>
+    /// Maximum number of concurrent outbound HTTP calls for step execution.
+    /// </summary>
+    [JsonPropertyName("maxConcurrentHttpCalls")]
+    public required int MaxConcurrentHttpCalls { get; set; }
 }

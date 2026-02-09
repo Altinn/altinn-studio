@@ -4,7 +4,6 @@ using Altinn.Studio.Runtime.Common;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Api.Constants;
 using WorkflowEngine.Api.Extensions;
-using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
@@ -48,8 +47,6 @@ internal partial class Engine : IEngine, IDisposable
     private volatile bool _cleanupRequired;
     private bool _disposed;
 
-    // TODO: Avoid newing-up repository for each call? Could be more optimized for Postgres to scope it per batch of actions...
-    private IEngineRepository _repository => _serviceProvider.GetRequiredService<IEngineRepository>();
     public EngineHealthStatus Status { get; private set; }
     public int InboxCount => _inbox.Count;
 
@@ -71,8 +68,6 @@ internal partial class Engine : IEngine, IDisposable
         // TODO: Replace this with actual check
         // TODO: This may longer be required. Discuss more in depth later.
         bool placeholderEnabledResponse = await Task.Run(() => true, cancellationToken);
-
-        // await Task.Delay(TimeSpan.FromSeconds(0.5), cancellationToken);
 
         await _isEnabledHistory.Add(placeholderEnabledResponse);
 
@@ -196,7 +191,6 @@ internal partial class Engine : IEngine, IDisposable
             return;
 
         // Wait for at least one task to complete
-        _logger.WaitingForPendingTasks(awaitables.Count - 1);
         await Task.WhenAny(awaitables).WaitAsync(cancellationToken);
     }
 

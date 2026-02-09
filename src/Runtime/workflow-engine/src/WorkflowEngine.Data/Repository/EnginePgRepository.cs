@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Entities;
 using WorkflowEngine.Models;
+using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Extensions;
 using WorkflowEngine.Resilience.Models;
 
@@ -17,23 +18,27 @@ internal sealed class EnginePgRepository : IEngineRepository
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<EnginePgRepository> _logger;
     private readonly EngineSettings _settings;
+    private readonly ConcurrencyLimiter _limiter;
 
     public EnginePgRepository(
         EngineDbContext context,
         IOptions<EngineSettings> settings,
         ILogger<EnginePgRepository> logger,
+        ConcurrencyLimiter limiter,
         TimeProvider? timeProvider = null
     )
     {
         _context = context;
         _settings = settings.Value;
         _logger = logger;
+        _limiter = limiter;
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     /// <inheritdoc/>
     public async Task<IReadOnlyList<Workflow>> GetActiveWorkflows(CancellationToken cancellationToken = default)
     {
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.FetchingWorkflows("active");
@@ -54,6 +59,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     /// <inheritdoc/>
     public async Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(CancellationToken cancellationToken = default)
     {
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.FetchingWorkflows("scheduled");
@@ -74,6 +80,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     /// <inheritdoc/>
     public async Task<IReadOnlyList<Workflow>> GetFailedWorkflows(CancellationToken cancellationToken = default)
     {
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.FetchingWorkflows("failed");
@@ -94,6 +101,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     /// <inheritdoc/>
     public async Task<int> CountActiveWorkflows(CancellationToken cancellationToken = default)
     {
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.CountingWorkflows("active");
@@ -114,6 +122,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     /// <inheritdoc/>
     public async Task<int> CountScheduledWorkflows(CancellationToken cancellationToken = default)
     {
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.CountingWorkflows("scheduled");
@@ -134,6 +143,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     /// <inheritdoc/>
     public async Task<int> CountFailedWorkflows(CancellationToken cancellationToken = default)
     {
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.CountingWorkflows("failed");
@@ -154,6 +164,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     /// <inheritdoc/>
     public async Task<Workflow> AddWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default)
     {
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.AddingWorkflow(engineRequest);
@@ -178,6 +189,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     /// <inheritdoc/>
     public async Task UpdateWorkflow(Workflow workflow, CancellationToken cancellationToken = default)
     {
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.UpdatingWorkflow(workflow);
@@ -211,6 +223,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     /// <inheritdoc/>
     public async Task UpdateStep(Step step, CancellationToken cancellationToken = default)
     {
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.UpdatingStep(step);
