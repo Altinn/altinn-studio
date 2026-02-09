@@ -132,17 +132,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 deploymentEntity.TagName
             );
 
-            var updateApplicationInformationResult = await _applicationInformationService.UpdateApplicationInformationAsync(
+            await _applicationInformationService.UpdateApplicationInformationAsync(
                 authenticatedContext.Org,
                 authenticatedContext.Repo,
                 release.TargetCommitish,
                 deployment.EnvName,
                 publishServiceResource
             );
-            if (updateApplicationInformationResult is not CreatedResult)
-            {
-                return updateApplicationInformationResult;
-            }
 
             // NOTE: these codepaths are sensitive to leaving partial state/progress if the user/caller
             // cancels the request, but we prefer to at least attempt completion once we've started mutating state
