@@ -22,6 +22,8 @@ variables:
   # GITEA_ENVIRONMENT: ''
   # HOSTNAME: ''
   # TAGNAME: ''
+  # TRACEPARENT: '' # Optional W3C traceparent for correlation
+  # TRACESTATE: '' # Optional W3C tracestate for correlation
   # PUSH_SYNCROOT_GITOPS_IMAGE: 'false' # Set to 'true' to enable pushing sync-root artifact
   # PUSH_APPS_OCI_IMAGE: 'true' # Set to 'false' to skip pushing app OCI image
 
@@ -585,6 +587,14 @@ steps:
                 namespace: default
           values: {}
         EOF
+
+        if [ -n "$TRACEPARENT" ]; then
+          yq eval '.metadata.annotations."altinn.studio/traceparent" = env(TRACEPARENT)' --inplace "${HELMRELEASE_FILE}"
+        fi
+
+        if [ -n "$TRACESTATE" ]; then
+          yq eval '.metadata.annotations."altinn.studio/tracestate" = env(TRACESTATE)' --inplace "${HELMRELEASE_FILE}"
+        fi
 
 
   - task: Bash@3

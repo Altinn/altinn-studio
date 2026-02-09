@@ -65,6 +65,7 @@ builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<Metri
 builder.ConfigureKestrelPorts(publicPort: PortConfiguration.PublicPort, internalPort: PortConfiguration.InternalPort);
 builder.UseCommonHostingConfiguration();
 builder.AddMaskinportenAuthentication();
+builder.AddOpenTelemetry();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {

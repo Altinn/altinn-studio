@@ -3,12 +3,61 @@
   "data": {
     "layout": [
       {
-        "id": "tekst",
+        "id": "Header-prefill-test",
         "type": "Header",
-        "size": "h2",
+        "size": "L",
         "textResourceBindings": {
-          "title": "Tittel"
+          "title": "Test av delt modell med prefill"
         }
+      },
+      {
+        "id": "Paragraph-info",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Denne siden viser data fra en delt modell (sharedperson) som ble forhåndsutfylt da du gikk videre fra forrige steg. Hvis du ser tomme felter, har frontenden en bug der den ikke henter oppdatert data for delte modeller."
+        }
+      },
+      {
+        "id": "Input-name",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "name",
+            "dataType": "sharedperson"
+          }
+        },
+        "textResourceBindings": {
+          "title": "Navn"
+        },
+        "readOnly": true
+      },
+      {
+        "id": "Address-person",
+        "type": "Address",
+        "dataModelBindings": {
+          "address": {
+            "field": "address.streetAddress",
+            "dataType": "sharedperson"
+          },
+          "zipCode": {
+            "field": "address.zipCode",
+            "dataType": "sharedperson"
+          },
+          "postPlace": {
+            "field": "address.city",
+            "dataType": "sharedperson"
+          }
+        },
+        "simplified": true,
+        "textResourceBindings": {
+          "title": "Adresse"
+        },
+        "readOnly": true
+      },
+      {
+        "id": "btngroup",
+        "type": "ButtonGroup",
+        "children": ["nav2", "submit"]
       },
       {
         "id": "nav2",
@@ -16,6 +65,13 @@
         "showBackButton": true,
         "textResourceBindings": {
           "back": "Forrige"
+        }
+      },
+      {
+        "id": "submit",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Side1.Button-Sjnxbg.title"
         }
       }
     ]

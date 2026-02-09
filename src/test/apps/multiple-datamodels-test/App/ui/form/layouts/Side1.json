@@ -103,6 +103,14 @@
         "simplified": true
       },
       {
+        "id": "Header-sharedperson",
+        "type": "Header",
+        "size": "M",
+        "textResourceBindings": {
+          "title": "sharedperson-header"
+        }
+      },
+      {
         "id": "navbuttons1",
         "showBackButton": true,
         "textResourceBindings": {
