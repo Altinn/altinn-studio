@@ -14,6 +14,7 @@ import type {
   PolicyAccessPackageAreaGroup,
 } from 'app-shared/types/PolicyAccessPackages';
 import { policySubjectOrg } from '@altinn/policy-editor/utils';
+import { INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE } from '@altinn/policy-editor/constants';
 
 const mockSubjects: PolicySubject[] = [
   {
@@ -24,7 +25,7 @@ const mockSubjects: PolicySubject[] = [
     description: 'Subject 1 description',
     id: '',
     provider: {
-      code: 'sys-internal',
+      code: INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE,
       id: '',
       name: '',
     },
@@ -93,21 +94,21 @@ describe('PolicySummary', () => {
       urn: 'urn:package1',
       name: 'Package Alpha',
       description: 'First package',
-      isDelegable: true,
+      isResourcePolicyAvailable: true,
     };
     const package2: PolicyAccessPackage = {
       id: 'package2',
       urn: 'urn:package2',
       name: 'Package Beta',
       description: 'Second package',
-      isDelegable: true,
+      isResourcePolicyAvailable: true,
     };
     const package3: PolicyAccessPackage = {
       id: 'package3',
       urn: 'urn:package3',
       name: 'Package Gamma',
       description: 'Third package',
-      isDelegable: true,
+      isResourcePolicyAvailable: true,
     };
 
     const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [

@@ -10,6 +10,7 @@ import { useAppPolicyMutation } from 'app-development/hooks/mutations';
 import userEvent from '@testing-library/user-event';
 import type { UseMutationResult } from '@tanstack/react-query';
 import type { Policy, PolicyAction, PolicySubject } from '@altinn/policy-editor';
+import { INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE } from '@altinn/policy-editor/constants';
 
 export const mockPolicy: Policy = {
   rules: [{ ruleId: '1', description: '', subject: [], actions: [], resources: [[]] }],
@@ -58,7 +59,7 @@ const mockSubjects: PolicySubject[] = [
     urn: 'urn:altinn:org:[org]',
     legacyUrn: 'urn:altinn:org:[org]',
     provider: {
-      code: 'sys-internal',
+      code: INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE,
       id: '',
       name: 'Intern',
     },

@@ -12,7 +12,14 @@ const data = fruitsData;
 const onUpdate = jest.fn();
 const onDelete = jest.fn();
 const onPublish = jest.fn();
-const defaultProps: CodeListDataEditorProps = { data, onUpdate, onDelete, onPublish };
+const defaultProps: CodeListDataEditorProps = {
+  data,
+  isPublishing: false,
+  onDelete,
+  onPublish,
+  onUpdate,
+  publishedCodeLists: [],
+};
 
 describe('CodeListDataEditor', () => {
   beforeEach(jest.clearAllMocks);
@@ -83,6 +90,33 @@ describe('CodeListDataEditor', () => {
     renderCodeListDataEditor({ data: { ...data, name: '' } });
     const publishButtonName = textMock('app_content_library.code_lists.publish');
     expect(screen.getByRole('button', { name: publishButtonName })).toBeDisabled();
+  });
+
+  it('Displays the correct status message when the code list is not published', () => {
+    renderCodeListDataEditor();
+    const expectedMessage = textMock('app_content_library.code_lists.unpublished');
+    expect(screen.getByText(expectedMessage)).toBeInTheDocument();
+  });
+
+  it('Displays a status message containing the version number when the code list is published', () => {
+    const { name } = fruitsData;
+    const publishedCodeLists: string[] = [
+      `${name}/_index.json`,
+      `${name}/_latest.json`,
+      `${name}/1.json`,
+    ];
+    renderCodeListDataEditor({ publishedCodeLists });
+    const expectedMessage = textMock('app_content_library.code_lists.latest_version', {
+      version: 1,
+    });
+    expect(screen.getByText(expectedMessage)).toBeInTheDocument();
+  });
+
+  it('Displays the publish button in loading state while isPublishing is true', () => {
+    renderCodeListDataEditor({ isPublishing: true });
+    const buttonNameWhilePublishing = textMock('app_content_library.code_lists.is_publishing');
+    const loadingButton = screen.getByRole('button', { name: buttonNameWhilePublishing });
+    expect(loadingButton).toBeInTheDocument();
   });
 });
 

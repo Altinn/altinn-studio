@@ -6,8 +6,6 @@ on:
     paths:
       - 'src/Designer/testdata/**'
       - 'src/Designer/backend/**'
-      - 'src/StudioAdmin/**'
-      - 'src/KubernetesWrapper/**'
       - '.github/workflows/designer-backend-codeql.yml'
   workflow_dispatch:
   schedule:
@@ -35,17 +33,17 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
+        uses: github/codeql-action/init@38e701f46e33fb233075bf4238cb1e5d68e429e4 # v3
         with:
           languages: csharp
           queries: +security-and-quality
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
+        uses: github/codeql-action/autobuild@38e701f46e33fb233075bf4238cb1e5d68e429e4 # v3
         with:
           working-directory: src/Designer/
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
+        uses: github/codeql-action/analyze@38e701f46e33fb233075bf4238cb1e5d68e429e4 # v3
         with:
           category: "/language:csharp"

@@ -6,16 +6,20 @@ using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -89,17 +93,19 @@ public class PdfServiceTests
 
         var httpClient = new HttpClient(delegatingHandler);
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var hostEnvironment = new Mock<IHostEnvironment>();
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
             _userTokenProvider.Object,
-            _httpContextAccessor.Object
+            _httpContextAccessor.Object,
+            hostEnvironment.Object
         );
 
         Stream pdf = await pdfGeneratorClient.GeneratePdf(
-            new Uri(@"https://org.apps.hostName/appId/#/instance/instanceId"),
+            new Uri(@"https://org.apps.hostName/appId/instance/instanceId"),
             CancellationToken.None
         );
 
@@ -119,18 +125,20 @@ public class PdfServiceTests
 
         var httpClient = new HttpClient(delegatingHandler);
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var hostEnvironment = new Mock<IHostEnvironment>();
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
             _userTokenProvider.Object,
-            _httpContextAccessor.Object
+            _httpContextAccessor.Object,
+            hostEnvironment.Object
         );
 
         var func = async () =>
             await pdfGeneratorClient.GeneratePdf(
-                new Uri(@"https://org.apps.hostName/appId/#/instance/instanceId"),
+                new Uri(@"https://org.apps.hostName/appId/instance/instanceId"),
                 CancellationToken.None
             );
 
@@ -383,6 +391,11 @@ public class PdfServiceTests
             Id = $"509378/{Guid.NewGuid()}",
             AppId = "digdir/not-really-an-app",
             Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+            Data = new()
+            {
+                new() { Id = Guid.NewGuid().ToString(), DataType = "Model" },
+            },
         };
 
         // Act
@@ -440,6 +453,11 @@ public class PdfServiceTests
             Id = $"509378/{Guid.NewGuid()}",
             AppId = "digdir/not-really-an-app",
             Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+            Data = new()
+            {
+                new() { Id = Guid.NewGuid().ToString(), DataType = "Model" },
+            },
         };
 
         // Act
@@ -474,6 +492,39 @@ public class PdfServiceTests
         TelemetrySink? telemetrySink = null
     )
     {
+        // Setup a mock service provider with InstanceDataUnitOfWorkInitializer
+        var mockServiceProvider = new Mock<IServiceProvider>();
+        var mockInstanceClient = new Mock<IInstanceClient>();
+        var mockAppMetadata = new Mock<IAppMetadata>();
+
+        // Setup GetApplicationMetadata to return an ApplicationMetadata with DataTypes initialized
+        var dataType = new DataType() { Id = "Model" };
+        var applicationMetadata = new ApplicationMetadata("digdir/not-really-an-app") { DataTypes = [dataType] };
+        mockAppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+
+        // Setup GetLayoutModelForTask to return a valid LayoutModel
+        var layoutSetComponent = new LayoutSetComponent(new List<PageComponent>(), "layout", dataType);
+        var layoutModel = new LayoutModel([layoutSetComponent], null);
+        var mockAppResourcesForInitializer = appResources ?? _appResources;
+        mockAppResourcesForInitializer.Setup(x => x.GetLayoutModelForTask(It.IsAny<string>())).Returns(layoutModel);
+
+        var initializer = new InstanceDataUnitOfWorkInitializer(
+            dataClient?.Object ?? _dataClient.Object,
+            mockInstanceClient.Object,
+            mockAppMetadata.Object,
+            new TranslationService(
+                new AppIdentifier("digdir", "not-really-an-app"),
+                appResources?.Object ?? _appResources.Object,
+                FakeLoggerXunit.Get<TranslationService>(_outputHelper)
+            ),
+            null!, // ModelSerializationService not needed for these tests
+            appResources?.Object ?? _appResources.Object,
+            Options.Create(new FrontEndSettings()),
+            null
+        );
+
+        mockServiceProvider.Setup(x => x.GetService(typeof(InstanceDataUnitOfWorkInitializer))).Returns(initializer);
+
         return new PdfService(
             dataClient?.Object ?? _dataClient.Object,
             httpContentAccessor?.Object ?? _httpContextAccessor.Object,
@@ -487,6 +538,7 @@ public class PdfServiceTests
                 appResources?.Object ?? _appResources.Object,
                 FakeLoggerXunit.Get<TranslationService>(_outputHelper)
             ),
+            mockServiceProvider.Object,
             telemetrySink?.Object
         );
     }

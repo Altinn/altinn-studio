@@ -325,7 +325,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         /// <inheritdoc />
         public async Task<LayoutSets> AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext,
-            LayoutSetConfig newLayoutSet, bool layoutIsInitialForPaymentTask = false, CancellationToken cancellationToken = default)
+            LayoutSetConfig newLayoutSet, TaskType? taskType, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository =
@@ -349,7 +349,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 throw new NonUniqueTaskForLayoutSetException($"Layout set with task, {newLayoutSet.Tasks[0]}, already exists.");
             }
 
-            return await AddNewLayoutSet(altinnAppGitRepository, layoutSets, newLayoutSet, layoutIsInitialForPaymentTask);
+            return await AddNewLayoutSet(altinnAppGitRepository, layoutSets, newLayoutSet, taskType);
         }
 
         /// <inheritdoc />
@@ -415,19 +415,124 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return layoutSets;
         }
 
-        private static async Task<LayoutSets> AddNewLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSet, bool layoutIsInitialForPaymentTask = false)
+        private static async Task<LayoutSets> AddNewLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSet, TaskType? taskType)
         {
             layoutSets.Sets.Add(layoutSet);
-            if (layoutIsInitialForPaymentTask)
+            if (taskType == TaskType.Payment)
             {
                 AddPaymentComponentToInitialLayoutForPaymentTask(altinnAppGitRepository.InitialLayout);
             }
+
+            if (taskType == TaskType.Pdf)
+            {
+                await AddInitialPdfServiceTaskLayoutSet(altinnAppGitRepository, layoutSets, layoutSet);
+                return layoutSets;
+            }
+
             await altinnAppGitRepository.SaveLayout(layoutSet.Id, AltinnAppGitRepository.InitialLayoutFileName,
                 altinnAppGitRepository.InitialLayout);
             await altinnAppGitRepository.SaveLayoutSettings(layoutSet.Id,
                 altinnAppGitRepository.InitialLayoutSettings);
             await altinnAppGitRepository.SaveLayoutSets(layoutSets);
+
             return layoutSets;
+        }
+
+        private static async Task AddInitialPdfServiceTaskLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSetConfig)
+        {
+            string pdfLayoutFilename = "PdfLayout";
+            string errorLayoutFilename = "ServiceTask";
+            await altinnAppGitRepository.SaveLayout(
+                layoutSetConfig.Id,
+                pdfLayoutFilename,
+                new JsonObject
+                {
+                    ["$schema"] = altinnAppGitRepository.InitialLayout["$schema"].GetValue<string>(),
+                    ["data"] = new JsonObject { ["layout"] = new JsonArray([]) },
+                });
+
+            await altinnAppGitRepository.SaveLayout(
+                layoutSetConfig.Id,
+                errorLayoutFilename,
+                new JsonObject
+                {
+                    ["$schema"] = altinnAppGitRepository.InitialLayout["$schema"].GetValue<string>(),
+                    ["data"] = new JsonObject
+                    {
+                        ["layout"] = new JsonArray([
+                        new JsonObject
+                        {
+                            ["size"] = "L",
+                            ["id"] = "service-task-title",
+                            ["type"] = "Header",
+                            ["textResourceBindings"] = new JsonObject
+                            {
+                                ["title"] = "service_task_custom_pdf_default.title"
+                            }
+                        },
+                        new JsonObject
+                        {
+                            ["id"] = "service-task-body",
+                            ["type"] = "Paragraph",
+                            ["textResourceBindings"] = new JsonObject
+                            {
+                                ["title"] = "service_task_custom_pdf_default.body"
+                            }
+                        },
+                        new JsonObject
+                        {
+                            ["id"] = "service-task-help-text",
+                            ["type"] = "Paragraph",
+                            ["textResourceBindings"] = new JsonObject
+                            {
+                                ["title"] = "service_task_custom_pdf_default.help_text"
+                            }
+                        },
+                        new JsonObject
+                        {
+                            ["id"] = "service-task-button-group",
+                            ["type"] = "ButtonGroup",
+                            ["children"] = new JsonArray(
+                                "service-task-retry-button",
+                                "service-task-back-button")
+                        },
+                        new JsonObject
+                        {
+                            ["id"] = "service-task-retry-button",
+                            ["type"] = "Button",
+                            ["textResourceBindings"] = new JsonObject
+                            {
+                                ["title"] = "service_task_custom_pdf_default.retry_button"
+                            }
+                        },
+                        new JsonObject
+                        {
+                            ["id"] = "service-task-back-button",
+                            ["type"] = "ActionButton",
+                            ["textResourceBindings"] = new JsonObject
+                            {
+                                ["title"] = "service_task_custom_pdf_default.back_button"
+                            },
+                            ["action"] = "reject",
+                            ["buttonStyle"] = "secondary"
+                        },
+                    ])
+                    },
+                });
+
+            await altinnAppGitRepository.SaveLayoutSettings(
+                layoutSetConfig.Id,
+                new JsonObject
+                {
+                    ["$schema"] = altinnAppGitRepository.InitialLayoutSettings["$schema"].GetValue<string>(),
+                    ["pages"] = new JsonObject
+                    {
+                        ["pdfLayoutName"] = pdfLayoutFilename,
+                        ["order"] = new JsonArray([errorLayoutFilename])
+                    },
+                });
+
+            await altinnAppGitRepository.SaveLayoutSets(layoutSets);
         }
 
         private static void AddPaymentComponentToInitialLayoutForPaymentTask(JsonNode layout)

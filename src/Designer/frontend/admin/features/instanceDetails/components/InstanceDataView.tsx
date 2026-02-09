@@ -1,153 +1,347 @@
 import { useAppInstanceDetailsQuery } from 'admin/hooks/queries/useAppInstanceDetailsQuery';
-import type { Instance } from 'admin/types/Instance';
 import {
   StudioField,
   StudioLabel,
   StudioSpinner,
   StudioDetails,
-  StudioTag,
-  StudioLink,
   StudioError,
-  StudioTabs,
+  StudioCard,
+  StudioHeading,
 } from '@studio/components';
-import React from 'react';
+import React, { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
-import { Button } from '@digdir/designsystemet-react';
-import { instanceDataElementPath } from 'admin/utils/apiPaths';
-import { ProcessHistory } from './ProcessHistory';
-import { InstanceEvents } from './InstanceEvents';
+import type { SimpleDataElement, SimpleInstanceDetails } from 'admin/types/SimpleInstanceDetails';
+import { InstanceStatus } from 'admin/features/instances/components/InstanceStatus';
+import { useAppMetadataQuery } from 'admin/hooks/queries/useAppMetadataQuery';
+import { useReduceQueries } from 'admin/hooks/useReduceQueries';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import { Tag } from '@digdir/designsystemet-react';
+import {
+  FileTextIcon,
+  PaperclipIcon,
+  PaymentDetailsIcon,
+  PencilLineIcon,
+  PersonPencilIcon,
+  ReceiptIcon,
+} from '@studio/icons';
+
+import classes from './InstanceDataView.module.css';
+import {
+  type ProcessTaskMetadata,
+  useProcessMetadataQuery,
+} from 'admin/hooks/queries/useProcessMetadataQuery';
+import { LabelValue } from 'admin/components/LabelValue/LabelValue';
 
 type InstanceDataViewProps = {
   org: string;
-  env: string;
+  environment: string;
   app: string;
   id: string;
 };
 
-export const InstanceDataView = ({ org, env, app, id }: InstanceDataViewProps) => {
-  const { data, status } = useAppInstanceDetailsQuery(org, env, app, id);
+export const InstanceDataView = ({ org, environment, app, id }: InstanceDataViewProps) => {
   const { t } = useTranslation();
+
+  const { data, status } = useReduceQueries(
+    useAppInstanceDetailsQuery(org, environment, app, id),
+    useAppMetadataQuery(org, environment, app),
+    useProcessMetadataQuery(org, environment, app),
+  );
 
   switch (status) {
     case 'pending':
       return <StudioSpinner aria-label={t('general.loading')} />;
     case 'error':
       return <StudioError>{t('general.page_error_title')}</StudioError>;
-    case 'success':
-      return <InstanceDataViewWithData org={org} env={env} app={app} id={id} instance={data} />;
+    case 'success': {
+      const [instanceDetails, appMetadata, processMetadata] = data;
+
+      return (
+        <InstanceDataViewWithData
+          environment={environment}
+          app={app}
+          instance={instanceDetails}
+          appMetadata={appMetadata}
+          processMetadata={processMetadata}
+        />
+      );
+    }
   }
 };
 
-type InstanceDataViewWithDataProps = InstanceDataViewProps & {
-  instance: Instance;
+type InstanceDataViewWithDataProps = {
+  environment: string;
+  app: string;
+  instance: SimpleInstanceDetails;
+  appMetadata: ApplicationMetadata;
+  processMetadata: ProcessTaskMetadata[];
 };
 
-enum InstanceDataViewTabs {
-  Info = 'info',
-  DataModel = 'dataModel',
-  Process = 'process',
-  Events = 'events',
-  Logs = 'logs',
-}
-
 const InstanceDataViewWithData = ({
-  org,
-  env,
+  environment,
   app,
-  id,
   instance,
+  appMetadata,
+  processMetadata,
 }: InstanceDataViewWithDataProps) => {
   const { t } = useTranslation();
 
   return (
-    <StudioTabs defaultValue={InstanceDataViewTabs.Info}>
-      <StudioTabs.List>
-        <StudioTabs.Tab value={InstanceDataViewTabs.Info}>
-          {t('Informasjon om instansen')}
-        </StudioTabs.Tab>
-        <StudioTabs.Tab value={InstanceDataViewTabs.DataModel}>{t('Datamodeller')}</StudioTabs.Tab>
-        <StudioTabs.Tab value={InstanceDataViewTabs.Process}>{t('Prosess')}</StudioTabs.Tab>
-        <StudioTabs.Tab value={InstanceDataViewTabs.Events}>{t('Events')}</StudioTabs.Tab>
-        <StudioTabs.Tab value={InstanceDataViewTabs.Logs}>{t('Logger')}</StudioTabs.Tab>
-      </StudioTabs.List>
-      <StudioTabs.Panel value={InstanceDataViewTabs.Info}>
-        <LabelValue label={t('Instans ID')} value={instance.id} />
-        <LabelValue label={t('Opprettet')} value={formatDateAndTime(instance.created)} />
-        <LabelValue label={t('Opprettet av')} value={instance.createdBy} />
-        <LabelValue label={t('Sist endret')} value={formatDateAndTime(instance.lastChanged)} />
-        <LabelValue label={t('Sist endret av')} value={instance.lastChangedBy} />
-        {instance.instanceOwner.organisationNumber && (
-          <LabelValue label={t('Organisasjon')} value={instance.instanceOwner.organisationNumber} />
-        )}
-        {instance.instanceOwner.personNumber && (
-          <LabelValue label={t('Person')} value={instance.instanceOwner.personNumber} />
-        )}
-      </StudioTabs.Panel>
-      <StudioTabs.Panel value={InstanceDataViewTabs.DataModel}>
-        {instance.data.map((dataElement) => (
-          <StudioDetails key={dataElement.id}>
-            <StudioDetails.Summary>
-              {dataElement.id} <StudioTag>{dataElement.dataType}</StudioTag>
-            </StudioDetails.Summary>
-            <StudioDetails.Content>
-              <LabelValue label={t('Data element ID')} value={dataElement.id} />
-              <LabelValue label={t('Data type')} value={dataElement.dataType} />
-              <LabelValue label={t('Opprettet')} value={formatDateAndTime(dataElement.created)} />
-              <LabelValue label={t('Opprettet av')} value={dataElement.createdBy} />
-              <LabelValue
-                label={t('Sist endret')}
-                value={formatDateAndTime(dataElement.lastChanged)}
-              />
-              <LabelValue label={t('Sist endret av')} value={dataElement.lastChangedBy} />
-              <LabelValue label={t('Låst')} value={dataElement.locked ? 'Ja' : 'Nei'} />
-              {!!dataElement.tags?.length && (
-                <LabelValue label={t('Tagger')} value={dataElement.tags.join(', ')} />
-              )}
-              <LabelValue label={t('Størrelse')} value={dataElement.size / 1e3 + ' kb'} />
-              {dataElement.filename && (
-                <LabelValue label={t('Filnavn')} value={dataElement.filename} />
-              )}
-              <LabelValue label={t('Content type')} value={dataElement.contentType} />
-              {dataElement.fileScanResult && dataElement.fileScanResult !== 'NotApplicable' && (
-                <LabelValue label={t('File scan result')} value={dataElement.fileScanResult} />
-              )}
-              {dataElement.fileScanDetails && (
-                <LabelValue label={t('File scan details')} value={dataElement.fileScanDetails} />
-              )}
-              <Button asChild>
-                <StudioLink
-                  icon='☠️ '
-                  target='_blank'
-                  rel='noreferrer'
-                  href={instanceDataElementPath(org, env, app, id, dataElement.id)}
-                  style={{ color: 'white' }}
-                >
-                  Last ned innhold
-                </StudioLink>
-              </Button>
-            </StudioDetails.Content>
-          </StudioDetails>
-        ))}
-      </StudioTabs.Panel>
-      <StudioTabs.Panel value={InstanceDataViewTabs.Process}>
-        <ProcessHistory org={org} env={env} app={app} instanceId={id} />
-      </StudioTabs.Panel>
-      <StudioTabs.Panel value={InstanceDataViewTabs.Events}>
-        <InstanceEvents org={org} env={env} app={app} instanceId={id} />
-      </StudioTabs.Panel>
-      <StudioTabs.Panel value={InstanceDataViewTabs.Logs}></StudioTabs.Panel>
-    </StudioTabs>
+    <>
+      <StudioCard>
+        <StudioHeading data-size='sm'>{t('admin.instances.info.title')}</StudioHeading>
+        <div className={classes['info-wrapper']}>
+          <LabelValue label={t('admin.environment')}>
+            {t('admin.environment.name', { environment })}
+          </LabelValue>
+          <LabelValue label={t('admin.app')}>{app}</LabelValue>
+          {(instance.currentTaskName || instance.currentTaskId) && (
+            <LabelValue label={t('admin.instances.process_task')}>
+              {instance.currentTaskName ?? instance.currentTaskId}
+            </LabelValue>
+          )}
+          <LabelValue label={t('admin.instances.status')}>
+            {<InstanceStatus instance={instance} />}
+          </LabelValue>
+          <LabelValue label={t('admin.instances.created')}>
+            {formatDateAndTime(instance.createdAt)}
+          </LabelValue>
+          {instance.archivedAt && (
+            <LabelValue label={t('admin.instances.status.completed')}>
+              {formatDateAndTime(instance.archivedAt)}
+            </LabelValue>
+          )}
+          {instance.confirmedAt && (
+            <LabelValue label={t('admin.instances.status.confirmed')}>
+              {formatDateAndTime(instance.confirmedAt)}
+            </LabelValue>
+          )}
+          {instance.softDeletedAt && (
+            <LabelValue label={t('admin.instances.status.deleted')}>
+              {formatDateAndTime(instance.softDeletedAt)}
+            </LabelValue>
+          )}
+          <LabelValue label={t('admin.instances.last_changed')}>
+            {formatDateAndTime(instance.lastChangedAt)}
+          </LabelValue>
+        </div>
+      </StudioCard>
+
+      <StudioCard className={classes.cardFix}>
+        <StudioHeading data-size='sm'>{t('admin.instances.data_elements')}</StudioHeading>
+        <div className={classes['data-elements']}>
+          <DataElementGroups
+            dataElements={instance.data}
+            appMetadata={appMetadata}
+            processMetadata={processMetadata}
+          />
+        </div>
+      </StudioCard>
+    </>
   );
 };
 
-const LabelValue = ({ label, value }: { label: string; value: string }) => {
-  const labelId = `label-${label}`;
+const DataElementGroups = ({
+  dataElements,
+  appMetadata,
+  processMetadata,
+}: {
+  dataElements?: SimpleDataElement[];
+  appMetadata: ApplicationMetadata;
+  processMetadata: ProcessTaskMetadata[];
+}) => {
+  if (!dataElements) {
+    return null;
+  }
+
+  const dataElementGroups: Record<string, SimpleDataElement[]> = dataElements.reduce(
+    (dataTypes, dataElement) => {
+      dataTypes[dataElement.dataType] ??= [];
+      dataTypes[dataElement.dataType].push(dataElement);
+      return dataTypes;
+    },
+    {},
+  );
+
+  const sortedDataElementGroups = Object.entries(dataElementGroups)
+    .toSorted(
+      ([_a, aE], [_b, bE]) =>
+        Math.max(...aE.map((e) => new Date(e.createdAt ?? 0).getTime())) -
+        Math.max(...bE.map((e) => new Date(e.createdAt ?? 0).getTime())),
+    )
+    .map(
+      ([dataType, elements]) =>
+        [
+          dataType,
+          elements.toSorted(
+            (a, b) => new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime(),
+          ),
+        ] as const,
+    );
+
+  return sortedDataElementGroups.map(([dataType, elements]) => (
+    <DataElementGroup
+      key={dataType}
+      dataType={dataType}
+      dataElements={elements}
+      appMetadata={appMetadata}
+      processMetadata={processMetadata}
+    />
+  ));
+};
+
+type DataTypeType =
+  | 'datamodel'
+  | 'pdfReceipt'
+  | 'signature'
+  | 'signeeStates'
+  | 'paymentInfo'
+  | 'default';
+
+const DataTypeIcons: { [k in DataTypeType]: React.FC } = {
+  datamodel: () => <FileTextIcon title='Datamodell' className={classes['data-element-icon']} />,
+  pdfReceipt: () => <ReceiptIcon title='PDF kvittering' className={classes['data-element-icon']} />,
+  signature: () => <PencilLineIcon title='Signatur' className={classes['data-element-icon']} />,
+  signeeStates: () => (
+    <PersonPencilIcon title='Signatarer' className={classes['data-element-icon']} />
+  ),
+  paymentInfo: () => (
+    <PaymentDetailsIcon title='Betaling' className={classes['data-element-icon']} />
+  ),
+  default: () => <PaperclipIcon title='Vedlegg' className={classes['data-element-icon']} />,
+};
+
+function getDataTypeType(
+  dataType: string,
+  appMetadata: ApplicationMetadata,
+  processMetadata: ProcessTaskMetadata[],
+): DataTypeType {
+  const tag = processMetadata
+    .flatMap((pm) => pm.dataTypeTags)
+    .find((dtt) => dtt.dataTypeId === dataType)?.tag;
+
+  if (
+    dataType === 'ref-data-as-pdf' ||
+    tag === 'signingPdfDataType' ||
+    tag === 'paymentReceiptPdfDataType'
+  ) {
+    return 'pdfReceipt';
+  }
+  if (tag === 'signatureDataType') {
+    return 'signature';
+  }
+  if (tag === 'signeeStatesDataTypeId') {
+    return 'signeeStates';
+  }
+  if (tag === 'paymentDataType') {
+    return 'paymentInfo';
+  }
+  if (appMetadata.dataTypes?.find((d) => d.id === dataType)?.appLogic?.classRef) {
+    return 'datamodel';
+  }
+  return 'default';
+}
+
+function getDataTypeLabel(
+  dataType: string,
+  count: number,
+  appMetadata: ApplicationMetadata,
+): string {
+  if (dataType === 'ref-data-as-pdf') {
+    return `Generert PDF (${count})`;
+  }
+
+  const dataTypeDef = appMetadata.dataTypes?.find((dt) => dt.id === dataType);
+
+  if (!dataTypeDef || (dataTypeDef.minCount === 1 && dataTypeDef.maxCount === 1)) {
+    return dataType;
+  }
+
+  if (!!dataTypeDef.maxCount) {
+    return `${dataType} (${count}/${dataTypeDef.maxCount})`;
+  }
+
+  return `${dataType} (${count})`;
+}
+
+function getTaskName(
+  dataType: string,
+  appMetadata: ApplicationMetadata,
+  processMetadata: ProcessTaskMetadata[],
+): string | undefined {
+  const taskId = appMetadata.dataTypes?.find((dt) => dt.id === dataType)?.taskId;
+  if (taskId) {
+    return processMetadata.find((task) => task.id === taskId)?.name ?? taskId;
+  }
+
+  const processTaskMetadata = processMetadata.find((pm) =>
+    pm.dataTypeTags.find((dtt) => dtt.dataTypeId === dataType),
+  );
+  return processTaskMetadata?.name ?? processTaskMetadata?.id;
+}
+
+const DataElementGroup = ({
+  dataType,
+  dataElements,
+  appMetadata,
+  processMetadata,
+}: {
+  dataType: string;
+  dataElements: SimpleDataElement[];
+  appMetadata: ApplicationMetadata;
+  processMetadata: ProcessTaskMetadata[];
+}) => {
+  const { t } = useTranslation();
+  const labelId = useId();
+
+  const type = getDataTypeType(dataType, appMetadata, processMetadata);
+  const Icon = DataTypeIcons[type];
+  const label = getDataTypeLabel(dataType, dataElements.length, appMetadata);
+  const taskName = getTaskName(dataType, appMetadata, processMetadata);
+
   return (
     <StudioField>
-      <StudioLabel id={labelId}>{label}</StudioLabel>
-      <br />
-      <span aria-labelledby={labelId}>{value}</span>
+      <StudioLabel id={labelId}>
+        <span className={classes['data-element-label-wrapper']}>
+          <div className={classes['data-element-label-title']}>
+            <Icon />
+            {label}
+          </div>
+          {taskName && (
+            <Tag size='sm' color='first'>
+              {taskName}
+            </Tag>
+          )}
+        </span>
+      </StudioLabel>
+      {dataElements.map((dataElement) => (
+        <StudioDetails key={dataElement.id}>
+          <StudioDetails.Summary>{dataElement.id}</StudioDetails.Summary>
+          <StudioDetails.Content className={classes['data-element-details-wrapper']}>
+            <LabelValue label={t('admin.instances.created')}>
+              {formatDateAndTime(dataElement.createdAt)}
+            </LabelValue>
+            <LabelValue label={t('admin.instances.last_changed')}>
+              {formatDateAndTime(dataElement.lastChangedAt)}
+            </LabelValue>
+            <LabelValue label={t('admin.instances.data.locked')}>
+              {dataElement.locked ? t('general.yes') : t('general.no')}
+            </LabelValue>
+            <LabelValue label={t('admin.instances.data.size')}>
+              {t('admin.instances.data.size_kb', { size: (dataElement.size ?? 0) / 1e3 })}
+            </LabelValue>
+            <LabelValue label={t('admin.instances.data.content_type')}>
+              {dataElement.contentType}
+            </LabelValue>
+            {dataElement.fileScanResult && dataElement.fileScanResult !== 'NotApplicable' && (
+              <LabelValue label={t('admin.instances.data.file_scan_result')}>
+                {dataElement.fileScanResult}
+              </LabelValue>
+            )}
+          </StudioDetails.Content>
+        </StudioDetails>
+      ))}
     </StudioField>
   );
 };

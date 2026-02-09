@@ -1,12 +1,23 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Models.Dto;
 
 namespace Altinn.Studio.Designer.Services.Interfaces.Organisation;
 
 public interface IOrgLibraryService
 {
+
+    /// <summary>
+    /// Gets the latest commit sha for a given branch.
+    /// </summary>
+    /// <param name="org">Organisation.</param>
+    /// <param name="branchName">The branch name. Fallback to default branch.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The latest commit sha.</returns>
+    Task<string> GetLatestCommitOnBranch(string org, string branchName = General.DefaultBranch, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Gets all files from a given preset path.
     /// </summary>
@@ -22,9 +33,10 @@ public interface IOrgLibraryService
     /// </summary>
     /// <param name="org">Organisation.</param>
     /// <param name="developer">Developer.</param>
+    /// <param name="token">The developer token.</param>
     /// <param name="request">The request.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    Task UpdateSharedResourcesByPath(string org, string developer, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default);
+    Task UpdateSharedResourcesByPath(string org, string developer, string token, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all the published library elements for the organisation.

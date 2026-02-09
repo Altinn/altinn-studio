@@ -316,7 +316,7 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
             .Setup(ar => ar.GetLayoutModelForTask(TaskId))
             .Returns(new LayoutModel([_mainLayoutComponent, _subLayoutComponent], null));
         _appResourcesMock
-            .Setup(ar => ar.GetLayoutSet())
+            .Setup(ar => ar.GetLayoutSets())
             .Returns(
                 new LayoutSets()
                 {

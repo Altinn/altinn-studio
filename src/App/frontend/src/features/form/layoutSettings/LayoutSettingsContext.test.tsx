@@ -1,21 +1,20 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
 
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getGlobalUiSettings } from 'src/features/form/layoutSets';
+import { NavigationReceipt, NavigationTask } from 'src/features/form/layoutSets/types';
 import {
   usePageGroups,
   usePageSettings,
   useRawPageOrder,
 } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type {
-  ILayoutSets,
-  ILayoutSettings,
-  NavigationPageGroup,
-  NavigationReceipt,
-  NavigationTask,
-} from 'src/layout/common.generated';
+import type { ILayoutSettings, NavigationPageGroup } from 'src/layout/common.generated';
+
+const layoutSetsMock = getLayoutSetsMock();
 
 describe('LayoutSettingsContext', () => {
   const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
@@ -32,6 +31,12 @@ describe('LayoutSettingsContext', () => {
     taskNavigation?: (Omit<NavigationTask, 'id'> | Omit<NavigationReceipt, 'id'>)[];
     overrideTaskNavigation?: (Omit<NavigationTask, 'id'> | Omit<NavigationReceipt, 'id'>)[];
   }) {
+    jest.mocked(getGlobalUiSettings).mockReturnValue({
+      ...layoutSetsMock.uiSettings,
+      taskNavigation:
+        (taskNavigation as (NavigationTask | NavigationReceipt)[]) ?? layoutSetsMock.uiSettings.taskNavigation,
+    });
+
     return renderWithInstanceAndLayout({
       renderer,
       initialPage: order?.[0] ?? groups?.[0].order[0],
@@ -44,13 +49,6 @@ describe('LayoutSettingsContext', () => {
               ...(overrideTaskNavigation && { taskNavigation: overrideTaskNavigation }),
             },
           }) as ILayoutSettings,
-        fetchLayoutSets: async () =>
-          ({
-            ...getLayoutSetsMock(),
-            ...(taskNavigation && {
-              uiSettings: { taskNavigation },
-            }),
-          }) as ILayoutSets,
       },
     });
   }
@@ -147,7 +145,7 @@ describe('LayoutSettingsContext', () => {
 
   describe('usePageSettings().taskNavigation', () => {
     const UseTaskNavigation = () => {
-      const taskNavigation = usePageSettings().taskNavigation;
+      const taskNavigation = usePageSettings().taskNavigation ?? [];
       return (
         <>
           {taskNavigation.map((taskGroup) => (
@@ -170,7 +168,7 @@ describe('LayoutSettingsContext', () => {
       );
     };
 
-    it('returns empy array when not specified', async () => {
+    it('returns empty array when not specified', async () => {
       await render({ renderer: () => <UseTaskNavigation />, order: ['first'] });
       expect(screen.queryByTestId('task-group-id')).not.toBeInTheDocument();
       expect(screen.queryByTestId('task-group-name')).not.toBeInTheDocument();
@@ -185,11 +183,10 @@ describe('LayoutSettingsContext', () => {
           { type: 'receipt', name: 'kvittering' },
         ],
       });
+
       expect(screen.getAllByTestId('task-group-id')).toHaveLength(2);
       expect(screen.getAllByTestId('task-group-name')).toHaveLength(2);
-      expect(screen.getAllByTestId('task-group-id')[0]).toHaveTextContent(UUID);
       expect(screen.getAllByTestId('task-group-name')[0]).toHaveTextContent('utfylling');
-      expect(screen.getAllByTestId('task-group-id')[1]).toHaveTextContent(UUID);
       expect(screen.getAllByTestId('task-group-name')[1]).toHaveTextContent('kvittering');
     });
 

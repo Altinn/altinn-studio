@@ -124,13 +124,17 @@ func AssertConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *cor
 		if settingsJSON, ok := secret.Data["maskinporten-settings.json"]; ok {
 			var settings map[string]any
 			if json.Unmarshal(settingsJSON, &settings) == nil {
+				// Navigate into MaskinportenSettings wrapper
+				if wrapper, ok := settings["MaskinportenSettings"].(map[string]any); ok {
+					settings = wrapper
+				}
 				// Verify clientId matches
-				if secretClientId, ok := settings["clientId"].(string); ok {
+				if secretClientId, ok := settings["ClientId"].(string); ok {
 					gomega.Expect(secretClientId).To(gomega.Equal(consistencyState.ClientID),
 						"Secret clientId doesn't match CR clientId")
 				}
 				// Verify key IDs in jwks match CR
-				if jwks, ok := settings["jwks"].(map[string]any); ok {
+				if jwks, ok := settings["Jwks"].(map[string]any); ok {
 					if keys, ok := jwks["keys"].([]any); ok {
 						var secretKeyIds []string
 						for _, key := range keys {
@@ -183,6 +187,7 @@ func SanitizeMetadata(meta map[string]any) {
 }
 
 const sanitizedClientId = "<sanitized-client-id>"
+const sanitizedTraceId = "<sanitized-trace-id>"
 
 // SanitizeMaskinportenClientStatus sanitizes status timestamps and dynamic fields
 func SanitizeMaskinportenClientStatus(status map[string]any) {
@@ -240,6 +245,12 @@ func sanitizeConditionMessage(msg string) string {
 func SanitizeActionRecord(action map[string]any) {
 	if action["timestamp"] != nil {
 		action["timestamp"] = sanitizedTimestamp
+	}
+	if action["traceId"] != nil {
+		action["traceId"] = sanitizedTraceId
+	}
+	if action["trace_id"] != nil {
+		action["trace_id"] = sanitizedTraceId
 	}
 	if details, ok := action["details"].(string); ok {
 		// Replace clientId UUIDs in details string
@@ -311,14 +322,24 @@ func SanitizeJwk(keyMap map[string]any) {
 	if keyMap["n"] != nil {
 		keyMap["n"] = "<rsa-modulus>"
 	}
+	// Sanitize exp field (certificate expiry timestamp) - non-deterministic
+	if keyMap["exp"] != nil {
+		keyMap["exp"] = "<cert-expiry>"
+	}
 }
 
 // SanitizeSecretContent sanitizes the maskinporten-settings.json content
 func SanitizeSecretContent(data map[string]any) {
-	if data["clientId"] != nil {
-		data["clientId"] = sanitizedClientId
+	// Navigate into MaskinportenSettings wrapper if present
+	settings := data
+	if wrapper, ok := data["MaskinportenSettings"].(map[string]any); ok {
+		settings = wrapper
 	}
-	if jwks, ok := data["jwks"].(map[string]any); ok {
+
+	if settings["ClientId"] != nil {
+		settings["ClientId"] = sanitizedClientId
+	}
+	if jwks, ok := settings["Jwks"].(map[string]any); ok {
 		if keys, ok := jwks["keys"].([]any); ok {
 			for _, key := range keys {
 				if keyMap, ok := key.(map[string]any); ok {
@@ -327,8 +348,8 @@ func SanitizeSecretContent(data map[string]any) {
 			}
 		}
 	}
-	if data["jwk"] != nil {
-		if jwk, ok := data["jwk"].(map[string]any); ok {
+	if settings["Jwk"] != nil {
+		if jwk, ok := settings["Jwk"].(map[string]any); ok {
 			SanitizeJwk(jwk)
 		}
 	}
@@ -371,7 +392,17 @@ func SnapshotSecret(secret *corev1.Secret, name string) {
 	}
 
 	// Decode and sanitize the secret data for human-readable snapshots
+	// Only include maskinporten-settings.json, remove other keys (e.g. postgresql.json)
+	// Ensure data field exists (normalize nil vs empty)
+	if obj["data"] == nil {
+		obj["data"] = map[string]any{}
+	}
 	if dataField, ok := obj["data"].(map[string]any); ok {
+		for key := range dataField {
+			if key != "maskinporten-settings.json" {
+				delete(dataField, key)
+			}
+		}
 		if settingsB64, ok := dataField["maskinporten-settings.json"].(string); ok {
 			settingsBytes, err := base64.StdEncoding.DecodeString(settingsB64)
 			if err == nil {
@@ -615,6 +646,36 @@ func FetchToken(scope string) (*TokenResponse, error) {
 	}
 
 	return &tokenResp, nil
+}
+
+// DbCheckResponse represents the response from the testapp /dbcheck endpoint
+type DbCheckResponse struct {
+	Success bool   `json:"success"`
+	Result  int    `json:"result,omitempty"`
+	Error   string `json:"error,omitempty"`
+}
+
+// FetchDbCheck calls the testapp dbcheck endpoint to verify database connectivity
+func FetchDbCheck() (*DbCheckResponse, error) {
+	resp, err := http.Get("http://localhost:8020/ttd/localtestapp/dbcheck")
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch dbcheck: %w", err)
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read dbcheck response: %w", err)
+	}
+
+	var dbResp DbCheckResponse
+	if err := json.Unmarshal(body, &dbResp); err != nil {
+		return nil, fmt.Errorf("failed to decode dbcheck response: %w (body: %s)", err, string(body))
+	}
+
+	return &dbResp, nil
 }
 
 // SanitizeTokenResponse sanitizes token claims for deterministic snapshots

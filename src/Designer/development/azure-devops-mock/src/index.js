@@ -1,15 +1,22 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-import { buildRoute, buildsRoute, kubernetesWrapperRoute } from './routes/builds.js';
+import {
+  buildRoute,
+  buildsRoute,
+  kubernetesWrapperRoute,
+  runtimeGatewayDeploymentsRoute,
+  runtimeGatewayDeploymentDetailsRoute,
+} from './routes/builds.js';
 import { authenticationRoute } from './routes/authentication.js';
 import {
   storageApplicationMetadataRoute,
   storageTextsRoute,
   storageInstancesRoute,
+  storageInstanceDetailsRoute,
 } from './routes/storage.js';
 import { environmentsRoute } from './routes/environments.js';
-import { appProcessRoute } from './routes/apps.js';
+import { appMetadataRoute, appProcessRoute } from './routes/apps.js';
 
 const app = express();
 
@@ -23,10 +30,20 @@ app.get('/_apis/build/builds/:BuildNumber', buildRoute);
 app.get('/authentication/api/v1/exchange/:service', authenticationRoute);
 app.get('/environments.json', environmentsRoute);
 app.get('/apps/:org/:env/kuberneteswrapper/api/v1/deployments', kubernetesWrapperRoute);
+app.get(
+  '/apps/:org/:env/runtime/gateway/api/v1/deploy/origin/:origin/apps',
+  runtimeGatewayDeploymentsRoute,
+);
+app.get(
+  '/apps/:org/:env/runtime/gateway/api/v1/deploy/apps/:app/:origin',
+  runtimeGatewayDeploymentDetailsRoute,
+);
+app.get('/apps/:org/:env/:org/:app/api/v1/applicationmetadata', appMetadataRoute);
 app.get('/apps/:org/:env/:org/:app/api/v1/meta/process', appProcessRoute);
 app.get('/storage/api/v1/applications/:org/:app', storageApplicationMetadataRoute);
 app.get('/storage/api/v1/applications/:org/:app/texts/:lang', storageTextsRoute);
 app.get('/storage/api/v1/studio/instances/:org/:app', storageInstancesRoute);
+app.get('/storage/api/v1/studio/instances/:org/:app/:instanceId', storageInstanceDetailsRoute);
 app.post('/_apis/build/builds/', buildsRoute);
 
 app.all('*', function (req, res) {

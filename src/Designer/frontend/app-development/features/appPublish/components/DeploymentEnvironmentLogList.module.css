@@ -94,18 +94,28 @@
 }
 
 .events {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-size-2);
-  padding: var(--ds-size-4);
+  margin: 0;
+  padding: var(--ds-size-2) 0;
 }
 
 .event {
   display: flex;
   gap: var(--ds-size-4);
+  padding: var(--ds-size-2) 0;
 }
 
 .eventCreatedDate {
   opacity: 0.7;
   white-space: nowrap;
+}
+
+.eventMessage {
+  white-space: pre-line;
+}
+.eventCreatedDate,
+.eventMessage {
+  font-family: monospace;
+  font-size: 0.8rem;
+  margin: 0;
+  word-wrap: break-word;
 }

@@ -1,0 +1,15 @@
+.taskIdSelectContainer {
+  display: grid;
+  gap: var(--fds-spacing-2);
+}
+
+.taskIdSelectAndButtons {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--fds-spacing-4);
+}
+
+.taskIdSelect {
+  flex: 1;
+}

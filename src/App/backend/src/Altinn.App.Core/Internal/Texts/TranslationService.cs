@@ -147,11 +147,19 @@ internal sealed class TranslationService : ITranslationService
             // when we know what part of the path is a list.
             var cleanPath = _cleanPathRegex.Replace(variable.Key, "");
 
-            var binding = new ModelBinding()
+            // Resolve "default" to the actual data type from the layout-set.
+            // If there's no layout-set (e.g., some service tasks), GetDefaultDataType() returns null.
+            string? resolvedDataType = dataModelName == "default" ? state.GetDefaultDataType()?.Id : dataModelName;
+
+            if (resolvedDataType is null)
             {
-                DataType = dataModelName == "default" ? state.GetDefaultDataType()?.Id : dataModelName,
-                Field = cleanPath,
-            };
+                throw new InvalidOperationException(
+                    $"Text resource '{resourceElement.Id}' uses 'dataModel.default' but no layout-set is available to determine the default data type. "
+                        + "Use an explicit data type name instead (e.g., 'dataModel.MyDataType')."
+                );
+            }
+
+            var binding = new ModelBinding() { DataType = resolvedDataType, Field = cleanPath };
 
             try
             {

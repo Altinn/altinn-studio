@@ -1,4 +1,11 @@
-import { StudioButton, StudioSpinner, StudioTable, StudioError } from '@studio/components';
+import {
+  StudioButton,
+  StudioSpinner,
+  StudioTable,
+  StudioError,
+  StudioAlert,
+} from '@studio/components';
+import { useEnvironmentTitle } from 'admin/hooks/useEnvironmentTitle';
 import classes from './InstancesTable.module.css';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -8,12 +15,13 @@ import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
 import { useMutation } from '@tanstack/react-query';
 import { InstanceStatus } from './InstanceStatus';
 import { isAxiosError } from 'axios';
-import { Alert } from '@digdir/designsystemet-react';
+import { Skeleton } from '@digdir/designsystemet-react';
 import { useCurrentOrg } from 'admin/layout/PageLayout';
+import { Link } from 'react-router-dom';
 
 type InstancesTableProps = {
   org: string;
-  env: string;
+  environment: string;
   app: string;
   currentTask?: string;
   isArchived?: boolean;
@@ -26,7 +34,7 @@ type InstancesTableProps = {
 
 export const InstancesTable = ({
   org,
-  env,
+  environment,
   app,
   currentTask,
   isArchived,
@@ -38,7 +46,7 @@ export const InstancesTable = ({
 }: InstancesTableProps) => {
   const { data, status, error, fetchNextPage, hasNextPage } = useAppInstancesQuery(
     org,
-    env,
+    environment,
     app,
     currentTask,
     isArchived,
@@ -50,20 +58,24 @@ export const InstancesTable = ({
   );
   const { t, i18n } = useTranslation();
   const orgName = useCurrentOrg().name[i18n.language];
+  const envTitle = useEnvironmentTitle(environment);
 
   switch (status) {
     case 'pending':
-      return <StudioSpinner aria-label={t('general.loading')} />;
+      return <InstancesTableSkeleton n={11} />;
     case 'error':
       if (isAxiosError(error) && error.response?.status === 403) {
-        const envTitle =
-          env === 'production'
-            ? t(`general.production_environment_alt`).toLowerCase()
-            : `${t('general.test_environment_alt').toLowerCase()} ${env?.toUpperCase()}`;
         return (
-          <Alert severity='info'>
+          <StudioAlert data-color='info'>
             {t('admin.instances.missing_rights', { envTitle, orgName })}
-          </Alert>
+          </StudioAlert>
+        );
+      }
+      if (isAxiosError(error) && error.response?.status === 404) {
+        return (
+          <StudioAlert data-color='info'>
+            {t('admin.instances.unavailable', { envTitle, orgName })}
+          </StudioAlert>
         );
       }
       return <StudioError>{t('general.page_error_title')}</StudioError>;
@@ -76,6 +88,18 @@ export const InstancesTable = ({
         />
       );
   }
+};
+
+const InstancesTableSkeleton = ({ n }: { n: number }) => {
+  const { t } = useTranslation();
+  return (
+    <div aria-label={t('general.loading')} className={classes.skeletonWrapper}>
+      {Array.from({ length: n }).map((_, i) => (
+        <Skeleton.Rectangle key={i} className={classes.rowSkeleton} />
+      ))}
+      <Skeleton.Rectangle className={classes.buttonSkeleton} />
+    </div>
+  );
 };
 
 type InstancesTableWithDataProps = {
@@ -94,8 +118,12 @@ const InstancesTableWithData = ({
     mutationFn: fetchMoreResults,
   });
 
+  if (!instances.length) {
+    return <StudioAlert data-color='info'>{t('admin.instances.no_results')}</StudioAlert>;
+  }
+
   return (
-    <StudioTable zebra>
+    <StudioTable>
       <StudioTable.Head>
         <StudioTable.Row>
           <StudioTable.Cell>{t('admin.instances.id')}</StudioTable.Cell>
@@ -108,8 +136,7 @@ const InstancesTableWithData = ({
         {instances.map((instance) => (
           <StudioTable.Row key={instance.id}>
             <StudioTable.Cell>
-              {/* <Link to={`${instance.id}`}>{instance.id}</Link> */}
-              {instance.id}
+              <Link to={`instances/${instance.id}`}>{instance.id}</Link>
             </StudioTable.Cell>
             <StudioTable.Cell>
               {instance.createdAt ? formatDateAndTime(instance.createdAt) : '-'}

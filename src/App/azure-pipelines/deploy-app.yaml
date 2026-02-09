@@ -22,6 +22,8 @@ variables:
   # GITEA_ENVIRONMENT: ''
   # HOSTNAME: ''
   # TAGNAME: ''
+  # TRACEPARENT: '' # Optional W3C traceparent for correlation
+  # TRACESTATE: '' # Optional W3C tracestate for correlation
   # PUSH_SYNCROOT_GITOPS_IMAGE: 'false' # Set to 'true' to enable pushing sync-root artifact
   # PUSH_APPS_OCI_IMAGE: 'true' # Set to 'false' to skip pushing app OCI image
 
@@ -32,6 +34,7 @@ variables:
   VALUES_FILE: 'deployment/values.yaml'
   NORMALIZED_VALUES: 'values.normalized.yaml'
   MERGED_VALUES: 'values.merged.yaml'
+  MASKINPORTEN_CR_FILE: 'maskinportenclient.yaml'
 
   AI_SERVICE_CONNECTION_ID_TEST: 'c3cabb67-2cf6-4114-acd3-e1f0e32eea82'
   AI_SERVICE_CONNECTION_ID_PROD: '4c145755-0ab0-4c62-b182-4d2fbb9563ed'
@@ -148,6 +151,46 @@ steps:
             git reset --hard FETCH_HEAD
         fi
 
+  - task: AzureCLI@2
+    displayName: 'Extract app scopes from docker image'
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
+    continueOnError: true
+    inputs:
+      azureSubscription: 'altinn-studio-apps-deploy'
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        set +e  # Don't exit on errors, this needs testing
+
+        ACR_NAME="${APP_OWNER}altinnregistry01"
+        IMAGE_REF="${ACR_NAME}.azurecr.io/${RELEASE_NAME}:${TAGNAME}"
+
+        echo "Extracting Maskinporten scopes from image: ${IMAGE_REF}"
+
+        az acr login --name ${ACR_NAME}
+
+        docker pull ${IMAGE_REF}
+
+        SCOPES_JSON=$(docker inspect ${IMAGE_REF} --format='{{index .Config.Labels "studio.altinn.maskinporten.scopes"}}' 2>/dev/null || echo "[]")
+
+        if [ "$SCOPES_JSON" == "<no value>" ] || [ "$SCOPES_JSON" == "null" ] || [ -z "$SCOPES_JSON" ]; then
+          echo "No Maskinporten scopes label found on image, defaulting to empty array"
+          SCOPES_JSON="[]"
+        fi
+
+        if ! echo "${SCOPES_JSON}" | jq empty 2>/dev/null; then
+          echo "##[warning]Invalid JSON in Maskinporten scopes label: ${SCOPES_JSON}"
+          echo "##[warning]Defaulting to empty array"
+          SCOPES_JSON="[]"
+        fi
+
+        echo "##vso[task.setvariable variable=APP_MASKINPORTEN_SCOPES_JSON;]${SCOPES_JSON}"
+
+        echo "Extracted Maskinporten scopes: ${SCOPES_JSON}"
+
+        exit 0  # Always succeed, this needs testing
+      failOnStderr: false
+
   - task: CmdLine@2
     displayName: Pull GitOps directory
     condition: and(succeeded(), eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true'))
@@ -223,8 +266,8 @@ steps:
       failOnStderr: false
 
   - task: Bash@3
-    displayName: 'Warn about unsupported templates directory'
-    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
+    displayName: 'Fail if unsupported templates directory exists'
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_OWNER'], 'staf'))
     inputs:
       targetType: inline
       script: |
@@ -234,7 +277,8 @@ steps:
         if [ -d "$TEMPLATES_DIR" ]; then
           FILE_COUNT=$(find "$TEMPLATES_DIR" -maxdepth 1 -type f | wc -l | tr -d ' ')
           if [ "$FILE_COUNT" -gt 0 ]; then
-            echo "##[warning]Templates directory contains $FILE_COUNT file(s). Custom templates are not supported and will be ignored. The altinn-studio deployment helm chart will be used directly."
+            echo "##[error]Templates directory contains $FILE_COUNT file(s). Custom templates are not supported. The altinn-studio deployment helm chart will be used directly."
+            exit 1
           fi
         fi
       failOnStderr: false
@@ -535,7 +579,7 @@ steps:
               retries: 1
           chart:
             spec:
-              version: 3.7.0
+              version: 3.9.0
               chart: deployment
               sourceRef:
                 kind: HelmRepository
@@ -543,6 +587,14 @@ steps:
                 namespace: default
           values: {}
         EOF
+
+        if [ -n "$TRACEPARENT" ]; then
+          yq eval '.metadata.annotations."altinn.studio/traceparent" = env(TRACEPARENT)' --inplace "${HELMRELEASE_FILE}"
+        fi
+
+        if [ -n "$TRACESTATE" ]; then
+          yq eval '.metadata.annotations."altinn.studio/tracestate" = env(TRACESTATE)' --inplace "${HELMRELEASE_FILE}"
+        fi
 
 
   - task: Bash@3
@@ -686,6 +738,54 @@ steps:
 
         # --- Cleanup non used files---
         rm -f "${OVERRIDES_FILE}" "${NORMALIZED_VALUES}" "${MERGED_VALUES}"
+
+  - task: Bash@3
+    displayName: 'Generate MaskinportenClient CR'
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
+    continueOnError: true
+    inputs:
+      workingDirectory: '$(FLUX_ARTIFACT_DIR)'
+      targetType: inline
+      script: |
+        set +e  # Don't exit on errors, this needs testing
+
+        SCOPES_ARRAY="${APP_MASKINPORTEN_SCOPES_JSON:-[]}"
+
+        SCOPE_COUNT=$(echo "${SCOPES_ARRAY}" | jq 'length' 2>/dev/null || echo "0")
+
+        if [ "${SCOPE_COUNT}" -eq 0 ]; then
+          echo "No Maskinporten scopes configured, skipping MaskinportenClient CR generation"
+          exit 0
+        fi
+
+        echo "Generating MaskinportenClient CR with ${SCOPE_COUNT} scopes"
+
+        yq eval --null-input '{
+          "apiVersion": "resources.altinn.studio/v1alpha1",
+          "kind": "MaskinportenClient",
+          "metadata": {
+            "name": env(RELEASE_NAME),
+            "namespace": "default",
+            "labels": {
+              "altinn.studio/managed-by": "altinn-studio",
+              "altinn.studio/source-environment": env(STUDIO_ENVIRONMENT),
+              "altinn.studio/build-id": env(BUILD_BUILDID),
+              "altinn.studio/org": env(APP_OWNER),
+              "altinn.studio/app": env(APP_REPO)
+            }
+          },
+          "spec": {
+            "scopes": []
+          }
+        }' > "${MASKINPORTEN_CR_FILE}"
+
+        yq eval --inplace ".spec.scopes = $(echo "${SCOPES_ARRAY}" | yq eval --input-format json --output-format json '.')" "${MASKINPORTEN_CR_FILE}"
+
+        echo "Generated MaskinportenClient CR:"
+        cat "${MASKINPORTEN_CR_FILE}"
+
+        exit 0  # Always succeed, this needs testing
+      failOnStderr: false
 
   - task: AzureCLI@2
     displayName: 'Push OCI artifact to ACR'

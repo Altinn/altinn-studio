@@ -7,6 +7,7 @@ on:
       - 'src/Runtime/operator/**'
       - 'src/Runtime/test/fixture/**'
       - '.github/workflows/runtime-operator-build.yml'
+      - 'src/App/azure-pipelines/deploy-app.yaml'
   workflow_dispatch:
 
 jobs:
@@ -24,7 +25,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6
         with:
           go-version-file: src/Runtime/operator/go.mod
           cache-dependency-path: src/Runtime/operator/go.sum
@@ -52,20 +53,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6
         with:
           go-version-file: src/Runtime/operator/go.mod
           cache-dependency-path: src/Runtime/operator/go.sum
 
-      - name: Cache CLI tools
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: src/Runtime/operator/.cache/bin
-          key: operator-tools-${{ runner.os }}-${{ hashFiles('src/Runtime/test/fixture/pkg/tools/.tool-versions') }}
-          restore-keys: |
-            operator-tools-${{ runner.os }}-
-
-      - name: Run e2e tests
+      - name: Run fixture
         run: make start
 
       - name: Run e2e tests

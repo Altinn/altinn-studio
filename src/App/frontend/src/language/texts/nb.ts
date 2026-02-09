@@ -154,7 +154,7 @@ export function nb() {
     'general.create_new': 'Opprett ny',
     'general.create': 'Opprett',
     'general.customer_service_phone_number': '+47 75 00 60 00',
-    'general.customer_service_slack': 'https://altinn.slack.com',
+    'general.customer_service_slack': 'https://digdir-samarbeid.slack.com',
     'general.customer_service_email': 'servicedesk@altinn.no',
     'general.customer_service_error_message':
       'Hvis du har behov for assistanse kan du nå Altinn på<br/><br/><li>Telefon: <a href="tel:{0}">{0}</a></li><li>E-post: {1}</li><li>Slack: {2}</li></ul>',
@@ -219,6 +219,7 @@ export function nb() {
     'image_upload_component.reset': 'Tilbakestill zoom og plassering',
     'image_upload_component.error_invalid_file_type': 'Ugyldig filformat. Last opp en bildefil.',
     'image_upload_component.error_file_size_exceeded': 'Filen er for stor. Største tillatte filstørrelse er 10MB.',
+    'image_upload_component.error_required': 'Du må laste opp et bilde',
     'image_upload_component.valid_file_types': 'Bildefiler er tillatt',
     'input_components.remaining_characters': 'Du har %d tegn igjen',
     'input_components.exceeded_max_limit': 'Du har overskredet maks antall tegn med %d',
@@ -343,9 +344,9 @@ export function nb() {
     'person_lookup.validation_error_name_too_short': 'Etternavn kan ikke være tomt.',
     'person_lookup.validation_error_ssn': 'Fødselsnummeret/D-nummeret er ugyldig.',
     'person_lookup.validation_error_not_found':
-      'Ingen person er registrert med denne kombinasjonen av fødselsnummer/D-nummer og navn. Vennligst kontroller feltene og prøv igjen. <br> Merk: Etter 5 feilforsøk blir søkemuligheten midlertidig sperret.',
+      'Ingen person er registrert med denne kombinasjonen av fødselsnummer/D-nummer og navn. Vennligst kontroller feltene og prøv igjen. <br> Merk: Etter 3 feilforsøk kan søkemuligheten bli midlertidig sperret.',
     'person_lookup.validation_error_too_many_requests':
-      'Du har nådd grensen for antall søk. Vennligst prøv igjen senere.',
+      'Du har nådd grensen for antall søk. Du har blitt utestengt fra søkefunksjonaliteten i en time. Vennligst prøv igjen senere.',
     'person_lookup.validation_error_forbidden':
       'Du har ikke tilgang til å søke på denne personen. Sikkerhetsnivå 2 eller høyere kreves.',
     'person_lookup.validation_invalid_response_from_server': 'Det oppstod en feil. Vennligst prøv igjen senere.',
@@ -362,7 +363,7 @@ export function nb() {
     'receipt.receipt': 'Kvittering',
     'receipt.ref_num': 'Referansenummer',
     'receipt.sender': 'Avsender',
-    'receipt.subtitle': 'Kopi av din kvittering er sendt til ditt arkiv',
+    'receipt.subtitle': 'Din kvittering er lagret og tilgjengelig i din innboks',
     'receipt.title': 'Skjemaet er sendt inn',
     'receipt.title_submitted': 'Følgende er sendt inn:',
     'receipt_platform.attachments': 'Vedlegg',
@@ -512,5 +513,11 @@ export function nb() {
       'Du kan prøve å utføre behandlingen på nytt ved å klikke på "{0}". Hvis problemet vedvarer, ta kontakt med oss på brukerservice {1}.',
     'service_task.retry_button': 'Prøv igjen',
     'service_task.back_button': 'Gå tilbake',
+    'service_task_custom_pdf_default.title': 'Noe gikk galt',
+    'service_task_custom_pdf_default.body': 'En feil oppstod under automatisk behandling av skjemaet.',
+    'service_task_custom_pdf_default.help_text':
+      'Du kan prøve å utføre behandlingen på nytt ved å klikke på "Prøv igjen". Hvis problemet vedvarer, ta kontakt med oss på brukerservice +47 75 00 60 00.',
+    'service_task_custom_pdf_default.retry_button': 'Prøv igjen',
+    'service_task_custom_pdf_default.back_button': 'Gå tilbake',
   } satisfies FixedLanguageList;
 }

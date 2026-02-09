@@ -26,11 +26,15 @@ jobs:
           HEAD_REF: ${{ github.head_ref }}
           BASE_REF: ${{ github.base_ref }}
         run: |
-          diff=$(git diff --unified=0 origin/$BASE_REF...origin/$HEAD_REF -- src/Designer/backend/Directory.Packages.props | grep + | grep Quartz | grep Version || true)
-          if [ -n "$diff" ]; then
-            echo "is-updated=true" >> $GITHUB_OUTPUT
+          set -euo pipefail
+
+          quartz_diff=$(git diff --unified=0 "origin/$BASE_REF...origin/$HEAD_REF" -- src/Designer/backend/Directory.Packages.props | \
+            grep -E '^\+\s*<PackageVersion Include="Quartz(\.|")' || true)
+
+          if [ -n "$quartz_diff" ]; then
+            echo "is-updated=true" >> "$GITHUB_OUTPUT"
           else
-            echo "is-updated=false" >> $GITHUB_OUTPUT
+            echo "is-updated=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Get the new quartz version
@@ -40,28 +44,57 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         if: steps.check-quartz-update.outputs.is-updated == 'true'
         run: |
-          version=$(git diff --unified=0 origin/$BASE_REF...origin/$HEAD_REF -- src/Designer/backend/Directory.Packages.props | grep \"Quartz\" | grep Version | grep + | sed -n 's/.*Version="\([^"]*\)".*/\1/p')
-          echo "quartz-version=$version" >> $GITHUB_OUTPUT
+          set -euo pipefail
+
+          quartz_diff=$(git diff --unified=0 "origin/$BASE_REF...origin/$HEAD_REF" -- src/Designer/backend/Directory.Packages.props | \
+            grep -E '^\+\s*<PackageVersion Include="Quartz(\.|")' || true)
+
+          versions=$(printf '%s\n' "$quartz_diff" | sed -n 's/.*Version="\([^"]*\)".*/\1/p' | sed '/^$/d' | sort -u)
+          version_count=$(printf '%s\n' "$versions" | sed '/^$/d' | wc -l | tr -d ' ')
+
+          if [ "$version_count" -eq 0 ]; then
+            echo "Expected a Quartz.NET package update, but no version was extracted."
+            exit 1
+          fi
+
+          if [ "$version_count" -ne 1 ]; then
+            echo "Expected exactly one Quartz.NET version, but found multiple:"
+            printf '%s\n' "$versions"
+            exit 1
+          fi
+
+          version=$(printf '%s\n' "$versions")
+          echo "quartz-version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Verify tables sql is not updated
         id: check-tables-update
         if: steps.check-quartz-update.outputs.is-updated == 'true'
         run: |
-          download_url=$(curl https://api.github.com/repos/quartznet/quartznet/releases/tags/v${{ steps.get-quartz-version.outputs.quartz-version }} | \
-            jq -r '.assets[] | select(.name | contains("Quartz.NET-${{ steps.get-quartz-version.outputs.quartz-version }}.zip")) | .browser_download_url')
+          set -euo pipefail
 
-          mkdir qdwn
-          curl -L -o qdwn/quartz.zip $download_url && unzip qdwn/quartz.zip -d qdwn && rm qdwn/quartz.zip
+          quartz_version="${{ steps.get-quartz-version.outputs.quartz-version }}"
 
-          diff_output=$(diff -b ${{ env.tables-file }} qdwn/database/tables/tables_postgres.sql || true)
+          download_url=$(curl -fsSL "https://api.github.com/repos/quartznet/quartznet/releases/tags/v$quartz_version" | \
+            jq -r --arg version "$quartz_version" '.assets // [] | map(select(.name | contains("Quartz.NET-" + $version + ".zip"))) | .[0].browser_download_url // empty')
+
+          if [ -z "$download_url" ]; then
+            echo "Could not find release asset Quartz.NET-$quartz_version.zip for quartznet/quartznet tag v$quartz_version."
+            exit 1
+          fi
+
+          mkdir -p qdwn
+          curl -fL -o qdwn/quartz.zip "$download_url"
+          unzip -q qdwn/quartz.zip -d qdwn
+          rm qdwn/quartz.zip
+
+          diff_output=$(diff -b "${{ env.tables-file }}" qdwn/database/tables/tables_postgres.sql || true)
 
           if [ -n "$diff_output" ]; then
             echo "Quartz version that you are trying to update to requires new database migration scripts."
             echo "Please add a new migration and edit the tables-file environment variable in the workflow file."
-            echo $diff_output
-            exit 1;
+            echo "$diff_output"
+            exit 1
           else
             echo "Tables file is up to date"
           fi
-
 

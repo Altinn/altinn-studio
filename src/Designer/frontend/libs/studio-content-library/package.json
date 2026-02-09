@@ -1,6 +1,6 @@
 {
   "name": "@studio/content-library",
-  "packageManager": "yarn@4.9.4",
+  "packageManager": "yarn@4.12.0",
   "version": "0.1.0",
   "main": "./src/index.ts",
   "dependencies": {
@@ -9,17 +9,17 @@
     "@studio/components-legacy": "workspace:^"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "6.6.4",
-    "@testing-library/react": "16.3.0",
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "16.3.1",
     "@types/jest": "29.5.14",
     "eslint": "8.57.1",
     "jest": "29.7.0",
     "jest-environment-jsdom": "29.7.0",
-    "ts-jest": "29.4.5",
+    "ts-jest": "29.4.6",
     "typescript": "5.9.3"
   },
   "scripts": {
-    "lint": "eslint \"src/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts?(x)\"",
     "lint:fix": "yarn run lint --fix",
     "test": "jest",
     "typecheck": "tsc --noEmit"

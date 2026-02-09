@@ -1,13 +1,16 @@
 #nullable disable
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Hubs.EntityUpdate;
 using Altinn.Studio.Designer.Infrastructure.Maskinporten;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -25,15 +28,18 @@ public class DeploymentWebhooksController : ControllerBase
 {
     private readonly IDeployEventRepository _deployEventRepository;
     private readonly IHubContext<EntityUpdatedHub, IEntityUpdateClient> _entityUpdatedHubContext;
+    private readonly IDeploymentService _deploymentService;
     private readonly IDeploymentRepository _deploymentRepository;
 
     public DeploymentWebhooksController(
         IDeployEventRepository deployEventRepository,
         IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext,
+        IDeploymentService deploymentService,
         IDeploymentRepository deploymentRepository)
     {
         _deployEventRepository = deployEventRepository;
         _entityUpdatedHubContext = entityUpdatedHubContext;
+        _deploymentService = deploymentService;
         _deploymentRepository = deploymentRepository;
     }
 
@@ -72,6 +78,8 @@ public class DeploymentWebhooksController : ControllerBase
 
         await _deployEventRepository.AddAsync(org, buildId, deployEvent, cancellationToken);
 
+        await _deploymentService.SendToSlackAsync(org, AltinnEnvironment.FromName(request.Environment), app, eventType, buildId, deployment.Events.FirstOrDefault()?.Created, cancellationToken);
+
         await PublishEntityUpdatedAsync(deployment);
 
         return Ok();
@@ -97,10 +105,12 @@ public class DeploymentWebhooksController : ControllerBase
 
         if (isUninstallEvent)
         {
-            var deployment = await _deploymentRepository.GetPendingDecommission(org, app, request.Environment);
+            // Gateway currently gets the environment set to prod when in the production environment
+            var environment = request.Environment.Equals("prod", StringComparison.OrdinalIgnoreCase) ? "production" : request.Environment;
+            var deployment = await _deploymentRepository.GetPendingDecommission(org, app, environment);
             if (deployment == null)
             {
-                return new DeploymentResolveResult(null, null, NotFound($"No pending decommission deployment found for {org}/{app} in {request.Environment}"));
+                return new DeploymentResolveResult(null, null, NotFound($"No pending decommission deployment found for {org}/{app} in {environment}"));
             }
 
             return new DeploymentResolveResult(deployment, deployment.Build.Id, null);

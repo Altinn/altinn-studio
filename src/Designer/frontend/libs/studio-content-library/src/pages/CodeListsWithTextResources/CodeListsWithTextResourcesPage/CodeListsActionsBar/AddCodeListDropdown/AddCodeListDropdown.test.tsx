@@ -1,5 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
 import type { AddCodeListDropdownProps } from './AddCodeListDropdown';
 import { AddCodeListDropdown } from './AddCodeListDropdown';
@@ -110,7 +111,10 @@ describe('AddCodeListDropdown', () => {
   });
 });
 
-const uploadFileWithFileName = async (user: UserEvent, fileNameWithExtension: string) => {
+const uploadFileWithFileName = async (
+  user: UserEvent,
+  fileNameWithExtension: string,
+): Promise<void> => {
   const fileUploaderButton = screen.getByLabelText(
     textMock('app_content_library.code_lists_with_text_resources.upload_code_list'),
   );
@@ -121,9 +125,12 @@ const uploadFileWithFileName = async (user: UserEvent, fileNameWithExtension: st
 const defaultCodeListActionBarProps: AddCodeListDropdownProps = {
   onUploadCodeList: onUploadCodeListMock,
   onCreateCodeList: jest.fn(),
+  onCreateTextResource: jest.fn(),
+  onImportCodeListFromOrg: jest.fn(),
+  onUpdateTextResource: jest.fn(),
   codeListNames: [codeListName1, codeListName2],
 };
 
-const renderAddCodeListDropdown = (props: Partial<AddCodeListDropdownProps> = {}) => {
+const renderAddCodeListDropdown = (props: Partial<AddCodeListDropdownProps> = {}): RenderResult => {
   return renderWithProviders(<AddCodeListDropdown {...defaultCodeListActionBarProps} {...props} />);
 };

@@ -39,6 +39,18 @@ spec:
       - name: fakes
         image: localhost:5001/runtime-operator-fakes:latest
         imagePullPolicy: Always
+        env:
+        - name: OPERATOR_CONFIG_FILE
+          value: /config/config.env
+        - name: POD_UID
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.uid
+        - name: OTEL_SERVICE_NAME
+          value: "fakes"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: "k8s.pod.uid=$(POD_UID)"
         ports:
         - name: maskinporten
           containerPort: 8050
@@ -70,6 +82,14 @@ spec:
           limits:
             cpu: 100m
             memory: 64Mi
+        volumeMounts:
+        - name: operator-config
+          mountPath: /config
+          readOnly: true
+      volumes:
+      - name: operator-config
+        configMap:
+          name: operator-operator-config
 ---
 apiVersion: traefik.io/v1alpha1
 kind: Middleware

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
+import { jest } from '@jest/globals';
 import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
@@ -9,8 +10,9 @@ import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { Form } from 'src/components/form/Form';
 import { FD } from 'src/features/formData/FormDataWrite';
+import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { AllowedValidationMasks } from 'src/layout/common.generated';
+import type { AllowedValidationMasks, IPagesSettingsWithOrder } from 'src/layout/common.generated';
 
 function FormDataValue() {
   const formDataValue = FD.useDebouncedPick({ dataType: defaultDataTypeMock, field: 'TextField' });
@@ -25,6 +27,11 @@ function FormDataValue() {
 }
 
 describe('ValidationPlugin', () => {
+  jest.mocked(useTextResources).mockImplementation(() => ({
+    Form: { value: 'This is a page title' },
+    NextPage: { value: 'This is the next page title' },
+  }));
+
   describe('validation visibility', () => {
     function render({
       text,
@@ -76,20 +83,8 @@ describe('ValidationPlugin', () => {
               },
               required: ['TextField'],
             }),
-          fetchLayoutSettings: () => Promise.resolve({ pages: { order: ['Form', 'NextPage'] } }),
-          fetchTextResources: async () => ({
-            language: 'nb',
-            resources: [
-              {
-                id: 'Form',
-                value: 'This is a page title',
-              },
-              {
-                id: 'NextPage',
-                value: 'This is the next page title',
-              },
-            ],
-          }),
+          fetchLayoutSettings: () =>
+            Promise.resolve({ pages: { order: ['Form', 'NextPage'] } as unknown as IPagesSettingsWithOrder }),
           fetchLayouts: () =>
             Promise.resolve({
               Form: {

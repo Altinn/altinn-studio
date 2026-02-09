@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -33,6 +34,12 @@ namespace Altinn.Platform.Storage.Repository
         {
             ValidateArguments(org, app, language);
             return await _localApp.GetTextResource(org, app, language);
+        }
+
+        /// <inheritdoc/>
+        public Task<List<TextResource>> Get(List<string> appIds, string language)
+        {
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc/>

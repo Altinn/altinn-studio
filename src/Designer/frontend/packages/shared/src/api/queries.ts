@@ -6,6 +6,8 @@ import {
   appVersionPath,
   belongsToOrg,
   branchStatusPath,
+  branchesPath,
+  currentBranchPath,
   dataModelMetadataPath,
   dataModelPath,
   dataModelsJsonPath,
@@ -25,6 +27,7 @@ import {
   accessListsPath,
   accessListPath,
   accessListMemberPath,
+  appValidationPath,
   processEditorPath,
   releasesPath,
   repoMetaPath,
@@ -74,11 +77,13 @@ import {
   canUseFeaturePath,
   orgLibraryPath,
   publishedResourcesPath,
+  customTemplatesPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { Branch, CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
 import type { DataModelMetadataJson, DataModelMetadataXsd } from 'app-shared/types/DataModelMetadata';
 import type { Environment } from 'app-shared/types/Environment';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
@@ -94,7 +99,8 @@ import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { orgListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import type { PolicyAction, PolicySubject } from '@altinn/policy-editor';
+import type { PolicyAction } from '../types/PolicyAction';
+import type { PolicySubject } from '../types/PolicySubject';
 import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse, AccessListMembersResponse, DelegationCountOverview, ConsentTemplate } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -119,6 +125,8 @@ import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { FeatureName } from 'app-shared/enums/CanUseFeature';
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
+import type { AppValidationResult } from 'app-development/hooks/queries/useAppValidationQuery';
+import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -126,8 +134,11 @@ export const getSelectedMaskinportenScopes = (org: string, app: String) => get<M
 
 export const getAppMetadataModelIds = (org: string, app: string, onlyUnReferenced: boolean) => get<string[]>(appMetadataModelIdsPath(org, app, onlyUnReferenced));
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
+export const getAppValidation = (owner: string, app: string) => get<AppValidationResult>(appValidationPath(owner, app));
+
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
 export const getAvailableResourcesFromOrg = (owner: string, contentType?: LibraryContentType) => get<ExternalResource[]>(availableResourcesInOrgLibraryPath(owner, contentType));
+export const getAvailableTemplates = () => get<CustomTemplateList>(customTemplatesPath());
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getDataModel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(dataModelPath(owner, app, modelPath));
 export const getDataModelMetadata = (owner: string, app: string, layoutSetName: string, dataModelName: string) => get<DataModelMetadataResponse>(dataModelMetadataPath(owner, app, layoutSetName, dataModelName));
@@ -155,6 +166,8 @@ export const getRepoMetadata = (owner: string, app: string) => get<Repository>(r
 export const getRepoPull = (owner: string, app: string) => get<RepoStatus>(repoPullPath(owner, app));
 export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(repoStatusPath(owner, app));
 export const getRepoDiff = (owner: string, app: string) => get<RepoDiffResponse>(repoDiffPath(owner, app));
+export const getBranches = (org: string, app: string) => get<Branch[]>(branchesPath(org, app));
+export const getCurrentBranch = (org: string, app: string) => get<CurrentBranchInfo>(currentBranchPath(org, app));
 export const getRuleConfig = (owner: string, app: string, layoutSetName: string) => get<RuleConfig>(ruleConfigPath(owner, app, layoutSetName));
 export const getRuleModel = (owner: string, app: string, layoutSetName: string) => get<string>(ruleHandlerPath(owner, app, layoutSetName));
 export const getStarredRepos = () => get<Repository[]>(userStarredListPath());

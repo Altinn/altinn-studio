@@ -101,7 +101,7 @@ const defaultCodeListUsagesProps: CodeListUsagesProps = {
   codeListSources: [{ taskType, taskId, layoutName, componentIds }],
 };
 
-const renderCodeListUsages = (props: Partial<CodeListUsagesProps> = {}) => {
+const renderCodeListUsages = (props: Partial<CodeListUsagesProps> = {}): void => {
   render(<CodeListUsages {...defaultCodeListUsagesProps} {...props} />);
 };
 

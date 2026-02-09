@@ -23,7 +23,7 @@ const skattPackage: PolicyAccessPackage = {
   urn: 'urn:altinn:accesspackage:skatt',
   name: 'Skatt',
   description: '',
-  isDelegable: true,
+  isResourcePolicyAvailable: true,
 };
 
 const sjofartPackage: PolicyAccessPackage = {
@@ -31,7 +31,7 @@ const sjofartPackage: PolicyAccessPackage = {
   urn: 'urn:altinn:accesspackage:sjofart',
   name: 'Sjøfart',
   description: '',
-  isDelegable: true,
+  isResourcePolicyAvailable: true,
 };
 
 const lufttransportPackage: PolicyAccessPackage = {
@@ -39,7 +39,7 @@ const lufttransportPackage: PolicyAccessPackage = {
   urn: 'urn:altinn:accesspackage:lufttransport',
   name: 'Lufttransport',
   description: '',
-  isDelegable: true,
+  isResourcePolicyAvailable: true,
 };
 
 const revisorPackage: PolicyAccessPackage = {
@@ -47,7 +47,7 @@ const revisorPackage: PolicyAccessPackage = {
   urn: 'urn:altinn:accesspackage:revisor',
   name: revisorPackageName,
   description: '',
-  isDelegable: true,
+  isResourcePolicyAvailable: true,
 };
 
 const revisorNonDelegablePackage: PolicyAccessPackage = {
@@ -55,7 +55,7 @@ const revisorNonDelegablePackage: PolicyAccessPackage = {
   urn: 'urn:altinn:accesspackage:nondelegablerevisor',
   name: revisorNonDelegablePackageName,
   description: '',
-  isDelegable: false,
+  isResourcePolicyAvailable: false,
 };
 
 const accessPackageAreaSkatt: PolicyAccessPackageArea = {
@@ -188,7 +188,7 @@ const ContextWrapper = () => {
           policyRule: { ...policyRules[0] },
         }}
       >
-        <PolicyAccessPackages />
+        <PolicyAccessPackages accessPackages={[accessPackageAreaGroupVanlig]} />
       </PolicyRuleContext.Provider>
     </PolicyEditorContext.Provider>
   );

@@ -6,23 +6,32 @@ import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicyAccessPackages.module.css';
 import {
-  filterAccessPackagesByIsDelegable,
+  filterAccessPackagesByIsResourcePolicyAvailable,
   filterAccessPackagesBySearchString,
   groupAccessPackagesByArea,
   isAccessPackageSelected,
 } from './policyAccessPackageUtils';
 import { AllAccessPackages } from './AllAccessPackages';
+import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 
-export const PolicyAccessPackages = (): ReactElement => {
+interface PolicyAccessPackagesProps {
+  isPersonSubject?: boolean;
+  accessPackages: PolicyAccessPackageAreaGroup[];
+}
+
+export const PolicyAccessPackages = ({
+  isPersonSubject,
+  accessPackages,
+}: PolicyAccessPackagesProps): ReactElement => {
   const { t } = useTranslation();
-  const { policyRules, accessPackages, setPolicyRules, savePolicy } = usePolicyEditorContext();
+  const { policyRules, setPolicyRules, savePolicy } = usePolicyEditorContext();
   const { policyRule, policyError, setPolicyError } = usePolicyRuleContext();
 
   const [searchValue, setSearchValue] = useState<string>('');
 
   const groupedDelegableAccessPackagesByArea = useMemo(() => {
     const areas = groupAccessPackagesByArea(accessPackages);
-    return filterAccessPackagesByIsDelegable(areas);
+    return filterAccessPackagesByIsResourcePolicyAvailable(areas);
   }, [accessPackages]);
 
   const handleSelectAccessPackage = (packageUrn: string): void => {
@@ -83,6 +92,7 @@ export const PolicyAccessPackages = (): ReactElement => {
         chosenAccessPackages={policyRule.accessPackages}
         accessPackagesToRender={accessPackagesToRender}
         searchValue={searchValue}
+        isPersonSubject={isPersonSubject}
         handleSelectAccessPackage={handleSelectAccessPackage}
       />
     </div>

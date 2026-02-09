@@ -87,8 +87,10 @@ public class DiagnosticTests
         Assert.Empty(diagnostics);
     }
 
-    [Fact]
-    public async Task ClassNotFound()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ClassNotFound(bool isAltinnApp)
     {
         var applicationMetadata = """
             {
@@ -107,8 +109,12 @@ public class DiagnosticTests
 
             """;
 
-        var diagnostics = RunFormDataWrapperAnalyzer([Source], applicationMetadata);
-        await Verify(diagnostics);
+        var diagnostics = await RunFormDataWrapperAnalyzer(
+            [CSharpSyntaxTree.ParseText(Source)],
+            [new AdditionalTextImplementation(applicationMetadata, "C:\\temp\\config\\applicationmetadata.json")],
+            isAltinnApp
+        );
+        await Verify(diagnostics).UseParameters(isAltinnApp);
     }
 
     [Fact]
@@ -204,7 +210,8 @@ public class DiagnosticTests
 
     private static async Task<ImmutableArray<Diagnostic>> RunFormDataWrapperAnalyzer(
         IEnumerable<SyntaxTree> syntaxTrees,
-        ImmutableArray<AdditionalText> additionalFiles
+        ImmutableArray<AdditionalText> additionalFiles,
+        bool isAltinnApp = true
     )
     {
         var currentAssembly = Assembly.GetAssembly(typeof(Skjema));
@@ -216,9 +223,10 @@ public class DiagnosticTests
             .Select(static assembly => MetadataReference.CreateFromFile(assembly.Location))
             .Concat([MetadataReference.CreateFromFile(typeof(JsonPropertyNameAttribute).Assembly.Location)]);
 
+        var options = new AnalyzerOptions(additionalFiles, new TestAnalyzerConfigOptionsProvider(isAltinnApp));
         return await CSharpCompilation
             .Create("name", syntaxTrees, references, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-            .WithAnalyzers([new FormDataWrapperAnalyzer()], new AnalyzerOptions(additionalFiles))
+            .WithAnalyzers([new FormDataWrapperAnalyzer()], options)
             .GetAllDiagnosticsAsync();
     }
 

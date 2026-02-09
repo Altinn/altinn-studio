@@ -6,8 +6,6 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Validator.Json;
-using Altinn.Studio.Designer.Clients.Implementations;
-using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Evaluators;
@@ -20,10 +18,12 @@ using Altinn.Studio.Designer.Services.Implementation.GitOps;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
 using Altinn.Studio.Designer.Services.Implementation.Preview;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
+using Altinn.Studio.Designer.Services.Implementation.Validation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
+using Altinn.Studio.Designer.Services.Interfaces.Validation;
 using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -44,12 +44,12 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// <param name="configuration">The configuration for the project</param>
         public static IServiceCollection RegisterServiceImplementations(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddTransient<IRepository, RepositorySI>();
+            services.AddTransient<IRepository, RepositoryService>();
             services.AddTransient<ISchemaModelService, SchemaModelService>();
             services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
             services.AddTransient<IBlobContainerClientFactory, AzureBlobContainerClientFactory>();
 
-            services.AddTransient<ISourceControl, SourceControlSI>();
+            services.AddTransient<ISourceControl, SourceControlService>();
             services.Decorate<ISourceControl, SourceControlLoggingDecorator>();
 
             services.AddSingleton(configuration);
@@ -74,6 +74,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IAppScopesService, AppScopesService>();
             services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
             services.AddTransient<IAppResourcesService, AppResourcesService>();
+            services.AddTransient<IAlertsService, AlertsService>();
+            services.AddTransient<IMetricsService, MetricsService>();
             services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
             services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
             services.AddTransient<IAuthorizationPolicyService, AuthorizationPolicyService>();
@@ -104,8 +106,10 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IGiteaContentLibraryService, GiteaContentLibraryService>();
             services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();
             services.AddTransient<IGitOpsManifestsRenderer, ScribanGitOpsManifestsRenderer>();
-            services.AddTransient<ISharedContentClient, AzureSharedContentClient>();
             services.AddTransient<IOrgLibraryService, OrgLibraryService>();
+            services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
+            services.AddTransient<ICustomTemplateService, CustomTemplateService>();
+            services.RegisterSettingsSingleton<CustomTemplateSettings>(configuration);
 
             return services;
         }

@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Hubs.Sync;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -166,30 +167,30 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action used to create a new app under the current org.
+        /// Action used to create a new app
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of repository.</param>
+        /// <param name="request">Create app request object containing the necessary information to create the app.</param>
         /// <returns>
         /// An indication if app was created successful or not.
         /// </returns>
         [Authorize]
         [HttpPost]
         [Route("create-app")]
-        public async Task<ActionResult<RepositoryModel>> CreateApp([FromQuery] string org, [FromQuery] string repository)
+        public async Task<ActionResult<RepositoryModel>> CreateApp([FromBody] CreateAppRequest request)
         {
             try
             {
-                Guard.AssertValidAppRepoName(repository);
+                Guard.AssertValidAppRepoName(request.Repository);
             }
             catch (ArgumentException)
             {
-                return BadRequest($"{repository} is an invalid repository name.");
+                return BadRequest($"{request.Repository} is an invalid repository name.");
             }
 
-            var config = new ServiceConfiguration { RepositoryName = repository, ServiceName = repository };
+            var config = new ServiceConfiguration { RepositoryName = request.Repository, ServiceName = request.Repository };
 
-            var repositoryResult = await _repository.CreateService(org, config);
+            var repositoryResult = await _repository.CreateService(request.Org, config, request.Template != null ? [request.Template] : []);
+
             if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
             {
                 return Created(repositoryResult.CloneUrl, repositoryResult);
@@ -221,13 +222,16 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/status")]
         public async Task<RepoStatus> RepoStatus(string org, string repository)
         {
-            await _sourceControl.CloneIfNotExists(org, repository);
-            await _sourceControl.FetchRemoteChanges(org, repository);
-            return _sourceControl.RepositoryStatus(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+            _sourceControl.CloneIfNotExists(authenticatedContext);
+            _sourceControl.FetchRemoteChanges(authenticatedContext);
+            return _sourceControl.RepositoryStatus(authenticatedContext);
         }
 
         /// <summary>
-        /// This method returns the git diff between the local WIP commit and the latest remote commit on main for a given repository
+        /// This method returns the git diff between the working directory and the current branch's HEAD commit for a given repository
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The repository</param>
@@ -236,8 +240,11 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/diff")]
         public async Task<Dictionary<string, string>> RepoDiff(string org, string repository)
         {
-            await _sourceControl.FetchRemoteChanges(org, repository);
-            return await _sourceControl.GetChangedContent(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+            _sourceControl.FetchRemoteChanges(authenticatedContext);
+            return _sourceControl.GetChangedContent(authenticatedContext);
         }
 
         /// <summary>
@@ -250,9 +257,12 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/pull")]
         public async Task<RepoStatus> Pull(string org, string repository)
         {
-            RepoStatus pullStatus = await _sourceControl.PullRemoteChanges(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+            RepoStatus pullStatus = _sourceControl.PullRemoteChanges(authenticatedContext);
 
-            RepoStatus status = _sourceControl.RepositoryStatus(org, repository);
+            RepoStatus status = _sourceControl.RepositoryStatus(authenticatedContext);
 
             if (pullStatus.RepositoryStatus != Enums.RepositoryStatus.Ok)
             {
@@ -297,14 +307,16 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task CommitAndPushRepo(string org, string repository, [FromBody] CommitInfo commitInfo)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
             try
             {
-                await _sourceControl.PushChangesForRepository(commitInfo);
+                _sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
             }
             catch (LibGit2Sharp.NonFastForwardException)
             {
-                RepoStatus repoStatus = await _sourceControl.PullRemoteChanges(commitInfo.Org, commitInfo.Repository);
-                await _sourceControl.Push(commitInfo.Org, commitInfo.Repository);
+                RepoStatus repoStatus = _sourceControl.PullRemoteChanges(authenticatedContext);
+                _sourceControl.Push(authenticatedContext);
                 foreach (RepositoryContent repoContent in repoStatus?.ContentStatus)
                 {
                     Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
@@ -328,7 +340,9 @@ namespace Altinn.Studio.Designer.Controllers
             await Task.CompletedTask;
             try
             {
-                _sourceControl.Commit(commitInfo);
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+                _sourceControl.Commit(commitInfo, editingContext);
                 return Ok();
             }
             catch (Exception)
@@ -346,7 +360,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/push")]
         public async Task<ActionResult> Push(string org, string repository)
         {
-            bool pushSuccess = await _sourceControl.Push(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+            bool pushSuccess = _sourceControl.Push(authenticatedContext);
             return pushSuccess ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
         }
 
@@ -360,7 +377,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/latest-commit")]
         public Commit GetLatestCommitFromCurrentUser(string org, string repository)
         {
-            return _sourceControl.GetLatestCommitForCurrentUser(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            return _sourceControl.GetLatestCommitForCurrentUser(editingContext);
         }
 
         /// <summary>
@@ -402,6 +421,101 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Creates a new branch in the repository
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="request">The branch creation request</param>
+        /// <returns>The created branch</returns>
+        [HttpPost]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches")]
+        public async Task<ActionResult<Branch>> CreateBranch(string org, string repository, [FromBody] CreateBranchRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.BranchName))
+            {
+                return BadRequest("Branch name is required");
+            }
+
+            try
+            {
+                Guard.AssertValidRepoBranchName(request.BranchName);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{request.BranchName} is an invalid branch name.");
+            }
+
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            var branch = await _sourceControl.CreateBranch(editingContext, request.BranchName);
+            return Ok(branch);
+        }
+
+        /// <summary>
+        /// Gets information about the current branch
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <returns>Information about the current branch</returns>
+        [HttpGet]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/current-branch")]
+        public ActionResult<CurrentBranchInfo> GetCurrentBranch(string org, string repository)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            var branchInfo = _sourceControl.GetCurrentBranch(editingContext);
+            return Ok(branchInfo);
+        }
+
+        /// <summary>
+        /// Checks out a specific branch
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="request">The checkout request</param>
+        /// <returns>The updated repository status</returns>
+        [HttpPost]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/checkout")]
+        public async Task<ActionResult<RepoStatus>> CheckoutBranch(string org, string repository, [FromBody] CheckoutBranchRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.BranchName))
+            {
+                return BadRequest("Branch name is required");
+            }
+
+            try
+            {
+                Guard.AssertValidRepoBranchName(request.BranchName);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{request.BranchName} is an invalid branch name.");
+            }
+
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+            RepoStatus repoStatus = _sourceControl.CheckoutBranchWithValidation(authenticatedContext, request.BranchName);
+            return Ok(repoStatus);
+        }
+
+        /// <summary>
+        /// Discards all local changes in the repository
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <returns>The updated repository status</returns>
+        [HttpPost]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/discard-changes")]
+        public ActionResult<RepoStatus> DiscardLocalChanges(string org, string repository)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            var repoStatus = _sourceControl.DiscardLocalChanges(editingContext);
+            return Ok(repoStatus);
+        }
+
+        /// <summary>
         /// Stages a specific file changed in working repository.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -419,7 +533,9 @@ namespace Altinn.Studio.Designer.Controllers
                     return ValidationProblem("One or all of the input parameters are null");
                 }
 
-                _sourceControl.StageChange(org, repository, fileName);
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+                _sourceControl.StageChange(editingContext, fileName);
                 return Ok();
             }
             catch (Exception)
@@ -455,6 +571,8 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult ContentsZip(string org, string repository, [FromQuery] bool full)
         {
             AltinnRepoContext appContext = AltinnRepoContext.FromOrgRepo(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             string appRoot;
             try
             {
@@ -488,7 +606,7 @@ namespace Altinn.Studio.Designer.Controllers
                 else
                 {
                     changedFiles = _sourceControl
-                        .Status(appContext.Org, appContext.Repo)
+                        .Status(editingContext)
                         .Where(f => f.FileStatus != FileStatus.DeletedFromWorkdir)
                         .Select(f => f.FilePath);
                 }

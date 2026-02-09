@@ -11,10 +11,11 @@
     <PackageVersion Include="Altinn.Authorization.ABAC" Version="0.1.1" />
     <PackageVersion Include="Altinn.ApiClients.Maskinporten" Version="9.2.1" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.10.0" />
+    <PackageVersion Include="NJsonSchema" Version="11.5.2" />
   </ItemGroup>
   <ItemGroup Label="Shared nuget packages">
     <PackageVersion Include="Humanizer" Version="3.0.1" />
-    <PackageVersion Include="JsonSchema.Net" Version="8.0.3" />
+    <PackageVersion Include="JsonSchema.Net" Version="5.5.1" />
     <PackageVersion Include="CompilerAttributes" Version="1.1.2" />
     <PackageVersion Include="Confluent.Kafka" Version="2.12.0" />
     <PackageVersion Include="Confluent.SchemaRegistry" Version="2.12.0" />
@@ -22,10 +23,17 @@
     <PackageVersion Include="ini-parser-netstandard" Version="2.5.3" />
     <PackageVersion Include="JWTCookieAuthentication" Version="4.0.4" />
     <PackageVersion Include="LibGit2Sharp" Version="0.31.0" />
-    <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.15.0-beta.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Quartz" Version="1.15.0-beta.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.15.0-beta.1" />
     <PackageVersion Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.24" />
-    <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.9" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.11" />
     <PackageVersion Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageVersion Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
@@ -76,7 +84,7 @@
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="Basic.Reference.Assemblies" Version="1.8.4" />
     <PackageVersion Include="Fare" Version="2.2.1" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc" Version="2.3.9" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="9.10.0" />
     <PackageVersion Include="Testcontainers" Version="4.9.0" />

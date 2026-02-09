@@ -2,13 +2,13 @@ import type * as queries from 'src/queries/queries';
 
 type IgnoredQueriesAndMutations = keyof Pick<
   typeof queries,
-  | 'fetchApplicationMetadata'
   | 'fetchExternalApi'
   | 'fetchProcessState'
   | 'doProcessNext'
   | 'doUpdateAttachmentTags'
   | 'fetchUserProfile'
   | 'fetchInstanceData'
+  | 'fetchTextResources'
 >;
 
 type KeysStartingWith<T, U extends string> = {

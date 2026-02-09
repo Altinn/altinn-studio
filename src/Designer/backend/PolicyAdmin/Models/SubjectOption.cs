@@ -10,9 +10,13 @@
 
         public string? Urn { get; set; }
 
+        public string? Code { get; set; }
+
         public string? LegacyRoleCode { get; set; }
 
         public string? LegacyUrn { get; set; }
+
+        public bool IsResourcePolicyAvailable { get; set; }
 
         public required SubjectOptionProvider Provider { get; set; }
     }

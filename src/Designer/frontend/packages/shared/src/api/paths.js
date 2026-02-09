@@ -119,9 +119,14 @@ export const deploymentsPath = (org, app, sortDirection) => `${apiBasePath}/${or
 export const deployPermissionsPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/permissions`; // Get
 export const envConfigPath = () => `${apiBasePath}/environments`; // Get
 export const undeployAppFromEnvPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/undeploy`;
+export const appValidationPath = (org, app) => `${apiBasePath}/${org}/${app}/validation`;
 
 // Repositories
 export const branchStatusPath = (org, app, branch) => `${apiBasePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
+export const branchesPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/branches`; // Get, Post
+export const checkoutBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/checkout`; // Post
+export const currentBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/current-branch`; // Get
+export const discardChangesPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/discard-changes`; // Post
 export const copyAppPath = (org, sourceRepository, targetRepository, targetOrg) =>
   `${apiBasePath}/repos/repo/${org}/copy-app?${s({
     sourceRepository,
@@ -203,10 +208,15 @@ export const envFilePath = () => `${basePath}/config/env.json`;
 // Event Hubs
 export const syncEventsWebSocketHub = () => '/hubs/sync';
 export const syncEntityUpdateWebSocketHub = () => '/hubs/entity-updated';
+export const syncAlertsUpdateWebSocketHub = () => '/hubs/alerts-updated';
 export const previewWebSocketHub = () => `/hubs/preview`;
+export const altinityWebSocketHub = () => '/hubs/altinity';
 
 // Contact
 export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;
 
 // Can use feature
 export const canUseFeaturePath = (featureName) => `${apiBasePath}/canUseFeature?featureName=${featureName}`;
+
+// Custom Templates
+export const customTemplatesPath = () => `${apiBasePath}/customtemplates`; // GET

@@ -1,6 +1,9 @@
 import { del, get, patch, post, put } from 'app-shared/utils/networking';
 import {
   appMetadataAttachmentPath,
+  branchesPath,
+  checkoutBranchPath,
+  discardChangesPath,
   copyAppPath,
   createRepoPath,
   deploymentsPath,
@@ -72,11 +75,11 @@ import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
 import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
-import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { CreateDataModelPayload } from 'app-shared/types/api/CreateDataModelPayload';
-import type { Policy } from '@altinn/policy-editor';
+import type { Policy } from '../types/Policy';
 import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers, HeaderEtag, MigrateDelegationsRequest } from 'app-shared/types/ResourceAdm';
+import type { Branch, RepoStatus } from 'app-shared/types/api/BranchTypes';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Repository } from 'app-shared/types/Repository';
@@ -111,7 +114,7 @@ export const deleteImage = (org: string, app: string, imageName: string) => del(
 export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del(layoutSetPath(org, app, layoutSetIdToUpdate));
 export const deleteOptionList = (org: string, app: string, optionListId: string) => del(optionListPath(org, app, optionListId));
 export const updateLayoutSetId = (org: string, app: string, layoutSetIdToUpdate: string, newLayoutSetId: string) => put(layoutSetPath(org, app, layoutSetIdToUpdate), newLayoutSetId, { headers: { 'Content-Type': 'application/json' } });
-export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
+export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(createRepoPath(), repoToAdd);
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(dataModelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
 export const copyApp = (org: string, app: string, newRepoName: string, newOrg: string) => post(copyAppPath(org, app, newRepoName, newOrg));
@@ -212,3 +215,8 @@ export const uploadOrgCodeList = async (org: string, payload: FormData): Promise
 // Organisation text resources:
 export const createOrgTextResources = async (org: string, language: string, payload: ITextResourcesWithLanguage): Promise<ITextResourcesWithLanguage> => post<ITextResourcesWithLanguage, ITextResourcesWithLanguage>(orgTextResourcesPath(org, language), payload);
 export const updateOrgTextResources = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);
+
+// Branches:
+export const createBranch = async (org: string, app: string, branchName: string): Promise<Branch> => post(branchesPath(org, app), { branchName });
+export const checkoutBranch = async (org: string, app: string, branchName: string): Promise<RepoStatus> => post(checkoutBranchPath(org, app), { branchName });
+export const discardChanges = async (org: string, app: string): Promise<RepoStatus> => post(discardChangesPath(org, app), {});

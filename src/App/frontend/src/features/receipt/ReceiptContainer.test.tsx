@@ -3,14 +3,15 @@ import React from 'react';
 import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
-import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState } from 'src/queries/queries';
+import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
@@ -88,8 +89,8 @@ const buildInstance = (hasPdf = true) =>
   });
 
 const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender = {}) => {
-  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock((a) => {
+  jest.mocked(getApplicationMetadata).mockImplementation(() =>
+    getApplicationMetadataMock((a) => {
       a.autoDeleteOnProcessEnd = autoDeleteOnProcessEnd;
     }),
   );
@@ -162,7 +163,7 @@ describe('ReceiptContainer', () => {
 
     expect(
       screen.getByRole('link', {
-        name: /Kopi av din kvittering er sendt til ditt arkiv/i,
+        name: /Din kvittering er lagret og tilgjengelig i din innboks/i,
       }),
     ).toBeInTheDocument();
 

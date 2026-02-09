@@ -1,88 +1,42 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-
-const profileResponse = {
-  body: {
-    userId: 10000,
-    userName: 'user-90155202001',
-    externalIdentity: null,
-    phoneNumber: null,
-    email: 'mandolin.sentral@altinnstudiotestusers.com',
-    partyId: 600000,
-    party: {
-      partyId: 600000,
-      partyTypeName: 'person',
-      orgNumber: null,
-      ssn: '09844797998',
-      unitType: null,
-      name: 'SENTRAL MANDOLIN',
-      isDeleted: false,
-      onlyHierarchyElementWithNoAccess: false,
-      person: {
-        ssn: '09844797998',
-        name: 'SENTRAL MANDOLIN',
-        firstName: 'SENTRAL',
-        middleName: null,
-        lastName: 'MANDOLIN',
-        telephoneNumber: null,
-        mobileNumber: null,
-        mailingAddress: null,
-        mailingPostalCode: null,
-        mailingPostalCity: null,
-        addressMunicipalNumber: '3820',
-        addressMunicipalName: null,
-        addressStreetName: null,
-        addressHouseNumber: '95',
-        addressHouseLetter: '1001',
-        addressPostalCode: null,
-        addressCity: 'SELJORD',
-        dateOfDeath: null,
-      },
-      organization: null,
-      childParties: null,
-    },
-    userType: 'none',
-    profileSettingPreference: {
-      language: null,
-      preSelectedPartyId: 0,
-      doNotPromptForParty: false,
-    },
-  },
-};
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 const appFrontend = new AppFrontend();
 
+function interceptLanguageFeatures({ lang }: { lang?: string | null }) {
+  interceptAltinnAppGlobalData((globalData) => {
+    if (lang !== undefined && globalData.userProfile) {
+      globalData.userProfile.profileSettingPreference.language = lang;
+    }
+    globalData.layoutSets.uiSettings.showLanguageSelector = true;
+  });
+}
+
+function setLanguageCookie(lang: string) {
+  const encodedValue = encodeURIComponent(JSON.stringify(lang));
+  const path = '/ttd/frontend-test';
+  cy.setCookie('lang_512345', encodedValue, { path });
+}
+
+function visitWithLangParam(lang: string) {
+  cy.url().then((url) => {
+    const urlWithLang = url.includes('?') ? `${url}&lang=${lang}` : `${url}?lang=${lang}`;
+    cy.visit(urlWithLang);
+    cy.waitForLoad();
+  });
+}
+
 describe('Language', () => {
   it('should not crash if language is not specified', () => {
-    cy.intercept('GET', '**/profile/user', profileResponse).as('profile');
-    cy.intercept('GET', '**/texts/nb').as('texts');
+    interceptLanguageFeatures({ lang: null });
 
     cy.goto('changename');
-
-    cy.wait('@profile');
-    cy.wait('@texts');
-
     cy.waitForLoad();
-    cy.findByRole('heading', { name: 'Ukjent feil' }).should('not.exist');
-  });
 
-  it('should not crash if language is stored as "null" in local storage', () => {
-    cy.intercept('GET', '**/profile/user', profileResponse).as('profile');
-    cy.intercept('GET', '**/texts/nb').as('texts');
-
-    cy.goto('changename').then(() => {
-      window.localStorage.setItem('selectedAppLanguagefrontend-test10000', 'null');
-    });
-
-    cy.wait('@profile');
-    cy.wait('@texts');
-
-    cy.waitForLoad();
     cy.findByRole('heading', { name: 'Ukjent feil' }).should('not.exist');
   });
 
   it('should be possible to change language with arrow keys and space', () => {
-    cy.intercept('GET', '**/texts/en').as('texts');
-
     cy.goto('changename');
     cy.get(appFrontend.languageSelector).click();
     cy.press('Tab');
@@ -92,6 +46,68 @@ describe('Language', () => {
     cy.press('Space');
 
     cy.waitForLoad();
-    cy.wait('@texts');
+  });
+
+  describe('Language selection priority', () => {
+    it('URL parameter takes priority over cookie and profile', () => {
+      interceptLanguageFeatures({ lang: 'nb' });
+      cy.goto('changename');
+      cy.waitForLoad();
+      setLanguageCookie('nb');
+
+      visitWithLangParam('en');
+
+      cy.get(appFrontend.header).should('contain.text', 'ENGLISH');
+    });
+
+    it('Cookie takes priority over profile', () => {
+      interceptLanguageFeatures({ lang: 'nb' });
+      cy.goto('changename');
+      cy.waitForLoad();
+
+      setLanguageCookie('en');
+      cy.reloadAndWait();
+
+      cy.get(appFrontend.header).should('contain.text', 'ENGLISH');
+    });
+
+    it('Profile language is used when no URL or cookie present', () => {
+      interceptLanguageFeatures({ lang: 'en' });
+
+      cy.goto('changename');
+      cy.waitForLoad();
+
+      cy.get(appFrontend.header).should('contain.text', 'ENGLISH');
+    });
+
+    it('Selecting language via selector clears URL parameter', () => {
+      interceptLanguageFeatures({});
+      cy.goto('changename');
+      cy.waitForLoad();
+      visitWithLangParam('en');
+      cy.get(appFrontend.header).should('contain.text', 'ENGLISH');
+
+      cy.findByRole('button', { name: 'Language' }).click();
+      cy.findByRole('menuitemradio', { name: 'Norwegian bokmål' }).click();
+      cy.waitForLoad();
+
+      cy.url().should('not.include', 'lang=');
+      cy.get(appFrontend.header).should('not.contain.text', 'ENGLISH');
+
+      cy.reloadAndWait();
+      cy.get(appFrontend.header).should('not.contain.text', 'ENGLISH');
+    });
+
+    it('Invalid URL parameter falls back to Norwegian', () => {
+      cy.ignoreConsoleMessages([/User's preferred language from query parameter/]);
+      interceptLanguageFeatures({});
+      cy.goto('changename');
+      cy.waitForLoad();
+
+      visitWithLangParam('invalid');
+
+      cy.findByRole('heading', { name: 'Ukjent feil' }).should('not.exist');
+      cy.get(appFrontend.header).should('not.contain.text', 'ENGLISH');
+    });
   });
 });

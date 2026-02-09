@@ -9,7 +9,6 @@ import (
 	"altinn.studio/operator/internal/orgs"
 	"altinn.studio/operator/internal/telemetry"
 	"github.com/google/uuid"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -84,9 +83,16 @@ func Discover(ctx context.Context, environment string, orgRegistry *orgs.OrgRegi
 			if serviceOwnerOrgName == "" {
 				serviceOwnerOrgName = org.Name.En
 			}
-		} else if serviceOwnerId == "ttd" && environment != EnvironmentLocal {
-			// The fake org registry has the env number set, but the altinn-orgs.json in CDN does not have org nr for ttd (it's not real)
-			serviceOwnerOrgNo = "405003309" // NOTE: this matches the org nr in the registry testdata in localtest, keep in sync
+			if serviceOwnerId == "ttd" && environment != EnvironmentLocal {
+				// NOTE: we use digdir org number here. ttd is a bit chaotic:
+				// - ttd has no org number in altinn-orgs.json
+				// - ttd has no org number in Register service for tt02 and other non-prod environments
+				// - ttd has an org number in production (405003309)
+				// - ttd has an org number in localtest (405003309)
+				// - app backend interprets ttd as digdir (991825827). Apps for ttd typically includes authorization rules for digdir (in addition to [org])
+				// Since this is going to be used a lot for generating service owner tokens, we prefer to match the app backend behavior using digdir org number.
+				serviceOwnerOrgNo = "991825827"
+			}
 		} else {
 			return nil, fmt.Errorf("could not find org for service owner id %s", serviceOwnerId)
 		}
@@ -106,7 +112,7 @@ func Discover(ctx context.Context, environment string, orgRegistry *orgs.OrgRegi
 		Environment: environment,
 		RunId:       runId.String(),
 		Context:     ctx,
-		tracer:      otel.Tracer(telemetry.ServiceName),
+		tracer:      telemetry.Tracer(),
 	}, nil
 }
 

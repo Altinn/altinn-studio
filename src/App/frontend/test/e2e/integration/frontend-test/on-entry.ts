@@ -2,8 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-
-import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 const appFrontend = new AppFrontend();
 
@@ -29,20 +28,16 @@ describe('On Entry', () => {
     ]);
   });
 
-  function interceptAppMetadata(defaultSelectedOption: number) {
-    cy.intercept('**/applicationmetadata', (req) => {
-      req.on('response', (res) => {
-        const body = res.body as IncomingApplicationMetadata;
-        body.onEntry = {
-          show: 'select-instance',
-          instanceSelection: {
-            sortDirection: 'desc',
-            rowsPerPageOptions: [1, 2, 3],
-            defaultSelectedOption,
-          },
-        };
-        res.send(body);
-      });
+  function setupInstanceSelection(defaultSelectedOption: number) {
+    interceptAltinnAppGlobalData((globalData) => {
+      globalData.applicationMetadata.onEntry = {
+        show: 'select-instance',
+        instanceSelection: {
+          sortDirection: 'desc',
+          rowsPerPageOptions: [1, 2, 3],
+          defaultSelectedOption,
+        },
+      };
     });
   }
 
@@ -83,7 +78,7 @@ describe('On Entry', () => {
   });
 
   it('is possible to paginate the instances and select default rows per page', () => {
-    interceptAppMetadata(1);
+    setupInstanceSelection(1);
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
     cy.get(appFrontend.selectInstance.container).should('be.visible');
@@ -118,7 +113,7 @@ describe('On Entry', () => {
   });
 
   it('will utilize index 0 when defaultSelectedOption is assigned an invalid index number', () => {
-    interceptAppMetadata(5);
+    setupInstanceSelection(5);
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.selectInstance.tableBody).find('tr').should('have.length', 1);
     cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
@@ -144,11 +139,14 @@ describe('On Entry', () => {
   });
 
   it('language selector and other page settings still work during instance selection', () => {
-    cy.interceptLayoutSetsUiSettings({
-      hideCloseButton: true,
-      showExpandWidthButton: true,
-      showProgress: false,
-      showLanguageSelector: true,
+    interceptAltinnAppGlobalData((globalData) => {
+      globalData.layoutSets.uiSettings = {
+        ...globalData.layoutSets.uiSettings,
+        hideCloseButton: true,
+        showExpandWidthButton: true,
+        showProgress: false,
+        showLanguageSelector: true,
+      };
     });
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.selectInstance.header).should('contain.text', texts.alreadyStartedForm);

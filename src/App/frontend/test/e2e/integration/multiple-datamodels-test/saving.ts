@@ -15,18 +15,6 @@ describe('saving multiple data models', () => {
   });
 
   it('Calls save on individual data models', () => {
-    cy.intercept('GET', 'https://api.bring.com/shippingguide/api/postalCode.json**', (req) => {
-      req.reply((res) => {
-        res.send({
-          body: {
-            postalCodeType: 'NORMAL',
-            result: 'BARTEBYEN', // Intentionally wrong, to test that our mock is used
-            valid: true,
-          },
-        });
-      });
-    }).as('zipCodeApi');
-
     cy.waitUntilSaved();
     cy.get('@saveFormData.all').should('have.length', 1); // PreselectedOptionIndex
 
@@ -49,11 +37,9 @@ describe('saving multiple data models', () => {
     cy.waitUntilSaved();
     cy.get('@saveFormData.all').should('have.length', 3);
 
-    cy.findByRole('textbox', { name: /postnr/i }).type('7010');
-    cy.findByRole('textbox', { name: /poststed/i }).should('have.value', 'BARTEBYEN');
+    cy.findByRole('textbox', { name: /postnr/i }).type('4609');
+    cy.findByRole('textbox', { name: /poststed/i }).should('have.value', 'KARDEMOMME BY');
 
-    // The number of requests we get here depends on how long time it took for the post code API request to get back
-    // to us and store the data in the data model. It will be 4 (when it was fast) or 5 (when it was slow).
     cy.waitUntilSaved();
     cy.get('@saveFormData.all').should('have.length.at.least', 4);
     cy.get('@saveFormData.all').should('have.length.at.most', 5);

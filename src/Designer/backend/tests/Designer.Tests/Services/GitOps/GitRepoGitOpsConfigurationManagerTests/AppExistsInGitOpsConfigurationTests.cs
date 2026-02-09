@@ -11,6 +11,7 @@ public class AppExistsInGitOpsConfigurationTests : GitRepoGitOpsConfigurationMan
     [Theory]
     [InlineData("test-app", "tt02", false, "dummy-app1", "dummy-app2")]
     [InlineData("test-app", "tt02", true, "test-app", "dummy-app2")]
+    [InlineData("test", "tt02", false, "test-app", "test-app-2")]
     public async Task WhenAppDirectory_DoesExists_ShouldReturn_BasedOnEnvironmentManifest(string app, string environment, bool expectedShouldExist, params string[] appsInEnvironment)
     {
         await Given.That

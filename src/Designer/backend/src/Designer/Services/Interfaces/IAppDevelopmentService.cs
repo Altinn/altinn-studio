@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Metamodel;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 using JetBrains.Annotations;
 
@@ -127,10 +128,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="newLayoutSet">Config for the new layout set</param>
-        /// <param name="layoutIsInitialForPaymentTask">Boolean value indicating if the layout set is the initial layout set for a payment task.
-        /// Default is false if not specified </param>
+        /// <param name="taskType">Optional enum value indicating the type of the related task</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        public Task<LayoutSets> AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, LayoutSetConfig newLayoutSet, bool layoutIsInitialForPaymentTask = false, CancellationToken cancellationToken = default);
+        public Task<LayoutSets> AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, LayoutSetConfig newLayoutSet, TaskType? taskType = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Updates an existing layout set with a new layout set id
