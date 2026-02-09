@@ -125,10 +125,10 @@ function OptionListTools({
   } else {
     return (
       <AddOptionList
-        codeListIdContextData={codeListIdContextData}
         component={component}
         handleComponentChange={handleComponentChange}
         onCreateButtonClick={openDialog}
+        orgName={codeListIdContextData.orgName}
       />
     );
   }
@@ -138,14 +138,14 @@ OptionListTools.displayName = 'OptionListTools';
 
 type AddOptionListProps = EditTabProps & {
   onCreateButtonClick: () => void;
-  codeListIdContextData: CodeListIdContextData;
+  orgName: string;
 };
 
 function AddOptionList({
-  codeListIdContextData,
   component,
   handleComponentChange,
   onCreateButtonClick,
+  orgName,
 }: AddOptionListProps) {
   const { t } = useTranslation();
 
@@ -168,7 +168,7 @@ function AddOptionList({
       <PublishedOptionListSelector
         component={component}
         handleComponentChange={handleComponentChange}
-        orgName={codeListIdContextData.orgName}
+        orgName={orgName}
       />
     </div>
   );
