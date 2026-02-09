@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using Altinn.Studio.Runtime.Common;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Api.Constants;
@@ -41,6 +40,7 @@ internal partial class Engine : IEngine, IDisposable
     );
 
     private ConcurrentDictionary<string, Workflow> _inbox;
+    private ConcurrentDictionary<InstanceInformation, string> _instanceIndex;
     private CancellationTokenSource? _cancellationTokenSource;
     private Task? _mainLoopTask;
     private SemaphoreSlim _inboxCapacityLimit;
@@ -184,7 +184,7 @@ internal partial class Engine : IEngine, IDisposable
 
                 return new[] { workflowTask, stepTask, circuitBreakerTask }.OfType<Task>();
             })
-            .Append(newWorkSignal.Task) // Always wait for new work signal
+            .Append(DebouncedNewWorkSignal(newWorkSignal, cancellationToken)) // Debounced to prevent tight-loop during bursts
             .ToList();
 
         // We already have finished tasks, no need to wait
@@ -193,6 +193,17 @@ internal partial class Engine : IEngine, IDisposable
 
         // Wait for at least one task to complete
         await Task.WhenAny(awaitables).WaitAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Wraps the new-work signal with a debounce delay. This prevents the main loop from
+    /// spinning in a tight loop during enqueue bursts, while still allowing immediate wake-up
+    /// for task completions (step finished, DB update done, etc.).
+    /// </summary>
+    private static async Task DebouncedNewWorkSignal(TaskCompletionSource signal, CancellationToken cancellationToken)
+    {
+        await signal.Task;
+        await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
     }
 
     private async Task ProcessWorkflow(Workflow workflow, CancellationToken cancellationToken)
@@ -386,6 +397,7 @@ internal partial class Engine : IEngine, IDisposable
                         _logger.ExecutingStep(step);
                         RecordStepQueueTime(step);
 
+                        step.Status = PersistentItemStatus.Processing;
                         step.ExecutionStartedAt = _timeProvider.GetUtcNow();
                         step.ExecutionTask = _workflowExecutor.Execute(workflow, step, cancellationToken);
                         return;

@@ -84,7 +84,13 @@ internal partial class Engine
         using (var scope = _serviceProvider.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-            _inbox[engineRequest.IdempotencyKey] = await repository.AddWorkflow(engineRequest, cancellationToken);
+            var workflow = await repository.AddWorkflow(
+                engineRequest,
+                bypassConcurrencyLimit: false, // TODO: Remove
+                cancellationToken: cancellationToken
+            );
+            _inbox[engineRequest.IdempotencyKey] = workflow;
+            _instanceIndex[workflow.InstanceInformation] = engineRequest.IdempotencyKey;
         }
         _newWorkSignal.TrySetResult();
 
@@ -108,7 +114,7 @@ internal partial class Engine
 
     public bool HasQueuedWorkflowForInstance(InstanceInformation instanceInformation)
     {
-        var instanceHasActiveWorkflow = _inbox.Values.Any(x => x.InstanceInformation.Equals(instanceInformation));
+        var instanceHasActiveWorkflow = _instanceIndex.ContainsKey(instanceInformation);
 
         using var activity = Telemetry.Source.StartActivity(
             "Engine.HasQueuedWorkflowForInstance",
@@ -122,7 +128,9 @@ internal partial class Engine
     {
         using var activity = Telemetry.Source.StartActivity("Engine.GetWorkflowForInstance");
 
-        return _inbox.Values.FirstOrDefault(x => x.InstanceInformation.Equals(instanceInformation));
+        return _instanceIndex.TryGetValue(instanceInformation, out var idempotencyKey)
+            ? _inbox.GetValueOrDefault(idempotencyKey)
+            : null;
     }
 
     // TODO: We probably want a background process to periodically pull from the database, so we can catch scheduled tasks and other things we've been ignoring
@@ -135,14 +143,19 @@ internal partial class Engine
 
         using var scope = _serviceProvider.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-        IReadOnlyList<Workflow> incompleteJobs = await repository.GetActiveWorkflows(cancellationToken);
+        IReadOnlyList<Workflow> incompleteJobs = await repository.GetActiveWorkflows(
+            cancellationToken: cancellationToken
+        );
 
         foreach (var job in incompleteJobs)
         {
             // TODO: Not sure about this logic...
             // Only add if not already in memory to avoid duplicates
             if (_inbox.TryAdd(job.IdempotencyKey, job))
+            {
+                _instanceIndex[job.InstanceInformation] = job.IdempotencyKey;
                 _logger.RestoredWorkflowFromDb(job.IdempotencyKey);
+            }
         }
     }
 
@@ -155,7 +168,7 @@ internal partial class Engine
 
         using var scope = _serviceProvider.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-        await repository.UpdateWorkflow(workflow, cancellationToken);
+        await repository.UpdateWorkflow(workflow, cancellationToken: cancellationToken);
     }
 
     private async Task UpdateStepInDb(Step step, CancellationToken cancellationToken)
@@ -173,6 +186,6 @@ internal partial class Engine
 
         using var scope = _serviceProvider.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-        await repository.UpdateStep(step, cancellationToken);
+        await repository.UpdateStep(step, cancellationToken: cancellationToken);
     }
 }

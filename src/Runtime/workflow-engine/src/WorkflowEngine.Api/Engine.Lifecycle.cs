@@ -102,6 +102,7 @@ internal partial class Engine
         _logger.ReleasingQueueSlot();
 
         bool removed = _inbox.TryRemove(workflow.IdempotencyKey, out _);
+        _instanceIndex.TryRemove(workflow.InstanceInformation, out _);
         if (!removed)
         {
             Telemetry.Errors.Add(1, ("operation", "queueSlotRelease"));
@@ -121,10 +122,11 @@ internal partial class Engine
         }
     }
 
-    [MemberNotNull(nameof(_inbox), nameof(_inboxCapacityLimit), nameof(_newWorkSignal))]
+    [MemberNotNull(nameof(_inbox), nameof(_instanceIndex), nameof(_inboxCapacityLimit), nameof(_newWorkSignal))]
     private void InitializeInbox()
     {
         _inbox = [];
+        _instanceIndex = [];
         _inboxCapacityLimit = new SemaphoreSlim(_settings.QueueCapacity, _settings.QueueCapacity);
         Interlocked.Exchange(
             ref _newWorkSignal,
@@ -149,6 +151,7 @@ internal partial class Engine
             await _isEnabledHistory.Clear();
 
             _inbox.Clear();
+            _instanceIndex.Clear();
             _inboxCapacityLimit.Dispose();
 
             InitializeInbox();

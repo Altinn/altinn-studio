@@ -83,11 +83,59 @@ internal static class Telemetry
         static () => _failedWorkflowsCount
     );
 
+    private static long _availableInboxSlotsCount;
+    public static readonly ObservableGauge<long> AvailableInboxSlots = Meter.CreateObservableGauge(
+        "engine.slots.inbox.available",
+        static () => _availableInboxSlotsCount
+    );
+
+    private static long _usedInboxSlotsCount;
+    public static readonly ObservableGauge<long> UsedInboxSlots = Meter.CreateObservableGauge(
+        "engine.slots.inbox.used",
+        static () => _usedInboxSlotsCount
+    );
+
+    private static long _availableDbSlotsCount;
+    public static readonly ObservableGauge<long> AvailableDbSlots = Meter.CreateObservableGauge(
+        "engine.slots.db.available",
+        static () => _availableDbSlotsCount
+    );
+
+    private static long _usedDbSlotsCount;
+    public static readonly ObservableGauge<long> UsedDbSlots = Meter.CreateObservableGauge(
+        "engine.slots.db.used",
+        static () => _usedDbSlotsCount
+    );
+
+    private static long _availableHttpSlotsCount;
+    public static readonly ObservableGauge<long> AvailableHttpSlots = Meter.CreateObservableGauge(
+        "engine.slots.http.available",
+        static () => _availableHttpSlotsCount
+    );
+
+    private static long _usedHttpSlotsCount;
+    public static readonly ObservableGauge<long> UsedHttpSlots = Meter.CreateObservableGauge(
+        "engine.slots.http.used",
+        static () => _usedHttpSlotsCount
+    );
+
     public static void SetActiveWorkflowsCount(long count) => _activeWorkflowsCount = count;
 
     public static void SetScheduledWorkflowsCount(long count) => _scheduledWorkflowsCount = count;
 
     public static void SetFailedWorkflowsCount(long count) => _failedWorkflowsCount = count;
+
+    public static void SetAvailableInboxSlots(int count) => _availableInboxSlotsCount = count;
+
+    public static void SetUsedInboxSlots(int count) => _usedInboxSlotsCount = count;
+
+    public static void SetAvailableDbSlots(int count) => _availableDbSlotsCount = count;
+
+    public static void SetUsedDbSlots(int count) => _usedDbSlotsCount = count;
+
+    public static void SetAvailableHttpSlots(int count) => _availableHttpSlotsCount = count;
+
+    public static void SetUsedHttpSlots(int count) => _usedHttpSlotsCount = count;
 
     public static IEnumerable<ActivityLink>? ParseSourceContext(string? traceContext)
     {

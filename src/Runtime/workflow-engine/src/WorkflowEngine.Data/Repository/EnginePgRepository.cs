@@ -36,9 +36,12 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflows(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflows(
+        bool bypassConcurrencyLimit = true,
+        CancellationToken cancellationToken = default
+    )
     {
-        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
+        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
         try
         {
             _logger.FetchingWorkflows("active");
@@ -57,9 +60,12 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(
+        bool bypassConcurrencyLimit = true,
+        CancellationToken cancellationToken = default
+    )
     {
-        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
+        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
         try
         {
             _logger.FetchingWorkflows("scheduled");
@@ -78,9 +84,12 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetFailedWorkflows(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Workflow>> GetFailedWorkflows(
+        bool bypassConcurrencyLimit = true,
+        CancellationToken cancellationToken = default
+    )
     {
-        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
+        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
         try
         {
             _logger.FetchingWorkflows("failed");
@@ -99,9 +108,12 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<int> CountActiveWorkflows(CancellationToken cancellationToken = default)
+    public async Task<int> CountActiveWorkflows(
+        bool bypassConcurrencyLimit = true,
+        CancellationToken cancellationToken = default
+    )
     {
-        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
+        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
         try
         {
             _logger.CountingWorkflows("active");
@@ -120,9 +132,12 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<int> CountScheduledWorkflows(CancellationToken cancellationToken = default)
+    public async Task<int> CountScheduledWorkflows(
+        bool bypassConcurrencyLimit = true,
+        CancellationToken cancellationToken = default
+    )
     {
-        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
+        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
         try
         {
             _logger.CountingWorkflows("scheduled");
@@ -141,9 +156,12 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<int> CountFailedWorkflows(CancellationToken cancellationToken = default)
+    public async Task<int> CountFailedWorkflows(
+        bool bypassConcurrencyLimit = true,
+        CancellationToken cancellationToken = default
+    )
     {
-        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
+        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
         try
         {
             _logger.CountingWorkflows("failed");
@@ -162,9 +180,13 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<Workflow> AddWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default)
+    public async Task<Workflow> AddWorkflow(
+        EngineRequest engineRequest,
+        bool bypassConcurrencyLimit = false,
+        CancellationToken cancellationToken = default
+    )
     {
-        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
+        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
         try
         {
             _logger.AddingWorkflow(engineRequest);
@@ -187,9 +209,13 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task UpdateWorkflow(Workflow workflow, CancellationToken cancellationToken = default)
+    public async Task UpdateWorkflow(
+        Workflow workflow,
+        bool bypassConcurrencyLimit = false,
+        CancellationToken cancellationToken = default
+    )
     {
-        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
+        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
         try
         {
             _logger.UpdatingWorkflow(workflow);
@@ -221,9 +247,13 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task UpdateStep(Step step, CancellationToken cancellationToken = default)
+    public async Task UpdateStep(
+        Step step,
+        bool bypassConcurrencyLimit = false,
+        CancellationToken cancellationToken = default
+    )
     {
-        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
+        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
         try
         {
             _logger.UpdatingStep(step);
@@ -255,6 +285,11 @@ internal sealed class EnginePgRepository : IEngineRepository
             throw;
         }
     }
+
+    private async Task<IDisposable?> AcquireDbSlotIfRequired(
+        bool bypassConcurrencyLimit,
+        CancellationToken cancellationToken
+    ) => bypassConcurrencyLimit ? null : await _limiter.AcquireDbSlotAsync(cancellationToken);
 
     private async Task ExecuteWithRetry(
         Func<CancellationToken, Task> operation,
