@@ -1,0 +1,17 @@
+{{template "base/head" .}}
+<div class="page-content user column tw-flex tw-flex-col tw-gap-4 tw-max-w-2xl tw-m-auto">
+    <div class="ui container fluid">
+        <div class="ui top center" style="background: #fae6c6; padding: 12px; border-radius: 5px;">
+            <p>{{ctx.Locale.Tr "auth.github_disabled"}} <a href="https://docs.altinn.studio/nb/altinn-studio/v8/getting-started/create-user/#koble-eksisterende-bruker-til-ansattporten">{{ctx.Locale.Tr "auth.github_disabled_docs"}}</a></p>
+        </div>
+    </div>
+</div>
+<div role="main" aria-label="{{.Title}}" class="page-content user signin{{if .LinkAccountMode}} icon{{end}}">
+	<div class="ui middle very relaxed page grid">
+		{{/* these styles are quite tricky and should also apply to the signup and link_account pages */}}
+		<div class="column tw-flex tw-flex-col tw-gap-4 tw-max-w-2xl tw-m-auto">
+			{{template "user/auth/signin_inner" .}}
+		</div>
+	</div>
+</div>
+{{template "base/footer" .}}
