@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using DiffEngine;
-using VerifyTests;
 
 namespace Altinn.Studio.KubernetesWrapper.Tests;
 
