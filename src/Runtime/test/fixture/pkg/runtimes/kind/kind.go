@@ -64,7 +64,7 @@ type KindContainerRuntimeOptions struct {
 
 	// IncludeFluxNotificationController controls whether the Flux notification-controller is installed.
 	// When false (default), notification-controller is not deployed (saves startup time).
-	// When true, notification-controller is deployed (needed for StudioGateway alerts).
+	// When true, notification-controller is deployed (needed for Gateway alerts).
 	IncludeFluxNotificationController bool
 }
 

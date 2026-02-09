@@ -1,14 +1,14 @@
-name: Runtime - deploy studio-gateway
+name: Runtime - deploy gateway
 
 on:
   push:
     branches:
       - main
     paths:
-      - src/Runtime/StudioGateway/**
-      - infra/runtime/syncroot/base/studio-gateway.yaml
+      - src/Runtime/gateway/**
+      - infra/runtime/syncroot/base/gateway.yaml
       - infra/runtime/flux-config/**
-      - .github/workflows/deploy-runtime-studio-gateway.yaml
+      - .github/workflows/deploy-runtime-gateway.yaml
   workflow_dispatch:
     inputs:
       rings:
@@ -43,8 +43,8 @@ jobs:
           echo "Raw rings input: $rings"
           echo "ringsjson=${rings}" >> $GITHUB_OUTPUT
 
-  push-studio-gateway-artifact:
-    name: Push studio-gateway as OCI artifact
+  push-gateway-artifact:
+    name: Push gateway as OCI artifact
     needs: get-short-sha
     runs-on: ubuntu-latest
     environment: dev
@@ -56,7 +56,7 @@ jobs:
       config-repo: altinncr.azurecr.io/studio-apps/runtime-gateway-repo:${{ needs.get-short-sha.outputs.short-sha }}
     defaults:
       run:
-        working-directory: src/Runtime/StudioGateway
+        working-directory: src/Runtime/gateway
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
@@ -90,7 +90,7 @@ jobs:
         run: docker push ${{ env.IMAGE_REPO }}
 
       - name: patch base with image tag
-        working-directory: src/Runtime/StudioGateway/infra/kustomize/base
+        working-directory: src/Runtime/gateway/infra/kustomize/base
         run: |
           export IMAGE="${{ env.IMAGE_REPO }}"
           export IMAGE_TAG="${{ needs.get-short-sha.outputs.short-sha }}"
@@ -98,7 +98,7 @@ jobs:
           yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' deployment.yaml
 
       - name: push artifact
-        working-directory: src/Runtime/StudioGateway/infra/kustomize
+        working-directory: src/Runtime/gateway/infra/kustomize
         run: |
           flux push artifact oci://${{ env.CONFIG_REPO }} \
             --provider=azure \
@@ -109,7 +109,7 @@ jobs:
 
   tag-gateway:
     name: Tag gateway
-    needs: [push-studio-gateway-artifact, construct-rings-array]
+    needs: [push-gateway-artifact, construct-rings-array]
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
     strategy:
@@ -131,6 +131,6 @@ jobs:
 
       - name: tag artifact
         run: |
-          flux tag artifact oci://${{ needs.push-studio-gateway-artifact.outputs.config-repo }} \
+          flux tag artifact oci://${{ needs.push-gateway-artifact.outputs.config-repo }} \
             --tag ${{ matrix.ring }}
 
