@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
-using WorkflowEngine.Models.Extensions;
 
 namespace WorkflowEngine.Api.Endpoints;
 
@@ -32,7 +31,7 @@ internal static class EngineEndpoints
 
 internal static class EngineRequestHandlers
 {
-    public static async Task<Results<Ok, NoContent, BadRequest<string>>> Next(
+    public static async Task<Results<Ok, NoContent, ProblemHttpResult>> Next(
         [AsParameters] InstanceRouteParams instanceParams,
         [FromBody] ProcessNextRequest request,
         [FromServices] IEngine engine,
@@ -44,13 +43,23 @@ internal static class EngineRequestHandlers
 
         var traceContext = Activity.Current?.Id;
         var engineRequest = request.ToEngineRequest(instanceParams, timeProvider.GetUtcNow(), traceContext);
-
-        if (engine.HasDuplicateWorkflow(engineRequest.IdempotencyKey))
-            return TypedResults.NoContent(); // 204 - Duplicate request
-
         var response = await engine.EnqueueWorkflow(engineRequest, cancellationToken);
 
-        return response.IsAccepted() ? TypedResults.Ok() : TypedResults.BadRequest(response.Message);
+        return response switch
+        {
+            EngineResponse.Accepted => TypedResults.Ok(),
+            EngineResponse.Rejected { Reason: EngineResponse.Rejection.Duplicate } => TypedResults.NoContent(),
+            EngineResponse.Rejected rejected => TypedResults.Problem(
+                detail: rejected.Message,
+                statusCode: rejected.Reason switch
+                {
+                    EngineResponse.Rejection.AtCapacity => StatusCodes.Status429TooManyRequests,
+                    EngineResponse.Rejection.Unavailable => StatusCodes.Status503ServiceUnavailable,
+                    _ => StatusCodes.Status400BadRequest,
+                }
+            ),
+            _ => TypedResults.Problem(statusCode: StatusCodes.Status500InternalServerError),
+        };
     }
 
     public static Results<Ok<WorkflowStatusResponse>, NoContent> Status(

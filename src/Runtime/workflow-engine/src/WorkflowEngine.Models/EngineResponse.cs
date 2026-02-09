@@ -3,16 +3,32 @@ namespace WorkflowEngine.Models;
 /// <summary>
 /// The response from the process engine for a <see cref="EngineRequest"/>.
 /// </summary>
-public sealed record EngineResponse(EngineRequestStatus Status, string? Message = null)
+public abstract record EngineResponse
 {
-    /// <summary>
-    /// Creates an accepted response.
-    /// </summary>
-    public static EngineResponse Accepted() => new(EngineRequestStatus.Accepted);
+    private EngineResponse() { }
+
+    public static Accepted Accept() => new();
+
+    public static Rejected Reject(Rejection reason, string? message = null) => new(reason, message);
 
     /// <summary>
-    /// Creates a rejected response.
+    /// Represents an accepted response.
     /// </summary>
-    /// <param name="message">Optional message for the caller, describing why the request was rejected.</param>
-    public static EngineResponse Rejected(string? message = null) => new(EngineRequestStatus.Rejected, message);
-};
+    public sealed record Accepted : EngineResponse;
+
+    /// <summary>
+    /// Represents a rejected response.
+    /// </summary>
+    public sealed record Rejected(Rejection Reason, string? Message) : EngineResponse;
+
+    /// <summary>
+    /// The reason for a rejection.
+    /// </summary>
+    public enum Rejection
+    {
+        Invalid,
+        Duplicate,
+        Unavailable,
+        AtCapacity,
+    }
+}

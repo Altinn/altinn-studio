@@ -17,6 +17,7 @@ internal interface IEngine
 {
     EngineHealthStatus Status { get; }
     int InboxCount { get; }
+    bool CanAcceptNewWork { get; }
     Task Start(CancellationToken cancellationToken = default);
     Task Stop();
     Task<EngineResponse> EnqueueWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default);
@@ -49,6 +50,7 @@ internal partial class Engine : IEngine, IDisposable
 
     public EngineHealthStatus Status { get; private set; }
     public int InboxCount => _inbox.Count;
+    public bool CanAcceptNewWork => _inboxCapacityLimit.CurrentCount > 0;
 
     public Engine(IServiceProvider serviceProvider)
     {
@@ -130,8 +132,7 @@ internal partial class Engine : IEngine, IDisposable
         if (!await ShouldRun(cancellationToken))
             return;
 
-        // Fresh signal for this cycle. Any EnqueueWorkflow call from this
-        // point forward signals this specific instance.
+        // Fresh signal for this cycle. Any EnqueueWorkflow call from this point forward signals this specific instance.
         var signal = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         Interlocked.Exchange(ref _newWorkSignal, signal);
 
@@ -260,6 +261,9 @@ internal partial class Engine : IEngine, IDisposable
                 default:
                     workflow.Status = PersistentItemStatus.Failed;
                     await UpdateWorkflowInDb(workflow, cancellationToken);
+                    activity?.Errored(
+                        errorMessage: $"Unknown database update status: {workflow.DatabaseUpdateStatus()}"
+                    );
                     _logger.WorkflowCriticalError(
                         workflow,
                         $"Unknown database update status: {workflow.DatabaseUpdateStatus()}",
