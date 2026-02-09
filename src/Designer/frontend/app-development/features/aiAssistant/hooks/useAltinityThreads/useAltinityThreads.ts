@@ -57,11 +57,11 @@ export const useAltinityThreads = (): AltinityThreadState => {
   const deleteThread = useCallback(
     (threadId: string) => {
       deleteThreadFromStorage(threadId);
-      if (currentSessionId === threadId) {
+      if (currentSessionIdRef.current === threadId) {
         setCurrentSession(null);
       }
     },
-    [deleteThreadFromStorage, currentSessionId, setCurrentSession],
+    [deleteThreadFromStorage, setCurrentSession],
   );
 
   const addMessageToThread = useCallback(
