@@ -1,14 +1,23 @@
-import type { IInstance } from 'src/types/shared';
+import { generatePath } from 'react-router-dom';
 
-export class InstantiateRoutes {
-  public static readonly root = '/';
-  public static readonly instanceSelection = '/instance-selection';
-  public static readonly partySelection = '/party-selection';
-  public static readonly stateless = '/:pageId';
-  public static readonly instance = '/instance/:partyId/:instanceGuid';
+// Route patterns (for router declaration)
+export const instantiateRoutes = {
+  root: '/',
+  partySelection: '/party-selection',
+  instance: '/instance/:instanceOwnerPartyId/:instanceGuid',
+  instanceSelection: '/instance-selection',
+  stateless: '/:pageId',
+} as const;
 
-  public static forInstance(instance: IInstance): string {
-    const [partyId, guid] = instance.id.split('/');
-    return `/instance/${partyId}/${guid}`;
-  }
+// URL builders (for navigation)
+export const instantiateRouteBuilders = buildRoutes(instantiateRoutes);
+
+function routeBuilder<P extends string>(pattern: P) {
+  return (params: Parameters<typeof generatePath<P>>[1]) => generatePath(pattern, params);
+}
+
+function buildRoutes<T extends Record<string, string>>(routes: T) {
+  return Object.fromEntries(Object.entries(routes).map(([key, pattern]) => [key, routeBuilder(pattern)])) as {
+    [K in keyof T]: ReturnType<typeof routeBuilder<T[K]>>;
+  };
 }

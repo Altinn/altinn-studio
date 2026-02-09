@@ -8,15 +8,16 @@ import { InstancePage } from 'nextsrc/features/instantiate/pages/instance/Instan
 import { InstanceSelectionPage } from 'nextsrc/features/instantiate/pages/instance-selection/InstanceSelectionPage';
 import { PartySelectionPage } from 'nextsrc/features/instantiate/pages/party-selection/PartySelectionPage';
 import { StatelessPage } from 'nextsrc/features/instantiate/pages/stateless/StatelessPage';
-import { InstantiateRoutes } from 'nextsrc/features/instantiate/routes';
+import { queryClient } from 'nextsrc/index';
+import { instantiateRoutes } from 'nextsrc/features/instantiate/routes';
 
 export const router = createBrowserRouter(
   [
-    { path: InstantiateRoutes.root, loader: entryRedirectLoader, errorElement: <ErrorPage /> },
-    { path: InstantiateRoutes.instance, element: <InstancePage /> },
-    { path: InstantiateRoutes.instanceSelection, element: <InstanceSelectionPage /> },
-    { path: InstantiateRoutes.partySelection, element: <PartySelectionPage /> },
-    { path: InstantiateRoutes.stateless, element: <StatelessPage /> },
+    { path: instantiateRoutes.root, loader: entryRedirectLoader(queryClient), errorElement: <ErrorPage /> },
+    { path: instantiateRoutes.instance, element: <InstancePage /> },
+    { path: instantiateRoutes.instanceSelection, element: <InstanceSelectionPage /> },
+    { path: instantiateRoutes.partySelection, element: <PartySelectionPage /> },
+    { path: instantiateRoutes.stateless, element: <StatelessPage /> },
   ],
   { basename: GlobalData.basename },
 );
