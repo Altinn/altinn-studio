@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -93,8 +92,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await Task.WhenAll(new List<Task> { updateAuthPolicyTask, updateTextResources });
 
-            // TODO: publish policy with `PublishServiceResource` policyPath, requires renaming of rules like above probably
-            if (envName == "tt02" && publishServiceResource)
+            if (envName is not "prod" && publishServiceResource)
             {
                 await PublishAltinnAppServiceResource(org, app, shortCommitId, envName);
             }
@@ -131,16 +129,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 envName
             );
             if (
-                publishResponse is not StatusCodeResult { StatusCode: 201 or 200 })
-            {
-                if (publishResponse is ObjectResult objectResult)
+                publishResponse is ObjectResult
                 {
-                    if (objectResult.Value is ValidationProblemDetails validationProblemDetails)
-                    {
-                        var message = string.Join(". ", validationProblemDetails.Errors.Values.SelectMany(v => v));
-                        throw new ResourceRegistryPublishingException(message ?? string.Empty);
-                    }
+                    Value: ValidationProblemDetails validationProblemDetails
                 }
+            )
+            {
+                string message = string.Join(
+                    ". ",
+                    validationProblemDetails.Errors.Values.SelectMany(v => v)
+                );
+                throw new ResourceRegistryPublishingException(message ?? string.Empty);
+            }
+
+            if (publishResponse is not StatusCodeResult { StatusCode: 201 or 200 })
+            {
                 throw new ResourceRegistryPublishingException();
             }
         }

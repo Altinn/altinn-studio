@@ -24,7 +24,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="deployment">Release containing data from client</param>
         /// <param name="publishServiceResource"></param>
         /// <returns>The created document in db</returns>
-        Task<ActionResult<DeploymentEntity>> CreateAsync(
+        Task<DeploymentEntity> CreateAsync(
             AltinnAuthenticatedRepoEditingContext authenticatedContext,
             DeploymentModel deployment,
             bool publishServiceResource = false
