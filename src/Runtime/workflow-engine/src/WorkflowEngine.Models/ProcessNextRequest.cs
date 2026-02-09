@@ -25,6 +25,13 @@ public sealed record ProcessNextRequest
     [JsonPropertyName("actor")]
     public required Actor Actor { get; init; }
 
+    // TODO: This is named 'LockKey' elsewhere, unify to one or the other
+    /// <summary>
+    /// The lock token associated with this process/next request
+    /// </summary>
+    [JsonPropertyName("lockToken")]
+    public required string LockToken { get; init; }
+
     /// <summary>
     /// Workflow steps associated with this request.
     /// </summary>
@@ -49,6 +56,7 @@ public sealed record ProcessNextRequest
             Actor,
             createdAt,
             Steps,
-            traceContext
+            traceContext,
+            LockToken
         );
 };

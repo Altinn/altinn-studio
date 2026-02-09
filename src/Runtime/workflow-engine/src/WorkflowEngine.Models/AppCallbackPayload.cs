@@ -19,8 +19,15 @@ public sealed record AppCallbackPayload
     [JsonPropertyName("actor")]
     public required Actor Actor { get; init; }
 
+    // TODO: This is named 'LockKey' elsewhere, unify to one or the other
     /// <summary>
-    ///
+    /// The lock token associated with this process/next request
+    /// </summary>
+    [JsonPropertyName("lockToken")]
+    public required string LockToken { get; init; }
+
+    /// <summary>
+    /// Payload to accompany the command.
     /// </summary>
     [JsonPropertyName("payload")]
     public string? Payload { get; init; }

@@ -46,8 +46,6 @@ internal class WorkflowExecutor : IWorkflowExecutor
         using CancellationTokenSource cts = CreateExecutionTokenSource(step, cancellationToken);
         var stopwatch = Stopwatch.StartNew();
 
-        //await Task.Delay(250, cancellationToken);
-
         try
         {
             var result = step.Command switch
@@ -104,6 +102,9 @@ internal class WorkflowExecutor : IWorkflowExecutor
         {
             CommandKey = command.CommandKey,
             Actor = step.Actor,
+            LockToken =
+                workflow.InstanceLockKey
+                ?? throw new InvalidOperationException("Missing InstanceLockKey for app callback payload"),
             Payload = command.Payload,
         };
         var endpoint = command.CommandKey.ToUri(UriKind.Relative);

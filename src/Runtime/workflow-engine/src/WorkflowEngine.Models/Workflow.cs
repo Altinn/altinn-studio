@@ -13,6 +13,7 @@ public sealed record Workflow : PersistentItem
         new()
         {
             IdempotencyKey = engineRequest.IdempotencyKey,
+            InstanceLockKey = engineRequest.InstanceLockKey,
             InstanceInformation = engineRequest.InstanceInformation,
             Actor = engineRequest.Actor,
             CreatedAt = engineRequest.CreatedAt,

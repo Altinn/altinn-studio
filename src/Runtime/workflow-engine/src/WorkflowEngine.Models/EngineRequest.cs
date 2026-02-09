@@ -10,6 +10,7 @@ namespace WorkflowEngine.Models;
 /// <param name="CreatedAt">The time this request was created (eg. now).</param>
 /// <param name="Steps">The individual steps comprising this job.</param>
 /// <param name="TraceContext">The trace context for distributed tracing.</param>
+/// <param name="InstanceLockKey">The lock key for the instance.</param>
 public record EngineRequest(
     string IdempotencyKey,
     string OperationId,
@@ -17,7 +18,8 @@ public record EngineRequest(
     Actor Actor,
     DateTimeOffset CreatedAt,
     IEnumerable<StepRequest> Steps,
-    string? TraceContext = null
+    string? TraceContext = null,
+    string? InstanceLockKey = null
 )
 {
     /// <summary>
