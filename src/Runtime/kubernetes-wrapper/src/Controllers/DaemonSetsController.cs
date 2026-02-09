@@ -1,3 +1,4 @@
+using Altinn.Studio.KubernetesWrapper.Models;
 using Altinn.Studio.KubernetesWrapper.Services.Interfaces;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -22,10 +23,11 @@ public class DaemonSetsController(IKubernetesApiWrapper apiWrapper) : Controller
     /// <returns>A list of daemonSets in the cluster</returns>
     [HttpGet]
     [EnableCors]
+    [ProducesResponseType(typeof(IReadOnlyList<DaemonSet>), StatusCodes.Status200OK, "application/json")]
     public async Task<ActionResult> GetDaemonSets(string labelSelector, string fieldSelector)
     {
         var daemonSets = await apiWrapper.GetDeployedResources(
-            Models.ResourceType.DaemonSet,
+            ResourceType.DaemonSet,
             null,
             null,
             fieldSelector,

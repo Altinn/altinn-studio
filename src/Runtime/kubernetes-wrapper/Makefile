@@ -30,6 +30,7 @@ run-test:
 
 .PHONY: test
 test: build run-test clean
+	dotnet test
 
 .PHONY: clean
 clean:
