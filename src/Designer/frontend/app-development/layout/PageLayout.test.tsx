@@ -13,6 +13,7 @@ import { syncEntityUpdateWebSocketHub, syncEventsWebSocketHub } from 'app-shared
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 jest.mock('app-shared/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
@@ -186,8 +187,13 @@ const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesCont
 };
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
-  renderWithProviders(<PageLayout />, {
-    startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app/${RoutePaths.Overview}`,
-    queries,
-  });
+  renderWithProviders(
+    <FeatureFlagsContextProvider value={{ flags: [] }}>
+      <PageLayout />
+    </FeatureFlagsContextProvider>,
+    {
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app/${RoutePaths.Overview}`,
+      queries,
+    },
+  );
 };

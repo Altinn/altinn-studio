@@ -3,7 +3,9 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Fixtures;
 using DotNet.Testcontainers.Builders;
@@ -182,7 +184,16 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
         // Create repo with designer
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
             HttpMethod.Post,
-            $"designer/api/repos/create-app?org={org}&repository={repoName}");
+            $"designer/api/repos/create-app");
+
+        httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(
+            new CreateAppRequest()
+            {
+                Org = org,
+                Repository = repoName
+            }),
+            Encoding.UTF8,
+            "application/json");
 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);

@@ -23,6 +23,12 @@ describe('PolicyAccessPackageAccordion', () => {
 
     expect(screen.getByText(defaultProps.accessPackage.name)).toBeInTheDocument();
   });
+
+  it('should show accordion for person accesspackage', () => {
+    renderPolicyAccessPackageAccordion({ isPersonSubject: true });
+
+    expect(screen.getByText(defaultProps.accessPackage.name)).toBeInTheDocument();
+  });
 });
 
 const renderPolicyAccessPackageAccordion = (

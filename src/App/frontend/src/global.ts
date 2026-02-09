@@ -4,6 +4,7 @@ import type { ApplicationMetadata } from 'src/features/applicationMetadata/types
 import type { IAttachmentsMap } from 'src/features/attachments';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { ILayoutSets } from 'src/features/form/layoutSets/types';
+import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
 import type { IAppLanguage, IApplicationSettings, IProfile } from 'src/types/shared';
 
@@ -17,6 +18,7 @@ export type AltinnAppGlobalData = {
   availableLanguages: IAppLanguage[];
   userProfile?: IProfile;
   returnUrl?: string;
+  textResources?: ITextResourceResult;
 };
 
 declare global {

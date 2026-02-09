@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 
@@ -368,6 +369,50 @@ func Test_TADFormWaitFor(t *testing.T) {
 	pdf := harness.MakePdfDeterministic(t, resp.Data)
 	harness.Snapshot(t, pdf, "output", "pdf")
 	harness.Snapshot(t, pdf, "output", "txt")
+
+	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
+}
+
+func Test_TracestateWithSemicolons(t *testing.T) {
+	req := harness.GetDefaultPdfRequest(t)
+	req.URL = harness.TestServerURL + "/app/?render=light"
+
+	parsedUrl, err := url.Parse(req.URL)
+	if err != nil {
+		t.Fatalf("Failed to parse URL: %v", err)
+	}
+
+	// Add test cookies: one valid, one tracestate with semicolons (should be filtered)
+	req.Cookies = append(req.Cookies,
+		types.Cookie{
+			Name:     "normalCookie",
+			Value:    "validValue",
+			Domain:   parsedUrl.Hostname(),
+			SameSite: "Lax",
+		},
+		types.Cookie{
+			Name:     "baggage-tracestate",
+			Value:    "dd=s:1;o:rum",
+			Domain:   parsedUrl.Hostname(),
+			SameSite: "Lax",
+		},
+	)
+
+	resp, err := harness.RequestNewPDF(t, req)
+	if err != nil {
+		t.Fatalf("Failed to generate PDF: %v", err)
+	}
+
+	if !harness.IsPDF(resp.Data) {
+		t.Error("Response is not a valid PDF")
+	}
+
+	output, err := resp.LoadOutput(t)
+	if err != nil {
+		t.Errorf("Failed loading test output: %v", err)
+	} else {
+		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
 }

@@ -242,8 +242,8 @@ describe('RepeatingGroupTable', () => {
     });
   });
 
-  const render = async (layout = getLayout(group, components)) =>
-    await renderWithInstanceAndLayout({
+  const render = async (layout = getLayout(group, components)) => {
+    const result = await renderWithInstanceAndLayout({
       renderer: (
         <RepeatingGroupProvider baseComponentId={group.id}>
           <LeakEditIndex />
@@ -252,27 +252,6 @@ describe('RepeatingGroupTable', () => {
       ),
       queries: {
         fetchLayouts: async () => layout,
-        fetchTextResources: async () => ({
-          language: 'nb',
-          resources: [
-            {
-              id: 'option.label',
-              value: 'Value to be shown',
-            },
-            {
-              id: 'general.delete',
-              value: 'Slett',
-            },
-            {
-              id: 'general.edit_alt',
-              value: 'Rediger',
-            },
-            {
-              id: 'general.save_and_close',
-              value: 'Lagre og lukk',
-            },
-          ],
-        }),
         fetchFormData: async () => ({
           'some-group': [
             { [ALTINN_ROW_ID]: uuidv4(), checkBoxBinding: 'option.value', prop1: 'test row 0' },
@@ -283,6 +262,8 @@ describe('RepeatingGroupTable', () => {
         }),
       },
     });
+    return result;
+  };
 });
 
 function LeakEditIndex() {

@@ -33,6 +33,13 @@ spec:
           ports:
             - containerPort: {{ .Values.image.containerPort }}
           env:
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.uid=$(POD_UID)"
             {{- if not (hasKey .Values.environmentVariables .Values.environment) }}
               {{ fail "the chosen environment does not exist" }}
             {{- end }}

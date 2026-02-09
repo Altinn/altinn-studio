@@ -51,7 +51,8 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
             new GitOpsSettings
             {
                 GitOpsOrg = OrgEditingContext.Org,
-                GitOpsRepoNameFormat = TestRepoName.Replace($"-{OrgEditingContext.Org}", "-{0}")
+                GitOpsRepoNameFormat = TestRepoName.Replace($"-{OrgEditingContext.Org}", "-{0}"),
+                BotPersonalAccessToken = "test-bot-token"
             },
             new ServiceRepositorySettings
             {

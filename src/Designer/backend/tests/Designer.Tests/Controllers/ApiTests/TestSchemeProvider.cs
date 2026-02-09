@@ -22,7 +22,7 @@ public class TestSchemeProvider : AuthenticationSchemeProvider
     public override Task<AuthenticationScheme> GetSchemeAsync(string name)
     {
         // Replace cookies scheme used in oidc setup with test scheme
-        if (name is CookieAuthenticationDefaults.AuthenticationScheme or AnsattPortenConstants.AnsattportenAuthenticationScheme)
+        if (name is CookieAuthenticationDefaults.AuthenticationScheme or AnsattPortenConstants.AnsattportenAuthenticationScheme or AnsattPortenConstants.AnsattportenCookiesAuthenticationScheme)
         {
             return base.GetSchemeAsync(TestAuthConstants.TestAuthenticationScheme);
         }
