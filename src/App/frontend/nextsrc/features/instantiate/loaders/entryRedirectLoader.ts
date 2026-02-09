@@ -1,23 +1,23 @@
-import { redirect } from 'react-router-dom';
+import { LoaderFunctionArgs, redirect } from 'react-router-dom';
 
 import { GlobalData } from 'nextsrc/core/globalData';
 import { ServerStatusCodes } from 'nextsrc/core/serverStatusCodes';
 import { InstanceApi } from 'nextsrc/features/instantiate/api';
 import { instantiateRouteBuilders } from 'nextsrc/features/instantiate/routes';
 import { IInstance } from 'src/types/shared';
+import { QueryClient } from '@tanstack/react-query';
 
 function isStateless() {
   const entryType = GlobalData.applicationMetadata.onEntry?.show;
   return entryType !== 'new-instance' && entryType !== 'select-instance';
 }
 
-export async function entryRedirectLoader(): Promise<Response> {
-  const entryType = GlobalData.applicationMetadata.onEntry?.show;
-
+export const entryRedirectLoader = (queryClient: QueryClient) => async (_: LoaderFunctionArgs) => {
   if (isStateless()) {
     return handleStateless();
   }
 
+  const entryType = GlobalData.applicationMetadata.onEntry?.show;
   if (entryType === 'new-instance') {
     const [instanceOwnerPartyId, instanceGuid] = (await createNewInstance()).id.split('/');
     return redirect(instantiateRouteBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
@@ -28,7 +28,7 @@ export async function entryRedirectLoader(): Promise<Response> {
   }
 
   throw new Error();
-}
+};
 
 async function createNewInstance(): Promise<IInstance> {
   const profile = GlobalData.userProfile;
