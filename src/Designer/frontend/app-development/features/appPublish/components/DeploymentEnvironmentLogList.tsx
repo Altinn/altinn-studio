@@ -120,9 +120,7 @@ export const DeploymentEnvironmentLogList = ({
                               grafana: (() => {
                                 const deployStart =
                                   deploy.events.at(0)?.created ?? deploy.build.started;
-                                const deployStartTime = deployStart
-                                  ? new Date(deployStart).getTime()
-                                  : undefined;
+                                const deployStartTime = new Date(deployStart).getTime();
 
                                 const deployFinish =
                                   deploy.events.at(-1)?.created ?? deploy.build.finished;

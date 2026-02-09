@@ -464,6 +464,34 @@ describe('DeploymentEnvironmentLogList', () => {
     });
   });
 
+  it('passes undefined finish time to grafana log link when build finished is missing', () => {
+    const buildStart = '2026-02-09T12:00:00.000Z';
+
+    render({
+      pipelineDeploymentList: [
+        {
+          ...pipelineDeployment,
+          build: {
+            ...pipelineDeployment.build,
+            started: buildStart,
+            finished: undefined,
+            result: BuildResult.failed,
+          },
+          events: [],
+        },
+      ],
+    });
+
+    expect(grafanaPodLogsUrlMock).toHaveBeenCalledWith({
+      org,
+      env: defaultProps.envName,
+      app,
+      isProduction: defaultProps.isProduction,
+      deployStartTime: new Date(buildStart).getTime(),
+      deployFinishTime: undefined,
+    });
+  });
+
   it('does not render log links when logs are expired (> 30 days)', () => {
     const startedDate = new Date();
     startedDate.setMonth(startedDate.getMonth() - 1);
