@@ -177,7 +177,14 @@ export default tseslint.config(
     ...pluginCypress.configs.recommended,
   },
   {
-    files: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'src/**/test/**/*.ts', 'src/**/test/**/*.tsx'],
+    files: [
+      'src/**/*.test.ts',
+      'src/**/*.test.tsx',
+      'src/**/test/**/*.ts',
+      'src/**/test/**/*.tsx',
+      'nextsrc/**/*.test.ts',
+      'nextsrc/**/*.test.tsx',
+    ],
     plugins: {
       'testing-library': fixupPluginRules(testingLibrary),
     },
