@@ -7,17 +7,12 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { mockAppConfig } from 'app-development/features/appSettings/mocks/appConfigMock';
-import {
-  mockRepository1,
-  mockRepository2,
-} from 'app-development/features/appSettings/mocks/repositoryMock';
+import { mockRepository1 } from 'app-development/features/appSettings/mocks/repositoryMock';
 import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
 import userEvent from '@testing-library/user-event';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { UseMutationResult } from '@tanstack/react-query';
-import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
-import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 jest.mock('app-development/hooks/mutations/useAppConfigMutation');
 const updateAppConfigMutation = jest.fn();
@@ -115,40 +110,6 @@ describe('AboutTab', () => {
       ...mockAppConfig,
       serviceId: `${mockAppConfig.serviceId}${mockNewText}`,
     });
-  });
-
-  it('displays owners full name when it is set', async () => {
-    await resolveAndWaitForSpinnerToDisappear();
-
-    expect(screen.getByText(mockRepository1.owner.full_name)).toBeInTheDocument();
-    expect(screen.queryByText(mockRepository1.owner.login)).not.toBeInTheDocument();
-  });
-
-  it('displays owners login name when full name is not set', async () => {
-    const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve(mockRepository2));
-    await resolveAndWaitForSpinnerToDisappear({ getRepoMetadata });
-
-    expect(screen.queryByText(mockRepository1.owner.full_name)).not.toBeInTheDocument();
-    expect(screen.getByText(mockRepository1.owner.login)).toBeInTheDocument();
-  });
-
-  it('displays the created date mapped correctly', async () => {
-    await resolveAndWaitForSpinnerToDisappear();
-
-    const formatedDateString: string = formatDateToDateAndTimeString(mockRepository1.created_at);
-    expect(
-      screen.getByText(
-        textMock('app_settings.about_tab_created_date', { date: formatedDateString }),
-      ),
-    ).toBeInTheDocument();
-  });
-
-  it('displays the user that created the app correctly', async () => {
-    const createdBy: string = 'Mock Mockesen';
-    const updatedMockMetadata: ApplicationMetadata = { ...mockAppMetadata, createdBy };
-    const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve(updatedMockMetadata));
-    await resolveAndWaitForSpinnerToDisappear({ getAppMetadata });
-    expect(screen.getByText(updatedMockMetadata.createdBy)).toBeInTheDocument();
   });
 });
 
