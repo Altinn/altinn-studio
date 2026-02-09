@@ -4,7 +4,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { useTextResourcesQuery, useOptionListsQuery } from 'app-shared/hooks/queries';
 import { ExportUtils } from '../../utils/exportUtils';
-import { useFormLayoutSettingsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutSettingsQuery';
+import { useFormLayoutSettingsQuery } from 'app-shared/hooks/queries/useFormLayoutSettingsQuery';
 import type { ExportForm as ExportFormType } from '../../types/ExportForm';
 import { useTranslation } from 'react-i18next';
 

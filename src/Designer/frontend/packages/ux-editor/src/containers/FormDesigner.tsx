@@ -6,7 +6,7 @@ import { Elements } from '../components/Elements';
 import { useFormItemContext } from './FormItemContext';
 import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
-import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
+import { useFormLayoutSettingsQuery } from 'app-shared/hooks/queries/useFormLayoutSettingsQuery';
 import { useLocalStorage } from '@studio/components-legacy';
 import {
   StudioPageError,

@@ -4,7 +4,7 @@ import type { AddLayoutMutationArgs } from './useAddLayoutMutation';
 import { useAddLayoutMutation } from './useAddLayoutMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
-import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
+import { useFormLayoutSettingsQuery } from 'app-shared/hooks/queries/useFormLayoutSettingsQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { externalLayoutsMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';

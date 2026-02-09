@@ -4,7 +4,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { IFormLayouts } from '../../types/global';
 import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
-import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
+import { useFormLayoutSettingsQuery } from 'app-shared/hooks/queries/useFormLayoutSettingsQuery';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { useAppContext } from '../';
 

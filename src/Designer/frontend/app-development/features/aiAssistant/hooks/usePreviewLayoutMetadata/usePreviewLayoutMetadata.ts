@@ -1,4 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import { useFormLayoutSettingsQuery } from 'app-shared/hooks/queries/useFormLayoutSettingsQuery';
+
+const DEFAULT_TASK_ID = 'Task_1';
 
 export type PreviewLayoutMetadata = {
   layoutSetName?: string;
@@ -10,104 +13,38 @@ export type UsePreviewLayoutMetadataResult = {
   metadata: PreviewLayoutMetadata;
   isPending: boolean;
   error?: string;
-  refresh: () => void;
 };
 
 export const usePreviewLayoutMetadata = (
   org: string,
   app: string,
 ): UsePreviewLayoutMetadataResult => {
-  const [metadata, setMetadata] = useState<PreviewLayoutMetadata>({});
-  const [error, setError] = useState<string>();
-  const [isPending, setIsPending] = useState<boolean>(true);
-  const [reloadKey, setReloadKey] = useState<number>(0);
+  const {
+    data: layoutSets,
+    isPending: layoutSetsPending,
+    error: layoutSetsError,
+  } = useLayoutSetsQuery(org, app);
 
-  const refresh = useCallback(() => {
-    setReloadKey((prev) => prev + 1);
-  }, []);
+  const firstLayoutSet = layoutSets?.sets?.[0];
+  const layoutSetId = firstLayoutSet?.id;
 
-  useEffect(() => {
-    let isCancelled = false;
+  const {
+    data: layoutSettings,
+    isPending: layoutSettingsPending,
+    error: layoutSettingsError,
+  } = useFormLayoutSettingsQuery(org, app, layoutSetId);
 
-    const fetchMetadata = async () => {
-      setIsPending(true);
-      setError(undefined);
+  const firstLayoutName = layoutSettings?.pages?.order?.[0];
+  const taskId = firstLayoutSet?.tasks?.[0] ?? DEFAULT_TASK_ID;
 
-      try {
-        const layoutSetsResponse = await fetch(
-          `/designer/api/${org}/${app}/app-development/layout-sets`,
-          {
-            credentials: 'same-origin',
-          },
-        );
-
-        if (!layoutSetsResponse.ok) {
-          throw new Error(`layout-sets request failed with status ${layoutSetsResponse.status}`);
-        }
-
-        const layoutSetsJson = await layoutSetsResponse.json();
-        const firstLayoutSet = layoutSetsJson?.sets?.[0];
-        const layoutSetId = firstLayoutSet?.id as string | undefined;
-
-        if (!layoutSetId) {
-          throw new Error('No layout sets found for application');
-        }
-
-        const layoutSettingsResponse = await fetch(
-          `/designer/api/${org}/${app}/app-development/layout-settings?layoutSetName=${encodeURIComponent(
-            layoutSetId,
-          )}`,
-          {
-            credentials: 'same-origin',
-          },
-        );
-
-        if (!layoutSettingsResponse.ok) {
-          throw new Error(
-            `layout-settings request failed with status ${layoutSettingsResponse.status}`,
-          );
-        }
-
-        const layoutSettingsJson = await layoutSettingsResponse.json();
-        const layoutOrder: unknown = layoutSettingsJson?.pages?.order;
-        const firstLayoutName = Array.isArray(layoutOrder) ? (layoutOrder[0] as string) : undefined;
-        const tasks: unknown = firstLayoutSet?.tasks;
-        const inferredTaskId = Array.isArray(tasks) ? (tasks[0] as string) : undefined;
-
-        if (!firstLayoutName) {
-          throw new Error('No layouts found in layout settings response');
-        }
-
-        if (!isCancelled) {
-          setMetadata({
-            layoutSetName: layoutSetId,
-            layoutName: firstLayoutName,
-            taskId: inferredTaskId ?? 'Task_1',
-          });
-        }
-      } catch (err) {
-        if (!isCancelled) {
-          setMetadata({});
-          setError(err instanceof Error ? err.message : 'Unknown error');
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsPending(false);
-        }
-      }
-    };
-
-    fetchMetadata();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [app, org, reloadKey]);
+  const metadata: PreviewLayoutMetadata =
+    layoutSetId && firstLayoutName
+      ? { layoutSetName: layoutSetId, layoutName: firstLayoutName, taskId }
+      : {};
 
   return {
     metadata,
-    isPending,
-    error,
-    refresh,
+    isPending: layoutSetsPending || layoutSettingsPending,
+    error: layoutSetsError?.message ?? layoutSettingsError?.message,
   };
 };

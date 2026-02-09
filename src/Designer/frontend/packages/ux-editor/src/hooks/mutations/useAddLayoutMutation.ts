@@ -7,7 +7,7 @@ import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsRespons
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
-import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
+import { useFormLayoutSettingsQuery } from 'app-shared/hooks/queries/useFormLayoutSettingsQuery';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';

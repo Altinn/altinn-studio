@@ -1,5 +1,6 @@
 export { useAppMetadataQuery } from './useAppMetadataQuery';
 export { useAppVersionQuery } from './useAppVersionQuery';
+export { useFormLayoutSettingsQuery } from './useFormLayoutSettingsQuery';
 export { useDataModelsJsonQuery } from './useDataModelsJsonQuery';
 export { useDataModelsXsdQuery } from './useDataModelsXsdQuery';
 export { useOptionListQuery } from './useOptionListQuery';
