@@ -230,6 +230,7 @@ namespace Designer.Tests.Services
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
+                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             _azureDevOpsBuildClient.Setup(b => b.QueueAsync(

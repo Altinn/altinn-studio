@@ -25,7 +25,6 @@ using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
@@ -99,7 +98,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<ActionResult<DeploymentEntity>> CreateAsync(
+        public async Task<DeploymentEntity> CreateAsync(
             AltinnAuthenticatedRepoEditingContext authenticatedContext,
             DeploymentModel deployment,
             bool publishServiceResource = false
@@ -185,7 +184,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 traceContext.TraceParent,
                 traceContext.TraceState
             );
-            return new CreatedResult("", createdEntity);
+            return createdEntity;
         }
 
         private async Task<bool> AddAppToGitOpsRepoIfNotExists(

@@ -142,8 +142,8 @@ namespace Altinn.Studio.Designer.Controllers
                 authenticatedContext,
                 createDeployment.ToDomainModel(),
                 publishServiceResource);
-            return createResult;
-        }
+            return Created(String.Empty, createResult);
+    }
 
         /// <summary>
         /// Initiates the undeployment of an application from a specific environment
