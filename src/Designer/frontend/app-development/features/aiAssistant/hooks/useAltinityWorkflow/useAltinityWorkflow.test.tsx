@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, type UseQueryResult } from '@tanstack/react-query';
 import type { AgentResponse, UserMessage, WorkflowRequest } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
 import type { AltinityThreadState } from '../useAltinityThreads/useAltinityThreads';
@@ -7,6 +7,7 @@ import { useAltinityWorkflow } from './useAltinityWorkflow';
 import { useAltinityWebSocket } from '../useAltinityWebSocket/useAltinityWebSocket';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { renderHookWithProviders } from '../../../../test/mocks';
+import type { CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
 
 jest.mock('../useAltinityWebSocket/useAltinityWebSocket');
 jest.mock('app-shared/hooks/queries/useCurrentBranchQuery');
@@ -33,7 +34,9 @@ describe('useAltinityWorkflow', () => {
       startWorkflow,
       onAgentMessage: jest.fn(),
     });
-    mockUseCurrentBranchQuery.mockReturnValue({ data: { branchName: 'feature-branch' } });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
 
     const { result } = renderUseAltinityWorkflow(threads);
 
@@ -65,7 +68,9 @@ describe('useAltinityWorkflow', () => {
       startWorkflow,
       onAgentMessage: jest.fn(),
     });
-    mockUseCurrentBranchQuery.mockReturnValue({ data: { branchName: 'feature-branch' } });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
 
     const { result } = renderUseAltinityWorkflow(threads);
 
@@ -115,3 +120,13 @@ const renderUseAltinityWorkflow = (threads: AltinityThreadState) => {
   return renderHookWithProviders({}, queryClient)(() => useAltinityWorkflow(threads))
     .renderHookResult;
 };
+
+const createMockCurrentBranchInfo = (
+  overrides?: Partial<CurrentBranchInfo>,
+): CurrentBranchInfo => ({
+  branchName: 'feature-branch',
+  commitSha: 'abc123def456',
+  isTracking: true,
+  remoteName: 'origin',
+  ...overrides,
+});
