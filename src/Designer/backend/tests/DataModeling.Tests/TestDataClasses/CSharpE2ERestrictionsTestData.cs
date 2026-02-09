@@ -13,6 +13,7 @@ public class CSharpE2ERestrictionsTestData : IEnumerable<object[]>
         yield return ["Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "t1", "string", "[MaxLength(20)]"];
         yield return ["Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "t2", "string", "[MinLength(10)]"];
         yield return ["Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "t2", "string", "[MaxLength(10)]"];
+        yield return ["Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "t2", "string", "[Required]"];
         yield return ["Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "t4", "string", @"[RegularExpression(@""^\d\.\d\.\d$"")]"];
         yield return ["Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "n1", "decimal?", @"[RegularExpression(@""^-?(([0-9]){1}(\.)?){0,10}$"")]"];
         yield return ["Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "n1", "decimal?", "[Range(-100d, 100d)]"];

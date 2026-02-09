@@ -15,11 +15,13 @@ namespace Altinn.App.Models
     [XmlElement("personid", Order = 1)]
     [JsonProperty("personid")]
     [JsonPropertyName("personid")]
+    [Required]
     public string personid { get; set; }
 
     [XmlElement("personidtype", Order = 2)]
     [JsonProperty("personidtype")]
     [JsonPropertyName("personidtype")]
+    [Required]
     public string personidtype { get; set; }
 
     [XmlElement("navn", Order = 3)]
@@ -30,16 +32,19 @@ namespace Altinn.App.Models
     [XmlElement("soeknadsreferense", Order = 4)]
     [JsonProperty("soeknadsreferense")]
     [JsonPropertyName("soeknadsreferense")]
+    [Required]
     public string soeknadsreferense { get; set; }
 
     [XmlElement("vedleggsbeskrivelse", Order = 5)]
     [JsonProperty("vedleggsbeskrivelse")]
     [JsonPropertyName("vedleggsbeskrivelse")]
+    [Required]
     public string vedleggsbeskrivelse { get; set; }
 
     [XmlElement("innsendingsbekreftelse", Order = 6)]
     [JsonProperty("innsendingsbekreftelse")]
     [JsonPropertyName("innsendingsbekreftelse")]
+    [Required]
     public string innsendingsbekreftelse { get; set; }
 
   }
@@ -49,6 +54,7 @@ namespace Altinn.App.Models
     [XmlElement("fornavn", Order = 1)]
     [JsonProperty("fornavn")]
     [JsonPropertyName("fornavn")]
+    [Required]
     public string fornavn { get; set; }
 
     [XmlElement("mellomnavn", Order = 2)]
@@ -59,6 +65,7 @@ namespace Altinn.App.Models
     [XmlElement("etternavn", Order = 3)]
     [JsonProperty("etternavn")]
     [JsonPropertyName("etternavn")]
+    [Required]
     public string etternavn { get; set; }
 
   }

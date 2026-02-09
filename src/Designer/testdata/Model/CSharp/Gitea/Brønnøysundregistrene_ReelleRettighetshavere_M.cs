@@ -51,11 +51,13 @@ namespace Altinn.App.Models
     [XmlElement("tjeneste", Order = 1)]
     [JsonProperty("tjeneste")]
     [JsonPropertyName("tjeneste")]
+    [Required]
     public string tjeneste { get; set; }
 
     [XmlElement("tjenestehandling", Order = 2)]
     [JsonProperty("tjenestehandling")]
     [JsonPropertyName("tjenestehandling")]
+    [Required]
     public string tjenestehandling { get; set; }
 
   }
@@ -165,6 +167,7 @@ namespace Altinn.App.Models
     [XmlElement("organisasjonsnummer", Order = 1)]
     [JsonProperty("organisasjonsnummer")]
     [JsonPropertyName("organisasjonsnummer")]
+    [Required]
     public string organisasjonsnummer { get; set; }
 
     [XmlElement("hfSoekOrganisasjonsnummerFeilkode", Order = 2)]
@@ -386,11 +389,13 @@ namespace Altinn.App.Models
     [XmlElement("stoerrelsesintervall", Order = 1)]
     [JsonProperty("stoerrelsesintervall")]
     [JsonPropertyName("stoerrelsesintervall")]
+    [Required]
     public string stoerrelsesintervall { get; set; }
 
     [XmlElement("grunnlag", Order = 2)]
     [JsonProperty("grunnlag")]
     [JsonPropertyName("grunnlag")]
+    [Required]
     public string grunnlag { get; set; }
 
     [XmlElement("mellomliggendeVirksomhet", Order = 3)]
@@ -453,6 +458,7 @@ namespace Altinn.App.Models
     [XmlElement("navn", Order = 2)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
+    [Required]
     public string navn { get; set; }
 
     [XmlElement("adresse", Order = 3)]
@@ -467,6 +473,7 @@ namespace Altinn.App.Models
     [XmlElement("friAdressetekst1", Order = 1)]
     [JsonProperty("friAdressetekst1")]
     [JsonPropertyName("friAdressetekst1")]
+    [Required]
     public string friAdressetekst1 { get; set; }
 
     [XmlElement("friAdressetekst2", Order = 2)]
@@ -482,6 +489,7 @@ namespace Altinn.App.Models
     [XmlElement("landkode", Order = 4)]
     [JsonProperty("landkode")]
     [JsonPropertyName("landkode")]
+    [Required]
     public string landkode { get; set; }
 
   }
@@ -491,6 +499,7 @@ namespace Altinn.App.Models
     [XmlElement("grunnlag", Order = 1)]
     [JsonProperty("grunnlag")]
     [JsonPropertyName("grunnlag")]
+    [Required]
     public string grunnlag { get; set; }
 
     [XmlElement("mellomliggendeVirksomhet", Order = 2)]
@@ -505,6 +514,7 @@ namespace Altinn.App.Models
     [XmlElement("markedstype", Order = 1)]
     [JsonProperty("markedstype")]
     [JsonPropertyName("markedstype")]
+    [Required]
     public string markedstype { get; set; }
 
     [XmlElement("hfLandnavn", Order = 2)]
@@ -529,11 +539,13 @@ namespace Altinn.App.Models
     [XmlElement("navn", Order = 1)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
+    [Required]
     public string navn { get; set; }
 
     [XmlElement("landkode", Order = 2)]
     [JsonProperty("landkode")]
     [JsonPropertyName("landkode")]
+    [Required]
     public string landkode { get; set; }
 
   }
@@ -543,6 +555,7 @@ namespace Altinn.App.Models
     [XmlElement("registertype", Order = 1)]
     [JsonProperty("registertype")]
     [JsonPropertyName("registertype")]
+    [Required]
     public string registertype { get; set; }
 
     [XmlElement("hfLandnavn", Order = 2)]
@@ -571,16 +584,19 @@ namespace Altinn.App.Models
     [XmlElement("foedselsdato", Order = 1)]
     [JsonProperty("foedselsdato")]
     [JsonPropertyName("foedselsdato")]
+    [Required]
     public string foedselsdato { get; set; }
 
     [XmlElement("fulltNavn", Order = 2)]
     [JsonProperty("fulltNavn")]
     [JsonPropertyName("fulltNavn")]
+    [Required]
     public string fulltNavn { get; set; }
 
     [XmlElement("rolle", Order = 3)]
     [JsonProperty("rolle")]
     [JsonPropertyName("rolle")]
+    [Required]
     public string rolle { get; set; }
 
   }

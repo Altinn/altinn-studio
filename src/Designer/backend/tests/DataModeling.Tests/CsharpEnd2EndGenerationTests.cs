@@ -39,6 +39,10 @@ namespace DataModeling.Tests
         [ClassData(typeof(CSharpE2ERestrictionsTestData))]
         public void Convert_CSharpClass_ShouldContainRestriction(string xsdSchemaPath, string propertyName, string expectedPropertyType, string restrictionString)
         {
+            _testOutput.WriteLine("xsdSchemaPath: " + xsdSchemaPath);
+            _testOutput.WriteLine("propertyName: " + propertyName);
+            _testOutput.WriteLine("expectedPropertyType: " + expectedPropertyType);
+            _testOutput.WriteLine("restrictionString: " + restrictionString);
             Given.That.XsdSchemaLoaded(xsdSchemaPath)
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .And.ConvertedJsonSchemaConvertedToModelMetadata()
@@ -46,6 +50,7 @@ namespace DataModeling.Tests
                 .And.CSharpClassesCompiledToAssembly();
 
             Assert.NotNull(CompiledAssembly);
+            _testOutput.WriteLine(CSharpClasses);
 
             And.PropertyShouldHaveDefinedTypeAndContainAnnotation("Root", propertyName, expectedPropertyType, restrictionString);
         }

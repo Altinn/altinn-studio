@@ -122,6 +122,7 @@ namespace Altinn.App.Models
     [XmlElement("MeldingTilArbeidstilsynet", Order = 1)]
     [JsonProperty("MeldingTilArbeidstilsynet")]
     [JsonPropertyName("MeldingTilArbeidstilsynet")]
+    [Required]
     public string MeldingTilArbeidstilsynet { get; set; }
 
   }
