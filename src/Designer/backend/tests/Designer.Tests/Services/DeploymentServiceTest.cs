@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -162,6 +163,71 @@ namespace Designer.Tests.Services
                 n.EditingContext.Repo == app &&
                 n.Environment == deploymentModel.EnvName &&
                 n.PipelineType == PipelineType.Deploy), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateAsync_WithW3cActivity_SetsAlwaysSamplingTag()
+        {
+            // Arrange
+            const string Org = "ttd";
+            const string App = "test-app";
+            DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
+
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
+                .ReturnsAsync(false);
+
+            _releaseRepository.Setup(r => r.GetSucceededReleaseFromDb(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>())).ReturnsAsync(GetReleases("updatedRelease.json").First());
+
+            _applicationInformationService.Setup(ais => ais.UpdateApplicationInformationAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(
+                It.IsAny<QueueBuildParameters>(),
+                It.IsAny<int>())).ReturnsAsync(GetBuild());
+
+            _deploymentRepository.Setup(r => r.Create(
+                It.IsAny<DeploymentEntity>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
+            _deploymentRepository.Setup(r => r.Get(
+                Org,
+                App,
+                It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == Org && d.App == App));
+
+            DeploymentService deploymentService = new(
+                GetAzureDevOpsSettings(),
+                _azureDevOpsBuildClient.Object,
+                _httpContextAccessor.Object,
+                _deploymentRepository.Object,
+                _deployEventRepository.Object,
+                _releaseRepository.Object,
+                _environementsService.Object,
+                _applicationInformationService.Object,
+                _deploymentLogger.Object,
+                _mediatrMock.Object,
+                _generalSettings,
+                _fakeTimeProvider,
+                _gitOpsConfigurationManager.Object,
+                _featureManager.Object,
+                _runtimeGatewayClient.Object,
+                _slackClient.Object,
+                _alertsSettings);
+
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(Org, App, "testUser", "dummyToken");
+            using var activity = new Activity("test-create");
+            activity.SetIdFormat(ActivityIdFormat.W3C);
+            activity.Start();
+
+            // Act
+            await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
+
+            // Assert
+            Assert.Equal("always", activity.GetTagItem("altinn.studio.sampling"));
         }
 
         [Theory]

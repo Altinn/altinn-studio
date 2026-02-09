@@ -27,6 +27,10 @@ service:
 
 environmentVariables:
   dev:
+    - name: OTEL_SERVICE_NAME
+      value: studio-designer
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: http://otel-router.observability.svc.cluster.local:4317
     - name: ASPNETCORE_ENVIRONMENT
       value: Staging
     - name: ASPNETCORE_URLS
@@ -74,7 +78,21 @@ environmentVariables:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: aiConnectionString
+    - name: POSTHOG_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: postHogApiKey
+    - name: POSTHOG_API_HOST
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: postHogApiHost
   staging:
+    - name: OTEL_SERVICE_NAME
+      value: studio-designer
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: http://otel-router.observability.svc.cluster.local:4317
     - name: ASPNETCORE_ENVIRONMENT
       value: Staging
     - name: ASPNETCORE_URLS
@@ -122,7 +140,21 @@ environmentVariables:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: aiConnectionString
+    - name: POSTHOG_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: postHogApiKey
+    - name: POSTHOG_API_HOST
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: postHogApiHost
   prod:
+    - name: OTEL_SERVICE_NAME
+      value: studio-designer
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: http://otel-router.observability.svc.cluster.local:4317
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
     - name: ASPNETCORE_URLS
@@ -168,6 +200,16 @@ environmentVariables:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: aiConnectionString
+    - name: POSTHOG_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: postHogApiKey
+    - name: POSTHOG_API_HOST
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: postHogApiHost
 
 dbMigrationsEnvironmentVariablesSecretName: altinn-designer-db-migrations-secret
 
@@ -231,4 +273,4 @@ lifecycle:
         - -c
         - >
           mkdir -p wwwroot/designer/config &&
-          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\"}" > wwwroot/designer/config/env.json
+          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\", \"postHogApiKey\": \"${POSTHOG_API_KEY}\", \"postHogApiHost\": \"${POSTHOG_API_HOST}\"}" > wwwroot/designer/config/env.json

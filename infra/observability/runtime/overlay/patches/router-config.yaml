@@ -40,13 +40,13 @@ spec:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: [resourcedetection/aks, k8sattributes, resource/environment, batch]
+          processors: [resourcedetection/aks, k8sattributes, resource/environment, transform/drop, batch]
           exporters: [loadbalancing/traces]
         metrics:
           receivers: [otlp]
-          processors: [resourcedetection/aks, k8sattributes, resource/environment, batch]
+          processors: [resourcedetection/aks, k8sattributes, resource/environment, transform/drop, batch]
           exporters: [loadbalancing/metrics]
         logs:
           receivers: [otlp]
-          processors: [filter/logs, resourcedetection/aks, k8sattributes, resource/environment, batch]
+          processors: [filter/logs, resourcedetection/aks, k8sattributes, resource/environment, transform/drop, batch]
           exporters: [loadbalancing/logs]
