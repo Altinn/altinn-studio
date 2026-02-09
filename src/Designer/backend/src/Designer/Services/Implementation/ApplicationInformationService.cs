@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.ResourceRegistry.Core.Models;
+using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Implementation.Validation;
@@ -54,7 +56,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         };
 
         /// <inheritdoc />
-        public async Task<ActionResult> UpdateApplicationInformationAsync(
+        public async Task UpdateApplicationInformationAsync(
             string org,
             string app,
             string shortCommitId,
@@ -63,7 +65,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CancellationToken cancellationToken = default
         )
         {
-            System.Console.WriteLine($"Updating application information");
             cancellationToken.ThrowIfCancellationRequested();
             await _applicationMetadataService.UpdateApplicationMetadataInStorageAsync(
                 org,
@@ -92,20 +93,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await Task.WhenAll(new List<Task> { updateAuthPolicyTask, updateTextResources });
 
-            // Publish service resource after policy
-            System.Console.WriteLine(
-                $"Publishing service resource for {org}/{app}/{shortCommitId}"
-            );
             // TODO: publish policy with `PublishServiceResource` policyPath, requires renaming of rules like above probably
             if (envName == "tt02" && publishServiceResource)
             {
-                var result = await PublishAltinnAppServiceResource(org, app, shortCommitId, envName);
-                return result;
+                await PublishAltinnAppServiceResource(org, app, shortCommitId, envName);
             }
-            return new CreatedResult();
         }
 
-        private async Task<ActionResult> PublishAltinnAppServiceResource(
+        private async Task PublishAltinnAppServiceResource(
             string org,
             string app,
             string shortCommitId,
@@ -136,14 +131,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 envName
             );
             if (
-                publishResponse is StatusCodeResult statusCodeResult
-                && statusCodeResult.StatusCode == 201
-            )
+                publishResponse is not StatusCodeResult { StatusCode: 201 or 200 })
             {
-                return new CreatedResult();
+                if (publishResponse is ObjectResult objectResult)
+                {
+                    if (objectResult.Value is ValidationProblemDetails validationProblemDetails)
+                    {
+                        var message = string.Join(". ", validationProblemDetails.Errors.Values.SelectMany(v => v));
+                        throw new ResourceRegistryPublishingException(message ?? string.Empty);
+                    }
+                }
+                throw new ResourceRegistryPublishingException();
             }
-
-            return publishResponse;
         }
     }
 }

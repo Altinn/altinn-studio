@@ -747,6 +747,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 return new StatusCodeResult(201);
             }
+            else if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return new StatusCodeResult(200);
+            }
             else if (response.StatusCode == HttpStatusCode.Conflict)
             {
                 return new StatusCodeResult(409);

@@ -36,9 +36,6 @@ export const Deploy = ({
     org,
     app,
     true,
-    {
-      hideDefaultError: true,
-    },
   );
 
   if (permissionsIsPending) {
@@ -60,30 +57,10 @@ export const Deploy = ({
   }
 
   const startDeploy = () =>
-    mutate(
-      {
-        tagName: selectedImageTag,
-        envName,
-      },
-      {
-        onError: (): void => {
-          toast.error(() => (
-            <div>
-              <Trans
-                i18nKey={'app_deployment.technical_error_1'}
-                components={{
-                  a: (
-                    <Link href='/info/contact' inverted={true}>
-                      {' '}
-                    </Link>
-                  ),
-                }}
-              />
-            </div>
-          ));
-        },
-      },
-    );
+    mutate({
+      tagName: selectedImageTag,
+      envName,
+    });
 
   const deployInProgress: boolean = isPendingCreateDeployment || isDeploymentInProgress;
 

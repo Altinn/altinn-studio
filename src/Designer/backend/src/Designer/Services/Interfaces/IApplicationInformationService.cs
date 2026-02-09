@@ -19,7 +19,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="envName">Environment Name</param>
         /// <param name="publishServiceResource">Publish service resource</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        Task<ActionResult> UpdateApplicationInformationAsync(
+        Task UpdateApplicationInformationAsync(
             string org,
             string app,
             string shortCommitId,
