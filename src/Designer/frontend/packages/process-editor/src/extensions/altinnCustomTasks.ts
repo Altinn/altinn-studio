@@ -232,72 +232,72 @@ export const altinnCustomTasks = {
           isMany: true,
           type: 'EnvironmentConfig',
           xml: {
-            serialize: 'property'
-          }
+            serialize: 'property',
+          },
         },
         {
           name: 'receiver',
           isMany: true,
           type: 'EnvironmentConfig',
           xml: {
-            serialize: 'property'
-          }
+            serialize: 'property',
+          },
         },
         {
           name: 'process',
           isMany: true,
           type: 'EnvironmentConfig',
           xml: {
-            serialize: 'property'
-          }
+            serialize: 'property',
+          },
         },
         {
           name: 'standard',
           isMany: true,
           type: 'EnvironmentConfig',
           xml: {
-            serialize: 'property'
-          }
+            serialize: 'property',
+          },
         },
         {
           name: 'typeVersion',
           isMany: true,
           type: 'EnvironmentConfig',
           xml: {
-            serialize: 'property'
-          }
+            serialize: 'property',
+          },
         },
         {
           name: 'type',
           isMany: true,
           type: 'EnvironmentConfig',
           xml: {
-            serialize: 'property'
-          }
+            serialize: 'property',
+          },
         },
         {
           name: 'securityLevel',
           isMany: true,
           type: 'EnvironmentConfig',
           xml: {
-            serialize: 'property'
-          }
+            serialize: 'property',
+          },
         },
         {
           name: 'dpfShipmentType',
           isMany: true,
           type: 'EnvironmentConfig',
           xml: {
-            serialize: 'property'
-          }
+            serialize: 'property',
+          },
         },
         {
           name: 'dataTypes',
           isMany: true,
           type: 'EFormidlingDataTypes',
           xml: {
-            serialize: 'property'
-          }
+            serialize: 'property',
+          },
         },
       ],
     },
