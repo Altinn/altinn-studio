@@ -3,31 +3,44 @@ import { redirect } from 'react-router-dom';
 import { GlobalData } from 'nextsrc/core/globalData';
 import { ServerStatusCodes } from 'nextsrc/core/serverStatusCodes';
 import { InstanceApi } from 'nextsrc/features/instantiate/api';
-import { InstantiateRoutes } from 'nextsrc/features/instantiate/routes';
+import { instantiateRouteBuilders } from 'nextsrc/features/instantiate/routes';
+import { IInstance } from 'src/types/shared';
 
-type EntryAction = () => Promise<Response>;
-type ShowTypes = 'select-instance' | 'new-instance';
+function isStateless() {
+  const entryType = GlobalData.applicationMetadata.onEntry?.show;
+  return entryType !== 'new-instance' && entryType !== 'select-instance';
+}
 
 export async function entryRedirectLoader(): Promise<Response> {
   const entryType = GlobalData.applicationMetadata.onEntry?.show;
-  const action = entryType && entryActions[entryType];
-  return action ? action() : redirect(InstantiateRoutes.stateless);
+
+  if (isStateless()) {
+    return handleStateless();
+  }
+
+  if (entryType === 'new-instance') {
+    const [instanceOwnerPartyId, instanceGuid] = (await createNewInstance()).id.split('/');
+    return redirect(instantiateRouteBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
+  }
+
+  if (entryType === 'select-instance') {
+    return redirect(instantiateRouteBuilders.instanceSelection({}));
+  }
+
+  throw new Error();
 }
 
-const entryActions: Record<ShowTypes, EntryAction> = {
-  'select-instance': selectInstance,
-  'new-instance': createNewInstance,
-};
-
-async function selectInstance(): Promise<Response> {
-  return redirect(InstantiateRoutes.instanceSelection);
-}
-
-async function createNewInstance(): Promise<Response> {
+async function createNewInstance(): Promise<IInstance> {
   const profile = GlobalData.userProfile;
   if (!profile) {
     throw new Response('User profile not available', { status: ServerStatusCodes.Unauthorized });
   }
-  const instance = await InstanceApi.create(profile.partyId);
-  return redirect(InstantiateRoutes.forInstance(instance));
+  return await InstanceApi.create(profile.partyId);
+}
+
+// FIXME: Placeholder
+function handleStateless() {
+  // TODO: find page to redirect to and handle anonymous
+  // fetch pageid
+  return redirect(instantiateRouteBuilders.stateless({ pageId: '' })); // TODO: find out where to go
 }
