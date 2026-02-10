@@ -9,12 +9,13 @@ public static class GenerateEndpoints
         app.MapPost("/generate", async (
             HttpRequest request,
             IMultipartParserService parser,
-            IPdfGeneratorService pdfGenerator) =>
+            IPdfGeneratorService pdfGenerator,
+            CancellationToken cancellationToken) =>
         {
             Models.ParsedFormData parsed;
             try
             {
-                parsed = await parser.ParseAsync(request);
+                parsed = await parser.ParseAsync(request, cancellationToken);
             }
             catch (InvalidOperationException ex)
             {
@@ -26,7 +27,7 @@ public static class GenerateEndpoints
                 return Results.BadRequest(new { error = "At least one file is required." });
             }
 
-            var pdfBytes = await pdfGenerator.GeneratePdfAsync(DateTime.UtcNow);
+            var pdfBytes = await pdfGenerator.GeneratePdfAsync(DateTime.UtcNow, cancellationToken);
             return Results.File(pdfBytes, "application/pdf", "generated.pdf");
         })
         .DisableAntiforgery();

@@ -11,12 +11,13 @@ public static class GenerateAsyncEndpoints
             HttpRequest request,
             IMultipartParserService parser,
             IPdfGenerationQueue queue,
-            ICallbackUrlValidator validator) =>
+            ICallbackUrlValidator validator,
+            CancellationToken cancellationToken) =>
         {
             ParsedFormData parsed;
             try
             {
-                parsed = await parser.ParseAsync(request);
+                parsed = await parser.ParseAsync(request, cancellationToken);
             }
             catch (InvalidOperationException ex)
             {

@@ -14,10 +14,10 @@ public sealed class MultipartParserService(IOptions<UploadOptions> uploadOptions
         "application/json",
     };
 
-    public async Task<ParsedFormData> ParseAsync(HttpRequest request)
+    public async Task<ParsedFormData> ParseAsync(HttpRequest request, CancellationToken cancellationToken = default)
     {
         var limits = uploadOptions.Value;
-        var form = await request.ReadFormAsync();
+        var form = await request.ReadFormAsync(cancellationToken);
         var files = new List<UploadedFile>();
         string? callbackUrl = form["callback-url"].FirstOrDefault();
         long totalBytes = 0;
@@ -44,7 +44,7 @@ public sealed class MultipartParserService(IOptions<UploadOptions> uploadOptions
             }
 
             using var ms = new MemoryStream();
-            await file.CopyToAsync(ms);
+            await file.CopyToAsync(ms, cancellationToken);
             files.Add(new UploadedFile(file.FileName, file.ContentType, ms.ToArray()));
         }
 

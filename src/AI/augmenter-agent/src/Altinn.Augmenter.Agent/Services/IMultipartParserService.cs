@@ -4,5 +4,5 @@ namespace Altinn.Augmenter.Agent.Services;
 
 public interface IMultipartParserService
 {
-    Task<ParsedFormData> ParseAsync(HttpRequest request);
+    Task<ParsedFormData> ParseAsync(HttpRequest request, CancellationToken cancellationToken = default);
 }
