@@ -9,14 +9,14 @@ import { StudioButton, StudioDialog, StudioHeading } from '@studio/components';
 import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';
-import classes from './OptionListSelector.module.css';
+import classes from './OptionListFromAppLibrarySelector.module.css';
 
 type OptionListSelectorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
   'component' | 'handleComponentChange'
 >;
 
-export function OptionListSelector({
+export function OptionListFromAppLibrarySelector({
   component,
   handleComponentChange,
 }: OptionListSelectorProps): React.ReactNode {

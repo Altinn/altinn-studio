@@ -167,7 +167,7 @@ function renderOptionTabs<T extends ComponentType.Checkboxes | ComponentType.Rad
 }: RenderOptionTabsProps<T> = {}) {
   return renderWithProviders(
     <OptionTabs
-      optionListIdsFromLibrary={optionListIdsFromLibrary}
+      codeListIdContextData={{ idsFromAppLibrary: optionListIdsFromLibrary, orgName: org }}
       handleComponentChange={handleComponentChange}
       component={{
         ...mockComponent,
