@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useMutation } from '@tanstack/react-query';
 import { GlobalData } from 'nextsrc/core/globalData';
 import { InstanceApi } from 'nextsrc/features/instantiate/api';
 import classes from 'nextsrc/features/instantiate/pages/instance-selection/InstanceSelectionPage.module.css';
@@ -9,22 +10,41 @@ import { instantiateRouteBuilders } from 'nextsrc/features/instantiate/routes';
 export const InstanceSelectionPage = () => {
   const navigate = useNavigate();
 
+  const createInstance = useMutation({
+    mutationFn: async () => {
+      const profile = GlobalData.userProfile;
+      if (!profile) {
+        throw new Error('no profile');
+      }
+      return InstanceApi.create(profile.partyId);
+    },
+    onSuccess: (newInstance) => {
+      const [instanceOwnerPartyId, instanceGuid] = newInstance.id.split('/');
+
+      if (!newInstance?.process?.currentTask?.elementId) {
+        throw new Error('no current task element ID. Handle it.');
+      }
+      navigate(
+        instantiateRouteBuilders.task({
+          instanceOwnerPartyId,
+          instanceGuid,
+          taskId: newInstance.process.currentTask.elementId,
+        }),
+      );
+    },
+  });
+
   return (
     <div className={classes.container}>
       <h1>Instance selection</h1>
 
+      {createInstance.error && <p>Failed to create instance: {createInstance.error.message}</p>}
+
       <button
-        onClick={async () => {
-          const profile = GlobalData.userProfile;
-          if (!profile) {
-            throw new Error('no profile');
-          }
-          const newInstance = await InstanceApi.create(profile.partyId);
-          const [instanceOwnerPartyId, instanceGuid] = newInstance.id.split('/');
-          navigate(instantiateRouteBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
-        }}
+        onClick={() => createInstance.mutate()}
+        disabled={createInstance.isPending}
       >
-        New instance
+        {createInstance.isPending ? 'Creating...' : 'New instance'}
       </button>
     </div>
   );

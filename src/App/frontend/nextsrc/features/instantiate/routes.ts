@@ -5,6 +5,8 @@ export const instantiateRoutes = {
   root: '/',
   partySelection: '/party-selection',
   instance: '/instance/:instanceOwnerPartyId/:instanceGuid',
+  task: '/instance/:instanceOwnerPartyId/:instanceGuid/:taskId',
+  page: '/instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:pageId',
   instanceSelection: '/instance-selection',
   stateless: '/:pageId',
 } as const;

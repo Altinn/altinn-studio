@@ -1,9 +1,18 @@
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
-import type { IProfile } from 'src/types/shared';
+import type { IFooterLayout } from 'src/features/footer/types';
+import type { ILayoutSets } from 'src/features/form/layoutSets/types';
+import type { ITextResourceResult } from 'src/features/language/textResources';
+import type { IAppLanguage, IApplicationSettings, IProfile } from 'src/types/shared';
 
 type AltinnAppGlobalData = {
   applicationMetadata: ApplicationMetadata;
+  footer: IFooterLayout;
+  layoutSets: ILayoutSets;
+  frontendSettings: IApplicationSettings;
+  availableLanguages: IAppLanguage[];
   userProfile?: IProfile;
+  returnUrl?: string;
+  textResources?: ITextResourceResult;
 };
 
 interface AltinnGlobalWindowData {
@@ -27,6 +36,10 @@ export class GlobalData {
 
   public static get userProfile(): IProfile | undefined {
     return GlobalData.typedWindow.altinnAppGlobalData.userProfile;
+  }
+
+  public static get layoutSets(): ILayoutSets | undefined {
+    return GlobalData.typedWindow.altinnAppGlobalData.layoutSets;
   }
 
   public static get basename(): string {

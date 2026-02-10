@@ -1,20 +1,24 @@
-import { apiClient } from 'nextsrc/core/api';
+import { axiosInstance } from 'nextsrc/core/axiosInstance';
 
-import type { IInstance, IParty } from 'src/types/shared';
+import type { IInstance, IParty, IProcess } from 'src/types/shared';
+
+interface IInstanceWithProcess extends IInstance {
+  process: IProcess;
+}
 
 export class InstanceApi {
-  public static async create(partyId: number, language = 'nb'): Promise<IInstance> {
+  public static async create(partyId: number, language = 'nb'): Promise<IInstanceWithProcess> {
     const params = new URLSearchParams({
       instanceOwnerPartyId: String(partyId),
       language,
     });
-    const { data } = await apiClient.post<IInstance>(`/instances?${params}`);
+    const { data } = await axiosInstance.post<IInstanceWithProcess>(`/instances?${params}`);
     return data;
   }
 
   public static async getPartiesAllowedToInstantiate() {
     try {
-      const parties = await apiClient
+      const parties = await axiosInstance
         .get<IParty[]>('/api/v1/parties?allowedtoinstantiatefilter=true')
         .then((response) => response.data);
 
