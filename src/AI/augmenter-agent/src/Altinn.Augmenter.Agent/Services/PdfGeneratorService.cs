@@ -9,26 +9,11 @@ public sealed class PdfGeneratorService(
     IConfiguration configuration,
     IOptions<PdfGenerationOptions> pdfOptions) : IPdfGeneratorService
 {
-    private const string TypstTemplate = """
-        #set page(paper: "a4", margin: 2cm)
-        #set text(size: 14pt)
-
-        #text(size: 20pt, weight: "bold", fill: rgb("#1565C0"))[Altinn Augmenter Agent]
-
-        #v(1cm)
-
-        #text(size: 12pt)[Generated: {0} UTC]
-
-        #v(1fr)
-
-        #align(center)[
-          #context counter(page).display("1 of 1", both: true)
-        ]
-        """;
-
     public async Task<byte[]> GeneratePdfAsync(DateTime timestamp, CancellationToken cancellationToken = default)
     {
-        var typContent = string.Format(TypstTemplate, timestamp.ToString("yyyy-MM-dd HH:mm:ss"));
+        var templatePath = Path.Combine(AppContext.BaseDirectory, pdfOptions.Value.TemplatePath);
+        var template = await File.ReadAllTextAsync(templatePath, cancellationToken);
+        var typContent = string.Format(template, timestamp.ToString("yyyy-MM-dd HH:mm:ss"));
 
         var tempDir = Path.Combine(Path.GetTempPath(), "augmenter-agent", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempDir);

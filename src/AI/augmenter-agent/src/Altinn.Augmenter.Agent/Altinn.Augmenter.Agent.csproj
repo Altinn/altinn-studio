@@ -8,4 +8,8 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Include="pdf-templates\**\*.typ" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
