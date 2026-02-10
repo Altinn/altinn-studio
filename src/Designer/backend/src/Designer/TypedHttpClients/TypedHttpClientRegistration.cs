@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
+using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
@@ -61,6 +62,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 <IAltinnStorageTextResourceClient, AltinnStorageTextResourceClient>();
             services.AddAuthenticatedAltinnPlatformTypedHttpClient
                 <IAltinnStorageInstancesClient, AltinnStorageInstancesClient>();
+            services.AddAuthenticatedAltinnPlatformTypedHttpClient
+                <IAltinnNotificationClient, AltinnNotificationClient>();
             services.AddKubernetesWrapperTypedHttpClient();
             services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();

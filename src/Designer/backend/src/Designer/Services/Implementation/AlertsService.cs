@@ -8,6 +8,8 @@ using Altinn.Studio.Designer.Hubs.AlertsUpdate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification;
+using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Microsoft.AspNetCore.SignalR;
@@ -20,6 +22,7 @@ internal sealed class AlertsService(
     IHubContext<AlertsUpdatedHub, IAlertsUpdateClient> alertsUpdatedHubContext,
     ISlackClient slackClient,
     AlertsSettings alertsSettings,
+    IAltinnNotificationClient altinnNotificationsClient,
     GeneralSettings generalSettings,
     ILogger<AlertsService> logger
     ) : IAlertsService
@@ -70,12 +73,72 @@ internal sealed class AlertsService(
                     appInsightsUrl = new Uri($"https://{generalSettings.HostName}/designer/api/v1/admin/metrics/{org}/{environment.Name}/app/errors/logs?{queryString}");
                 }
 
+                if (!String.IsNullOrEmpty(alertsSettings.Email))
+                {
+                    await altinnNotificationsClient.SendEmailNotification($"{alert.Id}-email", alertsSettings.Email, "Alert fired", FormatEmailBody(org, environment, alert.FiringApps, alert.Name, alert.URL, appInsightsUrl), EmailContentType.Html);
+                }
+                if (!String.IsNullOrEmpty(alertsSettings.Phone))
+                {
+                    await altinnNotificationsClient.SendSmsNotification($"{alert.Id}-sms", alertsSettings.Phone, FormatSmsBody(org, environment, alert.FiringApps, alert.Name, alert.URL, appInsightsUrl));
+                }
                 await SendToSlackAsync(org, environment, alert.FiringApps, alert.Name, alert.URL, appInsightsUrl, cancellationToken);
 
             })
         );
 
         await alertsUpdatedHubContext.Clients.Group(org).AlertsUpdated(new AlertsUpdated(environment.Name));
+    }
+
+    private string FormatSmsBody(
+        string org,
+        AltinnEnvironment environment,
+        List<string> apps,
+        string alertName,
+        Uri grafanaUrl,
+        Uri? appInsightsUrl
+    )
+    {
+        string studioEnv = generalSettings.OriginEnvironment;
+        string appsFormatted = string.Join(", ", apps);
+
+        return $@"❌ {alertName}
+Org: {org}
+Env: {environment.Name}
+Apps: {appsFormatted}
+StudioEnv: {studioEnv}";
+    }
+
+    private string FormatEmailBody(
+        string org,
+        AltinnEnvironment environment,
+        List<string> apps,
+        string alertName,
+        Uri grafanaUrl,
+        Uri? appInsightsUrl
+    )
+    {
+        string studioEnv = generalSettings.OriginEnvironment;
+        string appsFormatted = string.Join(", ", apps);
+
+        return $@"
+<h1>❌ {alertName}</h1>
+<table style=""width: 100%; text-align: center;"">
+    <tbody>
+        <tr>
+            <td>Org: {org}</td>
+            <td>Env: {environment.Name}</td>
+            <td>Apps: {appsFormatted}</td>
+            <td>StudioEnv: {studioEnv}</td>
+        </tr>
+        <tr>
+            <td colspan=""2""><a href=""{grafanaUrl}"">Grafana</a></td>
+            <td colspan=""2""><a href=""{appInsightsUrl}"">Application Insights</a></td>
+        </tr>
+        <tr>
+        </tr>
+    </tbody>
+</table>
+";
     }
 
     private async Task SendToSlackAsync(string org, AltinnEnvironment environment, List<string> apps, string alertName, Uri grafanaUrl, Uri? appInsightsUrl, CancellationToken cancellationToken)
