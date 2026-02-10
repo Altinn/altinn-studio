@@ -30,13 +30,14 @@ This refactor is about removing complexity. Here's what goes away:
 
 ## Phase Summary
 
-| Phase                          | Name              | Description                          |
-| ------------------------------ | ----------------- | ------------------------------------ |
-| [1](./01-core-service.md)      | Backend Service   | Core service with layout analysis    |
-| [2](./02-endpoints.md)         | Backend Endpoints | Instance and stateless endpoints     |
-| [3](./03-frontend-provider.md) | Frontend Provider | New simple provider, delete old code |
-| [4](./04-subform-support.md)   | Subform Support   | Query params for subforms            |
-| [5](./05-testing.md)           | Testing           | E2E tests to verify everything works |
+| Phase                            | Name              | Description                            |
+| -------------------------------- | ----------------- | -------------------------------------- |
+| [1](./01-core-service.md)        | Backend Service   | Core service with layout analysis      |
+| [1.1](./01.1-parity-addendum.md) | Parity Addendum   | Contract, compatibility, risk controls |
+| [2](./02-endpoints.md)           | Backend Endpoints | Instance and stateless endpoints       |
+| [3](./03-frontend-provider.md)   | Frontend Provider | New simple provider, delete old code   |
+| [4](./04-subform-support.md)     | Subform Support   | Query params for subforms              |
+| [5](./05-testing.md)             | Testing           | E2E tests to verify everything works   |
 
 ---
 
@@ -192,6 +193,7 @@ This is a breaking change. No feature flags, no gradual rollout.
 - Implement and test backend endpoints
 - Frontend continues to work with old approach
 - Can manually test new endpoints
+- Implement the [parity addendum](./01.1-parity-addendum.md) before deleting frontend providers
 
 ### Phase 3: Frontend Swap
 
@@ -229,13 +231,15 @@ These providers remain because they handle mutations or real-time state:
 ```
 Phase 1 (Backend Service)
     │
-    └──► Phase 2 (Endpoints)
+    └──► Phase 1.1 (Parity Addendum)
               │
-              └──► Phase 3 (Frontend Provider)
+              └──► Phase 2 (Endpoints)
                         │
-                        └──► Phase 4 (Subform Support)
+                        └──► Phase 3 (Frontend Provider)
                                   │
-                                  └──► Phase 5 (Testing)
+                                  └──► Phase 4 (Subform Support)
+                                            │
+                                            └──► Phase 5 (Testing)
 ```
 
 Each phase must be completed before the next begins.
@@ -246,7 +250,8 @@ Each phase must be completed before the next begins.
 
 1. Read the [research document](../form-bootstrap-endpoint.md) for context
 2. Implement [Phase 1](./01-core-service.md) - Backend Service
-3. Implement [Phase 2](./02-endpoints.md) - Endpoints
-4. Implement [Phase 3](./03-frontend-provider.md) - Frontend (the big one)
-5. Implement [Phase 4](./04-subform-support.md) - Subforms
-6. Run [Phase 5](./05-testing.md) - E2E tests
+3. Implement [Phase 1.1](./01.1-parity-addendum.md) - Parity and contract requirements
+4. Implement [Phase 2](./02-endpoints.md) - Endpoints
+5. Implement [Phase 3](./03-frontend-provider.md) - Frontend (the big one)
+6. Implement [Phase 4](./04-subform-support.md) - Subforms
+7. Run [Phase 5](./05-testing.md) - E2E + contract/perf verification

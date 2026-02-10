@@ -10,6 +10,18 @@ Create the backend service that:
 
 ---
 
+## Read Before Implementation
+
+This phase is constrained by [Phase 01.1 parity addendum](./01.1-parity-addendum.md).
+
+Key constraints:
+
+- Do not optimize for provider deletion before compatibility contracts are defined.
+- Response contract must support frontend parity requirements.
+- Ignore layout quirks as a migration concern in this major version.
+
+---
+
 ## Tasks
 
 ### 1.1 Create Response Models
@@ -584,6 +596,8 @@ services.AddTransient<IFormBootstrapService, FormBootstrapService>();
 - [ ] Layout analysis finds optionLabel expressions
 - [ ] Service loads all data in parallel where possible
 - [ ] Service handles missing data gracefully (logs warning, continues)
+- [ ] Service contract supports parity requirements from Phase 01.1
+- [ ] Service behavior is explicitly documented for PDF/stateless/subform gating
 
 ---
 
