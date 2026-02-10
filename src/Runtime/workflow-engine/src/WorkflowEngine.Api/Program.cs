@@ -20,7 +20,7 @@ builder.Services.AddWorkflowEngineHost();
 builder.Services.AddTelemetry();
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer<ApiKeyOpenApiTransformer>());
 builder.Services.AddApiKeyAuthentication();
-builder.Services.AddDbRepository(dbConnectionString);
+builder.Services.AddDbRepository(dbConnectionString, enableSensitiveDataLogging: builder.Environment.IsDevelopment());
 builder.Services.AddEngineHealthChecks();
 builder.Services.AddHttpContextAccessor();
 builder.Services.ConfigureHttpJsonOptions(options =>

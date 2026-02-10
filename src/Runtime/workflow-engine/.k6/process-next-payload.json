@@ -5,6 +5,7 @@
         "userIdOrOrgNumber": "1337",
         "language": "nb"
     },
+  "lockToken": "...",
     "steps": [
         { "command": { "type": "app", "commandKey": "ProcessTaskEnd" } },
         { "command": { "type": "app", "commandKey": "CommonTaskFinalization" } },

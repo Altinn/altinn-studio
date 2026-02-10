@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
@@ -13,13 +14,18 @@ public static class ServiceCollectionExtensions
         /// <summary>
         /// Adds the database-backed repository for the workflow engine.
         /// </summary>
-        public IServiceCollection AddDbRepository(string connectionString)
+        public IServiceCollection AddDbRepository(string connectionString, bool enableSensitiveDataLogging = false)
         {
             ArgumentException.ThrowIfNullOrEmpty(connectionString);
 
             services.AddTransient<IEngineRepository, EnginePgRepository>();
             services.AddDbContext<EngineDbContext>(
-                options => options.UseNpgsql(connectionString),
+                options =>
+                {
+                    options.UseNpgsql(connectionString);
+                    if (enableSensitiveDataLogging)
+                        options.EnableSensitiveDataLogging();
+                },
                 contextLifetime: ServiceLifetime.Transient,
                 optionsLifetime: ServiceLifetime.Singleton
             );

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace WorkflowEngine.Models;
 
 public sealed record Workflow : PersistentItem
@@ -8,6 +10,7 @@ public sealed record Workflow : PersistentItem
     public required IReadOnlyList<Step> Steps { get; init; }
 
     public DateTimeOffset? ExecutionStartedAt { get; set; }
+    public ActivityContext? EngineTraceContext { get; set; }
 
     public static Workflow FromRequest(EngineRequest engineRequest) =>
         new()

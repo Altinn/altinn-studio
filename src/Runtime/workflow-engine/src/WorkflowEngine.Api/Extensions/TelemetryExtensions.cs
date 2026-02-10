@@ -28,6 +28,23 @@ internal static class TelemetryExtensions
             );
 
         /// <summary>
+        /// Starts a new activity with the specified name, kind, parent context, and optional tags.
+        /// </summary>
+        public Activity? StartActivity(
+            string name,
+            ActivityKind kind,
+            ActivityContext parentContext,
+            IEnumerable<(string tag, object? value)>? tags = null
+        ) =>
+            source.StartActivity(
+                name,
+                kind,
+                parentContext: parentContext,
+                links: null,
+                tags: tags?.Select(t => new KeyValuePair<string, object?>(t.tag, t.value))
+            );
+
+        /// <summary>
         /// Starts a new root activity with the specified name and optional kind and tags.
         /// If an activity context is available, the new activity will be linked to it (but it will not be a child of it).
         /// </summary>
@@ -49,7 +66,7 @@ internal static class TelemetryExtensions
             var rootContext = new ActivityContext(
                 traceId: ActivityTraceId.CreateRandom(),
                 spanId: default,
-                traceFlags: default
+                traceFlags: ActivityTraceFlags.Recorded
             );
 
             return source.StartActivity(

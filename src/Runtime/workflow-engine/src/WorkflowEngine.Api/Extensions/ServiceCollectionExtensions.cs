@@ -34,7 +34,14 @@ internal static class ServiceCollectionExtensions
             if (!services.IsConfigured<AppCommandSettings>())
                 services.ConfigureAppCommand(appCommandConfigSection);
 
-            services.AddHttpClient();
+            services
+                .AddHttpClient()
+                .ConfigureHttpClientDefaults(builder =>
+                {
+                    builder.ConfigurePrimaryHttpMessageHandler(() =>
+                        new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) }
+                    );
+                });
             services.AddSingleton<ConcurrencyLimiter>(sp =>
             {
                 var settings = sp.GetRequiredService<IOptions<EngineSettings>>().Value;
@@ -78,10 +85,16 @@ internal static class ServiceCollectionExtensions
                 {
                     builder
                         .AddMeter(Telemetry.ServiceName)
+                        .AddMeter("Microsoft.EntityFrameworkCore")
                         .AddRuntimeInstrumentation()
                         .AddHttpClientInstrumentation()
                         .AddAspNetCoreInstrumentation()
-                        .AddOtlpExporter();
+                        .AddOtlpExporter(
+                            (_, reader) =>
+                            {
+                                reader.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 10_000;
+                            }
+                        );
                 });
 
             services.AddLogging(logging =>

@@ -9,12 +9,32 @@ internal partial class Engine
 {
     private static Activity? StartMainLoopActivity() => Telemetry.Source.StartActivity("Engine.MainLoop");
 
-    private static Activity? StartProcessWorkflowActivity(Workflow workflow) =>
-        Telemetry.Source.StartLinkedRootActivity(
+    private static Activity? StartProcessWorkflowActivity(Workflow workflow)
+    {
+        var tags = workflow.GetActivityTags();
+
+        // Subsequent iterations: child of the original ProcessWorkflow span
+        if (workflow.EngineTraceContext is { } existingContext)
+        {
+            return Telemetry.Source.StartActivity(
+                "Engine.ProcessWorkflow",
+                ActivityKind.Internal,
+                parentContext: existingContext,
+                tags: tags
+            );
+        }
+
+        // First iteration: create a new linked root trace for this workflow
+        var activity = Telemetry.Source.StartLinkedRootActivity(
             "Engine.ProcessWorkflow",
             additionalLinks: Telemetry.ParseSourceContext(workflow.TraceContext),
-            tags: workflow.GetActivityTags()
+            tags: tags
         );
+
+        workflow.EngineTraceContext = activity?.Context;
+
+        return activity;
+    }
 
     private static Activity? StartProcessStepActivity(Step step) =>
         Telemetry.Source.StartActivity("Engine.ProcessStep", tags: step.GetActivityTags());
