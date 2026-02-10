@@ -125,7 +125,6 @@ function OptionListTools({
   } else {
     return (
       <AddOptionList
-        codeListIdContextData={codeListIdContextData}
         component={component}
         handleComponentChange={handleComponentChange}
         onCreateButtonClick={openDialog}
@@ -143,7 +142,6 @@ type AddOptionListProps = EditTabProps & {
 };
 
 function AddOptionList({
-  codeListIdContextData,
   component,
   handleComponentChange,
   onCreateButtonClick,
