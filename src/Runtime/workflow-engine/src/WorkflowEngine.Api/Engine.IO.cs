@@ -90,7 +90,6 @@ internal partial class Engine
                 cancellationToken: cancellationToken
             );
             _inbox[engineRequest.IdempotencyKey] = workflow;
-            _instanceIndex[workflow.InstanceInformation] = engineRequest.IdempotencyKey;
         }
         _newWorkSignal.TrySetResult();
 
@@ -114,7 +113,7 @@ internal partial class Engine
 
     public bool HasQueuedWorkflowForInstance(InstanceInformation instanceInformation)
     {
-        var instanceHasActiveWorkflow = _instanceIndex.ContainsKey(instanceInformation);
+        var instanceHasActiveWorkflow = _inbox.Values.Any(w => w.InstanceInformation == instanceInformation);
 
         using var activity = Telemetry.Source.StartActivity(
             "Engine.HasQueuedWorkflowForInstance",
@@ -128,9 +127,7 @@ internal partial class Engine
     {
         using var activity = Telemetry.Source.StartActivity("Engine.GetWorkflowForInstance");
 
-        return _instanceIndex.TryGetValue(instanceInformation, out var idempotencyKey)
-            ? _inbox.GetValueOrDefault(idempotencyKey)
-            : null;
+        return _inbox.Values.FirstOrDefault(w => w.InstanceInformation == instanceInformation);
     }
 
     // TODO: We probably want a background process to periodically pull from the database, so we can catch scheduled tasks and other things we've been ignoring
@@ -153,7 +150,6 @@ internal partial class Engine
             // Only add if not already in memory to avoid duplicates
             if (_inbox.TryAdd(job.IdempotencyKey, job))
             {
-                _instanceIndex[job.InstanceInformation] = job.IdempotencyKey;
                 _logger.RestoredWorkflowFromDb(job.IdempotencyKey);
             }
         }

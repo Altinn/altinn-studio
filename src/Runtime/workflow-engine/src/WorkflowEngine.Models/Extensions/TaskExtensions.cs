@@ -23,6 +23,10 @@ public static class TaskExtensions
     }
 
     /// <inheritdoc cref="Debounce(Task, TimeSpan, CancellationToken)"/>
+    public static Task Debounce(this Task task, int millisecondDelay, CancellationToken cancellationToken = default) =>
+        task.Debounce(TimeSpan.FromMilliseconds(millisecondDelay), cancellationToken);
+
+    /// <inheritdoc cref="Debounce(Task, TimeSpan, CancellationToken)"/>
     public static Task Debounce(
         this TaskCompletionSource tcs,
         TimeSpan delay,

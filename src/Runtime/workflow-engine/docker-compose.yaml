@@ -113,6 +113,7 @@ services:
     command:
       - "--global-response-templating"
       - "--verbose"
+      - "--max-request-journal-entries=1000"
 
 volumes:
   postgres_data:

@@ -96,18 +96,37 @@ internal partial class Engine
         _logger.StatusAfterAcquiringSlot(Status);
     }
 
-    private void RemoveJobAndReleaseQueueSlot(Workflow workflow)
+    private void RefreshActiveSet()
     {
-        using var activity = Telemetry.Source.StartActivity("Engine.RemoveJobAndReleaseQueueSlot");
+        lock (_activeSetLock)
+        {
+            // Backfill from inbox (FIFO) up to MaxDegreeOfParallelism
+            int available = _settings.MaxDegreeOfParallelism - _activeSet.Count;
+            if (available <= 0)
+                return;
+
+            var newWork = _inbox.Values.Where(x => !_activeSet.Contains(x)).OrderBy(x => x.CreatedAt).Take(available);
+            foreach (var workflow in newWork)
+                _activeSet.Add(workflow);
+
+            // return _activeSet;
+        }
+    }
+
+    private void RemoveWorkflowAndReleaseQueueSlot(Workflow workflow)
+    {
+        using var activity = Telemetry.Source.StartActivity("Engine.RemoveWorkflowAndReleaseQueueSlot");
         _logger.ReleasingQueueSlot();
 
-        bool removed = _inbox.TryRemove(workflow.IdempotencyKey, out _);
-        _instanceIndex.TryRemove(workflow.InstanceInformation, out _);
-        if (!removed)
+        lock (_activeSetLock)
         {
-            Telemetry.Errors.Add(1, ("operation", "queueSlotRelease"));
-            activity?.Errored(errorMessage: $"Unable to release queue slot {workflow.IdempotencyKey}");
-            throw new EngineException($"Unable to release queue slot {workflow.IdempotencyKey}");
+            var removed = _inbox.TryRemove(workflow.IdempotencyKey, out _) && _activeSet.Remove(workflow);
+            if (!removed)
+            {
+                Telemetry.Errors.Add(1, ("operation", "queueSlotRelease"));
+                activity?.Errored(errorMessage: $"Unable to release queue slot {workflow.IdempotencyKey}");
+                throw new EngineException($"Unable to release queue slot {workflow.IdempotencyKey}");
+            }
         }
 
         _inboxCapacityLimit.Release();
@@ -122,11 +141,11 @@ internal partial class Engine
         }
     }
 
-    [MemberNotNull(nameof(_inbox), nameof(_instanceIndex), nameof(_inboxCapacityLimit), nameof(_newWorkSignal))]
+    [MemberNotNull(nameof(_inbox), nameof(_activeSet), nameof(_inboxCapacityLimit), nameof(_newWorkSignal))]
     private void InitializeInbox()
     {
         _inbox = [];
-        _instanceIndex = [];
+        _activeSet = [];
         _inboxCapacityLimit = new SemaphoreSlim(_settings.QueueCapacity, _settings.QueueCapacity);
         Interlocked.Exchange(
             ref _newWorkSignal,
@@ -151,7 +170,7 @@ internal partial class Engine
             await _isEnabledHistory.Clear();
 
             _inbox.Clear();
-            _instanceIndex.Clear();
+            _activeSet.Clear();
             _inboxCapacityLimit.Dispose();
 
             InitializeInbox();

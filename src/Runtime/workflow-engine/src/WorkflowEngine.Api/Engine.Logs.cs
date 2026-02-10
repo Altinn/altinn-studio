@@ -34,15 +34,6 @@ internal static partial class EngineLogs
     [LoggerMessage(LogLevel.Trace, "Waiting for {Count} pending task(s) to complete")]
     internal static partial void WaitingForPendingTasks(this ILogger<Engine> logger, int count);
 
-    [LoggerMessage(
-        LogLevel.Trace,
-        "Entering MainLoop. Inbox count: {InboxCount}. Queue slots available: {AvailableQueueSlots}"
-    )]
-    internal static partial void EnteringMainLoop(this ILogger<Engine> logger, int inboxCount, int availableQueueSlots);
-
-    [LoggerMessage(LogLevel.Trace, "Processing all workflows in queue ({InboxCount})")]
-    internal static partial void ProcessingAllWorkflowsInQueue(this ILogger<Engine> logger, int inboxCount);
-
     [LoggerMessage(LogLevel.Debug, "Processing workflow: {Workflow}")]
     internal static partial void ProcessingWorkflow(this ILogger<Engine> logger, Workflow workflow);
 

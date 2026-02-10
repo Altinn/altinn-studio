@@ -40,7 +40,8 @@ internal partial class Engine : IEngine, IDisposable
     );
 
     private ConcurrentDictionary<string, Workflow> _inbox;
-    private ConcurrentDictionary<InstanceInformation, string> _instanceIndex;
+    private HashSet<Workflow> _activeSet;
+    private readonly Lock _activeSetLock = new();
     private CancellationTokenSource? _cancellationTokenSource;
     private Task? _mainLoopTask;
     private SemaphoreSlim _inboxCapacityLimit;
@@ -128,7 +129,6 @@ internal partial class Engine : IEngine, IDisposable
     private async Task MainLoop(CancellationToken cancellationToken)
     {
         using var activity = Telemetry.Source.StartActivity("Engine.MainLoop");
-        _logger.EnteringMainLoop(InboxCount, _inboxCapacityLimit.CurrentCount);
 
         // Should we run?
         if (!await ShouldRun(cancellationToken))
@@ -145,65 +145,25 @@ internal partial class Engine : IEngine, IDisposable
         // Do we have jobs to process?
         if (!HaveWork())
         {
-            // Idle: wait until new work arrives (or cancellation)
-            await signal.Task.WaitAsync(cancellationToken);
+            await WaitForNewWorkOrTick(cancellationToken);
             return;
         }
 
-        _logger.ProcessingAllWorkflowsInQueue(InboxCount);
-        var parallelOptions = new ParallelOptions
-        {
-            CancellationToken = cancellationToken,
-            MaxDegreeOfParallelism = _settings.MaxDegreeOfParallelism,
-        };
+        // Refresh active set and process in parallel
+        RefreshActiveSet();
 
-        // Process all workflows in the queue in parallel, but don't await tasks
         await Parallel.ForEachAsync(
-            _inbox,
-            parallelOptions,
-            async (item, ct) =>
+            _activeSet,
+            new ParallelOptions
             {
-                var (_, workflow) = item;
-                await ProcessWorkflow(workflow, ct);
-            }
+                CancellationToken = cancellationToken,
+                MaxDegreeOfParallelism = _settings.MaxDegreeOfParallelism,
+            },
+            async (workflow, ct) => await ProcessWorkflow(workflow, ct)
         );
 
         // Wait for at least one task to complete or for new work to be added
-        await WaitForPendingTasks(signal, cancellationToken);
-    }
-
-    private async Task WaitForPendingTasks(TaskCompletionSource newWorkSignal, CancellationToken cancellationToken)
-    {
-        using var activity = Telemetry.Source.StartActivity("Engine.WaitForPendingTasks");
-
-        // Wait for active Step and Workflow tasks
-        var awaitables = _inbox
-            .Values.SelectMany(workflow =>
-            {
-                var step = workflow.OrderedIncompleteSteps().FirstOrDefault();
-
-                // Order is important here, since we keep completed ExecutionTasks for the processing logic
-                var stepTask = step?.DatabaseTask ?? step?.ExecutionTask;
-                var workflowTask = workflow.DatabaseTask;
-                var circuitBreakerTask =
-                    stepTask is null && step?.IsReadyForExecution(_timeProvider) is true ? Task.CompletedTask : null;
-
-                return new[] { workflowTask, stepTask, circuitBreakerTask }.OfType<Task>();
-            })
-            .ToList();
-
-        // Wait for the new work signal, but debounce the call to avoid stampeding
-        awaitables.Add(newWorkSignal.Debounce(TimeSpan.FromMilliseconds(100), cancellationToken));
-
-        // Tick (maintenance, etc)
-        awaitables.Add(Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken));
-
-        // We already have finished tasks, no need to wait
-        if (awaitables.Any(x => x.IsCompleted))
-            return;
-
-        // Wait for at least one task to complete
-        await Task.WhenAny(awaitables).WaitAsync(cancellationToken);
+        await WaitForPendingTasks(cancellationToken);
     }
 
     private async Task ProcessWorkflow(Workflow workflow, CancellationToken cancellationToken)
@@ -240,6 +200,10 @@ internal partial class Engine : IEngine, IDisposable
                     {
                         workflow.Status = updatedJobStatus;
                         workflow.DatabaseTask = UpdateWorkflowInDb(workflow, cancellationToken);
+                    }
+                    else
+                    {
+                        activity?.IsNoop();
                     }
 
                     return;
@@ -311,7 +275,7 @@ internal partial class Engine : IEngine, IDisposable
         }
 
         // Workflow is done (success or permanent failure)
-        RemoveJobAndReleaseQueueSlot(workflow);
+        RemoveWorkflowAndReleaseQueueSlot(workflow);
         _logger.WorkflowCompleted(workflow);
     }
 
@@ -472,4 +436,51 @@ internal partial class Engine : IEngine, IDisposable
             return _timeProvider.GetUtcNow().Add(retryStrategy.CalculateDelay(step.RequeueCount));
         }
     }
+
+    private async Task WaitForPendingTasks(CancellationToken cancellationToken)
+    {
+        using var activity = Telemetry.Source.StartActivity("Engine.WaitForPendingTasks");
+
+        // Wait for active Step and Workflow tasks (active set only)
+        List<Task> awaitables;
+        lock (_activeSetLock)
+        {
+            awaitables = _activeSet
+                .SelectMany(workflow =>
+                {
+                    var step = workflow.OrderedIncompleteSteps().FirstOrDefault();
+
+                    // Order is important here, since we keep completed ExecutionTasks for the processing logic
+                    var stepTask = step?.DatabaseTask ?? step?.ExecutionTask;
+                    var workflowTask = workflow.DatabaseTask;
+                    var circuitBreakerTask =
+                        stepTask is null && step?.IsReadyForExecution(_timeProvider) is true
+                            ? Task.CompletedTask
+                            : null;
+
+                    return new[] { workflowTask, stepTask, circuitBreakerTask }.OfType<Task>();
+                })
+                .ToList();
+        }
+
+        // Wait for the new work signal or maintenance tick
+        awaitables.Add(WaitForNewWorkOrTick(cancellationToken));
+
+        var havePendingUnallocatedWork =
+            _activeSet.Count < _settings.MaxDegreeOfParallelism && InboxCount > _activeSet.Count;
+
+        // We already have more pending work or finished tasks, no need to wait
+        if (havePendingUnallocatedWork || awaitables.Any(x => x.IsCompleted))
+            return;
+
+        // Wait for at least one task to complete
+        await Task.WhenAny(awaitables).WaitAsync(cancellationToken);
+    }
+
+    private async Task WaitForNewWorkOrTick(CancellationToken cancellationToken) =>
+        await Task.WhenAny(
+                _newWorkSignal.Debounce(TimeSpan.FromMilliseconds(100), cancellationToken),
+                Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken)
+            )
+            .WaitAsync(cancellationToken);
 }
