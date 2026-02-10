@@ -21,6 +21,14 @@ public static class GenerateEndpoints
             {
                 return Results.BadRequest(new { error = ex.Message });
             }
+            catch (IOException ex)
+            {
+                return Results.BadRequest(new { error = ex.Message });
+            }
+            catch (OperationCanceledException)
+            {
+                return Results.StatusCode(499);
+            }
 
             if (parsed.Files.Count == 0)
             {

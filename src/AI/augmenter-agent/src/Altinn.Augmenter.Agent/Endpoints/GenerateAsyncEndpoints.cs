@@ -23,6 +23,14 @@ public static class GenerateAsyncEndpoints
             {
                 return Results.BadRequest(new { error = ex.Message });
             }
+            catch (IOException ex)
+            {
+                return Results.BadRequest(new { error = ex.Message });
+            }
+            catch (OperationCanceledException)
+            {
+                return Results.StatusCode(499);
+            }
 
             if (string.IsNullOrWhiteSpace(parsed.CallbackUrl))
             {
