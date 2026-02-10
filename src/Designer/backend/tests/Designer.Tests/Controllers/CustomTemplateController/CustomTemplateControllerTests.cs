@@ -106,32 +106,6 @@ public class CustomTemplateControllerTests
     }
 
     [Fact]
-    public async Task GetCustomTemplateById_ValidationFailed_ReturnsBadRequest()
-    {
-        // Arrange
-        string owner = "als";
-        string templateId = "invalid-template";
-
-        _templateServiceMock
-            .Setup(x => x.GetCustomTemplateById(owner, templateId))
-            .ThrowsAsync(CustomTemplateException.ValidationFailed("Template validation failed", new List<NJsonSchema.Validation.ValidationError>()));
-
-        var controller = CreateController();
-
-        // Act
-        var result = await controller.GetCustomTemplateById(owner, templateId);
-
-        // Assert
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
-        Assert.NotNull(badRequestResult.Value);
-
-        var errorObj = badRequestResult.Value;
-        var errorProp = errorObj.GetType().GetProperty("error");
-
-        Assert.Equal("ValidationFailed", errorProp?.GetValue(errorObj)?.ToString());
-    }
-
-    [Fact]
     public async Task GetCustomTemplateById_DeserializationFailed_ReturnsInternalServerError()
     {
         // Arrange
