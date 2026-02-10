@@ -10,7 +10,7 @@ RUN dotnet publish src/Altinn.Augmenter.Agent/Altinn.Augmenter.Agent.csproj -c R
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
 WORKDIR /app
 
-RUN apk add --no-cache typst
+RUN apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community typst
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser

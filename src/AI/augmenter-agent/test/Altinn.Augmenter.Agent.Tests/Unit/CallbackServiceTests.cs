@@ -10,12 +10,14 @@ namespace Altinn.Augmenter.Agent.Tests.Unit;
 public class CallbackServiceTests : IDisposable
 {
     private readonly WireMockServer _server;
+    private readonly HttpClient _httpClient;
     private readonly CallbackService _sut;
 
     public CallbackServiceTests()
     {
         _server = WireMockServer.Start();
-        _sut = new CallbackService(new HttpClient());
+        _httpClient = new HttpClient();
+        _sut = new CallbackService(_httpClient);
     }
 
     [Fact]
@@ -52,6 +54,7 @@ public class CallbackServiceTests : IDisposable
 
     public void Dispose()
     {
+        _httpClient.Dispose();
         _server.Dispose();
         GC.SuppressFinalize(this);
     }

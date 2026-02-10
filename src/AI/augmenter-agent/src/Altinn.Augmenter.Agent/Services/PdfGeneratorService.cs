@@ -1,8 +1,13 @@
 using System.Diagnostics;
+using Altinn.Augmenter.Agent.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Augmenter.Agent.Services;
 
-public sealed class PdfGeneratorService(ILogger<PdfGeneratorService> logger, IConfiguration configuration) : IPdfGeneratorService
+public sealed class PdfGeneratorService(
+    ILogger<PdfGeneratorService> logger,
+    IConfiguration configuration,
+    IOptions<PdfGenerationOptions> pdfOptions) : IPdfGeneratorService
 {
     private const string TypstTemplate = """
         #set page(paper: "a4", margin: 2cm)
@@ -48,8 +53,35 @@ public sealed class PdfGeneratorService(ILogger<PdfGeneratorService> logger, ICo
 
             process.Start();
 
-            var stderr = await process.StandardError.ReadToEndAsync();
-            await process.WaitForExitAsync();
+            // Read stdout and stderr concurrently to avoid deadlocks
+            var stdoutTask = process.StandardOutput.ReadToEndAsync();
+            var stderrTask = process.StandardError.ReadToEndAsync();
+
+            var timeoutSeconds = pdfOptions.Value.ProcessTimeoutSeconds;
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+
+            try
+            {
+                await process.WaitForExitAsync(cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                try
+                {
+                    process.Kill(entireProcessTree: true);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Process may have already exited
+                }
+
+                throw new InvalidOperationException(
+                    $"Typst process timed out after {timeoutSeconds} seconds.");
+            }
+
+            var stderr = await stderrTask;
+            // Ensure stdout is also consumed
+            await stdoutTask;
 
             if (process.ExitCode != 0)
             {

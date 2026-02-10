@@ -2,5 +2,5 @@ namespace Altinn.Augmenter.Agent.Services;
 
 public interface ICallbackService
 {
-    Task SendPdfAsync(string callbackUrl, byte[] pdfBytes);
+    Task SendPdfAsync(string callbackUrl, byte[] pdfBytes, CancellationToken cancellationToken = default);
 }

@@ -1,12 +1,14 @@
+using Altinn.Augmenter.Agent.Configuration;
 using Altinn.Augmenter.Agent.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Augmenter.Agent.Tests.Unit;
 
 public class MultipartParserServiceTests
 {
-    private readonly MultipartParserService _sut = new();
+    private readonly MultipartParserService _sut = new(Options.Create(new UploadOptions()));
 
     [Fact]
     public async Task ParseAsync_WithValidFile_ExtractsFile()
@@ -60,6 +62,40 @@ public class MultipartParserServiceTests
         var result = await _sut.ParseAsync(request);
 
         result.Files.Should().HaveCount(3);
+    }
+
+    [Fact]
+    public async Task ParseAsync_WithOversizedFile_Throws()
+    {
+        var options = Options.Create(new UploadOptions { MaxFileBytes = 10 });
+        var sut = new MultipartParserService(options);
+
+        var request = CreateRequest(
+            files: [("file", "big.pdf", "application/pdf", new byte[100])]);
+
+        var act = () => sut.ParseAsync(request);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*exceeds maximum size*");
+    }
+
+    [Fact]
+    public async Task ParseAsync_WithTotalSizeExceeded_Throws()
+    {
+        var options = Options.Create(new UploadOptions { MaxFileBytes = 100, MaxTotalBytes = 50 });
+        var sut = new MultipartParserService(options);
+
+        var request = CreateRequest(
+            files:
+            [
+                ("file1", "a.pdf", "application/pdf", new byte[30]),
+                ("file2", "b.pdf", "application/pdf", new byte[30]),
+            ]);
+
+        var act = () => sut.ParseAsync(request);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Total upload size*");
     }
 
     private static HttpRequest CreateRequest(

@@ -11,13 +11,17 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         builder.ConfigureAppConfiguration((_, config) =>
         {
             var typstPath = TypstLocator.FindTypst();
+            var settings = new Dictionary<string, string?>
+            {
+                ["Callback:AllowedPatterns:0"] = "http://localhost:*/*",
+            };
+
             if (typstPath != null)
             {
-                config.AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["Typst:Path"] = typstPath,
-                });
+                settings["Typst:Path"] = typstPath;
             }
+
+            config.AddInMemoryCollection(settings);
         });
     }
 }

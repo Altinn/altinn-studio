@@ -1,3 +1,4 @@
+using Altinn.Augmenter.Agent.Models;
 using Altinn.Augmenter.Agent.Services;
 
 namespace Altinn.Augmenter.Agent.Endpoints;
@@ -9,11 +10,10 @@ public static class GenerateAsyncEndpoints
         app.MapPost("/generate-async", async (
             HttpRequest request,
             IMultipartParserService parser,
-            IPdfGeneratorService pdfGenerator,
-            ICallbackService callbackService,
-            ILogger<Program> logger) =>
+            IPdfGenerationQueue queue,
+            ICallbackUrlValidator validator) =>
         {
-            Models.ParsedFormData parsed;
+            ParsedFormData parsed;
             try
             {
                 parsed = await parser.ParseAsync(request);
@@ -28,25 +28,14 @@ public static class GenerateAsyncEndpoints
                 return Results.BadRequest(new { error = "callback-url is required." });
             }
 
-            if (!Uri.TryCreate(parsed.CallbackUrl, UriKind.Absolute, out var uri)
-                || (uri.Scheme != "http" && uri.Scheme != "https"))
+            var validationError = validator.Validate(parsed.CallbackUrl);
+            if (validationError != null)
             {
-                return Results.BadRequest(new { error = "callback-url must be a valid HTTP(S) URL." });
+                return Results.BadRequest(new { error = validationError });
             }
 
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    var pdfBytes = await pdfGenerator.GeneratePdfAsync(DateTime.UtcNow);
-                    await callbackService.SendPdfAsync(parsed.CallbackUrl, pdfBytes);
-                    logger.LogInformation("PDF sent to callback URL: {CallbackUrl}", parsed.CallbackUrl);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Failed to generate or send PDF to {CallbackUrl}", parsed.CallbackUrl);
-                }
-            });
+            var job = new PdfGenerationJob(parsed.CallbackUrl, DateTime.UtcNow, parsed.Files);
+            await queue.EnqueueAsync(job);
 
             return Results.Ok(new { status = "accepted" });
         })

@@ -1,3 +1,3 @@
 namespace Altinn.Augmenter.Agent.Models;
 
-public sealed record ParsedFormData(List<UploadedFile> Files, string? CallbackUrl);
+public sealed record ParsedFormData(IReadOnlyList<UploadedFile> Files, string? CallbackUrl);
