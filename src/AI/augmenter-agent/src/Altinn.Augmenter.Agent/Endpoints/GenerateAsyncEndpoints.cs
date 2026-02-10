@@ -35,7 +35,10 @@ public static class GenerateAsyncEndpoints
             }
 
             var job = new PdfGenerationJob(parsed.CallbackUrl, DateTime.UtcNow, parsed.Files);
-            await queue.EnqueueAsync(job);
+            if (!queue.TryEnqueue(job))
+            {
+                return Results.StatusCode(503);
+            }
 
             return Results.Ok(new { status = "accepted" });
         })
