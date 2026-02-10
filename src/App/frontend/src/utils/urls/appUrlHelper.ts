@@ -259,3 +259,47 @@ export const getDataListsUrl = ({
 
   return url.toString();
 };
+
+export const getFormBootstrapUrl = (
+  instanceId: string,
+  options?: {
+    layoutSetId?: string;
+    dataElementId?: string;
+    pdf?: boolean;
+    language?: string;
+  },
+): string => {
+  const params = new URLSearchParams();
+
+  if (options?.layoutSetId) {
+    params.set('layoutSetId', options.layoutSetId);
+  }
+  if (options?.dataElementId) {
+    params.set('dataElementId', options.dataElementId);
+  }
+  if (options?.pdf) {
+    params.set('pdf', 'true');
+  }
+  if (options?.language) {
+    params.set('language', options.language);
+  }
+
+  const queryString = params.toString();
+  return `${appPath}/instances/${instanceId}/bootstrap-form${queryString ? `?${queryString}` : ''}`;
+};
+
+export const getStatelessFormBootstrapUrl = (
+  layoutSetId: string,
+  options?: {
+    language?: string;
+  },
+): string => {
+  const params = new URLSearchParams();
+
+  if (options?.language) {
+    params.set('language', options.language);
+  }
+
+  const queryString = params.toString();
+  return `${appPath}/api/bootstrap-form/${layoutSetId}${queryString ? `?${queryString}` : ''}`;
+};
