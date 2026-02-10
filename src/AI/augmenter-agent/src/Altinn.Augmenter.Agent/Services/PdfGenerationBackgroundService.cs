@@ -13,17 +13,19 @@ public sealed class PdfGenerationBackgroundService(
 {
     private readonly CallbackOptions _callbackOptions = callbackOptions.Value;
 
-    private readonly Counter<long> _jobsProcessed = meterFactory
-        .Create("Altinn.Augmenter.Agent")
-        .CreateCounter<long>("jobs.processed", description: "Total jobs successfully processed");
+    private readonly (Counter<long> Processed, Counter<long> Failed, Counter<long> Retried) _jobs =
+        CreateCounters(meterFactory);
 
-    private readonly Counter<long> _jobsFailed = meterFactory
-        .Create("Altinn.Augmenter.Agent")
-        .CreateCounter<long>("jobs.failed", description: "Total jobs that failed after all retries");
-
-    private readonly Counter<long> _jobsRetried = meterFactory
-        .Create("Altinn.Augmenter.Agent")
-        .CreateCounter<long>("jobs.retried", description: "Total retry attempts");
+    private static (Counter<long> Processed, Counter<long> Failed, Counter<long> Retried) CreateCounters(
+        IMeterFactory factory)
+    {
+        var meter = factory.Create("Altinn.Augmenter.Agent");
+        return (
+            meter.CreateCounter<long>("jobs.processed", description: "Total jobs successfully processed"),
+            meter.CreateCounter<long>("jobs.failed", description: "Total jobs that failed after all retries"),
+            meter.CreateCounter<long>("jobs.retried", description: "Total retry attempts")
+        );
+    }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -38,7 +40,7 @@ public sealed class PdfGenerationBackgroundService(
                 {
                     if (attempt > 0)
                     {
-                        _jobsRetried.Add(1);
+                        _jobs.Retried.Add(1);
                         var shift = Math.Min(attempt - 1, 16);
                         var delay = baseDelay * (1 << shift); // exponential backoff, capped to prevent overflow
                         logger.LogWarning(
@@ -54,7 +56,7 @@ public sealed class PdfGenerationBackgroundService(
                     var pdfBytes = await pdfGenerator.GeneratePdfAsync(job.Timestamp, stoppingToken);
                     await callbackService.SendPdfAsync(job.CallbackUrl, pdfBytes, stoppingToken);
 
-                    _jobsProcessed.Add(1);
+                    _jobs.Processed.Add(1);
                     logger.LogInformation("PDF sent to callback URL: {CallbackUrl}", job.CallbackUrl);
                     break;
                 }
@@ -62,7 +64,7 @@ public sealed class PdfGenerationBackgroundService(
                 {
                     if (attempt == maxRetries)
                     {
-                        _jobsFailed.Add(1);
+                        _jobs.Failed.Add(1);
                         logger.LogError(ex,
                             "Failed to generate or send PDF to {CallbackUrl} after {Attempts} attempts. Job dropped.",
                             job.CallbackUrl, attempt + 1);
