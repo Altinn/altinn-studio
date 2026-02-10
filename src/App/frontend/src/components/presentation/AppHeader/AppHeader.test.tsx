@@ -19,8 +19,15 @@ import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IAppLanguage, IParty, IProfile } from 'src/types/shared';
 
 describe('presentation/AppHeader', () => {
+  beforeEach(() => {
+    window.altinnAppGlobalData.orgLogoUrl = 'https://altinncdn.no/orgs/mockOrg/mockOrg.png';
+    window.altinnAppGlobalData.orgName = { nb: 'Mockdepartementet', en: 'Mock Ministry', nn: 'Mockdepartementet' };
+  });
+
   afterEach(() => {
     window.altinnAppGlobalData.userProfile = undefined;
+    window.altinnAppGlobalData.orgLogoUrl = undefined;
+    window.altinnAppGlobalData.orgName = undefined;
   });
 
   const userPerson = {
@@ -96,6 +103,7 @@ describe('presentation/AppHeader', () => {
   });
 
   it('Should render Altinn logo if logo options are not set', async () => {
+    window.altinnAppGlobalData.orgLogoUrl = undefined;
     await render({ party: userPerson.party });
     const mockLogo = getLogoMock().replace('black', LogoColor.blueDarker);
     expect(screen.getByRole('img')).toHaveAttribute('src', `data:image/svg+xml;utf8,${encodeURIComponent(mockLogo)}`);
