@@ -42,8 +42,8 @@ public sealed class PdfGeneratorService(
             process.Start();
 
             // Read stdout and stderr concurrently to avoid deadlocks
-            var stdoutTask = process.StandardOutput.ReadToEndAsync();
-            var stderrTask = process.StandardError.ReadToEndAsync();
+            var stdoutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+            var stderrTask = process.StandardError.ReadToEndAsync(cancellationToken);
 
             var timeoutSeconds = pdfOptions.Value.ProcessTimeoutSeconds;
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
