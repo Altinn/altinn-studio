@@ -1,0 +1,47 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(tree:*)",
+      "Bash(rg:*)",
+      "Bash(sed:*)",
+      "Bash(awk:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(stat:*)",
+      "Bash(file:*)",
+      "Bash(pwd:*)",
+      "Bash(realpath:*)",
+
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git diff:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh search prs:*)",
+
+      "Bash(make build:*)",
+      "Bash(make fmt:*)",
+      "Bash(make lint:*)",
+      "Bash(make lint-fix:*)",
+      "Bash(make test:*)",
+
+      "Bash(dotnet build:*)",
+      "Bash(dotnet restore:*)",
+
+      "Bash(go build:*)",
+      "Bash(go mod tidy:*)",
+
+      "Bash(yarn test:*)",
+      "Bash(yarn lint:*)",
+      "Bash(yarn build:*)",
+      "Bash(yarn typecheck:*)"
+    ]
+  }
+}

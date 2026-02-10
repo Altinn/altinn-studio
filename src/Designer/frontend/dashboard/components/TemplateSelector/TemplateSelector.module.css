@@ -1,0 +1,10 @@
+.templateName {
+  font-weight: bold;
+}
+
+.templateSelectorContainer {
+  margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+}
