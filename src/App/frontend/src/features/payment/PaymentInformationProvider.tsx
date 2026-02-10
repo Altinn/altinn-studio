@@ -11,7 +11,6 @@ import { useIsPayment } from 'src/features/payment/utils';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { PaymentResponsePayload } from 'src/features/payment/types';
 
-// Also used for prefetching @see formPrefetcher.ts
 export function usePaymentInformationQueryDef(
   enabled: boolean,
   instanceId?: string,
