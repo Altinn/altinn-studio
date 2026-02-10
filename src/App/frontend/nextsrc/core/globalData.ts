@@ -1,6 +1,6 @@
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IFooterLayout } from 'src/features/footer/types';
-import type { ILayoutSets } from 'src/features/form/layoutSets/types';
+import type { ILayoutSet, ILayoutSets } from 'src/features/form/layoutSets/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { IAppLanguage, IApplicationSettings, IProfile } from 'src/types/shared';
 
@@ -40,6 +40,10 @@ export class GlobalData {
 
   public static get layoutSets(): ILayoutSets | undefined {
     return GlobalData.typedWindow.altinnAppGlobalData.layoutSets;
+  }
+
+  public static layoutSetByTaskId(taskId: string): ILayoutSet | undefined {
+    return GlobalData.layoutSets?.sets.find((layoutSet) => layoutSet.tasks?.includes(taskId));
   }
 
   public static get basename(): string {

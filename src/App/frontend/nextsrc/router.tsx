@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router-dom';
 
 import { GlobalData } from 'nextsrc/core/globalData';
 import { Page } from 'nextsrc/features/form/pages/page/page';
+import { pageLoader } from 'nextsrc/features/form/pages/page/pageLoader';
 import { Task } from 'nextsrc/features/form/pages/task/task';
 import { taskLoader } from 'nextsrc/features/form/pages/task/taskLoader';
 import { entryRedirectLoader } from 'nextsrc/features/instantiate/loaders/entryRedirectLoader';
@@ -22,7 +23,7 @@ export const router = createBrowserRouter(
     { path: instantiateRoutes.partySelection, element: <PartySelectionPage /> },
     { path: instantiateRoutes.stateless, element: <StatelessPage /> },
     { path: instantiateRoutes.task, element: <Task />, loader: taskLoader },
-    { path: instantiateRoutes.page, element: <Page /> },
+    { path: instantiateRoutes.page, element: <Page />, loader: pageLoader },
   ],
   { basename: GlobalData.basename },
 );

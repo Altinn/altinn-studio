@@ -10,23 +10,18 @@ export const taskLoader = async ({ params }: LoaderFunctionArgs<{ taskId: string
   if (!taskId) {
     return null;
   }
-  const layoutSet = GlobalData.layoutSets?.sets.find((layoutSet) => layoutSet.tasks?.includes(taskId));
+  const layoutSet = GlobalData.layoutSetByTaskId(taskId);
 
   if (!layoutSet) {
     throw new Error('layoutSet is undefined, this is an error fix it.');
   }
 
-  console.log('layoutSet', layoutSet);
-
   const layoutSettings = await LayoutApi.getLayoutSettings(layoutSet.id);
 
-  console.log('layoutSettings', layoutSettings);
-
   if (!layoutSettings) {
-    throw new Error('layoutSet is undefined, this is an error fix it.');
+    throw new Error('layoutSettings is undefined, this is an error fix it.');
   }
   if (isPagesSettingsWithOrder(layoutSettings.pages)) {
-    console.log('redir: ', `/${layoutSettings.pages.order[0]}`);
     return redirect(`${layoutSettings.pages.order[0]}`);
   }
 
@@ -34,7 +29,5 @@ export const taskLoader = async ({ params }: LoaderFunctionArgs<{ taskId: string
     return redirect(`${layoutSettings.pages.groups[0].order[0]}`);
   }
 
-  {
-    return null;
-  }
+  return null;
 };

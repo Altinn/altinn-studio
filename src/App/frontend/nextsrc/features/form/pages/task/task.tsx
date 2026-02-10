@@ -11,7 +11,6 @@ export const Task = () => {
   }
 
   const ourLayoutSet = GlobalData.layoutSets?.sets.find((layoutSet) => layoutSet.tasks?.includes(taskId));
-  // ourLayoutSet.id;
   return (
     <div>
       I am Task: {taskId}
