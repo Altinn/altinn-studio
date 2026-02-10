@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using Altinn.Augmenter.Agent.Configuration;
 using Microsoft.Extensions.Options;
 
@@ -12,18 +13,20 @@ public sealed class PdfGeneratorService(
     public async Task<byte[]> GeneratePdfAsync(DateTime timestamp, CancellationToken cancellationToken = default)
     {
         var templatePath = Path.Combine(AppContext.BaseDirectory, pdfOptions.Value.TemplatePath);
-        var template = await File.ReadAllTextAsync(templatePath, cancellationToken);
-        var typContent = string.Format(template, timestamp.ToString("yyyy-MM-dd HH:mm:ss"));
 
         var tempDir = Path.Combine(Path.GetTempPath(), "augmenter-agent", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempDir);
 
         var inputPath = Path.Combine(tempDir, "input.typ");
         var outputPath = Path.Combine(tempDir, "output.pdf");
+        var dataPath = Path.Combine(tempDir, "data.json");
 
         try
         {
-            await File.WriteAllTextAsync(inputPath, typContent, cancellationToken);
+            File.Copy(templatePath, inputPath);
+
+            var dataJson = JsonSerializer.Serialize(new { timestamp = timestamp.ToString("yyyy-MM-dd HH:mm:ss") });
+            await File.WriteAllTextAsync(dataPath, dataJson, cancellationToken);
 
             using var process = new Process();
             process.StartInfo = new ProcessStartInfo

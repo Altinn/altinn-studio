@@ -1,3 +1,5 @@
+#let data = json("data.json")
+
 #set page(paper: "a4", margin: 2cm)
 #set text(size: 14pt)
 
@@ -5,7 +7,7 @@
 
 #v(1cm)
 
-#text(size: 12pt)[Generated: {0} UTC]
+#text(size: 12pt)[Generated: #data.timestamp UTC]
 
 #v(1fr)
 
