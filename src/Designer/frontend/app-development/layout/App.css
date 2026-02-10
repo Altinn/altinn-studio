@@ -18,6 +18,10 @@ a {
   text-decoration: none;
 }
 
+a:visited {
+  color: inherit;
+}
+
 a.fds-link--inverted {
   color: var(--fds-link--inverted);
   text-decoration: underline;
