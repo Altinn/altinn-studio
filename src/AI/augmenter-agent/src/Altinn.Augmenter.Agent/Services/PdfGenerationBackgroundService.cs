@@ -39,7 +39,8 @@ public sealed class PdfGenerationBackgroundService(
                     if (attempt > 0)
                     {
                         _jobsRetried.Add(1);
-                        var delay = baseDelay * (1 << (attempt - 1)); // exponential backoff
+                        var shift = Math.Min(attempt - 1, 16);
+                        var delay = baseDelay * (1 << shift); // exponential backoff, capped to prevent overflow
                         logger.LogWarning(
                             "Retrying job for {CallbackUrl} (attempt {Attempt}/{MaxRetries}) after {Delay}s",
                             job.CallbackUrl, attempt, maxRetries, delay.TotalSeconds);
