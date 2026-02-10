@@ -54,7 +54,9 @@ export const useAppInstancesQuery = (
     getNextPageParam: (lastPage) => lastPage.continuationToken,
     select: (data) => data.pages.flatMap((page) => page.instances),
     meta: {
-      hideDefaultError: (error: any) => isAxiosError(error) && error.response?.status === 403,
+      hideDefaultError: (error: any) =>
+        isAxiosError(error) &&
+        ([403, 404] as (number | undefined)[]).includes(error.response?.status),
     },
   });
 };

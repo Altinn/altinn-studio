@@ -1,5 +1,4 @@
 export const altinnAppsIllustrationHelpCircleSvgUrl = 'https://altinncdn.no/img/illustration-help-circle.svg';
-export const orgsListUrl = 'https://altinncdn.no/orgs/altinn-orgs.json';
 
 const prodStagingRegex = /^\w+\.apps\.((\w+\.)?altinn\.(no|cloud))$/;
 const localRegex = /^local\.altinn\.cloud(:\d+)?$/;

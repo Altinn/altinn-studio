@@ -15,7 +15,7 @@ describe('UserInput', () => {
 
   it('should render textarea with placeholder', () => {
     renderUserInput();
-    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
 
     expect(textarea).toBeInTheDocument();
   });
@@ -65,7 +65,7 @@ describe('UserInput', () => {
   it('should enable send button when textarea has content', async () => {
     const user = userEvent.setup();
     renderUserInput();
-    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
     const sendButton = screen.getByRole('button', { name: mockTexts.send });
 
     await user.type(textarea, 'Test message');
@@ -76,7 +76,7 @@ describe('UserInput', () => {
   it('should call onSubmitMessage when send button is clicked', async () => {
     const user = userEvent.setup();
     renderUserInput();
-    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
     const sendButton = screen.getByRole('button', { name: mockTexts.send });
 
     await user.type(textarea, 'Test message');
@@ -93,7 +93,7 @@ describe('UserInput', () => {
   it('should submit allowAppChanges value according to switch state', async () => {
     const user = userEvent.setup();
     renderUserInput();
-    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
     const sendButton = screen.getByRole('button', { name: mockTexts.send });
     const allowAppChangesSwitch = screen.getByRole('switch', {
       name: mockTexts.allowAppChangesSwitch,
@@ -103,7 +103,7 @@ describe('UserInput', () => {
     await user.click(sendButton);
 
     expect(onSubmitMessage).toHaveBeenLastCalledWith(
-      expect.objectContaining({ allowAppChanges: true }),
+      expect.objectContaining({ allowAppChanges: false }),
     );
 
     await user.click(allowAppChangesSwitch);
@@ -111,7 +111,7 @@ describe('UserInput', () => {
     await user.click(sendButton);
 
     expect(onSubmitMessage).toHaveBeenLastCalledWith(
-      expect.objectContaining({ allowAppChanges: false }),
+      expect.objectContaining({ allowAppChanges: true }),
     );
     expect(onSubmitMessage).toHaveBeenCalledTimes(2);
   });
@@ -119,7 +119,7 @@ describe('UserInput', () => {
   it('should clear textarea after submitting message', async () => {
     const user = userEvent.setup();
     renderUserInput();
-    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
     const sendButton = screen.getByRole('button', { name: mockTexts.send });
 
     await user.type(textarea, 'Test message');
@@ -131,7 +131,7 @@ describe('UserInput', () => {
   it('should submit message on Enter key press', async () => {
     const user = userEvent.setup();
     renderUserInput();
-    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
 
     await user.type(textarea, 'Test message{Enter}');
 
@@ -141,7 +141,7 @@ describe('UserInput', () => {
   it('should not submit message on Shift+Enter key press', async () => {
     const user = userEvent.setup();
     renderUserInput();
-    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
 
     await user.type(textarea, 'Test message{Shift>}{Enter}');
 
@@ -151,7 +151,7 @@ describe('UserInput', () => {
   it('should disable the send button when entering empty or white-space only message', async () => {
     const user = userEvent.setup();
     renderUserInput();
-    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
 
     await user.type(textarea, '   ');
 
