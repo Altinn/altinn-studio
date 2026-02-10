@@ -113,7 +113,11 @@ const DoSummaryWrapper = ({
         dataModelType={dataElement.dataType}
         layoutSetId={layoutSet}
       >
-        <FormProvider readOnly={true}>
+        <FormProvider
+          readOnly={true}
+          layoutSetIdOverride={layoutSet}
+          dataElementIdOverride={dataElement.id}
+        >
           <Flex
             container
             spacing={6}

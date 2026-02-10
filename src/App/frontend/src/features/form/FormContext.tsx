@@ -2,6 +2,7 @@ import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
+import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { FormBootstrapProvider } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
@@ -21,6 +22,11 @@ export interface FormContext {
   readOnly?: boolean;
 }
 
+interface FormProviderProps extends FormContext {
+  layoutSetIdOverride?: string;
+  dataElementIdOverride?: string;
+}
+
 const { Provider, useLaxCtx } = createContext<FormContext>({
   name: 'Form',
   required: true,
@@ -33,14 +39,29 @@ export function useIsInFormContext() {
 /**
  * This helper-context provider is used to provide all the contexts needed for forms to work
  */
-export function FormProvider({ children, readOnly = false }: React.PropsWithChildren<FormContext>) {
+export function FormProvider({
+  children,
+  readOnly = false,
+  layoutSetIdOverride,
+  dataElementIdOverride,
+}: React.PropsWithChildren<FormProviderProps>) {
   const isEmbedded = useIsInFormContext();
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
   const hasProcess = !!(instanceOwnerPartyId && instanceGuid);
+  const taskOverrides = useTaskOverrides();
+  const hasValidTaskOverridePair = !!(taskOverrides.layoutSetId && taskOverrides.dataModelElementId);
+
+  const bootstrapLayoutSetIdOverride =
+    layoutSetIdOverride ?? (hasValidTaskOverridePair ? taskOverrides.layoutSetId : undefined);
+  const bootstrapDataElementIdOverride =
+    dataElementIdOverride ?? (hasValidTaskOverridePair ? taskOverrides.dataModelElementId : undefined);
 
   return (
-    <FormBootstrapProvider>
+    <FormBootstrapProvider
+      layoutSetIdOverride={bootstrapLayoutSetIdOverride}
+      dataElementIdOverride={bootstrapDataElementIdOverride}
+    >
       <FormDataWriteProvider>
         <ValidationProvider>
           <NodesProvider

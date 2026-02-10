@@ -13,9 +13,24 @@ import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 export function SubformWrapper({ baseComponentId, children }: PropsWithChildren<{ baseComponentId: string }>) {
+  const dataElementId = useNavigationParam('dataElementId');
+  const { layoutSet } = useItemWhenType(baseComponentId, 'Subform');
+
+  if (!layoutSet || !dataElementId) {
+    return null;
+  }
+
   return (
-    <SubformOverrideWrapper baseComponentId={baseComponentId}>
-      <FormProvider>{children}</FormProvider>
+    <SubformOverrideWrapper
+      baseComponentId={baseComponentId}
+      providedDataElementId={dataElementId}
+    >
+      <FormProvider
+        layoutSetIdOverride={layoutSet}
+        dataElementIdOverride={dataElementId}
+      >
+        {children}
+      </FormProvider>
     </SubformOverrideWrapper>
   );
 }
