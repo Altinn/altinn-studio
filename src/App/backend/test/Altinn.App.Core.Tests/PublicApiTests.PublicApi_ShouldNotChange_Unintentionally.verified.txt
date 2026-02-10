@@ -433,6 +433,66 @@ namespace Altinn.App.Core.Features.Auth
         Maskinporten = 5,
     }
 }
+namespace Altinn.App.Core.Features.Bootstrap
+{
+    public interface IFormBootstrapService
+    {
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Bootstrap.Models.FormBootstrapResponse> GetInstanceFormBootstrap(Altinn.Platform.Storage.Interface.Models.Instance instance, string? layoutSetIdOverride, string? dataElementIdOverride, bool isPdf, string language, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Bootstrap.Models.FormBootstrapResponse> GetStatelessFormBootstrap(string layoutSetId, string language, System.Threading.CancellationToken cancellationToken = default);
+    }
+}
+namespace Altinn.App.Core.Features.Bootstrap.Models
+{
+    public sealed class DataModelInfo
+    {
+        public DataModelInfo() { }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("dataElementId")]
+        public string? DataElementId { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("expressionValidationConfig")]
+        public object? ExpressionValidationConfig { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("initialData")]
+        public required object InitialData { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("isWritable")]
+        public required bool IsWritable { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("schema")]
+        public required object Schema { get; init; }
+    }
+    public sealed class FormBootstrapMetadata
+    {
+        public FormBootstrapMetadata() { }
+        [System.Text.Json.Serialization.JsonPropertyName("defaultDataType")]
+        public required string DefaultDataType { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+        [System.Text.Json.Serialization.JsonPropertyName("isPdf")]
+        public bool IsPdf { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+        [System.Text.Json.Serialization.JsonPropertyName("isSubform")]
+        public bool IsSubform { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("layoutSetId")]
+        public required string LayoutSetId { get; init; }
+    }
+    public sealed class FormBootstrapResponse
+    {
+        public FormBootstrapResponse() { }
+        [System.Text.Json.Serialization.JsonPropertyName("dataModels")]
+        public required System.Collections.Generic.Dictionary<string, Altinn.App.Core.Features.Bootstrap.Models.DataModelInfo> DataModels { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("layoutSettings")]
+        public object? LayoutSettings { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("layouts")]
+        public required object Layouts { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("metadata")]
+        public required Altinn.App.Core.Features.Bootstrap.Models.FormBootstrapMetadata Metadata { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("schemaVersion")]
+        public int SchemaVersion { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("staticOptions")]
+        public required System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<Altinn.App.Core.Models.AppOption>> StaticOptions { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("validationIssues")]
+        public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? ValidationIssues { get; init; }
+    }
+}
 namespace Altinn.App.Core.Features.Correspondence.Builder
 {
     public class CorrespondenceAttachmentBuilder : Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilderData, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilderFilename, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilderSendersReference

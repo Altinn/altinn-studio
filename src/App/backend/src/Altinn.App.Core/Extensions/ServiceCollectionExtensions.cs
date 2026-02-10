@@ -178,6 +178,8 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IIndexPageGenerator, IndexPageGenerator>();
         services.TryAddSingleton<ITranslationService, TranslationService>();
         services.TryAddSingleton<IBootstrapGlobalService, BootstrapGlobalService>();
+        services.TryAddTransient<ILayoutAnalysisService, LayoutAnalysisService>();
+        services.TryAddTransient<IFormBootstrapService, FormBootstrapService>();
         services.TryAddTransient<IReturnUrlService, ReturnUrlService>();
         services.TryAddTransient<IAppEvents, DefaultAppEvents>();
 #pragma warning disable CS0618, CS0612 // Type or member is obsolete
