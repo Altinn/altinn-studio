@@ -129,6 +129,7 @@ function OptionListTools({
         component={component}
         handleComponentChange={handleComponentChange}
         onCreateButtonClick={openDialog}
+        orgName={codeListIdContextData.orgName}
       />
     );
   }
@@ -138,7 +139,7 @@ OptionListTools.displayName = 'OptionListTools';
 
 type AddOptionListProps = EditTabProps & {
   onCreateButtonClick: () => void;
-  codeListIdContextData: CodeListIdContextData;
+  orgName: string;
 };
 
 function AddOptionList({
@@ -146,6 +147,7 @@ function AddOptionList({
   component,
   handleComponentChange,
   onCreateButtonClick,
+  orgName,
 }: AddOptionListProps) {
   const { t } = useTranslation();
 
@@ -168,7 +170,7 @@ function AddOptionList({
       <PublishedOptionListSelector
         component={component}
         handleComponentChange={handleComponentChange}
-        orgName={codeListIdContextData.orgName}
+        orgName={orgName}
         triggerProps={{ children: t('ux_editor.options.published_code_list.choose') }}
       />
     </div>

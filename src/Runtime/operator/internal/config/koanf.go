@@ -13,7 +13,6 @@ import (
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
-	"go.opentelemetry.io/otel"
 )
 
 var parser = dotenv.ParserEnv("", ".", func(s string) string { return s })
@@ -47,8 +46,7 @@ func resolveConfigFilePath(configFilePath string) (string, error) {
 // loadFromKoanf loads configuration from a .env file.
 // The configFilePath must be a resolved absolute path.
 func loadFromKoanf(ctx context.Context, configFilePath string) (*Config, error) {
-	tracer := otel.Tracer(telemetry.ServiceName)
-	_, span := tracer.Start(ctx, "loadFromKoanf")
+	_, span := telemetry.Tracer().Start(ctx, "loadFromKoanf")
 	defer span.End()
 
 	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {

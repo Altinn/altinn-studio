@@ -5,6 +5,11 @@
   "separateMultipleMajor": true,
   "packageRules": [
     {
+      "description": "Disable minimum release age checks for digest updates",
+      "matchUpdateTypes": ["digest"],
+      "minimumReleaseAge": null
+    },
+    {
       "groupName": "LibGit2Sharp dependency",
       "groupSlug": "LibGit2Sharp",
       "matchPackageNames": ["LibGit2Sharp"]

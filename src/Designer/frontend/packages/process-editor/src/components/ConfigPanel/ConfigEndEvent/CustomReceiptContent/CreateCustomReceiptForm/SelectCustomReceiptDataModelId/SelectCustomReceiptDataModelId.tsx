@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../../contexts/BpmnApiContext';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../../utils/configPanelUtils';
-import { StudioSuggestion } from '@studio/components';
+import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 
 export type SelectCustomReceiptDataModelIdProps = {
   error: string;
@@ -29,16 +29,19 @@ export const SelectCustomReceiptDataModelId = ({
     }
   }, [existingDataModelId]);
 
-  const selectedItems = selectedValue ? [{ value: selectedValue, label: selectedValue }] : [];
+  const selectedItems: StudioSuggestionItem = selectedValue
+    ? { value: selectedValue, label: selectedValue }
+    : undefined;
 
-  const handleSelectedChange = (items: { value: string }[]) => {
-    const newValue = items[0]?.value || '';
+  const handleSelectedChange = (item: StudioSuggestionItem) => {
+    const newValue = item.value || '';
     setSelectedValue(newValue);
     onChange(newValue);
   };
 
   return (
     <StudioSuggestion
+      multiple={false}
       label={t('process_editor.configuration_panel_custom_receipt_select_data_model_label')}
       emptyText={t('process_editor.configuration_panel_no_data_model_to_select')}
       name='customReceiptDataModel'

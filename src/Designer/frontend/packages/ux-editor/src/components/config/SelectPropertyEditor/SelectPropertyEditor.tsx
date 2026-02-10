@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { XMarkIcon } from '@studio/icons';
-import { StudioButton, StudioProperty } from '@studio/components';
+import { StudioFormActions, StudioProperty } from '@studio/components';
 import classes from './SelectPropertyEditor.module.css';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 
 export type SelectPropertyEditorProps = {
-  children?: React.ReactNode;
+  children: React.ReactNode;
   value?: string | React.ReactNode;
   property?: string;
   title?: string;
   className?: string;
+  onSave: () => void;
+  onCancel: () => void;
+  isSaveDisabled: boolean;
 };
 
 export const SelectPropertyEditor = ({
@@ -19,32 +21,52 @@ export const SelectPropertyEditor = ({
   property,
   title,
   className,
+  onSave,
+  onCancel,
+  isSaveDisabled,
 }: SelectPropertyEditorProps) => {
+  const [editMode, setEditMode] = useState(false);
   const { t } = useTranslation();
-  const [dataTypeSelectVisible, setDataTypeSelectVisible] = useState(false);
+
+  if (!editMode) {
+    return (
+      <StudioProperty.Button
+        onClick={() => setEditMode(true)}
+        property={property}
+        title={title}
+        value={value}
+        className={className}
+      />
+    );
+  }
+
+  const handleSave = () => {
+    setEditMode(false);
+    onSave();
+  };
+
+  const handleCancel = () => {
+    setEditMode(false);
+    onCancel();
+  };
 
   return (
-    <div className={cn(dataTypeSelectVisible ? classes.container : classes.viewMode)}>
-      {dataTypeSelectVisible ? (
-        <div className={cn(classes.editSelectProperty, className)}>
-          <div className={classes.selectProperty}>{children}</div>
-          <StudioButton
-            icon={<XMarkIcon />}
-            onClick={() => setDataTypeSelectVisible(false)}
-            title={t('general.close')}
-            variant='secondary'
-            className={classes.closeButton}
-          />
-        </div>
-      ) : (
-        <StudioProperty.Button
-          onClick={() => setDataTypeSelectVisible(true)}
-          property={property}
-          title={title}
-          value={value}
-          className={cn(classes.viewSelectProperty, className)}
-        />
-      )}
+    <div className={cn(classes.editMode, className)}>
+      <div className={classes.selectProperty}>{children}</div>
+      <StudioFormActions
+        className={classes.actionButtons}
+        primary={{
+          label: t('general.save'),
+          onClick: handleSave,
+          disabled: isSaveDisabled,
+        }}
+        secondary={{
+          label: t('general.cancel'),
+          onClick: handleCancel,
+        }}
+        isLoading={false}
+        iconOnly
+      />
     </div>
   );
 };

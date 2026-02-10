@@ -1,0 +1,21 @@
+<Project>
+  <PropertyGroup>
+    <!-- Enable central package management, https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="KubernetesClient" Version="18.0.13" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.2" />
+
+    <!-- Static analysis, formatting -->
+    <PackageVersion Include="CSharpier.MsBuild" Version="1.2.5" />
+    <PackageVersion Include="Nullable.Extended.Analyzer" Version="1.15.6581" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.16.1.129956" />
+
+    <!-- Testing -->
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.12" />
+    <PackageVersion Include="TUnit" Version="1.13.11" />
+    <PackageVersion Include="Verify.TUnit" Version="31.12.3" />
+  </ItemGroup>
+</Project>

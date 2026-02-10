@@ -61,11 +61,7 @@ describe('ColumnElement', () => {
     });
     await user.click(editButton);
 
-    const componentSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
-
-    await user.click(componentSelect);
+    await user.click(getComponentSelectCombobox());
     await user.click(
       screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component4Id}`) }),
     );
@@ -91,11 +87,7 @@ describe('ColumnElement', () => {
     });
     await user.click(editButton);
 
-    const componentSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
-
-    expect(componentSelect).toBeInTheDocument();
+    expect(getComponentSelectCombobox()).toBeInTheDocument();
   });
 
   it('should call onDeleteColumn when delete button is clicked', async () => {
@@ -118,6 +110,11 @@ describe('ColumnElement', () => {
     expect(onDeleteColumnMock).toHaveBeenCalledTimes(1);
   });
 });
+
+const getComponentSelectCombobox = () =>
+  screen.getByRole('combobox', {
+    name: /ux_editor\.properties_panel\.subform_table_columns\.choose_component/,
+  });
 
 const renderColumnElement = (props: Partial<ColumnElementProps> = {}) => {
   const queryClient = createQueryClientMock();

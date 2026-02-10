@@ -7,6 +7,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { ResourceAdmHeader } from './ResourceAdmHeader';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 const mainOrganization = {
   avatar_url: '',
@@ -76,9 +77,11 @@ describe('ResourceAdmHeader', () => {
 const renderResourceAdmHeader = () => {
   return render(
     <MemoryRouter>
-      <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
-        <ResourceAdmHeader organizations={organizations} user={testUser} />
-      </ServicesContextProvider>
+      <FeatureFlagsContextProvider value={{ flags: [] }}>
+        <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
+          <ResourceAdmHeader organizations={organizations} user={testUser} />
+        </ServicesContextProvider>
+      </FeatureFlagsContextProvider>
     </MemoryRouter>,
   );
 };

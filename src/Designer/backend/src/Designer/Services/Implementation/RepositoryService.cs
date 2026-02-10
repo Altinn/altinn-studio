@@ -50,9 +50,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ILogger _logger;
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly IApplicationMetadataService _applicationMetadataService;
-        private readonly IAppDevelopmentService _appDevelopmentService;
         private readonly ITextsService _textsService;
         private readonly IResourceRegistry _resourceRegistryService;
+        private readonly ICustomTemplateService _templateService;
         private readonly JsonSerializerOptions _serializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
 
         /// <summary>
@@ -66,9 +66,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="logger">The logger</param>
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
         /// <param name="applicationMetadataService">The service for handling the application metadata file</param>
-        /// <param name="appDevelopmentService">The service for handling files concerning app-development</param>
         /// <param name="textsService">The service for handling texts</param>
         /// <param name="resourceRegistryService">The service for publishing resource in the ResourceRegistry</param>
+        /// <param name="templateService">The service for handling custom templates</param>
         public RepositoryService(
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
@@ -78,9 +78,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ILogger<RepositoryService> logger,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             IApplicationMetadataService applicationMetadataService,
-            IAppDevelopmentService appDevelopmentService,
             ITextsService textsService,
-            IResourceRegistry resourceRegistryService)
+            IResourceRegistry resourceRegistryService,
+            ICustomTemplateService templateService)
         {
             _settings = repositorySettings;
             _generalSettings = generalSettings;
@@ -90,9 +90,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _logger = logger;
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _applicationMetadataService = applicationMetadataService;
-            _appDevelopmentService = appDevelopmentService;
             _textsService = textsService;
             _resourceRegistryService = resourceRegistryService;
+            _templateService = templateService;
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.AppSlnFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.GitIgnoreFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerIgnoreFileName);
-            UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName);
+
             return true;
         }
 
@@ -214,17 +214,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return deleted;
         }
 
-        /// <summary>
-        /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
-        /// given <paramref name="serviceConfig"/>
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="serviceConfig">The ServiceConfiguration to save</param>
-        /// <returns>The repository created in gitea</returns>
-        public async Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig)
+        /// <inheritdoc/>
+        public async Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig, List<CustomTemplateReference> templates)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnRepoEditingContext altinnRepoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, serviceConfig.RepositoryName, developer);
+            string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, serviceConfig.RepositoryName, developer, token);
             string repoPath = _settings.GetServicePath(org, serviceConfig.RepositoryName, developer);
             var options = new CreateRepoOption(serviceConfig.RepositoryName);
 
@@ -237,7 +232,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     FireDeletionOfLocalRepo(org, serviceConfig.RepositoryName, developer);
                 }
 
-                await _sourceControl.CloneRemoteRepository(altinnRepoEditingContext);
+                _sourceControl.CloneRemoteRepository(authenticatedContext);
 
                 ModelMetadata metadata = new()
                 {
@@ -246,24 +241,42 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     RepositoryName = serviceConfig.RepositoryName,
                 };
 
-                // This creates all files
-                CreateServiceMetadata(metadata);
-                await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
-                await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
-                await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer);
+                try
+                {
+                    // This creates all files
+                    CreateServiceMetadata(metadata);
+                    await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
+                    await ApplyCustomTemplates(org, serviceConfig.RepositoryName, developer, templates);
+                    await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer, templates);
 
-                CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
+                    await _applicationMetadataService.SetCoreProperties(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
 
-                await _sourceControl.PushChangesForRepository(commitInfo, altinnRepoEditingContext);
+                    CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
+                    _sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
+                }
+                catch (Exception)
+                {
+                    // Cleanup repository on failure
+                    await DeleteRepository(org, serviceConfig.RepositoryName);
+                    throw;
+                }
             }
 
             return repository;
         }
 
-        private async Task CreateAltinnStudioSettings(string org, string repository, string developer)
+        private async Task ApplyCustomTemplates(string org, string repositoryName, string developer, List<CustomTemplateReference> templates)
+        {
+            foreach (CustomTemplateReference templateRef in templates)
+            {
+                await _templateService.ApplyTemplateToRepository(templateRef.Owner, templateRef.Id, org, repositoryName, developer);
+            }
+        }
+
+        private async Task CreateAltinnStudioSettings(string org, string repository, string developer, List<CustomTemplateReference> templates)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
-            var settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, UseNullableReferenceTypes = true };
+            var settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, UseNullableReferenceTypes = true, Templates = templates };
             await altinnGitRepository.SaveAltinnStudioSettings(settings);
         }
 
@@ -272,7 +285,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             targetOrg ??= org;
             var options = new CreateRepoOption(targetRepository);
-            AltinnRepoEditingContext altinnRepoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, sourceRepository, developer);
+            string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext sourceContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceRepository, developer, token);
+            AltinnAuthenticatedRepoEditingContext targetContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(targetOrg, targetRepository, developer, token);
 
             RepositoryClient.Model.Repository repository = await CreateRemoteRepository(targetOrg, options);
 
@@ -288,10 +303,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 FireDeletionOfLocalRepo(targetOrg, targetRepository, developer);
             }
 
-            await _sourceControl.CloneRemoteRepository(altinnRepoEditingContext, targetRepositoryPath);
+            _sourceControl.CloneRemoteRepository(sourceContext, targetRepositoryPath);
             var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepository, developer);
 
-            await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
+            await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{targetOrg}/{targetRepository}.git");
 
             ApplicationMetadata appMetadata = await targetAppRepository.GetApplicationMetadata();
             appMetadata.Id = $"{targetOrg}/{targetRepository}";
@@ -311,7 +326,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             CommitInfo commitInfo = new() { Org = targetOrg, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
-            await _sourceControl.PushChangesForRepository(commitInfo, altinnRepoEditingContext);
+            _sourceControl.PushChangesForRepository(targetContext, commitInfo);
 
             return repository;
         }
@@ -320,11 +335,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<bool> ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext)
         {
             string repoPath = _settings.GetServicePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromEditingContext(altinnRepoEditingContext, token);
 
             if (Directory.Exists(repoPath))
             {
                 FireDeletionOfLocalRepo(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-                await _sourceControl.CloneRemoteRepository(altinnRepoEditingContext);
+                _sourceControl.CloneRemoteRepository(authenticatedContext);
                 return true;
             }
 
@@ -340,17 +357,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<RepositoryClient.Model.Repository> CreateRemoteRepository(string org, CreateRepoOption options)
         {
             return await _giteaClient.CreateRepository(org, options);
-        }
-
-        // IKKE SLETT
-        private void UpdateAuthorizationPolicyFile(string org, string app)
-        {
-            // Read the authorization policy template (XACML file).
-            string path = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string policyPath = Path.Combine(path, _generalSettings.AuthorizationPolicyTemplate);
-            string authorizationPolicyData = File.ReadAllText(policyPath, Encoding.UTF8);
-
-            File.WriteAllText(policyPath, authorizationPolicyData, Encoding.UTF8);
         }
 
         private void CopyFolderToApp(string org, string app, string sourcePath, string path)
@@ -382,40 +388,72 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public List<FileSystemObject> GetContents(string org, string repository, string path = "")
         {
-            List<FileSystemObject> contents = new();
             string repositoryPath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string contentPath = Path.Combine(repositoryPath, path);
 
-            // repository was not found
             if (!Directory.Exists(repositoryPath))
             {
                 return null;
             }
 
+            string contentPath = ResolvePathWithinParentDirectory(repositoryPath, path);
+            if (contentPath is null)
+            {
+                return null;
+            }
+
+            List<FileSystemObject> contents = GetFileSystemObjects(contentPath);
+
+            string repositoryFullPath = Path.GetFullPath(repositoryPath);
+            contents.ForEach(c => c.Path = Path.GetRelativePath(repositoryFullPath, c.Path).Replace("\\", "/"));
+
+            return contents;
+        }
+
+        /// <summary>
+        /// Resolves and validates that a requested path is within a parent directory.
+        /// Returns the resolved full path, or null if the path escapes the parent.
+        /// </summary>
+        private static string ResolvePathWithinParentDirectory(string parentDirectory, string relativePath)
+        {
+            string fullParent = Path.GetFullPath(parentDirectory);
+
+            if (string.IsNullOrEmpty(relativePath))
+            {
+                return fullParent;
+            }
+
+            string resolvedPath = Path.GetFullPath(Path.Join(fullParent, relativePath));
+            string parentWithSeparator = fullParent.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                                         + Path.DirectorySeparatorChar;
+
+            if (!resolvedPath.StartsWith(parentWithSeparator, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(resolvedPath, fullParent, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            return resolvedPath;
+        }
+
+        private List<FileSystemObject> GetFileSystemObjects(string contentPath)
+        {
+            List<FileSystemObject> contents = new();
+
             if (File.Exists(contentPath))
             {
-                FileSystemObject f = GetFileSystemObjectForFile(contentPath);
-                contents.Add(f);
+                contents.Add(GetFileSystemObjectForFile(contentPath, includeContent: true));
             }
             else if (Directory.Exists(contentPath))
             {
-                string[] dirs = Directory.GetDirectories(contentPath);
-                foreach (string directoryPath in dirs)
+                foreach (string directoryPath in Directory.GetDirectories(contentPath))
                 {
-                    FileSystemObject d = GetFileSystemObjectForDirectory(directoryPath);
-                    contents.Add(d);
+                    contents.Add(GetFileSystemObjectForDirectory(directoryPath));
                 }
-
-                string[] files = Directory.GetFiles(contentPath);
-                foreach (string filePath in files)
+                foreach (string filePath in Directory.GetFiles(contentPath))
                 {
-                    FileSystemObject f = GetFileSystemObjectForFile(filePath);
-                    contents.Add(f);
+                    contents.Add(GetFileSystemObjectForFile(filePath));
                 }
             }
-
-            // setting all paths relative to repository
-            contents.ForEach(c => c.Path = Path.GetRelativePath(repositoryPath, c.Path).Replace("\\", "/"));
 
             return contents;
         }
@@ -584,7 +622,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return string.Format("{0}_resource.json", identifier);
         }
 
-        private FileSystemObject GetFileSystemObjectForFile(string path)
+        private FileSystemObject GetFileSystemObjectForFile(string path, bool includeContent = false)
         {
             FileInfo fi = new(path);
             string encoding;
@@ -594,12 +632,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 encoding = sr.CurrentEncoding.EncodingName;
             }
 
+            string content = null;
+            if (includeContent)
+            {
+                content = File.ReadAllText(path, Encoding.UTF8);
+            }
+
             FileSystemObject fso = new()
             {
                 Type = FileSystemObjectType.File.ToString(),
                 Name = fi.Name,
                 Encoding = encoding,
                 Path = fi.FullName,
+                Content = content,
             };
 
             return fso;

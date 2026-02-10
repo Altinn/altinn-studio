@@ -10,18 +10,20 @@ export type AllAccessPackagesProps = {
   chosenAccessPackages: string[];
   accessPackagesToRender: PolicyAccessPackageArea[];
   searchValue: string;
+  isPersonSubject?: boolean;
   handleSelectAccessPackage: (accessPackageUrn: string) => void;
 };
 export const AllAccessPackages = ({
   chosenAccessPackages,
   accessPackagesToRender,
   searchValue,
+  isPersonSubject,
   handleSelectAccessPackage,
 }: AllAccessPackagesProps): ReactElement[] => {
   return accessPackagesToRender.map((area) => (
     <PolicyAccordion
       key={`${searchValue}-${area.id}`}
-      icon={<PolicyAccordionIcon icon={area.iconUrl} />}
+      icon={<PolicyAccordionIcon icon={area.iconUrl} isPersonSubject={isPersonSubject} />}
       title={area.name}
       subTitle={area.description}
       defaultOpen={!!searchValue}
@@ -30,6 +32,7 @@ export const AllAccessPackages = ({
         <PolicyAccessPackageAccordion
           key={accessPackage.urn}
           accessPackage={accessPackage}
+          isPersonSubject={isPersonSubject}
           isChecked={isAccessPackageSelected(accessPackage.urn, chosenAccessPackages)}
           handleSelectChange={handleSelectAccessPackage}
         />
@@ -38,14 +41,18 @@ export const AllAccessPackages = ({
   ));
 };
 
-type PolicyAccordionIconProps = { icon: string };
-const PolicyAccordionIcon = ({ icon }: PolicyAccordionIconProps): ReactElement => {
+type PolicyAccordionIconProps = { icon: string; isPersonSubject?: boolean };
+const PolicyAccordionIcon = ({ icon, isPersonSubject }: PolicyAccordionIconProps): ReactElement => {
   return (
     <img
       src={icon}
       data-color='accent'
-      className={cn(classes.accordionIcon, classes.iconContainer)}
+      className={cn(classes.accordionIcon, {
+        [classes.orgAccordionIcon]: !isPersonSubject,
+        [classes.personAccordionIcon]: isPersonSubject,
+      })}
       aria-hidden
+      alt=''
     />
   );
 };
