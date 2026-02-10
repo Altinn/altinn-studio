@@ -34,7 +34,7 @@ public class GenerateAsyncTests : IClassFixture<TestWebApplicationFactory>, IDis
 
         var response = await _client.PostAsync("/generate-async", content);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
         var json = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(json);
         doc.RootElement.GetProperty("status").GetString().Should().Be("accepted");

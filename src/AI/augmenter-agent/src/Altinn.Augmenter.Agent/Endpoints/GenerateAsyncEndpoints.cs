@@ -49,7 +49,7 @@ public static class GenerateAsyncEndpoints
                 return Results.StatusCode(503);
             }
 
-            return Results.Ok(new { status = "accepted" });
+            return Results.Accepted(value: new { status = "accepted" });
         })
         .DisableAntiforgery();
     }
