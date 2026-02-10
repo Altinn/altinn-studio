@@ -50,7 +50,8 @@ public class GenerateAsyncTests : IClassFixture<TestWebApplicationFactory>, IDis
             await Task.Delay(500);
         }
 
-        _callbackServer.LogEntries.Should().HaveCountGreaterOrEqualTo(1);
+        _callbackServer.LogEntries.Should().HaveCountGreaterOrEqualTo(1,
+            "the background service should POST the generated PDF to the callback URL");
     }
 
     [Fact]
