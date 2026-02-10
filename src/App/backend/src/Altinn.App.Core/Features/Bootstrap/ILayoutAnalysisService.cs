@@ -14,10 +14,10 @@ internal interface ILayoutAnalysisService
     HashSet<string> GetReferencedDataTypes(object layoutsJson, string defaultDataType);
 
     /// <summary>
-    /// Get all optionsId values that can be fetched statically.
-    /// These are options that have optionsId, no mapping property, and static queryParameters.
+    /// Get all static options variants grouped by optionsId.
+    /// Static variants are options with no mapping and static query parameters only.
     /// </summary>
     /// <param name="layoutsJson">The layouts JSON object (dictionary of page name to layout).</param>
-    /// <returns>Set of optionIds that can be statically fetched.</returns>
-    HashSet<string> GetStaticOptionIds(object layoutsJson);
+    /// <returns>Dictionary of optionsId to static query parameter variants.</returns>
+    Dictionary<string, List<Dictionary<string, string>>> GetStaticOptions(object layoutsJson);
 }

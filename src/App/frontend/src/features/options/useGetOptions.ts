@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useMemo } from 'react';
 
+import deepEqual from 'fast-deep-equal';
+
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
+import { useResolvedQueryParameters } from 'src/features/options/evalQueryParameters';
 import { useGetOptionsQuery, useGetOptionsUrl } from 'src/features/options/useGetOptionsQuery';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useSourceOptions } from 'src/features/options/useSourceOptions';
@@ -14,6 +18,7 @@ import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { verifyAndDeduplicateOptions } from 'src/utils/options';
 import type { ExprValueArgs } from 'src/features/expressions/types';
+import type { StaticOptionsVariant } from 'src/features/formBootstrap/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
@@ -113,7 +118,7 @@ function useOptionsUrl(item: CompIntermediateExact<CompWithBehavior<'canHaveOpti
 }
 
 export function useFetchOptions({ item }: FetchOptionsProps) {
-  const { options, optionsId, source } = item;
+  const { options, optionsId, source, mapping, queryParameters } = item;
 
   // Configuration cannot change during runtime, so breaking the rule of hooks here is acceptable. We do this to
   // avoid gathering lots of data for option sources we don't plan on using. It's always one of these
@@ -127,6 +132,26 @@ export function useFetchOptions({ item }: FetchOptionsProps) {
   }
 
   if (optionsId) {
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const staticOptions = FormBootstrap.useStaticOptionsMap();
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const resolvedQueryParameters = useResolvedQueryParameters(queryParameters);
+
+    const canUseBootstrapOptions = !mapping && areQueryParametersStatic(queryParameters);
+    const bootstrapVariant = canUseBootstrapOptions
+      ? findMatchingBootstrapVariant(staticOptions[optionsId]?.variants, resolvedQueryParameters)
+      : undefined;
+
+    if (bootstrapVariant) {
+      return {
+        isFetching: false,
+        unsorted: bootstrapVariant.options,
+        downstreamParameters: undefined,
+      };
+    }
+
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const url = useOptionsUrl(item);
@@ -157,6 +182,31 @@ export function useFetchOptions({ item }: FetchOptionsProps) {
   }
 
   return { unsorted: defaultOptions, isFetching: false, downstreamParameters: undefined };
+}
+
+function areQueryParametersStatic(
+  queryParameters: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>['queryParameters'],
+) {
+  if (!queryParameters) {
+    return true;
+  }
+
+  return Object.values(queryParameters).every((value) => {
+    const valueType = typeof value;
+    return value === null || valueType === 'string' || valueType === 'number' || valueType === 'boolean';
+  });
+}
+
+function findMatchingBootstrapVariant(
+  variants: StaticOptionsVariant[] | undefined,
+  resolvedQueryParameters: Record<string, string> | undefined,
+): StaticOptionsVariant | undefined {
+  if (!variants || variants.length === 0) {
+    return undefined;
+  }
+
+  const expected = resolvedQueryParameters ?? {};
+  return variants.find((variant) => deepEqual(variant.queryParameters ?? {}, expected));
 }
 
 // Log error if fetching options failed

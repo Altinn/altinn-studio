@@ -5,6 +5,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 
@@ -24,7 +25,8 @@ internal sealed class FormBootstrapService : IFormBootstrapService
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
     private readonly ILayoutAnalysisService _layoutAnalysis;
-    private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly IAppOptionsService _appOptionsService;
+    private readonly IInitialValidationService _initialValidationService;
     private readonly IDataClient _dataClient;
     private readonly IAppModel _appModel;
     private readonly ILogger<FormBootstrapService> _logger;
@@ -33,7 +35,8 @@ internal sealed class FormBootstrapService : IFormBootstrapService
         IAppResources appResources,
         IAppMetadata appMetadata,
         ILayoutAnalysisService layoutAnalysis,
-        AppImplementationFactory appImplementationFactory,
+        IAppOptionsService appOptionsService,
+        IInitialValidationService initialValidationService,
         IDataClient dataClient,
         IAppModel appModel,
         ILogger<FormBootstrapService> logger
@@ -42,7 +45,8 @@ internal sealed class FormBootstrapService : IFormBootstrapService
         _appResources = appResources;
         _appMetadata = appMetadata;
         _layoutAnalysis = layoutAnalysis;
-        _appImplementationFactory = appImplementationFactory;
+        _appOptionsService = appOptionsService;
+        _initialValidationService = initialValidationService;
         _dataClient = dataClient;
         _appModel = appModel;
         _logger = logger;
@@ -59,6 +63,14 @@ internal sealed class FormBootstrapService : IFormBootstrapService
     )
     {
         // 1. Determine layout set
+        var taskId = instance.Process?.CurrentTask?.ElementId;
+        if (string.IsNullOrEmpty(taskId))
+        {
+            throw new InvalidOperationException(
+                $"Could not determine current task for instance {instance.Id}. Ensure process has started."
+            );
+        }
+
         var layoutSetId = layoutSetIdOverride ?? GetLayoutSetFromProcess(instance);
         if (string.IsNullOrEmpty(layoutSetId))
         {
@@ -78,7 +90,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
 
         // 3. Analyze layouts
         var referencedDataTypes = _layoutAnalysis.GetReferencedDataTypes(layoutsJson, defaultDataType);
-        var staticOptionIds = _layoutAnalysis.GetStaticOptionIds(layoutsJson);
+        var staticOptions = _layoutAnalysis.GetStaticOptions(layoutsJson);
 
         // 4. Load everything in parallel
         var dataModelsTask = LoadInstanceDataModels(
@@ -88,17 +100,28 @@ internal sealed class FormBootstrapService : IFormBootstrapService
             isPdf,
             cancellationToken
         );
-        var optionsTask = LoadStaticOptions(staticOptionIds, language);
+        var optionsTask = LoadStaticOptions(
+            staticOptions,
+            language,
+            new InstanceIdentifier(instance),
+            cancellationToken
+        );
+        Task<PartitionedInitialValidations?> initialValidationTask = isPdf
+            ? Task.FromResult<PartitionedInitialValidations?>(null)
+            : LoadAndPartitionInitialValidations(instance, taskId, language, defaultDataType, cancellationToken);
 
-        await Task.WhenAll(dataModelsTask, optionsTask);
+        await Task.WhenAll(dataModelsTask, optionsTask, initialValidationTask);
+        var dataModels = await dataModelsTask;
+        var initialValidations = await initialValidationTask;
+        AttachInitialValidationIssues(dataModels, initialValidations?.DataModelIssues);
 
         return new FormBootstrapResponse
         {
             Layouts = layouts,
             LayoutSettings = layoutSettings,
-            DataModels = await dataModelsTask,
+            DataModels = dataModels,
             StaticOptions = await optionsTask,
-            ValidationIssues = null, // Validation handled separately
+            ValidationIssues = initialValidations?.TaskIssues,
             Metadata = new FormBootstrapMetadata
             {
                 LayoutSetId = layoutSetId,
@@ -125,11 +148,11 @@ internal sealed class FormBootstrapService : IFormBootstrapService
 
         // Analyze
         var referencedDataTypes = _layoutAnalysis.GetReferencedDataTypes(layoutsJson, defaultDataType);
-        var staticOptionIds = _layoutAnalysis.GetStaticOptionIds(layoutsJson);
+        var staticOptions = _layoutAnalysis.GetStaticOptions(layoutsJson);
 
         // Load in parallel
         var dataModelsTask = LoadStatelessDataModels(referencedDataTypes, cancellationToken);
-        var optionsTask = LoadStaticOptions(staticOptionIds, language);
+        var optionsTask = LoadStaticOptions(staticOptions, language, instanceIdentifier: null, cancellationToken);
 
         await Task.WhenAll(dataModelsTask, optionsTask);
 
@@ -329,39 +352,169 @@ internal sealed class FormBootstrapService : IFormBootstrapService
         return result;
     }
 
-    private async Task<Dictionary<string, List<AppOption>>> LoadStaticOptions(
-        HashSet<string> optionIds,
-        string language
+    private async Task<Dictionary<string, StaticOptionsInfo>> LoadStaticOptions(
+        Dictionary<string, List<Dictionary<string, string>>> staticOptions,
+        string language,
+        InstanceIdentifier? instanceIdentifier,
+        CancellationToken cancellationToken
     )
     {
-        _ = language; // Reserved for future use (e.g., language-specific options)
-        var result = new Dictionary<string, List<AppOption>>();
-        var optionsFileHandler = _appImplementationFactory.GetRequired<IAppOptionsFileHandler>();
-
-        var tasks = optionIds.Select(async optionsId =>
+        _ = cancellationToken;
+        var result = new Dictionary<string, StaticOptionsInfo>();
+        var tasks = staticOptions.Select(async kvp =>
         {
-            try
+            var optionsId = kvp.Key;
+            var variants = new List<StaticOptionsVariant>();
+
+            foreach (var queryParameters in kvp.Value)
             {
-                var options = await optionsFileHandler.ReadOptionsFromFileAsync(optionsId);
-                return (optionsId, options);
+                try
+                {
+                    var appOptions = await GetAppOptions(optionsId, language, queryParameters, instanceIdentifier);
+                    if (appOptions?.Options is null)
+                    {
+                        continue;
+                    }
+
+                    variants.Add(
+                        new StaticOptionsVariant { QueryParameters = queryParameters, Options = appOptions.Options }
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to load options {OptionsId}", optionsId);
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to load options {OptionsId}", optionsId);
-                return (optionsId, (List<AppOption>?)null);
-            }
+
+            return (optionsId, variants.Count > 0 ? new StaticOptionsInfo { Variants = variants } : null);
         });
 
-        var results = await Task.WhenAll(tasks);
-        foreach (var (optionsId, options) in results)
+        foreach (var (optionsId, info) in await Task.WhenAll(tasks))
         {
-            if (options is not null)
+            if (info is not null)
             {
-                result[optionsId] = options;
+                result[optionsId] = info;
             }
         }
 
         return result;
+    }
+
+    private async Task<AppOptions?> GetAppOptions(
+        string optionsId,
+        string language,
+        Dictionary<string, string> queryParameters,
+        InstanceIdentifier? instanceIdentifier
+    )
+    {
+        if (instanceIdentifier is not null)
+        {
+            var instanceOptions = await _appOptionsService.GetOptionsAsync(
+                instanceIdentifier,
+                optionsId,
+                language,
+                queryParameters
+            );
+            if (instanceOptions?.Options is not null)
+            {
+                return instanceOptions;
+            }
+        }
+
+        return await _appOptionsService.GetOptionsAsync(optionsId, language, queryParameters);
+    }
+
+    private async Task<PartitionedInitialValidations> LoadAndPartitionInitialValidations(
+        Instance instance,
+        string taskId,
+        string language,
+        string defaultDataType,
+        CancellationToken cancellationToken
+    )
+    {
+        var defaultDataElementId = instance
+            .Data.FirstOrDefault(d => string.Equals(d.DataType, defaultDataType, StringComparison.OrdinalIgnoreCase))
+            ?.Id;
+
+        var issues = await _initialValidationService.Validate(instance, taskId, language, cancellationToken);
+        return PartitionInitialValidationIssues(issues, defaultDataElementId);
+    }
+
+    private static PartitionedInitialValidations PartitionInitialValidationIssues(
+        List<ValidationIssueWithSource> issues,
+        string? defaultDataElementId
+    )
+    {
+        var taskIssues = new List<ValidationIssueWithSource>();
+        var dataModelIssues = new Dictionary<string, List<ValidationIssueWithSource>>();
+
+        foreach (var issue in issues)
+        {
+            if (issue.Field is null && issue.DataElementId is null)
+            {
+                taskIssues.Add(issue);
+                continue;
+            }
+
+            var dataElementId = issue.DataElementId ?? defaultDataElementId;
+            if (dataElementId is null)
+            {
+                taskIssues.Add(issue);
+                continue;
+            }
+
+            if (!dataModelIssues.TryGetValue(dataElementId, out var issuesForDataElement))
+            {
+                issuesForDataElement = [];
+                dataModelIssues[dataElementId] = issuesForDataElement;
+            }
+
+            issuesForDataElement.Add(CloneValidationIssue(issue, dataElementId));
+        }
+
+        return new PartitionedInitialValidations
+        {
+            TaskIssues = taskIssues.Count == 0 ? null : taskIssues,
+            DataModelIssues = dataModelIssues,
+        };
+    }
+
+    private static ValidationIssueWithSource CloneValidationIssue(ValidationIssueWithSource issue, string dataElementId)
+    {
+        return new ValidationIssueWithSource
+        {
+            Severity = issue.Severity,
+            DataElementId = dataElementId,
+            Field = issue.Field,
+            Code = issue.Code,
+            Description = issue.Description,
+            Source = issue.Source,
+            NoIncrementalUpdates = issue.NoIncrementalUpdates,
+            CustomTextKey = issue.CustomTextKey,
+#pragma warning disable CS0618
+            CustomTextParams = issue.CustomTextParams,
+#pragma warning restore CS0618
+            CustomTextParameters = issue.CustomTextParameters,
+        };
+    }
+
+    private static void AttachInitialValidationIssues(
+        Dictionary<string, DataModelInfo> dataModels,
+        Dictionary<string, List<ValidationIssueWithSource>>? issuesByDataElement
+    )
+    {
+        if (issuesByDataElement is null || issuesByDataElement.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var model in dataModels.Values)
+        {
+            if (model.DataElementId is not null && issuesByDataElement.TryGetValue(model.DataElementId, out var issues))
+            {
+                model.InitialValidationIssues = issues;
+            }
+        }
     }
 
     private object GetSchema(string dataType)
@@ -394,5 +547,12 @@ internal sealed class FormBootstrapService : IFormBootstrapService
         }
 
         return JsonSerializer.Deserialize<JsonElement>(configJson, _jsonSerializerOptions);
+    }
+
+    private sealed class PartitionedInitialValidations
+    {
+        public List<ValidationIssueWithSource>? TaskIssues { get; init; }
+
+        public required Dictionary<string, List<ValidationIssueWithSource>> DataModelIssues { get; init; }
     }
 }

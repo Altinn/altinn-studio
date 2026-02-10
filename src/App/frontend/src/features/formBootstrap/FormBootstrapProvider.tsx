@@ -79,9 +79,14 @@ export function FormBootstrapProvider({
     const allDataTypes = Object.keys(dataModels);
     const writableDataTypes = allDataTypes.filter((dt) => dataModels[dt].isWritable);
     const staticOptions = Object.fromEntries(
-      Object.entries(data.staticOptions ?? {}).map(([optionsId, options]) => [
+      Object.entries(data.staticOptions ?? {}).map(([optionsId, info]) => [
         optionsId,
-        castOptionsToStrings(options),
+        {
+          variants: (info.variants ?? []).map((variant) => ({
+            queryParameters: variant.queryParameters ?? {},
+            options: castOptionsToStrings(variant.options ?? []),
+          })),
+        },
       ]),
     );
 

@@ -179,6 +179,7 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<ITranslationService, TranslationService>();
         services.TryAddSingleton<IBootstrapGlobalService, BootstrapGlobalService>();
         services.TryAddTransient<ILayoutAnalysisService, LayoutAnalysisService>();
+        services.TryAddTransient<IInitialValidationService, InitialValidationService>();
         services.TryAddTransient<IFormBootstrapService, FormBootstrapService>();
         services.TryAddTransient<IReturnUrlService, ReturnUrlService>();
         services.TryAddTransient<IAppEvents, DefaultAppEvents>();

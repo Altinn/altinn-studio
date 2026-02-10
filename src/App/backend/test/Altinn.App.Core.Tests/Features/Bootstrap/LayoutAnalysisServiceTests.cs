@@ -57,7 +57,7 @@ public class LayoutAnalysisServiceTests
     }
 
     [Fact]
-    public void GetStaticOptionIds_ExtractsOptionsId()
+    public void GetStaticOptions_ExtractsOptionsId()
     {
         // Arrange
         var layoutsJson = """
@@ -77,15 +77,17 @@ public class LayoutAnalysisServiceTests
             """;
 
         // Act
-        var result = _service.GetStaticOptionIds(layoutsJson);
+        var result = _service.GetStaticOptions(layoutsJson);
 
         // Assert
-        Assert.Single(result);
-        Assert.Contains("countries", result);
+        Assert.Single(result.Keys);
+        Assert.Contains("countries", result.Keys);
+        Assert.Single(result["countries"]);
+        Assert.Empty(result["countries"][0]);
     }
 
     [Fact]
-    public void GetStaticOptionIds_ExcludesOptionsWithMapping()
+    public void GetStaticOptions_ExcludesOptionsWithMapping()
     {
         // Arrange
         var layoutsJson = """
@@ -106,14 +108,14 @@ public class LayoutAnalysisServiceTests
             """;
 
         // Act
-        var result = _service.GetStaticOptionIds(layoutsJson);
+        var result = _service.GetStaticOptions(layoutsJson);
 
         // Assert
         Assert.Empty(result);
     }
 
     [Fact]
-    public void GetStaticOptionIds_ExcludesOptionsWithDynamicQueryParameters()
+    public void GetStaticOptions_ExcludesOptionsWithDynamicQueryParameters()
     {
         // Arrange
         var layoutsJson = """
@@ -136,14 +138,14 @@ public class LayoutAnalysisServiceTests
             """;
 
         // Act
-        var result = _service.GetStaticOptionIds(layoutsJson);
+        var result = _service.GetStaticOptions(layoutsJson);
 
         // Assert
         Assert.Empty(result);
     }
 
     [Fact]
-    public void GetStaticOptionIds_IncludesOptionsWithStaticQueryParameters()
+    public void GetStaticOptions_IncludesOptionsWithStaticQueryParameters()
     {
         // Arrange
         var layoutsJson = """
@@ -166,15 +168,17 @@ public class LayoutAnalysisServiceTests
             """;
 
         // Act
-        var result = _service.GetStaticOptionIds(layoutsJson);
+        var result = _service.GetStaticOptions(layoutsJson);
 
         // Assert
-        Assert.Single(result);
-        Assert.Contains("filteredCountries", result);
+        Assert.Single(result.Keys);
+        Assert.Contains("filteredCountries", result.Keys);
+        Assert.Single(result["filteredCountries"]);
+        Assert.Equal("europe", result["filteredCountries"][0]["region"]);
     }
 
     [Fact]
-    public void GetStaticOptionIds_ExtractsOptionLabelExpressions()
+    public void GetStaticOptions_ExtractsOptionLabelExpressions()
     {
         // Arrange
         var layoutsJson = """
@@ -196,10 +200,50 @@ public class LayoutAnalysisServiceTests
             """;
 
         // Act
-        var result = _service.GetStaticOptionIds(layoutsJson);
+        var result = _service.GetStaticOptions(layoutsJson);
 
         // Assert
-        Assert.Single(result);
-        Assert.Contains("countries", result);
+        Assert.Single(result.Keys);
+        Assert.Contains("countries", result.Keys);
+        Assert.Single(result["countries"]);
+        Assert.Empty(result["countries"][0]);
+    }
+
+    [Fact]
+    public void GetStaticOptions_IncludesMultipleStaticVariantsForSameOptionsId()
+    {
+        var layoutsJson = """
+            {
+                "page1": {
+                    "data": {
+                        "layout": [
+                            {
+                                "id": "dropdown1",
+                                "type": "Dropdown",
+                                "optionsId": "countries",
+                                "queryParameters": {
+                                    "region": "europe"
+                                }
+                            },
+                            {
+                                "id": "dropdown2",
+                                "type": "Dropdown",
+                                "optionsId": "countries",
+                                "queryParameters": {
+                                    "region": "asia"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+            """;
+
+        var result = _service.GetStaticOptions(layoutsJson);
+
+        Assert.Single(result.Keys);
+        Assert.Equal(2, result["countries"].Count);
+        Assert.Contains(result["countries"], v => v.TryGetValue("region", out var value) && value == "europe");
+        Assert.Contains(result["countries"], v => v.TryGetValue("region", out var value) && value == "asia");
     }
 }

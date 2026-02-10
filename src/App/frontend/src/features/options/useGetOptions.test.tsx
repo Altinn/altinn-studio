@@ -6,13 +6,14 @@ import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { IRawOption, ISelectionComponentFull } from 'src/layout/common.generated';
+import type { IQueryParameters, IRawOption, ISelectionComponentFull } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
 import type { fetchOptions } from 'src/queries/queries';
 
@@ -46,6 +47,7 @@ interface RenderProps {
   options?: (IRawOption & Record<string, unknown>)[];
   mapping?: Record<string, string>;
   optionFilter?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  queryParameters?: IQueryParameters;
   selected?: string;
   preselectedOptionIndex?: number;
   fetchOptions?: jest.Mock<typeof fetchOptions>;
@@ -78,6 +80,7 @@ async function render(props: RenderProps) {
     options: props.via === 'layout' ? props.options : undefined,
     optionsId: props.via === 'api' ? 'myOptions' : undefined,
     mapping: props.via === 'api' ? props.mapping : undefined,
+    queryParameters: props.via === 'api' ? props.queryParameters : undefined,
     source:
       props.via === 'repeatingGroups'
         ? {
@@ -221,6 +224,121 @@ describe('useGetOptions', () => {
     expect(fetchOptionsMock).toHaveBeenCalledWith(
       expect.stringMatching(/^.+\/api\/options\/myOptions.+someParam=value&someEmpty=$/),
     );
+  });
+
+  it('uses bootstrap static options and does not fetch options', async () => {
+    jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
+      myOptions: {
+        variants: [
+          {
+            queryParameters: {},
+            options: [{ label: 'Bootstrap', value: 'bootstrap' }],
+          },
+        ],
+      },
+    });
+
+    const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
+      data: [] as IRawOption[],
+      headers: {},
+    } as AxiosResponse<IRawOption[]>);
+
+    await render({
+      via: 'api',
+      type: 'single',
+      fetchOptions: fetchOptionsMock,
+    });
+
+    expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([
+      { label: 'Bootstrap', value: 'bootstrap' },
+    ]);
+    expect(fetchOptionsMock).not.toHaveBeenCalled();
+  });
+
+  it('still fetches options when mapping is configured', async () => {
+    jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
+      myOptions: {
+        variants: [
+          {
+            queryParameters: {},
+            options: [{ label: 'Bootstrap', value: 'bootstrap' }],
+          },
+        ],
+      },
+    });
+
+    const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
+      data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
+      headers: {},
+    } as AxiosResponse<IRawOption[]>);
+
+    await render({
+      via: 'api',
+      type: 'single',
+      mapping: { someOther: 'someParam' },
+      fetchOptions: fetchOptionsMock,
+    });
+
+    await waitFor(() => expect(fetchOptionsMock).toHaveBeenCalledTimes(1));
+  });
+
+  it('still fetches options when query parameters are dynamic', async () => {
+    jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
+      myOptions: {
+        variants: [
+          {
+            queryParameters: { someParam: 'value' },
+            options: [{ label: 'Bootstrap', value: 'bootstrap' }],
+          },
+        ],
+      },
+    });
+
+    const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
+      data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
+      headers: {},
+    } as AxiosResponse<IRawOption[]>);
+
+    await render({
+      via: 'api',
+      type: 'single',
+      queryParameters: { someParam: ['dataModel', 'someOther'] },
+      fetchOptions: fetchOptionsMock,
+    });
+
+    await waitFor(() => expect(fetchOptionsMock).toHaveBeenCalledTimes(1));
+  });
+
+  it('uses matching static options variant for the same optionsId', async () => {
+    jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
+      myOptions: {
+        variants: [
+          {
+            queryParameters: { region: 'europe' },
+            options: [{ label: 'Europe', value: 'eu' }],
+          },
+          {
+            queryParameters: { region: 'asia' },
+            options: [{ label: 'Asia', value: 'asia' }],
+          },
+        ],
+      },
+    });
+
+    const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
+      data: [] as IRawOption[],
+      headers: {},
+    } as AxiosResponse<IRawOption[]>);
+
+    await render({
+      via: 'api',
+      type: 'single',
+      queryParameters: { region: 'asia' },
+      fetchOptions: fetchOptionsMock,
+    });
+
+    expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([{ label: 'Asia', value: 'asia' }]);
+    expect(fetchOptionsMock).not.toHaveBeenCalled();
   });
 
   it('should produce a warning if options are filtered out when selected', async () => {

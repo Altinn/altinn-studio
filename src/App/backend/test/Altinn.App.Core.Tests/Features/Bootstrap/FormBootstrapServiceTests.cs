@@ -1,12 +1,13 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Bootstrap;
+using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -17,26 +18,19 @@ public class FormBootstrapServiceTests
     private readonly Mock<IAppResources> _appResources = new();
     private readonly Mock<IAppMetadata> _appMetadata = new();
     private readonly Mock<ILayoutAnalysisService> _layoutAnalysis = new();
+    private readonly Mock<IAppOptionsService> _appOptionsService = new();
+    private readonly Mock<IInitialValidationService> _initialValidationService = new();
     private readonly Mock<IDataClient> _dataClient = new();
     private readonly Mock<IAppModel> _appModel = new();
     private readonly Mock<ILogger<FormBootstrapService>> _logger = new();
-    private readonly Mock<IAppOptionsFileHandler> _optionsFileHandler = new();
-    private readonly AppImplementationFactory _appImplementationFactory;
-
-    public FormBootstrapServiceTests()
-    {
-        var services = new ServiceCollection();
-        services.AddSingleton(_optionsFileHandler.Object);
-        var serviceProvider = services.BuildServiceProvider();
-        _appImplementationFactory = new AppImplementationFactory(serviceProvider);
-    }
 
     private FormBootstrapService CreateService() =>
         new(
             _appResources.Object,
             _appMetadata.Object,
             _layoutAnalysis.Object,
-            _appImplementationFactory,
+            _appOptionsService.Object,
+            _initialValidationService.Object,
             _dataClient.Object,
             _appModel.Object,
             _logger.Object
@@ -81,6 +75,51 @@ public class FormBootstrapServiceTests
     }
 
     [Fact]
+    public async Task GetInstanceFormBootstrap_PartitionsInitialValidationIssues()
+    {
+        var dataElementId = Guid.NewGuid().ToString();
+        var instance = CreateTestInstance("Task_1", dataElementId: dataElementId);
+        var layoutSet = new LayoutSet
+        {
+            Id = "form",
+            DataType = "model",
+            Tasks = ["Task_1"],
+        };
+        var appMetadata = CreateAppMetadata("model");
+
+        SetupMocks(instance, layoutSet, appMetadata);
+        _initialValidationService
+            .Setup(x => x.Validate(instance, "Task_1", "nb", It.IsAny<CancellationToken>()))
+            .ReturnsAsync([
+                new ValidationIssueWithSource
+                {
+                    Severity = ValidationIssueSeverity.Error,
+                    Code = "required",
+                    Description = "Field is required",
+                    Source = "Required",
+                    Field = "some.path",
+                    DataElementId = dataElementId,
+                },
+                new ValidationIssueWithSource
+                {
+                    Severity = ValidationIssueSeverity.Error,
+                    Code = "task.error",
+                    Description = "Task level error",
+                    Source = "TaskValidator",
+                },
+            ]);
+
+        var service = CreateService();
+
+        var result = await service.GetInstanceFormBootstrap(instance, null, null, false, "nb");
+
+        Assert.Single(result.ValidationIssues!);
+        Assert.Equal("task.error", result.ValidationIssues![0].Code);
+        Assert.Single(result.DataModels["model"].InitialValidationIssues!);
+        Assert.Equal("required", result.DataModels["model"].InitialValidationIssues![0].Code);
+    }
+
+    [Fact]
     public async Task GetStatelessFormBootstrap_ReturnsExpectedShape()
     {
         // Arrange
@@ -103,6 +142,33 @@ public class FormBootstrapServiceTests
         Assert.Equal("stateless", result.Metadata.LayoutSetId);
         Assert.False(result.Metadata.IsSubform);
         Assert.False(result.Metadata.IsPdf);
+        Assert.All(result.DataModels.Values, dataModel => Assert.Null(dataModel.InitialValidationIssues));
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_PdfMode_DoesNotIncludeInitialValidationIssues()
+    {
+        var instance = CreateTestInstance("Task_1");
+        var layoutSet = new LayoutSet
+        {
+            Id = "form",
+            DataType = "model",
+            Tasks = ["Task_1"],
+        };
+        var appMetadata = CreateAppMetadata("model");
+
+        SetupMocks(instance, layoutSet, appMetadata);
+        var service = CreateService();
+
+        var result = await service.GetInstanceFormBootstrap(instance, null, null, true, "nb");
+
+        Assert.Null(result.ValidationIssues);
+        Assert.All(result.DataModels.Values, dataModel => Assert.Null(dataModel.InitialValidationIssues));
+        _initialValidationService.Verify(
+            x =>
+                x.Validate(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
     }
 
     [Fact]
@@ -242,16 +308,31 @@ public class FormBootstrapServiceTests
         };
         var appMetadata = CreateAppMetadata("model");
 
-        SetupMocks(instance, layoutSet, appMetadata, staticOptionIds: ["countries", "regions"]);
-        _optionsFileHandler
-            .Setup(x => x.ReadOptionsFromFileAsync("countries"))
-            .ReturnsAsync([
-                new AppOption { Value = "NO", Label = "Norway" },
-                new AppOption { Value = "SE", Label = "Sweden" },
-            ]);
-        _optionsFileHandler
-            .Setup(x => x.ReadOptionsFromFileAsync("regions"))
-            .ReturnsAsync([new AppOption { Value = "1", Label = "Region 1" }]);
+        SetupMocks(
+            instance,
+            layoutSet,
+            appMetadata,
+            staticOptions: new Dictionary<string, List<Dictionary<string, string>>>
+            {
+                ["countries"] = [new Dictionary<string, string>()],
+                ["regions"] = [new Dictionary<string, string>()],
+            }
+        );
+        _appOptionsService
+            .Setup(x => x.GetOptionsAsync("countries", "nb", It.IsAny<Dictionary<string, string>>()))
+            .ReturnsAsync(
+                new AppOptions
+                {
+                    Options =
+                    [
+                        new AppOption { Value = "NO", Label = "Norway" },
+                        new AppOption { Value = "SE", Label = "Sweden" },
+                    ],
+                }
+            );
+        _appOptionsService
+            .Setup(x => x.GetOptionsAsync("regions", "nb", It.IsAny<Dictionary<string, string>>()))
+            .ReturnsAsync(new AppOptions { Options = [new AppOption { Value = "1", Label = "Region 1" }] });
 
         var service = CreateService();
 
@@ -268,7 +349,7 @@ public class FormBootstrapServiceTests
         Assert.Equal(2, result.StaticOptions.Count);
         Assert.True(result.StaticOptions.ContainsKey("countries"));
         Assert.True(result.StaticOptions.ContainsKey("regions"));
-        Assert.Equal(2, result.StaticOptions["countries"].Count);
+        Assert.Equal(2, result.StaticOptions["countries"].Variants[0].Options.Count);
     }
 
     [Fact]
@@ -284,11 +365,22 @@ public class FormBootstrapServiceTests
         };
         var appMetadata = CreateAppMetadata("model");
 
-        SetupMocks(instance, layoutSet, appMetadata, staticOptionIds: ["valid", "invalid"]);
-        _optionsFileHandler
-            .Setup(x => x.ReadOptionsFromFileAsync("valid"))
-            .ReturnsAsync([new AppOption { Value = "1", Label = "Valid" }]);
-        _optionsFileHandler.Setup(x => x.ReadOptionsFromFileAsync("invalid")).ThrowsAsync(new Exception("Not found"));
+        SetupMocks(
+            instance,
+            layoutSet,
+            appMetadata,
+            staticOptions: new Dictionary<string, List<Dictionary<string, string>>>
+            {
+                ["valid"] = [new Dictionary<string, string>()],
+                ["invalid"] = [new Dictionary<string, string>()],
+            }
+        );
+        _appOptionsService
+            .Setup(x => x.GetOptionsAsync("valid", "nb", It.IsAny<Dictionary<string, string>>()))
+            .ReturnsAsync(new AppOptions { Options = [new AppOption { Value = "1", Label = "Valid" }] });
+        _appOptionsService
+            .Setup(x => x.GetOptionsAsync("invalid", "nb", It.IsAny<Dictionary<string, string>>()))
+            .ThrowsAsync(new Exception("Not found"));
 
         var service = CreateService();
 
@@ -384,7 +476,7 @@ public class FormBootstrapServiceTests
         string layoutSetId = "form",
         string dataType = "model",
         bool hasValidationConfig = false,
-        string[]? staticOptionIds = null
+        Dictionary<string, List<Dictionary<string, string>>>? staticOptions = null
     )
     {
         _appResources.Setup(x => x.GetLayoutSetForTask(It.IsAny<string>())).Returns(layoutSet);
@@ -401,9 +493,28 @@ public class FormBootstrapServiceTests
         _layoutAnalysis
             .Setup(x => x.GetReferencedDataTypes(It.IsAny<object>(), It.IsAny<string>()))
             .Returns(new HashSet<string> { dataType });
-        _layoutAnalysis
-            .Setup(x => x.GetStaticOptionIds(It.IsAny<object>()))
-            .Returns(staticOptionIds?.ToHashSet() ?? []);
+        _layoutAnalysis.Setup(x => x.GetStaticOptions(It.IsAny<object>())).Returns(staticOptions ?? []);
+
+        _appOptionsService
+            .Setup(x =>
+                x.GetOptionsAsync(
+                    It.IsAny<InstanceIdentifier>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Dictionary<string, string>>()
+                )
+            )
+            .ReturnsAsync((AppOptions?)null);
+        _appOptionsService
+            .Setup(x =>
+                x.GetOptionsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())
+            )
+            .ReturnsAsync(new AppOptions { Options = [] });
+        _initialValidationService
+            .Setup(x =>
+                x.Validate(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync([]);
 
         _dataClient
             .Setup(x =>
@@ -425,7 +536,12 @@ public class FormBootstrapServiceTests
         _layoutAnalysis
             .Setup(x => x.GetReferencedDataTypes(It.IsAny<object>(), It.IsAny<string>()))
             .Returns(new HashSet<string> { layoutSet.DataType });
-        _layoutAnalysis.Setup(x => x.GetStaticOptionIds(It.IsAny<object>())).Returns(new HashSet<string>());
+        _layoutAnalysis.Setup(x => x.GetStaticOptions(It.IsAny<object>())).Returns([]);
+        _appOptionsService
+            .Setup(x =>
+                x.GetOptionsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())
+            )
+            .ReturnsAsync(new AppOptions { Options = [] });
 
         _appModel.Setup(x => x.Create(It.IsAny<string>())).Returns(new object());
     }

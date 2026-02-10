@@ -20,14 +20,14 @@ internal sealed class LayoutAnalysisService : ILayoutAnalysisService
     }
 
     /// <inheritdoc />
-    public HashSet<string> GetStaticOptionIds(object layoutsJson)
+    public Dictionary<string, List<Dictionary<string, string>>> GetStaticOptions(object layoutsJson)
     {
-        var optionIds = new HashSet<string>();
+        var staticOptions = new Dictionary<string, List<Dictionary<string, string>>>();
 
         var json = ConvertToJsonElement(layoutsJson);
-        TraverseForOptions(json, optionIds);
+        TraverseForOptions(json, staticOptions);
 
-        return optionIds;
+        return staticOptions;
     }
 
     private static JsonElement ConvertToJsonElement(object layoutsJson)
@@ -98,29 +98,35 @@ internal sealed class LayoutAnalysisService : ILayoutAnalysisService
         // String bindings use the default data type, which is already included
     }
 
-    private static void TraverseForOptions(JsonElement element, HashSet<string> optionIds)
+    private static void TraverseForOptions(
+        JsonElement element,
+        Dictionary<string, List<Dictionary<string, string>>> staticOptions
+    )
     {
         switch (element.ValueKind)
         {
             case JsonValueKind.Object:
-                TraverseObjectForOptions(element, optionIds);
+                TraverseObjectForOptions(element, staticOptions);
                 break;
             case JsonValueKind.Array:
                 // Check if this is an optionLabel expression: ["optionLabel", "someId", ...]
                 if (IsOptionLabelExpression(element, out var optionsIdFromExpr))
                 {
-                    optionIds.Add(optionsIdFromExpr);
+                    AddStaticOptionVariant(staticOptions, optionsIdFromExpr, []);
                 }
 
                 foreach (var item in element.EnumerateArray())
                 {
-                    TraverseForOptions(item, optionIds);
+                    TraverseForOptions(item, staticOptions);
                 }
                 break;
         }
     }
 
-    private static void TraverseObjectForOptions(JsonElement obj, HashSet<string> optionIds)
+    private static void TraverseObjectForOptions(
+        JsonElement obj,
+        Dictionary<string, List<Dictionary<string, string>>> staticOptions
+    )
     {
         // Check if this looks like a component with optionsId
         if (obj.TryGetProperty("optionsId", out var optionsIdProp) && optionsIdProp.ValueKind == JsonValueKind.String)
@@ -128,15 +134,36 @@ internal sealed class LayoutAnalysisService : ILayoutAnalysisService
             var optionsId = optionsIdProp.GetString();
             if (!string.IsNullOrEmpty(optionsId) && IsStaticOptionComponent(obj))
             {
-                optionIds.Add(optionsId);
+                AddStaticOptionVariant(staticOptions, optionsId, ExtractStaticQueryParams(obj));
             }
         }
 
         // Recurse into all properties
         foreach (var prop in obj.EnumerateObject())
         {
-            TraverseForOptions(prop.Value, optionIds);
+            TraverseForOptions(prop.Value, staticOptions);
         }
+    }
+
+    private static Dictionary<string, string> ExtractStaticQueryParams(JsonElement component)
+    {
+        if (!component.TryGetProperty("queryParameters", out var queryParams))
+        {
+            return [];
+        }
+
+        if (queryParams.ValueKind != JsonValueKind.Object)
+        {
+            return [];
+        }
+
+        var result = new Dictionary<string, string>();
+        foreach (var param in queryParams.EnumerateObject())
+        {
+            result[param.Name] = JsonElementToString(param.Value);
+        }
+
+        return result;
     }
 
     private static bool IsStaticOptionComponent(JsonElement component)
@@ -174,6 +201,57 @@ internal sealed class LayoutAnalysisService : ILayoutAnalysisService
                 && kind != JsonValueKind.True
                 && kind != JsonValueKind.False
                 && kind != JsonValueKind.Null
+            )
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static string JsonElementToString(JsonElement value)
+    {
+        return value.ValueKind switch
+        {
+            JsonValueKind.String => value.GetString() ?? string.Empty,
+            JsonValueKind.Null => string.Empty,
+            _ => value.ToString(),
+        };
+    }
+
+    private static void AddStaticOptionVariant(
+        Dictionary<string, List<Dictionary<string, string>>> staticOptions,
+        string optionsId,
+        Dictionary<string, string> queryParameters
+    )
+    {
+        if (!staticOptions.TryGetValue(optionsId, out var variants))
+        {
+            variants = [];
+            staticOptions[optionsId] = variants;
+        }
+
+        if (variants.Any(existing => QueryParametersEqual(existing, queryParameters)))
+        {
+            return;
+        }
+
+        variants.Add(queryParameters);
+    }
+
+    private static bool QueryParametersEqual(Dictionary<string, string> left, Dictionary<string, string> right)
+    {
+        if (left.Count != right.Count)
+        {
+            return false;
+        }
+
+        foreach (var (key, value) in left)
+        {
+            if (
+                !right.TryGetValue(key, out var rightValue)
+                || !string.Equals(value, rightValue, StringComparison.Ordinal)
             )
             {
                 return false;

@@ -7,5 +7,16 @@ export type CodeListSelector = (optionsId: string) => IOptionInternal[] | undefi
 
 export function useCodeListSelector(): CodeListSelector {
   const staticOptions = FormBootstrap.useStaticOptionsMap();
-  return useCallback((optionsId: string) => staticOptions[optionsId], [staticOptions]);
+  return useCallback(
+    (optionsId: string) => {
+      const variants = staticOptions[optionsId]?.variants;
+      if (!variants || variants.length === 0) {
+        return undefined;
+      }
+
+      const noParamsVariant = variants.find((variant) => Object.keys(variant.queryParameters ?? {}).length === 0);
+      return noParamsVariant?.options ?? variants[0].options;
+    },
+    [staticOptions],
+  );
 }
