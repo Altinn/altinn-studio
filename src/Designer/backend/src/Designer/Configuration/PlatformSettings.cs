@@ -26,6 +26,11 @@ namespace Altinn.Studio.Designer.Configuration
         public string ApiAuthorizationPolicyUri { get; set; }
 
         /// <summary>
+        /// Uniform resource locator for Platform.Notification orders
+        /// </summary>
+        public string ApiNotificationOrdersUri { get; set; }
+
+        /// <summary>
         /// Uniform resource identifier for Platform.Authentication Applications
         /// </summary>
         public string ApiAuthenticationConvertUri { get; set; }

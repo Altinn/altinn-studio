@@ -17,6 +17,7 @@ import {
 } from './routes/storage.js';
 import { environmentsRoute } from './routes/environments.js';
 import { appMetadataRoute, appProcessRoute } from './routes/apps.js';
+import { notificationRoute } from './routes/notifications.js';
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.get('/storage/api/v1/applications/:org/:app/texts/:lang', storageTextsRoute)
 app.get('/storage/api/v1/studio/instances/:org/:app', storageInstancesRoute);
 app.get('/storage/api/v1/studio/instances/:org/:app/:instanceId', storageInstanceDetailsRoute);
 app.post('/_apis/build/builds/', buildsRoute);
+app.post('/notifications/api/v1/future/orders', notificationRoute);
 
 app.all('*', function (req, res) {
   console.log(req.method + ' ' + req.originalUrl);
