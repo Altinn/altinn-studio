@@ -121,6 +121,36 @@ public class CallbackUrlValidatorTests
         validator.Validate("https://other.altinn.no/callback").Should().NotBeNull();
     }
 
+    [Fact]
+    public void Validate_UrlWithQueryAndFragment_IgnoresQueryAndFragment()
+    {
+        var validator = CreateValidator("https://*.altinn.no/api/*");
+
+        var result = validator.Validate("https://app.altinn.no/api/callback?token=abc#section");
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void Validate_WithDefaultPort_MatchesPatternWithExplicitPort()
+    {
+        var validator = CreateValidator("https://*.altinn.no:443/api/*");
+
+        var result = validator.Validate("https://app.altinn.no/api/callback");
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void Validate_IPv6Pattern_MatchesIPv6Url()
+    {
+        var validator = CreateValidator("http://[::1]:*/*");
+
+        var result = validator.Validate("http://[::1]:8080/callback");
+
+        result.Should().BeNull();
+    }
+
     private static CallbackUrlValidator CreateValidator(params string[] patterns)
     {
         var options = Options.Create(new CallbackOptions

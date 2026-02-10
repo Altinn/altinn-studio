@@ -6,7 +6,7 @@ namespace Altinn.Augmenter.Agent.Services;
 
 public sealed class CallbackUrlValidator : ICallbackUrlValidator
 {
-    private readonly List<Regex> _patterns;
+    private readonly IReadOnlyList<Regex> _patterns;
 
     public CallbackUrlValidator(IOptions<CallbackOptions> options)
     {
@@ -32,8 +32,10 @@ public sealed class CallbackUrlValidator : ICallbackUrlValidator
             return "No callback URL patterns are configured. All callbacks are rejected.";
         }
 
-        // Reconstruct the URL without query/fragment for matching
-        var urlToMatch = $"{uri.Scheme}://{uri.Authority}{uri.AbsolutePath}";
+        // Reconstruct the URL without query/fragment for matching.
+        // Use uri.Host + conditional port to avoid uri.Authority stripping default ports.
+        var hostPort = uri.IsDefaultPort ? uri.Host : $"{uri.Host}:{uri.Port}";
+        var urlToMatch = $"{uri.Scheme}://{hostPort}{uri.AbsolutePath}";
 
         foreach (var pattern in _patterns)
         {
@@ -91,26 +93,54 @@ public sealed class CallbackUrlValidator : ICallbackUrlValidator
         var regexParts = new List<string> { "^", Regex.Escape(scheme), "://" };
 
         // Build regex for authority (host:port)
-        // Handle :* for port
-        var portSep = authority.LastIndexOf(':');
+        // Handle IPv6 literals (e.g. [::1]:8080) where colons appear inside brackets
         string host;
         string? port = null;
-        if (portSep > 0)
+        if (authority.StartsWith('['))
         {
-            host = authority[..portSep];
-            port = authority[(portSep + 1)..];
+            var bracketEnd = authority.IndexOf("]:", StringComparison.Ordinal);
+            if (bracketEnd >= 0)
+            {
+                host = authority[..(bracketEnd + 1)];
+                port = authority[(bracketEnd + 2)..];
+            }
+            else
+            {
+                host = authority;
+            }
         }
         else
         {
-            host = authority;
+            var portSep = authority.LastIndexOf(':');
+            if (portSep > 0)
+            {
+                host = authority[..portSep];
+                port = authority[(portSep + 1)..];
+            }
+            else
+            {
+                host = authority;
+            }
         }
 
         // Convert host wildcards: * matches single DNS label ([^.]+)
-        var hostPattern = string.Join("\\.", host.Split('.').Select(segment =>
-            segment == "*" ? "[^.]+" : Regex.Escape(segment)));
+        // For IPv6 literals, escape the whole host as-is
+        string hostPattern;
+        if (host.StartsWith('['))
+        {
+            hostPattern = Regex.Escape(host);
+        }
+        else
+        {
+            hostPattern = string.Join("\\.", host.Split('.').Select(segment =>
+                segment == "*" ? "[^.]+" : Regex.Escape(segment)));
+        }
+
         regexParts.Add(hostPattern);
 
-        if (port != null)
+        // Skip default ports (443 for https, 80 for http) since Validate() strips them
+        var isDefaultPort = (scheme == "https" && port == "443") || (scheme == "http" && port == "80");
+        if (port != null && !isDefaultPort)
         {
             regexParts.Add(":");
             regexParts.Add(port == "*" ? "[0-9]+" : Regex.Escape(port));
