@@ -1,6 +1,9 @@
+using System.Diagnostics;
+using OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using StudioGateway.Api.Telemetry;
 
 namespace StudioGateway.Api.Hosting;
 
@@ -13,6 +16,8 @@ internal static class OpenTelemetryExtensions
             .WithTracing(tracing =>
             {
                 tracing
+                    .AddSource(ServiceTelemetry.Source.Name)
+                    .AddProcessor(new AlwaysSampleTagProcessor())
                     .AddAspNetCoreInstrumentation(options =>
                     {
                         options.RecordException = true;
@@ -39,5 +44,13 @@ internal static class OpenTelemetryExtensions
         });
 
         return builder;
+    }
+
+    private sealed class AlwaysSampleTagProcessor : BaseProcessor<Activity>
+    {
+        public override void OnStart(Activity data)
+        {
+            data.SetAlwaysSample();
+        }
     }
 }
