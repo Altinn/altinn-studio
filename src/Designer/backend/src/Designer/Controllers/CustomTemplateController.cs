@@ -51,7 +51,7 @@ namespace Altinn.Studio.Designer.Controllers
                     message = ex.Message
                 });
             }
-            catch (CustomTemplateException ex) when (ex.Code == CustomTemplateErrorCode.DeserializationFailed)
+            catch (CustomTemplateException ex) when (ex.Code == CustomTemplateErrorCode.DeserializationFailed || ex.Code == CustomTemplateErrorCode.ValidationFailed)
             {
                 return StatusCode(500, new
                 {
