@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Microsoft.AspNetCore.Mvc;
@@ -82,7 +81,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateListObject> result = await sut.GetCustomTemplateList();
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -143,7 +142,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateListObject> result = await sut.GetCustomTemplateList();
 
         // Assert
         Assert.Single(result);
@@ -195,7 +194,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateListObject> result = await sut.GetCustomTemplateList();
 
         // Assert
         Assert.Single(result);
@@ -250,7 +249,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateListObject> result = await sut.GetCustomTemplateList();
 
         // Assert
         Assert.Single(result);
@@ -285,7 +284,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateListObject> result = await sut.GetCustomTemplateList();
 
         // Assert
         string cachePath = Path.Combine(_testCacheRoot, ".template-cache", "als");
@@ -311,7 +310,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateListObject> result = await sut.GetCustomTemplateList();
 
         // Assert
         Assert.Empty(result);
@@ -332,7 +331,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act & Assert
-        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateListObject> result = await sut.GetCustomTemplateList();
         Assert.Empty(result);
     }
 

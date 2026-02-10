@@ -1,17 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace Altinn.Studio.Designer.Models.Dto
+namespace Altinn.Studio.Designer.Models
 {
-    public class CustomTemplateListDto
+    public class CustomTemplateList
     {
         [JsonPropertyName("templates")]
-        public List<CustomTemplateDto> Templates { get; set; } = [];
+        public List<CustomTemplateListObject> Templates { get; set; } = [];
 
         public int TotalCount => Templates.Count;
     }
 
-    public class CustomTemplateDto
+    public class CustomTemplateListObject
     {
         [JsonPropertyName("id")]
         public string Id { get; set; } = string.Empty;
@@ -24,17 +24,6 @@ namespace Altinn.Studio.Designer.Models.Dto
 
         [JsonPropertyName("description")]
         public string Description { get; set; } = string.Empty;
-
-        public static CustomTemplateDto From(CustomTemplate template)
-        {
-            return new CustomTemplateDto
-            {
-                Id = template.Id,
-                Owner = template.Owner,
-                Name = template.Name,
-                Description = template.Description
-            };
-        }
 
         public bool IsListable()
         {

@@ -34,7 +34,8 @@ public class ValidateCustomTemplateTest
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": ""Test Template"",
-        ""description"": ""Dette er en norsk beskrivelse."", }";
+        ""description"": ""Dette er en norsk beskrivelse.""
+        }";
 
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(missingSchemaManifest);
         Assert.Contains(errors, e => e.Kind == ValidationErrorKind.PropertyRequired && e.Property.Equals("schemaVersion"));

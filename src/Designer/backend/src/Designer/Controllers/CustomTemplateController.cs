@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.Exceptions.CustomTemplate;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,14 +25,41 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<CustomTemplateListDto>> GetCustomTemplateList()
+        public async Task<ActionResult<CustomTemplateList>> GetCustomTemplateList()
         {
-            List<CustomTemplateDto> templates = await _templateService.GetCustomTemplateList();
+            List<CustomTemplateListObject> templates = await _templateService.GetCustomTemplateList();
 
-            return Ok(new CustomTemplateListDto()
+            return Ok(new CustomTemplateList()
             {
                 Templates = templates
             });
+        }
+
+        [HttpGet("{owner}/{id}")]
+        public async Task<ActionResult<CustomTemplate>> GetCustomTemplateById(string owner, string id)
+        {
+            try
+            {
+                CustomTemplate template = await _templateService.GetCustomTemplateById(owner, id);
+                return Ok(template);
+            }
+            catch (CustomTemplateException ex) when (ex.Code == CustomTemplateErrorCode.NotFound)
+            {
+                return NotFound(new
+                {
+                    error = ex.Code,
+                    message = ex.Message
+                });
+            }
+            catch (CustomTemplateException ex) when (ex.Code == CustomTemplateErrorCode.DeserializationFailed)
+            {
+                return StatusCode(500, new
+                {
+                    error = ex.Code,
+                    message = ex.Message,
+                    detail = ex.Detail
+                });
+            }
         }
     }
 }

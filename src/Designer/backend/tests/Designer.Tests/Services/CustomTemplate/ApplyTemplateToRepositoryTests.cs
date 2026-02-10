@@ -331,7 +331,7 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         var exception = await Assert.ThrowsAsync<CustomTemplateException>(() =>
             sut.ApplyTemplateToRepository(templateOwner, templateId, targetOrg, targetRepo, developer));
 
-        Assert.Equal("NotFound", exception.Code);
+        Assert.Equal(CustomTemplateErrorCode.NotFound, exception.Code);
     }
 
     [Fact]
