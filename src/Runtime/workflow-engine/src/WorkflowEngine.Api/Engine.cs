@@ -171,6 +171,7 @@ internal partial class Engine : IEngine, IDisposable
 
     private async Task WaitForPendingTasks(TaskCompletionSource newWorkSignal, CancellationToken cancellationToken)
     {
+        // Wait for active Step and Workflow tasks
         var awaitables = _inbox
             .Values.SelectMany(workflow =>
             {
@@ -184,8 +185,10 @@ internal partial class Engine : IEngine, IDisposable
 
                 return new[] { workflowTask, stepTask, circuitBreakerTask }.OfType<Task>();
             })
-            .Append(DebouncedNewWorkSignal(newWorkSignal, cancellationToken)) // Debounced to prevent tight-loop during bursts
             .ToList();
+
+        // Wait for the new work signal, but debounce the call to avoid stampeding
+        awaitables.Add(newWorkSignal.Debounce(TimeSpan.FromMilliseconds(100), cancellationToken));
 
         // We already have finished tasks, no need to wait
         if (awaitables.Any(x => x.IsCompleted))
@@ -193,17 +196,6 @@ internal partial class Engine : IEngine, IDisposable
 
         // Wait for at least one task to complete
         await Task.WhenAny(awaitables).WaitAsync(cancellationToken);
-    }
-
-    /// <summary>
-    /// Wraps the new-work signal with a debounce delay. This prevents the main loop from
-    /// spinning in a tight loop during enqueue bursts, while still allowing immediate wake-up
-    /// for task completions (step finished, DB update done, etc.).
-    /// </summary>
-    private static async Task DebouncedNewWorkSignal(TaskCompletionSource signal, CancellationToken cancellationToken)
-    {
-        await signal.Task;
-        await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
     }
 
     private async Task ProcessWorkflow(Workflow workflow, CancellationToken cancellationToken)
