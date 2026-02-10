@@ -1,18 +1,20 @@
-import { LoaderFunctionArgs, redirect } from 'react-router-dom';
+import { redirect } from 'react-router-dom';
+import type { LoaderFunctionArgs } from 'react-router-dom';
 
 import { GlobalData } from 'nextsrc/core/globalData';
 import { ServerStatusCodes } from 'nextsrc/core/serverStatusCodes';
 import { InstanceApi } from 'nextsrc/features/instantiate/api';
 import { instantiateRouteBuilders } from 'nextsrc/features/instantiate/routes';
-import { IInstance } from 'src/types/shared';
-import { QueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
+
+import type { IInstance } from 'src/types/shared';
 
 function isStateless() {
   const entryType = GlobalData.applicationMetadata.onEntry?.show;
   return entryType !== 'new-instance' && entryType !== 'select-instance';
 }
 
-export const entryRedirectLoader = (queryClient: QueryClient) => async (_: LoaderFunctionArgs) => {
+export const entryRedirectLoader = (_: QueryClient) => async (_: LoaderFunctionArgs) => {
   if (isStateless()) {
     return handleStateless();
   }

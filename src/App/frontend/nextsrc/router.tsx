@@ -8,8 +8,8 @@ import { InstancePage } from 'nextsrc/features/instantiate/pages/instance/Instan
 import { InstanceSelectionPage } from 'nextsrc/features/instantiate/pages/instance-selection/InstanceSelectionPage';
 import { PartySelectionPage } from 'nextsrc/features/instantiate/pages/party-selection/PartySelectionPage';
 import { StatelessPage } from 'nextsrc/features/instantiate/pages/stateless/StatelessPage';
-import { queryClient } from 'nextsrc/index';
 import { instantiateRoutes } from 'nextsrc/features/instantiate/routes';
+import { queryClient } from 'nextsrc/QueryClient';
 
 export const router = createBrowserRouter(
   [
