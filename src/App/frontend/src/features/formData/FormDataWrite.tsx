@@ -31,7 +31,7 @@ import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
-import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
+import type { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import type {
   DataModelState,

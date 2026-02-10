@@ -14,7 +14,7 @@ import { useDataElementsSelectorProps, useInstanceDataSources } from 'src/featur
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
-import { useCodeListSelectorProps } from 'src/features/options/CodeListsProvider';
+import { useCodeListSelector } from 'src/features/options/CodeListsProvider';
 import { useMultipleDelayedSelectors } from 'src/hooks/delayedSelectors';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
@@ -57,7 +57,6 @@ export interface ExpressionDataSources {
 const multiSelectors = {
   formDataSelector: () => FD.useLaxDebouncedSelectorProps(),
   attachmentsSelector: () => NodesInternal.useAttachmentsSelectorProps(),
-  codeListSelector: () => useCodeListSelectorProps(),
 } satisfies {
   [K in keyof Omit<ExpressionDataSources, 'dataElementSelector'>]?: DSPropsMatching<ExpressionDataSources[K]>;
 };
@@ -68,6 +67,7 @@ const directHooks = {
   currentLanguage: () => useCurrentLanguage(),
   currentDataModelPath: () => useCurrentDataModelLocation(),
   layoutLookups: () => useLayoutLookups(),
+  codeListSelector: () => useCodeListSelector(),
   dataElementSelector: () => useDataElementsSelectorProps(),
   instanceDataSources: (isInGenerator) =>
     isInGenerator ? GeneratorData.useLaxInstanceDataSources() : useInstanceDataSources(),

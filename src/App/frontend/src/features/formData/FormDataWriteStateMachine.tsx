@@ -9,7 +9,7 @@ import { convertData } from 'src/features/formData/convertData';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { getFeature } from 'src/features/toggles';
-import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
+import type { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
 import type { FDLeafValue } from 'src/features/formData/FormDataWrite';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { DebounceReason } from 'src/features/formData/types';

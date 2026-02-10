@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useBackendValidationQuery } from 'src/features/validation/backendValidation/backendValidationQuery';
 import {
@@ -15,9 +16,14 @@ import { Validation } from 'src/features/validation/validationContext';
 export function BackendValidation() {
   const updateBackendValidations = Validation.useUpdateBackendValidations();
   const defaultDataElementId = DataModels.useDefaultDataElementId();
+  const bootstrapIssues = FormBootstrap.useInitialValidationIssues();
   const lastSaveValidations = FD.useLastSaveValidationIssues();
   const enabled = useShouldValidateInitial();
-  const { data: initialValidations, isFetching: isFetchingInitial } = useBackendValidationQuery({ enabled });
+  const shouldFetchInitial = enabled && !bootstrapIssues;
+  const { data: queriedInitialValidations, isFetching: isFetchingInitial } = useBackendValidationQuery({
+    enabled: shouldFetchInitial,
+  });
+  const initialValidations = bootstrapIssues ?? queriedInitialValidations;
   const updateIncrementalValidations = useUpdateIncrementalValidations(false);
 
   // Initial validation
