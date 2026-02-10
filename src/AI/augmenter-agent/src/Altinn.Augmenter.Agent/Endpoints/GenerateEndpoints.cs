@@ -35,6 +35,7 @@ public static class GenerateEndpoints
                 return Results.BadRequest(new { error = "At least one file is required." });
             }
 
+            // TODO: Pass parsed.Files to GeneratePdfAsync once file content is supported in templates.
             var pdfBytes = await pdfGenerator.GeneratePdfAsync(DateTime.UtcNow, cancellationToken);
             return Results.File(pdfBytes, "application/pdf", "generated.pdf");
         })

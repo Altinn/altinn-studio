@@ -43,6 +43,7 @@ public static class GenerateAsyncEndpoints
                 return Results.BadRequest(new { error = validationError });
             }
 
+            // TODO: Files are captured in the job but not yet passed to PDF generation.
             var job = new PdfGenerationJob(parsed.CallbackUrl, DateTime.UtcNow, parsed.Files);
             if (!queue.TryEnqueue(job))
             {
