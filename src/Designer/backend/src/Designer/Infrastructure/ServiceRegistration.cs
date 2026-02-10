@@ -18,10 +18,12 @@ using Altinn.Studio.Designer.Services.Implementation.GitOps;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
 using Altinn.Studio.Designer.Services.Implementation.Preview;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
+using Altinn.Studio.Designer.Services.Implementation.Validation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
+using Altinn.Studio.Designer.Services.Interfaces.Validation;
 using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -105,6 +107,9 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();
             services.AddTransient<IGitOpsManifestsRenderer, ScribanGitOpsManifestsRenderer>();
             services.AddTransient<IOrgLibraryService, OrgLibraryService>();
+            services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
+            services.AddTransient<ICustomTemplateService, CustomTemplateService>();
+            services.RegisterSettingsSingleton<CustomTemplateSettings>(configuration);
 
             return services;
         }

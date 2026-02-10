@@ -6,4 +6,5 @@ export enum SearchParams {
   Pdf = 'pdf',
   PdfForTask = 'task',
   BackToPage = 'backToPage',
+  Language = 'lang',
 }

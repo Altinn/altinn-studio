@@ -8,10 +8,13 @@ import 'app-shared/design-tokens';
 import type { LoggerConfig } from 'app-shared/contexts/LoggerContext';
 import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext';
+import { PostHogContextProvider } from 'app-shared/contexts/PostHogContext';
 import type { QueryClientConfig } from '@tanstack/react-query';
 import { PageRoutes } from './router/PageRoutes';
 import { AppDevelopmentContextProvider } from './contexts/AppDevelopmentContext';
 import { FeatureFlagsProvider } from '@studio/feature-flags';
+import { ConsentProvider } from './utils/consent';
+import { ConsentBanner } from './components/ConsentBanner';
 
 const loggerConfig: LoggerConfig = {
   enableUnhandledPromiseRejectionTracking: true,
@@ -35,11 +38,16 @@ root.render(
     <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
       <EnvironmentConfigProvider>
         <LoggerContextProvider config={loggerConfig}>
-          <PreviewConnectionContextProvider>
-            <AppDevelopmentContextProvider>
-              <PageRoutes />
-            </AppDevelopmentContextProvider>
-          </PreviewConnectionContextProvider>
+          <PostHogContextProvider>
+            <ConsentProvider>
+              <ConsentBanner />
+              <PreviewConnectionContextProvider>
+                <AppDevelopmentContextProvider>
+                  <PageRoutes />
+                </AppDevelopmentContextProvider>
+              </PreviewConnectionContextProvider>
+            </ConsentProvider>
+          </PostHogContextProvider>
         </LoggerContextProvider>
       </EnvironmentConfigProvider>
     </ServicesContextProvider>

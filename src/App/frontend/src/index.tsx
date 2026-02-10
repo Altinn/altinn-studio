@@ -26,12 +26,8 @@ import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
-import { ProcessingProvider } from 'src/core/contexts/processingContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
-import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
-import { LanguageProvider } from 'src/features/language/LanguageProvider';
-import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
@@ -53,31 +49,29 @@ document.addEventListener('DOMContentLoaded', () => {
     <AppQueriesProvider {...queries}>
       <ErrorBoundary>
         <AppPrefetcher />
-        <LangToolsStoreProvider>
-          <RouterProvider
-            router={createBrowserRouter(
-              [
-                {
-                  path: '*',
-                  element: (
-                    <NavigationEffectProvider>
-                      <ErrorBoundary>
-                        <Root />
-                      </ErrorBoundary>
-                    </NavigationEffectProvider>
-                  ),
-                },
-              ],
+        <RouterProvider
+          router={createBrowserRouter(
+            [
               {
-                future: {
-                  v7_relativeSplatPath: true,
-                },
-                basename: `/${window.org}/${window.app}`,
+                path: '*',
+                element: (
+                  <NavigationEffectProvider>
+                    <ErrorBoundary>
+                      <Root />
+                    </ErrorBoundary>
+                  </NavigationEffectProvider>
+                ),
               },
-            )}
-            future={{ v7_startTransition: true }}
-          />
-        </LangToolsStoreProvider>
+            ],
+            {
+              future: {
+                v7_relativeSplatPath: true,
+              },
+              basename: `/${window.org}/${window.app}`,
+            },
+          )}
+          future={{ v7_startTransition: true }}
+        />
       </ErrorBoundary>
     </AppQueriesProvider>,
   );
@@ -85,33 +79,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function Root() {
   return (
-    <LanguageProvider>
-      <ViewportWrapper>
-        <UiConfigProvider>
-          <InstantiationUrlReset />
-          <GlobalFormDataReadersProvider>
-            <TextResourcesProvider>
-              <OrgsProvider>
-                <PartyProvider>
-                  <KeepAliveProvider>
-                    <ProcessingProvider>
-                      <App />
-                    </ProcessingProvider>
-                    <ToastContainer
-                      position='top-center'
-                      theme='colored'
-                      transition={Slide}
-                      draggable={false}
-                    />
-                  </KeepAliveProvider>
-                </PartyProvider>
-              </OrgsProvider>
-            </TextResourcesProvider>
-            <PartyPrefetcher />
-          </GlobalFormDataReadersProvider>
-        </UiConfigProvider>
-      </ViewportWrapper>
-    </LanguageProvider>
+    <ViewportWrapper>
+      <UiConfigProvider>
+        <InstantiationUrlReset />
+        <GlobalFormDataReadersProvider>
+          <OrgsProvider>
+            <PartyProvider>
+              <KeepAliveProvider>
+                <App />
+                <ToastContainer
+                  position='top-center'
+                  theme='colored'
+                  transition={Slide}
+                  draggable={false}
+                />
+              </KeepAliveProvider>
+            </PartyProvider>
+          </OrgsProvider>
+          <PartyPrefetcher />
+        </GlobalFormDataReadersProvider>
+      </UiConfigProvider>
+    </ViewportWrapper>
   );
 }
 

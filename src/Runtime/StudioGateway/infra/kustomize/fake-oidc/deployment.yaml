@@ -33,6 +33,14 @@ spec:
           image: nginx:alpine
           ports:
             - containerPort: 80
+          env:
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.uid=$(POD_UID)"
           volumeMounts:
             - name: config
               mountPath: /usr/share/nginx/html/.well-known/oauth-authorization-server

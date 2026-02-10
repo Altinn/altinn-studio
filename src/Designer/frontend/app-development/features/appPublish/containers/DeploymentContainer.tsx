@@ -12,6 +12,7 @@ import { getAppLink } from 'app-shared/ext-urls';
 import { useTranslation } from 'react-i18next';
 import { PROD_ENV_TYPE } from 'app-shared/constants';
 import { StudioError, StudioPageSpinner } from '@studio/components';
+import { BuildResult } from 'app-shared/types/Build';
 
 export const DeploymentContainer = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -64,9 +65,9 @@ export const DeploymentContainer = () => {
   return (
     <div className={classes.deployContainer}>
       {orgEnvironmentList.map((orgEnvironment: Environment) => {
-        const pipelineDeploymentList = appDeployment.pipelineDeploymentList.filter(
-          (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
-        );
+        const pipelineDeploymentList = appDeployment.pipelineDeploymentList
+          .filter((item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase())
+          .filter((item, index) => index === 0 || item.build.result !== BuildResult.none);
         const kubernetesDeployment = appDeployment.kubernetesDeploymentList.find(
           (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );

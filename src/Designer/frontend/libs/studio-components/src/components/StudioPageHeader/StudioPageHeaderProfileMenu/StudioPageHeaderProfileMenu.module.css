@@ -18,3 +18,7 @@
 .dropDownMenuGroup:not(:first-child) {
   padding-top: var(--ds-size-2);
 }
+
+.profileMenuFooter {
+  padding: var(--ds-size-4);
+}

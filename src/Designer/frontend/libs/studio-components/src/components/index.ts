@@ -46,6 +46,7 @@ export * from './StudioHelpText';
 export * from './StudioIconCard';
 export * from './StudioIconTextfield';
 export * from './StudioIconViewer';
+export * from './StudioInlineTextField';
 export * from './StudioLabel';
 export * from './StudioLabelAsParagraph';
 export * from './StudioLibraryElement';

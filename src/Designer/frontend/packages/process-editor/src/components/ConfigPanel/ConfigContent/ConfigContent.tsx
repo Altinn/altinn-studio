@@ -3,10 +3,13 @@ import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { EditTaskId } from './EditTaskId/EditTaskId';
-import { StudioDisplayTile, useStudioRecommendedNextActionContext } from '@studio/components';
+import {
+  StudioDetails,
+  StudioDisplayTile,
+  useStudioRecommendedNextActionContext,
+} from '@studio/components';
 import { EditDataTypes } from './EditDataTypes';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
-import { Accordion } from '@digdir/designsystemet-react';
 import { EditActions } from './EditActions';
 import { EditPolicy } from './EditPolicy';
 import { EditDataTypesToSign } from './EditDataTypesToSign';
@@ -76,39 +79,39 @@ export const ConfigContent = (): React.ReactElement => {
             <EditCorrespondenceResource key={`${bpmnDetails.id}-correspondenceResource`} />
           </>
         )}
-        <Accordion color='neutral'>
+        <div>
           {taskHasConnectedLayoutSet && (
-            <Accordion.Item>
-              <Accordion.Header>
+            <StudioDetails>
+              <StudioDetails.Summary>
                 {t('process_editor.configuration_panel_design_title')}
-              </Accordion.Header>
-              <Accordion.Content className={classes.accordion}>
+              </StudioDetails.Summary>
+              <StudioDetails.Content className={classes.detailsContent}>
                 <EditLayoutSetName existingLayoutSetName={layoutSet.id} />
                 <EditDataTypes
                   connectedTaskId={layoutSet.tasks[0]}
                   dataModelIds={availableDataModelIds}
                   existingDataTypeForTask={existingDataTypeForTask}
                 />
-              </Accordion.Content>
-            </Accordion.Item>
+              </StudioDetails.Content>
+            </StudioDetails>
           )}
-          <Accordion.Item>
-            <Accordion.Header>
+          <StudioDetails>
+            <StudioDetails.Summary>
               {t('process_editor.configuration_panel_actions_title')}
-            </Accordion.Header>
-            <Accordion.Content className={classes.accordion}>
+            </StudioDetails.Summary>
+            <StudioDetails.Content className={classes.detailsContent}>
               <EditActions />
-            </Accordion.Content>
-          </Accordion.Item>
-          <Accordion.Item>
-            <Accordion.Header>
+            </StudioDetails.Content>
+          </StudioDetails>
+          <StudioDetails>
+            <StudioDetails.Summary>
               {t('process_editor.configuration_panel_policy_title')}
-            </Accordion.Header>
-            <Accordion.Content className={classes.accordion}>
+            </StudioDetails.Summary>
+            <StudioDetails.Content className={classes.detailsContent}>
               <EditPolicy />
-            </Accordion.Content>
-          </Accordion.Item>
-        </Accordion>
+            </StudioDetails.Content>
+          </StudioDetails>
+        </div>
       </div>
     </ConfigContentContainer>
   );
