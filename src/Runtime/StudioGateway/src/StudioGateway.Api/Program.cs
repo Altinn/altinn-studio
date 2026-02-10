@@ -52,6 +52,9 @@ builder
     .Services.AddOptions<MetricsClientSettings>()
     .Bind(builder.Configuration.GetSection("MetricsClientSettings"))
     .ValidateOnStart();
+builder
+    .Services.AddOptions<StudioEnvironments>()
+    .Bind(builder.Configuration.GetSection(nameof(StudioEnvironments)));
 builder.Services.Configure<GatewayContext>(builder.Configuration.GetSection("Gateway"));
 
 // Register class itself as scoped to avoid using IOptions interfaces throughout the codebase
@@ -60,6 +63,7 @@ builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<Grafa
 builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<GatewayContext>>().Value);
 builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<AlertsClientSettings>>().Value);
 builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<MetricsClientSettings>>().Value);
+builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<StudioEnvironments>>().Value);
 
 builder.ConfigureKestrelPorts();
 builder.AddHostingConfiguration();

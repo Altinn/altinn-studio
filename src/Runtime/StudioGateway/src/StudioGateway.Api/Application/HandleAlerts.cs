@@ -43,13 +43,12 @@ internal static class HandleAlerts
     internal static async Task<IResult> NotifyAlertsUpdatedAsync(
         DesignerClient designerClient,
         AlertPayload alertPayload,
+        StudioEnvironments environments,
         CancellationToken cancellationToken
     )
     {
-        string designerEnvironment = alertPayload.Alerts
-            .Select(a => a.Labels.GetValueOrDefault("DesignerEnvironment"))
-            .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value))
-            ?? "prod";
+        string? designerEnvironmentLabel = alertPayload.Alerts.Select(a => a.Labels.GetValueOrDefault("DesignerEnvironment")).FirstOrDefault();
+        string designerEnvironment = !string.IsNullOrWhiteSpace(designerEnvironmentLabel) && environments.ContainsKey(designerEnvironmentLabel) ? designerEnvironmentLabel : "prod";
 
         var alerts = alertPayload
             .Alerts.Where(a =>
