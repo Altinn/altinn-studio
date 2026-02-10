@@ -165,6 +165,9 @@ public sealed class CallbackUrlValidator : ICallbackUrlValidator
 
         regexParts.Add("$");
 
-        return new Regex(string.Concat(regexParts), RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        return new Regex(
+            string.Concat(regexParts),
+            RegexOptions.Compiled | RegexOptions.CultureInvariant,
+            matchTimeout: TimeSpan.FromSeconds(1));
     }
 }
