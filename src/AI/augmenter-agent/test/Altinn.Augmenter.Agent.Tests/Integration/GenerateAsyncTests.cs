@@ -83,6 +83,7 @@ public class GenerateAsyncTests : IClassFixture<TestWebApplicationFactory>, IDis
 
     public void Dispose()
     {
+        _client.Dispose();
         _callbackServer.Dispose();
         GC.SuppressFinalize(this);
     }
