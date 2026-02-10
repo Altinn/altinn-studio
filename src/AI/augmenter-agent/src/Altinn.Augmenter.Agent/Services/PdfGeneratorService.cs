@@ -26,7 +26,7 @@ public sealed class PdfGeneratorService(
         ]
         """;
 
-    public async Task<byte[]> GeneratePdfAsync(DateTime timestamp)
+    public async Task<byte[]> GeneratePdfAsync(DateTime timestamp, CancellationToken cancellationToken = default)
     {
         var typContent = string.Format(TypstTemplate, timestamp.ToString("yyyy-MM-dd HH:mm:ss"));
 
@@ -38,7 +38,7 @@ public sealed class PdfGeneratorService(
 
         try
         {
-            await File.WriteAllTextAsync(inputPath, typContent);
+            await File.WriteAllTextAsync(inputPath, typContent, cancellationToken);
 
             using var process = new Process();
             process.StartInfo = new ProcessStartInfo
@@ -58,7 +58,8 @@ public sealed class PdfGeneratorService(
             var stderrTask = process.StandardError.ReadToEndAsync();
 
             var timeoutSeconds = pdfOptions.Value.ProcessTimeoutSeconds;
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
 
             try
             {
@@ -89,7 +90,7 @@ public sealed class PdfGeneratorService(
                 throw new InvalidOperationException($"Typst compilation failed: {stderr}");
             }
 
-            return await File.ReadAllBytesAsync(outputPath);
+            return await File.ReadAllBytesAsync(outputPath, cancellationToken);
         }
         finally
         {

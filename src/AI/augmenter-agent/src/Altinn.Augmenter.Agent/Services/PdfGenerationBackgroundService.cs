@@ -15,7 +15,7 @@ public sealed class PdfGenerationBackgroundService(
                 var pdfGenerator = scope.ServiceProvider.GetRequiredService<IPdfGeneratorService>();
                 var callbackService = scope.ServiceProvider.GetRequiredService<ICallbackService>();
 
-                var pdfBytes = await pdfGenerator.GeneratePdfAsync(job.Timestamp);
+                var pdfBytes = await pdfGenerator.GeneratePdfAsync(job.Timestamp, stoppingToken);
                 await callbackService.SendPdfAsync(job.CallbackUrl, pdfBytes, stoppingToken);
 
                 logger.LogInformation("PDF sent to callback URL: {CallbackUrl}", job.CallbackUrl);
