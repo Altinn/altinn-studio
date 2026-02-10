@@ -26,6 +26,15 @@ export class Guard {
     }
   }
 
+  static againstInvalidValue<T, InvalidValue extends T>(
+    value: T,
+    invalidValue: InvalidValue,
+  ): asserts value is Exclude<T, InvalidValue> {
+    if (value === invalidValue) {
+      throw new Error(`Guarded against invalid value ${invalidValue}.`);
+    }
+  }
+
   static againstNonJsonTypes(filename: string): void {
     if (!filename.toLowerCase().endsWith('.json')) {
       throw Error(`Guarded against non-json filename: ${filename}`);

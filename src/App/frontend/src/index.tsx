@@ -24,7 +24,6 @@ import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
-import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { AppPrefetcher } from 'src/queries/appPrefetcher';
@@ -78,19 +77,17 @@ function Root() {
       <UiConfigProvider>
         <InstantiationUrlReset />
         <GlobalFormDataReadersProvider>
-          <OrgsProvider>
-            <PartyProvider>
-              <KeepAliveProvider>
-                <App />
-                <ToastContainer
-                  position='top-center'
-                  theme='colored'
-                  transition={Slide}
-                  draggable={false}
-                />
-              </KeepAliveProvider>
-            </PartyProvider>
-          </OrgsProvider>
+          <PartyProvider>
+            <KeepAliveProvider>
+              <App />
+              <ToastContainer
+                position='top-center'
+                theme='colored'
+                transition={Slide}
+                draggable={false}
+              />
+            </KeepAliveProvider>
+          </PartyProvider>
           <PartyPrefetcher />
         </GlobalFormDataReadersProvider>
       </UiConfigProvider>

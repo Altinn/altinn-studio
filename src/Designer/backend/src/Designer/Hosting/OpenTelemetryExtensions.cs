@@ -1,4 +1,6 @@
+using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -15,10 +17,31 @@ internal static class TelemetryExtensions
             .WithTracing(tracing =>
             {
                 tracing
+                    .AddSource(ServiceTelemetry.Source.Name)
                     .AddAspNetCoreInstrumentation(options =>
                     {
                         options.RecordException = true;
                         options.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health");
+                        options.EnrichWithHttpResponse = static (activity, response) =>
+                        {
+                            var routeValues = response.HttpContext.Request.RouteValues;
+                            if (
+                                TryResolveRouteValue(routeValues, "org", out var org)
+                                || TryResolveRouteValue(routeValues, "orgName", out org)
+                            )
+                            {
+                                activity.SetTag("org", org);
+                            }
+
+                            if (
+                                TryResolveRouteValue(routeValues, "app", out var app)
+                                || TryResolveRouteValue(routeValues, "repo", out app)
+                                || TryResolveRouteValue(routeValues, "repository", out app)
+                            )
+                            {
+                                activity.SetTag("app", app);
+                            }
+                        };
                     })
                     .AddHttpClientInstrumentation(options => options.RecordException = true)
                     .AddEntityFrameworkCoreInstrumentation()
@@ -44,5 +67,13 @@ internal static class TelemetryExtensions
             );
 
         return builder;
+    }
+
+    private static bool TryResolveRouteValue(RouteValueDictionary routeValues, string key, out string value)
+    {
+        value = string.Empty;
+        return routeValues.TryGetValue(key, out var rawValue)
+            && rawValue?.ToString() is { Length: > 0 } parsedValue
+            && (value = parsedValue) != null;
     }
 }
