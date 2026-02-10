@@ -43,10 +43,14 @@ internal static class HandleAlerts
     internal static async Task<IResult> NotifyAlertsUpdatedAsync(
         DesignerClient designerClient,
         AlertPayload alertPayload,
-        CancellationToken cancellationToken,
-        string environment = AltinnEnvironments.Prod
+        CancellationToken cancellationToken
     )
     {
+        string designerEnvironment = alertPayload.Alerts
+            .Select(a => a.Labels.GetValueOrDefault("DesignerEnvironment"))
+            .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value))
+            ?? "prod";
+
         var alerts = alertPayload
             .Alerts.Where(a =>
             {
@@ -69,7 +73,7 @@ internal static class HandleAlerts
                 };
             });
 
-        await designerClient.NotifyAlertsUpdatedAsync(alerts, environment, cancellationToken);
+        await designerClient.NotifyAlertsUpdatedAsync(alerts, designerEnvironment, cancellationToken);
 
         return Results.Ok();
     }
