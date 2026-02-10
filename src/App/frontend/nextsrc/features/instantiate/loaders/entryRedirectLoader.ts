@@ -1,10 +1,10 @@
 import { redirect } from 'react-router-dom';
 import type { LoaderFunctionArgs } from 'react-router-dom';
 
+import { InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
 import { GlobalData } from 'nextsrc/core/globalData';
 import { ServerStatusCodes } from 'nextsrc/core/serverStatusCodes';
-import { InstanceApi } from 'nextsrc/features/instantiate/api';
-import { instantiateRouteBuilders } from 'nextsrc/features/instantiate/routes';
+import { routeBuilders } from 'nextsrc/router';
 import type { QueryClient } from '@tanstack/react-query';
 
 import type { IInstance } from 'src/types/shared';
@@ -22,11 +22,11 @@ export const entryRedirectLoader = (_: QueryClient) => async (_: LoaderFunctionA
   const entryType = GlobalData.applicationMetadata.onEntry?.show;
   if (entryType === 'new-instance') {
     const [instanceOwnerPartyId, instanceGuid] = (await createNewInstance()).id.split('/');
-    return redirect(instantiateRouteBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
+    return redirect(routeBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
   }
 
   if (entryType === 'select-instance') {
-    return redirect(instantiateRouteBuilders.instanceSelection({}));
+    return redirect(routeBuilders.instanceSelection({}));
   }
 
   throw new Error();
@@ -44,5 +44,5 @@ async function createNewInstance(): Promise<IInstance> {
 function handleStateless() {
   // TODO: find page to redirect to and handle anonymous
   // fetch pageid
-  return redirect(instantiateRouteBuilders.stateless({ pageId: '' })); // TODO: find out where to go
+  return redirect(routeBuilders.stateless({ pageId: '' })); // TODO: find out where to go
 }

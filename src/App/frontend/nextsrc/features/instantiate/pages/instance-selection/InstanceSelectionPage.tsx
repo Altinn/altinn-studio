@@ -2,10 +2,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useMutation } from '@tanstack/react-query';
+import { InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
 import { GlobalData } from 'nextsrc/core/globalData';
-import { InstanceApi } from 'nextsrc/features/instantiate/api';
 import classes from 'nextsrc/features/instantiate/pages/instance-selection/InstanceSelectionPage.module.css';
-import { instantiateRouteBuilders } from 'nextsrc/features/instantiate/routes';
+import { routeBuilders } from 'nextsrc/router';
 
 export const InstanceSelectionPage = () => {
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ export const InstanceSelectionPage = () => {
         throw new Error('no current task element ID. Handle it.');
       }
       navigate(
-        instantiateRouteBuilders.task({
+        routeBuilders.task({
           instanceOwnerPartyId,
           instanceGuid,
           taskId: newInstance.process.currentTask.elementId,
