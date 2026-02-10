@@ -65,6 +65,7 @@ internal partial class Engine : IEngine, IDisposable
 
     private async Task<bool> ShouldRun(CancellationToken cancellationToken)
     {
+        using var activity = Telemetry.Source.StartActivity("Engine.ShouldRun");
         _logger.CheckShouldRun();
 
         // TODO: Replace this with actual check
@@ -106,6 +107,7 @@ internal partial class Engine : IEngine, IDisposable
 
     private bool HaveWork()
     {
+        using var activity = Telemetry.Source.StartActivity("Engine.HaveWork");
         _logger.CheckHaveWork();
         bool havePending = InboxCount > 0;
 
@@ -125,7 +127,7 @@ internal partial class Engine : IEngine, IDisposable
 
     private async Task MainLoop(CancellationToken cancellationToken)
     {
-        using var activity = StartMainLoopActivity();
+        using var activity = Telemetry.Source.StartActivity("Engine.MainLoop");
         _logger.EnteringMainLoop(InboxCount, _inboxCapacityLimit.CurrentCount);
 
         // Should we run?
@@ -135,6 +137,10 @@ internal partial class Engine : IEngine, IDisposable
         // Fresh signal for this cycle. Any EnqueueWorkflow call from this point forward signals this specific instance.
         var signal = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         Interlocked.Exchange(ref _newWorkSignal, signal);
+
+        // TODO: We get a tick every 0.5s, but often sooner. Check here if it's time to fetch from database. Keep track of last time we queried, etc.
+        // Hydrate the inbox with workflows from the database
+        // ...
 
         // Do we have jobs to process?
         if (!HaveWork())
@@ -148,10 +154,7 @@ internal partial class Engine : IEngine, IDisposable
         var parallelOptions = new ParallelOptions
         {
             CancellationToken = cancellationToken,
-            MaxDegreeOfParallelism =
-                _settings.MaxDegreeOfParallelism > 0
-                    ? _settings.MaxDegreeOfParallelism
-                    : Defaults.EngineSettings.MaxDegreeOfParallelism,
+            MaxDegreeOfParallelism = _settings.MaxDegreeOfParallelism,
         };
 
         // Process all workflows in the queue in parallel, but don't await tasks
@@ -171,6 +174,8 @@ internal partial class Engine : IEngine, IDisposable
 
     private async Task WaitForPendingTasks(TaskCompletionSource newWorkSignal, CancellationToken cancellationToken)
     {
+        using var activity = Telemetry.Source.StartActivity("Engine.WaitForPendingTasks");
+
         // Wait for active Step and Workflow tasks
         var awaitables = _inbox
             .Values.SelectMany(workflow =>
@@ -189,6 +194,9 @@ internal partial class Engine : IEngine, IDisposable
 
         // Wait for the new work signal, but debounce the call to avoid stampeding
         awaitables.Add(newWorkSignal.Debounce(TimeSpan.FromMilliseconds(100), cancellationToken));
+
+        // Tick (maintenance, etc)
+        awaitables.Add(Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken));
 
         // We already have finished tasks, no need to wait
         if (awaitables.Any(x => x.IsCompleted))
@@ -239,6 +247,7 @@ internal partial class Engine : IEngine, IDisposable
                 // Waiting on database operation to finish
                 case TaskStatus.Started:
                     _logger.WaitingForWorkflowDbTask(workflow);
+                    activity?.IsNoop();
                     return;
 
                 // Database operation failed
@@ -327,7 +336,7 @@ internal partial class Engine : IEngine, IDisposable
             }
 
             _logger.ProcessingStep(step);
-            using var activity = StartProcessStepActivity(step);
+            using var activity = StartProcessStepActivity(workflow, step);
 
             var currentState = new
             {
@@ -342,6 +351,7 @@ internal partial class Engine : IEngine, IDisposable
                     // Waiting for the database operation to complete
                     case { DatabaseUpdateStatus: TaskStatus.Started }:
                         _logger.WaitingForStepDbTask(step);
+                        activity?.IsNoop();
                         return;
 
                     // Database operation failed
@@ -356,6 +366,7 @@ internal partial class Engine : IEngine, IDisposable
                     // Database operation completed successfully
                     case { DatabaseUpdateStatus: TaskStatus.Finished }:
                         _logger.CleaningUpStepDbTask(step);
+                        activity?.IsNoop();
 
                         // Clean up tasks
                         step.CleanupExecutionTask();
@@ -369,6 +380,7 @@ internal partial class Engine : IEngine, IDisposable
                     // Waiting for the execution step to complete
                     case { ExecutionStatus: TaskStatus.Started }:
                         _logger.WaitingForStepExecutionTask(step);
+                        activity?.IsNoop();
                         return;
 
                     // Execution step completed

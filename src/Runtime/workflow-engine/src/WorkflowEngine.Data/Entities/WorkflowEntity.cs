@@ -64,7 +64,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             InstanceApp = workflow.InstanceInformation.App,
             InstanceOwnerPartyId = workflow.InstanceInformation.InstanceOwnerPartyId,
             InstanceGuid = workflow.InstanceInformation.InstanceGuid,
-            TraceContext = workflow.TraceContext,
+            TraceContext = workflow.DistributedTraceContext,
             Steps = workflow.Steps.OrderBy(x => x.ProcessingOrder).Select(StepEntity.FromDomainModel).ToList(),
         };
 
@@ -86,7 +86,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
                 InstanceOwnerPartyId = InstanceOwnerPartyId,
                 InstanceGuid = InstanceGuid,
             },
-            TraceContext = TraceContext,
+            DistributedTraceContext = TraceContext,
             Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(t => t.ToDomainModel(TraceContext)).ToList(),
         };
 }

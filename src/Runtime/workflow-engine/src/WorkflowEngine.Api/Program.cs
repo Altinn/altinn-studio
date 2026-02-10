@@ -1,4 +1,6 @@
 using Altinn.Studio.Runtime.Common;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Api.Endpoints;
 using WorkflowEngine.Api.Extensions;
@@ -14,6 +16,8 @@ var dbConnectionString =
 
 // Hosting config
 builder.UseCommonHostingConfiguration();
+builder.UseProblemDetailsForBadRequests();
+builder.UseCaseInsensitiveCamelCaseJson();
 
 // Services
 builder.Services.AddWorkflowEngineHost();
@@ -23,11 +27,6 @@ builder.Services.AddApiKeyAuthentication();
 builder.Services.AddDbRepository(dbConnectionString, enableSensitiveDataLogging: builder.Environment.IsDevelopment());
 builder.Services.AddEngineHealthChecks();
 builder.Services.AddHttpContextAccessor();
-builder.Services.ConfigureHttpJsonOptions(options =>
-{
-    options.SerializerOptions.PropertyNameCaseInsensitive = true;
-    options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-});
 
 var app = builder.Build();
 
@@ -42,6 +41,7 @@ app.UseSwaggerUI(options =>
 });
 
 // Middleware
+app.UseExceptionHandler();
 if (!builder.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 

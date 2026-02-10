@@ -2,6 +2,8 @@ using System.Diagnostics;
 using System.Net;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,6 +24,45 @@ public static class Hosting
         {
             builder.UseHeaderForwarding();
             builder.UseGracefulShutdown();
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Configures the application to use ProblemDetails for bad requests.
+        /// </summary>
+        /// <remarks>
+        /// Use in conjunction with the <see cref="Microsoft.AspNetCore.Builder.ExceptionHandlerExtensions.UseExceptionHandler(IApplicationBuilder)"/> middleware.
+        /// </remarks>
+        public WebApplicationBuilder UseProblemDetailsForBadRequests()
+        {
+            builder.Services.AddProblemDetails(options =>
+            {
+                options.CustomizeProblemDetails = context =>
+                {
+                    if (
+                        context.HttpContext.Features.Get<IExceptionHandlerFeature>()?.Error
+                        is BadHttpRequestException badRequest
+                    )
+                    {
+                        context.ProblemDetails.Detail = badRequest.InnerException?.Message ?? badRequest.Message;
+                    }
+                };
+            });
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Configures the application to use camelCase for JSON serialization, with case-insensitive deserialization support.
+        /// </summary>
+        public WebApplicationBuilder UseCaseInsensitiveCamelCaseJson()
+        {
+            builder.Services.ConfigureHttpJsonOptions(options =>
+            {
+                options.SerializerOptions.PropertyNameCaseInsensitive = true;
+                options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+            });
 
             return builder;
         }

@@ -7,8 +7,6 @@ namespace WorkflowEngine.Api;
 
 internal partial class Engine
 {
-    private static Activity? StartMainLoopActivity() => Telemetry.Source.StartActivity("Engine.MainLoop");
-
     private static Activity? StartProcessWorkflowActivity(Workflow workflow)
     {
         var tags = workflow.GetActivityTags();
@@ -27,7 +25,8 @@ internal partial class Engine
         // First iteration: create a new linked root trace for this workflow
         var activity = Telemetry.Source.StartLinkedRootActivity(
             "Engine.ProcessWorkflow",
-            additionalLinks: Telemetry.ParseSourceContext(workflow.TraceContext),
+            kind: ActivityKind.Consumer,
+            links: Telemetry.ParseSourceContext(workflow.DistributedTraceContext),
             tags: tags
         );
 
@@ -36,8 +35,33 @@ internal partial class Engine
         return activity;
     }
 
-    private static Activity? StartProcessStepActivity(Step step) =>
-        Telemetry.Source.StartActivity("Engine.ProcessStep", tags: step.GetActivityTags());
+    private static Activity? StartProcessStepActivity(Workflow workflow, Step step)
+    {
+        var tags = step.GetActivityTags();
+
+        // Subsequent iterations: child of the original ProcessSteps span
+        if (step.EngineTraceContext is { } existingContext)
+        {
+            return Telemetry.Source.StartActivity(
+                "Engine.ProcessStep",
+                ActivityKind.Internal,
+                parentContext: existingContext,
+                tags: tags
+            );
+        }
+
+        // First iteration: create a new linked root trace for this workflow
+        var activity = Telemetry.Source.StartActivity(
+            "Engine.ProcessStep",
+            ActivityKind.Consumer,
+            workflow.EngineTraceContext ?? default,
+            tags
+        );
+
+        step.EngineTraceContext = activity?.Context;
+
+        return activity;
+    }
 
     private void RecordWorkflowQueueTime(Workflow workflow)
     {

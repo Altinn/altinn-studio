@@ -10,7 +10,6 @@ public sealed record Workflow : PersistentItem
     public required IReadOnlyList<Step> Steps { get; init; }
 
     public DateTimeOffset? ExecutionStartedAt { get; set; }
-    public ActivityContext? EngineTraceContext { get; set; }
 
     public static Workflow FromRequest(EngineRequest engineRequest) =>
         new()
@@ -20,7 +19,7 @@ public sealed record Workflow : PersistentItem
             InstanceInformation = engineRequest.InstanceInformation,
             Actor = engineRequest.Actor,
             CreatedAt = engineRequest.CreatedAt,
-            TraceContext = engineRequest.TraceContext,
+            DistributedTraceContext = engineRequest.TraceContext,
             OperationId = engineRequest.OperationId,
             Steps = engineRequest
                 .Steps.Select((step, i) => Step.FromRequest(engineRequest, step, engineRequest.CreatedAt, i))

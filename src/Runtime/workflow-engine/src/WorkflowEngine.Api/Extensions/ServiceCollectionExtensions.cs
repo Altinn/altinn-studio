@@ -8,8 +8,6 @@ using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 
-// ReSharper disable NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
-
 namespace WorkflowEngine.Api.Extensions;
 
 internal static class ServiceCollectionExtensions
@@ -78,7 +76,22 @@ internal static class ServiceCollectionExtensions
                         {
                             opts.RecordException = true;
                         })
-                        .AddEntityFrameworkCoreInstrumentation()
+                        .AddEntityFrameworkCoreInstrumentation(opts =>
+                        {
+                            opts.EnrichWithIDbCommand = (activity, command) =>
+                            {
+                                var commandType = command.CommandText switch
+                                {
+                                    var t when t.StartsWith("SELECT", StringComparison.OrdinalIgnoreCase) => "Select",
+                                    var t when t.StartsWith("INSERT", StringComparison.OrdinalIgnoreCase) => "Insert",
+                                    var t when t.StartsWith("UPDATE", StringComparison.OrdinalIgnoreCase) => "Update",
+                                    var t when t.StartsWith("DELETE", StringComparison.OrdinalIgnoreCase) => "Delete",
+                                    _ => "Unknown",
+                                };
+
+                                activity.DisplayName = $"SQL EFCore: {commandType} @ {command.Connection?.Database}";
+                            };
+                        })
                         .AddOtlpExporter();
                 })
                 .WithMetrics(builder =>
@@ -224,6 +237,9 @@ internal static class OptionsBuilderExtensions
 
                 if (config.MaxConcurrentHttpCalls <= 0)
                     config.MaxConcurrentHttpCalls = Defaults.EngineSettings.MaxConcurrentHttpCalls;
+
+                if (config.MaxDegreeOfParallelism <= 0)
+                    config.MaxDegreeOfParallelism = Defaults.EngineSettings.MaxDegreeOfParallelism;
             });
 
             return builder;
@@ -249,16 +265,6 @@ internal static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.DatabaseCommandTimeout > TimeSpan.Zero,
                 $"{ns}.{nameof(EngineSettings.DatabaseCommandTimeout)} must be greater than zero."
-            );
-
-            builder.Validate(
-                config => config.MaxConcurrentDbOperations > 0,
-                $"{ns}.{nameof(EngineSettings.MaxConcurrentDbOperations)} must be greater than zero."
-            );
-
-            builder.Validate(
-                config => config.MaxConcurrentHttpCalls > 0,
-                $"{ns}.{nameof(EngineSettings.MaxConcurrentHttpCalls)} must be greater than zero."
             );
 
             return builder;

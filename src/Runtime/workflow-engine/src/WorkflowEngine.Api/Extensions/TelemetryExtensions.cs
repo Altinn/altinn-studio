@@ -45,37 +45,32 @@ internal static class TelemetryExtensions
             );
 
         /// <summary>
-        /// Starts a new root activity with the specified name and optional kind and tags.
-        /// If an activity context is available, the new activity will be linked to it (but it will not be a child of it).
+        /// Starts a new root activity with the specified name and optional kind, links, and tags.
         /// </summary>
         public Activity? StartLinkedRootActivity(
             string name,
             ActivityKind? kind = null,
-            IEnumerable<ActivityLink>? additionalLinks = null,
+            IEnumerable<ActivityLink>? links = null,
             IEnumerable<(string tag, object? value)>? tags = null
         )
         {
-            var callerContext = Activity.Current?.Context;
+            var previous = Activity.Current;
+            Activity.Current = null;
 
-            var links = new List<ActivityLink>(additionalLinks ?? []);
-            if (callerContext.HasValue)
+            try
             {
-                links.Add(new ActivityLink(callerContext.Value));
+                return source.StartActivity(
+                    name,
+                    kind: kind ?? ActivityKind.Internal,
+                    parentContext: default,
+                    links: links ?? [],
+                    tags: tags?.Select(t => new KeyValuePair<string, object?>(t.tag, t.value))
+                );
             }
-
-            var rootContext = new ActivityContext(
-                traceId: ActivityTraceId.CreateRandom(),
-                spanId: default,
-                traceFlags: ActivityTraceFlags.Recorded
-            );
-
-            return source.StartActivity(
-                name,
-                kind: kind ?? ActivityKind.Internal,
-                parentContext: rootContext,
-                links: links,
-                tags: tags?.Select(t => new KeyValuePair<string, object?>(t.tag, t.value))
-            );
+            finally
+            {
+                Activity.Current = previous;
+            }
         }
     }
 
@@ -112,6 +107,11 @@ internal static class TelemetryExtensions
                     activity.AddEvent(@event);
                 }
             }
+        }
+
+        public void IsNoop()
+        {
+            activity.IsAllDataRequested = false;
         }
     }
 

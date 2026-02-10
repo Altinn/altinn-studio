@@ -95,7 +95,7 @@ internal sealed class StepEntity : IHasCommonMetadata
             Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
             Command = command,
             RetryStrategy = retryStrategy,
-            TraceContext = traceContext,
+            DistributedTraceContext = traceContext,
         };
     }
 }
