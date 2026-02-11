@@ -2,6 +2,7 @@ using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
 using Altinn.Studio.Cli.Upgrade.v8Tov10.IndexMigration;
+using Altinn.Studio.Cli.Upgrade.v8Tov10.LayoutSetsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov10.RuleConfiguration;
 using Altinn.Studio.Cli.Upgrade.v8Tov10.RuleConfiguration.ConditionalRenderingRules;
 using Altinn.Studio.Cli.Upgrade.v8Tov10.RuleConfiguration.DataProcessingRules;
@@ -136,7 +137,13 @@ internal static class V8Tov10Upgrade
                     returnCode = await CleanupLegacyRuleFiles(projectFolder);
                 }
 
-                // Job 6: Migrate Index.cshtml to assets.json configuration
+                // Job 6: Migrate layout-sets.json to task-folder based UI settings
+                if (returnCode == 0)
+                {
+                    returnCode = await MigrateLayoutSetsToTaskUi(projectFolder);
+                }
+
+                // Job 7: Migrate Index.cshtml to assets.json configuration
                 if (returnCode == 0)
                 {
                     returnCode = await MigrateIndexCshtml(projectFolder);
@@ -371,7 +378,42 @@ internal static class V8Tov10Upgrade
     }
 
     /// <summary>
-    /// Job 6: Migrate Index.cshtml to assets.json configuration
+    /// Job 6: Migrate layout-sets.json to task-folder based UI settings
+    /// </summary>
+    static async Task<int> MigrateLayoutSetsToTaskUi(string projectFolder)
+    {
+        try
+        {
+            await Console.Out.WriteLineAsync("Migrating layout-sets.json to task-folder UI settings...");
+            var migrator = new LayoutSetsToTaskUiMigrator(projectFolder);
+            var result = migrator.Migrate();
+
+            if (!result.LayoutSetsDeleted)
+            {
+                await Console.Out.WriteLineAsync("No layout-sets.json found, skipping migration");
+                return 0;
+            }
+
+            await Console.Out.WriteLineAsync($"Migrated {result.MigratedFolderCount} UI folder(s)");
+            await Console.Out.WriteLineAsync(
+                $"Folder operations: {result.RenamedFolderCount} renamed, {result.CopiedFolderCount} copied, {result.DeletedSourceFolderCount} deleted source folder(s)"
+            );
+            if (result.MigratedGlobalSettings)
+            {
+                await Console.Out.WriteLineAsync("Migrated global uiSettings to App/ui/Settings.json");
+            }
+
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await Console.Error.WriteLineAsync($"Error migrating layout-sets.json: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Job 7: Migrate Index.cshtml to assets.json configuration
     /// </summary>
     static async Task<int> MigrateIndexCshtml(string projectFolder)
     {
