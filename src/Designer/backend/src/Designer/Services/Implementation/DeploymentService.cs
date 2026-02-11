@@ -108,8 +108,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<DeploymentEntity> CreateAsync(
             AltinnAuthenticatedRepoEditingContext authenticatedContext,
-            DeploymentModel deployment,
-            bool publishServiceResource = false
+            DeploymentModel deployment
         )
         {
             var cancellationToken = _httpContext?.RequestAborted ?? CancellationToken.None;
@@ -135,8 +134,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 authenticatedContext.Org,
                 authenticatedContext.Repo,
                 release.TargetCommitish,
-                deployment.EnvName,
-                publishServiceResource
+                deployment.EnvName
             );
 
             // NOTE: these codepaths are sensitive to leaving partial state/progress if the user/caller

@@ -1,11 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.ResourceRegistry.Core.Models;
-using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Implementation.Validation;
@@ -60,7 +58,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string app,
             string shortCommitId,
             string envName,
-            bool publishServiceResource,
             CancellationToken cancellationToken = default
         )
         {

@@ -116,7 +116,6 @@ namespace Designer.Tests.Services
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<bool>(),
                         It.IsAny<CancellationToken>()
                     )
                 )
@@ -202,7 +201,6 @@ namespace Designer.Tests.Services
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<bool>(),
                         It.IsAny<CancellationToken>()
                     ),
                 Times.Once
@@ -442,7 +440,6 @@ namespace Designer.Tests.Services
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<bool>(),
                         It.IsAny<CancellationToken>()
                     )
                 )
@@ -607,7 +604,6 @@ namespace Designer.Tests.Services
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<bool>(),
                         It.IsAny<CancellationToken>()
                     )
                 )
@@ -754,7 +750,6 @@ namespace Designer.Tests.Services
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<bool>(),
                         It.IsAny<CancellationToken>()
                     )
                 )

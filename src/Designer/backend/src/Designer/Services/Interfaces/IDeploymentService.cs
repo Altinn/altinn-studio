@@ -22,12 +22,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="authenticatedContext"> An <see cref="AltinnAuthenticatedRepoEditingContext"/> holding the data about editing context.</param>
         /// <param name="deployment">Release containing data from client</param>
-        /// <param name="publishServiceResource"></param>
         /// <returns>The created document in db</returns>
         Task<DeploymentEntity> CreateAsync(
             AltinnAuthenticatedRepoEditingContext authenticatedContext,
-            DeploymentModel deployment,
-            bool publishServiceResource = false
+            DeploymentModel deployment
         );
 
         /// <summary>

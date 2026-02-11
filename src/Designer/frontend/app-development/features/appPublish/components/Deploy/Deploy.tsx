@@ -32,11 +32,7 @@ export const Deploy = ({
     isPending: permissionsIsPending,
     isError: permissionsIsError,
   } = useDeployPermissionsQuery(org, app, { hideDefaultError: true });
-  const { mutate, isPending: isPendingCreateDeployment } = useCreateDeploymentMutation(
-    org,
-    app,
-    true,
-  );
+  const { mutate, isPending: isPendingCreateDeployment } = useCreateDeploymentMutation(org, app);
 
   if (permissionsIsPending) {
     return <StudioSpinner aria-hidden spinnerTitle={t('app_deployment.permission_checking')} />;
