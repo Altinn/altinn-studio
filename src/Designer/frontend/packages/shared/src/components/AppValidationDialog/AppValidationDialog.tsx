@@ -29,7 +29,7 @@ export const AppValidationDialog = () => {
       style={{ zIndex: 10 }}
     >
       <StudioDialog.Block>
-        <StudioHeading>Valideringsfeil</StudioHeading>
+        <StudioHeading>{t('app_validation.heading')}</StudioHeading>
         <StudioParagraph>
           {t('general.updatedAt')} {new Date(validationUpdatedAt).toLocaleString()}
         </StudioParagraph>
@@ -58,7 +58,7 @@ const AltinnAppServiceResourceValidation = ({ validationResult }: { validationRe
 
   return (
     <div className={classes.validationContainer}>
-      <StudioHeading>Valideringsfeil på instillinger om appen.</StudioHeading>
+      <StudioHeading>{t('app_validation.app_metadata.heading')}</StudioHeading>
       <StudioAlert data-color='warning'>
         <StudioHeading>{t('app_validation.app_metadata.warnings')}</StudioHeading>
         <StudioErrorSummary.List>
