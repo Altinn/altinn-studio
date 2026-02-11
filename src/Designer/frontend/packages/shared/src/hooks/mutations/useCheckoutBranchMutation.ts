@@ -18,7 +18,7 @@ export const useCheckoutBranchMutation = (
     mutationFn: (branchName: string) => checkoutBranch(org, app, branchName),
     onSuccess: (data, variables, onMutateResult, context) => {
       // To prevent race conditions, refetch is temporarily disabled for form layout queries.
-      // They will be refetched once the component tree updates after checkout.
+      // They will be refetched organically once the component tree updates after checkout.
       queryClient.invalidateQueries({
         predicate: isFormLayoutQuery,
         refetchType: 'none',
@@ -26,6 +26,12 @@ export const useCheckoutBranchMutation = (
       queryClient.invalidateQueries({
         predicate: (query) => isAppSpecificQuery(query, org, app) && !isFormLayoutQuery(query),
       });
+
+      // Process-editor does not properly update when invalidating cache, needs reload.
+      if (window.location.pathname.includes('process-editor')) {
+        window.location.reload();
+      }
+
       options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     onError: (error, variables, onMutateResult, context) => {
