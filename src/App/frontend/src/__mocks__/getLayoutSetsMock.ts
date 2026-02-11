@@ -8,7 +8,9 @@ type MockUiFolder = {
   defaultDataType?: string;
 };
 
-export function getLayoutSetsMock(): { sets: MockUiFolder[]; uiSettings: AltinnUi['settings'] } {
+type UiSettings = NonNullable<AltinnUi['settings']>;
+
+export function getLayoutSetsMock(): { sets: MockUiFolder[]; uiSettings: UiSettings } {
   return {
     sets: [
       { id: 'stateless', defaultDataType: statelessDataTypeMock },
@@ -28,7 +30,7 @@ export function getLayoutSetsMock(): { sets: MockUiFolder[]; uiSettings: AltinnU
   };
 }
 
-export function getUiFoldersMock(): { folders: UiFolders; uiSettings: AltinnUi['settings'] } {
+export function getUiFoldersMock(): { folders: UiFolders; uiSettings: UiSettings } {
   const layoutSets = getLayoutSetsMock();
   return {
     folders: Object.fromEntries(layoutSets.sets.map((set) => [set.id, { defaultDataType: set.defaultDataType }])),

@@ -76,5 +76,17 @@ describe('useCurrentLayoutSet.ts', () => {
       const expected = 'stateless';
       expect(result?.id).toEqual(expected);
     });
+
+    it('should resolve the UI folder by task id even without defaultDataType', () => {
+      jest.mocked(getApplicationMetadata).mockImplementation(() => mockedAppMetadata);
+
+      const result = getCurrentLayoutSet({
+        isStateless: false,
+        uiFolders: { Task_2: {} },
+        taskId: 'Task_2',
+      });
+
+      expect(result?.id).toEqual('Task_2');
+    });
   });
 });

@@ -98,6 +98,15 @@ describe('readonly data models', () => {
 
     // Test with autoSaveBehavior onChangePage in order to test that requestManualSave works as expected
     interceptAltinnAppGlobalData((globalData) => {
+      globalData.ui.settings ??= {
+        hideCloseButton: false,
+        showLanguageSelector: false,
+        showExpandWidthButton: false,
+        expandedWidth: false,
+        showProgress: true,
+        autoSaveBehavior: 'onChangePage',
+        taskNavigation: [],
+      };
       globalData.ui.settings.autoSaveBehavior = 'onChangePage';
     });
     cy.reloadAndWait();

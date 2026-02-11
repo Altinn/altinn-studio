@@ -10,6 +10,15 @@ type ReqCounter = { count: number };
 describe('Auto save behavior', () => {
   it('onChangeFormData: Should save form data when interacting with form element(checkbox) but not on navigation', () => {
     interceptAltinnAppGlobalData((globalData) => {
+      globalData.ui.settings ??= {
+        hideCloseButton: false,
+        showLanguageSelector: false,
+        showExpandWidthButton: false,
+        expandedWidth: false,
+        showProgress: true,
+        autoSaveBehavior: 'onChangePage',
+        taskNavigation: [],
+      };
       globalData.ui.settings.autoSaveBehavior = 'onChangeFormData';
     });
     cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
@@ -33,6 +42,15 @@ describe('Auto save behavior', () => {
 
   it('onChangePage: Should not save form when interacting with form element(checkbox), but should save on navigating between pages', () => {
     interceptAltinnAppGlobalData((globalData) => {
+      globalData.ui.settings ??= {
+        hideCloseButton: false,
+        showLanguageSelector: false,
+        showExpandWidthButton: false,
+        expandedWidth: false,
+        showProgress: true,
+        autoSaveBehavior: 'onChangePage',
+        taskNavigation: [],
+      };
       globalData.ui.settings.autoSaveBehavior = 'onChangePage';
     });
     cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
@@ -89,6 +107,15 @@ describe('Auto save behavior', () => {
   (['current', 'all'] as const).forEach((pages) => {
     it(`should run save before single field validation with navigation trigger ${pages || 'undefined'}`, () => {
       interceptAltinnAppGlobalData((globalData) => {
+        globalData.ui.settings ??= {
+          hideCloseButton: false,
+          showLanguageSelector: false,
+          showExpandWidthButton: false,
+          expandedWidth: false,
+          showProgress: true,
+          autoSaveBehavior: 'onChangePage',
+          taskNavigation: [],
+        };
         globalData.ui.settings.autoSaveBehavior = 'onChangePage';
       });
       cy.interceptLayout('changename', (component) => {
@@ -169,6 +196,15 @@ describe('Auto save behavior', () => {
   ([undefined, 'current', 'currentAndPrevious', 'all'] as const).forEach((validateOnNext) => {
     it(`should run save before single field validation with validateOnNext = ${validateOnNext || 'undefined'}`, () => {
       interceptAltinnAppGlobalData((globalData) => {
+        globalData.ui.settings ??= {
+          hideCloseButton: false,
+          showLanguageSelector: false,
+          showExpandWidthButton: false,
+          expandedWidth: false,
+          showProgress: true,
+          autoSaveBehavior: 'onChangePage',
+          taskNavigation: [],
+        };
         globalData.ui.settings.autoSaveBehavior = 'onChangePage';
       });
       cy.interceptLayout('changename', (component) => {

@@ -8,6 +8,15 @@ function interceptLanguageFeatures({ lang }: { lang?: string | null }) {
     if (lang !== undefined && globalData.userProfile) {
       globalData.userProfile.profileSettingPreference.language = lang;
     }
+    globalData.ui.settings ??= {
+      hideCloseButton: false,
+      showLanguageSelector: false,
+      showExpandWidthButton: false,
+      expandedWidth: false,
+      showProgress: true,
+      autoSaveBehavior: 'onChangePage',
+      taskNavigation: [],
+    };
     globalData.ui.settings.showLanguageSelector = true;
   });
 }

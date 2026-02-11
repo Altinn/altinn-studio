@@ -27,7 +27,7 @@ export type UiFolderSettings = {
 
 export type AltinnUi = {
   folders: Record<string, UiFolderSettings>;
-  settings: GlobalPageSettings;
+  settings?: GlobalPageSettings;
 };
 
 export type UiFolders = AltinnUi['folders'];

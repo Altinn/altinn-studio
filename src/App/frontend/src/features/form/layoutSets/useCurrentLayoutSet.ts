@@ -1,10 +1,8 @@
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { getUiFolders } from 'src/features/form/layoutSets';
-import { getCurrentDataTypeForApplication } from 'src/features/instance/instanceUtils';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { getUiFolderIdForDataElement } from 'src/utils/layout';
 import type { UiFolders } from 'src/features/form/layoutSets/types';
 
 type UiFolder = {
@@ -58,9 +56,8 @@ export function getCurrentLayoutSet({
     return toUiFolder(appMetadata.onEntry.show, uiFolders);
   }
 
-  const dataType = getCurrentDataTypeForApplication({ isStateless, uiFolders, taskId });
-  const uiFolderId = getUiFolderIdForDataElement(taskId, dataType, uiFolders);
-  return toUiFolder(uiFolderId, uiFolders);
+  // For stateful apps, task IDs and App/ui folder IDs are aligned by contract.
+  return toUiFolder(taskId, uiFolders);
 }
 
 function toUiFolder(id: string | undefined, uiFolders: UiFolders): UiFolder | undefined {
