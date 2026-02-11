@@ -31,7 +31,7 @@ export const AppValidationDialog = () => {
       style={{ zIndex: 10 }}
     >
       <StudioDialog.Block>
-        <StudioHeading>Valideringsfeil</StudioHeading>
+        <StudioHeading>{t('app_validation.heading')}</StudioHeading>
         <StudioParagraph>
           {t('general.updatedAt')} {new Date(validationUpdatedAt).toLocaleString()}
         </StudioParagraph>
