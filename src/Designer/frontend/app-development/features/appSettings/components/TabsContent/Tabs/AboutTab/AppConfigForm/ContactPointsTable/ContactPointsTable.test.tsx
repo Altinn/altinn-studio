@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ContactPointsTable, type ContactPointsTableProps } from './ContactPointsTable';
+import { ContactPointsTable } from './ContactPointsTable';
 import type { ContactPoint } from 'app-shared/types/AppConfig';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'dashboard/testing/mocks';
@@ -83,15 +83,20 @@ describe('ContactPointsTable', () => {
   });
 });
 
-const renderContactPointsTable = (props?: Partial<ContactPointsTableProps>) => {
+type RenderOptions = {
+  contactPointList?: ContactPoint[];
+  onContactPointsChanged?: (contactPoints: ContactPoint[]) => void;
+};
+
+const renderContactPointsTable = (options?: RenderOptions) => {
   const Wrapper = () => {
     const [contactPoints, setContactPoints] = useState<ContactPoint[]>(
-      props?.contactPointList ?? mockContactPoints,
+      options?.contactPointList ?? mockContactPoints,
     );
 
     const handleContactPointsChanged = (updated: ContactPoint[]) => {
       setContactPoints(updated);
-      props?.onContactPointsChanged?.(updated);
+      options?.onContactPointsChanged?.(updated);
     };
 
     return (
