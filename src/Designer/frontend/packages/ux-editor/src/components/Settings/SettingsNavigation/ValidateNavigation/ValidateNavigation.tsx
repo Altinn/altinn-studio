@@ -16,7 +16,7 @@ export const ValidateNavigation = () => {
   return (
     <div className={classes.validationContent}>
       <div>
-        <StudioHeading level={2} data-size='xs' spacing>
+        <StudioHeading level={3} data-size='xs' spacing>
           {t('ux_editor.settings.navigation_validation_header')}
         </StudioHeading>
         <StudioParagraph>
