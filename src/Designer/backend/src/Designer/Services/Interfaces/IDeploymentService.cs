@@ -7,7 +7,6 @@ using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {

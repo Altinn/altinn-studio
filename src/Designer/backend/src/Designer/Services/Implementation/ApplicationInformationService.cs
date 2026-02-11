@@ -9,8 +9,7 @@ using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Implementation.Validation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using JsonException = Newtonsoft.Json.JsonException;
-using JsonSerializer = System.Text.Json.JsonSerializer;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -24,6 +23,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ITextResourceService _textResourceService;
         private readonly IResourceRegistry _resourceRegistryService;
         private readonly IOrgService _orgService;
+        private readonly ILogger<ApplicationInformationService> _logger;
 
         /// <summary>
         /// Constructor
@@ -33,7 +33,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IAuthorizationPolicyService authorizationPolicyService,
             ITextResourceService textResourceService,
             IResourceRegistry resourceRegistryService,
-            IOrgService orgService
+            IOrgService orgService,
+            ILogger<ApplicationInformationService> logger
         )
         {
             _applicationMetadataService = applicationMetadataService;
@@ -41,6 +42,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _textResourceService = textResourceService;
             _resourceRegistryService = resourceRegistryService;
             _orgService = orgService;
+            _logger = logger;
         }
 
         private static readonly JsonSerializerOptions s_jsonOptions = new()
@@ -123,7 +125,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 ActionResult publishResponse =
                     await _resourceRegistryService.PublishServiceResource(serviceResource, envName);
             }
-            catch (System.Exception) { }
+            catch (System.Exception e)
+            {
+                // TODO: Temporary logging of exception until publishing metadata to resource registry is obligatory.
+                _logger.LogWarning(
+                    "Publishing to Resource Registry failed. Exception message: {Message}",
+                    e.Message
+                );
+            }
             // TODO: Publishing to Resource Registry is currently optional, but will be non-optional in the future.
             // This code is commented to not stop the normal publication if resource registry publication fails
             // if (

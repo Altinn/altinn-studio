@@ -251,6 +251,7 @@
   "app_deployment.unpublish_impact_error_page": "Hvis du ikke har fjernet aktive eksemplarer fra innboksen, får de som bruker appen en feilside, med melding om at appen ikke finnes lenger.",
   "app_deployment.unpublish_impact_title": "Dette skjer når du har avpublisert",
   "app_deployment.version_label": "Versjon {{tagName}} ({{createdDateTime}})",
+  "app_error.details": "Detaljer",
   "app_release.earlier_releases": "Tidligere bygg av appen",
   "app_release.release_build_log": "Bygglogg",
   "app_release.release_built_on_version": "Versjon {{version}} inneholder ",
