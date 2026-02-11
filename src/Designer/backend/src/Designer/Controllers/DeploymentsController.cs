@@ -111,7 +111,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Organisation</param>
         /// <param name="app">Application name</param>
         /// <param name="createDeployment">Release model</param>
-        /// <param name="publishServiceResource">Temporary flag to enable resource publishing for frontend feature flagged testing</param>
         /// <returns>Created deployment</returns>
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
@@ -119,8 +118,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<DeploymentEntity>> Create(
             string org,
             string app,
-            [FromBody] CreateDeploymentRequestViewModel createDeployment,
-            [FromQuery] bool publishServiceResource
+            [FromBody] CreateDeploymentRequestViewModel createDeployment
         )
         {
             if (!ModelState.IsValid)
@@ -140,10 +138,10 @@ namespace Altinn.Studio.Designer.Controllers
 
             var createResult = await _deploymentService.CreateAsync(
                 authenticatedContext,
-                createDeployment.ToDomainModel(),
-                publishServiceResource);
-            return Created(String.Empty, createResult);
-    }
+                createDeployment.ToDomainModel()
+            );
+            return Created(string.Empty, createResult);
+        }
 
         /// <summary>
         /// Initiates the undeployment of an application from a specific environment

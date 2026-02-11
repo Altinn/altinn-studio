@@ -45,7 +45,7 @@ const handleError = (
     console.error(error);
   }
 
-  const renderToast = (key: string, detail: string, options: ToastOptions = {}) => {
+  const renderToast = (key: string, detail?: string, options: ToastOptions = {}) => {
     const errorMessageKey = `api_errors.${key}`;
     if (i18n.exists(errorMessageKey)) {
       const message = (
@@ -54,7 +54,7 @@ const handleError = (
           {detail && (
             <>
               <br />
-              {`Detaljer: ${detail}`}
+              {`${t('app_error.details')}: ${detail}`}
             </>
           )}
         </>
