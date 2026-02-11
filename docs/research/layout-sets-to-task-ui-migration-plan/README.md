@@ -11,6 +11,7 @@ and migrating to the task-folder UI model.
 - `docs/research/layout-sets-to-task-ui-migration-plan/04-cli-upgrade-migration.md`
 - `docs/research/layout-sets-to-task-ui-migration-plan/05-endpoint-cleanup-and-rollout.md`
 - `docs/research/layout-sets-to-task-ui-migration-plan/06-test-and-validation-plan.md`
+- `docs/research/layout-sets-to-task-ui-migration-plan/07-backend-legacy-layoutset-cleanup.md`
 
 ## Recommended execution order
 
@@ -20,3 +21,4 @@ and migrating to the task-folder UI model.
 4. Step 4: Implement CLI upgrade migration and file transforms.
 5. Step 5: Remove obsolete endpoint and finalize rollout behavior.
 6. Step 6: Execute validation matrix and regression tests.
+7. Step 7: Remove remaining backend legacy `LayoutSet` compatibility indirection.

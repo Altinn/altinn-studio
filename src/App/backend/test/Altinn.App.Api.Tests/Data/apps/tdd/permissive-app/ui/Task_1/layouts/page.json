@@ -1,0 +1,31 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "Heading2-2d1ba9d7-e284-4acd-a37b-e4c8ce45142a",
+        "type": "Header",
+        "size": "h2",
+        "textResourceBindings": {
+          "title": "Brukeropp-side-overskrift"
+        }
+      },
+      {
+        "id": "name",
+        "type": "Input",
+        "required": true,
+        "dataModelBindings": {
+          "simpleBinding": "melding.name"
+        }
+      },
+      {
+        "id": "hidden",
+        "type": "Input",
+        "hidden": true,
+        "dataModelBindings": {
+          "simpleBinding": "melding.hidden"
+        }
+      }
+    ]
+  }
+}

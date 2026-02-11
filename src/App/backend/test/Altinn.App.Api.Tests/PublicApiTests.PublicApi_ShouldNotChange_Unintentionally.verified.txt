@@ -547,8 +547,8 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 404, "text/plain", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/layouts")]
-        [System.Obsolete("This endpoint is no longer available. Use /{org}/{app}/api/layouts/{id} to ge" +
-            "t layouts for a specific UI folder.")]
+        [System.Obsolete("This endpoint is no longer available. Use /{org}/{app}/api/layouts/{id} to get la" +
+            "youts for a specific UI folder.")]
         public Microsoft.AspNetCore.Mvc.ActionResult GetLayouts(string org, string app) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]

@@ -17,11 +17,11 @@ public sealed class LayoutModel
     /// Constructor for the component model that wraps multiple layouts
     /// </summary>
     /// <param name="layouts">List of layouts we need</param>
-    /// <param name="defaultLayout">Optional default layout (if not just using the first)</param>
-    public LayoutModel(List<LayoutSetComponent> layouts, LayoutSet? defaultLayout)
+    /// <param name="defaultLayoutId">Optional default layout id (if not just using the first)</param>
+    public LayoutModel(List<LayoutSetComponent> layouts, string? defaultLayoutId)
     {
         _layoutsLookup = layouts.ToDictionary(l => l.Id);
-        _defaultLayoutSet = defaultLayout is not null ? _layoutsLookup[defaultLayout.Id] : layouts[0];
+        _defaultLayoutSet = defaultLayoutId is not null ? _layoutsLookup[defaultLayoutId] : layouts[0];
     }
 
     /// <summary>

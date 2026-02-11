@@ -341,7 +341,7 @@ public class AppResourcesSITests
     }
 
     [Fact]
-    public void GetLayoutSetForTask_uses_defaultDataType_from_folder_settings()
+    public void GetTaskUiConfiguration_uses_defaultDataType_from_folder_settings()
     {
         var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-TaskDefaultDataType-");
         try
@@ -385,11 +385,12 @@ public class AppResourcesSITests
                 _telemetry.Object
             );
 
-            var layoutSet = appResources.GetLayoutSetForTask("Task_1");
+            var taskUiConfiguration = appResources.GetTaskUiConfiguration("Task_1");
 
-            layoutSet.Should().NotBeNull();
-            layoutSet!.Id.Should().Be("Task_1");
-            layoutSet.DataType.Should().Be("chosen");
+            taskUiConfiguration.Should().NotBeNull();
+            taskUiConfiguration!.TaskId.Should().Be("Task_1");
+            taskUiConfiguration.FolderId.Should().Be("Task_1");
+            taskUiConfiguration.DefaultDataType.Should().Be("chosen");
         }
         finally
         {
@@ -398,7 +399,7 @@ public class AppResourcesSITests
     }
 
     [Fact]
-    public void GetLayoutSetForTask_falls_back_to_task_bound_datatype_when_defaultDataType_missing()
+    public void GetTaskUiConfiguration_falls_back_to_task_bound_datatype_when_defaultDataType_missing()
     {
         var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-TaskFallbackDataType-");
         try
@@ -439,10 +440,10 @@ public class AppResourcesSITests
                 _telemetry.Object
             );
 
-            var layoutSet = appResources.GetLayoutSetForTask("Task_1");
+            var taskUiConfiguration = appResources.GetTaskUiConfiguration("Task_1");
 
-            layoutSet.Should().NotBeNull();
-            layoutSet!.DataType.Should().Be("taskData");
+            taskUiConfiguration.Should().NotBeNull();
+            taskUiConfiguration!.DefaultDataType.Should().Be("taskData");
         }
         finally
         {

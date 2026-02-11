@@ -109,9 +109,10 @@ public interface IAppResources
     Task<string?> GetFooter();
 
     /// <summary>
-    /// Get the layout set definition for a given task. Return null if no layout sets exists
+    /// Gets resolved task UI configuration for a task.
+    /// Returns null when no matching task folder exists.
     /// </summary>
-    LayoutSet? GetLayoutSetForTask(string taskId);
+    TaskUiConfiguration? GetTaskUiConfiguration(string taskId);
 
     /// <summary>
     /// Gets the layouts for av given layoutset

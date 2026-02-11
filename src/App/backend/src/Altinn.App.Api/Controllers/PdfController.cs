@@ -121,19 +121,19 @@ public class PdfController : ControllerBase
         string appModelclassRef = _resources.GetClassRefForLogicDataType(dataElement.DataType);
         Type dataType = _appModel.GetModelType(appModelclassRef);
 
-        LayoutSet? layoutSet = _resources.GetLayoutSetForTask(taskId);
+        var taskUiConfiguration = _resources.GetTaskUiConfiguration(taskId);
         if (
-            layoutSet?.DataType is not null
-            && !layoutSet.DataType.Equals(dataElement.DataType, StringComparison.Ordinal)
+            taskUiConfiguration?.DefaultDataType is not null
+            && !taskUiConfiguration.DefaultDataType.Equals(dataElement.DataType, StringComparison.Ordinal)
         )
         {
-            layoutSet = null;
+            taskUiConfiguration = null;
         }
 
         string? layoutSettingsFileContent =
-            layoutSet == null
+            taskUiConfiguration == null
                 ? _resources.GetLayoutSettingsString()
-                : _resources.GetLayoutSettingsStringForSet(layoutSet.Id);
+                : _resources.GetLayoutSettingsStringForSet(taskUiConfiguration.FolderId);
 
         LayoutSettings? layoutSettings = null;
         if (!string.IsNullOrEmpty(layoutSettingsFileContent))
@@ -159,6 +159,17 @@ public class PdfController : ControllerBase
             instanceOwnerPartyId,
             new Guid(dataElement.Id)
         );
+
+        LayoutSet? layoutSet = null;
+        if (taskUiConfiguration?.DefaultDataType is not null)
+        {
+            layoutSet = new LayoutSet
+            {
+                Id = taskUiConfiguration.FolderId,
+                DataType = taskUiConfiguration.DefaultDataType,
+                Tasks = [taskUiConfiguration.TaskId],
+            };
+        }
 
         layoutSettings = await _pdfFormatter.FormatPdf(layoutSettings, data, instance, layoutSet);
 

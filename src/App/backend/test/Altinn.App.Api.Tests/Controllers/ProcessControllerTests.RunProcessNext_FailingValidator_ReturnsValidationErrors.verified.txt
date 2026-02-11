@@ -11,72 +11,32 @@
       HasParent: true
     },
     {
-      Name: ApplicationMetadata.Service.GetLayoutSet,
+      Name: ApplicationMetadata.Service.GetLayoutSettingsString,
       IdFormat: W3C,
       HasParent: true
     },
     {
-      Name: ApplicationMetadata.Service.GetLayoutSet,
+      Name: ApplicationMetadata.Service.GetLayoutSettingsString,
       IdFormat: W3C,
       HasParent: true
     },
     {
-      Name: ApplicationMetadata.Service.GetLayoutSet,
+      Name: ApplicationMetadata.Service.GetLayoutSettingsString,
       IdFormat: W3C,
       HasParent: true
     },
     {
-      Name: ApplicationMetadata.Service.GetLayoutSet,
+      Name: ApplicationMetadata.Service.GetUiConfiguration,
       IdFormat: W3C,
       HasParent: true
     },
     {
-      Name: ApplicationMetadata.Service.GetLayoutSet,
+      Name: ApplicationMetadata.Service.GetUiConfiguration,
       IdFormat: W3C,
       HasParent: true
     },
     {
-      Name: ApplicationMetadata.Service.GetLayoutSets,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ApplicationMetadata.Service.GetLayoutSets,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ApplicationMetadata.Service.GetLayoutSets,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ApplicationMetadata.Service.GetLayoutSets,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ApplicationMetadata.Service.GetLayoutSets,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ApplicationMetadata.Service.GetLayoutSetsForTask,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ApplicationMetadata.Service.GetLayoutSetsForTask,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ApplicationMetadata.Service.GetLayoutSettingsForSet,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ApplicationMetadata.Service.GetLayoutSettingsForSet,
+      Name: ApplicationMetadata.Service.GetUiConfiguration,
       IdFormat: W3C,
       HasParent: true
     },

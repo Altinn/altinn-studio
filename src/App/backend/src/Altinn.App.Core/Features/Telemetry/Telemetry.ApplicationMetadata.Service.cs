@@ -18,8 +18,8 @@ partial class Telemetry
 
     internal Activity? StartGetLayoutsForSetActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayoutsForSet");
 
-    internal Activity? StartGetLayoutSetsForTaskActivity() =>
-        ActivitySource.StartActivity($"{Prefix}.GetLayoutSetsForTask");
+    internal Activity? StartGetTaskUiConfigurationActivity() =>
+        ActivitySource.StartActivity($"{Prefix}.GetTaskUiConfiguration");
 
     internal Activity? StartGetLayoutSettingsActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayoutSettings");
 

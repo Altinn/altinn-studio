@@ -143,15 +143,7 @@ public sealed class MockedServiceCollection
                     var layoutForTask =
                         layouts.Find(lsc => lsc.DefaultDataType.TaskId == taskid)
                         ?? throw new Exception($"Layout for task {taskid} not found.");
-                    return new LayoutModel(
-                        layouts,
-                        new LayoutSet()
-                        {
-                            DataType = layoutForTask.DefaultDataType.Id,
-                            Id = layoutForTask.Id,
-                            Tasks = [taskid],
-                        }
-                    );
+                    return new LayoutModel(layouts, layoutForTask.Id);
                 }
             );
     }

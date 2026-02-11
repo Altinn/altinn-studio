@@ -2357,7 +2357,6 @@ namespace Altinn.App.Core.Implementation
         [System.Obsolete("Use GetLayoutModelForTask instead")]
         public Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModel(string? layoutSetId = null) { }
         public Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForTask(string taskId) { }
-        public Altinn.App.Core.Models.LayoutSet? GetLayoutSetForTask(string taskId) { }
         public Altinn.App.Core.Models.LayoutSettings GetLayoutSettings() { }
         public Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId) { }
         public string? GetLayoutSettingsString() { }
@@ -2367,8 +2366,10 @@ namespace Altinn.App.Core.Implementation
         public string GetLayoutsForSet(string layoutSetId) { }
         public string GetModelJsonSchema(string modelId) { }
         public string? GetPrefillJson(string dataModelName = "ServiceModel") { }
+        public Altinn.App.Core.Models.TaskUiConfiguration? GetTaskUiConfiguration(string taskId) { }
         public byte[] GetText(string org, string app, string textResource) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.TextResource?> GetTexts(string org, string app, string language) { }
+        public Altinn.App.Core.Models.UiConfiguration GetUiConfiguration() { }
         public string? GetValidationConfiguration(string dataTypeId) { }
     }
     public class DefaultAppEvents : Altinn.App.Core.Internal.App.IAppEvents
@@ -2617,7 +2618,6 @@ namespace Altinn.App.Core.Interface
         System.Threading.Tasks.Task<string?> GetFooter();
         [System.Obsolete("Use GetLayoutModelForTask instead")]
         Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModel(string? layoutSetId = null);
-        Altinn.App.Core.Models.LayoutSet? GetLayoutSetForTask(string taskId);
         Altinn.App.Core.Models.LayoutSettings GetLayoutSettings();
         Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);
         string? GetLayoutSettingsString();
@@ -2629,6 +2629,7 @@ namespace Altinn.App.Core.Interface
         string GetModelMetaDataJSON(string org, string app);
         string? GetPrefillJson(string dataModelName = "ServiceModel");
         byte[]? GetRuntimeResource(string resource);
+        Altinn.App.Core.Models.TaskUiConfiguration? GetTaskUiConfiguration(string taskId);
         byte[] GetText(string org, string app, string textResource);
         System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.TextResource?> GetTexts(string org, string app, string language);
     }
@@ -2924,7 +2925,6 @@ namespace Altinn.App.Core.Internal.App
         [System.Obsolete("Use GetLayoutModelForTask instead", false)]
         Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModel(string? layoutSetId = null);
         Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForTask(string taskId);
-        Altinn.App.Core.Models.LayoutSet? GetLayoutSetForTask(string taskId);
         Altinn.App.Core.Models.LayoutSettings GetLayoutSettings();
         Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);
         string? GetLayoutSettingsString();
@@ -2934,8 +2934,10 @@ namespace Altinn.App.Core.Internal.App
         string GetLayoutsForSet(string layoutSetId);
         string GetModelJsonSchema(string modelId);
         string? GetPrefillJson(string dataModelName = "ServiceModel");
+        Altinn.App.Core.Models.TaskUiConfiguration? GetTaskUiConfiguration(string taskId);
         byte[] GetText(string org, string app, string textResource);
         System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.TextResource?> GetTexts(string org, string app, string language);
+        Altinn.App.Core.Models.UiConfiguration GetUiConfiguration();
         string? GetValidationConfiguration(string dataTypeId);
     }
     public interface IApplicationClient
@@ -4519,6 +4521,24 @@ namespace Altinn.App.Core.Models
         public override Altinn.App.Core.Models.TaskNavigationEntry? Read(ref System.Text.Json.Utf8JsonReader reader, System.Type typeToConvert, System.Text.Json.JsonSerializerOptions options) { }
         public override void Write(System.Text.Json.Utf8JsonWriter writer, Altinn.App.Core.Models.TaskNavigationEntry value, System.Text.Json.JsonSerializerOptions options) { }
     }
+    public class TaskUiConfiguration
+    {
+        public TaskUiConfiguration() { }
+        public string? DefaultDataType { get; init; }
+        public required string FolderId { get; init; }
+        public required string TaskId { get; init; }
+    }
+    public class UiConfiguration
+    {
+        public UiConfiguration() { }
+        public required System.Collections.Generic.Dictionary<string, Altinn.App.Core.Models.UiFolderSettings> Folders { get; set; }
+        public Altinn.App.Core.Models.GlobalPageSettings? Settings { get; set; }
+    }
+    public class UiFolderSettings : Altinn.App.Core.Models.LayoutSettings
+    {
+        public UiFolderSettings() { }
+        public string? DefaultDataType { get; set; }
+    }
     public class UserContext
     {
         public UserContext() { }
@@ -4811,7 +4831,7 @@ namespace Altinn.App.Core.Models.Layout
     }
     public sealed class LayoutModel
     {
-        public LayoutModel(System.Collections.Generic.List<Altinn.App.Core.Models.Layout.LayoutSetComponent> layouts, Altinn.App.Core.Models.LayoutSet? defaultLayout) { }
+        public LayoutModel(System.Collections.Generic.List<Altinn.App.Core.Models.Layout.LayoutSetComponent> layouts, string? defaultLayoutId) { }
         public System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.Layout.Components.Base.BaseComponent> AllComponents { get; }
         public Altinn.Platform.Storage.Interface.Models.DataType DefaultDataType { get; }
         public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.ComponentContext>> GenerateComponentContexts(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state) { }
