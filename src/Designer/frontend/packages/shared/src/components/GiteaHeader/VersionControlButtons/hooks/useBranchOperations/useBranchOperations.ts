@@ -37,12 +37,12 @@ export function useBranchOperations(org: string, app: string): UseBranchOperatio
   };
 
   const checkoutNewBranch = (branchName: string) => {
-    clearUncommittedChangesError;
+    clearUncommittedChangesError();
     createAndCheckoutBranch(branchName);
   };
 
   const checkoutExistingBranch = (branchName: string) => {
-    clearUncommittedChangesError;
+    clearUncommittedChangesError();
     checkoutMutation.mutate(branchName);
   };
 

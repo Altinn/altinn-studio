@@ -16,8 +16,3 @@ export const isAppSpecificQuery = (query: Query, org: string, app: string) => {
   const key = query.queryKey;
   return key[1] === org && key[2] === app;
 };
-
-export const isFormLayoutQuery = (query: Query): boolean => {
-  const formLayoutQueryKeys: string[] = [QueryKey.FormLayouts, QueryKey.FormLayoutSettings];
-  return formLayoutQueryKeys.includes(query.queryKey[0] as string);
-};
