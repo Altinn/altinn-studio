@@ -331,6 +331,20 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
                     ],
                 }
             );
+        _appResourcesMock
+            .Setup(ar => ar.GetUiConfiguration())
+            .Returns(
+                new UiConfiguration
+                {
+                    Folders = new()
+                    {
+                        {
+                            TaskId,
+                            new UiFolderSettings { DefaultDataType = DefaultDataType }
+                        },
+                    },
+                }
+            );
         _appResourcesMock.Setup(ar => ar.GetValidationConfiguration(DefaultDataType)).Returns(_defaultValidationConfig);
         _appResourcesMock.Setup(ar => ar.GetValidationConfiguration(SubformDataType)).Returns(_subformValidationConfig);
         _httpContextAccessorMock.SetupGet(hca => hca.HttpContext).Returns(new DefaultHttpContext());

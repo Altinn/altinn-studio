@@ -284,6 +284,172 @@ public class AppResourcesSITests
         actual.Should().BeNull();
     }
 
+    [Fact]
+    public void GetUiConfiguration_loads_folder_settings_and_global_settings()
+    {
+        var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-UiConfig-");
+        try
+        {
+            var uiDir = Path.Join(tempDir.FullName, "ui");
+            Directory.CreateDirectory(Path.Join(uiDir, "Task_1"));
+            Directory.CreateDirectory(Path.Join(uiDir, "subform"));
+
+            File.WriteAllText(
+                Path.Join(uiDir, "Task_1", "Settings.json"),
+                """{ "defaultDataType": "main", "pages": { "order": ["page1"] } }"""
+            );
+            File.WriteAllText(Path.Join(uiDir, "subform", "Settings.json"), """{ "pages": { "order": ["sub1"] } }""");
+            File.WriteAllText(Path.Join(uiDir, "Settings.json"), """{ "showProgress": true }""");
+
+            var appSettings = new AppSettings { AppBasePath = tempDir.FullName, UiFolder = "ui" };
+            var appMetadata = new Mock<IAppMetadata>();
+            appMetadata
+                .Setup(m => m.GetApplicationMetadata())
+                .ReturnsAsync(
+                    new ApplicationMetadata("ttd/app")
+                    {
+                        DataTypes =
+                        [
+                            new()
+                            {
+                                Id = "main",
+                                AppLogic = new() { ClassRef = "Model.Main" },
+                            },
+                        ],
+                    }
+                );
+
+            AppResourcesSI appResources = new(
+                Options.Create(appSettings),
+                appMetadata.Object,
+                null,
+                new NullLogger<AppResourcesSI>(),
+                _telemetry.Object
+            );
+
+            var ui = appResources.GetUiConfiguration();
+
+            ui.Settings.Should().NotBeNull();
+            ui.Settings!.ShowProgress.Should().BeTrue();
+            ui.Folders.Keys.Should().BeEquivalentTo(["Task_1", "subform"]);
+            ui.Folders["Task_1"].DefaultDataType.Should().Be("main");
+        }
+        finally
+        {
+            Directory.Delete(tempDir.FullName, true);
+        }
+    }
+
+    [Fact]
+    public void GetLayoutSetForTask_uses_defaultDataType_from_folder_settings()
+    {
+        var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-TaskDefaultDataType-");
+        try
+        {
+            var taskDir = Path.Join(tempDir.FullName, "ui", "Task_1");
+            Directory.CreateDirectory(taskDir);
+            File.WriteAllText(
+                Path.Join(taskDir, "Settings.json"),
+                """{ "defaultDataType": "chosen", "pages": { "order": ["page1"] } }"""
+            );
+
+            var appSettings = new AppSettings { AppBasePath = tempDir.FullName, UiFolder = "ui" };
+            var appMetadata = new Mock<IAppMetadata>();
+            appMetadata
+                .Setup(m => m.GetApplicationMetadata())
+                .ReturnsAsync(
+                    new ApplicationMetadata("ttd/app")
+                    {
+                        DataTypes =
+                        [
+                            new()
+                            {
+                                Id = "other",
+                                TaskId = "Task_1",
+                                AppLogic = new() { ClassRef = "Model.Other" },
+                            },
+                            new()
+                            {
+                                Id = "chosen",
+                                AppLogic = new() { ClassRef = "Model.Chosen" },
+                            },
+                        ],
+                    }
+                );
+
+            AppResourcesSI appResources = new(
+                Options.Create(appSettings),
+                appMetadata.Object,
+                null,
+                new NullLogger<AppResourcesSI>(),
+                _telemetry.Object
+            );
+
+            var layoutSet = appResources.GetLayoutSetForTask("Task_1");
+
+            layoutSet.Should().NotBeNull();
+            layoutSet!.Id.Should().Be("Task_1");
+            layoutSet.DataType.Should().Be("chosen");
+        }
+        finally
+        {
+            Directory.Delete(tempDir.FullName, true);
+        }
+    }
+
+    [Fact]
+    public void GetLayoutSetForTask_falls_back_to_task_bound_datatype_when_defaultDataType_missing()
+    {
+        var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-TaskFallbackDataType-");
+        try
+        {
+            var taskDir = Path.Join(tempDir.FullName, "ui", "Task_1");
+            Directory.CreateDirectory(taskDir);
+            File.WriteAllText(Path.Join(taskDir, "Settings.json"), """{ "pages": { "order": ["page1"] } }""");
+
+            var appSettings = new AppSettings { AppBasePath = tempDir.FullName, UiFolder = "ui" };
+            var appMetadata = new Mock<IAppMetadata>();
+            appMetadata
+                .Setup(m => m.GetApplicationMetadata())
+                .ReturnsAsync(
+                    new ApplicationMetadata("ttd/app")
+                    {
+                        DataTypes =
+                        [
+                            new()
+                            {
+                                Id = "taskData",
+                                TaskId = "Task_1",
+                                AppLogic = new() { ClassRef = "Model.Task" },
+                            },
+                            new()
+                            {
+                                Id = "fallback",
+                                AppLogic = new() { ClassRef = "Model.Fallback" },
+                            },
+                        ],
+                    }
+                );
+
+            AppResourcesSI appResources = new(
+                Options.Create(appSettings),
+                appMetadata.Object,
+                null,
+                new NullLogger<AppResourcesSI>(),
+                _telemetry.Object
+            );
+
+            var layoutSet = appResources.GetLayoutSetForTask("Task_1");
+
+            layoutSet.Should().NotBeNull();
+            layoutSet!.DataType.Should().Be("taskData");
+        }
+        finally
+        {
+            Directory.Delete(tempDir.FullName, true);
+        }
+    }
+
     private AppSettings GetAppSettings(
         string subfolder,
         string appMetadataFilename = "",

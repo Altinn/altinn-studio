@@ -85,7 +85,7 @@ public sealed class DataAccessorFixture
             .Returns(
                 new LayoutSets()
                 {
-                    // RequiredLayoutValidator checks to see if TaskId has a layout to see if it should run
+                    // Legacy layout-set setup kept for code paths that still consume it.
                     Sets = new()
                     {
                         new()
@@ -93,6 +93,20 @@ public sealed class DataAccessorFixture
                             Id = "default",
                             DataType = "fake",
                             Tasks = new() { TaskId },
+                        },
+                    },
+                }
+            );
+        AppResourcesMock
+            .Setup(ar => ar.GetUiConfiguration())
+            .Returns(
+                new UiConfiguration
+                {
+                    Folders = new()
+                    {
+                        {
+                            TaskId,
+                            new UiFolderSettings { DefaultDataType = "fake" }
                         },
                     },
                 }
