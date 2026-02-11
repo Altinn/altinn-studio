@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ContactPointsTable, type ContactPointsTableProps } from './ContactPointsTable';
+import type { ContactPoint } from 'app-shared/types/AppConfig';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'dashboard/testing/mocks';
 
@@ -83,10 +84,24 @@ describe('ContactPointsTable', () => {
 });
 
 const renderContactPointsTable = (props?: Partial<ContactPointsTableProps>) => {
-  const defaultProps: ContactPointsTableProps = {
-    contactPointList: mockContactPoints,
-    onContactPointsChanged: jest.fn(),
-    id: 'contact-points-table',
+  const Wrapper = () => {
+    const [contactPoints, setContactPoints] = useState<ContactPoint[]>(
+      props?.contactPointList ?? mockContactPoints,
+    );
+
+    const handleContactPointsChanged = (updated: ContactPoint[]) => {
+      setContactPoints(updated);
+      props?.onContactPointsChanged?.(updated);
+    };
+
+    return (
+      <ContactPointsTable
+        contactPointList={contactPoints}
+        onContactPointsChanged={handleContactPointsChanged}
+        id='contact-points-table'
+      />
+    );
   };
-  return renderWithProviders(<ContactPointsTable {...defaultProps} {...props} />);
+
+  return renderWithProviders(<Wrapper />);
 };

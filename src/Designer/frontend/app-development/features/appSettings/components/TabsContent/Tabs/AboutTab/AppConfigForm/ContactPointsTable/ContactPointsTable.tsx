@@ -23,7 +23,7 @@ const emptyContactPoint: ContactPoint = {
 };
 
 export type ContactPointsTableProps = {
-  contactPointList: ContactPoint[];
+  contactPointList?: ContactPoint[];
   onContactPointsChanged: (contactPoints: ContactPoint[]) => void;
   id: string;
 };
@@ -36,7 +36,8 @@ export const ContactPointsTable = ({
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const { t } = useTranslation();
 
-  const [listItems, setListItems] = useState<ContactPoint[]>(contactPointList ?? []);
+  const items = contactPointList ?? [];
+
   const [draftContactPoint, setDraftContactPoint] = useState<ContactPoint>(emptyContactPoint);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
@@ -47,7 +48,7 @@ export const ContactPointsTable = ({
   };
 
   const openEditDialog = (index: number) => {
-    setDraftContactPoint(listItems[index]);
+    setDraftContactPoint(items[index]);
     setEditingIndex(index);
     dialogRef.current?.showModal();
   };
@@ -71,16 +72,14 @@ export const ContactPointsTable = ({
   const handleSave = (): void => {
     const updatedList =
       editingIndex === null
-        ? [...listItems, draftContactPoint]
-        : listItems.map((item, index) => (index === editingIndex ? draftContactPoint : item));
-    setListItems(updatedList);
+        ? [...items, draftContactPoint]
+        : items.map((item, index) => (index === editingIndex ? draftContactPoint : item));
     onContactPointsChanged(updatedList);
     closeDialog();
   };
 
   const handleRemove = (indexToRemove: number): void => {
-    const updatedList = listItems.filter((_, index) => index !== indexToRemove);
-    setListItems(updatedList);
+    const updatedList = items.filter((_, index) => index !== indexToRemove);
     onContactPointsChanged(updatedList);
   };
 
@@ -99,7 +98,7 @@ export const ContactPointsTable = ({
         <StudioTable border={true}>
           <ContactPointTableHeader />
           <StudioTable.Body>
-            {listItems.map((contactPoint, index) => (
+            {items.map((contactPoint, index) => (
               <ContactPointTableRow
                 key={`${id}-${index}`}
                 contactPoint={contactPoint}
