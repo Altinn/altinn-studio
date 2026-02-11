@@ -24,8 +24,13 @@ export function BackendValidation() {
 
   // Initial validation
   useEffect(() => {
-    const initialFieldIssues = Object.values(bootstrapDataModels).flatMap(
-      (dataModel) => dataModel.initialValidationIssues ?? [],
+    // Ensure each issue has dataElementId set from its data model.
+    // This is critical for incremental updates to correctly match and replace issues.
+    const initialFieldIssues = Object.values(bootstrapDataModels).flatMap((dataModel) =>
+      (dataModel.initialValidationIssues ?? []).map((issue) => ({
+        ...issue,
+        dataElementId: issue.dataElementId ?? dataModel.dataElementId ?? undefined,
+      })),
     );
     const initialValidations = [...taskLevelBootstrapIssues, ...initialFieldIssues];
 
