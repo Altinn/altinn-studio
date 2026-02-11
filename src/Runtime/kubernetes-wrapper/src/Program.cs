@@ -1,7 +1,7 @@
 using System.Reflection;
 using Altinn.Studio.KubernetesWrapper.Services.Implementation;
 using Altinn.Studio.KubernetesWrapper.Services.Interfaces;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,7 +12,7 @@ var app = builder.Build();
 
 ConfigureApp(app);
 
-app.Run();
+await app.RunAsync();
 
 static void ConfigureApp(WebApplication app)
 {
@@ -34,7 +34,6 @@ static void ConfigureApp(WebApplication app)
         c.RoutePrefix = "kuberneteswrapper/swagger";
     });
 
-    // app.UseRouting();
     app.UseCors();
     app.MapControllers();
 }
@@ -62,14 +61,16 @@ static void RegisterServices(IServiceCollection services)
 
 static void IncludeXmlComments(SwaggerGenOptions swaggerGenOptions)
 {
-    try
+    var assembly = Assembly.GetEntryAssembly();
+    if (assembly is null)
     {
-        string xmlFile = $"{Assembly.GetEntryAssembly().GetName().Name}.xml";
-        string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-        swaggerGenOptions.IncludeXmlComments(xmlPath);
+        return;
     }
-    catch
+
+    string xmlFile = $"{assembly.GetName().Name}.xml";
+    string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
     {
-        // not critical for the application
+        swaggerGenOptions.IncludeXmlComments(xmlPath);
     }
 }

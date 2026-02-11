@@ -4,7 +4,7 @@ setup-kind:
 
 .PHONY: build-docker-image
 build-docker-image:
-	docker build src -t altinn-kuberneteswrapper:local
+	docker build -f src/Dockerfile . -t altinn-kuberneteswrapper:local
 
 .PHONY: load-image
 load-image: build-docker-image
@@ -29,7 +29,11 @@ run-test:
 	./integrationtests/curl-test.sh
 
 .PHONY: test
-test: build run-test clean
+test:
+	dotnet test
+
+.PHONY: test-e2e
+test-e2e: build run-test clean
 
 .PHONY: clean
 clean:
