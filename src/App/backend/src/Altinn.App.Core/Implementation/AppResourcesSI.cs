@@ -250,40 +250,6 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public string? GetLayoutSetsString()
-    {
-        using var activity = _telemetry?.StartGetLayoutSetsActivity();
-        var layoutSets = GetLayoutSets();
-        return layoutSets is null ? null : System.Text.Json.JsonSerializer.Serialize(layoutSets);
-    }
-
-    /// <inheritdoc />
-    public LayoutSets? GetLayoutSets()
-    {
-        using var activity = _telemetry?.StartGetLayoutSetActivity();
-        var ui = GetUiConfiguration();
-        var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
-        if (ui.Folders.Count == 0)
-        {
-            return null;
-        }
-
-        return new LayoutSets
-        {
-            Sets =
-            [
-                .. ui.Folders.Select(folder => new LayoutSet
-                {
-                    Id = folder.Key,
-                    DataType = ResolveDataTypeForFolder(folder.Key, folder.Value, dataTypes).Id,
-                    Tasks = [folder.Key],
-                }),
-            ],
-            UiSettings = ui.Settings,
-        };
-    }
-
-    /// <inheritdoc />
     public LayoutSet? GetLayoutSetForTask(string taskId)
     {
         using var activity = _telemetry?.StartGetLayoutSetsForTaskActivity();

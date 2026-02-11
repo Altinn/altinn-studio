@@ -316,22 +316,6 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
             .Setup(ar => ar.GetLayoutModelForTask(TaskId))
             .Returns(new LayoutModel([_mainLayoutComponent, _subLayoutComponent], null));
         _appResourcesMock
-            .Setup(ar => ar.GetLayoutSets())
-            .Returns(
-                new LayoutSets()
-                {
-                    Sets =
-                    [
-                        new LayoutSet()
-                        {
-                            Id = "layoutId",
-                            Tasks = [TaskId],
-                            DataType = DefaultDataType,
-                        },
-                    ],
-                }
-            );
-        _appResourcesMock
             .Setup(ar => ar.GetUiConfiguration())
             .Returns(
                 new UiConfiguration

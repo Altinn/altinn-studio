@@ -45,12 +45,12 @@ public class ResourceController : ControllerBase
     [HttpGet]
     [Route("{org}/{app}/api/layouts")]
     [Obsolete(
-        "This endpoint is no longer available. Use /{org}/{app}/api/layoutsets to get available layout sets and /{org}/{app}/api/layouts/{id} to get layouts for a specific layout set."
+        "This endpoint is no longer available. Use /{org}/{app}/api/layouts/{id} to get layouts for a specific UI folder."
     )]
     public ActionResult GetLayouts(string org, string app)
     {
         return NotFound(
-            "This endpoint is no longer available. Use /{org}/{app}/api/layoutsets to get available layout sets and /{org}/{app}/api/layouts/{id} to get layouts for a specific layout set."
+            "This endpoint is no longer available. Use /{org}/{app}/api/layouts/{id} to get layouts for a specific UI folder."
         );
     }
 
@@ -99,21 +99,6 @@ public class ResourceController : ControllerBase
     {
         string? settings = _appResourceService.GetLayoutSettingsStringForSet(id);
         return Ok(settings);
-    }
-
-    /// <summary>
-    /// Get the layout-sets
-    /// </summary>
-    /// <param name="org">The application owner short name</param>
-    /// <param name="app">The application name</param>
-    /// <returns>The settings in the form of a string.</returns>
-    [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "application/json")]
-    [HttpGet]
-    [Route("{org}/{app}/api/layoutsets")]
-    public ActionResult GetLayoutSets(string org, string app)
-    {
-        string? layoutSets = _appResourceService.GetLayoutSetsString();
-        return Ok(layoutSets);
     }
 
     /// <summary>

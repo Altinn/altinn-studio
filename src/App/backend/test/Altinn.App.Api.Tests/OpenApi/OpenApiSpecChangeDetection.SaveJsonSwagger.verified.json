@@ -5943,46 +5943,6 @@
         }
       }
     },
-    "/{org}/{app}/api/layoutsets": {
-      "get": {
-        "tags": [
-          "Resource"
-        ],
-        "summary": "Get the layout-sets",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The application name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/{org}/{app}/api/v1/footer": {
       "get": {
         "tags": [

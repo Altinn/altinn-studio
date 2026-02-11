@@ -98,17 +98,6 @@ public interface IAppResources
     LayoutSettings GetLayoutSettings();
 
     /// <summary>
-    /// Gets the the layout sets
-    /// </summary>
-    /// <returns>The layout sets</returns>
-    string? GetLayoutSetsString();
-
-    /// <summary>
-    /// Get the layout set definition. Return null if no layout sets exists
-    /// </summary>
-    LayoutSets? GetLayoutSets();
-
-    /// <summary>
     /// Gets the bootstrapped ui configuration.
     /// </summary>
     UiConfiguration GetUiConfiguration();

@@ -80,11 +80,6 @@ public class AppSettings
     public string FormLayoutSettingsFileName { get; set; } = "Settings.json";
 
     /// <summary>
-    /// Gets or sets the name of the layoutsets file name
-    /// </summary>
-    public string LayoutSetsFileName { get; set; } = "layout-sets.json";
-
-    /// <summary>
     /// Gets or sets the name of the layout setting file name
     /// </summary>
     public string FooterFileName { get; set; } = "footer.json";

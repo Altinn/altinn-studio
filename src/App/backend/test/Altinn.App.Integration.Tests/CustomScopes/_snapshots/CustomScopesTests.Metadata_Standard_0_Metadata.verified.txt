@@ -221,15 +221,6 @@
         }
       },
       {
-        endpoint: GET {org}/{app}/api/layoutsets,
-        metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
-        }
-      },
-      {
         endpoint: GET {org}/{app}/api/layoutsettings,
         metadata: {
           errorMessageTextResourceKeyUser: null,

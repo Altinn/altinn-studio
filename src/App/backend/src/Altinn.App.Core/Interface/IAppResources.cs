@@ -123,21 +123,10 @@ public interface IAppResources
     LayoutSettings GetLayoutSettings();
 
     /// <summary>
-    /// Gets the the layout sets
-    /// </summary>
-    /// <returns>The layout sets</returns>
-    string GetLayoutSets();
-
-    /// <summary>
     /// Gets the footer layout
     /// </summary>
     /// <returns>The footer layout</returns>
     Task<string?> GetFooter();
-
-    /// <summary>
-    /// Get the layout set definition. Return null if no layoutsets exists
-    /// </summary>
-    LayoutSets? GetLayoutSet();
 
     /// <summary>
     /// Get the layout set definition for a given task. Return null if no layoutsets exists

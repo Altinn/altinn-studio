@@ -81,23 +81,6 @@ public sealed class DataAccessorFixture
         ServiceCollection.AddSingleton(new AppIdentifier(Org, App));
         ServiceCollection.AddFakeLoggingWithXunit(outputHelper);
         AppResourcesMock
-            .Setup(ar => ar.GetLayoutSets())
-            .Returns(
-                new LayoutSets()
-                {
-                    // Legacy layout-set setup kept for code paths that still consume it.
-                    Sets = new()
-                    {
-                        new()
-                        {
-                            Id = "default",
-                            DataType = "fake",
-                            Tasks = new() { TaskId },
-                        },
-                    },
-                }
-            );
-        AppResourcesMock
             .Setup(ar => ar.GetUiConfiguration())
             .Returns(
                 new UiConfiguration

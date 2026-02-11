@@ -38,3 +38,28 @@ Finalize removal of obsolete API behavior and reduce migration risk during rollo
 
 - Search confirms no production code depends on legacy endpoint.
 - Breaking-change notes published with actionable upgrade guidance.
+
+## Breaking-Change Notes (Rollout)
+
+- Removed endpoint: `GET /{org}/{app}/api/layoutsets`.
+- `window.altinnAppGlobalData.layoutSets` is no longer part of the runtime contract. Use `window.altinnAppGlobalData.ui`.
+- Runtime no longer reads `App/ui/layout-sets.json`.
+- Upgrade path for existing apps is the v8->v10 CLI migration job introduced in Step 4. It renames/duplicates folders by task, moves `uiSettings` to `App/ui/Settings.json`, writes `defaultDataType` to per-folder `Settings.json`, and deletes `layout-sets.json`.
+
+## Migration Requirements For App Teams
+
+- Upgrade apps with the v8->v10 upgrade command before deploying on this runtime.
+- Verify all task UI folders exist under `App/ui/{taskId}`.
+- Verify `defaultDataType` in each task folder `Settings.json` where datatype inference is required.
+- Remove any direct client/test/tooling usage of `GET /api/layoutsets`; use bootstrap `ui` metadata and task-id based folder lookup.
+
+## Emergency Rollback Strategy
+
+- Runtime rollback:
+  - Revert/deploy previous runtime patch that still exposed `GET /api/layoutsets`.
+- App-side rollback:
+  - Keep a backup branch/tag before running CLI migration.
+  - If emergency rollback is needed, restore pre-migration `App/ui` files (including `layout-sets.json`) from that tag.
+- Forward recovery after rollback:
+  - Re-run the v8->v10 migration on a fresh branch.
+  - Validate endpoint consumers are removed before re-deploying upgraded runtime.
