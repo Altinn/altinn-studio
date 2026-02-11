@@ -9,6 +9,13 @@ Switch frontend behavior from `layoutSets` to bootstrapped `ui` and folder-based
 - `src/App/frontend`
 - Global data typing and consumers of layout/task/datatype resolution
 
+## Out of Scope
+
+- Backend bootstrap contract redesign and runtime lookup logic (covered by Step 2)
+- CLI upgrade/migration behavior for existing app repositories (covered by Step 4)
+- Endpoint removal and release communication tasks (covered by Step 5)
+- Full end-to-end validation matrix ownership across backend/frontend/CLI (covered by Step 6)
+
 ## Tasks
 
 1. Update `AltinnAppGlobalData` types to replace `layoutSets` with `ui`.

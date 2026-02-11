@@ -9,6 +9,13 @@ Execute end-to-end verification that runtime and migration behavior match expect
 - Backend, frontend, and CLI regression coverage
 - Manual validation of high-risk paths
 
+## Out of Scope
+
+- Defining or renegotiating migration contract/naming decisions (covered by Step 1)
+- Large new feature implementations in backend/frontend/CLI (covered by Steps 2-5)
+- Expanding migration scope beyond planned scenarios unless explicitly approved
+- Release communication authoring except reporting validation outcomes
+
 ## Tasks
 
 1. Backend test matrix:

@@ -10,6 +10,13 @@ Remove runtime dependency on `layout-sets.json` and provide the new UI bootstrap
 - Bootstrap generation and runtime resolution paths
 - Controllers and validators currently depending on layout set mapping
 
+## Out of Scope
+
+- Frontend migration and global data consumer refactors (covered by Step 3)
+- CLI upgrade transforms of app files on disk (covered by Step 4)
+- Removal of legacy endpoint and rollout communication (covered by Step 5)
+- Cross-project full validation report and final sign-off (covered by Step 6)
+
 ## Tasks
 
 1. Introduce backend model(s) for bootstrapped UI config:

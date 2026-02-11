@@ -11,6 +11,14 @@ Finalize all cross-cutting contracts and naming so backend, frontend, and CLI ca
 - Root-level global UI settings source
 - Final naming for the new bootstrap payload contract
 
+## Out of Scope
+
+- Backend runtime code changes (covered by Step 2)
+- Frontend runtime code changes (covered by Step 3)
+- CLI upgrade implementation and file transforms (covered by Step 4)
+- Endpoint removal and rollout communication (covered by Step 5)
+- Full regression execution and validation reporting (covered by Step 6)
+
 ## Tasks
 
 1. Define bootstrap payload shape in a shared contract note:

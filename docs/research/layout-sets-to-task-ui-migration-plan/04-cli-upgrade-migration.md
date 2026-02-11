@@ -8,6 +8,13 @@ Ensure existing apps are transformed to the new folder/settings model during upg
 
 - `src/cli/src/altinn-studio-cli/Upgrade/v8Tov10`
 
+## Out of Scope
+
+- Backend runtime behavior changes in `src/App/backend` (covered by Step 2)
+- Frontend runtime behavior changes in `src/App/frontend` (covered by Step 3)
+- Final legacy endpoint removal and rollout communication (covered by Step 5)
+- Project-wide regression sign-off beyond CLI migration coverage (covered by Step 6)
+
 ## Tasks
 
 1. Add a new migration job after current jobs that still depend on `layout-sets.json` (notably job 4 and job 5).
@@ -32,11 +39,3 @@ Ensure existing apps are transformed to the new folder/settings model during upg
 
 - Folder rename/copy collisions with pre-existing task-id folders.
 - Partial migration on failure if operations are not atomic enough.
-
-## Acceptance Criteria
-
-- Upgrade tests cover single-task, multi-task, no-task, and missing-settings cases.
-- Upgrade tests cover collision behavior:
-  - same-path rename no-op succeeds
-  - different source->existing destination fails hard
-- Resulting app structure runs with new backend/frontend runtime without manual fixes.

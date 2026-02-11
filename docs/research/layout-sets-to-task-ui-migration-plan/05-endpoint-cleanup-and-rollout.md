@@ -9,6 +9,13 @@ Finalize removal of obsolete API behavior and reduce migration risk during rollo
 - Legacy API surface and internal dead code references
 - Release notes and migration communication
 
+## Out of Scope
+
+- Introducing new backend/frontend migration behavior beyond cleanup
+- New CLI transformation logic or algorithm changes (covered by Step 4)
+- Broad feature refactors outside direct legacy endpoint/type cleanup
+- Full validation execution ownership (covered by Step 6)
+
 ## Tasks
 
 1. Remove `/api/layoutsets` endpoint (no compatibility fallback).
