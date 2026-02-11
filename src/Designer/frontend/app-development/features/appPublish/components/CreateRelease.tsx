@@ -55,7 +55,7 @@ export function CreateRelease() {
     <div className={classes.createReleaseForm}>
       {appMetadataFeatureFlag && appValidationResult.isValid === false && (
         <StudioAlert data-color='warning'>
-          <StudioHeading>{t('app_create_release.warning')}</StudioHeading>
+          <StudioHeading data-size='xs'>{t('app_create_release.warning')}</StudioHeading>
           <StudioDialog.TriggerContext>
             <Trans i18nKey='app_create_release.warning_message'>
               <StudioDialog.Trigger
