@@ -12,6 +12,7 @@ import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
 import { BuildResult } from 'app-shared/types/Build';
 import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
   const allQueries: ServicesContextProps = {
@@ -20,11 +21,13 @@ const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
   };
 
   render(
-    <TestAppRouter>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <CreateRelease />
-      </ServicesContextProvider>
-    </TestAppRouter>,
+    <FeatureFlagsContextProvider value={{ flags: [] }}>
+      <TestAppRouter>
+        <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
+          <CreateRelease />
+        </ServicesContextProvider>
+      </TestAppRouter>
+    </FeatureFlagsContextProvider>,
   );
 };
 
