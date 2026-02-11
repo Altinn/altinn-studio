@@ -7,12 +7,24 @@ interface IInstanceWithProcess extends IInstance {
 }
 
 export class InstanceApi {
-  public static async create(partyId: number, language = 'nb'): Promise<IInstanceWithProcess> {
+  public static async create(instanceOwnerPartyId: number, language = 'nb'): Promise<IInstanceWithProcess> {
     const params = new URLSearchParams({
-      instanceOwnerPartyId: String(partyId),
+      instanceOwnerPartyId: String(instanceOwnerPartyId),
       language,
     });
     const { data: createdInstance } = await axiosInstance.post<IInstanceWithProcess>(`/instances?${params}`);
     return createdInstance;
+  }
+  public static async getInstance({
+    instanceOwnerPartyId,
+    instanceGuid,
+  }: {
+    instanceOwnerPartyId: string;
+    instanceGuid: string;
+  }): Promise<IInstanceWithProcess> {
+    const { data: instance } = await axiosInstance.get<IInstanceWithProcess>(
+      `/instances/${instanceOwnerPartyId}/${instanceGuid}`,
+    );
+    return instance;
   }
 }
