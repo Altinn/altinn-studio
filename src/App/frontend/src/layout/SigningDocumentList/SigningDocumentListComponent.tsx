@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 import { Link } from '@digdir/designsystemet-react';
 import { DownloadIcon } from '@navikt/aksel-icons';

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';

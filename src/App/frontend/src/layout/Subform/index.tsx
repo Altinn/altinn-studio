@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router';
 import type { JSX, ReactNode } from 'react';
 
 import { type ComponentValidation } from 'src/features/validation';

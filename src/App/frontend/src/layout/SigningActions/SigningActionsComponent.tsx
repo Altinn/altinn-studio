@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useNavigate } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { afterAll, beforeAll, expect, jest } from '@jest/globals';
@@ -114,7 +114,7 @@ async function statelessRender(props: RenderProps) {
       ...props,
       initialRenderRef,
       router: ({ children }: PropsWithChildren) => (
-        <MemoryRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+        <MemoryRouter>
           <Routes>
             <Route
               path='/'

@@ -1,5 +1,5 @@
 import React from 'react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router';
 
 import { expect, jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
@@ -34,7 +34,6 @@ const render = async () => {
       <MemoryRouter
         basename='/ttd/test'
         initialEntries={['/ttd/test']}
-        future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
       >
         <Routes>
           <Route
