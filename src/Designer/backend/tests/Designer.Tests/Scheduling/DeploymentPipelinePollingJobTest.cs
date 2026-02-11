@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
@@ -83,6 +84,35 @@ public class DeploymentPipelinePollingJobTest
         Assert.False(capturedAppMetadata.CopyInstanceSettings.Enabled);
     }
 
+    [Fact]
+    public async Task Execute_WithTraceParentWithoutTraceState_DoesNotThrow()
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        var jobExecutionContext = JobExecutionContextFactory(
+            PipelineType.Deploy,
+            traceParent: CreateValidTraceParent()
+        );
+
+        fixture
+            .MockAzureDevOpsBuildClient.Setup(x => x.Get(It.IsAny<string>()))
+            .ReturnsAsync(
+                new BuildEntity { Status = BuildStatus.Completed, Result = BuildResult.Succeeded }
+            );
+
+        fixture
+            .MockDeploymentRepository.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(
+                new DeploymentEntity { Build = new BuildEntity { Status = BuildStatus.None } }
+            );
+
+        // Act
+        await fixture.Service.Execute(jobExecutionContext);
+
+        // Assert
+        fixture.MockAzureDevOpsBuildClient.Verify(x => x.Get("12345"), Times.Once);
+    }
+
     private sealed record Fixture(
         DeploymentPipelinePollingJob DeploymentPipelinePollingJob,
         Mock<IAltinnStorageAppMetadataClient> MockStorageAppMetadataClient,
@@ -120,25 +150,38 @@ public class DeploymentPipelinePollingJobTest
         }
     }
 
-    private static IJobExecutionContext JobExecutionContextFactory(PipelineType pipelineType)
+    private static IJobExecutionContext JobExecutionContextFactory(
+        PipelineType pipelineType,
+        string? traceParent = null,
+        string? traceState = null
+    )
     {
         var mockJobExecutionContext = new Mock<IJobExecutionContext>();
         var mockJobDetail = new Mock<IJobDetail>();
+        var jobDataMap = new JobDataMap
+        {
+            [SchedulerConstants.Org] = "testorg",
+            [SchedulerConstants.App] = "testapp",
+            [SchedulerConstants.Developer] = "testdeveloper",
+            [SchedulerConstants.BuildId] = "12345",
+            [SchedulerConstants.PipelineType] = pipelineType.ToString(),
+            [SchedulerConstants.Environment] = "tt02"
+        };
+
+        if (!string.IsNullOrWhiteSpace(traceParent))
+        {
+            jobDataMap[SchedulerConstants.TraceParent] = traceParent;
+        }
+
+        if (!string.IsNullOrWhiteSpace(traceState))
+        {
+            jobDataMap[SchedulerConstants.TraceState] = traceState;
+        }
 
         mockJobDetail.Setup(x => x.Key).Returns(JobKey.Create("testjob"));
         mockJobDetail
             .Setup(x => x.JobDataMap)
-            .Returns(
-                new JobDataMap
-                {
-                    [SchedulerConstants.Org] = "testorg",
-                    [SchedulerConstants.App] = "testapp",
-                    [SchedulerConstants.Developer] = "testdeveloper",
-                    [SchedulerConstants.BuildId] = "12345",
-                    [SchedulerConstants.PipelineType] = pipelineType.ToString(),
-                    [SchedulerConstants.Environment] = "tt02"
-                }
-            );
+            .Returns(jobDataMap);
 
         mockJobExecutionContext.Setup(x => x.JobDetail).Returns(mockJobDetail.Object);
         mockJobExecutionContext.Setup(x => x.Scheduler).Returns(Mock.Of<IScheduler>());
@@ -158,5 +201,19 @@ public class DeploymentPipelinePollingJobTest
         mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
 
         return mockHubContext;
+    }
+
+    private static string CreateValidTraceParent()
+    {
+        using var activity = new Activity(nameof(DeploymentPipelinePollingJobTest));
+        activity.SetIdFormat(ActivityIdFormat.W3C);
+        activity.Start();
+        var traceParent = activity.Id;
+        if (string.IsNullOrWhiteSpace(traceParent))
+        {
+            throw new InvalidOperationException("Expected a non-empty W3C activity id.");
+        }
+
+        return traceParent;
     }
 }

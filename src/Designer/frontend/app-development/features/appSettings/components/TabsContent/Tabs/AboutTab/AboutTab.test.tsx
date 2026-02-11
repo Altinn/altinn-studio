@@ -7,18 +7,13 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { mockAppConfig } from 'app-development/features/appSettings/mocks/appConfigMock';
-import {
-  mockRepository1,
-  mockRepository2,
-} from 'app-development/features/appSettings/mocks/repositoryMock';
 import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
 import userEvent from '@testing-library/user-event';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { UseMutationResult } from '@tanstack/react-query';
-import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
-import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+
 
 jest.mock('app-development/hooks/mutations/useAppConfigMutation');
 const updateAppConfigMutation = jest.fn();
@@ -43,32 +38,23 @@ describe('AboutTab', () => {
     expect(getAppConfig).toHaveBeenCalledTimes(1);
   });
 
-  it('fetches repoMetadata on mount', () => {
-    const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
-    renderAboutTab({ getRepoMetadata });
-    expect(getRepoMetadata).toHaveBeenCalledTimes(1);
-  });
-
   it('fetches applicationMetadata on mount', () => {
     const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
     renderAboutTab({ getAppMetadata });
     expect(getAppMetadata).toHaveBeenCalledTimes(1);
   });
 
-  it.each(['getAppConfig', 'getRepoMetadata', 'getAppMetadata'])(
-    'shows an error message if an error occured on the %s query',
-    async (queryName) => {
-      const errorMessage = 'error-message-test';
+  it('shows an error message if an error occurred on the getAppMetadata query', async () => {
+    const errorMessage = 'error-message-test';
 
-      await resolveAndWaitForSpinnerToDisappear({
-        [queryName]: () => Promise.reject({ message: errorMessage }),
-      });
+    await resolveAndWaitForSpinnerToDisappear({
+      getAppMetadata: () => Promise.reject({ message: errorMessage }),
+    });
 
-      expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
-      expect(screen.getByText(errorMessage)).toBeInTheDocument();
-    },
-  );
+    expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+  });
 
   it('displays the "repo" input as readonly', async () => {
     await resolveAndWaitForSpinnerToDisappear();
@@ -117,51 +103,6 @@ describe('AboutTab', () => {
       serviceId: `${mockAppConfig.serviceId}${mockNewText}`,
     });
   });
-
-  it('displays owners full name when it is set', async () => {
-    await resolveAndWaitForSpinnerToDisappear();
-
-    expect(screen.getByText(mockRepository1.owner.full_name)).toBeInTheDocument();
-    expect(screen.queryByText(mockRepository1.owner.login)).not.toBeInTheDocument();
-  });
-
-  it('displays owners login name when full name is not set', async () => {
-    const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve(mockRepository2));
-    await resolveAndWaitForSpinnerToDisappear({ getRepoMetadata });
-
-    expect(screen.queryByText(mockRepository1.owner.full_name)).not.toBeInTheDocument();
-    expect(screen.getByText(mockRepository1.owner.login)).toBeInTheDocument();
-  });
-
-  it('displays the created date mapped correctly', async () => {
-    await resolveAndWaitForSpinnerToDisappear();
-
-    const formatedDateString: string = formatDateToDateAndTimeString(mockRepository1.created_at);
-    expect(
-      screen.getByText(
-        textMock('app_settings.about_tab_created_date', { date: formatedDateString }),
-      ),
-    ).toBeInTheDocument();
-  });
-
-  it('displays the user that created the app correctly', async () => {
-    const createdBy: string = 'Mock Mockesen';
-    const updatedMockMetadata: ApplicationMetadata = { ...mockAppMetadata, createdBy };
-    const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve(updatedMockMetadata));
-    await resolveAndWaitForSpinnerToDisappear({ getAppMetadata });
-    expect(screen.getByText(updatedMockMetadata.createdBy)).toBeInTheDocument();
-  });
-
-  it('renders AppConfigForm when AppMetadata feature flag is enabled', async () => {
-    const originalUrl = window.location.search;
-    window.history.pushState({}, 'test', `/?featureFlags=${FeatureFlag.AppMetadata}`);
-    await resolveAndWaitForSpinnerToDisappear();
-    const matches = screen.getAllByText(
-      textMock('app_settings.about_tab_contact_point_dialog_add_title'),
-    );
-    expect(matches.length).toBeGreaterThan(0);
-    window.history.pushState({}, '', `/${originalUrl}`);
-  });
 });
 
 const renderAboutTab = (queries: Partial<ServicesContextProps> = {}) => {
@@ -175,12 +116,10 @@ const renderAboutTab = (queries: Partial<ServicesContextProps> = {}) => {
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
   const getAppConfig = jest.fn().mockImplementation(() => Promise.resolve(mockAppConfig));
-  const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve(mockRepository1));
   const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve(mockAppMetadata));
 
   renderAboutTab({
     getAppConfig,
-    getRepoMetadata,
     getAppMetadata,
     ...queries,
   });
