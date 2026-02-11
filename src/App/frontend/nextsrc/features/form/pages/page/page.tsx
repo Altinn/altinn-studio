@@ -2,7 +2,7 @@ import React from 'react';
 import { useLoaderData, useParams } from 'react-router-dom';
 
 import { FormEngine } from 'nextsrc/features/form/FormEngine/FormEngine';
-import { useFormData, useLayout } from 'nextsrc/packages/form-client/form-context';
+import { useFormData, useLayout } from 'nextsrc/libs/form-client/form-context';
 import type { pageLoader } from 'nextsrc/features/form/pages/page/pageLoader';
 
 export const Page = () => {

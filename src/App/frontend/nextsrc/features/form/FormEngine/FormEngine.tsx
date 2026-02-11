@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ReactElement } from 'react';
 
-import { useFormValue } from 'nextsrc/packages/form-client/form-context';
+import { useFormValue } from 'nextsrc/libs/form-client/form-context';
 import type { FormDataNode } from 'nextsrc/core/apiClient/dataApi';
 
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
