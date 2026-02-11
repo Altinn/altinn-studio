@@ -1,7 +1,6 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
   AppVisibilityAndDelegationCard,
@@ -22,7 +21,7 @@ const renderAppVisibilityAndDelegationCard = (
     onChangeDescription: jest.fn(),
   };
 
-  return renderWithProviders()(<AppVisibilityAndDelegationCard {...defaultProps} {...props} />);
+  return render(<AppVisibilityAndDelegationCard {...defaultProps} {...props} />);
 };
 
 describe('AppVisibilityAndDelegationCard', () => {
