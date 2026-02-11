@@ -2,52 +2,27 @@ import React from 'react';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ContactPointTableRow, type ContactPointTableRowProps } from './ContactPointTableRow';
-import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'dashboard/testing/mocks';
 
 const email = 'user@example.com';
 const telephone = '12345678';
 const category = 'Support';
-const contactPage = 'example.com';
+const contactPage = 'whatever the user typed';
 
 describe('ContactPointTableRow', () => {
-  it('renders contact point values and hides link button when contactPage is invalid', () => {
+  it('renders contact point values including contactPage as plain text', () => {
     renderContactPointTableRow({
       contactPoint: {
         email,
         telephone,
         category,
-        contactPage: 'not a valid url',
+        contactPage,
       },
     });
     expect(screen.getByText(email)).toBeInTheDocument();
     expect(screen.getByText(telephone)).toBeInTheDocument();
     expect(screen.getByText(category)).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', {
-        name: textMock('app_settings.about_tab_contact_point_table_link_open'),
-      }),
-    ).not.toBeInTheDocument();
-  });
-
-  it('shows link button when contactPage is valid and calls onLinkClick with contactPage', async () => {
-    const user = userEvent.setup();
-    const onLinkClick = jest.fn();
-    renderContactPointTableRow({
-      contactPoint: {
-        email: '',
-        telephone: '',
-        category: '',
-        contactPage,
-      },
-      onLinkClick,
-    });
-    const linkButton = screen.getByRole('button', {
-      name: textMock('app_settings.about_tab_contact_point_table_link_open'),
-    });
-    await user.click(linkButton);
-    expect(onLinkClick).toHaveBeenCalledTimes(1);
-    expect(onLinkClick).toHaveBeenCalledWith(`https://${contactPage}`);
+    expect(screen.getByText(contactPage)).toBeInTheDocument();
   });
 
   it('calls onEdit and onRemove with the row index when their buttons are clicked', async () => {
@@ -61,9 +36,9 @@ describe('ContactPointTableRow', () => {
       onEdit,
       onRemove,
       contactPoint: {
-        email: email,
-        telephone: telephone,
-        category: category,
+        email,
+        telephone,
+        category,
         contactPage: '',
       },
     });
@@ -90,7 +65,6 @@ const defaultProps: ContactPointTableRowProps = {
   index: 0,
   onEdit: jest.fn(),
   onRemove: jest.fn(),
-  onLinkClick: jest.fn(),
 };
 
 function renderContactPointTableRow(props: Partial<ContactPointTableRowProps> = {}) {

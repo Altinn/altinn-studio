@@ -11,17 +11,9 @@ import type { ContactPoint, ContactPointField } from 'app-shared/types/AppConfig
 import { PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './ContactPointsTable.module.css';
-import { getValidExternalUrl } from 'app-shared/utils/urlUtils';
 import { ContactPointDialog } from './ContactPointDialog';
 import { ContactPointTableHeader } from './ContactPointTableHeader';
 import { ContactPointTableRow } from './ContactPointTableRow';
-
-//TODO: Refactore ContactPointsTable         ✅
-//TODO: Add tests for ContactPointDialog  ✅
-//TODO: Add tests for ContactPointTableRow   ✅
-//TODO: Add tests for ContactPointTableHeader ✅
-//TODO: Add tests for ContactPointsTable.  ✅
-//TODO: Remove ContactPoints component and related files after ContactPointsTable is in use.  ⌛
 
 const emptyContactPoint: ContactPoint = {
   email: '',
@@ -92,11 +84,6 @@ export const ContactPointsTable = ({
     onContactPointsChanged(updatedList);
   };
 
-  const handleLinkClick = (contactPage: string) => {
-    const href = getValidExternalUrl(contactPage);
-    if (href) window.open(href, '_blank', 'noopener,noreferrer');
-  };
-
   return (
     <>
       <div className={classes.contactField}>
@@ -119,7 +106,6 @@ export const ContactPointsTable = ({
                 index={index}
                 onEdit={openEditDialog}
                 onRemove={handleRemove}
-                onLinkClick={handleLinkClick}
               />
             ))}
           </StudioTable.Body>

@@ -1,17 +1,15 @@
 import React, { type ReactElement } from 'react';
 import { StudioButton, StudioTable, StudioDeleteButton } from '@studio/components';
 import type { ContactPoint } from 'app-shared/types/AppConfig';
-import { LinkIcon, PencilIcon } from '@studio/icons';
+import { PencilIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './ContactPointTableRow.module.css';
-import { getValidExternalUrl } from 'app-shared/utils/urlUtils';
 
 export type ContactPointTableRowProps = {
   contactPoint: ContactPoint;
   index: number;
   onEdit: (index: number) => void;
   onRemove: (index: number) => void;
-  onLinkClick: (contactPage: string) => void;
 };
 
 export const ContactPointTableRow = ({
@@ -19,10 +17,8 @@ export const ContactPointTableRow = ({
   index,
   onEdit,
   onRemove,
-  onLinkClick,
 }: ContactPointTableRowProps): ReactElement => {
   const { t } = useTranslation();
-  const validUrl = getValidExternalUrl(contactPoint.contactPage);
 
   return (
     <StudioTable.Row>
@@ -31,16 +27,7 @@ export const ContactPointTableRow = ({
       </StudioTable.Cell>
       <StudioTable.Cell>{contactPoint.telephone}</StudioTable.Cell>
       <StudioTable.Cell>{contactPoint.category}</StudioTable.Cell>
-      <StudioTable.Cell>
-        {validUrl && (
-          <StudioButton
-            variant='tertiary'
-            icon={<LinkIcon />}
-            aria-label={t('app_settings.about_tab_contact_point_table_link_open')}
-            onClick={() => onLinkClick(validUrl)}
-          />
-        )}
-      </StudioTable.Cell>
+      <StudioTable.Cell>{contactPoint.contactPage}</StudioTable.Cell>
       <StudioTable.Cell>
         <StudioButton
           variant='tertiary'
