@@ -1,5 +1,4 @@
 import type { Query, QueryStatus } from '@tanstack/react-query';
-import { QueryKey } from 'app-shared/types/QueryKey';
 
 /**
  * Merges multiple query statuses into one.
