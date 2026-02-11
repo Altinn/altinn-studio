@@ -92,10 +92,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await Task.WhenAll(new List<Task> { updateAuthPolicyTask, updateTextResources });
 
-            if (envName is not "prod" && publishServiceResource)
-            {
-                await PublishAltinnAppServiceResource(org, app, shortCommitId, envName);
-            }
+            await PublishAltinnAppServiceResource(org, app, shortCommitId, envName);
         }
 
         private async Task PublishAltinnAppServiceResource(
@@ -124,28 +121,32 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Orgcode = org,
             };
 
-            ActionResult publishResponse = await _resourceRegistryService.PublishServiceResource(
-                serviceResource,
-                envName
-            );
-            if (
-                publishResponse is ObjectResult
-                {
-                    Value: ValidationProblemDetails validationProblemDetails
-                }
-            )
+            try
             {
-                string message = string.Join(
-                    ". ",
-                    validationProblemDetails.Errors.Values.SelectMany(v => v)
-                );
-                throw new ResourceRegistryPublishingException(message ?? string.Empty);
+                ActionResult publishResponse =
+                    await _resourceRegistryService.PublishServiceResource(serviceResource, envName);
             }
-
-            if (publishResponse is not StatusCodeResult { StatusCode: 201 or 200 })
-            {
-                throw new ResourceRegistryPublishingException();
-            }
+            catch (System.Exception) { }
+            // TODO: Publishing to Resource Registry is currently optional, but will be non-optional in the future.
+            // This code is commented to not stop the normal publication if resource registry publication fails
+            // if (
+            //     publishResponse is ObjectResult
+            //     {
+            //         Value: ValidationProblemDetails validationProblemDetails
+            //     }
+            // )
+            // {
+            //     string message = string.Join(
+            //         ". ",
+            //         validationProblemDetails.Errors.Values.SelectMany(v => v)
+            //     );
+            //     throw new ResourceRegistryPublishingException(message ?? string.Empty);
+            // }
+            //
+            // if (publishResponse is not StatusCodeResult { StatusCode: 201 or 200 })
+            // {
+            //     throw new ResourceRegistryPublishingException();
+            // }
         }
     }
 }
