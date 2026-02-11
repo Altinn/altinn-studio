@@ -4,11 +4,13 @@ import { DataApi } from 'nextsrc/core/apiClient/dataApi';
 import { InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
 import { LayoutApi } from 'nextsrc/core/apiClient/layoutApi';
 import { GlobalData } from 'nextsrc/core/globalData';
+import { formClient } from 'nextsrc/index';
 
 export const pageLoader = async ({
   params,
 }: LoaderFunctionArgs<{ instanceOwnerPartyId: string; instanceGuid: string; taskId: string; pageId: string }>) => {
   const { instanceOwnerPartyId, instanceGuid, pageId, taskId } = params;
+
   if (!pageId || !taskId || !instanceOwnerPartyId || !instanceGuid) {
     throw new Error('Route params missing');
   }
@@ -20,6 +22,8 @@ export const pageLoader = async ({
   }
 
   const layout = await LayoutApi.getLayout(layoutSet?.id);
+
+  formClient.setLayoutCollection(layout);
 
   const instance = await InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
 
@@ -39,8 +43,7 @@ export const pageLoader = async ({
 
   const dataElement = await DataApi.getDataObject({ instanceOwnerPartyId, instanceGuid, dataObjectGuid });
 
-  console.log('dataElement');
-  console.log(JSON.stringify(dataElement, null, 2));
+  formClient.setFormData(dataElement);
 
   return { instance, layout, dataElement };
 };
