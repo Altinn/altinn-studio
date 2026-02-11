@@ -108,7 +108,7 @@ export function FormBootstrapProvider({
     };
   }, [data]);
 
-  if (isLoading) {
+  if (isLoading || !data || !contextValue) {
     return <Loader reason='form-bootstrap' />;
   }
 
@@ -153,9 +153,11 @@ function useDataElementIds() {
 
 export const FormBootstrap = {
   useLayouts: () => useFormBootstrap().layouts,
+  useLaxLayouts: () => useLaxFormBootstrap()?.layouts,
   useLayoutLookups: () => useFormBootstrap().layoutLookups,
   useLaxLayoutLookups: () => useLaxFormBootstrap()?.layoutLookups,
   useHiddenLayoutsExpressions: () => useFormBootstrap().hiddenLayoutsExpressions,
+  useLaxHiddenLayoutsExpressions: () => useLaxFormBootstrap()?.hiddenLayoutsExpressions,
   useExpandedWidthLayouts: () => useFormBootstrap().expandedWidthLayouts,
   useLayoutSettings: () => useFormBootstrap().layoutSettings,
   useLaxLayoutSettings: () => useLaxFormBootstrap()?.layoutSettings,

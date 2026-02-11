@@ -155,8 +155,8 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
  * Check which pages are hidden, returning a Set with the ones that are hidden
  */
 export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> = {}): Set<string> {
-  const pages = Object.keys(FormBootstrap.useLayouts());
-  const hiddenExpressions = FormBootstrap.useHiddenLayoutsExpressions();
+  const pages = Object.keys(FormBootstrap.useLaxLayouts() || {});
+  const hiddenExpressions = FormBootstrap.useLaxHiddenLayoutsExpressions() || {};
   const dataSources = useExpressionDataSources(hiddenExpressions);
   const pageOrder = useRawPageOrder();
 
