@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
@@ -61,4 +62,16 @@ internal class BootstrapGlobalResponse
     /// </summary>
     [JsonPropertyName("textResources")]
     public TextResource? TextResources { get; set; }
+
+    /// <summary>
+    /// Organisation display name in available languages.
+    /// </summary>
+    [JsonPropertyName("orgName")]
+    public AltinnCdnOrgName? OrgName { get; set; }
+
+    /// <summary>
+    /// Organisation logo URL from Altinn CDN.
+    /// </summary>
+    [JsonPropertyName("orgLogoUrl")]
+    public string? OrgLogoUrl { get; set; }
 }
