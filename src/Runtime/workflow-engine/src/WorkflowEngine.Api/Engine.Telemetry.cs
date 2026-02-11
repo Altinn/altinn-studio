@@ -7,27 +7,19 @@ namespace WorkflowEngine.Api;
 
 internal partial class Engine
 {
-    private static Activity? StartProcessWorkflowActivity(Workflow workflow)
+    private static Activity? StartProcessWorkflowActivityOnce(Workflow workflow)
     {
-        var tags = workflow.GetActivityTags();
-
-        // Subsequent iterations: child of the original ProcessWorkflow span
-        if (workflow.EngineTraceContext is { } existingContext)
-        {
-            return Telemetry.Source.StartActivity(
-                "Engine.ProcessWorkflow",
-                ActivityKind.Internal,
-                parentContext: existingContext,
-                tags: tags
-            );
-        }
+        // Subsequent iterations: return nothing, don't start another activity
+        // Caller's dependencies will manually set parentContext
+        if (workflow.EngineTraceContext is not null)
+            return null;
 
         // First iteration: create a new linked root trace for this workflow
         var activity = Telemetry.Source.StartLinkedRootActivity(
             "Engine.ProcessWorkflow",
             kind: ActivityKind.Consumer,
             links: Telemetry.ParseSourceContext(workflow.DistributedTraceContext),
-            tags: tags
+            tags: workflow.GetActivityTags()
         );
 
         workflow.EngineTraceContext = activity?.Context;
@@ -35,27 +27,19 @@ internal partial class Engine
         return activity;
     }
 
-    private static Activity? StartProcessStepActivity(Workflow workflow, Step step)
+    private static Activity? StartProcessStepActivityOnce(Workflow workflow, Step step)
     {
-        var tags = step.GetActivityTags();
-
-        // Subsequent iterations: child of the original ProcessSteps span
-        if (step.EngineTraceContext is { } existingContext)
-        {
-            return Telemetry.Source.StartActivity(
-                "Engine.ProcessStep",
-                ActivityKind.Internal,
-                parentContext: existingContext,
-                tags: tags
-            );
-        }
+        // Subsequent iterations: return nothing, don't start another activity
+        // Caller's dependencies will manually set parentContext
+        if (step.EngineTraceContext is not null)
+            return null;
 
         // First iteration: create a new linked root trace for this workflow
         var activity = Telemetry.Source.StartActivity(
             "Engine.ProcessStep",
             ActivityKind.Consumer,
             workflow.EngineTraceContext ?? default,
-            tags
+            step.GetActivityTags()
         );
 
         step.EngineTraceContext = activity?.Context;

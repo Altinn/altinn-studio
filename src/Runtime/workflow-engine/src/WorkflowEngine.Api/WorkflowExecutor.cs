@@ -39,7 +39,10 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
     public async Task<ExecutionResult> Execute(Workflow workflow, Step step, CancellationToken cancellationToken)
     {
-        using var activity = Telemetry.Source.StartActivity("WorkflowExecutor.Execute");
+        using var activity = Telemetry.Source.StartActivity(
+            "WorkflowExecutor.Execute",
+            parentContext: step.EngineTraceContext
+        );
         using var slot = await _limiter.AcquireHttpSlotAsync(cancellationToken); // TODO: Perhaps move to actual http methods?
         _logger.ExecutingStep(step, workflow);
 

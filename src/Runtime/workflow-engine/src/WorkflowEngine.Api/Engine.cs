@@ -177,7 +177,7 @@ internal partial class Engine : IEngine, IDisposable
             return;
         }
 
-        using var activity = StartProcessWorkflowActivity(workflow);
+        using var activity = StartProcessWorkflowActivityOnce(workflow);
 
         try
         {
@@ -193,17 +193,19 @@ internal partial class Engine : IEngine, IDisposable
                         workflow.ExecutionStartedAt = _timeProvider.GetUtcNow();
                     }
 
-                    await ProcessSteps(workflow, cancellationToken);
+                    // Process steps
+                    var processingStatus = await ProcessSteps(workflow, cancellationToken);
 
+                    // Just waiting
+                    if (processingStatus == TelemetryInclusion.NoData)
+                        return;
+
+                    // Update the Workflow db record only when all steps are finished
                     PersistentItemStatus updatedJobStatus = workflow.OverallStatus();
-                    if (workflow.Status != updatedJobStatus)
+                    if (updatedJobStatus.IsDone() && workflow.Status != updatedJobStatus)
                     {
                         workflow.Status = updatedJobStatus;
                         workflow.DatabaseTask = UpdateWorkflowInDb(workflow, cancellationToken);
-                    }
-                    else
-                    {
-                        activity?.IsNoop();
                     }
 
                     return;
@@ -211,7 +213,6 @@ internal partial class Engine : IEngine, IDisposable
                 // Waiting on database operation to finish
                 case TaskStatus.Started:
                     _logger.WaitingForWorkflowDbTask(workflow);
-                    activity?.IsNoop();
                     return;
 
                 // Database operation failed
@@ -226,6 +227,7 @@ internal partial class Engine : IEngine, IDisposable
                 // Database operation finished successfully
                 case TaskStatus.Finished:
                     _logger.CleaningUpWorkflowDbTask(workflow);
+
                     workflow.CleanupDatabaseTask();
 
                     RecordWorkflowServiceTime(workflow);
@@ -279,13 +281,11 @@ internal partial class Engine : IEngine, IDisposable
         _logger.WorkflowCompleted(workflow);
     }
 
-    private async Task ProcessSteps(Workflow workflow, CancellationToken cancellationToken)
+    private async Task<TelemetryInclusion> ProcessSteps(Workflow workflow, CancellationToken cancellationToken)
     {
-        List<Step> orderedSteps = workflow.OrderedSteps().ToList();
-
-        for (int i = 0; i < orderedSteps.Count; i++)
+        for (int i = 0; i < workflow.Steps.Count; i++)
         {
-            var step = orderedSteps[i];
+            var step = workflow.Steps[i];
             var previous = i > 0 ? workflow.Steps[i - 1] : null;
 
             // Step is already complete
@@ -296,11 +296,11 @@ internal partial class Engine : IEngine, IDisposable
             if (!step.IsReadyForExecution(_timeProvider))
             {
                 _logger.NotReadyForExecution(step);
-                return;
+                return TelemetryInclusion.NoData;
             }
 
             _logger.ProcessingStep(step);
-            using var activity = StartProcessStepActivity(workflow, step);
+            using var activity = StartProcessStepActivityOnce(workflow, step);
 
             var currentState = new
             {
@@ -315,8 +315,7 @@ internal partial class Engine : IEngine, IDisposable
                     // Waiting for the database operation to complete
                     case { DatabaseUpdateStatus: TaskStatus.Started }:
                         _logger.WaitingForStepDbTask(step);
-                        activity?.IsNoop();
-                        return;
+                        return TelemetryInclusion.NoData;
 
                     // Database operation failed
                     case { DatabaseUpdateStatus: TaskStatus.Failed }:
@@ -330,7 +329,6 @@ internal partial class Engine : IEngine, IDisposable
                     // Database operation completed successfully
                     case { DatabaseUpdateStatus: TaskStatus.Finished }:
                         _logger.CleaningUpStepDbTask(step);
-                        activity?.IsNoop();
 
                         // Clean up tasks
                         step.CleanupExecutionTask();
@@ -339,13 +337,12 @@ internal partial class Engine : IEngine, IDisposable
                         RecordStepServiceTime(step);
                         RecordStepTotalTime(step, previous);
 
-                        return;
+                        return TelemetryInclusion.NoData;
 
                     // Waiting for the execution step to complete
                     case { ExecutionStatus: TaskStatus.Started }:
                         _logger.WaitingForStepExecutionTask(step);
-                        activity?.IsNoop();
-                        return;
+                        return TelemetryInclusion.NoData;
 
                     // Execution step completed
                     case { ExecutionStatus: TaskStatus.Finished }:
@@ -358,17 +355,16 @@ internal partial class Engine : IEngine, IDisposable
 
                         // Update database
                         step.DatabaseTask = UpdateStepInDb(step, cancellationToken);
-                        return;
+                        return TelemetryInclusion.HasData;
 
                     // Step is new
                     default:
                         _logger.ExecutingStep(step);
                         RecordStepQueueTime(step);
-
                         step.Status = PersistentItemStatus.Processing;
                         step.ExecutionStartedAt = _timeProvider.GetUtcNow();
                         step.ExecutionTask = _workflowExecutor.Execute(workflow, step, cancellationToken);
-                        return;
+                        return TelemetryInclusion.HasData;
                 }
             }
             catch (Exception ex)
@@ -378,7 +374,7 @@ internal partial class Engine : IEngine, IDisposable
             }
         }
 
-        return;
+        return TelemetryInclusion.NoData;
 
         void UpdateStepStatusAndRetryDecision(Step currentStep, Step? previousStep, ExecutionResult result)
         {
@@ -405,9 +401,9 @@ internal partial class Engine : IEngine, IDisposable
 
             _logger.StepFailed(currentStep);
             var retryStrategy = GetRetryStrategy(currentStep);
-            var intialStartTime = previousStep?.UpdatedAt ?? currentStep.CreatedAt;
+            var initialStartTime = previousStep?.UpdatedAt ?? currentStep.CreatedAt;
 
-            if (retryStrategy.CanRetry(currentStep.RequeueCount + 1, intialStartTime, _timeProvider))
+            if (retryStrategy.CanRetry(currentStep.RequeueCount + 1, initialStartTime, _timeProvider))
             {
                 currentStep.RequeueCount++;
                 currentStep.Status = PersistentItemStatus.Requeued;
@@ -483,4 +479,10 @@ internal partial class Engine : IEngine, IDisposable
                 Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken)
             )
             .WaitAsync(cancellationToken);
+
+    private enum TelemetryInclusion
+    {
+        NoData,
+        HasData,
+    }
 }

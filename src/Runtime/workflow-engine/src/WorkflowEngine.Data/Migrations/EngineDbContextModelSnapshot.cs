@@ -94,7 +94,7 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("Steps");
+                    b.ToTable("Steps", (string)null);
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.WorkflowEntity", b =>
@@ -167,7 +167,7 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("InstanceOrg", "InstanceApp", "InstanceGuid");
 
-                    b.ToTable("Workflows");
+                    b.ToTable("Workflows", (string)null);
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>

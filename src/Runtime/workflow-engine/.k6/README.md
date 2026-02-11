@@ -59,6 +59,30 @@ k6 run .k6/continuous-process-next.js -e INTERVAL=5 -e INSTANCE_GUID=some-guid
 | `BASE_URL`      | `http://localhost:8080/api/v1/workflow/test-org/test-app/12345`| Workflow engine base URL     |
 | `API_KEY`       | `0544ba8b-2d8a-4ec9-b93a-47cdbd220293`                        | API key for authentication   |
 
+### constant-rate.js
+
+Sends requests at a fixed rate (default 100 req/s) forever. Uses `constant-arrival-rate` so the rate holds steady regardless of response time. A second scenario polls the health endpoint every `POLL_INTERVAL` seconds and logs the engine queue size. Runs until cancelled with Ctrl+C.
+
+```bash
+# Default: 100 req/s, health poll every 2s
+k6 run .k6/constant-rate.js
+
+# Custom rate
+k6 run .k6/constant-rate.js -e RATE=50
+
+# Custom rate with higher VU ceiling and slower health polling
+k6 run .k6/constant-rate.js -e RATE=500 -e MAX_VUS=1000 -e POLL_INTERVAL=5
+```
+
+| Variable        | Default                                                        | Description                                       |
+|-----------------|----------------------------------------------------------------|---------------------------------------------------|
+| `RATE`          | `100`                                                          | Requests per second                               |
+| `MAX_VUS`       | `200`                                                          | Max virtual users (increase if VUs become scarce)  |
+| `POLL_INTERVAL` | `2`                                                            | Seconds between health endpoint polls              |
+| `BASE_URL`      | `http://localhost:8080/api/v1/workflow/test-org/test-app/12345`| Workflow engine base URL                          |
+| `HEALTH_URL`    | `http://localhost:8080/api/v1/health`                          | Health endpoint for queue monitoring               |
+| `API_KEY`       | `0544ba8b-2d8a-4ec9-b93a-47cdbd220293`                        | API key for authentication                        |
+
 ## Payload
 
-Both scripts use `process-next-payload.json` in this directory as the POST body.
+All scripts use `process-next-payload.json` in this directory as the POST body.

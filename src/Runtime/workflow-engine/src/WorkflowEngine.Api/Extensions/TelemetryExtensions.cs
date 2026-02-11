@@ -17,12 +17,13 @@ internal static class TelemetryExtensions
             string name,
             ActivityKind? kind = null,
             IEnumerable<ActivityLink>? links = null,
+            ActivityContext? parentContext = null,
             IEnumerable<(string tag, object? value)>? tags = null
         ) =>
             source.StartActivity(
                 name,
                 kind ?? ActivityKind.Internal,
-                parentContext: default,
+                parentContext: parentContext ?? default,
                 links: links,
                 tags: tags?.Select(t => new KeyValuePair<string, object?>(t.tag, t.value))
             );
@@ -86,6 +87,7 @@ internal static class TelemetryExtensions
             IEnumerable<ActivityEvent>? events = null
         )
         {
+            activity.HasData();
             activity.SetStatus(ActivityStatusCode.Error, errorMessage ?? exception?.Message);
             if (exception is not null)
             {
@@ -109,9 +111,14 @@ internal static class TelemetryExtensions
             }
         }
 
-        public void IsNoop()
+        public void NoData()
         {
             activity.IsAllDataRequested = false;
+        }
+
+        public void HasData()
+        {
+            activity.IsAllDataRequested = true;
         }
     }
 

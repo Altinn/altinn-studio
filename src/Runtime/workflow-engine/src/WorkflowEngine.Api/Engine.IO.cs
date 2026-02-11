@@ -159,6 +159,7 @@ internal partial class Engine
     {
         using var activity = Telemetry.Source.StartActivity(
             "Engine.UpdateWorkflowInDb",
+            parentContext: workflow.EngineTraceContext,
             tags: [("workflow.status", workflow.Status.ToString())]
         );
 
@@ -171,6 +172,7 @@ internal partial class Engine
     {
         using var activity = Telemetry.Source.StartActivity(
             "Engine.UpdateStepInDb",
+            parentContext: step.EngineTraceContext,
             tags: [("step.status", step.Status.ToString())]
         );
 
