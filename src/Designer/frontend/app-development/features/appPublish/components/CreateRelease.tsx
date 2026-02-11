@@ -53,7 +53,7 @@ export function CreateRelease() {
   const canBuild = validVersionName;
   return (
     <div className={classes.createReleaseForm}>
-      {appMetadataFeatureFlag && appValidationResult.isValid === false && (
+      {appMetadataFeatureFlag && appValidationResult?.isValid === false && (
         <StudioAlert data-color='warning'>
           <StudioHeading data-size='xs'>{t('app_create_release.warning')}</StudioHeading>
           <StudioDialog.TriggerContext>
