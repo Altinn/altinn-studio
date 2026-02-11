@@ -47,6 +47,17 @@ describe('useCreateAndCheckoutBranch', () => {
     expect(result.current.createError).toBe('');
   });
 
+  it('should reload the page after successful checkout', async () => {
+    const createBranch = jest.fn().mockResolvedValue(mockBranch);
+    const checkoutBranch = jest.fn().mockResolvedValue(mockRepoStatus);
+
+    const { result } = renderUseCreateAndCheckoutBranch({ createBranch, checkoutBranch });
+
+    result.current.createAndCheckoutBranch(branchName);
+
+    await waitFor(() => expect(window.location.reload).toHaveBeenCalled());
+  });
+
   it('should reset errors when retrying after failure', async () => {
     const createBranch = jest
       .fn()
