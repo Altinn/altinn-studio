@@ -5,6 +5,7 @@ import type { RepoStatus } from 'app-shared/types/api/BranchTypes';
 import type { AxiosError } from 'axios';
 import { HttpResponseUtils } from '../../utils/httpResponseUtils';
 import { isAppSpecificQuery, isFormLayoutQuery } from 'app-shared/utils/tanstackQueryUtils';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 export const useCheckoutBranchMutation = (
   org: string,
@@ -27,8 +28,8 @@ export const useCheckoutBranchMutation = (
         predicate: (query) => isAppSpecificQuery(query, org, app) && !isFormLayoutQuery(query),
       });
 
-      // Process-editor does not properly update when invalidating cache, needs reload.
-      if (window.location.pathname.includes('process-editor')) {
+      // Process-editor does not properly update when invalidating cache. Needs reload.
+      if (window.location.pathname.includes(RoutePaths.ProcessEditor)) {
         window.location.reload();
       }
 
