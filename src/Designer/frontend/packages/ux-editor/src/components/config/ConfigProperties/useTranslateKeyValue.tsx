@@ -30,7 +30,9 @@ export const useTranslateKeyValue = (propertyValue: PropertyValue) => {
     }
 
     if (typeof value === 'object') {
-      return Object.values(value).map(translatedValue).join(', ');
+      return Object.entries(value)
+        .map(([key, val]) => `${translatedValue(key)}: ${translatedValue(val as Primitive)}`)
+        .join(', ');
     }
 
     return translatedValue(value);

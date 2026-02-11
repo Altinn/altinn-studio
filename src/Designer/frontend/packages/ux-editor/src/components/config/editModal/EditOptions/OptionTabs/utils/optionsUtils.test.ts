@@ -11,40 +11,43 @@ import {
   updateComponentOptions,
   isOptionsIdReferenceId,
   hasStaticOptionList,
+  hasEditableOptionList,
 } from './optionsUtils';
 import { componentMocks } from '../../../../../../testing/componentMocks';
 import { OptionsTabKey } from '../enums/OptionsTabKey';
+import { createPublishedCodeListReferenceString } from './published-code-list-reference-utils';
 
 // Test data:
 const mockedComponent: FormItem<SelectionComponentType> =
   componentMocks[ComponentType.RadioButtons];
+const orgName = 'org';
 
 describe('optionsUtils', () => {
   describe('determineInitialTab', () => {
     it('should return CodeList if both options and optionsId are set', () => {
       const optionsId = 'codeListId';
       const options: OptionList = [{ label: 'label1', value: 'value1' }];
-      const optionListIdsFromLibrary = [optionsId];
+      const idsFromAppLibrary = [optionsId];
       const component = { ...mockedComponent, options, optionsId };
-      const result = determineInitialTab(component, optionListIdsFromLibrary);
+      const result = determineInitialTab(component, { idsFromAppLibrary, orgName });
       expect(result).toEqual(OptionsTabKey.CodeList);
     });
 
     it('should return CodeList if options is not set and optionsId is in optionListIdsFromLibrary', () => {
       const optionsId = 'codeListId';
       const options = undefined;
-      const optionListIdsFromLibrary = [optionsId];
+      const idsFromAppLibrary = [optionsId];
       const component = { ...mockedComponent, options, optionsId };
-      const result = determineInitialTab(component, optionListIdsFromLibrary);
+      const result = determineInitialTab(component, { idsFromAppLibrary, orgName });
       expect(result).toEqual(OptionsTabKey.CodeList);
     });
 
     it('should return Reference if options is not set and optionsId is not in optionListIdsFromLibrary', () => {
       const optionsId = 'codeListId';
       const options = undefined;
-      const optionListIdsFromLibrary = ['anotherCodeListId'];
+      const idsFromAppLibrary = ['anotherCodeListId'];
       const component = { ...mockedComponent, options, optionsId };
-      const result = determineInitialTab(component, optionListIdsFromLibrary);
+      const result = determineInitialTab(component, { idsFromAppLibrary, orgName });
       expect(result).toEqual(OptionsTabKey.Reference);
     });
 
@@ -52,16 +55,16 @@ describe('optionsUtils', () => {
       const optionsId = '';
       const options = undefined;
       const component = { ...mockedComponent, options, optionsId };
-      const result = determineInitialTab(component, []);
+      const result = determineInitialTab(component, { idsFromAppLibrary: [], orgName });
       expect(result).toEqual(OptionsTabKey.CodeList);
     });
 
     it('should return CodeList if options is set and optionsId is not set', () => {
       const optionsId = undefined;
       const options = [{ label: 'label1', value: 'value1' }];
-      const optionListIds = ['codeListId'];
+      const idsFromAppLibrary = ['codeListId'];
       const component = { ...mockedComponent, options, optionsId };
-      const result = determineInitialTab(component, optionListIds);
+      const result = determineInitialTab(component, { idsFromAppLibrary, orgName });
       expect(result).toEqual(OptionsTabKey.CodeList);
     });
   });
@@ -143,35 +146,70 @@ describe('optionsUtils', () => {
 
   describe('hasStaticOptionList', () => {
     it('should return true if options ID is a string and options ID is from library', () => {
-      const optionListIds: string[] = ['test1', 'test2'];
+      const idsFromAppLibrary: string[] = ['test1', 'test2'];
       const optionsId: string = 'test1';
       const options = undefined;
       const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
-      expect(hasStaticOptionList(optionListIds, component)).toEqual(true);
+      expect(hasStaticOptionList({ idsFromAppLibrary, orgName }, component)).toEqual(true);
     });
 
     it('should return true if options is set on the component', () => {
-      const optionListIds: string[] = [];
+      const idsFromAppLibrary: string[] = [];
       const optionsId = '';
       const options: OptionList = [];
       const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
-      expect(hasStaticOptionList(optionListIds, component)).toEqual(true);
+      expect(hasStaticOptionList({ idsFromAppLibrary, orgName }, component)).toEqual(true);
     });
 
     it('should return false if options ID and options are undefined', () => {
-      const optionListIds: string[] = ['test1', 'test2'];
+      const idsFromAppLibrary: string[] = ['test1', 'test2'];
       const optionsId = undefined;
       const options: OptionList = undefined;
       const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
-      expect(hasStaticOptionList(optionListIds, component)).toEqual(false);
+      expect(hasStaticOptionList({ idsFromAppLibrary, orgName }, component)).toEqual(false);
     });
 
     it('should return false if options ID is not from library', () => {
-      const optionListIds: string[] = ['test1', 'test2'];
+      const idsFromAppLibrary: string[] = ['test1', 'test2'];
       const optionsId = 'another-id';
       const options: OptionList = undefined;
       const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
-      expect(hasStaticOptionList(optionListIds, component)).toEqual(false);
+      expect(hasStaticOptionList({ idsFromAppLibrary, orgName }, component)).toEqual(false);
+    });
+  });
+
+  describe('hasEditableOptionList', () => {
+    it('Returns true when options are set directly', () => {
+      const options: OptionList = [{ label: 'label1', value: 'value1' }];
+      const component = { ...mockedComponent, options, optionsId: undefined };
+      expect(hasEditableOptionList(component, { idsFromAppLibrary: [], orgName })).toBe(true);
+    });
+
+    it('Returns true when a code list from the app library is selected', () => {
+      const optionsId = 'test';
+      const component = { ...mockedComponent, options: undefined, optionsId };
+      expect(hasEditableOptionList(component, { idsFromAppLibrary: [optionsId], orgName })).toBe(
+        true,
+      );
+    });
+
+    it('Returns true when a published code list is selected', () => {
+      const codeListName = 'name';
+      const version = '1';
+      const optionsId = createPublishedCodeListReferenceString({ orgName, codeListName, version });
+      const component = { ...mockedComponent, options: undefined, optionsId };
+      expect(hasEditableOptionList(component, { idsFromAppLibrary: [], orgName })).toBe(true);
+    });
+
+    it('Returns false when a custom code list ID is selected', () => {
+      const optionsId = 'custom-id';
+      const component = { ...mockedComponent, options: undefined, optionsId };
+      expect(hasEditableOptionList(component, { idsFromAppLibrary: [], orgName })).toBe(false);
+    });
+
+    it('Returns false when neither options nor optionsId are set', () => {
+      const component = { ...mockedComponent, options: undefined, optionsId: undefined };
+      expect(hasEditableOptionList(component, { idsFromAppLibrary: [], orgName })).toBe(false);
     });
   });
 });
