@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 import { InstantiateValidationError } from 'src/features/instantiate/containers/InstantiateValidationError';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
