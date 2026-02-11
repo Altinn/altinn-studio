@@ -6,7 +6,6 @@ on:
     paths:
       - 'src/Designer/testdata/**'
       - 'src/Designer/backend/**'
-      - 'src/KubernetesWrapper/**'
       - '.github/workflows/designer-backend-codeql.yml'
   workflow_dispatch:
   schedule:
