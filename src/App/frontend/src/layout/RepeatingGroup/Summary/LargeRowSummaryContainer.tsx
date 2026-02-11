@@ -4,7 +4,7 @@ import type { JSX } from 'react';
 import { Fieldset, Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/RepeatingGroup/Summary/LargeGroupSummaryContainer.module.css';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
@@ -39,7 +39,7 @@ export function LargeRowSummaryContainer({
   const item = useItemWhenType(baseComponentId, 'RepeatingGroup');
   const indexedId = useIndexedId(baseComponentId, true);
   const depth = NodesInternal.useSelector((state) => state.nodeData?.[indexedId]?.depth);
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const children = RepGroupHooks.useChildIds(baseComponentId);
   const isHidden = useIsHiddenMulti(children);
   const idMutator = useComponentIdMutator();

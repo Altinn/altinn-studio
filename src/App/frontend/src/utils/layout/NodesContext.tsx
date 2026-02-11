@@ -11,7 +11,7 @@ import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
 import { AttachmentsStorePlugin } from 'src/features/attachments/AttachmentsStorePlugin';
 import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
-import { useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
 import {
@@ -264,7 +264,7 @@ export const NodesProvider = ({ children, ...props }: NodesProviderProps) => {
 
 function ProvideGlobalContext({ children, registry }: PropsWithChildren<{ registry: RefObject<Registry> }>) {
   const isInTaskTransition = useIsInTaskTransition();
-  const latestLayouts = useLayouts();
+  const latestLayouts = FormBootstrap.useLayouts();
   const layouts = Store.useSelector((s) => s.layouts);
   const reset = Store.useSelector((s) => s.reset);
   const getProcessedLast = Validation.useGetProcessedLast();

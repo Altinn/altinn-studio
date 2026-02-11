@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { ISummaryOverridesCommon } from 'src/layout/common.generated';
 import type { CompSummaryOverrides, CompTypes } from 'src/layout/layout';
@@ -42,7 +42,7 @@ export function useSummaryProp<K extends keyof Summary2State>(prop: K): Summary2
  */
 export function useSummaryOverrides<Type extends CompTypes>(baseComponentId: string | undefined) {
   const overrides = useSummaryProp('overrides');
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   if (!baseComponentId || !overrides) {
     return undefined;
   }

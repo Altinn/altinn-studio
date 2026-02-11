@@ -3,6 +3,7 @@ import type { JSX, ReactNode } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { DataModelReaders } from 'src/features/formData/FormDataReaders';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
@@ -91,7 +92,7 @@ export function useLanguage() {
 
 export function useLanguageWithForcedPath(dataModelPath: IDataModelReference | undefined) {
   const sources = useLangToolsDataSources();
-  const defaultDataType = DataModels.useLaxDefaultDataType();
+  const defaultDataType = FormBootstrap.useLaxDefaultDataType();
   const formDataTypes = DataModels.useLaxReadableDataTypes();
   const formDataSelector = FD.useLaxDebouncedSelector();
 

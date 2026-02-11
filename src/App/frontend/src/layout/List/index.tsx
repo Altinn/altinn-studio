@@ -6,7 +6,7 @@ import dot from 'dot-object';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { evalQueryParameters } from 'src/features/options/evalQueryParameters';
 import { ObjectToGroupLayoutValidator } from 'src/features/saveToGroup/ObjectToGroupLayoutValidator';
 import { useValidateGroupIsEmpty } from 'src/features/saveToGroup/useValidateGroupIsEmpty';
@@ -100,7 +100,7 @@ export class List extends ListDef {
     const allowedLeafTypes = ['string', 'boolean', 'number', 'integer'];
     const groupBinding = bindings?.group;
     const lookupBinding = DataModels.useLookupBinding();
-    const layoutLookups = useLayoutLookups();
+    const layoutLookups = FormBootstrap.useLayoutLookups();
 
     if (groupBinding) {
       const [groupErrors] = validateDataModelBindingsAny(

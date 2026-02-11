@@ -12,8 +12,8 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { usePdfLayoutName } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsPayment } from 'src/features/payment/utils';
 import classes from 'src/features/pdf/PDFView.module.css';
@@ -165,7 +165,7 @@ function PlainPage({ pageKey }: { pageKey: string }) {
   const pageExists = NodesInternal.useSelector((state) =>
     Object.values(state.pagesData.pages).some((data) => data.pageKey === pageKey),
   );
-  const children = useLayoutLookups().topLevelComponents[pageKey] ?? [];
+  const children = FormBootstrap.useLayoutLookups().topLevelComponents[pageKey] ?? [];
 
   if (!pageExists) {
     const message = `Error using: "pdfLayoutName": ${JSON.stringify(pageKey)}, could not find a layout with that name.`;
@@ -244,7 +244,7 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IP
 }
 
 function useTopLevelComponentsToAutoRender(pageKey: string, pdfSettings: IPdfFormat | undefined): string[] {
-  const lookups = useLayoutLookups();
+  const lookups = FormBootstrap.useLayoutLookups();
   return useMemo(() => {
     const topLevel = lookups.topLevelComponents[pageKey] ?? [];
     return topLevel.filter((baseId) => {

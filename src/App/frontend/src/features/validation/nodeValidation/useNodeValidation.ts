@@ -1,4 +1,4 @@
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { Validation } from 'src/features/validation/validationContext';
 import {
   type CompDef,
@@ -26,7 +26,7 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
   const def = getComponentDef(component.type);
   const indexedId = useIndexedId(baseComponentId);
   const registry = GeneratorInternal.useRegistry();
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const dataModelBindings = GeneratorInternal.useIntermediateItem()?.dataModelBindings;
   const bindings = Object.entries((dataModelBindings ?? {}) as Record<string, IDataModelReference>);
 

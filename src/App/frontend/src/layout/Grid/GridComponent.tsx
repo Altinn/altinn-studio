@@ -10,7 +10,7 @@ import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { Caption } from 'src/components/form/caption/Caption';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { LabelContent } from 'src/components/label/LabelContent';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
@@ -37,7 +37,7 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const { title, description, help } = textResourceBindings ?? {};
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();
-  const parent = useLayoutLookups().componentToParent[baseComponentId];
+  const parent = FormBootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
   const shouldHaveFullWidth = parent?.type === 'page';
   const { elementAsString } = useLanguage();

@@ -5,8 +5,8 @@ import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons.module.css';
 import { useIsInFormContext } from 'src/features/form/FormContext';
-import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import comboboxClasses from 'src/styles/combobox.module.css';
@@ -27,7 +27,7 @@ const InnerDevNavigationButtons = () => {
   const { navigateToPage } = useNavigatePage();
   const hiddenPages = useHiddenPages();
   const rawOrder = useRawPageOrder();
-  const allPages = Object.keys(useLayouts() ?? {});
+  const allPages = Object.keys(FormBootstrap.useLayouts() ?? {});
 
   function handleChange(values: string[]) {
     const newView = values.at(0);

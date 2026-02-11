@@ -8,7 +8,7 @@ import { isAxiosError } from 'axios';
 import { Button } from 'src/app-components/Button/Button';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
@@ -211,7 +211,7 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   const performProcess = useProcessingMutation('custom-action');
   const isThisProcessing = useIsThisProcessing('custom-action');
   const isAnyProcessing = useIsAnyProcessing();
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
 
   const getScrollPosition = React.useCallback(
     () => document.querySelector(`[data-componentid="${id}"]`)?.getClientRects().item(0)?.y,

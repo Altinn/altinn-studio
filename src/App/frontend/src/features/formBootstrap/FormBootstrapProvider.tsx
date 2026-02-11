@@ -3,7 +3,6 @@ import type { PropsWithChildren as ReactPropsWithChildren } from 'react';
 
 import { v4 as uuidv4 } from 'uuid';
 
-import { ContextNotProvided } from 'src/core/contexts/context';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
@@ -122,7 +121,7 @@ export function FormBootstrapProvider({
   return <FormBootstrapContext.Provider value={contextValue}>{children}</FormBootstrapContext.Provider>;
 }
 
-export function useFormBootstrap(): FormBootstrapContextValue {
+function useFormBootstrap() {
   const ctx = useContext(FormBootstrapContext);
   if (!ctx) {
     throw new Error('useFormBootstrap must be used within FormBootstrapProvider');
@@ -130,19 +129,22 @@ export function useFormBootstrap(): FormBootstrapContextValue {
   return ctx;
 }
 
-export function useLaxFormBootstrap(): FormBootstrapContextValue | typeof ContextNotProvided {
-  return useContext(FormBootstrapContext) ?? ContextNotProvided;
+function useLaxFormBootstrap() {
+  return useContext(FormBootstrapContext) ?? undefined;
 }
 
 export const FormBootstrap = {
   useLayouts: () => useFormBootstrap().layouts,
   useLayoutLookups: () => useFormBootstrap().layoutLookups,
+  useLaxLayoutLookups: () => useLaxFormBootstrap()?.layoutLookups,
   useHiddenLayoutsExpressions: () => useFormBootstrap().hiddenLayoutsExpressions,
   useExpandedWidthLayouts: () => useFormBootstrap().expandedWidthLayouts,
   useLayoutSettings: () => useFormBootstrap().layoutSettings,
+  useLaxLayoutSettings: () => useLaxFormBootstrap()?.layoutSettings,
 
   useDataModels: () => useFormBootstrap().dataModels,
   useDefaultDataType: () => useFormBootstrap().defaultDataType,
+  useLaxDefaultDataType: () => useLaxFormBootstrap()?.defaultDataType,
   useReadableDataTypes: () => useFormBootstrap().allDataTypes,
   useWritableDataTypes: () => useFormBootstrap().writableDataTypes,
 

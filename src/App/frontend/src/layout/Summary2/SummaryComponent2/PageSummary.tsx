@@ -2,7 +2,7 @@ import React from 'react';
 import type { CSSProperties } from 'react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { ComponentSummary, HideWhenAllChildrenEmpty } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverridesForPage, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useIsHiddenPage } from 'src/utils/layout/hidden';
@@ -14,7 +14,7 @@ interface PageSummaryProps {
 const fullWidth: CSSProperties = { width: '100%' };
 
 export function PageSummary({ pageId }: PageSummaryProps) {
-  const children = useLayoutLookups().topLevelComponents[pageId];
+  const children = FormBootstrap.useLayoutLookups().topLevelComponents[pageId];
   const isHiddenPage = useIsHiddenPage(pageId);
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
   const overrides = useSummaryOverridesForPage(pageId);

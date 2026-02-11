@@ -5,8 +5,8 @@ import { Button } from 'src/app-components/Button/Button';
 import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useReturnToView, useSummaryNodeIdOfOrigin } from 'src/features/form/layout/PageNavigationContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
@@ -29,7 +29,7 @@ type Props = Pick<PropsFromGenericComponent<'NavigationButtons'>, 'baseComponent
 export function NavigationButtonsComponent({ baseComponentId }: Props) {
   const summaryNodeId = useSummaryNodeIdOfOrigin();
   const { baseComponentId: summaryBaseComponentId } = splitDashedKey(summaryNodeId ?? '');
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const origin = summaryBaseComponentId ? layoutLookups.getComponent(summaryBaseComponentId) : undefined;
 
   // TODO: Support returning to Summary2
@@ -98,7 +98,7 @@ function NavigationButtonsComponentInner({
   const showNextButton = showBackToSummaryButton ? showNextButtonSummary : hasNext;
 
   const onPageNavigationValidation = useOnPageNavigationValidation();
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
 
   const attachmentsPending = useHasPendingAttachments();
 

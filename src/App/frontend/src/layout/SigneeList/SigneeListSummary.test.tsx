@@ -6,8 +6,8 @@ import { screen } from '@testing-library/dom';
 import { render } from '@testing-library/react';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { Lang } from 'src/features/language/Lang';
 import { CompInternal } from 'src/layout/layout';
 import { NotificationStatus, SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
@@ -19,13 +19,13 @@ jest.mock('src/layout/SigneeList/api');
 jest.mock('react-router-dom');
 jest.mock('src/utils/layout/useNodeItem');
 jest.mock('src/features/language/Lang');
-jest.mock('src/features/form/layout/LayoutsContext');
+jest.mock('src/features/formBootstrap/FormBootstrapProvider');
 jest.mock('src/utils/layout/hidden');
 jest.mock('src/core/contexts/TaskOverrides');
 
 describe('SigneeListSummary', () => {
   const mockedUseSigneeList = jest.mocked(useSigneeList);
-  const mockedUseLayoutLookups = jest.mocked(useLayoutLookups);
+  const mockedUseLayoutLookups = jest.mocked(FormBootstrap.useLayoutLookups);
   const mockedUseTaskOverrides = jest.mocked(useTaskOverrides);
   const mockedUseItemWhenType = jest.mocked(useItemWhenType);
   const mockedUseItemFor = jest.mocked(useItemFor);

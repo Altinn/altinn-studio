@@ -6,7 +6,7 @@ import cn from 'classnames';
 
 import { LabelContent } from 'src/components/label/LabelContent';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
@@ -225,7 +225,7 @@ function SummaryGridRowRenderer(props: GridRowProps) {
 }
 
 function useFirstFormComponentId(row: GridRow): string | undefined {
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const canRender = useHasCapability('renderInTable');
   return useMemo(() => {
     for (const cell of row.cells) {

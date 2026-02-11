@@ -4,10 +4,10 @@ import type { NavigateOptions } from 'react-router-dom';
 
 import { SearchParams } from 'src/core/routing/types';
 import { useIsStateless } from 'src/features/applicationMetadata';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { getLayoutSets } from 'src/features/form/layoutSets';
 import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
@@ -406,7 +406,7 @@ export function useVisitedPages() {
 const emptyArray = [];
 
 export function useNavigateToComponent() {
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const { navigateToPage } = useNavigatePage();
   const currentPageId = useCurrentView();
   const [searchParams, setSearchParams] = useSearchParams();

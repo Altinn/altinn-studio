@@ -8,7 +8,7 @@ import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
 import { ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataElementsSelectorProps, useInstanceDataSources } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
@@ -66,21 +66,19 @@ const directHooks = {
   applicationSettings: () => useApplicationSettings(),
   currentLanguage: () => useCurrentLanguage(),
   currentDataModelPath: () => useCurrentDataModelLocation(),
-  layoutLookups: () => useLayoutLookups(),
+  layoutLookups: () => FormBootstrap.useLayoutLookups(),
   codeListSelector: () => useCodeListSelector(),
   dataElementSelector: () => useDataElementsSelectorProps(),
   instanceDataSources: (isInGenerator) =>
     isInGenerator ? GeneratorData.useLaxInstanceDataSources() : useInstanceDataSources(),
-  defaultDataType: (isInGenerator) =>
-    (isInGenerator ? GeneratorData.useDefaultDataType() : DataModels.useDefaultDataType()) ?? null,
-  dataModelNames: (isInGenerator) =>
-    isInGenerator ? GeneratorData.useReadableDataTypes() : DataModels.useReadableDataTypes(),
+  defaultDataType: () => FormBootstrap.useDefaultDataType() ?? null,
+  dataModelNames: () => FormBootstrap.useReadableDataTypes(),
   externalApis: (isInGenerator) =>
     isInGenerator ? GeneratorData.useExternalApis() : useExternalApis(getApplicationMetadata().externalApiIds ?? []),
-  langToolsSelector: (isInGenerator) =>
+  langToolsSelector: () =>
     useInnerLanguageWithForcedPathSelector(
-      isInGenerator ? GeneratorData.useDefaultDataType() : DataModels.useDefaultDataType(),
-      isInGenerator ? GeneratorData.useReadableDataTypes() : DataModels.useReadableDataTypes(),
+      FormBootstrap.useDefaultDataType(),
+      DataModels.useReadableDataTypes(),
       FD.useDebouncedSelector(),
     ),
   currentPage: (_isInGenerator) => useNavigationParam('pageKey'),

@@ -10,7 +10,7 @@ import { DevToolsTab } from 'src/features/devtools/data/types';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
@@ -53,7 +53,7 @@ export const ExpressionPlayground = () => {
   const setActiveTab = useDevToolsStore((state) => state.actions.setActiveTab);
   const nodeInspectorSet = useDevToolsStore((state) => state.actions.nodeInspectorSet);
   const currentPageId = useNavigationParam('pageKey');
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const nodePage = (baseId && layoutLookups.componentToPage[baseId]) ?? '';
 
   const { showAllSteps, setShowAllSteps, activeOutputTab, setActiveOutputTab, outputs, setOutputs } =

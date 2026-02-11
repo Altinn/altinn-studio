@@ -7,7 +7,7 @@ import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { useComponentHighlighter } from 'src/features/devtools/hooks/useComponentHighlighter';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { baseIdsFromGridRow } from 'src/layout/Grid/tools';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -63,7 +63,7 @@ const NodeHierarchyItem = ({ baseId, onClick, selected }: INodeHierarchyItemProp
   const component = useExternalItem(baseId);
   const nodeId = useIndexedId(baseId);
   const { onMouseEnter, onMouseLeave } = useComponentHighlighter(nodeId, false);
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const children = layoutLookups.componentToChildren[baseId] ?? [];
   const hasChildren = children.length > 0;
   const isHidden = useIsHidden(baseId, { respectDevTools: false });

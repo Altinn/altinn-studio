@@ -15,13 +15,13 @@ import { type FunctionTestBase, getSharedTests, type SharedTestFunctionContext }
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import {
   getRepeatingBinding,
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
 import { getLayoutSets } from 'src/features/form/layoutSets';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { resourcesAsMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
@@ -58,7 +58,7 @@ function InnerExpressionRunner({ expression, positionalArguments, valueArguments
 }
 
 function ExpressionRunner(props: Props) {
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   if (props.context === undefined || props.context.rowIndices === undefined || props.context.rowIndices.length === 0) {
     return <InnerExpressionRunner {...props} />;
   }

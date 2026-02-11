@@ -3,7 +3,7 @@ import type { JSX } from 'react';
 
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FrontendValidationSource } from 'src/features/validation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { TimePickerDef } from 'src/layout/TimePicker/config.def.generated';
@@ -66,8 +66,8 @@ export class TimePicker extends TimePickerDef implements ValidateComponent, Vali
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'TimePicker'>): string[] {
     const lookupBinding = DataModels.useLookupBinding();
-    const layoutLookups = useLayoutLookups();
-    const _component = useLayoutLookups().getComponent(baseComponentId, 'TimePicker');
+    const layoutLookups = FormBootstrap.useLayoutLookups();
+    const _component = FormBootstrap.useLayoutLookups().getComponent(baseComponentId, 'TimePicker');
     const validation = validateDataModelBindingsAny(
       baseComponentId,
       bindings,

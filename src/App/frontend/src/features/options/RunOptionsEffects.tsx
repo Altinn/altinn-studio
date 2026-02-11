@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { EffectPreselectedOptionIndex } from 'src/features/options/effects/EffectPreselectedOptionIndex';
 import { EffectRemoveStaleValues } from 'src/features/options/effects/EffectRemoveStaleValues';
 import { EffectSetDownstreamParameters } from 'src/features/options/effects/EffectSetDownstreamParameters';
@@ -24,7 +24,7 @@ export function RunOptionsEffects({ valueType }: RunOptionEffectsProps) {
   const isReadOnly = NodesInternal.useIsReadOnly();
   const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
   const parent = GeneratorInternal.useParent();
-  const lookups = useLayoutLookups();
+  const lookups = FormBootstrap.useLayoutLookups();
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
   const groupBindings = item.dataModelBindings as
     | IDataModelBindingsForGroupCheckbox

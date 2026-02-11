@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { ApiTable } from 'src/layout/SimpleTable/ApiTable';
 import { ApiTableSummary } from 'src/layout/SimpleTable/ApiTableSummary';
 import { SimpleTableDef } from 'src/layout/SimpleTable/config.def.generated';
@@ -17,7 +17,7 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 
 export class SimpleTable extends SimpleTableDef {
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'SimpleTable'>): string[] {
-    const layoutLookups = useLayoutLookups();
+    const layoutLookups = FormBootstrap.useLayoutLookups();
     const component = layoutLookups.getComponent(baseComponentId, 'SimpleTable');
     const lookupBinding = DataModels.useLookupBinding();
     const [errors, result] = validateDataModelBindingsAny(

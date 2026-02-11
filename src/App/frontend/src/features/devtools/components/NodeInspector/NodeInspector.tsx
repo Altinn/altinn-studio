@@ -12,7 +12,7 @@ import { NodeInspectorContextProvider } from 'src/features/devtools/components/N
 import { ValidationInspector } from 'src/features/devtools/components/NodeInspector/ValidationInspector';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { getComponentDef, implementsAnyValidation } from 'src/layout';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
@@ -22,7 +22,7 @@ export const NodeInspector = () => {
   const pageKey = useCurrentView();
   const selectedId = useDevToolsStore((state) => state.nodeInspector.selectedNodeId);
   const { baseComponentId } = splitDashedKey(selectedId ?? '');
-  const lookups = useLayoutLookups();
+  const lookups = FormBootstrap.useLayoutLookups();
   const def = baseComponentId ? getComponentDef(lookups.getComponent(baseComponentId).type) : undefined;
   const children = pageKey ? lookups.topLevelComponents[pageKey] : undefined;
   const setSelected = useDevToolsStore((state) => state.actions.nodeInspectorSet);

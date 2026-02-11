@@ -1,8 +1,7 @@
 import type { PropsWithChildren } from 'react';
 
-import { ContextNotProvided } from 'src/core/contexts/context';
 import { getGlobalUiSettings } from 'src/features/form/layoutSets';
-import { useLaxFormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import type { GlobalPageSettings } from 'src/features/form/layoutSets/types';
 
 export function LayoutSettingsProvider({ children }: PropsWithChildren) {
@@ -13,29 +12,16 @@ export function LayoutSettingsProvider({ children }: PropsWithChildren) {
  * Returns the raw page order including hidden pages.
  * Returns an empty array if the context is not provided.
  */
-export const useRawPageOrder = (): string[] => {
-  const bootstrap = useLaxFormBootstrap();
-  return bootstrap === ContextNotProvided ? emptyArray : bootstrap.layoutSettings.order;
-};
+export const useRawPageOrder = (): string[] => FormBootstrap.useLaxLayoutSettings()?.order ?? emptyArray;
 
-export const usePdfLayoutName = () => {
-  const bootstrap = useLaxFormBootstrap();
-  return bootstrap === ContextNotProvided ? undefined : bootstrap.layoutSettings.pdfLayoutName;
-};
+export const usePdfLayoutName = () => FormBootstrap.useLaxLayoutSettings()?.pdfLayoutName;
 
-export const usePageGroups = () => {
-  const bootstrap = useLaxFormBootstrap();
-  return bootstrap === ContextNotProvided ? undefined : bootstrap.layoutSettings.groups;
-};
+export const usePageGroups = () => FormBootstrap.useLaxLayoutSettings()?.groups ?? emptyArray;
 
 const emptyArray: string[] = [];
 
 export function usePageSettings(): GlobalPageSettings {
   const globalUISettings = getGlobalUiSettings();
-  const bootstrap = useLaxFormBootstrap();
-  const pageSettings = bootstrap === ContextNotProvided ? undefined : bootstrap.layoutSettings.pageSettings;
-  return {
-    ...globalUISettings,
-    ...pageSettings,
-  };
+  const pageSettings = FormBootstrap.useLaxLayoutSettings()?.pageSettings;
+  return { ...globalUISettings, ...pageSettings };
 }

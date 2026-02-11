@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Button } from 'src/app-components/Button/Button';
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
@@ -20,7 +20,7 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
   const performProcess = useProcessingMutation('instantiation');
   const isLoading = useIsThisProcessing('instantiation');
   const isAnyProcessing = useIsAnyProcessing();
-  const prefill = FD.useMapping(props.mapping, DataModels.useDefaultDataType());
+  const prefill = FD.useMapping(props.mapping, FormBootstrap.useDefaultDataType());
   const party = useSelectedParty();
   const setNavigationEffect = useSetNavigationEffect();
 

@@ -6,7 +6,7 @@ import cn from 'classnames';
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
@@ -137,7 +137,7 @@ type DataRowProps = {
 };
 
 function DataRow({ row, baseComponentId, pdfModeActive, columnSettings }: DataRowProps) {
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const children = RepGroupHooks.useChildIds(baseComponentId);
   const ids = useTableComponentIds(baseComponentId);
   const visibleIds = ids.filter((id) => columnSettings[id]?.hidden !== true);
