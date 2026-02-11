@@ -1,10 +1,8 @@
-// eslint-disable-next-line react-compiler/react-compiler
-/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable react-compiler/react-compiler, react-hooks/rules-of-hooks */
 import { useMemo } from 'react';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
 import { ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
@@ -78,7 +76,7 @@ const directHooks = {
   langToolsSelector: () =>
     useInnerLanguageWithForcedPathSelector(
       FormBootstrap.useDefaultDataType(),
-      DataModels.useReadableDataTypes(),
+      FormBootstrap.useReadableDataTypes(),
       FD.useDebouncedSelector(),
     ),
   currentPage: (_isInGenerator) => useNavigationParam('pageKey'),

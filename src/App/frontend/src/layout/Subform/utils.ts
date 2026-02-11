@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo } from 'react';
 
 import dot from 'dot-object';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useStrictInstanceId } from 'src/features/instance/InstanceContext';
@@ -34,7 +34,7 @@ export function useSubformFormData(dataElementId: string) {
 }
 
 function useDataModelNamesForSubform(dataType: string) {
-  const dataModelNames = DataModels.useReadableDataTypes();
+  const dataModelNames = FormBootstrap.useReadableDataTypes();
   return useMemo(
     () => (dataModelNames.includes(dataType) ? dataModelNames : [...dataModelNames, dataType]),
     [dataModelNames, dataType],

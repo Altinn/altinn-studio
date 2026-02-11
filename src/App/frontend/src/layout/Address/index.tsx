@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
@@ -47,7 +46,7 @@ export class Address extends AddressDef implements ValidateComponent {
   }
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Address'>): string[] {
-    const lookupBinding = DataModels.useLookupBinding();
+    const lookupBinding = FormBootstrap.useLookupBinding();
     const layoutLookups = FormBootstrap.useLayoutLookups();
     const component = layoutLookups.getComponent(baseComponentId, 'Address');
     const errors: string[] = [

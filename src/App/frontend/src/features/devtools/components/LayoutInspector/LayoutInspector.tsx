@@ -14,7 +14,6 @@ import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLa
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
-import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
 
 export const LayoutInspector = () => {
   const selectedComponent = useDevToolsStore((state) => state.layoutInspector.selectedComponentId);
@@ -56,22 +55,11 @@ export const LayoutInspector = () => {
   function handleSave() {
     if (selectedComponent) {
       try {
-        const updatedComponent = JSON.parse(componentProperties ?? '');
+        const _updatedComponent = JSON.parse(componentProperties ?? '');
 
         if (currentView) {
-          window.queryClient.setQueriesData<LayoutContextValue>(
-            { queryKey: ['formLayouts', currentLayoutSetId] },
-            (_queryData) => {
-              const queryData = structuredClone(_queryData);
-              if (!queryData?.layouts?.[currentView]) {
-                return _queryData;
-              }
-              queryData.layouts[currentView] = queryData.layouts[currentView]?.map((component) =>
-                component.id === selectedComponent ? updatedComponent : component,
-              );
-              return queryData;
-            },
-          );
+          // TODO: Support replacing the layouts in FormBoostrap
+          throw new Error('Not implemented yet');
         }
 
         setPropertiesHaveChanged(false);

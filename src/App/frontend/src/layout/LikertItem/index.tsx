@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -52,7 +51,7 @@ export class LikertItem extends LikertItemDef {
   }
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'LikertItem'>): string[] {
-    const lookupBinding = DataModels.useLookupBinding();
+    const lookupBinding = FormBootstrap.useLookupBinding();
     const layoutLookups = FormBootstrap.useLayoutLookups();
     const [answerErr] = validateDataModelBindingsAny(
       baseComponentId,

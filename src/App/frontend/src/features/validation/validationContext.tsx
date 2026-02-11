@@ -9,7 +9,7 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
 import { hasPendingAttachments } from 'src/features/attachments/utils';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import {
@@ -158,7 +158,7 @@ const {
 });
 
 export function ValidationProvider({ children }: PropsWithChildren) {
-  const writableDataTypes = DataModels.useWritableDataTypes();
+  const writableDataTypes = FormBootstrap.useWritableDataTypes();
   return (
     <Provider>
       {writableDataTypes.map((dataType) => (
@@ -181,7 +181,7 @@ function useWaitForValidation(): WaitForValidation {
   const nodesStore = NodesInternal.useStore();
   const waitForAttachments = useWaitForState<void, NodesContext>(nodesStore);
 
-  const hasWritableDataTypes = !!DataModels.useWritableDataTypes()?.length;
+  const hasWritableDataTypes = !!FormBootstrap.useWritableDataTypes()?.length;
   const enabled = useShouldValidateInitial();
   const getCachedInitialValidations = useGetCachedInitialValidations();
   const waitForNodesToValidate = useWaitForNodesToValidate();

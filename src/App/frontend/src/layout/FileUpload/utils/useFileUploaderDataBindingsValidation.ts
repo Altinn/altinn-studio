@@ -1,4 +1,3 @@
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { isDataModelBindingsRequired } from 'src/layout';
 import {
@@ -12,7 +11,7 @@ export function useFileUploaderDataBindingsValidation<T extends 'FileUpload' | '
   bindings: IDataModelBindings<T>,
 ): string[] {
   const layoutLookups = FormBootstrap.useLayoutLookups();
-  const lookupBinding = DataModels.useLookupBinding();
+  const lookupBinding = FormBootstrap.useLookupBinding();
   const isRequired = isDataModelBindingsRequired(baseComponentId, layoutLookups);
   const hasBinding = bindings && ('simpleBinding' in bindings || 'list' in bindings);
 

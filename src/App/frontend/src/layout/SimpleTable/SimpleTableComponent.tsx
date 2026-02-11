@@ -7,7 +7,7 @@ import { pick } from 'dot-object';
 import { FieldRenderer } from 'src/app-components/DynamicForm/DynamicForm';
 import { AppTable } from 'src/app-components/Table/Table';
 import { Caption } from 'src/components/form/caption/Caption';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
@@ -39,7 +39,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
   const accessibleTitle = elementAsString(title);
   const isMobile = useIsMobile();
   const data = formData.tableData;
-  const schemaLookup = DataModels.useSchemaLookup();
+  const schemaLookup = FormBootstrap.useSchemaLookup();
   const [showEdit, setShowEdit] = useState(false);
   const [editItemIndex, setEditItemIndex] = useState<number>(-1);
   const setMultiLeafValues = FD.useSetMultiLeafValues();

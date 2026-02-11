@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -54,7 +53,7 @@ export class Input extends InputDef {
   }
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Input'>): string[] {
-    const lookupBinding = DataModels.useLookupBinding();
+    const lookupBinding = FormBootstrap.useLookupBinding();
     const layoutLookups = FormBootstrap.useLayoutLookups();
     return validateDataModelBindingsSimple(baseComponentId, bindings, lookupBinding, layoutLookups);
   }

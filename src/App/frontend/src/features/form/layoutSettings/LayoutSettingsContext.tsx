@@ -1,12 +1,6 @@
-import type { PropsWithChildren } from 'react';
-
 import { getGlobalUiSettings } from 'src/features/form/layoutSets';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import type { GlobalPageSettings } from 'src/features/form/layoutSets/types';
-
-export function LayoutSettingsProvider({ children }: PropsWithChildren) {
-  return children;
-}
 
 /**
  * Returns the raw page order including hidden pages.

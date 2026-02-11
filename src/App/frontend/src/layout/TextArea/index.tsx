@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
@@ -42,7 +41,7 @@ export class TextArea extends TextAreaDef {
   }
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'TextArea'>): string[] {
-    const lookupBinding = DataModels.useLookupBinding();
+    const lookupBinding = FormBootstrap.useLookupBinding();
     const layoutLookups = FormBootstrap.useLayoutLookups();
     return validateDataModelBindingsSimple(baseComponentId, bindings, lookupBinding, layoutLookups);
   }

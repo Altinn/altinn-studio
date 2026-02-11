@@ -4,8 +4,8 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { getLayoutSets } from 'src/features/form/layoutSets';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId } from 'src/features/instance/instanceUtils';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
@@ -158,7 +158,7 @@ export function useDataModelType(dataType: string) {
 }
 
 export function useBindingSchema<T extends IDataModelBindings | undefined>(bindings: T): AsSchema<T> | undefined {
-  const lookupBinding = DataModels.useLookupBinding();
+  const lookupBinding = FormBootstrap.useLookupBinding();
 
   return useMemo(() => {
     const resolvedBindings = bindings && Object.values(bindings).length ? { ...bindings } : undefined;

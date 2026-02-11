@@ -3,9 +3,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { FrontendValidationSource, ValidationMask } from '..';
 import type { FieldValidations, IExpressionValidation } from '..';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Validation } from 'src/features/validation/validationContext';
 import { NestedDataModelLocationProviders } from 'src/utils/layout/DataModelLocation';
@@ -21,7 +21,7 @@ type ValidationCollectorApi = {
 };
 
 export function ExpressionValidation() {
-  const writableDataTypes = DataModels.useWritableDataTypes();
+  const writableDataTypes = FormBootstrap.useWritableDataTypes();
 
   return (
     <>
@@ -37,8 +37,8 @@ export function ExpressionValidation() {
 
 function DataTypeValidation({ dataType }: { dataType: string }) {
   const updateDataModelValidations = Validation.useUpdateDataModelValidations();
-  const dataElementId = DataModels.useDataElementIdForDataType(dataType);
-  const expressionValidationConfig = DataModels.useExpressionValidationConfig(dataType);
+  const dataElementId = FormBootstrap.useDataElementIdForDataType(dataType);
+  const expressionValidationConfig = FormBootstrap.useExpressionValidationConfig(dataType);
 
   const [allFieldValidations, setAllFieldValidations] = useState<FieldValidations>({});
   const collector: ValidationCollectorApi = useMemo(

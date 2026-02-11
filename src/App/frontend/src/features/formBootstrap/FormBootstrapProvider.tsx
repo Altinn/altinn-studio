@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useCallback, useContext, useMemo } from 'react';
 import type { PropsWithChildren as ReactPropsWithChildren } from 'react';
 
 import { v4 as uuidv4 } from 'uuid';
 
+import { ContextNotProvided } from 'src/core/contexts/context';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
@@ -20,6 +21,7 @@ import { isAxiosError } from 'src/utils/isAxiosError';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { getRootElementPath } from 'src/utils/schemaUtils';
 import type { GlobalPageSettings } from 'src/features/form/layoutSets/types';
+import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
 
@@ -133,6 +135,22 @@ function useLaxFormBootstrap() {
   return useContext(FormBootstrapContext) ?? undefined;
 }
 
+function useInitialData() {
+  const dataModels = useFormBootstrap().dataModels;
+  return useMemo(
+    () => Object.fromEntries(Object.entries(dataModels).map(([dataType, info]) => [dataType, info.initialData])),
+    [dataModels],
+  );
+}
+
+function useDataElementIds() {
+  const dataModels = useFormBootstrap().dataModels;
+  return useMemo(
+    () => Object.fromEntries(Object.entries(dataModels).map(([dataType, info]) => [dataType, info.dataElementId])),
+    [dataModels],
+  );
+}
+
 export const FormBootstrap = {
   useLayouts: () => useFormBootstrap().layouts,
   useLayoutLookups: () => useFormBootstrap().layoutLookups,
@@ -146,7 +164,43 @@ export const FormBootstrap = {
   useDefaultDataType: () => useFormBootstrap().defaultDataType,
   useLaxDefaultDataType: () => useLaxFormBootstrap()?.defaultDataType,
   useReadableDataTypes: () => useFormBootstrap().allDataTypes,
+  useLaxReadableDataTypes: () => useLaxFormBootstrap()?.allDataTypes ?? ContextNotProvided,
   useWritableDataTypes: () => useFormBootstrap().writableDataTypes,
+  useInitialData,
+  useDataModelSchema: (dataType: string) => useFormBootstrap().dataModels[dataType]?.schemaResult,
+  useSchemaLookup: () => {
+    const dataModels = useFormBootstrap().dataModels;
+    return useMemo(
+      () =>
+        Object.fromEntries(
+          Object.entries(dataModels).map(([dataType, dataModel]) => [dataType, dataModel.schemaResult.lookupTool]),
+        ),
+      [dataModels],
+    );
+  },
+  useLookupBinding: () => {
+    const { dataModels, allDataTypes } = useFormBootstrap();
+    return useMemo(() => {
+      if (allDataTypes.every((dataType) => dataModels[dataType])) {
+        return (reference: IDataModelReference) =>
+          dataModels[reference.dataType].schemaResult.lookupTool.getSchemaForPath(reference.field);
+      }
+
+      return undefined;
+    }, [allDataTypes, dataModels]);
+  },
+  useExpressionValidationConfig: (dataType: string) =>
+    useFormBootstrap().dataModels[dataType]?.expressionValidationConfig,
+  useDefaultDataElementId: () => {
+    const { defaultDataType, dataModels } = useFormBootstrap();
+    return defaultDataType ? (dataModels[defaultDataType]?.dataElementId ?? null) : null;
+  },
+  useDataElementIdForDataType: (dataType: string) => useFormBootstrap().dataModels[dataType]?.dataElementId,
+  useGetDataElementIdForDataType: () => {
+    const dataModels = useFormBootstrap().dataModels;
+    return useCallback((dataType: string) => dataModels[dataType]?.dataElementId, [dataModels]);
+  },
+  useDataElementIds,
 
   useStaticOptionsMap: () => useFormBootstrap().staticOptions,
   useInitialValidationIssues: () => useFormBootstrap().initialValidationIssues,

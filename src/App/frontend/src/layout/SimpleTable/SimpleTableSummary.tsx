@@ -2,7 +2,7 @@ import React from 'react';
 
 import { AppTable } from 'src/app-components/Table/Table';
 import { Caption } from 'src/components/form/caption/Caption';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
@@ -23,7 +23,7 @@ export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
   const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
   const isMobile = useIsMobile();
 
-  const schemaLookup = DataModels.useSchemaLookup();
+  const schemaLookup = FormBootstrap.useSchemaLookup();
 
   if (!dataModelBindings) {
     return null;

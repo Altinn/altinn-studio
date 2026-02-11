@@ -3,7 +3,6 @@ import type { JSX } from 'react';
 
 import dot from 'dot-object';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
@@ -99,7 +98,7 @@ export class List extends ListDef {
     const errors: string[] = [];
     const allowedLeafTypes = ['string', 'boolean', 'number', 'integer'];
     const groupBinding = bindings?.group;
-    const lookupBinding = DataModels.useLookupBinding();
+    const lookupBinding = FormBootstrap.useLookupBinding();
     const layoutLookups = FormBootstrap.useLayoutLookups();
 
     if (groupBinding) {

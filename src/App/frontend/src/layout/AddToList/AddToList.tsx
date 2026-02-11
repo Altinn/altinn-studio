@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DynamicForm } from 'src/app-components/DynamicForm/DynamicForm';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
@@ -57,7 +57,7 @@ export function AddToListModal({
   let addToListModalRef = useRef<HTMLDialogElement | null>(null);
   addToListModalRef = modalRef ?? addToListModalRef;
 
-  const schemaLookup = DataModels.useSchemaLookup();
+  const schemaLookup = FormBootstrap.useSchemaLookup();
 
   const schema = schemaLookup[dataModelReference.dataType].getSchemaForPath(dataModelReference.field)[0];
 

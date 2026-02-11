@@ -10,7 +10,6 @@ import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useIsStateless } from 'src/features/applicationMetadata';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
@@ -326,12 +325,12 @@ function useIsSavingFormData() {
 
 export function FormDataWriteProvider({ children }: PropsWithChildren) {
   const proxies = useFormDataWriteProxies();
-  const allDataTypes = DataModels.useReadableDataTypes();
-  const writableDataTypes = DataModels.useWritableDataTypes();
+  const allDataTypes = FormBootstrap.useReadableDataTypes();
+  const writableDataTypes = FormBootstrap.useWritableDataTypes();
   const defaultDataType = FormBootstrap.useDefaultDataType();
-  const initialData = DataModels.useInitialData();
-  const dataElementIds = DataModels.useDataElementIds();
-  const schemaLookup = DataModels.useSchemaLookup();
+  const initialData = FormBootstrap.useInitialData();
+  const dataElementIds = FormBootstrap.useDataElementIds();
+  const schemaLookup = FormBootstrap.useSchemaLookup();
   const autoSaveBehavior = usePageSettings().autoSaveBehavior;
   const changeInstance = useOptimisticallyUpdateCachedInstance();
 
@@ -782,7 +781,7 @@ export const FD = {
    * This is useful for finding all instances of a field in repeating groups.
    */
   useDebouncedAllPaths(reference: IDataModelReference | undefined): string[] {
-    const lookupTool = DataModels.useLookupBinding();
+    const lookupTool = FormBootstrap.useLookupBinding();
     const [, lookupErr] = (reference ? lookupTool?.(reference) : undefined) ?? [undefined, undefined];
 
     return useShallowSelector((v) => {
