@@ -2,7 +2,7 @@ import { axiosInstance } from 'nextsrc/core/axiosInstance';
 
 type FormDataPrimitive = string | number | boolean | null;
 
-type FormDataNode = FormDataPrimitive | FormDataNode[] | { [key: string]: FormDataNode };
+export type FormData = FormDataPrimitive | FormData[] | { [key: string]: FormData };
 
 export class DataApi {
   public static async getDataObject({
@@ -17,12 +17,12 @@ export class DataApi {
     dataObjectGuid: string;
     includeRowId?: boolean;
     language?: string;
-  }): Promise<FormDataNode> {
+  }): Promise<FormData> {
     const params = new URLSearchParams({
       includeRowId: String(includeRowId),
       language,
     });
-    const { data: instance } = await axiosInstance.get<FormDataNode>(
+    const { data: instance } = await axiosInstance.get<FormData>(
       `/instances/${instanceOwnerPartyId}/${instanceGuid}/data/${dataObjectGuid}?${params}`,
     );
     return instance;
