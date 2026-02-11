@@ -10,6 +10,7 @@ To test kuberneteswrapper in a kubernetes cluster (kind) lokally run the followi
 
 ```shell
 make test
+make test-e2e
 ```
 
 This will do the following

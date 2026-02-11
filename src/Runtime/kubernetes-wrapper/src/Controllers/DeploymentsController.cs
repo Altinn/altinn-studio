@@ -1,3 +1,4 @@
+using Altinn.Studio.KubernetesWrapper.Models;
 using Altinn.Studio.KubernetesWrapper.Services.Interfaces;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -22,14 +23,16 @@ public class DeploymentsController(IKubernetesApiWrapper apiWrapper) : Controlle
     /// <returns>A list of deployments in the cluster</returns>
     [HttpGet]
     [EnableCors]
-    public async Task<ActionResult> GetDeployments(string labelSelector, string fieldSelector)
+    [ProducesResponseType(typeof(IReadOnlyList<Deployment>), StatusCodes.Status200OK, "application/json")]
+    public async Task<ActionResult> GetDeployments(
+        [FromQuery] string? labelSelector = null,
+        [FromQuery] string? fieldSelector = null
+    )
     {
         var deployments = await apiWrapper.GetDeployedResources(
-            Models.ResourceType.Deployment,
-            null,
-            null,
-            fieldSelector,
-            labelSelector
+            resourceType: ResourceType.Deployment,
+            fieldSelector: fieldSelector,
+            labelSelector: labelSelector
         );
         return Ok(deployments);
     }
