@@ -119,7 +119,7 @@ export const addXsdFromRepo = (org: string, app: string, modelPath: string) => p
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
 export const copyApp = (org: string, app: string, newRepoName: string, newOrg: string) => post(copyAppPath(org, app, newRepoName, newOrg));
 export const createDataModel = (org: string, app: string, payload: CreateDataModelPayload) => post<JsonSchema, CreateDataModelPayload>(createDataModelPath(org, app), payload);
-export const createDeployment = (org: string, app: string, publishServiceResource: boolean, payload: CreateDeploymentPayload) => post<PipelineDeployment, CreateDeploymentPayload>(deploymentsPath(org, app, publishServiceResource), payload);
+export const createDeployment = (org: string, app: string, payload: CreateDeploymentPayload) => post<PipelineDeployment, CreateDeploymentPayload>(deploymentsPath(org, app), payload);
 export const undeployAppFromEnv = (org: string, app: string, environment: string) => post(undeployAppFromEnvPath(org, app), { environment });
 export const createRelease = (org: string, app: string, payload: CreateReleasePayload) => post<void, CreateReleasePayload>(releasesPath(org, app), payload);
 export const createRepoCommit = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPath(org, app), payload, { headers });

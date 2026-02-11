@@ -100,8 +100,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<DeploymentEntity> CreateAsync(
             AltinnAuthenticatedRepoEditingContext authenticatedContext,
-            DeploymentModel deployment,
-            bool publishServiceResource = false
+            DeploymentModel deployment
         )
         {
             var traceContext = GetCurrentTraceContext();
@@ -124,8 +123,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 authenticatedContext.Org,
                 authenticatedContext.Repo,
                 release.TargetCommitish,
-                deployment.EnvName,
-                publishServiceResource
+                deployment.EnvName
             );
 
             bool shouldPushSyncRootImage = false;

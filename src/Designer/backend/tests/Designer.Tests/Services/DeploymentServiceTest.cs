@@ -103,7 +103,6 @@ namespace Designer.Tests.Services
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<bool>(),
                         It.IsAny<CancellationToken>()
                     )
                 )
@@ -183,7 +182,6 @@ namespace Designer.Tests.Services
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<bool>(),
                         It.IsAny<CancellationToken>()
                     ),
                 Times.Once
@@ -217,32 +215,45 @@ namespace Designer.Tests.Services
             const string App = "test-app";
             DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
 
-            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
+            _featureManager
+                .Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
                 .ReturnsAsync(false);
 
-            _releaseRepository.Setup(r => r.GetSucceededReleaseFromDb(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>())).ReturnsAsync(GetReleases("updatedRelease.json").First());
+            _releaseRepository
+                .Setup(r =>
+                    r.GetSucceededReleaseFromDb(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()
+                    )
+                )
+                .ReturnsAsync(GetReleases("updatedRelease.json").First());
 
-            _applicationInformationService.Setup(ais => ais.UpdateApplicationInformationAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<bool>(),
-                It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+            _applicationInformationService
+                .Setup(ais =>
+                    ais.UpdateApplicationInformationAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .Returns(Task.CompletedTask);
 
-            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(
-                It.IsAny<QueueBuildParameters>(),
-                It.IsAny<int>())).ReturnsAsync(GetBuild());
+            _azureDevOpsBuildClient
+                .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()))
+                .ReturnsAsync(GetBuild());
 
-            _deploymentRepository.Setup(r => r.Create(
-                It.IsAny<DeploymentEntity>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
-            _deploymentRepository.Setup(r => r.Get(
-                Org,
-                App,
-                It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == Org && d.App == App));
+            _deploymentRepository
+                .Setup(r => r.Create(It.IsAny<DeploymentEntity>()))
+                .ReturnsAsync(GetDeployments("createdDeployment.json").First());
+            _deploymentRepository
+                .Setup(r => r.Get(Org, App, It.IsAny<DocumentQueryModel>()))
+                .ReturnsAsync(
+                    GetDeployments("createdDeployment.json")
+                        .Where(d => d.Org == Org && d.App == App)
+                );
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -261,9 +272,16 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _alertsSettings);
+                _alertsSettings
+            );
 
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(Org, App, "testUser", "dummyToken");
+            AltinnAuthenticatedRepoEditingContext authenticatedContext =
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
+                    Org,
+                    App,
+                    "testUser",
+                    "dummyToken"
+                );
             using var activity = new Activity("test-create");
             activity.SetIdFormat(ActivityIdFormat.W3C);
             activity.Start();
@@ -392,7 +410,6 @@ namespace Designer.Tests.Services
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<bool>(),
                         It.IsAny<CancellationToken>()
                     )
                 )
@@ -550,7 +567,6 @@ namespace Designer.Tests.Services
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<bool>(),
                         It.IsAny<CancellationToken>()
                     )
                 )
@@ -690,7 +706,6 @@ namespace Designer.Tests.Services
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<bool>(),
                         It.IsAny<CancellationToken>()
                     )
                 )
