@@ -26,7 +26,7 @@ public static class UpgradeCommand
             projectFolderOption,
             FrontendUpgrade.GetUpgradeCommand(projectFolderOption),
             BackendUpgrade.GetUpgradeCommand(projectFolderOption),
-            NextUpgrade.GetUpgradeCommand(projectFolderOption),
+            V8Tov10Upgrade.GetUpgradeCommand(projectFolderOption),
         };
         return upgradeCommand;
     }

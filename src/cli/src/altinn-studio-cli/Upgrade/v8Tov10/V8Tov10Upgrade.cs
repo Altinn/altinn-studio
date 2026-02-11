@@ -9,15 +9,15 @@ using Altinn.Studio.Cli.Upgrade.v8Tov10.RuleConfiguration.DataProcessingRules;
 namespace Altinn.Studio.Cli.Upgrade.v8Tov10;
 
 /// <summary>
-/// Defines the upgrade command for upgrading both backend and frontend to the next version
+/// Defines the upgrade command for upgrading both backend and frontend from v8 to v10
 /// </summary>
-internal static class NextUpgrade
+internal static class V8Tov10Upgrade
 {
     /// <summary>
-    /// Get the next upgrade command
+    /// Get the v8Tov10 upgrade command
     /// </summary>
     /// <param name="projectFolderOption">Option for setting the root folder of the project</param>
-    /// <returns>The command for upgrading to the next version</returns>
+    /// <returns>The command for upgrading from v8 to v10</returns>
     public static Command GetUpgradeCommand(Option<string> projectFolderOption)
     {
         var projectFileOption = new Option<string>("--project")
@@ -36,9 +36,9 @@ internal static class NextUpgrade
             DefaultValueFactory = _ => false,
         };
 
-        var upgradeCommand = new Command("next")
+        var upgradeCommand = new Command("v8Tov10")
         {
-            Description = "Upgrade an app to the next version (both backend and frontend)",
+            Description = "Upgrade an app from v8 to v10 (both backend and frontend)",
         };
         upgradeCommand.Add(projectFolderOption);
         upgradeCommand.Add(projectFileOption);
@@ -99,7 +99,7 @@ internal static class NextUpgrade
                 if (!projectChecks.SupportedSourceVersion())
                 {
                     ExitWithError(
-                        $"Version(s) in project file {projectFile} are not supported for the 'next' upgrade. "
+                        $"Version(s) in project file {projectFile} are not supported for the 'v8Tov10' upgrade. "
                             + $"This upgrade is for apps on version 8.x.x. "
                             + $"Please ensure both Altinn.App.Core and Altinn.App.Api are version 8.0.0 or higher (but below 9.0.0).",
                         exitCode: 2

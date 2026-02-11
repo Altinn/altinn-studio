@@ -3,7 +3,7 @@ using System.Xml.Linq;
 namespace Altinn.Studio.Cli.Upgrade.v8Tov10.ProjectChecks;
 
 /// <summary>
-/// Checks the project file for unsupported versions for the 'next' upgrade
+/// Checks the project file for unsupported versions for the 'v8Tov10' upgrade
 /// </summary>
 internal sealed class ProjectChecks
 {
@@ -21,7 +21,7 @@ internal sealed class ProjectChecks
 
     /// <summary>
     /// Verifies that the project is using supported versions of Altinn.App.Api and Altinn.App.Core
-    /// for the 'next' upgrade. Accepts versions &gt;= 8.0.0 and &lt; 9.0.0.
+    /// for the 'v8Tov10' upgrade. Accepts versions &gt;= 8.0.0 and &lt; 9.0.0.
     /// </summary>
     /// <returns>True if both packages are present and in the supported version range, false otherwise</returns>
     public bool SupportedSourceVersion()
