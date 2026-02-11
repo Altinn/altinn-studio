@@ -268,6 +268,8 @@ public class HomeController : Controller
             return null;
         }
 
-        return application.DataTypes.Find(d => d.Id == folderSettings.DefaultDataType);
+        return application.DataTypes.Find(d => d.Id == folderSettings.DefaultDataType)
+            ?? application.DataTypes.Find(d => d.TaskId == onEntryFolderId && d.AppLogic?.ClassRef is not null)
+            ?? application.DataTypes.Find(d => d.AppLogic?.ClassRef is not null);
     }
 }
