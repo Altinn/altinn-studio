@@ -33,6 +33,7 @@
 .warningIcon {
   font-size: var(--ds-size-8);
 }
+
 .messageWarning {
   margin-top: var(--ds-size-8);
   color: var(--ds-color-warning-border-default);
