@@ -19,4 +19,9 @@
     <Using Include="Xunit"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../src/WorkflowEngine.Data/WorkflowEngine.Data.csproj" />
+    <ProjectReference Include="../../src/WorkflowEngine.Models/WorkflowEngine.Models.csproj" />
+  </ItemGroup>
+
 </Project>

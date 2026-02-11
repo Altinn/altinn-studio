@@ -2,36 +2,37 @@ namespace WorkflowEngine.Models.Tests;
 
 public class StepTests
 {
+    private static Command.AppCommand _randomAppCommand => new(Guid.NewGuid().ToString());
+    private static Actor _randomActor => new() { UserIdOrOrgNumber = Guid.NewGuid().ToString() };
+
     [Fact]
     public void Equality_Uses_IdempotencyKey()
     {
         // Arrange
-        var getRandomAppCommand = () => new Command.AppCommand(Guid.NewGuid().ToString());
-        var getRandomActor = () => new Actor { UserIdOrOrgNumber = Guid.NewGuid().ToString() };
 
         var sharedKey1 = new Step
         {
             IdempotencyKey = "shared-idempotency-key",
             OperationId = "step-1-command",
-            Actor = getRandomActor(),
+            Actor = _randomActor,
             ProcessingOrder = 0,
-            Command = getRandomAppCommand(),
+            Command = _randomAppCommand,
         };
         var sharedKey2 = new Step
         {
             IdempotencyKey = "shared-idempotency-key",
             OperationId = "step-2-command",
-            Actor = getRandomActor(),
+            Actor = _randomActor,
             ProcessingOrder = 0,
-            Command = getRandomAppCommand(),
+            Command = _randomAppCommand,
         };
         var uniqueKey = new Step
         {
             IdempotencyKey = "unique-idempotency-key",
             OperationId = "step-3-command",
-            Actor = getRandomActor(),
+            Actor = _randomActor,
             ProcessingOrder = 0,
-            Command = getRandomAppCommand(),
+            Command = _randomAppCommand,
         };
 
         // Act

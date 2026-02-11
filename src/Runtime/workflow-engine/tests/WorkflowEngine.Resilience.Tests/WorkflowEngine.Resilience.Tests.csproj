@@ -19,4 +19,8 @@
     <Using Include="Xunit"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../src/WorkflowEngine.Resilience/WorkflowEngine.Resilience.csproj" />
+  </ItemGroup>
+
 </Project>

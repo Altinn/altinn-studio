@@ -2,42 +2,43 @@ namespace WorkflowEngine.Models.Tests;
 
 public class WorkflowTests
 {
+    private static Actor _randomActor => new() { UserIdOrOrgNumber = Guid.NewGuid().ToString() };
+    private static InstanceInformation _randomInstance =>
+        new()
+        {
+            Org = Guid.NewGuid().ToString(),
+            App = Guid.NewGuid().ToString(),
+            InstanceOwnerPartyId = Guid.NewGuid().GetHashCode(),
+            InstanceGuid = Guid.NewGuid(),
+        };
+
     [Fact]
     public void Equality_Uses_IdempotencyKey()
     {
         // Arrange
-        var getRandomActor = () => new Actor { UserIdOrOrgNumber = Guid.NewGuid().ToString() };
-        var getRandomInstance = () =>
-            new InstanceInformation
-            {
-                Org = Guid.NewGuid().ToString(),
-                App = Guid.NewGuid().ToString(),
-                InstanceOwnerPartyId = Guid.NewGuid().GetHashCode(),
-                InstanceGuid = Guid.NewGuid(),
-            };
 
         var sharedKey1 = new Workflow
         {
             IdempotencyKey = "shared-idempotency-key",
             OperationId = "workflow-1-operation",
-            Actor = getRandomActor(),
-            InstanceInformation = getRandomInstance(),
+            Actor = _randomActor,
+            InstanceInformation = _randomInstance,
             Steps = [],
         };
         var sharedKey2 = new Workflow
         {
             IdempotencyKey = "shared-idempotency-key",
             OperationId = "workflow-2-operation",
-            Actor = getRandomActor(),
-            InstanceInformation = getRandomInstance(),
+            Actor = _randomActor,
+            InstanceInformation = _randomInstance,
             Steps = [],
         };
         var uniqueKey = new Workflow
         {
             IdempotencyKey = "unique-idempotency-key",
             OperationId = "workflow-3-operation",
-            Actor = getRandomActor(),
-            InstanceInformation = getRandomInstance(),
+            Actor = _randomActor,
+            InstanceInformation = _randomInstance,
             Steps = [],
         };
 

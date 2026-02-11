@@ -9,10 +9,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="coverlet.collector"/>
     <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+    <PackageReference Include="Moq" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/WorkflowEngine.Api/WorkflowEngine.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

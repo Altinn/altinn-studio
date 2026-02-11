@@ -7,9 +7,9 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/WorkflowEngine.Api.Tests/WorkflowEngine.Api.Tests.csproj" />
+    <Project Path="tests/WorkflowEngine.Data.Tests/WorkflowEngine.Data.Tests.csproj" />
+    <Project Path="tests/WorkflowEngine.Models.Tests/WorkflowEngine.Models.Tests.csproj" />
+    <Project Path="tests/WorkflowEngine.Resilience.Tests/WorkflowEngine.Resilience.Tests.csproj" />
   </Folder>
   <Project Path="../common/Altinn.Studio.Runtime.Common.csproj" />
-  <Project Path="tests/WorkflowEngine.Data.Tests/WorkflowEngine.Data.Tests.csproj" />
-  <Project Path="tests/WorkflowEngine.Models.Tests/WorkflowEngine.Models.Tests.csproj" />
-  <Project Path="tests/WorkflowEngine.Resilience.Tests/WorkflowEngine.Resilience.Tests.csproj" />
 </Solution>
