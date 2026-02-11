@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useMemo } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useRef } from 'react';
 import type { PropsWithChildren as ReactPropsWithChildren } from 'react';
 
 import { v4 as uuidv4 } from 'uuid';
@@ -41,6 +41,12 @@ export function FormBootstrapProvider({
     layoutSetIdOverride,
     dataElementIdOverride,
   });
+  const prevData = useRef(data);
+  const dataCounter = useRef(0);
+  if (data !== prevData.current) {
+    dataCounter.current += 1;
+    prevData.current = data;
+  }
 
   const contextValue = useMemo<FormBootstrapContextValue | null>(() => {
     if (!data) {
@@ -120,7 +126,14 @@ export function FormBootstrapProvider({
     return <DisplayError error={error ?? new Error('Failed to load form bootstrap data')} />;
   }
 
-  return <FormBootstrapContext.Provider value={contextValue}>{children}</FormBootstrapContext.Provider>;
+  return (
+    <FormBootstrapContext.Provider
+      key={dataCounter.current}
+      value={contextValue}
+    >
+      {children}
+    </FormBootstrapContext.Provider>
+  );
 }
 
 function useFormBootstrap() {
@@ -133,22 +146,6 @@ function useFormBootstrap() {
 
 function useLaxFormBootstrap() {
   return useContext(FormBootstrapContext) ?? undefined;
-}
-
-function useInitialData() {
-  const dataModels = useFormBootstrap().dataModels;
-  return useMemo(
-    () => Object.fromEntries(Object.entries(dataModels).map(([dataType, info]) => [dataType, info.initialData])),
-    [dataModels],
-  );
-}
-
-function useDataElementIds() {
-  const dataModels = useFormBootstrap().dataModels;
-  return useMemo(
-    () => Object.fromEntries(Object.entries(dataModels).map(([dataType, info]) => [dataType, info.dataElementId])),
-    [dataModels],
-  );
 }
 
 export const FormBootstrap = {
@@ -168,7 +165,13 @@ export const FormBootstrap = {
   useReadableDataTypes: () => useFormBootstrap().allDataTypes,
   useLaxReadableDataTypes: () => useLaxFormBootstrap()?.allDataTypes ?? ContextNotProvided,
   useWritableDataTypes: () => useFormBootstrap().writableDataTypes,
-  useInitialData,
+  useInitialData: () => {
+    const dataModels = useFormBootstrap().dataModels;
+    return useMemo(
+      () => Object.fromEntries(Object.entries(dataModels).map(([dataType, info]) => [dataType, info.initialData])),
+      [dataModels],
+    );
+  },
   useDataModelSchema: (dataType: string) => useFormBootstrap().dataModels[dataType]?.schemaResult,
   useSchemaLookup: () => {
     const dataModels = useFormBootstrap().dataModels;
@@ -202,7 +205,13 @@ export const FormBootstrap = {
     const dataModels = useFormBootstrap().dataModels;
     return useCallback((dataType: string) => dataModels[dataType]?.dataElementId, [dataModels]);
   },
-  useDataElementIds,
+  useDataElementIds: () => {
+    const dataModels = useFormBootstrap().dataModels;
+    return useMemo(
+      () => Object.fromEntries(Object.entries(dataModels).map(([dataType, info]) => [dataType, info.dataElementId])),
+      [dataModels],
+    );
+  },
 
   useStaticOptionsMap: () => useFormBootstrap().staticOptions,
   useInitialValidationIssues: () => useFormBootstrap().initialValidationIssues,
