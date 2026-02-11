@@ -138,6 +138,7 @@ export const NewApplicationForm = ({
           selectedTemplate={selectedTemplate}
           onChange={setSelectedTemplate}
           username={user.login}
+          organizations={organizations}
         />
       )}
       <div className={classes.actionContainer}>

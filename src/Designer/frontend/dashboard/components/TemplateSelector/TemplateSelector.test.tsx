@@ -26,6 +26,25 @@ describe('TemplateSelector', () => {
     renderTemplateSelector({}, { queryClient });
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
+
+  it('should render TemplateSelectorContent when templates are available', async () => {
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData(
+      [QueryKey.CustomTemplates, 'testuser'],
+      [
+        {
+          id: 'template1',
+          name: 'Template One',
+          description: 'Description One',
+          owner: 'owner1',
+        },
+      ],
+    );
+    renderTemplateSelector({}, { queryClient });
+    expect(
+      await screen.findByText(textMock('dashboard.new_application_form.select_templates')),
+    ).toBeInTheDocument();
+  });
 });
 
 function renderTemplateSelector(
@@ -36,6 +55,7 @@ function renderTemplateSelector(
     selectedTemplate: null,
     onChange: jest.fn(),
     username: 'testuser',
+    organizations: [],
   };
 
   const defaultProviderData: ProviderData = {
