@@ -1,7 +1,7 @@
 using System.CommandLine;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.BackendUpgrade;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.FrontendUpgrade;
-using Altinn.Studio.Cli.Upgrade.Next;
+using Altinn.Studio.Cli.Upgrade.v8Tov10;
 
 namespace Altinn.Studio.Cli.Upgrade;
 
