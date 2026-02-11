@@ -45,6 +45,9 @@ partial class Telemetry
 
     internal Activity? StartGetLayoutModelActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayoutModel");
 
+    internal Activity? StartGetUiConfigurationActivity() =>
+        ActivitySource.StartActivity($"{Prefix}.GetUiConfiguration");
+
     internal Activity? StartGetClassRefActivity() => ActivitySource.StartActivity($"{Prefix}.GetClassRef");
 
     internal Activity? StartClientGetApplicationXACMLPolicyActivity() =>

@@ -4,7 +4,7 @@ import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
-import { getLayoutSets } from 'src/features/form/layoutSets';
+import { getUiFolders } from 'src/features/form/layoutSets';
 import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -16,7 +16,7 @@ interface RenderProps extends Omit<Partial<RenderGenericComponentTestProps<'Navi
   currentPageId?: 'layout1' | 'layout2';
 }
 
-jest.mocked(getLayoutSets).mockReturnValue([{ dataType: 'test-data-model', id: 'message', tasks: ['Task_1'] }]);
+jest.mocked(getUiFolders).mockReturnValue({ Task_1: { defaultDataType: 'test-data-model' } });
 
 describe('NavigationButtons', () => {
   const navButton1: CompNavigationButtonsExternal = {

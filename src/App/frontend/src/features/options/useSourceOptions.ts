@@ -99,7 +99,7 @@ function useGroupReference(source: IOptionSource | undefined): IDataModelReferen
 
   const { group, dataType } = source;
   const cleanGroup = getKeyWithoutIndexIndicators(group);
-  const groupDataType = dataType ?? currentLayoutSet?.dataType;
+  const groupDataType = dataType ?? currentLayoutSet?.defaultDataType;
   if (!groupDataType) {
     return undefined;
   }

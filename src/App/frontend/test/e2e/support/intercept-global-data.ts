@@ -17,7 +17,7 @@ type GlobalDataModifier = (globalData: AltinnAppGlobalData) => void;
  * @example
  * // Set up instance selection
  * interceptAltinnAppGlobalData((metadata) => {
- *   metadata.layoutSets.sets = []
+ *   metadata.ui.folders = {}
  * });
  */
 export function interceptAltinnAppGlobalData(

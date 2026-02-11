@@ -1,7 +1,7 @@
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useIsStateless } from 'src/features/applicationMetadata';
-import { getLayoutSets } from 'src/features/form/layoutSets';
+import { getUiFolders } from 'src/features/form/layoutSets';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { fetchProcessState } from 'src/queries/queries';
@@ -61,7 +61,7 @@ export function useTaskTypeFromBackend() {
 export function useGetTaskTypeById() {
   const { data: processData } = useProcessQuery();
   const isStateless = useIsStateless();
-  const layoutSets = getLayoutSets();
+  const uiFolders = getUiFolders();
 
   return (taskId: string | undefined) => {
     const task =
@@ -69,7 +69,7 @@ export function useGetTaskTypeById() {
         ? processData?.currentTask
         : undefined;
 
-    if (isStateless || taskId === TaskKeys.CustomReceipt || behavesLikeDataTask(taskId, layoutSets)) {
+    if (isStateless || taskId === TaskKeys.CustomReceipt || behavesLikeDataTask(taskId, uiFolders)) {
       // Stateless apps only have data tasks. As soon as they start creating an instance from that stateless step,
       // applicationMetadata.isStatelessApp will return false and we'll proceed as normal.
       return ProcessTaskType.Data;

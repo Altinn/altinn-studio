@@ -1,11 +1,16 @@
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
-import { getLayoutSets } from 'src/features/form/layoutSets';
+import { getUiFolders } from 'src/features/form/layoutSets';
 import { getCurrentDataTypeForApplication } from 'src/features/instance/instanceUtils';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { getLayoutSetForDataElement } from 'src/utils/layout';
-import type { ILayoutSet } from 'src/features/form/layoutSets/types';
+import { getUiFolderIdForDataElement } from 'src/utils/layout';
+import type { UiFolders } from 'src/features/form/layoutSets/types';
+
+type UiFolder = {
+  id: string;
+  defaultDataType?: string;
+};
 
 /**
  * This is a variant that prefers the taskId from the URL. The alternative useCurrentLayoutSetId() and
@@ -22,17 +27,17 @@ export function useCurrentLayoutSetId(taskId?: string) {
 }
 
 export function useCurrentLayoutSet(_taskId?: string) {
-  const layoutSets = getLayoutSets();
+  const uiFolders = getUiFolders();
   const processTaskId = useProcessTaskId();
   const isStateless = useIsStateless();
   const taskId = _taskId ?? processTaskId;
   const overriddenLayoutSetId = useTaskOverrides()?.layoutSetId;
 
   if (overriddenLayoutSetId) {
-    return layoutSets.find((set) => set.id === overriddenLayoutSetId);
+    return toUiFolder(overriddenLayoutSetId, uiFolders);
   }
 
-  return getCurrentLayoutSet({ isStateless, layoutSets, taskId });
+  return getCurrentLayoutSet({ isStateless, uiFolders, taskId });
 }
 
 /**
@@ -40,19 +45,32 @@ export function useCurrentLayoutSet(_taskId?: string) {
  */
 export function getCurrentLayoutSet({
   isStateless,
-  layoutSets,
+  uiFolders,
   taskId,
 }: {
   isStateless: boolean;
-  layoutSets: ILayoutSet[];
+  uiFolders: UiFolders;
   taskId: string | undefined;
-}) {
+}): UiFolder | undefined {
   const appMetadata = getApplicationMetadata();
   if (isStateless) {
     // We have a stateless app with a layout set
-    return layoutSets.find((set) => set.id === appMetadata.onEntry.show);
+    return toUiFolder(appMetadata.onEntry.show, uiFolders);
   }
 
-  const dataType = getCurrentDataTypeForApplication({ isStateless, layoutSets, taskId });
-  return getLayoutSetForDataElement(taskId, dataType, layoutSets);
+  const dataType = getCurrentDataTypeForApplication({ isStateless, uiFolders, taskId });
+  const uiFolderId = getUiFolderIdForDataElement(taskId, dataType, uiFolders);
+  return toUiFolder(uiFolderId, uiFolders);
+}
+
+function toUiFolder(id: string | undefined, uiFolders: UiFolders): UiFolder | undefined {
+  if (!id) {
+    return undefined;
+  }
+  const settings = uiFolders[id];
+  if (!settings) {
+    return undefined;
+  }
+
+  return { id, defaultDataType: settings.defaultDataType };
 }

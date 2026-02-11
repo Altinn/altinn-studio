@@ -11,7 +11,7 @@ import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { quirks } from 'src/features/form/layout/quirks';
-import { getGlobalUiSettings, getLayoutSets } from 'src/features/form/layoutSets';
+import { getGlobalUiSettings, getUiFolders } from 'src/features/form/layoutSets';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
@@ -143,7 +143,11 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
     window.app = app;
 
     jest.mocked(getApplicationMetadata).mockImplementation(() => set.app.getAppMetadata());
-    jest.mocked(getLayoutSets).mockReturnValue(set.app.getRawLayoutSets().sets);
+    jest
+      .mocked(getUiFolders)
+      .mockReturnValue(
+        Object.fromEntries(set.app.getRawLayoutSets().sets.map((s) => [s.id, { defaultDataType: s.dataType }])),
+      );
     // Real apps have backend-populated uiSettings, cast to GlobalPageSettings
     jest.mocked(getGlobalUiSettings).mockReturnValue(set.app.getRawLayoutSets().uiSettings as GlobalPageSettings);
     jest.mocked(fetchProcessState).mockImplementation(async () => mainSet.simulateProcessData());

@@ -1,20 +1,20 @@
-import { ILayoutSet } from 'src/features/form/layoutSets/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
+import type { UiFolders } from 'src/features/form/layoutSets/types';
 
 describe('behavesLikeDataTask', () => {
-  const layoutSets: ILayoutSet[] = [
-    { id: 'set_1', dataType: 'SomeType', tasks: ['Task_1'] },
-    { id: 'set_2', dataType: 'SomeType', tasks: ['Task_2'] },
-  ];
+  const uiFolders: UiFolders = {
+    Task_1: { defaultDataType: 'SomeType' },
+    Task_2: { defaultDataType: 'SomeType' },
+  };
   it('should return true if a given task has configured a layout set', () => {
     const task = 'Task_1';
-    const result = behavesLikeDataTask(task, layoutSets);
+    const result = behavesLikeDataTask(task, uiFolders);
     expect(result).toBe(true);
   });
 
   it('should return false if a given task is not configured as a layout set', () => {
     const task = 'Task_3';
-    const result = behavesLikeDataTask(task, layoutSets);
+    const result = behavesLikeDataTask(task, uiFolders);
     expect(result).toBe(false);
   });
 });

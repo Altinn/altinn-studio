@@ -253,36 +253,53 @@ public class AppResourcesSI : IAppResources
     public string? GetLayoutSetsString()
     {
         using var activity = _telemetry?.StartGetLayoutSetsActivity();
-        string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.LayoutSetsFileName);
-        string? filedata = null;
-        if (File.Exists(filename))
-        {
-            filedata = File.ReadAllText(filename, Encoding.UTF8);
-        }
-#nullable disable
-        return filedata;
-#nullable restore
+        var layoutSets = GetLayoutSets();
+        return layoutSets is null ? null : System.Text.Json.JsonSerializer.Serialize(layoutSets);
     }
 
     /// <inheritdoc />
     public LayoutSets? GetLayoutSets()
     {
         using var activity = _telemetry?.StartGetLayoutSetActivity();
-        string? layoutSetsString = GetLayoutSetsString();
-        if (layoutSetsString is not null)
+        var ui = GetUiConfiguration();
+        var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
+        if (ui.Folders.Count == 0)
         {
-            return System.Text.Json.JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
+            return null;
         }
 
-        return null;
+        return new LayoutSets
+        {
+            Sets =
+            [
+                .. ui.Folders.Select(folder => new LayoutSet
+                {
+                    Id = folder.Key,
+                    DataType = ResolveDataTypeForFolder(folder.Key, folder.Value, dataTypes).Id,
+                    Tasks = [folder.Key],
+                }),
+            ],
+            UiSettings = ui.Settings,
+        };
     }
 
     /// <inheritdoc />
     public LayoutSet? GetLayoutSetForTask(string taskId)
     {
         using var activity = _telemetry?.StartGetLayoutSetsForTaskActivity();
-        var sets = GetLayoutSets();
-        return sets?.Sets?.Find(s => s?.Tasks?.Contains(taskId) is true);
+        var ui = GetUiConfiguration();
+        if (!ui.Folders.TryGetValue(taskId, out var folderSettings))
+        {
+            return null;
+        }
+
+        var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
+        return new LayoutSet
+        {
+            Id = taskId,
+            DataType = ResolveDataTypeForFolder(taskId, folderSettings, dataTypes).Id,
+            Tasks = [taskId],
+        };
     }
 
     /// <inheritdoc />
@@ -313,64 +330,85 @@ public class AppResourcesSI : IAppResources
     [Obsolete("Use GetLayoutModelForTask instead")]
     public LayoutModel GetLayoutModel(string? layoutSetId = null)
     {
-        var sets = GetLayoutSets();
-        if (sets is null)
+        var ui = GetUiConfiguration();
+        if (ui.Folders.Count == 0 || string.IsNullOrEmpty(layoutSetId))
         {
             throw new InvalidOperationException("No layout set found");
         }
-        var set = sets.Sets.First(s => s.Id == layoutSetId);
 
-        if (set.Tasks != null)
-        {
-            return GetLayoutModelForTask(set.Tasks.First())
-                ?? throw new InvalidOperationException("No layout model found");
-        }
-        throw new InvalidOperationException("No tasks found in layout set");
+        return GetLayoutModelForTask(layoutSetId) ?? throw new InvalidOperationException("No layout model found");
     }
 
     /// <inheritdoc />
     public LayoutModel? GetLayoutModelForTask(string taskId)
     {
         using var activity = _telemetry?.StartGetLayoutModelActivity();
-        var layoutSets = GetLayoutSets();
-        if (layoutSets is null)
+        var ui = GetUiConfiguration();
+        if (!ui.Folders.TryGetValue(taskId, out var defaultFolderSettings))
         {
             return null;
         }
+
         var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
-
-        var layouts = layoutSets.Sets.Select(set => LoadLayout(set, dataTypes)).ToList();
-
-        var layoutSet = GetLayoutSetForTask(taskId);
-        if (layoutSet is null)
+        var defaultLayoutSet = new LayoutSet
         {
-            return null;
-        }
+            Id = taskId,
+            DataType = ResolveDataTypeForFolder(taskId, defaultFolderSettings, dataTypes).Id,
+            Tasks = [taskId],
+        };
 
-        return new LayoutModel(layouts, layoutSet);
+        var layouts = ui
+            .Folders.Select(folder => LoadLayout(folder.Key, folder.Value ?? new UiFolderSettings(), dataTypes))
+            .ToList();
+        return new LayoutModel(layouts, defaultLayoutSet);
     }
 
-    private LayoutSetComponent LoadLayout(LayoutSet layoutSet, List<DataType> dataTypes)
+    /// <inheritdoc />
+    public UiConfiguration GetUiConfiguration()
     {
-        var settings = GetLayoutSettingsForSet(layoutSet.Id);
+        using var activity = _telemetry?.StartGetUiConfigurationActivity();
+        var folders = new Dictionary<string, UiFolderSettings>(StringComparer.Ordinal);
+        var uiRoot = Path.Join(_settings.AppBasePath, _settings.UiFolder);
+
+        if (Directory.Exists(uiRoot))
+        {
+            foreach (var folderPath in Directory.GetDirectories(uiRoot))
+            {
+                var folderId = Path.GetFileName(folderPath);
+                var settings = GetUiFolderSettings(folderId);
+                if (settings is null)
+                {
+                    continue;
+                }
+
+                folders[folderId] = settings;
+            }
+        }
+
+        var globalSettings = GetGlobalUiSettings();
+        return new UiConfiguration { Folders = folders, Settings = globalSettings };
+    }
+
+    private LayoutSetComponent LoadLayout(string folderId, UiFolderSettings settings, List<DataType> dataTypes)
+    {
         var simplePageOrder = settings?.Pages?.Order;
         var groupPageOrder = settings?.Pages?.Groups?.SelectMany(g => g.Order).ToList();
         if (simplePageOrder is not null && groupPageOrder is not null)
         {
             throw new InvalidDataException(
-                $"Both $Pages.Order and $Pages.Groups fields are set for layoutSet {layoutSet.Id}"
+                $"Both $Pages.Order and $Pages.Groups fields are set for layout folder {folderId}"
             );
         }
         var order = simplePageOrder ?? groupPageOrder;
         if (order is null)
         {
             throw new InvalidDataException(
-                $"No $Pages.Order or $Pages.Groups field found for layoutSet {layoutSet.Id}"
+                $"No $Pages.Order or $Pages.Groups field found for layout folder {folderId}"
             );
         }
 
         var pages = new List<PageComponent>();
-        string folder = Path.Join(_settings.AppBasePath, _settings.UiFolder, layoutSet.Id, "layouts");
+        string folder = Path.Join(_settings.AppBasePath, _settings.UiFolder, folderId, "layouts");
         foreach (var page in order)
         {
             var pagePath = Path.Join(folder, page + ".json");
@@ -380,17 +418,11 @@ public class AppResourcesSI : IAppResources
                 pageBytes,
                 new JsonDocumentOptions() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip }
             );
-            pages.Add(PageComponent.Parse(document.RootElement, page, layoutSet.Id));
+            pages.Add(PageComponent.Parse(document.RootElement, page, folderId));
         }
 
-        // First look at the specified data type, but
-        var dataType =
-            dataTypes.Find(d => d.Id == layoutSet.DataType)
-            ?? dataTypes.Find(d => d.AppLogic?.ClassRef is not null)
-            ?? throw new InvalidOperationException(
-                $"LayoutSet {layoutSet.Id} asks for dataType {layoutSet.DataType}, but it does not exist in applicationmetadata.json"
-            );
-        return new LayoutSetComponent(pages, layoutSet.Id, dataType);
+        var dataType = ResolveDataTypeForFolder(folderId, settings ?? new UiFolderSettings(), dataTypes);
+        return new LayoutSetComponent(pages, folderId, dataType);
     }
 
     /// <inheritdoc />
@@ -436,6 +468,51 @@ public class AppResourcesSI : IAppResources
         }
 
         return null;
+    }
+
+    private UiFolderSettings? GetUiFolderSettings(string folderId)
+    {
+        string filename = Path.Join(
+            _settings.AppBasePath,
+            _settings.UiFolder,
+            folderId,
+            _settings.FormLayoutSettingsFileName
+        );
+        PathHelper.EnsureLegalPath(Path.Join(_settings.AppBasePath, _settings.UiFolder), filename);
+
+        if (!File.Exists(filename))
+        {
+            return null;
+        }
+
+        var fileData = File.ReadAllText(filename, Encoding.UTF8);
+        return JsonConvert.DeserializeObject<UiFolderSettings>(fileData);
+    }
+
+    private GlobalPageSettings? GetGlobalUiSettings()
+    {
+        var settingsString = GetLayoutSettingsString();
+        if (string.IsNullOrWhiteSpace(settingsString))
+        {
+            return null;
+        }
+
+        return System.Text.Json.JsonSerializer.Deserialize<GlobalPageSettings>(settingsString, _jsonSerializerOptions);
+    }
+
+    private static DataType ResolveDataTypeForFolder(
+        string folderId,
+        UiFolderSettings settings,
+        List<DataType> dataTypes
+    )
+    {
+        var dataTypeId = settings.DefaultDataType;
+        return dataTypes.Find(d => d.Id == dataTypeId)
+            ?? dataTypes.Find(d => d.TaskId == folderId && d.AppLogic?.ClassRef is not null)
+            ?? dataTypes.Find(d => d.AppLogic?.ClassRef is not null)
+            ?? throw new InvalidOperationException(
+                $"Could not resolve data type for ui folder {folderId}. Set defaultDataType in App/ui/{folderId}/Settings.json."
+            );
     }
 
     private static byte[] ReadFileContentsFromLegalPath(string legalPath, string filePath)

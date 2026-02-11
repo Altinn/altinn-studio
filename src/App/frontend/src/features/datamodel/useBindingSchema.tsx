@@ -5,7 +5,7 @@ import type { JSONSchema7 } from 'json-schema';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { getLayoutSets } from 'src/features/form/layoutSets';
+import { getUiFolders } from 'src/features/form/layoutSets';
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId } from 'src/features/instance/instanceUtils';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
@@ -27,7 +27,7 @@ export type AsSchema<T> = {
 };
 
 export function useCurrentDataModelDataElementId() {
-  const layoutSets = getLayoutSets();
+  const uiFolders = getUiFolders();
   const taskId = useProcessTaskId();
   const isStateless = useIsStateless();
 
@@ -41,7 +41,7 @@ export function useCurrentDataModelDataElementId() {
         return overriddenDataElementId;
       }
 
-      return getCurrentTaskDataElementId({ isStateless, dataElements: data.data, taskId, layoutSets });
+      return getCurrentTaskDataElementId({ isStateless, dataElements: data.data, taskId, uiFolders });
     },
   }).data;
 }
@@ -129,7 +129,7 @@ export function useDataModelUrl({ dataType, dataElementId, language, prefillFrom
 export function useCurrentDataModelName() {
   const overriddenDataModelType = useTaskOverrides()?.dataModelType;
 
-  const layoutSets = getLayoutSets();
+  const uiFolders = getUiFolders();
   const taskId = useProcessTaskId();
   const isStateless = useIsStateless();
 
@@ -139,7 +139,7 @@ export function useCurrentDataModelName() {
 
   return getCurrentDataTypeForApplication({
     isStateless,
-    layoutSets,
+    uiFolders,
     taskId,
   });
 }

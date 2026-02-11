@@ -1,14 +1,14 @@
-import type { ILayoutSet } from 'src/features/form/layoutSets/types';
+import type { UiFolders } from 'src/features/form/layoutSets/types';
 
 /**
  * Some tasks other than data (for instance confirm, or other in the future) can be configured to behave like data steps
  * @param taskId the task element id
- * @param layoutSets the layout sets
+ * @param uiFolders bootstrapped UI folders
  */
-export function behavesLikeDataTask(taskId: string | null | undefined, layoutSets: ILayoutSet[] | null): boolean {
+export function behavesLikeDataTask(taskId: string | null | undefined, uiFolders: UiFolders | null): boolean {
   if (!taskId) {
     return false;
   }
 
-  return !!layoutSets?.some((set) => set.tasks?.includes(taskId));
+  return !!uiFolders?.[taskId];
 }

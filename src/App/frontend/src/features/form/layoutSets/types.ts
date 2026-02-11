@@ -21,13 +21,13 @@ export type NavigationTask = {
   taskId: string;
 };
 
-export type ILayoutSet = {
-  id: string;
-  dataType: string;
-  tasks?: string[];
+export type UiFolderSettings = {
+  defaultDataType?: string;
 };
 
-export type ILayoutSets = {
-  sets: ILayoutSet[];
-  uiSettings: GlobalPageSettings;
+export type AltinnUi = {
+  folders: Record<string, UiFolderSettings>;
+  settings: GlobalPageSettings;
 };
+
+export type UiFolders = AltinnUi['folders'];

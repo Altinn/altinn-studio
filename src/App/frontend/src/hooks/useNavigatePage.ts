@@ -6,7 +6,7 @@ import { SearchParams } from 'src/core/routing/types';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
-import { getLayoutSets } from 'src/features/form/layoutSets';
+import { getUiFolders } from 'src/features/form/layoutSets';
 import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
@@ -153,7 +153,7 @@ export function useNavigateToTask() {
   const navigate = useOurNavigate();
   const navParams = useAllNavigationParamsAsRef();
   const queryKeysRef = useAsRef(useLocation().search);
-  const layoutSets = getLayoutSets();
+  const uiFolders = getUiFolders();
 
   return useCallback(
     (newTaskId: string, options?: NavigateOptions & { runEffect?: boolean }) => {
@@ -165,7 +165,7 @@ export function useNavigateToTask() {
       let realTaskId = newTaskId;
       if (newTaskId === TaskKeys.ProcessEnd || newTaskId === TaskKeys.CustomReceipt) {
         // Go to the correct receipt, no matter what we're actually given
-        realTaskId = behavesLikeDataTask(TaskKeys.CustomReceipt, layoutSets)
+        realTaskId = behavesLikeDataTask(TaskKeys.CustomReceipt, uiFolders)
           ? TaskKeys.CustomReceipt
           : TaskKeys.ProcessEnd;
       }
@@ -177,7 +177,7 @@ export function useNavigateToTask() {
         runEffect ? { callback: () => focusMainContent(options), targetLocation: url, matchStart: true } : undefined,
       );
     },
-    [navParams, navigate, queryKeysRef, layoutSets],
+    [navParams, navigate, queryKeysRef, uiFolders],
   );
 }
 

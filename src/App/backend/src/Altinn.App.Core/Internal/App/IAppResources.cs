@@ -109,6 +109,11 @@ public interface IAppResources
     LayoutSets? GetLayoutSets();
 
     /// <summary>
+    /// Gets the bootstrapped ui configuration.
+    /// </summary>
+    UiConfiguration GetUiConfiguration();
+
+    /// <summary>
     /// Gets the footer layout
     /// </summary>
     /// <returns>The footer layout</returns>

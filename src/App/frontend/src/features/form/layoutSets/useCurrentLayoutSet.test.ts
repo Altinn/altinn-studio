@@ -3,9 +3,9 @@ import { jest } from '@jest/globals';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { ILayoutSet } from 'src/features/form/layoutSets/types';
 import { getCurrentLayoutSet } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { IData } from 'src/types/shared';
+import type { UiFolders } from 'src/features/form/layoutSets/types';
 
 describe('useCurrentLayoutSet.ts', () => {
   const mockedAppMetadata = getApplicationMetadataMock({
@@ -41,18 +41,14 @@ describe('useCurrentLayoutSet.ts', () => {
     } as unknown as IData,
   ];
 
-  const layoutSets: ILayoutSet[] = [
-    {
-      id: 'datamodel',
-      tasks: ['Task_1'],
-      dataType: 'Datamodel',
+  const uiFolders: UiFolders = {
+    Task_1: {
+      defaultDataType: 'Datamodel',
     },
-    {
-      id: 'stateless',
-      dataType: 'Stateless',
-      tasks: [],
+    stateless: {
+      defaultDataType: 'Stateless',
     },
-  ];
+  };
 
   describe('getCurrentLayoutSet', () => {
     it('should return correct layout set id if we have an instance', () => {
@@ -60,10 +56,10 @@ describe('useCurrentLayoutSet.ts', () => {
 
       const result = getCurrentLayoutSet({
         isStateless: false,
-        layoutSets,
+        uiFolders,
         taskId: 'Task_1',
       });
-      const expected = 'datamodel';
+      const expected = 'Task_1';
       expect(result?.id).toEqual(expected);
     });
 
@@ -74,7 +70,7 @@ describe('useCurrentLayoutSet.ts', () => {
 
       const result = getCurrentLayoutSet({
         isStateless: true,
-        layoutSets,
+        uiFolders,
         taskId: undefined,
       });
       const expected = 'stateless';

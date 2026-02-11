@@ -1,5 +1,5 @@
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { getLayoutSets } from 'src/features/form/layoutSets';
+import { getUiFolderSettings } from 'src/features/form/layoutSets';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { Validation } from 'src/features/validation/validationContext';
@@ -14,7 +14,7 @@ export function useValidateSubform(baseComponentId: string): ComponentValidation
     throw new Error(`Layoutset not found for node with id ${baseComponentId}.`);
   }
 
-  const targetType = getLayoutSets().find((set) => set.id === layoutSetName)?.dataType;
+  const targetType = getUiFolderSettings(layoutSetName)?.defaultDataType;
   if (!targetType) {
     throw new Error(`Data type not found for layout with name ${layoutSetName}`);
   }

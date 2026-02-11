@@ -21,10 +21,10 @@ internal class BootstrapGlobalResponse
     public object? Footer { get; set; }
 
     /// <summary>
-    /// Layout sets configuration.
+    /// UI configuration.
     /// </summary>
-    [JsonPropertyName("layoutSets")]
-    public required LayoutSets LayoutSets { get; set; }
+    [JsonPropertyName("ui")]
+    public required UiConfiguration Ui { get; set; }
 
     /// <summary>
     /// FrontendSettings layout configuration.

@@ -11,7 +11,7 @@ import { useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { applyLayoutQuirks } from 'src/features/form/layout/quirks';
-import { getLayoutSets } from 'src/features/form/layoutSets';
+import { getUiFolderSettings } from 'src/features/form/layoutSets';
 import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
@@ -89,8 +89,7 @@ const { Provider, useCtx, useLaxCtx } = delayedContext(() =>
 );
 
 export function useDataTypeFromLayoutSet(layoutSetName: string | undefined) {
-  const layoutSets = getLayoutSets();
-  return layoutSets.find((set) => set.id === layoutSetName)?.dataType;
+  return layoutSetName ? getUiFolderSettings(layoutSetName)?.defaultDataType : undefined;
 }
 
 const emptyLayouts: ILayouts = {};

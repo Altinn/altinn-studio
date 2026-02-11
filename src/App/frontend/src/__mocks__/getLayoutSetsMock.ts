@@ -1,23 +1,19 @@
-import type { ILayoutSet, ILayoutSets } from 'src/features/form/layoutSets/types';
+import type { AltinnUi, UiFolders } from 'src/features/form/layoutSets/types';
 
 export const defaultDataTypeMock = 'test-data-model';
 export const statelessDataTypeMock = 'stateless';
-export function getLayoutSetsMock(): ILayoutSets {
+
+type MockUiFolder = {
+  id: string;
+  defaultDataType?: string;
+};
+
+export function getLayoutSetsMock(): { sets: MockUiFolder[]; uiSettings: AltinnUi['settings'] } {
   return {
     sets: [
-      {
-        id: 'stateless',
-        dataType: statelessDataTypeMock,
-      },
-      {
-        id: 'stateless-anon',
-        dataType: 'stateless-anon',
-      },
-      {
-        id: 'some-data-task',
-        dataType: defaultDataTypeMock,
-        tasks: ['Task_1'],
-      },
+      { id: 'stateless', defaultDataType: statelessDataTypeMock },
+      { id: 'stateless-anon', defaultDataType: 'stateless-anon' },
+      { id: 'Task_1', defaultDataType: defaultDataTypeMock },
       getSubFormLayoutSetMock(),
     ],
     uiSettings: {
@@ -32,9 +28,22 @@ export function getLayoutSetsMock(): ILayoutSets {
   };
 }
 
-export function getSubFormLayoutSetMock(): ILayoutSet {
+export function getUiFoldersMock(): { folders: UiFolders; uiSettings: AltinnUi['settings'] } {
+  const layoutSets = getLayoutSetsMock();
   return {
-    id: 'subform-layout',
-    dataType: 'subform-data',
+    folders: Object.fromEntries(layoutSets.sets.map((set) => [set.id, { defaultDataType: set.defaultDataType }])),
+    uiSettings: layoutSets.uiSettings,
+  };
+}
+
+export function getSubFormLayoutSetMock(): MockUiFolder {
+  return { id: 'subform-layout', defaultDataType: 'subform-data' };
+}
+
+export function getUiMock(): AltinnUi {
+  const ui = getUiFoldersMock();
+  return {
+    folders: ui.folders,
+    settings: ui.uiSettings,
   };
 }

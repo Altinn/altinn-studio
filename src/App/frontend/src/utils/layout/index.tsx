@@ -1,17 +1,15 @@
 import { LayoutStyle } from 'src/layout/common.generated';
-import type { ILayoutSet } from 'src/features/form/layoutSets/types';
+import type { UiFolders } from 'src/features/form/layoutSets/types';
 
-export function getLayoutSetForDataElement(
+export function getUiFolderIdForDataElement(
   currentTaskId: string | undefined,
   datatype: string | undefined,
-  layoutSets: ILayoutSet[],
+  uiFolders: UiFolders,
 ) {
-  return layoutSets.find((layoutSet: ILayoutSet) => {
-    if (layoutSet.dataType !== datatype) {
-      return false;
-    }
-    return layoutSet.tasks?.some((taskId: string) => taskId === currentTaskId);
-  });
+  if (!currentTaskId || !datatype) {
+    return undefined;
+  }
+  return uiFolders[currentTaskId]?.defaultDataType === datatype ? currentTaskId : undefined;
 }
 
 export const shouldUseRowLayout = ({ layout, optionsCount }) => {

@@ -18,13 +18,6 @@ namespace Altinn.App.Api.Controllers;
 [Route("{org}/{app}")]
 public class HomeController : Controller
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
-    };
-
     private readonly IAntiforgery _antiforgery;
     private readonly PlatformSettings _platformSettings;
     private readonly IWebHostEnvironment _env;
@@ -268,16 +261,13 @@ public class HomeController : Controller
 
     private DataType? GetStatelessDataType(ApplicationMetadata application)
     {
-        string? layoutSetsString = _appResources.GetLayoutSetsString();
-
-        // Stateless apps only work with layousets
-        if (!string.IsNullOrEmpty(layoutSetsString))
+        var ui = _appResources.GetUiConfiguration();
+        var onEntryFolderId = application.OnEntry?.Show;
+        if (onEntryFolderId is null || !ui.Folders.TryGetValue(onEntryFolderId, out var folderSettings))
         {
-            LayoutSets? layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
-            string? dataTypeId = layoutSets?.Sets?.Find(set => set.Id == application.OnEntry?.Show)?.DataType;
-            return application.DataTypes.Find(d => d.Id == dataTypeId);
+            return null;
         }
 
-        return null;
+        return application.DataTypes.Find(d => d.Id == folderSettings.DefaultDataType);
     }
 }

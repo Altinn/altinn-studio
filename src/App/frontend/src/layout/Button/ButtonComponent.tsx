@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from 'src/app-components/Button/Button';
 import { useAttachmentState } from 'src/features/attachments/hooks';
 import { useSetReturnToView } from 'src/features/form/layout/PageNavigationContext';
-import { getLayoutSets } from 'src/features/form/layoutSets';
+import { getUiFolders } from 'src/features/form/layoutSets';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useProcessQuery, useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
@@ -56,10 +56,10 @@ export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFro
   }
 
   function submitTask() {
-    const layoutSets = getLayoutSets();
+    const uiFolders = getUiFolders();
 
     setReturnToView?.(undefined);
-    if (currentTaskType === ProcessTaskType.Data || behavesLikeDataTask(currentTask?.elementId, layoutSets)) {
+    if (currentTaskType === ProcessTaskType.Data || behavesLikeDataTask(currentTask?.elementId, uiFolders)) {
       processNext();
     } else if (currentTaskType === ProcessTaskType.Confirm) {
       processConfirm();

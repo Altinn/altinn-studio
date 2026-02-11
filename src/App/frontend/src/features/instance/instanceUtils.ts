@@ -1,5 +1,5 @@
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import type { ILayoutSet } from 'src/features/form/layoutSets/types';
+import type { UiFolders } from 'src/features/form/layoutSets/types';
 import type { IData, IInstance } from 'src/types/shared';
 
 // Even though the process state is part of the instance data we fetch from the server, we don't want to expose it
@@ -12,7 +12,7 @@ export function removeProcessFromInstance(instance: IInstance & { process?: unkn
 
 interface CommonProps {
   isStateless: boolean;
-  layoutSets: ILayoutSet[];
+  uiFolders: UiFolders;
   taskId: string | undefined;
 }
 interface GetCurrentTaskDataElementIdProps extends CommonProps {
@@ -40,11 +40,11 @@ export function getFirstDataElementId(dataElements: IData[], dataType: string) {
 /**
  * Get the current data type for the application
  */
-export function getCurrentDataTypeForApplication({ isStateless, layoutSets, taskId }: CommonProps): string | undefined {
+export function getCurrentDataTypeForApplication({ isStateless, uiFolders, taskId }: CommonProps): string | undefined {
   const showOnEntry = getApplicationMetadata().onEntry.show;
   if (isStateless) {
     // we have a stateless app with a layout set
-    return getDataTypeByLayoutSetId({ layoutSetId: showOnEntry, layoutSets });
+    return getDataTypeByUiFolderId({ uiFolderId: showOnEntry, uiFolders });
   }
 
   // Instance - get data element based on current process step
@@ -52,30 +52,25 @@ export function getCurrentDataTypeForApplication({ isStateless, layoutSets, task
     return undefined;
   }
 
-  return getDataTypeByTaskId({ taskId, layoutSets });
+  return getDataTypeByTaskId({ taskId, uiFolders });
 }
 
 interface GetDataTypeByTaskIdProps {
   taskId: string | undefined;
-  layoutSets: ILayoutSet[];
+  uiFolders: UiFolders;
 }
 
-export function getDataTypeByTaskId({ taskId, layoutSets }: GetDataTypeByTaskIdProps) {
+export function getDataTypeByTaskId({ taskId, uiFolders }: GetDataTypeByTaskIdProps) {
   const application = getApplicationMetadata();
   if (!taskId) {
     return undefined;
   }
 
-  const typeFromLayoutSet = layoutSets.find((set) => {
-    if (set.tasks?.length) {
-      return set.tasks.includes(taskId);
-    }
-    return false;
-  })?.dataType;
+  const typeFromLayoutSet = uiFolders[taskId]?.defaultDataType;
   const foundInMetaData = application?.dataTypes.find((element) => element.id === typeFromLayoutSet);
   if (typeFromLayoutSet && !foundInMetaData) {
     window.logError(
-      `Could not find data type '${typeFromLayoutSet}' from layout-set configuration in application metadata`,
+      `Could not find data type '${typeFromLayoutSet}' from ui folder configuration in application metadata`,
     );
   }
   if (typeFromLayoutSet && foundInMetaData) {
@@ -94,13 +89,13 @@ export function getDataTypeByTaskId({ taskId, layoutSets }: GetDataTypeByTaskIdP
 }
 
 interface GetDataTypeByLayoutSetIdProps {
-  layoutSetId: string | undefined;
-  layoutSets: ILayoutSet[];
+  uiFolderId: string | undefined;
+  uiFolders: UiFolders;
 }
 
-export function getDataTypeByLayoutSetId({ layoutSetId, layoutSets }: GetDataTypeByLayoutSetIdProps) {
+export function getDataTypeByUiFolderId({ uiFolderId, uiFolders }: GetDataTypeByLayoutSetIdProps) {
   const appMetaData = getApplicationMetadata();
-  const typeFromLayoutSet = layoutSets.find((set) => set.id === layoutSetId)?.dataType;
+  const typeFromLayoutSet = uiFolderId ? uiFolders[uiFolderId]?.defaultDataType : undefined;
   if (typeFromLayoutSet && appMetaData?.dataTypes.find((element) => element.id === typeFromLayoutSet)) {
     return typeFromLayoutSet;
   }

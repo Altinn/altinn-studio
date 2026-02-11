@@ -98,7 +98,7 @@ describe('readonly data models', () => {
 
     // Test with autoSaveBehavior onChangePage in order to test that requestManualSave works as expected
     interceptAltinnAppGlobalData((globalData) => {
-      globalData.layoutSets.uiSettings.autoSaveBehavior = 'onChangePage';
+      globalData.ui.settings.autoSaveBehavior = 'onChangePage';
     });
     cy.reloadAndWait();
 

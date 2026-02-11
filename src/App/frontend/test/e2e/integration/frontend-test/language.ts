@@ -8,7 +8,7 @@ function interceptLanguageFeatures({ lang }: { lang?: string | null }) {
     if (lang !== undefined && globalData.userProfile) {
       globalData.userProfile.profileSettingPreference.language = lang;
     }
-    globalData.layoutSets.uiSettings.showLanguageSelector = true;
+    globalData.ui.settings.showLanguageSelector = true;
   });
 }
 

@@ -21,7 +21,7 @@ import {
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
-import { getLayoutSets } from 'src/features/form/layoutSets';
+import { getUiFolders } from 'src/features/form/layoutSets';
 import { resourcesAsMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
@@ -311,9 +311,11 @@ describe('Expressions shared function tests', () => {
       }
 
       jest.mocked(getApplicationMetadata).mockReturnValue(applicationMetadata);
-      jest
-        .mocked(getLayoutSets)
-        .mockReturnValue([{ id: 'layout-set', dataType: 'default', tasks: ['Task_1'] }, getSubFormLayoutSetMock()]);
+      jest.mocked(getUiFolders).mockReturnValue({
+        'layout-set': { defaultDataType: 'default' },
+        Task_1: { defaultDataType: 'default' },
+        [getSubFormLayoutSetMock().id]: { defaultDataType: getSubFormLayoutSetMock().defaultDataType },
+      });
       jest.mocked(useIsStateless).mockImplementation(() => stateless ?? false);
       jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
       jest.mocked(fetchProcessState).mockImplementation(async () => process ?? getProcessDataMock());

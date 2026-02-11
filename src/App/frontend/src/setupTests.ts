@@ -18,7 +18,7 @@ import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettings
 import { getFooterLayoutMock } from 'src/__mocks__/getFooterLayoutMock';
 // Importing CSS for jest-preview to look nicer
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getLayoutSetsMock, getUiFoldersMock, getUiMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { getTextResourceMapMock, getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
@@ -80,7 +80,7 @@ window.altinnAppGlobalData = {
   applicationMetadata: getApplicationMetadataMock(),
   frontendSettings: getApplicationSettingsMock(),
   footer: getFooterLayoutMock(),
-  layoutSets: getLayoutSetsMock(),
+  ui: getUiMock(),
   availableLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
   textResources: { language: 'en', resources: getTextResourcesMock() },
 };
@@ -137,7 +137,8 @@ jest.mock('src/features/applicationMetadata', () => ({
 jest.mock('src/features/form/layoutSets', () => ({
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   ...jest.requireActual<typeof import('src/features/form/layoutSets')>('src/features/form/layoutSets'),
-  getLayoutSets: jest.fn(() => getLayoutSetsMock().sets),
+  getUiFolders: jest.fn(() => getUiFoldersMock().folders),
+  getUiFolderSettings: jest.fn((id: string) => getUiFoldersMock().folders[id]),
   getGlobalUiSettings: jest.fn(() => getLayoutSetsMock().uiSettings),
 }));
 
