@@ -8,6 +8,7 @@ import { Task } from 'nextsrc/features/form/pages/task/task';
 import { taskLoader } from 'nextsrc/features/form/pages/task/taskLoader';
 import { entryRedirectLoader } from 'nextsrc/features/instantiate/loaders/entryRedirectLoader';
 import { ErrorPage } from 'nextsrc/features/instantiate/pages/error/ErrorPage';
+import { instanceLoader } from 'nextsrc/features/instantiate/pages/instance/instanceLoader';
 import { InstancePage } from 'nextsrc/features/instantiate/pages/instance/InstancePage';
 import { InstanceSelectionPage } from 'nextsrc/features/instantiate/pages/instance-selection/InstanceSelectionPage';
 import { PartySelectionPage } from 'nextsrc/features/instantiate/pages/party-selection/PartySelectionPage';
@@ -18,7 +19,7 @@ import { routes } from 'nextsrc/routesBuilder';
 export const router = createBrowserRouter(
   [
     { path: routes.root, loader: entryRedirectLoader(queryClient), errorElement: <ErrorPage /> },
-    { path: routes.instance, element: <InstancePage /> },
+    { path: routes.instance, element: <InstancePage />, loader: instanceLoader },
     { path: routes.instanceSelection, element: <InstanceSelectionPage /> },
     { path: routes.partySelection, element: <PartySelectionPage /> },
     { path: routes.stateless, element: <StatelessPage /> },
