@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { TemplateSelector, type TemplateSelectorProps } from './TemplateSelector';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
@@ -63,6 +63,8 @@ describe('TemplateSelector', () => {
 
     const optgroups = await screen.findAllByRole('group');
     expect(optgroups).toHaveLength(2);
+    expect(within(optgroups[0]).getAllByRole('option')).toHaveLength(2); // 2 templates for owner1
+    expect(within(optgroups[1]).getAllByRole('option')).toHaveLength(1); // 1 template for owner2
     expect(optgroups[0]).toHaveAttribute('label', 'Organization One');
     expect(optgroups[1]).toHaveAttribute('label', 'Organization Two');
   });

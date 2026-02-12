@@ -26,7 +26,10 @@ export const TemplateSelector = ({
     onChange(selected);
   };
 
-  const groupedTemplates = groupTemplatesByOwner(availableTemplates, organizations);
+  const groupedTemplates = React.useMemo(
+    () => groupTemplatesByOwner(availableTemplates, organizations),
+    [availableTemplates, organizations],
+  );
 
   return (
     <div className={classes.templateSelectorContainer}>

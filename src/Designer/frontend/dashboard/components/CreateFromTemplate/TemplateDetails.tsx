@@ -16,7 +16,7 @@ export const TemplateDetails = ({
   owner,
 }: TemplateDetailsProps): React.ReactElement => {
   return (
-    <StudioCard variant='default' key={id}>
+    <StudioCard>
       <div className={classes.templateHeadingContainer}>
         <StudioHeading level={2} data-size='2xs' className={classes.templateName} spacing>
           {name || id}
