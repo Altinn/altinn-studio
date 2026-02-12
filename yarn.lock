@@ -3963,6 +3963,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "admin@workspace:src/Designer/frontend/admin"
   dependencies:
+    "@posthog/react": "npm:1.7.0"
     "@studio/content-library": "workspace:^"
     "@studio/feedback-form": "workspace:^"
     "@studio/hooks": "workspace:^"
@@ -3972,6 +3973,7 @@ __metadata:
     classnames: "npm:2.5.1"
     i18next: "npm:25.7.4"
     jest: "npm:29.7.0"
+    posthog-js: "npm:1.333.0"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     react-i18next: "npm:16.5.3"
