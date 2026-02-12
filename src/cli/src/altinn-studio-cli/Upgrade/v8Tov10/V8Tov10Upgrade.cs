@@ -36,7 +36,7 @@ internal static class V8Tov10Upgrade
             DefaultValueFactory = _ => false,
         };
 
-        var upgradeCommand = new Command("v8Tov10")
+        var upgradeCommand = new Command("v10")
         {
             Description = "Upgrade an app from v8 to v10 (both backend and frontend)",
         };
