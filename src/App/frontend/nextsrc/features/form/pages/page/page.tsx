@@ -24,23 +24,12 @@ export const Page = () => {
 
   return (
     <div style={{ fontFamily: 'arial' }}>
-      <h1>Intensjon:</h1>
-
-      <ol>
-        <li>Få et praktisk og bevisst forhold til opplevd kompleksitet i applikasjonslogikk</li>
-        <ol>
-          <li>Rendre repeterende gruppe</li>
-          <li>Hide empty fields in rep gruppe</li>
-          <li>(Lage summary)</li>
-        </ol>
-      </ol>
-
-      <h2>Full form data from form client:</h2>
-      <pre>{JSON.stringify(formData, null, 2)}</pre>
       <FormEngine
         data={dataElement}
         components={layout.data.layout}
       />
+      <h2>Full form data from form client:</h2>
+      <pre>{JSON.stringify(formData, null, 2)}</pre>
     </div>
   );
 };
