@@ -2,7 +2,7 @@ import React from 'react';
 import { StudioHeading, StudioParagraph } from '@studio/components';
 import classes from './ValidateNavigation.module.css';
 import { useTranslation } from 'react-i18next';
-// import { ValidationConfig } from './ValidateNavigationConfig';
+import { ValidationConfig } from './ValidateNavigationConfig';
 
 export enum Scope {
   AllTasks = 'allTasks',
@@ -30,7 +30,10 @@ export const ValidateNavigation = () => {
         <StudioParagraph>
           {t('ux_editor.settings.navigation_validation_all_tasks_description')}
         </StudioParagraph>
-        {/* <ValidationConfig propertyLabel='Lag validering' scope={Scope.AllTasks} /> */}
+        <ValidationConfig
+          propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
+          scope={Scope.AllTasks}
+        />
       </div>
       <div>
         <StudioHeading level={4} data-size='2xs'>
@@ -39,7 +42,10 @@ export const ValidateNavigation = () => {
         <StudioParagraph>
           {t('ux_editor.settings.navigation_validation_specific_task_description')}
         </StudioParagraph>
-        {/* <ValidationConfig propertyLabel='Lag en ny validering' scope={Scope.PerTask} /> */}
+        <ValidationConfig
+          propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
+          scope={Scope.PerTask}
+        />
       </div>
       <div>
         <StudioHeading level={4} data-size='2xs'>
@@ -48,7 +54,10 @@ export const ValidateNavigation = () => {
         <StudioParagraph>
           {t('ux_editor.settings.navigation_validation_specific_page_description')}
         </StudioParagraph>
-        {/* <ValidationConfig propertyLabel='Lag en ny validering' scope={Scope.PerPage} /> */}
+        <ValidationConfig
+          propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
+          scope={Scope.PerPage}
+        />
       </div>
     </div>
   );
