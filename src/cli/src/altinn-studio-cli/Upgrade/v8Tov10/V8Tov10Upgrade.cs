@@ -385,7 +385,7 @@ internal static class V8Tov10Upgrade
         try
         {
             await Console.Out.WriteLineAsync("Migrating layout-sets.json to task-folder UI settings...");
-            var migrator = new LayoutSetsToTaskUiMigrator(projectFolder);
+            using var migrator = new LayoutSetsToTaskUiMigrator(projectFolder);
             var result = migrator.Migrate();
 
             if (!result.LayoutSetsDeleted)

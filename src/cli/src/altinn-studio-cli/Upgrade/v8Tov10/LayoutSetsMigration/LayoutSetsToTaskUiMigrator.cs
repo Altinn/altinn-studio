@@ -1,15 +1,23 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using LibGit2Sharp;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov10.LayoutSetsMigration;
 
-internal sealed class LayoutSetsToTaskUiMigrator
+internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
 {
     private readonly string _projectFolder;
+    private readonly GitOperations? _git;
 
     public LayoutSetsToTaskUiMigrator(string projectFolder)
     {
         _projectFolder = projectFolder;
+        _git = GitOperations.TryCreate(projectFolder);
+    }
+
+    public void Dispose()
+    {
+        _git?.Dispose();
     }
 
     public MigrationResult Migrate()
@@ -59,12 +67,13 @@ internal sealed class LayoutSetsToTaskUiMigrator
                 {
                     if (plan.DestinationIds.Count == 1)
                     {
-                        Directory.Move(plan.SourcePath, destinationPath);
+                        MoveDirectory(plan.SourcePath, destinationPath);
                         renamedFolderCount++;
                     }
                     else
                     {
                         CopyDirectory(plan.SourcePath, destinationPath);
+                        _git?.StageDirectory(destinationPath);
                         copiedFolderCount++;
                     }
                 }
@@ -75,20 +84,23 @@ internal sealed class LayoutSetsToTaskUiMigrator
 
             if (plan.DestinationIds.Count > 1 && !plan.DestinationIds.Contains(plan.SourceId, StringComparer.Ordinal))
             {
-                Directory.Delete(plan.SourcePath, recursive: true);
+                DeleteDirectory(plan.SourcePath);
                 deletedSourceFolderCount++;
             }
         }
 
-        var uiSettingsNode = parsed["uiSettings"];
-        if (uiSettingsNode is not null)
+        var migratedGlobalSettings = false;
+        if (parsed["uiSettings"] is JsonObject { Count: > 0 } uiSettingsObject)
         {
             var globalSettingsPath = Path.Combine(uiPath, "Settings.json");
             var options = new JsonSerializerOptions { WriteIndented = true };
-            File.WriteAllText(globalSettingsPath, uiSettingsNode.ToJsonString(options));
+            File.WriteAllText(globalSettingsPath, uiSettingsObject.ToJsonString(options));
+            _git?.StageFile(globalSettingsPath);
+            migratedGlobalSettings = true;
         }
 
         File.Delete(layoutSetsPath);
+        _git?.StageRemoval(layoutSetsPath);
 
         return new MigrationResult
         {
@@ -97,8 +109,32 @@ internal sealed class LayoutSetsToTaskUiMigrator
             CopiedFolderCount = copiedFolderCount,
             RenamedFolderCount = renamedFolderCount,
             DeletedSourceFolderCount = deletedSourceFolderCount,
-            MigratedGlobalSettings = uiSettingsNode is not null,
+            MigratedGlobalSettings = migratedGlobalSettings,
         };
+    }
+
+    private void MoveDirectory(string sourcePath, string destinationPath)
+    {
+        if (_git is not null)
+        {
+            _git.MoveDirectory(sourcePath, destinationPath);
+        }
+        else
+        {
+            Directory.Move(sourcePath, destinationPath);
+        }
+    }
+
+    private void DeleteDirectory(string path)
+    {
+        if (_git is not null)
+        {
+            _git.DeleteDirectory(path);
+        }
+        else
+        {
+            Directory.Delete(path, recursive: true);
+        }
     }
 
     private static List<LayoutSetMigrationPlan> BuildPlans(string uiPath, JsonArray sets)
@@ -190,7 +226,7 @@ internal sealed class LayoutSetsToTaskUiMigrator
         return taskIds;
     }
 
-    private static void UpsertDefaultDataType(string folderPath, string? dataType)
+    private void UpsertDefaultDataType(string folderPath, string? dataType)
     {
         if (string.IsNullOrWhiteSpace(dataType))
         {
@@ -213,6 +249,7 @@ internal sealed class LayoutSetsToTaskUiMigrator
         settings["defaultDataType"] = dataType;
         var options = new JsonSerializerOptions { WriteIndented = true };
         File.WriteAllText(settingsPath, settings.ToJsonString(options));
+        _git?.StageFile(settingsPath);
     }
 
     private static void CopyDirectory(string sourceDir, string destinationDir)
@@ -248,3 +285,120 @@ internal sealed record LayoutSetMigrationPlan(
     List<string> DestinationIds,
     string? DataType
 );
+
+/// <summary>
+/// Helper class for git operations using LibGit2Sharp.
+/// Stages file changes so that moves are detected as renames by git.
+/// </summary>
+internal sealed class GitOperations : IDisposable
+{
+    private readonly Repository _repo;
+    private readonly string _repoRoot;
+
+    private GitOperations(Repository repo, string repoRoot)
+    {
+        _repo = repo;
+        _repoRoot = repoRoot;
+    }
+
+    /// <summary>
+    /// Tries to create a GitOperations instance for the given path.
+    /// Returns null if the path is not inside a git repository.
+    /// </summary>
+    public static GitOperations? TryCreate(string path)
+    {
+        var repoPath = Repository.Discover(path);
+        if (string.IsNullOrEmpty(repoPath))
+        {
+            return null;
+        }
+
+        var repo = new Repository(repoPath);
+        var workingDir = repo.Info.WorkingDirectory;
+        if (string.IsNullOrEmpty(workingDir))
+        {
+            repo.Dispose();
+            return null;
+        }
+
+        var repoRoot = workingDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        return new GitOperations(repo, repoRoot);
+    }
+
+    /// <summary>
+    /// Moves a directory and stages the changes as a rename in git.
+    /// </summary>
+    public void MoveDirectory(string sourcePath, string destinationPath)
+    {
+        // Collect all files before moving
+        var sourceFiles = Directory
+            .GetFiles(sourcePath, "*", SearchOption.AllDirectories)
+            .Select(f => GetRelativePath(f))
+            .ToList();
+
+        // Move at filesystem level
+        Directory.Move(sourcePath, destinationPath);
+
+        // Stage removals for old paths
+        foreach (var relativePath in sourceFiles)
+        {
+            Commands.Remove(_repo, relativePath, removeFromWorkingDirectory: false);
+        }
+
+        // Stage additions for new paths
+        var newFiles = Directory
+            .GetFiles(destinationPath, "*", SearchOption.AllDirectories)
+            .Select(f => GetRelativePath(f));
+        Commands.Stage(_repo, newFiles);
+    }
+
+    /// <summary>
+    /// Deletes a directory and stages the removal in git.
+    /// </summary>
+    public void DeleteDirectory(string path)
+    {
+        var files = Directory.GetFiles(path, "*", SearchOption.AllDirectories).Select(f => GetRelativePath(f)).ToList();
+
+        Directory.Delete(path, recursive: true);
+
+        foreach (var relativePath in files)
+        {
+            Commands.Remove(_repo, relativePath, removeFromWorkingDirectory: false);
+        }
+    }
+
+    /// <summary>
+    /// Stages all files in a directory as additions.
+    /// </summary>
+    public void StageDirectory(string path)
+    {
+        var files = Directory.GetFiles(path, "*", SearchOption.AllDirectories).Select(f => GetRelativePath(f));
+        Commands.Stage(_repo, files);
+    }
+
+    /// <summary>
+    /// Stages a single file (new or modified).
+    /// </summary>
+    public void StageFile(string path)
+    {
+        Commands.Stage(_repo, GetRelativePath(path));
+    }
+
+    /// <summary>
+    /// Stages a file removal (file must already be deleted from filesystem).
+    /// </summary>
+    public void StageRemoval(string path)
+    {
+        Commands.Remove(_repo, GetRelativePath(path), removeFromWorkingDirectory: false);
+    }
+
+    private string GetRelativePath(string absolutePath)
+    {
+        return Path.GetRelativePath(_repoRoot, absolutePath).Replace('\\', '/');
+    }
+
+    public void Dispose()
+    {
+        _repo.Dispose();
+    }
+}
