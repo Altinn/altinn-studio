@@ -27,7 +27,7 @@ export type ResolvedLayoutCollection = {
  */
 export function moveChildren(input: ILayoutFile): ResolvedLayoutFile {
   const allItems = input.data?.layout ?? [];
-  const itemMap = new Map<string, any>(allItems.map((item) => [item.id, item]));
+  const itemMap = new Map<string, CompExternal>(allItems.map((item) => [item.id, item]));
 
   function resolveItem(id: string, visited = new Set<string>()): ResolvedCompExternal {
     const item = itemMap.get(id);
@@ -40,24 +40,21 @@ export function moveChildren(input: ILayoutFile): ResolvedLayoutFile {
     }
     visited.add(id);
 
-    const { children, ...rest } = item;
-    const resolved: ResolvedCompExternal = {
-      ...rest,
-    };
-
-    if (Array.isArray(children)) {
-      resolved.children = children.map((childId: string) => resolveItem(childId, visited));
+    if ('children' in item && Array.isArray(item.children)) {
+      const { children, ...rest } = item;
+      return {
+        ...rest,
+        children: children.map((childId) => resolveItem(childId, visited)),
+      } as ResolvedCompExternal;
     }
 
-    return resolved;
+    return { ...item, children: undefined } as ResolvedCompExternal;
   }
 
   // Identify all child IDs
   const childIds = new Set<string>();
   for (const item of allItems) {
-    // @ts-ignore
-    if (item.children && Array.isArray(item.children)) {
-      // @ts-ignore
+    if ('children' in item && Array.isArray(item.children)) {
       for (const c of item.children) {
         childIds.add(c);
       }
