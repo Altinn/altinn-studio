@@ -14,7 +14,8 @@
     "actions": {
       "instantiate": true,
       "confirm": false,
-      "sign": true
+      "sign": true,
+      "reject": false
     }
   }
 }
