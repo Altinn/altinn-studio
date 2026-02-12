@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jonboulle/clockwork"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/assert"
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/operatorcontext"
@@ -190,7 +190,7 @@ func NewClientState(
 	return state, nil
 }
 
-func getNotAfter(clock clockwork.Clock, expiry time.Duration) time.Time {
+func getNotAfter(clock opclock.Clock, expiry time.Duration) time.Time {
 	return clock.Now().UTC().Add(expiry)
 }
 
@@ -199,7 +199,7 @@ func getNotAfter(clock clockwork.Clock, expiry time.Duration) time.Time {
 // - force is true, OR
 // - the active key's certificate has been valid for longer than the threshold, OR
 // - the certificate expires within 24 hours.
-func shouldRotateJwk(clock clockwork.Clock, threshold time.Duration, jwks *crypto.Jwks, force bool) (bool, error) {
+func shouldRotateJwk(clock opclock.Clock, threshold time.Duration, jwks *crypto.Jwks, force bool) (bool, error) {
 	if force {
 		return true, nil
 	}
@@ -234,7 +234,7 @@ func (s *ClientState) Reconcile(
 	opCtx *operatorcontext.Context,
 	configValue *config.Config,
 	cryptoService *crypto.CryptoService,
-	clock clockwork.Clock,
+	clock opclock.Clock,
 ) (CommandList, error) {
 	// ClientState keeps the state of Maskinporten-related config
 	// related to a specific app. This function evalues current state,

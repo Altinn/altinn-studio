@@ -14,13 +14,13 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/go-logr/logr"
-	"github.com/jonboulle/clockwork"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/trace"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/caching"
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/operatorcontext"
@@ -66,7 +66,7 @@ var (
 //   - Dev auth/token API: https://maskinporten.dev
 type HttpApiClient struct {
 	tracer                       trace.Tracer
-	clock                        clockwork.Clock
+	clock                        opclock.Clock
 	configMonitor                *config.ConfigMonitor
 	context                      *operatorcontext.Context
 	client                       http.Client
@@ -81,7 +81,7 @@ type HttpApiClient struct {
 func NewHttpApiClient(
 	configMonitor *config.ConfigMonitor,
 	opCtx *operatorcontext.Context,
-	clock clockwork.Clock,
+	clock opclock.Clock,
 ) (*HttpApiClient, error) {
 	// Validate initial config
 	cfg := configMonitor.Get()

@@ -9,7 +9,8 @@ import (
 	"time"
 
 	"github.com/go-jose/go-jose/v4"
-	"github.com/jonboulle/clockwork"
+
+	opclock "altinn.studio/operator/internal/clock"
 )
 
 type Jwks struct {
@@ -140,7 +141,7 @@ func (j *Jwk) NewJWT(
 	issuer string,
 	scope string,
 	expiry time.Time,
-	clock clockwork.Clock,
+	clock opclock.Clock,
 ) (string, error) {
 	return NewJWT(j, audience, issuer, scope, expiry, clock)
 }

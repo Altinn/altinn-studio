@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gkampitakis/go-snaps/snaps"
-	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
@@ -23,6 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
 	"altinn.studio/operator/internal"
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/operatorcontext"
 )
 
@@ -54,7 +54,7 @@ func newFakeClientWithInterceptors(interceptorFuncs interceptor.Funcs, initObjs 
 type testHarness struct {
 	reconciler *InactivityScalerReconciler
 	k8sClient  client.Client
-	clock      *clockwork.FakeClock
+	clock      *opclock.FakeClock
 }
 
 func newHarness(t *testing.T, serviceOwner, environment string, now time.Time, initObjs ...client.Object) *testHarness {
@@ -70,7 +70,7 @@ func newHarnessWithClient(
 ) *testHarness {
 	t.Helper()
 
-	clock := clockwork.NewFakeClockAt(now)
+	clock := opclock.NewFakeClockAt(now)
 
 	rt, err := internal.NewRuntime(
 		context.Background(),

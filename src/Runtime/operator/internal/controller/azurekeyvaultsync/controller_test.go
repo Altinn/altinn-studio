@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,6 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"altinn.studio/operator/internal"
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/fakes"
 	"altinn.studio/operator/internal/operatorcontext"
 )
@@ -42,7 +42,7 @@ type testHarness struct {
 	reconciler *AzureKeyVaultReconciler
 	kvClient   *fakes.FakeKeyVaultClient
 	k8sClient  client.Client
-	clock      *clockwork.FakeClock
+	clock      *opclock.FakeClock
 }
 
 func newTestHarness(t *testing.T, mappings []KeyVaultSecretMapping, initObjs ...client.Object) *testHarness {
@@ -50,7 +50,7 @@ func newTestHarness(t *testing.T, mappings []KeyVaultSecretMapping, initObjs ...
 
 	kvClient := fakes.NewFakeKeyVaultClient()
 	k8sClient := newFakeK8sClient(initObjs...)
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	rt, err := internal.NewRuntime(
 		context.Background(),

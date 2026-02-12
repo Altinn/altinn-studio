@@ -11,7 +11,6 @@ import (
 
 	"github.com/gkampitakis/go-snaps/snaps"
 	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
-	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,6 +19,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"altinn.studio/operator/internal"
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/operatorcontext"
 )
 
@@ -64,7 +64,7 @@ func newTestReconciler(
 ) *Reconciler {
 	t.Helper()
 
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 	rt, err := internal.NewRuntime(
 		context.Background(),
 		internal.WithClock(clock),

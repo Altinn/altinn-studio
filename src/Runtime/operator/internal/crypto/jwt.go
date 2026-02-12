@@ -9,9 +9,9 @@ import (
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
 	"github.com/google/uuid"
-	"github.com/jonboulle/clockwork"
 
 	"altinn.studio/operator/internal/assert"
+	opclock "altinn.studio/operator/internal/clock"
 )
 
 var (
@@ -104,7 +104,7 @@ func NewJWT(
 	issuer string,
 	scope string,
 	expiry time.Time,
-	clock clockwork.Clock,
+	clock opclock.Clock,
 ) (string, error) {
 	if jwk.IsPublic() {
 		return "", errSignPublicJWK

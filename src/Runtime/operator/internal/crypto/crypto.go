@@ -14,9 +14,9 @@ import (
 
 	"github.com/go-jose/go-jose/v4"
 	"github.com/google/uuid"
-	"github.com/jonboulle/clockwork"
 
 	"altinn.studio/operator/internal/assert"
+	opclock "altinn.studio/operator/internal/clock"
 )
 
 var (
@@ -32,7 +32,7 @@ const DefaultX509SignatureAlgo x509.SignatureAlgorithm = x509.SHA512WithRSA
 const DefaultKeySizeBits int = 4096
 
 type CryptoService struct {
-	clock             clockwork.Clock
+	clock             opclock.Clock
 	random            io.Reader
 	signatureAlgo     jose.SignatureAlgorithm
 	x509SignatureAlgo x509.SignatureAlgorithm
@@ -40,7 +40,7 @@ type CryptoService struct {
 }
 
 func NewService(
-	clock clockwork.Clock,
+	clock opclock.Clock,
 	random io.Reader,
 	x509SignatureAlgo x509.SignatureAlgorithm,
 	keySizeBits int,
@@ -61,7 +61,7 @@ func NewService(
 }
 
 func NewDefaultService(
-	clock clockwork.Clock,
+	clock opclock.Clock,
 	random io.Reader,
 ) *CryptoService {
 	return NewService(clock, random, DefaultX509SignatureAlgo, DefaultKeySizeBits)

@@ -8,7 +8,6 @@ import (
 	cnpgv1 "github.com/cloudnative-pg/cloudnative-pg/api/v1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -22,6 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
 	"altinn.studio/operator/internal"
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/operatorcontext"
 )
 
@@ -88,7 +88,7 @@ func newTestHarnessWithClient(
 ) *testHarness {
 	t.Helper()
 
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	rt, err := internal.NewRuntime(
 		context.Background(),
@@ -155,7 +155,7 @@ func assertNamespaceCleanupBehavior(t *testing.T, labels map[string]string, want
 		},
 	}
 	k8sClient := newFakeK8sClient(ns)
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	rt, err := internal.NewRuntime(
 		context.Background(),
@@ -329,7 +329,7 @@ func TestReconciler_DeletesClusterWhenBuildClusterReturnsNil(t *testing.T) {
 		},
 	}
 	k8sClient := newFakeK8sClient(ns, cluster)
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	// Use unsupported environment where buildCluster returns nil
 	rt, err := internal.NewRuntime(
