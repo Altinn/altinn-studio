@@ -20,16 +20,19 @@ as we will have similar technical needs across the board (e.g. availability, tai
 Altinn Studio operates two architectural planes:
 
 **Control plane** (app lifecycle management, orchestration):
+
 - Designer Backend: App development, publishing, deployment orchestration
 - Gateway: API gateway for service owner clusters/runtimes (let Designer and the global control plane be runtime/infra-agnostic)
 - Operator: k8s-specific infrastructure automation and provisioning
 - Distributed traces span Designer, ADO, Gateway, operator flows for app deployments
 
 **Data plane** (end-user/service owner traffic):
+
 - PDF3: PDF generation service handling production user requests
 - Apps: Service owner developed applications
 
 Requirements from [altinn-platform#2614](https://github.com/Altinn/altinn-platform/issues/2614):
+
 - OTLP protocol support for push-based export
 - Intelligent sampling to reduce telemetry volume and cost
 - Self-service sampling/filtering configuration
@@ -185,6 +188,7 @@ flowchart TB
 ### Service instrumentation requirements
 
 All runtime services should:
+
 - Use OpenTelemetry SDK and export via OTLP protocol to `otel-router` service
 - Set appropriate `service.name` resource attribute for routing classification
 - Propagate W3C TraceContext for distributed tracing
@@ -227,6 +231,7 @@ service:
 ### Secret management
 
 Two Azure Monitor connection strings configured in `runtime-obs` namespace:
+
 - `control-plane-azure-monitor-secret`: Control plane workspace
 - `data-plane-azure-monitor-secret`: Data plane workspace (tenant subscription)
 
