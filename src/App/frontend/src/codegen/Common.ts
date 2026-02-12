@@ -832,6 +832,15 @@ const common = {
       new CG.prop('$schema', new CG.str().optional()),
       new CG.prop('pages', CG.common('IPagesSettings')),
       new CG.prop('components', CG.common('IComponentsSettings').optional()),
+      new CG.prop(
+        'defaultDataModel',
+        new CG.str()
+          .optional()
+          .setTitle('Default data model')
+          .setDescription(
+            'The default data model type to be used for bindings not specifying a dataType in these layouts',
+          ),
+      ),
     )
       .setTitle('Layout settings')
       .setDescription('Settings regarding layout pages and components'),
