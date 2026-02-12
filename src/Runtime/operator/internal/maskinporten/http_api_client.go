@@ -14,13 +14,13 @@ import (
 
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/caching"
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/operatorcontext"
 	"altinn.studio/operator/internal/telemetry"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/go-logr/logr"
-	"github.com/jonboulle/clockwork"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/trace"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -53,7 +53,7 @@ type HttpApiClient struct {
 	wellKnown     caching.CachedAtom[WellKnownResponse]
 	accessToken   caching.CachedAtom[TokenResponse]
 	tracer        trace.Tracer
-	clock         clockwork.Clock
+	clock         opclock.Clock
 	logger        logr.Logger
 
 	// Service owner + environment
@@ -65,7 +65,7 @@ type HttpApiClient struct {
 func NewHttpApiClient(
 	configMonitor *config.ConfigMonitor,
 	opCtx *operatorcontext.Context,
-	clock clockwork.Clock,
+	clock opclock.Clock,
 ) (*HttpApiClient, error) {
 	// Validate initial config
 	cfg := configMonitor.Get()

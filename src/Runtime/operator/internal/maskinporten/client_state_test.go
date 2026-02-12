@@ -9,12 +9,12 @@ import (
 	"time"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/operatorcontext"
 	"altinn.studio/operator/test/utils"
 	"github.com/gkampitakis/go-snaps/snaps"
-	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,14 +42,14 @@ var (
 
 type fixture struct {
 	crypto  *crypto.CryptoService
-	clock   *clockwork.FakeClock
+	clock   *opclock.FakeClock
 	config  *config.Config
 	context *operatorcontext.Context
 }
 
 func newFixture() *fixture {
 	ctx := operatorcontext.DiscoverOrDie(context.Background(), operatorcontext.EnvironmentLocal, nil)
-	clock := clockwork.NewFakeClockAt(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC))
+	clock := opclock.NewFakeClockAt(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC))
 	random := utils.NewDeterministicRand()
 	cryptoService := crypto.NewDefaultService(clock, random)
 

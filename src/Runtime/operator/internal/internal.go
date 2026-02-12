@@ -4,6 +4,7 @@ import (
 	"context"
 	crand "crypto/rand"
 
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/maskinporten"
@@ -12,7 +13,6 @@ import (
 	rt "altinn.studio/operator/internal/runtime"
 	"altinn.studio/operator/internal/telemetry"
 	"github.com/go-logr/logr"
-	"github.com/jonboulle/clockwork"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -24,13 +24,13 @@ type runtime struct {
 	maskinportenApiClient *maskinporten.HttpApiClient
 	tracer                trace.Tracer
 	meter                 metric.Meter
-	clock                 clockwork.Clock
+	clock                 opclock.Clock
 }
 
 var _ rt.Runtime = (*runtime)(nil)
 
 type runtimeOptions struct {
-	clock           clockwork.Clock
+	clock           opclock.Clock
 	configMonitor   *config.ConfigMonitor
 	operatorContext *operatorcontext.Context
 	env             string
@@ -39,7 +39,7 @@ type runtimeOptions struct {
 
 type RuntimeOption func(*runtimeOptions)
 
-func WithClock(c clockwork.Clock) RuntimeOption {
+func WithClock(c opclock.Clock) RuntimeOption {
 	return func(o *runtimeOptions) { o.clock = c }
 }
 
@@ -118,19 +118,19 @@ func NewRuntime(ctx context.Context, opts ...RuntimeOption) (rt.Runtime, error) 
 		)
 	}
 
-	clock := options.clock
-	if clock == nil {
-		clock = clockwork.NewRealClock()
+	runtimeClock := options.clock
+	if runtimeClock == nil {
+		runtimeClock = opclock.NewRealClock()
 	}
 
 	cryptoRand := crand.Reader
 
 	cryptoService := crypto.NewDefaultService(
-		clock,
+		runtimeClock,
 		cryptoRand,
 	)
 
-	maskinportenApiClient, err := maskinporten.NewHttpApiClient(configMonitor, operatorCtx, clock)
+	maskinportenApiClient, err := maskinporten.NewHttpApiClient(configMonitor, operatorCtx, runtimeClock)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func NewRuntime(ctx context.Context, opts ...RuntimeOption) (rt.Runtime, error) 
 		maskinportenApiClient: maskinportenApiClient,
 		tracer:                tracer,
 		meter:                 telemetry.Meter(),
-		clock:                 clock,
+		clock:                 runtimeClock,
 	}
 
 	return r, nil
@@ -160,7 +160,7 @@ func (r *runtime) GetCrypto() *crypto.CryptoService {
 	return &r.crypto
 }
 
-func (r *runtime) GetClock() clockwork.Clock {
+func (r *runtime) GetClock() opclock.Clock {
 	return r.clock
 }
 

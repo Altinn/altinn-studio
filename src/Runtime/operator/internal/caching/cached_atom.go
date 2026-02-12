@@ -5,12 +5,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jonboulle/clockwork"
+	opclock "altinn.studio/operator/internal/clock"
 )
 
 type CachedAtom[T any] struct {
 	mutex            sync.RWMutex
-	clock            clockwork.Clock
+	clock            opclock.Clock
 	retriever        func(ctx context.Context) (*T, error)
 	current          *T
 	currentFetchedAt time.Time
@@ -19,7 +19,7 @@ type CachedAtom[T any] struct {
 
 func NewCachedAtom[T any](
 	expireAfter time.Duration,
-	clock clockwork.Clock,
+	clock opclock.Clock,
 	retriever func(ctx context.Context) (*T, error),
 ) CachedAtom[T] {
 	return CachedAtom[T]{

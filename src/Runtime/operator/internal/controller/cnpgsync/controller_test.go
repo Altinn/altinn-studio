@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"altinn.studio/operator/internal"
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/operatorcontext"
 	cnpgv1 "github.com/cloudnative-pg/cloudnative-pg/api/v1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -61,7 +61,7 @@ func newTestHarness(t *testing.T, environment string, targets []CnpgTarget) *tes
 	t.Helper()
 
 	k8sClient := newFakeK8sClient()
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	rt, err := internal.NewRuntime(
 		context.Background(),
@@ -182,7 +182,7 @@ func TestReconciler_DeletesNamespaceWhenNotTargeted(t *testing.T) {
 		},
 	}
 	k8sClient := newFakeK8sClient(ns)
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	rt, err := internal.NewRuntime(
 		context.Background(),
@@ -220,7 +220,7 @@ func TestReconciler_SkipsNamespaceDeletionIfNotManagedByUs(t *testing.T) {
 		},
 	}
 	k8sClient := newFakeK8sClient(ns)
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	rt, err := internal.NewRuntime(
 		context.Background(),
@@ -264,7 +264,7 @@ func TestReconciler_DeletesClusterWhenBuildClusterReturnsNil(t *testing.T) {
 		},
 	}
 	k8sClient := newFakeK8sClient(ns, cluster)
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	// Use prod environment where buildCluster returns nil
 	rt, err := internal.NewRuntime(

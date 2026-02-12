@@ -12,10 +12,10 @@ import (
 	"time"
 
 	"altinn.studio/operator/internal/caching"
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/operatorcontext"
 	"github.com/google/uuid"
-	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
 )
 
@@ -113,7 +113,7 @@ func TestFixtureIsNotRemote(t *testing.T) {
 func TestWellKnownConfigOk(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	server, configMonitor, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
 	defer server.Close()
@@ -132,7 +132,7 @@ func TestWellKnownConfigOk(t *testing.T) {
 func TestWellKnownConfigNotFound(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	server, configMonitor, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusNotFound)
 	defer server.Close()
@@ -148,7 +148,7 @@ func TestWellKnownConfigNotFound(t *testing.T) {
 func TestWellKnownConfigCaches(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	server, configMonitor, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
 	defer server.Close()
@@ -178,7 +178,7 @@ func TestWellKnownConfigCaches(t *testing.T) {
 func TestCreateGrant(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	server, configMonitor, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
 	defer server.Close()
@@ -220,7 +220,7 @@ func getMaskinportenApiAccessTokenFixture(
 func TestFetchAccessToken(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	server, configMonitor, opCtx, accessToken := getMaskinportenApiAccessTokenFixture(g, http.StatusOK)
 	defer server.Close()
@@ -238,7 +238,7 @@ func TestFetchAccessTokenReal(t *testing.T) {
 
 	g := NewWithT(t)
 	ctx := context.Background()
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	environment := operatorcontext.EnvironmentLocal
 	configMonitor := config.GetConfigOrDie(ctx, environment, "")
@@ -256,7 +256,7 @@ func TestFetchAccessTokenReal(t *testing.T) {
 
 // 	g := NewWithT(t)
 // 	ctx := context.Background()
-// 	clock := clockwork.NewFakeClock()
+// 	clock := opclock.NewFakeClock()
 
 // 	operatorContext := operatorcontext.DiscoverOrDie(ctx)
 // 	operatorContext.OverrideEnvironment(operatorcontext.EnvironmentDev)
@@ -278,7 +278,7 @@ func TestFetchAccessTokenReal(t *testing.T) {
 
 // 	g := NewWithT(t)
 // 	ctx := context.Background()
-// 	clock := clockwork.NewFakeClock()
+// 	clock := opclock.NewFakeClock()
 
 // 	operatorContext := operatorcontext.DiscoverOrDie(ctx)
 // 	operatorContext.OverrideEnvironment(operatorcontext.EnvironmentDev)
@@ -305,7 +305,7 @@ func TestFetchAccessTokenReal(t *testing.T) {
 
 // 	g := NewWithT(t)
 // 	ctx := context.Background()
-// 	clock := clockwork.NewFakeClock()
+// 	clock := opclock.NewFakeClock()
 
 // 	operatorContext := operatorcontext.DiscoverOrDie(ctx)
 // 	operatorContext.OverrideEnvironment(operatorcontext.EnvironmentDev)
@@ -330,7 +330,7 @@ func TestFetchAccessTokenReal(t *testing.T) {
 func TestCreateReq(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	accessToken := uuid.NewString()
 	apiClient := &HttpApiClient{
@@ -394,7 +394,7 @@ func getMaskinportenApiClientsFixture(
 func TestGetAllClients_IncludesMatchingClients(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	clientsResponse := `[
 		{"client_id": "client1", "client_name": "altinnstudiooperator-ttd-at22-app1"},
@@ -417,7 +417,7 @@ func TestGetAllClients_IncludesMatchingClients(t *testing.T) {
 func TestGetAllClients_SkipsSameServiceOwnerDifferentEnvironment(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	clientsResponse := `[
 		{"client_id": "client1", "client_name": "altinnstudiooperator-ttd-at22-app1"},
@@ -440,7 +440,7 @@ func TestGetAllClients_SkipsSameServiceOwnerDifferentEnvironment(t *testing.T) {
 func TestGetAllClients_SkipsDifferentServiceOwner(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	clientsResponse := `[
 		{"client_id": "client1", "client_name": "altinnstudiooperator-ttd-at22-app1"},
@@ -463,7 +463,7 @@ func TestGetAllClients_SkipsDifferentServiceOwner(t *testing.T) {
 func TestGetAllClients_ErrorsOnEmptyClientId(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	clientsResponse := `[{"client_id": "", "client_name": "altinnstudiooperator-ttd-at22-app1"}]`
 
@@ -482,7 +482,7 @@ func TestGetAllClients_ErrorsOnEmptyClientId(t *testing.T) {
 func TestGetAllClients_ErrorsOnNullClientName(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	clientsResponse := `[{"client_id": "client1"}]`
 
@@ -501,7 +501,7 @@ func TestGetAllClients_ErrorsOnNullClientName(t *testing.T) {
 func TestGetAllClients_DigdirSkipsSupplierClient(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	supplierClientId := "supplier-client-123"
 	clientsResponse := fmt.Sprintf(`[
@@ -529,7 +529,7 @@ func TestGetAllClients_DigdirSkipsSupplierClient(t *testing.T) {
 func TestGetAllClients_MixedScenario(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	clientsResponse := `[
 		{"client_id": "match1", "client_name": "altinnstudiooperator-ttd-at22-app1"},
@@ -554,7 +554,7 @@ func TestGetAllClients_MixedScenario(t *testing.T) {
 
 func TestRetryableHTTPDoPreservesBodyOnRetry(t *testing.T) {
 	g := NewWithT(t)
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	expectedBody := `{"test":"data"}`
 	attemptCount := 0

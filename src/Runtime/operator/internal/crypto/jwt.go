@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"altinn.studio/operator/internal/assert"
+	opclock "altinn.studio/operator/internal/clock"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
 	"github.com/google/uuid"
-	"github.com/jonboulle/clockwork"
 )
 
 var SignatureAlgorithms []jose.SignatureAlgorithm = []jose.SignatureAlgorithm{jose.RS256, jose.RS384, jose.RS512}
@@ -94,7 +94,7 @@ func NewJWT(
 	issuer string,
 	scope string,
 	expiry time.Time,
-	clock clockwork.Clock,
+	clock opclock.Clock,
 ) (string, error) {
 	if jwk.IsPublic() {
 		return "", errors.New("cannot sign JWT with public key")
