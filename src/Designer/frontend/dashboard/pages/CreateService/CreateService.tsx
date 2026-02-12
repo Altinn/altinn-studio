@@ -12,9 +12,15 @@ import type { NewAppForm } from '../../types/NewAppForm';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useSubroute } from '../../hooks/useSubRoute';
 
-const initialFormError: NewAppForm = {
+export type CreateServiceFormError = {
+  org?: string;
+  repoName?: string;
+  template?: string;
+};
+const initialFormError: CreateServiceFormError = {
   org: '',
   repoName: '',
+  template: '',
 };
 
 export type CreateServiceProps = {
@@ -32,7 +38,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
   });
 
-  const [formError, setFormError] = useState<NewAppForm>(initialFormError);
+  const [formError, setFormError] = useState<CreateServiceFormError>(initialFormError);
 
   const selectedContext = useSelectedContext();
   const subroute = useSubroute();
@@ -62,17 +68,23 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
           const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
           const templateError =
             error.response?.status === ServerCodes.BadRequest &&
-            error.response?.data?.error == 'CustomTemplateException';
+            error.response?.data?.['error'] === 'CustomTemplateException';
 
           if (appNameAlreadyExists) {
             setFormError(
-              (prevErrors): NewAppForm => ({
+              (prevErrors): CreateServiceFormError => ({
                 ...prevErrors,
                 repoName: t('dashboard.app_already_exists'),
               }),
             );
           } else if (templateError) {
             // error message when template application fails
+            setFormError(
+              (prevErrors): CreateServiceFormError => ({
+                ...prevErrors,
+                template: t('dashboard.new_application_form.template_error'),
+              }),
+            );
           }
         },
       },

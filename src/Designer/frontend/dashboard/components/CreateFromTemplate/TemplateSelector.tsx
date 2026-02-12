@@ -4,23 +4,21 @@ import { StudioSelect } from '@studio/components';
 import classes from './TemplateSelector.module.css';
 import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';
-import { getOrgNameByUsername } from '../../utils/userUtils';
-import { TemplateDetails } from './TemplateDetails';
 import { groupTemplatesByOwner } from '../../utils/customTemplateUtils/customTemplateUtils';
 
-export type TemplateSelectorContentProps = {
+export type TemplateSelectorProps = {
   availableTemplates: CustomTemplate[];
   selectedTemplate?: CustomTemplate;
   onChange: (selected?: CustomTemplate) => void;
   organizations: Organization[];
 };
 
-export const TemplateSelectorContent = ({
+export const TemplateSelector = ({
   availableTemplates,
   selectedTemplate,
   onChange,
   organizations,
-}: TemplateSelectorContentProps): React.ReactElement => {
+}: TemplateSelectorProps): React.ReactElement => {
   const { t } = useTranslation();
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -51,16 +49,6 @@ export const TemplateSelectorContent = ({
           </StudioSelect.OptGroup>
         ))}
       </StudioSelect>
-      {selectedTemplate && (
-        <TemplateDetails
-          id={selectedTemplate.id}
-          name={selectedTemplate.name}
-          description={selectedTemplate.description}
-          owner={
-            getOrgNameByUsername(selectedTemplate.owner, organizations) || selectedTemplate.owner
-          }
-        />
-      )}
     </div>
   );
 };

@@ -1,15 +1,12 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import {
-  TemplateSelectorContent,
-  type TemplateSelectorContentProps,
-} from './TemplateSelectorContent';
+import { TemplateSelector, type TemplateSelectorProps } from './TemplateSelector';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 import userEvent from '@testing-library/user-event';
 import type { Organization } from 'app-shared/types/Organization';
 
-describe('TemplateSelectorContent', () => {
+describe('TemplateSelector', () => {
   const defaultTemplates: CustomTemplate[] = [
     {
       id: 'template1',
@@ -111,49 +108,14 @@ describe('TemplateSelectorContent', () => {
     expect(onChangeMock).toHaveBeenCalledTimes(1);
     expect(onChangeMock).toHaveBeenCalledWith(undefined);
   });
-
-  it('should render template details when a template is selected', () => {
-    const templates: CustomTemplate[] = [
-      {
-        id: 'template1',
-        name: 'Template One',
-        description: 'Description One',
-        owner: 'owner1',
-      },
-    ];
-
-    renderTemplateSelectorContent({
-      availableTemplates: templates,
-      selectedTemplate: templates[0],
-    });
-
-    expect(screen.getByRole('heading', { name: 'Template One' })).toBeInTheDocument();
-    expect(screen.getByText('Description One')).toBeInTheDocument();
-  });
-
-  it('should not render template details when no template is selected', () => {
-    const templates: CustomTemplate[] = [
-      {
-        id: 'template1',
-        name: 'Template One',
-        description: 'Description One',
-        owner: 'owner1',
-      },
-    ];
-
-    renderTemplateSelectorContent({ availableTemplates: templates });
-
-    expect(screen.queryByRole('heading', { name: 'Template One' })).not.toBeInTheDocument();
-    expect(screen.queryByText('Description One')).not.toBeInTheDocument();
-  });
 });
 
-function renderTemplateSelectorContent(props?: Partial<TemplateSelectorContentProps>) {
-  const defaultProps: TemplateSelectorContentProps = {
+function renderTemplateSelectorContent(props?: Partial<TemplateSelectorProps>) {
+  const defaultProps: TemplateSelectorProps = {
     selectedTemplate: undefined,
     onChange: jest.fn(),
     availableTemplates: [],
     organizations: [],
   };
-  return render(<TemplateSelectorContent {...defaultProps} {...props} />);
+  return render(<TemplateSelector {...defaultProps} {...props} />);
 }

@@ -388,4 +388,68 @@ describe('CreateService', () => {
 
     expect(cancelLink.getAttribute('href')).toBe(`/${subroute}/${selectedContext}`);
   });
+
+  it('should display template error message when template use fails', async () => {
+    const user = userEvent.setup();
+    const addRepoMock = jest
+      .fn()
+      .mockImplementation(() =>
+        Promise.reject({
+          error: 'CustomTemplateException',
+          response: { status: ServerCodes.BadRequest, data: { error: 'CustomTemplateException' } },
+        }),
+      );
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData(
+      [QueryKey.CustomTemplates, mockUser.login],
+      [
+        {
+          id: 'template1',
+          name: 'Template One',
+          description: 'Description One',
+          owner: 'owner1',
+        },
+      ],
+    );
+
+    renderCreateService(
+      { user: mockUser, organizations: [orgMock] },
+      {
+        queries: { addRepo: addRepoMock },
+        queryClient,
+        featureFlags: [FeatureFlag.CustomTemplates],
+      },
+    );
+
+    const select = screen.getByRole('combobox', { name: textMock('general.service_owner') });
+    await user.click(select);
+    await user.selectOptions(select, mockUser.login);
+
+    const repoTextField = screen.getByRole('textbox', { name: textMock('general.service_name') });
+    expect(repoTextField).toHaveValue('');
+    const newRepoValue: string = 'repo';
+    await user.type(repoTextField, newRepoValue);
+    await user.tab();
+    expect(screen.getByRole('textbox', { name: textMock('general.service_name') })).toHaveValue(
+      newRepoValue,
+    );
+
+    const templateSelect = screen.getByRole('combobox', {
+      name: textMock('dashboard.new_application_form.select_templates'),
+    });
+    await user.selectOptions(templateSelect, 'template1');
+    expect(templateSelect).toHaveValue('template1');
+
+    const createButton = screen.getByRole('button', {
+      name: textMock('dashboard.create_service_btn'),
+    });
+    await user.click(createButton);
+
+    expect(addRepoMock).toHaveBeenCalledTimes(1);
+
+    const templateErrorMessage = await screen.findByText(
+      textMock('dashboard.new_application_form.template_error'),
+    );
+    expect(templateErrorMessage).toBeInTheDocument();
+  });
 });
