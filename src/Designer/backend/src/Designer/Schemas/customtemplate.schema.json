@@ -11,7 +11,7 @@
         },
         "id": {
             "type": "string",
-            "minLength": 5
+            "minLength": 3
         },
         "owner": {
             "type": "string",
