@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Altinn.Studio.Cli.Upgrade.v8Tov10.RuleConfiguration.ConditionalRenderingRules;
+namespace Altinn.Studio.Cli.Upgrade.JsonWhitespaceRestoration;
 
 /// <summary>
 /// Classifies diff hunks as whitespace-only or content changes

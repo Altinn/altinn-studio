@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.Studio.Cli.Upgrade.JsonWhitespaceRestoration;
 using Altinn.Studio.Cli.Upgrade.v8Tov10.RuleConfiguration.Models;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov10.RuleConfiguration.ConditionalRenderingRules;

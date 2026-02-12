@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Altinn.Studio.Cli.Upgrade.v8Tov10.RuleConfiguration.ConditionalRenderingRules;
+namespace Altinn.Studio.Cli.Upgrade.JsonWhitespaceRestoration;
 
 /// <summary>
 /// Directly restores whitespace-only changes by manipulating files line-by-line

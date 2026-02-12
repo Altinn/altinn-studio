@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Altinn.Studio.Cli.Upgrade.JsonWhitespaceRestoration;
 using LibGit2Sharp;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov10.LayoutSetsMigration;
@@ -100,6 +101,29 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
             File.WriteAllText(globalSettingsPath, uiSettingsObject.ToJsonString(options));
             _git?.StageFile(globalSettingsPath);
             migratedGlobalSettings = true;
+        }
+
+        // Restore whitespace-only changes to preserve original formatting in Settings.json files.
+        // UpsertDefaultDataType intentionally leaves files unstaged so the processor can diff
+        // the working directory against the index (which has the original formatting).
+        try
+        {
+            var whitespaceRestorer = new WhitespaceRestorationProcessor(uiPath);
+            whitespaceRestorer.RestoreWhitespaceOnlyChanges();
+        }
+        catch
+        {
+            // Non-fatal: whitespace restoration is best-effort
+        }
+
+        // Stage settings files after whitespace restoration has cleaned them up
+        foreach (var destinationId in touchedFolders)
+        {
+            var settingsPath = Path.Combine(uiPath, destinationId, "Settings.json");
+            if (File.Exists(settingsPath))
+            {
+                _git?.StageFile(settingsPath);
+            }
         }
 
         File.Delete(layoutSetsPath);
@@ -275,7 +299,8 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
         settings["defaultDataType"] = dataType;
         var options = new JsonSerializerOptions { WriteIndented = true };
         File.WriteAllText(settingsPath, settings.ToJsonString(options));
-        _git?.StageFile(settingsPath);
+        // Don't stage here — leave in working dir so the whitespace restoration
+        // processor can detect and revert formatting-only changes against the index.
     }
 
     private static void CopyDirectory(string sourceDir, string destinationDir)

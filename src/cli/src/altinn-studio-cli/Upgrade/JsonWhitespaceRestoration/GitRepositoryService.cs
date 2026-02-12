@@ -1,7 +1,7 @@
 using System.Text;
 using LibGit2Sharp;
 
-namespace Altinn.Studio.Cli.Upgrade.v8Tov10.RuleConfiguration.ConditionalRenderingRules;
+namespace Altinn.Studio.Cli.Upgrade.JsonWhitespaceRestoration;
 
 /// <summary>
 /// Service interface for git repository operations
@@ -78,30 +78,24 @@ internal sealed class LibGit2SharpGitRepositoryService : IGitRepositoryService
     }
 
     /// <summary>
-    /// Generate unified diff for a specific file
+    /// Generate unified diff for a specific file (index vs working directory).
+    /// Using the index as the base (rather than HEAD) means this works correctly
+    /// for both in-place modifications and files that have been renamed/moved in
+    /// the index — the index always has the file at the current path.
     /// </summary>
     public string GetUnifiedDiff(string repoRoot, string filePath)
     {
         using var repo = new Repository(repoRoot);
 
-        // Get the file from HEAD
-        var headCommit = repo.Head.Tip;
-        if (headCommit == null)
-        {
-            throw new InvalidOperationException("Repository has no HEAD commit");
-        }
+        var compareOptions = new CompareOptions { ContextLines = 0, InterhunkLines = 0 };
 
-        // Compare HEAD version with working directory version
-        var compareOptions = new CompareOptions { ContextLines = 3, InterhunkLines = 0 };
-
-        // Get changes for specific file paths
+        // Compare index with working directory for specific file paths
         var paths = new[] { filePath };
         var patch = repo.Diff.Compare<Patch>(
-            headCommit.Tree,
-            DiffTargets.WorkingDirectory,
             paths,
-            null,
-            compareOptions
+            includeUntracked: false,
+            explicitPathsOptions: null,
+            compareOptions: compareOptions
         );
 
         if (patch == null)
@@ -115,30 +109,26 @@ internal sealed class LibGit2SharpGitRepositoryService : IGitRepositoryService
     }
 
     /// <summary>
-    /// Read file content from HEAD commit
+    /// Read file content from the index (staging area).
+    /// Using the index (rather than HEAD) means this works correctly for files
+    /// that have been renamed/moved — the index has the file at its current path
+    /// with the original content, while HEAD only has it at the old path.
+    /// For unmodified files the index matches HEAD, so behavior is identical.
     /// </summary>
     public string GetFileContentFromHead(string repoRoot, string filePath)
     {
         using var repo = new Repository(repoRoot);
 
-        var headCommit = repo.Head.Tip;
-        if (headCommit == null)
+        var indexEntry = repo.Index[filePath];
+        if (indexEntry == null)
         {
-            throw new InvalidOperationException("Repository has no HEAD commit");
+            throw new InvalidOperationException($"File {filePath} not found in index");
         }
 
-        // Get the tree entry for the file
-        var treeEntry = headCommit[filePath];
-        if (treeEntry == null)
-        {
-            throw new InvalidOperationException($"File {filePath} not found in HEAD commit");
-        }
-
-        // Get the blob (file content)
-        var blob = treeEntry.Target as Blob;
+        var blob = repo.Lookup<Blob>(indexEntry.Id);
         if (blob == null)
         {
-            throw new InvalidOperationException($"File {filePath} is not a blob in HEAD commit");
+            throw new InvalidOperationException($"Could not read content for {filePath} from index");
         }
 
         // Read content as text
