@@ -24,9 +24,6 @@ export function useLayout(layoutId: string) {
     (cb) => client.subscribe(layoutId, cb),
     () => client.getFormLayout(layoutId),
   );
-
-  // const setValue = (next: unknown) => client.setField(formId, field, next);
-
   return value;
 }
 

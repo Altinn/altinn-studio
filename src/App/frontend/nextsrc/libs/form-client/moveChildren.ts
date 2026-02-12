@@ -6,11 +6,11 @@ export interface DataObject {
   [key: string]: string | null | object | DataObject | undefined;
 }
 
-interface Children {
-  children: ResolvedCompExternal[] | undefined;
-}
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 
-export type ResolvedCompExternal = CompExternal & Children;
+export type ResolvedCompExternal = DistributiveOmit<CompExternal, 'children'> & {
+  children: ResolvedCompExternal[] | undefined;
+};
 
 export interface ResolvedLayoutFile {
   $schema?: string;

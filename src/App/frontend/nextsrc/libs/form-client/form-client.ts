@@ -1,9 +1,8 @@
 import dot from 'dot-object';
 import { moveChildren } from 'nextsrc/libs/form-client/moveChildren';
 import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/apiClient/dataApi';
-import type { ResolvedLayoutCollection } from 'nextsrc/libs/form-client/moveChildren';
+import type { ResolvedLayoutCollection, ResolvedLayoutFile } from 'nextsrc/libs/form-client/moveChildren';
 
-import type { ILayoutFile } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
 
 type Listener = () => void;
@@ -43,7 +42,7 @@ export class FormClient {
     this.notify(path);
   }
 
-  getFormLayout(layoutName: string): ILayoutFile {
+  getFormLayout(layoutName: string): ResolvedLayoutFile {
     return this.layoutCollection[layoutName];
   }
 
