@@ -2,11 +2,12 @@
   border: none;
   padding: var(--ds-size-4) var(--ds-size-8) var(--ds-size-6) var(--ds-size-10);
   white-space: nowrap;
+  font-size: 0.88rem;
 }
 
 .metric:before {
   margin-top: 3px;
-  margin-left: -20px;
+  margin-left: -25px;
 }
 
 .heading {

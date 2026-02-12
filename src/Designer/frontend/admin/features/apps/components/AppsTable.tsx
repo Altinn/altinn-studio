@@ -178,7 +178,6 @@ const AppsTableContent = ({ org, env, search, setSearch, runningApps }: AppsTabl
                         <Alert
                           key={metric.name}
                           color='danger'
-                          data-size='xs'
                           title={
                             <>
                               <span className={classes.count}>{metric.count.toString()}</span>
