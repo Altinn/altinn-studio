@@ -324,7 +324,7 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
                     {
                         {
                             TaskId,
-                            new UiFolderSettings { DefaultDataType = DefaultDataType }
+                            new LayoutSettings { DefaultDataType = DefaultDataType }
                         },
                     },
                 }

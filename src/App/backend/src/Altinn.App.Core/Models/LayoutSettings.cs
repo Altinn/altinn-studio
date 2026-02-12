@@ -6,6 +6,11 @@ namespace Altinn.App.Core.Models;
 public class LayoutSettings
 {
     /// <summary>
+    /// Default data type for the layout folder.
+    /// </summary>
+    public string? DefaultDataType { get; set; }
+
+    /// <summary>
     /// Pages
     /// </summary>
     public Pages? Pages { get; set; }

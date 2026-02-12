@@ -8,7 +8,7 @@ public class UiConfiguration
     /// <summary>
     /// Per-folder settings parsed from App/ui/{folderId}/Settings.json.
     /// </summary>
-    public required Dictionary<string, UiFolderSettings> Folders { get; set; }
+    public required Dictionary<string, LayoutSettings> Folders { get; set; }
 
     /// <summary>
     /// Global settings parsed from App/ui/Settings.json.

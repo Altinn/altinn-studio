@@ -250,25 +250,6 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public TaskUiConfiguration? GetTaskUiConfiguration(string taskId)
-    {
-        using var activity = _telemetry?.StartGetTaskUiConfigurationActivity();
-        var ui = GetUiConfiguration();
-        if (!ui.Folders.TryGetValue(taskId, out var folderSettings))
-        {
-            return null;
-        }
-
-        var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
-        return new TaskUiConfiguration
-        {
-            TaskId = taskId,
-            FolderId = taskId,
-            DefaultDataType = TryResolveDataTypeForFolder(taskId, folderSettings, dataTypes)?.Id,
-        };
-    }
-
-    /// <inheritdoc />
     public string GetLayoutsForSet(string layoutSetId)
     {
         using var activity = _telemetry?.StartGetLayoutsForSetActivity();
@@ -310,16 +291,8 @@ public class AppResourcesSI : IAppResources
     {
         using var activity = _telemetry?.StartGetLayoutModelActivity();
         var ui = GetUiConfiguration();
-        if (!ui.Folders.TryGetValue(taskId, out var defaultFolderSettings))
-        {
-            return null;
-        }
-
         var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
-        var layouts = ui
-            .Folders.Select(folder => LoadLayout(folder.Key, folder.Value ?? new UiFolderSettings(), dataTypes))
-            .ToList();
-        _ = ResolveDataTypeForFolder(taskId, defaultFolderSettings, dataTypes);
+        var layouts = ui.Folders.Select(folder => LoadLayout(folder.Key, folder.Value, dataTypes)).ToList();
         return new LayoutModel(layouts, taskId);
     }
 
@@ -327,7 +300,7 @@ public class AppResourcesSI : IAppResources
     public UiConfiguration GetUiConfiguration()
     {
         using var activity = _telemetry?.StartGetUiConfigurationActivity();
-        var folders = new Dictionary<string, UiFolderSettings>(StringComparer.Ordinal);
+        var folders = new Dictionary<string, LayoutSettings>(StringComparer.Ordinal);
         var uiRoot = Path.Join(_settings.AppBasePath, _settings.UiFolder);
 
         if (Directory.Exists(uiRoot))
@@ -349,7 +322,7 @@ public class AppResourcesSI : IAppResources
         return new UiConfiguration { Folders = folders, Settings = globalSettings };
     }
 
-    private LayoutSetComponent LoadLayout(string folderId, UiFolderSettings settings, List<DataType> dataTypes)
+    private LayoutSetComponent LoadLayout(string folderId, LayoutSettings settings, List<DataType> dataTypes)
     {
         var simplePageOrder = settings?.Pages?.Order;
         var groupPageOrder = settings?.Pages?.Groups?.SelectMany(g => g.Order).ToList();
@@ -381,7 +354,7 @@ public class AppResourcesSI : IAppResources
             pages.Add(PageComponent.Parse(document.RootElement, page, folderId));
         }
 
-        var dataType = ResolveDataTypeForFolder(folderId, settings ?? new UiFolderSettings(), dataTypes);
+        var dataType = ResolveDefaultDataTypeForFolder(folderId, settings ?? new LayoutSettings(), dataTypes);
         return new LayoutSetComponent(pages, folderId, dataType);
     }
 
@@ -430,7 +403,7 @@ public class AppResourcesSI : IAppResources
         return null;
     }
 
-    private UiFolderSettings? GetUiFolderSettings(string folderId)
+    private LayoutSettings? GetUiFolderSettings(string folderId)
     {
         string filename = Path.Join(
             _settings.AppBasePath,
@@ -446,7 +419,7 @@ public class AppResourcesSI : IAppResources
         }
 
         var fileData = File.ReadAllText(filename, Encoding.UTF8);
-        return JsonConvert.DeserializeObject<UiFolderSettings>(fileData);
+        return JsonConvert.DeserializeObject<LayoutSettings>(fileData);
     }
 
     private GlobalPageSettings? GetGlobalUiSettings()
@@ -460,28 +433,24 @@ public class AppResourcesSI : IAppResources
         return System.Text.Json.JsonSerializer.Deserialize<GlobalPageSettings>(settingsString, _jsonSerializerOptions);
     }
 
-    private static DataType ResolveDataTypeForFolder(
+    private static DataType ResolveDefaultDataTypeForFolder(
         string folderId,
-        UiFolderSettings settings,
-        List<DataType> dataTypes
-    )
-    {
-        return TryResolveDataTypeForFolder(folderId, settings, dataTypes)
-            ?? throw new InvalidOperationException(
-                $"Could not resolve data type for ui folder {folderId}. Set defaultDataType in App/ui/{folderId}/Settings.json."
-            );
-    }
-
-    private static DataType? TryResolveDataTypeForFolder(
-        string folderId,
-        UiFolderSettings settings,
+        LayoutSettings settings,
         List<DataType> dataTypes
     )
     {
         var dataTypeId = settings.DefaultDataType;
+        if (string.IsNullOrWhiteSpace(dataTypeId))
+        {
+            throw new InvalidOperationException(
+                $"Could not resolve data type for ui folder {folderId}. Set defaultDataType in App/ui/{folderId}/Settings.json."
+            );
+        }
+
         return dataTypes.Find(d => d.Id == dataTypeId)
-            ?? dataTypes.Find(d => d.TaskId == folderId && d.AppLogic?.ClassRef is not null)
-            ?? dataTypes.Find(d => d.AppLogic?.ClassRef is not null);
+            ?? throw new InvalidOperationException(
+                $"Could not resolve data type '{dataTypeId}' for ui folder {folderId}. Ensure the data type exists in applicationmetadata.json."
+            );
     }
 
     private static byte[] ReadFileContentsFromLegalPath(string legalPath, string filePath)

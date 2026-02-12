@@ -121,28 +121,8 @@ public class PdfController : ControllerBase
         string appModelclassRef = _resources.GetClassRefForLogicDataType(dataElement.DataType);
         Type dataType = _appModel.GetModelType(appModelclassRef);
 
-        var taskUiConfiguration = _resources.GetTaskUiConfiguration(taskId);
-        if (
-            taskUiConfiguration?.DefaultDataType is not null
-            && !taskUiConfiguration.DefaultDataType.Equals(dataElement.DataType, StringComparison.Ordinal)
-        )
-        {
-            taskUiConfiguration = null;
-        }
-
-        string? layoutSettingsFileContent =
-            taskUiConfiguration == null
-                ? _resources.GetLayoutSettingsString()
-                : _resources.GetLayoutSettingsStringForSet(taskUiConfiguration.FolderId);
-
-        LayoutSettings? layoutSettings = null;
-        if (!string.IsNullOrEmpty(layoutSettingsFileContent))
-        {
-            layoutSettings = JsonSerializer.Deserialize<LayoutSettings>(
-                layoutSettingsFileContent,
-                _jsonSerializerOptions
-            );
-        }
+        var uiConfiguration = _resources.GetUiConfiguration();
+        uiConfiguration.Folders.TryGetValue(taskId, out LayoutSettings? layoutSettings);
 
         // Ensure layoutsettings are initialized in FormatPdf
         layoutSettings ??= new();
@@ -160,18 +140,7 @@ public class PdfController : ControllerBase
             new Guid(dataElement.Id)
         );
 
-        LayoutSet? layoutSet = null;
-        if (taskUiConfiguration?.DefaultDataType is not null)
-        {
-            layoutSet = new LayoutSet
-            {
-                Id = taskUiConfiguration.FolderId,
-                DataType = taskUiConfiguration.DefaultDataType,
-                Tasks = [taskUiConfiguration.TaskId],
-            };
-        }
-
-        layoutSettings = await _pdfFormatter.FormatPdf(layoutSettings, data, instance, layoutSet);
+        layoutSettings = await _pdfFormatter.FormatPdf(layoutSettings, data, instance);
 
         var result = new
         {

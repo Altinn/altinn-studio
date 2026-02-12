@@ -153,12 +153,6 @@ public class ExpressionsExclusiveGatewayTests
             },
         };
         object formData = new DummyModel() { Amount = 1000, Submitter = "test" };
-        TaskUiConfiguration taskUiConfiguration = new()
-        {
-            TaskId = TaskId,
-            FolderId = TaskId,
-            DefaultDataType = DefaultDataTypeName,
-        };
         var outgoingFlows = new List<SequenceFlow>
         {
             new SequenceFlow { Id = "1", ConditionExpression = "[\"notEquals\", [\"dataModel\", \"Amount\"], 1000]" },
@@ -185,7 +179,7 @@ public class ExpressionsExclusiveGatewayTests
         var (gateway, dataAccessor) = SetupExpressionsGateway(
             instance,
             dataTypes: dataTypes,
-            taskUiConfiguration: taskUiConfiguration,
+            defaultDataType: DefaultDataTypeName,
             formData: formData
         );
 
@@ -216,12 +210,6 @@ public class ExpressionsExclusiveGatewayTests
         };
 
         object formData = new DummyModel() { Amount = 1000, Submitter = "test" };
-        TaskUiConfiguration taskUiConfiguration = new()
-        {
-            TaskId = TaskId,
-            FolderId = TaskId,
-            DefaultDataType = DefaultDataTypeName,
-        };
         var outgoingFlows = new List<SequenceFlow>
         {
             new SequenceFlow { Id = "1", ConditionExpression = "[\"notEquals\", [\"dataModel\", \"Amount\"], 1000]" },
@@ -245,7 +233,12 @@ public class ExpressionsExclusiveGatewayTests
         };
         var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm", DataTypeId = "aa" };
 
-        var (gateway, dataAccessor) = SetupExpressionsGateway(instance, dataTypes, taskUiConfiguration, formData);
+        var (gateway, dataAccessor) = SetupExpressionsGateway(
+            instance,
+            dataTypes,
+            defaultDataType: DefaultDataTypeName,
+            formData: formData
+        );
 
         // Act
         var result = await gateway.FilterAsync(outgoingFlows, instance, dataAccessor, processGatewayInformation);
@@ -258,11 +251,18 @@ public class ExpressionsExclusiveGatewayTests
     private (ExpressionsExclusiveGateway gateway, IInstanceDataAccessor dataAccessor) SetupExpressionsGateway(
         Instance instance,
         List<DataType> dataTypes,
-        TaskUiConfiguration? taskUiConfiguration = null,
+        string? defaultDataType = null,
         object? formData = null
     )
     {
-        _resources.Setup(r => r.GetTaskUiConfiguration(TaskId)).Returns(taskUiConfiguration);
+        var folders = new Dictionary<string, LayoutSettings>();
+        if (defaultDataType is not null)
+        {
+            folders[TaskId] = new LayoutSettings { DefaultDataType = defaultDataType };
+        }
+        _resources
+            .Setup(r => r.GetUiConfiguration())
+            .Returns(new UiConfiguration { Folders = folders, Settings = null });
         var appMetadata = new ApplicationMetadata(AppId) { DataTypes = dataTypes };
         var modelSerializationService = new ModelSerializationService(_appModel.Object);
         _appMetadata.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(appMetadata).Verifiable(Times.AtLeastOnce);

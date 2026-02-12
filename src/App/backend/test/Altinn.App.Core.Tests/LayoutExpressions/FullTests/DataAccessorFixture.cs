@@ -89,7 +89,7 @@ public sealed class DataAccessorFixture
                     {
                         {
                             TaskId,
-                            new UiFolderSettings { DefaultDataType = "fake" }
+                            new LayoutSettings { DefaultDataType = "fake" }
                         },
                     },
                 }
