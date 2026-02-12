@@ -22,10 +22,17 @@ internal sealed class ProjectChecks
     /// <summary>
     /// Verifies that the project is using supported versions of Altinn.App.Api and Altinn.App.Core
     /// for the 'v8Tov10' upgrade. Accepts versions &gt;= 8.0.0 and &lt; 9.0.0.
+    /// Also allows projects using ProjectReference instead of PackageReference (e.g., local development).
     /// </summary>
-    /// <returns>True if both packages are present and in the supported version range, false otherwise</returns>
+    /// <returns>True if both packages are present and in the supported version range, or if using project references</returns>
     public bool SupportedSourceVersion()
     {
+        // Check if using project references instead of package references
+        if (HasAltinnProjectReferences())
+        {
+            return true;
+        }
+
         var altinnAppCoreElements = GetAltinnAppCoreElement();
         var altinnAppApiElements = GetAltinnAppApiElement();
 
@@ -55,6 +62,33 @@ internal sealed class ProjectChecks
         return altinnAppCoreElements
             .Select(coreElement => coreElement.Attribute("Version")?.Value)
             .All(altinnAppCoreVersion => SupportedSourceVersion(altinnAppCoreVersion));
+    }
+
+    /// <summary>
+    /// Checks if the project uses ProjectReference for Altinn.App.Core or Altinn.App.Api
+    /// instead of PackageReference (typical for local development setups).
+    /// </summary>
+    private bool HasAltinnProjectReferences()
+    {
+        var projectReferences = _doc
+            .Root?.Elements("ItemGroup")
+            .Elements("ProjectReference")
+            .Select(x => x.Attribute("Include")?.Value)
+            .Where(x => x != null)
+            .ToList();
+
+        if (projectReferences is null || projectReferences.Count == 0)
+        {
+            return false;
+        }
+
+        return projectReferences.Any(path =>
+            path != null
+            && (
+                path.Contains("Altinn.App.Core", StringComparison.OrdinalIgnoreCase)
+                || path.Contains("Altinn.App.Api", StringComparison.OrdinalIgnoreCase)
+            )
+        );
     }
 
     private List<XElement>? GetAltinnAppCoreElement()
