@@ -16,10 +16,10 @@ describe('TemplateDetails', () => {
     expect(screen.getByText('This is a description of Template One.')).toBeInTheDocument();
   });
 
-  it('should render template id if name is missing', () => {
+  it('should render template id if name is empty', () => {
     const props: TemplateDetailsProps = {
       id: 'template1',
-      name: undefined,
+      name: '',
       description: 'This is a description of Template One.',
       owner: 'owner1',
     };
