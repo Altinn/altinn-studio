@@ -32,6 +32,9 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
             }
         }
 
+        // Clean up empty folders from previous botched runs before proceeding
+        DeleteEmptyDirectoriesRecursively(uiPath);
+
         var layoutSetsPath = Path.Combine(uiPath, "layout-sets.json");
         if (!File.Exists(layoutSetsPath))
         {
@@ -134,6 +137,29 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
         else
         {
             Directory.Delete(path, recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// Recursively deletes empty directories within the given path.
+    /// A directory is considered empty if it contains no files and all subdirectories are also empty.
+    /// This cleans up artifacts from previous botched upgrade runs.
+    /// </summary>
+    private static void DeleteEmptyDirectoriesRecursively(string path, bool isRoot = true)
+    {
+        if (!Directory.Exists(path))
+        {
+            return;
+        }
+
+        foreach (var subDirectory in Directory.GetDirectories(path))
+        {
+            DeleteEmptyDirectoriesRecursively(subDirectory, isRoot: false);
+        }
+
+        if (!isRoot && !Directory.EnumerateFileSystemEntries(path).Any())
+        {
+            Directory.Delete(path);
         }
     }
 
