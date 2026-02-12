@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter, generatePath } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 
 import { GlobalData } from 'nextsrc/core/globalData';
 import { Page } from 'nextsrc/features/form/pages/page/page';
@@ -13,17 +13,7 @@ import { InstanceSelectionPage } from 'nextsrc/features/instantiate/pages/instan
 import { PartySelectionPage } from 'nextsrc/features/instantiate/pages/party-selection/PartySelectionPage';
 import { StatelessPage } from 'nextsrc/features/instantiate/pages/stateless/StatelessPage';
 import { queryClient } from 'nextsrc/QueryClient';
-
-// Route patterns (for router declaration)
-export const routes = {
-  root: '/',
-  partySelection: '/party-selection',
-  instance: '/instance/:instanceOwnerPartyId/:instanceGuid',
-  task: '/instance/:instanceOwnerPartyId/:instanceGuid/:taskId',
-  page: '/instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:pageId',
-  instanceSelection: '/instance-selection',
-  stateless: '/:pageId',
-} as const;
+import { routes } from 'nextsrc/routesBuilder';
 
 export const router = createBrowserRouter(
   [
@@ -37,16 +27,3 @@ export const router = createBrowserRouter(
   ],
   { basename: GlobalData.basename },
 );
-
-// URL builders (for navigation)
-export const routeBuilders = buildRoutes(routes);
-
-function routeBuilder<P extends string>(pattern: P) {
-  return (params: Parameters<typeof generatePath<P>>[1]) => generatePath(pattern, params);
-}
-
-function buildRoutes<T extends Record<string, string>>(routes: T) {
-  return Object.fromEntries(Object.entries(routes).map(([key, pattern]) => [key, routeBuilder(pattern)])) as {
-    [K in keyof T]: ReturnType<typeof routeBuilder<T[K]>>;
-  };
-}

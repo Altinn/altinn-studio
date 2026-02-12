@@ -24,6 +24,10 @@ export const Page = () => {
 
   return (
     <div style={{ fontFamily: 'arial' }}>
+      <ol>
+        <li>Rendre rep gruppe</li>
+      </ol>
+
       <h2>Full form data from form client:</h2>
       <pre>{JSON.stringify(formData, null, 2)}</pre>
       <FormEngine

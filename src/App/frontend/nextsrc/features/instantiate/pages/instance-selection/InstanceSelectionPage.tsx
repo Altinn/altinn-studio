@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
 import { GlobalData } from 'nextsrc/core/globalData';
 import classes from 'nextsrc/features/instantiate/pages/instance-selection/InstanceSelectionPage.module.css';
-import { routeBuilders } from 'nextsrc/router';
+import { routeBuilders } from 'nextsrc/routesBuilder';
 
 export const InstanceSelectionPage = () => {
   const navigate = useNavigate();

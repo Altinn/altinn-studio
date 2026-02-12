@@ -4,7 +4,7 @@ import type { LoaderFunctionArgs } from 'react-router-dom';
 import { InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
 import { GlobalData } from 'nextsrc/core/globalData';
 import { ServerStatusCodes } from 'nextsrc/core/serverStatusCodes';
-import { routeBuilders } from 'nextsrc/router';
+import { routeBuilders } from 'nextsrc/routesBuilder';
 import type { QueryClient } from '@tanstack/react-query';
 
 import type { IInstance } from 'src/types/shared';
