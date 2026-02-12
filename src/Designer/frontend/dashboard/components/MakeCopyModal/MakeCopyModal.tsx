@@ -10,6 +10,7 @@ import { useOrganizationsQuery } from '../../hooks/queries';
 import { NewApplicationForm } from '../NewApplicationForm';
 import { type NewAppForm } from '../../types/NewAppForm';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
+import type { CreateServiceFormError } from '../../pages/CreateService/CreateService';
 
 export type MakeCopyModalProps = {
   open?: boolean;
@@ -31,7 +32,7 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
       hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
     });
 
-    const [formError, setFormError] = useState<NewAppForm>({ org: '', repoName: '' });
+    const [formError, setFormError] = useState<CreateServiceFormError>({ org: '', repoName: '' });
 
     const { t } = useTranslation();
 
@@ -57,7 +58,7 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
             const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
             if (appNameAlreadyExists) {
               setFormError(
-                (prevErrors): NewAppForm => ({
+                (prevErrors): CreateServiceFormError => ({
                   ...prevErrors,
                   repoName: t('dashboard.app_already_exists'),
                 }),
