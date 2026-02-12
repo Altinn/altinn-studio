@@ -3,7 +3,7 @@ import { matchPath } from 'react-router-dom';
 import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
 import { instanceQueries } from 'src/features/instance/InstanceContext';
 import { processQueries } from 'src/features/instance/useProcessQuery';
-import { usePartiesQueryDef, useSelectedPartyQueryDef } from 'src/features/party/PartiesProvider';
+import { usePartiesQueryDef } from 'src/features/party/PartiesProvider';
 
 /**
  * Prefetches requests that require no processed data to determine the url
@@ -16,8 +16,6 @@ export function AppPrefetcher() {
   const instanceId = instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
 
   usePrefetchQuery(usePartiesQueryDef(true), Boolean(instanceOwnerPartyId));
-  usePrefetchQuery(useSelectedPartyQueryDef(true), Boolean(instanceOwnerPartyId));
-
   usePrefetchQuery(instanceQueries.instanceData({ instanceOwnerPartyId, instanceGuid }));
   usePrefetchQuery(processQueries.processState(instanceId));
 
