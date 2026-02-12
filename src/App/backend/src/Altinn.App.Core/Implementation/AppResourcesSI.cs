@@ -354,7 +354,13 @@ public class AppResourcesSI : IAppResources
             pages.Add(PageComponent.Parse(document.RootElement, page, folderId));
         }
 
-        var dataType = ResolveDefaultDataTypeForFolder(folderId, settings ?? new LayoutSettings(), dataTypes);
+        var dataType =
+            dataTypes.Find(d => d.Id == settings?.DefaultDataType)
+            ?? dataTypes.Find(d => d.AppLogic?.ClassRef is not null)
+            ?? throw new InvalidOperationException(
+                $"Layout folder {folderId} default data type missing, or does not exist in applicationmetadata.json"
+            );
+
         return new LayoutSetComponent(pages, folderId, dataType);
     }
 
@@ -431,26 +437,6 @@ public class AppResourcesSI : IAppResources
         }
 
         return System.Text.Json.JsonSerializer.Deserialize<GlobalPageSettings>(settingsString, _jsonSerializerOptions);
-    }
-
-    private static DataType ResolveDefaultDataTypeForFolder(
-        string folderId,
-        LayoutSettings settings,
-        List<DataType> dataTypes
-    )
-    {
-        var dataTypeId = settings.DefaultDataType;
-        if (string.IsNullOrWhiteSpace(dataTypeId))
-        {
-            throw new InvalidOperationException(
-                $"Could not resolve data type for ui folder {folderId}. Set defaultDataType in App/ui/{folderId}/Settings.json."
-            );
-        }
-
-        return dataTypes.Find(d => d.Id == dataTypeId)
-            ?? throw new InvalidOperationException(
-                $"Could not resolve data type '{dataTypeId}' for ui folder {folderId}. Ensure the data type exists in applicationmetadata.json."
-            );
     }
 
     private static byte[] ReadFileContentsFromLegalPath(string legalPath, string filePath)

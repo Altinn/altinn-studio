@@ -263,12 +263,12 @@ public class HomeController : Controller
     {
         var ui = _appResources.GetUiConfiguration();
         var onEntryFolderId = application.OnEntry?.Show;
-        if (onEntryFolderId is null || !ui.Folders.TryGetValue(onEntryFolderId, out var folderSettings))
+        if (onEntryFolderId is null || !ui.Folders.TryGetValue(onEntryFolderId, out var layoutSettings))
         {
             return null;
         }
 
-        return application.DataTypes.Find(d => d.Id == folderSettings.DefaultDataType)
+        return application.DataTypes.Find(d => d.Id == layoutSettings.DefaultDataType)
             ?? application.DataTypes.Find(d => d.TaskId == onEntryFolderId && d.AppLogic?.ClassRef is not null)
             ?? application.DataTypes.Find(d => d.AppLogic?.ClassRef is not null);
     }
