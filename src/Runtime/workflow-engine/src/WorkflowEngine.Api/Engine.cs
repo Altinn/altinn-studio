@@ -16,6 +16,7 @@ internal interface IEngine
 {
     EngineHealthStatus Status { get; }
     int InboxCount { get; }
+    int InboxCapacityLimit { get; }
     bool CanAcceptNewWork { get; }
     Task Start(CancellationToken cancellationToken = default);
     Task Stop();
@@ -51,6 +52,7 @@ internal partial class Engine : IEngine, IDisposable
 
     public EngineHealthStatus Status { get; private set; }
     public int InboxCount => _inbox.Count;
+    public int InboxCapacityLimit => _settings.QueueCapacity;
     public bool CanAcceptNewWork => _inboxCapacityLimit.CurrentCount > 0;
 
     public Engine(IServiceProvider serviceProvider)
@@ -197,7 +199,7 @@ internal partial class Engine : IEngine, IDisposable
                     var processingStatus = await ProcessSteps(workflow, cancellationToken);
 
                     // Just waiting
-                    if (processingStatus == TelemetryInclusion.NoData)
+                    if (processingStatus == ProcessingIterationStatus.Waiting)
                         return;
 
                     // Update the Workflow db record only when all steps are finished
@@ -281,7 +283,7 @@ internal partial class Engine : IEngine, IDisposable
         _logger.WorkflowCompleted(workflow);
     }
 
-    private async Task<TelemetryInclusion> ProcessSteps(Workflow workflow, CancellationToken cancellationToken)
+    private async Task<ProcessingIterationStatus> ProcessSteps(Workflow workflow, CancellationToken cancellationToken)
     {
         for (int i = 0; i < workflow.Steps.Count; i++)
         {
@@ -296,7 +298,7 @@ internal partial class Engine : IEngine, IDisposable
             if (!step.IsReadyForExecution(_timeProvider))
             {
                 _logger.NotReadyForExecution(step);
-                return TelemetryInclusion.NoData;
+                return ProcessingIterationStatus.Waiting;
             }
 
             _logger.ProcessingStep(step);
@@ -315,7 +317,7 @@ internal partial class Engine : IEngine, IDisposable
                     // Waiting for the database operation to complete
                     case { DatabaseUpdateStatus: TaskStatus.Started }:
                         _logger.WaitingForStepDbTask(step);
-                        return TelemetryInclusion.NoData;
+                        return ProcessingIterationStatus.Waiting;
 
                     // Database operation failed
                     case { DatabaseUpdateStatus: TaskStatus.Failed }:
@@ -337,12 +339,12 @@ internal partial class Engine : IEngine, IDisposable
                         RecordStepServiceTime(step);
                         RecordStepTotalTime(step, previous);
 
-                        return TelemetryInclusion.NoData;
+                        return ProcessingIterationStatus.Waiting;
 
                     // Waiting for the execution step to complete
                     case { ExecutionStatus: TaskStatus.Started }:
                         _logger.WaitingForStepExecutionTask(step);
-                        return TelemetryInclusion.NoData;
+                        return ProcessingIterationStatus.Waiting;
 
                     // Execution step completed
                     case { ExecutionStatus: TaskStatus.Finished }:
@@ -355,7 +357,7 @@ internal partial class Engine : IEngine, IDisposable
 
                         // Update database
                         step.DatabaseTask = UpdateStepInDb(step, cancellationToken);
-                        return TelemetryInclusion.HasData;
+                        return ProcessingIterationStatus.TaskStarted;
 
                     // Step is new
                     default:
@@ -364,7 +366,7 @@ internal partial class Engine : IEngine, IDisposable
                         step.Status = PersistentItemStatus.Processing;
                         step.ExecutionStartedAt = _timeProvider.GetUtcNow();
                         step.ExecutionTask = _workflowExecutor.Execute(workflow, step, cancellationToken);
-                        return TelemetryInclusion.HasData;
+                        return ProcessingIterationStatus.TaskStarted;
                 }
             }
             catch (Exception ex)
@@ -374,7 +376,7 @@ internal partial class Engine : IEngine, IDisposable
             }
         }
 
-        return TelemetryInclusion.NoData;
+        return ProcessingIterationStatus.Waiting;
 
         void UpdateStepStatusAndRetryDecision(Step currentStep, Step? previousStep, ExecutionResult result)
         {
@@ -480,9 +482,9 @@ internal partial class Engine : IEngine, IDisposable
             )
             .WaitAsync(cancellationToken);
 
-    private enum TelemetryInclusion
+    private enum ProcessingIterationStatus
     {
-        NoData,
-        HasData,
+        Waiting,
+        TaskStarted,
     }
 }

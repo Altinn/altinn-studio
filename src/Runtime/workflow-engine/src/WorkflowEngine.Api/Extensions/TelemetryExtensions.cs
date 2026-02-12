@@ -52,25 +52,30 @@ internal static class TelemetryExtensions
             string name,
             ActivityKind? kind = null,
             IEnumerable<ActivityLink>? links = null,
-            IEnumerable<(string tag, object? value)>? tags = null
+            IEnumerable<(string tag, object? value)>? tags = null,
+            bool includeCurrentContext = true
         )
         {
-            var previous = Activity.Current;
+            var current = Activity.Current;
             Activity.Current = null;
 
             try
             {
+                var activityLinks = new List<ActivityLink>(links ?? []);
+                if (includeCurrentContext && current is not null)
+                    activityLinks.Add(new ActivityLink(current.Context));
+
                 return source.StartActivity(
                     name,
                     kind: kind ?? ActivityKind.Internal,
                     parentContext: default,
-                    links: links ?? [],
+                    links: activityLinks,
                     tags: tags?.Select(t => new KeyValuePair<string, object?>(t.tag, t.value))
                 );
             }
             finally
             {
-                Activity.Current = previous;
+                Activity.Current = current;
             }
         }
     }

@@ -86,6 +86,10 @@ internal static class ServiceCollectionExtensions
                                     var t when t.StartsWith("INSERT", StringComparison.OrdinalIgnoreCase) => "Insert",
                                     var t when t.StartsWith("UPDATE", StringComparison.OrdinalIgnoreCase) => "Update",
                                     var t when t.StartsWith("DELETE", StringComparison.OrdinalIgnoreCase) => "Delete",
+                                    var t when t.StartsWith("CREATE", StringComparison.OrdinalIgnoreCase) => "Create",
+                                    var t when t.StartsWith("ALTER", StringComparison.OrdinalIgnoreCase) => "Alter",
+                                    var t when t.StartsWith("DROP", StringComparison.OrdinalIgnoreCase) => "Drop",
+                                    var t when t.StartsWith("LOCK", StringComparison.OrdinalIgnoreCase) => "Lock",
                                     _ => "Unknown",
                                 };
 

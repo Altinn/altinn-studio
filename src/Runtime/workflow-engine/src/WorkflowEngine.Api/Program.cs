@@ -31,7 +31,7 @@ builder.Services.AddHttpContextAccessor();
 var app = builder.Build();
 
 // Apply database migrations
-await app.MigrateDatabaseAsync(dbConnectionString);
+await app.ApplyDatabaseMigrations(dbConnectionString);
 
 // OpenAPI
 app.MapOpenApi();

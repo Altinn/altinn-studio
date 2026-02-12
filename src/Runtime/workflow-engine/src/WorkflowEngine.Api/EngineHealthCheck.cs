@@ -1,9 +1,10 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using WorkflowEngine.Models;
+using WorkflowEngine.Resilience;
 
 namespace WorkflowEngine.Api;
 
-internal sealed class EngineHealthCheck(IEngine engine) : IHealthCheck
+internal sealed class EngineHealthCheck(IEngine engine, ConcurrencyLimiter concurrencyLimiter) : IHealthCheck
 {
     /// <summary>
     /// Unhealthy: engine is stopped or explicitly unhealthy.
@@ -20,10 +21,27 @@ internal sealed class EngineHealthCheck(IEngine engine) : IHealthCheck
         CancellationToken cancellationToken = default
     )
     {
+        var dbSlotStatus = concurrencyLimiter.DbSlotStatus;
+        var httpSlotStatus = concurrencyLimiter.HttpSlotStatus;
+
         var data = new Dictionary<string, object>
         {
             ["status"] = engine.Status.ToString(),
-            ["queue"] = engine.InboxCount,
+            ["queue"] = new Dictionary<string, int>
+            {
+                ["count"] = engine.InboxCount,
+                ["limit"] = engine.InboxCapacityLimit,
+            },
+            ["http_connections"] = new Dictionary<string, int>
+            {
+                ["count"] = httpSlotStatus.Used,
+                ["limit"] = httpSlotStatus.Total,
+            },
+            ["db_connections"] = new Dictionary<string, int>
+            {
+                ["count"] = dbSlotStatus.Used,
+                ["limit"] = dbSlotStatus.Total,
+            },
         };
 
         var status = new

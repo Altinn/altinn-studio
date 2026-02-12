@@ -63,7 +63,7 @@ export function teardown() {
             const res = http.get(HEALTH_URL);
             const body = JSON.parse(res.body);
             const engineCheck = body.checks?.find((c) => c.name === "Engine");
-            const queueCount = engineCheck?.data?.queue;
+            const queueCount = engineCheck?.data?.queue?.count;
 
             if (queueCount === undefined) {
                 console.warn("  Warning: could not read queue count from health endpoint");

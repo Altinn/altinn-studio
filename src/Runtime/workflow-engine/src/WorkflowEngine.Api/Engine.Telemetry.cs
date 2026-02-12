@@ -10,7 +10,7 @@ internal partial class Engine
     private static Activity? StartProcessWorkflowActivityOnce(Workflow workflow)
     {
         // Subsequent iterations: return nothing, don't start another activity
-        // Caller's dependencies will manually set parentContext
+        // Downstream callers will manually set parentContext
         if (workflow.EngineTraceContext is not null)
             return null;
 
@@ -30,7 +30,7 @@ internal partial class Engine
     private static Activity? StartProcessStepActivityOnce(Workflow workflow, Step step)
     {
         // Subsequent iterations: return nothing, don't start another activity
-        // Caller's dependencies will manually set parentContext
+        // Downstream callers will manually set parentContext
         if (step.EngineTraceContext is not null)
             return null;
 
