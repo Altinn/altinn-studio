@@ -391,14 +391,12 @@ describe('CreateService', () => {
 
   it('should display template error message when template use fails', async () => {
     const user = userEvent.setup();
-    const addRepoMock = jest
-      .fn()
-      .mockImplementation(() =>
-        Promise.reject({
-          error: 'CustomTemplateException',
-          response: { status: ServerCodes.BadRequest, data: { error: 'CustomTemplateException' } },
-        }),
-      );
+    const addRepoMock = jest.fn().mockImplementation(() =>
+      Promise.reject({
+        error: 'CustomTemplateException',
+        response: { status: ServerCodes.BadRequest, data: { error: 'CustomTemplateException' } },
+      }),
+    );
     const queryClient = createQueryClientMock();
     queryClient.setQueryData(
       [QueryKey.CustomTemplates, mockUser.login],
