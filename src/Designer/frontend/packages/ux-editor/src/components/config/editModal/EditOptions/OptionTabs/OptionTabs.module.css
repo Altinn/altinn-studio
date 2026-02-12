@@ -1,4 +1,4 @@
-.tabContent {
+.tabContent:not([hidden]) {
   padding: var(--fds-spacing-5) 0;
   display: flex;
   flex-direction: column;
