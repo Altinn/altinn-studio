@@ -1,9 +1,10 @@
 {
   "$schema": "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",
   "pages": {
+    "pdfLayoutName": "pdfLayout",
     "order": [
       "Side1"
     ]
   },
-  "defaultDataType": "SubformModel"
+  "defaultDataType": "model"
 }
