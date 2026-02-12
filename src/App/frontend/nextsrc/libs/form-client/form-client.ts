@@ -1,5 +1,7 @@
 import dot from 'dot-object';
+import { moveChildren } from 'nextsrc/libs/form-client/moveChildren';
 import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/apiClient/dataApi';
+import type { ResolvedLayoutCollection } from 'nextsrc/libs/form-client/moveChildren';
 
 import type { ILayoutFile } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
@@ -7,7 +9,7 @@ import type { ILayoutCollection } from 'src/layout/layout';
 type Listener = () => void;
 
 export class FormClient {
-  private layoutCollection: ILayoutCollection;
+  private layoutCollection: ResolvedLayoutCollection;
   private formData: FormDataNode;
   private listeners = new Map<string, Set<Listener>>();
 
@@ -16,7 +18,9 @@ export class FormClient {
   }
 
   public setLayoutCollection(layoutCollection: ILayoutCollection) {
-    this.layoutCollection = layoutCollection;
+    this.layoutCollection = Object.fromEntries(
+      Object.entries(layoutCollection).map(([key, layout]) => [key, moveChildren(layout)]),
+    );
   }
 
   getValue(path: string): FormDataPrimitive {

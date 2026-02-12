@@ -70,6 +70,7 @@ export type LayoutLookups = PlainLayoutLookups & RelationshipLookups & LookupFun
  * which components are on which pages.
  */
 function makePlainLookup(layouts: ILayouts): PlainLayoutLookups {
+  debugger;
   const allComponents: PlainLayoutLookups['allComponents'] = {};
   const allPerPage: PlainLayoutLookups['allPerPage'] = {};
   const componentToPage: PlainLayoutLookups['componentToPage'] = {};

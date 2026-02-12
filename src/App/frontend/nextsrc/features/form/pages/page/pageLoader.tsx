@@ -22,7 +22,6 @@ export const pageLoader = async ({
   }
 
   const layout = await LayoutApi.getLayout(layoutSet?.id);
-
   formClient.setLayoutCollection(layout);
 
   const instance = await InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
