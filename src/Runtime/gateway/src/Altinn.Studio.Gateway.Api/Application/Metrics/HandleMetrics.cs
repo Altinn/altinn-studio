@@ -8,6 +8,9 @@ namespace Altinn.Studio.Gateway.Api.Application;
 
 internal static class HandleMetrics
 {
+    private const int DefaultActivityWindowDays = 7;
+    private const int MaxActivityWindowDays = 30;
+
     internal static async Task<IResult> GetErrorMetrics(
         IOptionsMonitor<GatewayContext> gatewayContext,
         IServiceProvider serviceProvider,
@@ -112,6 +115,39 @@ internal static class HandleMetrics
         return Results.Ok(metrics);
     }
 
+    internal static async Task<IResult> GetAppActivityMetrics(
+        IServiceProvider serviceProvider,
+        IOptionsMonitor<MetricsClientSettings> metricsClientSettings,
+        TimeProvider timeProvider,
+        int? windowDays,
+        CancellationToken cancellationToken
+    )
+    {
+        var effectiveWindowDays = windowDays ?? DefaultActivityWindowDays;
+        if (effectiveWindowDays < 1 || effectiveWindowDays > MaxActivityWindowDays)
+        {
+            return TypedResults.BadRequest($"windowDays must be between 1 and {MaxActivityWindowDays}.");
+        }
+
+        IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
+            metricsClientSettings.CurrentValue.Provider
+        );
+
+        var activeAppsResult = await metricsClient.GetActiveApps(effectiveWindowDays, cancellationToken);
+        var response = new AppActivityMetricsResponse
+        {
+            Status = MapActivityStatus(activeAppsResult.Status),
+            ActiveAppRequestCounts =
+                activeAppsResult.Status == ActivityStatus.Ok
+                    ? activeAppsResult.ActiveAppRequestCounts.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+                    : new Dictionary<string, double>(),
+            WindowDays = effectiveWindowDays,
+            GeneratedAt = timeProvider.GetUtcNow(),
+        };
+
+        return TypedResults.Ok(response);
+    }
+
     internal static async Task<IResult> GetAppHealthMetrics(
         PodsClient podsClient,
         string app,
@@ -126,5 +162,16 @@ internal static class HandleMetrics
         };
 
         return Results.Ok(metrics);
+    }
+
+    private static string MapActivityStatus(ActivityStatus activityStatus)
+    {
+        return activityStatus switch
+        {
+            ActivityStatus.Ok => "ok",
+            ActivityStatus.Unavailable => "unavailable",
+            ActivityStatus.Error => "error",
+            _ => throw new ArgumentOutOfRangeException(nameof(activityStatus), activityStatus, "Unsupported status."),
+        };
     }
 }
