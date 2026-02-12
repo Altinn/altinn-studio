@@ -20,11 +20,10 @@ export function useFormClient(): FormClient {
 export function useLayout(layoutId: string) {
   const client = useFormClient();
 
-  const value = useSyncExternalStore(
+  return useSyncExternalStore(
     (cb) => client.subscribe(layoutId, cb),
     () => client.getFormLayout(layoutId),
   );
-  return value;
 }
 
 export function useFormValue(path: string): { value: FormDataPrimitive; setValue: (v: FormDataPrimitive) => void } {
