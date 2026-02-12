@@ -9,6 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
+    "@posthog/react": "1.7.0",
     "@studio/assistant": "workspace:^",
     "@studio/browser-storage": "workspace:^",
     "@studio/content-library": "workspace:^",
@@ -16,7 +17,6 @@
     "@studio/hooks": "workspace:^",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
-    "@posthog/react": "1.7.0",
     "axios": "1.13.5",
     "classnames": "2.5.1",
     "i18next": "25.7.4",
