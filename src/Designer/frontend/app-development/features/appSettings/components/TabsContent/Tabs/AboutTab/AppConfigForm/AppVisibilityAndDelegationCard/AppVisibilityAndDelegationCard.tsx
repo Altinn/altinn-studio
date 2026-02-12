@@ -52,19 +52,8 @@ export function AppVisibilityAndDelegationCard({
     'app_settings.about_tab_visibility_and_delegation_warning_hidden_delegate_via_api',
   );
 
-  const status =
-    !visible && !delegable
-      ? VisibilityStatus.HiddenNonDelegable
-      : visible
-        ? VisibilityStatus.Visible
-        : VisibilityStatus.HiddenDelegable;
-
-  const infoText =
-    status === VisibilityStatus.HiddenNonDelegable
-      ? infoHiddenNoDelegation
-      : status === VisibilityStatus.Visible
-        ? infoVisibleCanDelegate
-        : null;
+  const status = getStatus(visible, delegable);
+  const infoText = getInfoText(status, infoHiddenNoDelegation, infoVisibleCanDelegate);
 
   const warningText =
     status === VisibilityStatus.HiddenDelegable ? warningHiddenDelegateViaApi : null;
@@ -120,3 +109,19 @@ export function AppVisibilityAndDelegationCard({
     </StudioCard>
   );
 }
+
+const getStatus = (visible: boolean, delegable: boolean): VisibilityStatus => {
+  if (!visible && !delegable) return VisibilityStatus.HiddenNonDelegable;
+  if (visible) return VisibilityStatus.Visible;
+  return VisibilityStatus.HiddenDelegable;
+};
+
+const getInfoText = (
+  status: VisibilityStatus,
+  infoHiddenNoDelegation: string,
+  infoVisibleCanDelegate: string,
+): string | null => {
+  if (status === VisibilityStatus.HiddenNonDelegable) return infoHiddenNoDelegation;
+  if (status === VisibilityStatus.Visible) return infoVisibleCanDelegate;
+  return null;
+};
