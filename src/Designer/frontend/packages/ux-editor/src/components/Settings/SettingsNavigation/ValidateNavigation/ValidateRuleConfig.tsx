@@ -4,16 +4,16 @@ import { StudioSelect } from '@studio/components';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks';
 import { useTranslation } from 'react-i18next';
 
-type ValidationRuleConfigProps = {
+type ValidateRuleConfigProps = {
   types: StudioSuggestionItem[];
   pageScope: string;
   onChange: (updates: { types?: StudioSuggestionItem[]; pageScope?: string }) => void;
 };
 
-export const ValidationRuleConfig = ({ types, pageScope, onChange }: ValidationRuleConfigProps) => {
+export const ValidateRuleConfig = ({ types, pageScope, onChange }: ValidateRuleConfigProps) => {
   const configEnumValue = useComponentPropertyEnumValue();
   const { t } = useTranslation();
-  const validationTypes = [
+  const validateTypes = [
     'Schema',
     'Component',
     'Expression',
@@ -22,7 +22,7 @@ export const ValidationRuleConfig = ({ types, pageScope, onChange }: ValidationR
     'AllExceptRequired',
     'All',
   ]; // Temporary hardcoded list of validation types, will extract from schema in next PR
-  const validationScopes = ['current', 'currentAndPrevious', 'all']; // Temporary hardcoded list of validation types, will extract from schema in next PR
+  const validateScopes = ['current', 'currentAndPrevious', 'all']; // Temporary hardcoded list of validation types, will extract from schema in next PR
 
   return (
     <>
@@ -33,7 +33,7 @@ export const ValidationRuleConfig = ({ types, pageScope, onChange }: ValidationR
         onSelectedChange={(selectedTypes) => onChange({ types: selectedTypes })}
         multiple
       >
-        {validationTypes.map((type) => (
+        {validateTypes.map((type) => (
           <StudioSuggestion.Option key={type} value={type}>
             {configEnumValue(type)}
           </StudioSuggestion.Option>
@@ -44,7 +44,7 @@ export const ValidationRuleConfig = ({ types, pageScope, onChange }: ValidationR
         value={pageScope}
         onChange={(e) => onChange({ pageScope: e.target.value })}
       >
-        {validationScopes.map((scope) => (
+        {validateScopes.map((scope) => (
           <StudioSelect.Option key={scope} value={scope}>
             {configEnumValue(scope)}
           </StudioSelect.Option>

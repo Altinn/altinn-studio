@@ -1,33 +1,26 @@
 import React from 'react';
-import { Scope } from './ValidateNavigation';
+import { type ValidateConfigState } from './ValidateNavigationTypes';
 import { type StudioSuggestionItem } from '@studio/components';
-import { ValidationRuleConfig } from './ValidationRuleConfig';
-import { PagesSelector, TasksSelector } from './ValidationTargetSelectors';
+import { ValidateRuleConfig } from './ValidateRuleConfig';
+import { PagesSelector, TasksSelector } from './ValidateTargetSelectors';
+import { Scope } from './ValidateNavigationUtils';
 
-export type ValidationConfigState = {
-  types: StudioSuggestionItem[];
-  pageScope: string;
-  tasks?: StudioSuggestionItem[];
-  task?: StudioSuggestionItem;
-  pages?: StudioSuggestionItem[];
-};
-
-type ValidationCardContentProps = {
+type ValidateCardContentProps = {
   scope: Scope;
-  config: ValidationConfigState;
-  onChange: (updates: Partial<ValidationConfigState>) => void;
+  config: ValidateConfigState;
+  onChange: (updates: Partial<ValidateConfigState>) => void;
 };
 
-export const ValidationCardContent = ({ scope, config, onChange }: ValidationCardContentProps) => {
-  const isPerPage = scope === Scope.PerPage;
-  const isPerTask = scope === Scope.PerTask;
+export const ValidateCardContent = ({ scope, config, onChange }: ValidateCardContentProps) => {
+  const isPerPage = scope === Scope.SelectedPages;
+  const isPerTask = scope === Scope.SelectedTasks;
 
   const handleTaskChange = (value: StudioSuggestionItem | StudioSuggestionItem[]) => {
-    if (scope === Scope.PerTask) {
+    if (scope === Scope.SelectedTasks) {
       onChange({ tasks: value as StudioSuggestionItem[] });
     }
 
-    if (scope === Scope.PerPage) {
+    if (scope === Scope.SelectedPages) {
       onChange({ task: value as StudioSuggestionItem, pages: [] });
     }
   };
@@ -44,7 +37,7 @@ export const ValidationCardContent = ({ scope, config, onChange }: ValidationCar
           onChange={(value) => onChange({ pages: value })}
         />
       )}
-      <ValidationRuleConfig
+      <ValidateRuleConfig
         types={config.types}
         pageScope={config.pageScope}
         onChange={(value) => onChange(value)}

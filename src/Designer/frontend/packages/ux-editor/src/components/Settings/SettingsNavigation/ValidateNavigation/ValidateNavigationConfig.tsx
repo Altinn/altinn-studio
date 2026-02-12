@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { StudioConfigCard, StudioProperty } from '@studio/components';
-import type { Scope } from './ValidateNavigation';
+import type { Scope } from './ValidateNavigationUtils';
 import { useTranslation } from 'react-i18next';
 import classes from './ValidateNavigationConfig.module.css';
-import { ValidationCardContent, type ValidationConfigState } from './ValidationCardContent';
+import { ValidateCardContent } from './ValidateCardContent';
+import type { ValidateConfigState } from './ValidateNavigationTypes';
 import { getCardLabel, getDefaultConfig } from './ValidateNavigationUtils';
 
-type ValidationConfigProps = {
+type ValidateConfigProps = {
   propertyLabel: string;
   scope: Scope;
 };
 
-export const ValidationConfig = ({ propertyLabel, scope }: ValidationConfigProps) => {
+export const ValidateConfig = ({ propertyLabel, scope }: ValidateConfigProps) => {
   const [isEditMode, setIsEditMode] = useState(false);
 
   if (!isEditMode) {
@@ -25,20 +26,20 @@ export const ValidationConfig = ({ propertyLabel, scope }: ValidationConfigProps
     );
   }
 
-  return <ValidationCard scope={scope} setIsEditMode={setIsEditMode} />;
+  return <ValidateCard scope={scope} setIsEditMode={setIsEditMode} />;
 };
 
-type ValidationCardProps = {
+type ValidateCardProps = {
   scope: Scope;
   setIsEditMode: (isEditMode: boolean) => void;
 };
 
-const ValidationCard = ({ scope, setIsEditMode }: ValidationCardProps) => {
+const ValidateCard = ({ scope, setIsEditMode }: ValidateCardProps) => {
   const getConfig = null; // Placeholder for function that would get the actual config based on scope, will implement in next PR
   const { t } = useTranslation();
-  const [config, setConfig] = useState<ValidationConfigState>(getConfig || getDefaultConfig(scope));
+  const [config, setConfig] = useState<ValidateConfigState>(getConfig || getDefaultConfig(scope));
 
-  const update = (updates: Partial<ValidationConfigState>) => {
+  const update = (updates: Partial<ValidateConfigState>) => {
     setConfig((prev) => ({ ...prev, ...updates }));
   };
 
@@ -66,7 +67,7 @@ const ValidationCard = ({ scope, setIsEditMode }: ValidationCardProps) => {
         onDelete={handleDelete}
       />
       <StudioConfigCard.Body>
-        <ValidationCardContent scope={scope} config={config} onChange={update} />
+        <ValidateCardContent scope={scope} config={config} onChange={update} />
       </StudioConfigCard.Body>
       <StudioConfigCard.Footer
         saveLabel={t('general.save')}

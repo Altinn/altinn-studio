@@ -2,19 +2,14 @@ import React from 'react';
 import { StudioHeading, StudioParagraph } from '@studio/components';
 import classes from './ValidateNavigation.module.css';
 import { useTranslation } from 'react-i18next';
-import { ValidationConfig } from './ValidateNavigationConfig';
-
-export enum Scope {
-  AllTasks = 'allTasks',
-  PerTask = 'perTask',
-  PerPage = 'perPage',
-}
+import { ValidateConfig } from './ValidateNavigationConfig';
+import { Scope } from './ValidateNavigationUtils';
 
 export const ValidateNavigation = () => {
   const { t } = useTranslation();
 
   return (
-    <div className={classes.validationContent}>
+    <div className={classes.validateContent}>
       <div>
         <StudioHeading level={3} data-size='xs' spacing>
           {t('ux_editor.settings.navigation_validation_header')}
@@ -30,7 +25,7 @@ export const ValidateNavigation = () => {
         <StudioParagraph>
           {t('ux_editor.settings.navigation_validation_all_tasks_description')}
         </StudioParagraph>
-        <ValidationConfig
+        <ValidateConfig
           propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
           scope={Scope.AllTasks}
         />
@@ -42,9 +37,9 @@ export const ValidateNavigation = () => {
         <StudioParagraph>
           {t('ux_editor.settings.navigation_validation_specific_task_description')}
         </StudioParagraph>
-        <ValidationConfig
+        <ValidateConfig
           propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
-          scope={Scope.PerTask}
+          scope={Scope.SelectedTasks}
         />
       </div>
       <div>
@@ -54,9 +49,9 @@ export const ValidateNavigation = () => {
         <StudioParagraph>
           {t('ux_editor.settings.navigation_validation_specific_page_description')}
         </StudioParagraph>
-        <ValidationConfig
+        <ValidateConfig
           propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
-          scope={Scope.PerPage}
+          scope={Scope.SelectedPages}
         />
       </div>
     </div>

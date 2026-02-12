@@ -1,18 +1,23 @@
-import { Scope } from './ValidateNavigation';
-import type { ValidationConfigState } from './ValidationCardContent';
+import type { ValidateConfigState } from './ValidateNavigationTypes';
 
-export const getDefaultConfig = (scope: Scope): ValidationConfigState => ({
+export enum Scope {
+  AllTasks = 'allTasks',
+  SelectedTasks = 'selectedTasks',
+  SelectedPages = 'selectedPages',
+}
+
+export const getDefaultConfig = (scope: Scope): ValidateConfigState => ({
   types: [],
   pageScope: '',
-  ...(scope === Scope.PerTask && { tasks: [] }),
-  ...(scope === Scope.PerPage && { task: undefined, pages: [] }),
+  ...(scope === Scope.SelectedTasks && { tasks: [] }),
+  ...(scope === Scope.SelectedPages && { task: undefined, pages: [] }),
 });
 
 export const getCardLabel = (scope: Scope): string => {
   const cardLabel = {
     [Scope.AllTasks]: 'Velg valideringsregel for alle oppgaver',
-    [Scope.PerTask]: 'Velg valideringregel for enkeltoppgaver',
-    [Scope.PerPage]: 'Velg valideringregel for enkeltsider',
+    [Scope.SelectedTasks]: 'Velg valideringregel for enkeltoppgaver',
+    [Scope.SelectedPages]: 'Velg valideringregel for enkeltsider',
   };
   return cardLabel[scope];
 };
