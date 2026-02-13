@@ -125,38 +125,6 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     }
 
     /// <inheritdoc />
-    public async Task<Uri?> GetAppErrorMetricsLogsAsync(
-        string org,
-        AltinnEnvironment environment,
-        IReadOnlyCollection<string> apps,
-        string metric,
-        DateTimeOffset from,
-        DateTimeOffset to,
-        CancellationToken cancellationToken
-    )
-    {
-        using var client = _httpClientFactory.CreateClient("runtime-gateway");
-        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors/logs";
-
-        IEnumerable<string> queryParts = apps
-                .Where(appName => !string.IsNullOrWhiteSpace(appName))
-                .Select(appName => appName.Trim())
-                .Select(appName => $"apps={Uri.EscapeDataString(appName)}")
-                .Concat([
-            $"metric={Uri.EscapeDataString(metric)}",
-            $"from={Uri.EscapeDataString(from.ToUniversalTime().ToString("O"))}",
-            $"to={Uri.EscapeDataString(to.ToUniversalTime().ToString("O"))}",
-        ]);
-
-        string queryString = string.Join("&", queryParts);
-        requestUrl = $"{requestUrl}?{queryString}";
-
-        Dictionary<string, Uri> result = await client.GetFromJsonAsync<Dictionary<string, Uri>>(requestUrl, cancellationToken) ?? new();
-        return result.TryGetValue("url", out Uri? url) ? url : null;
-    }
-
-    /// <inheritdoc />
     public async Task<IEnumerable<AppHealthMetric>> GetAppHealthMetricsAsync(
         string org,
         AltinnEnvironment environment,

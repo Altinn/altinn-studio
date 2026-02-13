@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import type { AppMetric as Metric } from 'admin/types/metrics/AppMetric';
 
 import { Line } from 'react-chartjs-2';
-import { appErrorMetricsLogsPath } from 'admin/utils/apiPaths';
 import { getChartData, getChartOptions } from 'admin/utils/charts';
 import { Alert } from 'admin/components/Alert/Alert';
 
@@ -30,7 +29,7 @@ export const AppErrorMetric = ({ metric, range, org, environment, apps }: AppErr
       color={isError ? 'danger' : 'success'}
       title={t(`admin.metrics.${metric.name}`)}
       count={count.toString()}
-      url={appErrorMetricsLogsPath(org, environment, apps, metric.name, range)}
+      url={metric.logsUrl}
     >
       <Line options={options} data={metricsChartData} />
     </Alert>

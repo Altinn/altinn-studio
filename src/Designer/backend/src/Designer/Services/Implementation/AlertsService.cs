@@ -43,7 +43,7 @@ internal sealed class AlertsService(
             alert.RuleId,
             alert.Name,
             alert.URL,
-            alert.IntervalInMinutes,
+            alert.LogsUrl,
             FiringApps = alert.Alerts
                 .Where(a => a.Status == "firing")
                 .Select(a => a.App)
@@ -51,30 +51,10 @@ internal sealed class AlertsService(
         })
         .Where(a => a.FiringApps.Count > 0);
 
-        var defaultInterval = firingAlerts.FirstOrDefault()?.IntervalInMinutes;
-        string? fromIso = null;
-        string? toIso = null;
-        if (defaultInterval.HasValue)
-        {
-            DateTimeOffset to = DateTimeOffset.UtcNow;
-            DateTimeOffset from = to.AddMinutes(-defaultInterval.Value);
-            fromIso = Uri.EscapeDataString(from.ToString("O"));
-            toIso = Uri.EscapeDataString(to.ToString("O"));
-        }
-
         await Task.WhenAll(
             firingAlerts.Select(async alert =>
             {
-                Uri? appInsightsUrl = BuildAppInsightsUrl(
-                    org,
-                    environment,
-                    alert.RuleId,
-                    alert.FiringApps,
-                    fromIso,
-                    toIso,
-                    defaultInterval.HasValue);
-
-                await SendToSlackAsync(org, environment, alert.FiringApps, alert.Name, alert.URL, appInsightsUrl, cancellationToken);
+                await SendToSlackAsync(org, environment, alert.FiringApps, alert.Name, alert.URL, alert.LogsUrl, cancellationToken);
             })
         );
 
@@ -133,28 +113,5 @@ internal sealed class AlertsService(
         {
             logger.LogError(ex, "Failed to send Slack alert notification. Alert Name: {AlertName}", alertName);
         }
-    }
-
-    private Uri? BuildAppInsightsUrl(
-        string org,
-        AltinnEnvironment environment,
-        string? ruleId,
-        IEnumerable<string> apps,
-        string? fromIso,
-        string? toIso,
-        bool hasInterval)
-    {
-        if (string.IsNullOrWhiteSpace(ruleId) || !hasInterval || fromIso is null || toIso is null)
-        {
-            return null;
-        }
-
-        IEnumerable<string> queryParts = apps.Select(app => $"apps={Uri.EscapeDataString(app)}").Concat([
-            $"metric={Uri.EscapeDataString(ruleId)}",
-            $"from={fromIso}",
-            $"to={toIso}",
-        ]);
-        string queryString = string.Join("&", queryParts);
-        return new Uri($"https://{generalSettings.HostName}/designer/api/v1/admin/metrics/{org}/{environment.Name}/app/errors/logs?{queryString}");
     }
 }
