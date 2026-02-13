@@ -86,6 +86,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     services.AddSwaggerGen(c =>
     {
         c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn App Api", Version = "v1" });
+        c.SupportNonNullableReferenceTypes();
         StartupHelper.IncludeXmlComments(c.IncludeXmlComments);
     });
 }

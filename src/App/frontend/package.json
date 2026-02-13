@@ -7,7 +7,9 @@
   "exports": "./src/index.tsx",
   "scripts": {
     "cy:all": "tsx scripts/cypress-run-all.ts",
-    "gen": "tsx src/codegen/run.ts",
+    "gen:api": "tsx nextsrc/api/strip-bom.ts && orval",
+    "gen:layouts": "tsx src/codegen/run.ts",
+    "gen": "yarn gen:api && yarn gen:layouts",
     "copy-schemas": "tsx scripts/copy-schemas.ts",
     "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development --progress",
     "build": "yarn gen && yarn copy-schemas && cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
@@ -116,6 +118,7 @@
     "jsdom": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch",
     "mime": "4.1.0",
     "mini-css-extract-plugin": "2.9.4",
+    "orval": "8.3.0",
     "prettier": "3.7.4",
     "puppeteer": "^24.29.0",
     "react-refresh": "0.18.0",
