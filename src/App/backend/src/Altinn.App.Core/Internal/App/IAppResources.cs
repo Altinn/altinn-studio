@@ -99,7 +99,7 @@ public interface IAppResources
     /// <summary>
     /// Gets the full layout model for a folder
     /// </summary>
-    LayoutModel GetLayoutModelForFolder(string folder);
+    LayoutModel? GetLayoutModelForFolder(string folder);
 
     /// <summary>
     /// Gets the the layouts settings for a layoutset

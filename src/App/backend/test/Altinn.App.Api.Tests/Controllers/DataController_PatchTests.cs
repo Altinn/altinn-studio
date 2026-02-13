@@ -310,7 +310,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         requiredName.Field.Should().Be("melding.name");
         requiredName
             .Description.Should()
-            .Be("melding.name is required in component with id default.page.name for binding simpleBinding");
+            .Be("melding.name is required in component with id Task_1.page.name for binding simpleBinding");
 
         // Run full validation to see that result is the same
         using var client = GetRootedUserClient(Org, App, UserId, InstanceOwnerPartyId);

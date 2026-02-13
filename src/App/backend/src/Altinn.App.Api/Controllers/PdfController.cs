@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -19,11 +18,6 @@ namespace Altinn.App.Api.Controllers;
 [ApiController]
 public class PdfController : ControllerBase
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
-
     private readonly IInstanceClient _instanceClient;
 #pragma warning disable CS0618 // Type or member is obsolete
     private readonly IPdfFormatter _pdfFormatter;
@@ -122,6 +116,11 @@ public class PdfController : ControllerBase
         Type dataType = _appModel.GetModelType(appModelclassRef);
 
         var uiConfiguration = _resources.GetUiConfiguration();
+        if (uiConfiguration is null)
+        {
+            return NotFound("Did not find ui configuration");
+        }
+
         uiConfiguration.Folders.TryGetValue(taskId, out LayoutSettings? layoutSettings);
 
         // Ensure layoutsettings are initialized in FormatPdf

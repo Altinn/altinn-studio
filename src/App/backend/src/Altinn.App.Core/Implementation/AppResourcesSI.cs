@@ -212,10 +212,15 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public LayoutModel GetLayoutModelForFolder(string folder)
+    public LayoutModel? GetLayoutModelForFolder(string folder)
     {
         using var activity = _telemetry?.StartGetLayoutModelActivity();
-        var ui = GetUiConfiguration() ?? throw new InvalidOperationException("UI configuration not found");
+        var ui = GetUiConfiguration();
+        if (ui is null)
+        {
+            return null;
+        }
+
         var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
         var layouts = ui.Folders.Select(f => LoadLayout(f.Key, f.Value, dataTypes)).ToList();
         return new LayoutModel(layouts, folder);

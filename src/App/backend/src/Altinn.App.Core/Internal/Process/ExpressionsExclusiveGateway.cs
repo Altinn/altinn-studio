@@ -86,7 +86,7 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
                 //       and in a future version we should probably require <altinn:connectedDataTypeId>
                 var taskId = instance.Process.CurrentTask.ElementId;
                 var uiConfiguration = _resources.GetUiConfiguration();
-                if (uiConfiguration.Folders.TryGetValue(taskId, out var folderSettings))
+                if (uiConfiguration is not null && uiConfiguration.Folders.TryGetValue(taskId, out var folderSettings))
                 {
                     dataTypeId = folderSettings.DefaultDataType;
                 }

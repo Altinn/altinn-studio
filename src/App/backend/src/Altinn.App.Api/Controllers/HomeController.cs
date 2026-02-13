@@ -262,6 +262,11 @@ public class HomeController : Controller
     private DataType? GetStatelessDataType(ApplicationMetadata application)
     {
         var ui = _appResources.GetUiConfiguration();
+        if (ui is null)
+        {
+            return null;
+        }
+
         var onEntryFolderId = application.OnEntry?.Show;
         if (onEntryFolderId is null || !ui.Folders.TryGetValue(onEntryFolderId, out var layoutSettings))
         {

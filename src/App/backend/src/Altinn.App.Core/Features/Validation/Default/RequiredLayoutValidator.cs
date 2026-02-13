@@ -33,7 +33,11 @@ public class RequiredLayoutValidator : IValidator
     /// <summary>
     /// Only run for tasks that have a matching UI folder.
     /// </summary>
-    public bool ShouldRunForTask(string taskId) => _appResources.GetUiConfiguration().Folders.ContainsKey(taskId);
+    public bool ShouldRunForTask(string taskId)
+    {
+        var uiConfiguration = _appResources.GetUiConfiguration();
+        return uiConfiguration?.Folders.ContainsKey(taskId) == true;
+    }
 
     /// <summary>
     /// This validator has the code "Required" and this is known by the frontend, who may request this validator to not run for incremental validation.

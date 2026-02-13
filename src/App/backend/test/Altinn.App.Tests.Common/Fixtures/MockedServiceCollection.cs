@@ -207,9 +207,8 @@ public sealed class MockedServiceCollection
     /// </summary>
     public void AddLayoutSet(DataType dataType, [StringSyntax("json")] string pageJson)
     {
-        var layoutId = $"layoutSet-{dataType.TaskId}";
         using var document = JsonDocument.Parse(pageJson);
-        var page = PageComponent.Parse(document.RootElement, "page1", layoutId);
+        var page = PageComponent.Parse(document.RootElement, "page1", dataType.TaskId);
         AddLayoutSet(dataType, [page]);
     }
 
@@ -349,7 +348,8 @@ public sealed class WrappedServiceProvider : IKeyedServiceProvider, IDisposable,
     )
         where T : class, new()
     {
-        var layoutSetName = "layoutSet1";
+        DataType defaultDataType = _serviceCollection.AddDataType<T>();
+        var layoutSetName = defaultDataType.TaskId!;
         var pages = components
             .GroupBy(c => c.PageId)
             .Select(group =>
@@ -379,7 +379,6 @@ public sealed class WrappedServiceProvider : IKeyedServiceProvider, IDisposable,
                 };
             });
 
-        DataType defaultDataType = _serviceCollection.AddDataType<T>();
         _serviceCollection.AddLayoutSet(defaultDataType, pages);
 
         return await CreateInstanceDataUnitOfWork(model, defaultDataType, language);

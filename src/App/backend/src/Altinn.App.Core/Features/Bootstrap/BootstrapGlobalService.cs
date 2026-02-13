@@ -50,6 +50,11 @@ internal sealed class BootstrapGlobalService(
         var availableLanguagesTask = _applicationLanguage.GetApplicationLanguages();
 
         var ui = _appResources.GetUiConfiguration();
+        if (ui is null)
+        {
+            throw new Exception("No UI configuration found, cannot bootstrap global state for frontend");
+        }
+
         ui.Settings ??= new GlobalPageSettings();
 
         var validatedUrl = _returnUrlService.Validate(redirectUrl);

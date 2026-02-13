@@ -2354,7 +2354,7 @@ namespace Altinn.App.Core.Implementation
         public string? GetApplicationXACMLPolicy() { }
         public string GetClassRefForLogicDataType(string dataType) { }
         public System.Threading.Tasks.Task<string?> GetFooter() { }
-        public Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModelForFolder(string folder) { }
+        public Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForFolder(string folder) { }
         public Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId) { }
         public string? GetLayoutSettingsStringForSet(string layoutSetId) { }
         public string GetLayoutsInFolder(string folderId) { }
@@ -2883,7 +2883,7 @@ namespace Altinn.App.Core.Internal.App
         string? GetApplicationXACMLPolicy();
         string GetClassRefForLogicDataType(string dataType);
         System.Threading.Tasks.Task<string?> GetFooter();
-        Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModelForFolder(string folder);
+        Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForFolder(string folder);
         Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);
         string? GetLayoutSettingsStringForSet(string layoutSetId);
         string GetLayoutsInFolder(string folderId);
@@ -3158,7 +3158,7 @@ namespace Altinn.App.Core.Internal.Expressions
     {
         public LayoutEvaluatorStateInitializer(Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.Texts.ITranslationService translationService, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.FrontEndSettings> frontEndSettings) { }
         public System.Threading.Tasks.Task<Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState> Init(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string? taskId, string? gatewayAction = null, string? language = null) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState> Init(Altinn.Platform.Storage.Interface.Models.Instance instance, object data, string? layoutSetId, string? gatewayAction = null) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState> Init(Altinn.Platform.Storage.Interface.Models.Instance instance, object data, string uiFolder, string? gatewayAction = null) { }
     }
 }
 namespace Altinn.App.Core.Internal.Instances
