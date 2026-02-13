@@ -39,26 +39,6 @@ public class ResourceController : ControllerBase
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation.</param>
-    /// <remarks> This endpoint assumes a single layout set and does not work for apps on version 8.0 and above.</remarks>
-    /// <returns>A collection of FormLayout objects in JSON format.</returns>
-    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound, "text/plain")]
-    [HttpGet]
-    [Route("{org}/{app}/api/layouts")]
-    [Obsolete(
-        "This endpoint is no longer available. Use /{org}/{app}/api/layouts/{id} to get layouts for a specific UI folder."
-    )]
-    public ActionResult GetLayouts(string org, string app)
-    {
-        return NotFound(
-            "This endpoint is no longer available. Use /{org}/{app}/api/layouts/{id} to get layouts for a specific UI folder."
-        );
-    }
-
-    /// <summary>
-    /// Get the form layout
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="id">The layoutset id</param>
     /// <returns>A collection of FormLayout objects in JSON format.</returns>
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "application/json")]
@@ -66,23 +46,8 @@ public class ResourceController : ControllerBase
     [Route("{org}/{app}/api/layouts/{id}")]
     public ActionResult GetLayouts(string org, string app, string id)
     {
-        string layouts = _appResourceService.GetLayoutsForSet(id);
+        string layouts = _appResourceService.GetLayoutsInFolder(id);
         return Ok(layouts);
-    }
-
-    /// <summary>
-    /// Get the layout settings.
-    /// </summary>
-    /// <param name="org">The application owner short name</param>
-    /// <param name="app">The application name</param>
-    /// <returns>The settings in the form of a string.</returns>
-    [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "application/json")]
-    [HttpGet]
-    [Route("{org}/{app}/api/layoutsettings")]
-    public ActionResult GetLayoutSettings(string org, string app)
-    {
-        string? settings = _appResourceService.GetLayoutSettingsString();
-        return Ok(settings);
     }
 
     /// <summary>

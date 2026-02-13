@@ -143,7 +143,7 @@ public sealed class DataAccessorFixture
     {
         var directory =
             Path.GetDirectoryName(callerFilePath) ?? throw new InvalidOperationException("Could not get directory");
-        List<LayoutSetComponent> layouts = [];
+        List<UiFolderComponent> layouts = [];
 
         foreach (var spec in specs)
         {
@@ -183,12 +183,12 @@ public sealed class DataAccessorFixture
                 .Setup(am => am.Create(spec.ModelType.FullName!))
                 .Returns(Activator.CreateInstance(spec.ModelType)!);
 
-            var layoutSet = new LayoutSetComponent(pages.ToList(), spec.LayoutSetName, dataType);
+            var layoutSet = new UiFolderComponent(pages.ToList(), spec.LayoutSetName, dataType);
             layouts.Add(layoutSet);
         }
 
         var layoutModel = new LayoutModel(layouts, null);
-        AppResourcesMock.Setup(ar => ar.GetLayoutModelForTask(TaskId)).Returns(layoutModel);
+        AppResourcesMock.Setup(ar => ar.GetLayoutModelForFolder(TaskId)).Returns(layoutModel);
     }
 
     public void AddFormData(object data, int? maxCount = null)

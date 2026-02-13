@@ -138,7 +138,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     )
     {
 #pragma warning disable CS0618 // Type or member is obsolete
-        var layouts = _appResources.GetLayoutModel(layoutSetId);
+        var layouts = _appResources.GetLayoutModelForFolder(layoutSetId);
 #pragma warning restore CS0618 // Type or member is obsolete
         var dataElement = instance.Data.Find(d => d.DataType == layouts.DefaultDataType.Id);
         Debug.Assert(dataElement is not null);
@@ -155,7 +155,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         string? language = null
     )
     {
-        LayoutModel? layouts = taskId is not null ? _appResources.GetLayoutModelForTask(taskId) : null;
+        LayoutModel? layouts = taskId is not null ? _appResources.GetLayoutModelForFolder(taskId) : null;
 
         return Task.FromResult(
             new LayoutEvaluatorState(

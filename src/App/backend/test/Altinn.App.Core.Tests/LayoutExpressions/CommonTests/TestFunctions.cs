@@ -284,7 +284,7 @@ public class TestFunctions
         LayoutModel? componentModel = null;
         if (test.Layouts is not null)
         {
-            var layout = new LayoutSetComponent(test.Layouts, "layout", dataTypes[0]);
+            var layout = new UiFolderComponent(test.Layouts, "layout", dataTypes[0]);
             componentModel = new LayoutModel([layout], null);
         }
         else if (test.Layouts is null && dataTypes.Count > 0)
@@ -308,7 +308,7 @@ public class TestFunctions
             var pageId = "page";
             var layoutId = "layout";
 
-            var layout = new LayoutSetComponent(
+            var layout = new UiFolderComponent(
                 [PageComponent.Parse(document.RootElement, pageId, layoutId)],
                 layoutId,
                 dataTypes[0]

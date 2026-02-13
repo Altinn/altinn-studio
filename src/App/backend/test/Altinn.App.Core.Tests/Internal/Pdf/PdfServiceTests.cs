@@ -502,11 +502,11 @@ public class PdfServiceTests
         var applicationMetadata = new ApplicationMetadata("digdir/not-really-an-app") { DataTypes = [dataType] };
         mockAppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
 
-        // Setup GetLayoutModelForTask to return a valid LayoutModel
-        var layoutSetComponent = new LayoutSetComponent(new List<PageComponent>(), "layout", dataType);
+        // Setup GetLayoutModelForFolder to return a valid LayoutModel
+        var layoutSetComponent = new UiFolderComponent(new List<PageComponent>(), "layout", dataType);
         var layoutModel = new LayoutModel([layoutSetComponent], null);
         var mockAppResourcesForInitializer = appResources ?? _appResources;
-        mockAppResourcesForInitializer.Setup(x => x.GetLayoutModelForTask(It.IsAny<string>())).Returns(layoutModel);
+        mockAppResourcesForInitializer.Setup(x => x.GetLayoutModelForFolder(It.IsAny<string>())).Returns(layoutModel);
 
         var initializer = new InstanceDataUnitOfWorkInitializer(
             dataClient?.Object ?? _dataClient.Object,

@@ -79,28 +79,9 @@ public interface IAppResources
     string GetClassRefForLogicDataType(string dataType);
 
     /// <summary>
-    /// Gets the layouts for the app.
+    /// Gets the UI configuration, which specifies which sub-folders are in the ui/ directory and their Settings.json
     /// </summary>
-    /// <returns>A dictionary of FormLayout objects serialized to JSON</returns>
-    [Obsolete("Use GetLayoutsForSet or GetLayoutModelForTask instead")]
-    string GetLayouts();
-
-    /// <summary>
-    /// Gets the the layouts settings
-    /// </summary>
-    /// <returns>The layout settings as a JSON string</returns>
-    string? GetLayoutSettingsString();
-
-    /// <summary>
-    /// Gets the layout settings
-    /// </summary>
-    /// <returns>The layout settings</returns>
-    LayoutSettings GetLayoutSettings();
-
-    /// <summary>
-    /// Gets the bootstrapped ui configuration.
-    /// </summary>
-    UiConfiguration GetUiConfiguration();
+    UiConfiguration? GetUiConfiguration();
 
     /// <summary>
     /// Gets the footer layout
@@ -109,22 +90,16 @@ public interface IAppResources
     Task<string?> GetFooter();
 
     /// <summary>
-    /// Gets the layouts for av given layoutset
+    /// Gets the layouts in a given subfolder in ui/
     /// </summary>
-    /// <param name="layoutSetId">The layot set id</param>
-    /// <returns>A dictionary of FormLayout objects serialized to JSON</returns>
-    string GetLayoutsForSet(string layoutSetId);
+    /// <param name="folderId">The folder name</param>
+    /// <returns>A dictionary of Layout objects serialized to JSON</returns>
+    string GetLayoutsInFolder(string folderId);
 
     /// <summary>
-    /// Gets the full layout model for the task
+    /// Gets the full layout model for a folder
     /// </summary>
-    LayoutModel? GetLayoutModelForTask(string taskId);
-
-    /// <summary>
-    /// Gets the full layout model for the optional set
-    /// </summary>
-    [Obsolete("Use GetLayoutModelForTask instead", false)]
-    LayoutModel GetLayoutModel(string? layoutSetId = null);
+    LayoutModel GetLayoutModelForFolder(string folder);
 
     /// <summary>
     /// Gets the the layouts settings for a layoutset

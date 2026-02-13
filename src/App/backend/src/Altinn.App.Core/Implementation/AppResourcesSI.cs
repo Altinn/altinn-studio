@@ -171,36 +171,6 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public string? GetLayoutSettingsString()
-    {
-        using var activity = _telemetry?.StartGetLayoutSettingsStringActivity();
-        string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
-        string? filedata = null;
-        if (File.Exists(filename))
-        {
-            filedata = File.ReadAllText(filename, Encoding.UTF8);
-        }
-
-        return filedata;
-    }
-
-    /// <inheritdoc />
-    public LayoutSettings GetLayoutSettings()
-    {
-        using var activity = _telemetry?.StartGetLayoutSettingsActivity();
-        string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
-        if (File.Exists(filename))
-        {
-            var filedata = File.ReadAllText(filename, Encoding.UTF8);
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            LayoutSettings layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(filedata)!;
-            return layoutSettings;
-        }
-
-        throw new FileNotFoundException($"Could not find layoutsettings file: {filename}");
-    }
-
-    /// <inheritdoc />
     public string GetClassRefForLogicDataType(string dataType)
     {
         using var activity = _telemetry?.StartGetClassRefActivity();
@@ -218,44 +188,12 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    [Obsolete("Use GetLayoutsForSet or GetLayoutModelForTask instead")]
-    public string GetLayouts()
-    {
-        using var activity = _telemetry?.StartGetLayoutsActivity();
-        Dictionary<string, object> layouts = new Dictionary<string, object>();
-
-        // Get FormLayout.json if it exists and return it (for backwards compatibility)
-        string fileName = Path.Join(_settings.AppBasePath, _settings.UiFolder, "FormLayout.json");
-        if (File.Exists(fileName))
-        {
-            string fileData = File.ReadAllText(fileName, Encoding.UTF8);
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            layouts.Add("FormLayout", JsonConvert.DeserializeObject<object>(fileData)!);
-            return JsonConvert.SerializeObject(layouts);
-        }
-
-        string layoutsPath = Path.Join(_settings.AppBasePath, _settings.UiFolder, "layouts");
-        if (Directory.Exists(layoutsPath))
-        {
-            foreach (string file in Directory.GetFiles(layoutsPath))
-            {
-                string data = File.ReadAllText(file, Encoding.UTF8);
-                string name = Path.GetFileNameWithoutExtension(file);
-                // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-                layouts.Add(name, JsonConvert.DeserializeObject<object>(data)!);
-            }
-        }
-
-        return JsonConvert.SerializeObject(layouts);
-    }
-
-    /// <inheritdoc />
-    public string GetLayoutsForSet(string layoutSetId)
+    public string GetLayoutsInFolder(string folderId)
     {
         using var activity = _telemetry?.StartGetLayoutsForSetActivity();
         Dictionary<string, object> layouts = new Dictionary<string, object>();
 
-        string layoutsPath = Path.Join(_settings.AppBasePath, _settings.UiFolder, layoutSetId, "layouts");
+        string layoutsPath = Path.Join(_settings.AppBasePath, _settings.UiFolder, folderId, "layouts");
 
         PathHelper.EnsureLegalPath(Path.Join(_settings.AppBasePath, _settings.UiFolder), layoutsPath);
 
@@ -274,55 +212,49 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    [Obsolete("Use GetLayoutModelForTask instead")]
-    public LayoutModel GetLayoutModel(string? layoutSetId = null)
-    {
-        var ui = GetUiConfiguration();
-        if (ui.Folders.Count == 0 || string.IsNullOrEmpty(layoutSetId))
-        {
-            throw new InvalidOperationException("No layout set found");
-        }
-
-        return GetLayoutModelForTask(layoutSetId) ?? throw new InvalidOperationException("No layout model found");
-    }
-
-    /// <inheritdoc />
-    public LayoutModel? GetLayoutModelForTask(string taskId)
+    public LayoutModel GetLayoutModelForFolder(string folder)
     {
         using var activity = _telemetry?.StartGetLayoutModelActivity();
-        var ui = GetUiConfiguration();
+        var ui = GetUiConfiguration() ?? throw new InvalidOperationException("UI configuration not found");
         var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
-        var layouts = ui.Folders.Select(folder => LoadLayout(folder.Key, folder.Value, dataTypes)).ToList();
-        return new LayoutModel(layouts, taskId);
+        var layouts = ui.Folders.Select(f => LoadLayout(f.Key, f.Value, dataTypes)).ToList();
+        return new LayoutModel(layouts, folder);
     }
 
     /// <inheritdoc />
-    public UiConfiguration GetUiConfiguration()
+    public UiConfiguration? GetUiConfiguration()
     {
         using var activity = _telemetry?.StartGetUiConfigurationActivity();
         var folders = new Dictionary<string, LayoutSettings>(StringComparer.Ordinal);
         var uiRoot = Path.Join(_settings.AppBasePath, _settings.UiFolder);
 
-        if (Directory.Exists(uiRoot))
+        if (!Directory.Exists(uiRoot))
         {
-            foreach (var folderPath in Directory.GetDirectories(uiRoot))
-            {
-                var folderId = Path.GetFileName(folderPath);
-                var settings = GetUiFolderSettings(folderId);
-                if (settings is null)
-                {
-                    continue;
-                }
+            return null;
+        }
 
-                folders[folderId] = settings;
+        foreach (var folderPath in Directory.GetDirectories(uiRoot))
+        {
+            var folderId = Path.GetFileName(folderPath);
+            var settings = GetUiFolderSettings(folderId);
+            if (settings is null)
+            {
+                continue;
             }
+
+            folders[folderId] = settings;
+        }
+
+        if (folders.Count == 0)
+        {
+            return null;
         }
 
         var globalSettings = GetGlobalUiSettings();
         return new UiConfiguration { Folders = folders, Settings = globalSettings };
     }
 
-    private LayoutSetComponent LoadLayout(string folderId, LayoutSettings settings, List<DataType> dataTypes)
+    private UiFolderComponent LoadLayout(string folderId, LayoutSettings settings, List<DataType> dataTypes)
     {
         var simplePageOrder = settings?.Pages?.Order;
         var groupPageOrder = settings?.Pages?.Groups?.SelectMany(g => g.Order).ToList();
@@ -361,7 +293,7 @@ public class AppResourcesSI : IAppResources
                 $"Layout folder {folderId} default data type missing, or does not exist in applicationmetadata.json"
             );
 
-        return new LayoutSetComponent(pages, folderId, dataType);
+        return new UiFolderComponent(pages, folderId, dataType);
     }
 
     /// <inheritdoc />
@@ -430,7 +362,12 @@ public class AppResourcesSI : IAppResources
 
     private GlobalPageSettings? GetGlobalUiSettings()
     {
-        var settingsString = GetLayoutSettingsString();
+        string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
+        string? settingsString = null;
+        if (File.Exists(filename))
+        {
+            settingsString = File.ReadAllText(filename, Encoding.UTF8);
+        }
         if (string.IsNullOrWhiteSpace(settingsString))
         {
             return null;

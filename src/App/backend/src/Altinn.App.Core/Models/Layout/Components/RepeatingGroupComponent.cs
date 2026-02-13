@@ -166,7 +166,7 @@ public sealed class RepeatingGroupComponent : Base.ReferenceComponent
         LayoutEvaluatorState state,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, LayoutSetComponent> layoutsLookup
+        Dictionary<string, UiFolderComponent> layoutsLookup
     )
     {
         var childContexts = new List<ComponentContext>();

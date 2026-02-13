@@ -5,48 +5,48 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Models.Layout;
 
 /// <summary>
-/// Wrapper class for a single layout set
+/// Wrapper class for a single subfolder in App/ui/
 /// </summary>
-public sealed class LayoutSetComponent
+public sealed class UiFolderComponent
 {
     private readonly Dictionary<string, PageComponent> _pagesLookup;
     private readonly List<PageComponent> _pages;
 
     /// <summary>
-    /// Create a new layout
+    /// Create a new instance representing a single subfolder in App/ui/ (formerly called a layout-set)
     /// </summary>
-    public LayoutSetComponent(List<PageComponent> pages, string id, DataType defaultDataType)
+    public UiFolderComponent(List<PageComponent> pages, string id, DataType defaultDataType)
     {
         _pages = pages;
         _pagesLookup = pages.ToDictionary(p => p.PageId);
-        Id = id;
+        Name = id;
         DefaultDataType = defaultDataType;
     }
 
-    internal LayoutSetComponent(
+    internal UiFolderComponent(
         IReadOnlyDictionary<string, JsonElement> layouts,
-        string layoutSetId,
+        string folderName,
         DataType defaultDataType
     )
     {
-        _pages = layouts.Select(kvp => PageComponent.Parse(kvp.Value, kvp.Key, layoutSetId)).ToList();
+        _pages = layouts.Select(kvp => PageComponent.Parse(kvp.Value, kvp.Key, folderName)).ToList();
         _pagesLookup = _pages.ToDictionary(p => p.PageId);
-        Id = layoutSetId;
+        Name = folderName;
         DefaultDataType = defaultDataType;
     }
 
     /// <summary>
-    /// Name of the layout set
+    /// Name of the folder
     /// </summary>
-    public string Id { get; }
+    public string Name { get; }
 
     /// <summary>
-    /// The data type associated with this layout
+    /// The data type associated with these pages
     /// </summary>
     public DataType DefaultDataType { get; }
 
     /// <summary>
-    /// Get a single page by name
+    /// Get a single page/layout by name
     /// </summary>
     public PageComponent GetPage(string pageName)
     {
@@ -58,7 +58,7 @@ public sealed class LayoutSetComponent
     }
 
     /// <summary>
-    /// Enumerate over all the pages in the layout
+    /// Enumerate over all the pages/layouts in the folder
     /// </summary>
     public IEnumerable<PageComponent> Pages => _pages;
 

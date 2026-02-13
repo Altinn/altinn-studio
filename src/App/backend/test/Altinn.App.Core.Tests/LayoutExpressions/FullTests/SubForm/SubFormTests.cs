@@ -102,7 +102,7 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
 
     private readonly IOptions<GeneralSettings> _generalSettings = Options.Create(new GeneralSettings());
 
-    private static readonly LayoutSetComponent _mainLayoutComponent = new(
+    private static readonly UiFolderComponent _mainLayoutComponent = new(
         [
             ParsePage(
                 MainLayoutId,
@@ -151,7 +151,7 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
         _applicationMetadata.DataTypes[0]
     );
 
-    private static readonly LayoutSetComponent _subLayoutComponent = new(
+    private static readonly UiFolderComponent _subLayoutComponent = new(
         [
             ParsePage(
                 SubLayoutId,
@@ -313,7 +313,7 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
         _services.AddFakeLoggingWithXunit(output);
         _appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(_applicationMetadata);
         _appResourcesMock
-            .Setup(ar => ar.GetLayoutModelForTask(TaskId))
+            .Setup(ar => ar.GetLayoutModelForFolder(TaskId))
             .Returns(new LayoutModel([_mainLayoutComponent, _subLayoutComponent], null));
         _appResourcesMock
             .Setup(ar => ar.GetUiConfiguration())

@@ -30,16 +30,7 @@ public class DefaultPageOrder : IPageOrder
         object formData
     )
     {
-        LayoutSettings? layoutSettings;
-
-        if (string.IsNullOrEmpty(layoutSetId))
-        {
-            layoutSettings = _resources.GetLayoutSettings();
-        }
-        else
-        {
-            layoutSettings = _resources.GetLayoutSettingsForSet(layoutSetId);
-        }
+        LayoutSettings? layoutSettings = _resources.GetLayoutSettingsForSet(layoutSetId);
 #nullable disable
         return Task.FromResult(layoutSettings.Pages.Order);
 #nullable restore

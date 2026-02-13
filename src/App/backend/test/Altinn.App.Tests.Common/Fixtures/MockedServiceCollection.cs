@@ -135,15 +135,12 @@ public sealed class MockedServiceCollection
                 }
             );
         AppResourcesMock
-            .Setup(a => a.GetLayoutModelForTask(It.IsAny<string>()))
+            .Setup(a => a.GetLayoutModelForFolder(It.IsAny<string>()))
             .Returns(
                 (string taskid) =>
                 {
-                    var layouts = _layoutSetComponents.ToList();
-                    var layoutForTask =
-                        layouts.Find(lsc => lsc.DefaultDataType.TaskId == taskid)
-                        ?? throw new Exception($"Layout for task {taskid} not found.");
-                    return new LayoutModel(layouts, layoutForTask.Id);
+                    var layouts = _uiFolderComponents.ToList();
+                    return new LayoutModel(layouts, taskid);
                 }
             );
     }
@@ -203,7 +200,7 @@ public sealed class MockedServiceCollection
         }
     }
 
-    private readonly ConcurrentBag<LayoutSetComponent> _layoutSetComponents = new();
+    private readonly ConcurrentBag<UiFolderComponent> _uiFolderComponents = new();
 
     /// <summary>
     /// Add single page layout set from JSON definition
@@ -231,13 +228,13 @@ public sealed class MockedServiceCollection
                 Tasks = [dataType.TaskId],
             };
 
-            var layoutComponent = new LayoutSetComponent(
+            var layoutComponent = new UiFolderComponent(
                 pages: grouping.ToList(),
                 id: layoutSet.Id,
                 defaultDataType: dataType
             );
 
-            _layoutSetComponents.Add(layoutComponent);
+            _uiFolderComponents.Add(layoutComponent);
         }
     }
 
