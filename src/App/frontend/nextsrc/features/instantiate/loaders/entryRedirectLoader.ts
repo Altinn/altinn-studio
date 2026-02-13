@@ -6,8 +6,7 @@ import { GlobalData } from 'nextsrc/core/globalData';
 import { ServerStatusCodes } from 'nextsrc/core/serverStatusCodes';
 import { routeBuilders } from 'nextsrc/routesBuilder';
 import type { QueryClient } from '@tanstack/react-query';
-
-import type { IInstance } from 'src/types/shared';
+import type { InstanceResponse } from 'nextsrc/api/generated/model';
 
 function isStateless() {
   const entryType = GlobalData.applicationMetadata.onEntry?.show;
@@ -32,7 +31,7 @@ export const entryRedirectLoader = (_: QueryClient) => async (_: LoaderFunctionA
   throw new Error();
 };
 
-async function createNewInstance(): Promise<IInstance> {
+async function createNewInstance(): Promise<InstanceResponse> {
   const profile = GlobalData.userProfile;
   if (!profile) {
     throw new Response('User profile not available', { status: ServerStatusCodes.Unauthorized });

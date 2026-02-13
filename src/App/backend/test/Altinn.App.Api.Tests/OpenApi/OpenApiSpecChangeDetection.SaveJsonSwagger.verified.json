@@ -7588,8 +7588,7 @@
             "nullable": true
           },
           "message": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "metadata": {
             "type": "object",
@@ -7685,8 +7684,7 @@
             "nullable": true
           },
           "label": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "description": {
             "type": "string",
@@ -7754,8 +7752,7 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UserAction"
-            },
-            "nullable": true
+            }
           },
           "read": {
             "type": "boolean"
@@ -7972,8 +7969,7 @@
             "type": "boolean"
           },
           "id": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "features": {
             "type": "object",
@@ -7986,8 +7982,7 @@
             "$ref": "#/components/schemas/Logo"
           },
           "altinnNugetVersion": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "externalApiIds": {
             "type": "array",
@@ -8009,13 +8004,11 @@
         "properties": {
           "orgNumber": {
             "type": "string",
-            "description": "The organization number.",
-            "nullable": true
+            "description": "The organization number."
           },
           "orgName": {
             "type": "string",
-            "description": "The name of the organization.",
-            "nullable": true
+            "description": "The name of the organization."
           },
           "partyId": {
             "type": "integer",
@@ -8158,8 +8151,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "metadata": {
             "type": "object",
@@ -8241,17 +8233,14 @@
             "nullable": true
           },
           "mediaType": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "name": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "parameters": {
             "type": "array",
             "items": {},
-            "nullable": true,
             "readOnly": true
           }
         },
@@ -8504,12 +8493,10 @@
                 "$ref": "#/components/schemas/ValidationIssueWithSource"
               }
             },
-            "description": "The validation issues that were found during the patch operation.",
-            "nullable": true
+            "description": "The validation issues that were found during the patch operation."
           },
           "newDataModel": {
-            "description": "The current data model after the patch operation.",
-            "nullable": true
+            "description": "The current data model after the patch operation."
           },
           "instance": {
             "$ref": "#/components/schemas/Instance"
@@ -8963,8 +8950,7 @@
         "properties": {
           "partyId": {
             "type": "string",
-            "description": "The party id of the instance owner (also called instance owner party id).",
-            "nullable": true
+            "description": "The party id of the instance owner (also called instance owner party id)."
           },
           "personNumber": {
             "type": "string",
@@ -9012,21 +8998,18 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "The unique id of the instance {instanceOwnerId}/{instanceGuid}.",
-            "nullable": true
+            "description": "The unique id of the instance {instanceOwnerId}/{instanceGuid}."
           },
           "instanceOwner": {
             "$ref": "#/components/schemas/InstanceOwnerResponse"
           },
           "appId": {
             "type": "string",
-            "description": "The id of the application this is an instance of, e.g. {org}/{app22}.",
-            "nullable": true
+            "description": "The id of the application this is an instance of, e.g. {org}/{app22}."
           },
           "org": {
             "type": "string",
-            "description": "Application owner identifier, usually a abbreviation of organisation name. All in lower case.",
-            "nullable": true
+            "description": "Application owner identifier, usually a abbreviation of organisation name. All in lower case."
           },
           "selfLinks": {
             "$ref": "#/components/schemas/ResourceLinks"
@@ -9054,45 +9037,37 @@
             "items": {
               "$ref": "#/components/schemas/CompleteConfirmation"
             },
-            "description": "A list of Altinn.Platform.Storage.Interface.Models.CompleteConfirmation elements.",
-            "nullable": true
+            "description": "A list of Altinn.Platform.Storage.Interface.Models.CompleteConfirmation elements."
           },
           "data": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DataElement"
             },
-            "description": "A list of data elements associated with the instance",
-            "nullable": true
+            "description": "A list of data elements associated with the instance"
           },
           "presentationTexts": {
             "type": "object",
             "additionalProperties": {
-              "type": "string",
-              "nullable": true
+              "type": "string"
             },
-            "description": "The presentation texts for the instance.",
-            "nullable": true
+            "description": "The presentation texts for the instance."
           },
           "dataValues": {
             "type": "object",
             "additionalProperties": {
-              "type": "string",
-              "nullable": true
+              "type": "string"
             },
-            "description": "The data values for the instance.",
-            "nullable": true
+            "description": "The data values for the instance."
           },
           "created": {
             "type": "string",
             "description": "The date and time for when the element was created.",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "createdBy": {
             "type": "string",
-            "description": "The id of the user who created this element.",
-            "nullable": true
+            "description": "The id of the user who created this element."
           },
           "lastChanged": {
             "type": "string",
@@ -9102,8 +9077,7 @@
           },
           "lastChangedBy": {
             "type": "string",
-            "description": "The id of the user who last changed this element.",
-            "nullable": true
+            "description": "The id of the user who last changed this element."
           }
         },
         "additionalProperties": false,
@@ -9281,8 +9255,7 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PatchOperation"
-            },
-            "nullable": true
+            }
           }
         },
         "additionalProperties": false
@@ -9312,8 +9285,7 @@
             "nullable": true
           },
           "size": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
@@ -9341,13 +9313,11 @@
         "properties": {
           "socialSecurityNumber": {
             "type": "string",
-            "description": "The social security number of the person to search for.",
-            "nullable": true
+            "description": "The social security number of the person to search for."
           },
           "lastName": {
             "type": "string",
-            "description": "The last name of the person to search for.",
-            "nullable": true
+            "description": "The last name of the person to search for."
           }
         },
         "additionalProperties": false,
@@ -9433,8 +9403,7 @@
         "type": "object",
         "properties": {
           "paymentProcessorId": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "receiver": {
             "$ref": "#/components/schemas/PaymentReceiver"
@@ -9443,15 +9412,13 @@
             "$ref": "#/components/schemas/Payer"
           },
           "currency": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "orderLines": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PaymentOrderLine"
-            },
-            "nullable": true
+            }
           },
           "allowedPayerTypes": {
             "type": "array",
@@ -9491,13 +9458,11 @@
         "properties": {
           "orgNr": {
             "type": "string",
-            "description": "The organisation number",
-            "nullable": true
+            "description": "The organisation number"
           },
           "name": {
             "type": "string",
-            "description": "The full name",
-            "nullable": true
+            "description": "The full name"
           }
         },
         "additionalProperties": false,
@@ -9732,7 +9697,6 @@
             "items": {
               "type": "string"
             },
-            "nullable": true,
             "readOnly": true
           },
           "path": {
@@ -9740,7 +9704,6 @@
             "items": {
               "type": "string"
             },
-            "nullable": true,
             "readOnly": true
           },
           "value": {
@@ -9819,8 +9782,7 @@
         "type": "object",
         "properties": {
           "paymentId": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "redirectUrl": {
             "type": "string",
@@ -9863,8 +9825,7 @@
         "type": "object",
         "properties": {
           "taskId": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "status": {
             "$ref": "#/components/schemas/PaymentStatus"
@@ -9888,12 +9849,10 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "name": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "textResourceKey": {
             "type": "string",
@@ -9912,8 +9871,7 @@
             "format": "double"
           },
           "unit": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
@@ -10046,13 +10004,11 @@
         "properties": {
           "ssn": {
             "type": "string",
-            "description": "The social security number",
-            "nullable": true
+            "description": "The social security number"
           },
           "name": {
             "type": "string",
-            "description": "The full name",
-            "nullable": true
+            "description": "The full name"
           },
           "firstName": {
             "type": "string",
@@ -10066,8 +10022,7 @@
           },
           "lastName": {
             "type": "string",
-            "description": "The last name",
-            "nullable": true
+            "description": "The last name"
           }
         },
         "additionalProperties": false,
@@ -10329,8 +10284,7 @@
             "items": {
               "type": "string"
             },
-            "description": "A list of tags to set on the data element represented as string values.",
-            "nullable": true
+            "description": "A list of tags to set on the data element represented as string values."
           }
         },
         "additionalProperties": false,
@@ -10344,8 +10298,7 @@
             "items": {
               "type": "string"
             },
-            "description": "A list of tags represented as string values.",
-            "nullable": true
+            "description": "A list of tags represented as string values."
           },
           "validationIssues": {
             "type": "array",
@@ -10422,8 +10375,7 @@
             "items": {
               "$ref": "#/components/schemas/AuthorizedOrganizationDetails"
             },
-            "description": "The list of authorized organizations.",
-            "nullable": true
+            "description": "The list of authorized organizations."
           }
         },
         "additionalProperties": false,
@@ -10440,8 +10392,7 @@
             "items": {
               "$ref": "#/components/schemas/DataElement"
             },
-            "description": "The data elements that should be signed.",
-            "nullable": true
+            "description": "The data elements that should be signed."
           }
         },
         "additionalProperties": false,
@@ -10458,8 +10409,7 @@
             "items": {
               "$ref": "#/components/schemas/SigneeState"
             },
-            "description": "The signees for the current task.",
-            "nullable": true
+            "description": "The signees for the current task."
           }
         },
         "additionalProperties": false,
@@ -10656,8 +10606,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "authorized": {
             "type": "boolean"

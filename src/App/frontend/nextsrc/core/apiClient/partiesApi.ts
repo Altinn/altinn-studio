@@ -1,28 +1,27 @@
-import { axiosInstance } from 'nextsrc/core/axiosInstance';
-
-import type { IParty } from 'src/types/shared';
+import { getAltinnAppApi } from 'nextsrc/api/generated/endpoints/altinnAppApi';
+import type { Party } from 'nextsrc/api/generated/model';
 
 export class PartiesApi {
-  public static async getPartiesAllowedToInstantiate() {
-    const parties = await axiosInstance
-      .get<IParty[]>('/api/v1/parties?allowedtoinstantiatefilter=true')
-      .then((response) => response.data);
+  private static altinnAppApi = getAltinnAppApi();
+
+  public static async getPartiesAllowedToInstantiate(): Promise<Party[]> {
+    const parties = await this.altinnAppApi.getApiV1Parties({ allowedToInstantiateFilter: true });
 
     // Flatten retrieved parties to also show child parties
     // TODO: Should this be done on the backend?
-    const result: IParty[] = [];
+    const flattenedParties: Party[] = [];
     const stack = [...parties];
 
     while (stack.length) {
       const current = stack.pop();
       if (current) {
-        result.push(current);
+        flattenedParties.push(current);
         if (current.childParties) {
           stack.push(...current.childParties);
         }
       }
     }
 
-    return result;
+    return flattenedParties;
   }
 }

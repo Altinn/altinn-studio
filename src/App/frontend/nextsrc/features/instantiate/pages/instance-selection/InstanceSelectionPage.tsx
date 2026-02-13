@@ -21,9 +21,10 @@ export const InstanceSelectionPage = () => {
     onSuccess: (newInstance) => {
       const [instanceOwnerPartyId, instanceGuid] = newInstance.id.split('/');
 
-      if (!newInstance?.process?.currentTask?.elementId) {
+      if (!newInstance.process.currentTask?.elementId) {
         throw new Error('no current task element ID. Handle it.');
       }
+
       navigate(
         routeBuilders.task({
           instanceOwnerPartyId,
