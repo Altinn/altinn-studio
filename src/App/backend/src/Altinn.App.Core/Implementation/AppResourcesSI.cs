@@ -302,13 +302,13 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public string? GetLayoutSettingsStringForSet(string layoutSetId)
+    public string? GetLayoutSettingsStringForFolder(string folder)
     {
         using var activity = _telemetry?.StartGetLayoutSettingsStringForSetActivity();
         string filename = Path.Join(
             _settings.AppBasePath,
             _settings.UiFolder,
-            layoutSetId,
+            folder,
             _settings.FormLayoutSettingsFileName
         );
 
@@ -324,13 +324,13 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId)
+    public LayoutSettings? GetLayoutSettingsForFolder(string? folder)
     {
         using var activity = _telemetry?.StartGetLayoutSettingsForSetActivity();
         string filename = Path.Join(
             _settings.AppBasePath,
             _settings.UiFolder,
-            layoutSetId,
+            folder,
             _settings.FormLayoutSettingsFileName
         );
 

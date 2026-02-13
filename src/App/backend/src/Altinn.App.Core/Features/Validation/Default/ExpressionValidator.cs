@@ -53,7 +53,7 @@ public class ExpressionValidator : IValidator
     public string TaskId => "*";
 
     /// <summary>
-    /// Only run for tasks that specifies a layout set
+    /// Only run for tasks that has layouts
     /// </summary>
     public bool ShouldRunForTask(string taskId) =>
         _appMetadata

@@ -6,7 +6,7 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Models.Layout;
 
 /// <summary>
-/// Class for handling a full layout/layoutset
+/// Class for handling a full layout/collection of layouts
 /// </summary>
 public sealed class LayoutModel
 {

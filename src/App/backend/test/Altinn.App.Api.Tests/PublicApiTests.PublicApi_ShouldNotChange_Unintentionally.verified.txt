@@ -398,18 +398,6 @@ namespace Altinn.App.Api.Controllers
     }
     [Microsoft.AspNetCore.Authorization.Authorize]
     [Microsoft.AspNetCore.Mvc.ApiController]
-    [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/pages")]
-    [System.Obsolete("IPageOrder does not work with frontend version 4")]
-    public class PagesController : Microsoft.AspNetCore.Mvc.ControllerBase
-    {
-        public PagesController(Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.App.IAppResources resources, Altinn.App.Core.Features.IPageOrder pageOrder, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.PagesController> logger) { }
-        [Microsoft.AspNetCore.Mvc.HttpPost("order")]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(System.Collections.Generic.List<string>), 200)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<System.Collections.Generic.List<string>>> GetPageOrder([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string layoutSetId, [Microsoft.AspNetCore.Mvc.FromQuery] string currentPage, [Microsoft.AspNetCore.Mvc.FromQuery] string dataTypeId, [Microsoft.AspNetCore.Mvc.FromBody] dynamic formData) { }
-    }
-    [Microsoft.AspNetCore.Authorization.Authorize]
-    [Microsoft.AspNetCore.Mvc.ApiController]
     public class PartiesController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
         public PartiesController(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> settings, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
@@ -626,18 +614,6 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
         [Microsoft.AspNetCore.Mvc.Route("anonymous")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> PostAnonymous([Microsoft.AspNetCore.Mvc.FromQuery] string dataType, [Microsoft.AspNetCore.Mvc.FromQuery] bool includeRowId = false, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
-    }
-    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
-    [Microsoft.AspNetCore.Mvc.ApiController]
-    [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/v1/pages")]
-    [System.Obsolete("IPageOrder does not work with frontend version 4")]
-    public class StatelessPagesController : Microsoft.AspNetCore.Mvc.ControllerBase
-    {
-        public StatelessPagesController(Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.App.IAppResources resources, Altinn.App.Core.Features.IPageOrder pageOrder) { }
-        [Microsoft.AspNetCore.Mvc.HttpPost("order")]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(System.Collections.Generic.List<string>), 200)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<System.Collections.Generic.List<string>>> GetPageOrder([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] string layoutSetId, [Microsoft.AspNetCore.Mvc.FromQuery] string currentPage, [Microsoft.AspNetCore.Mvc.FromQuery] string dataTypeId, [Microsoft.AspNetCore.Mvc.FromBody] dynamic formData) { }
     }
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/v1/texts/{language}")]
     public class TextsController : Microsoft.AspNetCore.Mvc.ControllerBase

@@ -503,8 +503,8 @@ public class PdfServiceTests
         mockAppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
 
         // Setup GetLayoutModelForFolder to return a valid LayoutModel
-        var layoutSetComponent = new UiFolderComponent(new List<PageComponent>(), "layout", dataType);
-        var layoutModel = new LayoutModel([layoutSetComponent], null);
+        var uiFolderComponent = new UiFolderComponent(new List<PageComponent>(), "layout", dataType);
+        var layoutModel = new LayoutModel([uiFolderComponent], null);
         var mockAppResourcesForInitializer = appResources ?? _appResources;
         mockAppResourcesForInitializer.Setup(x => x.GetLayoutModelForFolder(It.IsAny<string>())).Returns(layoutModel);
 

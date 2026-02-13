@@ -1276,11 +1276,6 @@ namespace Altinn.App.Core.Features
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Models.Validation.InstantiationValidationResult?> Validate(Altinn.Platform.Storage.Interface.Models.Instance instance);
     }
-    [System.Obsolete("IPageOrder does not work with frontend version 4")]
-    public interface IPageOrder
-    {
-        System.Threading.Tasks.Task<System.Collections.Generic.List<string>> GetPageOrder(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string layoutSetId, string currentPage, string dataTypeId, object formData);
-    }
     [System.Obsolete("This interface was used for the old PDF generator, and is used for backwards comp" +
         "atibility in the chromium based one. It will be removed in the future. Create a " +
         "custom pdf layout instead if you need to customize the PDF layout.")]
@@ -1745,15 +1740,6 @@ namespace Altinn.App.Core.Features.Options
         public JoinedAppOptionsProvider(string id, System.Collections.Generic.IEnumerable<string> subOptions, System.Func<Altinn.App.Core.Features.Options.AppOptionsFactory> appOptionsFactory) { }
         public string Id { get; }
         public System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetAppOptionsAsync(string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
-    }
-}
-namespace Altinn.App.Core.Features.PageOrder
-{
-    [System.Obsolete("IPageOrder does not work with frontend version 4")]
-    public class DefaultPageOrder : Altinn.App.Core.Features.IPageOrder
-    {
-        public DefaultPageOrder(Altinn.App.Core.Internal.App.IAppResources resources) { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.List<string>> GetPageOrder(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string layoutSetId, string currentPage, string dataTypeId, object formData) { }
     }
 }
 namespace Altinn.App.Core.Features.Payment.Exceptions
@@ -2355,8 +2341,8 @@ namespace Altinn.App.Core.Implementation
         public string GetClassRefForLogicDataType(string dataType) { }
         public System.Threading.Tasks.Task<string?> GetFooter() { }
         public Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForFolder(string folder) { }
-        public Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId) { }
-        public string? GetLayoutSettingsStringForSet(string layoutSetId) { }
+        public Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForFolder(string? folder) { }
+        public string? GetLayoutSettingsStringForFolder(string folder) { }
         public string GetLayoutsInFolder(string folderId) { }
         public string GetModelJsonSchema(string modelId) { }
         public string? GetPrefillJson(string dataModelName = "ServiceModel") { }
@@ -2884,8 +2870,8 @@ namespace Altinn.App.Core.Internal.App
         string GetClassRefForLogicDataType(string dataType);
         System.Threading.Tasks.Task<string?> GetFooter();
         Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForFolder(string folder);
-        Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);
-        string? GetLayoutSettingsStringForSet(string layoutSetId);
+        Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForFolder(string? folder);
+        string? GetLayoutSettingsStringForFolder(string folder);
         string GetLayoutsInFolder(string folderId);
         string GetModelJsonSchema(string modelId);
         string? GetPrefillJson(string dataModelName = "ServiceModel");

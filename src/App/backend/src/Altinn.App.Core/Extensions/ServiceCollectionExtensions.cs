@@ -12,7 +12,6 @@ using Altinn.App.Core.Features.Notifications.Email;
 using Altinn.App.Core.Features.Notifications.Sms;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Features.Options.Altinn3LibraryCodeList;
-using Altinn.App.Core.Features.PageOrder;
 using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Payment.Processors.FakePaymentProcessor;
 using Altinn.App.Core.Features.Payment.Processors.Nets;
@@ -180,9 +179,6 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IBootstrapGlobalService, BootstrapGlobalService>();
         services.TryAddTransient<IReturnUrlService, ReturnUrlService>();
         services.TryAddTransient<IAppEvents, DefaultAppEvents>();
-#pragma warning disable CS0618, CS0612 // Type or member is obsolete
-        services.TryAddTransient<IPageOrder, DefaultPageOrder>();
-#pragma warning restore CS0618, CS0612 // Type or member is obsolete
         services.TryAddTransient<IInstantiationProcessor, NullInstantiationProcessor>();
         services.TryAddTransient<IInstantiationValidator, NullInstantiationValidator>();
         services.TryAddTransient<IAppModel, DefaultAppModel>();

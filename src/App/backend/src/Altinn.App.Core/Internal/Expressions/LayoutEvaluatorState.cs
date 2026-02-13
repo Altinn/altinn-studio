@@ -431,7 +431,7 @@ public class LayoutEvaluatorState
     // }
 
     /// <summary>
-    /// Get the default data type from the current layoutset
+    /// Get the default data type from the current layout model
     /// </summary>
     public DataType? GetDefaultDataType()
     {

@@ -102,17 +102,17 @@ public interface IAppResources
     LayoutModel? GetLayoutModelForFolder(string folder);
 
     /// <summary>
-    /// Gets the the layouts settings for a layoutset
+    /// Gets the the layouts settings for a subfolder in App/ui (as a string)
     /// </summary>
-    /// <param name="layoutSetId">The layot set id</param>
+    /// <param name="folder">The layot set id</param>
     /// <returns>The layout settings as a JSON string</returns>
-    string? GetLayoutSettingsStringForSet(string layoutSetId);
+    string? GetLayoutSettingsStringForFolder(string folder);
 
     /// <summary>
-    /// Gets the the layouts settings for a layoutset
+    /// Gets the the layouts settings for a subfolder in App/ui
     /// </summary>
     /// <returns>The layout settings</returns>
-    LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);
+    LayoutSettings? GetLayoutSettingsForFolder(string? folder);
 
     /// <summary>
     /// Gets the validation configuration for a given data type

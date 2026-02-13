@@ -27,10 +27,10 @@ partial class Telemetry
         ActivitySource.StartActivity($"{Prefix}.GetLayoutSettingsString");
 
     internal Activity? StartGetLayoutSettingsForSetActivity() =>
-        ActivitySource.StartActivity($"{Prefix}.GetLayoutSettingsForSet");
+        ActivitySource.StartActivity($"{Prefix}.GetLayoutSettingsForFolder");
 
     internal Activity? StartGetLayoutSettingsStringForSetActivity() =>
-        ActivitySource.StartActivity($"{Prefix}.GetLayoutSettingsStringForSet");
+        ActivitySource.StartActivity($"{Prefix}.GetLayoutSettingsStringForFolder");
 
     internal Activity? StartGetTextsActivity() => ActivitySource.StartActivity($"{Prefix}.GetTexts");
 
