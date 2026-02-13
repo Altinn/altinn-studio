@@ -3,30 +3,24 @@ import React from 'react';
 import type { AssistantTexts } from '@studio/assistant';
 import { Assistant } from '@studio/assistant';
 import { useTranslation } from 'react-i18next';
-import { useAltinityAssistant } from './hooks';
+import { useAltinityAssistant, useAltinityPermissions } from './hooks';
 import { Preview } from './components/Preview';
 import { FileBrowser } from './components/FileBrowser';
 import classes from './AiAssistant.module.css';
 import { useUserQuery } from 'app-shared/hooks/queries';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioCenter, StudioAlert, StudioParagraph } from '@studio/components';
 
 function AiAssistant(): ReactElement {
   const { t } = useTranslation();
-  const { org } = useStudioEnvironmentParams();
+  const userHasAccessToAssistant = useAltinityPermissions();
   const { data: currentUser } = useUserQuery();
 
-  // To do: Move access requirement into a new hook 'useAiAssistantPermissions',
-  // Which imports useStudioEnvironmentParams.
-  // New hook should reference AiAssistantPermissionHandler in comments
-  // E.g. "Backend permissions are handled by AuthorizationConfiguration/AiAssistantPermissionHandler.cs"
-  // Hook should return 'userHasAccessToAssistant' boolean.
-  // We should also add tests
-  if (org !== 'ttd') {
+  if (!userHasAccessToAssistant) {
     return (
       <StudioCenter>
         <StudioAlert>
-          <StudioParagraph data-size='md'>{t('ai_assistant.access_denied')}</StudioParagraph>
+          <StudioParagraph>{t('ai_assistant.access_denied_1')}</StudioParagraph>
+          <StudioParagraph>{t('ai_assistant.access_denied_2')}</StudioParagraph>
         </StudioAlert>
       </StudioCenter>
     );

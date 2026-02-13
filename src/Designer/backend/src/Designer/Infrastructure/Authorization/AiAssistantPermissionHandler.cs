@@ -1,4 +1,4 @@
-#nullable disable
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +8,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization;
 public class AiAssistantPermissionHandler : AuthorizationHandler<AiAssistantPermissionRequirement>
 {
     private readonly IUserOrganizationService _userOrganizationService;
+
+    private static readonly List<string> AllowedOrganizations = new() { "ttd" };
 
     public AiAssistantPermissionHandler(IUserOrganizationService userOrganizationService)
     {
@@ -23,10 +25,7 @@ public class AiAssistantPermissionHandler : AuthorizationHandler<AiAssistantPerm
             return;
         }
 
-        // Will change as we give more organisations access.
-        // To do: Move allowed organisations into a list of strings.
-        bool isMemberOfTtd = await _userOrganizationService.UserIsMemberOfOrganization("ttd");
-        if (isMemberOfTtd)
+        if (await IsMemberOfAnyAllowedOrganizationAsync())
         {
             context.Succeed(requirement);
         }
@@ -34,6 +33,18 @@ public class AiAssistantPermissionHandler : AuthorizationHandler<AiAssistantPerm
         {
             context.Fail();
         }
+    }
+
+    private async Task<bool> IsMemberOfAnyAllowedOrganizationAsync()
+    {
+        foreach (string org in AllowedOrganizations)
+        {
+            if (await _userOrganizationService.UserIsMemberOfOrganization(org))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static bool IsNotAuthenticatedUser(AuthorizationHandlerContext context)
