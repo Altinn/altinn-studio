@@ -152,6 +152,82 @@ describe('AppConfigForm', () => {
     expect(delegableSwitch).toBeChecked();
   });
 
+  it('toggles visible switch and updates config', async () => {
+    const user = userEvent.setup();
+    renderAppConfigForm();
+    const visibleSwitch = getSwitch(
+      textMock('app_settings.about_tab_visibility_and_delegation_visible_label'),
+    );
+    expect(visibleSwitch).toBeChecked();
+    await user.click(visibleSwitch);
+    expect(visibleSwitch).not.toBeChecked();
+  });
+
+  it('updates right description when changed in visibility and delegation card', async () => {
+    const user = userEvent.setup();
+    renderAppConfigForm({ appConfig: mockAppConfigComplete });
+    const descriptionLabel = textMock(
+      'app_settings.about_tab_visibility_and_delegation_description_label',
+    );
+    const descriptionTextbox = getTextbox(`${descriptionLabel} (${textMock('language.nb')})`);
+    expect(descriptionTextbox).toHaveValue(mockRightDescription.nb);
+    await user.clear(descriptionTextbox);
+    await user.type(descriptionTextbox, 'test');
+    expect(descriptionTextbox).toHaveValue('test');
+  });
+
+  it('updates contact points when a new contact point is added', async () => {
+    const user = userEvent.setup();
+    const saveAppConfig = jest.fn();
+    renderAppConfigForm({
+      appConfig: { ...mockAppConfigComplete, contactPoints: [] },
+      saveAppConfig,
+    });
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('app_settings.about_tab_contact_point_add_button_text'),
+      }),
+    );
+    await user.type(
+      screen.getByLabelText(textMock('app_settings.about_tab_contact_point_fieldset_email_label')),
+      'support@example.com',
+    );
+    await user.type(
+      screen.getByLabelText(
+        textMock('app_settings.about_tab_contact_point_fieldset_telephone_label'),
+      ),
+      '12345678',
+    );
+    await user.type(
+      screen.getByLabelText(
+        textMock('app_settings.about_tab_contact_point_fieldset_contact_page_label'),
+      ),
+      'https://example.com/contact',
+    );
+    await user.type(
+      screen.getByLabelText(
+        textMock('app_settings.about_tab_contact_point_fieldset_category_label'),
+      ),
+      'Support',
+    );
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
+    expect(screen.getByText('support@example.com')).toBeInTheDocument();
+    const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
+    await user.click(saveButton);
+    expect(saveAppConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contactPoints: [
+          expect.objectContaining({
+            email: 'support@example.com',
+            telephone: '12345678',
+            contactPage: 'https://example.com/contact',
+            category: 'Support',
+          }),
+        ],
+      }),
+    );
+  });
+
   it('updates "keywords" input field with correct value on change', async () => {
     const user = userEvent.setup();
     renderAppConfigForm();
