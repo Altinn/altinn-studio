@@ -12,19 +12,8 @@ import { StudioCenter, StudioAlert, StudioParagraph } from '@studio/components';
 
 function AiAssistant(): ReactElement {
   const { t } = useTranslation();
-  const userHasAccessToAssistant = useAltinityPermissions();
   const { data: currentUser } = useUserQuery();
-
-  if (!userHasAccessToAssistant) {
-    return (
-      <StudioCenter>
-        <StudioAlert>
-          <StudioParagraph>{t('ai_assistant.access_denied_1')}</StudioParagraph>
-          <StudioParagraph>{t('ai_assistant.access_denied_2')}</StudioParagraph>
-        </StudioAlert>
-      </StudioCenter>
-    );
-  }
+  const userHasAccessToAssistant = useAltinityPermissions();
 
   const {
     connectionStatus,
@@ -57,6 +46,17 @@ function AiAssistant(): ReactElement {
     cancel: 'Avbryt',
     assistantFirstMessage: t('ai_assistant.assistant_first_message'),
   };
+
+  if (!userHasAccessToAssistant) {
+    return (
+      <StudioCenter>
+        <StudioAlert>
+          <StudioParagraph>{t('ai_assistant.access_denied_1')}</StudioParagraph>
+          <StudioParagraph>{t('ai_assistant.access_denied_2')}</StudioParagraph>
+        </StudioAlert>
+      </StudioCenter>
+    );
+  }
 
   return (
     <div className={classes.container}>
