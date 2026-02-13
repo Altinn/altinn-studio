@@ -4,8 +4,8 @@ import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getMultiPageGroupMock } from 'src/__mocks__/getMultiPageGroupMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/EditContainer/RepeatingGroupsEditContainer';

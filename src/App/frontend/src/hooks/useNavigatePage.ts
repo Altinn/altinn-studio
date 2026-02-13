@@ -7,7 +7,7 @@ import { useIsStateless } from 'src/features/applicationMetadata';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { getUiFolders } from 'src/features/form/layoutSets';
-import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';

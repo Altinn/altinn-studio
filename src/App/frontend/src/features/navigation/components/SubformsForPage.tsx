@@ -4,7 +4,8 @@ import { ChevronDownIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { ExprVal } from 'src/features/expressions/types';
-import { useDataTypeFromLayoutSet, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { getDefaultDataTypeFromUiFolder } from 'src/features/form/layoutSets';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/navigation/components/SubformsForPage.module.css';
@@ -51,7 +52,7 @@ function SubformGroup({ baseId }: { baseId: string }) {
     defaultValue: '',
     errorIntroText: `Invalid expression for Subform title in ${baseId}`,
   });
-  const dataType = useDataTypeFromLayoutSet(layoutSet);
+  const dataType = getDefaultDataTypeFromUiFolder(layoutSet);
   if (!dataType) {
     throw new Error(`Unable to find data type for subform with id ${baseId}`);
   }

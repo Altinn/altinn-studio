@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
-import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
+import { getDefaultDataTypeFromUiFolder } from 'src/features/form/layoutSets';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -16,7 +16,7 @@ import type { IData } from 'src/types/shared';
 
 export function SubformSummaryComponent({ targetBaseComponentId }: SummaryRendererProps): React.JSX.Element | null {
   const { layoutSet, id } = useItemWhenType(targetBaseComponentId, 'Subform');
-  const dataType = useDataTypeFromLayoutSet(layoutSet);
+  const dataType = getDefaultDataTypeFromUiFolder(layoutSet);
   const dataElements = useInstanceDataElements(dataType);
 
   return (

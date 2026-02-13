@@ -3,7 +3,7 @@ import React from 'react';
 import { BackNavigationButton } from 'src/components/presentation/BackNavigationButton';
 import { ExpandWidthButton } from 'src/components/presentation/ExpandWidthButton';
 import classes from 'src/components/presentation/NavBar.module.css';
-import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { PopoverNavigation } from 'src/features/navigation/PopoverNavigation';
 

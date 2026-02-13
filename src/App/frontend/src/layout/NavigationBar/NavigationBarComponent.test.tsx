@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiMock';
 import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { NavigationBarComponent } from 'src/layout/NavigationBar/NavigationBarComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';

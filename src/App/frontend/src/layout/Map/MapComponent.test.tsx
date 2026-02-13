@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiMock';
 import { MapComponent } from 'src/layout/Map/MapComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { FDNewValue } from 'src/features/formData/FormDataWriteStateMachine';

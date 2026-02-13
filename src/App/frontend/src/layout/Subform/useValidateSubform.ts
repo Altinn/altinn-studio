@@ -16,7 +16,7 @@ export function useValidateSubform(baseComponentId: string): ComponentValidation
 
   const targetType = getUiFolderSettings(layoutSetName)?.defaultDataType;
   if (!targetType) {
-    throw new Error(`Data type not found for layout with name ${layoutSetName}`);
+    throw new Error(`Default data type not found for ui folder with name ${layoutSetName}`);
   }
   const elements = useInstanceDataElements(targetType);
   const subformIdsWithError = Validation.useDataElementsWithErrors(elements.map((dE) => dE.id));

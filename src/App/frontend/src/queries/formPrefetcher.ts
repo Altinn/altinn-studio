@@ -2,8 +2,7 @@ import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
 import { useCurrentDataModelDataElementId, useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
 import { useIsInFormContext } from 'src/features/form/FormContext';
 import { useLayoutQueryDef } from 'src/features/form/layout/LayoutsContext';
-import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLayoutSet';
-import { useLayoutSettingsQueryDef } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { useCurrentUiFolderNameFromUrl } from 'src/features/form/layoutSets/hooks';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useOrderDetailsQueryDef } from 'src/features/payment/OrderDetailsProvider';
 import { usePaymentInformationQueryDef } from 'src/features/payment/PaymentInformationProvider';
@@ -15,16 +14,13 @@ import { useIsPdf } from 'src/hooks/useIsPdf';
  * Prefetches requests happening in the FormProvider
  */
 export function FormPrefetcher() {
-  const layoutSetId = useLayoutSetIdFromUrl();
+  const uiFolder = useCurrentUiFolderNameFromUrl();
   const isPDF = useIsPdf();
   const dataTypeId = useCurrentDataModelName() ?? 'unknown';
   const instanceId = useLaxInstanceId();
 
   // Prefetch layouts
-  usePrefetchQuery(useLayoutQueryDef(true, dataTypeId, layoutSetId));
-
-  // Prefetch other layout related files
-  usePrefetchQuery(useLayoutSettingsQueryDef(layoutSetId));
+  usePrefetchQuery(useLayoutQueryDef(true, dataTypeId, uiFolder));
 
   // Prefetch payment data if applicable
   usePrefetchQuery(usePaymentInformationQueryDef(useIsPayment(), instanceId));

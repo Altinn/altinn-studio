@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { getUiFolders } from 'src/features/form/layoutSets';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';

@@ -1,4 +1,6 @@
 // These types should ultimately be generated from the backend DTOs, but for now we define them manually here.
+import type { ILayoutSettings } from 'src/layout/common.generated';
+
 export type GlobalPageSettings = {
   hideCloseButton: boolean;
   showLanguageSelector: boolean;
@@ -21,13 +23,9 @@ export type NavigationTask = {
   taskId: string;
 };
 
-export type UiFolderSettings = {
-  defaultDataType?: string;
-};
+export type UiFolders = Record<string, ILayoutSettings>;
 
-export type AltinnUi = {
-  folders: Record<string, UiFolderSettings>;
-  settings?: GlobalPageSettings;
+export type UiSettings = {
+  folders: UiFolders;
+  settings?: Partial<GlobalPageSettings>;
 };
-
-export type UiFolders = AltinnUi['folders'];

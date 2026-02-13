@@ -1,4 +1,4 @@
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiMock';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { getRecursiveValidations, makeComponentIdIndex } from 'src/features/validation/ValidationStorePlugin';

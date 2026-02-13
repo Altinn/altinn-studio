@@ -18,10 +18,10 @@ import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettings
 import { getFooterLayoutMock } from 'src/__mocks__/getFooterLayoutMock';
 // Importing CSS for jest-preview to look nicer
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getLayoutSetsMock, getUiFoldersMock, getUiMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import { getTextResourceMapMock, getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
+import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
+import { getUiMock } from 'src/__mocks__/getUiMock';
 import type {
   doProcessNext,
   doUpdateAttachmentTags,
@@ -126,29 +126,6 @@ jestPreviewConfigure({ autoPreview });
 testingLibraryConfigure({
   asyncUtilTimeout: env.parsed?.WAITFOR_TIMEOUT ? parseInt(env.parsed.WAITFOR_TIMEOUT, 10) : 15000,
 });
-
-jest.mock('src/features/applicationMetadata', () => ({
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  ...jest.requireActual<typeof import('src/features/applicationMetadata')>('src/features/applicationMetadata'),
-  getApplicationMetadata: jest.fn(() => getApplicationMetadataMock()),
-  useIsStateless: jest.fn(() => false),
-}));
-
-jest.mock('src/features/form/layoutSets', () => ({
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  ...jest.requireActual<typeof import('src/features/form/layoutSets')>('src/features/form/layoutSets'),
-  getUiFolders: jest.fn(() => getUiFoldersMock().folders),
-  getUiFolderSettings: jest.fn((id: string) => getUiFoldersMock().folders[id]),
-  getGlobalUiSettings: jest.fn(() => getLayoutSetsMock().uiSettings),
-}));
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => ({
-  __esModule: true,
-  ...jest.requireActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider'),
-  useTextResources: jest.fn(() => getTextResourceMapMock()),
-}));
 
 jest.mock('src/queries/queries', () => ({
   ...jest.requireActual<AppQueries>('src/queries/queries'),

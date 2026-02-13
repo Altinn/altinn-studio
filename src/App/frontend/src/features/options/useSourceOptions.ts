@@ -3,7 +3,7 @@ import dot from 'dot-object';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
-import { useCurrentLayoutSet } from 'src/features/form/layoutSets/useCurrentLayoutSet';
+import { useCurrentUiFolderSettings } from 'src/features/form/layoutSets/hooks';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
@@ -92,14 +92,14 @@ export const useSourceOptions = (source: IOptionSource): IOptionInternal[] => {
  */
 function useGroupReference(source: IOptionSource | undefined): IDataModelReference | undefined {
   const currentLocation = useCurrentDataModelLocation();
-  const currentLayoutSet = useCurrentLayoutSet();
+  const currentLayoutSettings = useCurrentUiFolderSettings();
   if (!source) {
     return undefined;
   }
 
   const { group, dataType } = source;
   const cleanGroup = getKeyWithoutIndexIndicators(group);
-  const groupDataType = dataType ?? currentLayoutSet?.defaultDataType;
+  const groupDataType = dataType ?? currentLayoutSettings?.defaultDataType;
   if (!groupDataType) {
     return undefined;
   }

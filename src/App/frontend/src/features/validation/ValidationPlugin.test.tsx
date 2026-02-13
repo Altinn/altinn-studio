@@ -7,7 +7,7 @@ import { userEvent } from '@testing-library/user-event';
 import { type BackendValidationIssue, BackendValidationSeverity } from '.';
 
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiMock';
 import { Form } from 'src/components/form/Form';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';

@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { AxiosResponse } from 'axios';
 
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { resourcesAsMap } from 'src/features/language/textResources/TextResourcesProvider';
 import { BackendValidationSeverity } from 'src/features/validation';

@@ -9,7 +9,7 @@ import type { AxiosResponse } from 'axios';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiMock';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { DataPostResponse } from 'src/features/attachments';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';

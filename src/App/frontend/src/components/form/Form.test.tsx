@@ -4,7 +4,7 @@ import { screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiMock';
 import { Form } from 'src/components/form/Form';
 import { TextResourceMap } from 'src/features/language/textResources';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';

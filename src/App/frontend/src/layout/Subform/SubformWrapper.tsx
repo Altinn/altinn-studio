@@ -6,7 +6,7 @@ import { PresentationComponent } from 'src/components/presentation/Presentation'
 import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { Loader } from 'src/core/loading/Loader';
 import { FormProvider } from 'src/features/form/FormContext';
-import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
+import { getDefaultDataTypeFromUiFolder } from 'src/features/form/layoutSets';
 import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
@@ -52,7 +52,7 @@ export function SubformOverrideWrapper({
   const dataElementId = useNavigationParam('dataElementId');
   const actualDataElementId = providedDataElementId ? providedDataElementId : dataElementId;
   const { layoutSet, id } = useItemWhenType(baseComponentId, 'Subform');
-  const dataType = useDataTypeFromLayoutSet(layoutSet);
+  const dataType = getDefaultDataTypeFromUiFolder(layoutSet);
 
   if (!dataType) {
     throw new Error(`Unable to find data type for subform with id ${id}`);
@@ -62,7 +62,7 @@ export function SubformOverrideWrapper({
     <TaskOverrides
       dataModelType={dataType}
       dataModelElementId={actualDataElementId}
-      layoutSetId={layoutSet}
+      uiFolder={layoutSet}
     >
       {children}
     </TaskOverrides>

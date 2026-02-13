@@ -160,7 +160,6 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
         subformComponent ? <SubformTestWrapper baseId={subformComponent.id}>{children}</SubformTestWrapper> : children,
       queries: {
         fetchLayouts: async (setId) => set.app.getLayoutSet(setId).getLayouts(),
-        fetchLayoutSettings: async (setId) => set.app.getLayoutSet(setId).getSettings(),
         fetchFormData: async (url) => set.getModel({ url }).simulateDataModel(),
         fetchDataModelSchema: async (name) => set.getModel({ name }).getSchema(),
         fetchLayoutSchema: async () => layoutSchema as unknown as JSONSchema7,

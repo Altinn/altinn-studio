@@ -2,7 +2,7 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiMock';
 import { TimePickerComponent } from 'src/layout/TimePicker/TimePickerComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 

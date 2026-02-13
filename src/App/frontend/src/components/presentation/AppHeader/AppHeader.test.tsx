@@ -10,8 +10,8 @@ import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AppHeader } from 'src/components/presentation/AppHeader/AppHeader';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { getUiConfig } from 'src/features/form/layoutSets';
 import { resourcesAsMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
-import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
@@ -59,6 +59,12 @@ describe('presentation/AppHeader', () => {
   const render = async ({ logo, showLanguageSelector = false, textResources = [] }: IRenderComponentProps) => {
     jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock({ logo }));
     jest.mocked(useTextResources).mockImplementation(() => resourcesAsMap(textResources));
+    jest.mocked(getUiConfig).mockImplementation(() => ({
+      folders: {
+        stateless: { pages: { order: ['1', '2', '3'] } },
+      },
+      settings: { showLanguageSelector },
+    }));
 
     return await renderWithInstanceAndLayout({
       renderer: () => (
@@ -67,13 +73,6 @@ describe('presentation/AppHeader', () => {
           headerBackgroundColor={headerBackgroundColor}
         />
       ),
-
-      queries: {
-        fetchLayoutSettings: () =>
-          Promise.resolve({
-            pages: { showLanguageSelector, order: ['1', '2', '3'] } as unknown as IPagesSettingsWithOrder,
-          }),
-      },
     });
   };
 

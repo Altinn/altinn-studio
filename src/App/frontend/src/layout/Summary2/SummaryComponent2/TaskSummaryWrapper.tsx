@@ -19,7 +19,7 @@ export function TaskSummaryWrapper({ taskId, children }: React.PropsWithChildren
     <TaskOverrides
       taskId={taskId}
       dataModelType={uiFolderSettings?.defaultDataType}
-      layoutSetId={uiFolderSettings ? taskId : undefined}
+      uiFolder={uiFolderSettings ? taskId : undefined}
     >
       {taskId && taskId !== currentTaskId ? <FormProvider readOnly={true}>{children}</FormProvider> : children}
     </TaskOverrides>

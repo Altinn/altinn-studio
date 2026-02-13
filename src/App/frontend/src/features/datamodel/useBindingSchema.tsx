@@ -5,10 +5,8 @@ import type { JSONSchema7 } from 'json-schema';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { getUiFolders } from 'src/features/form/layoutSets';
+import { useCurrentUiFolderSettings } from 'src/features/form/layoutSets/hooks';
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId } from 'src/features/instance/instanceUtils';
-import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { useAsRef } from 'src/hooks/useAsRef';
@@ -27,11 +25,8 @@ export type AsSchema<T> = {
 };
 
 export function useCurrentDataModelDataElementId() {
-  const uiFolders = getUiFolders();
-  const taskId = useProcessTaskId();
-  const isStateless = useIsStateless();
-
   const overriddenDataElementId = useTaskOverrides()?.dataModelElementId;
+  const defaultDataType = useCurrentUiFolderSettings()?.defaultDataType;
 
   // Instance data elements will update often (after each save), so we have to use a selector to make
   // sure components don't re-render too often.
@@ -41,8 +36,9 @@ export function useCurrentDataModelDataElementId() {
         return overriddenDataElementId;
       }
 
-      return getCurrentTaskDataElementId({ isStateless, dataElements: data.data, taskId, uiFolders });
+      return data.data.find((element) => element.id === defaultDataType);
     },
+    enabled: !overriddenDataElementId,
   }).data;
 }
 
@@ -128,20 +124,13 @@ export function useDataModelUrl({ dataType, dataElementId, language, prefillFrom
 
 export function useCurrentDataModelName() {
   const overriddenDataModelType = useTaskOverrides()?.dataModelType;
-
-  const uiFolders = getUiFolders();
-  const taskId = useProcessTaskId();
-  const isStateless = useIsStateless();
+  const defaultDataType = useCurrentUiFolderSettings()?.defaultDataType;
 
   if (overriddenDataModelType) {
     return overriddenDataModelType;
   }
 
-  return getCurrentDataTypeForApplication({
-    isStateless,
-    uiFolders,
-    taskId,
-  });
+  return defaultDataType;
 }
 
 export function useCurrentDataModelType() {

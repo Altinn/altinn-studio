@@ -6,7 +6,6 @@ import { BlockUntilAllLoaded, LoadingRegistryProvider } from 'src/core/loading/L
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
 import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
-import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { CodeListsProvider } from 'src/features/options/CodeListsProvider';
 import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';

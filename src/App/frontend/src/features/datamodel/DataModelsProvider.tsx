@@ -23,7 +23,7 @@ import {
   MissingDataTypeException,
 } from 'src/features/datamodel/utils';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
-import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
+import { useCurrentUiFolderName } from 'src/features/form/layoutSets/hooks';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useInstanceDataElements, useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { getFirstDataElementId } from 'src/features/instance/instanceUtils';
@@ -36,7 +36,7 @@ import type { IExpressionValidations } from 'src/features/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 
 interface DataModelsState {
-  layoutSetId: string | undefined;
+  uiFolder: string | undefined;
   defaultDataType: string | undefined;
   allDataTypes: string[] | null;
   writableDataTypes: string[] | null;
@@ -52,7 +52,7 @@ interface DataModelsMethods {
     allDataTypes: string[],
     writableDataTypes: string[],
     defaultDataType: string | undefined,
-    layoutSetId: string | undefined,
+    uiFolder: string | undefined,
   ) => void;
   setInitialData: (dataType: string, initialData: object) => void;
   setDataElementId: (dataType: string, dataElementId: string | null) => void;
@@ -63,7 +63,7 @@ interface DataModelsMethods {
 
 function initialCreateStore() {
   return createStore<DataModelsState & DataModelsMethods>()((set) => ({
-    layoutSetId: undefined,
+    uiFolder: undefined,
     defaultDataType: undefined,
     allDataTypes: null,
     writableDataTypes: null,
@@ -73,12 +73,12 @@ function initialCreateStore() {
     expressionValidationConfigs: {},
     error: null,
 
-    setDataTypes: (allDataTypes, writableDataTypes, defaultDataType, layoutSetId) => {
+    setDataTypes: (allDataTypes, writableDataTypes, defaultDataType, uiFolder) => {
       set((s) => ({
         allDataTypes: deepEqual(allDataTypes, s.allDataTypes) ? s.allDataTypes : allDataTypes,
         writableDataTypes: deepEqual(writableDataTypes, s.writableDataTypes) ? s.writableDataTypes : writableDataTypes,
         defaultDataType,
-        layoutSetId,
+        uiFolder,
       }));
     },
     setInitialData: (dataType, initialData) => {
@@ -156,7 +156,7 @@ function DataModelsLoader() {
     select: (data) => data.data.map((element) => [element.dataType, element.locked] as const),
   });
 
-  const layoutSetId = useCurrentLayoutSetId();
+  const uiFolder = useCurrentUiFolderName();
 
   // Subform
   const overrides = useTaskOverrides();
@@ -201,8 +201,8 @@ function DataModelsLoader() {
       }
     }
 
-    setDataTypes(allValidDataTypes, writableDataTypes, defaultDataType, layoutSetId);
-  }, [applicationMetadata, defaultDataType, isStateless, layouts, setDataTypes, dataElements, layoutSetId, isFetching]);
+    setDataTypes(allValidDataTypes, writableDataTypes, defaultDataType, uiFolder);
+  }, [applicationMetadata, defaultDataType, isStateless, layouts, setDataTypes, dataElements, uiFolder, isFetching]);
 
   // We should load form data and schema for all referenced data models, schema is used for dataModelBinding validation which we want to do even if it is readonly
   // We only need to load expression validation config for data types that are not readonly. Additionally, backend will error if we try to validate a model we are not supposed to
@@ -232,16 +232,9 @@ function DataModelsLoader() {
 }
 
 function BlockUntilLoaded({ children }: PropsWithChildren) {
-  const {
-    layoutSetId,
-    allDataTypes,
-    writableDataTypes,
-    initialData,
-    schemaResults,
-    expressionValidationConfigs,
-    error,
-  } = useSelector((state) => state);
-  const actualCurrentTask = useCurrentLayoutSetId();
+  const { uiFolder, allDataTypes, writableDataTypes, initialData, schemaResults, expressionValidationConfigs, error } =
+    useSelector((state) => state);
+  const actualUiFolder = useCurrentUiFolderName();
   const isPDF = useIsPdf();
 
   const currentMutations = useMutationState({ filters: { status: 'pending', mutationKey: ['saveFormData'] } });
@@ -269,7 +262,7 @@ function BlockUntilLoaded({ children }: PropsWithChildren) {
     return <Loader reason='data-types' />;
   }
 
-  if (layoutSetId !== actualCurrentTask) {
+  if (uiFolder !== actualUiFolder) {
     // The layout-set has changed since the state was set, so we need to wait for the new layout-set to be loaded
     // and the relevant data model bindings there to be parsed.
     return <Loader reason='layout-set-change' />;

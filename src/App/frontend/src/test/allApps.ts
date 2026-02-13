@@ -8,15 +8,11 @@ import type { JSONSchema7 } from 'json-schema';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
+import { UiFolders } from 'src/features/form/layoutSets/types';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
-import type {
-  ILayoutFile,
-  ILayoutSetFromSchema,
-  ILayoutSetsFromSchema,
-  ILayoutSettings,
-} from 'src/layout/common.generated';
+import type { ILayoutFile, ILayoutSettings } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 import type { IInstance, IProcess } from 'src/types/shared';
 
@@ -236,7 +232,8 @@ export class ExternalApp {
     return out;
   }
 
-  getRawLayoutSets(): ILayoutSetsFromSchema {
+  getUi(): UiFolders {
+    // TODO: Read the UI folders just like the backend does
     const out = this.readJson<ILayoutSetsFromSchema>('/App/ui/layout-sets.json');
 
     for (const set of out.sets) {

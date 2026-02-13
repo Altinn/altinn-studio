@@ -1,6 +1,7 @@
 import type { GlobalPageSettings, UiFolders } from 'src/features/form/layoutSets/types';
+import type { ILayoutSettings } from 'src/layout/common.generated';
 
-const defaultGlobalUiSettings: GlobalPageSettings = {
+export const defaultGlobalUiSettings: GlobalPageSettings = {
   hideCloseButton: false,
   showLanguageSelector: false,
   showExpandWidthButton: false,
@@ -10,14 +11,32 @@ const defaultGlobalUiSettings: GlobalPageSettings = {
   taskNavigation: [],
 };
 
+export function getUiConfig() {
+  return window.altinnAppGlobalData.ui;
+}
+
 export function getUiFolders(): UiFolders {
-  return window.altinnAppGlobalData.ui?.folders ?? {};
+  return getUiConfig().folders;
 }
 
+/**
+ * @see usePageSettings
+ */
 export function getGlobalUiSettings(): GlobalPageSettings {
-  return window.altinnAppGlobalData.ui?.settings ?? defaultGlobalUiSettings;
+  return {
+    ...defaultGlobalUiSettings,
+    ...getUiConfig().settings,
+  };
 }
 
-export function getUiFolderSettings(folderId: string) {
-  return getUiFolders()[folderId];
+/**
+ * @see useCurrentUiFolderSettings
+ */
+export function getUiFolderSettings(folderId: string | undefined): ILayoutSettings | undefined {
+  const folders = getUiFolders();
+  return folderId ? folders[folderId] : undefined;
+}
+
+export function getDefaultDataTypeFromUiFolder(uiFolder: string | undefined) {
+  return uiFolder ? getUiFolderSettings(uiFolder)?.defaultDataType : undefined;
 }

@@ -22,7 +22,6 @@ import {
   getInstanceLayoutsUrl,
   getInstantiateUrl,
   getJsonSchemaUrl,
-  getLayoutSettingsUrl,
   getLayoutsUrl,
   getOrderDetailsUrl,
   getPaymentInformationUrl,
@@ -53,7 +52,7 @@ import type {
   BackendValidationIssuesWithSource,
   IExpressionValidationConfig,
 } from 'src/features/validation';
-import type { ILayoutSettings, IRawOption } from 'src/layout/common.generated';
+import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { ISimpleInstance, LooseAutocomplete } from 'src/types';
@@ -208,13 +207,10 @@ export const fetchProcessState = (instanceId: string): Promise<IProcess> => http
 
 export const fetchSelectedParty = (): Promise<IParty | undefined> => httpGet(selectedPartyUrl);
 
-export const fetchLayouts = (layoutSetId: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(layoutSetId));
+export const fetchLayouts = (uiFolder: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(uiFolder));
 
-export const fetchLayoutsForInstance = (layoutSetId: string, instanceId: string): Promise<ILayoutCollection> =>
-  httpGet(getInstanceLayoutsUrl(layoutSetId, instanceId));
-
-export const fetchLayoutSettings = (layoutSetId: string): Promise<ILayoutSettings> =>
-  httpGet(getLayoutSettingsUrl(layoutSetId));
+export const fetchLayoutsForInstance = (uiFolder: string, instanceId: string): Promise<ILayoutCollection> =>
+  httpGet(getInstanceLayoutsUrl(uiFolder, instanceId));
 
 export const fetchOptions = (url: string): Promise<AxiosResponse<IRawOption[]> | null> => httpGetRaw<IRawOption[]>(url);
 

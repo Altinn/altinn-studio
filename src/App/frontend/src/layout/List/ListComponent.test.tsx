@@ -4,7 +4,7 @@ import { jest } from '@jest/globals';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiMock';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import * as useDeviceWidths from 'src/hooks/useDeviceWidths';
 import { ListComponent } from 'src/layout/List/ListComponent';

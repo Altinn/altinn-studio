@@ -3,7 +3,7 @@ import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react';
 
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiMock';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';

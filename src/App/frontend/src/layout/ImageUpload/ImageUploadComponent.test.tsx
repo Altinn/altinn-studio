@@ -4,7 +4,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiMock';
 import { UploadedAttachment } from 'src/features/attachments';
 import * as imageHooks from 'src/layout/ImageUpload/hooks/useImageFile';
 import { ImageUploadComponent } from 'src/layout/ImageUpload/ImageUploadComponent';

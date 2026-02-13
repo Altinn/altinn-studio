@@ -155,10 +155,9 @@ export const redirectToUpgrade = (reqAuthLevel: string) => {
 
 export const getJsonSchemaUrl = () => `${appPath}/api/jsonschema/`;
 export const getCustomValidationConfigUrl = (dataTypeId: string) => `${appPath}/api/validationconfig/${dataTypeId}`;
-export const getLayoutSettingsUrl = (layoutSetId: string) => `${appPath}/api/layoutsettings/${layoutSetId}`;
-export const getLayoutsUrl = (layoutSetId: string) => `${appPath}/api/layouts/${layoutSetId}`;
-export const getInstanceLayoutsUrl = (layoutSetId: string, instanceId: string) =>
-  `${appPath}/instances/${instanceId}/layouts/${layoutSetId}`;
+export const getLayoutsUrl = (uiFolder: string) => `${appPath}/api/layouts/${uiFolder}`;
+export const getInstanceLayoutsUrl = (uiFolder: string, instanceId: string) =>
+  `${appPath}/instances/${instanceId}/layouts/${uiFolder}`;
 export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;
 export const getInstanceUiUrl = (instanceId: string) => `${appPath}/instance/${instanceId}`;
 

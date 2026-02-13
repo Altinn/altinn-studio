@@ -6,7 +6,7 @@ import { XMarkIcon } from '@navikt/aksel-icons';
 import { Button } from 'src/app-components/Button/Button';
 import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
 import { useIsStateless } from 'src/features/applicationMetadata';
-import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

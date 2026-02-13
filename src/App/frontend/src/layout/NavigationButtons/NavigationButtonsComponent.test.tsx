@@ -3,7 +3,7 @@ import React from 'react';
 import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiMock';
 import { getUiFolders } from 'src/features/form/layoutSets';
 import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';

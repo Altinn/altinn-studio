@@ -9,7 +9,8 @@ import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { FormProvider } from 'src/features/form/FormContext';
-import { useDataTypeFromLayoutSet, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { getDefaultDataTypeFromUiFolder } from 'src/features/form/layoutSets';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Subform/Summary/SubformSummaryComponent2.module.css';
@@ -33,7 +34,7 @@ const SummarySubformWrapperInner = ({
   targetBaseComponentId,
 }: PropsWithChildren<{ targetBaseComponentId: string }>) => {
   const { layoutSet, id, textResourceBindings, entryDisplayName } = useItemWhenType(targetBaseComponentId, 'Subform');
-  const dataType = useDataTypeFromLayoutSet(layoutSet);
+  const dataType = getDefaultDataTypeFromUiFolder(layoutSet);
   const dataElements = useInstanceDataElements(dataType);
 
   return (
@@ -61,7 +62,7 @@ const SummarySubformWrapperInner = ({
           <div className={classes.pageBreak} />
           <DoSummaryWrapper
             dataElement={element}
-            layoutSet={layoutSet}
+            uiFolder={layoutSet}
             baseComponentId={targetBaseComponentId}
             entryDisplayName={entryDisplayName}
             title={textResourceBindings?.title}
@@ -77,13 +78,13 @@ SummarySubformWrapper.displayName = 'SummarySubformWrapper';
 
 const DoSummaryWrapper = ({
   dataElement,
-  layoutSet,
+  uiFolder,
   entryDisplayName,
   title,
   baseComponentId,
 }: React.PropsWithChildren<{
   dataElement: IData;
-  layoutSet: string;
+  uiFolder: string;
   entryDisplayName?: ExprValToActualOrExpr<ExprVal.String>;
   title: string | undefined;
   baseComponentId: string;
@@ -111,7 +112,7 @@ const DoSummaryWrapper = ({
       <TaskOverrides
         dataModelElementId={dataElement.id}
         dataModelType={dataElement.dataType}
-        layoutSetId={layoutSet}
+        uiFolder={uiFolder}
       >
         <FormProvider readOnly={true}>
           <Flex
@@ -170,7 +171,7 @@ export function AllSubformSummaryComponent2() {
 export function SubformSummaryComponent2({ targetBaseComponentId }: Summary2Props) {
   const displayType = useSummaryOverrides<'Subform'>(targetBaseComponentId)?.display;
   const { layoutSet } = useItemWhenType(targetBaseComponentId, 'Subform');
-  const dataType = useDataTypeFromLayoutSet(layoutSet);
+  const dataType = getDefaultDataTypeFromUiFolder(layoutSet);
   const dataElements = useInstanceDataElements(dataType);
   const minCount = getApplicationMetadata().dataTypes.find((dt) => dt.id === dataType)?.minCount;
   const hasElements = !!(dataType && dataElements.length > 0);

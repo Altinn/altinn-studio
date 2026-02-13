@@ -11,7 +11,7 @@ import { SplitView } from 'src/features/devtools/components/SplitView/SplitView'
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useLayoutValidationForPage } from 'src/features/devtools/layoutValidation/useLayoutValidation';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
-import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLayoutSet';
+import { useCurrentUiFolderNameFromUrl } from 'src/features/form/layoutSets/hooks';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
 import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
@@ -21,7 +21,7 @@ export const LayoutInspector = () => {
   const setSelectedComponent = useDevToolsStore((state) => state.actions.layoutInspectorSet);
   const currentView = useCurrentView();
   const layouts = useLayouts();
-  const currentLayoutSetId = useLayoutSetIdFromUrl();
+  const currentUiFolder = useCurrentUiFolderNameFromUrl();
   const [componentProperties, setComponentProperties] = useState<string | null>(null);
   const [propertiesHaveChanged, setPropertiesHaveChanged] = useState(false);
   const [error, setError] = useState<boolean>(false);
@@ -60,7 +60,7 @@ export const LayoutInspector = () => {
 
         if (currentView) {
           window.queryClient.setQueriesData<LayoutContextValue>(
-            { queryKey: ['formLayouts', currentLayoutSetId] },
+            { queryKey: ['formLayouts', currentUiFolder] },
             (_queryData) => {
               const queryData = structuredClone(_queryData);
               if (!queryData?.layouts?.[currentView]) {

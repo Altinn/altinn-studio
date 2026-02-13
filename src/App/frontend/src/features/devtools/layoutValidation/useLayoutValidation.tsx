@@ -2,7 +2,7 @@ import { createStore } from 'zustand';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
-import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
+import { useCurrentUiFolderName } from 'src/features/form/layoutSets/hooks';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 
 interface Context {
@@ -27,11 +27,11 @@ export const useLayoutValidation = () => {
 };
 
 export const useLayoutValidationForPage = () => {
-  const layoutSetId = useCurrentLayoutSetId() || 'default';
+  const uiFolder = useCurrentUiFolderName() || 'default';
   const currentView = useCurrentView();
 
   return useLaxSelector((state) => {
-    const layoutSet = state.errors?.[layoutSetId];
-    return layoutSet && currentView ? layoutSet[currentView] : undefined;
+    const uiFolderErrors = state.errors?.[uiFolder];
+    return uiFolderErrors && currentView ? uiFolderErrors[currentView] : undefined;
   });
 };
