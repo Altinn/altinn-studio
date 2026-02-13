@@ -41,12 +41,19 @@ internal static class HandleAlerts
     }
 
     internal static async Task<IResult> NotifyAlertsUpdatedAsync(
+        GatewayContext gatewayContext,
+        IServiceProvider serviceProvider,
+        MetricsClientSettings metricsClientSettings,
         DesignerClient designerClient,
         AlertPayload alertPayload,
         CancellationToken cancellationToken,
         string environment = "prod"
     )
     {
+        IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
+            metricsClientSettings.Provider
+        );
+
         var alerts = alertPayload
             .Alerts.Where(a =>
             {
@@ -54,24 +61,46 @@ internal static class HandleAlerts
                 return !string.IsNullOrEmpty(ruleId) && AzureMonitorClient.OperationNameKeys.Contains(ruleId);
             })
             .GroupBy(a => a.Annotations["ruleId"])
-            .Select(alerts =>
+            .Select(alertGroup =>
             {
+                var intervalInMinutes = int.TryParse(
+                    alertGroup.First().Annotations.GetValueOrDefault("intervalInMinutes"),
+                    out var interval
+                )
+                    ? interval
+                    : (int?)null;
+
+                var apps = alertGroup
+                    .Select(a => a.Labels.GetValueOrDefault("cloud_RoleName", "unknown"))
+                    .Where(app => app != "unknown")
+                    .Distinct()
+                    .ToList();
+
+                var now = DateTimeOffset.UtcNow;
+                var from = intervalInMinutes.HasValue ? now.AddMinutes(-intervalInMinutes.Value) : now.AddMinutes(-60);
+
                 return new Alert
                 {
-                    RuleId = alerts.Key,
-                    Name = alerts.First().Labels.GetValueOrDefault("alertname", "unknown"),
-                    Alerts = alerts.Select(a => new AlertInstance
+                    RuleId = alertGroup.Key,
+                    Name = alertGroup.First().Labels.GetValueOrDefault("alertname", "unknown"),
+                    Alerts = alertGroup.Select(a => new AlertInstance
                     {
                         Status = a.Status,
                         App = a.Labels.GetValueOrDefault("cloud_RoleName", "unknown"),
                     }),
-                    URL = alerts.First().GeneratorURL,
-                    IntervalInMinutes = int.TryParse(
-                        alerts.First().Annotations.GetValueOrDefault("intervalInMinutes"),
-                        out var interval
-                    )
-                        ? interval
-                        : null,
+                    URL = alertGroup.First().GeneratorURL,
+                    LogsUrl =
+                        apps.Count > 0
+                            ? metricsClient.GetLogsUrl(
+                                gatewayContext.AzureSubscriptionId,
+                                gatewayContext.ServiceOwner,
+                                gatewayContext.Environment,
+                                apps,
+                                alertGroup.Key,
+                                from,
+                                now
+                            )
+                            : null,
                 };
             });
 
