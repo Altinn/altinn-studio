@@ -80,7 +80,7 @@
         lastChangedBy: null
       }
     ],
-    created: null,
+    created: Date_MinValue,
     createdBy: null,
     lastChanged: null,
     lastChangedBy: null
@@ -166,7 +166,7 @@
         lastChangedBy: null
       }
     ],
-    created: null,
+    created: Date_MinValue,
     createdBy: null,
     lastChanged: DateTimeOffset_3,
     lastChangedBy: 

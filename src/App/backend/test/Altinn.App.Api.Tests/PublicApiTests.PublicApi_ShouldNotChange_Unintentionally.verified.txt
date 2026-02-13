@@ -1012,18 +1012,18 @@ namespace Altinn.App.Api.Models
     public sealed class InstanceOwnerResponse
     {
         public InstanceOwnerResponse() { }
-        public required string OrganisationNumber { get; init; }
+        public required string? OrganisationNumber { get; init; }
         public required Altinn.App.Api.Models.PartyResponse Party { get; init; }
         public required string PartyId { get; init; }
-        public required string PersonNumber { get; init; }
-        public required string Username { get; init; }
+        public required string? PersonNumber { get; init; }
+        public required string? Username { get; init; }
     }
     public sealed class InstanceResponse
     {
         public InstanceResponse() { }
         public required string AppId { get; init; }
         public required System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.CompleteConfirmation> CompleteConfirmations { get; init; }
-        public required System.DateTime? Created { get; init; }
+        public required System.DateTime Created { get; init; }
         public required string CreatedBy { get; init; }
         public required System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.DataElement> Data { get; init; }
         public required System.Collections.Generic.IReadOnlyDictionary<string, string> DataValues { get; init; }
@@ -1088,13 +1088,13 @@ namespace Altinn.App.Api.Models
     {
         public PartyResponse() { }
         public required bool IsDeleted { get; init; }
-        public required string Name { get; init; }
-        public required string OrgNumber { get; init; }
+        public required string? Name { get; init; }
+        public required string? OrgNumber { get; init; }
         public required int PartyId { get; init; }
         public required Altinn.Platform.Register.Enums.PartyType PartyTypeName { get; init; }
         public required System.Guid? PartyUuid { get; init; }
-        public required string SSN { get; init; }
-        public required string UnitType { get; init; }
+        public required string? SSN { get; init; }
+        public required string? UnitType { get; init; }
     }
     public class PersonDetails
     {
