@@ -1,6 +1,6 @@
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-const ALLOWED_ORGANIZATIONS = ['ttd'];
+export const ALLOWED_ORGANIZATIONS = ['ttd'];
 
 /**
  * During beta, access is restricted to specific organizations.
