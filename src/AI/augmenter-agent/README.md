@@ -53,8 +53,8 @@ Synchronous PDF generation. Returns the PDF directly.
 
 **Request:** `multipart/form-data`
 
-| Field  | Type | Required | Description                                                                                           |
-| ------ | ---- | -------- | ----------------------------------------------------------------------------------------------------- |
+| Field  | Type | Required | Description |
+|--------|------|----------|-------------|
 | `file` | file | Yes (1+) | Files to process. Allowed types: `application/pdf`, `application/xml`, `text/xml`, `application/json` |
 
 **Response:** `200 OK` with `Content-Type: application/pdf`
@@ -65,9 +65,9 @@ Asynchronous PDF generation. Accepts the job immediately and POSTs the result to
 
 **Request:** `multipart/form-data`
 
-| Field          | Type   | Required | Description                               |
-| -------------- | ------ | -------- | ----------------------------------------- |
-| `file`         | file   | Yes (1+) | Same file constraints as `/generate`      |
+| Field          | Type   | Required | Description |
+|----------------|--------|----------|-------------|
+| `file`         | file   | Yes (1+) | Same file constraints as `/generate` |
 | `callback-url` | string | Yes      | URL to receive the generated PDF via POST |
 
 **Response:** `202 Accepted` with `{ "status": "accepted" }`
@@ -78,17 +78,17 @@ The callback receives a `multipart/form-data` POST with the PDF in a field named
 
 All settings are in `appsettings.json` and can be overridden with environment variables.
 
-| Section         | Key                     | Default                     | Description                             |
-| --------------- | ----------------------- | --------------------------- | --------------------------------------- |
-| `Upload`        | `MaxFileBytes`          | 10 MB                       | Max size per uploaded file              |
-| `Upload`        | `MaxTotalBytes`         | 50 MB                       | Max total request size                  |
-| `PdfGeneration` | `ProcessTimeoutSeconds` | 60                          | Typst process timeout                   |
-| `PdfGeneration` | `TemplatePath`          | `pdf-templates/default.typ` | Path to Typst template                  |
-| `Callback`      | `AllowedPatterns`       | `[]`                        | Allowlist for callback URLs (see below) |
-| `Callback`      | `TimeoutSeconds`        | 30                          | HTTP timeout for callback POST          |
-| `Callback`      | `MaxRetries`            | 3                           | Max retry attempts for failed callbacks |
-| `Callback`      | `RetryBaseDelaySeconds` | 2                           | Base delay for exponential backoff      |
-| `Typst`         | `Path`                  | `typst`                     | Path to Typst executable                |
+| Section | Key | Default | Description |
+|---------|-----|---------|-------------|
+| `Upload` | `MaxFileBytes` | 10 MB | Max size per uploaded file |
+| `Upload` | `MaxTotalBytes` | 50 MB | Max total request size |
+| `PdfGeneration` | `ProcessTimeoutSeconds` | 60 | Typst process timeout |
+| `PdfGeneration` | `TemplatePath` | `pdf-templates/default.typ` | Path to Typst template |
+| `Callback` | `AllowedPatterns` | `[]` | Allowlist for callback URLs (see below) |
+| `Callback` | `TimeoutSeconds` | 30 | HTTP timeout for callback POST |
+| `Callback` | `MaxRetries` | 3 | Max retry attempts for failed callbacks |
+| `Callback` | `RetryBaseDelaySeconds` | 2 | Base delay for exponential backoff |
+| `Typst` | `Path` | `typst` | Path to Typst executable |
 
 ### Callback URL patterns
 
