@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
+using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -22,7 +23,7 @@ namespace Altinn.Studio.Designer.Hubs.Altinity;
 /// <summary>
 /// SignalR Hub for proxying Altinity agent communication with user authentication
 /// </summary>
-[Authorize]
+[Authorize(Policy = AltinnPolicy.MustHaveAiAssistantPermission)]
 public class AltinityProxyHub : Hub<IAltinityClient>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;

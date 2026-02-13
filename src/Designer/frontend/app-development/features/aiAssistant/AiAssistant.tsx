@@ -8,10 +8,29 @@ import { Preview } from './components/Preview';
 import { FileBrowser } from './components/FileBrowser';
 import classes from './AiAssistant.module.css';
 import { useUserQuery } from 'app-shared/hooks/queries';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { StudioCenter, StudioAlert, StudioParagraph } from '@studio/components';
 
 function AiAssistant(): ReactElement {
   const { t } = useTranslation();
+  const { org } = useStudioEnvironmentParams();
   const { data: currentUser } = useUserQuery();
+
+  // To do: Move access requirement into a new hook 'useAiAssistantPermissions',
+  // Which imports useStudioEnvironmentParams.
+  // New hook should reference AiAssistantPermissionHandler in comments
+  // E.g. "Backend permissions are handled by AuthorizationConfiguration/AiAssistantPermissionHandler.cs"
+  // Hook should return 'userHasAccessToAssistant' boolean.
+  // We should also add tests
+  if (org !== 'ttd') {
+    return (
+      <StudioCenter>
+        <StudioAlert>
+          <StudioParagraph data-size='md'>{t('ai_assistant.access_denied')}</StudioParagraph>
+        </StudioAlert>
+      </StudioCenter>
+    );
+  }
 
   const {
     connectionStatus,
