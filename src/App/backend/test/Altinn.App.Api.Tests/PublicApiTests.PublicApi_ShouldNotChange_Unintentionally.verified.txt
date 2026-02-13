@@ -538,18 +538,8 @@ namespace Altinn.App.Api.Controllers
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetFooterLayout(string org, string app) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
-        [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/layoutsettings")]
-        public Microsoft.AspNetCore.Mvc.ActionResult GetLayoutSettings(string org, string app) { }
-        [Microsoft.AspNetCore.Mvc.HttpGet]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/layoutsettings/{id}")]
         public Microsoft.AspNetCore.Mvc.ActionResult GetLayoutSettings(string org, string app, string id) { }
-        [Microsoft.AspNetCore.Mvc.HttpGet]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 404, "text/plain", new string[0])]
-        [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/layouts")]
-        [System.Obsolete("This endpoint is no longer available. Use /{org}/{app}/api/layouts/{id} to get la" +
-            "youts for a specific UI folder.")]
-        public Microsoft.AspNetCore.Mvc.ActionResult GetLayouts(string org, string app) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/layouts/{id}")]
