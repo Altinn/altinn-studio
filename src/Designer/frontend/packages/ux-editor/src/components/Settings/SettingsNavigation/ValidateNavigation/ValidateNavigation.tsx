@@ -2,7 +2,7 @@ import React from 'react';
 import { StudioHeading, StudioParagraph } from '@studio/components';
 import classes from './ValidateNavigation.module.css';
 import { useTranslation } from 'react-i18next';
-import { ValidateConfig } from './ValidateNavigationConfig';
+import { ValidateNavigationConfig } from './ValidateNavigationConfig';
 import { Scope } from './ValidateNavigationUtils';
 
 export const ValidateNavigation = () => {
@@ -25,7 +25,7 @@ export const ValidateNavigation = () => {
         <StudioParagraph>
           {t('ux_editor.settings.navigation_validation_all_tasks_description')}
         </StudioParagraph>
-        <ValidateConfig
+        <ValidateNavigationConfig
           propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
           scope={Scope.AllTasks}
         />
@@ -37,7 +37,7 @@ export const ValidateNavigation = () => {
         <StudioParagraph>
           {t('ux_editor.settings.navigation_validation_specific_task_description')}
         </StudioParagraph>
-        <ValidateConfig
+        <ValidateNavigationConfig
           propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
           scope={Scope.SelectedTasks}
         />
@@ -49,7 +49,7 @@ export const ValidateNavigation = () => {
         <StudioParagraph>
           {t('ux_editor.settings.navigation_validation_specific_page_description')}
         </StudioParagraph>
-        <ValidateConfig
+        <ValidateNavigationConfig
           propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
           scope={Scope.SelectedPages}
         />

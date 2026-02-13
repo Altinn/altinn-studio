@@ -5,7 +5,7 @@ import { ValidateRuleConfig } from './ValidateRuleConfig';
 import { PagesSelector, TasksSelector } from './ValidateTargetSelectors';
 import { Scope } from './ValidateNavigationUtils';
 
-type ValidateCardContentProps = {
+export type ValidateCardContentProps = {
   scope: Scope;
   config: ValidateConfigState;
   onChange: (updates: Partial<ValidateConfigState>) => void;

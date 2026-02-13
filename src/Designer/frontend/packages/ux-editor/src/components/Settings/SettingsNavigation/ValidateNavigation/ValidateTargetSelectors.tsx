@@ -10,20 +10,21 @@ type ValidationTypesProps = {
 export const TasksSelector = ({ isMultiple = true, onChange }: ValidationTypesProps) => {
   const tasks = ['Oppgave 1', 'Oppgave 2', 'Oppgave 3']; // Temporary mock list of tasks, extract from layout sets on next PR
   const { t } = useTranslation();
+
   const labelSelector = isMultiple
-    ? t('ux_editor.settings.navigation_validation_specific_task_label')
-    : t('ux_editor.settings.navigation_validation_specific_task_label_several');
+    ? t('ux_editor.settings.navigation_validation_specific_task_label_several')
+    : t('ux_editor.settings.navigation_validation_specific_task_label');
 
   return (
     <StudioSuggestion
       label={labelSelector}
       emptyText={t('ux_editor.settings.navigation_validation_specific_task_no_tasks')}
       filter={() => true}
-      onSelectedChange={onChange}
+      onSelectedChange={(selected) => onChange(selected)}
       multiple={isMultiple}
     >
       {tasks.map((task) => (
-        <StudioSuggestion.Option key={task} value={task} label={task}>
+        <StudioSuggestion.Option key={task} value={task}>
           {task}
         </StudioSuggestion.Option>
       ))}
@@ -45,7 +46,7 @@ export const PagesSelector = ({ currentPages, taskName, onChange }: PagesSelecto
   return (
     <StudioSuggestion
       selected={currentPages}
-      label={t('ux_editor.settings.navigation_validation_specific_page_header_label')}
+      label={t('ux_editor.settings.navigation_validation_specific_page_label')}
       emptyText={t('ux_editor.settings.navigation_validation_specific_page_no_pages')}
       onSelectedChange={onChange}
       multiple

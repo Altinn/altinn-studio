@@ -7,12 +7,15 @@ import { ValidateCardContent } from './ValidateCardContent';
 import type { ValidateConfigState } from './ValidateNavigationTypes';
 import { getCardLabel, getDefaultConfig } from './ValidateNavigationUtils';
 
-type ValidateConfigProps = {
+export type ValidateNavigationConfigProps = {
   propertyLabel: string;
   scope: Scope;
 };
 
-export const ValidateConfig = ({ propertyLabel, scope }: ValidateConfigProps) => {
+export const ValidateNavigationConfig = ({
+  propertyLabel,
+  scope,
+}: ValidateNavigationConfigProps) => {
   const [isEditMode, setIsEditMode] = useState(false);
 
   if (!isEditMode) {
@@ -62,8 +65,8 @@ const ValidateCard = ({ scope, setIsEditMode }: ValidateCardProps) => {
   return (
     <StudioConfigCard className={classes.configWrapper}>
       <StudioConfigCard.Header
-        cardLabel={getCardLabel(scope)}
-        deleteAriaLabel='Slett regel'
+        cardLabel={t(getCardLabel(scope))}
+        deleteAriaLabel={t('general.delete')}
         onDelete={handleDelete}
       />
       <StudioConfigCard.Body>

@@ -4,7 +4,7 @@ import { StudioSelect } from '@studio/components';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks';
 import { useTranslation } from 'react-i18next';
 
-type ValidateRuleConfigProps = {
+export type ValidateRuleConfigProps = {
   types: StudioSuggestionItem[];
   pageScope: string;
   onChange: (updates: { types?: StudioSuggestionItem[]; pageScope?: string }) => void;
@@ -44,6 +44,7 @@ export const ValidateRuleConfig = ({ types, pageScope, onChange }: ValidateRuleC
         value={pageScope}
         onChange={(e) => onChange({ pageScope: e.target.value })}
       >
+        <StudioSelect.Option value='' disabled />
         {validateScopes.map((scope) => (
           <StudioSelect.Option key={scope} value={scope}>
             {configEnumValue(scope)}
