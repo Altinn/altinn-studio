@@ -6,8 +6,10 @@ import {
   StudioLink,
   StudioParagraph,
 } from '@studio/components';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
 
 export const AppValidationDialog = () => {
@@ -51,8 +53,22 @@ const AppValidationErrorSummary = ({ validationResult }: AppValidationErrorSumma
 const AltinnAppServiceResourceValidation = ({ validationResult }: { validationResult: any }) => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const errorKeys = Object.keys(validationResult.errors);
+  const errorItems = errorKeys.map((errorKey) => {
+    const fieldConfig = getFieldConfig(errorKey);
+    const anchor = fieldConfig?.anchor ?? '';
+    const search = `currentTab=about&focus=${anchor}`;
+    const fullHref = `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/app-settings?${search}`;
+    const errorMessage = t(fieldConfig?.translationKey ?? errorKey);
+    return { errorKey, search, fullHref, errorMessage };
+  });
+
+  const handleErrorLinkClick = (search: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    navigate({ pathname: `/${org}/${app}/app-settings`, search: `?${search}` });
+  };
 
   return (
     <StudioErrorSummary>
@@ -60,18 +76,13 @@ const AltinnAppServiceResourceValidation = ({ validationResult }: { validationRe
         {t('app_validation.app_metadata.errors_need_fixing')}
       </StudioErrorSummary.Heading>
       <StudioErrorSummary.List>
-        {errorKeys.map((errorKey) => {
-          const fieldConfig = getFieldConfig(errorKey);
-          const anchor = fieldConfig?.anchor ?? '';
-          const navigationLink = `/editor/${org}/${app}/app-settings?currentTab=about#${anchor}`;
-          const errorMessage = t(fieldConfig?.translationKey ?? errorKey);
-
-          return (
-            <StudioErrorSummary.Item key={errorKey}>
-              <StudioLink href={navigationLink}>{errorMessage}</StudioLink>
-            </StudioErrorSummary.Item>
-          );
-        })}
+        {errorItems.map(({ errorKey, search, fullHref, errorMessage }) => (
+          <StudioErrorSummary.Item key={errorKey}>
+            <StudioLink href={fullHref} onClick={handleErrorLinkClick(search)}>
+              {errorMessage}
+            </StudioLink>
+          </StudioErrorSummary.Item>
+        ))}
       </StudioErrorSummary.List>
     </StudioErrorSummary>
   );
