@@ -1,0 +1,1 @@
+export { ContactPointTableHeader } from './ContactPointTableHeader';

@@ -1,1 +1,0 @@
-export { ContactPoints } from './ContactPoints';
