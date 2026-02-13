@@ -48,3 +48,10 @@ export type ContactPoint = {
   telephone: string;
   contactPage: string;
 };
+
+export enum ContactPointField {
+  Email = 'email',
+  Telephone = 'telephone',
+  ContactPage = 'contactPage',
+  Category = 'category',
+}
