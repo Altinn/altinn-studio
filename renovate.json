@@ -1,6 +1,17 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["local>Altinn/renovate-config", ":prHourlyLimit4"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["\\.github/workflows/app-frontend-k6-browser\\.yml$"],
+      "matchStrings": ["grafana/k6:(?<currentValue>[\\w.-]+)-with-browser"],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "grafana/k6",
+      "versioningTemplate": "docker",
+      "autoReplaceStringTemplate": "grafana/k6:{{{newValue}}}-with-browser"
+    }
+  ],
   "separateMinorPatch": true,
   "separateMultipleMajor": true,
   "packageRules": [
