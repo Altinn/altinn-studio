@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apps-runtime-common-config-env
+  namespace: default
+data:
+  ServiceRepositorySettings__BaseResourceFolderContainer: /AltinnService/
+  ServiceRepositorySettings__RepositoryLocation: /AltinnService/
+  PdfGeneratorSettings__ServiceEndpointUri: http://pdf-generator.pdf.svc.cluster.local/pdf
+  PlatformSettings__ApiPdf2Endpoint: http://pdf-generator.pdf.svc.cluster.local/pdf
+  GeneralSettings__ExternalAppBaseUrl: https://{org}.apps.{hostName}/{org}/{app}/
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: apps-runtime-common-secrets-env
+  namespace: default
+type: Opaque
+stringData:
+  ApplicationInsights__ConnectionString: ""

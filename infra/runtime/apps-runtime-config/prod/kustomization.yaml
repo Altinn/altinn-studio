@@ -1,0 +1,59 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+patches:
+  - target:
+      kind: ConfigMap
+      name: apps-runtime-common-config-env
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: apps-runtime-common-config-env
+      data:
+        PlatformSettings__ApiStorageEndpoint: https://platform.altinn.no/storage/api/v1/
+        PlatformSettings__ApiRegisterEndpoint: https://platform.altinn.no/register/api/v1/
+        PlatformSettings__ApiProfileEndpoint: https://platform.altinn.no/profile/api/v1/
+        PlatformSettings__ApiAuthenticationEndpoint: https://platform.altinn.no/authentication/api/v1/
+        PlatformSettings__ApiAuthorizationEndpoint: https://platform.altinn.no/authorization/api/v1/
+        PlatformSettings__ApiEventsEndpoint: https://platform.altinn.no/events/api/v1/
+        PlatformSettings__ApiNotificationEndpoint: https://platform.altinn.no/notifications/api/v1/
+        PlatformSettings__ApiAccessManagementEndpoint: https://platform.altinn.no/accessmanagement/api/v1/
+        PlatformSettings__ApiCorrespondenceEndpoint: https://platform.altinn.no/correspondence/api/v1/
+        GeneralSettings__HostName: altinn.no
+        AppSettings__OpenIdWellKnownEndpoint: https://platform.altinn.no/authentication/api/v1/openid/
+        ASPNETCORE_ENVIRONMENT: Production
+        AppSettings__EFormidlingSender: "991825827"
+        EFormidlingClientSettings__BaseUrl: https://platform.altinn.no/eformidling/api/
+  - target:
+      kind: ConfigMap
+      name: apps-runtime-common-config
+    patch: |-
+      - op: add
+        path: /data/runtime-overrides.json
+        value: |-
+          {
+            "PlatformSettings": {
+              "ApiStorageEndpoint": "https://platform.altinn.no/storage/api/v1/",
+              "ApiRegisterEndpoint": "https://platform.altinn.no/register/api/v1/",
+              "ApiProfileEndpoint": "https://platform.altinn.no/profile/api/v1/",
+              "ApiAuthenticationEndpoint": "https://platform.altinn.no/authentication/api/v1/",
+              "ApiAuthorizationEndpoint": "https://platform.altinn.no/authorization/api/v1/",
+              "ApiEventsEndpoint": "https://platform.altinn.no/events/api/v1/",
+              "ApiNotificationEndpoint": "https://platform.altinn.no/notifications/api/v1/",
+              "ApiAccessManagementEndpoint": "https://platform.altinn.no/accessmanagement/api/v1/",
+              "ApiCorrespondenceEndpoint": "https://platform.altinn.no/correspondence/api/v1/"
+            },
+            "GeneralSettings": {
+              "HostName": "altinn.no"
+            },
+            "AppSettings": {
+              "OpenIdWellKnownEndpoint": "https://platform.altinn.no/authentication/api/v1/openid/",
+              "EFormidlingSender": "991825827"
+            },
+            "EFormidlingClientSettings": {
+              "BaseUrl": "https://platform.altinn.no/eformidling/api/"
+            },
+            "ASPNETCORE_ENVIRONMENT": "Production"
+          }
