@@ -16,30 +16,9 @@ export type ButtonProps = {
   color?: ButtonColor;
   isLoading?: boolean;
   size?: 'sm' | 'md' | 'lg';
-  className?: string;
   fullWidth?: boolean;
   textAlign?: TextAlign;
-  popoverTarget?: string;
-} & Pick<
-  DesignSystemButtonProps,
-  | 'id'
-  | 'title'
-  | 'disabled'
-  | 'icon'
-  | 'onClick'
-  | 'style'
-  | 'tabIndex'
-  | 'onMouseDown'
-  | 'aria-label'
-  | 'aria-busy'
-  | 'aria-controls'
-  | 'aria-haspopup'
-  | 'aria-expanded'
-  | 'aria-labelledby'
-  | 'aria-describedby'
-  | 'onKeyUp'
-  | 'asChild'
->;
+} & Omit<DesignSystemButtonProps, 'variant' | 'color' | 'size'>;
 
 type DSButtonColor = 'accent' | 'neutral' | 'success' | 'danger' | 'brand1' | 'brand2' | 'brand3' | undefined;
 
@@ -56,32 +35,16 @@ function mapColorNames(color: ButtonColor): DSButtonColor {
 
 export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProps>>(function Button(
   {
-    id,
     disabled,
     isLoading = false,
     variant = 'primary',
     color = 'first',
     size = 'sm',
     children,
-    className,
-    title,
-    icon,
     fullWidth,
-    onClick,
     style,
-    tabIndex,
-    onMouseDown,
-    onKeyUp,
-    asChild,
     textAlign,
-    popoverTarget,
-    'aria-label': ariaLabel,
-    'aria-busy': ariaBusy,
-    'aria-controls': ariaControls,
-    'aria-haspopup': ariaHasPopup,
-    'aria-expanded': ariaExpanded,
-    'aria-labelledby': ariaLabelledBy,
-    'aria-describedby': ariaDescribedBy,
+    ...rest
   },
   ref,
 ) {
@@ -89,30 +52,14 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
   const expandedStyle = { ...style, justifyContent: textAlign ? textAlign : undefined };
   return (
     <DesignSystemButton
-      id={id}
+      {...rest}
       disabled={disabled || isLoading}
       variant={variant}
       data-color={mapColorNames(color)}
       data-size={size}
       data-fullwidth={fullWidth ? true : undefined}
       ref={ref}
-      className={className}
-      title={title}
-      icon={icon}
-      onClick={onClick}
       style={expandedStyle}
-      tabIndex={tabIndex}
-      onMouseDown={onMouseDown}
-      onKeyUp={onKeyUp}
-      asChild={asChild}
-      popoverTarget={popoverTarget}
-      aria-label={ariaLabel}
-      aria-busy={ariaBusy}
-      aria-controls={ariaControls}
-      aria-haspopup={ariaHasPopup}
-      aria-expanded={ariaExpanded}
-      aria-labelledby={ariaLabelledBy}
-      aria-describedby={ariaDescribedBy}
     >
       {isLoading ? (
         <>

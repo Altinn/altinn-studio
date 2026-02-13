@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
+import { SearchParams } from 'src/core/routing/types';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useAsRef } from 'src/hooks/useAsRef';
 import {
   RepGroupContext,
@@ -8,6 +11,7 @@ import {
   useRepeatingGroupSelector,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { splitDashedKey } from 'src/utils/splitDashedKey';
 
 interface Props {
   baseComponentId: string;
@@ -38,6 +42,8 @@ export function OpenByDefaultProvider({ baseComponentId, children }: PropsWithCh
   // When this is true, the group won't try to add more rows using openByDefault. This will reset again
   // when the component is unmounted and mounted again, i.e. when the user navigates away and back to the page.
   const hasAddedRow = useRef(false);
+
+  const isFocusingChildRef = useAsRef(useIsFocussingAChild(baseComponentId));
 
   useEffect((): void => {
     (async () => {
@@ -70,7 +76,8 @@ export function OpenByDefaultProvider({ baseComponentId, children }: PropsWithCh
         openByDefault &&
         typeof openByDefault === 'string' &&
         ['first', 'last'].includes(openByDefault) &&
-        editingId === undefined
+        editingId === undefined &&
+        !isFocusingChildRef.current
       ) {
         const row = openByDefault === 'last' ? lastRow : firstRow;
         row !== undefined && openForEditing(row);
@@ -80,7 +87,30 @@ export function OpenByDefaultProvider({ baseComponentId, children }: PropsWithCh
         isFirstRender.current = false;
       }
     })();
-  }, [openByDefault, stateRef, addRow, baseComponentId, hasNoRows]);
+  }, [openByDefault, stateRef, addRow, baseComponentId, hasNoRows, isFocusingChildRef]);
 
   return children;
+}
+
+/**
+ * Hook that returns true if we are about to focus on a child component (or a nested child component) of ours
+ * @param baseComponentId
+ */
+function useIsFocussingAChild(baseComponentId: string): boolean {
+  const focusComponentId = useSearchParams()[0].get(SearchParams.FocusComponentId);
+  const layoutLookups = useLayoutLookups();
+  if (!focusComponentId) {
+    return false;
+  }
+
+  const { baseComponentId: baseFocusId } = splitDashedKey(focusComponentId);
+  let parent = layoutLookups.componentToParent[baseFocusId];
+  while (parent && parent.type === 'node') {
+    if (parent.id === baseComponentId) {
+      return true;
+    }
+    parent = layoutLookups.componentToParent[parent.id];
+  }
+
+  return false;
 }

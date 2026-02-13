@@ -42,6 +42,15 @@ spec:
         env:
         - name: OPERATOR_CONFIG_FILE
           value: /config/config.env
+        - name: POD_UID
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.uid
+        - name: OTEL_SERVICE_NAME
+          value: "fakes"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: "k8s.pod.uid=$(POD_UID)"
         ports:
         - name: maskinporten
           containerPort: 8050

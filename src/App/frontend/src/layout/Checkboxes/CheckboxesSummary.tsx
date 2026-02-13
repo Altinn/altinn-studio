@@ -21,7 +21,7 @@ export function CheckboxesSummary({ targetBaseComponentId }: Summary2Props) {
     summaryOverride?.displayType === 'list' ||
     (!summaryOverride?.displayType && displayData?.length >= maxStringLength);
   const item = useItemWhenType(targetBaseComponentId, 'Checkboxes');
-  const title = item.textResourceBindings?.title;
+  const title = item.textResourceBindings?.summaryTitle || item.textResourceBindings?.title;
   const required = item.required;
   const displayValues = useMultipleValuesForSummary(targetBaseComponentId);
 

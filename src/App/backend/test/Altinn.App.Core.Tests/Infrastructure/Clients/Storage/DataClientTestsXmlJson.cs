@@ -22,7 +22,7 @@ public class DataClientTestsXmlJson
 
     public DataClientTestsXmlJson(ITestOutputHelper outputHelper)
     {
-        _mockedServiceCollection.AddXunitLogging(outputHelper);
+        _mockedServiceCollection.OutputHelper = outputHelper;
         _mockedServiceCollection.TryAddCommonServices();
 
         _mockedServiceCollection.AddDataType<TestDataJson>(

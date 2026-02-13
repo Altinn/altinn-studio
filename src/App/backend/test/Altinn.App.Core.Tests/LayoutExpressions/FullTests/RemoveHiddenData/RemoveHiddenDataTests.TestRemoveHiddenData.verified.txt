@@ -64,7 +64,39 @@
     }
   },
   {
+    Field: root.arbeidserfaring[0].prosjekter[1].tittel,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[0].prosjekter[1].beskrivelse,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
     Field: root.arbeidserfaring[0].prosjekter[3],
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[0].prosjekter[3].tittel,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[0].prosjekter[3].beskrivelse,
     DataElementIdentifier: {
       Guid: Guid_1,
       Id: Guid_1,
@@ -80,7 +112,215 @@
     }
   },
   {
+    Field: root.arbeidserfaring[1].arbeidsgiver,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].fra,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].til,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].stilling,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].beskrivelse,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].vedlegg,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].prosjekter,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].prosjekter[0],
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].prosjekter[0].tittel,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].prosjekter[0].beskrivelse,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].prosjekter[1],
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].prosjekter[1].tittel,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].prosjekter[1].beskrivelse,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].prosjekter[2],
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].prosjekter[2].tittel,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].prosjekter[2].beskrivelse,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].prosjekter[3],
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].prosjekter[3].tittel,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1].prosjekter[3].beskrivelse,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
     Field: root.arbeidserfaring[2],
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[2].arbeidsgiver,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[2].fra,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[2].til,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[2].stilling,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[2].beskrivelse,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[2].vedlegg,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[2].prosjekter,
     DataElementIdentifier: {
       Guid: Guid_1,
       Id: Guid_1,

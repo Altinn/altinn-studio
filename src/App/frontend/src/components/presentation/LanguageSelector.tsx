@@ -7,9 +7,9 @@ import cn from 'classnames';
 import classes from 'src/components/presentation/LanguageSelector.module.css';
 import { Lang } from 'src/features/language/Lang';
 import {
-  useAppLanguages,
+  getAvailableLanguages,
   useCurrentLanguage,
-  useSetLanguageWithSelector,
+  useSetCurrentLanguage,
 } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
@@ -17,18 +17,18 @@ import { useIsMobile } from 'src/hooks/useDeviceWidths';
 export const LanguageSelector = () => {
   const isMobile = useIsMobile();
   const currentLanguage = useCurrentLanguage();
-  const appLanguages = useAppLanguages();
-  const setWithLanguageSelector = useSetLanguageWithSelector();
+  const setCurrentLanguage = useSetCurrentLanguage();
+  const availableLanguages = getAvailableLanguages();
   const { langAsString } = useLanguage();
 
   const [isOpen, setIsOpen] = useState(false);
 
   function updateLanguage(lang: string) {
     setIsOpen(false);
-    setWithLanguageSelector(lang);
+    setCurrentLanguage(lang);
   }
 
-  if (!appLanguages?.length) {
+  if (!availableLanguages?.length) {
     return null;
   }
 
@@ -68,7 +68,7 @@ export const LanguageSelector = () => {
           activeValue={currentLanguage}
         >
           <Dropdown.List>
-            {appLanguages?.map((lang) => {
+            {availableLanguages?.map((lang) => {
               const selected = currentLanguage === lang;
 
               return (

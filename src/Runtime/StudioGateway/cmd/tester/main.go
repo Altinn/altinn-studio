@@ -1,20 +1,25 @@
+// Package main provides a small CLI for local runtime-fixture orchestration.
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 	"time"
 
 	"altinn.studio/runtime-fixture/pkg/harness"
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
 
-var (
-	isCI      = os.Getenv("CI") != ""
-	cachePath = ".cache"
+const (
+	cachePath              = ".cache"
+	startCommandArgCount   = 3
+	projectRootSearchDepth = 10
 )
 
 func main() {
@@ -25,7 +30,7 @@ func main() {
 
 	switch os.Args[1] {
 	case "start":
-		runStart()
+		runStart(os.Args)
 	case "stop":
 		runStop()
 	case "test":
@@ -51,31 +56,31 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "")
 }
 
-func runStart() {
-	fmt.Println("=== StudioGateway Runtime Start ===")
+func runStart(args []string) {
+	writeStdoutln("=== StudioGateway Runtime Start ===")
 
-	if len(os.Args) < 3 {
+	if len(args) < startCommandArgCount {
 		fmt.Fprintf(os.Stderr, "Must specify 'standard' or 'minimal'\n")
 		os.Exit(1)
 	}
 
-	variant, err := parseVariant(os.Args[2])
+	variant, err := parseVariant(args[2])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
-	if _, err := setupRuntime(variant); err != nil {
+	if err := setupRuntime(variant); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start runtime: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Println("\n=== Runtime is Running ===")
-	fmt.Println("Use 'make stop' to stop the cluster")
+	writeStdoutln("\n=== Runtime is Running ===")
+	writeStdoutln("Use 'make stop' to stop the cluster")
 }
 
 func runStop() {
-	fmt.Println("=== StudioGateway Runtime Stop ===")
+	writeStdoutln("=== StudioGateway Runtime Stop ===")
 
 	root, err := findProjectRoot()
 	if err != nil {
@@ -94,7 +99,7 @@ func runStop() {
 		os.Exit(1)
 	}
 
-	fmt.Println("=== Runtime Stopped ===")
+	writeStdoutln("=== Runtime Stopped ===")
 }
 
 func runTest() {
@@ -104,77 +109,97 @@ func runTest() {
 		os.Exit(1)
 	}
 
-	fmt.Println("=== StudioGateway Test Orchestrator ===")
+	writeStdoutln("=== StudioGateway Test Orchestrator ===")
 
+	isCI := os.Getenv("CI") != ""
 	if isCI {
 		_, err = harness.LoadExisting(filepath.Join(root, cachePath))
 	} else {
-		_, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal)
+		err = setupRuntime(kind.KindContainerRuntimeVariantMinimal)
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Println("=== Environment Ready, Running Tests ===")
+	writeStdoutln("=== Environment Ready, Running Tests ===")
 
 	testsDir := filepath.Join(root, "tests", "StudioGateway.Api.Tests")
-	cmd := exec.Command("dotnet", "test")
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	cmd := exec.CommandContext(ctx, "dotnet", "test")
 	cmd.Dir = testsDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = append(os.Environ(), "GATEWAY_TEST_BASE_URL=http://localhost:8080")
 
-	if err := cmd.Run(); err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			fmt.Printf("\n=== Tests FAILED (exit code %d) ===\n", exitErr.ExitCode())
+	err = cmd.Run()
+	stop()
+	if err != nil {
+		if errors.Is(ctx.Err(), context.Canceled) {
+			writeStdoutln("\n=== Tests CANCELED ===")
+			os.Exit(130)
+		}
+
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			writeStdoutf("\n=== Tests FAILED (exit code %d) ===\n", exitErr.ExitCode())
 			os.Exit(exitErr.ExitCode())
 		}
-		fmt.Printf("\n=== Tests FAILED: %v ===\n", err)
+		writeStdoutf("\n=== Tests FAILED: %v ===\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Println("\n=== All Tests PASSED ===")
+	writeStdoutln("\n=== All Tests PASSED ===")
 }
 
-func setupRuntime(variant kind.KindContainerRuntimeVariant) (*harness.Result, error) {
+func setupRuntime(variant kind.KindContainerRuntimeVariant) error {
 	root, err := findProjectRoot()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	cfg := harness.Config{
 		ProjectRoot: root,
+		CachePath:   cachePath,
 		Variant:     variant,
 		ClusterOptions: kind.KindContainerRuntimeOptions{
 			IncludeMonitoring:                 false,
 			IncludeTestserver:                 false,
+			IncludeLinkerd:                    false,
 			IncludeFluxNotificationController: true,
 		},
 		Images: []harness.Image{
 			{
 				Name:       "studio-gateway",
+				Context:    ".",
 				Dockerfile: "Dockerfile",
 				Tag:        "localhost:5001/studio-gateway:latest",
 			},
 		},
 		Artifacts: []harness.Artifact{
 			{
-				Name: "kustomize",
-				URL:  "oci://localhost:5001/studio-gateway-repo:local",
-				Path: "infra/kustomize",
+				Name:     "kustomize",
+				URL:      "oci://localhost:5001/studio-gateway-repo:local",
+				Path:     "infra/kustomize",
+				Source:   "local",
+				Revision: "local",
 			},
 			{
-				Name: "apps-syncroot",
-				URL:  "oci://localhost:5001/apps-syncroot-repo:local",
-				Path: "infra/local-apps-syncroot",
+				Name:     "apps-syncroot",
+				URL:      "oci://localhost:5001/apps-syncroot-repo:local",
+				Path:     "infra/local-apps-syncroot",
+				Source:   "local",
+				Revision: "local",
 			},
 			{
-				Name: "test-app",
-				URL:  "oci://localhost:5001/configs/test-app:local",
-				Path: "infra/local-test-app",
+				Name:     "test-app",
+				URL:      "oci://localhost:5001/configs/test-app:local",
+				Path:     "infra/local-test-app",
+				Source:   "local",
+				Revision: "local",
 			},
 		},
+		HelmCharts: []harness.HelmChart{},
 		Deployments: []harness.Deployment{
 			{
 				Name:           "studio-gateway",
@@ -190,40 +215,47 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*harness.Result, er
 							Timeout:    2 * time.Minute,
 						},
 					},
+					ReconcileOpts: nil,
 				},
+				Helm: nil,
 			},
 		},
 	}
 
-	return harness.RunAsync(cfg, harness.AsyncOptions{})
+	_, err = harness.RunAsync(
+		cfg,
+		harness.AsyncOptions{
+			RegistryReady: nil,
+			IngressReady:  nil,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("run runtime setup: %w", err)
+	}
+
+	return nil
 }
 
-// Helpers
-
-var projectRoot string
-
 func findProjectRoot() (string, error) {
-	if projectRoot != "" {
-		return projectRoot, nil
-	}
-
 	dir, err := os.Getwd()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("get working directory: %w", err)
 	}
 
-	for i := 0; i < 10; i++ {
-		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
-			projectRoot = dir
+	for range projectRootSearchDepth {
+		if _, statErr := os.Stat(filepath.Join(dir, "go.mod")); statErr == nil {
 			return dir, nil
+		} else if !errors.Is(statErr, os.ErrNotExist) {
+			return "", fmt.Errorf("stat go.mod in %q: %w", dir, statErr)
 		}
+
 		parent := filepath.Dir(dir)
 		if parent == dir {
 			break
 		}
 		dir = parent
 	}
-	return "", errors.New("go.mod not found")
+	return "", fmt.Errorf("go.mod not found within %d parent directories: %w", projectRootSearchDepth, os.ErrNotExist)
 }
 
 func parseVariant(s string) (kind.KindContainerRuntimeVariant, error) {
@@ -233,6 +265,20 @@ func parseVariant(s string) (kind.KindContainerRuntimeVariant, error) {
 	case "minimal":
 		return kind.KindContainerRuntimeVariantMinimal, nil
 	default:
-		return 0, fmt.Errorf("invalid variant: %s (use 'standard' or 'minimal')", s)
+		return 0, fmt.Errorf("%w: %q (use 'standard' or 'minimal')", os.ErrInvalid, s)
+	}
+}
+
+func writeStdoutln(message string) {
+	writeStdout(message + "\n")
+}
+
+func writeStdoutf(format string, args ...any) {
+	writeStdout(fmt.Sprintf(format, args...))
+}
+
+func writeStdout(message string) {
+	if _, err := os.Stdout.WriteString(message); err != nil {
+		os.Exit(1)
 	}
 }

@@ -49,6 +49,8 @@ const config = {
     // prettier-ignore
     '\\.(jpg|jpeg|png|gif|eot|otf|svg|webp|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': path.join(__dirname, 'testing/mocks/fileMock.js'),
     '\\.(css|less)$': 'identity-obj-proxy',
+    // Force react-i18next to resolve to root node_modules to ensure global mock applies for app-development
+    '^react-i18next$': require.resolve('react-i18next'),
     '^@bpmn-io/diagram-js-ui$': resolveNodeModulesPath('@bpmn-io/diagram-js-ui/lib/index.js'),
     '^path-intersection$': resolveNodeModulesPath('path-intersection/intersect.js'),
     '^preact(/(.*)|$)': 'preact$1',
@@ -60,6 +62,7 @@ const config = {
     '^@altinn/text-editor/(.*)': path.join(__dirname, 'packages/text-editor/src/$1'),
     '^@altinn/ux-editor/(.*)': path.join(__dirname, 'packages/ux-editor/src/$1'),
     '^@altinn/ux-editor-v3/(.*)': path.join(__dirname, 'packages/ux-editor-v3/src/$1'),
+    '^@studio/guard/(.*)': path.join(__dirname, 'libs/studio-guard/$1'),
     '^@studio/icons/(.*)': path.join(__dirname, 'libs/studio-icons/$1'),
     '^@studio/components/(.*)': path.join(__dirname, 'libs/studio-components/$1'),
     '^@studio/components-legacy/(.*)': path.join(__dirname, 'libs/studio-components-legacy/$1'),

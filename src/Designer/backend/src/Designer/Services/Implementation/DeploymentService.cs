@@ -1,6 +1,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Models;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
@@ -94,28 +96,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<DeploymentEntity> CreateAsync(string org, string app, DeploymentModel deployment, CancellationToken cancellationToken = default)
+        public async Task<DeploymentEntity> CreateAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, DeploymentModel deployment)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            var traceContext = GetCurrentTraceContext();
             DeploymentEntity deploymentEntity = new();
-            deploymentEntity.PopulateBaseProperties(org, app, _httpContext);
+            deploymentEntity.PopulateBaseProperties(authenticatedContext.Org, authenticatedContext.Repo, _httpContext);
             deploymentEntity.TagName = deployment.TagName;
             deploymentEntity.EnvName = deployment.EnvName;
 
-            ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(org, app, deploymentEntity.TagName);
-
+            ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(authenticatedContext.Org, authenticatedContext.Repo, deploymentEntity.TagName);
             await _applicationInformationService
-                .UpdateApplicationInformationAsync(org, app, release.TargetCommitish, deployment.EnvName, cancellationToken);
+                .UpdateApplicationInformationAsync(authenticatedContext.Org, authenticatedContext.Repo, release.TargetCommitish, deployment.EnvName);
 
             bool shouldPushSyncRootImage = false;
 
             if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
             {
-                shouldPushSyncRootImage = await AddAppToGitOpsRepoIfNotExists(AltinnOrgEditingContext.FromOrgDeveloper(org, deploymentEntity.CreatedBy), AltinnRepoName.FromName(app), AltinnEnvironment.FromName(deployment.EnvName));
+                shouldPushSyncRootImage = await AddAppToGitOpsRepoIfNotExists(authenticatedContext, AltinnRepoName.FromName(authenticatedContext.Repo), AltinnEnvironment.FromName(deployment.EnvName));
             }
 
             bool useGitOpsDefinition = await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy);
-            Build queuedBuild = await QueueDeploymentBuild(release, deploymentEntity, deployment.EnvName, shouldPushSyncRootImage, useGitOpsDefinition);
+            Build queuedBuild = await QueueDeploymentBuild(
+                release,
+                deploymentEntity,
+                deployment.EnvName,
+                shouldPushSyncRootImage,
+                useGitOpsDefinition,
+                traceContext.TraceParent,
+                traceContext.TraceState
+            );
 
             deploymentEntity.Build = new BuildEntity
             {
@@ -127,32 +136,46 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var createdEntity = await _deploymentRepository.Create(deploymentEntity);
 
-            await _deployEventRepository.AddAsync(org, deploymentEntity.Build.Id, new DeployEvent
+            await _deployEventRepository.AddAsync(authenticatedContext.Org, deploymentEntity.Build.Id, new DeployEvent
             {
                 EventType = DeployEventType.PipelineScheduled,
                 Message = $"Pipeline {queuedBuild.Id} scheduled",
                 Timestamp = _timeProvider.GetUtcNow()
-            }, cancellationToken);
+            });
 
-            await PublishDeploymentPipelineQueued(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, deploymentEntity.CreatedBy), queuedBuild, PipelineType.Deploy, deployment.EnvName, CancellationToken.None);
+            await PublishDeploymentPipelineQueued(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                    authenticatedContext.Org,
+                    authenticatedContext.Repo,
+                    deploymentEntity.CreatedBy
+                ),
+                queuedBuild,
+                PipelineType.Deploy,
+                deployment.EnvName,
+                traceContext.TraceParent,
+                traceContext.TraceState
+            );
             return createdEntity;
         }
 
-        private async Task<bool> AddAppToGitOpsRepoIfNotExists(AltinnOrgEditingContext context, AltinnRepoName app, AltinnEnvironment environment)
+        private async Task<bool> AddAppToGitOpsRepoIfNotExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, AltinnRepoName app, AltinnEnvironment environment)
         {
-            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(context, environment);
+            AltinnOrgEditingContext orgContext = authenticatedContext.OrgEditingContext;
+            AltinnRepoEditingContext repoContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(orgContext.Org, app.Name, orgContext.Developer);
+
+            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(orgContext, environment);
 
             bool appAlreadyExists =
-                await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(context, app, environment);
+                await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(orgContext, app, environment);
 
             if (appAlreadyExists)
             {
                 return false;
             }
 
-            await _gitOpsConfigurationManager.AddAppToGitOpsConfigurationAsync(AltinnRepoEditingContext.FromOrgRepoDeveloper(context.Org, app.Name, context.Developer), environment);
+            await _gitOpsConfigurationManager.AddAppToGitOpsConfigurationAsync(repoContext, environment);
 
-            await _gitOpsConfigurationManager.PersistGitOpsConfigurationAsync(context, environment);
+            _gitOpsConfigurationManager.PersistGitOpsConfiguration(orgContext, environment);
             return true;
         }
 
@@ -169,24 +192,26 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new SearchResults<DeploymentEntity> { Results = deploymentEntities.Where(item => environmentNames.Contains(item.EnvName)).ToList() };
         }
 
-        public async Task UndeployAsync(AltinnRepoEditingContext editingContext, string env,
-            CancellationToken cancellationToken = default)
+        public async Task UndeployAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, string env)
         {
             Guard.AssertValidEnvironmentName(env);
+            var traceContext = GetCurrentTraceContext();
             GitOpsManagementBuildParameters gitOpsManagementBuildParameters = new()
             {
-                AppOwner = editingContext.Org,
-                AppRepo = editingContext.Repo,
+                AppOwner = authenticatedContext.Org,
+                AppRepo = authenticatedContext.Repo,
                 AppEnvironment = env,
                 AltinnStudioHostname = _generalSettings.HostName,
-                AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
-                GiteaEnvironment = $"{_generalSettings.HostName}/repos"
+                AppDeployToken = authenticatedContext.DeveloperAppToken,
+                GiteaEnvironment = $"{_generalSettings.HostName}/repos",
+                TraceParent = traceContext.TraceParent,
+                TraceState = traceContext.TraceState
             };
 
             // find the deployed tag
-            DeploymentEntity lastDeployed = await _deploymentRepository.GetLastDeployed(editingContext.Org, editingContext.Repo, env);
+            DeploymentEntity lastDeployed = await _deploymentRepository.GetLastDeployed(authenticatedContext.Org, authenticatedContext.Repo, env);
 
-            bool useGitOpsDecommission = await ShouldUseGitOpsDecommission(editingContext, env, cancellationToken);
+            bool useGitOpsDecommission = await ShouldUseGitOpsDecommission(authenticatedContext, env);
             int definitionId = useGitOpsDecommission
                 ? _azureDevOpsSettings.GitOpsManagerDefinitionId
                 : _azureDevOpsSettings.DecommissionDefinitionId;
@@ -205,28 +230,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     Started = build.StartTime
                 }
             };
-            deploymentEntity.PopulateBaseProperties(editingContext, _timeProvider);
+            deploymentEntity.PopulateBaseProperties(authenticatedContext, _timeProvider);
 
             await _deploymentRepository.Create(deploymentEntity);
 
-            await _deployEventRepository.AddAsync(editingContext.Org, deploymentEntity.Build.Id, new DeployEvent
+            await _deployEventRepository.AddAsync(authenticatedContext.Org, deploymentEntity.Build.Id, new DeployEvent
             {
                 EventType = useGitOpsDecommission ? DeployEventType.PipelineScheduled : DeployEventType.DeprecatedPipelineScheduled,
                 Message = $"Undeploy pipeline {build.Id} scheduled",
                 Timestamp = _timeProvider.GetUtcNow()
-            }, cancellationToken);
+            });
 
-            await PublishDeploymentPipelineQueued(editingContext, build, PipelineType.Undeploy, env, CancellationToken.None);
+            await PublishDeploymentPipelineQueued(
+                authenticatedContext,
+                build,
+                PipelineType.Undeploy,
+                env,
+                traceContext.TraceParent,
+                traceContext.TraceState
+            );
         }
 
-        private async Task<bool> ShouldUseGitOpsDecommission(AltinnRepoEditingContext editingContext, string env, CancellationToken cancellationToken)
+        private async Task<bool> ShouldUseGitOpsDecommission(AltinnAuthenticatedRepoEditingContext authenticatedContext, string env)
         {
             if (!await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
             {
                 return false;
             }
 
-            bool removedFromGitOps = await RemoveAppFromGitOpsRepoIfExists(editingContext, env);
+            bool removedFromGitOps = await RemoveAppFromGitOpsRepoIfExists(authenticatedContext, env);
             if (removedFromGitOps)
             {
                 return true;
@@ -234,24 +266,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var environment = AltinnEnvironment.FromName(env);
             return await _runtimeGatewayClient.IsAppDeployedWithGitOpsAsync(
-                editingContext.Org,
-                editingContext.Repo,
+                authenticatedContext.Org,
+                authenticatedContext.Repo,
                 environment,
-                cancellationToken);
+                CancellationToken.None);
         }
 
-        private async Task<bool> RemoveAppFromGitOpsRepoIfExists(AltinnRepoEditingContext editingContext, string env)
+        private async Task<bool> RemoveAppFromGitOpsRepoIfExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, string env)
         {
-            var orgContext = AltinnOrgEditingContext.FromOrgDeveloper(editingContext.Org, editingContext.Developer);
+            var orgContext = AltinnOrgEditingContext.FromOrgDeveloper(authenticatedContext.Org, authenticatedContext.Developer);
 
             if (!await _gitOpsConfigurationManager.GitOpsConfigurationExistsAsync(orgContext))
             {
                 return false;
             }
             var environment = AltinnEnvironment.FromName(env);
-            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(AltinnOrgEditingContext.FromAltinnRepoEditingContext(editingContext), environment);
+            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(orgContext, environment);
 
-            var appName = AltinnRepoName.FromName(editingContext.Repo);
+            var appName = AltinnRepoName.FromName(authenticatedContext.Repo);
 
             bool appExistsInGitOps = await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(orgContext, appName, environment);
 
@@ -260,33 +292,44 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return false;
             }
 
-            await _gitOpsConfigurationManager.RemoveAppFromGitOpsEnvironmentConfigurationAsync(editingContext, environment);
-            await _gitOpsConfigurationManager.PersistGitOpsConfigurationAsync(orgContext, environment);
+            await _gitOpsConfigurationManager.RemoveAppFromGitOpsEnvironmentConfigurationAsync(authenticatedContext, environment);
+            _gitOpsConfigurationManager.PersistGitOpsConfiguration(orgContext, environment);
 
             return true;
         }
 
-        private async Task PublishDeploymentPipelineQueued(AltinnRepoEditingContext editingContext, Build build, PipelineType pipelineType, string environment,
-            CancellationToken cancellationToken) =>
+        private async Task PublishDeploymentPipelineQueued(
+            AltinnRepoEditingContext editingContext,
+            Build build,
+            PipelineType pipelineType,
+            string environment,
+            string traceParent,
+            string traceState
+        ) =>
             await _mediatr.Publish(new DeploymentPipelineQueued
             {
                 EditingContext = editingContext,
                 BuildId = build.Id,
                 PipelineType = pipelineType,
-                Environment = environment
-            }, cancellationToken);
+                Environment = environment,
+                TraceParent = traceParent,
+                TraceState = traceState
+            });
 
         /// <inheritdoc/>
         public async Task PublishSyncRootAsync(AltinnOrgEditingContext editingContext, AltinnEnvironment environment, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var traceContext = GetCurrentTraceContext();
             GitOpsManagementBuildParameters buildParameters = new()
             {
                 AppOwner = editingContext.Org,
                 AppEnvironment = environment.Name,
                 AltinnStudioHostname = _generalSettings.HostName,
                 AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
-                GiteaEnvironment = $"{_generalSettings.HostName}/repos"
+                GiteaEnvironment = $"{_generalSettings.HostName}/repos",
+                TraceParent = traceContext.TraceParent,
+                TraceState = traceContext.TraceState
             };
 
             await _azureDevOpsBuildClient.QueueAsync(buildParameters, _azureDevOpsSettings.GitOpsManagerDefinitionId);
@@ -297,7 +340,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             DeploymentEntity deploymentEntity,
             string envName,
             bool shouldPushSyncRootImage,
-            bool useGitOpsDefinition)
+            bool useGitOpsDefinition,
+            string traceParent,
+            string traceState)
         {
             QueueBuildParameters queueBuildParameters = new()
             {
@@ -309,7 +354,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 TagName = deploymentEntity.TagName,
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos",
                 AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
-                AltinnStudioHostname = _generalSettings.HostName
+                AltinnStudioHostname = _generalSettings.HostName,
+                TraceParent = traceParent,
+                TraceState = traceState
             };
             if (shouldPushSyncRootImage)
             {
@@ -321,6 +368,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 : _azureDevOpsSettings.DeployDefinitionId;
 
             return await _azureDevOpsBuildClient.QueueAsync(queueBuildParameters, definitionId);
+        }
+
+        private static (string TraceParent, string TraceState) GetCurrentTraceContext()
+        {
+            var activity = Activity.Current;
+            if (activity is null || activity.IdFormat != ActivityIdFormat.W3C)
+            {
+                return (null, null);
+            }
+
+            activity.SetAlwaysSample();
+
+            var traceParent = activity.Id;
+            if (string.IsNullOrWhiteSpace(traceParent))
+            {
+                return (null, null);
+            }
+
+            var traceState = string.IsNullOrWhiteSpace(activity.TraceStateString) ? null : activity.TraceStateString;
+
+            return (traceParent, traceState);
         }
 
         /// <inheritdoc />

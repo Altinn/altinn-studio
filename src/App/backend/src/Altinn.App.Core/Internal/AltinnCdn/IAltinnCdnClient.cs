@@ -1,6 +1,6 @@
 namespace Altinn.App.Core.Internal.AltinnCdn;
 
-internal interface IAltinnCdnClient : IDisposable
+internal interface IAltinnCdnClient
 {
-    Task<AltinnCdnOrgs> GetOrgs(CancellationToken cancellationToken = default);
+    Task<AltinnCdnOrgDetails?> GetOrgDetails(CancellationToken cancellationToken = default);
 }

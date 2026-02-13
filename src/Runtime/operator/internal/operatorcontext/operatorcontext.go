@@ -9,7 +9,6 @@ import (
 	"altinn.studio/operator/internal/orgs"
 	"altinn.studio/operator/internal/telemetry"
 	"github.com/google/uuid"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -113,7 +112,7 @@ func Discover(ctx context.Context, environment string, orgRegistry *orgs.OrgRegi
 		Environment: environment,
 		RunId:       runId.String(),
 		Context:     ctx,
-		tracer:      otel.Tracer(telemetry.ServiceName),
+		tracer:      telemetry.Tracer(),
 	}, nil
 }
 

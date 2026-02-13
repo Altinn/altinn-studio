@@ -20,8 +20,12 @@ import (
 	"altinn.studio/pdf3/internal/cdp"
 	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/runtime"
+	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type browserSession struct {
@@ -30,6 +34,7 @@ type browserSession struct {
 	browser  *browser.Process
 	conn     cdp.Connection
 	targetID string
+	tracer   trace.Tracer
 
 	queue          chan workerRequest
 	state          atomic.Uint32
@@ -62,6 +67,7 @@ func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 		state:  atomic.Uint32{},
 		ctx:    ctx,
 		cancel: cancel,
+		tracer: telemetry.Tracer(),
 	}
 
 	// Start browser process
@@ -150,6 +156,8 @@ func (w *browserSession) handleRequests() {
 				return
 			}
 
+			w.recordQueueWait(&req)
+
 			// Reset error counters for this request
 			w.consoleErrors.Store(0)
 			w.browserErrors.Store(0)
@@ -172,17 +180,60 @@ func (w *browserSession) handleRequests() {
 	}
 }
 
+func (w *browserSession) recordQueueWait(req *workerRequest) {
+	if req == nil {
+		return
+	}
+	ctx := req.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	start := req.enqueuedAt
+	now := time.Now()
+	if start.IsZero() || start.After(now) {
+		start = now
+	}
+	_, span := w.tracer.Start(ctx, "pdf.queue.wait", trace.WithTimestamp(start))
+	if data := telemetry.RequestEventDataFromContext(ctx); data != nil {
+		data.SetSessionID(w.id)
+		data.SetQueueStats(len(w.queue), cap(w.queue))
+	}
+	span.End()
+}
+
 func (w *browserSession) handleRequest(req *workerRequest) {
+	ctx := req.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	ctx, span := w.tracer.Start(ctx, "pdf.session.process", trace.WithSpanKind(trace.SpanKindInternal))
+	req.ctx = ctx
+
+	if span.IsRecording() {
+		span.SetAttributes(attribute.Int("pdf.session.id", w.id))
+	}
+
 	w.logger.Info("Processing PDF request")
 	start := time.Now()
 
 	defer func() {
 		if r := recover(); r != nil {
 			w.logger.Error("Recovered from panic", "error", r)
+			if span.IsRecording() {
+				err := fmt.Errorf("%v", r)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, "panic")
+			}
 			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, req.request.URL, fmt.Errorf("%v", r)))
 		}
 
+		if data := telemetry.RequestEventDataFromContext(ctx); data != nil {
+			data.SetSessionID(w.id)
+			data.SetConsoleErrors(int(w.consoleErrors.Load()))
+			data.SetBrowserErrors(int(w.browserErrors.Load()))
+		}
 		duration := time.Since(start)
+		span.End()
 		w.logger.Info("Completed PDF request", "duration", duration)
 	}()
 
@@ -199,6 +250,10 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 
 	err := w.generatePdf(req)
 	if err != nil {
+		if span.IsRecording() {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "generate_failed")
+		}
 		req.tryRespondError(mapCustomError(err))
 	}
 }
@@ -210,6 +265,14 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 
 	// Ensure cleanup always runs
 	defer func() {
+		cleanupCtx := req.ctx
+		if cleanupCtx == nil {
+			cleanupCtx = context.Background()
+		}
+		_, cleanupSpan := w.tracer.Start(cleanupCtx, "pdf.session.cleanup", trace.WithSpanKind(trace.SpanKindInternal))
+		cleanupStart := time.Now()
+		defer cleanupSpan.End()
+
 		// When we get here we can already accept a request into the queue
 		// Cleanup should run fairly fast (low ms range)
 
@@ -219,11 +282,14 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		if !startedProcessing {
 			w.logger.Info("Never started processing, skipping cleanup")
 			req.cleanedUp = true
+			if data := telemetry.RequestEventDataFromContext(cleanupCtx); data != nil {
+				data.SetSessionID(w.id)
+				data.SetCleanup(0, true, true)
+			}
 			return
 		}
 
 		// Navigate back to default
-		start := time.Now()
 		var err error
 		for range 3 {
 			// Not using request context here, the client might have dropped out already and we should always complete cleanup
@@ -234,6 +300,10 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 				break
 			}
 			w.logger.Warn("Failed to navigate back to about:blank, retrying")
+		}
+		if err != nil && cleanupSpan.IsRecording() {
+			cleanupSpan.RecordError(err)
+			cleanupSpan.SetStatus(codes.Error, "cleanup_navigate_failed")
 		}
 		w.assertA(
 			err == nil,
@@ -246,14 +316,17 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			time.Sleep(time.Duration(testInput.CleanupDelaySeconds) * time.Second)
 		}
 
+		cleanupAttempts := 0
 		// Cleanup browser storage
 		w.cleanupBrowser(req)
+		cleanupAttempts++
 
 		// Retry cleanup if it failed
 		if !req.cleanedUp {
 			w.logger.Warn("Failed to cleanup storage, retrying")
 			for range 3 {
 				w.cleanupBrowser(req)
+				cleanupAttempts++
 				if req.cleanedUp {
 					break
 				}
@@ -265,7 +338,15 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			)
 		}
 
-		duration := time.Since(start)
+		if data := telemetry.RequestEventDataFromContext(cleanupCtx); data != nil {
+			data.SetSessionID(w.id)
+			data.SetCleanup(cleanupAttempts, req.cleanedUp, false)
+		}
+		if !req.cleanedUp {
+			cleanupSpan.SetStatus(codes.Error, "cleanup_failed")
+		}
+
+		duration := time.Since(cleanupStart)
 		w.logger.Info("Cleanup completed", "duration", duration)
 	}()
 
@@ -275,6 +356,8 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 
 	// Set cookies
 	if len(request.Cookies) > 0 {
+		_, cookiesSpan := w.tracer.Start(req.ctx, "pdf.session.set_cookies", trace.WithSpanKind(trace.SpanKindInternal))
+
 		// Build cookies array for Network.setCookies
 		cookies := make([]map[string]any, 0, len(request.Cookies))
 		for _, cookie := range request.Cookies {
@@ -286,27 +369,40 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 				sameSite = "None"
 			}
 
-			cookieValue := map[string]any{
+			cookieValue := cookie.Value
+			if strings.HasSuffix(cookie.Name, "tracestate") && strings.ContainsRune(cookieValue, ';') {
+				// w3c tracestate values are e.g. baggage and can contain semicolons
+				// semicolons are invalid cookie values (CDP/chrome will complain).
+				// App backend and frontend are being updated to handle this through base64 encoding,
+				// but for now we need to handle this here as well since apps are not updated right away.
+				w.logger.Warn(
+					"Cookie value looks like a tracestate and has semicolons skipping",
+					"name", cookie.Name,
+				)
+				continue
+			}
+
+			cookieData := map[string]any{
 				"name":     cookie.Name,
-				"value":    cookie.Value,
+				"value":    cookieValue,
 				"sameSite": sameSite,
 			}
 			if cookie.Domain != "" {
-				cookieValue["domain"] = cookie.Domain
+				cookieData["domain"] = cookie.Domain
 			}
 			if cookie.Path != "" {
-				cookieValue["path"] = cookie.Path
+				cookieData["path"] = cookie.Path
 			}
 			if cookie.Secure != nil {
-				cookieValue["secure"] = *cookie.Secure
+				cookieData["secure"] = *cookie.Secure
 			}
 			if cookie.HttpOnly != nil {
-				cookieValue["httpOnly"] = *cookie.HttpOnly
+				cookieData["httpOnly"] = *cookie.HttpOnly
 			}
 			if cookie.Url != "" {
-				cookieValue["url"] = cookie.Url
+				cookieData["url"] = cookie.Url
 			}
-			cookies = append(cookies, cookieValue)
+			cookies = append(cookies, cookieData)
 		}
 
 		startedProcessing = true
@@ -314,9 +410,15 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			"cookies": cookies,
 		})
 		if err != nil {
+			if cookiesSpan.IsRecording() {
+				cookiesSpan.RecordError(err)
+				cookiesSpan.SetStatus(codes.Error, "set_cookies_failed")
+			}
+			cookiesSpan.End()
 			req.tryRespondError(contextErrorToPDFError(err, types.ErrSetCookieFail, ""))
 			return nil
 		}
+		cookiesSpan.End()
 	}
 
 	// Navigate to URL
@@ -329,13 +431,20 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 	}
 
 	startedProcessing = true
+	_, navigateSpan := w.tracer.Start(req.ctx, "pdf.session.navigate", trace.WithSpanKind(trace.SpanKindInternal))
 	_, err := w.conn.SendCommand(req.ctx, "Page.navigate", map[string]any{
 		"url": request.URL,
 	})
 	if err != nil {
+		if navigateSpan.IsRecording() {
+			navigateSpan.RecordError(err)
+			navigateSpan.SetStatus(codes.Error, "navigate_failed")
+		}
+		navigateSpan.End()
 		req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, ""))
 		return nil
 	}
+	navigateSpan.End()
 
 	if req.hasResponded() {
 		return nil
@@ -349,18 +458,32 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		const maxWaitMs int32 = types.MaxTimeoutMs
 		if selector, ok := request.WaitFor.AsString(); ok {
 			// Simple string selector - wait for element existence only
+			_, waitSpan := w.tracer.Start(req.ctx, "pdf.session.wait", trace.WithSpanKind(trace.SpanKindInternal))
 			err := w.waitForElement(req, selector, maxWaitMs, false, false)
 			if err != nil {
+				if waitSpan.IsRecording() {
+					waitSpan.RecordError(err)
+					waitSpan.SetStatus(codes.Error, "wait_failed")
+				}
+				waitSpan.End()
 				return nil
 			}
+			waitSpan.End()
 		} else if timeout, ok := request.WaitFor.AsTimeout(); ok {
 			// Simple timeout delay
+			_, waitSpan := w.tracer.Start(req.ctx, "pdf.session.wait", trace.WithSpanKind(trace.SpanKindInternal))
 			select {
 			case <-time.After(time.Duration(timeout) * time.Millisecond):
 			case <-req.ctx.Done():
+				if waitSpan.IsRecording() {
+					waitSpan.RecordError(req.ctx.Err())
+					waitSpan.SetStatus(codes.Error, "client_dropped")
+				}
+				waitSpan.End()
 				req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
 				return nil
 			}
+			waitSpan.End()
 		} else if opts, ok := request.WaitFor.AsOptions(); ok {
 			// Full options with selector, visible, hidden, timeout
 			timeoutMs := maxWaitMs // default timeout
@@ -370,14 +493,22 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			checkVisible := opts.Visible != nil && *opts.Visible
 			checkHidden := opts.Hidden != nil && *opts.Hidden
 
+			_, waitSpan := w.tracer.Start(req.ctx, "pdf.session.wait", trace.WithSpanKind(trace.SpanKindInternal))
 			err := w.waitForElement(req, opts.Selector, timeoutMs, checkVisible, checkHidden)
 			if err != nil {
+				if waitSpan.IsRecording() {
+					waitSpan.RecordError(err)
+					waitSpan.SetStatus(codes.Error, "wait_failed")
+				}
+				waitSpan.End()
 				return nil
 			}
+			waitSpan.End()
 		}
 	} else {
 		// No waitFor specified - just wait for page load event
 		const maxWaitMs int32 = types.MaxTimeoutMs
+		_, waitSpan := w.tracer.Start(req.ctx, "pdf.session.wait", trace.WithSpanKind(trace.SpanKindInternal))
 		expression := fmt.Sprintf("(function(timeoutMs){ return %s; })(%d)", loadWaitSnippet(), maxWaitMs)
 		resp, err := w.conn.SendCommand(req.ctx, "Runtime.evaluate", map[string]any{
 			"expression":    expression,
@@ -386,14 +517,25 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		})
 		if err != nil {
 			w.logger.Warn("Failed to wait for page load event", "error", err)
+			if waitSpan.IsRecording() {
+				waitSpan.RecordError(err)
+				waitSpan.SetStatus(codes.Error, "wait_failed")
+			}
+			waitSpan.End()
 			req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, "page load"))
 			return nil
 		}
 
 		err = w.processWaitResult(req, resp)
 		if err != nil {
+			if waitSpan.IsRecording() {
+				waitSpan.RecordError(err)
+				waitSpan.SetStatus(codes.Error, "wait_failed")
+			}
+			waitSpan.End()
 			return err
 		}
+		waitSpan.End()
 		w.logger.Info("Page load event completed")
 	}
 
@@ -404,6 +546,9 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
 		return nil
 	}
+
+	_, printSpan := w.tracer.Start(req.ctx, "pdf.session.print_to_pdf", trace.WithSpanKind(trace.SpanKindInternal))
+	defer printSpan.End()
 
 	// Generate PDF with Puppeteer-compatible defaults
 	pdfParams := map[string]any{
@@ -464,6 +609,10 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 
 	resp, err := w.conn.SendCommand(req.ctx, "Page.printToPDF", pdfParams)
 	if err != nil {
+		if printSpan.IsRecording() {
+			printSpan.RecordError(err)
+			printSpan.SetStatus(codes.Error, "print_failed")
+		}
 		req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, ""))
 		return nil
 	}
@@ -471,18 +620,32 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 	// Extract PDF data
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", fmt.Errorf("invalid PDF response format")))
+		err := fmt.Errorf("invalid PDF response format")
+		if printSpan.IsRecording() {
+			printSpan.RecordError(err)
+			printSpan.SetStatus(codes.Error, "print_failed")
+		}
+		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
 		return nil
 	}
 
 	dataStr, ok := result["data"].(string)
 	if !ok {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", fmt.Errorf("no PDF data in response")))
+		err := fmt.Errorf("no PDF data in response")
+		if printSpan.IsRecording() {
+			printSpan.RecordError(err)
+			printSpan.SetStatus(codes.Error, "print_failed")
+		}
+		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
 		return nil
 	}
 
 	pdfBytes, err := base64.StdEncoding.DecodeString(dataStr)
 	if err != nil {
+		if printSpan.IsRecording() {
+			printSpan.RecordError(err)
+			printSpan.SetStatus(codes.Error, "print_failed")
+		}
 		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
 		return nil
 	}
@@ -955,17 +1118,18 @@ func (w *browserSession) isProcessing() bool {
 }
 
 // waitForDrain waits for active request to complete, up to timeout
-func (w *browserSession) waitForDrain(timeout time.Duration) {
+func (w *browserSession) waitForDrain(timeout time.Duration) bool {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
 		if !w.isProcessing() {
 			w.logger.Info("Session drained successfully")
-			return // Drained successfully
+			return true
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
 	// Timeout - log warning but don't crash
 	w.logger.Warn("Session drain timeout, forcing close", "timeout", timeout)
+	return false
 }
 
 // paperFormats defines standard paper sizes in inches (compatible with Puppeteer)
