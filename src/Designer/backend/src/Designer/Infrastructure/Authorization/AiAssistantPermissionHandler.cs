@@ -9,7 +9,7 @@ public class AiAssistantPermissionHandler : AuthorizationHandler<AiAssistantPerm
 {
     private readonly IUserOrganizationService _userOrganizationService;
 
-    private static readonly List<string> AllowedOrganizations = new() { "ttd" };
+    private static readonly List<string> s_allowedOrganizations = new() { "ttd" };
 
     public AiAssistantPermissionHandler(IUserOrganizationService userOrganizationService)
     {
@@ -37,7 +37,7 @@ public class AiAssistantPermissionHandler : AuthorizationHandler<AiAssistantPerm
 
     private async Task<bool> IsMemberOfAnyAllowedOrganizationAsync()
     {
-        foreach (string org in AllowedOrganizations)
+        foreach (string org in s_allowedOrganizations)
         {
             if (await _userOrganizationService.UserIsMemberOfOrganization(org))
             {
