@@ -1,11 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useLocation } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { AppValidationDialog } from './AppValidationDialog';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock, queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
@@ -13,46 +12,33 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 
 const org = 'test-org';
 const app = 'test-app';
-const initialPath = `/test-org/test-app/overview`;
+const initialPath = `/${org}/${app}/overview`;
 
-function LocationDisplay(): React.ReactElement {
-  const location = useLocation();
-  return (
-    <div data-testid='location-display'>
-      {location.pathname}
-      {location.search}
-    </div>
-  );
-}
-
-function renderAppValidationDialog(
-  validationData: {
-    isValid?: boolean;
-    errors?: Record<string, string[]>;
-  } | null,
-) {
+function renderAppValidationDialog(validationData: {
+  isValid?: boolean;
+  errors?: Record<string, string[]>;
+}) {
   const queryClient = createQueryClientMock();
-  if (validationData !== null) {
-    queryClient.setQueryData([QueryKey.AppValidation, org, app], {
-      isValid: false,
-      ...validationData,
-    });
-  } else {
-    queryClient.setQueryData([QueryKey.AppValidation, org, app], {});
-  }
-
-  return render(
-    <TestAppRouter initialPath={initialPath} pathTemplate='/:org/:app/*'>
-      <ServicesContextProvider
-        {...queriesMock}
-        client={queryClient}
-        clientConfig={queryClientConfigMock}
-      >
-        <LocationDisplay />
-        <AppValidationDialog />
-      </ServicesContextProvider>
-    </TestAppRouter>,
+  queryClient.setQueryData([QueryKey.AppValidation, org, app], validationData);
+  const router = createMemoryRouter(
+    [
+      {
+        path: '/:org/:app/*',
+        element: (
+          <ServicesContextProvider
+            {...queriesMock}
+            client={queryClient}
+            clientConfig={queryClientConfigMock}
+          >
+            <AppValidationDialog />
+          </ServicesContextProvider>
+        ),
+      },
+    ],
+    { initialEntries: [initialPath] },
   );
+  render(<RouterProvider router={router} />);
+  return { router };
 }
 
 describe('AppValidationDialog', () => {
@@ -61,14 +47,15 @@ describe('AppValidationDialog', () => {
   });
 
   it('does not render error summary when there are no validation errors', () => {
-    renderAppValidationDialog(null);
+    renderAppValidationDialog({});
     expect(
       screen.queryByText(textMock('app_validation.app_metadata.errors_need_fixing')),
     ).not.toBeInTheDocument();
   });
 
   it('renders error summary item and navigates to app-settings with focus when link is clicked', async () => {
-    renderAppValidationDialog({
+    const { router } = renderAppValidationDialog({
+      isValid: false,
       errors: { 'title.nn': ['required'] },
     });
     expect(
@@ -79,8 +66,7 @@ describe('AppValidationDialog', () => {
     expect(link).toHaveAttribute('href', expectedHref);
     const user = userEvent.setup();
     await user.click(link);
-    const locationDisplay = screen.getByTestId('location-display');
-    expect(locationDisplay).toHaveTextContent(`/${org}/${app}/app-settings`);
-    expect(locationDisplay).toHaveTextContent('?currentTab=about&focus=title-nn');
+    expect(router.state.location.pathname).toBe(`/${org}/${app}/app-settings`);
+    expect(router.state.location.search).toBe('?currentTab=about&focus=title-nn');
   });
 });
