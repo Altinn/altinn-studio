@@ -22,19 +22,19 @@ describe('TemplateSelector', () => {
     },
   ];
 
-  it('should render select with templates', async () => {
+  it('should render select with templates', () => {
     renderTemplateSelectorContent({ availableTemplates: defaultTemplates });
 
-    const select = await screen.findByRole('combobox', {
+    const select = screen.getByRole('combobox', {
       name: textMock('dashboard.new_application_form.select_templates'),
     });
     expect(select).toBeInTheDocument();
   });
 
-  it('should render all provided templates as options in the select', async () => {
+  it('should render all provided templates as options in the select', () => {
     renderTemplateSelectorContent({ availableTemplates: defaultTemplates });
 
-    const options = await screen.findAllByRole('option');
+    const options = screen.getAllByRole('option');
     expect(options).toHaveLength(3); // 2 templates + 1 default option
     expect(options[0]).toHaveTextContent(
       textMock('dashboard.new_application_form.select_templates_default'),
@@ -43,7 +43,7 @@ describe('TemplateSelector', () => {
     expect(options[2]).toHaveTextContent('Template Two');
   });
 
-  it('should group templates by owner', async () => {
+  it('should group templates by owner', () => {
     const templates: CustomTemplate[] = [
       { id: 'template1', name: 'Template One', description: 'Description One', owner: 'owner1' },
       { id: 'template2', name: 'Template Two', description: 'Description Two', owner: 'owner1' },
@@ -61,7 +61,7 @@ describe('TemplateSelector', () => {
     ];
     renderTemplateSelectorContent({ availableTemplates: templates, organizations });
 
-    const optgroups = await screen.findAllByRole('group');
+    const optgroups = screen.getAllByRole('group');
     expect(optgroups).toHaveLength(2);
     expect(within(optgroups[0]).getAllByRole('option')).toHaveLength(2); // 2 templates for owner1
     expect(within(optgroups[1]).getAllByRole('option')).toHaveLength(1); // 1 template for owner2
@@ -69,13 +69,13 @@ describe('TemplateSelector', () => {
     expect(optgroups[1]).toHaveAttribute('label', 'Organization Two');
   });
 
-  it('should render correct pre-selected template', async () => {
+  it('should render correct pre-selected template', () => {
     renderTemplateSelectorContent({
       availableTemplates: defaultTemplates,
       selectedTemplate: defaultTemplates[0],
     });
 
-    const select = await screen.findByRole('combobox', {
+    const select = screen.getByRole('combobox', {
       name: textMock('dashboard.new_application_form.select_templates'),
     });
     expect(select).toHaveValue('template1');

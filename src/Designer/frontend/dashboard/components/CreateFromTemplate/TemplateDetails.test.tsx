@@ -11,9 +11,9 @@ describe('TemplateDetails', () => {
       owner: 'owner1',
     };
     render(<TemplateDetails {...props} />);
-    expect(screen.getByText('Template One')).toBeInTheDocument();
-    expect(screen.getByText('owner1')).toBeInTheDocument();
-    expect(screen.getByText('This is a description of Template One.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: props.name })).toBeInTheDocument();
+    expect(screen.getByText(props.owner)).toBeInTheDocument();
+    expect(screen.getByText(props.description)).toBeInTheDocument();
   });
 
   it('should render template id if name is empty', () => {
@@ -24,21 +24,20 @@ describe('TemplateDetails', () => {
       owner: 'owner1',
     };
     render(<TemplateDetails {...props} />);
-    expect(screen.getByText('template1')).toBeInTheDocument();
-    expect(screen.getByText('owner1')).toBeInTheDocument();
-    expect(screen.getByText('This is a description of Template One.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: props.id })).toBeInTheDocument();
+    expect(screen.getByText(props.owner)).toBeInTheDocument();
+    expect(screen.getByText(props.description)).toBeInTheDocument();
   });
 
   it('should render template name even if description is missing', () => {
     const props: TemplateDetailsProps = {
       id: 'template1',
       name: 'Template One',
-      description: undefined,
+      description: '',
       owner: 'owner1',
     };
     render(<TemplateDetails {...props} />);
-    expect(screen.getByText('Template One')).toBeInTheDocument();
-    expect(screen.getByText('owner1')).toBeInTheDocument();
-    expect(screen.queryByText('This is a description of Template One.')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: props.name })).toBeInTheDocument();
+    expect(screen.getByText(props.owner)).toBeInTheDocument();
   });
 });

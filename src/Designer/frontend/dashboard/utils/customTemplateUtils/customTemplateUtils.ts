@@ -5,16 +5,10 @@ import { getOrgNameByUsername } from '../userUtils';
 export const groupTemplatesByOwner = (
   templates: CustomTemplate[],
   organizations: Organization[],
-) => {
-  return templates.reduce(
-    (groups, template) => {
-      const owner = getOrgNameByUsername(template.owner, organizations) || template.owner;
-      if (!groups[owner]) {
-        groups[owner] = [];
-      }
-      groups[owner].push(template);
-      return groups;
-    },
-    {} as Record<string, CustomTemplate[]>,
-  );
+): Record<string, CustomTemplate[]> => {
+  return Object.groupBy(templates, (template) => retrieveOwnerName(template.owner, organizations));
+};
+
+const retrieveOwnerName = (templateOwnerName: string, organizations: Organization[]): string => {
+  return getOrgNameByUsername(templateOwnerName, organizations) || templateOwnerName;
 };

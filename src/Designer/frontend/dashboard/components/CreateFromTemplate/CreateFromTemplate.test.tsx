@@ -8,13 +8,8 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 
 describe('CreateFromTemplate', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   it('should render nothing when available templates is undefined', () => {
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CustomTemplates, 'testuser'], undefined);
-    renderCreateFromTemplate({}, { queryClient });
+    renderCreateFromTemplate({}, { queryClient: createQueryClientWithMockData(undefined) });
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     expect(
       screen.queryByText(textMock('dashboard.new_application_form.select_templates')),
@@ -22,26 +17,20 @@ describe('CreateFromTemplate', () => {
   });
 
   it('should render nothing if no templates are available', () => {
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CustomTemplates, 'testuser'], []);
-    renderCreateFromTemplate({}, { queryClient });
+    renderCreateFromTemplate({}, { queryClient: createQueryClientWithMockData([]) });
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 
   it('should render TemplateSelectorContent when templates are available', async () => {
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData(
-      [QueryKey.CustomTemplates, 'testuser'],
-      [
-        {
-          id: 'template1',
-          name: 'Template One',
-          description: 'Description One',
-          owner: 'owner1',
-        },
-      ],
-    );
-    renderCreateFromTemplate({}, { queryClient });
+    const templates: CustomTemplate[] = [
+      {
+        id: 'template1',
+        name: 'Template One',
+        description: 'Description One',
+        owner: 'owner1',
+      },
+    ];
+    renderCreateFromTemplate({}, { queryClient: createQueryClientWithMockData(templates) });
     expect(
       await screen.findByText(textMock('dashboard.new_application_form.select_templates')),
     ).toBeInTheDocument();
@@ -57,11 +46,12 @@ describe('CreateFromTemplate', () => {
       },
     ];
 
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CustomTemplates, 'testuser'], templates);
-    renderCreateFromTemplate({ selectedTemplate: templates[0] }, { queryClient });
-    expect(screen.getByRole('heading', { name: 'Template One' })).toBeInTheDocument();
-    expect(screen.getByText('Description One')).toBeInTheDocument();
+    renderCreateFromTemplate(
+      { selectedTemplate: templates[0] },
+      { queryClient: createQueryClientWithMockData(templates) },
+    );
+    expect(screen.getByRole('heading', { name: templates[0].name })).toBeInTheDocument();
+    expect(screen.getByText(templates[0].description)).toBeInTheDocument();
   });
 
   it('should not render template details when no template is selected', () => {
@@ -73,13 +63,10 @@ describe('CreateFromTemplate', () => {
         owner: 'owner1',
       },
     ];
+    renderCreateFromTemplate({}, { queryClient: createQueryClientWithMockData(templates) });
 
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CustomTemplates, 'testuser'], templates);
-    renderCreateFromTemplate({}, { queryClient });
-
-    expect(screen.queryByRole('heading', { name: 'Template One' })).not.toBeInTheDocument();
-    expect(screen.queryByText('Description One')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: templates[0].name })).not.toBeInTheDocument();
+    expect(screen.queryByText(templates[0].description)).not.toBeInTheDocument();
   });
 
   it('should render error message when error prop is provided', () => {
@@ -92,9 +79,10 @@ describe('CreateFromTemplate', () => {
       },
     ];
 
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CustomTemplates, 'testuser'], templates);
-    renderCreateFromTemplate({ error: 'Error applying template' }, { queryClient });
+    renderCreateFromTemplate(
+      { error: 'Error applying template' },
+      { queryClient: createQueryClientWithMockData(templates) },
+    );
 
     expect(
       screen.getByText(textMock('dashboard.new_application_form.template_error.heading')),
@@ -102,6 +90,12 @@ describe('CreateFromTemplate', () => {
     expect(screen.getByText('Error applying template')).toBeInTheDocument();
   });
 });
+
+function createQueryClientWithMockData(templates: CustomTemplate[]) {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.CustomTemplates, 'testuser'], templates);
+  return queryClient;
+}
 
 function renderCreateFromTemplate(
   props?: Partial<CreateFromTemplateProps>,

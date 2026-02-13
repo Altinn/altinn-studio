@@ -23,6 +23,11 @@ const initialFormError: CreateServiceFormError = {
   template: '',
 };
 
+enum ErrorKind {
+  AppNameAlreadyExists = 'AppNameAlreadyExists',
+  TemplateError = 'TemplateError',
+}
+
 export type CreateServiceProps = {
   user: User;
   organizations: Organization[];
@@ -51,6 +56,18 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     packagesRouter.navigateToPackage('editorOverview');
   };
 
+  const evaluateErrorKind = (error: AxiosError): ErrorKind | null => {
+    if (error.response.status === ServerCodes.Conflict) {
+      return ErrorKind.AppNameAlreadyExists;
+    } else if (
+      error.response?.status === ServerCodes.BadRequest &&
+      error.response?.data?.['error'] === 'CustomTemplateException'
+    ) {
+      return ErrorKind.TemplateError;
+    }
+    return null;
+  };
+
   const createAppRepo = async (newAppForm: NewAppForm) => {
     const { org, repoName, template } = newAppForm;
 
@@ -65,26 +82,28 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
           navigateToEditorOverview(org, repoName);
         },
         onError: (error: AxiosError): void => {
-          const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
-          const templateError =
-            error.response?.status === ServerCodes.BadRequest &&
-            error.response?.data?.['error'] === 'CustomTemplateException';
+          const errorKind = evaluateErrorKind(error);
 
-          if (appNameAlreadyExists) {
-            setFormError(
-              (prevErrors): CreateServiceFormError => ({
-                ...prevErrors,
-                repoName: t('dashboard.app_already_exists'),
-              }),
-            );
-          } else if (templateError) {
-            // error message when template application fails
-            setFormError(
-              (prevErrors): CreateServiceFormError => ({
-                ...prevErrors,
-                template: t('dashboard.new_application_form.template_error'),
-              }),
-            );
+          switch (errorKind) {
+            case ErrorKind.AppNameAlreadyExists:
+              setFormError(
+                (prevErrors): CreateServiceFormError => ({
+                  ...prevErrors,
+                  repoName: t('dashboard.app_already_exists'),
+                }),
+              );
+              break;
+            case ErrorKind.TemplateError:
+              setFormError(
+                (prevErrors): CreateServiceFormError => ({
+                  ...prevErrors,
+                  template: t('dashboard.new_application_form.template_error'),
+                }),
+              );
+              break;
+            default:
+              // handle other types of errors or rethrow
+              break;
           }
         },
       },
