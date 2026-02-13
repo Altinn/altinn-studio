@@ -10,6 +10,8 @@ namespace Designer.Tests.Infrastructure.Authorization;
 
 public class AiAssistantPermissionHandlerTests
 {
+    private const string AllowedOrganization = "ttd";
+
     [Fact]
     public async Task HandleRequirementAsync_ShouldFail_WhenUserNotAuthenticated()
     {
@@ -30,10 +32,10 @@ public class AiAssistantPermissionHandlerTests
     }
 
     [Fact]
-    public async Task HandleRequirementAsync_ShouldSucceed_WhenUserIsMemberOfTtd()
+    public async Task HandleRequirementAsync_ShouldSucceed_WhenUserIsMemberOfAllowedOrganization()
     {
         var userOrganizationServiceMock = new Mock<IUserOrganizationService>();
-        userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization("ttd"))
+        userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(AllowedOrganization))
             .ReturnsAsync(true);
 
         var handler = new AiAssistantPermissionHandler(userOrganizationServiceMock.Object);
@@ -53,10 +55,10 @@ public class AiAssistantPermissionHandlerTests
     }
 
     [Fact]
-    public async Task HandleRequirementAsync_ShouldFail_WhenUserIsNotMemberOfTtd()
+    public async Task HandleRequirementAsync_ShouldFail_WhenUserIsNotMemberOfAllowedOrganization()
     {
         var userOrganizationServiceMock = new Mock<IUserOrganizationService>();
-        userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization("ttd"))
+        userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(AllowedOrganization))
             .ReturnsAsync(false);
 
         var handler = new AiAssistantPermissionHandler(userOrganizationServiceMock.Object);
