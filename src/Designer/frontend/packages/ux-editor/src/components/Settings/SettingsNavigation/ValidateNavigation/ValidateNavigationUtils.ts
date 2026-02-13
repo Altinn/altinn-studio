@@ -15,9 +15,9 @@ export const getDefaultConfig = (scope: Scope): ValidateConfigState => ({
 
 export const getCardLabel = (scope: Scope): string => {
   const cardLabel = {
-    [Scope.AllTasks]: 'Velg valideringsregel for alle oppgaver',
-    [Scope.SelectedTasks]: 'Velg valideringregel for enkeltoppgaver',
-    [Scope.SelectedPages]: 'Velg valideringregel for enkeltsider',
+    [Scope.AllTasks]: 'ux_editor.settings.navigation_validation_all_tasks_card_label',
+    [Scope.SelectedTasks]: 'ux_editor.settings.navigation_validation_specific_tasks_card_label',
+    [Scope.SelectedPages]: 'ux_editor.settings.navigation_validation_specific_page_card_label',
   };
   return cardLabel[scope];
 };
