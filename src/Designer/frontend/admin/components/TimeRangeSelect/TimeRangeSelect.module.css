@@ -7,6 +7,11 @@
 }
 
 .select * {
-  font-weight: unset;
   margin: 0;
+}
+
+.select select {
+  font-size: initial;
+  font-weight: initial;
+  height: initial;
 }
