@@ -68,7 +68,6 @@ internal partial class Engine : IEngine, IDisposable
 
     private async Task<bool> ShouldRun(CancellationToken cancellationToken)
     {
-        // using var activity = Telemetry.Source.StartActivity("Engine.ShouldRun");
         _logger.CheckShouldRun();
 
         // TODO: Replace this with actual check
@@ -110,7 +109,6 @@ internal partial class Engine : IEngine, IDisposable
 
     private bool HaveWork()
     {
-        // using var activity = Telemetry.Source.StartActivity("Engine.HaveWork");
         _logger.CheckHaveWork();
         bool havePending = InboxCount > 0;
 

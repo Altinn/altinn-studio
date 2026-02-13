@@ -11,29 +11,27 @@ namespace WorkflowEngine.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "StartAt",
-                table: "Steps");
+            migrationBuilder.DropColumn(name: "StartAt", table: "Steps");
 
             migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "StartAt",
                 table: "Workflows",
                 type: "timestamp with time zone",
-                nullable: true);
+                nullable: true
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "StartAt",
-                table: "Workflows");
+            migrationBuilder.DropColumn(name: "StartAt", table: "Workflows");
 
             migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "StartAt",
                 table: "Steps",
                 type: "timestamp with time zone",
-                nullable: true);
+                nullable: true
+            );
         }
     }
 }

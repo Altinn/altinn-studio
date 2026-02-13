@@ -123,7 +123,6 @@ internal partial class Engine
 
     private void RemoveWorkflowAndReleaseQueueSlot(Workflow workflow)
     {
-        using var activity = Telemetry.Source.StartActivity("Engine.RemoveWorkflowAndReleaseQueueSlot");
         _logger.ReleasingQueueSlot();
 
         lock (_activeSetLock)
@@ -132,7 +131,6 @@ internal partial class Engine
             if (!removed)
             {
                 Telemetry.Errors.Add(1, ("operation", "queueSlotRelease"));
-                activity?.Errored(errorMessage: $"Unable to release queue slot {workflow.IdempotencyKey}");
                 throw new EngineException($"Unable to release queue slot {workflow.IdempotencyKey}");
             }
         }
