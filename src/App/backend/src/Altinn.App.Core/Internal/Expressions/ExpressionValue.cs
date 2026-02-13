@@ -10,9 +10,9 @@ namespace Altinn.App.Core.Internal.Expressions;
 /// Discriminated union for the JSON types that can be arguments and result of expressions
 /// </summary>
 [JsonConverter(typeof(ExpressionTypeUnionConverter))]
+[DebuggerDisplay("{ToString(),nq}")]
 public readonly struct ExpressionValue : IEquatable<ExpressionValue>
 {
-    private readonly JsonValueKind _valueKind;
     private readonly string? _stringValue = null;
 
     // double is a value type where nullable takes extra space, and we only read it when it should be set
@@ -29,7 +29,7 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
 
     private ExpressionValue(JsonValueKind valueKind)
     {
-        _valueKind = valueKind;
+        ValueKind = valueKind;
     }
 
     /// <summary>
@@ -56,11 +56,11 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     {
         if (value.HasValue)
         {
-            _valueKind = value.Value ? JsonValueKind.True : JsonValueKind.False;
+            ValueKind = value.Value ? JsonValueKind.True : JsonValueKind.False;
         }
         else
         {
-            _valueKind = JsonValueKind.Null;
+            ValueKind = JsonValueKind.Null;
         }
     }
 
@@ -68,18 +68,18 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     {
         if (value.HasValue)
         {
-            _valueKind = JsonValueKind.Number;
+            ValueKind = JsonValueKind.Number;
             _numberValue = value.Value;
         }
         else
         {
-            _valueKind = JsonValueKind.Null;
+            ValueKind = JsonValueKind.Null;
         }
     }
 
     private ExpressionValue(string? value)
     {
-        _valueKind = value is null ? JsonValueKind.Null : JsonValueKind.String;
+        ValueKind = value is null ? JsonValueKind.Null : JsonValueKind.String;
         _stringValue = value;
     }
 
@@ -199,18 +199,18 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     /// <summary>
     /// Get the type of json value this represents
     /// </summary>
-    public JsonValueKind ValueKind => _valueKind;
+    public JsonValueKind ValueKind { get; }
 
     /// <summary>
     /// Get the value as a boolean (or throw if it isn't a boolean ValueKind)
     /// </summary>
     public bool Bool =>
-        _valueKind switch
+        ValueKind switch
         {
             JsonValueKind.True => true,
             JsonValueKind.False => false,
             _ => throw new InvalidCastException(
-                $"The .Bool property can't be used on an expression value that represent a {_valueKind}"
+                $"The .Bool property can't be used on an expression value that represent a {ValueKind}"
             ),
         };
 
@@ -218,11 +218,11 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     /// Get the value as a string (or throw if it isn't a string ValueKind)
     /// </summary>
     public string String =>
-        _valueKind switch
+        ValueKind switch
         {
             JsonValueKind.String => _stringValue ?? throw new UnreachableException("Not a string"),
             _ => throw new InvalidCastException(
-                $"The .String property can't be used on an expression value that represent a {_valueKind}"
+                $"The .String property can't be used on an expression value that represent a {ValueKind}"
             ),
         };
 
@@ -230,11 +230,11 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     /// Get the value as a number (or throw if it isn't a number ValueKind)
     /// </summary>
     public double Number =>
-        _valueKind switch
+        ValueKind switch
         {
             JsonValueKind.Number => _numberValue,
             _ => throw new InvalidCastException(
-                $"The .Number property can't be used on an expression value that represent a {_valueKind}"
+                $"The .Number property can't be used on an expression value that represent a {ValueKind}"
             ),
         };
 
@@ -263,6 +263,7 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
         ValueKind switch
         {
             JsonValueKind.Null => "null",
+            JsonValueKind.Undefined => "undefined",
             JsonValueKind.True => "true",
             JsonValueKind.False => "false",
             JsonValueKind.String => JsonSerializer.Serialize(String, _unsafeSerializerOptionsForSerializingDates),
@@ -282,7 +283,7 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     /// Throws <see cref="InvalidOperationException"/> for invalid or unsupported value kinds.
     /// </returns>
     public string? ToStringForText() =>
-        _valueKind switch
+        ValueKind switch
         {
             JsonValueKind.Null => null,
             JsonValueKind.True => "true",
@@ -388,6 +389,206 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
+
+    /// <summary>
+    /// Convert the value to nullable boolean using loose conversion rules
+    /// </summary>
+    /// <remarks>
+    /// Loose conversion rules:
+    ///     * Undefined is null
+    ///     * Null is false
+    ///     * "true" (case-insensitive) is true
+    ///     * "false" (case-insensitive) is false
+    ///     * "1" is true
+    ///     * "0" is false
+    ///     * 1 is true
+    ///     * 0 is false
+    ///     * Anything else is null
+    /// </remarks>
+    public bool? ToBoolLoose()
+    {
+        return ValueKind switch
+        {
+            JsonValueKind.Null => false,
+            JsonValueKind.Undefined => null,
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+
+            JsonValueKind.String => String switch
+            {
+                "true" => true,
+                "false" => false,
+                "1" => true,
+                "0" => false,
+                { } sValue when sValue.Equals("true", StringComparison.OrdinalIgnoreCase) => true,
+                { } sValue when sValue.Equals("false", StringComparison.OrdinalIgnoreCase) => false,
+                _ => ExpressionEvaluator.ParseNumber(String, throwException: false) switch
+                {
+                    1 => true,
+                    0 => false,
+                    _ => null,
+                },
+            },
+            JsonValueKind.Number => Number switch
+            {
+                1 => true,
+                0 => false,
+                _ => null,
+            },
+            _ => null,
+        };
+    }
+
+    /// <summary>
+    /// Convert the ExpressionValue to the requested type T using normal JSON deserialization rules
+    /// </summary>
+    /// <remarks>
+    /// Different from some json implementations we accept deserializing "number in string" and bool to numeric types
+    /// (e.g., "123" to int, true to 1)
+    /// Accept loose conversion rules for bool (e.g., "true", "TRUE", "1" and 1.0 to true)
+    /// </remarks>
+    /// <param name="result">The result (null or default if unsuccessful), but note that null might also be a valid result</param>
+    /// <typeparam name="T">The type to convert to</typeparam>
+    /// <returns>Whether the conversion was successful</returns>
+    public bool TryDeserialize<T>(out T? result)
+    {
+        var type = typeof(T);
+        if (TryDeserialize(type, out var rawResult))
+        {
+            result = rawResult is T typedResult ? typedResult : default;
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Convert the ExpressionValue to the requested type T using normal JSON deserialization rules
+    /// </summary>
+    /// <remarks>
+    /// Different from some json implementations we accept deserializing "number in string" and bool to numeric types
+    /// (e.g., "123" to int, true to 1)
+    /// Accept loose conversion rules for bool (e.g., "true", "TRUE", "1" and 1.0 to true)
+    /// </remarks>
+    /// <param name="result">The result (null or default if unsuccessful), but note that null might also be a valid result</param>
+    /// <param name="type">The type to convert to</param>
+    /// <returns>Whether the conversion was successful</returns>
+    public bool TryDeserialize(Type type, out object? result)
+    {
+        // Value types can be Nullable<T>, so assign underlyingType accordingly
+        Type underlyingType;
+        if (type.IsValueType)
+        {
+            if (Nullable.GetUnderlyingType(type) is not { } getUnderlyingType)
+            {
+                // Null or undefined can't be converted to non-nullable value types
+                // so handle this special case early
+                if (ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+                {
+                    result = null;
+                    return false;
+                }
+
+                underlyingType = type;
+            }
+            else
+            {
+                underlyingType = getUnderlyingType;
+            }
+        }
+        else
+        {
+            underlyingType = type;
+        }
+
+        // Fast path for primitive types
+        switch (ValueKind)
+        {
+            case JsonValueKind.Null:
+            case JsonValueKind.Undefined:
+                result = null;
+                return true;
+            case JsonValueKind.False or JsonValueKind.True when underlyingType == typeof(bool):
+                result = Bool;
+                return true;
+            // Support converting bool to numeric types (e.g., true -> 1, false -> 0)
+            case JsonValueKind.False or JsonValueKind.True when IsSupportedNumericType(underlyingType):
+                result = Convert.ChangeType(Bool ? 1 : 0, underlyingType, CultureInfo.InvariantCulture);
+                return true;
+            case JsonValueKind.Number when IsSupportedNumericType(underlyingType):
+                result = Convert.ChangeType(Number, underlyingType, CultureInfo.InvariantCulture);
+                return true;
+            case JsonValueKind.String when underlyingType == typeof(string):
+                result = String;
+                return true;
+            // Support parsing numbers from strings for numeric types
+            case JsonValueKind.String when IsSupportedNumericType(underlyingType):
+            {
+                var parsedNumber = ExpressionEvaluator.ParseNumber(String, throwException: false);
+                if (parsedNumber.HasValue)
+                {
+                    result = Convert.ChangeType(parsedNumber.Value, underlyingType, CultureInfo.InvariantCulture);
+                    return true;
+                }
+                break;
+            }
+        }
+
+        // Add special handling for bool to support loose conversion rules
+        // e.g., "true", "false", "1", "0" as strings or numbers
+        if (underlyingType == typeof(bool))
+        {
+            bool? boolValue = ToBoolLoose();
+            // type is non-nullable bool but value is null
+            if (boolValue is null && type == typeof(bool))
+            {
+                result = false; // default to false and indicate failure
+                return false;
+            }
+
+            if (boolValue is null)
+            {
+                result = null;
+                return false;
+            }
+
+            result = boolValue.Value;
+            return true;
+        }
+        // Fallback to JSON deserialization when the fast path fails (i.e., deserialize string to DateTime or similar)
+        try
+        {
+            var json = ToString();
+            result = JsonSerializer.Deserialize(json, type, _unsafeSerializerOptionsForSerializingDates);
+            return true;
+        }
+        catch (JsonException)
+        {
+            result = null;
+            return false;
+        }
+        catch (NotSupportedException)
+        {
+            result = null;
+            return false;
+        }
+    }
+
+    private static bool IsSupportedNumericType(Type type)
+    {
+        return type == typeof(double)
+            || type == typeof(int)
+            || type == typeof(float)
+            || type == typeof(decimal)
+            || type == typeof(long)
+            || type == typeof(short)
+            || type == typeof(byte)
+            || type == typeof(uint)
+            || type == typeof(ulong)
+            || type == typeof(ushort)
+            || type == typeof(sbyte);
+    }
 }
 
 /// <summary>

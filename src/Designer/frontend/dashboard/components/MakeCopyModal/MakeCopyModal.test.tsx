@@ -1,13 +1,13 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MakeCopyModal, type MakeCopyModalProps } from './MakeCopyModal';
-import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { type User } from 'app-shared/types/Repository';
 import { type Organization } from 'app-shared/types/Organization';
+import { type ProviderData, renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
@@ -51,22 +51,29 @@ jest.mock('react-router-dom', () => ({
 
 const mockOnClose = jest.fn();
 
-const defaultProps: MakeCopyModalProps = {
-  open: true,
-  onClose: mockOnClose,
-  serviceFullName: mockServiceFullName,
-};
-
-const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
+const renderMakeCopyModal = (
+  props?: Partial<MakeCopyModalProps>,
+  providerData: Partial<ProviderData> = {},
+  services?: Partial<ServicesContextProps>,
+) => {
+  const defaultProps: MakeCopyModalProps = {
+    open: true,
+    onClose: mockOnClose,
+    serviceFullName: mockServiceFullName,
+  };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.CurrentUser], () => mockUser);
   queryClient.setQueryData([QueryKey.Organizations], () => mockOrganizations);
 
-  render(
-    <MockServicesContextWrapper customServices={services} client={queryClient}>
-      <MakeCopyModal {...defaultProps} />
-    </MockServicesContextWrapper>,
-  );
+  const defaultProviderData: ProviderData = {
+    queries: services,
+    queryClient,
+    featureFlags: [],
+  };
+  return renderWithProviders(<MakeCopyModal {...defaultProps} {...props} />, {
+    ...defaultProviderData,
+    ...providerData,
+  });
 };
 
 describe('MakeCopyModal', () => {
@@ -76,7 +83,7 @@ describe('MakeCopyModal', () => {
 
   test('successfully adds the values and submits the copy of a new application', async () => {
     const user = userEvent.setup();
-    renderWithMockServices();
+    renderMakeCopyModal();
 
     const repoTextfield = screen.getByLabelText(textMock('general.service_name'));
     const newRepoValue: string = 'new-repo-name';
@@ -91,7 +98,7 @@ describe('MakeCopyModal', () => {
 
   test('should show error message when clicking confirm without adding name', async () => {
     const user = userEvent.setup();
-    renderWithMockServices();
+    renderMakeCopyModal();
 
     const confirmButton = screen.getByRole('button', {
       name: textMock('dashboard.make_copy'),
@@ -103,7 +110,7 @@ describe('MakeCopyModal', () => {
 
   test('should show error message when clicking confirm and name is too long', async () => {
     const user = userEvent.setup();
-    renderWithMockServices();
+    renderMakeCopyModal();
 
     const confirmButton = screen.getByRole('button', {
       name: textMock('dashboard.make_copy'),
@@ -119,7 +126,7 @@ describe('MakeCopyModal', () => {
 
   test('should show error message when clicking confirm and name contains invalid characters', async () => {
     const user = userEvent.setup();
-    renderWithMockServices();
+    renderMakeCopyModal();
 
     const confirmButton = screen.getByRole('button', {
       name: textMock('dashboard.make_copy'),
@@ -139,7 +146,7 @@ describe('MakeCopyModal', () => {
     (PackagesRouter as jest.Mock).mockImplementation(() => ({
       navigateToPackage: mockNavigateToPackage,
     }));
-    renderWithMockServices();
+    renderMakeCopyModal();
 
     const repoTextfield = screen.getByLabelText(textMock('general.service_name'));
     const newRepoValue: string = 'new-repo-name';
@@ -157,7 +164,7 @@ describe('MakeCopyModal', () => {
       .fn()
       .mockImplementation(() => Promise.reject({ response: { status: 409 } }));
 
-    renderWithMockServices({ copyApp: copyRepoMock });
+    renderMakeCopyModal({}, {}, { copyApp: copyRepoMock });
 
     const repoTextfield = screen.getByLabelText(textMock('general.service_name'));
     const newRepoValue: string = 'new-repo-name';
@@ -173,7 +180,7 @@ describe('MakeCopyModal', () => {
 
   it('closes the modal when the close button is clicked', async () => {
     const user = userEvent.setup();
-    renderWithMockServices();
+    renderMakeCopyModal();
 
     const closeButton = screen.getByRole('button', { name: textMock('general.cancel') });
     await user.click(closeButton);

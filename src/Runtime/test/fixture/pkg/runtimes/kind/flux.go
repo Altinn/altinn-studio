@@ -137,9 +137,7 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 		}
 	}
 	if r.options.IncludeMonitoring {
-		if err := r.FluxClient.ReconcileHelmRelease("kube-prometheus-stack", "monitoring", true, syncOpts); err != nil {
-			return fmt.Errorf("failed to reconcile base infra: %w", err)
-		}
+		// TODO: reconcile local lgtm setup?
 	}
 
 	fmt.Println("✓ Base infra reconciled")
@@ -177,13 +175,7 @@ func (r *KindContainerRuntime) applyBaseInfrastructure() error {
 	fmt.Println("✓ Base infrastructure manifest applied")
 
 	if r.options.IncludeMonitoring {
-		fmt.Println("Applying monitoring infrastructure manifest...")
-
-		monitoringObjs := manifests.BuildMonitoringInfrastructure(r.options.IncludeLinkerd)
-		if _, err := r.KubernetesClient.ApplyObjects(monitoringObjs...); err != nil {
-			return fmt.Errorf("failed to apply monitoring infrastructure: %w", err)
-		}
-		fmt.Println("✓ Monitoring infrastructure manifest applied")
+		// TODO: lgtm stack for local testing?
 	}
 
 	return nil

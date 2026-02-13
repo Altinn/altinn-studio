@@ -20,7 +20,7 @@ export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
   );
 
   const { formData } = useDataModelBindings(dataModelBindings, 1, 'raw');
-  const { title } = textResourceBindings ?? {};
+  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
   const isMobile = useIsMobile();
 
   const schemaLookup = DataModels.useSchemaLookup();

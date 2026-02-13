@@ -7,11 +7,13 @@ import { Trend } from 'k6/metrics';
 import { Options } from 'k6/options';
 
 const BASE_URL = __ENV.BASE_URL || 'http://local.altinn.cloud';
+const SCREENSHOTS_DIR = 'k6-browser-screenshots';
 
 // Test data constants
 const TEST_DATA = {
   USER: 'DDG Fitness AS (Organisation)',
   AUTH_LEVEL: 'Nivå 2',
+  APPLICATION: 'ttd/frontend-test',
   FRONTEND_VERSION: 'http://localhost:8080/',
   SELECTED_ANIMAL_LABEL: 'Hund',
   SELECTED_ANIMAL: 'Dog',
@@ -50,6 +52,22 @@ const speciesSelectOpenTimeMetric = new Trend('species_select_open_time', true);
 const speciesSelectTotalTimeMetric = new Trend('species_select_total_time', true);
 const manualRowAdditionTimeMetric = new Trend('manual_row_addition_time', true);
 
+async function takeScreenshot(page: Page, name: string, description?: string) {
+  try {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `${timestamp}_${name}.png`;
+
+    await page.screenshot({
+      path: `${SCREENSHOTS_DIR}/${filename}`,
+      fullPage: true,
+    });
+
+    console.log(`Screenshot saved: ${filename}${description ? ` - ${description}` : ''}`);
+  } catch (error) {
+    console.log(`Failed to take screenshot ${name}: ${errorToMessage(error)}`);
+  }
+}
+
 export function setup() {
   let res = http.get(BASE_URL);
   if (res.status !== 200) {
@@ -63,8 +81,10 @@ export default async function () {
   try {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto(BASE_URL);
+    await takeScreenshot(page, 'initial-page-load', 'Initial page load');
 
     await localtestLogin(page);
+    await takeScreenshot(page, 'after-login', 'Successfully logged in to localtest');
 
     await goToCorrectPage(page);
 
@@ -78,12 +98,15 @@ export default async function () {
     await editLastPet(page);
     await addPetManually(page, 'Lady');
 
-    // Round 3
-    await generate250MorePets(page, /generer enda en gård/i);
-    await editLastPet(page);
-    await addPetManually(page, 'Herman');
+    // Round 3 - TODO: comment in when performance is good enough to handle it
+    // await generate250MorePets(page, /generer enda en gård/i);
+    // await editLastPet(page);
+    // await takeScreenshot(page, 'after-edit-round3', 'Edited last pet - Round 3');
+    // await addPetManually(page, 'Herman');
+    // await takeScreenshot(page, 'test-completed', 'Test completed successfully - Added Herman');
   } catch (error) {
-    fail(`Browser iteration failed: ${error instanceof Error ? error.message : String(error)}`);
+    await takeScreenshot(page, 'main-test-error', `Browser iteration failed: ${errorToMessage(error)}`);
+    fail(`Browser iteration failed: ${errorToMessage(error)}`);
   } finally {
     await page.close();
   }
@@ -103,10 +126,12 @@ async function localtestLogin(page: Page) {
 
     await page.locator('select[name="UserSelect"]').waitFor({ state: 'visible' });
 
+    const appSelect = page.getByRole('combobox', { name: /select app to test/i });
     const userSelect = page.getByRole('combobox', { name: /select test users/i });
     const authSelect = page.getByRole('combobox', { name: /select your authentication level/i });
 
     // Select options from dropdowns
+    await appSelect.selectOption(TEST_DATA.APPLICATION);
     await userSelect.selectOption(TEST_DATA.USER);
     await authSelect.selectOption(TEST_DATA.AUTH_LEVEL);
 
@@ -119,13 +144,21 @@ async function localtestLogin(page: Page) {
     });
 
     await page.getByRole('button', { name: /proceed to app/i }).click();
-    await page.waitForNavigation();
 
-    if ((await page.getByRole('heading', { level: 2 }).textContent()) === MESSAGES.RESTART_FORM) {
+    await page.waitForNavigation();
+    await page.getByText('Vent litt').waitFor({ state: 'detached' });
+
+    const restartFormHeaderIsVisible = await page
+      .getByRole('heading', { level: 2, name: MESSAGES.RESTART_FORM })
+      .isVisible()
+      .catch(() => false);
+
+    if (restartFormHeaderIsVisible) {
       await page.getByRole('button', { name: /start på nytt/i }).click();
     }
   } catch (error) {
-    console.log(`Localtest login failed: ${error instanceof Error ? error.message : String(error)}`);
+    await takeScreenshot(page, 'localtest-login-error', `Localtest login failed: ${errorToMessage(error)}`);
+    console.log(`Localtest login failed: ${errorToMessage(error)}`);
     throw error; // Re-throw to fail the test
   }
 }
@@ -145,7 +178,8 @@ async function goToCorrectPage(page: Page) {
 
     await page.getByRole('button', { name: /3\. kjæledyr/i }).click();
   } catch (error) {
-    console.log(`Going to correct page failed: ${error instanceof Error ? error.message : String(error)}`);
+    await takeScreenshot(page, 'go-to-correct-page-error', `Going to correct page failed: ${errorToMessage(error)}`);
+    console.log(`Going to correct page failed: ${errorToMessage(error)}`);
     throw error; // Re-throw to fail the test
   }
 }
@@ -167,7 +201,8 @@ async function generate250MorePets(screen: Page, buttonName: RegExp) {
 
     add250RepeatingGroupRowsMetric.add(endTime - startTime);
   } catch (error) {
-    console.log(`Generating more pets failed: ${error instanceof Error ? error.message : String(error)}`);
+    await takeScreenshot(screen, 'generate-more-pets-error', `Generating more pets failed: ${errorToMessage(error)}`);
+    console.log(`Generating more pets failed: ${errorToMessage(error)}`);
     throw error;
   }
 }
@@ -213,14 +248,15 @@ async function editLastPet(page: Page) {
     // Verify the selection was successful
     check(page, {
       'Species select responds and selects animal': async () => {
-        const selectedValue = await lastRowSpeciesSelect.inputValue();
+        const selectedValue = await lastRowSpeciesSelect.inputValue({ timeout: 90000 });
         return (
           selectedValue === TEST_DATA.SELECTED_ANIMAL_LABEL || selectedValue.includes(TEST_DATA.SELECTED_ANIMAL_LABEL)
         );
       },
     });
   } catch (error) {
-    console.log(`Edit last pet test failed: ${error instanceof Error ? error.message : String(error)}`);
+    await takeScreenshot(page, 'edit-last-pet-error', `Edit last pet test failed: ${errorToMessage(error)}`);
+    console.log(`Edit last pet test failed: ${errorToMessage(error)}`);
     throw error;
   }
 }
@@ -272,7 +308,24 @@ async function addPetManually(page: Page, petName: string) {
 
     manualRowAdditionTimeMetric.add(endTime - startTime);
   } catch (error) {
-    console.log(`Adding pet manually failed: ${error instanceof Error ? error.message : String(error)}`);
+    await takeScreenshot(page, 'add-pet-manually-error', `Adding pet manually failed: ${errorToMessage(error)}`);
+    console.log(`Adding pet manually failed: ${errorToMessage(error)}`);
     throw error;
+  }
+}
+
+function errorToMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
   }
 }

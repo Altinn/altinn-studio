@@ -1,39 +1,30 @@
 import React from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { StudioHeading } from '@studio/components';
+import { useParams } from 'react-router-dom';
 import { InstanceDataView } from './components/InstanceDataView';
-import { StudioBreadcrumbs } from '@studio/components';
+import { Breadcrumbs } from 'admin/components/Breadcrumbs/Breadcrumbs';
+import classes from './InstanceDetails.module.css';
 
 export const InstanceDetails = () => {
-  const { org, env, app, instanceId } = useParams() as {
+  const { org, environment, app, instanceId } = useParams() as {
     org: string;
-    env: string;
+    environment: string;
     app: string;
     instanceId: string;
   };
+
   return (
-    <div>
-      <StudioBreadcrumbs>
-        <StudioBreadcrumbs.Link>{app}</StudioBreadcrumbs.Link>
-        <StudioBreadcrumbs.List>
-          <StudioBreadcrumbs.Item>
-            <StudioBreadcrumbs.Link asChild>
-              <Link to={`/${org}/apps`}>Publiserte apper</Link>
-            </StudioBreadcrumbs.Link>
-          </StudioBreadcrumbs.Item>
-          <StudioBreadcrumbs.Item>
-            <StudioBreadcrumbs.Link asChild>
-              <Link to={`/${org}/apps/${env}/${app}/`}>{app}</Link>
-            </StudioBreadcrumbs.Link>
-          </StudioBreadcrumbs.Item>
-          <StudioBreadcrumbs.Item>
-            <StudioBreadcrumbs.Link asChild>
-              <Link to=''>{instanceId}</Link>
-            </StudioBreadcrumbs.Link>
-          </StudioBreadcrumbs.Item>
-        </StudioBreadcrumbs.List>
-      </StudioBreadcrumbs>
-      <h1>{instanceId}</h1>
-      <InstanceDataView org={org} env={env} app={app} id={instanceId} />
+    <div className={classes.container}>
+      <Breadcrumbs
+        org={org}
+        routes={[
+          { route: 'apps', environment },
+          { route: 'app', environment, app },
+          { route: 'instance', environment, app, instanceId },
+        ]}
+      />
+      <StudioHeading data-size='lg'>{instanceId}</StudioHeading>
+      <InstanceDataView org={org} environment={environment} app={app} id={instanceId} />
     </div>
   );
 };

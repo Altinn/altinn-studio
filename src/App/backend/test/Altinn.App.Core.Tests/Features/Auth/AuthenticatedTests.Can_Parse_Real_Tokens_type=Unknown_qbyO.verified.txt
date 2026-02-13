@@ -1,0 +1,18 @@
+﻿{
+  Description: Custom token with unknown type,
+  AuthType: Altinn.App.Core.Features.Auth.Authenticated+Unknown,
+  Auth: {
+    TokenIssuer: Unknown,
+    TokenIsExchanged: false,
+    Scopes: digdir:dd:probatedeclarations,
+    Token: eyJhbGciOiJSUzI1NiIsImtpZCI6Im9lZC1hZG1pbi1jbGllbnQta2V5IiwidHlwIjoiSldUIn0.eyJhdWQiOiJodHRwczovL3Rlc3QubWFza2lucG9ydGVuLm5vLyIsInNjb3BlIjoiZGlnZGlyOmRkOnByb2JhdGVkZWNsYXJhdGlvbnMiLCJpc3MiOiI3ZDdjM2M4OC1kNGZlLTRkZDEtOTI0NC0wYzYzNWIxZGZkMDMiLCJleHAiOjE3NjQyNDk3NTksImlhdCI6MTc2NDI0OTc0OSwianRpIjoiYmI0NmJmYmQtMjM4ZS00ZTRlLWEyOGEtN2JjY2I5N2U3OTk5In0.mnYdN2OEzL3xRC37ZXbnsMqBCI1uQPxGBYhOKS85y0XnwvajUwi4e5yJ643MZy3L_N41b-U7pi4km-nfUmbCAIAjGwsTNO9mXyPCrp14Xf51RqoYHbEfvIkHxY0QbFkDijyGrNttSqI3UOhf3RnyT0Ev86IFSHc0zdqDqZoKjwshqAvok18YW6o_IyyNloCoKqLWYVVXy4Fg9eALph76QsqdEh9YAUojUN14ngG3Qs76xUAJefMmJcQWzgoBhwZlU0KiEMbwe8PdJuCaEd7dRX71wTMK8pKhZRIxXjVmNfTtgdgyW5YE37C9uTwMYyuZhJXJ3F6bWCS_joYrn7m-SQ
+  },
+  Jwt: {
+    aud: https://test.maskinporten.no/,
+    exp: 1764249759,
+    iat: 1764249749,
+    iss: 7d7c3c88-d4fe-4dd1-9244-0c635b1dfd03,
+    jti: bb46bfbd-238e-4e4e-a28a-7bccb97e7999,
+    scope: digdir:dd:probatedeclarations
+  }
+}

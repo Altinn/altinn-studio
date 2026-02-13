@@ -10,6 +10,7 @@ import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AppHeader } from 'src/components/presentation/AppHeader/AppHeader';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { resourcesAsMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
@@ -18,8 +19,15 @@ import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IAppLanguage, IParty, IProfile } from 'src/types/shared';
 
 describe('presentation/AppHeader', () => {
+  beforeEach(() => {
+    window.altinnAppGlobalData.orgLogoUrl = 'https://altinncdn.no/orgs/mockOrg/mockOrg.png';
+    window.altinnAppGlobalData.orgName = { nb: 'Mockdepartementet', en: 'Mock Ministry', nn: 'Mockdepartementet' };
+  });
+
   afterEach(() => {
     window.altinnAppGlobalData.userProfile = undefined;
+    window.altinnAppGlobalData.orgLogoUrl = undefined;
+    window.altinnAppGlobalData.orgName = undefined;
   });
 
   const userPerson = {
@@ -50,6 +58,7 @@ describe('presentation/AppHeader', () => {
   }
   const render = async ({ logo, showLanguageSelector = false, textResources = [] }: IRenderComponentProps) => {
     jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock({ logo }));
+    jest.mocked(useTextResources).mockImplementation(() => resourcesAsMap(textResources));
 
     return await renderWithInstanceAndLayout({
       renderer: () => (
@@ -60,7 +69,6 @@ describe('presentation/AppHeader', () => {
       ),
 
       queries: {
-        fetchTextResources: () => Promise.resolve({ language: 'nb', resources: textResources }),
         fetchLayoutSettings: () =>
           Promise.resolve({
             pages: { showLanguageSelector, order: ['1', '2', '3'] } as unknown as IPagesSettingsWithOrder,
@@ -95,6 +103,7 @@ describe('presentation/AppHeader', () => {
   });
 
   it('Should render Altinn logo if logo options are not set', async () => {
+    window.altinnAppGlobalData.orgLogoUrl = undefined;
     await render({ party: userPerson.party });
     const mockLogo = getLogoMock().replace('black', LogoColor.blueDarker);
     expect(screen.getByRole('img')).toHaveAttribute('src', `data:image/svg+xml;utf8,${encodeURIComponent(mockLogo)}`);

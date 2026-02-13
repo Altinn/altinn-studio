@@ -72,7 +72,7 @@ describe('Person lookup component', () => {
       /Ingen person er registrert med denne kombinasjonen av fødselsnummer\/D-nummer og navn. Vennligst kontroller feltene og prøv igjen./i,
     ).should('exist');
 
-    cy.findByText(/Merk: Etter 5 feilforsøk blir søkemuligheten midlertidig sperret./i).should('exist');
+    cy.findByText(/Merk: Etter 3 feilforsøk kan søkemuligheten bli midlertidig sperret./i).should('exist');
 
     // Must be updated when backend returns better http status codes
     cy.intercept('POST', '/ttd/component-library/api/v1/lookup/person', {
@@ -92,8 +92,7 @@ describe('Person lookup component', () => {
     });
 
     // 3 instances of this text (component, Summary2, ErrorReport)
-    cy.findAllByText('Du må fylle ut fødselsnummer og hente opplysninger').should('exist').and('have.length', 3);
-    cy.findAllByText('Du må fylle ut navn og hente opplysninger').should('exist').and('have.length', 3);
+    cy.findAllByText('Du må fylle ut fødselsnummer').should('exist').and('have.length', 3);
 
     cy.changeLayout((component) => {
       if (component.type === 'PersonLookup') {
@@ -104,11 +103,9 @@ describe('Person lookup component', () => {
       }
     });
 
-    cy.findByText('Du må fylle ut fødselsnummer og hente opplysninger').should('not.exist');
-    cy.findByText('Du må fylle ut navn og hente opplysninger').should('not.exist');
+    cy.findByText('Du må fylle ut fødselsnummer').should('not.exist');
     cy.findByRole('button', { name: 'Neste' }).click();
 
-    cy.findAllByText('Du må fylle ut fødselsnummer og hente opplysninger').should('exist').and('have.length', 3);
-    cy.findAllByText('Du må fylle ut navn og hente opplysninger').should('exist').and('have.length', 3);
+    cy.findAllByText('Du må fylle ut fødselsnummer').should('exist').and('have.length', 3);
   });
 });

@@ -5,7 +5,7 @@
     "description": "App API description for both end users and service owners, as well as open metadata information<br><br>All operations* described within this document require authentication and authorization. Read more at <a href=\"https://docs.altinn.studio/authentication/guides\">https://docs.altinn.studio/authentication/guides</a><br><br><strong>All GET operations* and POST operations may return or contain, respectively, personally identifiable information (PII; national identity numbers and names).</strong><br><br>For more information about this product, see <a href=\"https://docs.altinn.studio/api/apps\">https://docs.altinn.studio/api/apps</a><br><br><em>* Except the metadata APIs</em>\n\nThis is the API for an Altinn 3 app. The API is based on the OpenAPI 3.0 specification.\nThis app has the following data types:\n| DataTypeId | Type | Allowed number | MimeTypes | TaskId |\n|------------|------|----------------|-----------|--------|\n|default|FormData (AutoCreate)|0-1|application/xml|Task_1|\n|customElement|Attachment|0-1|*|Task_1|\n|9edd53de-f46f-40a1-bb4d-3efb93dc113d|Attachment|0-1|*|Task_1|\n|specificFileType|Attachment|0-1|application/pdf, image/png, application/json|Task_1|\n|userInteractionUnspecified|FormData|0-10|application/xml|Task_1|\n|disallowUserCreate|FormData|0-10|application/xml|Task_1|\n|disallowUserDelete|FormData|0-10|application/xml|Task_1|\n|requiresActionToRead|FormData|0-10|application/xml|Task_1|\n|requiresActionToWrite|FormData|0-10|application/xml|Task_1|\n\n## This app has the following process tasks:\n| TaskId | Name | Type | Actions |\n|--------|------|------|---------|\n| Task_1 | Utfylling | data | reject, action_defined_in_bpmn_but_unauthorized |\n",
     "contact": {
       "name": "Digitaliseringsdirektoratet (altinn)",
-      "url": "https://altinn.slack.com"
+      "url": "https://digdir-samarbeid.slack.com"
     },
     "version": ""
   },
@@ -626,6 +626,166 @@
           "url": "http://local.altinn.cloud"
         }
       ]
+    },
+    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/options/{optionsId}": {
+      "summary": "Get instance app options",
+      "get": {
+        "tags": [
+          "Options"
+        ],
+        "summary": "Get instance app options",
+        "description": "Exposes options related to the app and logged in user. The tags field is only populated when requesting library code lists.",
+        "operationId": "GetInstanceAppOptions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/instanceOwnerPartyId"
+          },
+          {
+            "$ref": "#/components/parameters/instanceGuid"
+          },
+          {
+            "name": "optionsId",
+            "in": "path",
+            "description": "OptionsId from a layout component.",
+            "schema": {
+              "enum": [
+                "fileSourceOptions"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "queryParams",
+            "in": "query",
+            "description": "Query parameters supplied.",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "example": {
+                "key": "value"
+              }
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "The language selected by the user (ISO 639-1, e.g., 'nb').",
+            "schema": {
+              "type": "string",
+              "example": "nb"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AppOptions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppOption"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
+          }
+        }
+      }
+    },
+    "/tdd/contributer-restriction/api/options/{optionsId}": {
+      "summary": "Get app options",
+      "get": {
+        "tags": [
+          "Options"
+        ],
+        "summary": "Get app options",
+        "description": "Api that exposes app related options. The tags field is only populated when requesting library code lists.",
+        "operationId": "GetAppOptions",
+        "parameters": [
+          {
+            "name": "optionsId",
+            "in": "path",
+            "description": "OptionsId from a layout component.",
+            "schema": {
+              "enum": [
+                "fileSourceOptions"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "queryParams",
+            "in": "query",
+            "description": "Query parameters supplied.",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "example": {
+                "key": "value"
+              }
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "The language selected by the user (ISO 639-1, e.g., 'nb').",
+            "schema": {
+              "type": "string",
+              "example": "nb"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AppOptions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppOption"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
+          }
+        }
+      }
     },
     "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/validate": {
       "summary": "Validate an app instance",
@@ -1965,6 +2125,10 @@
           "username": {
             "type": "string",
             "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -2703,10 +2867,6 @@
           "disallowUserDelete": {
             "type": "boolean"
           },
-          "allowInSubform": {
-            "type": "boolean",
-            "deprecated": true
-          },
           "shadowFields": {
             "$ref": "#/components/schemas/ShadowFields"
           }
@@ -3248,6 +3408,38 @@
           }
         },
         "additionalProperties": {}
+      },
+      "AppOption": {
+        "required": [
+          "label",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "helpText": {
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "SimpleKeyvalues": {
         "type": "object",

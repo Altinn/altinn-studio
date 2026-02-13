@@ -1,3 +1,5 @@
 {
-  "repoType": "App"
+  "repoType": "App",
+  "imports": null,
+  "useNullableReferenceTypes": false
 }

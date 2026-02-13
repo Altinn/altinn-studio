@@ -2,7 +2,7 @@ import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { Button } from 'src/app-components/Button/Button';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
+import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
@@ -11,11 +11,17 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useNavigatePage, useNextPageKey, usePreviousPageKey } from 'src/hooks/useNavigatePage';
+import {
+  useCurrentProcessKey,
+  useIsAnyProcessing,
+  useProcessingMutationWithKey,
+} from 'src/hooks/useProcessingMutation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
+import type { NavigatePageProcessKey } from 'src/hooks/useProcessingMutation';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type Props = Pick<PropsFromGenericComponent<'NavigationButtons'>, 'baseComponentId'>;
@@ -76,12 +82,12 @@ function NavigationButtonsComponentInner({
   const { langAsString } = useLanguage();
 
   const [searchParams] = useSearchParams();
-  const backToPage = searchParams.get('backToPage');
+  const backToPage = searchParams.get(SearchParams.BackToPage);
   const showBackToPageButton = !!backToPage;
 
-  const { performProcess, isAnyProcessing, process } = useIsProcessing<
-    'next' | 'previous' | 'backToSummary' | 'backToPage'
-  >();
+  const performProcess = useProcessingMutationWithKey<NavigatePageProcessKey>('navigate-page');
+  const currentProcessKey = useCurrentProcessKey<NavigatePageProcessKey>('navigate-page');
+  const isAnyProcessing = useIsAnyProcessing();
 
   const nextTextKey = textResourceBindings?.next || 'next';
   const backTextKey = textResourceBindings?.back || 'back';
@@ -179,7 +185,7 @@ function NavigationButtonsComponentInner({
         {showBackToPageButton && (
           <Button
             disabled={isAnyProcessing}
-            isLoading={process === 'backToPage'}
+            isLoading={currentProcessKey === 'backToPage'}
             onClick={onClickBackToPage}
           >
             <Lang
@@ -191,7 +197,7 @@ function NavigationButtonsComponentInner({
         {showBackToSummaryButton && (
           <Button
             disabled={isAnyProcessing}
-            isLoading={process === 'backToSummary'}
+            isLoading={currentProcessKey === 'backToSummary'}
             onClick={onClickBackToSummary}
           >
             <Lang id={returnToViewText} />
@@ -200,7 +206,7 @@ function NavigationButtonsComponentInner({
         {showNextButton && (
           <Button
             disabled={isAnyProcessing || attachmentsPending}
-            isLoading={process === 'next'}
+            isLoading={currentProcessKey === 'next'}
             onClick={onClickNext}
             // If we are showing a back to summary button, we want the "next" button to be secondary
             variant={showBackToSummaryButton || showBackToPageButton ? 'secondary' : 'primary'}
@@ -211,7 +217,7 @@ function NavigationButtonsComponentInner({
         {hasPrevious && showBackButton && (
           <Button
             disabled={isAnyProcessing}
-            isLoading={process === 'previous'}
+            isLoading={currentProcessKey === 'previous'}
             variant={showNextButton || showBackToSummaryButton ? 'secondary' : 'primary'}
             onClick={onClickPrevious}
           >

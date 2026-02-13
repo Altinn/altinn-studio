@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Models.Layout.Components;
 /// <summary>
 /// Tag component to signify that this is a grid component
 /// </summary>
-public sealed class GridComponent : SimpleReferenceComponent
+public sealed class GridComponent : ReferenceComponent
 {
     /// <summary>
     /// Parser for GridComponent

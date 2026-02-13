@@ -16,6 +16,9 @@ public class FormDataWrapperAnalyzer : DiagnosticAnalyzer
 
     private void CompilationAnalysisAction(CompilationAnalysisContext compilationContext)
     {
+        if (!compilationContext.Options.AnalyzerConfigOptionsProvider.IsAltinnApp())
+            return;
+
         var appMetadataFiles = compilationContext
             .Options.AdditionalFiles.Where(FormDataWrapperUtils.IsApplicationMetadataFile)
             .ToList();

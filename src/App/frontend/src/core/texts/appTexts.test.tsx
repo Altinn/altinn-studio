@@ -6,9 +6,10 @@ import { screen } from '@testing-library/react';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { resourcesAsMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource } from 'src/features/language/textResources';
-import type { IAltinnOrg, IAltinnOrgs } from 'src/types/shared';
+import type { OrgName } from 'src/global';
 
 function AppTextsRenderer() {
   const appName = useAppName();
@@ -23,24 +24,28 @@ function AppTextsRenderer() {
 
 interface RenderProps {
   textResources?: IRawTextResource[];
-  orgs?: IAltinnOrgs;
+  orgName?: OrgName;
   nbTitle?: string;
 }
 
-async function render({ nbTitle, textResources = [], orgs = {} }: RenderProps) {
+async function render({ nbTitle, textResources = [], orgName }: RenderProps) {
   const overrides = nbTitle ? { title: { nb: nbTitle } } : {};
   jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock(overrides));
+  jest.mocked(useTextResources).mockImplementation(() => resourcesAsMap(textResources));
 
-  return await renderWithoutInstanceAndLayout({
+  const savedOrgName = window.altinnAppGlobalData.orgName;
+  window.altinnAppGlobalData.orgName = orgName;
+
+  const result = await renderWithoutInstanceAndLayout({
     renderer: () => <AppTextsRenderer />,
-    queries: {
-      fetchTextResources: async () => ({
-        language: 'nb',
-        resources: textResources,
-      }),
-      fetchOrgs: async () => ({ orgs }),
-    },
   });
+
+  return {
+    ...result,
+    cleanup: () => {
+      window.altinnAppGlobalData.orgName = savedOrgName;
+    },
+  };
 }
 
 describe('appTexts', () => {
@@ -115,38 +120,33 @@ describe('appTexts', () => {
 
   describe('useAppOwner', () => {
     it('should return app owner if defined by appOwner key', async () => {
-      await render({
+      const { cleanup } = await render({
         textResources: [
           {
             id: 'appOwner',
             value: 'NameFromResources',
           },
         ],
-        orgs: {
-          ttd: {
-            name: { nb: 'NameFromOrg' },
-          } as unknown as IAltinnOrg,
-        },
+        orgName: { nb: 'NameFromOrg' },
       });
 
       expect(screen.getByTestId('appOwner')).toHaveTextContent('NameFromResources');
+      cleanup();
     });
 
-    it('should fall back on altinn-orgs if no text resource is defined', async () => {
-      await render({
-        orgs: {
-          mockOrg: {
-            name: { nb: 'NameFromOrg' },
-          } as unknown as IAltinnOrg,
-        },
+    it('should fall back on orgName from global data if no text resource is defined', async () => {
+      const { cleanup } = await render({
+        orgName: { nb: 'NameFromOrg' },
       });
 
       expect(screen.getByTestId('appOwner')).toHaveTextContent('NameFromOrg');
+      cleanup();
     });
 
-    it('should return undefined value is not set by appOwner key and no text defined in org', async () => {
-      await render({});
+    it('should return undefined when appOwner key is not set and no org name in global data', async () => {
+      const { cleanup } = await render({});
       expect(screen.getByTestId('appOwner')).toHaveTextContent('');
+      cleanup();
     });
   });
 });
