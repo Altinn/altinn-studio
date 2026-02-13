@@ -28,7 +28,11 @@ export const ValidateCardContent = ({ scope, config, onChange }: ValidateCardCon
   return (
     <>
       {(isPerTask || isPerPage) && (
-        <TasksSelector isMultiple={isPerTask} onChange={handleTaskChange} />
+        <TasksSelector
+          currentTasks={config.tasks}
+          isMultiple={isPerTask}
+          onChange={handleTaskChange}
+        />
       )}
       {isPerPage && (
         <PagesSelector

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { ValidateCardContent, ValidateCardContentProps } from './ValidateCardContent';
+import { ValidateCardContent, type ValidateCardContentProps } from './ValidateCardContent';
 import { Scope } from './ValidateNavigationUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent, { UserEvent } from '@testing-library/user-event';

@@ -11,7 +11,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 const propertyLabel = 'Test Property';
 const allTasksCardLabel = textMock('ux_editor.settings.navigation_validation_all_tasks_card_label');
 
-describe('ValidateCardContent', () => {
+describe('ValidateNavigationConfig', () => {
   it('renders add validation rule button when in view mode', () => {
     renderValidateNavigationConfig({ scope: Scope.AllTasks });
 

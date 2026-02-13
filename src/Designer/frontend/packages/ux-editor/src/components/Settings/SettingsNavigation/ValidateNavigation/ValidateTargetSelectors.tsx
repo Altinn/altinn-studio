@@ -3,12 +3,17 @@ import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components'
 import { useTranslation } from 'react-i18next';
 
 type ValidationTypesProps = {
+  currentTasks: StudioSuggestionItem[];
   isMultiple?: boolean;
   onChange: (value: StudioSuggestionItem | StudioSuggestionItem[]) => void;
 };
 
-export const TasksSelector = ({ isMultiple = true, onChange }: ValidationTypesProps) => {
-  const tasks = ['Oppgave 1', 'Oppgave 2', 'Oppgave 3']; // Temporary mock list of tasks, extract from layout sets on next PR
+export const TasksSelector = ({
+  currentTasks,
+  isMultiple = true,
+  onChange,
+}: ValidationTypesProps) => {
+  const tasks = currentTasks || ['Oppgave 1', 'Oppgave 2', 'Oppgave 3']; // Temporary mock list of tasks, extract from layout sets on next PR
   const { t } = useTranslation();
 
   const labelSelector = isMultiple
