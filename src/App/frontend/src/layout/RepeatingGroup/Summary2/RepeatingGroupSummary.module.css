@@ -11,7 +11,7 @@
 }
 
 .rowDivider {
-  height: var(--ds-border-width-highlight);
+  height: var(--ds-border-width-default);
   border: none;
   background-color: var(--ds-color-neutral-border-strong);
   margin: 0;

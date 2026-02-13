@@ -38,7 +38,6 @@ import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
-import { typedBoolean } from 'src/utils/typing';
 import type {
   GridCell,
   GridCellLabelFrom,
@@ -197,7 +196,7 @@ function SummaryGridRowRenderer(props: GridRowProps) {
       hideWhen={hideEmptyRows}
       render={(className) => (
         <Table.Row className={cn(className, extraClassName)}>
-          {row.cells.filter(typedBoolean).map((cell, cellIdx) => (
+          {row.cells.map((cell, cellIdx) => (
             <SummaryCell
               key={cellIdx}
               cell={cell}
