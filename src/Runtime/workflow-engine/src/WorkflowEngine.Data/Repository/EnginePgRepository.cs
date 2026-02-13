@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Npgsql;
+using NpgsqlTypes;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Entities;
 using WorkflowEngine.Models;
@@ -18,13 +21,13 @@ internal sealed class EnginePgRepository : IEngineRepository
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<EnginePgRepository> _logger;
     private readonly EngineSettings _settings;
-    private readonly ConcurrencyLimiter _limiter;
+    private readonly IConcurrencyLimiter _limiter;
 
     public EnginePgRepository(
         EngineDbContext context,
         IOptions<EngineSettings> settings,
         ILogger<EnginePgRepository> logger,
-        ConcurrencyLimiter limiter,
+        IConcurrencyLimiter limiter,
         TimeProvider? timeProvider = null
     )
     {
@@ -36,12 +39,9 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflows(
-        bool bypassConcurrencyLimit = true,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflows(CancellationToken cancellationToken = default)
     {
-        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.FetchingWorkflows("active");
@@ -52,6 +52,10 @@ internal sealed class EnginePgRepository : IEngineRepository
 
             return result;
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.FailedToFetchWorkflows(ex.Message, ex);
@@ -60,12 +64,9 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(
-        bool bypassConcurrencyLimit = true,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(CancellationToken cancellationToken = default)
     {
-        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.FetchingWorkflows("scheduled");
@@ -76,6 +77,10 @@ internal sealed class EnginePgRepository : IEngineRepository
 
             return result;
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.FailedToFetchWorkflows(ex.Message, ex);
@@ -84,12 +89,9 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetFailedWorkflows(
-        bool bypassConcurrencyLimit = true,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<IReadOnlyList<Workflow>> GetFailedWorkflows(CancellationToken cancellationToken = default)
     {
-        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.FetchingWorkflows("failed");
@@ -100,6 +102,10 @@ internal sealed class EnginePgRepository : IEngineRepository
 
             return result;
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.FailedToFetchWorkflows(ex.Message, ex);
@@ -108,12 +114,9 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<int> CountActiveWorkflows(
-        bool bypassConcurrencyLimit = true,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<int> CountActiveWorkflows(CancellationToken cancellationToken = default)
     {
-        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.CountingWorkflows("active");
@@ -124,6 +127,10 @@ internal sealed class EnginePgRepository : IEngineRepository
 
             return result;
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.FailedToFetchWorkflows(ex.Message, ex);
@@ -132,12 +139,9 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<int> CountScheduledWorkflows(
-        bool bypassConcurrencyLimit = true,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<int> CountScheduledWorkflows(CancellationToken cancellationToken = default)
     {
-        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.CountingWorkflows("scheduled");
@@ -148,6 +152,10 @@ internal sealed class EnginePgRepository : IEngineRepository
 
             return result;
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.FailedToFetchWorkflows(ex.Message, ex);
@@ -156,12 +164,9 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<int> CountFailedWorkflows(
-        bool bypassConcurrencyLimit = true,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<int> CountFailedWorkflows(CancellationToken cancellationToken = default)
     {
-        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.CountingWorkflows("failed");
@@ -172,6 +177,10 @@ internal sealed class EnginePgRepository : IEngineRepository
 
             return result;
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.FailedToFetchWorkflows(ex.Message, ex);
@@ -180,13 +189,9 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<Workflow> AddWorkflow(
-        EngineRequest engineRequest,
-        bool bypassConcurrencyLimit = false,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<Workflow> AddWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default)
     {
-        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.AddingWorkflow(engineRequest);
@@ -201,6 +206,10 @@ internal sealed class EnginePgRepository : IEngineRepository
 
             return result; // Result contains updated `Id`
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.FailedToAddWorkflows(ex.Message, ex);
@@ -209,13 +218,9 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task UpdateWorkflow(
-        Workflow workflow,
-        bool bypassConcurrencyLimit = false,
-        CancellationToken cancellationToken = default
-    )
+    public async Task UpdateWorkflow(Workflow workflow, CancellationToken cancellationToken = default)
     {
-        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.UpdatingWorkflow(workflow);
@@ -239,6 +244,10 @@ internal sealed class EnginePgRepository : IEngineRepository
 
             _logger.SuccessfullyUpdatedWorkflow(workflow);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.FailedToUpdateWorkflow(workflow.IdempotencyKey, workflow.DatabaseId, ex.Message, ex);
@@ -249,15 +258,16 @@ internal sealed class EnginePgRepository : IEngineRepository
     /// <inheritdoc/>
     public async Task UpdateStep(
         Step step,
-        bool bypassConcurrencyLimit = false,
+        bool dontUpdateTimestamp = false,
         CancellationToken cancellationToken = default
     )
     {
-        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.UpdatingStep(step);
-            step.UpdatedAt = _timeProvider.GetUtcNow();
+            var now = _timeProvider.GetUtcNow();
+            step.UpdatedAt = dontUpdateTimestamp ? step.UpdatedAt ?? now : now;
 
             await ExecuteWithRetry(
                 async ct =>
@@ -279,6 +289,10 @@ internal sealed class EnginePgRepository : IEngineRepository
 
             _logger.SuccessfullyUpdatedStep(step);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.FailedToUpdateStep(step.IdempotencyKey, step.DatabaseId, ex.Message, ex);
@@ -286,10 +300,82 @@ internal sealed class EnginePgRepository : IEngineRepository
         }
     }
 
-    private async Task<IDisposable?> AcquireDbSlotIfRequired(
-        bool bypassConcurrencyLimit,
-        CancellationToken cancellationToken
-    ) => bypassConcurrencyLimit ? null : await _limiter.AcquireDbSlotAsync(cancellationToken);
+    /// <inheritdoc/>
+    [SuppressMessage("Critical Code Smell", "S3265:Non-flags enums should not be used in bitwise operations")]
+    [SuppressMessage("ReSharper", "BitwiseOperatorOnEnumWithoutFlags")]
+    public async Task BatchUpdateSteps(
+        IReadOnlyList<Step> steps,
+        bool dontUpdateTimestamps = false,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (!steps.Any())
+            return;
+
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
+        try
+        {
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    var now = _timeProvider.GetUtcNow();
+                    foreach (var step in steps)
+                        step.UpdatedAt = dontUpdateTimestamps ? step.UpdatedAt ?? now : now;
+
+                    await _context.Database.ExecuteSqlRawAsync(
+                        """
+                        UPDATE "Steps" AS s
+                        SET "Status" = v."Status",
+                            "BackoffUntil" = v."BackoffUntil",
+                            "RequeueCount" = v."RequeueCount",
+                            "UpdatedAt" = v."UpdatedAt"
+                        FROM unnest(@ids, @statuses, @backoffs, @requeueCounts, @updatedAts)
+                            AS v("Id", "Status", "BackoffUntil", "RequeueCount", "UpdatedAt")
+                        WHERE s."Id" = v."Id"
+                        """,
+                        [
+                            new NpgsqlParameter("ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint)
+                            {
+                                Value = steps.Select(s => s.DatabaseId).ToArray(),
+                            },
+                            new NpgsqlParameter("statuses", NpgsqlDbType.Array | NpgsqlDbType.Integer)
+                            {
+                                Value = steps.Select(s => (int)s.Status).ToArray(),
+                            },
+                            new NpgsqlParameter("backoffs", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
+                            {
+                                Value = steps.Select(s => s.BackoffUntil).ToArray(),
+                            },
+                            new NpgsqlParameter("requeueCounts", NpgsqlDbType.Array | NpgsqlDbType.Integer)
+                            {
+                                Value = steps.Select(s => s.RequeueCount).ToArray(),
+                            },
+                            new NpgsqlParameter("updatedAts", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
+                            {
+                                Value = steps.Select(s => s.UpdatedAt!.Value).ToArray(),
+                            },
+                        ],
+                        ct
+                    );
+
+                    foreach (var step in steps)
+                        step.HasPendingChanges = false;
+                },
+                cancellationToken
+            );
+
+            _logger.SuccessfullyUpdatedSteps(steps.Count);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToUpdateSteps(steps.Count, ex.Message, ex);
+            throw;
+        }
+    }
 
     private async Task ExecuteWithRetry(
         Func<CancellationToken, Task> operation,
@@ -335,6 +421,7 @@ internal sealed class EnginePgRepository : IEngineRepository
             TimeoutException => RetryDecision.Retry,
             SocketException => RetryDecision.Retry,
             HttpRequestException => RetryDecision.Retry,
+            InvalidOperationException => RetryDecision.Abort,
 
             // Database-specific transient errors - retryable
             _ when exception.GetType().Name.Contains("timeout", StringComparison.OrdinalIgnoreCase) =>
@@ -347,7 +434,6 @@ internal sealed class EnginePgRepository : IEngineRepository
             // Permanent errors - don't retry
             ArgumentNullException => RetryDecision.Abort,
             ArgumentException => RetryDecision.Abort,
-            InvalidOperationException => RetryDecision.Abort,
 
             // Default to retrying for unknown exceptions
             _ => RetryDecision.Retry,
@@ -375,16 +461,14 @@ internal static class EnginePgRepositoryQueries
         public IQueryable<WorkflowEntity> GetActiveWorkflows() =>
             dbContext
                 .Workflows.Include(j => j.Steps)
-                .Where(x =>
-                    x.Steps.Any(y => y.StartAt <= DateTime.UtcNow && _incompleteItemStatuses.Contains(y.Status))
-                );
+                .Where(x => x.StartAt == null || x.StartAt <= DateTime.UtcNow)
+                .Where(x => x.Steps.Any(y => _incompleteItemStatuses.Contains(y.Status)));
 
         public IQueryable<WorkflowEntity> GetScheduledWorkflows() =>
             dbContext
                 .Workflows.Include(j => j.Steps)
-                .Where(x =>
-                    x.Steps.Any(y => y.StartAt > DateTime.UtcNow && _incompleteItemStatuses.Contains(y.Status))
-                );
+                .Where(x => x.StartAt == null || x.StartAt <= DateTime.UtcNow)
+                .Where(x => x.Steps.Any(y => _incompleteItemStatuses.Contains(y.Status)));
 
         public IQueryable<WorkflowEntity> GetFailedWorkflows() =>
             dbContext.Workflows.Include(j => j.Steps).Where(x => _failedItemStatuses.Contains(x.Status));
@@ -459,6 +543,20 @@ internal static partial class EnginePgRepositoryLogs
         this ILogger<EnginePgRepository> logger,
         string workflowIdentifier,
         long databaseId,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Debug, "Successfully updated {StepCount} steps in database")]
+    internal static partial void SuccessfullyUpdatedSteps(this ILogger<EnginePgRepository> logger, int stepCount);
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Failed to update {StepCount} steps in database after all retries exhausted. Database down? Error: {Message}"
+    )]
+    internal static partial void FailedToUpdateSteps(
+        this ILogger<EnginePgRepository> logger,
+        int stepCount,
         string message,
         Exception ex
     );

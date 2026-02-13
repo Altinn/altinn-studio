@@ -4,7 +4,7 @@ using WorkflowEngine.Resilience;
 
 namespace WorkflowEngine.Api;
 
-internal sealed class EngineHealthCheck(IEngine engine, ConcurrencyLimiter concurrencyLimiter) : IHealthCheck
+internal sealed class EngineHealthCheck(IEngine engine, IConcurrencyLimiter concurrencyLimiter) : IHealthCheck
 {
     /// <summary>
     /// Unhealthy: engine is stopped or explicitly unhealthy.

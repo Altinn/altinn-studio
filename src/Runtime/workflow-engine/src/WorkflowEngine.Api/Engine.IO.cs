@@ -84,11 +84,7 @@ internal partial class Engine
         using (var scope = _serviceProvider.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-            var workflow = await repository.AddWorkflow(
-                engineRequest,
-                bypassConcurrencyLimit: false, // TODO: Remove
-                cancellationToken: cancellationToken
-            );
+            var workflow = await repository.AddWorkflow(engineRequest, cancellationToken: cancellationToken);
             _inbox[engineRequest.IdempotencyKey] = workflow;
         }
         _newWorkSignal.TrySetResult();
@@ -168,7 +164,28 @@ internal partial class Engine
         await repository.UpdateWorkflow(workflow, cancellationToken: cancellationToken);
     }
 
+    private async Task UpdateWorkflowAndStepsInDb(Workflow workflow, CancellationToken cancellationToken)
+    {
+        using var activity = Telemetry.Source.StartActivity(
+            "Engine.UpdateWorkflowAndStepsInDb",
+            parentContext: workflow.EngineTraceContext,
+            tags: [("workflow.status", workflow.Status.ToString()), ("workflow.steps.count", workflow.Steps.Count)]
+        );
+
+        using var scope = _serviceProvider.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+        await repository.UpdateWorkflow(workflow, cancellationToken: cancellationToken);
+        await repository.BatchUpdateSteps(
+            workflow.Steps.Where(x => x.HasPendingChanges).ToList(),
+            dontUpdateTimestamps: true,
+            cancellationToken: cancellationToken
+        );
+    }
+
+    // Keep for now
+#pragma warning disable S1144
     private async Task UpdateStepInDb(Step step, CancellationToken cancellationToken)
+#pragma warning restore S1144
     {
         using var activity = Telemetry.Source.StartActivity(
             "Engine.UpdateStepInDb",

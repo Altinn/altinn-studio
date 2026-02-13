@@ -28,8 +28,6 @@ internal sealed class StepEntity : IHasCommonMetadata
 
     public int ProcessingOrder { get; set; }
 
-    public DateTimeOffset? StartAt { get; set; }
-
     public DateTimeOffset? BackoffUntil { get; set; }
 
     public int RequeueCount { get; set; }
@@ -62,7 +60,6 @@ internal sealed class StepEntity : IHasCommonMetadata
             CreatedAt = step.CreatedAt,
             UpdatedAt = step.UpdatedAt,
             ProcessingOrder = step.ProcessingOrder,
-            StartAt = step.StartAt,
             BackoffUntil = step.BackoffUntil,
             RequeueCount = step.RequeueCount,
             ActorUserIdOrOrgNumber = step.Actor.UserIdOrOrgNumber,
@@ -89,7 +86,6 @@ internal sealed class StepEntity : IHasCommonMetadata
             ProcessingOrder = ProcessingOrder,
             CreatedAt = CreatedAt,
             UpdatedAt = UpdatedAt,
-            StartAt = StartAt,
             BackoffUntil = BackoffUntil,
             RequeueCount = RequeueCount,
             Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },

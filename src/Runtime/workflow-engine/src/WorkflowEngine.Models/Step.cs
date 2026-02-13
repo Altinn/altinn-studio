@@ -11,13 +11,13 @@ public sealed record Step : PersistentItem
     public required Command Command { get; init; }
     public required Actor Actor { get; init; }
 
-    public DateTimeOffset? StartAt { get; init; }
     public DateTimeOffset? BackoffUntil { get; set; }
     public RetryStrategy? RetryStrategy { get; init; }
     public int RequeueCount { get; set; }
     public Task<ExecutionResult>? ExecutionTask { get; set; }
 
     public DateTimeOffset? ExecutionStartedAt { get; set; }
+    public bool HasPendingChanges { get; set; }
 
     public static Step FromRequest(EngineRequest parent, StepRequest request, DateTimeOffset createdAt, int index) =>
         new()
@@ -27,7 +27,6 @@ public sealed record Step : PersistentItem
             OperationId = request.Command.OperationId,
             Actor = parent.Actor,
             CreatedAt = createdAt,
-            StartAt = request.StartAt,
             ProcessingOrder = index,
             Command = request.Command,
             RetryStrategy = request.RetryStrategy,

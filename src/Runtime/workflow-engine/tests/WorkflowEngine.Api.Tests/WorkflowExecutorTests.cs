@@ -3,7 +3,6 @@ using System.Text.Json;
 using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Api.Tests.Fixtures;
 using WorkflowEngine.Models;
-using WorkflowEngine.Models.Extensions;
 
 namespace WorkflowEngine.Api.Tests;
 

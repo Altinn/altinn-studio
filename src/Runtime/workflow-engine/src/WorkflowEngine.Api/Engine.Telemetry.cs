@@ -65,7 +65,7 @@ internal partial class Engine
 
     private void RecordWorkflowTotalTime(Workflow workflow)
     {
-        var scheduledStart = workflow.OrderedSteps().First().GetActualStartTime();
+        var scheduledStart = workflow.StartAt ?? workflow.CreatedAt;
         var totalDuration = _timeProvider.GetUtcNow().Subtract(scheduledStart).TotalSeconds;
         Telemetry.WorkflowTotalTime.Record(totalDuration, workflow.GetHistorgramTags());
     }

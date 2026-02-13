@@ -40,7 +40,7 @@ internal static class ServiceCollectionExtensions
                         new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) }
                     );
                 });
-            services.AddSingleton<ConcurrencyLimiter>(sp =>
+            services.AddSingleton<IConcurrencyLimiter, ConcurrencyLimiter>(sp =>
             {
                 var settings = sp.GetRequiredService<IOptions<EngineSettings>>().Value;
                 return new ConcurrencyLimiter(settings.MaxConcurrentDbOperations, settings.MaxConcurrentHttpCalls);

@@ -25,6 +25,8 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
 
     public DateTimeOffset CreatedAt { get; set; }
 
+    public DateTimeOffset? StartAt { get; set; }
+
     public DateTimeOffset? UpdatedAt { get; set; }
 
     [MaxLength(50)]
@@ -56,6 +58,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             InstanceLockKey = workflow.InstanceLockKey,
             OperationId = workflow.OperationId,
             CreatedAt = workflow.CreatedAt,
+            StartAt = workflow.StartAt,
             UpdatedAt = workflow.UpdatedAt,
             Status = workflow.Status,
             ActorUserIdOrOrgNumber = workflow.Actor.UserIdOrOrgNumber,
@@ -76,6 +79,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             InstanceLockKey = InstanceLockKey,
             OperationId = OperationId,
             CreatedAt = CreatedAt,
+            StartAt = StartAt,
             UpdatedAt = UpdatedAt,
             Status = Status,
             Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },

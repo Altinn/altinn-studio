@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
@@ -27,6 +28,8 @@ internal partial class Engine
                 {
                     while (!_cancellationTokenSource.IsCancellationRequested)
                     {
+                        var stopwatch = Stopwatch.StartNew();
+
                         try
                         {
                             await MainLoop(_cancellationTokenSource.Token);
@@ -42,6 +45,11 @@ internal partial class Engine
                         {
                             _logger.UnhandledMainloopException(ex.Message, ex);
                             Status |= EngineHealthStatus.Unhealthy;
+                        }
+                        finally
+                        {
+                            stopwatch.Stop();
+                            Telemetry.EngineMainLoopTotalTime.Record(stopwatch.Elapsed.TotalSeconds);
                         }
                     }
                 }

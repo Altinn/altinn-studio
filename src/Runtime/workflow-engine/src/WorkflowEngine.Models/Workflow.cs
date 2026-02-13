@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace WorkflowEngine.Models;
 
 public sealed record Workflow : PersistentItem
@@ -7,8 +5,10 @@ public sealed record Workflow : PersistentItem
     public string? InstanceLockKey { get; init; }
     public required Actor Actor { get; init; }
     public required InstanceInformation InstanceInformation { get; init; }
+    public DateTimeOffset? StartAt { get; init; }
     public required IReadOnlyList<Step> Steps { get; init; }
 
+    public Task? DatabaseTask { get; set; }
     public DateTimeOffset? ExecutionStartedAt { get; set; }
 
     public static Workflow FromRequest(EngineRequest engineRequest) =>
@@ -19,6 +19,7 @@ public sealed record Workflow : PersistentItem
             InstanceInformation = engineRequest.InstanceInformation,
             Actor = engineRequest.Actor,
             CreatedAt = engineRequest.CreatedAt,
+            StartAt = engineRequest.StartAt,
             DistributedTraceContext = engineRequest.TraceContext,
             OperationId = engineRequest.OperationId,
             Steps = engineRequest

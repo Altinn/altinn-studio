@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Moq;
 using WorkflowEngine.Models;
+using WorkflowEngine.Resilience;
 
 namespace WorkflowEngine.Api.Tests;
 
@@ -14,7 +15,11 @@ public class EngineHealthCheckTests
         var engineMock = new Mock<IEngine>();
         engineMock.Setup(e => e.Status).Returns(status);
         engineMock.Setup(e => e.InboxCount).Returns(inboxCount);
-        return (new EngineHealthCheck(engineMock.Object), engineMock);
+        var concurrencyLimiterMock = new Mock<IConcurrencyLimiter>();
+        concurrencyLimiterMock.Setup(x => x.DbSlotStatus).Returns(new ConcurrencyLimiter.SlotStatus(50, 50, 100));
+        concurrencyLimiterMock.Setup(x => x.HttpSlotStatus).Returns(new ConcurrencyLimiter.SlotStatus(50, 50, 100));
+
+        return (new EngineHealthCheck(engineMock.Object, concurrencyLimiterMock.Object), engineMock);
     }
 
     [Fact]
@@ -134,6 +139,6 @@ public class EngineHealthCheckTests
         // Assert
         Assert.NotNull(result.Data);
         Assert.Equal("Healthy, Running", result.Data["status"]);
-        Assert.Equal(42, result.Data["queue"]);
+        Assert.True(result.Data["queue"] is Dictionary<string, int> dict && dict["count"] == 42);
     }
 }

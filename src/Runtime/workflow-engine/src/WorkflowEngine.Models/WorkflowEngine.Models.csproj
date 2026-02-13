@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="WorkflowEngine.Data" />
+    <InternalsVisibleTo Include="WorkflowEngine.Api" />
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
   </ItemGroup>
 

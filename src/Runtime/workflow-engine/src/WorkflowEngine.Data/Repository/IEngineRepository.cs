@@ -10,65 +10,54 @@ public interface IEngineRepository
     /// <summary>
     /// Gets all active workflows.
     /// </summary>
-    Task<IReadOnlyList<Workflow>> GetActiveWorkflows(
-        bool bypassConcurrencyLimit = true,
-        CancellationToken cancellationToken = default
-    );
+    Task<IReadOnlyList<Workflow>> GetActiveWorkflows(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all scheduled workflows.
     /// </summary>
-    Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(
-        bool bypassConcurrencyLimit = true,
-        CancellationToken cancellationToken = default
-    );
+    Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all failed workflows.
     /// </summary>
-    Task<IReadOnlyList<Workflow>> GetFailedWorkflows(
-        bool bypassConcurrencyLimit = true,
-        CancellationToken cancellationToken = default
-    );
+    Task<IReadOnlyList<Workflow>> GetFailedWorkflows(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the number of active workflows.
     /// </summary>
-    Task<int> CountActiveWorkflows(bool bypassConcurrencyLimit = true, CancellationToken cancellationToken = default);
+    Task<int> CountActiveWorkflows(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the number of scheduled workflows.
     /// </summary>
-    Task<int> CountScheduledWorkflows(
-        bool bypassConcurrencyLimit = true,
-        CancellationToken cancellationToken = default
-    );
+    Task<int> CountScheduledWorkflows(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the number of failed workflows.
     /// </summary>
-    Task<int> CountFailedWorkflows(bool bypassConcurrencyLimit = true, CancellationToken cancellationToken = default);
+    Task<int> CountFailedWorkflows(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Adds a new workflow to the repository.
     /// </summary>
-    Task<Workflow> AddWorkflow(
-        EngineRequest engineRequest,
-        bool bypassConcurrencyLimit = false,
-        CancellationToken cancellationToken = default
-    );
+    Task<Workflow> AddWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates a workflow in the repository.
     /// </summary>
-    Task UpdateWorkflow(
-        Workflow workflow,
-        bool bypassConcurrencyLimit = false,
-        CancellationToken cancellationToken = default
-    );
+    Task UpdateWorkflow(Workflow workflow, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the specified step in the workflow repository.
     /// </summary>
-    Task UpdateStep(Step step, bool bypassConcurrencyLimit = false, CancellationToken cancellationToken = default);
+    Task UpdateStep(Step step, bool dontUpdateTimestamp = false, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates the supplied steps in a single transaction.
+    /// </summary>
+    Task BatchUpdateSteps(
+        IReadOnlyList<Step> steps,
+        bool dontUpdateTimestamps = false,
+        CancellationToken cancellationToken = default
+    );
 }

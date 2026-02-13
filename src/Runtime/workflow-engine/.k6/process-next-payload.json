@@ -17,20 +17,6 @@
         { "command": { "type": "app", "commandKey": "StartTaskLegacyHook" } },
         { "command": { "type": "app", "commandKey": "OnTaskStartingHook" } },
         { "command": { "type": "app", "commandKey": "ProcessTaskStart" } },
-        { "command": { "type": "app", "commandKey": "MovedToAltinnEvent" } },
-        {
-            "command": {
-                "type": "webhook",
-                "uri": "http://localhost:6060/webhook-get"
-            }
-        },
-        {
-            "command": {
-                "type": "webhook",
-                "uri": "http://localhost:6060/webhook-post",
-                "payload": "{\"key\":\"value\"}",
-                "contentType": "application/json"
-            }
-        }
+        { "command": { "type": "app", "commandKey": "MovedToAltinnEvent" } }
     ]
 }

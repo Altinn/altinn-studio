@@ -6,7 +6,6 @@ public class StepExtensionsTests
 {
     private static Step CreateStep(
         PersistentItemStatus status = PersistentItemStatus.Enqueued,
-        DateTimeOffset? startAt = null,
         DateTimeOffset? backoffUntil = null,
         DateTimeOffset? createdAt = null
     ) =>
@@ -18,7 +17,6 @@ public class StepExtensionsTests
             ProcessingOrder = 0,
             Command = new Command.Debug.Noop(),
             Status = status,
-            StartAt = startAt,
             BackoffUntil = backoffUntil,
             CreatedAt = createdAt ?? DateTimeOffset.UtcNow,
         };
@@ -52,20 +50,6 @@ public class StepExtensionsTests
     }
 
     [Fact]
-    public void IsReadyForExecution_ReturnsFalse_WhenStartAtInFuture()
-    {
-        // Arrange
-        var now = DateTimeOffset.UtcNow;
-        var step = CreateStep(startAt: now.AddMinutes(5));
-
-        // Act
-        var result = step.IsReadyForExecution(now);
-
-        // Assert
-        Assert.False(result);
-    }
-
-    [Fact]
     public void IsReadyForExecution_ReturnsTrue_WhenBackoffUntilInPast()
     {
         // Arrange
@@ -77,64 +61,6 @@ public class StepExtensionsTests
 
         // Assert
         Assert.True(result);
-    }
-
-    [Fact]
-    public void IsReadyForExecution_ReturnsTrue_WhenStartAtInPast()
-    {
-        // Arrange
-        var now = DateTimeOffset.UtcNow;
-        var step = CreateStep(startAt: now.AddMinutes(-5));
-
-        // Act
-        var result = step.IsReadyForExecution(now);
-
-        // Assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void GetActualStartTime_ReturnsCreatedAt_WhenStartAtIsNull()
-    {
-        // Arrange
-        var createdAt = DateTimeOffset.UtcNow;
-        var step = CreateStep(createdAt: createdAt);
-
-        // Act
-        var result = step.GetActualStartTime();
-
-        // Assert
-        Assert.Equal(createdAt, result);
-    }
-
-    [Fact]
-    public void GetActualStartTime_ReturnsStartAt_WhenStartAtIsAfterCreatedAt()
-    {
-        // Arrange
-        var createdAt = DateTimeOffset.UtcNow;
-        var startAt = createdAt.AddMinutes(10);
-        var step = CreateStep(startAt: startAt, createdAt: createdAt);
-
-        // Act
-        var result = step.GetActualStartTime();
-
-        // Assert
-        Assert.Equal(startAt, result);
-    }
-
-    [Fact]
-    public void GetActualStartTime_ReturnsCreatedAt_WhenStartAtIsBeforeCreatedAt()
-    {
-        // Arrange
-        var createdAt = DateTimeOffset.UtcNow;
-        var startAt = createdAt.AddMinutes(-10);
-        var step = CreateStep(startAt: startAt, createdAt: createdAt);
-
-        // Act
-        var result = step.GetActualStartTime();
-
-        // Assert
-        Assert.Equal(createdAt, result);
     }
 
     [Theory]

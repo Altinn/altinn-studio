@@ -26,7 +26,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
     private readonly AppCommandSettings _appCommandSettings;
     private readonly ILogger<WorkflowExecutor> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ConcurrencyLimiter _limiter;
+    private readonly IConcurrencyLimiter _limiter;
 
     public WorkflowExecutor(IServiceProvider serviceProvider)
     {
@@ -34,7 +34,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
         _engineSettings = serviceProvider.GetRequiredService<IOptions<EngineSettings>>().Value;
         _appCommandSettings = serviceProvider.GetRequiredService<IOptions<AppCommandSettings>>().Value;
         _logger = serviceProvider.GetRequiredService<ILogger<WorkflowExecutor>>();
-        _limiter = serviceProvider.GetRequiredService<ConcurrencyLimiter>();
+        _limiter = serviceProvider.GetRequiredService<IConcurrencyLimiter>();
     }
 
     public async Task<ExecutionResult> Execute(Workflow workflow, Step step, CancellationToken cancellationToken)

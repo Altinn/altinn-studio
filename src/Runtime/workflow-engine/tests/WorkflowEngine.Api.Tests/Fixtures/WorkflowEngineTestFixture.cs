@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using WorkflowEngine.Models;
@@ -67,7 +66,7 @@ internal sealed record WorkflowEngineTestFixture(
         services.AddSingleton(Options.Create(engineSettings));
         services.AddSingleton(Options.Create(appCommandSettings));
         services.AddLogging();
-        services.AddSingleton(
+        services.AddSingleton<IConcurrencyLimiter>(
             new ConcurrencyLimiter(engineSettings.MaxConcurrentDbOperations, engineSettings.MaxConcurrentHttpCalls)
         );
 

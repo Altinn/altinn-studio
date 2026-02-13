@@ -10,7 +10,7 @@ internal sealed class MetricsCollector(
     ILogger<MetricsCollector> logger,
     IEngine engine,
     IEngineRepository engineRepository,
-    ConcurrencyLimiter concurrencyLimiter,
+    IConcurrencyLimiter concurrencyLimiter,
     TimeProvider timeProvider,
     IOptions<EngineSettings> engineSettings
 ) : BackgroundService

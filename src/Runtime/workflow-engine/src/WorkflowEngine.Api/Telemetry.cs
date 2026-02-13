@@ -11,6 +11,26 @@ internal static class Telemetry
     public static readonly Meter Meter = new(ServiceName);
 
     public static readonly Counter<long> Errors = Meter.CreateCounter<long>("engine.errors");
+
+    public static readonly Counter<long> EngineMainLoopIterations = Meter.CreateCounter<long>(
+        "engine.mainloop.iterations"
+    );
+    public static readonly Histogram<double> EngineMainLoopQueueTime = Meter.CreateHistogram<double>(
+        "engine.mainloop.time.queue",
+        "s",
+        "Amount of time the main loop spent waiting for tasks to complete and/or new workflows to arrive (seconds)."
+    );
+    public static readonly Histogram<double> EngineMainLoopServiceTime = Meter.CreateHistogram<double>(
+        "engine.mainloop.time.service",
+        "s",
+        "Amount of time the main loop spent actively executing workflows and/or database IO (seconds)."
+    );
+    public static readonly Histogram<double> EngineMainLoopTotalTime = Meter.CreateHistogram<double>(
+        "engine.mainloop.time.total",
+        "s",
+        "Amount of time the main loop spent on a full execution (seconds)."
+    );
+
     public static readonly Counter<long> WorkflowQueriesReceived = Meter.CreateCounter<long>(
         "engine.workflows.query.received"
     );
