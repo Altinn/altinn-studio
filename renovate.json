@@ -4,7 +4,9 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["\\.github/workflows/app-frontend-k6-browser\\.yml$"],
+      "managerFilePatterns": [
+        "/\\.github/workflows/app-frontend-k6-browser\\.yml$/"
+      ],
       "matchStrings": ["grafana/k6:(?<currentValue>[\\w.-]+)-with-browser"],
       "datasourceTemplate": "docker",
       "depNameTemplate": "grafana/k6",
@@ -72,11 +74,18 @@
     },
     {
       "matchFileNames": ["src/App/**"],
-      "matchPackageNames": ["/^Microsoft\\.CodeAnalysis/", "/^Microsoft\\.Build/"],
+      "matchPackageNames": [
+        "/^Microsoft\\.CodeAnalysis/",
+        "/^Microsoft\\.Build/"
+      ],
       "enabled": false
     },
     {
-      "matchFileNames": ["src/App/codelists/**", "src/App/fileanalyzers/**", "src/App/Designer/**"],
+      "matchFileNames": [
+        "src/App/codelists/**",
+        "src/App/fileanalyzers/**",
+        "src/App/Designer/**"
+      ],
       "ignoreDeps": ["Altinn.App.Core"]
     },
     {
