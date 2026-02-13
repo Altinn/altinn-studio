@@ -45,6 +45,11 @@ const contactPointFieldConfig: {
   },
 ];
 
+const isContactPointEmpty = (contact: ContactPoint): boolean =>
+  [contact.email, contact.telephone, contact.contactPage, contact.category].every(
+    (value) => !value?.trim(),
+  );
+
 export const ContactPointDialog = ({
   dialogRef,
   draftContactPoint,
@@ -53,10 +58,12 @@ export const ContactPointDialog = ({
   onClose,
 }: ContactPointDialogProps): ReactElement => {
   const { t } = useTranslation();
+  const isSaveDisabled = isContactPointEmpty(draftContactPoint);
 
   const primaryAction = {
     label: t('general.save'),
     onClick: onSave,
+    disabled: isSaveDisabled,
   };
 
   const secondaryAction = {
