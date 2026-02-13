@@ -46,6 +46,12 @@ describe('AppValidationDialog', () => {
     jest.clearAllMocks();
   });
 
+  it('renders dialog with heading and updated-at paragraph', () => {
+    renderAppValidationDialog({});
+    expect(screen.getByText('Valideringsfeil')).toBeInTheDocument();
+    expect(screen.getByText(/general\.updatedAt/)).toBeInTheDocument();
+  });
+
   it('does not render error summary when there are no validation errors', () => {
     renderAppValidationDialog({});
     expect(
@@ -68,5 +74,30 @@ describe('AppValidationDialog', () => {
     await user.click(link);
     expect(router.state.location.pathname).toBe(`/${org}/${app}/app-settings`);
     expect(router.state.location.search).toBe('?currentTab=about&focus=title-nn');
+  });
+
+  it('renders contact point index error with correct anchor and message', () => {
+    renderAppValidationDialog({
+      isValid: false,
+      errors: { 'contactPoints[2]': ['incomplete'] },
+    });
+    expect(
+      screen.getByText(textMock('app_validation.app_metadata.errors_need_fixing')),
+    ).toBeInTheDocument();
+    const link = screen.getByText(
+      textMock('app_validation.app_metadata.contact_points.incomplete'),
+    );
+    const expectedHref = `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/app-settings?currentTab=about&focus=contactPoints-2`;
+    expect(link).toHaveAttribute('href', expectedHref);
+  });
+
+  it('falls back to error key as message and empty focus for unknown fields', () => {
+    renderAppValidationDialog({
+      isValid: false,
+      errors: { 'unknown.key': ['some-error'] },
+    });
+    const link = screen.getByText(textMock('unknown.key'));
+    const expectedHref = `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/app-settings?currentTab=about&focus=`;
+    expect(link).toHaveAttribute('href', expectedHref);
   });
 });
