@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,20 +45,6 @@ internal sealed class MetricsService(
     )
     {
         return await runtimeGatewayClient.GetAppErrorMetricsAsync(org, environment, app, range, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task<Uri?> GetAppErrorMetricsLogsAsync(
-        string org,
-        AltinnEnvironment environment,
-        IReadOnlyCollection<string> apps,
-        string metric,
-        DateTimeOffset from,
-        DateTimeOffset to,
-        CancellationToken cancellationToken
-    )
-    {
-        return await runtimeGatewayClient.GetAppErrorMetricsLogsAsync(org, environment, apps, metric, from, to, cancellationToken);
     }
 
     /// <inheritdoc />

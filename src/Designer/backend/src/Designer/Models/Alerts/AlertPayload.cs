@@ -5,10 +5,11 @@ namespace Altinn.Studio.Designer.Models.Alerts;
 
 public class Alert
 {
-    public string? Id { get; init; }
+    public required string RuleId { get; init; }
     public required string Name { get; init; }
     public required IEnumerable<AlertInstance> Alerts { get; init; }
     public required Uri URL { get; set; }
+    public Uri? LogsUrl { get; init; }
 }
 
 public class AlertInstance
