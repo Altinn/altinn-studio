@@ -1,0 +1,7 @@
+.validationContainer h2 {
+  padding-bottom: var(--ds-size-3);
+}
+
+.validationContainer a {
+  text-decoration: underline;
+}

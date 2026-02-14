@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  StudioAlert,
   StudioDialog,
   StudioErrorSummary,
   StudioHeading,
@@ -9,6 +10,7 @@ import {
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
+import classes from './AppValidationDialog.module.css';
 
 export const AppValidationDialog = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -27,7 +29,7 @@ export const AppValidationDialog = () => {
       style={{ zIndex: 10 }}
     >
       <StudioDialog.Block>
-        <StudioHeading>Valideringsfeil</StudioHeading>
+        <StudioHeading>{t('app_validation.heading')}</StudioHeading>
         <StudioParagraph>
           {t('general.updatedAt')} {new Date(validationUpdatedAt).toLocaleString()}
         </StudioParagraph>
@@ -55,25 +57,26 @@ const AltinnAppServiceResourceValidation = ({ validationResult }: { validationRe
   const errorKeys = Object.keys(validationResult.errors);
 
   return (
-    <StudioErrorSummary>
-      <StudioErrorSummary.Heading>
-        {t('app_validation.app_metadata.errors_need_fixing')}
-      </StudioErrorSummary.Heading>
-      <StudioErrorSummary.List>
-        {errorKeys.map((errorKey) => {
-          const fieldConfig = getFieldConfig(errorKey);
-          const anchor = fieldConfig?.anchor ?? '';
-          const navigationLink = `/editor/${org}/${app}/app-settings?currentTab=about#${anchor}`;
-          const errorMessage = t(fieldConfig?.translationKey ?? errorKey);
+    <div className={classes.validationContainer}>
+      <StudioHeading>{t('app_validation.app_metadata.heading')}</StudioHeading>
+      <StudioAlert data-color='warning'>
+        <StudioHeading>{t('app_validation.app_metadata.warnings')}</StudioHeading>
+        <StudioErrorSummary.List>
+          {errorKeys.map((errorKey) => {
+            const fieldConfig = getFieldConfig(errorKey);
+            const anchor = fieldConfig?.anchor ?? '';
+            const navigationLink = `/editor/${org}/${app}/app-settings?currentTab=about#${anchor}`;
+            const errorMessage = t(fieldConfig?.translationKey ?? errorKey);
 
-          return (
-            <StudioErrorSummary.Item key={errorKey}>
-              <StudioLink href={navigationLink}>{errorMessage}</StudioLink>
-            </StudioErrorSummary.Item>
-          );
-        })}
-      </StudioErrorSummary.List>
-    </StudioErrorSummary>
+            return (
+              <StudioErrorSummary.Item key={errorKey}>
+                <StudioLink href={navigationLink}>{errorMessage}</StudioLink>
+              </StudioErrorSummary.Item>
+            );
+          })}
+        </StudioErrorSummary.List>
+      </StudioAlert>
+    </div>
   );
 };
 

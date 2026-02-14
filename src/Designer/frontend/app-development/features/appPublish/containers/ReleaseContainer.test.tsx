@@ -11,6 +11,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { repoStatus } from 'app-shared/mocks/mocks';
 import userEvent from '@testing-library/user-event';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 const renderReleaseContainer = (queries?: Partial<ServicesContextProps>) => {
   const allQueries: ServicesContextProps = {
@@ -19,9 +20,11 @@ const renderReleaseContainer = (queries?: Partial<ServicesContextProps>) => {
   };
 
   render(
-    <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-      <ReleaseContainer />
-    </ServicesContextProvider>,
+    <FeatureFlagsContextProvider value={{ flags: [] }}>
+      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
+        <ReleaseContainer />
+      </ServicesContextProvider>
+    </FeatureFlagsContextProvider>,
   );
 };
 
