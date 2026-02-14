@@ -25,12 +25,6 @@ internal static class MetricsEndpoints
             .WithName("GetAppErrorMetrics")
             .WithTags("Metrics");
 
-        app.MapGet("/runtime/gateway/api/v1/metrics/app/errors/logs", HandleMetrics.GetAppErrorMetricsLogsAsync)
-            .RequirePublicPort()
-            .RequireAuthorization("MaskinportenScope")
-            .WithName("GetLogs")
-            .WithTags("Metrics");
-
         app.MapGet("/runtime/gateway/api/v1/metrics/app/health", HandleMetrics.GetAppHealthMetricsAsync)
             .RequirePublicPort()
             .RequireAuthorization("MaskinportenScope")
