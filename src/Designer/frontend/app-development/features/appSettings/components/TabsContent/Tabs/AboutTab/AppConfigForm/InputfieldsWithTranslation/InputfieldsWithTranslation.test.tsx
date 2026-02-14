@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
 import type { InputfieldsWithTranslationProps } from './InputfieldsWithTranslation';
 import userEvent from '@testing-library/user-event';
@@ -58,7 +59,11 @@ const defaultProps: InputfieldsWithTranslationProps = {
 };
 
 function renderInputfieldsWithTranslation(props: Partial<InputfieldsWithTranslationProps> = {}) {
-  return render(<InputfieldsWithTranslation {...defaultProps} {...props} />);
+  return render(
+    <MemoryRouter initialEntries={['/']}>
+      <InputfieldsWithTranslation {...defaultProps} {...props} />
+    </MemoryRouter>,
+  );
 }
 
 const getTextbox = (name: string): HTMLInputElement => screen.getByRole('textbox', { name });
