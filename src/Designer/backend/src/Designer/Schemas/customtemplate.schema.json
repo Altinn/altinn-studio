@@ -1,13 +1,17 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "Altinn Studio App Custom Template Descriptor",
+    "title": "Altinn Studio App Custom Template Descriptor 0.1",
     "type": "object",
     "additionalProperties": false,
-    "required": [ "id", "owner", "name", "description" ],
+    "required": [ "schemaVersion", "id", "owner", "name", "description" ],
     "properties": {
+        "schemaVersion": {
+            "type": "string",
+            "const": "0.1"
+        },
         "id": {
             "type": "string",
-            "minLength": 5
+            "minLength": 3
         },
         "owner": {
             "type": "string",
@@ -27,6 +31,68 @@
             "items": {
                 "type": "string",
                 "pattern": "^(?!/)(?!\\\\\\\\)(?!.*\\\\)(?!.*:)(?!.*(^|/)\\.\\.(/|$))[A-Za-z0-9._\\-/*?\\[\\]{}!]+(?:/[A-Za-z0-9._\\-/*?\\[\\]{}!]+)*/?$"
+            }
+        },
+        "packageReferences": {
+            "type": "array",
+            "description": "Optional list of NuGet package references to add to specified project files.",
+            "items": {
+                "type": "object",
+                "required": [ "include", "version", "project" ],
+                "additionalProperties": false,
+                "properties": {
+                    "project": {
+                        "type": "string",
+                        "description": "Relative path or glob pattern to .csproj file(s). No absolute paths, no drive/UNC, no '..'.",
+                        "pattern": "^(?!/)(?!\\\\\\\\)(?!.*\\\\)(?!.*:)(?!.*(^|/)\\.\\.(/|$))[A-Za-z0-9._\\-/*?\\[\\]{}!]+(?:/[A-Za-z0-9._\\-/*?\\[\\]{}!]+)*\\.csproj$",
+                        "minLength": 1
+                    },
+                    "include": {
+                        "type": "string",
+                        "description": "NuGet package name.",
+                        "pattern": "^[A-Za-z0-9_][A-Za-z0-9_.\\-]*$",
+                        "minLength": 1
+                    },
+                    "version": {
+                        "type": "string",
+                        "description": "Package version (e.g., '1.2.3', '1.2.3-preview', '[1.2.3]', '1.2.*').",
+                        "pattern": "^\\[?[0-9]+(\\.[0-9*]+){0,3}(\\-[A-Za-z0-9\\-\\.]+)?(\\])?$",
+                        "minLength": 1
+                    }
+                }
+            }
+        },
+        "nextSteps": {
+            "type": "array",
+            "description": "Optional list of next steps for the template user.",
+            "items": {
+                "type": "object",
+                "required": [ "title", "description"],
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "minLength": 5
+                    },
+                    "description": {
+                        "type": "string",
+                        "minLength": 20
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [ "configuration", "konfigurasjon", "codechange", "code-change", "kodeendring", "documentation", "dokumentasjon" ]
+                    },
+                    "links": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [ "label", "ref" ],
+                            "properties": {
+                                "label": { "type": "string" },
+                                "ref": { "type": "string" }
+                            }
+                        }
+                    }                 
+                }
             }
         }
     }

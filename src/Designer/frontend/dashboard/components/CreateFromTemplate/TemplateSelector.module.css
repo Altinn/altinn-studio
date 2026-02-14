@@ -1,0 +1,22 @@
+.templateHeadingContainer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--fds-spacing-2);
+}
+
+.templateName {
+  font-weight: bold;
+}
+
+.templateOwner {
+  margin-left: var(--fds-spacing-4);
+  margin-top: 0;
+}
+
+.templateSelectorContainer {
+  margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+}

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -81,7 +81,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateListObject> result = await sut.GetCustomTemplateList();
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -142,7 +142,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateListObject> result = await sut.GetCustomTemplateList();
 
         // Assert
         Assert.Single(result);
@@ -194,7 +194,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateListObject> result = await sut.GetCustomTemplateList();
 
         // Assert
         Assert.Single(result);
@@ -249,7 +249,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateListObject> result = await sut.GetCustomTemplateList();
 
         // Assert
         Assert.Single(result);
@@ -284,7 +284,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateListObject> result = await sut.GetCustomTemplateList();
 
         // Assert
         string cachePath = Path.Combine(_testCacheRoot, ".template-cache", "als");
@@ -310,7 +310,7 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act
-        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateListObject> result = await sut.GetCustomTemplateList();
 
         // Assert
         Assert.Empty(result);
@@ -331,9 +331,38 @@ public class GetCustomTemplateListTests : IDisposable
         var sut = CreateService();
 
         // Act & Assert
-        List<CustomTemplateDto> result = await sut.GetCustomTemplateList();
+        List<CustomTemplateListObject> result = await sut.GetCustomTemplateList();
         Assert.Empty(result);
     }
+
+    [Fact]
+    public async Task GetCustomTemplateList_UserHasNoOrgs_OnlyAlsTemplatesRetrieved()
+    {
+        // Arrange
+        _giteaClientMock
+            .Setup(x => x.GetUserOrganizations())
+            .ReturnsAsync([]);
+
+        _giteaClientMock
+           .Setup(x => x.GetLatestCommitOnBranch("als", "als-content", null, default))
+           .ReturnsAsync("abc123def456");
+
+        _giteaClientMock
+            .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templatemanifest.json", null, default))
+            .ReturnsAsync((new FileSystemObject
+            {
+                Content = Convert.ToBase64String(Encoding.UTF8.GetBytes("[]"))
+            }, null));
+
+        var sut = CreateService();
+
+        // Act 
+        await sut.GetCustomTemplateList();
+
+        // Assert
+        _giteaClientMock.Verify(x => x.GetLatestCommitOnBranch(It.IsAny<string>(), It.IsAny<string>(), null, default), Times.Once);
+    }
+
 
     private CustomTemplateService CreateService()
     {

@@ -135,6 +135,7 @@ public class ApplyTemplateToRepositoryTests : IDisposable
 
         var template = new CustomTemplateModel
         {
+
             Id = templateId,
             Owner = templateOwner,
             Name = "Simple Template",
@@ -330,7 +331,7 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         var exception = await Assert.ThrowsAsync<CustomTemplateException>(() =>
             sut.ApplyTemplateToRepository(templateOwner, templateId, targetOrg, targetRepo, developer));
 
-        Assert.Equal("NotFound", exception.Code);
+        Assert.Equal(CustomTemplateErrorCode.NotFound, exception.Code);
     }
 
     [Fact]
@@ -376,6 +377,115 @@ public class ApplyTemplateToRepositoryTests : IDisposable
             It.IsAny<string>(), It.IsAny<string>(),
             It.Is<string>(p => p.Contains("/content")),
             It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ApplyTemplateToRepository_NewPackageReferencesIncluded_NewEntryIncludedInCsproj()
+    {
+        // Arrange
+        string templateOwner = "als";
+        string templateId = "simple-template";
+        string targetOrg = "ttd";
+        string targetRepo = "package-reference";
+        string developer = "testUser";
+        string projectFilePath = "App/App.csproj";
+        var template = new CustomTemplateModel
+        {
+            Id = templateId,
+            Owner = templateOwner,
+            Name = "Package reference repo",
+            Description = "A simple template with package references.",
+            PackageReferences = new List<PackageReference>
+            {
+                new ()
+                {
+                    Project = "App/App.csproj",
+                    Include = "Newtonsoft.Json",
+                    Version = "13.0.1"
+                }
+            }
+        };
+
+        string targetRepoPath = CreateTargetRepository(targetOrg, targetRepo, developer);
+        CreateFileInRepo(targetRepoPath, projectFilePath, "<Project>\r\n  <ItemGroup>\r\n    <Compile Include=\"helloworld.cs\" />\r\n  </ItemGroup>\r\n</Project>");
+
+        SetupTemplateCache(templateOwner, templateId, new Dictionary<string, string>
+        {
+            { "newfile.txt", "new content" }
+        });
+
+        MockTemplateJsonFile(templateOwner, templateId, template);
+
+        var sut = CreateService();
+
+        // Act
+        await sut.ApplyTemplateToRepository(templateOwner, templateId, targetOrg, targetRepo, developer);
+
+
+        // Assert
+        Assert.True(File.Exists(Path.Combine(targetRepoPath, projectFilePath)));
+        string projectFile = await File.ReadAllTextAsync(Path.Combine(targetRepoPath, projectFilePath));
+
+        Assert.Contains("<PackageReference Include=\"Newtonsoft.Json\" Version=\"13.0.1\" />", projectFile);
+    }
+
+    [Fact]
+    public async Task ApplyTemplateToRepository_ExistingPackageReferencesIncluded_ExistingEntryUpdatedInCsproj()
+    {
+        // Arrange
+        string templateOwner = "als";
+        string templateId = "simple-template";
+        string targetOrg = "ttd";
+        string targetRepo = "package-reference";
+        string developer = "testUser";
+        string projectFilePath = "App/App.csproj";
+        var template = new CustomTemplateModel
+        {
+            Id = templateId,
+            Owner = templateOwner,
+            Name = "Package reference repo",
+            Description = "A simple template with package references.",
+            PackageReferences = new List<PackageReference>
+            {
+                new ()
+                {
+                    Project = "App/App.csproj",
+                    Include = "Newtonsoft.Json",
+                    Version = "10.0.0"
+                }
+            }
+        };
+
+        string targetRepoPath = CreateTargetRepository(targetOrg, targetRepo, developer);
+        CreateFileInRepo(
+            targetRepoPath,
+            projectFilePath,
+            @"
+            <Project>
+                <ItemGroup>
+                    <PackageReference Include=""Newtonsoft.Json"" Version=""13.0.1""/>
+                </ItemGroup>
+            </Project>");
+
+        SetupTemplateCache(templateOwner, templateId, new Dictionary<string, string>
+        {
+            { "newfile.txt", "new content" }
+        });
+
+        MockTemplateJsonFile(templateOwner, templateId, template);
+
+        var sut = CreateService();
+
+        // Act
+        await sut.ApplyTemplateToRepository(templateOwner, templateId, targetOrg, targetRepo, developer);
+
+
+        // Assert
+        Assert.True(File.Exists(Path.Combine(targetRepoPath, projectFilePath)));
+        string projectFile = await File.ReadAllTextAsync(Path.Combine(targetRepoPath, projectFilePath));
+
+        Assert.Contains("<PackageReference Include=\"Newtonsoft.Json\" Version=\"10.0.0\" />", projectFile);
+        Assert.DoesNotContain("<PackageReference Include=\"Newtonsoft.Json\" Version=\"13.0.1\" />", projectFile);
     }
 
     #region Helper Methods
@@ -424,7 +534,7 @@ public class ApplyTemplateToRepositoryTests : IDisposable
 
     private void MockTemplateJsonFile(string owner, string templateId, CustomTemplateModel template)
     {
-        string templateJson = JsonSerializer.Serialize(template);
+        string templateJson = JsonSerializer.Serialize(template, CustomTemplateService.JsonOptions);
         string base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(templateJson));
 
         _giteaClientMock

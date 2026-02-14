@@ -513,6 +513,8 @@
   "dashboard.new_application_form.select_templates_default": "Ingen mal valgt (standard tom mal brukes)",
   "dashboard.new_application_form.select_templates_description": "Du kan velge en mal for å komme raskt i gang med å bygge appen din. Malene inneholder forhåndsdefinerte sider, komponenter og datamodeller som passer til ulike typer apper. Velger du ingenting vil appen starte som en tom app basert på vår standard mal.",
   "dashboard.new_application_form.show_advanced_options": "Vis avanserte alternativer",
+  "dashboard.new_application_form.template_error": "Kunne ikke opprette en app med denne malen. Sjekk at malen er gyldig og prøv igjen. Hvis feilen vedvarer, kontakt eieren av malen.",
+  "dashboard.new_application_form.template_error.heading": "Feil med malen",
   "dashboard.new_service": "Opprett ny app",
   "dashboard.no_repos_result": "Fant ingen apper",
   "dashboard.open_in_new": "Åpne i ny fane",
