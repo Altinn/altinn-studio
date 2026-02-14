@@ -1,0 +1,4 @@
+.configWrapper {
+  margin: var(--ds-size-1) 0;
+  max-width: 100%;
+}

@@ -11,6 +11,34 @@
       "items": {
         "$ref": "#/definitions/layoutset"
       }
+    },
+    "validationOnNavigate": {
+      "title": "PageValidation",
+      "type": "object",
+      "description": "Settings for validation when navigating between pages",
+      "properties": {
+        "page": {
+          "title": "Page",
+          "description": "Which pages should be validated when navigating.",
+          "enum": ["current", "currentAndPrevious", "all"]
+        },
+        "show": {
+          "title": "Validation types",
+          "description": "List of validation types to show",
+          "type": "array",
+          "items": {
+            "enum": [
+              "Schema",
+              "Component",
+              "Expression",
+              "CustomBackend",
+              "Required",
+              "AllExceptRequired",
+              "All"
+            ]
+          }
+        }
+      }
     }
   },
   "definitions": {
