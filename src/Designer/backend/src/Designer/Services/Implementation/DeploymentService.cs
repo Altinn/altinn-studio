@@ -41,7 +41,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IDeployEventRepository _deployEventRepository;
         private readonly IReleaseRepository _releaseRepository;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
-        private readonly HttpContext _httpContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IApplicationInformationService _applicationInformationService;
         private readonly IEnvironmentsService _environmentsService;
         private readonly ILogger<DeploymentService> _logger;
@@ -83,7 +83,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _applicationInformationService = applicationInformationService;
             _environmentsService = environmentsService;
             _azureDevOpsSettings = azureDevOpsOptions;
-            _httpContext = httpContextAccessor.HttpContext;
+            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             _mediatr = mediatr;
             _generalSettings = generalSettings;
@@ -100,7 +100,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var traceContext = GetCurrentTraceContext();
             DeploymentEntity deploymentEntity = new();
-            deploymentEntity.PopulateBaseProperties(authenticatedContext.Org, authenticatedContext.Repo, _httpContext);
+            deploymentEntity.PopulateBaseProperties(authenticatedContext.Org, authenticatedContext.Repo, _httpContextAccessor.HttpContext);
             deploymentEntity.TagName = deployment.TagName;
             deploymentEntity.EnvName = deployment.EnvName;
 
@@ -326,7 +326,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 AppOwner = editingContext.Org,
                 AppEnvironment = environment.Name,
                 AltinnStudioHostname = _generalSettings.HostName,
-                AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
+                AppDeployToken = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync(),
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos",
                 TraceParent = traceContext.TraceParent,
                 TraceState = traceContext.TraceState
@@ -353,7 +353,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Hostname = await _environmentsService.GetHostNameByEnvName(envName),
                 TagName = deploymentEntity.TagName,
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos",
-                AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
+                AppDeployToken = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync(),
                 AltinnStudioHostname = _generalSettings.HostName,
                 TraceParent = traceParent,
                 TraceState = traceState

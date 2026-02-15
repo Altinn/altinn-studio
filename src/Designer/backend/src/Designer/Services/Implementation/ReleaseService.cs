@@ -64,7 +64,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var httpContext = _httpContextAccessor.HttpContext;
             var cancellationToken = httpContext.RequestAborted;
-            release.PopulateBaseProperties(release.Org, release.App, httpContext);
+            release.PopulateBaseProperties(release.Org, release.App, _httpContextAccessor.HttpContext);
 
             await ValidateUniquenessOfRelease(release, cancellationToken);
 
@@ -75,7 +75,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 AppRepo = release.App,
                 TagName = release.TagName,
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos",
-                AppDeployToken = await httpContext.GetDeveloperAppTokenAsync(),
+                AppDeployToken = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync(),
                 AltinnStudioHostname = _generalSettings.HostName,
                 AppMaskinportenScopes = await GetAppScopesAsJson(release.Org, release.App, cancellationToken)
             };
