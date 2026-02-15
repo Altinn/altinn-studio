@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { UseMutationResult, UseMutationOptions } from '@tanstack/react-query';
+import type { UseMutationResult, UseMutationOptions, QueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import type { RepoStatus } from 'app-shared/types/api/BranchTypes';
 import type { AxiosError } from 'axios';
 import { HttpResponseUtils } from '../../utils/httpResponseUtils';
+import { isAppSpecificQuery } from 'app-shared/utils/tanstackQueryUtils';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 export const useCheckoutBranchMutation = (
   org: string,
@@ -17,8 +18,7 @@ export const useCheckoutBranchMutation = (
   return useMutation({
     mutationFn: (branchName: string) => checkoutBranch(org, app, branchName),
     onSuccess: (data, variables, onMutateResult, context) => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.CurrentBranch, org, app] });
-      queryClient.invalidateQueries({ queryKey: [QueryKey.RepoStatus, org, app] });
+      handleUiRefresh(queryClient, org, app);
       options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     onError: (error, variables, onMutateResult, context) => {
@@ -28,4 +28,26 @@ export const useCheckoutBranchMutation = (
       hideDefaultError: (error: AxiosError) => HttpResponseUtils.isConflict(error),
     },
   });
+};
+
+const handleUiRefresh = (queryClient: QueryClient, org: string, app: string) => {
+  if (currentPathRequiresReload()) {
+    window.location.reload();
+  } else {
+    queryClient.invalidateQueries({
+      predicate: (query) => isAppSpecificQuery(query, org, app),
+    });
+  }
+};
+
+// Workaround for pages that have problems with stale data when switching branches
+const currentPathRequiresReload = (): boolean => {
+  const currentPath = window.location.pathname;
+  const reloadPaths = [
+    RoutePaths.UIEditor,
+    RoutePaths.ProcessEditor,
+    RoutePaths.AppSettings,
+    RoutePaths.DataModel,
+  ];
+  return reloadPaths.some((path) => RegExp(`/${path}/?$`).test(currentPath));
 };

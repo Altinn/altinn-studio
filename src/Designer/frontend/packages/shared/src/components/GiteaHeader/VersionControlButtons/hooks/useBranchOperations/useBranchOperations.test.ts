@@ -39,7 +39,7 @@ describe('useBranchOperations', () => {
 
   afterEach(jest.clearAllMocks);
 
-  it('Should call checkout mutation with branch name', () => {
+  it('checkoutExistingBranch should call checkoutMutation with branch name', () => {
     const { result } = renderHook(() => useBranchOperations(org, app));
 
     result.current.checkoutExistingBranch('feature-branch');
@@ -47,7 +47,7 @@ describe('useBranchOperations', () => {
     expect(checkoutMutate).toHaveBeenCalledWith('feature-branch');
   });
 
-  it('Should call createAndCheckoutBranch with branch name', () => {
+  it('checkoutNewBranch should call createAndCheckoutBranch with branch name', () => {
     const { result } = renderHook(() => useBranchOperations(org, app));
 
     result.current.checkoutNewBranch('new-feature');
@@ -55,7 +55,7 @@ describe('useBranchOperations', () => {
     expect(createAndCheckoutBranch).toHaveBeenCalledWith('new-feature');
   });
 
-  it('Should call discard mutation and then checkout on success', () => {
+  it('discardChangesAndCheckout should call discardChangesMutation and then checkoutMutation on success', () => {
     const mockDiscardMutate = jest.fn((_, options) => options?.onSuccess?.());
 
     mockUseDiscardChangesMutation.mockReturnValue({
@@ -116,6 +116,34 @@ describe('useBranchOperations', () => {
     });
 
     expect(result.current.uncommittedChangesError).toEqual(uncommittedChangesErrorMock);
+  });
+
+  it('Should clear uncommitted changes error on successful discard', () => {
+    mockUseCreateAndCheckoutBranch.mockImplementation((_org, _app, options) => ({
+      createAndCheckoutBranch: jest.fn(() => {
+        options?.onUncommittedChanges?.(uncommittedChangesErrorMock);
+      }),
+      isLoading: false,
+      createError: null,
+    }));
+
+    const mockDiscardMutate = jest.fn((_, options) => options?.onSuccess?.());
+    mockUseDiscardChangesMutation.mockReturnValue({
+      mutate: mockDiscardMutate,
+      isPending: false,
+    } as any);
+
+    const { result } = renderHook(() => useBranchOperations(org, app));
+
+    act(() => {
+      result.current.checkoutNewBranch('feature-branch');
+    });
+    expect(result.current.uncommittedChangesError).toEqual(uncommittedChangesErrorMock);
+
+    act(() => {
+      result.current.discardChangesAndCheckout('target-branch');
+    });
+    expect(result.current.uncommittedChangesError).toBeNull();
   });
 
   it('Should return create error from useCreateAndCheckoutBranch', () => {

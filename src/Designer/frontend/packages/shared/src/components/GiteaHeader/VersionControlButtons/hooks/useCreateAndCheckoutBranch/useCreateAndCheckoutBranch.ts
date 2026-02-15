@@ -26,7 +26,9 @@ export function useCreateAndCheckoutBranch(
 
   const createMutation = useCreateBranchMutation(org, app, {
     onSuccess: (_, branchName) => {
-      checkoutMutation.mutate(branchName);
+      checkoutMutation.mutate(branchName, {
+        onSuccess: () => window.location.reload(),
+      });
     },
     onError: (err: AxiosError) => {
       if (err.response?.status === 409) {
