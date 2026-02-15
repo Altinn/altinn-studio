@@ -54,6 +54,8 @@ spec:
       labels:
         app: kuberneteswrapper
         release: kuberneteswrapper
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       serviceAccountName: kuberneteswrapper
       containers:
@@ -97,6 +99,8 @@ spec:
       creationTimestamp: null
       labels:
         app: dummy-deployment
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       containers:
         - image: nginx:alpine
@@ -122,6 +126,8 @@ spec:
       creationTimestamp: null
       labels:
         app: dummy-daemonset
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       containers:
         - image: nginx:alpine

@@ -37,6 +37,7 @@ spec:
       annotations:
         # for mTLS mainly
         linkerd.io/inject: enabled
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       topologySpreadConstraints:
         # Try to spread across availability zones first (highest priority)
