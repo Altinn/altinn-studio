@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
@@ -21,7 +21,7 @@ import { SigningActionsComponent } from 'src/layout/SigningActions/SigningAction
 import { CurrentUserStatus, getCurrentUserStatus } from 'src/layout/SigningActions/utils';
 
 jest.mock('src/utils/layout/useNodeItem');
-jest.mock('react-router-dom');
+jest.mock('react-router');
 jest.mock('src/features/instance/useProcessNext.tsx');
 jest.mock('src/core/contexts/AppQueriesProvider');
 jest.mock('src/features/profile/ProfileProvider');

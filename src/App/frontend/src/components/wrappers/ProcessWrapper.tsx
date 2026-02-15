@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';

@@ -1,4 +1,4 @@
-import { useLocation, useNavigation } from 'react-router-dom';
+import { useLocation, useNavigation } from 'react-router';
 
 // TODO: make this redundant
 export function useIsNavigating() {

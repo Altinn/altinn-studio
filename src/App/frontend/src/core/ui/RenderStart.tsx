@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { loadingAttribute, useHasElementsByAttribute } from 'src/components/ReadyForPrint';
