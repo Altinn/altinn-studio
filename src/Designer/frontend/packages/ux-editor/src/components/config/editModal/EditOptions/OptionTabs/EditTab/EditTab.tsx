@@ -118,7 +118,7 @@ function OptionListTools({
         codeListIdContextData={codeListIdContextData}
         component={component}
         handleComponentChange={handleComponentChange}
-        onEditButtonClick={openDialog}
+        onEditInternalButtonClick={openDialog}
         textResources={textResources}
       />
     );
@@ -169,6 +169,7 @@ function AddOptionList({
         component={component}
         handleComponentChange={handleComponentChange}
         orgName={orgName}
+        triggerProps={{ children: t('ux_editor.options.published_code_list.choose') }}
       />
     </div>
   );
