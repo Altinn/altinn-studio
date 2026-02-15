@@ -1,6 +1,6 @@
 module altinn.studio/operator
 
-go 1.25.6
+go 1.25.7
 
 require (
 	altinn.studio/runtime-fixture v0.0.0
