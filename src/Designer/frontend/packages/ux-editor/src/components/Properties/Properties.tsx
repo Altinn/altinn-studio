@@ -8,6 +8,7 @@ import { FileIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { ItemType } from './ItemType';
 import { ConfigPanelHeader } from './CommonElements/ConfigPanelHeader/ConfigPanelHeader';
+import type { SelectedItem } from '../../AppContext';
 
 export const Properties = () => {
   return (
@@ -18,15 +19,25 @@ export const Properties = () => {
 };
 
 const PropertiesSelectedConfig = () => {
-  const { selectedItem } = useAppContext();
+  const { selectedItem, selectedFormLayoutName } = useAppContext();
   const { t } = useTranslation();
-  switch (selectedItem?.type) {
+
+  const currentSelectedItem: SelectedItem | null =
+    selectedItem?.type === ItemType.Component || selectedItem?.type === ItemType.Group
+      ? selectedItem
+      : selectedFormLayoutName
+        ? { type: ItemType.Page, id: selectedFormLayoutName }
+        : selectedItem;
+
+  switch (currentSelectedItem?.type) {
     case ItemType.Component:
-      return <ComponentConfigPanel selectedItem={selectedItem} key={selectedItem.id} />;
+      return (
+        <ComponentConfigPanel selectedItem={currentSelectedItem} key={currentSelectedItem.id} />
+      );
     case ItemType.Page:
-      return <PageConfigPanel selectedItem={selectedItem} key={selectedItem.id} />;
+      return <PageConfigPanel selectedItem={currentSelectedItem} key={currentSelectedItem.id} />;
     case ItemType.Group:
-      return <GroupConfigPanel selectedItem={selectedItem} key={selectedItem.id} />;
+      return <GroupConfigPanel selectedItem={currentSelectedItem} key={currentSelectedItem.id} />;
     default:
       return <ConfigPanelHeader icon={<FileIcon />} title={t('right_menu.content_empty')} />;
   }

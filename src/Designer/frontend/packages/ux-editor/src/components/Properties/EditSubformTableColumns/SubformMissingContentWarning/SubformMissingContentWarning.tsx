@@ -5,8 +5,8 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './SubformMissingContentWarning.module.css';
 import { useNavigate } from 'react-router-dom';
-import getLayoutSetPath from '../../../../utils/routeUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useLayoutSetPath } from 'app-shared/hooks/queries/useLayoutSetPath';
 
 type SubformMissingContentWarningProps = {
   subformLayoutSetName: string;
@@ -18,9 +18,10 @@ export const SubformMissingContentWarning = ({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const navigate = useNavigate();
+  const layoutSetPath = useLayoutSetPath(org, app, subformLayoutSetName);
 
   const handleOnRedirectClick = (): void => {
-    navigate(getLayoutSetPath(org, app, subformLayoutSetName));
+    navigate(layoutSetPath);
   };
 
   return (
