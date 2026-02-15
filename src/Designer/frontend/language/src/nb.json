@@ -278,7 +278,6 @@
   "app_settings.about_tab_contact_point_fieldset_link_label": "Lenke",
   "app_settings.about_tab_contact_point_fieldset_telephone_label": "Telefonnummer",
   "app_settings.about_tab_contact_point_fieldset_title_desc_label": "Beskrivende tittel",
-  "app_settings.about_tab_created_by": "Opprettet av",
   "app_settings.about_tab_description_field_description": "Beskriv hvem som skal bruke appen og hva den skal brukes til. Skriv kort, gjerne 20-30 ord.",
   "app_settings.about_tab_description_field_label": "Kort beskrivelse av appen",
   "app_settings.about_tab_enterprise_user_field_description": "Brukeren som opptrer på vegne av en part kan være en virksomhetsbruker.",
