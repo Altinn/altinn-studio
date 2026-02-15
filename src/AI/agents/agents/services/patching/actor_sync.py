@@ -21,10 +21,11 @@ class SyncError(Exception):
 
 
 async def sync_generated_artifacts(
-    plan: PlanStep, 
-    repo_path: str, 
-    mcp_client, 
-    check_only: bool = False
+    plan: PlanStep,
+    repo_path: str,
+    mcp_client,
+    check_only: bool = False,
+    gitea_token: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Synchronize generated artifacts after Source of Truth edits.
@@ -57,7 +58,7 @@ async def sync_generated_artifacts(
     for sot_file in sot_files_touched:
         try:
             result = await _sync_single_file(
-                sot_file, repo_path, mcp_client, check_only
+                sot_file, repo_path, mcp_client, check_only, gitea_token
             )
             all_results.append(result)
             
@@ -108,6 +109,7 @@ async def _sync_single_file(
     repo_path: str,
     mcp_client,
     check_only: bool,
+    gitea_token: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Sync artifacts for a single Source of Truth file."""
     
@@ -155,7 +157,7 @@ async def _sync_single_file(
     langfuse = get_client()
     with langfuse.start_as_current_span(name="tool_datamodel_sync", metadata={"span_type": "TOOL"}, input=sync_request) as span:
         try:
-            result = await mcp_client.call_tool("datamodel_sync", sync_request)
+            result = await mcp_client.call_tool("datamodel_sync", sync_request, gitea_token=gitea_token)
             span.update(output={"result": result})
             
             # Handle CallToolResult objects with structured_content
@@ -305,7 +307,8 @@ def should_sync_artifacts(plan: PlanStep) -> bool:
 async def check_artifacts_in_sync(
     repo_path: str,
     context,
-    mcp_client
+    mcp_client,
+    gitea_token: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Check if all datamodel artifacts are in sync with Source of Truth.
@@ -338,7 +341,7 @@ async def check_artifacts_in_sync(
         
         try:
             result = await _sync_single_file(
-                relative_path, repo_path, mcp_client, check_only=True
+                relative_path, repo_path, mcp_client, check_only=True, gitea_token=gitea_token
             )
             
             status = result.get("status", "unknown")

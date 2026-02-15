@@ -54,10 +54,10 @@ async def startup_event():
     from agents.services.events import sink
     from agents.services.mcp import check_mcp_server_startup
     from shared.config import get_config
-    
+
     # Check MCP server status first
     await check_mcp_server_startup()
-    
+
     # Initialize Langfuse if enabled
     config = get_config()
     if config.LANGFUSE_ENABLED:
@@ -67,7 +67,6 @@ async def startup_event():
             print(f"✅ Langfuse initialized - view traces at {config.LANGFUSE_HOST}")
         except Exception as e:
             print(f"⚠️  Failed to initialize Langfuse: {e}")
-    
     loop = asyncio.get_running_loop()
     sink.set_main_loop(loop)
     logger.info("Event sink configured with main event loop")

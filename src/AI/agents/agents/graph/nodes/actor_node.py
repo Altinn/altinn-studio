@@ -37,6 +37,7 @@ async def handle(state: AgentState) -> AgentState:
                 user_goal=state.user_goal,
                 repo_facts=state.repo_facts or {},
                 planner_step=state.implementation_plan or state.step_plan[0] if state.step_plan else None,
+                gitea_token=state.gitea_token,
             )
             patch_data = result["patch"]
 
@@ -163,6 +164,7 @@ async def handle(state: AgentState) -> AgentState:
                             repo_path=state.repo_path,
                             mcp_client=mcp_client,
                             check_only=False,
+                            gitea_token=state.gitea_token
                         )
                         all_sync_results.append(sync_result)
                         status = sync_result.get("status", "unknown")
@@ -239,6 +241,20 @@ async def handle(state: AgentState) -> AgentState:
                 log.warning("⚠️ Git status shows no actual changes after patch application")
                 # Don't proceed to verification/review if no changes
                 state.next_action = "stop"
+                state.completion_message = "No changes made to the repository."
+
+                # Send event to notify consumer
+                sink.send(
+                    AgentEvent(
+                        type="status",
+                        session_id=state.session_id,
+                        data={
+                            "status": "no_changes",
+                            "message": state.completion_message
+                        },
+                    )
+                )
+
                 log.info("Stopping workflow - no changes to verify")
                 return state
             else:
