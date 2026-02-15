@@ -32,6 +32,8 @@ spec:
     metadata:
       labels:
         app: fakes
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       securityContext:
         runAsNonRoot: true
