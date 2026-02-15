@@ -10,7 +10,6 @@ import type { JSONSchema7 } from 'json-schema';
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { quirks } from 'src/features/form/layout/quirks';
 import { getGlobalUiSettings, getLayoutSets } from 'src/features/form/layoutSets';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
@@ -28,7 +27,6 @@ const MODE: 'critical' | 'all' = env.parsed?.ALTINN_ALL_APPS_MODE === 'critical'
 const ignoreLogAndErrors = [
   ...ignoredConsoleMessages,
   'The above error occurred in the',
-  'Layout quirk(s) applied',
   ...(MODE === 'critical'
     ? [
         'Warning: validateDOMNesting', // A more generic variant from the one in ignoredConsoleMessages
@@ -193,20 +191,6 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
   }
 
   it.each(allSets)('$appName/$setName', async ({ set }) => testSet(set));
-
-  if (env.parsed?.ALTINN_ALL_APPS_TEST_FOR_LAST_QUIRK === 'true') {
-    it(`last quirk`, async () => {
-      const lastQuirk = Object.keys(quirks).at(-1);
-      const found = allSets.find(({ set }) => {
-        const [org, app] = set.app.getOrgApp();
-        return `${org}/${app}/${set.getName()}` === lastQuirk;
-      });
-
-      if (found) {
-        await testSet(found.set);
-      }
-    });
-  }
 });
 
 function filterAndCleanMockCalls(mock: jest.Mock): string[] {
