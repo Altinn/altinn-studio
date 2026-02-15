@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { DeployDropdown } from './DeployDropdown';
 import { useCreateDeploymentMutation } from '../../../../hooks/mutations';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { toast } from 'react-toastify';
-import { Alert, Link } from '@digdir/designsystemet-react';
+import { Alert } from '@digdir/designsystemet-react';
 import { useDeployPermissionsQuery } from 'app-development/hooks/queries';
 import { StudioSpinner, StudioError } from '@studio/components';
 
@@ -32,9 +31,7 @@ export const Deploy = ({
     isPending: permissionsIsPending,
     isError: permissionsIsError,
   } = useDeployPermissionsQuery(org, app, { hideDefaultError: true });
-  const { mutate, isPending: isPendingCreateDeployment } = useCreateDeploymentMutation(org, app, {
-    hideDefaultError: true,
-  });
+  const { mutate, isPending: isPendingCreateDeployment } = useCreateDeploymentMutation(org, app);
 
   if (permissionsIsPending) {
     return <StudioSpinner aria-hidden spinnerTitle={t('app_deployment.permission_checking')} />;
@@ -55,30 +52,10 @@ export const Deploy = ({
   }
 
   const startDeploy = () =>
-    mutate(
-      {
-        tagName: selectedImageTag,
-        envName,
-      },
-      {
-        onError: (): void => {
-          toast.error(() => (
-            <div>
-              <Trans
-                i18nKey={'app_deployment.technical_error_1'}
-                components={{
-                  a: (
-                    <Link href='/info/contact' inverted={true}>
-                      {' '}
-                    </Link>
-                  ),
-                }}
-              />
-            </div>
-          ));
-        },
-      },
-    );
+    mutate({
+      tagName: selectedImageTag,
+      envName,
+    });
 
   const deployInProgress: boolean = isPendingCreateDeployment || isDeploymentInProgress;
 

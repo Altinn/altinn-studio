@@ -22,7 +22,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="authenticatedContext"> An <see cref="AltinnAuthenticatedRepoEditingContext"/> holding the data about editing context.</param>
         /// <param name="deployment">Release containing data from client</param>
         /// <returns>The created document in db</returns>
-        Task<DeploymentEntity> CreateAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, DeploymentModel deployment);
+        Task<DeploymentEntity> CreateAsync(
+            AltinnAuthenticatedRepoEditingContext authenticatedContext,
+            DeploymentModel deployment
+        );
+
         /// <summary>
         /// Gets deployments
         /// </summary>
@@ -31,8 +35,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="query">DocumentQueryModel</param>
         /// <returns>SearchResults of type DeploymentEntity</returns>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        Task<SearchResults<DeploymentEntity>> GetAsync(string org, string app, DocumentQueryModel query, CancellationToken cancellationToken = default);
-
+        Task<SearchResults<DeploymentEntity>> GetAsync(
+            string org,
+            string app,
+            DocumentQueryModel query,
+            CancellationToken cancellationToken = default
+        );
 
         /// <summary>
         /// Undeploys an application from a specified environment.
@@ -52,7 +60,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="environment">The environment for which to publish the sync-root image.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if the operation is cancelled.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task PublishSyncRootAsync(AltinnOrgEditingContext editingContext, AltinnEnvironment environment, CancellationToken cancellationToken = default);
+        Task PublishSyncRootAsync(
+            AltinnOrgEditingContext editingContext,
+            AltinnEnvironment environment,
+            CancellationToken cancellationToken = default
+        );
 
         /// <summary>
         /// Sends a deployment notification message to Slack.
@@ -65,6 +77,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="startedDate">The date and time when the deployment started.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if the operation is cancelled.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task SendToSlackAsync(string org, AltinnEnvironment environment, string app, DeployEventType eventType, string buildId, DateTimeOffset? startedDate, CancellationToken cancellationToken);
+        Task SendToSlackAsync(
+            string org,
+            AltinnEnvironment environment,
+            string app,
+            DeployEventType eventType,
+            string buildId,
+            DateTimeOffset? startedDate,
+            CancellationToken cancellationToken
+        );
     }
 }

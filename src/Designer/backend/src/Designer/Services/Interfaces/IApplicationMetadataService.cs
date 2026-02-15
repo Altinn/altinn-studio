@@ -37,6 +37,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task UpdateApplicationMetadataInStorageAsync(string org, string app, string fullCommitId, string envName, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Returns the application metadata for an application on a specific commitId
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="referenceId">The name of the commit/branch/tag. Default the repository’s default branch</param>
+        /// <returns>The application metadata for an application.</returns>
+        public Task<string> GetApplicationMetadataJsonFromSpecificReference(string org, string app, string referenceId);
+
+        /// <summary>
         /// Updates app title in application metadata
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
