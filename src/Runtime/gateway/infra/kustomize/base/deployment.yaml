@@ -57,7 +57,7 @@ spec:
           labelSelector:
             matchLabels:
               app: gateway
-      serviceAccountName: gateway
+      serviceAccountName: studio-gateway
       terminationGracePeriodSeconds: 30
       # explicitly set security context to embedded .net non-root user (1654)
       securityContext:
