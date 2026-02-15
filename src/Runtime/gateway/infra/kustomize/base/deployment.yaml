@@ -1,0 +1,165 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: gateway-pdb
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: gateway
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  annotations:
+    altinn.studio/image: gateway:latest
+    altinn.studio/image-tag: latest
+spec:
+  minReadySeconds: 3
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 60
+  replicas: 2
+  strategy:
+    # Rolling upgrade of pods
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+        azure.workload.identity/use: 'true'
+      annotations:
+        # for mTLS mainly
+        linkerd.io/inject: enabled
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    spec:
+      topologySpreadConstraints:
+        # Try to spread across availability zones first (highest priority)
+        # A skew of 1 can result in 1 AZ being unused when AZs = 3 and replicas = 3
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          # ScheduleAnyway ensures progress even if distribution is imperfect
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: gateway
+        # Try to spread across nodes within zones
+        # Prevents multiple replicas from running on the same node, improving fault tolerance
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: gateway
+      serviceAccountName: gateway
+      terminationGracePeriodSeconds: 30
+      # explicitly set security context to embedded .net non-root user (1654)
+      securityContext:
+        runAsUser: 1654
+        runAsGroup: 1654
+        fsGroup: 1654
+        runAsNonRoot: true
+        # Seccomp (secure computing mode) restricts syscalls the container can make
+        # RuntimeDefault uses the container runtime's default profile, blocking risky syscalls
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: gateway
+          image: ''
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 8080
+              name: http-internal
+              protocol: TCP
+            - containerPort: 8081
+              name: http-public
+              protocol: TCP
+          env:
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.uid=$(POD_UID)"
+            - name: OTEL_SERVICE_NAME
+              value: "gateway"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-router.runtime-obs.svc.cluster.local:4317"
+            - name: ASPNETCORE_ENVIRONMENT
+              valueFrom:
+                # Configmap is created in syncroot
+                configMapKeyRef:
+                  name: runtime-environment
+                  key: environment
+            - name: Gateway__AzureSubscriptionId
+              valueFrom:
+                configMapKeyRef:
+                  name: runtime-environment
+                  key: azure_subscription_id
+            - name: Gateway__UpgradeChannel
+              valueFrom:
+                configMapKeyRef:
+                  name: runtime-environment
+                  key: upgrade_channel
+            - name: Gateway__Environment
+              valueFrom:
+                configMapKeyRef:
+                  name: runtime-environment
+                  key: environment
+            - name: Gateway__ServiceOwner
+              valueFrom:
+                configMapKeyRef:
+                  name: runtime-environment
+                  key: serviceowner
+          volumeMounts:
+            - name: secrets
+              mountPath: /app/secrets
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+      volumes:
+        - name: secrets
+          projected:
+            sources:
+              - secret:
+                  name: maskinporten-client-for-designer
+                  items:
+                    - key: secrets.json
+                      path: maskinporten-client-for-designer.json
+              - secret:
+                  name: external-grafana-altinn-studio-gateway-token
+                  items:
+                    - key: secrets.json
+                      path: grafana-token.json
