@@ -23,7 +23,7 @@ spec:
   timeout: 1m
   prune: true
   force: false
-  wait: true
+  wait: false
   path: ./${ENVIRONMENT}
   postBuild:
     substitute:
