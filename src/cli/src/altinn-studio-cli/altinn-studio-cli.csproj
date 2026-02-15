@@ -48,7 +48,7 @@
   <ItemGroup>
     <Folder Include="Upgrade\Backend\" />
     <Folder Include="Upgrade\Frontend\" />
-    <Folder Include="Upgrade\Next\" />
+    <Folder Include="Upgrade\v8Tov10\" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Deterministic)'=='true'">
