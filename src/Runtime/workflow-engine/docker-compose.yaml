@@ -1,0 +1,124 @@
+services:
+  workflow-engine:
+    build:
+      context: ../
+      dockerfile: workflow-engine/Dockerfile
+    container_name: workflow-engine-api
+    networks:
+      - workflow-engine-network
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://lgtm:4317
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: [app, full]
+
+  postgres:
+    image: postgres:18
+    container_name: workflow-engine-postgres
+    environment:
+      POSTGRES_DB: workflow_engine
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      TZ: Europe/Oslo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - workflow-engine-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: workflow-engine-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@altinn.no
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+      GUNICORN_ACCESS_LOGFILE: '/dev/null'
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - workflow-engine-network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./.docker/servers.json:/pgadmin4/servers.json
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: workflow-engine-blackbox
+    volumes:
+      - ./.docker/blackbox.yml:/config/blackbox.yml:ro
+    entrypoint: ["/bin/sh", "-c", "/bin/blackbox_exporter --config.file=/config/blackbox.yml 2>/dev/null"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - workflow-engine-network
+
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter
+    container_name: workflow-engine-postgres-exporter
+    environment:
+      DATA_SOURCE_URI: postgres:5432/workflow_engine?sslmode=disable
+      DATA_SOURCE_USER: postgres
+      DATA_SOURCE_PASS: postgres123
+    ports:
+      - "9187:9187"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - workflow-engine-network
+
+  lgtm:
+    image: grafana/otel-lgtm:0.17.0
+    container_name: workflow-engine-lgtm
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - workflow-engine-network
+    ports:
+      - '7070:3000'
+      - '4317:4317'
+      - '4318:4318'
+    volumes:
+      - ./.docker/grafana-datasources.yml:/otel-lgtm/grafana/conf/provisioning/datasources/postgres.yaml:ro
+      - ./.docker/grafana-dashboards.yml:/otel-lgtm/grafana/conf/provisioning/dashboards/workflow-engine.yaml:ro
+      - ./.docker/dashboards:/etc/grafana/dashboards:ro
+      - ./.docker/prometheus.yaml:/otel-lgtm/prometheus.yaml:ro
+
+  wiremock:
+    image: wiremock/wiremock:3.13.2
+    container_name: workflow-engine-wiremock
+    ports:
+      - "6060:8080"
+    networks:
+      - workflow-engine-network
+    volumes:
+      - ./.docker/wiremock:/home/wiremock
+    command:
+      - "--global-response-templating"
+      - "--verbose"
+      - "--max-request-journal-entries=1000"
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+
+networks:
+  workflow-engine-network:
+    driver: bridge

@@ -31,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\common\Altinn.Studio.Runtime.Common.csproj" />
     <ProjectReference Include="..\StudioGateway.Contracts\StudioGateway.Contracts.csproj" />
   </ItemGroup>
 

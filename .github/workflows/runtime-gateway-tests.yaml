@@ -4,6 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
+      - 'src/Runtime/common/**'
       - 'src/Runtime/StudioGateway/**'
       - 'src/Runtime/test/fixture/**'
       - '.github/workflows/runtime-gateway-tests.yaml'
