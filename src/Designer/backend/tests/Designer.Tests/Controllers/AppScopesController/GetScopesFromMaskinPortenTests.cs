@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -45,6 +46,67 @@ public class GetScopesFromMaskinPortenTests : AppScopesControllerTestsBase<GetAp
 
         AppScopesResponse responseContent = await response.Content.ReadAsAsync<AppScopesResponse>();
         Assert.Equal(expectedCount, responseContent.Scopes.Count);
+    }
+
+    [Fact]
+    public async Task GetScopesFromMaskinPortens_Should_CacheAccessibleForAllScopes()
+    {
+        const string AllScopesResponse =
+            """
+            [
+                {
+                    "prefix": "altinn",
+                    "subscope": "cached.scope",
+                    "description": "Cached scope",
+                    "active": true,
+                    "allowed_integration_types": [
+                        "maskinporten"
+                    ]
+                }
+            ]
+            """;
+
+        const string AccessScopesResponse =
+            """
+            [
+                {
+                    "prefix": "altinn",
+                    "subscope": "access.scope",
+                    "description": "Access scope",
+                    "active": true,
+                    "allowed_integration_types": [
+                        "maskinporten"
+                    ]
+                }
+            ]
+            """;
+
+        _mockServerFixture.PrepareMaskinPortenScopesResponse(AllScopesResponse, AccessScopesResponse);
+
+        int initialAllScopesCalls = CountAllScopesCalls();
+        int initialAccessScopesCalls = CountAccessScopesCalls();
+
+        using var firstRequest = new HttpRequestMessage(HttpMethod.Get, VersionPrefix("ttd", "cache-test-app"));
+        using var firstResponse = await HttpClient.SendAsync(firstRequest);
+
+        using var secondRequest = new HttpRequestMessage(HttpMethod.Get, VersionPrefix("ttd", "cache-test-app"));
+        using var secondResponse = await HttpClient.SendAsync(secondRequest);
+
+        Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
+        Assert.Equal(1, CountAllScopesCalls() - initialAllScopesCalls);
+        Assert.Equal(2, CountAccessScopesCalls() - initialAccessScopesCalls);
+
+        int CountAllScopesCalls() =>
+            _mockServerFixture.MockApi.LogEntries.Count(entry =>
+                entry.RequestMessage.Method == HttpMethod.Get.Method
+                && entry.RequestMessage.Path == "/api/v1/scopes/all"
+                && entry.RequestMessage.RawQuery.Contains("accessible_for_all=true"));
+
+        int CountAccessScopesCalls() =>
+            _mockServerFixture.MockApi.LogEntries.Count(entry =>
+                entry.RequestMessage.Method == HttpMethod.Get.Method
+                && entry.RequestMessage.Path == "/api/v1/scopes/access/all");
     }
 
 
