@@ -1,5 +1,3 @@
-import { getIsoRangeFromMinutes } from './formatDateAndTime';
-
 const adminApiBasePath = `/designer/api/admin`;
 const adminApiBasePathV1 = `/designer/api/v1/admin`;
 
