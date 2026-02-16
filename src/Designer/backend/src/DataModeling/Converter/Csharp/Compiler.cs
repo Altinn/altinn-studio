@@ -48,7 +48,16 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                     List<string> customErrorMessages = new();
                     foreach (Diagnostic diagnostic in diagnostics)
                     {
-                        customErrorMessages.Add(diagnostic.Id + "" + diagnostic.GetMessage() + csharpCode[(diagnostic.Location.SourceSpan.Start - 10)..(diagnostic.Location.SourceSpan.End + 10)]);
+                        int contextStart = Math.Max(0, diagnostic.Location.SourceSpan.Start - 10);
+                        int contextEnd = Math.Min(
+                            csharpCode.Length,
+                            diagnostic.Location.SourceSpan.End + 10
+                        );
+                        string codeContext = csharpCode[contextStart..contextEnd];
+
+                        customErrorMessages.Add(
+                            diagnostic.Id + "" + diagnostic.GetMessage() + codeContext
+                        );
                     }
 
                     throw new CsharpCompilationException("Csharp compilation failed.", customErrorMessages);

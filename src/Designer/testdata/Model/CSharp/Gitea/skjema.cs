@@ -36,6 +36,7 @@ namespace Altinn.App.Models
     [XmlElement("Organisasjonsnummer", Order = 1)]
     [JsonProperty("Organisasjonsnummer")]
     [JsonPropertyName("Organisasjonsnummer")]
+    [Required]
     public string Organisasjonsnummer { get; set; }
 
     [MinLength(0)]
@@ -43,6 +44,7 @@ namespace Altinn.App.Models
     [XmlElement("Navn", Order = 2)]
     [JsonProperty("Navn")]
     [JsonPropertyName("Navn")]
+    [Required]
     public string Navn { get; set; }
 
     [XmlElement("Oppdragsfullmakt", Order = 3)]
@@ -61,6 +63,7 @@ namespace Altinn.App.Models
     [XmlElement("InnloggetBruker", Order = 5)]
     [JsonProperty("InnloggetBruker")]
     [JsonPropertyName("InnloggetBruker")]
+    [Required]
     public string InnloggetBruker { get; set; }
 
   }
@@ -72,6 +75,7 @@ namespace Altinn.App.Models
     [XmlElement("Gateadresse", Order = 1)]
     [JsonProperty("Gateadresse")]
     [JsonPropertyName("Gateadresse")]
+    [Required]
     public string Gateadresse { get; set; }
 
     [MinLength(0)]
@@ -79,6 +83,7 @@ namespace Altinn.App.Models
     [XmlElement("Postnr", Order = 2)]
     [JsonProperty("Postnr")]
     [JsonPropertyName("Postnr")]
+    [Required]
     public string Postnr { get; set; }
 
     [MinLength(0)]
@@ -86,6 +91,7 @@ namespace Altinn.App.Models
     [XmlElement("Poststed", Order = 3)]
     [JsonProperty("Poststed")]
     [JsonPropertyName("Poststed")]
+    [Required]
     public string Poststed { get; set; }
 
     [MinLength(0)]
