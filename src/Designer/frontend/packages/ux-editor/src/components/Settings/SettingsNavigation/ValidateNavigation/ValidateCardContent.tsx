@@ -38,7 +38,7 @@ export const ValidateCardContent = ({ scope, config, onChange }: ValidateCardCon
       <ValidateRuleConfig
         selectedTypes={config.types}
         selectedPageScope={config.pageScope}
-        onChange={(value) => onChange(value)}
+        onChange={onChange}
       />
     </>
   );
