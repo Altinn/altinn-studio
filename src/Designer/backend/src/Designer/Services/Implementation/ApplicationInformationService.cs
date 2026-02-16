@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -8,7 +11,9 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Implementation.Validation;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -101,58 +106,101 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string envName
         )
         {
-            string appMetadataJson =
-                await _applicationMetadataService.GetApplicationMetadataJsonFromSpecificReference(
-                    org,
-                    app,
-                    shortCommitId
-                );
-            ApplicationMetadata? applicationMetadata =
-                JsonSerializer.Deserialize<ApplicationMetadata>(appMetadataJson, s_jsonOptions)
-                ?? throw new JsonException("Could not deserialize application metadata");
-
-            ServiceResource serviceResource = applicationMetadata.ToServiceResource();
-            Org orgListOrg = await _orgService.GetOrg(org);
-            serviceResource.HasCompetentAuthority = new()
-            {
-                Name = orgListOrg.Name,
-                Organization = orgListOrg.Orgnr,
-                Orgcode = org,
-            };
+            using var activity = ServiceTelemetry.Source.StartActivity(
+                "PublishAltinnAppServiceResource",
+                ActivityKind.Internal
+            );
+            activity?.SetTag("org", org);
+            activity?.SetTag("app", app);
+            activity?.SetTag("env", envName);
 
             try
             {
+                string appMetadataJson =
+                    await _applicationMetadataService.GetApplicationMetadataJsonFromSpecificReference(
+                        org,
+                        app,
+                        shortCommitId
+                    );
+                ApplicationMetadata? applicationMetadata =
+                    JsonSerializer.Deserialize<ApplicationMetadata>(appMetadataJson, s_jsonOptions)
+                    ?? throw new JsonException("Could not deserialize application metadata");
+
+                ServiceResource serviceResource = applicationMetadata.ToServiceResource();
+                Org orgListOrg = await _orgService.GetOrg(org);
+                serviceResource.HasCompetentAuthority = new()
+                {
+                    Name = orgListOrg.Name,
+                    Organization = orgListOrg.Orgnr,
+                    Orgcode = org,
+                };
+
                 ActionResult publishResponse =
                     await _resourceRegistryService.PublishServiceResource(serviceResource, envName);
-            }
-            catch (System.Exception e)
-            {
-                // TODO: Temporary logging of exception until publishing metadata to resource registry is obligatory.
+
+                if (
+                    publishResponse
+                    is ObjectResult { Value: ValidationProblemDetails validationProblemDetails }
+                )
+                {
+                    string errors = string.Join(
+                        "; ",
+                        validationProblemDetails.Errors.SelectMany(e =>
+                            e.Value.Select(v => $"{e.Key}: {v}")
+                        )
+                    );
+                    activity?.SetTag("publish.result", "validation_error");
+                    activity?.SetStatus(
+                        ActivityStatusCode.Error,
+                        "Validation errors from Resource Registry"
+                    );
+                    activity?.AddEvent(
+                        new ActivityEvent(
+                            "validation_problems",
+                            tags: new ActivityTagsCollection { { "validation.errors", errors } }
+                        )
+                    );
+                    _logger.LogWarning(
+                        "Resource Registry returned validation problems for {Org}/{App}: {Errors}",
+                        org,
+                        app,
+                        errors
+                    );
+                    return;
+                }
+
+                if (publishResponse is StatusCodeResult { StatusCode: 200 or 201 })
+                {
+                    activity?.SetTag("publish.result", "success");
+                    return;
+                }
+
+                int? statusCode = (publishResponse as IStatusCodeActionResult)?.StatusCode;
+                activity?.SetTag("publish.result", "unexpected_response");
+                activity?.SetTag("publish.status_code", statusCode);
+                activity?.SetStatus(
+                    ActivityStatusCode.Error,
+                    $"Unexpected response status: {statusCode}"
+                );
                 _logger.LogWarning(
-                    "Publishing to Resource Registry failed. Exception message: {Message}",
-                    e.Message
+                    "Resource Registry returned unexpected response for {Org}/{App}: {StatusCode}",
+                    org,
+                    app,
+                    statusCode
                 );
             }
-            // TODO: Publishing to Resource Registry is currently optional, but will be non-optional in the future.
-            // This code is commented to not stop the normal publication if resource registry publication fails
-            // if (
-            //     publishResponse is ObjectResult
-            //     {
-            //         Value: ValidationProblemDetails validationProblemDetails
-            //     }
-            // )
-            // {
-            //     string message = string.Join(
-            //         ". ",
-            //         validationProblemDetails.Errors.Values.SelectMany(v => v)
-            //     );
-            //     throw new ResourceRegistryPublishingException(message ?? string.Empty);
-            // }
-            //
-            // if (publishResponse is not StatusCodeResult { StatusCode: 201 or 200 })
-            // {
-            //     throw new ResourceRegistryPublishingException();
-            // }
+            catch (Exception ex)
+            {
+                activity?.SetTag("publish.result", "exception");
+                activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                activity?.AddException(ex);
+                _logger.LogWarning(
+                    ex,
+                    "Publishing to Resource Registry failed for {Org}/{App}",
+                    org,
+                    app
+                );
+            }
         }
     }
 }
