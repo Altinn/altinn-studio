@@ -68,6 +68,7 @@ body{min-height:100vh;padding:0}
   background:var(--bg2);border:1px solid var(--border);border-radius:8px;
   padding:18px 24px;margin-bottom:14px;
   animation:fade-in 0.4s ease;
+  content-visibility:auto;contain-intrinsic-size:auto 120px;
 }
 .workflow-card.removing{animation:slide-out 0.5s ease forwards}
 .card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
@@ -214,6 +215,19 @@ body{min-height:100vh;padding:0}
 }
 @keyframes flow{to{stroke-dashoffset:-20}}
 @keyframes fade-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes recent-enter{
+  from{opacity:0;transform:translateY(-8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes recent-glow{
+  from{border-color:rgba(0,255,136,0.4)}
+  to{border-color:var(--border)}
+}
 @keyframes slide-out{to{opacity:0;transform:translateX(60px);max-height:0;margin:0;padding:0;overflow:hidden}}
+@keyframes complete-exit{
+  0%{border-color:var(--border);opacity:1;transform:translateY(0)}
+  40%{border-color:rgba(0,255,136,0.6);opacity:1;transform:translateY(0)}
+  100%{border-color:rgba(0,255,136,0.4);opacity:0;transform:translateY(12px)}
+}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}

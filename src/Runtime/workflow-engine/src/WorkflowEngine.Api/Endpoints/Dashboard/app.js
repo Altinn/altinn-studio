@@ -45,6 +45,7 @@
    *   instance:       InstanceInfo,
    *   createdAt:      string,
    *   executionStartedAt: string | null,
+   *   removedAt:      string | null,
    *   steps:          Step[],
    * }} Workflow
    */
@@ -221,10 +222,16 @@
   const updateLiveWorkflows = (workflows) => {
     const currentKeys = new Set(workflows.map(w => w.idempotencyKey));
 
-    // Remove cards for workflows no longer in inbox
+    // Animate out cards for workflows no longer in inbox
     for (const key of Object.keys(state.previousWorkflows)) {
       if (!currentKeys.has(key)) {
-        document.getElementById(`wf-${cssId(key)}`)?.remove();
+        const card = document.getElementById(`wf-${cssId(key)}`);
+        if (card && !card.dataset.exiting) {
+          card.dataset.exiting = '1';
+          card.style.animation = 'complete-exit 0.5s ease forwards';
+          card.style.pointerEvents = 'none';
+          card.addEventListener('animationend', () => card.remove(), { once: true });
+        }
         delete state.previousWorkflows[key];
         delete state.workflowFingerprints[key];
         delete state.workflowTimers[key];
@@ -267,19 +274,43 @@
     dom.recentCount.textContent = recentN;
     dom.recentSection.style.display = recentN > 0 ? 'block' : 'none';
 
-    // Only re-render if the set of keys changed
+    // Only update if the set of keys changed
     const newKeys = list.map(r => r.idempotencyKey).join(',');
     if (newKeys === state.lastRecentKeys) return;
+
+    const isFirstLoad = state.lastRecentKeys === '';
+    const previousKeys = new Set(state.lastRecentKeys.split(',').filter(Boolean));
     state.lastRecentKeys = newKeys;
 
-    dom.recentContainer.innerHTML = '';
-    for (const wf of list) {
+    // Remove cards no longer in the list
+    for (const key of previousKeys) {
+      if (!list.some(w => w.idempotencyKey === key)) {
+        document.getElementById(`wf-recent-${cssId(key)}`)?.remove();
+      }
+    }
+
+    // Add new cards, skip existing ones
+    for (let i = 0; i < list.length; i++) {
+      const wf = list[i];
+      const elId = `wf-recent-${cssId(wf.idempotencyKey)}`;
+      const existing = document.getElementById(elId);
+
+      if (existing) {
+        // Ensure correct order
+        if (existing !== dom.recentContainer.children[i]) {
+          dom.recentContainer.insertBefore(existing, dom.recentContainer.children[i] ?? null);
+        }
+        continue;
+      }
+
       const card = document.createElement('div');
       card.className = 'workflow-card';
-      card.id = `wf-recent-${cssId(wf.idempotencyKey)}`;
-      card.style.animation = 'none';
+      card.id = elId;
+      if (!isFirstLoad) {
+        card.style.animation = 'recent-enter 0.3s ease both, recent-glow 1s ease forwards';
+      }
       card.innerHTML = buildCardHTML(wf, true);
-      dom.recentContainer.appendChild(card);
+      dom.recentContainer.insertBefore(card, dom.recentContainer.children[i] ?? null);
     }
   };
 
@@ -317,6 +348,13 @@
     html += `<span class="status-pill ${wf.status}"${isStatic ? ' style="animation:none"' : ''}>${wf.status}</span>`;
     if (!isStatic) {
       html += `<span class="elapsed" data-timer="${esc(wf.idempotencyKey)}">0.0s</span>`;
+    } else if (wf.executionStartedAt) {
+      const end = wf.removedAt || wf.steps.at(-1)?.updatedAt;
+      if (end) {
+        const dur = (new Date(end) - new Date(wf.executionStartedAt)) / 1000;
+        const label = dur < 1 ? `${(dur * 1000).toFixed(0)}ms` : formatElapsed(dur);
+        html += `<span class="elapsed">${label}</span>`;
+      }
     }
     html += `</div></div>`;
 
