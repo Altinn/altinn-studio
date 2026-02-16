@@ -46,9 +46,7 @@ const contactPointFieldConfig: {
 ];
 
 const isContactPointEmpty = (contact: ContactPoint): boolean =>
-  [contact.email, contact.telephone, contact.contactPage, contact.category].every(
-    (value) => !value?.trim(),
-  );
+  Object.values(contact).every((value) => !value?.trim());
 
 export const ContactPointDialog = ({
   dialogRef,
