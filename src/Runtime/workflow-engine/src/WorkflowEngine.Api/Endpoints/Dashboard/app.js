@@ -1,36 +1,119 @@
+// @ts-check
 (() => {
   'use strict';
+
+  /* ============================================================
+   *  0. TYPE DEFINITIONS  (JSDoc — checked by VS Code, no build step)
+   * ============================================================ */
+
+  /**
+   * @typedef {'Enqueued' | 'Processing' | 'Completed' | 'Failed' | 'Requeued' | 'Canceled'} StepStatus
+   * @typedef {'AppCommand' | 'Webhook' | 'Noop' | 'Throw' | 'Timeout' | 'Delegate'} CommandType
+   */
+
+  /**
+   * @typedef {{
+   *   idempotencyKey: string,
+   *   operationId:    string,
+   *   commandType:    CommandType,
+   *   commandDetail:  string,
+   *   status:         StepStatus,
+   *   processingOrder: number,
+   *   retryCount:     number,
+   *   backoffUntil:   string | null,
+   *   createdAt:      string,
+   *   executionStartedAt: string | null,
+   *   startAt:        string | null,
+   *   updatedAt:      string | null,
+   * }} Step
+   */
+
+  /**
+   * @typedef {{
+   *   org: string,
+   *   app: string,
+   *   instanceOwnerPartyId: number,
+   *   instanceGuid: string,
+   * }} InstanceInfo
+   */
+
+  /**
+   * @typedef {{
+   *   idempotencyKey: string,
+   *   operationId:    string,
+   *   status:         string,
+   *   instance:       InstanceInfo,
+   *   createdAt:      string,
+   *   executionStartedAt: string | null,
+   *   steps:          Step[],
+   * }} Workflow
+   */
+
+  /**
+   * @typedef {{ used: number, available: number, total: number }} SlotStatus
+   *
+   * @typedef {{
+   *   running:   boolean,
+   *   healthy:   boolean,
+   *   idle:      boolean,
+   *   disabled:  boolean,
+   *   queueFull: boolean,
+   * }} EngineStatus
+   *
+   * @typedef {{
+   *   timestamp:    string,
+   *   engineStatus: EngineStatus,
+   *   capacity:     { inbox: SlotStatus, db: SlotStatus, http: SlotStatus },
+   *   workflows:    Workflow[],
+   *   finished:     Workflow[],
+   * }} DashboardPayload
+   */
+
+  /**
+   * @typedef {{ startedAt: string, frozenAt?: number }} WorkflowTimer
+   * @typedef {{ wf: Workflow, removedAt: number }} RecentEntry
+   *
+   * @typedef {{
+   *   previousWorkflows:    Record<string, Workflow>,
+   *   workflowFingerprints: Record<string, string>,
+   *   workflowTimers:       Record<string, WorkflowTimer>,
+   *   recentlyFinished:     Record<string, RecentEntry>,
+   *   pendingRemoval:       Record<string, Workflow>,
+   *   historyLoaded:        boolean,
+   * }} DashboardState
+   */
 
   /* ============================================================
    *  1. DOM REFERENCES
    * ============================================================ */
 
   const dom = {
-    liveContainer:    document.getElementById('live-workflows'),
-    liveCount:        document.getElementById('live-count'),
-    liveEmpty:        document.getElementById('live-empty'),
-    recentContainer:  document.getElementById('recent-workflows'),
-    recentCount:      document.getElementById('recent-count'),
-    recentSection:    document.getElementById('recent-section'),
-    historyContainer: document.getElementById('history-workflows'),
-    historyEmpty:     document.getElementById('history-empty'),
-    connBadge:        document.getElementById('connection'),
-    connText:         document.getElementById('connection-text'),
-    modal:            document.getElementById('step-modal'),
-    modalTitle:       document.getElementById('modal-title'),
-    modalBody:        document.getElementById('modal-body'),
+    liveContainer:    /** @type {HTMLElement} */ (document.getElementById('live-workflows')),
+    liveCount:        /** @type {HTMLElement} */ (document.getElementById('live-count')),
+    liveEmpty:        /** @type {HTMLElement} */ (document.getElementById('live-empty')),
+    recentContainer:  /** @type {HTMLElement} */ (document.getElementById('recent-workflows')),
+    recentCount:      /** @type {HTMLElement} */ (document.getElementById('recent-count')),
+    recentSection:    /** @type {HTMLElement} */ (document.getElementById('recent-section')),
+    historyContainer: /** @type {HTMLElement} */ (document.getElementById('history-workflows')),
+    historyEmpty:     /** @type {HTMLElement} */ (document.getElementById('history-empty')),
+    connBadge:        /** @type {HTMLElement} */ (document.getElementById('connection')),
+    connText:         /** @type {HTMLElement} */ (document.getElementById('connection-text')),
+    modal:            /** @type {HTMLElement} */ (document.getElementById('step-modal')),
+    modalTitle:       /** @type {HTMLElement} */ (document.getElementById('modal-title')),
+    modalBody:        /** @type {HTMLElement} */ (document.getElementById('modal-body')),
   };
 
   /* ============================================================
    *  2. STATE
    * ============================================================ */
 
+  /** @type {DashboardState} */
   const state = {
-    previousWorkflows:    {},   // keyed by idempotencyKey — last SSE snapshot
-    workflowFingerprints: {},   // change-detection hash per workflow
-    workflowTimers:       {},   // { startedAt, frozenAt? } per workflow
-    recentlyFinished:     {},   // workflows that moved to the "Recent" section
-    pendingRemoval:       {},   // workflows waiting for grace period before moving to recent
+    previousWorkflows:    {},
+    workflowFingerprints: {},
+    workflowTimers:       {},
+    recentlyFinished:     {},
+    pendingRemoval:       {},
     historyLoaded:        false,
   };
 
@@ -66,6 +149,7 @@
    *  4. DASHBOARD UPDATE  (entry point for every SSE message)
    * ============================================================ */
 
+  /** @param {DashboardPayload} data */
   const updateDashboard = (data) => {
     updateStatusBadges(data.engineStatus);
     updateCapacity(data.capacity);
@@ -79,11 +163,12 @@
    *  5. HEADER — status badges
    * ============================================================ */
 
+  /** @param {EngineStatus} s */
   const updateStatusBadges = (s) => {
-    const rb = document.getElementById('badge-running');
-    const rt = document.getElementById('badge-running-text');
-    const hb = document.getElementById('badge-healthy');
-    const ht = document.getElementById('badge-healthy-text');
+    const rb = /** @type {HTMLElement} */ (document.getElementById('badge-running'));
+    const rt = /** @type {HTMLElement} */ (document.getElementById('badge-running-text'));
+    const hb = /** @type {HTMLElement} */ (document.getElementById('badge-healthy'));
+    const ht = /** @type {HTMLElement} */ (document.getElementById('badge-healthy-text'));
 
     if (s.running) { rb.className = 'badge running'; rt.textContent = 'Running'; }
     else           { rb.className = 'badge stopped';  rt.textContent = 'Stopped'; }
@@ -103,9 +188,13 @@
    *  6. CAPACITY METERS
    * ============================================================ */
 
+  /**
+   * @param {string} id
+   * @param {SlotStatus} slot
+   */
   const updateMeter = (id, slot) => {
-    const fill = document.getElementById(`meter-${id}`);
-    const val  = document.getElementById(`meter-${id}-val`);
+    const fill = /** @type {HTMLElement} */ (document.getElementById(`meter-${id}`));
+    const val  = /** @type {HTMLElement} */ (document.getElementById(`meter-${id}-val`));
     const pct  = slot.total > 0 ? (slot.used / slot.total) * 100 : 0;
 
     fill.style.width = `${Math.max(pct, 0.5)}%`;
@@ -113,6 +202,7 @@
     val.textContent = `${slot.used.toLocaleString()} / ${slot.total.toLocaleString()}`;
   };
 
+  /** @param {{ inbox: SlotStatus, db: SlotStatus, http: SlotStatus }} cap */
   const updateCapacity = (cap) => {
     updateMeter('inbox', cap.inbox);
     updateMeter('db',    cap.db);
@@ -123,9 +213,11 @@
    *  7. LIVE WORKFLOWS  (add / update / remove cards)
    * ============================================================ */
 
+  /** @param {Workflow} wf */
   const fingerprint = (wf) =>
     `${wf.status}|${wf.steps.map(s => `${s.status}:${s.retryCount}:${s.backoffUntil || ''}`).join(',')}`;
 
+  /** @param {Workflow[]} workflows */
   const updateLiveWorkflows = (workflows) => {
     const currentKeys  = new Set(workflows.map(w => w.idempotencyKey));
     const previousKeys = new Set(Object.keys(state.previousWorkflows));
@@ -178,12 +270,14 @@
    *  8. RECENT WORKFLOWS  (grace period + move from live)
    * ============================================================ */
 
+  /** @param {string} key */
   const moveToRecent = (key) => {
     const lastWf = state.pendingRemoval[key];
     if (!lastWf) return;
     delete state.pendingRemoval[key];
 
     // Deep-clone and set final status
+    /** @type {Workflow} */
     const finishedWf = JSON.parse(JSON.stringify(lastWf));
     const anyFailed  = finishedWf.steps.some(s => s.status === 'Failed');
     const finalStatus = anyFailed ? 'Failed' : 'Completed';
@@ -221,7 +315,7 @@
       (a, b) => state.recentlyFinished[b].removedAt - state.recentlyFinished[a].removedAt
     );
     while (rfKeys.length > MAX_RECENT) {
-      const evictKey = rfKeys.pop();
+      const evictKey = /** @type {string} */ (rfKeys.pop());
       const el = document.getElementById(`wf-${cssId(evictKey)}`);
       if (el) {
         el.classList.add('removing');
@@ -233,6 +327,7 @@
     }
   };
 
+  /** @param {Workflow[]} finished */
   const mergeFinished = (finished) => {
     for (const fin of finished) {
       const target = state.pendingRemoval[fin.idempotencyKey];
@@ -250,6 +345,11 @@
    *  9. CARD RENDERING  (shared by live, recent, and history)
    * ============================================================ */
 
+  /**
+   * @param {Workflow} wf
+   * @param {string} elId
+   * @returns {HTMLDivElement}
+   */
   const createWorkflowCard = (wf, elId) => {
     const card = document.createElement('div');
     card.className = 'workflow-card';
@@ -259,6 +359,11 @@
     return card;
   };
 
+  /**
+   * @param {Workflow} wf
+   * @param {boolean} [isStatic]
+   * @returns {string}
+   */
   const buildCardHTML = (wf, isStatic) => {
     const { instance: inst } = wf;
     const retries = wf.steps.reduce((sum, s) => sum + s.retryCount, 0);
@@ -286,6 +391,12 @@
    *  10. PIPELINE RENDERING  (step circles + connectors)
    * ============================================================ */
 
+  /**
+   * @param {string} wfKey
+   * @param {Step[]} steps
+   * @param {boolean} [isStatic]
+   * @returns {string}
+   */
   const buildPipelineHTML = (wfKey, steps, isStatic) => {
     if (!steps?.length) return '';
 
@@ -298,6 +409,12 @@
     return html;
   };
 
+  /**
+   * @param {Step} prev
+   * @param {Step} cur
+   * @param {boolean} [isStatic]
+   * @returns {string}
+   */
   const buildConnectorHTML = (prev, cur, isStatic) => {
     const prevDone      = prev.status === 'Completed';
     const curActive     = cur.status === 'Processing' || cur.status === 'Requeued';
@@ -314,6 +431,10 @@
       + `/></svg></div>`;
   };
 
+  /**
+   * @param {StepStatus} status
+   * @returns {string}
+   */
   const stepIcon = (status) => {
     switch (status) {
       case 'Completed':  return '&#10003;';
@@ -325,6 +446,11 @@
     }
   };
 
+  /**
+   * @param {Step} step
+   * @param {boolean} [isStatic]
+   * @returns {string}
+   */
   const buildStepTimingHTML = (step, isStatic) => {
     if (step.executionStartedAt && step.updatedAt && (step.status === 'Completed' || step.status === 'Failed')) {
       const dur = (new Date(step.updatedAt) - new Date(step.executionStartedAt)) / 1000;
@@ -337,6 +463,12 @@
     return '';
   };
 
+  /**
+   * @param {string} wfKey
+   * @param {Step} step
+   * @param {boolean} [isStatic]
+   * @returns {string}
+   */
   const buildStepNodeHTML = (wfKey, step, isStatic) => {
     let html = `<div class="step-node">`;
 
@@ -361,17 +493,20 @@
     return html;
   };
 
+  /** @param {HTMLElement} card */
   const scrollPipelineToActive = (card) => {
     const p = card.querySelector('.pipeline');
     if (!p) return;
     const active = p.querySelector('.step-circle.Processing') || p.querySelector('.step-circle.Requeued');
     if (active) {
-      const node = active.closest('.step-node');
+      const node = /** @type {HTMLElement | null} */ (active.closest('.step-node'));
       if (node) {
+        // @ts-ignore — scrollLeft exists on Element but TS wants HTMLElement
         p.scrollLeft = Math.max(0, node.offsetLeft - p.offsetLeft - (p.clientWidth / 2) + (node.offsetWidth / 2));
         return;
       }
     }
+    // @ts-ignore
     p.scrollLeft = p.scrollWidth;
   };
 
@@ -379,6 +514,7 @@
    *  11. TIMERS  (workflow elapsed + step backoff countdowns)
    * ============================================================ */
 
+  /** @param {number} seconds */
   const formatElapsed = (seconds) => {
     if (seconds < 60)   return `${seconds.toFixed(1)}s`;
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${Math.floor(seconds % 60)}s`;
@@ -389,7 +525,7 @@
     const now = Date.now();
 
     for (const el of document.querySelectorAll('[data-timer]')) {
-      const timer = state.workflowTimers[el.getAttribute('data-timer')];
+      const timer = state.workflowTimers[el.getAttribute('data-timer') ?? ''];
       if (timer) {
         const end = timer.frozenAt || now;
         el.textContent = formatElapsed((end - new Date(timer.startedAt).getTime()) / 1000);
@@ -397,7 +533,7 @@
     }
 
     for (const el of document.querySelectorAll('[data-backoff]')) {
-      const remaining = (new Date(el.getAttribute('data-backoff')).getTime() - now) / 1000;
+      const remaining = (new Date(el.getAttribute('data-backoff') ?? '').getTime() - now) / 1000;
       el.textContent = remaining > 0 ? `retry ${remaining.toFixed(1)}s` : 'retrying...';
     }
 
@@ -408,6 +544,7 @@
    *  12. TABS
    * ============================================================ */
 
+  /** @param {string} tabName */
   window.switchTab = (tabName) => {
     for (const t of document.querySelectorAll('.tab')) {
       t.classList.toggle('active', t.getAttribute('data-tab') === tabName);
@@ -426,13 +563,14 @@
    * ============================================================ */
 
   window.loadHistory = async () => {
-    const filter = document.getElementById('history-filter').value;
-    const btn    = document.getElementById('history-load');
+    const filter = /** @type {HTMLSelectElement} */ (document.getElementById('history-filter')).value;
+    const btn    = /** @type {HTMLButtonElement} */ (document.getElementById('history-load'));
     btn.disabled = true;
     btn.textContent = 'Loading...';
 
     try {
       const res = await fetch(`/dashboard/history?status=${filter}&limit=50`);
+      /** @type {Workflow[]} */
       const workflows = await res.json();
 
       dom.historyContainer.innerHTML = '';
@@ -450,7 +588,7 @@
         }
       }
     } catch (err) {
-      dom.historyEmpty.textContent = `Error loading history: ${err.message}`;
+      dom.historyEmpty.textContent = `Error loading history: ${/** @type {Error} */ (err).message}`;
       dom.historyEmpty.style.display = 'block';
     } finally {
       btn.disabled = false;
@@ -462,6 +600,11 @@
    *  14. STEP DETAIL MODAL
    * ============================================================ */
 
+  /**
+   * @param {string} wfKey
+   * @param {string} stepKey
+   * @param {string} stepName
+   */
   window.openStepModal = async (wfKey, stepKey, stepName) => {
     dom.modalTitle.textContent = stepName || 'Step Details';
     dom.modalBody.innerHTML = '<div class="modal-loading">Loading...</div>';
@@ -473,7 +616,7 @@
       const data = await res.json();
       dom.modalBody.innerHTML = `<pre>${syntaxHighlight(expandJsonStrings(data))}</pre>`;
     } catch (err) {
-      dom.modalBody.innerHTML = `<div class="modal-loading">${esc(err.message)}</div>`;
+      dom.modalBody.innerHTML = `<div class="modal-loading">${esc(/** @type {Error} */ (err).message)}</div>`;
     }
   };
 
@@ -487,6 +630,10 @@
    *  15. JSON UTILITIES  (expand embedded JSON strings + syntax highlighting)
    * ============================================================ */
 
+  /**
+   * @param {unknown} obj
+   * @returns {unknown}
+   */
   const expandJsonStrings = (obj) => {
     if (typeof obj === 'string') {
       const t = obj.trim();
@@ -504,6 +651,10 @@
     return obj;
   };
 
+  /**
+   * @param {unknown} obj
+   * @returns {string}
+   */
   const syntaxHighlight = (obj) => {
     const json = JSON.stringify(obj, null, 2);
     return json.replace(
@@ -529,8 +680,10 @@
    *  16. GENERIC HELPERS
    * ============================================================ */
 
+  /** @param {string} s */
   const cssId = (s) => s.replace(/[^a-zA-Z0-9-_]/g, '_');
 
+  /** @param {string} s */
   const esc = (s) => {
     if (!s) return '';
     const d = document.createElement('div');
@@ -538,6 +691,7 @@
     return d.innerHTML;
   };
 
+  /** @param {string} s */
   const escHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
   /* ============================================================
