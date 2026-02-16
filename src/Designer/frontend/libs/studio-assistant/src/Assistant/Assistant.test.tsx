@@ -40,7 +40,6 @@ const defaultProps: AssistantProps = {
   texts: mockTexts,
   chatThreads: [],
   activeThreadId: '',
-  connectionStatus: 'error',
   workflowStatus: { isActive: false },
   previewContent: <p>Preview placeholder</p>,
 };

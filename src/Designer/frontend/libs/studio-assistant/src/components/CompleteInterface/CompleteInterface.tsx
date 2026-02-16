@@ -21,7 +21,6 @@ export function CompleteInterface({
   chatThreads,
   onSubmitMessage,
   activeThreadId,
-  connectionStatus,
   onSelectThread,
   onDeleteThread,
   onCreateThread,
@@ -61,7 +60,6 @@ export function CompleteInterface({
         texts={texts}
         selectedToolColumnMode={toolColumnMode}
         onModeChange={setToolColumnMode}
-        connectionStatus={connectionStatus}
       />
 
       <StudioResizableLayout.Container orientation='horizontal' localStorageContext='ai-chat'>

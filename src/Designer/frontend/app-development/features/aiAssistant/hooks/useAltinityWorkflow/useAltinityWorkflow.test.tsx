@@ -29,7 +29,6 @@ describe('useAltinityWorkflow', () => {
     const startWorkflow = jest.fn();
 
     mockUseAltinityWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
       sessionId: 'backend-session',
       startWorkflow,
       onAgentMessage: jest.fn(),
@@ -63,7 +62,6 @@ describe('useAltinityWorkflow', () => {
     });
 
     mockUseAltinityWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
       sessionId: 'backend-session',
       startWorkflow,
       onAgentMessage: jest.fn(),

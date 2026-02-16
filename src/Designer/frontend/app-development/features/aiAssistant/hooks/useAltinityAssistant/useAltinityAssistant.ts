@@ -1,10 +1,9 @@
 import { useCallback } from 'react';
-import type { ChatThread, UserMessage, WorkflowStatus, ConnectionStatus } from '@studio/assistant';
+import type { ChatThread, UserMessage, WorkflowStatus } from '@studio/assistant';
 import { useAltinityThreads } from '../useAltinityThreads/useAltinityThreads';
 import { useAltinityWorkflow } from '../useAltinityWorkflow/useAltinityWorkflow';
 
 export interface UseAltinityAssistantResult {
-  connectionStatus: ConnectionStatus;
   workflowStatus: WorkflowStatus;
   chatThreads: ChatThread[];
   currentSessionId: string | null;
@@ -16,8 +15,7 @@ export interface UseAltinityAssistantResult {
 
 export const useAltinityAssistant = (): UseAltinityAssistantResult => {
   const threads = useAltinityThreads();
-  const { connectionStatus, workflowStatus, onSubmitMessage, resetWorkflowStatus } =
-    useAltinityWorkflow(threads);
+  const { workflowStatus, onSubmitMessage, resetWorkflowStatus } = useAltinityWorkflow(threads);
   const { createNewThread: createThread } = threads;
 
   const createNewThread = useCallback(() => {
@@ -26,7 +24,6 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
   }, [createThread, resetWorkflowStatus]);
 
   return {
-    connectionStatus,
     workflowStatus,
     chatThreads: threads.chatThreads,
     currentSessionId: threads.currentSessionId,

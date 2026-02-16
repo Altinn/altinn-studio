@@ -6,7 +6,6 @@ import type {
   WorkflowEvent,
   WorkflowStatus,
   AgentResponse,
-  ConnectionStatus,
   UserAttachment,
   AssistantMessageData,
 } from '@studio/assistant';
@@ -26,7 +25,6 @@ import {
 } from '../../utils/messageUtils';
 
 export interface UseAltinityWorkflowResult {
-  connectionStatus: ConnectionStatus;
   workflowStatus: WorkflowStatus;
   onSubmitMessage: (message: UserMessage) => Promise<void>;
   resetWorkflowStatus: () => void;
@@ -35,7 +33,6 @@ export interface UseAltinityWorkflowResult {
 export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWorkflowResult => {
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus>({ isActive: false });
   const {
-    connectionStatus,
     sessionId: backendSessionId,
     startWorkflow,
     onAgentMessage,
@@ -308,7 +305,6 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   );
 
   return {
-    connectionStatus,
     workflowStatus,
     onSubmitMessage,
     resetWorkflowStatus,

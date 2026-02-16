@@ -5,7 +5,6 @@ import type {
   WorkflowEvent,
   WorkflowRequest,
   AgentResponse,
-  ConnectionStatus,
 } from '@studio/assistant';
 
 const ALTINITY_CONNECTION_INDEX = 0; // WSConnector uses single connection for Altinity hub
@@ -16,14 +15,12 @@ enum AltinityClientsName {
 }
 
 export interface UseAltinityWebSocketResult {
-  connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error';
   sessionId: string | null;
   startWorkflow: (request: WorkflowRequest) => Promise<AgentResponse>;
   onAgentMessage: (callback: (message: WorkflowEvent) => void) => void;
 }
 
 export const useAltinityWebSocket = (): UseAltinityWebSocketResult => {
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const wsInstanceRef = useRef<any>(null);
   const messageCallbackRef = useRef<((message: WorkflowEvent) => void) | null>(null);
@@ -34,11 +31,6 @@ export const useAltinityWebSocket = (): UseAltinityWebSocketResult => {
       [AltinityClientsName.SessionCreated, AltinityClientsName.ReceiveAgentMessage],
     );
     wsInstanceRef.current = wsInstance;
-    setConnectionStatus('connected');
-
-    return () => {
-      setConnectionStatus('disconnected');
-    };
   }, []);
 
   useEffect(() => {
@@ -65,7 +57,6 @@ export const useAltinityWebSocket = (): UseAltinityWebSocketResult => {
   }, []);
 
   return {
-    connectionStatus,
     sessionId,
     startWorkflow,
     onAgentMessage,
