@@ -11,8 +11,8 @@ import { useScrollIntoView } from '../hooks/useScrollIntoView';
 import { ObjectUtils } from '@studio/pure-functions';
 import { AppVisibilityAndDelegationCard } from './AppVisibilityAndDelegationCard';
 import { mapKeywordsArrayToString, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
-import { ContactPoints } from './ContactPoints';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import { ContactPointsTable } from './ContactPointsTable/ContactPointsTable';
 
 export type AppConfigFormProps = {
   appConfig: ApplicationMetadata;
@@ -181,7 +181,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           saveAriaLabel={t('general.save')}
           cancelAriaLabel={t('general.cancel')}
         />
-        <ContactPoints
+        <ContactPointsTable
           contactPointList={updatedAppConfig.contactPoints}
           onContactPointsChanged={onChangeContactPoints}
           id={AppResourceFormFieldIds.ContactPointsId}

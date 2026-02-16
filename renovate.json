@@ -1,6 +1,19 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["local>Altinn/renovate-config", ":prHourlyLimit4"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/\\.github/workflows/app-frontend-k6-browser\\.yml$/"
+      ],
+      "matchStrings": ["grafana/k6:(?<currentValue>[\\w.-]+)-with-browser"],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "grafana/k6",
+      "versioningTemplate": "docker",
+      "autoReplaceStringTemplate": "grafana/k6:{{{newValue}}}-with-browser"
+    }
+  ],
   "separateMinorPatch": true,
   "separateMultipleMajor": true,
   "packageRules": [
@@ -61,11 +74,18 @@
     },
     {
       "matchFileNames": ["src/App/**"],
-      "matchPackageNames": ["/^Microsoft\\.CodeAnalysis/", "/^Microsoft\\.Build/"],
+      "matchPackageNames": [
+        "/^Microsoft\\.CodeAnalysis/",
+        "/^Microsoft\\.Build/"
+      ],
       "enabled": false
     },
     {
-      "matchFileNames": ["src/App/codelists/**", "src/App/fileanalyzers/**", "src/App/Designer/**"],
+      "matchFileNames": [
+        "src/App/codelists/**",
+        "src/App/fileanalyzers/**",
+        "src/App/Designer/**"
+      ],
       "ignoreDeps": ["Altinn.App.Core"]
     },
     {
