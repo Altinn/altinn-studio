@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
@@ -160,7 +161,16 @@ public static class ApplicationMetadataMapper
         return new ServiceResource
         {
             ResourceType = ResourceType.AltinnApp,
-            Identifier = applicationmetadata?.Id?.Replace('/', '_'),
+            Identifier = "app_" + applicationmetadata?.Id?.Replace('/', '_'),
+            ResourceReferences = new()
+            {
+                new()
+                {
+                    ReferenceType = ResourceReferenceType.ApplicationId,
+                    ReferenceSource = ResourceReferenceSource.Altinn3,
+                    Reference = $"altinn:{applicationmetadata?.Id}",
+                },
+            },
             Title = applicationmetadata?.Title?.ToDictionary(),
             Description = applicationmetadata?.Description?.ToDictionary(),
             ContactPoints = applicationmetadata?.ContactPoints?.ToServiceContactPoints(),
