@@ -8,8 +8,8 @@ public sealed record Workflow : PersistentItem
     public DateTimeOffset? StartAt { get; init; }
     public required IReadOnlyList<Step> Steps { get; init; }
 
-    public Task? DatabaseTask { get; set; }
-    public DateTimeOffset? ExecutionStartedAt { get; set; }
+    internal Task? DatabaseTask { get; set; }
+    internal DateTimeOffset? ExecutionStartedAt { get; set; }
 
     public static Workflow FromRequest(EngineRequest engineRequest) =>
         new()

@@ -14,10 +14,10 @@ public sealed record Step : PersistentItem
     public DateTimeOffset? BackoffUntil { get; set; }
     public RetryStrategy? RetryStrategy { get; init; }
     public int RequeueCount { get; set; }
-    public Task<ExecutionResult>? ExecutionTask { get; set; }
 
-    public DateTimeOffset? ExecutionStartedAt { get; set; }
-    public bool HasPendingChanges { get; set; }
+    internal Task<ExecutionResult>? ExecutionTask { get; set; }
+    internal DateTimeOffset? ExecutionStartedAt { get; set; }
+    internal bool HasPendingChanges { get; set; }
 
     public static Step FromRequest(EngineRequest parent, StepRequest request, DateTimeOffset createdAt, int index) =>
         new()

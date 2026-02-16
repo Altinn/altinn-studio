@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
-namespace WorkflowEngine.Api;
+namespace WorkflowEngine.Telemetry;
 
-internal static class Telemetry
+public static class Metrics
 {
     public const string ServiceName = "WorkflowEngine";
     public const string ServiceVersion = "1.0.0"; // TODO: Get this from build

@@ -8,6 +8,7 @@ using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience.Extensions;
 using WorkflowEngine.Resilience.Models;
+using WorkflowEngine.Telemetry;
 using TaskStatus = WorkflowEngine.Models.TaskStatus;
 
 namespace WorkflowEngine.Api;
@@ -66,6 +67,7 @@ internal partial class Engine : IEngine, IDisposable
         InitializeInbox();
     }
 
+    // TODO: This can perhaps be removed? I think we should ALWAYS run in the new standalone service paradigm...
     private async Task<bool> ShouldRun(CancellationToken cancellationToken)
     {
         _logger.CheckShouldRun();
@@ -128,7 +130,7 @@ internal partial class Engine : IEngine, IDisposable
 
     private async Task MainLoop(CancellationToken cancellationToken)
     {
-        Telemetry.EngineMainLoopIterations.Add(1);
+        Metrics.EngineMainLoopIterations.Add(1);
         var stopwatch = Stopwatch.StartNew();
 
         // Should we run?
@@ -171,9 +173,9 @@ internal partial class Engine : IEngine, IDisposable
         await WaitForPendingTasks(cancellationToken);
 
         stopwatch.Stop();
-        Telemetry.EngineMainLoopQueueTime.Record((stopwatch.Elapsed - serviceTime).TotalSeconds);
-        Telemetry.EngineMainLoopServiceTime.Record(serviceTime.TotalSeconds);
-        Telemetry.EngineMainLoopTotalTime.Record(stopwatch.Elapsed.TotalSeconds);
+        Metrics.EngineMainLoopQueueTime.Record((stopwatch.Elapsed - serviceTime).TotalSeconds);
+        Metrics.EngineMainLoopServiceTime.Record(serviceTime.TotalSeconds);
+        Metrics.EngineMainLoopTotalTime.Record(stopwatch.Elapsed.TotalSeconds);
     }
 
     private async Task ProcessWorkflow(Workflow workflow, CancellationToken cancellationToken)
@@ -276,7 +278,7 @@ internal partial class Engine : IEngine, IDisposable
         catch (Exception ex)
         {
             activity?.Errored(ex);
-            Telemetry.Errors.Add(
+            Metrics.Errors.Add(
                 1,
                 ("operation", "workflowProcessing"),
                 ("target", workflow.InstanceInformation.ToString())
@@ -393,7 +395,7 @@ internal partial class Engine : IEngine, IDisposable
             {
                 currentStep.Status = PersistentItemStatus.Completed;
 
-                Telemetry.StepsSucceeded.Add(1);
+                Metrics.StepsSucceeded.Add(1);
                 _logger.StepCompletedSuccessfully(currentStep);
 
                 return;
@@ -404,7 +406,7 @@ internal partial class Engine : IEngine, IDisposable
                 currentStep.Status = PersistentItemStatus.Failed;
                 currentStep.BackoffUntil = null;
 
-                Telemetry.StepsFailed.Add(1);
+                Metrics.StepsFailed.Add(1);
                 _logger.FailingStepCritical(currentStep, currentStep.RequeueCount);
 
                 return;
@@ -420,7 +422,7 @@ internal partial class Engine : IEngine, IDisposable
                 currentStep.Status = PersistentItemStatus.Requeued;
                 currentStep.BackoffUntil = GetExecutionRetryBackoff(currentStep, retryStrategy);
 
-                Telemetry.StepsRequeued.Add(1);
+                Metrics.StepsRequeued.Add(1);
                 _logger.SlatingStepForRetry(currentStep, currentStep.RequeueCount);
 
                 return;
@@ -429,7 +431,7 @@ internal partial class Engine : IEngine, IDisposable
             currentStep.Status = PersistentItemStatus.Failed;
             currentStep.BackoffUntil = null;
 
-            Telemetry.StepsFailed.Add(1);
+            Metrics.StepsFailed.Add(1);
             _logger.FailingStepRetries(currentStep, currentStep.RequeueCount);
         }
 
@@ -446,7 +448,7 @@ internal partial class Engine : IEngine, IDisposable
 
     private async Task WaitForPendingTasks(CancellationToken cancellationToken)
     {
-        using var activity = Telemetry.Source.StartActivity("Engine.WaitForPendingTasks");
+        using var activity = Metrics.Source.StartActivity("Engine.WaitForPendingTasks");
 
         // Wait for active Step and Workflow tasks (active set only)
         List<Task> awaitables;

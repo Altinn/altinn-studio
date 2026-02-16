@@ -1,6 +1,7 @@
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
+using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Api;
 
@@ -11,7 +12,7 @@ internal partial class Engine
         CancellationToken cancellationToken = default
     )
     {
-        using var activity = Telemetry.Source.StartActivity(
+        using var activity = Metrics.Source.StartActivity(
             "Engine.EnqueueWorkflow",
             tags:
             [
@@ -89,8 +90,8 @@ internal partial class Engine
         }
         _newWorkSignal.TrySetResult();
 
-        Telemetry.WorkflowRequestsAccepted.Add(1);
-        Telemetry.StepRequestsAccepted.Add(engineRequest.Steps.Count());
+        Metrics.WorkflowRequestsAccepted.Add(1);
+        Metrics.StepRequestsAccepted.Add(engineRequest.Steps.Count());
 
         return EngineResponse.Accept();
     }
@@ -99,7 +100,7 @@ internal partial class Engine
     {
         bool isDupe = _inbox.ContainsKey(jobIdentifier);
 
-        using var activity = Telemetry.Source.StartActivity(
+        using var activity = Metrics.Source.StartActivity(
             "Engine.HasDuplicateWorkflow",
             tags: [("workflow.isDuplicate", isDupe)]
         );
@@ -111,7 +112,7 @@ internal partial class Engine
     {
         var instanceHasActiveWorkflow = _inbox.Values.Any(w => w.InstanceInformation == instanceInformation);
 
-        using var activity = Telemetry.Source.StartActivity(
+        using var activity = Metrics.Source.StartActivity(
             "Engine.HasQueuedWorkflowForInstance",
             tags: [("instance.hasActiveWorkflow", instanceHasActiveWorkflow)]
         );
@@ -121,7 +122,7 @@ internal partial class Engine
 
     public Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation)
     {
-        using var activity = Telemetry.Source.StartActivity("Engine.GetWorkflowForInstance");
+        using var activity = Metrics.Source.StartActivity("Engine.GetWorkflowForInstance");
 
         return _inbox.Values.FirstOrDefault(w => w.InstanceInformation == instanceInformation);
     }
@@ -129,7 +130,7 @@ internal partial class Engine
     // TODO: We probably want a background process to periodically pull from the database, so we can catch scheduled tasks and other things we've been ignoring
     private async Task PopulateWorkflowsFromDb(CancellationToken cancellationToken)
     {
-        using var activity = Telemetry.Source.StartActivity("Engine.PopulateWorkflowsFromDb");
+        using var activity = Metrics.Source.StartActivity("Engine.PopulateWorkflowsFromDb");
 
         // TODO: Disabled for now. We don't necessarily want to resume jobs after restart while testing.
         return;
@@ -153,7 +154,7 @@ internal partial class Engine
 
     private async Task UpdateWorkflowInDb(Workflow workflow, CancellationToken cancellationToken)
     {
-        using var activity = Telemetry.Source.StartActivity(
+        using var activity = Metrics.Source.StartActivity(
             "Engine.UpdateWorkflowInDb",
             parentContext: workflow.EngineTraceContext,
             tags: [("workflow.status", workflow.Status.ToString())]
@@ -166,7 +167,7 @@ internal partial class Engine
 
     private async Task UpdateWorkflowAndStepsInDb(Workflow workflow, CancellationToken cancellationToken)
     {
-        using var activity = Telemetry.Source.StartActivity(
+        using var activity = Metrics.Source.StartActivity(
             "Engine.UpdateWorkflowAndStepsInDb",
             parentContext: workflow.EngineTraceContext,
             tags: [("workflow.status", workflow.Status.ToString()), ("workflow.steps.count", workflow.Steps.Count)]
@@ -188,7 +189,7 @@ internal partial class Engine
     private async Task UpdateStepInDb(Step step, CancellationToken cancellationToken)
 #pragma warning restore S1144
     {
-        using var activity = Telemetry.Source.StartActivity(
+        using var activity = Metrics.Source.StartActivity(
             "Engine.UpdateStepInDb",
             parentContext: step.EngineTraceContext,
             tags: [("step.status", step.Status.ToString())]

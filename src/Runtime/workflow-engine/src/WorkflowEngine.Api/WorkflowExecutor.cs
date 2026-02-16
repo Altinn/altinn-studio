@@ -6,6 +6,7 @@ using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience;
+using WorkflowEngine.Telemetry;
 
 // CA1305: Specify IFormatProvider
 #pragma warning disable CA1305
@@ -39,7 +40,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
     public async Task<ExecutionResult> Execute(Workflow workflow, Step step, CancellationToken cancellationToken)
     {
-        using var activity = Telemetry.Source.StartActivity(
+        using var activity = Metrics.Source.StartActivity(
             "WorkflowExecutor.Execute",
             parentContext: step.EngineTraceContext
         );
@@ -92,7 +93,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
         CancellationToken cancellationToken
     )
     {
-        using var activity = Telemetry.Source.StartActivity(
+        using var activity = Metrics.Source.StartActivity(
             "WorkflowExecutor.AppCommand",
             kind: ActivityKind.Client,
             tags: [("command.key", command.CommandKey)]
@@ -131,7 +132,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
         CancellationToken cancellationToken
     )
     {
-        using var activity = Telemetry.Source.StartActivity("WorkflowExecutor.Timeout", kind: ActivityKind.Internal);
+        using var activity = Metrics.Source.StartActivity("WorkflowExecutor.Timeout", kind: ActivityKind.Internal);
 
         await Task.Delay(command.Duration, cancellationToken);
         return ExecutionResult.Success();
@@ -144,7 +145,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
         CancellationToken cancellationToken
     )
     {
-        using var activity = Telemetry.Source.StartActivity(
+        using var activity = Metrics.Source.StartActivity(
             "WorkflowExecutor.Webhook",
             kind: ActivityKind.Client,
             tags: [("command.uri", command.Uri)]
@@ -188,7 +189,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
         CancellationToken cancellationToken
     )
     {
-        using var activity = Telemetry.Source.StartActivity("WorkflowExecutor.Delegate", kind: ActivityKind.Internal);
+        using var activity = Metrics.Source.StartActivity("WorkflowExecutor.Delegate", kind: ActivityKind.Internal);
 
         try
         {

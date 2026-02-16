@@ -4,6 +4,7 @@ using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
+using WorkflowEngine.Telemetry;
 using Task = System.Threading.Tasks.Task;
 
 namespace WorkflowEngine.Api;
@@ -49,7 +50,7 @@ internal partial class Engine
                         finally
                         {
                             stopwatch.Stop();
-                            Telemetry.EngineMainLoopTotalTime.Record(stopwatch.Elapsed.TotalSeconds);
+                            Metrics.EngineMainLoopTotalTime.Record(stopwatch.Elapsed.TotalSeconds);
                         }
                     }
                 }
@@ -91,7 +92,7 @@ internal partial class Engine
 
     private async Task AcquireQueueSlot(CancellationToken cancellationToken = default)
     {
-        using var activity = Telemetry.Source.StartActivity("Engine.AcquireQueueSlot");
+        using var activity = Metrics.Source.StartActivity("Engine.AcquireQueueSlot");
         _logger.AcquiringQueueSlot();
 
         await _inboxCapacityLimit.WaitAsync(cancellationToken);
@@ -130,7 +131,7 @@ internal partial class Engine
             var removed = _inbox.TryRemove(workflow.IdempotencyKey, out _) && _activeSet.Remove(workflow);
             if (!removed)
             {
-                Telemetry.Errors.Add(1, ("operation", "queueSlotRelease"));
+                Metrics.Errors.Add(1, ("operation", "queueSlotRelease"));
                 throw new EngineException($"Unable to release queue slot {workflow.IdempotencyKey}");
             }
         }
@@ -138,13 +139,9 @@ internal partial class Engine
         _inboxCapacityLimit.Release();
 
         if (workflow.OverallStatus().IsSuccessful())
-        {
-            Telemetry.WorkflowsSucceeded.Add(1);
-        }
+            Metrics.WorkflowsSucceeded.Add(1);
         else
-        {
-            Telemetry.WorkflowsFailed.Add(1);
-        }
+            Metrics.WorkflowsFailed.Add(1);
     }
 
     [MemberNotNull(nameof(_inbox), nameof(_activeSet), nameof(_inboxCapacityLimit), nameof(_newWorkSignal))]

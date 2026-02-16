@@ -1,5 +1,6 @@
 namespace WorkflowEngine.Api;
 
+// TODO: This probably doesn't need to exist anymore
 internal sealed class ConcurrentBuffer<T>(int maxSize = 10) : IDisposable
     where T : struct
 {

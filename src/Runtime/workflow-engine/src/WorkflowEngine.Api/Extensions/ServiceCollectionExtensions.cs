@@ -7,6 +7,7 @@ using WorkflowEngine.Api.Constants;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
+using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Api.Extensions;
 
@@ -59,15 +60,15 @@ internal static class ServiceCollectionExtensions
                 .AddOpenTelemetry()
                 .ConfigureResource(r =>
                     r.AddService(
-                        serviceName: Telemetry.ServiceName,
-                        serviceVersion: Telemetry.ServiceVersion,
+                        serviceName: Metrics.ServiceName,
+                        serviceVersion: Metrics.ServiceVersion,
                         serviceInstanceId: Environment.MachineName
                     )
                 )
                 .WithTracing(builder =>
                 {
                     builder
-                        .AddSource(Telemetry.ServiceName)
+                        .AddSource(Metrics.ServiceName)
                         .AddHttpClientInstrumentation(opts =>
                         {
                             opts.RecordException = true;
@@ -101,7 +102,7 @@ internal static class ServiceCollectionExtensions
                 .WithMetrics(builder =>
                 {
                     builder
-                        .AddMeter(Telemetry.ServiceName)
+                        .AddMeter(Metrics.ServiceName)
                         .AddMeter("Microsoft.EntityFrameworkCore")
                         .AddRuntimeInstrumentation()
                         .AddHttpClientInstrumentation()
