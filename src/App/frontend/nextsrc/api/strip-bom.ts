@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 /**
@@ -11,7 +11,12 @@ const source = resolve(
   __dirname,
   '../../../backend/test/Altinn.App.Api.Tests/OpenApi/OpenApiSpecChangeDetection.SaveJsonSwagger.verified.json',
 );
-const dest = resolve(__dirname, 'generated/openapi-spec.json');
+const generatedFolderPath = resolve(__dirname, 'generated');
+if (!existsSync(generatedFolderPath)) {
+  mkdirSync(generatedFolderPath);
+}
+
+const openApiSpecWithoutBomFilePath = resolve(generatedFolderPath, 'openapi-spec.json');
 
 let content = readFileSync(source, 'utf-8');
 
@@ -20,4 +25,4 @@ if (content.charCodeAt(0) === 0xfeff) {
   content = content.slice(1);
 }
 
-writeFileSync(dest, content);
+writeFileSync(openApiSpecWithoutBomFilePath, content);
