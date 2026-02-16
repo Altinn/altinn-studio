@@ -25,7 +25,17 @@ internal static class HealthEndpoints
         // Aggregate health endpoint - runs all registered health checks
         group.MapHealthChecks("", new HealthCheckOptions { ResponseWriter = HealthResponseJsonWriter });
 
+        // Forward /health to /api/v1/health for convenience
+        RedirectVersionlessEndpoints(app);
+
         return app;
+    }
+
+    private static void RedirectVersionlessEndpoints(WebApplication app)
+    {
+        app.MapGet("/health", () => Results.Redirect("/api/v1/health", permanent: true)).ExcludeFromDescription();
+        app.MapGet("/health/live", () => Results.Redirect("/api/v1/health", permanent: true)).ExcludeFromDescription();
+        app.MapGet("/health/ready", () => Results.Redirect("/api/v1/health", permanent: true)).ExcludeFromDescription();
     }
 
     private static async Task HealthResponseJsonWriter(HttpContext context, HealthReport report)
