@@ -74,7 +74,7 @@ internal sealed class AlertsService(
         }
         if (appInsightsUrl is not null)
         {
-            links.Add(new SlackText { Type = "mrkdwn", Text = $"<{appInsightsUrl}|Application Insights>" });
+            links.Add(new SlackText { Type = "mrkdwn", Text = $"<{appInsightsUrl.OriginalString}|Application Insights>" });
         }
 
         var message = new SlackMessage
