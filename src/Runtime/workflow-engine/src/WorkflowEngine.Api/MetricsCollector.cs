@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Options;
-using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Telemetry;
+using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Api;
 

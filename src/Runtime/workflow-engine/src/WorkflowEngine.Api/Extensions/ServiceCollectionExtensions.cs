@@ -76,6 +76,9 @@ internal static class ServiceCollectionExtensions
                         .AddAspNetCoreInstrumentation(opts =>
                         {
                             opts.RecordException = true;
+                            opts.Filter = httpContext =>
+                                httpContext.Request.Path.Value?.Contains("/health", StringComparison.OrdinalIgnoreCase)
+                                    is not true;
                         })
                         .AddEntityFrameworkCoreInstrumentation(opts =>
                         {

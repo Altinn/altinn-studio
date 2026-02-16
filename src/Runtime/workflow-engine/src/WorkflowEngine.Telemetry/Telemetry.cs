@@ -7,135 +7,143 @@ public static class Metrics
 {
     public const string ServiceName = "WorkflowEngine";
     public const string ServiceVersion = "1.0.0"; // TODO: Get this from build
+    public const string ActivityPrefix = "Engine";
+    public const string MeteringPrefix = "engine";
     public static readonly ActivitySource Source = new(ServiceName);
     public static readonly Meter Meter = new(ServiceName);
 
-    public static readonly Counter<long> Errors = Meter.CreateCounter<long>("engine.errors");
+    public static readonly Counter<long> Errors = Meter.CreateCounter<long>($"{MeteringPrefix}.errors");
 
     public static readonly Counter<long> EngineMainLoopIterations = Meter.CreateCounter<long>(
-        "engine.mainloop.iterations"
+        $"{MeteringPrefix}.mainloop.iterations"
     );
     public static readonly Histogram<double> EngineMainLoopQueueTime = Meter.CreateHistogram<double>(
-        "engine.mainloop.time.queue",
+        $"{MeteringPrefix}.mainloop.time.queue",
         "s",
         "Amount of time the main loop spent waiting for tasks to complete and/or new workflows to arrive (seconds)."
     );
     public static readonly Histogram<double> EngineMainLoopServiceTime = Meter.CreateHistogram<double>(
-        "engine.mainloop.time.service",
+        $"{MeteringPrefix}.mainloop.time.service",
         "s",
         "Amount of time the main loop spent actively executing workflows and/or database IO (seconds)."
     );
     public static readonly Histogram<double> EngineMainLoopTotalTime = Meter.CreateHistogram<double>(
-        "engine.mainloop.time.total",
+        $"{MeteringPrefix}.mainloop.time.total",
         "s",
         "Amount of time the main loop spent on a full execution (seconds)."
     );
 
     public static readonly Counter<long> WorkflowQueriesReceived = Meter.CreateCounter<long>(
-        "engine.workflows.query.received"
+        $"{MeteringPrefix}.workflows.query.received"
     );
     public static readonly Counter<long> WorkflowRequestsReceived = Meter.CreateCounter<long>(
-        "engine.workflows.request.received"
+        $"{MeteringPrefix}.workflows.request.received"
     );
     public static readonly Counter<long> WorkflowRequestsAccepted = Meter.CreateCounter<long>(
-        "engine.workflows.request.accepted"
+        $"{MeteringPrefix}.workflows.request.accepted"
     );
     public static readonly Counter<long> WorkflowsSucceeded = Meter.CreateCounter<long>(
-        "engine.workflows.execution.success"
+        $"{MeteringPrefix}.workflows.execution.success"
     );
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
-        "engine.workflows.execution.failed"
+        $"{MeteringPrefix}.workflows.execution.failed"
     );
     public static readonly Histogram<double> WorkflowQueueTime = Meter.CreateHistogram<double>(
-        "engine.workflows.time.queue",
+        $"{MeteringPrefix}.workflows.time.queue",
         "s",
         "Amount of time a workflow spent in the queue before and between executions (seconds)"
     );
     public static readonly Histogram<double> WorkflowServiceTime = Meter.CreateHistogram<double>(
-        "engine.workflows.time.service",
+        $"{MeteringPrefix}.workflows.time.service",
         "s",
         "Amount of time a workflow's steps spent being actively executed (seconds). Includes time spent on database IO."
     );
     public static readonly Histogram<double> WorkflowTotalTime = Meter.CreateHistogram<double>(
-        "engine.workflows.time.total",
+        $"{MeteringPrefix}.workflows.time.total",
         "s",
         "Amount of time a workflow spent in the engine, start to finish (seconds). Includes time spend on the queue due to retries."
     );
 
     public static readonly Counter<long> StepRequestsAccepted = Meter.CreateCounter<long>(
-        "engine.steps.request.accepted"
+        $"{MeteringPrefix}.steps.request.accepted"
     );
-    public static readonly Counter<long> StepsSucceeded = Meter.CreateCounter<long>("engine.steps.execution.success");
-    public static readonly Counter<long> StepsRequeued = Meter.CreateCounter<long>("engine.steps.execution.requeued");
-    public static readonly Counter<long> StepsFailed = Meter.CreateCounter<long>("engine.steps.execution.failed");
+    public static readonly Counter<long> StepsSucceeded = Meter.CreateCounter<long>(
+        $"{MeteringPrefix}.steps.execution.success"
+    );
+    public static readonly Counter<long> StepsRequeued = Meter.CreateCounter<long>(
+        $"{MeteringPrefix}.steps.execution.requeued"
+    );
+    public static readonly Counter<long> StepsFailed = Meter.CreateCounter<long>(
+        $"{MeteringPrefix}.steps.execution.failed"
+    );
 
     public static readonly Histogram<double> StepQueueTime = Meter.CreateHistogram<double>(
-        "engine.steps.time.queue",
+        $"{MeteringPrefix}.steps.time.queue",
         "s",
         "Amount of time a step spent in the queue before being picked up by a worker (seconds)"
     );
     public static readonly Histogram<double> StepServiceTime = Meter.CreateHistogram<double>(
-        "engine.steps.time.service",
+        $"{MeteringPrefix}.steps.time.service",
         "s",
         "Amount of time a step spent being actively executed (seconds). Includes time spent on database IO."
     );
     public static readonly Histogram<double> StepTotalTime = Meter.CreateHistogram<double>(
-        "engine.steps.time.total",
+        $"{MeteringPrefix}.steps.time.total",
         "s",
         "Amount of time a step spent in the engine, start to finish (seconds). Includes time spend on the queue due to retries."
     );
 
     private static long _activeWorkflowsCount;
     public static readonly ObservableGauge<long> ActiveWorkflows = Meter.CreateObservableGauge(
-        "engine.workflows.active",
+        $"{MeteringPrefix}.workflows.active",
         static () => _activeWorkflowsCount
     );
 
     private static long _scheduledWorkflowsCount;
     public static readonly ObservableGauge<long> ScheduledWorkflows = Meter.CreateObservableGauge(
-        "engine.workflows.scheduled",
+        $"{MeteringPrefix}.workflows.scheduled",
         static () => _scheduledWorkflowsCount
     );
 
     private static long _failedWorkflowsCount;
     public static readonly ObservableGauge<long> FailedWorkflows = Meter.CreateObservableGauge(
-        "engine.workflows.failed",
+        $"{MeteringPrefix}.workflows.failed",
         static () => _failedWorkflowsCount
     );
 
     private static long _availableInboxSlotsCount;
     public static readonly ObservableGauge<long> AvailableInboxSlots = Meter.CreateObservableGauge(
-        "engine.slots.inbox.available",
+        $"{MeteringPrefix}.slots.inbox.available",
         static () => _availableInboxSlotsCount
     );
 
     private static long _usedInboxSlotsCount;
     public static readonly ObservableGauge<long> UsedInboxSlots = Meter.CreateObservableGauge(
-        "engine.slots.inbox.used",
+        $"{MeteringPrefix}.slots.inbox.used",
         static () => _usedInboxSlotsCount
     );
 
     private static long _availableDbSlotsCount;
     public static readonly ObservableGauge<long> AvailableDbSlots = Meter.CreateObservableGauge(
-        "engine.slots.db.available",
+        $"{MeteringPrefix}.slots.db.available",
         static () => _availableDbSlotsCount
     );
 
     private static long _usedDbSlotsCount;
     public static readonly ObservableGauge<long> UsedDbSlots = Meter.CreateObservableGauge(
-        "engine.slots.db.used",
+        $"{MeteringPrefix}.slots.db.used",
         static () => _usedDbSlotsCount
     );
 
     private static long _availableHttpSlotsCount;
     public static readonly ObservableGauge<long> AvailableHttpSlots = Meter.CreateObservableGauge(
-        "engine.slots.http.available",
+        $"{MeteringPrefix}.slots.http.available",
         static () => _availableHttpSlotsCount
     );
 
     private static long _usedHttpSlotsCount;
     public static readonly ObservableGauge<long> UsedHttpSlots = Meter.CreateObservableGauge(
-        "engine.slots.http.used",
+        $"{MeteringPrefix}.slots.http.used",
         static () => _usedHttpSlotsCount
     );
 

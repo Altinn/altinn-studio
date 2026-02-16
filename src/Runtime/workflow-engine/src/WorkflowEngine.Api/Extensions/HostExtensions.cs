@@ -20,7 +20,7 @@ internal static class HostExtensions
         // Without this, StartActivity returns null because the host hasn't started yet.
         _ = host.Services.GetService<TracerProvider>();
 
-        using var activity = Metrics.Source.StartActivity("Engine.ApplyDatabaseMigrations");
+        using var activity = Metrics.Source.StartActivity($"{Metrics.ActivityPrefix}.ApplyDatabaseMigrations");
 
         using var scope = host.Services.CreateScope();
         var migrationService = scope.ServiceProvider.GetRequiredService<DbMigrationService>();

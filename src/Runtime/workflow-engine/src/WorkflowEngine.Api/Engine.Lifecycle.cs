@@ -1,10 +1,10 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Telemetry;
+using WorkflowEngine.Telemetry.Extensions;
 using Task = System.Threading.Tasks.Task;
 
 namespace WorkflowEngine.Api;
@@ -92,7 +92,7 @@ internal partial class Engine
 
     private async Task AcquireQueueSlot(CancellationToken cancellationToken = default)
     {
-        using var activity = Metrics.Source.StartActivity("Engine.AcquireQueueSlot");
+        using var activity = Metrics.Source.StartActivity($"{Metrics.ActivityPrefix}.AcquireQueueSlot");
         _logger.AcquiringQueueSlot();
 
         await _inboxCapacityLimit.WaitAsync(cancellationToken);

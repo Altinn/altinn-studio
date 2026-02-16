@@ -1,7 +1,7 @@
-using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
+using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Api;
 
@@ -13,7 +13,7 @@ internal partial class Engine
     )
     {
         using var activity = Metrics.Source.StartActivity(
-            "Engine.EnqueueWorkflow",
+            $"{Metrics.ActivityPrefix}.EnqueueWorkflow",
             tags:
             [
                 ("request.operation.id", engineRequest.OperationId),
@@ -101,7 +101,7 @@ internal partial class Engine
         bool isDupe = _inbox.ContainsKey(jobIdentifier);
 
         using var activity = Metrics.Source.StartActivity(
-            "Engine.HasDuplicateWorkflow",
+            $"{Metrics.ActivityPrefix}.HasDuplicateWorkflow",
             tags: [("workflow.isDuplicate", isDupe)]
         );
 
@@ -113,7 +113,7 @@ internal partial class Engine
         var instanceHasActiveWorkflow = _inbox.Values.Any(w => w.InstanceInformation == instanceInformation);
 
         using var activity = Metrics.Source.StartActivity(
-            "Engine.HasQueuedWorkflowForInstance",
+            $"{Metrics.ActivityPrefix}.HasQueuedWorkflowForInstance",
             tags: [("instance.hasActiveWorkflow", instanceHasActiveWorkflow)]
         );
 
@@ -122,7 +122,7 @@ internal partial class Engine
 
     public Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation)
     {
-        using var activity = Metrics.Source.StartActivity("Engine.GetWorkflowForInstance");
+        using var activity = Metrics.Source.StartActivity($"{Metrics.ActivityPrefix}.GetWorkflowForInstance");
 
         return _inbox.Values.FirstOrDefault(w => w.InstanceInformation == instanceInformation);
     }
@@ -130,7 +130,7 @@ internal partial class Engine
     // TODO: We probably want a background process to periodically pull from the database, so we can catch scheduled tasks and other things we've been ignoring
     private async Task PopulateWorkflowsFromDb(CancellationToken cancellationToken)
     {
-        using var activity = Metrics.Source.StartActivity("Engine.PopulateWorkflowsFromDb");
+        using var activity = Metrics.Source.StartActivity($"{Metrics.ActivityPrefix}.PopulateWorkflowsFromDb");
 
         // TODO: Disabled for now. We don't necessarily want to resume jobs after restart while testing.
         return;
@@ -155,7 +155,7 @@ internal partial class Engine
     private async Task UpdateWorkflowInDb(Workflow workflow, CancellationToken cancellationToken)
     {
         using var activity = Metrics.Source.StartActivity(
-            "Engine.UpdateWorkflowInDb",
+            $"{Metrics.ActivityPrefix}.UpdateWorkflowInDb",
             parentContext: workflow.EngineTraceContext,
             tags: [("workflow.status", workflow.Status.ToString())]
         );
@@ -168,7 +168,7 @@ internal partial class Engine
     private async Task UpdateWorkflowAndStepsInDb(Workflow workflow, CancellationToken cancellationToken)
     {
         using var activity = Metrics.Source.StartActivity(
-            "Engine.UpdateWorkflowAndStepsInDb",
+            $"{Metrics.ActivityPrefix}.UpdateWorkflowAndStepsInDb",
             parentContext: workflow.EngineTraceContext,
             tags: [("workflow.status", workflow.Status.ToString()), ("workflow.steps.count", workflow.Steps.Count)]
         );
@@ -190,7 +190,7 @@ internal partial class Engine
 #pragma warning restore S1144
     {
         using var activity = Metrics.Source.StartActivity(
-            "Engine.UpdateStepInDb",
+            $"{Metrics.ActivityPrefix}.UpdateStepInDb",
             parentContext: step.EngineTraceContext,
             tags: [("step.status", step.Status.ToString())]
         );

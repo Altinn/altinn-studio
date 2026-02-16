@@ -1,8 +1,8 @@
 using System.Diagnostics;
-using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Telemetry;
+using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Api;
 
@@ -17,7 +17,7 @@ internal partial class Engine
 
         // First iteration: create a new linked root trace for this workflow
         var activity = Metrics.Source.StartLinkedRootActivity(
-            "Engine.ProcessWorkflow",
+            $"{Metrics.ActivityPrefix}.ProcessWorkflow",
             kind: ActivityKind.Consumer,
             links: Metrics.ParseSourceContext(workflow.DistributedTraceContext),
             tags: workflow.GetActivityTags()
@@ -37,7 +37,7 @@ internal partial class Engine
 
         // First iteration: create a new linked root trace for this workflow
         var activity = Metrics.Source.StartActivity(
-            "Engine.ProcessStep",
+            $"{Metrics.ActivityPrefix}.ProcessStep",
             ActivityKind.Consumer,
             workflow.EngineTraceContext ?? default,
             step.GetActivityTags()

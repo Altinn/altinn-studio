@@ -7,6 +7,7 @@ using WorkflowEngine.Models;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Telemetry;
+using WorkflowEngine.Telemetry.Extensions;
 
 // CA1305: Specify IFormatProvider
 #pragma warning disable CA1305

@@ -2,13 +2,13 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using Altinn.Studio.Runtime.Common;
 using Microsoft.Extensions.Options;
-using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience.Extensions;
 using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
+using WorkflowEngine.Telemetry.Extensions;
 using TaskStatus = WorkflowEngine.Models.TaskStatus;
 
 namespace WorkflowEngine.Api;
@@ -448,7 +448,7 @@ internal partial class Engine : IEngine, IDisposable
 
     private async Task WaitForPendingTasks(CancellationToken cancellationToken)
     {
-        using var activity = Metrics.Source.StartActivity("Engine.WaitForPendingTasks");
+        using var activity = Metrics.Source.StartActivity($"{Metrics.ActivityPrefix}.WaitForPendingTasks");
 
         // Wait for active Step and Workflow tasks (active set only)
         List<Task> awaitables;
