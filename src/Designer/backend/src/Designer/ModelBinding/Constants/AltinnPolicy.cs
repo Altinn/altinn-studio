@@ -42,5 +42,11 @@ namespace Altinn.Studio.Designer.ModelBinding.Constants
         /// MustHaveAdminPermission
         /// </summary>
         public const string MustHaveAdminPermission = "MustHaveAdminPermission";
+
+        /// <summary>
+        /// MustHaveAiAssistantPermission
+        /// User must have permission to access the AI assistant.
+        /// </summary>
+        public const string MustHaveAiAssistantPermission = "MustHaveAiAssistantPermission";
     }
 }
