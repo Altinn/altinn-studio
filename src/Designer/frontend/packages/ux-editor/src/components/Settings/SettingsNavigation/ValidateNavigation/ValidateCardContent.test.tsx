@@ -3,7 +3,8 @@ import { render, screen } from '@testing-library/react';
 import { ValidateCardContent, type ValidateCardContentProps } from './ValidateCardContent';
 import { Scope } from './ValidateNavigationUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import userEvent, { UserEvent } from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
+import { selectSuggestionOption } from './ValidateNavigationTestUtils';
 
 describe('ValidateCardContent', () => {
   it('renders page selector when scope is SelectedPages', () => {
@@ -31,8 +32,11 @@ describe('ValidateCardContent', () => {
 
     const mockOnChange = jest.fn();
     renderValidateCardContent({ scope: Scope.SelectedTasks, onChange: mockOnChange });
-    await selectTask({ user, optionLabel: 'Oppgave 1', multiple: true });
-
+    const selectorLabel = textMock(
+      'ux_editor.settings.navigation_validation_specific_task_label_several',
+    );
+    const optionLabel = 'Oppgave 1';
+    await selectSuggestionOption({ user, selectorLabel, optionLabel });
     expect(mockOnChange).toHaveBeenCalledWith({
       tasks: [{ label: 'Oppgave 1', value: 'Oppgave 1' }],
     });
@@ -43,8 +47,9 @@ describe('ValidateCardContent', () => {
 
     const mockOnChange = jest.fn();
     renderValidateCardContent({ scope: Scope.SelectedPages, onChange: mockOnChange });
-
-    await selectTask({ user, optionLabel: 'Oppgave 1' });
+    const selectorLabel = textMock('ux_editor.settings.navigation_validation_specific_task_label');
+    const optionLabel = 'Oppgave 1';
+    await selectSuggestionOption({ user, selectorLabel, optionLabel });
 
     expect(mockOnChange).toHaveBeenCalledWith({
       task: { label: 'Oppgave 1', value: 'Oppgave 1' },
@@ -53,29 +58,13 @@ describe('ValidateCardContent', () => {
   });
 });
 
-type SelectOption = {
-  user: UserEvent;
-  optionLabel: string;
-  multiple?: boolean;
-};
-
-const selectTask = async ({ user, optionLabel, multiple }: SelectOption) => {
-  const taskSelector = screen.getByRole('textbox', {
-    name: textMock(
-      `ux_editor.settings.navigation_validation_specific_task_label${multiple ? '_several' : ''}`,
-    ),
-  });
-  await user.type(taskSelector, optionLabel);
-  await user.keyboard('{Enter}');
-};
-
 const renderValidateCardContent = ({
   scope,
   onChange = jest.fn(),
 }: Partial<ValidateCardContentProps>) => {
   const mockConfig = {
     types: [],
-    pageScope: '',
+    pageScope: { label: '', value: '' },
     tasks: [],
   };
 

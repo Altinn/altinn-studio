@@ -5,7 +5,7 @@ describe('getDefaultConfig', () => {
     const config = getDefaultConfig(Scope.AllTasks);
     expect(config).toEqual({
       types: [],
-      pageScope: '',
+      pageScope: { value: '', label: '' },
     });
   });
 
@@ -13,7 +13,7 @@ describe('getDefaultConfig', () => {
     const config = getDefaultConfig(Scope.SelectedTasks);
     expect(config).toEqual({
       types: [],
-      pageScope: '',
+      pageScope: { value: '', label: '' },
       tasks: [],
     });
   });
@@ -22,7 +22,7 @@ describe('getDefaultConfig', () => {
     const config = getDefaultConfig(Scope.SelectedPages);
     expect(config).toEqual({
       types: [],
-      pageScope: '',
+      pageScope: { value: '', label: '' },
       task: undefined,
       pages: [],
     });

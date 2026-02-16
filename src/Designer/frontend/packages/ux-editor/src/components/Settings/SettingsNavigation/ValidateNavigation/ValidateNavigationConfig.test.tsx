@@ -5,7 +5,7 @@ import {
   ValidateNavigationConfig,
   type ValidateNavigationConfigProps,
 } from './ValidateNavigationConfig';
-import userEvent, { UserEvent } from '@testing-library/user-event';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const propertyLabel = 'Test Property';

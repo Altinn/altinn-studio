@@ -1,8 +1,7 @@
 import React from 'react';
 import { type ValidateConfigState } from './ValidateNavigationTypes';
-import { type StudioSuggestionItem } from '@studio/components';
 import { ValidateRuleConfig } from './ValidateRuleConfig';
-import { PagesSelector, TasksSelector } from './ValidateTargetSelectors';
+import { PagesSelector, TaskSelector, TasksSelector } from './ValidateTargetSelectors';
 import { Scope } from './ValidateNavigationUtils';
 
 export type ValidateCardContentProps = {
@@ -15,35 +14,30 @@ export const ValidateCardContent = ({ scope, config, onChange }: ValidateCardCon
   const isPerPage = scope === Scope.SelectedPages;
   const isPerTask = scope === Scope.SelectedTasks;
 
-  const handleTaskChange = (value: StudioSuggestionItem | StudioSuggestionItem[]) => {
-    if (scope === Scope.SelectedTasks) {
-      onChange({ tasks: value as StudioSuggestionItem[] });
-    }
-
-    if (scope === Scope.SelectedPages) {
-      onChange({ task: value as StudioSuggestionItem, pages: [] });
-    }
-  };
-
   return (
     <>
-      {(isPerTask || isPerPage) && (
+      {isPerTask && (
         <TasksSelector
-          currentTasks={config.tasks}
-          isMultiple={isPerTask}
-          onChange={handleTaskChange}
+          selectedTasks={config.tasks}
+          onChange={(value) => onChange({ tasks: value })}
         />
       )}
       {isPerPage && (
-        <PagesSelector
-          taskName={config.task}
-          currentPages={config.pages}
-          onChange={(value) => onChange({ pages: value })}
-        />
+        <>
+          <TaskSelector
+            selectedTask={config.task}
+            onChange={(value) => onChange({ task: value, pages: [] })}
+          />
+          <PagesSelector
+            taskName={config.task?.value}
+            selectedPages={config.pages}
+            onChange={(value) => onChange({ pages: value })}
+          />
+        </>
       )}
       <ValidateRuleConfig
-        types={config.types}
-        pageScope={config.pageScope}
+        selectedTypes={config.types}
+        selectedPageScope={config.pageScope}
         onChange={(value) => onChange(value)}
       />
     </>

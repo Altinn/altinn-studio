@@ -1,16 +1,19 @@
 import React from 'react';
 import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
-import { StudioSelect } from '@studio/components';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks';
 import { useTranslation } from 'react-i18next';
 
 export type ValidateRuleConfigProps = {
-  types: StudioSuggestionItem[];
-  pageScope: string;
-  onChange: (updates: { types?: StudioSuggestionItem[]; pageScope?: string }) => void;
+  selectedTypes: StudioSuggestionItem[];
+  selectedPageScope: StudioSuggestionItem;
+  onChange: (updates: { types?: StudioSuggestionItem[]; pageScope?: StudioSuggestionItem }) => void;
 };
 
-export const ValidateRuleConfig = ({ types, pageScope, onChange }: ValidateRuleConfigProps) => {
+export const ValidateRuleConfig = ({
+  selectedTypes,
+  selectedPageScope,
+  onChange,
+}: ValidateRuleConfigProps) => {
   const configEnumValue = useComponentPropertyEnumValue();
   const { t } = useTranslation();
   const validateTypes = [
@@ -21,16 +24,16 @@ export const ValidateRuleConfig = ({ types, pageScope, onChange }: ValidateRuleC
     'Required',
     'AllExceptRequired',
     'All',
-  ]; // Temporary hardcoded list of validation types, will extract from schema in next PR
+  ];
   const validateScopes = ['current', 'currentAndPrevious', 'all']; // Temporary hardcoded list of validation types, will extract from schema in next PR
 
   return (
     <>
       <StudioSuggestion
-        selected={types}
+        selected={selectedTypes}
         label={t('ux_editor.settings.navigation_validation_type_label')}
         emptyText={t('ux_editor.settings.navigation_validation_type_empty')}
-        onSelectedChange={(selectedTypes) => onChange({ types: selectedTypes })}
+        onSelectedChange={(selected) => onChange({ types: selected })}
         multiple
       >
         {validateTypes.map((type) => (
@@ -39,18 +42,19 @@ export const ValidateRuleConfig = ({ types, pageScope, onChange }: ValidateRuleC
           </StudioSuggestion.Option>
         ))}
       </StudioSuggestion>
-      <StudioSelect
+      <StudioSuggestion
+        selected={selectedPageScope}
         label={t('ux_editor.settings.navigation_validation_scope')}
-        value={pageScope}
-        onChange={(e) => onChange({ pageScope: e.target.value })}
+        emptyText={t('ux_editor.settings.navigation_validation_scope_empty')}
+        onSelectedChange={(selectedScope) => onChange({ pageScope: selectedScope })}
+        multiple={false}
       >
-        <StudioSelect.Option value='' disabled />
         {validateScopes.map((scope) => (
-          <StudioSelect.Option key={scope} value={scope}>
+          <StudioSuggestion.Option key={scope} value={scope}>
             {configEnumValue(scope)}
-          </StudioSelect.Option>
+          </StudioSuggestion.Option>
         ))}
-      </StudioSelect>
+      </StudioSuggestion>
     </>
   );
 };

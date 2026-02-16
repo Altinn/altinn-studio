@@ -8,7 +8,7 @@ export enum Scope {
 
 export const getDefaultConfig = (scope: Scope): ValidateConfigState => ({
   types: [],
-  pageScope: '',
+  pageScope: { value: '', label: '' },
   ...(scope === Scope.SelectedTasks && { tasks: [] }),
   ...(scope === Scope.SelectedPages && { task: undefined, pages: [] }),
 });
