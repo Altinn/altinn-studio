@@ -32,11 +32,7 @@ export interface UseAltinityWorkflowResult {
 
 export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWorkflowResult => {
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus>({ isActive: false });
-  const {
-    sessionId: backendSessionId,
-    startWorkflow,
-    onAgentMessage,
-  } = useAltinityWebSocket();
+  const { sessionId: backendSessionId, startWorkflow, onAgentMessage } = useAltinityWebSocket();
   const { org, app } = useStudioEnvironmentParams();
   const queryClient = useQueryClient();
   const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);

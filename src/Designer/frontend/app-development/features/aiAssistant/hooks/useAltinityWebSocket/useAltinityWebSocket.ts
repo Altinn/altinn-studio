@@ -1,11 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { altinityWebSocketHub } from 'app-shared/api/paths';
-import type {
-  WorkflowEvent,
-  WorkflowRequest,
-  AgentResponse,
-} from '@studio/assistant';
+import type { WorkflowEvent, WorkflowRequest, AgentResponse } from '@studio/assistant';
 
 const ALTINITY_CONNECTION_INDEX = 0; // WSConnector uses single connection for Altinity hub
 
