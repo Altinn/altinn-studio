@@ -39,7 +39,7 @@ spec:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 50
+        averageUtilization: 75
 ---
 apiVersion: v1
 kind: Service
@@ -55,8 +55,10 @@ metadata:
     # The idea is that application pods (which also have linkerd sidecars)
     # will route PDF requests to pods residing in the same AZ.
     # The linkerd sidecar uses the below annotation to make routing decisions.
-    # See doc: https://linkerd.io/2-edge/tasks/enabling-topology-aware-routing/
-    service.kubernetes.io/topology-aware-hints: auto
+    # See docs:
+    # - https://linkerd.io/2-edge/tasks/enabling-topology-aware-routing/
+    # - https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/
+    service.kubernetes.io/topology-mode: Auto
 spec:
   # ClusterIP is the default and recommended type for internal services
   # Explicit declaration improves clarity and prevents accidental exposure
@@ -133,6 +135,7 @@ spec:
         # linkerd provides automatic mTLS and some nice features
         # such as topology aware routing
         linkerd.io/inject: enabled
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       topologySpreadConstraints:
         # Try to spread across availability zones first (highest priority)
@@ -248,5 +251,5 @@ spec:
             # For a 1 CPU core + 1 GB RAM VM, current configuration
             # would fit 3 replicas on one 1 node
             requests:
-              cpu: 50m
-              memory: 128Mi
+              cpu: 10m
+              memory: 64Mi
