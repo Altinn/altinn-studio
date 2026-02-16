@@ -39,7 +39,6 @@ internal static class DashboardEndpoints
                     IEngine engine,
                     ConcurrencyLimiter limiter,
                     IOptions<EngineSettings> settings,
-                    IServiceProvider sp,
                     HttpContext ctx,
                     CancellationToken ct
                 ) =>
@@ -53,8 +52,6 @@ internal static class DashboardEndpoints
                         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                         WriteIndented = false,
                     };
-
-                    var previousKeys = new HashSet<string>();
 
                     object MapWorkflow(Workflow w) =>
                         new
@@ -97,35 +94,6 @@ internal static class DashboardEndpoints
                         var httpSlot = limiter.HttpSlotStatus;
                         var engineSettings = settings.Value;
                         var workflows = engine.GetAllInboxWorkflows();
-                        var currentKeys = new HashSet<string>(workflows.Select(w => w.IdempotencyKey));
-
-                        // Backfill: when workflows leave the inbox, fetch their final state from DB
-                        var finishedPayloads = new List<object>();
-                        var disappeared = previousKeys.Except(currentKeys).ToList();
-                        if (disappeared.Count > 0)
-                        {
-                            try
-                            {
-                                using var scope = sp.CreateScope();
-                                var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                                var completed = await repo.GetCompletedWorkflows(cancellationToken: ct);
-                                var failed = await repo.GetFailedWorkflows(cancellationToken: ct);
-                                foreach (var key in disappeared)
-                                {
-                                    var wf =
-                                        completed.FirstOrDefault(w => w.IdempotencyKey == key)
-                                        ?? failed.FirstOrDefault(w => w.IdempotencyKey == key);
-                                    if (wf is not null)
-                                        finishedPayloads.Add(MapWorkflow(wf));
-                                }
-                            }
-                            catch
-                            {
-                                // Best effort — dashboard is non-critical
-                            }
-                        }
-
-                        previousKeys = currentKeys;
 
                         var payload = new
                         {
@@ -160,7 +128,6 @@ internal static class DashboardEndpoints
                                 },
                             },
                             workflows = workflows.Select(MapWorkflow),
-                            finished = finishedPayloads,
                         };
 
                         var json = JsonSerializer.Serialize(payload, jsonOptions);
@@ -168,6 +135,74 @@ internal static class DashboardEndpoints
                         await ctx.Response.Body.FlushAsync(ct);
 
                         await Task.Delay(50, ct);
+                    }
+                }
+            )
+            .ExcludeFromDescription();
+
+        app.MapGet(
+                "/dashboard/stream/recent",
+                async (IEngine engine, HttpContext ctx, CancellationToken ct) =>
+                {
+                    ctx.Response.ContentType = "text/event-stream";
+                    ctx.Response.Headers.CacheControl = "no-cache";
+                    ctx.Response.Headers.Connection = "keep-alive";
+
+                    var jsonOptions = new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        WriteIndented = false,
+                    };
+
+                    var previousFingerprint = "";
+
+                    while (!ct.IsCancellationRequested)
+                    {
+                        var recent = engine.GetRecentWorkflows(10);
+                        var fingerprint = string.Join(",", recent.Select(r => r.IdempotencyKey));
+
+                        if (fingerprint != previousFingerprint)
+                        {
+                            previousFingerprint = fingerprint;
+
+                            var payload = recent.Select(r => new
+                            {
+                                r.IdempotencyKey,
+                                r.OperationId,
+                                r.Status,
+                                instance = new
+                                {
+                                    org = r.InstanceInformation.Org,
+                                    app = r.InstanceInformation.App,
+                                    instanceOwnerPartyId = r.InstanceInformation.InstanceOwnerPartyId,
+                                    instanceGuid = r.InstanceInformation.InstanceGuid,
+                                },
+                                r.CreatedAt,
+                                r.ExecutionStartedAt,
+                                r.RemovedAt,
+                                steps = r.Steps.Select(s => new
+                                {
+                                    s.IdempotencyKey,
+                                    s.OperationId,
+                                    s.CommandType,
+                                    s.CommandDetail,
+                                    s.Status,
+                                    s.ProcessingOrder,
+                                    s.RetryCount,
+                                    s.BackoffUntil,
+                                    s.CreatedAt,
+                                    s.ExecutionStartedAt,
+                                    s.StartAt,
+                                    s.UpdatedAt,
+                                }),
+                            });
+
+                            var json = JsonSerializer.Serialize(payload, jsonOptions);
+                            await ctx.Response.WriteAsync($"data: {json}\n\n", ct);
+                            await ctx.Response.Body.FlushAsync(ct);
+                        }
+
+                        await Task.Delay(500, ct);
                     }
                 }
             )

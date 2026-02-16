@@ -65,20 +65,17 @@
    *   engineStatus: EngineStatus,
    *   capacity:     { inbox: SlotStatus, db: SlotStatus, http: SlotStatus },
    *   workflows:    Workflow[],
-   *   finished:     Workflow[],
    * }} DashboardPayload
    */
 
   /**
    * @typedef {{ startedAt: string, frozenAt?: number }} WorkflowTimer
-   * @typedef {{ wf: Workflow, removedAt: number }} RecentEntry
    *
    * @typedef {{
    *   previousWorkflows:    Record<string, Workflow>,
    *   workflowFingerprints: Record<string, string>,
    *   workflowTimers:       Record<string, WorkflowTimer>,
-   *   recentlyFinished:     Record<string, RecentEntry>,
-   *   pendingRemoval:       Record<string, Workflow>,
+   *   lastRecentKeys:       string,
    *   historyLoaded:        boolean,
    * }} DashboardState
    */
@@ -112,36 +109,42 @@
     previousWorkflows:    {},
     workflowFingerprints: {},
     workflowTimers:       {},
-    recentlyFinished:     {},
-    pendingRemoval:       {},
+    lastRecentKeys:       '',
     historyLoaded:        false,
   };
-
-  const MAX_RECENT = 5;
-  const GRACE_MS   = 500;
 
   /* ============================================================
    *  3. SSE CONNECTION
    * ============================================================ */
 
-  const connectSSE = () => {
-    const es = new EventSource('/dashboard/stream');
+  /**
+   * @param {string} url
+   * @param {(data: unknown) => void} onMessage
+   * @param {{ showStatus?: boolean }} [opts]
+   */
+  const connectSSE = (url, onMessage, opts) => {
+    const es = new EventSource(url);
+    const showStatus = opts?.showStatus ?? false;
 
-    es.onopen = () => {
-      dom.connBadge.className = 'connection connected';
-      dom.connText.textContent = 'SSE Connected';
-    };
+    if (showStatus) {
+      es.onopen = () => {
+        dom.connBadge.className = 'connection connected';
+        dom.connText.textContent = 'SSE Connected';
+      };
+    }
 
     es.onmessage = (e) => {
-      try { updateDashboard(JSON.parse(e.data)); }
+      try { onMessage(JSON.parse(e.data)); }
       catch (err) { console.error('SSE parse error:', err); }
     };
 
     es.onerror = () => {
-      dom.connBadge.className = 'connection disconnected';
-      dom.connText.textContent = 'SSE Disconnected';
+      if (showStatus) {
+        dom.connBadge.className = 'connection disconnected';
+        dom.connText.textContent = 'SSE Disconnected';
+      }
       es.close();
-      setTimeout(connectSSE, 2000);
+      setTimeout(() => connectSSE(url, onMessage, opts), 2000);
     };
   };
 
@@ -154,9 +157,6 @@
     updateStatusBadges(data.engineStatus);
     updateCapacity(data.capacity);
     updateLiveWorkflows(data.workflows);
-    if (data.finished?.length > 0) {
-      mergeFinished(data.finished);
-    }
   };
 
   /* ============================================================
@@ -219,28 +219,22 @@
 
   /** @param {Workflow[]} workflows */
   const updateLiveWorkflows = (workflows) => {
-    const currentKeys  = new Set(workflows.map(w => w.idempotencyKey));
-    const previousKeys = new Set(Object.keys(state.previousWorkflows));
+    const currentKeys = new Set(workflows.map(w => w.idempotencyKey));
 
-    // When a workflow disappears from SSE, start grace period before moving to recent
-    for (const key of previousKeys) {
-      if (!currentKeys.has(key) && !state.recentlyFinished[key] && !state.pendingRemoval[key]) {
-        state.pendingRemoval[key] = state.previousWorkflows[key];
-        setTimeout(() => moveToRecent(key), GRACE_MS);
+    // Remove cards for workflows no longer in inbox
+    for (const key of Object.keys(state.previousWorkflows)) {
+      if (!currentKeys.has(key)) {
+        document.getElementById(`wf-${cssId(key)}`)?.remove();
+        delete state.previousWorkflows[key];
+        delete state.workflowFingerprints[key];
+        delete state.workflowTimers[key];
       }
-    }
-
-    // If a pending-removal workflow reappears, cancel the move
-    for (const key of currentKeys) {
-      if (state.pendingRemoval[key]) delete state.pendingRemoval[key];
     }
 
     // Add or update active workflow cards
     for (const wf of workflows) {
       const elId = `wf-${cssId(wf.idempotencyKey)}`;
       let card = document.getElementById(elId);
-
-      delete state.recentlyFinished[wf.idempotencyKey];
 
       const fp = fingerprint(wf);
       if (!card) {
@@ -257,87 +251,35 @@
       state.previousWorkflows[wf.idempotencyKey] = wf;
     }
 
-    // Update counters
-    const liveN   = workflows.length;
-    const recentN = Object.keys(state.recentlyFinished).length;
-    dom.liveCount.textContent      = liveN;
-    dom.liveEmpty.style.display    = liveN === 0 && recentN === 0 ? 'block' : 'none';
-    dom.recentCount.textContent    = recentN;
-    dom.recentSection.style.display = recentN > 0 ? 'block' : 'none';
+    dom.liveCount.textContent = workflows.length;
+    dom.liveEmpty.style.display = workflows.length === 0 ? 'block' : 'none';
   };
 
   /* ============================================================
-   *  8. RECENT WORKFLOWS  (grace period + move from live)
+   *  8. RECENT WORKFLOWS  (rendered from backend cache)
    * ============================================================ */
 
-  /** @param {string} key */
-  const moveToRecent = (key) => {
-    const lastWf = state.pendingRemoval[key];
-    if (!lastWf) return;
-    delete state.pendingRemoval[key];
+  /** @param {Workflow[]} recent */
+  const updateRecentWorkflows = (recent) => {
+    const list = recent ?? [];
+    const recentN = list.length;
 
-    // Deep-clone and set final status
-    /** @type {Workflow} */
-    const finishedWf = JSON.parse(JSON.stringify(lastWf));
-    const anyFailed  = finishedWf.steps.some(s => s.status === 'Failed');
-    const finalStatus = anyFailed ? 'Failed' : 'Completed';
-    finishedWf.status = finalStatus;
-    for (const s of finishedWf.steps) {
-      if (s.status !== 'Failed' && s.status !== 'Canceled') s.status = finalStatus;
-    }
-
-    // Track in recentlyFinished and freeze the timer
-    state.recentlyFinished[key] = { wf: finishedWf, removedAt: Date.now() };
-    if (state.workflowTimers[key]) state.workflowTimers[key].frozenAt = Date.now();
-    delete state.previousWorkflows[key];
-    delete state.workflowFingerprints[key];
-
-    // Remove the live card, create a recent card
-    document.getElementById(`wf-${cssId(key)}`)?.remove();
-
-    const recentCard = document.createElement('div');
-    recentCard.className = 'workflow-card';
-    recentCard.id = `wf-${cssId(key)}`;
-    recentCard.style.animation = 'none';
-    recentCard.innerHTML = buildCardHTML(finishedWf, true);
-    dom.recentContainer.prepend(recentCard);
-
-    evictOldRecent();
-
-    const recentN = Object.keys(state.recentlyFinished).length;
     dom.recentCount.textContent = recentN;
     dom.recentSection.style.display = recentN > 0 ? 'block' : 'none';
-    dom.liveCount.textContent = Object.keys(state.previousWorkflows).length;
-  };
 
-  const evictOldRecent = () => {
-    const rfKeys = Object.keys(state.recentlyFinished).sort(
-      (a, b) => state.recentlyFinished[b].removedAt - state.recentlyFinished[a].removedAt
-    );
-    while (rfKeys.length > MAX_RECENT) {
-      const evictKey = /** @type {string} */ (rfKeys.pop());
-      const el = document.getElementById(`wf-${cssId(evictKey)}`);
-      if (el) {
-        el.classList.add('removing');
-        setTimeout(() => el.remove(), 500);
-      }
-      delete state.recentlyFinished[evictKey];
-      delete state.workflowTimers[evictKey];
-      delete state.workflowFingerprints[evictKey];
-    }
-  };
+    // Only re-render if the set of keys changed
+    const newKeys = list.map(r => r.idempotencyKey).join(',');
+    if (newKeys === state.lastRecentKeys) return;
+    state.lastRecentKeys = newKeys;
 
-  /** @param {Workflow[]} finished */
-  const mergeFinished = (finished) => {
-    for (const fin of finished) {
-      const target = state.pendingRemoval[fin.idempotencyKey];
-      if (!target) continue;
-      for (const fs of fin.steps) {
-        const existing = target.steps.find(s => s.idempotencyKey === fs.idempotencyKey);
-        if (existing && !existing.updatedAt && fs.updatedAt) {
-          existing.updatedAt = fs.updatedAt;
-        }
-      }
+    dom.recentContainer.innerHTML = '';
+    for (const wf of list) {
+      const card = document.createElement('div');
+      card.className = 'workflow-card';
+      card.id = `wf-recent-${cssId(wf.idempotencyKey)}`;
+      card.style.animation = 'none';
+      card.innerHTML = buildCardHTML(wf, true);
+      dom.recentContainer.appendChild(card);
     }
   };
 
@@ -698,7 +640,8 @@
    *  INIT
    * ============================================================ */
 
-  connectSSE();
+  connectSSE('/dashboard/stream', updateDashboard, { showStatus: true });
+  connectSSE('/dashboard/stream/recent', (data) => updateRecentWorkflows(/** @type {Workflow[]} */ (data)));
   requestAnimationFrame(updateTimers);
 
 })();
