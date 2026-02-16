@@ -14,7 +14,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Hubs.Altinity;
@@ -27,7 +26,6 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ILogger<AltinityProxyHub> _logger;
     private readonly AltinitySettings _altinitySettings;
     private readonly ServiceRepositorySettings _serviceRepositorySettings;
     private readonly IAltinityWebSocketService _webSocketService;
@@ -41,14 +39,12 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     public AltinityProxyHub(
         IHttpContextAccessor httpContextAccessor,
         IHttpClientFactory httpClientFactory,
-        ILogger<AltinityProxyHub> logger,
         IOptions<AltinitySettings> altinitySettings,
         IOptions<ServiceRepositorySettings> serviceRepositorySettings,
         IAltinityWebSocketService webSocketService)
     {
         _httpContextAccessor = httpContextAccessor;
         _httpClientFactory = httpClientFactory;
-        _logger = logger;
         _altinitySettings = altinitySettings.Value;
         _serviceRepositorySettings = serviceRepositorySettings.Value;
         _webSocketService = webSocketService;
@@ -63,9 +59,6 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         string sessionId = Guid.NewGuid().ToString();
 
-        _logger.LogInformation("Altinity hub connection established for user: {Developer}, connectionId: {ConnectionId}, sessionId: {SessionId}",
-            developer, connectionId, sessionId);
-
         try
         {
             string wsConnectionId = await _webSocketService.ConnectAndRegisterSessionAsync(
@@ -76,13 +69,10 @@ public class AltinityProxyHub : Hub<IAltinityClient>
             s_sessionIdToDeveloper.TryAdd(sessionId, developer);
             s_signalRConnectionToSessionId.TryAdd(connectionId, sessionId);
 
-            _logger.LogInformation("Established WebSocket to Altinity for session {SessionId}", sessionId);
-
             await Clients.Caller.SessionCreated(sessionId);
         }
         catch (Exception ex) when (ex is WebSocketException or HttpRequestException or OperationCanceledException)
         {
-            _logger.LogError(ex, "Failed to establish WebSocket to Altinity for session {SessionId}. Aborting connection.", sessionId);
             Context.Abort();
             return;
         }
@@ -107,8 +97,6 @@ public class AltinityProxyHub : Hub<IAltinityClient>
             s_sessionIdToDeveloper.TryRemove(sessionId, out _);
         }
 
-        _logger.LogInformation("Altinity hub disconnected for user: {Developer}", developer);
-
         await base.OnDisconnectedAsync(exception);
     }
 
@@ -125,8 +113,6 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         string sessionId = ExtractSessionIdFromRequest(request);
         ValidateSessionOwnership(sessionId, developer);
 
-        _logger.LogInformation("Starting Altinity workflow for user: {Developer}, session: {SessionId}", developer, sessionId);
-
         var agentResponse = await ForwardRequestToAltinityAgentAsync(request, developer, userToken, sessionId);
 
         return agentResponse;
@@ -142,8 +128,6 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         {
             throw new HubException("Missing access_token in authentication context");
         }
-
-        _logger.LogInformation("Retrieved OAuth access_token");
 
         return token;
     }
@@ -168,14 +152,11 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     {
         if (!s_sessionIdToDeveloper.TryGetValue(sessionId, out string? sessionOwner))
         {
-            _logger.LogWarning("User {Developer} attempted to use non-existent session {SessionId}", developer, sessionId);
             throw new HubException("Invalid session: Session does not exist");
         }
 
         if (sessionOwner != developer)
         {
-            _logger.LogWarning("User {Developer} attempted to access session {SessionId} owned by {SessionOwner}",
-                developer, sessionId, sessionOwner);
             throw new HubException("Access denied: You don't own this session");
         }
     }
@@ -257,7 +238,6 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError("Altinity agent returned error: {StatusCode}", response.StatusCode);
             throw new HubException($"Agent returned {response.StatusCode}: {responseContent}");
         }
 

@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
@@ -25,15 +24,11 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
     private const string InsecureWebSocketScheme = "ws";
     private const string SecureHttpScheme = "https";
 
-    private readonly ILogger<AltinityWebSocketService> _logger;
     private readonly AltinitySettings _settings;
     private readonly ConcurrentDictionary<string, WebSocketConnection> _connections = new();
 
-    public AltinityWebSocketService(
-        ILogger<AltinityWebSocketService> logger,
-        IOptions<AltinitySettings> settings)
+    public AltinityWebSocketService(IOptions<AltinitySettings> settings)
     {
-        _logger = logger;
         _settings = settings.Value;
     }
 
@@ -42,8 +37,6 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         var wsUri = BuildWebSocketUri(_settings.AgentUrl);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_settings.TimeoutSeconds));
         var webSocket = await CreateAndConnectWebSocketAsync(wsUri, cts.Token);
-
-        _logger.LogInformation("Connected to Altinity WebSocket for session {SessionId}", sessionId);
 
         string connectionId = CreateConnectionId();
         var connection = CreateWebSocketConnection(webSocket, sessionId, onMessageReceived);
@@ -115,8 +108,6 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
 
             connection.WebSocket.Dispose();
             connection.CancellationTokenSource.Dispose();
-
-            _logger.LogInformation("Disconnected WebSocket for session {SessionId}", connection.SessionId);
         }
     }
 
@@ -126,8 +117,6 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         byte[] messageBytes = SerializeMessageToBytes(registrationMessage);
 
         await SendWebSocketMessageAsync(webSocket, messageBytes, cancellationToken);
-
-        _logger.LogInformation("Registered session {SessionId} with Altinity WebSocket", sessionId);
     }
 
     private static object CreateSessionRegistrationMessage(string sessionId)
@@ -161,19 +150,14 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         {
             await ProcessWebSocketMessagesAsync(connectionId, connection, buffer, webSocket, cancellationToken);
         }
-        catch (OperationCanceledException)
+        catch (WebSocketException)
         {
-            _logger.LogInformation("WebSocket listener cancelled for session {SessionId}", connection.SessionId);
-        }
-        catch (WebSocketException ex)
-        {
-            _logger.LogError(ex, "{ExceptionType} in WebSocket listener for session {SessionId}", ex.GetType().Name, connection.SessionId);
             await HandleWebSocketErrorAsync(connectionId, connection, cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled exception in WebSocket listener for session {SessionId}", connection.SessionId);
             await DisconnectSessionAsync(connectionId);
+            throw;
         }
     }
 
@@ -203,7 +187,6 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
 
     private async Task HandleCloseMessageAsync(string connectionId, WebSocketConnection connection)
     {
-        _logger.LogInformation("Altinity WebSocket closed for session {SessionId}", connection.SessionId);
         await DisconnectSessionAsync(connectionId);
     }
 
@@ -213,17 +196,7 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         WebSocketReceiveResult result)
     {
         string messageJson = Encoding.UTF8.GetString(buffer, 0, result.Count);
-
-        JsonElement message;
-        try
-        {
-            message = DeserializeMessage(messageJson);
-        }
-        catch (JsonException ex)
-        {
-            _logger.LogWarning(ex, "Invalid JSON in WebSocket message: {MessageJson}", messageJson);
-            return;
-        }
+        JsonElement message = DeserializeMessage(messageJson);
 
         await connection.OnMessageReceived(message);
     }
@@ -238,12 +211,8 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         WebSocketConnection connection,
         CancellationToken cancellationToken)
     {
-        int attemptNumber = 0;
         while (!cancellationToken.IsCancellationRequested)
         {
-            attemptNumber++;
-            _logger.LogInformation("Reconnection attempt {AttemptNumber} for session {SessionId}", attemptNumber, connection.SessionId);
-
             try
             {
                 await Task.Delay(ReconnectionDelayMilliseconds, cancellationToken);
@@ -254,18 +223,15 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
                 }
 
                 await ReconnectWebSocketAsync(connection, cancellationToken);
-                _logger.LogInformation("Successfully reconnected session {SessionId} after {AttemptNumber} attempts", connection.SessionId, attemptNumber);
 
                 StartListeningForMessages(connectionId, connection);
                 return;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "Reconnection attempt {AttemptNumber} failed for session {SessionId}: {ErrorMessage}", attemptNumber, connection.SessionId, ex.Message);
+                // Reconnection failed, will retry
             }
         }
-
-        _logger.LogWarning("Reconnection abandoned for session {SessionId} after {AttemptNumber} attempts", connection.SessionId, attemptNumber);
     }
 
     private async Task ReconnectWebSocketAsync(WebSocketConnection connection, CancellationToken cancellationToken)
@@ -278,8 +244,6 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         connection.WebSocket = newWebSocket;
 
         await RegisterSessionWithAltinityAsync(newWebSocket, connection.SessionId, cancellationToken);
-
-        _logger.LogInformation("WebSocket reconnected for session {SessionId}", connection.SessionId);
     }
 
     private static Uri BuildWebSocketUri(string agentUrl)
