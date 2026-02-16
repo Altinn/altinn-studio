@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workflow Engine Dashboard</title>
+<link rel="stylesheet" href="/dashboard/style.css">
+</head>
+<body>
+
+<div class="header">
+  <h1><span class="bolt">&#9889;</span>WORKFLOW ENGINE</h1>
+  <div class="status-badges">
+    <div class="badge stopped" id="badge-running"><span class="dot"></span><span id="badge-running-text">Stopped</span></div>
+    <div class="badge unhealthy" id="badge-healthy"><span class="dot"></span><span id="badge-healthy-text">Unknown</span></div>
+    <div class="connection disconnected" id="connection"><span class="dot"></span><span id="connection-text">SSE Disconnected</span></div>
+  </div>
+</div>
+
+<div class="capacity-section">
+  <div class="meter">
+    <span class="meter-label">Inbox</span>
+    <div class="meter-bar"><div class="meter-fill low" id="meter-inbox" style="width:0%"></div></div>
+    <span class="meter-value" id="meter-inbox-val">0 / 0</span>
+  </div>
+  <div class="meter">
+    <span class="meter-label">DB</span>
+    <div class="meter-bar"><div class="meter-fill low" id="meter-db" style="width:0%"></div></div>
+    <span class="meter-value" id="meter-db-val">0 / 0</span>
+  </div>
+  <div class="meter">
+    <span class="meter-label">HTTP</span>
+    <div class="meter-bar"><div class="meter-fill low" id="meter-http" style="width:0%"></div></div>
+    <span class="meter-value" id="meter-http-val">0 / 0</span>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" data-tab="live" onclick="switchTab('live')">Live</div>
+  <div class="tab" data-tab="history" onclick="switchTab('history')">History</div>
+</div>
+
+<div class="tab-panel active" id="panel-live">
+  <div class="section" id="live-section">
+    <div class="section-title">ACTIVE <span class="count" id="live-count">0</span></div>
+    <div id="live-workflows"></div>
+    <div class="empty-state" id="live-empty">No active workflows</div>
+  </div>
+
+  <div class="section" id="recent-section">
+    <div class="section-title" style="color:var(--text-dim);opacity:0.7">RECENT <span class="count" id="recent-count">0</span></div>
+    <div id="recent-workflows"></div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panel-history">
+  <div class="section">
+    <div class="history-controls">
+      <select id="history-filter">
+        <option value="completed">Completed</option>
+        <option value="failed">Failed</option>
+      </select>
+      <button id="history-load" onclick="loadHistory()">Load</button>
+    </div>
+    <div id="history-workflows"></div>
+    <div class="empty-state" id="history-empty">Click Load to fetch history</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="step-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Step Details</h2>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <div class="modal-loading">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<script src="/dashboard/app.js"></script>
+</body>
+</html>

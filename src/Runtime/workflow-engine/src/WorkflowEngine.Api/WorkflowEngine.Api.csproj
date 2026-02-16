@@ -30,4 +30,8 @@
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Endpoints\Dashboard\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

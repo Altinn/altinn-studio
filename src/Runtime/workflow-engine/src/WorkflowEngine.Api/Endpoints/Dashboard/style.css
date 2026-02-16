@@ -1,0 +1,219 @@
+/* ── Reset & Design tokens ────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;--border:#2a2a3a;
+  --text:#e0e0e8;--text-dim:#888898;--text-bright:#ffffff;
+  --cyan:#00d4ff;--amber:#ffaa00;--green:#00ff88;--orange:#ff6600;--red:#ff3366;--gray:#666;
+  --font:ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace;
+}
+html{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5}
+body{min-height:100vh;padding:0}
+
+/* ── Header ───────────────────────────────────────────────── */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg2);
+}
+.header h1{font-size:18px;font-weight:700;letter-spacing:2px;color:var(--text-bright);
+  text-shadow:0 0 20px rgba(0,212,255,0.3)}
+.header h1 .bolt{color:var(--cyan);margin-right:8px}
+
+/* ── Status badges & SSE indicator ────────────────────────── */
+.status-badges{display:flex;gap:12px;align-items:center}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;
+  border:1px solid var(--border);background:var(--bg3);
+}
+.badge .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.badge.running .dot{background:var(--green);box-shadow:0 0 8px var(--green)}
+.badge.stopped .dot{background:var(--red);box-shadow:0 0 8px var(--red)}
+.badge.healthy .dot{background:var(--green);box-shadow:0 0 8px var(--green)}
+.badge.unhealthy .dot{background:var(--red);box-shadow:0 0 8px var(--red)}
+.badge.idle .dot{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+.badge.disabled .dot{background:var(--gray)}
+.badge.queue-full .dot{background:var(--red);box-shadow:0 0 8px var(--red)}
+
+.connection{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-dim)}
+.connection .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.connection.connected .dot{background:var(--green)}
+.connection.disconnected .dot{background:var(--red)}
+
+/* ── Capacity meters ──────────────────────────────────────── */
+.capacity-section{padding:20px 24px;border-bottom:1px solid var(--border)}
+.meter{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.meter:last-child{margin-bottom:0}
+.meter-label{width:50px;font-size:12px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
+.meter-bar{flex:1;height:22px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative;border:1px solid var(--border)}
+.meter-fill{height:100%;border-radius:3px;transition:width 0.5s ease,background 0.5s ease;min-width:0}
+.meter-fill.low{background:linear-gradient(90deg,var(--cyan),var(--green))}
+.meter-fill.mid{background:linear-gradient(90deg,var(--amber),var(--orange))}
+.meter-fill.high{background:linear-gradient(90deg,var(--orange),var(--red))}
+.meter-value{width:110px;text-align:right;font-size:13px;font-variant-numeric:tabular-nums;color:var(--text)}
+
+/* ── Sections & titles ────────────────────────────────────── */
+.section{padding:20px 24px}
+#live-section{min-height:140px}
+.section-title{
+  font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;
+  color:var(--text-dim);margin-bottom:16px;display:flex;align-items:center;gap:8px;
+}
+.section-title .count{
+  background:var(--bg3);border:1px solid var(--border);border-radius:12px;
+  padding:2px 10px;font-size:12px;font-variant-numeric:tabular-nums;color:var(--cyan);
+}
+
+/* ── Workflow cards ────────────────────────────────────────── */
+.workflow-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  padding:18px 24px;margin-bottom:14px;
+  animation:fade-in 0.4s ease;
+}
+.workflow-card.removing{animation:slide-out 0.5s ease forwards}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.instance-id{font-size:15px;font-weight:700;color:var(--text-bright);letter-spacing:0.5px}
+.instance-guid{color:var(--cyan);font-size:16px;font-weight:700}
+.card-meta{display:flex;align-items:center;gap:12px;margin-bottom:14px;font-size:13px;color:var(--text-dim)}
+.card-meta .wf-key{opacity:0.7}
+.elapsed{font-variant-numeric:tabular-nums;color:var(--text-dim);font-size:13px;font-weight:600}
+.retry-badge{
+  background:var(--orange);color:#000;font-size:13px;font-weight:800;
+  padding:3px 10px;border-radius:10px;margin-left:4px;
+}
+
+/* ── Status pills (per-status coloring) ───────────────────── */
+.status-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+}
+.status-pill.Enqueued{color:var(--cyan);border:1px solid var(--cyan);background:rgba(0,212,255,0.08)}
+.status-pill.Processing{color:var(--amber);border:1px solid var(--amber);background:rgba(255,170,0,0.08);animation:pulse-border 2s ease-in-out infinite}
+.status-pill.Completed{color:var(--green);border:1px solid var(--green);background:rgba(0,255,136,0.08)}
+.status-pill.Requeued{color:var(--orange);border:1px solid var(--orange);background:rgba(255,102,0,0.08)}
+.status-pill.Failed{color:var(--red);border:1px solid var(--red);background:rgba(255,51,102,0.08)}
+.status-pill.Canceled{color:var(--gray);border:1px solid var(--gray);background:rgba(102,102,102,0.08)}
+
+/* ── Step pipeline ────────────────────────────────────────── */
+.pipeline{display:flex;align-items:flex-start;gap:0;margin-top:12px;overflow-x:auto;overflow-y:visible;padding:6px 0 8px 0}
+.step-node{display:flex;flex-direction:column;align-items:center;position:relative;min-width:110px;max-width:110px}
+.step-circle{
+  width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;border:2px solid var(--border);background:var(--bg);
+  position:relative;z-index:1;transition:all 0.3s ease;
+}
+.step-circle.Enqueued{border-color:var(--cyan);color:var(--cyan);opacity:0.5}
+.step-circle.Processing{
+  border-color:var(--amber);color:var(--amber);
+  animation:pulse-glow 2s ease-in-out infinite;
+  box-shadow:0 0 12px rgba(255,170,0,0.4);
+}
+.step-circle.Completed{border-color:var(--green);background:var(--green);color:#000}
+.step-circle.Requeued{border-color:var(--orange);color:var(--orange);animation:bounce 1s ease infinite}
+.step-circle.Failed{border-color:var(--red);color:var(--red);animation:shake 0.5s ease}
+.step-circle.Canceled{border-color:var(--gray);color:var(--gray);opacity:0.5}
+.step-circle[onclick]:hover{transform:scale(1.15);filter:brightness(1.3)}
+.step-label{font-size:11px;color:var(--text-dim);margin-top:8px;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.step-connector{width:56px;height:2px;position:relative;overflow:visible;flex-shrink:0;margin-top:16px}
+.step-connector svg{display:block;width:56px;height:6px;overflow:visible}
+.step-connector line{stroke:var(--border);stroke-width:2;stroke-dasharray:6,4}
+.step-connector line.active{stroke:var(--green);animation:flow 0.8s linear infinite}
+.step-connector line.processing{stroke:var(--amber);stroke-dasharray:6,4;animation:flow 0.8s linear infinite}
+.step-retry{font-size:10px;color:var(--orange);font-weight:700;margin-top:3px}
+.step-meta{display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:5px}
+.step-timing{font-size:10px;color:var(--text-dim);font-variant-numeric:tabular-nums;opacity:0.8}
+.step-backoff{font-size:10px;color:var(--orange);font-variant-numeric:tabular-nums;animation:pulse-border 1.5s ease-in-out infinite}
+
+/* ── Step command-type badges ─────────────────────────────── */
+.step-type{
+  font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
+  padding:2px 6px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);
+  color:var(--text-dim);
+}
+.step-type.AppCommand{color:var(--cyan);border-color:rgba(0,212,255,0.3)}
+.step-type.Webhook{color:var(--amber);border-color:rgba(255,170,0,0.3)}
+.step-type.Noop{color:var(--gray);border-color:rgba(102,102,102,0.3)}
+.step-type.Throw{color:var(--red);border-color:rgba(255,51,102,0.3)}
+.step-type.Timeout{color:var(--amber);border-color:rgba(255,170,0,0.3)}
+.step-type.Delegate{color:var(--green);border-color:rgba(0,255,136,0.3)}
+
+/* ── Tabs ─────────────────────────────────────────────────── */
+.tab-bar{
+  display:flex;gap:0;border-bottom:2px solid var(--border);padding:0 24px;background:var(--bg2);
+}
+.tab{
+  padding:12px 24px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;
+  color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;
+  transition:color 0.2s,border-color 0.2s;user-select:none;display:flex;align-items:center;gap:8px;
+}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.tab .tab-count{
+  background:var(--bg3);border:1px solid var(--border);border-radius:12px;
+  padding:1px 8px;font-size:11px;font-variant-numeric:tabular-nums;color:inherit;
+}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── History controls ─────────────────────────────────────── */
+.history-controls{display:flex;gap:12px;align-items:center;margin-bottom:16px}
+.history-controls select{
+  background:var(--bg3);color:var(--text);border:1px solid var(--border);
+  padding:6px 12px;border-radius:6px;font-family:var(--font);font-size:12px;cursor:pointer;
+}
+.history-controls button{
+  background:var(--cyan);color:#000;border:none;padding:6px 16px;border-radius:6px;
+  font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:opacity 0.2s;
+}
+.history-controls button:hover{opacity:0.8}
+.history-controls button:disabled{opacity:0.4;cursor:not-allowed}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-dim);font-size:13px}
+
+/* ── Step detail modal ────────────────────────────────────── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;
+  align-items:center;justify-content:center;backdrop-filter:blur(4px);
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  max-width:720px;width:90%;max-height:80vh;display:flex;flex-direction:column;
+  box-shadow:0 24px 48px rgba(0,0,0,0.5);
+}
+.modal-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 20px;border-bottom:1px solid var(--border);
+}
+.modal-header h2{font-size:14px;font-weight:700;color:var(--text-bright);letter-spacing:1px;text-transform:uppercase}
+.modal-close{
+  background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;
+  padding:4px 8px;border-radius:4px;transition:color 0.2s;
+}
+.modal-close:hover{color:var(--text-bright)}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-body pre{
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:16px;overflow-x:auto;font-size:13px;line-height:1.6;color:var(--text);
+  white-space:pre-wrap;word-break:break-word;
+}
+.modal-body .json-key{color:var(--cyan)}
+.modal-body .json-string{color:var(--green)}
+.modal-body .json-number{color:var(--amber)}
+.modal-body .json-bool{color:var(--orange)}
+.modal-body .json-null{color:var(--gray)}
+.modal-loading{text-align:center;padding:40px;color:var(--text-dim)}
+
+/* ── Animations ───────────────────────────────────────────── */
+@keyframes pulse-glow{
+  0%,100%{box-shadow:0 0 8px rgba(255,170,0,0.3)}
+  50%{box-shadow:0 0 24px rgba(255,170,0,0.6),0 0 48px rgba(255,170,0,0.2)}
+}
+@keyframes pulse-border{
+  0%,100%{border-color:rgba(255,170,0,0.6)}
+  50%{border-color:rgba(255,170,0,1);box-shadow:0 0 12px rgba(255,170,0,0.15)}
+}
+@keyframes flow{to{stroke-dashoffset:-20}}
+@keyframes fade-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slide-out{to{opacity:0;transform:translateX(60px);max-height:0;margin:0;padding:0;overflow:hidden}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
