@@ -9,7 +9,7 @@ public class AiAssistantPermissionHandler : AuthorizationHandler<AiAssistantPerm
 {
     private readonly IUserOrganizationService _userOrganizationService;
 
-    private static readonly List<string> s_allowedOrganizations = new() { "ttd" };
+    private static readonly List<string> s_allowedOrganizations = ["ttd"];
 
     public AiAssistantPermissionHandler(IUserOrganizationService userOrganizationService)
     {
@@ -25,7 +25,7 @@ public class AiAssistantPermissionHandler : AuthorizationHandler<AiAssistantPerm
             return;
         }
 
-        if (await IsMemberOfAnyAllowedOrganizationAsync())
+        if (await _userOrganizationService.UserIsMemberOfAnyOf(s_allowedOrganizations))
         {
             context.Succeed(requirement);
         }
@@ -33,18 +33,6 @@ public class AiAssistantPermissionHandler : AuthorizationHandler<AiAssistantPerm
         {
             context.Fail();
         }
-    }
-
-    private async Task<bool> IsMemberOfAnyAllowedOrganizationAsync()
-    {
-        foreach (string org in s_allowedOrganizations)
-        {
-            if (await _userOrganizationService.UserIsMemberOfOrganization(org))
-            {
-                return true;
-            }
-        }
-        return false;
     }
 
     private static bool IsNotAuthenticatedUser(AuthorizationHandlerContext context)
