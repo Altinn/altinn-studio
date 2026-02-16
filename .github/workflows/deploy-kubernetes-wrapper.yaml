@@ -22,8 +22,6 @@ permissions:
 jobs:
   get-short-sha:
     uses: ./.github/workflows/template-short-sha.yaml
-    with:
-      checkout-repository: 'Altinn/app-kubernetes-wrapper'
 
   determine-tag-exists:
     needs: get-short-sha
@@ -71,9 +69,8 @@ jobs:
       registry-name: altinntjenestercontainerregistry.azurecr.io
       repository-name: altinn-kuberneteswrapper
       environment: dev # dev environment has push access and doesn't require review
-      checkout-repository: 'Altinn/app-kubernetes-wrapper'
-      context: src/KubernetesWrapper
-      dockerfile: src/KubernetesWrapper/Dockerfile
+      context: src/Runtime/kubernetes-wrapper
+      dockerfile: src/Runtime/kubernetes-wrapper/src/Dockerfile
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
       tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
@@ -109,4 +106,3 @@ jobs:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
       tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
-
