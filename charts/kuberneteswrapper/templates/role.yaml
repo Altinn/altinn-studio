@@ -5,5 +5,5 @@ metadata:
   name: kubernetes-read-role
 rules:
 - apiGroups: ["apps"]
-  resources: ["deployments"]
+  resources: ["deployments", "daemonsets"]
   verbs: ["get", "list"]

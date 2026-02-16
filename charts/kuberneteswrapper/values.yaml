@@ -18,6 +18,7 @@ hosts:
 service:
   name: kuberneteswrapper
   externalPort: 3000
+  ingressRouteExternalPort: 80
   internalPort: 80
 
 ingress:
@@ -28,3 +29,21 @@ ingress:
         traefik.frontend.priority: "500"
     paths:
       - path: /kuberneteswrapper/
+
+middlewares:
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: kuberneteswrapper-strip-prefix
+    spec:
+      replacePathRegex:
+        regex: ^/kuberneteswrapper/(.*)
+        replacement: /$1
+
+ingressRoute:
+  name: ""
+  entryPoints:
+    - http
+    - https
+  routes: []
+  tls: []

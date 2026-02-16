@@ -1,5 +1,7 @@
-{{- $serviceName := include "fullname" . }}
-{{- $servicePort := .Values.service.externalPort }}
+{{- $hasIngressRoute := eq (include "kuberneteswrapper.hasIngressRoute" .) "true" }}
+{{- if not $hasIngressRoute }}
+{{- $serviceName := include "kuberneteswrapper.serviceName" . }}
+{{- $servicePort := include "kuberneteswrapper.serviceExternalPort" . }}
 {{- range $ingress := .Values.ingress }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -28,4 +30,5 @@ spec:
               number: {{ $servicePort }}
       {{- end }}
 ---
+{{- end }}
 {{- end }}

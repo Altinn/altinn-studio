@@ -26,3 +26,15 @@ spec:
     image:
       tag: "{{ .Values.imageTag }}"
     environment: "{{ .Values.environmentName }}"
+    {{- with .Values.service }}
+    service:
+{{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.middlewares }}
+    middlewares:
+{{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.ingressRoute }}
+    ingressRoute:
+{{- toYaml . | nindent 6 }}
+    {{- end }}
