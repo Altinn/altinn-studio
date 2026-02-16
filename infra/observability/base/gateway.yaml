@@ -60,7 +60,7 @@ spec:
           include:
             match_type: regexp
             metric_names:
-              - '^(altinn|http|dotnet|go)([._].*)?$'
+              - '^(altinn|http)([._].*)?$'
       cumulativetodelta/metrics:
         include:
           metric_types: [sum, histogram, exponentialhistogram]
