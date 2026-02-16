@@ -1,0 +1,24 @@
+.contactField {
+  display: flex;
+  justify-content: space-between;
+}
+
+.tableWrapper {
+  max-height: 300px;
+  overflow: auto;
+  scrollbar-width: auto;
+}
+
+.tableWrapper::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.addButtonContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.addButton {
+  padding-inline: var(--ds-size-18);
+}
