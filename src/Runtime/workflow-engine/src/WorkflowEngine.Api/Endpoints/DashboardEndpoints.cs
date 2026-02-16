@@ -210,7 +210,7 @@ internal static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/history",
-                async (IServiceProvider sp, string? status, int? limit, CancellationToken ct) =>
+                async (IServiceProvider sp, string? status, string? search, int? limit, CancellationToken ct) =>
                 {
                     using var scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
@@ -218,8 +218,12 @@ internal static class DashboardEndpoints
 
                     var workflows = status?.ToUpperInvariant() switch
                     {
-                        "FAILED" => await repo.GetFailedWorkflows(cancellationToken: ct),
-                        _ => await repo.GetCompletedWorkflows(cancellationToken: ct),
+                        "FAILED" => await repo.GetFailedWorkflows(
+                            search: search,
+                            take: maxResults,
+                            cancellationToken: ct
+                        ),
+                        _ => await repo.GetCompletedWorkflows(search: search, take: maxResults, cancellationToken: ct),
                     };
 
                     var jsonOptions = new JsonSerializerOptions
@@ -228,38 +232,36 @@ internal static class DashboardEndpoints
                         WriteIndented = false,
                     };
 
-                    var result = workflows
-                        .Take(maxResults)
-                        .Select(w => new
+                    var result = workflows.Select(w => new
+                    {
+                        idempotencyKey = w.IdempotencyKey,
+                        operationId = w.OperationId,
+                        status = w.Status.ToString(),
+                        instance = new
                         {
-                            idempotencyKey = w.IdempotencyKey,
-                            operationId = w.OperationId,
-                            status = w.Status.ToString(),
-                            instance = new
+                            org = w.InstanceInformation.Org,
+                            app = w.InstanceInformation.App,
+                            instanceOwnerPartyId = w.InstanceInformation.InstanceOwnerPartyId,
+                            instanceGuid = w.InstanceInformation.InstanceGuid,
+                        },
+                        createdAt = w.CreatedAt,
+                        executionStartedAt = w.ExecutionStartedAt,
+                        steps = w
+                            .Steps.OrderBy(s => s.ProcessingOrder)
+                            .Select(s => new
                             {
-                                org = w.InstanceInformation.Org,
-                                app = w.InstanceInformation.App,
-                                instanceOwnerPartyId = w.InstanceInformation.InstanceOwnerPartyId,
-                                instanceGuid = w.InstanceInformation.InstanceGuid,
-                            },
-                            createdAt = w.CreatedAt,
-                            executionStartedAt = w.ExecutionStartedAt,
-                            steps = w
-                                .Steps.OrderBy(s => s.ProcessingOrder)
-                                .Select(s => new
-                                {
-                                    idempotencyKey = s.IdempotencyKey,
-                                    operationId = s.OperationId,
-                                    commandType = s.Command.GetType().Name,
-                                    commandDetail = s.Command.OperationId,
-                                    status = s.Status.ToString(),
-                                    processingOrder = s.ProcessingOrder,
-                                    retryCount = s.RequeueCount,
-                                    backoffUntil = s.BackoffUntil,
-                                    createdAt = s.CreatedAt,
-                                    executionStartedAt = s.ExecutionStartedAt,
-                                }),
-                        });
+                                idempotencyKey = s.IdempotencyKey,
+                                operationId = s.OperationId,
+                                commandType = s.Command.GetType().Name,
+                                commandDetail = s.Command.OperationId,
+                                status = s.Status.ToString(),
+                                processingOrder = s.ProcessingOrder,
+                                retryCount = s.RequeueCount,
+                                backoffUntil = s.BackoffUntil,
+                                createdAt = s.CreatedAt,
+                                executionStartedAt = s.ExecutionStartedAt,
+                            }),
+                    });
 
                     return Results.Json(result, jsonOptions);
                 }

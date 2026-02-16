@@ -85,6 +85,8 @@ internal sealed class EnginePgRepository : IEngineRepository
 
     /// <inheritdoc/>
     public async Task<IReadOnlyList<Workflow>> GetCompletedWorkflows(
+        string? search = null,
+        int? take = null,
         bool bypassConcurrencyLimit = true,
         CancellationToken cancellationToken = default
     )
@@ -94,7 +96,10 @@ internal sealed class EnginePgRepository : IEngineRepository
         {
             _logger.FetchingWorkflows("completed");
 
-            var result = await _context.GetCompletedWorkflows().ToDomainModel().ToListAsync(cancellationToken);
+            var result = await _context
+                .GetCompletedWorkflows(search, take)
+                .ToDomainModel()
+                .ToListAsync(cancellationToken);
 
             _logger.SuccessfullyFetchedWorkflows(result.Count);
 
@@ -109,6 +114,8 @@ internal sealed class EnginePgRepository : IEngineRepository
 
     /// <inheritdoc/>
     public async Task<IReadOnlyList<Workflow>> GetFailedWorkflows(
+        string? search = null,
+        int? take = null,
         bool bypassConcurrencyLimit = true,
         CancellationToken cancellationToken = default
     )
@@ -118,7 +125,7 @@ internal sealed class EnginePgRepository : IEngineRepository
         {
             _logger.FetchingWorkflows("failed");
 
-            var result = await _context.GetFailedWorkflows().ToDomainModel().ToListAsync(cancellationToken);
+            var result = await _context.GetFailedWorkflows(search, take).ToDomainModel().ToListAsync(cancellationToken);
 
             _logger.SuccessfullyFetchedWorkflows(result.Count);
 
@@ -410,14 +417,57 @@ internal static class EnginePgRepositoryQueries
                     x.Steps.Any(y => y.StartAt > DateTime.UtcNow && _incompleteItemStatuses.Contains(y.Status))
                 );
 
-        public IQueryable<WorkflowEntity> GetCompletedWorkflows() =>
-            dbContext
+        public IQueryable<WorkflowEntity> GetCompletedWorkflows(string? search = null, int? take = null)
+        {
+            var query = dbContext
                 .Workflows.Include(j => j.Steps)
-                .Where(x => x.Status == PersistentItemStatus.Completed)
-                .OrderByDescending(x => x.UpdatedAt);
+                .Where(x => x.Status == PersistentItemStatus.Completed);
 
-        public IQueryable<WorkflowEntity> GetFailedWorkflows() =>
-            dbContext.Workflows.Include(j => j.Steps).Where(x => _failedItemStatuses.Contains(x.Status));
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.ToLower();
+                query = query.Where(x =>
+                    x.InstanceGuid.ToString().Contains(s)
+                    || x.InstanceOrg.ToLower().Contains(s)
+                    || x.InstanceApp.ToLower().Contains(s)
+                    || x.OperationId.ToLower().Contains(s)
+                    || x.InstanceOwnerPartyId.ToString().Contains(s)
+                    || x.Steps.Any(st => st.OperationId.ToLower().Contains(s))
+                );
+            }
+
+            query = query.OrderByDescending(x => x.UpdatedAt);
+
+            if (take.HasValue)
+                query = query.Take(take.Value);
+
+            return query;
+        }
+
+        public IQueryable<WorkflowEntity> GetFailedWorkflows(string? search = null, int? take = null)
+        {
+            var query = dbContext.Workflows.Include(j => j.Steps).Where(x => _failedItemStatuses.Contains(x.Status));
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.ToLower();
+                query = query.Where(x =>
+                    x.InstanceGuid.ToString().Contains(s)
+                    || x.InstanceOrg.ToLower().Contains(s)
+                    || x.InstanceApp.ToLower().Contains(s)
+                    || x.OperationId.ToLower().Contains(s)
+                    || x.InstanceOwnerPartyId.ToString().Contains(s)
+                    || x.Steps.Any(st => st.OperationId.ToLower().Contains(s))
+                );
+            }
+
+            query = query.OrderByDescending(x => x.UpdatedAt);
+
+            if (take.HasValue)
+                query = query.Take(take.Value);
+
+            return query;
+        }
     }
 
     extension(IQueryable<WorkflowEntity> entityQuery)

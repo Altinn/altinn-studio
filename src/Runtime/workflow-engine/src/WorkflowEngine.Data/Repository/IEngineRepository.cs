@@ -27,6 +27,8 @@ public interface IEngineRepository
     /// Gets all completed workflows.
     /// </summary>
     Task<IReadOnlyList<Workflow>> GetCompletedWorkflows(
+        string? search = null,
+        int? take = null,
         bool bypassConcurrencyLimit = true,
         CancellationToken cancellationToken = default
     );
@@ -35,6 +37,8 @@ public interface IEngineRepository
     /// Gets all failed workflows.
     /// </summary>
     Task<IReadOnlyList<Workflow>> GetFailedWorkflows(
+        string? search = null,
+        int? take = null,
         bool bypassConcurrencyLimit = true,
         CancellationToken cancellationToken = default
     );

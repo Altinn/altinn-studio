@@ -78,6 +78,7 @@
    *   workflowTimers:       Record<string, WorkflowTimer>,
    *   lastRecentKeys:       string,
    *   historyLoaded:        boolean,
+   *   filter:               string,
    * }} DashboardState
    */
 
@@ -94,6 +95,8 @@
     recentSection:    /** @type {HTMLElement} */ (document.getElementById('recent-section')),
     historyContainer: /** @type {HTMLElement} */ (document.getElementById('history-workflows')),
     historyEmpty:     /** @type {HTMLElement} */ (document.getElementById('history-empty')),
+    filterInput:      /** @type {HTMLInputElement} */ (document.getElementById('filter-input')),
+    filterClear:      /** @type {HTMLElement} */ (document.getElementById('filter-clear')),
     connBadge:        /** @type {HTMLElement} */ (document.getElementById('connection')),
     connText:         /** @type {HTMLElement} */ (document.getElementById('connection-text')),
     modal:            /** @type {HTMLElement} */ (document.getElementById('step-modal')),
@@ -112,6 +115,7 @@
     workflowTimers:       {},
     lastRecentKeys:       '',
     historyLoaded:        false,
+    filter:               '',
   };
 
   /* ============================================================
@@ -260,6 +264,7 @@
 
     dom.liveCount.textContent = workflows.length;
     dom.liveEmpty.style.display = workflows.length === 0 ? 'block' : 'none';
+    if (state.filter) applyFilter();
   };
 
   /* ============================================================
@@ -310,8 +315,10 @@
         card.style.animation = 'recent-enter 0.3s ease both, recent-glow 1s ease forwards';
       }
       card.innerHTML = buildCardHTML(wf, true);
+      setCardFilterData(card, wf);
       dom.recentContainer.insertBefore(card, dom.recentContainer.children[i] ?? null);
     }
+    if (state.filter) applyFilter();
   };
 
   /* ============================================================
@@ -328,6 +335,7 @@
     card.className = 'workflow-card';
     card.id = elId;
     card.innerHTML = buildCardHTML(wf);
+    setCardFilterData(card, wf);
     requestAnimationFrame(() => scrollPipelineToActive(card));
     return card;
   };
@@ -341,9 +349,12 @@
     const { instance: inst } = wf;
     const retries = wf.steps.reduce((sum, s) => sum + s.retryCount, 0);
 
+    const instanceUrl = `http://local.altinn.cloud/${esc(inst.org)}/${esc(inst.app)}/#/instance/${inst.instanceOwnerPartyId}/${esc(inst.instanceGuid)}`;
     let html = `<div class="card-header">`;
-    html += `<div><span class="instance-id">${esc(inst.org)}/${esc(inst.app)}/${inst.instanceOwnerPartyId}/</span>`;
-    html += `<span class="instance-guid">${esc(inst.instanceGuid)}</span></div>`;
+    html += `<div><a class="instance-link" href="${instanceUrl}" target="_blank"><span class="instance-id">${esc(inst.org)}/${esc(inst.app)}/${inst.instanceOwnerPartyId}/</span>`;
+    html += `<span class="instance-guid">${esc(inst.instanceGuid)}</span></a>`;
+    html += `<button class="focus-btn" data-focus-guid="${esc(inst.instanceGuid)}" onclick="event.stopPropagation();toggleFocus('${esc(inst.instanceGuid)}')" title="Focus this instance">&#9906;</button>`;
+    html += `</div>`;
     html += `<div style="display:flex;align-items:center;gap:10px">`;
     html += `<span class="status-pill ${wf.status}"${isStatic ? ' style="animation:none"' : ''}>${wf.status}</span>`;
     if (!isStatic) {
@@ -521,7 +532,74 @@
   };
 
   /* ============================================================
-   *  12. TABS
+   *  12. FILTERING
+   * ============================================================ */
+
+  /** @param {Workflow} wf @returns {string} */
+  const buildFilterText = (wf) => {
+    const parts = [wf.instance.org, wf.instance.app, wf.instance.instanceOwnerPartyId, wf.instance.instanceGuid, wf.operationId];
+    for (const s of wf.steps) parts.push(s.commandDetail, s.operationId);
+    return parts.join(' ').toLowerCase();
+  };
+
+  /** @param {HTMLElement} card @param {Workflow} wf */
+  const setCardFilterData = (card, wf) => { card.dataset.filter = buildFilterText(wf); };
+
+  const applyFilter = () => {
+    const f = state.filter;
+    /** @param {HTMLElement} container @param {HTMLElement} countEl @param {string} [totalAttr] */
+    const filterContainer = (container, countEl, totalAttr) => {
+      const cards = /** @type {HTMLElement[]} */ ([...container.querySelectorAll('.workflow-card')]);
+      let matched = 0;
+      for (const card of cards) {
+        const hidden = f && !(card.dataset.filter || '').includes(f);
+        card.classList.toggle('filtered-out', hidden);
+        if (!hidden) matched++;
+      }
+      if (f && cards.length > 0) {
+        countEl.textContent = `${matched} / ${cards.length}`;
+      } else {
+        countEl.textContent = `${cards.length}`;
+      }
+    };
+    filterContainer(dom.liveContainer, dom.liveCount);
+    filterContainer(dom.recentContainer, dom.recentCount);
+    filterContainer(dom.historyContainer, dom.historyEmpty);
+  };
+
+  /** @param {string} value */
+  const setFilter = (value) => {
+    state.filter = value.toLowerCase();
+    dom.filterInput.value = value;
+    dom.filterClear.classList.toggle('visible', value.length > 0);
+    applyFilter();
+    updateFocusButtons();
+    if (state.historyLoaded) loadHistory();
+  };
+
+  /** @param {string} guid */
+  const toggleFocus = (guid) => {
+    setFilter(state.filter === guid.toLowerCase() ? '' : guid);
+  };
+
+  const updateFocusButtons = () => {
+    for (const btn of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.focus-btn[data-focus-guid]'))) {
+      const active = state.filter && state.filter === (btn.dataset.focusGuid || '').toLowerCase();
+      btn.innerHTML = active ? '&times;' : '&#9906;';
+      btn.title = active ? 'Clear focus' : 'Focus this instance';
+      btn.classList.toggle('active', !!active);
+    }
+  };
+
+  // Expose for inline onclick
+  // @ts-ignore
+  window.toggleFocus = toggleFocus;
+
+  dom.filterInput.addEventListener('input', () => setFilter(dom.filterInput.value));
+  dom.filterClear.addEventListener('click', () => { setFilter(''); dom.filterInput.focus(); });
+
+  /* ============================================================
+   *  13. TABS
    * ============================================================ */
 
   /** @param {string} tabName */
@@ -549,7 +627,8 @@
     btn.textContent = 'Loading...';
 
     try {
-      const res = await fetch(`/dashboard/history?status=${filter}&limit=50`);
+      const searchParam = state.filter ? `&search=${encodeURIComponent(state.filter)}` : '';
+      const res = await fetch(`/dashboard/history?status=${filter}&limit=50${searchParam}`);
       /** @type {Workflow[]} */
       const workflows = await res.json();
 
@@ -564,6 +643,7 @@
           card.className = 'workflow-card';
           card.style.animation = 'none';
           card.innerHTML = buildCardHTML(wf, true);
+          setCardFilterData(card, wf);
           dom.historyContainer.appendChild(card);
         }
       }

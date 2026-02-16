@@ -51,9 +51,39 @@ body{min-height:100vh;padding:0}
 .meter-fill.high{background:linear-gradient(90deg,var(--orange),var(--red))}
 .meter-value{width:110px;text-align:right;font-size:13px;font-variant-numeric:tabular-nums;color:var(--text)}
 
+/* ── Filter bar ──────────────────────────────────────────── */
+.filter-bar{
+  display:flex;align-items:center;gap:8px;padding:12px 24px;border-bottom:1px solid var(--border);background:var(--bg2);
+}
+.filter-bar input{
+  flex:1;max-width:420px;background:var(--bg3);color:var(--text);border:1px solid var(--border);
+  padding:8px 12px;border-radius:6px;font-family:var(--font);font-size:13px;outline:none;
+}
+.filter-bar input:focus{border-color:var(--cyan)}
+.filter-bar input::placeholder{color:var(--text-dim)}
+.filter-clear{
+  background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;
+  padding:4px 8px;border-radius:4px;display:none;
+}
+.filter-clear.visible{display:block}
+.filter-clear:hover{color:var(--text-bright)}
+
+/* ── Focus button ────────────────────────────────────────── */
+.focus-btn{
+  background:none;border:1px solid var(--border);color:var(--text-dim);font-size:11px;
+  padding:1px 7px;border-radius:4px;cursor:pointer;font-family:var(--font);margin-left:6px;
+  transition:color 0.2s,border-color 0.2s;
+}
+.focus-btn:hover{color:var(--cyan);border-color:var(--cyan)}
+.focus-btn.active{color:var(--text-dim);border-color:var(--border)}
+.focus-btn.active:hover{color:var(--text-bright);border-color:var(--text-bright)}
+
+.filtered-out{display:none !important}
+
 /* ── Sections & titles ────────────────────────────────────── */
 .section{padding:20px 24px}
-#live-section{min-height:140px}
+#live-section{min-height:320px;position:relative}
+#live-empty{position:absolute;left:0;right:0}
 .section-title{
   font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;
   color:var(--text-dim);margin-bottom:16px;display:flex;align-items:center;gap:8px;
@@ -72,6 +102,8 @@ body{min-height:100vh;padding:0}
 }
 .workflow-card.removing{animation:slide-out 0.5s ease forwards}
 .card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.instance-link{text-decoration:none;transition:opacity 0.2s}
+.instance-link:hover{opacity:0.8}
 .instance-id{font-size:15px;font-weight:700;color:var(--text-bright);letter-spacing:0.5px}
 .instance-guid{color:var(--cyan);font-size:16px;font-weight:700}
 .card-meta{display:flex;align-items:center;gap:12px;margin-bottom:14px;font-size:13px;color:var(--text-dim)}
