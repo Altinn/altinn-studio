@@ -39,21 +39,21 @@ spec:
         trace_statements:
           - context: span
             statements:
-              - set(attributes["http.host"], attributes["server.address"]) where attributes["server.address"] != nil
-              - set(attributes["http.method"], attributes["http.request.method"]) where attributes["http.request.method"] != nil
-              - set(attributes["http.scheme"], attributes["url.scheme"]) where attributes["url.scheme"] != nil
-              - set(attributes["http.target"], attributes["url.path"]) where attributes["url.path"] != nil and (attributes["url.query"] == nil or attributes["url.query"] == "")
-              - set(attributes["http.target"], Concat([attributes["url.path"], attributes["url.query"]], "?")) where attributes["url.path"] != nil and (attributes["url.query"] != nil and attributes["url.query"] != "")
-              - set(attributes["http.url"], attributes["url.full"]) where attributes["url.full"] != nil and attributes["http.url"] == nil
-              - set(attributes["http.status_code"], attributes["http.response.status_code"]) where attributes["http.response.status_code"] != nil
-              - set(attributes["http.client_ip"], attributes["client.address"]) where attributes["client.address"] != nil
-              - set(attributes["db.statement"], attributes["sql.query.text"]) where attributes["sql.query.text"] != nil
-              - set(attributes["db.system"], attributes["db.system.name"]) where attributes["db.system.name"] != nil
-              - set(attributes["http.route"], attributes["url.path"]) where attributes["url.path"] != nil and attributes["http.route"] == nil
-              - replace_pattern(attributes["http.route"], "/(.*?)/(.*?)?/(.*?)?$","/$$1/$$2") where resource.attributes["k8s.deployment.name"] == "traefik" and attributes["http.route"] != nil
-              - set(attributes["http.host"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
-              - set(attributes["http.target"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
-              - set(attributes["server.address"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
+              - set(span.attributes["http.host"], span.attributes["server.address"]) where span.attributes["server.address"] != nil
+              - set(span.attributes["http.method"], span.attributes["http.request.method"]) where span.attributes["http.request.method"] != nil
+              - set(span.attributes["http.scheme"], span.attributes["url.scheme"]) where span.attributes["url.scheme"] != nil
+              - set(span.attributes["http.target"], span.attributes["url.path"]) where span.attributes["url.path"] != nil and (span.attributes["url.query"] == nil or span.attributes["url.query"] == "")
+              - set(span.attributes["http.target"], Concat([span.attributes["url.path"], span.attributes["url.query"]], "?")) where span.attributes["url.path"] != nil and (span.attributes["url.query"] != nil and span.attributes["url.query"] != "")
+              - set(span.attributes["http.url"], span.attributes["url.full"]) where span.attributes["url.full"] != nil and span.attributes["http.url"] == nil
+              - set(span.attributes["http.status_code"], span.attributes["http.response.status_code"]) where span.attributes["http.response.status_code"] != nil
+              - set(span.attributes["http.client_ip"], span.attributes["client.address"]) where span.attributes["client.address"] != nil
+              - set(span.attributes["db.statement"], span.attributes["sql.query.text"]) where span.attributes["sql.query.text"] != nil
+              - set(span.attributes["db.system"], span.attributes["db.system.name"]) where span.attributes["db.system.name"] != nil
+              - set(span.attributes["http.route"], span.attributes["url.path"]) where span.attributes["url.path"] != nil and span.attributes["http.route"] == nil
+              - replace_pattern(span.attributes["http.route"], "/(.*?)/(.*?)?/(.*?)?$","/$$1/$$2") where resource.attributes["k8s.deployment.name"] == "traefik" and span.attributes["http.route"] != nil
+              - set(span.attributes["http.host"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
+              - set(span.attributes["http.target"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
+              - set(span.attributes["server.address"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
       filter/metrics_allowlist:
         error_mode: ignore
         metrics:
@@ -72,49 +72,49 @@ spec:
         metric_statements:
           - context: datapoint
             statements:
-              - delete_key(attributes, "client.address")
+              - delete_key(datapoint.attributes, "client.address")
               - delete_key(resource.attributes, "client.address")
-              - delete_key(attributes, "cloud.platform")
+              - delete_key(datapoint.attributes, "cloud.platform")
               - delete_key(resource.attributes, "cloud.platform")
-              - delete_key(attributes, "cloud.provider")
+              - delete_key(datapoint.attributes, "cloud.provider")
               - delete_key(resource.attributes, "cloud.provider")
-              - delete_key(attributes, "host.id")
+              - delete_key(datapoint.attributes, "host.id")
               - delete_key(resource.attributes, "host.id")
-              - delete_key(attributes, "host.name")
+              - delete_key(datapoint.attributes, "host.name")
               - delete_key(resource.attributes, "host.name")
-              - delete_key(attributes, "http.url")
+              - delete_key(datapoint.attributes, "http.url")
               - delete_key(resource.attributes, "http.url")
-              - delete_key(attributes, "k8s.container.name")
+              - delete_key(datapoint.attributes, "k8s.container.name")
               - delete_key(resource.attributes, "k8s.container.name")
-              - delete_key(attributes, "k8s.pod.ip")
+              - delete_key(datapoint.attributes, "k8s.pod.ip")
               - delete_key(resource.attributes, "k8s.pod.ip")
-              - delete_key(attributes, "k8s.pod.name")
+              - delete_key(datapoint.attributes, "k8s.pod.name")
               - delete_key(resource.attributes, "k8s.pod.name")
-              - delete_key(attributes, "k8s.pod.uid")
+              - delete_key(datapoint.attributes, "k8s.pod.uid")
               - delete_key(resource.attributes, "k8s.pod.uid")
-              - delete_key(attributes, "k8s.node.name")
+              - delete_key(datapoint.attributes, "k8s.node.name")
               - delete_key(resource.attributes, "k8s.node.name")
-              - delete_key(attributes, "network.local.address")
+              - delete_key(datapoint.attributes, "network.local.address")
               - delete_key(resource.attributes, "network.local.address")
-              - delete_key(attributes, "network.local.port")
+              - delete_key(datapoint.attributes, "network.local.port")
               - delete_key(resource.attributes, "network.local.port")
-              - delete_key(attributes, "network.peer.address")
+              - delete_key(datapoint.attributes, "network.peer.address")
               - delete_key(resource.attributes, "network.peer.address")
-              - delete_key(attributes, "network.peer.port")
+              - delete_key(datapoint.attributes, "network.peer.port")
               - delete_key(resource.attributes, "network.peer.port")
-              - delete_key(attributes, "process.pid")
+              - delete_key(datapoint.attributes, "process.pid")
               - delete_key(resource.attributes, "process.pid")
-              - delete_key(attributes, "server.address")
+              - delete_key(datapoint.attributes, "server.address")
               - delete_key(resource.attributes, "server.address")
-              - delete_key(attributes, "server.port")
+              - delete_key(datapoint.attributes, "server.port")
               - delete_key(resource.attributes, "server.port")
-              - delete_key(attributes, "service.instance.id")
+              - delete_key(datapoint.attributes, "service.instance.id")
               - delete_key(resource.attributes, "service.instance.id")
-              - delete_key(attributes, "url.full")
+              - delete_key(datapoint.attributes, "url.full")
               - delete_key(resource.attributes, "url.full")
-              - delete_key(attributes, "url.scheme")
+              - delete_key(datapoint.attributes, "url.scheme")
               - delete_key(resource.attributes, "url.scheme")
-              - delete_key(attributes, "user_agent.original")
+              - delete_key(datapoint.attributes, "user_agent.original")
               - delete_key(resource.attributes, "user_agent.original")
       tail_sampling:
         decision_wait: 40s
