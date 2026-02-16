@@ -86,10 +86,13 @@ public class CustomConverterFactory : JsonConverterFactory
 {
     public override bool CanConvert(Type typeToConvert) => typeToConvert is not null;
 
-    public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+    public override System.Text.Json.Serialization.JsonConverter? CreateConverter(
+        Type typeToConvert,
+        JsonSerializerOptions options
+    )
     {
         var converterType = typeof(CustomConverter<>).MakeGenericType(typeToConvert);
-        return (JsonConverter)Activator.CreateInstance(converterType)!;
+        return (System.Text.Json.Serialization.JsonConverter)Activator.CreateInstance(converterType)!;
     }
 }
 

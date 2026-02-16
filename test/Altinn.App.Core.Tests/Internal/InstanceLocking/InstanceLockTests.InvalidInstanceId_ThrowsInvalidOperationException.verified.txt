@@ -1,0 +1,12 @@
+﻿{
+  Exception: {
+    $type: InvalidOperationException,
+    Type: InvalidOperationException,
+    Message: Unable to extract instance identifiers.,
+    StackTrace:
+at Altinn.App.Core.Internal.InstanceLocking.InstanceLocker.LockAsync(TimeSpan ttl)
+--- End of stack trace from previous location ---
+--- End of stack trace from previous location ---
+at Xunit.Assert.RecordExceptionAsync(Func`1 testCode)
+  }
+}
