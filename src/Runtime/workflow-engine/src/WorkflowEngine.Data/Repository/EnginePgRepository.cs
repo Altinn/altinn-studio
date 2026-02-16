@@ -84,6 +84,30 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
+    public async Task<IReadOnlyList<Workflow>> GetCompletedWorkflows(
+        bool bypassConcurrencyLimit = true,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
+        try
+        {
+            _logger.FetchingWorkflows("completed");
+
+            var result = await _context.GetCompletedWorkflows().ToDomainModel().ToListAsync(cancellationToken);
+
+            _logger.SuccessfullyFetchedWorkflows(result.Count);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task<IReadOnlyList<Workflow>> GetFailedWorkflows(
         bool bypassConcurrencyLimit = true,
         CancellationToken cancellationToken = default
@@ -385,6 +409,12 @@ internal static class EnginePgRepositoryQueries
                 .Where(x =>
                     x.Steps.Any(y => y.StartAt > DateTime.UtcNow && _incompleteItemStatuses.Contains(y.Status))
                 );
+
+        public IQueryable<WorkflowEntity> GetCompletedWorkflows() =>
+            dbContext
+                .Workflows.Include(j => j.Steps)
+                .Where(x => x.Status == PersistentItemStatus.Completed)
+                .OrderByDescending(x => x.UpdatedAt);
 
         public IQueryable<WorkflowEntity> GetFailedWorkflows() =>
             dbContext.Workflows.Include(j => j.Steps).Where(x => _failedItemStatuses.Contains(x.Status));

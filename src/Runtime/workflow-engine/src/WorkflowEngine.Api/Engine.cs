@@ -24,6 +24,7 @@ internal interface IEngine
     bool HasDuplicateWorkflow(string jobIdentifier);
     bool HasQueuedWorkflowForInstance(InstanceInformation instanceInformation);
     Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation);
+    IReadOnlyList<Workflow> GetAllInboxWorkflows();
 }
 
 internal partial class Engine : IEngine, IDisposable

@@ -48,5 +48,7 @@ if (!builder.Environment.IsDevelopment())
 // Endpoints
 app.MapHealthEndpoints();
 app.MapEngineEndpoints();
+if (!app.Environment.IsProduction())
+    app.MapDashboardEndpoints();
 
 await app.RunAsync();
