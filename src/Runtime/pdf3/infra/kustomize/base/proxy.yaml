@@ -133,6 +133,7 @@ spec:
         # linkerd provides automatic mTLS and some nice features
         # such as topology aware routing
         linkerd.io/inject: enabled
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       topologySpreadConstraints:
         # Try to spread across availability zones first (highest priority)
