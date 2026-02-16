@@ -6,7 +6,7 @@ import type { IFooterLayout } from 'src/features/footer/types';
 import type { ILayoutSets } from 'src/features/form/layoutSets/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
-import type { IAppLanguage, IApplicationSettings, IProfile } from 'src/types/shared';
+import type { IAppLanguage, IApplicationSettings, IParty, IProfile } from 'src/types/shared';
 
 ///<reference types="cypress-iframe" />
 
@@ -24,6 +24,7 @@ export type AltinnAppGlobalData = {
   availableLanguages: IAppLanguage[];
   userProfile?: IProfile;
   returnUrl?: string;
+  selectedParty?: IParty;
   textResources?: ITextResourceResult;
   orgName?: OrgName;
   orgLogoUrl?: string;

@@ -4,7 +4,7 @@ resources:
   - pdf3.yaml
   - operator.yaml
   - pdf.yaml
-  - studio-gateway.yaml
+  - gateway.yaml
   - flux-config.yaml
   - altinn-charts.yaml
   - apps-syncroot.yaml

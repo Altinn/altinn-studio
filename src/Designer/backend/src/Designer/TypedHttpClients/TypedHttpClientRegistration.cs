@@ -169,15 +169,24 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 .AddHttpMessageHandler<PlatformSubscriptionAuthDelegatingHandler>()
                 .AddHttpMessageHandler<EnsureSuccessHandler>();
 
-        private static IHttpClientBuilder AddMaskinportenHttpClient(this IServiceCollection services)
+        private static IServiceCollection AddMaskinportenHttpClient(this IServiceCollection services)
         {
-            services.AddScoped<AnsattPortenTokenDelegatingHandler>();
-            return services.AddHttpClient<IMaskinPortenHttpClient, MaskinPortenHttpClient>((serviceProvider, client) =>
-                    {
-                        var options = serviceProvider.GetRequiredService<IOptions<MaskinPortenHttpClientSettings>>().Value;
-                        client.BaseAddress = new Uri(options.BaseUrl);
-                    })
-            .AddHttpMessageHandler<AnsattPortenTokenDelegatingHandler>();
+            services.AddTransient<AnsattPortenTokenDelegatingHandler>();
+            services.AddHttpClient(MaskinPortenHttpClient.HttpClientName, (serviceProvider, httpClient) =>
+                {
+                    var options = serviceProvider.GetRequiredService<IOptions<MaskinPortenHttpClientSettings>>().Value;
+                    httpClient.BaseAddress = new Uri(options.BaseUrl);
+                })
+                .AddHttpMessageHandler<AnsattPortenTokenDelegatingHandler>();
+            services.AddHttpClient(MaskinPortenHttpClient.PublicHttpClientName, (serviceProvider, httpClient) =>
+                {
+                    var options = serviceProvider.GetRequiredService<IOptions<MaskinPortenHttpClientSettings>>().Value;
+                    httpClient.BaseAddress = new Uri(options.BaseUrl);
+                });
+
+            services.AddSingleton<IMaskinPortenHttpClient, MaskinPortenHttpClient>();
+
+            return services;
 
         }
     }

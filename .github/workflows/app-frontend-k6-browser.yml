@@ -64,7 +64,7 @@ jobs:
             -v ${{ github.workspace }}:/github/workspace \
             -w /github/workspace \
             -e K6_BROWSER_TIMEOUT=120000 \
-            grafana/k6:latest-with-browser \
+            grafana/k6:1.5.0-with-browser \
             run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
         timeout-minutes: 10
 
