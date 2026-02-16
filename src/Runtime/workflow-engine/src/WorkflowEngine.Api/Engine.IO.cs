@@ -156,7 +156,7 @@ internal partial class Engine
     {
         using var activity = Metrics.Source.StartActivity(
             $"{Metrics.ActivityPrefix}.UpdateWorkflowInDb",
-            parentContext: workflow.EngineTraceContext,
+            parentContext: workflow.EngineActivity?.Context,
             tags: [("workflow.status", workflow.Status.ToString())]
         );
 
@@ -169,19 +169,19 @@ internal partial class Engine
     {
         using var activity = Metrics.Source.StartActivity(
             $"{Metrics.ActivityPrefix}.UpdateWorkflowAndStepsInDb",
-            parentContext: workflow.EngineTraceContext,
+            parentContext: workflow.EngineActivity?.Context,
             tags: [("workflow.status", workflow.Status.ToString()), ("workflow.steps.count", workflow.Steps.Count)]
         );
 
         using var scope = _serviceProvider.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
-        await repository.UpdateWorkflow(workflow, cancellationToken: cancellationToken);
         await repository.BatchUpdateSteps(
             workflow.Steps.Where(x => x.HasPendingChanges).ToList(),
             dontUpdateTimestamps: true,
             cancellationToken: cancellationToken
         );
+        await repository.UpdateWorkflow(workflow, cancellationToken: cancellationToken);
     }
 
     // Keep for now
@@ -191,7 +191,7 @@ internal partial class Engine
     {
         using var activity = Metrics.Source.StartActivity(
             $"{Metrics.ActivityPrefix}.UpdateStepInDb",
-            parentContext: step.EngineTraceContext,
+            parentContext: step.EngineActivity?.Context,
             tags: [("step.status", step.Status.ToString())]
         );
 

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -25,6 +26,9 @@ internal sealed class MetricsCollector(
 
         while (!stoppingToken.IsCancellationRequested)
         {
+            using var activity = Metrics.Source.StartActivity();
+            activity?.NoData();
+
             try
             {
                 var inboxCount = engine.InboxCount;

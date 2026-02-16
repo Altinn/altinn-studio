@@ -8,44 +8,55 @@ namespace WorkflowEngine.Api;
 
 internal partial class Engine
 {
-    private static Activity? StartProcessWorkflowActivityOnce(Workflow workflow)
+    private static void StartProcessWorkflowActivityOnce(Workflow workflow)
     {
-        // Subsequent iterations: return nothing, don't start another activity
-        // Downstream callers will manually set parentContext
-        if (workflow.EngineTraceContext is not null)
-            return null;
+        // Subsequent iterations: do nothing, activity is already stored on the workflow
+        // if (workflow.EngineTraceContext is not null)
+        //     return;
 
         // First iteration: create a new linked root trace for this workflow
-        var activity = Metrics.Source.StartLinkedRootActivity(
+        workflow.EngineActivity ??= Metrics.Source.StartLinkedRootActivity(
             $"{Metrics.ActivityPrefix}.ProcessWorkflow",
             kind: ActivityKind.Consumer,
             links: Metrics.ParseSourceContext(workflow.DistributedTraceContext),
             tags: workflow.GetActivityTags()
         );
 
-        workflow.EngineTraceContext = activity?.Context;
-
-        return activity;
+        // workflow.EngineTraceContext = activity?.Context;
+        // workflow.EngineActivity = activity;
     }
 
-    private static Activity? StartProcessStepActivityOnce(Workflow workflow, Step step)
+    private static void StartProcessStepActivityOnce(Workflow workflow, Step step)
     {
-        // Subsequent iterations: return nothing, don't start another activity
-        // Downstream callers will manually set parentContext
-        if (step.EngineTraceContext is not null)
-            return null;
+        // Subsequent iterations: do nothing, activity is already stored on the step
+        // if (step.EngineTraceContext is not null)
+        //     return;
 
-        // First iteration: create a new linked root trace for this workflow
-        var activity = Metrics.Source.StartActivity(
+        // First iteration: create a new child activity for this step
+        step.EngineActivity ??= Metrics.Source.StartActivity(
             $"{Metrics.ActivityPrefix}.ProcessStep",
             ActivityKind.Consumer,
-            workflow.EngineTraceContext ?? default,
+            workflow.EngineActivity?.Context ?? default,
             step.GetActivityTags()
         );
 
-        step.EngineTraceContext = activity?.Context;
+        // step.EngineTraceContext = activity?.Context;
+        // step.EngineActivity = activity;
+    }
 
-        return activity;
+    /// <summary>
+    /// Stops and disposes the stored activity on a <see cref="PersistentItem"/>, finalizing the span duration.
+    /// Sets <see cref="Activity.Current"/> to the item's activity before stopping, so the end time is recorded correctly.
+    /// </summary>
+    private static void StopActivity(PersistentItem item)
+    {
+        if (item.EngineActivity is null)
+            return;
+
+        item.EngineActivity.SetEndTime(DateTime.UtcNow);
+        item.EngineActivity.Stop();
+        item.EngineActivity.Dispose();
+        item.EngineActivity = null;
     }
 
     private void RecordWorkflowQueueTime(Workflow workflow)

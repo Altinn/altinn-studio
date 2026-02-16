@@ -43,7 +43,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
     {
         using var activity = Metrics.Source.StartActivity(
             "WorkflowExecutor.Execute",
-            parentContext: step.EngineTraceContext
+            parentContext: step.EngineActivity?.Context
         );
         using var slot = await _limiter.AcquireHttpSlotAsync(cancellationToken); // TODO: Perhaps move to actual http methods?
         _logger.ExecutingStep(step, workflow);

@@ -322,6 +322,7 @@ internal sealed class EnginePgRepository : IEngineRepository
                     foreach (var step in steps)
                         step.UpdatedAt = dontUpdateTimestamps ? step.UpdatedAt ?? now : now;
 
+                    // TODO: This is messy and could very likely be written in a better way
                     await _context.Database.ExecuteSqlRawAsync(
                         """
                         UPDATE "Steps" AS s

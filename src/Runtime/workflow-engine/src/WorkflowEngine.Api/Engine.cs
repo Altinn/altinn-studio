@@ -189,7 +189,7 @@ internal partial class Engine : IEngine, IDisposable
             return;
         }
 
-        using var activity = StartProcessWorkflowActivityOnce(workflow);
+        StartProcessWorkflowActivityOnce(workflow);
 
         try
         {
@@ -256,7 +256,7 @@ internal partial class Engine : IEngine, IDisposable
                 default:
                     workflow.Status = PersistentItemStatus.Failed;
                     await UpdateWorkflowInDb(workflow, cancellationToken);
-                    activity?.Errored(
+                    workflow.EngineActivity?.Errored(
                         errorMessage: $"Unknown database update status: {workflow.DatabaseUpdateStatus()}"
                     );
                     _logger.WorkflowCriticalError(
@@ -269,7 +269,8 @@ internal partial class Engine : IEngine, IDisposable
         }
         catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
         {
-            activity?.Errored(ex);
+            workflow.EngineActivity?.Errored(ex);
+            StopActivity(workflow);
 
             // TODO: Attempt to save dirty steps here?
 
@@ -277,7 +278,8 @@ internal partial class Engine : IEngine, IDisposable
         }
         catch (Exception ex)
         {
-            activity?.Errored(ex);
+            workflow.EngineActivity?.Errored(ex);
+            StopActivity(workflow);
             Metrics.Errors.Add(
                 1,
                 ("operation", "workflowProcessing"),
@@ -297,6 +299,7 @@ internal partial class Engine : IEngine, IDisposable
         }
 
         // Workflow is done (success or permanent failure)
+        StopActivity(workflow);
         RemoveWorkflowAndReleaseQueueSlot(workflow);
         _logger.WorkflowCompleted(workflow);
     }
@@ -322,7 +325,7 @@ internal partial class Engine : IEngine, IDisposable
             }
 
             _logger.ProcessingStep(step);
-            using var activity = StartProcessStepActivityOnce(workflow, step);
+            StartProcessStepActivityOnce(workflow, step);
 
             try
             {
@@ -349,6 +352,7 @@ internal partial class Engine : IEngine, IDisposable
 
                         RecordStepServiceTime(step);
                         RecordStepTotalTime(step, previous);
+                        StopActivity(step);
 
                         // Immediately advance on success (deferred db write)
                         if (step.Status == PersistentItemStatus.Completed)
@@ -370,11 +374,13 @@ internal partial class Engine : IEngine, IDisposable
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
+                StopActivity(workflow);
                 throw;
             }
             catch (Exception ex)
             {
-                activity?.Errored(ex);
+                step.EngineActivity?.Errored(ex);
+                StopActivity(step);
 
                 // WorkflowExecutor handles all known errors, so we can assume that any exception here is not retryable
                 UpdateStepStatusAndRetryDecision(step, previous, ExecutionResult.CriticalError(ex));
@@ -448,8 +454,6 @@ internal partial class Engine : IEngine, IDisposable
 
     private async Task WaitForPendingTasks(CancellationToken cancellationToken)
     {
-        using var activity = Metrics.Source.StartActivity($"{Metrics.ActivityPrefix}.WaitForPendingTasks");
-
         // Wait for active Step and Workflow tasks (active set only)
         List<Task> awaitables;
         lock (_activeSetLock)
