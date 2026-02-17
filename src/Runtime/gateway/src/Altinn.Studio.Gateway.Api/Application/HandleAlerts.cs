@@ -60,32 +60,31 @@ internal static class HandleAlerts
             return Results.BadRequest();
         }
 
-        var ruleId = alertPayload.Alerts.First().Annotations.GetValueOrDefault("ruleId");
+        var ruleId = firstAlert.Annotations.GetValueOrDefault("ruleId");
         if (string.IsNullOrEmpty(ruleId) || !AzureMonitorClient.OperationNameKeys.Contains(ruleId))
         {
             return Results.BadRequest();
         }
 
-        var from = firstAlert.StartsAt;
-        var to = DateTimeOffset.UtcNow;
         var alerts = alertPayload.Alerts.Select(a => new AlertInstance
         {
             Status = a.Status,
             App = a.Labels.GetValueOrDefault("cloud_RoleName", string.Empty),
         });
-        var apps = alerts.Select(alertInstance => alertInstance.App).ToList();
-        var logsUrl =
-            apps.Count > 0
-                ? metricsClient.GetLogsUrl(
-                    gatewayContext.AzureSubscriptionId,
-                    gatewayContext.ServiceOwner,
-                    gatewayContext.Environment,
-                    apps,
-                    ruleId,
-                    from,
-                    to
-                )
-                : null;
+
+        var from = firstAlert.StartsAt;
+        var to = DateTimeOffset.UtcNow;
+        var apps = alerts.Select(alertInstance => alertInstance.App).Where(app => !string.IsNullOrEmpty(app)).ToList();
+
+        var logsUrl = metricsClient.GetLogsUrl(
+            gatewayContext.AzureSubscriptionId,
+            gatewayContext.ServiceOwner,
+            gatewayContext.Environment,
+            apps,
+            ruleId,
+            from,
+            to
+        );
 
         var alert = new Alert
         {
