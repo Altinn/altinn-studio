@@ -121,6 +121,12 @@ public static class TelemetryExtensions
             activity.IsAllDataRequested = false;
         }
 
+        public void DontRecord()
+        {
+            activity.NoData();
+            activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+        }
+
         public void HasData()
         {
             activity.IsAllDataRequested = true;

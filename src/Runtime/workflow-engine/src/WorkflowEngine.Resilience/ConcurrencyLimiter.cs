@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using WorkflowEngine.Telemetry;
+using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Resilience;
 
@@ -17,12 +19,18 @@ public interface IConcurrencyLimiter
     /// <summary>
     /// Acquires a database slot.
     /// </summary>
-    Task<IDisposable> AcquireDbSlot(CancellationToken cancellationToken = default);
+    Task<IDisposable> AcquireDbSlot(
+        ActivityContext? parentContext = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Acquires an HTTP slot.
     /// </summary>
-    Task<IDisposable> AcquireHttpSlot(CancellationToken cancellationToken = default);
+    Task<IDisposable> AcquireHttpSlot(
+        ActivityContext? parentContext = null,
+        CancellationToken cancellationToken = default
+    );
 }
 
 public sealed class ConcurrencyLimiter : IDisposable, IConcurrencyLimiter
@@ -58,18 +66,30 @@ public sealed class ConcurrencyLimiter : IDisposable, IConcurrencyLimiter
     }
 
     /// <inheritdoc/>
-    public async Task<IDisposable> AcquireDbSlot(CancellationToken cancellationToken = default)
+    public async Task<IDisposable> AcquireDbSlot(
+        ActivityContext? parentContext = null,
+        CancellationToken cancellationToken = default
+    )
     {
-        using var activity = Metrics.Source.StartActivity("ConcurrencyLimiter.AcquireDbSlot");
+        using var activity = Metrics.Source.StartActivity(
+            "ConcurrencyLimiter.AcquireDbSlot",
+            parentContext: parentContext
+        );
         await _dbSemaphore.WaitAsync(cancellationToken);
 
         return new SemaphoreReleaser(_dbSemaphore);
     }
 
     /// <inheritdoc/>
-    public async Task<IDisposable> AcquireHttpSlot(CancellationToken cancellationToken = default)
+    public async Task<IDisposable> AcquireHttpSlot(
+        ActivityContext? parentContext = null,
+        CancellationToken cancellationToken = default
+    )
     {
-        using var activity = Metrics.Source.StartActivity("ConcurrencyLimiter.AcquireHttpSlot");
+        using var activity = Metrics.Source.StartActivity(
+            "ConcurrencyLimiter.AcquireHttpSlot",
+            parentContext: parentContext
+        );
         await _httpSemaphore.WaitAsync(cancellationToken);
 
         return new SemaphoreReleaser(_httpSemaphore);

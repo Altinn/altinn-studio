@@ -4,6 +4,7 @@ using WorkflowEngine.Api.Endpoints;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models.Exceptions;
+using WorkflowEngine.Telemetry.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 var dbConnectionString =

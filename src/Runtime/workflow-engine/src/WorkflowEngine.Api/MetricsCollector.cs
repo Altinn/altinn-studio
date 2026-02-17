@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -25,8 +26,8 @@ internal sealed class MetricsCollector(
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            using var activity = Metrics.Source.StartActivity();
-            activity?.NoData();
+            using var activity = Metrics.Source.StartActivity("MetricsCollector.Collect");
+            activity?.DontRecord();
 
             try
             {

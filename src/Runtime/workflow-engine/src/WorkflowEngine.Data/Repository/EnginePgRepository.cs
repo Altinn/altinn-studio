@@ -41,7 +41,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     public async Task<IReadOnlyList<Workflow>> GetActiveWorkflows(CancellationToken cancellationToken = default)
     {
         using var activity = Metrics.Source.StartActivity("EnginePgRepository.GetActiveWorkflows");
-        using var slot = await _limiter.AcquireDbSlot(cancellationToken);
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
@@ -69,7 +69,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     public async Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(CancellationToken cancellationToken = default)
     {
         using var activity = Metrics.Source.StartActivity("EnginePgRepository.GetScheduledWorkflows");
-        using var slot = await _limiter.AcquireDbSlot(cancellationToken);
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
@@ -97,7 +97,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     public async Task<IReadOnlyList<Workflow>> GetFailedWorkflows(CancellationToken cancellationToken = default)
     {
         using var activity = Metrics.Source.StartActivity("EnginePgRepository.GetFailedWorkflows");
-        using var slot = await _limiter.AcquireDbSlot(cancellationToken);
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
@@ -125,7 +125,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     public async Task<int> CountActiveWorkflows(CancellationToken cancellationToken = default)
     {
         using var activity = Metrics.Source.StartActivity("EnginePgRepository.CountActiveWorkflows");
-        using var slot = await _limiter.AcquireDbSlot(cancellationToken);
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
@@ -153,7 +153,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     public async Task<int> CountScheduledWorkflows(CancellationToken cancellationToken = default)
     {
         using var activity = Metrics.Source.StartActivity("EnginePgRepository.CountScheduledWorkflows");
-        using var slot = await _limiter.AcquireDbSlot(cancellationToken);
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
@@ -181,7 +181,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     public async Task<int> CountFailedWorkflows(CancellationToken cancellationToken = default)
     {
         using var activity = Metrics.Source.StartActivity("EnginePgRepository.CountFailedWorkflows");
-        using var slot = await _limiter.AcquireDbSlot(cancellationToken);
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
@@ -209,7 +209,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     public async Task<Workflow> AddWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default)
     {
         using var activity = Metrics.Source.StartActivity("EnginePgRepository.AddWorkflow");
-        using var slot = await _limiter.AcquireDbSlot(cancellationToken);
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
@@ -245,7 +245,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     )
     {
         using var activity = Metrics.Source.StartActivity("EnginePgRepository.UpdateWorkflow");
-        using var slot = await _limiter.AcquireDbSlot(cancellationToken);
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
@@ -286,7 +286,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     public async Task UpdateStep(Step step, bool updateTimestamp = true, CancellationToken cancellationToken = default)
     {
         using var activity = Metrics.Source.StartActivity("EnginePgRepository.UpdateStep");
-        using var slot = await _limiter.AcquireDbSlot(cancellationToken);
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
@@ -335,7 +335,7 @@ internal sealed class EnginePgRepository : IEngineRepository
     )
     {
         using var activity = Metrics.Source.StartActivity("EnginePgRepository.BatchUpdateWorkflowAndSteps");
-        using var slot = await _limiter.AcquireDbSlot(cancellationToken);
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         var now = _timeProvider.GetUtcNow();
         var previousChangeTrackerDetection = _context.ChangeTracker.AutoDetectChangesEnabled;
