@@ -10,7 +10,7 @@ public class Alert
     public required string Name { get; init; }
     public required IEnumerable<AlertInstance> Alerts { get; init; }
     public required Uri URL { get; set; }
-    public Uri? LogsUrl { get; init; }
+    public required Uri LogsUrl { get; init; }
 }
 
 public class AlertInstance
