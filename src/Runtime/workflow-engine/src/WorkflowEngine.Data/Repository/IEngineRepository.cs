@@ -29,7 +29,6 @@ public interface IEngineRepository
     Task<IReadOnlyList<Workflow>> GetCompletedWorkflows(
         string? search = null,
         int? take = null,
-        bool bypassConcurrencyLimit = true,
         CancellationToken cancellationToken = default
     );
 
@@ -39,7 +38,6 @@ public interface IEngineRepository
     Task<IReadOnlyList<Workflow>> GetFailedWorkflows(
         string? search = null,
         int? take = null,
-        bool bypassConcurrencyLimit = true,
         CancellationToken cancellationToken = default
     );
 
@@ -50,7 +48,6 @@ public interface IEngineRepository
         IReadOnlyList<PersistentItemStatus> statuses,
         string? search = null,
         int? take = null,
-        bool bypassConcurrencyLimit = true,
         CancellationToken cancellationToken = default
     );
 

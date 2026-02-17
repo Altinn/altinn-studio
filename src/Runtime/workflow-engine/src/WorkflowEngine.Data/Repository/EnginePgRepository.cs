@@ -87,11 +87,10 @@ internal sealed class EnginePgRepository : IEngineRepository
     public async Task<IReadOnlyList<Workflow>> GetCompletedWorkflows(
         string? search = null,
         int? take = null,
-        bool bypassConcurrencyLimit = true,
         CancellationToken cancellationToken = default
     )
     {
-        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
+        using var slot = await AcquireDbSlotIfRequired(true, cancellationToken);
         try
         {
             _logger.FetchingWorkflows("completed");
@@ -116,11 +115,10 @@ internal sealed class EnginePgRepository : IEngineRepository
     public async Task<IReadOnlyList<Workflow>> GetFailedWorkflows(
         string? search = null,
         int? take = null,
-        bool bypassConcurrencyLimit = true,
         CancellationToken cancellationToken = default
     )
     {
-        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
+        using var slot = await AcquireDbSlotIfRequired(true, cancellationToken);
         try
         {
             _logger.FetchingWorkflows("failed");
@@ -143,11 +141,10 @@ internal sealed class EnginePgRepository : IEngineRepository
         IReadOnlyList<PersistentItemStatus> statuses,
         string? search = null,
         int? take = null,
-        bool bypassConcurrencyLimit = true,
         CancellationToken cancellationToken = default
     )
     {
-        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
+        using var slot = await AcquireDbSlotIfRequired(true, cancellationToken);
         try
         {
             _logger.FetchingWorkflows("finished");
