@@ -17,7 +17,7 @@ spec:
           exporters: [azuremonitor]
         metrics:
           receivers: [otlp]
-          processors: [batch]
+          processors: [filter/metrics_allowlist, cumulativetodelta/metrics, transform/metrics_cost_control, batch]
           exporters: [azuremonitor]
         logs:
           receivers: [otlp]

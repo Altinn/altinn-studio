@@ -31,7 +31,7 @@ const mockDocumentList: SigningDocument[] = [
 
 jest.mock('src/utils/layout/useNodeItem', () => ({}));
 
-jest.mock('react-router-dom', () => ({
+jest.mock('react-router', () => ({
   useParams: jest.fn(() => ({
     partyId: 'partyId',
     instanceGuid: randomUUID(),

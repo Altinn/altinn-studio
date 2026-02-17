@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import type { LinkProps } from 'react-router-dom';
+import { Link } from 'react-router';
+import type { LinkProps } from 'react-router';
 
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { useIsHiddenPage } from 'src/utils/layout/hidden';
