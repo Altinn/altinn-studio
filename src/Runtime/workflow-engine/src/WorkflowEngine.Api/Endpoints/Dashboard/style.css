@@ -40,16 +40,15 @@ body{min-height:100vh;padding:0}
 .connection.disconnected .dot{background:var(--red)}
 
 /* ── Capacity meters ──────────────────────────────────────── */
-.capacity-section{padding:20px 24px;border-bottom:1px solid var(--border)}
-.meter{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.meter:last-child{margin-bottom:0}
-.meter-label{width:50px;font-size:12px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
-.meter-bar{flex:1;height:22px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative;border:1px solid var(--border)}
+.capacity-section{display:flex;gap:16px;padding:12px 24px;border-bottom:1px solid var(--border)}
+.meter{display:flex;align-items:center;gap:8px;flex:1}
+.meter-label{font-size:12px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
+.meter-bar{flex:1;height:18px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative;border:1px solid var(--border)}
 .meter-fill{height:100%;border-radius:3px;transition:width 0.5s ease,background 0.5s ease;min-width:0}
 .meter-fill.low{background:linear-gradient(90deg,var(--cyan),var(--green))}
 .meter-fill.mid{background:linear-gradient(90deg,var(--amber),var(--orange))}
 .meter-fill.high{background:linear-gradient(90deg,var(--orange),var(--red))}
-.meter-value{width:110px;text-align:right;font-size:13px;font-variant-numeric:tabular-nums;color:var(--text)}
+.meter-value{white-space:nowrap;font-size:12px;font-variant-numeric:tabular-nums;color:var(--text)}
 
 /* ── Filter bar ──────────────────────────────────────────── */
 .filter-bar{
