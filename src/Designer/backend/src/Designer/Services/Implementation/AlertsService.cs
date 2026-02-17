@@ -35,28 +35,11 @@ internal sealed class AlertsService(
     }
 
     /// <inheritdoc />
-    public async Task NotifyAlertsUpdatedAsync(string org, AltinnEnvironment environment, IEnumerable<Alert> alerts, CancellationToken cancellationToken)
+    public async Task NotifyAlertsUpdatedAsync(string org, AltinnEnvironment environment, Alert alert, CancellationToken cancellationToken)
     {
-        var firingAlerts = alerts
-        .Select(alert => new
-        {
-            alert.RuleId,
-            alert.Name,
-            alert.URL,
-            alert.LogsUrl,
-            FiringApps = alert.Alerts
-                .Where(a => a.Status == "firing")
-                .Select(a => a.App)
-                .ToList()
-        })
-        .Where(a => a.FiringApps.Count > 0);
+        var apps = alert.Alerts.Where(alertInstance => alertInstance.Status == "firing").Select(alertInstance => alertInstance.App).ToList();
 
-        await Task.WhenAll(
-            firingAlerts.Select(async alert =>
-            {
-                await SendToSlackAsync(org, environment, alert.FiringApps, alert.Name, alert.URL, alert.LogsUrl, cancellationToken);
-            })
-        );
+        await SendToSlackAsync(org, environment, apps, alert.Name, alert.URL, alert.LogsUrl, cancellationToken);
 
         await alertsUpdatedHubContext.Clients.Group(org).AlertsUpdated(new AlertsUpdated(environment.Name));
     }
