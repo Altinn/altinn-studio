@@ -4,7 +4,7 @@
 }
 
 .buttonCell {
-  padding: var(--ds-size-1) var(--ds-size-9) var(--ds-size-1) var(--ds-size-1);
+  padding: 4px 36px 4px 4px;
 }
 
 .tableButtonWrapper {
@@ -13,11 +13,35 @@
 }
 
 .tableContainer {
-  margin-top: var(--ds-size-6);
+  margin-top: 26px;
 }
 
 .table {
   width: 100%;
+}
+
+@media (max-width: 992px) {
+  .table {
+    border-top: 1px solid #dde3e5;
+  }
+}
+
+.table th {
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #dde3e5;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.table td {
+  border-bottom: 1px solid #dde3e5;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.table tfoot td {
+  background-color: #f5f5f5;
+  border-top: none;
 }
 
 .table tr:hover {
@@ -25,25 +49,29 @@
 }
 
 .startNewButtonContainer {
-  margin-top: var(--ds-size-3);
+  margin-top: 12px;
 }
 
 .descriptionParagraph {
-  margin-top: var(--ds-size-3);
+  margin-top: 12px;
 }
 
 .paginationWrapper {
   display: flex;
   justify-content: left;
-  margin-top: var(--ds-size-3);
+}
+
+.paginationWrapperMobile {
+  display: flex;
+  justify-content: center;
 }
 
 .mobileTableCell {
-  padding-top: var(--ds-size-3);
-  padding-bottom: var(--ds-size-3);
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 .leftOffHeading {
-  padding-top: var(--ds-size-3);
-  padding-bottom: var(--ds-size-3);
+  padding-top: 12px;
+  padding-bottom: 12px;
 }

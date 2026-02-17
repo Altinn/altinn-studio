@@ -1,14 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import {
-  Button,
-  Heading,
-  Pagination as DesignSystemPagination,
-  Paragraph,
-  Table,
-  usePagination,
-} from '@digdir/designsystemet-react';
+import { Button as DesignSystemButton, Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import { PencilIcon } from '@navikt/aksel-icons';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { activeInstancesQuery, InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
@@ -16,6 +9,9 @@ import { GlobalData } from 'nextsrc/core/globalData';
 import classes from 'nextsrc/features/instantiate/pages/instance-selection/InstanceSelectionPage.module.css';
 import { routeBuilders } from 'nextsrc/routesBuilder';
 import { useIsMobileOrTablet } from 'nextsrc/utils/useDeviceWidths';
+
+import { Button } from 'src/app-components/Button/Button';
+import { Pagination } from 'src/app-components/Pagination/Pagination';
 
 // TODO: Replace with i18n system when language support is added to nextsrc
 const texts = {
@@ -29,6 +25,7 @@ const texts = {
   newInstance: 'Start på nytt',
   previous: 'Forrige',
   next: 'Neste',
+  rowsPerPage: 'Rader per side',
 } as const;
 
 function getDateDisplayString(timeStamp: string): string {
@@ -128,10 +125,19 @@ export const InstanceSelectionPage = () => {
   const instances = sortDirection === 'desc' ? [..._instances].reverse() : _instances;
   const paginatedInstances = instances.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
   const showPagination = instances.length > rowsPerPageOptions[0];
-  const totalPages = Math.ceil(instances.length / rowsPerPage);
+
+  function handleRowsPerPageChanged(newRowsPerPage: number) {
+    setRowsPerPage(newRowsPerPage);
+    if (instances.length < (currentPage - 1) * newRowsPerPage) {
+      setCurrentPage(Math.floor(instances.length / newRowsPerPage));
+    }
+  }
 
   return (
-    <div className={classes.container}>
+    <div
+      className={classes.container}
+      id='instance-selection-container'
+    >
       <Heading
         level={2}
         data-size='md'
@@ -220,12 +226,23 @@ export const InstanceSelectionPage = () => {
           </Table>
         </div>
       )}
-      {/* Pagination */}
+
       {showPagination && (
-        <InstancePagination
+        <Pagination
+          id='instance-selection'
+          nextLabel={texts.next}
+          nextLabelAriaLabel={texts.next}
+          previousLabel={texts.previous}
+          previousLabelAriaLabel={texts.previous}
+          rowsPerPageText={texts.rowsPerPage}
+          size='sm'
+          numberOfRows={instances.length}
+          showRowsPerPageDropdown={true}
+          rowsPerPageOptions={rowsPerPageOptions}
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
-          totalPages={totalPages}
+          pageSize={rowsPerPage}
+          onPageSizeChange={(value) => handleRowsPerPageChanged(value)}
         />
       )}
       {/* New instance button */}
@@ -242,51 +259,3 @@ export const InstanceSelectionPage = () => {
     </div>
   );
 };
-
-function InstancePagination({
-  currentPage,
-  setCurrentPage,
-  totalPages,
-}: {
-  currentPage: number;
-  setCurrentPage: (page: number) => void;
-  totalPages: number;
-}) {
-  const { pages, prevButtonProps, nextButtonProps } = usePagination({
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    showPages: Math.min(5, totalPages),
-  });
-
-  return (
-    <div className={classes.paginationWrapper}>
-      <DesignSystemPagination
-        data-testid='pagination'
-        aria-label='Pagination'
-        data-size='sm'
-      >
-        <DesignSystemPagination.List>
-          <DesignSystemPagination.Item>
-            <DesignSystemPagination.Button {...prevButtonProps}>{texts.previous}</DesignSystemPagination.Button>
-          </DesignSystemPagination.Item>
-          {pages.map(({ page, itemKey, buttonProps }) => (
-            <DesignSystemPagination.Item key={itemKey}>
-              {typeof page === 'number' && (
-                <DesignSystemPagination.Button
-                  aria-current={currentPage === page}
-                  {...buttonProps}
-                >
-                  {page}
-                </DesignSystemPagination.Button>
-              )}
-            </DesignSystemPagination.Item>
-          ))}
-          <DesignSystemPagination.Item>
-            <DesignSystemPagination.Button {...nextButtonProps}>{texts.next}</DesignSystemPagination.Button>
-          </DesignSystemPagination.Item>
-        </DesignSystemPagination.List>
-      </DesignSystemPagination>
-    </div>
-  );
-}

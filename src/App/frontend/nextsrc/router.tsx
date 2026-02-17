@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 
+import { AppLayout } from 'nextsrc/core/app-layout/app-layout';
 import { GlobalData } from 'nextsrc/core/globalData';
 import { Page } from 'nextsrc/features/form/pages/page/page';
 import { pageLoader } from 'nextsrc/features/form/pages/page/pageLoader';
@@ -18,18 +19,23 @@ import { routes } from 'nextsrc/routesBuilder';
 
 export const router = createBrowserRouter(
   [
-    { path: routes.root, loader: entryRedirectLoader(), errorElement: <ErrorPage /> },
-    { path: routes.instance, element: <InstancePage />, loader: instanceLoader },
     {
-      path: routes.instanceSelection,
-      element: <InstanceSelectionPage />,
-      loader: instanceSelectionLoader,
-      errorElement: <ErrorPage />,
+      element: <AppLayout />,
+      children: [
+        { path: routes.root, loader: entryRedirectLoader(), errorElement: <ErrorPage /> },
+        { path: routes.instance, element: <InstancePage />, loader: instanceLoader },
+        {
+          path: routes.instanceSelection,
+          element: <InstanceSelectionPage />,
+          loader: instanceSelectionLoader,
+          errorElement: <ErrorPage />,
+        },
+        { path: routes.partySelection, element: <PartySelectionPage /> },
+        { path: routes.stateless, element: <StatelessPage /> },
+        { path: routes.task, element: <Task />, loader: taskLoader },
+        { path: routes.page, element: <Page />, loader: pageLoader },
+      ],
     },
-    { path: routes.partySelection, element: <PartySelectionPage /> },
-    { path: routes.stateless, element: <StatelessPage /> },
-    { path: routes.task, element: <Task />, loader: taskLoader },
-    { path: routes.page, element: <Page />, loader: pageLoader },
   ],
   { basename: GlobalData.basename },
 );
