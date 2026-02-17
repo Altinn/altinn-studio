@@ -73,6 +73,8 @@
   "admin.metrics.heading": "Statistikk fra siste",
   "admin.metrics.ready_pods": "av podene er klare",
   "ai_assistant.about_assistant": "Om assistenten",
+  "ai_assistant.access_denied_1": "Du har ikke tilgang til KI-assistenten.",
+  "ai_assistant.access_denied_2": "På dette tidspunktet har bare Testdepartementet tilgang.",
   "ai_assistant.add_attachment": "Last opp vedlegg",
   "ai_assistant.allow_app_changes": "Tillat endringer i appen",
   "ai_assistant.assistant_first_message": "Hva kan jeg hjelpe med?",
