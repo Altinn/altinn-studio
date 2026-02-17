@@ -218,13 +218,17 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task UpdateWorkflow(Workflow workflow, CancellationToken cancellationToken = default)
+    public async Task UpdateWorkflow(
+        Workflow workflow,
+        bool updateTimestamp = true,
+        CancellationToken cancellationToken = default
+    )
     {
         using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.UpdatingWorkflow(workflow);
-            workflow.UpdatedAt = _timeProvider.GetUtcNow();
+            workflow.UpdatedAt = updateTimestamp ? _timeProvider.GetUtcNow() : workflow.UpdatedAt;
 
             await ExecuteWithRetry(
                 async ct =>
@@ -256,18 +260,13 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task UpdateStep(
-        Step step,
-        bool dontUpdateTimestamp = false,
-        CancellationToken cancellationToken = default
-    )
+    public async Task UpdateStep(Step step, bool updateTimestamp = true, CancellationToken cancellationToken = default)
     {
         using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
             _logger.UpdatingStep(step);
-            var now = _timeProvider.GetUtcNow();
-            step.UpdatedAt = dontUpdateTimestamp ? step.UpdatedAt ?? now : now;
+            step.UpdatedAt = updateTimestamp ? _timeProvider.GetUtcNow() : step.UpdatedAt;
 
             await ExecuteWithRetry(
                 async ct =>
@@ -301,69 +300,39 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    [SuppressMessage("Critical Code Smell", "S3265:Non-flags enums should not be used in bitwise operations")]
-    [SuppressMessage("ReSharper", "BitwiseOperatorOnEnumWithoutFlags")]
-    public async Task BatchUpdateSteps(
+    public async Task BatchUpdateWorkflowAndSteps(
+        Workflow workflow,
         IReadOnlyList<Step> steps,
-        bool dontUpdateTimestamps = false,
+        bool updateWorkflowTimestamp = true,
+        bool updateStepTimestamps = true,
         CancellationToken cancellationToken = default
     )
     {
-        if (!steps.Any())
-            return;
-
         using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
         try
         {
-            await ExecuteWithRetry(
-                async ct =>
-                {
-                    var now = _timeProvider.GetUtcNow();
-                    foreach (var step in steps)
-                        step.UpdatedAt = dontUpdateTimestamps ? step.UpdatedAt ?? now : now;
+            var now = _timeProvider.GetUtcNow();
+            workflow.UpdatedAt = updateWorkflowTimestamp ? now : workflow.UpdatedAt;
 
-                    // TODO: This is messy and could very likely be written in a better way
-                    await _context.Database.ExecuteSqlRawAsync(
-                        """
-                        UPDATE "Steps" AS s
-                        SET "Status" = v."Status",
-                            "BackoffUntil" = v."BackoffUntil",
-                            "RequeueCount" = v."RequeueCount",
-                            "UpdatedAt" = v."UpdatedAt"
-                        FROM unnest(@ids, @statuses, @backoffs, @requeueCounts, @updatedAts)
-                            AS v("Id", "Status", "BackoffUntil", "RequeueCount", "UpdatedAt")
-                        WHERE s."Id" = v."Id"
-                        """,
-                        [
-                            new NpgsqlParameter("ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint)
-                            {
-                                Value = steps.Select(s => s.DatabaseId).ToArray(),
-                            },
-                            new NpgsqlParameter("statuses", NpgsqlDbType.Array | NpgsqlDbType.Integer)
-                            {
-                                Value = steps.Select(s => (int)s.Status).ToArray(),
-                            },
-                            new NpgsqlParameter("backoffs", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
-                            {
-                                Value = steps.Select(s => s.BackoffUntil).ToArray(),
-                            },
-                            new NpgsqlParameter("requeueCounts", NpgsqlDbType.Array | NpgsqlDbType.Integer)
-                            {
-                                Value = steps.Select(s => s.RequeueCount).ToArray(),
-                            },
-                            new NpgsqlParameter("updatedAts", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
-                            {
-                                Value = steps.Select(s => s.UpdatedAt!.Value).ToArray(),
-                            },
-                        ],
-                        ct
-                    );
+            var workflowEntry = _context.Workflows.Entry(WorkflowEntity.FromDomainModel(workflow));
+            workflowEntry.Property(e => e.Status).IsModified = true;
+            workflowEntry.Property(e => e.UpdatedAt).IsModified = updateWorkflowTimestamp;
 
-                    foreach (var step in steps)
-                        step.HasPendingChanges = false;
-                },
-                cancellationToken
-            );
+            foreach (var step in steps)
+            {
+                step.UpdatedAt = updateStepTimestamps ? now : step.UpdatedAt;
+
+                var entry = _context.Steps.Attach(StepEntity.FromDomainModel(step));
+                entry.Property(e => e.Status).IsModified = true;
+                entry.Property(e => e.BackoffUntil).IsModified = true;
+                entry.Property(e => e.RequeueCount).IsModified = true;
+                entry.Property(e => e.UpdatedAt).IsModified = updateStepTimestamps;
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            foreach (var step in steps)
+                step.HasPendingChanges = false;
 
             _logger.SuccessfullyUpdatedSteps(steps.Count);
         }

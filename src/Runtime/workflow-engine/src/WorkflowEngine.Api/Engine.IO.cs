@@ -176,12 +176,14 @@ internal partial class Engine
         using var scope = _serviceProvider.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
-        await repository.BatchUpdateSteps(
+        await repository.BatchUpdateWorkflowAndSteps(
+            workflow,
             workflow.Steps.Where(x => x.HasPendingChanges).ToList(),
-            dontUpdateTimestamps: true,
+            updateWorkflowTimestamp: true,
+            updateStepTimestamps: false,
             cancellationToken: cancellationToken
         );
-        await repository.UpdateWorkflow(workflow, cancellationToken: cancellationToken);
+        //await repository.UpdateWorkflow(workflow, cancellationToken: cancellationToken);
     }
 
     // Keep for now

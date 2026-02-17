@@ -45,19 +45,21 @@ public interface IEngineRepository
     /// <summary>
     /// Updates a workflow in the repository.
     /// </summary>
-    Task UpdateWorkflow(Workflow workflow, CancellationToken cancellationToken = default);
+    Task UpdateWorkflow(Workflow workflow, bool updateTimestamp = true, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the specified step in the workflow repository.
     /// </summary>
-    Task UpdateStep(Step step, bool dontUpdateTimestamp = false, CancellationToken cancellationToken = default);
+    Task UpdateStep(Step step, bool updateTimestamp = true, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the supplied steps in a single transaction.
     /// </summary>
-    Task BatchUpdateSteps(
+    Task BatchUpdateWorkflowAndSteps(
+        Workflow workflow,
         IReadOnlyList<Step> steps,
-        bool dontUpdateTimestamps = false,
+        bool updateWorkflowTimestamp = true,
+        bool updateStepTimestamps = true,
         CancellationToken cancellationToken = default
     );
 }
