@@ -92,7 +92,7 @@ internal static class HandleAlerts
             RuleId = ruleId,
             Name = firstAlert.Labels.GetValueOrDefault("alertname", "unknown"),
             Alerts = alerts,
-            URL = firstAlert.GeneratorURL,
+            Url = firstAlert.GeneratorURL,
             LogsUrl = logsUrl,
         };
 
