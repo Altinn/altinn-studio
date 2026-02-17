@@ -7,7 +7,7 @@ Real-time monitoring UI for the workflow engine. Vanilla JS (no build step), JSD
 - **Static file server**: ASP.NET Core minimal API serving `wwwroot/` + a single `/api/config` endpoint returning the engine URL.
 - **Data flow**: Frontend connects via SSE to the engine's `/dashboard/stream` and `/dashboard/stream/recent` endpoints. History and scheduled data are fetched on-demand.
 - **CORS**: Engine allows dashboard origin (`http://localhost:8090`) via `CorsSettings:AllowedOrigins` in the Api project's appsettings.
-- **Hot-reload**: `watchForChanges()` polls HEAD on all three static files every 1s, reloads on `Last-Modified` change. Works because `wwwroot/` is bind-mounted into the container.
+- **Hot-reload**: Dashboard server watches `wwwroot/` for file changes and pushes SSE events via `/api/hot-reload`. Frontend listens and reloads. Works because `wwwroot/` is bind-mounted into the container.
 
 ## Files
 

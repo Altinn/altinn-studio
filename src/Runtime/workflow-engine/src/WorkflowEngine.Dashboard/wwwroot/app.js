@@ -1069,27 +1069,13 @@
    * ============================================================ */
 
   /* ============================================================
-   *  HOT-RELOAD  (polls own Last-Modified header, reloads on change)
+   *  HOT-RELOAD  (SSE from dashboard server on file change)
    * ============================================================ */
 
   const watchForChanges = () => {
-    const files = ['/app.js', '/style.css', '/index.html'];
-    /** @type {Record<string, string>} */
-    const stamps = {};
-    let initialized = false;
-    const poll = async () => {
-      try {
-        for (const file of files) {
-          const res = await fetch(file, { method: 'HEAD' });
-          const lm = res.headers.get('Last-Modified') || '';
-          if (initialized && stamps[file] && lm !== stamps[file]) { location.reload(); return; }
-          stamps[file] = lm;
-        }
-        initialized = true;
-      } catch { /* ignore */ }
-      setTimeout(poll, 1000);
-    };
-    poll();
+    const es = new EventSource('/api/hot-reload');
+    es.onmessage = () => location.reload();
+    es.onerror = () => { es.close(); setTimeout(watchForChanges, 2000); };
   };
 
   /* ============================================================
