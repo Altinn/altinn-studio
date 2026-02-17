@@ -20,8 +20,8 @@
   gap: var(--ds-size-1);
 }
 
-.linkButton:link,
-.linkButton:visited {
+.linkButton.primary:link,
+.linkButton.primary:visited {
   color: var(--color);
 }
 
