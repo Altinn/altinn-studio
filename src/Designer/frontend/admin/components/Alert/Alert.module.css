@@ -7,6 +7,7 @@
 
 .metric:before {
   margin-top: 3px;
+  padding-left: var(--ds-size-4);
 }
 
 .heading {

@@ -39,7 +39,7 @@ internal sealed class AlertsService(
     {
         var apps = alert.Alerts.Where(alertInstance => alertInstance.Status == "firing").Select(alertInstance => alertInstance.App).ToList();
 
-        await SendToSlackAsync(org, environment, apps, alert.Name, alert.URL, alert.LogsUrl, cancellationToken);
+        await SendToSlackAsync(org, environment, apps, alert.Name, alert.Url, alert.LogsUrl, cancellationToken);
 
         await alertsUpdatedHubContext.Clients.Group(org).AlertsUpdated(new AlertsUpdated(environment.Name));
     }
