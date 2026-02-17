@@ -572,7 +572,7 @@ internal static class EnginePgRepositoryQueries
         public IQueryable<WorkflowEntity> GetScheduledWorkflows() =>
             dbContext
                 .Workflows.Include(j => j.Steps)
-                .Where(x => x.StartAt == null || x.StartAt <= DateTime.UtcNow)
+                .Where(x => x.StartAt != null && x.StartAt > DateTime.UtcNow)
                 .Where(x => x.Steps.Any(y => _incompleteItemStatuses.Contains(y.Status)));
 
         public IQueryable<WorkflowEntity> GetCompletedWorkflows(string? search = null, int? take = null)

@@ -90,13 +90,21 @@ body{min-height:100vh;padding:0}
 .filtered-out{display:none !important}
 
 /* ── Sections & titles ────────────────────────────────────── */
-.section{padding:20px 24px}
-#live-section{min-height:320px;position:relative}
+.section{padding:20px 24px;border-bottom:1px solid var(--border)}
+.section.collapsed{padding:0 24px}
+.section.collapsed .section-title{margin-bottom:0;padding:10px 0}
+.section.collapsed .section-title:hover{opacity:1}
+.section.collapsed .section-body{display:none}
+.section:not(.collapsed){min-height:320px;position:relative}
 #live-empty{position:absolute;left:0;right:0}
 .section-title{
   font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;
   color:var(--text-dim);margin-bottom:16px;display:flex;align-items:center;gap:8px;
 }
+.section-title.collapsible{cursor:pointer;user-select:none}
+.section-title.collapsible:hover{color:var(--text)}
+.section-title .chevron{display:inline-block;transition:transform 0.2s;font-size:18px;margin-right:4px}
+.section:not(.collapsed) .section-title .chevron{transform:rotate(90deg)}
 .section-title .count{
   background:var(--bg3);border:1px solid var(--border);border-radius:12px;
   padding:2px 10px;font-size:12px;font-variant-numeric:tabular-nums;color:var(--cyan);
@@ -145,6 +153,7 @@ body{min-height:100vh;padding:0}
 .status-pill.Requeued{color:var(--orange);border:1px solid var(--orange);background:rgba(255,102,0,0.08)}
 .status-pill.Failed{color:var(--red);border:1px solid var(--red);background:rgba(255,51,102,0.08)}
 .status-pill.Canceled{color:var(--gray);border:1px solid var(--gray);background:rgba(102,102,102,0.08)}
+.status-pill.scheduled{color:var(--amber);border:1px solid var(--amber);background:rgba(255,170,0,0.08)}
 
 /* ── Step pipeline ────────────────────────────────────────── */
 .pipeline{display:flex;align-items:flex-start;gap:0;margin-top:12px;overflow-x:auto;overflow-y:visible;padding:6px 0 8px 0}

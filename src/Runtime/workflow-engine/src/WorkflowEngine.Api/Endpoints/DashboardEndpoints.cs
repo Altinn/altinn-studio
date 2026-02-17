@@ -28,6 +28,7 @@ internal static class DashboardEndpoints
                     IEngine engine,
                     IConcurrencyLimiter limiter,
                     IOptions<EngineSettings> settings,
+                    IServiceProvider sp,
                     HttpContext ctx,
                     CancellationToken ct
                 ) =>
@@ -70,8 +71,25 @@ internal static class DashboardEndpoints
                                 }),
                         };
 
+                    var scheduledCount = 0;
+                    var iteration = 0;
+
                     while (!ct.IsCancellationRequested)
                     {
+                        if (iteration % 100 == 0) // refresh every ~5s
+                        {
+                            try
+                            {
+                                using var scope = sp.CreateScope();
+                                var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                                scheduledCount = await repo.CountScheduledWorkflows(ct);
+                            }
+                            catch
+                            { /* non-critical */
+                            }
+                        }
+                        iteration++;
+
                         var status = engine.Status;
                         var dbSlot = limiter.DbSlotStatus;
                         var httpSlot = limiter.HttpSlotStatus;
@@ -110,6 +128,7 @@ internal static class DashboardEndpoints
                                     total = httpSlot.Total,
                                 },
                             },
+                            scheduledCount,
                             workflows = workflows.Select(MapWorkflow),
                         };
 
@@ -242,6 +261,46 @@ internal static class DashboardEndpoints
                                 backoffUntil = s.BackoffUntil,
                                 createdAt = s.CreatedAt,
                                 executionStartedAt = s.ExecutionStartedAt,
+                            }),
+                    });
+
+                    return Results.Json(result, JsonCompact);
+                }
+            )
+            .ExcludeFromDescription();
+
+        app.MapGet(
+                "/dashboard/scheduled",
+                async (IServiceProvider sp, CancellationToken ct) =>
+                {
+                    using var scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    var workflows = await repo.GetScheduledWorkflows(ct);
+
+                    var result = workflows.Select(w => new
+                    {
+                        idempotencyKey = w.IdempotencyKey,
+                        operationId = w.OperationId,
+                        status = w.Status.ToString(),
+                        startAt = w.StartAt,
+                        instance = new
+                        {
+                            org = w.InstanceInformation.Org,
+                            app = w.InstanceInformation.App,
+                            instanceOwnerPartyId = w.InstanceInformation.InstanceOwnerPartyId,
+                            instanceGuid = w.InstanceInformation.InstanceGuid,
+                        },
+                        createdAt = w.CreatedAt,
+                        steps = w
+                            .Steps.OrderBy(s => s.ProcessingOrder)
+                            .Select(s => new
+                            {
+                                idempotencyKey = s.IdempotencyKey,
+                                operationId = s.OperationId,
+                                commandType = s.Command.GetType().Name,
+                                commandDetail = s.Command.OperationId,
+                                status = s.Status.ToString(),
+                                processingOrder = s.ProcessingOrder,
                             }),
                     });
 

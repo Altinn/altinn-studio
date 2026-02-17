@@ -46,6 +46,7 @@
    *   createdAt:      string,
    *   executionStartedAt: string | null,
    *   removedAt:      string | null,
+   *   startAt:        string | null,
    *   steps:          Step[],
    * }} Workflow
    */
@@ -64,8 +65,9 @@
    * @typedef {{
    *   timestamp:    string,
    *   engineStatus: EngineStatus,
-   *   capacity:     { inbox: SlotStatus, db: SlotStatus, http: SlotStatus },
-   *   workflows:    Workflow[],
+   *   capacity:       { inbox: SlotStatus, db: SlotStatus, http: SlotStatus },
+   *   scheduledCount: number,
+   *   workflows:      Workflow[],
    * }} DashboardPayload
    */
 
@@ -107,6 +109,8 @@
     appChips:         /** @type {HTMLElement} */ (document.getElementById('app-chips')),
     partyChips:       /** @type {HTMLElement} */ (document.getElementById('party-chips')),
     guidChips:        /** @type {HTMLElement} */ (document.getElementById('guid-chips')),
+    scheduledSection: /** @type {HTMLElement} */ (document.getElementById('scheduled-section')),
+    scheduledContainer: /** @type {HTMLElement} */ (document.getElementById('scheduled-workflows')),
     connBadge:        /** @type {HTMLElement} */ (document.getElementById('connection')),
     connText:         /** @type {HTMLElement} */ (document.getElementById('connection-text')),
     modal:            /** @type {HTMLElement} */ (document.getElementById('step-modal')),
@@ -179,6 +183,7 @@
   const updateDashboard = (data) => {
     updateStatusBadges(data.engineStatus);
     updateCapacity(data.capacity);
+    updateScheduledBadge(data.scheduledCount);
     updateLiveWorkflows(data.workflows);
   };
 
@@ -233,7 +238,95 @@
   };
 
   /* ============================================================
-   *  7. LIVE WORKFLOWS  (add / update / remove cards)
+   *  7. SCHEDULED WORKFLOWS  (count badge + on-demand detail)
+   * ============================================================ */
+
+  let lastScheduledCount = -1;
+
+  /** @param {number} count */
+  const updateScheduledBadge = (count) => {
+    /** @type {HTMLElement} */ (document.getElementById('scheduled-count')).textContent = String(count);
+
+    if (count !== lastScheduledCount) {
+      lastScheduledCount = count;
+      loadScheduled();
+    }
+  };
+
+  const loadScheduled = async () => {
+    if (dom.scheduledSection.classList.contains('collapsed')) return;
+
+    try {
+      const res = await fetch(`${engineUrl}/dashboard/scheduled`);
+      /** @type {Workflow[]} */
+      const workflows = await res.json();
+
+      dom.scheduledContainer.innerHTML = '';
+      if (workflows.length === 0) {
+        dom.scheduledContainer.innerHTML = '<div class="empty-state">No scheduled workflows</div>';
+        return;
+      }
+      for (const wf of workflows) {
+        const card = document.createElement('div');
+        card.className = 'workflow-card';
+        card.style.animation = 'none';
+        card.innerHTML = buildScheduledCardHTML(wf);
+        dom.scheduledContainer.appendChild(card);
+      }
+    } catch { /* non-critical */ }
+  };
+
+  /** @param {string} sectionId */
+  window.toggleSection = (sectionId) => {
+    const section = document.getElementById(sectionId);
+    if (!section) return;
+    section.classList.toggle('collapsed');
+    const collapsed = section.classList.contains('collapsed');
+    try { localStorage.setItem(`section:${sectionId}`, collapsed ? '1' : '0'); } catch { /* ignore */ }
+    if (sectionId === 'scheduled-section' && !collapsed) loadScheduled();
+  };
+
+  // Restore saved collapse states
+  for (const id of ['scheduled-section', 'live-section', 'recent-section']) {
+    try {
+      const saved = localStorage.getItem(`section:${id}`);
+      if (saved !== null) {
+        document.getElementById(id)?.classList.toggle('collapsed', saved === '1');
+      }
+    } catch { /* ignore */ }
+  }
+
+  /**
+   * @param {Workflow} wf
+   * @returns {string}
+   */
+  const buildScheduledCardHTML = (wf) => {
+    const { instance: inst } = wf;
+    let html = `<div class="card-header">`;
+    html += `<div class="instance-path">`;
+    html += `<span class="wf-name">${esc(wf.operationId)}</span>`;
+    html += `<span class="seg">${esc(inst.org)}</span>`;
+    html += `<span class="seg-sep">/</span>`;
+    html += `<span class="seg">${esc(inst.app)}</span>`;
+    html += `<span class="seg-sep">/</span>`;
+    html += `<span class="seg">${inst.instanceOwnerPartyId}</span>`;
+    html += `<span class="seg-sep">/</span>`;
+    html += `<span class="seg guid">${esc(inst.instanceGuid)}</span>`;
+    html += `</div>`;
+    html += `<div style="display:flex;align-items:center;gap:10px">`;
+    if (wf.startAt) {
+      const remaining = (new Date(wf.startAt).getTime() - Date.now()) / 1000;
+      const label = remaining > 0 ? `starts in ${formatElapsed(remaining)}` : 'starting...';
+      html += `<span class="elapsed">${label}</span>`;
+    }
+    html += `<span class="status-pill scheduled" style="animation:none">Scheduled</span>`;
+    html += `</div></div>`;
+    html += buildPipelineHTML(wf.idempotencyKey, wf.steps, true);
+    return html;
+  };
+
+  /* ============================================================
+   *  8. LIVE WORKFLOWS  (add / update / remove cards)
    * ============================================================ */
 
   /** @param {Workflow} wf */
@@ -288,7 +381,7 @@
   };
 
   /* ============================================================
-   *  8. RECENT WORKFLOWS  (rendered from backend cache)
+   *  9. RECENT WORKFLOWS  (rendered from backend cache)
    * ============================================================ */
 
   /** @param {Workflow[]} recent */
@@ -297,7 +390,6 @@
     const recentN = list.length;
 
     dom.recentCount.textContent = recentN;
-    dom.recentSection.style.display = recentN > 0 ? 'block' : 'none';
 
     // Only update if the set of keys changed
     const newKeys = list.map(r => r.idempotencyKey).join(',');
@@ -343,7 +435,7 @@
   };
 
   /* ============================================================
-   *  9. CARD RENDERING  (shared by live, recent, and history)
+   *  10. CARD RENDERING  (shared by live, recent, and history)
    * ============================================================ */
 
   /**
@@ -408,7 +500,7 @@
   };
 
   /* ============================================================
-   *  10. PIPELINE RENDERING  (step circles + connectors)
+   *  11. PIPELINE RENDERING  (step circles + connectors)
    * ============================================================ */
 
   /**
@@ -531,7 +623,7 @@
   };
 
   /* ============================================================
-   *  11. TIMERS  (workflow elapsed + step backoff countdowns)
+   *  12. TIMERS  (workflow elapsed + step backoff countdowns)
    * ============================================================ */
 
   /** @param {number} seconds */
@@ -561,7 +653,7 @@
   };
 
   /* ============================================================
-   *  12. FILTERING
+   *  13. FILTERING
    * ============================================================ */
 
   /** @param {Workflow} wf @returns {string} */
@@ -796,7 +888,7 @@
   wireChipBar(dom.guidChips, toggleGuidFilter);
 
   /* ============================================================
-   *  13. TABS
+   *  14. TABS
    * ============================================================ */
 
   /** @param {string} tabName */
@@ -814,7 +906,7 @@
   };
 
   /* ============================================================
-   *  14. HISTORY  (on-demand DB fetch)
+   *  15. HISTORY  (on-demand DB fetch)
    * ============================================================ */
 
   window.loadHistory = async () => {
@@ -862,7 +954,7 @@
   };
 
   /* ============================================================
-   *  15. STEP DETAIL MODAL
+   *  16. STEP DETAIL MODAL
    * ============================================================ */
 
   /**
@@ -897,7 +989,7 @@
   });
 
   /* ============================================================
-   *  16. JSON UTILITIES  (expand embedded JSON strings + syntax highlighting)
+   *  17. JSON UTILITIES  (expand embedded JSON strings + syntax highlighting)
    * ============================================================ */
 
   /**
@@ -947,7 +1039,7 @@
   };
 
   /* ============================================================
-   *  17. GENERIC HELPERS
+   *  18. GENERIC HELPERS
    * ============================================================ */
 
   /** @param {string} s */
@@ -972,14 +1064,20 @@
    *  HOT-RELOAD  (polls own Last-Modified header, reloads on change)
    * ============================================================ */
 
-  const watchForChanges = async () => {
-    let lastModified = '';
+  const watchForChanges = () => {
+    const files = ['/app.js', '/style.css', '/index.html'];
+    /** @type {Record<string, string>} */
+    const stamps = {};
+    let initialized = false;
     const poll = async () => {
       try {
-        const res = await fetch('/app.js', { method: 'HEAD' });
-        const lm = res.headers.get('Last-Modified') || '';
-        if (lastModified && lm !== lastModified) { location.reload(); return; }
-        lastModified = lm;
+        for (const file of files) {
+          const res = await fetch(file, { method: 'HEAD' });
+          const lm = res.headers.get('Last-Modified') || '';
+          if (initialized && stamps[file] && lm !== stamps[file]) { location.reload(); return; }
+          stamps[file] = lm;
+        }
+        initialized = true;
       } catch { /* ignore */ }
       setTimeout(poll, 1000);
     };

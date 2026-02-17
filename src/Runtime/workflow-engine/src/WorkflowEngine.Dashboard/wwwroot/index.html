@@ -13,6 +13,7 @@
   <div class="status-badges">
     <div class="badge stopped" id="badge-running"><span class="dot"></span><span id="badge-running-text">Stopped</span></div>
     <div class="badge unhealthy" id="badge-healthy"><span class="dot"></span><span id="badge-healthy-text">Unknown</span></div>
+
     <div class="connection disconnected" id="connection"><span class="dot"></span><span id="connection-text">SSE Disconnected</span></div>
   </div>
 </div>
@@ -69,15 +70,22 @@
 </div>
 
 <div class="tab-panel active" id="panel-live">
+  <div class="section collapsed" id="scheduled-section">
+    <div class="section-title collapsible" onclick="toggleSection('scheduled-section')"><span class="chevron">&#9656;</span>SCHEDULED <span class="count" id="scheduled-count">0</span></div>
+    <div class="section-body" id="scheduled-workflows"></div>
+  </div>
+
   <div class="section" id="live-section">
-    <div class="section-title">ACTIVE <span class="count" id="live-count">0</span></div>
-    <div id="live-workflows"></div>
-    <div class="empty-state" id="live-empty">No active workflows</div>
+    <div class="section-title collapsible" onclick="toggleSection('live-section')"><span class="chevron">&#9656;</span>ACTIVE <span class="count" id="live-count">0</span></div>
+    <div class="section-body">
+      <div id="live-workflows"></div>
+      <div class="empty-state" id="live-empty">No active workflows</div>
+    </div>
   </div>
 
   <div class="section" id="recent-section">
-    <div class="section-title" style="color:var(--text-dim);opacity:0.7">RECENT <span class="count" id="recent-count">0</span></div>
-    <div id="recent-workflows"></div>
+    <div class="section-title collapsible" onclick="toggleSection('recent-section')" style="color:var(--text-dim);opacity:0.7"><span class="chevron">&#9656;</span>RECENT <span class="count" id="recent-count">0</span></div>
+    <div class="section-body" id="recent-workflows"></div>
   </div>
 </div>
 
