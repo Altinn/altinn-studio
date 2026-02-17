@@ -54,42 +54,50 @@ internal static class HandleAlerts
             metricsClientSettings.Provider
         );
 
-        var validAlerts = alertPayload
-            .Alerts.Where(a =>
-            {
-                var ruleId = a.Annotations.GetValueOrDefault("ruleId");
-                return !string.IsNullOrEmpty(ruleId) && AzureMonitorClient.OperationNameKeys.Contains(ruleId);
-            });
+        var firstAlert = alertPayload.Alerts.FirstOrDefault();
+        if (firstAlert is null)
+        {
+            return Results.BadRequest();
+        }
 
-        int? intervalInMinutes = int.TryParse(
-            validAlerts.First().Annotations.GetValueOrDefault("intervalInMinutes"),
-            out var interval
-        ) ? interval : null;
+        var ruleId = alertPayload.Alerts.First().Annotations.GetValueOrDefault("ruleId", string.Empty);
+        if (!string.IsNullOrEmpty(ruleId) && AzureMonitorClient.OperationNameKeys.Contains(ruleId))
+        {
+            return Results.BadRequest();
+        }
 
-        var now = DateTimeOffset.UtcNow;
-        var from = intervalInMinutes.HasValue ? now.AddMinutes(-intervalInMinutes.Value) : now.AddMinutes(-60);
+        var from = firstAlert.StartsAt;
+        var to = DateTimeOffset.UtcNow;
+        var alerts = alertPayload.Alerts.Select(a => new AlertInstance
+        {
+            Status = a.Status,
+            App = a.Labels.GetValueOrDefault("cloud_RoleName", string.Empty),
+        });
+        var apps = alerts.Select(alertInstance => alertInstance.App).ToList();
+        var logsUrl =
+            apps.Count > 0
+                ? metricsClient.GetLogsUrl(
+                    gatewayContext.AzureSubscriptionId,
+                    gatewayContext.ServiceOwner,
+                    gatewayContext.Environment,
+                    apps,
+                    ruleId,
+                    from,
+                    to
+                )
+                : null;
 
-        var alerts = validAlerts.GroupBy(a => a.Annotations["ruleId"])
-            .Select(alertGroup =>
-            {
-                var apps = alertGroup.Select(a => a.Labels.GetValueOrDefault("cloud_RoleName")).OfType<string>().Distinct().ToList();
-                var logsUrl = apps.Count > 0 ? metricsClient.GetLogsUrl(gatewayContext.AzureSubscriptionId, gatewayContext.ServiceOwner, gatewayContext.Environment, apps, alertGroup.Key, from, now) : null;
+        var alert = new Alert
+        {
+            Id = firstAlert.Fingerprint,
+            RuleId = ruleId,
+            Name = firstAlert.Labels.GetValueOrDefault("alertname", "unknown"),
+            Alerts = alerts,
+            URL = firstAlert.GeneratorURL,
+            LogsUrl = logsUrl,
+        };
 
-                return new Alert
-                {
-                    RuleId = alertGroup.Key,
-                    Name = alertGroup.First().Labels.GetValueOrDefault("alertname", "unknown"),
-                    Alerts = alertGroup.Select(a => new AlertInstance
-                    {
-                        Status = a.Status,
-                        App = a.Labels.GetValueOrDefault("cloud_RoleName", "unknown"),
-                    }),
-                    URL = alertGroup.First().GeneratorURL,
-                    LogsUrl = logsUrl,
-                };
-            });
-
-        await designerClient.NotifyAlertsUpdatedAsync(alerts, environment, cancellationToken);
+        await designerClient.NotifyAlertsUpdatedAsync(alert, environment, cancellationToken);
 
         return Results.Ok();
     }
