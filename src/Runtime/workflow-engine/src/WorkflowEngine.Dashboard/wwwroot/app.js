@@ -315,9 +315,7 @@
     html += `</div>`;
     html += `<div style="display:flex;align-items:center;gap:10px">`;
     if (wf.startAt) {
-      const remaining = (new Date(wf.startAt).getTime() - Date.now()) / 1000;
-      const label = remaining > 0 ? `starts in ${formatElapsed(remaining)}` : 'starting...';
-      html += `<span class="elapsed">${label}</span>`;
+      html += `<span class="elapsed" data-starts-at="${esc(wf.startAt)}"></span>`;
     }
     html += `<span class="status-pill scheduled" style="animation:none">Scheduled</span>`;
     html += `</div></div>`;
@@ -647,6 +645,11 @@
     for (const el of document.querySelectorAll('[data-backoff]')) {
       const remaining = (new Date(el.getAttribute('data-backoff') ?? '').getTime() - now) / 1000;
       el.textContent = remaining > 0 ? `retry ${remaining.toFixed(1)}s` : 'retrying...';
+    }
+
+    for (const el of document.querySelectorAll('[data-starts-at]')) {
+      const remaining = (new Date(el.getAttribute('data-starts-at') ?? '').getTime() - now) / 1000;
+      el.textContent = remaining > 0 ? `starts in ${formatElapsed(remaining)}` : 'starting...';
     }
 
     requestAnimationFrame(updateTimers);
