@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import type { NavigateOptions } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
+import type { NavigateOptions } from 'react-router';
 
 import { SearchParams } from 'src/core/routing/types';
 import { useIsStateless } from 'src/features/applicationMetadata';
@@ -34,7 +34,7 @@ export enum TaskKeys {
 }
 
 /**
- * Navigation function for react-router-dom
+ * Navigation function for react-router
  * Makes sure to clear returnToView and summaryNodeOfOrigin on navigation
  * Takes an optional callback
  */

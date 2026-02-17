@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useNavigation } from 'react-router-dom';
+import { useNavigate, useNavigation } from 'react-router';
 
 import { Paragraph, Table } from '@digdir/designsystemet-react';
 import classNames from 'classnames';
