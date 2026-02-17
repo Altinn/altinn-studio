@@ -121,7 +121,6 @@ export const InstanceSelectionPage = () => {
     throw new Error('no instances');
   }
 
-  //
   const instances = sortDirection === 'desc' ? [..._instances].reverse() : _instances;
   const paginatedInstances = instances.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
   const showPagination = instances.length > rowsPerPageOptions[0];
