@@ -7,8 +7,6 @@ import classes from 'nextsrc/features/instantiate/pages/error/ErrorPage.module.c
 export const ErrorPage = () => {
   const error = useRouteError();
 
-  console.log(error);
-
   return (
     <div className={classes.container}>
       <h1>Something went wrong</h1>
