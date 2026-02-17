@@ -80,6 +80,11 @@
    *   lastRecentKeys:       string,
    *   historyLoaded:        boolean,
    *   filter:               string,
+   *   statusFilter:         string,
+   *   orgFilter:            Set<string>,
+   *   appFilter:            Set<string>,
+   *   partyFilter:          Set<string>,
+   *   guidFilter:           Set<string>,
    * }} DashboardState
    */
 
@@ -98,6 +103,11 @@
     historyEmpty:     /** @type {HTMLElement} */ (document.getElementById('history-empty')),
     filterInput:      /** @type {HTMLInputElement} */ (document.getElementById('filter-input')),
     filterClear:      /** @type {HTMLElement} */ (document.getElementById('filter-clear')),
+    statusChips:      /** @type {HTMLElement} */ (document.getElementById('status-chips')),
+    orgChips:         /** @type {HTMLElement} */ (document.getElementById('org-chips')),
+    appChips:         /** @type {HTMLElement} */ (document.getElementById('app-chips')),
+    partyChips:       /** @type {HTMLElement} */ (document.getElementById('party-chips')),
+    guidChips:        /** @type {HTMLElement} */ (document.getElementById('guid-chips')),
     connBadge:        /** @type {HTMLElement} */ (document.getElementById('connection')),
     connText:         /** @type {HTMLElement} */ (document.getElementById('connection-text')),
     modal:            /** @type {HTMLElement} */ (document.getElementById('step-modal')),
@@ -117,6 +127,11 @@
     lastRecentKeys:       '',
     historyLoaded:        false,
     filter:               '',
+    statusFilter:         '',
+    orgFilter:            new Set(),
+    appFilter:            new Set(),
+    partyFilter:          new Set(),
+    guidFilter:           new Set(),
   };
 
   /* ============================================================
@@ -256,6 +271,7 @@
         state.workflowFingerprints[wf.idempotencyKey] = fp;
       } else if (state.workflowFingerprints[wf.idempotencyKey] !== fp) {
         card.innerHTML = buildCardHTML(wf);
+        setCardFilterData(card, wf);
         scrollPipelineToActive(card);
         state.workflowFingerprints[wf.idempotencyKey] = fp;
       }
@@ -265,7 +281,8 @@
 
     dom.liveCount.textContent = workflows.length;
     dom.liveEmpty.style.display = workflows.length === 0 ? 'block' : 'none';
-    if (state.filter) applyFilter();
+    rebuildAllChips();
+    if (state.filter || state.statusFilter || state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size) applyFilter();
   };
 
   /* ============================================================
@@ -319,7 +336,8 @@
       setCardFilterData(card, wf);
       dom.recentContainer.insertBefore(card, dom.recentContainer.children[i] ?? null);
     }
-    if (state.filter) applyFilter();
+    rebuildAllChips();
+    if (state.filter || state.statusFilter || state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size) applyFilter();
   };
 
   /* ============================================================
@@ -352,11 +370,24 @@
 
     const instanceUrl = `http://local.altinn.cloud/${esc(inst.org)}/${esc(inst.app)}/#/instance/${inst.instanceOwnerPartyId}/${esc(inst.instanceGuid)}`;
     let html = `<div class="card-header">`;
-    html += `<div><a class="instance-link" href="${instanceUrl}" target="_blank"><span class="instance-id">${esc(inst.org)}/${esc(inst.app)}/${inst.instanceOwnerPartyId}/</span>`;
-    html += `<span class="instance-guid">${esc(inst.instanceGuid)}</span></a>`;
-    html += `<button class="focus-btn" data-focus-guid="${esc(inst.instanceGuid)}" onclick="event.stopPropagation();toggleFocus('${esc(inst.instanceGuid)}')" title="Focus this instance">&#9906;</button>`;
+    html += `<div class="instance-path">`;
+    html += `<span class="wf-name">${esc(wf.operationId)}</span>`;
+    html += `<span class="seg" onclick="toggleOrgFilter('${esc(inst.org)}')" title="Filter by org">${esc(inst.org)}</span>`;
+    html += `<span class="seg-sep">/</span>`;
+    html += `<span class="seg" onclick="toggleAppFilter('${esc(inst.app)}')" title="Filter by app">${esc(inst.app)}</span>`;
+    html += `<span class="seg-sep">/</span>`;
+    html += `<span class="seg" onclick="togglePartyFilter('${inst.instanceOwnerPartyId}')" title="Filter by party">${inst.instanceOwnerPartyId}</span>`;
+    html += `<span class="seg-sep">/</span>`;
+    html += `<span class="seg guid" onclick="toggleGuidFilter('${esc(inst.instanceGuid)}')" title="Filter by instance">${esc(inst.instanceGuid)}</span>`;
+    html += `<a class="open-btn" href="${instanceUrl}" target="_blank" onclick="event.stopPropagation()" title="Open instance">&#8599; open</a>`;
+    if (wf.traceId) {
+      const panes = JSON.stringify({t:{datasource:"tempo",queries:[{refId:"traceId",queryType:"traceql",query:wf.traceId,datasource:{type:"tempo",uid:"tempo"},limit:20,tableType:"traces"}],range:{from:"now-1h",to:"now"}}});
+      const grafanaUrl = 'http://localhost:7070/explore?schemaVersion=1&panes=' + encodeURIComponent(panes) + '&orgId=1';
+      html += `<a class="open-btn" href="${grafanaUrl}" target="_blank" onclick="event.stopPropagation()" title="View trace in Grafana">&#9776; trace</a>`;
+    }
     html += `</div>`;
     html += `<div style="display:flex;align-items:center;gap:10px">`;
+    if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
     html += `<span class="status-pill ${wf.status}"${isStatic ? ' style="animation:none"' : ''}>${wf.status}</span>`;
     if (!isStatic) {
       html += `<span class="elapsed" data-timer="${esc(wf.idempotencyKey)}">0.0s</span>`;
@@ -369,16 +400,6 @@
       }
     }
     html += `</div></div>`;
-
-    html += `<div class="card-meta">`;
-    html += `<span class="wf-key">wf: ${esc(wf.operationId)}</span>`;
-    if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
-    if (wf.traceId) {
-      const panes = JSON.stringify({t:{datasource:"tempo",queries:[{refId:"traceId",queryType:"traceql",query:wf.traceId,datasource:{type:"tempo",uid:"tempo"},limit:20,tableType:"traces"}],range:{from:"now-1h",to:"now"}}});
-      const grafanaUrl = 'http://localhost:7070/explore?schemaVersion=1&panes=' + encodeURIComponent(panes) + '&orgId=1';
-      html += '<a class="trace-link" href="' + grafanaUrl + '" target="_blank" title="View trace in Grafana">&#9776; trace</a>';
-    }
-    html += `</div>`;
 
     html += buildPipelineHTML(wf.idempotencyKey, wf.steps, isStatic);
     return html;
@@ -548,21 +569,52 @@
     return parts.join(' ').toLowerCase();
   };
 
+  /** @param {Workflow} wf @returns {string} */
+  const buildStatusTags = (wf) => {
+    const tags = new Set();
+    tags.add(wf.status.toLowerCase());
+    for (const s of wf.steps) {
+      const st = s.status.toLowerCase();
+      tags.add(st);
+      if (st === 'requeued' || s.retryCount > 0) tags.add('retrying');
+    }
+    return [...tags].join(' ');
+  };
+
   /** @param {HTMLElement} card @param {Workflow} wf */
-  const setCardFilterData = (card, wf) => { card.dataset.filter = buildFilterText(wf); };
+  const setCardFilterData = (card, wf) => {
+    card.dataset.filter = buildFilterText(wf);
+    card.dataset.status = buildStatusTags(wf);
+    card.dataset.org = wf.instance.org.toLowerCase();
+    card.dataset.app = wf.instance.app.toLowerCase();
+    card.dataset.party = String(wf.instance.instanceOwnerPartyId);
+    card.dataset.guid = wf.instance.instanceGuid.toLowerCase();
+  };
 
   const applyFilter = () => {
     const f = state.filter;
+    const sf = state.statusFilter;
+    const of_ = state.orgFilter;
+    const af = state.appFilter;
+    const pf = state.partyFilter;
+    const gf = state.guidFilter;
     /** @param {HTMLElement} container @param {HTMLElement} countEl @param {string} [totalAttr] */
     const filterContainer = (container, countEl, totalAttr) => {
       const cards = /** @type {HTMLElement[]} */ ([...container.querySelectorAll('.workflow-card')]);
       let matched = 0;
       for (const card of cards) {
-        const hidden = f && !(card.dataset.filter || '').includes(f);
+        const textHidden = f && !(card.dataset.filter || '').includes(f);
+        const statusHidden = sf && !(card.dataset.status || '').includes(sf);
+        const orgHidden = of_.size > 0 && !of_.has(card.dataset.org || '');
+        const appHidden = af.size > 0 && !af.has(card.dataset.app || '');
+        const partyHidden = pf.size > 0 && !pf.has(card.dataset.party || '');
+        const guidHidden = gf.size > 0 && !gf.has(card.dataset.guid || '');
+        const hidden = textHidden || statusHidden || orgHidden || appHidden || partyHidden || guidHidden;
         card.classList.toggle('filtered-out', hidden);
         if (!hidden) matched++;
       }
-      if (f && cards.length > 0) {
+      const hasFilter = f || sf || of_.size > 0 || af.size > 0 || pf.size > 0 || gf.size > 0;
+      if (hasFilter && cards.length > 0) {
         countEl.textContent = `${matched} / ${cards.length}`;
       } else {
         countEl.textContent = `${cards.length}`;
@@ -579,30 +631,178 @@
     dom.filterInput.value = value;
     dom.filterClear.classList.toggle('visible', value.length > 0);
     applyFilter();
-    updateFocusButtons();
     if (state.historyLoaded) loadHistory();
   };
 
-  /** @param {string} guid */
-  const toggleFocus = (guid) => {
-    setFilter(state.filter === guid.toLowerCase() ? '' : guid);
+  /** @param {string} org */
+  const toggleOrgFilter = (org) => toggleSetFilter(state.orgFilter, org);
+
+  /**
+   * Toggle a value in a Set-based filter, then refresh.
+   * @param {Set<string>} filterSet
+   * @param {string} value
+   */
+  const toggleSetFilter = (filterSet, value) => {
+    const v = value.toLowerCase();
+    if (filterSet.has(v)) filterSet.delete(v); else filterSet.add(v);
+    applyFilter();
+    refreshChips();
+    if (state.historyLoaded) loadHistory();
   };
 
-  const updateFocusButtons = () => {
-    for (const btn of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.focus-btn[data-focus-guid]'))) {
-      const active = state.filter && state.filter === (btn.dataset.focusGuid || '').toLowerCase();
-      btn.innerHTML = active ? '&times;' : '&#9906;';
-      btn.title = active ? 'Clear focus' : 'Focus this instance';
-      btn.classList.toggle('active', !!active);
+  /** @param {string} app */
+  const toggleAppFilter = (app) => toggleSetFilter(state.appFilter, app);
+
+  /** @param {string} party */
+  const togglePartyFilter = (party) => toggleSetFilter(state.partyFilter, party);
+
+  /** @param {string} guid */
+  const toggleGuidFilter = (guid) => toggleSetFilter(state.guidFilter, guid);
+
+  /**
+   * Rebuild dynamic chip bars from all visible cards.
+   * @param {HTMLElement} container
+   * @param {string} dataAttr
+   * @param {Set<string>} filterSet
+   * @param {string} chipClass
+   * @param {(v: string) => string} [labelFn]
+   */
+  const rebuildChipBar = (container, dataAttr, filterSet, chipClass, labelFn) => {
+    const values = new Set();
+    for (const card of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(`.workflow-card[data-${dataAttr}]`))) {
+      const v = card.dataset[dataAttr];
+      if (v) values.add(v);
     }
+    const sorted = [...values].sort();
+    const prev = container.dataset.values || '';
+    const next = sorted.join(',');
+    if (prev === next) { syncChipActive(container, filterSet); return; }
+    container.dataset.values = next;
+
+    container.innerHTML = '';
+    for (const v of sorted) {
+      const btn = document.createElement('button');
+      btn.className = `chip ${chipClass}`;
+      btn.dataset.value = v;
+      btn.textContent = labelFn ? labelFn(v) : v;
+      if (filterSet.has(v)) btn.classList.add('active');
+      container.appendChild(btn);
+    }
+  };
+
+  /**
+   * Sync active class on existing chips without rebuilding.
+   * @param {HTMLElement} container
+   * @param {Set<string>} filterSet
+   */
+  const syncChipActive = (container, filterSet) => {
+    for (const c of container.querySelectorAll('.chip')) {
+      c.classList.toggle('active', filterSet.has(/** @type {HTMLElement} */ (c).dataset.value || ''));
+    }
+  };
+
+  /**
+   * Rebuild chips from selection only (not all visible cards).
+   * @param {HTMLElement} container
+   * @param {Set<string>} filterSet
+   * @param {string} chipClass
+   * @param {(v: string) => string} [labelFn]
+   */
+  const rebuildSelectedOnlyChips = (container, filterSet, chipClass, labelFn) => {
+    const sorted = [...filterSet].sort();
+    const prev = container.dataset.values || '';
+    const next = sorted.join(',');
+    if (prev === next) return;
+    container.dataset.values = next;
+    container.innerHTML = '';
+    for (const v of sorted) {
+      const btn = document.createElement('button');
+      btn.className = `chip ${chipClass} active`;
+      btn.dataset.value = v;
+      btn.textContent = labelFn ? labelFn(v) : v;
+      btn.title = v;
+      container.appendChild(btn);
+    }
+  };
+
+  /** Rebuild guid chips from selection only (not all visible cards) */
+  const rebuildGuidChips = () => {
+    const sorted = [...state.guidFilter].sort();
+    const prev = dom.guidChips.dataset.values || '';
+    const next = sorted.join(',');
+    if (prev === next) return;
+    dom.guidChips.dataset.values = next;
+
+    dom.guidChips.innerHTML = '';
+    for (const v of sorted) {
+      const btn = document.createElement('button');
+      btn.className = 'chip guid-chip active';
+      btn.dataset.value = v;
+      btn.textContent = v.substring(0, 8);
+      btn.title = v;
+      dom.guidChips.appendChild(btn);
+    }
+  };
+
+  const updateSeparators = () => {
+    const show = (id, el) => /** @type {HTMLElement} */ (document.getElementById(id)).style.display = el.children.length > 0 ? '' : 'none';
+    show('sep-org', dom.orgChips);
+    show('sep-app', dom.appChips);
+    /** @type {HTMLElement} */ (document.getElementById('sep-party')).style.display = state.partyFilter.size > 0 ? '' : 'none';
+    /** @type {HTMLElement} */ (document.getElementById('sep-guid')).style.display = state.guidFilter.size > 0 ? '' : 'none';
+  };
+
+  const refreshChips = () => {
+    syncChipActive(dom.orgChips, state.orgFilter);
+    syncChipActive(dom.appChips, state.appFilter);
+    rebuildSelectedOnlyChips(dom.partyChips, state.partyFilter, 'party-chip');
+    rebuildGuidChips();
+    updateSeparators();
+  };
+
+  const rebuildAllChips = () => {
+    rebuildChipBar(dom.orgChips, 'org', state.orgFilter, 'org-chip');
+    rebuildChipBar(dom.appChips, 'app', state.appFilter, 'app-chip');
+    rebuildSelectedOnlyChips(dom.partyChips, state.partyFilter, 'party-chip');
+    rebuildGuidChips();
+    updateSeparators();
   };
 
   // Expose for inline onclick
   // @ts-ignore
-  window.toggleFocus = toggleFocus;
+  window.toggleOrgFilter = toggleOrgFilter;
+  // @ts-ignore
+  window.toggleAppFilter = toggleAppFilter;
+  // @ts-ignore
+  window.togglePartyFilter = togglePartyFilter;
+  // @ts-ignore
+  window.toggleGuidFilter = toggleGuidFilter;
 
   dom.filterInput.addEventListener('input', () => setFilter(dom.filterInput.value));
   dom.filterClear.addEventListener('click', () => { setFilter(''); dom.filterInput.focus(); });
+
+  dom.statusChips.addEventListener('click', (e) => {
+    const chip = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.chip'));
+    if (!chip) return;
+    const value = chip.dataset.status || '';
+    state.statusFilter = value;
+    for (const c of dom.statusChips.querySelectorAll('.chip')) c.classList.toggle('active', c === chip);
+    applyFilter();
+    if (state.historyLoaded) loadHistory();
+  });
+
+  /** @param {HTMLElement} container @param {(value: string) => void} toggle */
+  const wireChipBar = (container, toggle) => {
+    container.addEventListener('click', (e) => {
+      const chip = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.chip'));
+      if (!chip) return;
+      toggle(chip.dataset.value || '');
+    });
+  };
+  wireChipBar(dom.orgChips, toggleOrgFilter);
+  wireChipBar(dom.appChips, toggleAppFilter);
+  wireChipBar(dom.partyChips, togglePartyFilter);
+  wireChipBar(dom.guidChips, toggleGuidFilter);
 
   /* ============================================================
    *  13. TABS
@@ -652,6 +852,7 @@
           setCardFilterData(card, wf);
           dom.historyContainer.appendChild(card);
         }
+        if (state.filter || state.statusFilter || state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size) applyFilter();
       }
     } catch (err) {
       dom.historyEmpty.textContent = `Error loading history: ${/** @type {Error} */ (err).message}`;

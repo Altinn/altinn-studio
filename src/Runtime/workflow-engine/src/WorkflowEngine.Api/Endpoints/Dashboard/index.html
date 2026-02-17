@@ -36,8 +36,25 @@
 </div>
 
 <div class="filter-bar">
-  <input type="text" id="filter-input" placeholder="Filter by instance, guid, command..." autocomplete="off" spellcheck="false">
-  <button class="filter-clear" id="filter-clear" title="Clear filter">&times;</button>
+  <div class="status-chips" id="status-chips">
+    <button class="chip active" data-status="">All</button>
+    <button class="chip" data-status="processing">Processing</button>
+    <button class="chip" data-status="retrying">Retrying</button>
+    <button class="chip" data-status="failed">Failed</button>
+  </div>
+  <div class="chip-sep" id="sep-org" style="display:none"></div>
+  <div class="status-chips" id="org-chips"></div>
+  <div class="chip-sep" id="sep-app" style="display:none"></div>
+  <div class="status-chips" id="app-chips"></div>
+  <div class="chip-sep" id="sep-party" style="display:none"></div>
+  <div class="status-chips" id="party-chips"></div>
+  <div class="chip-sep" id="sep-guid" style="display:none"></div>
+  <div class="status-chips" id="guid-chips"></div>
+  <div class="chip-sep"></div>
+  <div class="filter-search">
+    <input type="text" id="filter-input" placeholder="Search..." autocomplete="off" spellcheck="false">
+    <button class="filter-clear" id="filter-clear" title="Clear filter">&times;</button>
+  </div>
 </div>
 
 <div class="tab-bar">

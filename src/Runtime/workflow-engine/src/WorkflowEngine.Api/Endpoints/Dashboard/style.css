@@ -55,12 +55,13 @@ body{min-height:100vh;padding:0}
 .filter-bar{
   display:flex;align-items:center;gap:8px;padding:12px 24px;border-bottom:1px solid var(--border);background:var(--bg2);
 }
-.filter-bar input{
-  flex:1;max-width:420px;background:var(--bg3);color:var(--text);border:1px solid var(--border);
-  padding:8px 12px;border-radius:6px;font-family:var(--font);font-size:13px;outline:none;
+.filter-search{display:flex;align-items:center;gap:0;margin-left:auto}
+.filter-search input{
+  width:200px;background:var(--bg3);color:var(--text);border:1px solid var(--border);
+  padding:6px 12px;border-radius:6px;font-family:var(--font);font-size:12px;outline:none;
 }
-.filter-bar input:focus{border-color:var(--cyan)}
-.filter-bar input::placeholder{color:var(--text-dim)}
+.filter-search input:focus{border-color:var(--cyan)}
+.filter-search input::placeholder{color:var(--text-dim)}
 .filter-clear{
   background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;
   padding:4px 8px;border-radius:4px;display:none;
@@ -68,15 +69,22 @@ body{min-height:100vh;padding:0}
 .filter-clear.visible{display:block}
 .filter-clear:hover{color:var(--text-bright)}
 
-/* ── Focus button ────────────────────────────────────────── */
-.focus-btn{
-  background:none;border:1px solid var(--border);color:var(--text-dim);font-size:11px;
-  padding:1px 7px;border-radius:4px;cursor:pointer;font-family:var(--font);margin-left:6px;
-  transition:color 0.2s,border-color 0.2s;
+.status-chips{display:flex;gap:6px}
+.chip-sep{width:1px;background:var(--border);align-self:stretch;margin:0 4px}
+.chip{
+  background:var(--bg3);color:var(--text-dim);border:1px solid var(--border);
+  padding:5px 12px;border-radius:16px;font-family:var(--font);font-size:12px;
+  font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap;
 }
-.focus-btn:hover{color:var(--cyan);border-color:var(--cyan)}
-.focus-btn.active{color:var(--text-dim);border-color:var(--border)}
-.focus-btn.active:hover{color:var(--text-bright);border-color:var(--text-bright)}
+.chip:hover{color:var(--text);border-color:var(--text-dim)}
+.chip.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,212,255,0.08)}
+.chip[data-status="retrying"].active{color:var(--orange);border-color:var(--orange);background:rgba(255,102,0,0.08)}
+.chip[data-status="failed"].active{color:var(--red);border-color:var(--red);background:rgba(255,51,102,0.08)}
+.chip[data-status="processing"].active{color:var(--amber);border-color:var(--amber);background:rgba(255,170,0,0.08)}
+.org-chip.active,.app-chip.active,.party-chip.active,.guid-chip.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,212,255,0.08)}
+.guid-chip,.party-chip{font-size:11px;letter-spacing:0.5px;font-variant-numeric:tabular-nums}
+
+/* (focus-btn removed — segments are now individually clickable) */
 
 .filtered-out{display:none !important}
 
@@ -96,28 +104,34 @@ body{min-height:100vh;padding:0}
 /* ── Workflow cards ────────────────────────────────────────── */
 .workflow-card{
   background:var(--bg2);border:1px solid var(--border);border-radius:8px;
-  padding:18px 24px;margin-bottom:14px;
+  padding:14px 24px;margin-bottom:10px;
   animation:fade-in 0.4s ease;
   content-visibility:auto;contain-intrinsic-size:auto 120px;
 }
 .workflow-card.removing{animation:slide-out 0.5s ease forwards}
-.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
-.instance-link{text-decoration:none;transition:opacity 0.2s}
-.instance-link:hover{opacity:0.8}
-.instance-id{font-size:15px;font-weight:700;color:var(--text-bright);letter-spacing:0.5px}
-.instance-guid{color:var(--cyan);font-size:16px;font-weight:700}
-.card-meta{display:flex;align-items:center;gap:12px;margin-bottom:14px;font-size:13px;color:var(--text-dim)}
-.card-meta .wf-key{opacity:0.7}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px}
+.instance-path{display:flex;align-items:baseline;gap:4px;font-size:14px;font-weight:700;letter-spacing:0.5px;flex-wrap:wrap}
+.seg{
+  color:var(--text-bright);cursor:pointer;border-radius:4px;padding:2px 6px;
+  background:rgba(255,255,255,0.04);border:1px solid transparent;
+  transition:background 0.15s,color 0.15s,border-color 0.15s;
+}
+.seg:hover{background:rgba(255,255,255,0.1);border-color:var(--border)}
+.seg.guid{font-size:14px}
+.seg-sep{color:var(--text-dim);opacity:0.3;user-select:none;font-size:12px}
+.open-btn{
+  color:var(--cyan);font-size:11px;font-weight:600;text-decoration:none;margin-left:10px;
+  padding:2px 8px;border-radius:4px;border:1px solid rgba(0,212,255,0.3);
+  background:rgba(0,212,255,0.06);transition:background 0.2s,border-color 0.2s;
+  letter-spacing:0.5px;white-space:nowrap;
+}
+.open-btn:hover{background:rgba(0,212,255,0.15);border-color:var(--cyan)}
+.wf-name{color:var(--text-dim);font-size:12px;font-weight:600;margin-right:6px}
 .elapsed{font-variant-numeric:tabular-nums;color:var(--text-dim);font-size:13px;font-weight:600}
 .retry-badge{
   background:var(--orange);color:#000;font-size:13px;font-weight:800;
   padding:3px 10px;border-radius:10px;margin-left:4px;
 }
-.trace-link{
-  color:var(--cyan);font-size:12px;font-weight:600;text-decoration:none;
-  margin-left:8px;opacity:0.7;transition:opacity 0.2s;
-}
-.trace-link:hover{opacity:1;text-decoration:underline}
 
 /* ── Status pills (per-status coloring) ───────────────────── */
 .status-pill{
