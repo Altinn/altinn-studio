@@ -24,11 +24,11 @@ infra/**                                    @altinn/team-altinn-studio-kjoring
 # GitHub Workflows
 .github/workflows/cli-build-test.yaml                      @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-gitea-runners.yaml                @altinn/team-altinn-studio-kjoring
-.github/workflows/deploy-kubernetes-wrapper.yaml           @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-lhci-server.yaml                  @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-loadbalancer.yaml                 @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-runtime-flux-config.yaml          @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-runtime-grafana-manifests.yaml    @altinn/team-altinn-studio-kjoring
+.github/workflows/deploy-runtime-kubernetes-wrapper.yaml   @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-runtime-observability.yaml        @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-runtime-operator.yaml             @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-runtime-pdf3.yaml                 @altinn/team-altinn-studio-kjoring

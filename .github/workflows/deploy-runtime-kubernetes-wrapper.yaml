@@ -1,4 +1,4 @@
-name: Deploy Kubernetes Wrapper
+name: Runtime - deploy kubernetes-wrapper
 on:
   push:
     branches:
