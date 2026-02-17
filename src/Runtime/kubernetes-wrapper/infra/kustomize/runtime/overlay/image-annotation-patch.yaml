@@ -1,0 +1,7 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kuberneteswrapper
+  annotations:
+    altinn.studio/image: altinncr.azurecr.io/ghcr.io/altinn/altinn-studio/kubernetes-wrapper:latest
+    altinn.studio/image-tag: latest

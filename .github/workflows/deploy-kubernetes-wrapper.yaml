@@ -1,108 +1,186 @@
 name: Deploy Kubernetes Wrapper
 on:
-
+  push:
+    branches:
+      - main
+    paths:
+      - src/Runtime/kubernetes-wrapper/**
+      - infra/studio/syncroot/base/kubernetes-wrapper.yaml
+      - infra/runtime/syncroot/base/kubernetes-wrapper.yaml
+      - .github/workflows/deploy-kubernetes-wrapper.yaml
   workflow_dispatch:
     inputs:
-      environments:
-        description: 'Environments to deploy to. Multiple environments can be specified by separating them with a comma.'
+      studio-environments:
+        description: "Studio environments to tag. Comma-separated."
         required: false
-        default: 'dev'
-      override-tag:
-        type: boolean
-        description: If true, workflow will not be stopped if tag already exists
-        default: false
-
-  schedule:
-    - cron: '0 8 * * 1' # 8 AM UTC every Monday
+        default: "dev,staging,prod"
+      runtime-rings:
+        description: 'Runtime rings to tag. Format: [{"ring":"at_ring1","environment":"runtime_at_ring1"}].'
+        required: false
+        default: '[{"ring":"at_ring1","environment":"runtime_at_ring1"},{"ring":"at_ring2","environment":"runtime_at_ring2"},{"ring":"tt_ring1","environment":"runtime_tt_ring1"},{"ring":"tt_ring2","environment":"runtime_tt_ring2"},{"ring":"prod_ring1","environment":"runtime_prod_ring1"},{"ring":"prod_ring2","environment":"runtime_prod_ring2"}]'
 
 permissions:
-      id-token: write
-      contents: read
+  contents: read
+  packages: write
 
 jobs:
   get-short-sha:
     uses: ./.github/workflows/template-short-sha.yaml
 
-  determine-tag-exists:
+  docker-build-push:
     needs: get-short-sha
-    environment: dev
     runs-on: ubuntu-latest
-    outputs:
-      tag-exists: ${{ steps.determine-tag-exists.outputs.tag-exists }}
-    env:
-      repository-name: altinn-kuberneteswrapper
-      registry-name: altinntjenestercontainerregistry
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: 'Azure login'
-        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - name: Determine tag exists
-        id: determine-tag-exists
-        uses: azure/CLI@9f7ce6f37c31b777ec6c6b6d1dfe7db79f497956 # v2
+      - name: Set up Docker
+        uses: docker/setup-docker-action@efe9e3891a4f7307e689f2100b33a155b900a608 # v4.5.0
         with:
-          azcliversion: latest
-          inlineScript: |
-            SHORT_SHA=${{ needs.get-short-sha.outputs.short-sha }}
-            exists_tag=$(az acr repository show-tags --name ${{ env.registry-name }} --repository ${{ env.repository-name }} --query "[?contains(@, '$SHORT_SHA')]" --output tsv)
-            if [ -z "$exists_tag" ]; then
-              echo "tag-exists=false" >> $GITHUB_OUTPUT
-            else
-              echo "tag-exists=true" >> $GITHUB_OUTPUT
-            fi
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
 
-  construct-environments-array:
-    needs: [get-short-sha, determine-tag-exists]
-    if: ${{ needs.determine-tag-exists.outputs.tag-exists == 'false' || github.event.inputs.override-tag }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build docker image
+        run: |
+          SHA="${{ needs.get-short-sha.outputs.short-sha }}"
+          IMAGE_BASE="ghcr.io/altinn/altinn-studio/kubernetes-wrapper"
+          docker build --platform linux/amd64,linux/arm64 src/Runtime/kubernetes-wrapper \
+            -f src/Runtime/kubernetes-wrapper/src/Dockerfile \
+            -t "${IMAGE_BASE}:${SHA}"
+
+      - name: Push docker image
+        run: |
+          SHA="${{ needs.get-short-sha.outputs.short-sha }}"
+          IMAGE_BASE="ghcr.io/altinn/altinn-studio/kubernetes-wrapper"
+          docker push "${IMAGE_BASE}:${SHA}"
+
+  push-config-artifact:
+    name: Push kubernetes-wrapper config artifact
+    needs:
+      - get-short-sha
+      - docker-build-push
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      config-repo: ${{ steps.vars.outputs.config-repo }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set vars
+        id: vars
+        run: |
+          SHA="${{ needs.get-short-sha.outputs.short-sha }}"
+          echo "config-repo=ghcr.io/altinn/altinn-studio/kubernetes-wrapper-repo:${SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Setup Flux CLI
+        uses: fluxcd/flux2/action@8454b02a32e48d775b9f563cb51fdcb1787b5b93 # v2.7.5
+
+      - name: Patch base with image tag
+        working-directory: src/Runtime/kubernetes-wrapper/infra/kustomize
+        run: |
+          export GHCR_IMAGE="ghcr.io/altinn/altinn-studio/kubernetes-wrapper:${{ needs.get-short-sha.outputs.short-sha }}"
+          export RUNTIME_IMAGE="altinncr.azurecr.io/ghcr.io/altinn/altinn-studio/kubernetes-wrapper:${{ needs.get-short-sha.outputs.short-sha }}"
+          export IMAGE_TAG="${{ needs.get-short-sha.outputs.short-sha }}"
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(GHCR_IMAGE)' base/deployment.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' base/deployment.yaml
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(RUNTIME_IMAGE)' runtime/overlay/image-annotation-patch.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' runtime/overlay/image-annotation-patch.yaml
+
+      - name: Push config artifact
+        working-directory: src/Runtime/kubernetes-wrapper/infra/kustomize
+        run: |
+          flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
+            --provider=generic \
+            --reproducible \
+            --path="." \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+  construct-studio-environments-array:
     uses: ./.github/workflows/template-construct-environments.yaml
     with:
-      environments: ${{ github.event.inputs.environments || 'dev,staging,prod' }}
+      environments: ${{ github.event.inputs.studio-environments || 'dev,staging,prod' }}
 
-  docker-build-push:
-    needs: [get-short-sha, determine-tag-exists, construct-environments-array]
-    uses: ./.github/workflows/template-docker-push.yaml
-    with:
-      tags: ${{ needs.get-short-sha.outputs.short-sha }},latest
-      registry-name: altinntjenestercontainerregistry.azurecr.io
-      repository-name: altinn-kuberneteswrapper
-      environment: dev # dev environment has push access and doesn't require review
-      context: src/Runtime/kubernetes-wrapper
-      dockerfile: src/Runtime/kubernetes-wrapper/src/Dockerfile
-    secrets:
-      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+  construct-runtime-rings-array:
+    runs-on: ubuntu-latest
+    env:
+      default-rings: >-
+        [{"ring":"at_ring1","environment":"runtime_at_ring1"},{"ring":"at_ring2","environment":"runtime_at_ring2"},{"ring":"tt_ring1","environment":"runtime_tt_ring1"},{"ring":"tt_ring2","environment":"runtime_tt_ring2"},{"ring":"prod_ring1","environment":"runtime_prod_ring1"},{"ring":"prod_ring2","environment":"runtime_prod_ring2"}]
+    outputs:
+      ringsjson: ${{ steps.construct-rings.outputs.ringsjson }}
+    steps:
+      - name: Construct rings array
+        id: construct-rings
+        run: |
+          rings='${{ github.event.inputs.runtime-rings }}'
+          if [ -z "$rings" ]; then
+            rings='${{ env.default-rings }}'
+          fi
+          echo "Raw rings input: $rings"
+          echo "ringsjson=${rings}" >> $GITHUB_OUTPUT
 
-  helm-push:
-    needs: [get-short-sha, determine-tag-exists, construct-environments-array]
-    uses: ./.github/workflows/template-helm-push.yaml
-    with:
-      tag: 0.1.0+${{ needs.get-short-sha.outputs.short-sha }} # Helm version needs to be valid sematic version
-      chart-name: kuberneteswrapper
-      registry-name: altinntjenestercontainerregistry.azurecr.io
-      environment: dev
-    secrets:
-      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
-
-  flux-config-push:
-    needs: [get-short-sha, construct-environments-array, docker-build-push, helm-push]
+  tag-studio-artifacts:
+    needs:
+      - push-config-artifact
+      - construct-studio-environments-array
     strategy:
       matrix:
-        environment: ${{ fromJSON(needs.construct-environments-array.outputs.environmentsjson) }}
-    uses: ./.github/workflows/template-flux-config-push.yaml
-    with:
-      tag: ${{ needs.get-short-sha.outputs.short-sha }}
-      registry-name: altinntjenestercontainerregistry.azurecr.io
-      environment: ${{ matrix.environment }}
-      config-chart-name: kuberneteswrapper-config
-      artifact-name: kuberneteswrapper
-      helm-set-arguments: environmentName=${{ matrix.environment }},chartVersion=0.1.0+${{ needs.get-short-sha.outputs.short-sha }},imageTag=${{ needs.get-short-sha.outputs.short-sha }}
-    secrets:
-      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+        environment: ${{ fromJSON(needs.construct-studio-environments-array.outputs.environmentsjson) }}
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Setup Flux CLI
+        uses: fluxcd/flux2/action@8454b02a32e48d775b9f563cb51fdcb1787b5b93 # v2.7.5
+
+      - name: Tag config artifact for studio environment
+        run: |
+          flux tag artifact oci://${{ needs.push-config-artifact.outputs.config-repo }} \
+            --tag "${{ matrix.environment }}"
+
+  tag-runtime-artifacts:
+    needs:
+      - push-config-artifact
+      - construct-runtime-rings-array
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.construct-runtime-rings-array.outputs.ringsjson) }}
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Setup Flux CLI
+        uses: fluxcd/flux2/action@8454b02a32e48d775b9f563cb51fdcb1787b5b93 # v2.7.5
+
+      - name: Tag config artifact for runtime ring
+        run: |
+          flux tag artifact oci://${{ needs.push-config-artifact.outputs.config-repo }} \
+            --tag "${{ matrix.ring }}"
