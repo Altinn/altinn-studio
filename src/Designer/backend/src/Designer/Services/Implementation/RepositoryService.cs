@@ -245,8 +245,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     // This creates all files
                     CreateServiceMetadata(metadata);
-                    await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
                     await ApplyCustomTemplates(org, serviceConfig.RepositoryName, developer, templates);
+                    await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
                     await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer, templates);
 
                     await _applicationMetadataService.SetCoreProperties(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
