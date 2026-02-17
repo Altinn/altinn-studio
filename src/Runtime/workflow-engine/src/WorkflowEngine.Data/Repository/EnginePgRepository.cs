@@ -391,7 +391,7 @@ internal sealed class EnginePgRepository : IEngineRepository
             TimeoutException => RetryDecision.Retry,
             SocketException => RetryDecision.Retry,
             HttpRequestException => RetryDecision.Retry,
-            InvalidOperationException => RetryDecision.Abort,
+            InvalidOperationException => RetryDecision.Retry,
 
             // Database-specific transient errors - retryable
             _ when exception.GetType().Name.Contains("timeout", StringComparison.OrdinalIgnoreCase) =>
