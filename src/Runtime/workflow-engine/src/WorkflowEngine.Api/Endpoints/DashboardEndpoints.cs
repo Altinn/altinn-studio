@@ -308,6 +308,7 @@ internal static class DashboardEndpoints
                         status = s.Status.ToString(),
                         processingOrder = s.ProcessingOrder,
                         retryCount = s.RequeueCount,
+                        lastError = s.LastError,
                         createdAt = s.CreatedAt,
                         executionStartedAt = s.ExecutionStartedAt,
                         updatedAt = s.UpdatedAt,

@@ -15,6 +15,7 @@ public sealed record Step : PersistentItem
     public DateTimeOffset? BackoffUntil { get; set; }
     public RetryStrategy? RetryStrategy { get; init; }
     public int RequeueCount { get; set; }
+    public string? LastError { get; set; }
     public Task<ExecutionResult>? ExecutionTask { get; set; }
 
     public DateTimeOffset? ExecutionStartedAt { get; set; }

@@ -680,7 +680,12 @@
       const res = await fetch(`/dashboard/step?wf=${encodeURIComponent(wfKey)}&step=${encodeURIComponent(stepKey)}`);
       if (!res.ok) throw new Error('Step not found (may have left inbox)');
       const data = await res.json();
-      dom.modalBody.innerHTML = `<pre>${syntaxHighlight(expandJsonStrings(data))}</pre>`;
+      let modalHtml = '';
+      if (data.lastError) {
+        modalHtml += `<div class="modal-error">${esc(data.lastError)}</div>`;
+      }
+      modalHtml += `<pre>${syntaxHighlight(expandJsonStrings(data))}</pre>`;
+      dom.modalBody.innerHTML = modalHtml;
     } catch (err) {
       dom.modalBody.innerHTML = `<div class="modal-loading">${esc(/** @type {Error} */ (err).message)}</div>`;
     }
