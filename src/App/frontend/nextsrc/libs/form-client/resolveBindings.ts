@@ -1,5 +1,13 @@
 import type { ResolvedCompExternal } from 'nextsrc/libs/form-client/moveChildren';
 
+interface DataModelReference {
+  field: string;
+}
+
+function isDataModelReference(value: unknown): value is DataModelReference {
+  return typeof value === 'object' && value !== null && 'field' in value && typeof value.field === 'string';
+}
+
 /**
  * Extracts the field path string from a binding value that may be
  * either a plain string or an IDataModelReference ({ dataType, field }).
@@ -8,8 +16,8 @@ export function extractField(binding: unknown): string {
   if (typeof binding === 'string') {
     return binding;
   }
-  if (typeof binding === 'object' && binding !== null && 'field' in binding) {
-    return (binding as { field: string }).field;
+  if (isDataModelReference(binding)) {
+    return binding.field;
   }
   return String(binding ?? '');
 }
@@ -42,9 +50,8 @@ function resolveBindingValue(value: unknown, groupField: string, rowIndex: numbe
   if (typeof value === 'string') {
     return resolveField(value, groupField, rowIndex);
   }
-  if (typeof value === 'object' && value !== null && 'field' in value) {
-    const ref = value as { field: string };
-    return { ...ref, field: resolveField(ref.field, groupField, rowIndex) };
+  if (isDataModelReference(value)) {
+    return { ...value, field: resolveField(value.field, groupField, rowIndex) };
   }
   return value;
 }
@@ -64,6 +71,14 @@ function resolveBindings(
   return resolved;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isResolvedComp(value: object): value is ResolvedCompExternal {
+  return 'type' in value && 'id' in value;
+}
+
 /**
  * Returns a new array of children with all their dataModelBindings
  * resolved for the given group row.
@@ -74,13 +89,21 @@ export function resolveChildBindings(
   rowIndex: number,
 ): ResolvedCompExternal[] {
   return children.map((child) => {
-    let resolved = child;
-    if (child.dataModelBindings) {
-      const bindings = resolveBindings(child.dataModelBindings as Record<string, unknown>, groupField, rowIndex);
-      resolved = { ...resolved, dataModelBindings: bindings } as ResolvedCompExternal;
+    const resolved = { ...child };
+    if (isRecord(child.dataModelBindings)) {
+      const withBindings = {
+        ...resolved,
+        dataModelBindings: resolveBindings(child.dataModelBindings, groupField, rowIndex),
+      };
+      if (isResolvedComp(withBindings)) {
+        return {
+          ...withBindings,
+          children: child.children ? resolveChildBindings(child.children, groupField, rowIndex) : child.children,
+        };
+      }
     }
-    if (child.children) {
-      resolved = { ...resolved, children: resolveChildBindings(child.children, groupField, rowIndex) };
+    if (resolved.children) {
+      resolved.children = resolveChildBindings(resolved.children, groupField, rowIndex);
     }
     return resolved;
   });

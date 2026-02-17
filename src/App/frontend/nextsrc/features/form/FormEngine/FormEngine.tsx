@@ -7,10 +7,7 @@ import type { FormDataNode } from 'nextsrc/core/apiClient/dataApi';
 import type { ResolvedCompExternal } from 'nextsrc/libs/form-client/moveChildren';
 
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
-import type { CompTypes } from 'src/layout/layout';
 import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
-
-type ComponentRender = (props: any) => ReactElement;
 
 const InputComponent = (props: CompInputExternal) => {
   const path = extractField(props.dataModelBindings?.simpleBinding);
@@ -67,10 +64,23 @@ const RepeatingGroupNext = (props: OverriddenRepeatingGroupWithChildComponents) 
   );
 };
 
-const componentMap: Partial<Record<CompTypes, ComponentRender>> = {
-  Input: InputComponent,
-  RepeatingGroup: RepeatingGroupNext,
-};
+function isRepeatingGroup(props: ResolvedCompExternal): props is OverriddenRepeatingGroupWithChildComponents {
+  return props.type === 'RepeatingGroup' && Array.isArray(props.children);
+}
+
+function renderComponent(componentProps: ResolvedCompExternal): ReactElement | null {
+  switch (componentProps.type) {
+    case 'Input':
+      return <InputComponent {...componentProps} />;
+    case 'RepeatingGroup':
+      if (isRepeatingGroup(componentProps)) {
+        return <RepeatingGroupNext {...componentProps} />;
+      }
+      return null;
+    default:
+      return null;
+  }
+}
 
 interface FormEngineProps {
   components: ResolvedCompExternal[];
@@ -81,20 +91,16 @@ export const FormEngine = ({ components }: FormEngineProps) => (
   <div>
     <ul>
       {components.map((componentProps) => {
-        const Comp = componentMap[componentProps.type];
-        if (!Comp) {
+        const rendered = renderComponent(componentProps);
+        if (!rendered) {
           return (
             <li key={componentProps.id}>
-              Component not implement: {componentProps.type} ID: {componentProps.id}
+              Component not implemented: {componentProps.type} ID: {componentProps.id}
             </li>
           );
         }
 
-        return (
-          <li key={componentProps.id}>
-            <Comp {...componentProps} />
-          </li>
-        );
+        return <li key={componentProps.id}>{rendered}</li>;
       })}
     </ul>
   </div>
