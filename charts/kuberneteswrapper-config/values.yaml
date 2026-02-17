@@ -1,6 +1,0 @@
-chartVersion: ""
-imageTag: ""
-environmentName: ""
-service: {}
-middlewares: []
-ingressRoute: {}

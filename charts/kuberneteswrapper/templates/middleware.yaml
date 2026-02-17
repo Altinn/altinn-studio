@@ -1,7 +1,0 @@
-{{- $hasIngressRoute := eq (include "kuberneteswrapper.hasIngressRoute" .) "true" }}
-{{- if $hasIngressRoute }}
-{{- range $middleware := .Values.middlewares }}
-{{ toYaml $middleware }}
----
-{{- end }}
-{{- end }}

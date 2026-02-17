@@ -20,8 +20,6 @@ charts/altinn-loadbalancer/**               @altinn/team-altinn-studio-kjoring
 charts/altinn-loadbalancer-config/**        @altinn/team-altinn-studio-kjoring
 charts/gitea-org-runner/**                  @altinn/team-altinn-studio-kjoring
 charts/gitea-org-runner-config/**           @altinn/team-altinn-studio-kjoring
-charts/kuberneteswrapper/**                 @altinn/team-altinn-studio-kjoring
-charts/kuberneteswrapper-config/**          @altinn/team-altinn-studio-kjoring
 infra/**                                    @altinn/team-altinn-studio-kjoring
 # GitHub Workflows
 .github/workflows/cli-build-test.yaml                      @altinn/team-altinn-studio-kjoring
