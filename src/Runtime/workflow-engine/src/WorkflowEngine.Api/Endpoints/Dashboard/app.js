@@ -42,6 +42,7 @@
    *   idempotencyKey: string,
    *   operationId:    string,
    *   status:         string,
+   *   traceId:        string | null,
    *   instance:       InstanceInfo,
    *   createdAt:      string,
    *   executionStartedAt: string | null,
@@ -372,6 +373,11 @@
     html += `<div class="card-meta">`;
     html += `<span class="wf-key">wf: ${esc(wf.operationId)}</span>`;
     if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
+    if (wf.traceId) {
+      const panes = JSON.stringify({t:{datasource:"tempo",queries:[{refId:"traceId",queryType:"traceql",query:wf.traceId,datasource:{type:"tempo",uid:"tempo"},limit:20,tableType:"traces"}],range:{from:"now-1h",to:"now"}}});
+      const grafanaUrl = 'http://localhost:7070/explore?schemaVersion=1&panes=' + encodeURIComponent(panes) + '&orgId=1';
+      html += '<a class="trace-link" href="' + grafanaUrl + '" target="_blank" title="View trace in Grafana">&#9776; trace</a>';
+    }
     html += `</div>`;
 
     html += buildPipelineHTML(wf.idempotencyKey, wf.steps, isStatic);

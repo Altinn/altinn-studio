@@ -113,6 +113,11 @@ body{min-height:100vh;padding:0}
   background:var(--orange);color:#000;font-size:13px;font-weight:800;
   padding:3px 10px;border-radius:10px;margin-left:4px;
 }
+.trace-link{
+  color:var(--cyan);font-size:12px;font-weight:600;text-decoration:none;
+  margin-left:8px;opacity:0.7;transition:opacity 0.2s;
+}
+.trace-link:hover{opacity:1;text-decoration:underline}
 
 /* ── Status pills (per-status coloring) ───────────────────── */
 .status-pill{
@@ -151,10 +156,10 @@ body{min-height:100vh;padding:0}
 .step-connector line{stroke:var(--border);stroke-width:2;stroke-dasharray:6,4}
 .step-connector line.active{stroke:var(--green);animation:flow 0.8s linear infinite}
 .step-connector line.processing{stroke:var(--amber);stroke-dasharray:6,4;animation:flow 0.8s linear infinite}
-.step-retry{font-size:10px;color:var(--orange);font-weight:700;margin-top:3px}
+.step-retry{font-size:12px;color:var(--orange);font-weight:700;margin-top:3px}
 .step-meta{display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:5px}
-.step-timing{font-size:10px;color:var(--text-dim);font-variant-numeric:tabular-nums;opacity:0.8}
-.step-backoff{font-size:10px;color:var(--orange);font-variant-numeric:tabular-nums;animation:pulse-border 1.5s ease-in-out infinite}
+.step-timing{font-size:12px;color:var(--text-dim);font-variant-numeric:tabular-nums;opacity:0.8}
+.step-backoff{font-size:12px;color:var(--orange);font-variant-numeric:tabular-nums;animation:pulse-border 1.5s ease-in-out infinite}
 
 /* ── Step command-type badges ─────────────────────────────── */
 .step-type{
