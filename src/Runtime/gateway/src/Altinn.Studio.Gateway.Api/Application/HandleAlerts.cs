@@ -60,8 +60,8 @@ internal static class HandleAlerts
             return Results.BadRequest();
         }
 
-        var ruleId = alertPayload.Alerts.First().Annotations.GetValueOrDefault("ruleId", string.Empty);
-        if (!string.IsNullOrEmpty(ruleId) && AzureMonitorClient.OperationNameKeys.Contains(ruleId))
+        var ruleId = alertPayload.Alerts.First().Annotations.GetValueOrDefault("ruleId");
+        if (string.IsNullOrEmpty(ruleId) || !AzureMonitorClient.OperationNameKeys.Contains(ruleId))
         {
             return Results.BadRequest();
         }
