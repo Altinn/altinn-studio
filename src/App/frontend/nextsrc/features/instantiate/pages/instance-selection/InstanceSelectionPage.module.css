@@ -1,3 +1,49 @@
 .container {
   max-width: 1200px;
+  padding: 0 var(--ds-size-4);
+}
+
+.buttonCell {
+  padding: var(--ds-size-1) var(--ds-size-9) var(--ds-size-1) var(--ds-size-1);
+}
+
+.tableButtonWrapper {
+  display: flex;
+  justify-content: right;
+}
+
+.tableContainer {
+  margin-top: var(--ds-size-6);
+}
+
+.table {
+  width: 100%;
+}
+
+.table tr:hover {
+  background-color: unset;
+}
+
+.startNewButtonContainer {
+  margin-top: var(--ds-size-3);
+}
+
+.descriptionParagraph {
+  margin-top: var(--ds-size-3);
+}
+
+.paginationWrapper {
+  display: flex;
+  justify-content: left;
+  margin-top: var(--ds-size-3);
+}
+
+.mobileTableCell {
+  padding-top: var(--ds-size-3);
+  padding-bottom: var(--ds-size-3);
+}
+
+.leftOffHeading {
+  padding-top: var(--ds-size-3);
+  padding-bottom: var(--ds-size-3);
 }

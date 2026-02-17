@@ -1,11 +1,11 @@
 import { redirect } from 'react-router-dom';
 import type { LoaderFunctionArgs } from 'react-router-dom';
 
-import { InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
+import { activeInstancesQuery, InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
 import { GlobalData } from 'nextsrc/core/globalData';
 import { ServerStatusCodes } from 'nextsrc/core/serverStatusCodes';
+import { queryClient } from 'nextsrc/QueryClient';
 import { routeBuilders } from 'nextsrc/routesBuilder';
-import type { QueryClient } from '@tanstack/react-query';
 
 import type { IInstance } from 'src/types/shared';
 
@@ -14,7 +14,7 @@ function isStateless() {
   return entryType !== 'new-instance' && entryType !== 'select-instance';
 }
 
-export const entryRedirectLoader = (_: QueryClient) => async (_: LoaderFunctionArgs) => {
+export const entryRedirectLoader = () => async (_: LoaderFunctionArgs) => {
   if (isStateless()) {
     return handleStateless();
   }
@@ -26,7 +26,19 @@ export const entryRedirectLoader = (_: QueryClient) => async (_: LoaderFunctionA
     return redirect(routeBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
   }
 
-  if (entryType === 'select-instance') {
+  if (entryType === 'select-instance' && GlobalData.selectedParty) {
+    const activeInstances = await queryClient.ensureQueryData(activeInstancesQuery(GlobalData.selectedParty.partyId));
+
+    if (activeInstances.length === 0) {
+      const instance = await createNewInstance();
+      const [instanceOwnerPartyId, instanceGuid] = instance.id.split('/');
+      return redirect(routeBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
+    }
+    if (activeInstances.length === 1) {
+      const [instanceOwnerPartyId, instanceGuid] = activeInstances[0].id.split('/');
+      return redirect(routeBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
+    }
+
     return redirect(routeBuilders.instanceSelection({}));
   }
 

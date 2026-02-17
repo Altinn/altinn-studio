@@ -1,5 +1,6 @@
 import { axiosInstance } from 'nextsrc/core/axiosInstance';
 
+import type { ISimpleInstance } from 'src/types';
 import type { IInstance, IProcess } from 'src/types/shared';
 
 interface IInstanceWithProcess extends IInstance {
@@ -15,6 +16,11 @@ export class InstanceApi {
     const { data: createdInstance } = await axiosInstance.post<IInstanceWithProcess>(`/instances?${params}`);
     return createdInstance;
   }
+  public static async getActiveInstances(partyId: number): Promise<ISimpleInstance[]> {
+    const { data } = await axiosInstance.get<ISimpleInstance[]>(`/instances/${partyId}/active`);
+    return data;
+  }
+
   public static async getInstance({
     instanceOwnerPartyId,
     instanceGuid,
@@ -28,3 +34,9 @@ export class InstanceApi {
     return instance;
   }
 }
+
+export const activeInstancesQuery = (partyId: number) => ({
+  queryKey: ['activeInstances', partyId],
+  queryFn: () => InstanceApi.getActiveInstances(partyId),
+  staleTime: 1000 * 60,
+});

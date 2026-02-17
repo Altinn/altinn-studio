@@ -10,17 +10,22 @@ import { entryRedirectLoader } from 'nextsrc/features/instantiate/loaders/entryR
 import { ErrorPage } from 'nextsrc/features/instantiate/pages/error/ErrorPage';
 import { instanceLoader } from 'nextsrc/features/instantiate/pages/instance/instanceLoader';
 import { InstancePage } from 'nextsrc/features/instantiate/pages/instance/InstancePage';
+import { instanceSelectionLoader } from 'nextsrc/features/instantiate/pages/instance-selection/instanceSelectionLoader';
 import { InstanceSelectionPage } from 'nextsrc/features/instantiate/pages/instance-selection/InstanceSelectionPage';
 import { PartySelectionPage } from 'nextsrc/features/instantiate/pages/party-selection/PartySelectionPage';
 import { StatelessPage } from 'nextsrc/features/instantiate/pages/stateless/StatelessPage';
-import { queryClient } from 'nextsrc/QueryClient';
 import { routes } from 'nextsrc/routesBuilder';
 
 export const router = createBrowserRouter(
   [
-    { path: routes.root, loader: entryRedirectLoader(queryClient), errorElement: <ErrorPage /> },
+    { path: routes.root, loader: entryRedirectLoader(), errorElement: <ErrorPage /> },
     { path: routes.instance, element: <InstancePage />, loader: instanceLoader },
-    { path: routes.instanceSelection, element: <InstanceSelectionPage /> },
+    {
+      path: routes.instanceSelection,
+      element: <InstanceSelectionPage />,
+      loader: instanceSelectionLoader,
+      errorElement: <ErrorPage />,
+    },
     { path: routes.partySelection, element: <PartySelectionPage /> },
     { path: routes.stateless, element: <StatelessPage /> },
     { path: routes.task, element: <Task />, loader: taskLoader },
