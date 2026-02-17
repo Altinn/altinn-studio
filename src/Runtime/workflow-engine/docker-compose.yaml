@@ -25,6 +25,8 @@ services:
       - workflow-engine-network
     ports:
       - "8090:8080"
+    volumes:
+      - ./src/WorkflowEngine.Dashboard/wwwroot:/app/wwwroot:ro
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
     profiles: [app, full]
