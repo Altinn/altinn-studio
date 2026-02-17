@@ -74,7 +74,7 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
           onSuccess: () => {
             queryClient
               .refetchQueries({ queryKey: [QueryKey.LayoutSetsExtended, org, app] })
-              .then(() => onClose());
+              .finally(() => onClose());
           },
         },
       );
