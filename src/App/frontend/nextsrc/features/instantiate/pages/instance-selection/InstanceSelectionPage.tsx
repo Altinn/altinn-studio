@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Button as DesignSystemButton, Heading, Paragraph, Table } from '@digdir/designsystemet-react';
+import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import { PencilIcon } from '@navikt/aksel-icons';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { activeInstancesQuery, InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
@@ -174,7 +174,7 @@ export const InstanceSelectionPage = () => {
                     <div className={classes.tableButtonWrapper}>
                       <Button
                         variant='tertiary'
-                        data-color='second'
+                        color='second'
                         icon={true}
                         onClick={(ev) => handleOpenInstance(instance.id, ev, navigate)}
                         onMouseDown={(ev) => handleOpenInstance(instance.id, ev, navigate)}
@@ -209,7 +209,7 @@ export const InstanceSelectionPage = () => {
                     <div className={classes.tableButtonWrapper}>
                       <Button
                         variant='tertiary'
-                        data-color='second'
+                        color='second'
                         onClick={(ev) => handleOpenInstance(instance.id, ev, navigate)}
                       >
                         {texts.continueHere}
@@ -251,7 +251,7 @@ export const InstanceSelectionPage = () => {
         <Button
           onClick={() => createInstance.mutate()}
           disabled={createInstance.isPending}
-          data-size='md'
+          size='md'
         >
           {createInstance.isPending ? 'Oppretter...' : texts.newInstance}
         </Button>

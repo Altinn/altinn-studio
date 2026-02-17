@@ -11,7 +11,7 @@ export function AppLayout() {
       data-testid='presentation'
       className={cn(classes.container, {
         [classes.withNavigation]: false,
-        [classes.expanded]: false,
+        [classes.expanded]: true,
       })}
     >
       <main className={classes.page}>
@@ -20,7 +20,9 @@ export function AppLayout() {
           className={classes.modal}
           tabIndex={-1}
         >
-          <Outlet />
+          <div className={classes.modalBody}>
+            <Outlet />
+          </div>
         </section>
       </main>
     </div>
