@@ -54,9 +54,6 @@ internal sealed class GrafanaAnnotations
 
     [JsonPropertyName("ruleId")]
     public string? RuleId { get; set; }
-
-    [JsonPropertyName("intervalInMinutes")]
-    public int? IntervalInMinutes { get; set; }
 }
 
 internal sealed class GrafanaLabels
