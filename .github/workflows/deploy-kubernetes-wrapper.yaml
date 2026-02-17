@@ -3,25 +3,33 @@ on:
   push:
     branches:
       - main
+      # - feat/branch
     paths:
       - src/Runtime/kubernetes-wrapper/**
       - infra/studio/syncroot/base/kubernetes-wrapper.yaml
       - infra/runtime/syncroot/base/kubernetes-wrapper.yaml
+      - .github/scripts/construct-environments.mjs
       - .github/workflows/deploy-kubernetes-wrapper.yaml
   workflow_dispatch:
     inputs:
       studio-environments:
-        description: "Studio environments to tag. Comma-separated."
+        description: "Studio environments to tag. Comma-separated. Empty string skips studio tagging."
         required: false
-        default: "dev,staging,prod"
+        default: "dev"
       runtime-rings:
-        description: 'Runtime rings to tag. Format: [{"ring":"at_ring1","environment":"runtime_at_ring1"}].'
+        description: "Runtime rings to tag. Comma-separated (e.g. at_ring1,at_ring2). Empty string skips runtime tagging."
         required: false
-        default: '[{"ring":"at_ring1","environment":"runtime_at_ring1"},{"ring":"at_ring2","environment":"runtime_at_ring2"},{"ring":"tt_ring1","environment":"runtime_tt_ring1"},{"ring":"tt_ring2","environment":"runtime_tt_ring2"},{"ring":"prod_ring1","environment":"runtime_prod_ring1"},{"ring":"prod_ring2","environment":"runtime_prod_ring2"}]'
+        default: "at_ring1"
 
 permissions:
   contents: read
   packages: write
+
+env:
+  # If you need to temporarily deploy from a feature branch, you can set envs/rings here,
+  # or use workflow_dispatch directly
+  OVERRIDE_STUDIO_ENVIRONMENTS: ""
+  OVERRIDE_RUNTIME_RINGS: ""
 
 jobs:
   get-short-sha:
@@ -34,7 +42,7 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up Docker
         uses: docker/setup-docker-action@efe9e3891a4f7307e689f2100b33a155b900a608 # v4.5.0
@@ -79,7 +87,7 @@ jobs:
     outputs:
       config-repo: ${{ steps.vars.outputs.config-repo }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set vars
         id: vars
@@ -115,35 +123,61 @@ jobs:
             --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
 
   construct-studio-environments-array:
-    uses: ./.github/workflows/template-construct-environments.yaml
-    with:
-      environments: ${{ github.event.inputs.studio-environments || 'dev,staging,prod' }}
-
-  construct-runtime-rings-array:
     runs-on: ubuntu-latest
-    env:
-      default-rings: >-
-        [{"ring":"at_ring1","environment":"runtime_at_ring1"},{"ring":"at_ring2","environment":"runtime_at_ring2"},{"ring":"tt_ring1","environment":"runtime_tt_ring1"},{"ring":"tt_ring2","environment":"runtime_tt_ring2"},{"ring":"prod_ring1","environment":"runtime_prod_ring1"},{"ring":"prod_ring2","environment":"runtime_prod_ring2"}]
     outputs:
-      ringsjson: ${{ steps.construct-rings.outputs.ringsjson }}
+      result: ${{ steps.construct.outputs.result }}
     steps:
-      - name: Construct rings array
-        id: construct-rings
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts
+
+      - name: Construct studio environments
+        id: construct
+        env:
+          STUDIO_ENVIRONMENTS: ${{ github.event.inputs.studio-environments || '' }}
+          INPUTS_JSON: ${{ toJSON(github.event.inputs) || 'null' }}
         run: |
-          rings='${{ github.event.inputs.runtime-rings }}'
-          if [ -z "$rings" ]; then
-            rings='${{ env.default-rings }}'
-          fi
-          echo "Raw rings input: $rings"
-          echo "ringsjson=${rings}" >> $GITHUB_OUTPUT
+          result="$(node .github/scripts/construct-environments.mjs \
+            --mode studio \
+            --value "$STUDIO_ENVIRONMENTS" \
+            --inputs-json "$INPUTS_JSON" \
+            --allow-empty 'true')"
+          echo "result=$result" >> "$GITHUB_OUTPUT"
+
+  construct-runtime-environments-array:
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.construct.outputs.result }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts
+
+      - name: Construct runtime environments
+        id: construct
+        env:
+          RUNTIME_RINGS: ${{ github.event.inputs.runtime-rings || '' }}
+          INPUTS_JSON: ${{ toJSON(github.event.inputs) || 'null' }}
+        run: |
+          result="$(node .github/scripts/construct-environments.mjs \
+            --mode runtime \
+            --value "$RUNTIME_RINGS" \
+            --inputs-json "$INPUTS_JSON" \
+            --allow-empty 'true')"
+          echo "result=$result" >> "$GITHUB_OUTPUT"
 
   tag-studio-artifacts:
     needs:
       - push-config-artifact
       - construct-studio-environments-array
+    if: ${{ fromJSON(needs.construct-studio-environments-array.outputs.result)[0] != null }}
     strategy:
       matrix:
-        environment: ${{ fromJSON(needs.construct-studio-environments-array.outputs.environmentsjson) }}
+        include: ${{ fromJSON(needs.construct-studio-environments-array.outputs.result) }}
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
     permissions:
@@ -164,10 +198,11 @@ jobs:
   tag-runtime-artifacts:
     needs:
       - push-config-artifact
-      - construct-runtime-rings-array
+      - construct-runtime-environments-array
+    if: ${{ fromJSON(needs.construct-runtime-environments-array.outputs.result)[0] != null }}
     strategy:
       matrix:
-        include: ${{ fromJSON(needs.construct-runtime-rings-array.outputs.ringsjson) }}
+        include: ${{ fromJSON(needs.construct-runtime-environments-array.outputs.result) }}
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
     permissions:
