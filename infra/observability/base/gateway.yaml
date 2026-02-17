@@ -136,10 +136,33 @@ spec:
             type: latency
             latency:
               threshold_ms: 1000
+          - name: kubernetes-wrapper-probabilistic
+            type: and
+            and:
+              and_sub_policy:
+                - name: is-kubernetes-wrapper
+                  type: string_attribute
+                  string_attribute:
+                    key: service.name
+                    values: [kubernetes-wrapper]
+                - name: low-rate
+                  type: probabilistic
+                  probabilistic:
+                    sampling_percentage: 1
           - name: probabilistic
-            type: probabilistic
-            probabilistic:
-              sampling_percentage: 10
+            type: and
+            and:
+              and_sub_policy:
+                - name: not-kubernetes-wrapper
+                  type: string_attribute
+                  string_attribute:
+                    key: service.name
+                    values: [kubernetes-wrapper]
+                    invert_match: true
+                - name: default-rate
+                  type: probabilistic
+                  probabilistic:
+                    sampling_percentage: 10
       batch:
         send_batch_size: 1024
         timeout: 5s
