@@ -139,6 +139,8 @@
     appFilter:            new Set(),
     partyFilter:          new Set(),
     guidFilter:           new Set(),
+    /** @type {Set<string>} */ knownOrgs: new Set(),
+    /** @type {Set<string>} */ knownApps: new Set(),
   };
 
   /* ============================================================
@@ -150,12 +152,28 @@
    * @param {(data: unknown) => void} onMessage
    * @param {{ showStatus?: boolean }} [opts]
    */
+  /** Fetch a small history batch to seed org/app filter chips. */
+  const seedOrgAppChips = () => {
+    fetch(`${engineUrl}/dashboard/history?limit=20`).then(r => r.json()).then(/** @param {Workflow[]} wfs */ wfs => {
+      for (const wf of wfs) {
+        if (wf.instance) {
+          if (wf.instance.org) state.knownOrgs.add(wf.instance.org.toLowerCase());
+          if (wf.instance.app) state.knownApps.add(wf.instance.app.toLowerCase());
+        }
+      }
+      rebuildAllChips();
+    }).catch(() => {});
+  };
+
   const connectSSE = (url, onMessage, opts) => {
     const es = new EventSource(url);
     const showStatus = opts?.showStatus ?? false;
 
     if (showStatus) {
-      es.onopen = () => { dom.sseDot.className = 'sse-dot connected'; };
+      es.onopen = () => {
+        dom.sseDot.className = 'sse-dot connected';
+        seedOrgAppChips();
+      };
     }
 
     es.onmessage = (e) => {
@@ -770,7 +788,7 @@
    * @param {(v: string) => string} [labelFn]
    */
   const rebuildChipBar = (container, dataAttr, filterSet, chipClass, labelFn) => {
-    const values = new Set();
+    const values = new Set(dataAttr === 'org' ? state.knownOrgs : dataAttr === 'app' ? state.knownApps : []);
     for (const card of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(`.workflow-card[data-${dataAttr}]`))) {
       const v = card.dataset[dataAttr];
       if (v) values.add(v);
@@ -833,8 +851,6 @@
       /** @type {HTMLElement} */ (document.getElementById(sepId)).style.display = visible ? '' : 'none';
       /** @type {HTMLElement} */ (document.getElementById(labelId)).style.display = visible ? '' : 'none';
     };
-    /** @type {HTMLElement} */ (document.getElementById('label-org')).style.display = dom.orgChips.children.length > 0 ? '' : 'none';
-    toggle('sep-app', 'label-app', dom.appChips.children.length > 0);
     toggle('sep-party', 'label-party', state.partyFilter.size > 0);
     toggle('sep-guid', 'label-guid', state.guidFilter.size > 0);
   };

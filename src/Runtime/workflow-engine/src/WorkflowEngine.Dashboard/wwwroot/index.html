@@ -27,10 +27,10 @@
 </div>
 
 <div class="filter-bar">
-  <span class="chip-label" id="label-org" style="display:none">Org</span>
+  <span class="chip-label" id="label-org">Org</span>
   <div class="status-chips" id="org-chips"></div>
-  <div class="chip-sep" id="sep-app" style="display:none"></div>
-  <span class="chip-label" id="label-app" style="display:none">App</span>
+  <div class="chip-sep" id="sep-app"></div>
+  <span class="chip-label" id="label-app">App</span>
   <div class="status-chips" id="app-chips"></div>
   <div class="chip-sep" id="sep-party" style="display:none"></div>
   <span class="chip-label" id="label-party" style="display:none">Party</span>
@@ -46,7 +46,7 @@
 
 <div class="tab-bar">
   <div class="tab active" data-tab="live" onclick="switchTab('live')"><span class="sse-dot disconnected" id="sse-dot"></span>Live</div>
-  <div class="tab" data-tab="history" onclick="switchTab('history')">History <button class="tab-reload" id="history-load" onclick="event.stopPropagation();loadHistory()" title="Reload"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg></button></div>
+  <div class="tab" data-tab="history" onclick="switchTab('history')">History</div>
 </div>
 
 <div class="tab-panel active" id="panel-live">
@@ -95,6 +95,7 @@
         <button class="chip" data-status="failed">Failed</button>
         <button class="chip" data-status="retrying">Retrying</button>
       </span>
+      <button class="tab-reload" id="history-load" onclick="loadHistory()" title="Reload"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg></button>
     </div>
     <div id="history-workflows"></div>
     <div class="empty-state" id="history-empty">Click Load to fetch history</div>

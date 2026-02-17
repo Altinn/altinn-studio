@@ -14,8 +14,13 @@ body{min-height:100vh;padding:0}
   display:flex;align-items:center;justify-content:space-between;
   padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg2);
 }
-.header h1{font-size:18px;font-weight:700;letter-spacing:2px;color:var(--text-bright);
-  text-shadow:0 0 20px rgba(0,212,255,0.3)}
+.header h1{
+  font-size:22px;font-weight:800;letter-spacing:4px;
+  background:linear-gradient(135deg, var(--cyan), #7dd3fc);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  filter:drop-shadow(0 0 16px rgba(0,212,255,0.25));
+}
 
 /* ── Engine status (cog icon + label) ────────────────────── */
 .engine-status-label{margin-left:auto;font-size:11px;font-weight:400;letter-spacing:0.5px;text-transform:none;transition:color 0.3s;color:var(--text-dim)}
