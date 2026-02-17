@@ -131,7 +131,7 @@ internal static class DashboardEndpoints
                     ctx.Response.Headers.CacheControl = "no-cache";
                     ctx.Response.Headers.Connection = "keep-alive";
 
-                    var previousFingerprint = "";
+                    string? previousFingerprint = null;
 
                     while (!ct.IsCancellationRequested)
                     {

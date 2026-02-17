@@ -69,7 +69,6 @@ body{min-height:100vh;padding:0}
 }
 .filter-clear.visible{opacity:1;pointer-events:auto}
 .filter-clear:hover{color:var(--text-bright)}
-.filter-clear:hover{color:var(--text-bright)}
 
 .status-chips{display:flex;gap:6px}
 .chip-sep{width:1px;background:var(--border);align-self:stretch;margin:0 4px}
@@ -87,8 +86,6 @@ body{min-height:100vh;padding:0}
 .chip[data-status="completed"].active{color:var(--green);border-color:var(--green);background:rgba(0,255,136,0.08)}
 .org-chip.active,.app-chip.active,.party-chip.active,.guid-chip.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,212,255,0.08)}
 .guid-chip,.party-chip{font-size:11px;letter-spacing:0.5px;font-variant-numeric:tabular-nums}
-
-/* (focus-btn removed — segments are now individually clickable) */
 
 .filtered-out{display:none !important}
 

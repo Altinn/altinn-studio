@@ -23,7 +23,6 @@
    *   backoffUntil:   string | null,
    *   createdAt:      string,
    *   executionStartedAt: string | null,
-   *   startAt:        string | null,
    *   updatedAt:      string | null,
    * }} Step
    */
@@ -285,7 +284,7 @@
     dom.liveCount.textContent = workflows.length;
     dom.liveEmpty.style.display = workflows.length === 0 ? 'block' : 'none';
     rebuildAllChips();
-    if (state.filter || state.statusFilter || state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size) applyFilter();
+    if (hasActiveFilter()) applyFilter();
   };
 
   /* ============================================================
@@ -340,7 +339,7 @@
       dom.recentContainer.insertBefore(card, dom.recentContainer.children[i] ?? null);
     }
     rebuildAllChips();
-    if (state.filter || state.statusFilter || state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size) applyFilter();
+    if (hasActiveFilter()) applyFilter();
   };
 
   /* ============================================================
@@ -594,6 +593,10 @@
     card.dataset.guid = wf.instance.instanceGuid.toLowerCase();
   };
 
+  /** @returns {boolean} */
+  const hasActiveFilter = () =>
+    !!(state.filter || state.statusFilter || state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size);
+
   const applyFilter = () => {
     const f = state.filter;
     const sf = state.statusFilter;
@@ -728,25 +731,6 @@
     }
   };
 
-  /** Rebuild guid chips from selection only (not all visible cards) */
-  const rebuildGuidChips = () => {
-    const sorted = [...state.guidFilter].sort();
-    const prev = dom.guidChips.dataset.values || '';
-    const next = sorted.join(',');
-    if (prev === next) return;
-    dom.guidChips.dataset.values = next;
-
-    dom.guidChips.innerHTML = '';
-    for (const v of sorted) {
-      const btn = document.createElement('button');
-      btn.className = 'chip guid-chip active';
-      btn.dataset.value = v;
-      btn.textContent = v.substring(0, 8);
-      btn.title = v;
-      dom.guidChips.appendChild(btn);
-    }
-  };
-
   const updateSeparators = () => {
     /** @param {string} sepId @param {string} labelId @param {boolean} visible */
     const toggle = (sepId, labelId, visible) => {
@@ -763,7 +747,7 @@
     syncChipActive(dom.orgChips, state.orgFilter);
     syncChipActive(dom.appChips, state.appFilter);
     rebuildSelectedOnlyChips(dom.partyChips, state.partyFilter, 'party-chip');
-    rebuildGuidChips();
+    rebuildSelectedOnlyChips(dom.guidChips, state.guidFilter, 'guid-chip', v => v.substring(0, 8));
     updateSeparators();
   };
 
@@ -771,7 +755,7 @@
     rebuildChipBar(dom.orgChips, 'org', state.orgFilter, 'org-chip');
     rebuildChipBar(dom.appChips, 'app', state.appFilter, 'app-chip');
     rebuildSelectedOnlyChips(dom.partyChips, state.partyFilter, 'party-chip');
-    rebuildGuidChips();
+    rebuildSelectedOnlyChips(dom.guidChips, state.guidFilter, 'guid-chip', v => v.substring(0, 8));
     updateSeparators();
   };
 
@@ -830,7 +814,7 @@
   };
 
   /* ============================================================
-   *  13. HISTORY  (on-demand DB fetch)
+   *  14. HISTORY  (on-demand DB fetch)
    * ============================================================ */
 
   window.loadHistory = async () => {
@@ -865,7 +849,7 @@
           setCardFilterData(card, wf);
           dom.historyContainer.appendChild(card);
         }
-        if (state.filter || state.statusFilter || state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size) applyFilter();
+        if (hasActiveFilter()) applyFilter();
       }
     } catch (err) {
       dom.historyEmpty.textContent = `Error loading history: ${/** @type {Error} */ (err).message}`;
@@ -878,7 +862,7 @@
   };
 
   /* ============================================================
-   *  14. STEP DETAIL MODAL
+   *  15. STEP DETAIL MODAL
    * ============================================================ */
 
   /**
@@ -913,7 +897,7 @@
   });
 
   /* ============================================================
-   *  15. JSON UTILITIES  (expand embedded JSON strings + syntax highlighting)
+   *  16. JSON UTILITIES  (expand embedded JSON strings + syntax highlighting)
    * ============================================================ */
 
   /**
@@ -963,7 +947,7 @@
   };
 
   /* ============================================================
-   *  16. GENERIC HELPERS
+   *  17. GENERIC HELPERS
    * ============================================================ */
 
   /** @param {string} s */
@@ -984,6 +968,28 @@
    *  INIT — fetch engine URL from config, then connect SSE
    * ============================================================ */
 
+  /* ============================================================
+   *  HOT-RELOAD  (polls own Last-Modified header, reloads on change)
+   * ============================================================ */
+
+  const watchForChanges = async () => {
+    let lastModified = '';
+    const poll = async () => {
+      try {
+        const res = await fetch('/app.js', { method: 'HEAD' });
+        const lm = res.headers.get('Last-Modified') || '';
+        if (lastModified && lm !== lastModified) { location.reload(); return; }
+        lastModified = lm;
+      } catch { /* ignore */ }
+      setTimeout(poll, 1000);
+    };
+    poll();
+  };
+
+  /* ============================================================
+   *  INIT — fetch engine URL from config, then connect SSE
+   * ============================================================ */
+
   const init = async () => {
     try {
       const res = await fetch('/api/config');
@@ -996,6 +1002,7 @@
     connectSSE(`${engineUrl}/dashboard/stream`, updateDashboard, { showStatus: true });
     connectSSE(`${engineUrl}/dashboard/stream/recent`, (data) => updateRecentWorkflows(/** @type {Workflow[]} */ (data)));
     requestAnimationFrame(updateTimers);
+    watchForChanges();
   };
 
   init();
