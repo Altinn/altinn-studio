@@ -18,7 +18,12 @@ body{min-height:100vh;padding:0}
   text-shadow:0 0 20px rgba(0,212,255,0.3)}
 
 /* ── Engine status (cog icon + label) ────────────────────── */
-.engine-icon{transition:color 0.3s,filter 0.3s}
+.engine-status-label{margin-left:auto;font-size:11px;font-weight:400;letter-spacing:0.5px;text-transform:none;transition:color 0.3s;color:var(--text-dim)}
+.engine-status-label.running{color:var(--cyan)}
+.engine-status-label.idle{color:var(--text-dim)}
+.engine-status-label.stopped,.engine-status-label.unhealthy,.engine-status-label.queue-full{color:var(--red)}
+.engine-status-label.disabled{color:var(--gray)}
+.engine-icon{transition:color 0.3s,filter 0.3s;margin-left:6px}
 .engine-icon.running{color:var(--cyan);filter:drop-shadow(0 0 6px rgba(0,212,255,0.6));animation:cog-spin 3s linear infinite}
 .engine-icon.idle{color:var(--text-dim);filter:none;animation:cog-spin 12s linear infinite}
 .engine-icon.stopped{color:var(--red);filter:drop-shadow(0 0 6px rgba(255,51,102,0.6));animation:none}
@@ -97,7 +102,7 @@ body{min-height:100vh;padding:0}
 .section-chips .chip{padding:2px 10px;font-size:11px}
 .section.collapsed .section-chips{display:none}
 .section:not(.collapsed){min-height:320px;position:relative}
-#live-empty{position:absolute;left:0;right:0}
+.section:not(.collapsed) .empty-state{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%)}
 .section-title{
   font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;
   color:var(--text-dim);margin-bottom:16px;display:flex;align-items:center;gap:8px;

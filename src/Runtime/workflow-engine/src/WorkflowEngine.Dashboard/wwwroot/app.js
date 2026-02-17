@@ -98,6 +98,7 @@
     liveCount:        /** @type {HTMLElement} */ (document.getElementById('live-count')),
     liveEmpty:        /** @type {HTMLElement} */ (document.getElementById('live-empty')),
     recentContainer:  /** @type {HTMLElement} */ (document.getElementById('recent-workflows')),
+    recentEmpty:      /** @type {HTMLElement} */ (document.getElementById('recent-empty')),
     recentCount:      /** @type {HTMLElement} */ (document.getElementById('recent-count')),
     recentSection:    /** @type {HTMLElement} */ (document.getElementById('recent-section')),
     historyContainer: /** @type {HTMLElement} */ (document.getElementById('history-workflows')),
@@ -112,7 +113,7 @@
     scheduledContainer: /** @type {HTMLElement} */ (document.getElementById('scheduled-workflows')),
     sseDot:           /** @type {HTMLElement} */ (document.getElementById('sse-dot')),
     engineIcon:       /** @type {HTMLElement} */ (document.getElementById('engine-icon')),
-    engineIconTitle:  /** @type {HTMLElement} */ (document.getElementById('engine-icon-title')),
+    engineStatusLabel: /** @type {HTMLElement} */ (document.getElementById('engine-status-label')),
     modal:            /** @type {HTMLElement} */ (document.getElementById('step-modal')),
     modalTitle:       /** @type {HTMLElement} */ (document.getElementById('modal-title')),
     modalBody:        /** @type {HTMLElement} */ (document.getElementById('modal-body')),
@@ -166,7 +167,8 @@
       if (showStatus) {
         dom.sseDot.className = 'sse-dot disconnected';
         dom.engineIcon.setAttribute('class', 'engine-icon stopped');
-        dom.engineIconTitle.textContent = 'Stopped';
+        dom.engineStatusLabel.setAttribute('class', 'engine-status-label stopped');
+        dom.engineStatusLabel.textContent = 'Stopped';
       }
       es.close();
       setTimeout(() => connectSSE(url, onMessage, opts), 2000);
@@ -203,7 +205,8 @@
     if (s.disabled) { cls = 'disabled'; label = 'Disabled'; }
 
     dom.engineIcon.setAttribute('class', `engine-icon ${cls}`);
-    dom.engineIconTitle.textContent = label;
+    dom.engineStatusLabel.setAttribute('class', `engine-status-label ${cls}`);
+    dom.engineStatusLabel.textContent = label;
   };
 
   /* ============================================================
@@ -382,6 +385,7 @@
     const recentN = list.length;
 
     dom.recentCount.textContent = recentN;
+    dom.recentEmpty.style.display = recentN === 0 ? 'block' : 'none';
 
     // Only update if the set of keys changed
     const newKeys = list.map(r => r.idempotencyKey).join(',');
