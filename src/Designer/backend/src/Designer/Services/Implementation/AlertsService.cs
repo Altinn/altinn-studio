@@ -44,21 +44,17 @@ internal sealed class AlertsService(
         await alertsUpdatedHubContext.Clients.Group(org).AlertsUpdated(new AlertsUpdated(environment.Name));
     }
 
-    private async Task SendToSlackAsync(string org, AltinnEnvironment environment, List<string> apps, string alertName, Uri grafanaUrl, Uri? appInsightsUrl, CancellationToken cancellationToken)
+    private async Task SendToSlackAsync(string org, AltinnEnvironment environment, List<string> apps, string alertName, Uri grafanaUrl, Uri appInsightsUrl, CancellationToken cancellationToken)
     {
         string studioEnv = generalSettings.OriginEnvironment;
         string appsFormatted = string.Join(", ", apps.Select(a => $"`{a}`"));
         const string Emoji = ":x:";
 
-        var links = new List<SlackText>();
-        if (grafanaUrl is not null)
+        var links = new List<SlackText>
         {
-            links.Add(new SlackText { Type = "mrkdwn", Text = $"<{grafanaUrl}|Grafana>" });
-        }
-        if (appInsightsUrl is not null)
-        {
-            links.Add(new SlackText { Type = "mrkdwn", Text = $"<{appInsightsUrl.OriginalString}|Application Insights>" });
-        }
+            new() { Type = "mrkdwn", Text = $"<{grafanaUrl}|Grafana>" },
+            new() { Type = "mrkdwn", Text = $"<{appInsightsUrl.OriginalString}|Application Insights>" }
+        };
 
         var message = new SlackMessage
         {

@@ -143,14 +143,7 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
     }
 
     return appErrorMetrics?.map((metric) => (
-      <AppErrorMetric
-        key={metric.name}
-        metric={metric}
-        range={range}
-        org={org}
-        environment={environment}
-        apps={[app]}
-      />
+      <AppErrorMetric key={metric.name} metric={metric} range={range} />
     ));
   };
 

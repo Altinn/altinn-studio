@@ -9,12 +9,9 @@ import { Alert } from 'admin/components/Alert/Alert';
 type AppErrorMetricProps = {
   metric: Metric;
   range: number;
-  org: string;
-  environment: string;
-  apps: string[];
 };
 
-export const AppErrorMetric = ({ metric, range, org, environment, apps }: AppErrorMetricProps) => {
+export const AppErrorMetric = ({ metric, range }: AppErrorMetricProps) => {
   const { t } = useTranslation();
   const options = getChartOptions(range);
   const count = metric.dataPoints.reduce((sum, item) => sum + item.count, 0);
