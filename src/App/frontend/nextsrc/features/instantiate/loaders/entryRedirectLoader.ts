@@ -21,7 +21,8 @@ export const entryRedirectLoader = (_: QueryClient) => async (_: LoaderFunctionA
 
   const entryType = GlobalData.applicationMetadata.onEntry?.show;
   if (entryType === 'new-instance') {
-    const [instanceOwnerPartyId, instanceGuid] = (await createNewInstance()).id.split('/');
+    const instance = await createNewInstance();
+    const [instanceOwnerPartyId, instanceGuid] = instance.id.split('/');
     return redirect(routeBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
   }
 
@@ -33,11 +34,11 @@ export const entryRedirectLoader = (_: QueryClient) => async (_: LoaderFunctionA
 };
 
 async function createNewInstance(): Promise<IInstance> {
-  const profile = GlobalData.userProfile;
-  if (!profile) {
+  const party = GlobalData.selectedParty;
+  if (!party) {
     throw new Response('User profile not available', { status: ServerStatusCodes.Unauthorized });
   }
-  return await InstanceApi.create(profile.partyId);
+  return await InstanceApi.create(party.partyId);
 }
 
 // FIXME: Placeholder
