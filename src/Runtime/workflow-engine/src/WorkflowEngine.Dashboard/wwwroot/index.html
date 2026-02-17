@@ -37,15 +37,6 @@
 </div>
 
 <div class="filter-bar">
-  <span class="chip-label">Status</span>
-  <div class="status-chips" id="status-chips">
-    <button class="chip active" data-status="">All</button>
-    <button class="chip" data-status="processing">Processing</button>
-    <button class="chip" data-status="retrying">Retrying</button>
-    <button class="chip" data-status="completed">Completed</button>
-    <button class="chip" data-status="failed">Failed</button>
-  </div>
-  <div class="chip-sep" id="sep-org" style="display:none"></div>
   <span class="chip-label" id="label-org" style="display:none">Org</span>
   <div class="status-chips" id="org-chips"></div>
   <div class="chip-sep" id="sep-app" style="display:none"></div>
@@ -57,7 +48,6 @@
   <div class="chip-sep" id="sep-guid" style="display:none"></div>
   <span class="chip-label" id="label-guid" style="display:none">Instance</span>
   <div class="status-chips" id="guid-chips"></div>
-  <div class="chip-sep"></div>
   <div class="filter-search">
     <input type="text" id="filter-input" placeholder="Search..." autocomplete="off" spellcheck="false">
     <button class="filter-clear" id="filter-clear" title="Clear filter">&times;</button>
@@ -76,7 +66,13 @@
   </div>
 
   <div class="section" id="live-section">
-    <div class="section-title collapsible" onclick="toggleSection('live-section')"><span class="chevron">&#9656;</span>ACTIVE <span class="count" id="live-count">0</span></div>
+    <div class="section-title collapsible" onclick="toggleSection('live-section')"><span class="chevron">&#9656;</span>ACTIVE <span class="count" id="live-count">0</span>
+      <span class="section-chips" data-section="live" onclick="event.stopPropagation()">
+        <button class="chip active" data-status="">All</button>
+        <button class="chip" data-status="processing">Processing</button>
+        <button class="chip" data-status="retrying">Retrying</button>
+      </span>
+    </div>
     <div class="section-body">
       <div id="live-workflows"></div>
       <div class="empty-state" id="live-empty">No active workflows</div>
@@ -84,13 +80,27 @@
   </div>
 
   <div class="section" id="recent-section">
-    <div class="section-title collapsible" onclick="toggleSection('recent-section')" style="color:var(--text-dim);opacity:0.7"><span class="chevron">&#9656;</span>RECENT <span class="count" id="recent-count">0</span></div>
+    <div class="section-title collapsible" onclick="toggleSection('recent-section')" style="color:var(--text-dim);opacity:0.7"><span class="chevron">&#9656;</span>RECENT <span class="count" id="recent-count">0</span>
+      <span class="section-chips" data-section="recent" onclick="event.stopPropagation()">
+        <button class="chip active" data-status="">All</button>
+        <button class="chip" data-status="completed">Completed</button>
+        <button class="chip" data-status="failed">Failed</button>
+      </span>
+    </div>
     <div class="section-body" id="recent-workflows"></div>
   </div>
 </div>
 
 <div class="tab-panel" id="panel-history">
   <div class="section">
+    <div class="section-title">HISTORY
+      <span class="section-chips" data-section="history">
+        <button class="chip active" data-status="">All</button>
+        <button class="chip" data-status="completed">Completed</button>
+        <button class="chip" data-status="failed">Failed</button>
+        <button class="chip" data-status="retrying">Retrying</button>
+      </span>
+    </div>
     <div id="history-workflows"></div>
     <div class="empty-state" id="history-empty">Click Load to fetch history</div>
   </div>

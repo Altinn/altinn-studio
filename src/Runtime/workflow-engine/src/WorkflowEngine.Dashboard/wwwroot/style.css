@@ -95,6 +95,9 @@ body{min-height:100vh;padding:0}
 .section.collapsed .section-title{margin-bottom:0;padding:10px 0}
 .section.collapsed .section-title:hover{opacity:1}
 .section.collapsed .section-body{display:none}
+.section-chips{display:inline-flex;gap:4px;margin-left:12px}
+.section-chips .chip{padding:2px 10px;font-size:11px}
+.section.collapsed .section-chips{display:none}
 .section:not(.collapsed){min-height:320px;position:relative}
 #live-empty{position:absolute;left:0;right:0}
 .section-title{

@@ -81,7 +81,7 @@
    *   lastRecentKeys:       string,
    *   historyLoaded:        boolean,
    *   filter:               string,
-   *   statusFilter:         string,
+   *   sectionStatus:        Record<string, string>,
    *   orgFilter:            Set<string>,
    *   appFilter:            Set<string>,
    *   partyFilter:          Set<string>,
@@ -104,7 +104,6 @@
     historyEmpty:     /** @type {HTMLElement} */ (document.getElementById('history-empty')),
     filterInput:      /** @type {HTMLInputElement} */ (document.getElementById('filter-input')),
     filterClear:      /** @type {HTMLElement} */ (document.getElementById('filter-clear')),
-    statusChips:      /** @type {HTMLElement} */ (document.getElementById('status-chips')),
     orgChips:         /** @type {HTMLElement} */ (document.getElementById('org-chips')),
     appChips:         /** @type {HTMLElement} */ (document.getElementById('app-chips')),
     partyChips:       /** @type {HTMLElement} */ (document.getElementById('party-chips')),
@@ -133,7 +132,7 @@
     lastRecentKeys:       '',
     historyLoaded:        false,
     filter:               '',
-    statusFilter:         '',
+    sectionStatus:        { live: '', recent: '', history: '' },
     orgFilter:            new Set(),
     appFilter:            new Set(),
     partyFilter:          new Set(),
@@ -690,22 +689,25 @@
 
   /** @returns {boolean} */
   const hasActiveFilter = () =>
-    !!(state.filter || state.statusFilter || state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size);
+    !!(state.filter || state.sectionStatus.live || state.sectionStatus.recent || state.sectionStatus.history || state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size);
 
   const applyFilter = () => {
     const f = state.filter;
-    const sf = state.statusFilter;
     const of_ = state.orgFilter;
     const af = state.appFilter;
     const pf = state.partyFilter;
     const gf = state.guidFilter;
-    /** @param {HTMLElement} container @param {HTMLElement} countEl @param {string} [totalAttr] */
-    const filterContainer = (container, countEl, totalAttr) => {
+    /**
+     * @param {HTMLElement} container
+     * @param {HTMLElement} countEl
+     * @param {string} sectionStatus
+     */
+    const filterContainer = (container, countEl, sectionStatus) => {
       const cards = /** @type {HTMLElement[]} */ ([...container.querySelectorAll('.workflow-card')]);
       let matched = 0;
       for (const card of cards) {
         const textHidden = f && !(card.dataset.filter || '').includes(f);
-        const statusHidden = sf && !(card.dataset.status || '').includes(sf);
+        const statusHidden = sectionStatus && !(card.dataset.status || '').includes(sectionStatus);
         const orgHidden = of_.size > 0 && !of_.has(card.dataset.org || '');
         const appHidden = af.size > 0 && !af.has(card.dataset.app || '');
         const partyHidden = pf.size > 0 && !pf.has(card.dataset.party || '');
@@ -714,16 +716,16 @@
         card.classList.toggle('filtered-out', hidden);
         if (!hidden) matched++;
       }
-      const hasFilter = f || sf || of_.size > 0 || af.size > 0 || pf.size > 0 || gf.size > 0;
+      const hasFilter = f || sectionStatus || of_.size > 0 || af.size > 0 || pf.size > 0 || gf.size > 0;
       if (hasFilter && cards.length > 0) {
         countEl.textContent = `${matched} / ${cards.length}`;
       } else {
         countEl.textContent = `${cards.length}`;
       }
     };
-    filterContainer(dom.liveContainer, dom.liveCount);
-    filterContainer(dom.recentContainer, dom.recentCount);
-    filterContainer(dom.historyContainer, dom.historyEmpty);
+    filterContainer(dom.liveContainer, dom.liveCount, state.sectionStatus.live);
+    filterContainer(dom.recentContainer, dom.recentCount, state.sectionStatus.recent);
+    filterContainer(dom.historyContainer, dom.historyEmpty, state.sectionStatus.history);
   };
 
   /** @param {string} value */
@@ -832,7 +834,7 @@
       /** @type {HTMLElement} */ (document.getElementById(sepId)).style.display = visible ? '' : 'none';
       /** @type {HTMLElement} */ (document.getElementById(labelId)).style.display = visible ? '' : 'none';
     };
-    toggle('sep-org', 'label-org', dom.orgChips.children.length > 0);
+    /** @type {HTMLElement} */ (document.getElementById('label-org')).style.display = dom.orgChips.children.length > 0 ? '' : 'none';
     toggle('sep-app', 'label-app', dom.appChips.children.length > 0);
     toggle('sep-party', 'label-party', state.partyFilter.size > 0);
     toggle('sep-guid', 'label-guid', state.guidFilter.size > 0);
@@ -867,15 +869,18 @@
   dom.filterInput.addEventListener('input', () => setFilter(dom.filterInput.value));
   dom.filterClear.addEventListener('click', () => { setFilter(''); dom.filterInput.focus(); });
 
-  dom.statusChips.addEventListener('click', (e) => {
-    const chip = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.chip'));
-    if (!chip) return;
-    const value = chip.dataset.status || '';
-    state.statusFilter = value;
-    for (const c of dom.statusChips.querySelectorAll('.chip')) c.classList.toggle('active', c === chip);
-    applyFilter();
-    if (state.historyLoaded) loadHistory();
-  });
+  for (const bar of document.querySelectorAll('.section-chips')) {
+    bar.addEventListener('click', (e) => {
+      const chip = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.chip'));
+      if (!chip) return;
+      const section = /** @type {HTMLElement} */ (bar).dataset.section || '';
+      const value = chip.dataset.status || '';
+      state.sectionStatus[section] = value;
+      for (const c of bar.querySelectorAll('.chip')) c.classList.toggle('active', c === chip);
+      applyFilter();
+      if (section === 'history' && state.historyLoaded) loadHistory();
+    });
+  }
 
   /** @param {HTMLElement} container @param {(value: string) => void} toggle */
   const wireChipBar = (container, toggle) => {
@@ -913,10 +918,10 @@
    * ============================================================ */
 
   window.loadHistory = async () => {
-    // Derive DB query from global status filter
-    const dbStatus = state.statusFilter === 'failed' ? 'failed'
-                   : state.statusFilter === 'retrying' ? 'retrying'
-                   : state.statusFilter === 'completed' ? 'completed'
+    const hs = state.sectionStatus.history;
+    const dbStatus = hs === 'failed' ? 'failed'
+                   : hs === 'retrying' ? 'retrying'
+                   : hs === 'completed' ? 'completed'
                    : '';
     const btn = /** @type {HTMLButtonElement} */ (document.getElementById('history-load'));
     btn.disabled = true;
