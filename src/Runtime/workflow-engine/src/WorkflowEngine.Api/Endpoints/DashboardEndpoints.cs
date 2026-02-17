@@ -10,6 +10,18 @@ internal static class DashboardEndpoints
 {
     private const string DashboardDir = "Endpoints/Dashboard";
 
+    private static readonly JsonSerializerOptions JsonCompact = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+    };
+
+    private static readonly JsonSerializerOptions JsonIndented = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+    };
+
     public static WebApplication MapDashboardEndpoints(this WebApplication app)
     {
         app.MapGet(
@@ -46,12 +58,6 @@ internal static class DashboardEndpoints
                     ctx.Response.ContentType = "text/event-stream";
                     ctx.Response.Headers.CacheControl = "no-cache";
                     ctx.Response.Headers.Connection = "keep-alive";
-
-                    var jsonOptions = new JsonSerializerOptions
-                    {
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                        WriteIndented = false,
-                    };
 
                     object MapWorkflow(Workflow w) =>
                         new
@@ -131,7 +137,7 @@ internal static class DashboardEndpoints
                             workflows = workflows.Select(MapWorkflow),
                         };
 
-                        var json = JsonSerializer.Serialize(payload, jsonOptions);
+                        var json = JsonSerializer.Serialize(payload, JsonCompact);
                         await ctx.Response.WriteAsync($"data: {json}\n\n", ct);
                         await ctx.Response.Body.FlushAsync(ct);
 
@@ -148,12 +154,6 @@ internal static class DashboardEndpoints
                     ctx.Response.ContentType = "text/event-stream";
                     ctx.Response.Headers.CacheControl = "no-cache";
                     ctx.Response.Headers.Connection = "keep-alive";
-
-                    var jsonOptions = new JsonSerializerOptions
-                    {
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                        WriteIndented = false,
-                    };
 
                     var previousFingerprint = "";
 
@@ -199,7 +199,7 @@ internal static class DashboardEndpoints
                                 }),
                             });
 
-                            var json = JsonSerializer.Serialize(payload, jsonOptions);
+                            var json = JsonSerializer.Serialize(payload, JsonCompact);
                             await ctx.Response.WriteAsync($"data: {json}\n\n", ct);
                             await ctx.Response.Body.FlushAsync(ct);
                         }
@@ -226,12 +226,6 @@ internal static class DashboardEndpoints
                             cancellationToken: ct
                         ),
                         _ => await repo.GetCompletedWorkflows(search: search, take: maxResults, cancellationToken: ct),
-                    };
-
-                    var jsonOptions = new JsonSerializerOptions
-                    {
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                        WriteIndented = false,
                     };
 
                     var result = workflows.Select(w => new
@@ -266,7 +260,7 @@ internal static class DashboardEndpoints
                             }),
                     });
 
-                    return Results.Json(result, jsonOptions);
+                    return Results.Json(result, JsonCompact);
                 }
             )
             .ExcludeFromDescription();
@@ -275,25 +269,17 @@ internal static class DashboardEndpoints
                 "/dashboard/step",
                 async (IEngine engine, IServiceProvider sp, string wf, string step, CancellationToken ct) =>
                 {
-                    var jsonOptions = new JsonSerializerOptions
-                    {
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                        WriteIndented = true,
-                    };
-
                     // Try inbox first (live workflows)
                     var workflow = engine.GetAllInboxWorkflows().FirstOrDefault(w => w.IdempotencyKey == wf);
 
-                    // Fall back to DB (completed/failed workflows for recent + history views)
+                    // Fall back to DB with targeted search (avoid loading entire history)
                     if (workflow is null)
                     {
                         using var scope = sp.CreateScope();
                         var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                        var completed = await repo.GetCompletedWorkflows(cancellationToken: ct);
-                        var failed = await repo.GetFailedWorkflows(cancellationToken: ct);
-                        workflow =
-                            completed.FirstOrDefault(w => w.IdempotencyKey == wf)
-                            ?? failed.FirstOrDefault(w => w.IdempotencyKey == wf);
+                        var completed = await repo.GetCompletedWorkflows(search: wf, take: 1, cancellationToken: ct);
+                        var failed = await repo.GetFailedWorkflows(search: wf, take: 1, cancellationToken: ct);
+                        workflow = completed.FirstOrDefault() ?? failed.FirstOrDefault();
                     }
 
                     var s = workflow?.Steps.FirstOrDefault(st => st.IdempotencyKey == step);
@@ -319,7 +305,7 @@ internal static class DashboardEndpoints
                         retryStrategy = s.RetryStrategy,
                     };
 
-                    return Results.Json(result, jsonOptions);
+                    return Results.Json(result, JsonIndented);
                 }
             )
             .ExcludeFromDescription();
