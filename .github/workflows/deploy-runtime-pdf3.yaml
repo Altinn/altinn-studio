@@ -9,10 +9,10 @@ on:
       - .github/workflows/deploy-runtime-pdf3.yaml
   workflow_dispatch:
     inputs:
-      rings:
-        description: 'Rings to tag the artifact with. Format of the input object is [{"ring": "at_ring1", "environment": "dev"}].'
+      environments:
+        description: "Runtime environments to tag. Comma-separated (e.g. at_ring1,at_ring2)."
         required: false
-        default: '[{"ring": "at_ring1", "environment": "runtime_at_ring1"}]'
+        default: "at_ring1"
 
 permissions:
   id-token: write
@@ -24,22 +24,9 @@ jobs:
     uses: ./.github/workflows/template-short-sha.yaml
 
   construct-rings-array:
-    runs-on: ubuntu-latest
-    env:
-      default-rings: >-
-        [{"ring": "at_ring1", "environment": "runtime_at_ring1"},{"ring": "at_ring2", "environment": "runtime_at_ring2"},{"ring": "tt_ring1", "environment": "runtime_tt_ring1"},{"ring": "tt_ring2", "environment": "runtime_tt_ring2"},{"ring": "prod_ring1", "environment": "runtime_prod_ring1"},{"ring": "prod_ring2", "environment": "runtime_prod_ring2"}]
-    outputs:
-      ringsjson: ${{ steps.construct-rings.outputs.ringsjson }}
-    steps:
-      - name: Construct rings array
-        id: construct-rings
-        run: |
-          rings='${{ github.event.inputs.rings }}'
-          if [ -z "$rings" ]; then
-            rings='${{ env.default-rings }}'
-          fi
-          echo "Raw rings input: $rings"
-          echo "ringsjson=${rings}" >> $GITHUB_OUTPUT
+    uses: ./.github/workflows/template-runtime-construct-environments.yaml
+    with:
+      inputs: ${{ toJSON(github.event.inputs) }}
 
   push-pdf3-artifact:
     name: Push pdf3 as OCI artifact
@@ -174,7 +161,7 @@ jobs:
       id-token: write # Require write permission to Fetch an OIDC token.
     strategy:
       matrix:
-        include: ${{ fromJson(needs.construct-rings-array.outputs.ringsjson) }}
+        include: ${{ fromJson(needs.construct-rings-array.outputs.result) }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -197,4 +184,3 @@ jobs:
         run: |
           flux tag artifact oci://${{ needs.push-pdf3-artifact.outputs.config-repo }} \
             --tag ${{ matrix.ring }}
-

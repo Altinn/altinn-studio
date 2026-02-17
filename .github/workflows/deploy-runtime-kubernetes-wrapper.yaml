@@ -3,33 +3,25 @@ on:
   push:
     branches:
       - main
-      # - feat/branch
     paths:
       - src/Runtime/kubernetes-wrapper/**
       - infra/studio/syncroot/base/kubernetes-wrapper.yaml
       - infra/runtime/syncroot/base/kubernetes-wrapper.yaml
-      - .github/scripts/construct-environments.mjs
-      - .github/workflows/deploy-kubernetes-wrapper.yaml
+      - .github/workflows/deploy-runtime-kubernetes-wrapper.yaml
   workflow_dispatch:
     inputs:
       studio-environments:
         description: "Studio environments to tag. Comma-separated. Empty string skips studio tagging."
         required: false
         default: "dev"
-      runtime-rings:
-        description: "Runtime rings to tag. Comma-separated (e.g. at_ring1,at_ring2). Empty string skips runtime tagging."
+      runtime-environments:
+        description: "Runtime environments to tag. Comma-separated (e.g. at_ring1,at_ring2). Empty string skips runtime tagging."
         required: false
         default: "at_ring1"
 
 permissions:
   contents: read
   packages: write
-
-env:
-  # If you need to temporarily deploy from a feature branch, you can set envs/rings here,
-  # or use workflow_dispatch directly
-  OVERRIDE_STUDIO_ENVIRONMENTS: ""
-  OVERRIDE_RUNTIME_RINGS: ""
 
 jobs:
   get-short-sha:
@@ -123,52 +115,16 @@ jobs:
             --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
 
   construct-studio-environments-array:
-    runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.construct.outputs.result }}
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 1
-          sparse-checkout: |
-            .github/scripts
-
-      - name: Construct studio environments
-        id: construct
-        env:
-          STUDIO_ENVIRONMENTS: ${{ github.event.inputs.studio-environments || '' }}
-          INPUTS_JSON: ${{ toJSON(github.event.inputs) || 'null' }}
-        run: |
-          result="$(node .github/scripts/construct-environments.mjs \
-            --mode studio \
-            --value "$STUDIO_ENVIRONMENTS" \
-            --inputs-json "$INPUTS_JSON" \
-            --allow-empty 'true')"
-          echo "result=$result" >> "$GITHUB_OUTPUT"
+    uses: ./.github/workflows/template-studio-construct-environments.yaml
+    with:
+      inputs: ${{ github.event_name == 'workflow_dispatch' && format('{{"environments":{0}}}', toJSON(github.event.inputs['studio-environments'])) || toJSON(github.event.inputs) }}
+      allow-empty: true
 
   construct-runtime-environments-array:
-    runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.construct.outputs.result }}
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 1
-          sparse-checkout: |
-            .github/scripts
-
-      - name: Construct runtime environments
-        id: construct
-        env:
-          RUNTIME_RINGS: ${{ github.event.inputs.runtime-rings || '' }}
-          INPUTS_JSON: ${{ toJSON(github.event.inputs) || 'null' }}
-        run: |
-          result="$(node .github/scripts/construct-environments.mjs \
-            --mode runtime \
-            --value "$RUNTIME_RINGS" \
-            --inputs-json "$INPUTS_JSON" \
-            --allow-empty 'true')"
-          echo "result=$result" >> "$GITHUB_OUTPUT"
+    uses: ./.github/workflows/template-runtime-construct-environments.yaml
+    with:
+      inputs: ${{ github.event_name == 'workflow_dispatch' && format('{{"environments":{0}}}', toJSON(github.event.inputs['runtime-environments'])) || toJSON(github.event.inputs) }}
+      allow-empty: true
 
   tag-studio-artifacts:
     needs:
