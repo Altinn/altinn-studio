@@ -140,6 +140,9 @@ services:
       - GITEA__server__ROOT_URL=http://studio.localhost/repos
       - GITEA__server__SSH_DOMAIN=studio.localhost
       - GITEA__service__ENABLE_CAPTCHA=false
+      - GITEA__service__ENABLE_REVERSE_PROXY_AUTHENTICATION=true
+      - GITEA__service__ENABLE_REVERSE_PROXY_AUTO_REGISTRATION=true
+      - GITEA__server__REVERSE_PROXY_AUTHENTICATION_USER=X-WEBAUTH-USER
       - GITEA__session__COOKIE_SECURE=false
       - USER_GID=1000
       - USER_UID=1000

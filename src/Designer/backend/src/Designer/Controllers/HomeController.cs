@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -26,6 +27,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ServiceRepositorySettings _settings;
         private readonly ISourceControl _sourceControl;
         private readonly GeneralSettings _generalSettings;
+        private readonly IFeatureManager _featureManager;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class
@@ -34,17 +36,20 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repositorySettings">settings for the repository</param>
         /// <param name="generalSettings">the general settings</param>
         /// <param name="sourceControl">the source control</param>
+        /// <param name="featureManager">the feature manager</param>
         public HomeController(
             ILogger<HomeController> logger,
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
-            ISourceControl sourceControl
+            ISourceControl sourceControl,
+            IFeatureManager featureManager
         )
         {
             _logger = logger;
             _settings = repositorySettings;
             _generalSettings = generalSettings;
             _sourceControl = sourceControl;
+            _featureManager = featureManager;
         }
 
         /// <summary>
@@ -73,11 +78,20 @@ namespace Altinn.Studio.Designer.Controllers
         /// Login
         /// </summary>
         /// <returns>The login page</returns>
-        [Authorize]
         public async Task<IActionResult> Login()
         {
-            await Task.CompletedTask;
-            return LocalRedirect("/");
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return LocalRedirect("/");
+            }
+
+            if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc))
+            {
+                string callbackUrl = "/designer/api/v1/studio-oidc/callback?redirect_to=" + Uri.EscapeDataString("/");
+                return Challenge(new AuthenticationProperties { RedirectUri = callbackUrl });
+            }
+
+            return Challenge(new AuthenticationProperties { RedirectUri = "/" });
         }
 
         /// <summary>

@@ -1,0 +1,6 @@
+namespace Altinn.Studio.Designer.Configuration;
+
+public class StudioOidcLoginSettings : OidcLoginSettings
+{
+    public string? AcrValues { get; set; }
+}

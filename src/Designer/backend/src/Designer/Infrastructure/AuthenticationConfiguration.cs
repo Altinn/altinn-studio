@@ -3,7 +3,9 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Hosting;
@@ -35,6 +37,15 @@ namespace Altinn.Studio.Designer.Infrastructure
             IWebHostEnvironment env
         )
         {
+            bool studioOidcEnabled = config
+                .GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}")
+                .Get<bool?>() ?? false;
+
+            if (studioOidcEnabled)
+            {
+                return services.AddStudioOidcAuthentication(config);
+            }
+
             return AddGiteaOidcAuthentication(services, config, env);
         }
 
