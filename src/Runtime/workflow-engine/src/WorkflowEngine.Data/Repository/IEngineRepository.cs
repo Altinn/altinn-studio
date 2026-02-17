@@ -44,6 +44,17 @@ public interface IEngineRepository
     );
 
     /// <summary>
+    /// Gets finished workflows filtered by the specified statuses.
+    /// </summary>
+    Task<IReadOnlyList<Workflow>> GetFinishedWorkflows(
+        IReadOnlyList<PersistentItemStatus> statuses,
+        string? search = null,
+        int? take = null,
+        bool bypassConcurrencyLimit = true,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Gets the number of active workflows.
     /// </summary>
     Task<int> CountActiveWorkflows(bool bypassConcurrencyLimit = true, CancellationToken cancellationToken = default);

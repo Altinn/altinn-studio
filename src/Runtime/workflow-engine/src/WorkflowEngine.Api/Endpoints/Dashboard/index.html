@@ -41,6 +41,7 @@
     <button class="chip active" data-status="">All</button>
     <button class="chip" data-status="processing">Processing</button>
     <button class="chip" data-status="retrying">Retrying</button>
+    <button class="chip" data-status="completed">Completed</button>
     <button class="chip" data-status="failed">Failed</button>
   </div>
   <div class="chip-sep" id="sep-org" style="display:none"></div>
@@ -64,7 +65,7 @@
 
 <div class="tab-bar">
   <div class="tab active" data-tab="live" onclick="switchTab('live')">Live</div>
-  <div class="tab" data-tab="history" onclick="switchTab('history')">History</div>
+  <div class="tab" data-tab="history" onclick="switchTab('history')">History <button class="tab-reload" id="history-load" onclick="event.stopPropagation();loadHistory()" title="Reload"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg></button></div>
 </div>
 
 <div class="tab-panel active" id="panel-live">
@@ -82,13 +83,6 @@
 
 <div class="tab-panel" id="panel-history">
   <div class="section">
-    <div class="history-controls">
-      <select id="history-filter">
-        <option value="completed">Completed</option>
-        <option value="failed">Failed</option>
-      </select>
-      <button id="history-load" onclick="loadHistory()">Load</button>
-    </div>
     <div id="history-workflows"></div>
     <div class="empty-state" id="history-empty">Click Load to fetch history</div>
   </div>

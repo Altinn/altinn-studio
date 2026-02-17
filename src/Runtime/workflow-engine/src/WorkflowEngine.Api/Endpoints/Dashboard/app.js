@@ -820,7 +820,7 @@
     for (const p of document.querySelectorAll('.tab-panel')) {
       p.classList.toggle('active', p.id === `panel-${tabName}`);
     }
-    if (tabName === 'history' && !state.historyLoaded) {
+    if (tabName === 'history') {
       state.historyLoaded = true;
       loadHistory();
     }
@@ -831,20 +831,26 @@
    * ============================================================ */
 
   window.loadHistory = async () => {
-    const filter = /** @type {HTMLSelectElement} */ (document.getElementById('history-filter')).value;
-    const btn    = /** @type {HTMLButtonElement} */ (document.getElementById('history-load'));
+    // Derive DB query from global status filter
+    const dbStatus = state.statusFilter === 'failed' ? 'failed'
+                   : state.statusFilter === 'retrying' ? 'retrying'
+                   : state.statusFilter === 'completed' ? 'completed'
+                   : '';
+    const btn = /** @type {HTMLButtonElement} */ (document.getElementById('history-load'));
     btn.disabled = true;
-    btn.textContent = 'Loading...';
+    btn.classList.add('spinning');
+    const spinStart = Date.now();
 
     try {
       const searchParam = state.filter ? `&search=${encodeURIComponent(state.filter)}` : '';
-      const res = await fetch(`/dashboard/history?status=${filter}&limit=50${searchParam}`);
+      const statusParam = dbStatus ? `&status=${dbStatus}` : '';
+      const res = await fetch(`/dashboard/history?limit=50${statusParam}${searchParam}`);
       /** @type {Workflow[]} */
       const workflows = await res.json();
 
       dom.historyContainer.innerHTML = '';
       if (workflows.length === 0) {
-        dom.historyEmpty.textContent = `No ${filter} workflows found`;
+        dom.historyEmpty.textContent = 'No workflows found';
         dom.historyEmpty.style.display = 'block';
       } else {
         dom.historyEmpty.style.display = 'none';
@@ -862,8 +868,9 @@
       dom.historyEmpty.textContent = `Error loading history: ${/** @type {Error} */ (err).message}`;
       dom.historyEmpty.style.display = 'block';
     } finally {
-      btn.disabled = false;
-      btn.textContent = 'Load';
+      const elapsed = Date.now() - spinStart;
+      const remaining = Math.max(0, 600 - elapsed);
+      setTimeout(() => { btn.disabled = false; btn.classList.remove('spinning'); }, remaining);
     }
   };
 

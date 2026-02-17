@@ -218,15 +218,25 @@ internal static class DashboardEndpoints
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
                     var maxResults = Math.Min(limit ?? 50, 200);
 
-                    var workflows = status?.ToUpperInvariant() switch
+                    var statuses = (status?.ToUpperInvariant()) switch
                     {
-                        "FAILED" => await repo.GetFailedWorkflows(
-                            search: search,
-                            take: maxResults,
-                            cancellationToken: ct
-                        ),
-                        _ => await repo.GetCompletedWorkflows(search: search, take: maxResults, cancellationToken: ct),
+                        "FAILED" => new[] { PersistentItemStatus.Failed },
+                        "RETRYING" => new[] { PersistentItemStatus.Requeued },
+                        "COMPLETED" => new[] { PersistentItemStatus.Completed },
+                        _ => new[]
+                        {
+                            PersistentItemStatus.Completed,
+                            PersistentItemStatus.Failed,
+                            PersistentItemStatus.Requeued,
+                        },
                     };
+
+                    var workflows = await repo.GetFinishedWorkflows(
+                        statuses: statuses,
+                        search: search,
+                        take: maxResults,
+                        cancellationToken: ct
+                    );
 
                     var result = workflows.Select(w => new
                     {

@@ -54,18 +54,21 @@ body{min-height:100vh;padding:0}
 .filter-bar{
   display:flex;align-items:center;gap:8px;padding:12px 24px;border-bottom:1px solid var(--border);background:var(--bg2);
 }
-.filter-search{display:flex;align-items:center;gap:0;margin-left:auto}
+.filter-search{position:relative;margin-left:auto}
 .filter-search input{
-  width:200px;background:var(--bg3);color:var(--text);border:1px solid var(--border);
-  padding:6px 12px;border-radius:6px;font-family:var(--font);font-size:12px;outline:none;
+  width:400px;background:var(--bg3);color:var(--text);border:1px solid var(--border);
+  padding:6px 28px 6px 12px;border-radius:6px;font-family:var(--font);font-size:12px;outline:none;
 }
 .filter-search input:focus{border-color:var(--cyan)}
 .filter-search input::placeholder{color:var(--text-dim)}
 .filter-clear{
-  background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;
-  padding:4px 8px;border-radius:4px;display:none;
+  position:absolute;right:4px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;
+  padding:2px 4px;border-radius:4px;opacity:0;pointer-events:none;transition:opacity 0.15s;
+  line-height:1;
 }
-.filter-clear.visible{display:block}
+.filter-clear.visible{opacity:1;pointer-events:auto}
+.filter-clear:hover{color:var(--text-bright)}
 .filter-clear:hover{color:var(--text-bright)}
 
 .status-chips{display:flex;gap:6px}
@@ -81,6 +84,7 @@ body{min-height:100vh;padding:0}
 .chip[data-status="retrying"].active{color:var(--orange);border-color:var(--orange);background:rgba(255,102,0,0.08)}
 .chip[data-status="failed"].active{color:var(--red);border-color:var(--red);background:rgba(255,51,102,0.08)}
 .chip[data-status="processing"].active{color:var(--amber);border-color:var(--amber);background:rgba(255,170,0,0.08)}
+.chip[data-status="completed"].active{color:var(--green);border-color:var(--green);background:rgba(0,255,136,0.08)}
 .org-chip.active,.app-chip.active,.party-chip.active,.guid-chip.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,212,255,0.08)}
 .guid-chip,.party-chip{font-size:11px;letter-spacing:0.5px;font-variant-numeric:tabular-nums}
 
@@ -211,18 +215,16 @@ body{min-height:100vh;padding:0}
 .tab-panel{display:none}
 .tab-panel.active{display:block}
 
-/* ── History controls ─────────────────────────────────────── */
-.history-controls{display:flex;gap:12px;align-items:center;margin-bottom:16px}
-.history-controls select{
-  background:var(--bg3);color:var(--text);border:1px solid var(--border);
-  padding:6px 12px;border-radius:6px;font-family:var(--font);font-size:12px;cursor:pointer;
+/* ── Tab reload button ────────────────────────────────────── */
+.tab-reload{
+  background:none;border:none;color:inherit;font-size:15px;cursor:pointer;
+  padding:0 4px;border-radius:4px;transition:color 0.2s;
+  display:inline-flex;align-items:center;justify-content:center;
 }
-.history-controls button{
-  background:var(--cyan);color:#000;border:none;padding:6px 16px;border-radius:6px;
-  font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:opacity 0.2s;
-}
-.history-controls button:hover{opacity:0.8}
-.history-controls button:disabled{opacity:0.4;cursor:not-allowed}
+.tab-reload:hover{color:var(--text-bright)}
+.tab-reload:disabled{cursor:not-allowed}
+.tab-reload.spinning{animation:spin 0.6s linear infinite;opacity:0.6}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
 .empty-state{text-align:center;padding:40px 20px;color:var(--text-dim);font-size:13px}
 

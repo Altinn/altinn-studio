@@ -139,6 +139,36 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
+    public async Task<IReadOnlyList<Workflow>> GetFinishedWorkflows(
+        IReadOnlyList<PersistentItemStatus> statuses,
+        string? search = null,
+        int? take = null,
+        bool bypassConcurrencyLimit = true,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
+        try
+        {
+            _logger.FetchingWorkflows("finished");
+
+            var result = await _context
+                .GetFinishedWorkflows(statuses, search, take)
+                .ToDomainModel()
+                .ToListAsync(cancellationToken);
+
+            _logger.SuccessfullyFetchedWorkflows(result.Count);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task<int> CountActiveWorkflows(
         bool bypassConcurrencyLimit = true,
         CancellationToken cancellationToken = default
@@ -447,6 +477,35 @@ internal static class EnginePgRepositoryQueries
         public IQueryable<WorkflowEntity> GetFailedWorkflows(string? search = null, int? take = null)
         {
             var query = dbContext.Workflows.Include(j => j.Steps).Where(x => _failedItemStatuses.Contains(x.Status));
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.ToLower();
+                query = query.Where(x =>
+                    x.InstanceGuid.ToString().Contains(s)
+                    || x.InstanceOrg.ToLower().Contains(s)
+                    || x.InstanceApp.ToLower().Contains(s)
+                    || x.OperationId.ToLower().Contains(s)
+                    || x.InstanceOwnerPartyId.ToString().Contains(s)
+                    || x.Steps.Any(st => st.OperationId.ToLower().Contains(s))
+                );
+            }
+
+            query = query.OrderByDescending(x => x.UpdatedAt);
+
+            if (take.HasValue)
+                query = query.Take(take.Value);
+
+            return query;
+        }
+
+        public IQueryable<WorkflowEntity> GetFinishedWorkflows(
+            IReadOnlyList<PersistentItemStatus> statuses,
+            string? search = null,
+            int? take = null
+        )
+        {
+            var query = dbContext.Workflows.Include(j => j.Steps).Where(x => statuses.Contains(x.Status));
 
             if (!string.IsNullOrWhiteSpace(search))
             {
