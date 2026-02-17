@@ -1,56 +1,56 @@
 using System.Diagnostics;
-using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Extensions;
+using WorkflowEngine.Telemetry;
+using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Api;
 
 internal partial class Engine
 {
-    private static Activity? StartProcessWorkflowActivityOnce(Workflow workflow)
+    private static void StartProcessWorkflowActivityOnce(Workflow workflow)
     {
-        // Subsequent iterations: return nothing, don't start another activity
-        // Downstream callers will manually set parentContext
-        if (workflow.EngineTraceContext is not null)
-            return null;
-
-        // First iteration: create a new linked root trace for this workflow
-        var activity = Telemetry.Source.StartLinkedRootActivity(
+        workflow.EngineActivity ??= Metrics.Source.StartLinkedRootActivity(
             "Engine.ProcessWorkflow",
             kind: ActivityKind.Consumer,
-            links: Telemetry.ParseSourceContext(workflow.DistributedTraceContext),
+            links: Metrics.ParseSourceContext(workflow.DistributedTraceContext),
             tags: workflow.GetActivityTags()
         );
-
-        workflow.EngineTraceContext = activity?.Context;
-
-        return activity;
     }
 
-    private static Activity? StartProcessStepActivityOnce(Workflow workflow, Step step)
+    private static void StartProcessStepActivityOnce(Workflow workflow, Step step)
     {
-        // Subsequent iterations: return nothing, don't start another activity
-        // Downstream callers will manually set parentContext
-        if (step.EngineTraceContext is not null)
-            return null;
-
-        // First iteration: create a new linked root trace for this workflow
-        var activity = Telemetry.Source.StartActivity(
-            "Engine.ProcessStep",
+        step.EngineActivity ??= Metrics.Source.StartActivity(
+            $"Engine.ProcessStep.{step.OperationId}",
             ActivityKind.Consumer,
-            workflow.EngineTraceContext ?? default,
+            workflow.EngineActivity?.Context ?? default,
             step.GetActivityTags()
         );
+    }
 
-        step.EngineTraceContext = activity?.Context;
+    /// <summary>
+    /// Stops and disposes the stored activity on a <see cref="PersistentItem"/>, finalizing the span duration.
+    /// Sets <see cref="Activity.Current"/> to the item's activity before stopping, so the end time is recorded correctly.
+    /// </summary>
+    private static void StopActivity(PersistentItem item, bool dispose = true)
+    {
+        if (item.EngineActivity is null)
+            return;
 
-        return activity;
+        item.EngineActivity.SetEndTime(DateTime.UtcNow);
+        item.EngineActivity.Stop();
+
+        if (dispose)
+        {
+            item.EngineActivity.Dispose();
+            item.EngineActivity = null;
+        }
     }
 
     private void RecordWorkflowQueueTime(Workflow workflow)
     {
         var queueDuration = workflow.OrderedSteps().First().GetQueueDeltaTime(_timeProvider).TotalSeconds;
-        Telemetry.WorkflowQueueTime.Record(queueDuration, workflow.GetHistorgramTags());
+        Metrics.WorkflowQueueTime.Record(queueDuration, workflow.GetHistorgramTags());
     }
 
     private void RecordWorkflowServiceTime(Workflow workflow)
@@ -60,20 +60,20 @@ internal partial class Engine
             .Subtract(workflow.ExecutionStartedAt ?? workflow.CreatedAt)
             .TotalSeconds;
 
-        Telemetry.WorkflowServiceTime.Record(serviceDuration, workflow.GetHistorgramTags());
+        Metrics.WorkflowServiceTime.Record(serviceDuration, workflow.GetHistorgramTags());
     }
 
     private void RecordWorkflowTotalTime(Workflow workflow)
     {
-        var scheduledStart = workflow.OrderedSteps().First().GetActualStartTime();
+        var scheduledStart = workflow.StartAt ?? workflow.CreatedAt;
         var totalDuration = _timeProvider.GetUtcNow().Subtract(scheduledStart).TotalSeconds;
-        Telemetry.WorkflowTotalTime.Record(totalDuration, workflow.GetHistorgramTags());
+        Metrics.WorkflowTotalTime.Record(totalDuration, workflow.GetHistorgramTags());
     }
 
     private void RecordStepQueueTime(Step step)
     {
         var queueDuration = step.GetQueueDeltaTime(_timeProvider).TotalSeconds;
-        Telemetry.StepQueueTime.Record(queueDuration, step.GetHistorgramTags());
+        Metrics.StepQueueTime.Record(queueDuration, step.GetHistorgramTags());
     }
 
     private void RecordStepServiceTime(Step step)
@@ -83,7 +83,7 @@ internal partial class Engine
             .Subtract(step.ExecutionStartedAt ?? step.CreatedAt)
             .TotalSeconds;
 
-        Telemetry.StepServiceTime.Record(serviceDuration, step.GetHistorgramTags());
+        Metrics.StepServiceTime.Record(serviceDuration, step.GetHistorgramTags());
     }
 
     private void RecordStepTotalTime(Step currentStep, Step? previousStep)
@@ -93,6 +93,6 @@ internal partial class Engine
             .Subtract(previousStep?.UpdatedAt ?? currentStep.CreatedAt)
             .TotalSeconds;
 
-        Telemetry.StepTotalTime.Record(totalDuration, currentStep.GetHistorgramTags());
+        Metrics.StepTotalTime.Record(totalDuration, currentStep.GetHistorgramTags());
     }
 }

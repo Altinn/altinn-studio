@@ -71,9 +71,6 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<string>("RetryStrategyJson")
                         .HasColumnType("jsonb");
 
-                    b.Property<DateTimeOffset?>("StartAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -94,7 +91,7 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("Steps", (string)null);
+                    b.ToTable("Steps");
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.WorkflowEntity", b =>
@@ -147,6 +144,9 @@ namespace WorkflowEngine.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<DateTimeOffset?>("StartAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -167,7 +167,7 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("InstanceOrg", "InstanceApp", "InstanceGuid");
 
-                    b.ToTable("Workflows", (string)null);
+                    b.ToTable("Workflows");
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>

@@ -20,7 +20,6 @@ public class StepEntityTests
             ProcessingOrder = 3,
             CreatedAt = new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero),
             UpdatedAt = new DateTimeOffset(2025, 6, 15, 11, 0, 0, TimeSpan.Zero),
-            StartAt = new DateTimeOffset(2025, 6, 15, 12, 0, 0, TimeSpan.Zero),
             BackoffUntil = new DateTimeOffset(2025, 6, 15, 10, 31, 0, TimeSpan.Zero),
             RequeueCount = 2,
             ActorUserIdOrOrgNumber = "org-456",
@@ -49,7 +48,6 @@ public class StepEntityTests
         Assert.Equal(entity.ProcessingOrder, roundTripped.ProcessingOrder);
         Assert.Equal(entity.CreatedAt, roundTripped.CreatedAt);
         Assert.Equal(entity.UpdatedAt, roundTripped.UpdatedAt);
-        Assert.Equal(entity.StartAt, roundTripped.StartAt);
         Assert.Equal(entity.BackoffUntil, roundTripped.BackoffUntil);
         Assert.Equal(entity.RequeueCount, roundTripped.RequeueCount);
         Assert.Equal(entity.ActorUserIdOrOrgNumber, roundTripped.ActorUserIdOrOrgNumber);

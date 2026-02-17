@@ -1,8 +1,10 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
+using WorkflowEngine.Telemetry;
+using WorkflowEngine.Telemetry.Extensions;
 using Task = System.Threading.Tasks.Task;
 
 namespace WorkflowEngine.Api;
@@ -27,6 +29,8 @@ internal partial class Engine
                 {
                     while (!_cancellationTokenSource.IsCancellationRequested)
                     {
+                        var stopwatch = Stopwatch.StartNew();
+
                         try
                         {
                             await MainLoop(_cancellationTokenSource.Token);
@@ -42,6 +46,11 @@ internal partial class Engine
                         {
                             _logger.UnhandledMainloopException(ex.Message, ex);
                             Status |= EngineHealthStatus.Unhealthy;
+                        }
+                        finally
+                        {
+                            stopwatch.Stop();
+                            Metrics.EngineMainLoopTotalTime.Record(stopwatch.Elapsed.TotalSeconds);
                         }
                     }
                 }
@@ -83,7 +92,7 @@ internal partial class Engine
 
     private async Task AcquireQueueSlot(CancellationToken cancellationToken = default)
     {
-        using var activity = Telemetry.Source.StartActivity("Engine.AcquireQueueSlot");
+        using var activity = Metrics.Source.StartActivity("Engine.AcquireQueueSlot");
         _logger.AcquiringQueueSlot();
 
         await _inboxCapacityLimit.WaitAsync(cancellationToken);
@@ -115,7 +124,6 @@ internal partial class Engine
 
     private void RemoveWorkflowAndReleaseQueueSlot(Workflow workflow)
     {
-        using var activity = Telemetry.Source.StartActivity("Engine.RemoveWorkflowAndReleaseQueueSlot");
         _logger.ReleasingQueueSlot();
 
         // Capture final state before removal (for dashboard "recent" section)
@@ -126,8 +134,7 @@ internal partial class Engine
             var removed = _inbox.TryRemove(workflow.IdempotencyKey, out _) && _activeSet.Remove(workflow);
             if (!removed)
             {
-                Telemetry.Errors.Add(1, ("operation", "queueSlotRelease"));
-                activity?.Errored(errorMessage: $"Unable to release queue slot {workflow.IdempotencyKey}");
+                Metrics.Errors.Add(1, ("operation", "queueSlotRelease"));
                 throw new EngineException($"Unable to release queue slot {workflow.IdempotencyKey}");
             }
         }
@@ -135,13 +142,9 @@ internal partial class Engine
         _inboxCapacityLimit.Release();
 
         if (workflow.OverallStatus().IsSuccessful())
-        {
-            Telemetry.WorkflowsSucceeded.Add(1);
-        }
+            Metrics.WorkflowsSucceeded.Add(1);
         else
-        {
-            Telemetry.WorkflowsFailed.Add(1);
-        }
+            Metrics.WorkflowsFailed.Add(1);
     }
 
     [MemberNotNull(nameof(_inbox), nameof(_activeSet), nameof(_inboxCapacityLimit), nameof(_newWorkSignal))]

@@ -13,6 +13,7 @@ public class WorkflowEntityTests
             InstanceLockKey = "lock-key-1",
             OperationId = "next",
             CreatedAt = new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero),
+            StartAt = new DateTimeOffset(2025, 6, 15, 12, 0, 0, TimeSpan.Zero),
             UpdatedAt = new DateTimeOffset(2025, 6, 15, 10, 35, 0, TimeSpan.Zero),
             Status = PersistentItemStatus.Processing,
             ActorUserIdOrOrgNumber = "user-123",
@@ -55,6 +56,7 @@ public class WorkflowEntityTests
         Assert.Equal(entity.InstanceLockKey, roundTripped.InstanceLockKey);
         Assert.Equal(entity.OperationId, roundTripped.OperationId);
         Assert.Equal(entity.CreatedAt, roundTripped.CreatedAt);
+        Assert.Equal(entity.StartAt, roundTripped.StartAt);
         Assert.Equal(entity.UpdatedAt, roundTripped.UpdatedAt);
         Assert.Equal(entity.Status, roundTripped.Status);
         Assert.Equal(entity.TraceContext, roundTripped.TraceContext);

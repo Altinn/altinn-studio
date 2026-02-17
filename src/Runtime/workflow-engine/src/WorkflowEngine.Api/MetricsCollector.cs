@@ -1,8 +1,10 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Options;
-using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
+using WorkflowEngine.Telemetry;
+using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Api;
 
@@ -10,7 +12,7 @@ internal sealed class MetricsCollector(
     ILogger<MetricsCollector> logger,
     IEngine engine,
     IEngineRepository engineRepository,
-    ConcurrencyLimiter concurrencyLimiter,
+    IConcurrencyLimiter concurrencyLimiter,
     TimeProvider timeProvider,
     IOptions<EngineSettings> engineSettings
 ) : BackgroundService
@@ -24,26 +26,29 @@ internal sealed class MetricsCollector(
 
         while (!stoppingToken.IsCancellationRequested)
         {
+            using var activity = Metrics.Source.StartActivity("MetricsCollector.Collect");
+            activity?.DontRecord();
+
             try
             {
                 var inboxCount = engine.InboxCount;
                 var inboxLimit = engineSettings.Value.QueueCapacity;
-                Telemetry.SetAvailableInboxSlots(inboxLimit - inboxCount);
-                Telemetry.SetUsedInboxSlots(inboxCount);
+                Metrics.SetAvailableInboxSlots(inboxLimit - inboxCount);
+                Metrics.SetUsedInboxSlots(inboxCount);
 
                 var active = await engineRepository.CountActiveWorkflows(cancellationToken: stoppingToken);
                 var scheduled = await engineRepository.CountScheduledWorkflows(cancellationToken: stoppingToken);
                 var failed = await engineRepository.CountFailedWorkflows(cancellationToken: stoppingToken);
-                Telemetry.SetActiveWorkflowsCount(active);
-                Telemetry.SetScheduledWorkflowsCount(scheduled);
-                Telemetry.SetFailedWorkflowsCount(failed);
+                Metrics.SetActiveWorkflowsCount(active);
+                Metrics.SetScheduledWorkflowsCount(scheduled);
+                Metrics.SetFailedWorkflowsCount(failed);
 
                 var dbSlotStatus = concurrencyLimiter.DbSlotStatus;
                 var httpSlotStatus = concurrencyLimiter.HttpSlotStatus;
-                Telemetry.SetAvailableDbSlots(dbSlotStatus.Available);
-                Telemetry.SetUsedDbSlots(dbSlotStatus.Used);
-                Telemetry.SetAvailableHttpSlots(httpSlotStatus.Available);
-                Telemetry.SetUsedHttpSlots(httpSlotStatus.Used);
+                Metrics.SetAvailableDbSlots(dbSlotStatus.Available);
+                Metrics.SetUsedDbSlots(dbSlotStatus.Used);
+                Metrics.SetAvailableHttpSlots(httpSlotStatus.Available);
+                Metrics.SetUsedHttpSlots(httpSlotStatus.Used);
 
                 await Task.Delay(_pollInterval, timeProvider, stoppingToken);
             }
@@ -53,7 +58,7 @@ internal sealed class MetricsCollector(
             }
             catch (Exception ex)
             {
-                Telemetry.Errors.Add(1, ("operation", "metricsCollector"));
+                Metrics.Errors.Add(1, ("operation", "metricsCollector"));
                 logger.FailedToQueryCounts(ex.Message, ex);
                 await Task.Delay(_retryTimeout, timeProvider, stoppingToken);
             }

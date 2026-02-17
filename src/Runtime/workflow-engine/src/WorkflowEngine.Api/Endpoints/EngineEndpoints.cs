@@ -2,8 +2,9 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using WorkflowEngine.Api.Authentication.ApiKey;
-using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
+using WorkflowEngine.Telemetry;
+using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Api.Endpoints;
 
@@ -39,7 +40,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Telemetry.WorkflowRequestsReceived.Add(1, ("endpoint", "next"));
+        Metrics.WorkflowRequestsReceived.Add(1, ("endpoint", "next"));
 
         var traceContext = Activity.Current?.Id;
         var engineRequest = request.ToEngineRequest(instanceParams, timeProvider.GetUtcNow(), traceContext);
@@ -67,7 +68,7 @@ internal static class EngineRequestHandlers
         [FromServices] IEngine engine
     )
     {
-        Telemetry.WorkflowQueriesReceived.Add(1, ("endpoint", "status"));
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "status"));
 
         var job = engine.GetWorkflowForInstance(instanceParams);
 

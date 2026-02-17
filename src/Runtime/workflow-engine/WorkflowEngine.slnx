@@ -13,4 +13,5 @@
     <Project Path="tests/WorkflowEngine.Resilience.Tests/WorkflowEngine.Resilience.Tests.csproj" />
   </Folder>
   <Project Path="../common/Altinn.Studio.Runtime.Common.csproj" />
+  <Project Path="src/WorkflowEngine.Telemetry/WorkflowEngine.Telemetry.csproj" />
 </Solution>

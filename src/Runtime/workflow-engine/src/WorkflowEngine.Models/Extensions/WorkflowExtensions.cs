@@ -56,8 +56,13 @@ public static class WorkflowExtensions
         /// <summary>
         /// Returns true if the workflow has any steps ready for execution.
         /// </summary>
-        public bool IsReadyForExecution(DateTimeOffset now) =>
-            workflow.OrderedIncompleteSteps().First().IsReadyForExecution(now);
+        public bool IsReadyForExecution(DateTimeOffset now)
+        {
+            if (workflow.StartAt > now)
+                return false;
+
+            return workflow.OrderedIncompleteSteps().FirstOrDefault()?.IsReadyForExecution(now) ?? true;
+        }
 
         /// <summary>
         /// Returns true if the workflow has any steps ready for execution.

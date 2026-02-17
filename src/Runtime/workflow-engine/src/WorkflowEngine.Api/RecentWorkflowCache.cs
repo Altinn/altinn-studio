@@ -24,7 +24,7 @@ internal sealed class RecentWorkflowCache
             CreatedAt = workflow.CreatedAt,
             ExecutionStartedAt = workflow.ExecutionStartedAt,
             RemovedAt = DateTimeOffset.UtcNow,
-            TraceId = workflow.EngineTraceContext?.TraceId.ToString(),
+            TraceId = workflow.EngineActivity?.TraceId.ToString(),
             Steps = workflow
                 .Steps.OrderBy(s => s.ProcessingOrder)
                 .Select(s => new CachedStep
@@ -39,7 +39,6 @@ internal sealed class RecentWorkflowCache
                     BackoffUntil = s.BackoffUntil,
                     CreatedAt = s.CreatedAt,
                     ExecutionStartedAt = s.ExecutionStartedAt,
-                    StartAt = s.StartAt,
                     UpdatedAt = s.UpdatedAt,
                 })
                 .ToList(),
@@ -86,6 +85,5 @@ internal sealed record CachedStep
     public DateTimeOffset? BackoffUntil { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? ExecutionStartedAt { get; init; }
-    public DateTimeOffset? StartAt { get; init; }
     public DateTimeOffset? UpdatedAt { get; init; }
 }

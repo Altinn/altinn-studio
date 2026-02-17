@@ -33,6 +33,12 @@ public sealed record ProcessNextRequest
     public required string LockToken { get; init; }
 
     /// <summary>
+    /// An optional start time for when the workflow should be executed.
+    /// </summary>
+    [JsonPropertyName("startTime")]
+    public DateTimeOffset? StartAt { get; init; }
+
+    /// <summary>
     /// Workflow steps associated with this request.
     /// </summary>
     [JsonPropertyName("steps")]
@@ -55,6 +61,7 @@ public sealed record ProcessNextRequest
             instanceInformation,
             Actor,
             createdAt,
+            StartAt,
             Steps,
             traceContext,
             LockToken

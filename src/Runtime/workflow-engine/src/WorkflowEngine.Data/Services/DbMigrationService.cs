@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using WorkflowEngine.Data.Context;
+using WorkflowEngine.Telemetry;
 
 // CA1822: Mark members as static
 #pragma warning disable CA1822
@@ -29,8 +30,10 @@ public sealed class DbMigrationService
     /// <summary>
     /// Applies any pending migrations to the database
     /// </summary>
-    public async Task MigrateAsync(string dbConnectionString, CancellationToken cancellationToken = default)
+    public async Task Migrate(string dbConnectionString, CancellationToken cancellationToken = default)
     {
+        using var activity = Metrics.Source.StartActivity("DbMigrationService.Migrate");
+
         await using var connection = new NpgsqlConnection(dbConnectionString);
         await connection.OpenAsync(cancellationToken);
         await using var dbLock = await LockScope.Acquire(connection, cancellationToken);

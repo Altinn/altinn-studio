@@ -17,6 +17,7 @@ public class ProcessNextRequestTests
         };
         var steps = new[] { new StepRequest { Command = new Command.Debug.Noop() } };
         var createdAt = DateTimeOffset.UtcNow;
+        var startAt = createdAt.AddMinutes(5);
         var traceContext = "trace-123";
 
         var request = new ProcessNextRequest
@@ -25,6 +26,7 @@ public class ProcessNextRequestTests
             DesiredElementId = "Task_2",
             Actor = actor,
             LockToken = "lock-abc",
+            StartAt = startAt,
             Steps = steps,
         };
 
@@ -37,6 +39,7 @@ public class ProcessNextRequestTests
         Assert.Same(instanceInfo, engineRequest.InstanceInformation);
         Assert.Same(actor, engineRequest.Actor);
         Assert.Equal(createdAt, engineRequest.CreatedAt);
+        Assert.Equal(startAt, engineRequest.StartAt);
         Assert.Same(steps, engineRequest.Steps);
         Assert.Equal(traceContext, engineRequest.TraceContext);
         Assert.Equal("lock-abc", engineRequest.InstanceLockKey);

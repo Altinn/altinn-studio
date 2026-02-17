@@ -18,6 +18,7 @@ public class EngineRequestTests
             },
             new Actor { UserIdOrOrgNumber = "user-1" },
             DateTimeOffset.UtcNow,
+            null,
             [new StepRequest { Command = new Command.Debug.Noop() }]
         );
 
@@ -44,6 +45,7 @@ public class EngineRequestTests
             },
             new Actor { UserIdOrOrgNumber = "user-1" },
             DateTimeOffset.UtcNow,
+            null,
             []
         );
 

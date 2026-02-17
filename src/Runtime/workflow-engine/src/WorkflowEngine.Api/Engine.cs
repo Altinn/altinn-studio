@@ -1,13 +1,14 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using Altinn.Studio.Runtime.Common;
 using Microsoft.Extensions.Options;
-using WorkflowEngine.Api.Constants;
-using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience.Extensions;
 using WorkflowEngine.Resilience.Models;
+using WorkflowEngine.Telemetry;
+using WorkflowEngine.Telemetry.Extensions;
 using TaskStatus = WorkflowEngine.Models.TaskStatus;
 
 namespace WorkflowEngine.Api;
@@ -72,9 +73,9 @@ internal partial class Engine : IEngine, IDisposable
         InitializeInbox();
     }
 
+    // TODO: This can perhaps be removed? I think we should ALWAYS run in the new standalone service paradigm...
     private async Task<bool> ShouldRun(CancellationToken cancellationToken)
     {
-        using var activity = Telemetry.Source.StartActivity("Engine.ShouldRun");
         _logger.CheckShouldRun();
 
         // TODO: Replace this with actual check
@@ -116,7 +117,6 @@ internal partial class Engine : IEngine, IDisposable
 
     private bool HaveWork()
     {
-        using var activity = Telemetry.Source.StartActivity("Engine.HaveWork");
         _logger.CheckHaveWork();
         bool havePending = InboxCount > 0;
 
@@ -136,7 +136,8 @@ internal partial class Engine : IEngine, IDisposable
 
     private async Task MainLoop(CancellationToken cancellationToken)
     {
-        using var activity = Telemetry.Source.StartActivity("Engine.MainLoop");
+        Metrics.EngineMainLoopIterations.Add(1);
+        var stopwatch = Stopwatch.StartNew();
 
         // Should we run?
         if (!await ShouldRun(cancellationToken))
@@ -157,6 +158,8 @@ internal partial class Engine : IEngine, IDisposable
             return;
         }
 
+        var initialQueueTime = stopwatch.Elapsed;
+
         // Refresh active set and process in parallel
         RefreshActiveSet();
 
@@ -170,8 +173,15 @@ internal partial class Engine : IEngine, IDisposable
             async (workflow, ct) => await ProcessWorkflow(workflow, ct)
         );
 
+        var serviceTime = stopwatch.Elapsed - initialQueueTime;
+
         // Wait for at least one task to complete or for new work to be added
         await WaitForPendingTasks(cancellationToken);
+
+        stopwatch.Stop();
+        Metrics.EngineMainLoopQueueTime.Record((stopwatch.Elapsed - serviceTime).TotalSeconds);
+        Metrics.EngineMainLoopServiceTime.Record(serviceTime.TotalSeconds);
+        Metrics.EngineMainLoopTotalTime.Record(stopwatch.Elapsed.TotalSeconds);
     }
 
     private async Task ProcessWorkflow(Workflow workflow, CancellationToken cancellationToken)
@@ -185,7 +195,7 @@ internal partial class Engine : IEngine, IDisposable
             return;
         }
 
-        using var activity = StartProcessWorkflowActivityOnce(workflow);
+        StartProcessWorkflowActivityOnce(workflow);
 
         try
         {
@@ -199,21 +209,22 @@ internal partial class Engine : IEngine, IDisposable
                     {
                         RecordWorkflowQueueTime(workflow);
                         workflow.ExecutionStartedAt = _timeProvider.GetUtcNow();
+                        workflow.Status = PersistentItemStatus.Processing;
+                        workflow.DatabaseTask = UpdateWorkflowInDb(workflow, cancellationToken); // Background
                     }
 
-                    // Process steps
+                    // Process steps and update overall status
                     var processingStatus = await ProcessSteps(workflow, cancellationToken);
+                    workflow.Status = workflow.OverallStatus();
 
-                    // Just waiting
-                    if (processingStatus == ProcessingIterationStatus.Waiting)
+                    // If we're still processing the db task at this point, we have to return early while we wait
+                    if (workflow.DatabaseTask is not null)
                         return;
 
-                    // Update the Workflow db record only when all steps are finished
-                    PersistentItemStatus updatedJobStatus = workflow.OverallStatus();
-                    if (updatedJobStatus.IsDone() && workflow.Status != updatedJobStatus)
+                    // Write to db if steps need flush, or if entire workflow is done
+                    if (workflow.IsDone() || processingStatus == ProcessingIterationStatus.FlushRequired)
                     {
-                        workflow.Status = updatedJobStatus;
-                        workflow.DatabaseTask = UpdateWorkflowInDb(workflow, cancellationToken);
+                        workflow.DatabaseTask = UpdateWorkflowAndStepsInDb(workflow, cancellationToken);
                     }
 
                     return;
@@ -238,16 +249,21 @@ internal partial class Engine : IEngine, IDisposable
 
                     workflow.CleanupDatabaseTask();
 
-                    RecordWorkflowServiceTime(workflow);
-                    RecordWorkflowTotalTime(workflow);
+                    if (workflow.IsDone() && !workflow.Steps.Any(s => s.HasPendingChanges))
+                    {
+                        RecordWorkflowServiceTime(workflow);
+                        RecordWorkflowTotalTime(workflow);
+                        break;
+                    }
 
-                    break;
+                    return;
 
                 // Something insane has happened
                 default:
                     workflow.Status = PersistentItemStatus.Failed;
                     await UpdateWorkflowInDb(workflow, cancellationToken);
-                    activity?.Errored(
+                    StopActivity(workflow);
+                    workflow.EngineActivity?.Errored(
                         errorMessage: $"Unknown database update status: {workflow.DatabaseUpdateStatus()}"
                     );
                     _logger.WorkflowCriticalError(
@@ -260,16 +276,26 @@ internal partial class Engine : IEngine, IDisposable
         }
         catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
         {
-            activity?.Errored(ex);
+            workflow.EngineActivity?.Errored(ex);
+            StopActivity(workflow);
+
+            // Attempt to save dirty steps before shutting down
+            if (workflow.Steps.Any(s => s.HasPendingChanges))
+                await UpdateWorkflowAndStepsInDb(workflow, cancellationToken);
+
             return;
         }
         catch (Exception ex)
         {
-            activity?.Errored(ex);
-            Telemetry.Errors.Add(
+            workflow.EngineActivity?.Errored(ex);
+            StopActivity(workflow, dispose: false);
+
+            Metrics.WorkflowsRequeued.Add(1);
+            Metrics.Errors.Add(
                 1,
                 ("operation", "workflowProcessing"),
-                ("target", workflow.InstanceInformation.ToString())
+                ("target", workflow.InstanceInformation.ToString()),
+                ("operation", workflow.OperationId)
             );
 
             _logger.WorkflowProcessingFailed(workflow, ex.Message, ex);
@@ -285,6 +311,7 @@ internal partial class Engine : IEngine, IDisposable
         }
 
         // Workflow is done (success or permanent failure)
+        StopActivity(workflow);
         RemoveWorkflowAndReleaseQueueSlot(workflow);
         _logger.WorkflowCompleted(workflow);
     }
@@ -304,56 +331,26 @@ internal partial class Engine : IEngine, IDisposable
             if (!step.IsReadyForExecution(_timeProvider))
             {
                 _logger.NotReadyForExecution(step);
-                return ProcessingIterationStatus.Waiting;
+                return workflow.Steps.Any(s => s.HasPendingChanges)
+                    ? ProcessingIterationStatus.FlushRequired
+                    : ProcessingIterationStatus.Waiting;
             }
 
             _logger.ProcessingStep(step);
-            using var activity = StartProcessStepActivityOnce(workflow, step);
-
-            var currentState = new
-            {
-                DatabaseUpdateStatus = step.DatabaseUpdateStatus(),
-                ExecutionStatus = step.ExecutionStatus(),
-            };
+            StartProcessStepActivityOnce(workflow, step);
 
             try
             {
-                switch (currentState)
+                switch (step.ExecutionStatus())
                 {
-                    // Waiting for the database operation to complete
-                    case { DatabaseUpdateStatus: TaskStatus.Started }:
-                        _logger.WaitingForStepDbTask(step);
-                        return ProcessingIterationStatus.Waiting;
-
-                    // Database operation failed
-                    case { DatabaseUpdateStatus: TaskStatus.Failed }:
-                        Exception? ex = step.DatabaseTask?.Exception;
-                        _logger.StepDbTaskFailed(step, ex);
-
-                        step.CleanupDatabaseTask();
-
-                        throw new EngineDbException($"Database operation failed for step {step}", ex);
-
-                    // Database operation completed successfully
-                    case { DatabaseUpdateStatus: TaskStatus.Finished }:
-                        _logger.CleaningUpStepDbTask(step);
-
-                        // Clean up tasks
-                        step.CleanupExecutionTask();
-                        step.CleanupDatabaseTask();
-
-                        RecordStepServiceTime(step);
-                        RecordStepTotalTime(step, previous);
-
-                        return ProcessingIterationStatus.Waiting;
-
-                    // Waiting for the execution step to complete
-                    case { ExecutionStatus: TaskStatus.Started }:
+                    // Waiting for execution to complete
+                    case TaskStatus.Started:
                         _logger.WaitingForStepExecutionTask(step);
                         return ProcessingIterationStatus.Waiting;
 
-                    // Execution step completed
-                    case { ExecutionStatus: TaskStatus.Finished }:
+                    // Execution finished (successfully or not)
+                    case TaskStatus.Finished
+                    or TaskStatus.Failed:
                         _logger.StepExecutionCompleted(step);
                         Assert.That(step.ExecutionTask is not null);
 
@@ -361,23 +358,56 @@ internal partial class Engine : IEngine, IDisposable
                         ExecutionResult result = await step.ExecutionTask;
                         UpdateStepStatusAndRetryDecision(step, previous, result);
 
-                        // Update database
-                        step.DatabaseTask = UpdateStepInDb(step, cancellationToken);
-                        return ProcessingIterationStatus.TaskStarted;
+                        step.CleanupExecutionTask();
+                        step.UpdatedAt = _timeProvider.GetUtcNow();
+                        step.HasPendingChanges = true;
+
+                        RecordStepServiceTime(step);
+                        RecordStepTotalTime(step, previous);
+                        StopActivity(step);
+
+                        // Immediately advance on success (deferred db write)
+                        if (step.Status == PersistentItemStatus.Completed)
+                            continue;
+
+                        return ProcessingIterationStatus.FlushRequired;
 
                     // Step is new
                     default:
                         _logger.ExecutingStep(step);
                         RecordStepQueueTime(step);
+
                         step.Status = PersistentItemStatus.Processing;
                         step.ExecutionStartedAt = _timeProvider.GetUtcNow();
                         step.ExecutionTask = _workflowExecutor.Execute(workflow, step, cancellationToken);
+
                         return ProcessingIterationStatus.TaskStarted;
                 }
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                StopActivity(workflow);
+                throw;
+            }
             catch (Exception ex)
             {
-                activity?.Errored(ex);
+                step.EngineActivity?.Errored(ex);
+                StopActivity(step);
+
+                Metrics.Errors.Add(
+                    1,
+                    ("operation", "stepProcessing"),
+                    ("target", workflow.InstanceInformation.ToString()),
+                    ("operation", step.OperationId)
+                );
+
+                // WorkflowExecutor handles all known errors, so we can assume that any exception here is not retryable
+                UpdateStepStatusAndRetryDecision(step, previous, ExecutionResult.CriticalError(ex));
+
+                step.CleanupExecutionTask();
+                step.UpdatedAt = _timeProvider.GetUtcNow();
+                step.HasPendingChanges = true;
+
                 throw;
             }
         }
@@ -391,7 +421,7 @@ internal partial class Engine : IEngine, IDisposable
                 currentStep.Status = PersistentItemStatus.Completed;
                 currentStep.LastError = null;
 
-                Telemetry.StepsSucceeded.Add(1);
+                Metrics.StepsSucceeded.Add(1);
                 _logger.StepCompletedSuccessfully(currentStep);
 
                 return;
@@ -403,7 +433,7 @@ internal partial class Engine : IEngine, IDisposable
                 currentStep.BackoffUntil = null;
                 currentStep.LastError = result.Message;
 
-                Telemetry.StepsFailed.Add(1);
+                Metrics.StepsFailed.Add(1);
                 _logger.FailingStepCritical(currentStep, currentStep.RequeueCount);
 
                 return;
@@ -420,7 +450,7 @@ internal partial class Engine : IEngine, IDisposable
                 currentStep.BackoffUntil = GetExecutionRetryBackoff(currentStep, retryStrategy);
                 currentStep.LastError = result.Message;
 
-                Telemetry.StepsRequeued.Add(1);
+                Metrics.StepsRequeued.Add(1);
                 _logger.SlatingStepForRetry(currentStep, currentStep.RequeueCount);
 
                 return;
@@ -430,7 +460,7 @@ internal partial class Engine : IEngine, IDisposable
             currentStep.BackoffUntil = null;
             currentStep.LastError = result.Message;
 
-            Telemetry.StepsFailed.Add(1);
+            Metrics.StepsFailed.Add(1);
             _logger.FailingStepRetries(currentStep, currentStep.RequeueCount);
         }
 
@@ -447,8 +477,6 @@ internal partial class Engine : IEngine, IDisposable
 
     private async Task WaitForPendingTasks(CancellationToken cancellationToken)
     {
-        using var activity = Telemetry.Source.StartActivity("Engine.WaitForPendingTasks");
-
         // Wait for active Step and Workflow tasks (active set only)
         List<Task> awaitables;
         lock (_activeSetLock)
@@ -458,8 +486,7 @@ internal partial class Engine : IEngine, IDisposable
                 {
                     var step = workflow.OrderedIncompleteSteps().FirstOrDefault();
 
-                    // Order is important here, since we keep completed ExecutionTasks for the processing logic
-                    var stepTask = step?.DatabaseTask ?? step?.ExecutionTask;
+                    var stepTask = step?.ExecutionTask;
                     var workflowTask = workflow.DatabaseTask;
                     var circuitBreakerTask =
                         stepTask is null && step?.IsReadyForExecution(_timeProvider) is true
@@ -496,5 +523,6 @@ internal partial class Engine : IEngine, IDisposable
     {
         Waiting,
         TaskStarted,
+        FlushRequired,
     }
 }

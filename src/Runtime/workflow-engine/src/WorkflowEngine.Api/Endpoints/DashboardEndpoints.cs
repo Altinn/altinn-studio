@@ -26,7 +26,7 @@ internal static class DashboardEndpoints
                 "/dashboard/stream",
                 async (
                     IEngine engine,
-                    ConcurrencyLimiter limiter,
+                    IConcurrencyLimiter limiter,
                     IOptions<EngineSettings> settings,
                     HttpContext ctx,
                     CancellationToken ct
@@ -42,7 +42,7 @@ internal static class DashboardEndpoints
                             idempotencyKey = w.IdempotencyKey,
                             operationId = w.OperationId,
                             status = w.Status.ToString(),
-                            traceId = w.EngineTraceContext?.TraceId.ToString(),
+                            traceId = w.EngineActivity?.TraceId.ToString(),
                             instance = new
                             {
                                 org = w.InstanceInformation.Org,
@@ -66,7 +66,6 @@ internal static class DashboardEndpoints
                                     backoffUntil = s.BackoffUntil,
                                     createdAt = s.CreatedAt,
                                     executionStartedAt = s.ExecutionStartedAt,
-                                    startAt = s.StartAt,
                                     updatedAt = s.UpdatedAt,
                                 }),
                         };
@@ -171,7 +170,6 @@ internal static class DashboardEndpoints
                                     s.BackoffUntil,
                                     s.CreatedAt,
                                     s.ExecutionStartedAt,
-                                    s.StartAt,
                                     s.UpdatedAt,
                                 }),
                             });
@@ -220,7 +218,7 @@ internal static class DashboardEndpoints
                         idempotencyKey = w.IdempotencyKey,
                         operationId = w.OperationId,
                         status = w.Status.ToString(),
-                        traceId = w.EngineTraceContext?.TraceId.ToString(),
+                        traceId = w.EngineActivity?.TraceId.ToString(),
                         instance = new
                         {
                             org = w.InstanceInformation.Org,
@@ -286,7 +284,6 @@ internal static class DashboardEndpoints
                         executionStartedAt = s.ExecutionStartedAt,
                         updatedAt = s.UpdatedAt,
                         backoffUntil = s.BackoffUntil,
-                        startAt = s.StartAt,
                         actor = s.Actor,
                         command = s.Command,
                         retryStrategy = s.RetryStrategy,

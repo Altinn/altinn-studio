@@ -1,11 +1,10 @@
 using Altinn.Studio.Runtime.Common;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http;
 using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Api.Endpoints;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models.Exceptions;
+using WorkflowEngine.Telemetry.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 var dbConnectionString =
@@ -44,6 +43,10 @@ builder.Services.AddEngineHealthChecks();
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
+
+// Reset stale database connections in development (e.g. from ungraceful shutdowns during load testing)
+if (builder.Environment.IsDevelopment())
+    await app.ResetDatabaseConnections(dbConnectionString);
 
 // Apply database migrations
 await app.ApplyDatabaseMigrations(dbConnectionString);

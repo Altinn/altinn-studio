@@ -7,6 +7,7 @@ using WorkflowEngine.Api.Constants;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
+using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Api.Extensions;
 
@@ -40,7 +41,7 @@ internal static class ServiceCollectionExtensions
                         new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) }
                     );
                 });
-            services.AddSingleton<ConcurrencyLimiter>(sp =>
+            services.AddSingleton<IConcurrencyLimiter, ConcurrencyLimiter>(sp =>
             {
                 var settings = sp.GetRequiredService<IOptions<EngineSettings>>().Value;
                 return new ConcurrencyLimiter(settings.MaxConcurrentDbOperations, settings.MaxConcurrentHttpCalls);
@@ -48,80 +49,7 @@ internal static class ServiceCollectionExtensions
             services.AddSingleton<IEngine, Engine>();
             services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
             services.AddHostedService<EngineHost>();
-
-            return services;
-        }
-
-        public IServiceCollection AddTelemetry()
-        {
             services.AddHostedService<MetricsCollector>();
-            services
-                .AddOpenTelemetry()
-                .ConfigureResource(r =>
-                    r.AddService(
-                        serviceName: Telemetry.ServiceName,
-                        serviceVersion: Telemetry.ServiceVersion,
-                        serviceInstanceId: Environment.MachineName
-                    )
-                )
-                .WithTracing(builder =>
-                {
-                    builder
-                        .AddSource(Telemetry.ServiceName)
-                        .AddHttpClientInstrumentation(opts =>
-                        {
-                            opts.RecordException = true;
-                        })
-                        .AddAspNetCoreInstrumentation(opts =>
-                        {
-                            opts.RecordException = true;
-                        })
-                        .AddEntityFrameworkCoreInstrumentation(opts =>
-                        {
-                            opts.EnrichWithIDbCommand = (activity, command) =>
-                            {
-                                var commandType = command.CommandText switch
-                                {
-                                    var t when t.StartsWith("SELECT", StringComparison.OrdinalIgnoreCase) => "Select",
-                                    var t when t.StartsWith("INSERT", StringComparison.OrdinalIgnoreCase) => "Insert",
-                                    var t when t.StartsWith("UPDATE", StringComparison.OrdinalIgnoreCase) => "Update",
-                                    var t when t.StartsWith("DELETE", StringComparison.OrdinalIgnoreCase) => "Delete",
-                                    var t when t.StartsWith("CREATE", StringComparison.OrdinalIgnoreCase) => "Create",
-                                    var t when t.StartsWith("ALTER", StringComparison.OrdinalIgnoreCase) => "Alter",
-                                    var t when t.StartsWith("DROP", StringComparison.OrdinalIgnoreCase) => "Drop",
-                                    var t when t.StartsWith("LOCK", StringComparison.OrdinalIgnoreCase) => "Lock",
-                                    _ => "Unknown",
-                                };
-
-                                activity.DisplayName = $"SQL EFCore: {commandType} @ {command.Connection?.Database}";
-                            };
-                        })
-                        .AddOtlpExporter();
-                })
-                .WithMetrics(builder =>
-                {
-                    builder
-                        .AddMeter(Telemetry.ServiceName)
-                        .AddMeter("Microsoft.EntityFrameworkCore")
-                        .AddRuntimeInstrumentation()
-                        .AddHttpClientInstrumentation()
-                        .AddAspNetCoreInstrumentation()
-                        .AddOtlpExporter(
-                            (_, reader) =>
-                            {
-                                reader.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 10_000;
-                            }
-                        );
-                });
-
-            services.AddLogging(logging =>
-            {
-                logging.AddOpenTelemetry(options =>
-                {
-                    options.IncludeFormattedMessage = true;
-                    options.AddOtlpExporter();
-                });
-            });
 
             return services;
         }

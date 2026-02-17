@@ -83,6 +83,7 @@ public static class RetryStrategyExtensions
         /// </summary>
         public async Task Execute(
             Func<CancellationToken, Task> operation,
+            Action? successCallback = null,
             Func<Exception, RetryDecision>? errorHandler = null,
             TimeProvider? timeProvider = null,
             ILogger? logger = null,
@@ -95,6 +96,7 @@ public static class RetryStrategyExtensions
                     await operation(ct);
                     return null;
                 },
+                (_) => successCallback?.Invoke(),
                 errorHandler,
                 timeProvider,
                 logger,
@@ -107,6 +109,7 @@ public static class RetryStrategyExtensions
         /// </summary>
         public async Task<T> Execute<T>(
             Func<CancellationToken, Task<T>> operation,
+            Action<T?>? successCallback = null,
             Func<Exception, RetryDecision>? errorHandler = null,
             TimeProvider? timeProvider = null,
             ILogger? logger = null,
@@ -126,6 +129,7 @@ public static class RetryStrategyExtensions
                 try
                 {
                     var result = await operation(cancellationToken);
+                    successCallback?.Invoke(result);
                     logger?.ExecutionSucceeded(operationName, attempt);
 
                     return result;
@@ -136,16 +140,16 @@ public static class RetryStrategyExtensions
                 }
                 catch (Exception ex)
                 {
-                    logger?.ExecutionFailed(operationName, attempt, ex.Message, ex);
-
                     if (errorHandler?.Invoke(ex) is RetryDecision.Abort)
                     {
+                        logger?.ExecutionFailed(operationName, attempt, ex.Message, ex);
                         logger?.UnrecoverableError(ex.GetType().Name, ex);
                         throw;
                     }
 
                     if (!strategy.CanRetry(attempt, startTime, timeProvider))
                     {
+                        logger?.ExecutionFailed(operationName, attempt, ex.Message, ex);
                         logger?.MaxRetriesReached(ex);
                         throw;
                     }
@@ -155,6 +159,7 @@ public static class RetryStrategyExtensions
                     DateTimeOffset now = timeProvider.GetUtcNow();
                     if (now.Add(delay) >= deadline)
                     {
+                        logger?.ExecutionFailed(operationName, attempt, ex.Message, ex);
                         logger?.NextRetryUnreachable(ex);
                         throw;
                     }

@@ -47,11 +47,11 @@ spec:
           exporters: [routing/metrics]
         metrics/control_plane:
           receivers: [routing/metrics]
-          processors: [batch]
+          processors: [filter/metrics_allowlist, cumulativetodelta/metrics, transform/metrics_cost_control, batch]
           exporters: [azuremonitor/control_plane]
         metrics/data_plane:
           receivers: [routing/metrics]
-          processors: [batch]
+          processors: [filter/metrics_allowlist, cumulativetodelta/metrics, transform/metrics_cost_control, batch]
           exporters: [azuremonitor/data_plane]
         logs/in:
           receivers: [otlp]

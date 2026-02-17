@@ -6,6 +6,8 @@ using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience;
+using WorkflowEngine.Telemetry;
+using WorkflowEngine.Telemetry.Extensions;
 
 // CA1305: Specify IFormatProvider
 #pragma warning disable CA1305
@@ -26,7 +28,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
     private readonly AppCommandSettings _appCommandSettings;
     private readonly ILogger<WorkflowExecutor> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ConcurrencyLimiter _limiter;
+    private readonly IConcurrencyLimiter _limiter;
 
     public WorkflowExecutor(IServiceProvider serviceProvider)
     {
@@ -34,16 +36,17 @@ internal class WorkflowExecutor : IWorkflowExecutor
         _engineSettings = serviceProvider.GetRequiredService<IOptions<EngineSettings>>().Value;
         _appCommandSettings = serviceProvider.GetRequiredService<IOptions<AppCommandSettings>>().Value;
         _logger = serviceProvider.GetRequiredService<ILogger<WorkflowExecutor>>();
-        _limiter = serviceProvider.GetRequiredService<ConcurrencyLimiter>();
+        _limiter = serviceProvider.GetRequiredService<IConcurrencyLimiter>();
     }
 
     public async Task<ExecutionResult> Execute(Workflow workflow, Step step, CancellationToken cancellationToken)
     {
-        using var activity = Telemetry.Source.StartActivity(
+        cancellationToken.ThrowIfCancellationRequested();
+
+        using var activity = Metrics.Source.StartActivity(
             "WorkflowExecutor.Execute",
-            parentContext: step.EngineTraceContext
+            parentContext: step.EngineActivity?.Context
         );
-        using var slot = await _limiter.AcquireHttpSlotAsync(cancellationToken); // TODO: Perhaps move to actual http methods?
         _logger.ExecutingStep(step, workflow);
 
         using CancellationTokenSource cts = CreateExecutionTokenSource(step, cancellationToken);
@@ -53,10 +56,10 @@ internal class WorkflowExecutor : IWorkflowExecutor
         {
             var result = step.Command switch
             {
-                Command.AppCommand cmd => await AppCommand(cmd, workflow, step, cts.Token),
-                Command.Webhook cmd => await Webhook(cmd, workflow, step, cts.Token),
-                Command.Debug.Timeout cmd => await Timeout(cmd, workflow, step, cts.Token),
-                Command.Debug.Delegate cmd => await Delegate(cmd, workflow, step, cts.Token),
+                Command.AppCommand cmd => await AppCommand(cmd, workflow, step, activity?.Context, cts.Token),
+                Command.Webhook cmd => await Webhook(cmd, workflow, step, activity?.Context, cts.Token),
+                Command.Debug.Timeout cmd => await Timeout(cmd, workflow, step, activity?.Context, cts.Token),
+                Command.Debug.Delegate cmd => await Delegate(cmd, workflow, step, activity?.Context, cts.Token),
                 Command.Debug.Noop => ExecutionResult.Success(),
                 Command.Debug.Throw => throw new InvalidOperationException("Intentional error thrown"),
                 _ => throw new ArgumentException($"Unknown instruction: {step.Command}"),
@@ -89,13 +92,20 @@ internal class WorkflowExecutor : IWorkflowExecutor
         Command.AppCommand command,
         Workflow workflow,
         Step step,
+        ActivityContext? parentContext,
         CancellationToken cancellationToken
     )
     {
-        using var activity = Telemetry.Source.StartActivity(
+        using var activity = Metrics.Source.StartActivity(
             "WorkflowExecutor.AppCommand",
+            parentContext: parentContext ?? step.EngineActivity?.Context,
             kind: ActivityKind.Client,
             tags: [("command.key", command.CommandKey)]
+        );
+
+        using var slot = await _limiter.AcquireHttpSlot(
+            activity?.Context ?? parentContext ?? step.EngineActivity?.Context,
+            cancellationToken
         );
 
         using var httpClient = GetAuthorizedAppClient(workflow.InstanceInformation);
@@ -128,10 +138,15 @@ internal class WorkflowExecutor : IWorkflowExecutor
         Command.Debug.Timeout command,
         Workflow workflow,
         Step step,
+        ActivityContext? parentContext,
         CancellationToken cancellationToken
     )
     {
-        using var activity = Telemetry.Source.StartActivity("WorkflowExecutor.Timeout", kind: ActivityKind.Internal);
+        using var activity = Metrics.Source.StartActivity(
+            "WorkflowExecutor.Timeout",
+            parentContext: parentContext ?? step.EngineActivity?.Context,
+            kind: ActivityKind.Internal
+        );
 
         await Task.Delay(command.Duration, cancellationToken);
         return ExecutionResult.Success();
@@ -141,13 +156,20 @@ internal class WorkflowExecutor : IWorkflowExecutor
         Command.Webhook command,
         Workflow workflow,
         Step step,
+        ActivityContext? parentContext,
         CancellationToken cancellationToken
     )
     {
-        using var activity = Telemetry.Source.StartActivity(
+        using var activity = Metrics.Source.StartActivity(
             "WorkflowExecutor.Webhook",
+            parentContext: parentContext ?? step.EngineActivity?.Context,
             kind: ActivityKind.Client,
             tags: [("command.uri", command.Uri)]
+        );
+
+        using var slot = await _limiter.AcquireHttpSlot(
+            activity?.Context ?? parentContext ?? step.EngineActivity?.Context,
+            cancellationToken
         );
 
         var endpoint = command.Uri.ToUri(UriKind.Absolute);
@@ -185,10 +207,15 @@ internal class WorkflowExecutor : IWorkflowExecutor
         Command.Debug.Delegate command,
         Workflow workflow,
         Step step,
+        ActivityContext? parentContext,
         CancellationToken cancellationToken
     )
     {
-        using var activity = Telemetry.Source.StartActivity("WorkflowExecutor.Delegate", kind: ActivityKind.Internal);
+        using var activity = Metrics.Source.StartActivity(
+            "WorkflowExecutor.Delegate",
+            parentContext: parentContext ?? step.EngineActivity?.Context,
+            kind: ActivityKind.Internal
+        );
 
         try
         {
