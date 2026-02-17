@@ -43,6 +43,7 @@ function getDateDisplayString(timeStamp: string): string {
 function openInTab(url: string, originalEvent: React.MouseEvent<HTMLButtonElement>) {
   const link = document.createElement('a');
   link.href = url;
+  // eslint-disable-next-line no-undef
   const options: MouseEventInit = {
     button: originalEvent.button,
     buttons: originalEvent.buttons,
@@ -286,6 +287,7 @@ export const InstanceSelectionPage = () => {
           onClick={() => createInstance.mutate()}
           disabled={createInstance.isPending}
           size='md'
+          asChild={true}
         >
           {createInstance.isPending ? 'Oppretter...' : texts.newInstance}
         </Button>
