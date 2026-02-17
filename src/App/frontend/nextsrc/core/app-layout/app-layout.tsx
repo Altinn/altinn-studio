@@ -11,7 +11,7 @@ export function AppLayout() {
       data-testid='presentation'
       className={cn(classes.container, {
         [classes.withNavigation]: false,
-        [classes.expanded]: true,
+        [classes.expanded]: false,
       })}
     >
       <main className={classes.page}>

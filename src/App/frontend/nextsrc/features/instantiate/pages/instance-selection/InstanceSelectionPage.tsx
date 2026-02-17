@@ -187,6 +187,33 @@ export const InstanceSelectionPage = () => {
                 </Table.Row>
               ))}
             </Table.Body>
+
+            {showPagination && (
+              <tfoot>
+                <Table.Row>
+                  <Table.Cell colSpan={3}>
+                    <div className={classes.paginationWrapper}>
+                      <Pagination
+                        id='instance-selection'
+                        nextLabel={texts.next}
+                        nextLabelAriaLabel={texts.next}
+                        previousLabel={texts.previous}
+                        previousLabelAriaLabel={texts.previous}
+                        rowsPerPageText={texts.rowsPerPage}
+                        size='sm'
+                        numberOfRows={instances.length}
+                        showRowsPerPageDropdown={true}
+                        rowsPerPageOptions={rowsPerPageOptions}
+                        currentPage={currentPage}
+                        setCurrentPage={setCurrentPage}
+                        pageSize={rowsPerPage}
+                        onPageSizeChange={(value) => handleRowsPerPageChanged(value)}
+                      />
+                    </div>
+                  </Table.Cell>
+                </Table.Row>
+              </tfoot>
+            )}
           </Table>
         </>
       )}
@@ -223,28 +250,36 @@ export const InstanceSelectionPage = () => {
                 </Table.Row>
               ))}
             </Table.Body>
+            {showPagination && (
+              <tfoot>
+                <Table.Row>
+                  <Table.Cell colSpan={3}>
+                    <div className={classes.paginationWrapper}>
+                      <Pagination
+                        id='instance-selection'
+                        nextLabel={texts.next}
+                        nextLabelAriaLabel={texts.next}
+                        previousLabel={texts.previous}
+                        previousLabelAriaLabel={texts.previous}
+                        rowsPerPageText={texts.rowsPerPage}
+                        size='sm'
+                        numberOfRows={instances.length}
+                        showRowsPerPageDropdown={true}
+                        rowsPerPageOptions={rowsPerPageOptions}
+                        currentPage={currentPage}
+                        setCurrentPage={setCurrentPage}
+                        pageSize={rowsPerPage}
+                        onPageSizeChange={(value) => handleRowsPerPageChanged(value)}
+                      />
+                    </div>
+                  </Table.Cell>
+                </Table.Row>
+              </tfoot>
+            )}
           </Table>
         </div>
       )}
 
-      {showPagination && (
-        <Pagination
-          id='instance-selection'
-          nextLabel={texts.next}
-          nextLabelAriaLabel={texts.next}
-          previousLabel={texts.previous}
-          previousLabelAriaLabel={texts.previous}
-          rowsPerPageText={texts.rowsPerPage}
-          size='sm'
-          numberOfRows={instances.length}
-          showRowsPerPageDropdown={true}
-          rowsPerPageOptions={rowsPerPageOptions}
-          currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
-          pageSize={rowsPerPage}
-          onPageSizeChange={(value) => handleRowsPerPageChanged(value)}
-        />
-      )}
       {/* New instance button */}
       <div className={classes.startNewButtonContainer}>
         {createInstance.error && <p>{createInstance.error.message}</p>}
