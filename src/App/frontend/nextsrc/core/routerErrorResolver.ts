@@ -1,4 +1,4 @@
-import { isRouteErrorResponse } from 'react-router-dom';
+import { isRouteErrorResponse } from 'react-router';
 
 export class RouterErrorResolver {
   public static resolveMessage(error: unknown): string {

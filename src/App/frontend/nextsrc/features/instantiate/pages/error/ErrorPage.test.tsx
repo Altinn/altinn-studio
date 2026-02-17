@@ -1,11 +1,11 @@
 import React from 'react';
-import { useRouteError } from 'react-router-dom';
+import { useRouteError } from 'react-router';
 
 import { render, screen } from '@testing-library/react';
 import { RouterErrorResolver } from 'nextsrc/core/routerErrorResolver';
 import { ErrorPage } from 'nextsrc/features/instantiate/pages/error/ErrorPage';
 
-jest.mock('react-router-dom', () => ({
+jest.mock('react-router', () => ({
   useRouteError: jest.fn(),
 }));
 

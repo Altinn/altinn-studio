@@ -1,5 +1,5 @@
 // Route patterns (for router declaration)
-import { generatePath } from 'react-router-dom';
+import { generatePath } from 'react-router';
 
 export const routes = {
   root: '/',

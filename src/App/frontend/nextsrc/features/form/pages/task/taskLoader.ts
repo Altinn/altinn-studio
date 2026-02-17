@@ -1,5 +1,5 @@
-import { redirect } from 'react-router-dom';
-import type { LoaderFunctionArgs } from 'react-router-dom';
+import { redirect } from 'react-router';
+import type { LoaderFunctionArgs } from 'react-router';
 
 import { LayoutApi } from 'nextsrc/core/apiClient/layoutApi';
 import { GlobalData } from 'nextsrc/core/globalData';
