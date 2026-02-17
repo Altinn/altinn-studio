@@ -119,6 +119,9 @@
    *  2. STATE
    * ============================================================ */
 
+  /** Engine API base URL (resolved from /api/config) */
+  let engineUrl = '';
+
   /** @type {DashboardState} */
   const state = {
     previousWorkflows:    {},
@@ -844,7 +847,7 @@
     try {
       const searchParam = state.filter ? `&search=${encodeURIComponent(state.filter)}` : '';
       const statusParam = dbStatus ? `&status=${dbStatus}` : '';
-      const res = await fetch(`/dashboard/history?limit=50${statusParam}${searchParam}`);
+      const res = await fetch(`${engineUrl}/dashboard/history?limit=50${statusParam}${searchParam}`);
       /** @type {Workflow[]} */
       const workflows = await res.json();
 
@@ -889,7 +892,7 @@
     dom.modal.classList.add('open');
 
     try {
-      const res = await fetch(`/dashboard/step?wf=${encodeURIComponent(wfKey)}&step=${encodeURIComponent(stepKey)}`);
+      const res = await fetch(`${engineUrl}/dashboard/step?wf=${encodeURIComponent(wfKey)}&step=${encodeURIComponent(stepKey)}`);
       if (!res.ok) throw new Error('Step not found (may have left inbox)');
       const data = await res.json();
       let modalHtml = '';
@@ -978,11 +981,23 @@
   const escHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
   /* ============================================================
-   *  INIT
+   *  INIT — fetch engine URL from config, then connect SSE
    * ============================================================ */
 
-  connectSSE('/dashboard/stream', updateDashboard, { showStatus: true });
-  connectSSE('/dashboard/stream/recent', (data) => updateRecentWorkflows(/** @type {Workflow[]} */ (data)));
-  requestAnimationFrame(updateTimers);
+  const init = async () => {
+    try {
+      const res = await fetch('/api/config');
+      const config = await res.json();
+      engineUrl = config.engineUrl || '';
+    } catch {
+      console.warn('Failed to load config, using same-origin for engine URL');
+    }
+
+    connectSSE(`${engineUrl}/dashboard/stream`, updateDashboard, { showStatus: true });
+    connectSSE(`${engineUrl}/dashboard/stream/recent`, (data) => updateRecentWorkflows(/** @type {Workflow[]} */ (data)));
+    requestAnimationFrame(updateTimers);
+  };
+
+  init();
 
 })();

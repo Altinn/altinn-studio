@@ -8,8 +8,6 @@ namespace WorkflowEngine.Api.Endpoints;
 
 internal static class DashboardEndpoints
 {
-    private const string DashboardDir = "Endpoints/Dashboard";
-
     private static readonly JsonSerializerOptions JsonCompact = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -24,27 +22,6 @@ internal static class DashboardEndpoints
 
     public static WebApplication MapDashboardEndpoints(this WebApplication app)
     {
-        app.MapGet(
-                "/dashboard",
-                (IWebHostEnvironment env) =>
-                    Results.File(Path.Combine(env.ContentRootPath, DashboardDir, "index.html"), "text/html")
-            )
-            .ExcludeFromDescription();
-
-        app.MapGet(
-                "/dashboard/style.css",
-                (IWebHostEnvironment env) =>
-                    Results.File(Path.Combine(env.ContentRootPath, DashboardDir, "style.css"), "text/css")
-            )
-            .ExcludeFromDescription();
-
-        app.MapGet(
-                "/dashboard/app.js",
-                (IWebHostEnvironment env) =>
-                    Results.File(Path.Combine(env.ContentRootPath, DashboardDir, "app.js"), "text/javascript")
-            )
-            .ExcludeFromDescription();
-
         app.MapGet(
                 "/dashboard/stream",
                 async (
