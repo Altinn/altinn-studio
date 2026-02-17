@@ -188,5 +188,5 @@ public sealed class FormDataChange : DataElementChange
     ///
     /// For deleted data elements this is set to <see cref="ReadOnlyMemory{T}.Empty"/>
     /// </remarks>
-    public ReadOnlyMemory<byte>? CurrentBinaryData { get; }
+    public ReadOnlyMemory<byte>? CurrentBinaryData { get; internal set; }
 }
