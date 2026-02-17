@@ -94,7 +94,10 @@ public class WorkflowTests
             startAt,
             steps,
             traceContext,
-            "lock-key-1"
+            "lock-key-1",
+            WorkflowType.AppProcessChange,
+            77,
+            WorkflowStartMode.Scheduled
         );
 
         // Act
@@ -110,6 +113,9 @@ public class WorkflowTests
         Assert.Equal(traceContext, workflow.DistributedTraceContext);
         Assert.Equal("lock-key-1", workflow.InstanceLockKey);
         Assert.Equal(PersistentItemStatus.Enqueued, workflow.Status);
+        Assert.Equal(WorkflowType.AppProcessChange, workflow.Type);
+        Assert.Equal(77, workflow.ParentWorkflowId);
+        Assert.Equal(WorkflowStartMode.Scheduled, workflow.StartMode);
 
         // Assert — Steps are created with correct count and ordering
         Assert.Equal(2, workflow.Steps.Count);
@@ -152,5 +158,8 @@ public class WorkflowTests
         Assert.Null(workflow.StartAt);
         Assert.Null(workflow.DistributedTraceContext);
         Assert.Null(workflow.InstanceLockKey);
+        Assert.Equal(WorkflowType.Generic, workflow.Type);
+        Assert.Null(workflow.ParentWorkflowId);
+        Assert.Equal(WorkflowStartMode.Immediate, workflow.StartMode);
     }
 }

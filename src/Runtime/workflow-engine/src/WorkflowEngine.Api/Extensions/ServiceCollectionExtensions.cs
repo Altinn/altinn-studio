@@ -46,6 +46,7 @@ internal static class ServiceCollectionExtensions
                 var settings = sp.GetRequiredService<IOptions<EngineSettings>>().Value;
                 return new ConcurrencyLimiter(settings.MaxConcurrentDbOperations, settings.MaxConcurrentHttpCalls);
             });
+            services.AddSingleton<IWorkflowConcurrencyResolver, WorkflowConcurrencyResolver>();
             services.AddSingleton<IEngine, Engine>();
             services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
             services.AddHostedService<EngineHost>();

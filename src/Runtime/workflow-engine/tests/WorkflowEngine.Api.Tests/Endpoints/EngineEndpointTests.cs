@@ -36,7 +36,7 @@ public class EngineEndpointTests
         var engineMock = new Mock<IEngine>();
         engineMock
             .Setup(e => e.EnqueueWorkflow(It.IsAny<EngineRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(EngineResponse.Accept());
+            .ReturnsAsync(EngineResponse.Accept(123));
 
         // Act
         var result = await EngineRequestHandlers.Next(
@@ -48,7 +48,9 @@ public class EngineEndpointTests
         );
 
         // Assert
-        Assert.IsType<Ok>(result.Result);
+        var ok = Assert.IsType<Ok<WorkflowAcceptedResponse>>(result.Result);
+        Assert.NotNull(ok.Value);
+        Assert.Equal(123, ok.Value.WorkflowId);
     }
 
     [Fact]

@@ -31,4 +31,10 @@ public sealed record AppCallbackPayload
     /// </summary>
     [JsonPropertyName("payload")]
     public string? Payload { get; init; }
+
+    /// <summary>
+    /// The workflow database ID.
+    /// </summary>
+    [JsonPropertyName("workflowId")]
+    public required long WorkflowId { get; init; }
 }

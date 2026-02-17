@@ -23,7 +23,6 @@ internal interface IEngine
     Task Stop();
     Task<EngineResponse> EnqueueWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default);
     bool HasDuplicateWorkflow(string jobIdentifier);
-    bool HasQueuedWorkflowForInstance(InstanceInformation instanceInformation);
     Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation);
 }
 
@@ -33,6 +32,7 @@ internal partial class Engine : IEngine, IDisposable
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<Engine> _logger;
     private readonly IWorkflowExecutor _workflowExecutor;
+    private readonly IWorkflowConcurrencyResolver _concurrencyResolver;
     private readonly EngineSettings _settings;
     private readonly ConcurrentBuffer<bool> _isEnabledHistory = new();
     private readonly SemaphoreSlim _cleanupLock = new(1, 1);
@@ -61,6 +61,7 @@ internal partial class Engine : IEngine, IDisposable
         _serviceProvider = serviceProvider;
         _logger = serviceProvider.GetRequiredService<ILogger<Engine>>();
         _workflowExecutor = serviceProvider.GetRequiredService<IWorkflowExecutor>();
+        _concurrencyResolver = serviceProvider.GetRequiredService<IWorkflowConcurrencyResolver>();
         _timeProvider = serviceProvider.GetService<TimeProvider>() ?? TimeProvider.System;
         _settings = serviceProvider.GetRequiredService<IOptions<EngineSettings>>().Value;
 

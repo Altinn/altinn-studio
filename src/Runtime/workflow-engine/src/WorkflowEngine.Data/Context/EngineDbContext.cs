@@ -28,6 +28,14 @@ internal sealed class EngineDbContext : DbContext
                 e.InstanceApp,
                 e.InstanceGuid,
             });
+            entity.HasIndex(e => e.ParentWorkflowId);
+
+            // Self-referencing relationship
+            entity
+                .HasOne(e => e.Parent)
+                .WithMany(e => e.Children)
+                .HasForeignKey(e => e.ParentWorkflowId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure Step entity

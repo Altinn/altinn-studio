@@ -32,7 +32,7 @@ internal static class EngineEndpoints
 
 internal static class EngineRequestHandlers
 {
-    public static async Task<Results<Ok, NoContent, ProblemHttpResult>> Next(
+    public static async Task<Results<Ok<WorkflowAcceptedResponse>, NoContent, ProblemHttpResult>> Next(
         [AsParameters] InstanceRouteParams instanceParams,
         [FromBody] ProcessNextRequest request,
         [FromServices] IEngine engine,
@@ -48,7 +48,7 @@ internal static class EngineRequestHandlers
 
         return response switch
         {
-            EngineResponse.Accepted => TypedResults.Ok(),
+            EngineResponse.Accepted accepted => TypedResults.Ok(new WorkflowAcceptedResponse(accepted.WorkflowId)),
             EngineResponse.Rejected { Reason: EngineResponse.Rejection.Duplicate } => TypedResults.NoContent(),
             EngineResponse.Rejected rejected => TypedResults.Problem(
                 detail: rejected.Message,
@@ -101,3 +101,5 @@ internal readonly struct InstanceRouteParams
             InstanceGuid = routeParams.InstanceGuid,
         };
 }
+
+internal sealed record WorkflowAcceptedResponse(long WorkflowId);

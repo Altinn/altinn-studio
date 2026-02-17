@@ -7,6 +7,9 @@ public sealed record Workflow : PersistentItem
     public required InstanceInformation InstanceInformation { get; init; }
     public DateTimeOffset? StartAt { get; init; }
     public required IReadOnlyList<Step> Steps { get; init; }
+    public WorkflowType Type { get; init; }
+    public long? ParentWorkflowId { get; init; }
+    public WorkflowStartMode StartMode { get; init; }
 
     internal Task? DatabaseTask { get; set; }
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
@@ -22,6 +25,9 @@ public sealed record Workflow : PersistentItem
             StartAt = engineRequest.StartAt,
             DistributedTraceContext = engineRequest.TraceContext,
             OperationId = engineRequest.OperationId,
+            Type = engineRequest.Type,
+            ParentWorkflowId = engineRequest.ParentWorkflowId,
+            StartMode = engineRequest.StartMode,
             Steps = engineRequest
                 .Steps.Select((step, i) => Step.FromRequest(engineRequest, step, engineRequest.CreatedAt, i))
                 .ToList(),

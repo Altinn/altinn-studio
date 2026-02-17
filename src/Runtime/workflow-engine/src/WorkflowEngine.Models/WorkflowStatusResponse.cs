@@ -15,13 +15,41 @@ public sealed record WorkflowStatusResponse
     public required PersistentItemStatus OverallStatus { get; init; }
 
     /// <summary>
+    /// The type of workflow.
+    /// </summary>
+    [JsonPropertyName("type")]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public required WorkflowType Type { get; init; }
+
+    /// <summary>
+    /// The optional parent workflow ID.
+    /// </summary>
+    [JsonPropertyName("parentWorkflowId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public long? ParentWorkflowId { get; init; }
+
+    /// <summary>
+    /// The start mode for the workflow.
+    /// </summary>
+    [JsonPropertyName("startMode")]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public required WorkflowStartMode StartMode { get; init; }
+
+    /// <summary>
     /// Details about each step in the workflow.
     /// </summary>
     [JsonPropertyName("steps")]
     public required IReadOnlyList<StepDetail> Steps { get; init; }
 
     public static WorkflowStatusResponse FromWorkflow(Workflow workflow) =>
-        new() { OverallStatus = workflow.Status, Steps = workflow.Steps.Select(StepDetail.FromStep).ToList() };
+        new()
+        {
+            OverallStatus = workflow.Status,
+            Type = workflow.Type,
+            ParentWorkflowId = workflow.ParentWorkflowId,
+            StartMode = workflow.StartMode,
+            Steps = workflow.Steps.Select(StepDetail.FromStep).ToList(),
+        };
 }
 
 /// <summary>

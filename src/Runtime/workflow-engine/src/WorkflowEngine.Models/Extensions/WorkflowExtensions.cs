@@ -58,7 +58,17 @@ public static class WorkflowExtensions
         /// </summary>
         public bool IsReadyForExecution(DateTimeOffset now)
         {
-            if (workflow.StartAt > now)
+            bool startConditionMet = workflow.StartMode switch
+            {
+                WorkflowStartMode.Immediate => true,
+                WorkflowStartMode.Scheduled => workflow.StartAt is null || workflow.StartAt <= now,
+
+                // TODO: How do we resolve this?
+                WorkflowStartMode.AfterParent => false, // Cannot determine from workflow alone
+                _ => true,
+            };
+
+            if (!startConditionMet)
                 return false;
 
             return workflow.OrderedIncompleteSteps().FirstOrDefault()?.IsReadyForExecution(now) ?? true;

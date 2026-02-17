@@ -51,13 +51,12 @@ internal partial class Engine
             );
         }
 
-        // TODO: We need to implement support for concurrency!
-        if (HasQueuedWorkflowForInstance(engineRequest.InstanceInformation))
+        if (!_concurrencyResolver.CanAccept(engineRequest.Type, engineRequest.InstanceInformation, _inbox.Values))
         {
-            activity?.Errored(errorMessage: "Instance already has an active job. Concurrency not supported");
+            activity?.Errored(errorMessage: "Concurrency limit reached for this workflow type on this instance");
             return EngineResponse.Reject(
                 EngineResponse.Rejection.Duplicate,
-                "A job for this instance is already processing. Concurrency is currently not supported"
+                "Concurrency limit reached for this workflow type on this instance"
             );
         }
 
@@ -82,18 +81,20 @@ internal partial class Engine
         }
 
         await AcquireQueueSlot(cancellationToken);
+        long workflowId;
         using (var scope = _serviceProvider.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
             var workflow = await repository.AddWorkflow(engineRequest, cancellationToken: cancellationToken);
             _inbox[engineRequest.IdempotencyKey] = workflow;
+            workflowId = workflow.DatabaseId;
         }
         _newWorkSignal.TrySetResult();
 
         Metrics.WorkflowRequestsAccepted.Add(1);
         Metrics.StepRequestsAccepted.Add(engineRequest.Steps.Count());
 
-        return EngineResponse.Accept();
+        return EngineResponse.Accept(workflowId);
     }
 
     public bool HasDuplicateWorkflow(string jobIdentifier)
@@ -106,18 +107,6 @@ internal partial class Engine
         );
 
         return isDupe;
-    }
-
-    public bool HasQueuedWorkflowForInstance(InstanceInformation instanceInformation)
-    {
-        var instanceHasActiveWorkflow = _inbox.Values.Any(w => w.InstanceInformation == instanceInformation);
-
-        using var activity = Metrics.Source.StartActivity(
-            "Engine.HasQueuedWorkflowForInstance",
-            tags: [("instance.hasActiveWorkflow", instanceHasActiveWorkflow)]
-        );
-
-        return instanceHasActiveWorkflow;
     }
 
     public Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation)

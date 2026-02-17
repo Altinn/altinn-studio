@@ -21,7 +21,10 @@ public record EngineRequest(
     DateTimeOffset? StartAt,
     IEnumerable<StepRequest> Steps,
     string? TraceContext = null,
-    string? InstanceLockKey = null
+    string? InstanceLockKey = null,
+    WorkflowType Type = WorkflowType.Generic,
+    long? ParentWorkflowId = null,
+    WorkflowStartMode StartMode = WorkflowStartMode.Immediate
 )
 {
     /// <summary>

@@ -7,14 +7,14 @@ public abstract record EngineResponse
 {
     private EngineResponse() { }
 
-    public static Accepted Accept() => new();
+    public static Accepted Accept(long workflowId) => new(workflowId);
 
     public static Rejected Reject(Rejection reason, string? message = null) => new(reason, message);
 
     /// <summary>
     /// Represents an accepted response.
     /// </summary>
-    public sealed record Accepted : EngineResponse;
+    public sealed record Accepted(long WorkflowId) : EngineResponse;
 
     /// <summary>
     /// Represents a rejected response.

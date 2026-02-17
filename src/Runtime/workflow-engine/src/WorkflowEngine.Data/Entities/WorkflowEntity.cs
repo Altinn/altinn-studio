@@ -48,6 +48,16 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     [MaxLength(100)]
     public string? TraceContext { get; set; }
 
+    public WorkflowType Type { get; set; }
+
+    public long? ParentWorkflowId { get; set; }
+
+    public WorkflowStartMode StartMode { get; set; }
+
+    public WorkflowEntity? Parent { get; set; }
+
+    public ICollection<WorkflowEntity> Children { get; set; } = [];
+
     public ICollection<StepEntity> Steps { get; set; } = [];
 
     public static WorkflowEntity FromDomainModel(Workflow workflow) =>
@@ -68,6 +78,9 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             InstanceOwnerPartyId = workflow.InstanceInformation.InstanceOwnerPartyId,
             InstanceGuid = workflow.InstanceInformation.InstanceGuid,
             TraceContext = workflow.DistributedTraceContext,
+            Type = workflow.Type,
+            ParentWorkflowId = workflow.ParentWorkflowId,
+            StartMode = workflow.StartMode,
             Steps = workflow.Steps.OrderBy(x => x.ProcessingOrder).Select(StepEntity.FromDomainModel).ToList(),
         };
 
@@ -91,6 +104,9 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
                 InstanceGuid = InstanceGuid,
             },
             DistributedTraceContext = TraceContext,
+            Type = Type,
+            ParentWorkflowId = ParentWorkflowId,
+            StartMode = StartMode,
             Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(t => t.ToDomainModel(TraceContext)).ToList(),
         };
 }

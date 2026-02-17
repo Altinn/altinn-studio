@@ -491,12 +491,14 @@ internal static class EnginePgRepositoryQueries
         public IQueryable<WorkflowEntity> GetActiveWorkflows() =>
             dbContext
                 .Workflows.Include(j => j.Steps)
+                .Include(j => j.Parent)
                 .Where(x => x.StartAt == null || x.StartAt <= DateTime.UtcNow)
                 .Where(x => x.Steps.Any(y => _incompleteItemStatuses.Contains(y.Status)));
 
         public IQueryable<WorkflowEntity> GetScheduledWorkflows() =>
             dbContext
                 .Workflows.Include(j => j.Steps)
+                .Include(j => j.Parent)
                 .Where(x => x.StartAt == null || x.StartAt <= DateTime.UtcNow)
                 .Where(x => x.Steps.Any(y => _incompleteItemStatuses.Contains(y.Status)));
 

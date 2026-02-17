@@ -28,6 +28,9 @@ public class ProcessNextRequestTests
             LockToken = "lock-abc",
             StartAt = startAt,
             Steps = steps,
+            Type = WorkflowType.AppProcessChange,
+            ParentWorkflowId = 42,
+            StartMode = WorkflowStartMode.Scheduled,
         };
 
         // Act
@@ -43,6 +46,38 @@ public class ProcessNextRequestTests
         Assert.Same(steps, engineRequest.Steps);
         Assert.Equal(traceContext, engineRequest.TraceContext);
         Assert.Equal("lock-abc", engineRequest.InstanceLockKey);
+        Assert.Equal(WorkflowType.AppProcessChange, engineRequest.Type);
+        Assert.Equal(42, engineRequest.ParentWorkflowId);
+        Assert.Equal(WorkflowStartMode.Scheduled, engineRequest.StartMode);
+    }
+
+    [Fact]
+    public void ToEngineRequest_DefaultValues_AreCorrect()
+    {
+        // Arrange
+        var request = new ProcessNextRequest
+        {
+            CurrentElementId = "Task_1",
+            DesiredElementId = "Task_2",
+            Actor = new Actor { UserIdOrOrgNumber = "user-1" },
+            LockToken = "lock-1",
+            Steps = [],
+        };
+        var instanceInfo = new InstanceInformation
+        {
+            Org = "ttd",
+            App = "app",
+            InstanceOwnerPartyId = 1,
+            InstanceGuid = Guid.NewGuid(),
+        };
+
+        // Act
+        var engineRequest = request.ToEngineRequest(instanceInfo, DateTimeOffset.UtcNow, null);
+
+        // Assert
+        Assert.Equal(WorkflowType.Generic, engineRequest.Type);
+        Assert.Null(engineRequest.ParentWorkflowId);
+        Assert.Equal(WorkflowStartMode.Immediate, engineRequest.StartMode);
     }
 
     [Fact]

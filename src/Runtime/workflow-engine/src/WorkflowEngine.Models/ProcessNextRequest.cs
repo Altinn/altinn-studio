@@ -45,6 +45,24 @@ public sealed record ProcessNextRequest
     public required IEnumerable<StepRequest> Steps { get; init; }
 
     /// <summary>
+    /// The type of workflow.
+    /// </summary>
+    [JsonPropertyName("type")]
+    public WorkflowType Type { get; init; } = WorkflowType.Generic;
+
+    /// <summary>
+    /// The optional parent workflow ID, for hierarchical workflow chains.
+    /// </summary>
+    [JsonPropertyName("parentWorkflowId")]
+    public long? ParentWorkflowId { get; init; }
+
+    /// <summary>
+    /// The start mode for the workflow.
+    /// </summary>
+    [JsonPropertyName("startMode")]
+    public WorkflowStartMode StartMode { get; init; } = WorkflowStartMode.Immediate;
+
+    /// <summary>
     /// Converts this request to an <see cref="EngineRequest"/> with the provided instance information.
     /// </summary>
     /// <param name="instanceInformation">The instance information.</param>
@@ -64,6 +82,9 @@ public sealed record ProcessNextRequest
             StartAt,
             Steps,
             traceContext,
-            LockToken
+            LockToken,
+            Type,
+            ParentWorkflowId,
+            StartMode
         );
 };
