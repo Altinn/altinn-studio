@@ -256,6 +256,7 @@ internal partial class Engine : IEngine, IDisposable
                 default:
                     workflow.Status = PersistentItemStatus.Failed;
                     await UpdateWorkflowInDb(workflow, cancellationToken);
+                    StopActivity(workflow);
                     workflow.EngineActivity?.Errored(
                         errorMessage: $"Unknown database update status: {workflow.DatabaseUpdateStatus()}"
                     );
@@ -272,18 +273,23 @@ internal partial class Engine : IEngine, IDisposable
             workflow.EngineActivity?.Errored(ex);
             StopActivity(workflow);
 
-            // TODO: Attempt to save dirty steps here?
+            // Attempt to save dirty steps before shutting down
+            if (workflow.Steps.Any(s => s.HasPendingChanges))
+                await UpdateWorkflowAndStepsInDb(workflow, cancellationToken);
 
             return;
         }
         catch (Exception ex)
         {
             workflow.EngineActivity?.Errored(ex);
-            StopActivity(workflow);
+            StopActivity(workflow, dispose: false);
+
+            Metrics.WorkflowsRequeued.Add(1);
             Metrics.Errors.Add(
                 1,
                 ("operation", "workflowProcessing"),
-                ("target", workflow.InstanceInformation.ToString())
+                ("target", workflow.InstanceInformation.ToString()),
+                ("operation", workflow.OperationId)
             );
 
             _logger.WorkflowProcessingFailed(workflow, ex.Message, ex);
@@ -381,6 +387,13 @@ internal partial class Engine : IEngine, IDisposable
             {
                 step.EngineActivity?.Errored(ex);
                 StopActivity(step);
+
+                Metrics.Errors.Add(
+                    1,
+                    ("operation", "stepProcessing"),
+                    ("target", workflow.InstanceInformation.ToString()),
+                    ("operation", step.OperationId)
+                );
 
                 // WorkflowExecutor handles all known errors, so we can assume that any exception here is not retryable
                 UpdateStepStatusAndRetryDecision(step, previous, ExecutionResult.CriticalError(ex));

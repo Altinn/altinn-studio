@@ -134,13 +134,9 @@ public static class TelemetryExtensions
             counter.Add(value, new KeyValuePair<string, object?>(tag.tag, tag.value));
         }
 
-        public void Add(long value, (string tag, object? value) tag1, (string tag, object? value) tag2)
+        public void Add(long value, params (string tag, object? value)[] tags)
         {
-            counter.Add(
-                value,
-                new KeyValuePair<string, object?>(tag1.tag, tag1.value),
-                new KeyValuePair<string, object?>(tag2.tag, tag2.value)
-            );
+            counter.Add(value, tags.Select(t => new KeyValuePair<string, object?>(t.tag, t.value)).ToArray());
         }
     }
 

@@ -13,7 +13,7 @@ internal partial class Engine
     )
     {
         using var activity = Metrics.Source.StartActivity(
-            $"{Metrics.ActivityPrefix}.EnqueueWorkflow",
+            "Engine.EnqueueWorkflow",
             tags:
             [
                 ("request.operation.id", engineRequest.OperationId),
@@ -101,7 +101,7 @@ internal partial class Engine
         bool isDupe = _inbox.ContainsKey(jobIdentifier);
 
         using var activity = Metrics.Source.StartActivity(
-            $"{Metrics.ActivityPrefix}.HasDuplicateWorkflow",
+            "Engine.HasDuplicateWorkflow",
             tags: [("workflow.isDuplicate", isDupe)]
         );
 
@@ -113,7 +113,7 @@ internal partial class Engine
         var instanceHasActiveWorkflow = _inbox.Values.Any(w => w.InstanceInformation == instanceInformation);
 
         using var activity = Metrics.Source.StartActivity(
-            $"{Metrics.ActivityPrefix}.HasQueuedWorkflowForInstance",
+            "Engine.HasQueuedWorkflowForInstance",
             tags: [("instance.hasActiveWorkflow", instanceHasActiveWorkflow)]
         );
 
@@ -122,7 +122,7 @@ internal partial class Engine
 
     public Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation)
     {
-        using var activity = Metrics.Source.StartActivity($"{Metrics.ActivityPrefix}.GetWorkflowForInstance");
+        using var activity = Metrics.Source.StartActivity("Engine.GetWorkflowForInstance");
 
         return _inbox.Values.FirstOrDefault(w => w.InstanceInformation == instanceInformation);
     }
@@ -130,7 +130,7 @@ internal partial class Engine
     // TODO: We probably want a background process to periodically pull from the database, so we can catch scheduled tasks and other things we've been ignoring
     private async Task PopulateWorkflowsFromDb(CancellationToken cancellationToken)
     {
-        using var activity = Metrics.Source.StartActivity($"{Metrics.ActivityPrefix}.PopulateWorkflowsFromDb");
+        using var activity = Metrics.Source.StartActivity("Engine.PopulateWorkflowsFromDb");
 
         // TODO: Disabled for now. We don't necessarily want to resume jobs after restart while testing.
         return;
@@ -155,7 +155,7 @@ internal partial class Engine
     private async Task UpdateWorkflowInDb(Workflow workflow, CancellationToken cancellationToken)
     {
         using var activity = Metrics.Source.StartActivity(
-            $"{Metrics.ActivityPrefix}.UpdateWorkflowInDb",
+            "Engine.UpdateWorkflowInDb",
             parentContext: workflow.EngineActivity?.Context,
             tags: [("workflow.status", workflow.Status.ToString())]
         );
@@ -168,7 +168,7 @@ internal partial class Engine
     private async Task UpdateWorkflowAndStepsInDb(Workflow workflow, CancellationToken cancellationToken)
     {
         using var activity = Metrics.Source.StartActivity(
-            $"{Metrics.ActivityPrefix}.UpdateWorkflowAndStepsInDb",
+            "Engine.UpdateWorkflowAndStepsInDb",
             parentContext: workflow.EngineActivity?.Context,
             tags: [("workflow.status", workflow.Status.ToString()), ("workflow.steps.count", workflow.Steps.Count)]
         );
@@ -183,7 +183,6 @@ internal partial class Engine
             updateStepTimestamps: false,
             cancellationToken: cancellationToken
         );
-        //await repository.UpdateWorkflow(workflow, cancellationToken: cancellationToken);
     }
 
     // Keep for now
@@ -192,7 +191,7 @@ internal partial class Engine
 #pragma warning restore S1144
     {
         using var activity = Metrics.Source.StartActivity(
-            $"{Metrics.ActivityPrefix}.UpdateStepInDb",
+            "Engine.UpdateStepInDb",
             parentContext: step.EngineActivity?.Context,
             tags: [("step.status", step.Status.ToString())]
         );

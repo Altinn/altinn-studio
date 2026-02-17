@@ -45,7 +45,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
             "WorkflowExecutor.Execute",
             parentContext: step.EngineActivity?.Context
         );
-        using var slot = await _limiter.AcquireHttpSlotAsync(cancellationToken); // TODO: Perhaps move to actual http methods?
+        using var slot = await _limiter.AcquireHttpSlot(cancellationToken); // TODO: Perhaps move to actual http methods?
         _logger.ExecutingStep(step, workflow);
 
         using CancellationTokenSource cts = CreateExecutionTokenSource(step, cancellationToken);

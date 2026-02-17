@@ -92,7 +92,7 @@ internal partial class Engine
 
     private async Task AcquireQueueSlot(CancellationToken cancellationToken = default)
     {
-        using var activity = Metrics.Source.StartActivity($"{Metrics.ActivityPrefix}.AcquireQueueSlot");
+        using var activity = Metrics.Source.StartActivity("Engine.AcquireQueueSlot");
         _logger.AcquiringQueueSlot();
 
         await _inboxCapacityLimit.WaitAsync(cancellationToken);

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
@@ -17,11 +18,24 @@ public static class ServiceCollectionExtensions
         {
             ArgumentException.ThrowIfNullOrEmpty(connectionString);
 
+            var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString)
+            {
+                ConnectionStringBuilder =
+                {
+                    MaxPoolSize = 100,
+                    MinPoolSize = 10,
+                    Timeout = 30,
+                    KeepAlive = 60,
+                },
+            };
+            var dataSource = dataSourceBuilder.Build();
+
+            services.AddSingleton(dataSource);
             services.AddTransient<IEngineRepository, EnginePgRepository>();
             services.AddDbContext<EngineDbContext>(
                 options =>
                 {
-                    options.UseNpgsql(connectionString);
+                    options.UseNpgsql(dataSource);
                     if (enableSensitiveDataLogging)
                         options.EnableSensitiveDataLogging();
                 },
@@ -29,6 +43,7 @@ public static class ServiceCollectionExtensions
                 optionsLifetime: ServiceLifetime.Singleton
             );
             services.AddScoped<DbMigrationService>();
+            services.AddScoped<DbConnectionResetService>();
 
             return services;
         }

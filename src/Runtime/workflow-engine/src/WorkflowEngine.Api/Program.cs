@@ -28,6 +28,10 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
+// Reset stale database connections in development (e.g. from ungraceful shutdowns during load testing)
+if (builder.Environment.IsDevelopment())
+    await app.ResetDatabaseConnections(dbConnectionString);
+
 // Apply database migrations
 await app.ApplyDatabaseMigrations(dbConnectionString);
 

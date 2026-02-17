@@ -7,6 +7,25 @@ namespace WorkflowEngine.Api.Extensions;
 internal static class HostExtensions
 {
     /// <summary>
+    /// Terminates all existing connections to the database.
+    /// Only intended for development use, to clear stale connections from ungraceful shutdowns.
+    /// </summary>
+    public static async Task ResetDatabaseConnections(
+        this IHost host,
+        string dbConnectionString,
+        CancellationToken cancellationToken = default
+    )
+    {
+        _ = host.Services.GetService<TracerProvider>();
+
+        using var activity = Metrics.Source.StartActivity("Engine.ResetDatabaseConnections");
+
+        using var scope = host.Services.CreateScope();
+        var resetService = scope.ServiceProvider.GetRequiredService<DbConnectionResetService>();
+        await resetService.ResetConnections(dbConnectionString, cancellationToken);
+    }
+
+    /// <summary>
     /// Applies any pending database migrations with distributed locking.
     /// Should be called before the application starts handling requests.
     /// </summary>
@@ -20,10 +39,10 @@ internal static class HostExtensions
         // Without this, StartActivity returns null because the host hasn't started yet.
         _ = host.Services.GetService<TracerProvider>();
 
-        using var activity = Metrics.Source.StartActivity($"{Metrics.ActivityPrefix}.ApplyDatabaseMigrations");
+        using var activity = Metrics.Source.StartActivity("Engine.ApplyDatabaseMigrations");
 
         using var scope = host.Services.CreateScope();
         var migrationService = scope.ServiceProvider.GetRequiredService<DbMigrationService>();
-        await migrationService.MigrateAsync(dbConnectionString, cancellationToken);
+        await migrationService.Migrate(dbConnectionString, cancellationToken);
     }
 }

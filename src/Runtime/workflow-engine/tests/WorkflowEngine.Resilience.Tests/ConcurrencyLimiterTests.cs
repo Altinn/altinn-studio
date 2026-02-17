@@ -25,7 +25,7 @@ public sealed class ConcurrencyLimiterTests : IDisposable
     public async Task AcquireDbSlot_DecrementsAvailable_AndReleasingRestores()
     {
         // Act
-        var slot = await _limiter.AcquireDbSlotAsync(TestContext.Current.CancellationToken);
+        var slot = await _limiter.AcquireDbSlot(TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(2, _limiter.DbSlotStatus.Available);
@@ -41,7 +41,7 @@ public sealed class ConcurrencyLimiterTests : IDisposable
     public async Task AcquireHttpSlot_DecrementsAvailable_AndReleasingRestores()
     {
         // Act
-        var slot = await _limiter.AcquireHttpSlotAsync(TestContext.Current.CancellationToken);
+        var slot = await _limiter.AcquireHttpSlot(TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(1, _limiter.HttpSlotStatus.Available);
@@ -57,12 +57,12 @@ public sealed class ConcurrencyLimiterTests : IDisposable
     public async Task SlotExhaustion_BlocksUntilReleased()
     {
         // Arrange — exhaust all HTTP slots (2)
-        var slot1 = await _limiter.AcquireHttpSlotAsync(TestContext.Current.CancellationToken);
-        var slot2 = await _limiter.AcquireHttpSlotAsync(TestContext.Current.CancellationToken);
+        var slot1 = await _limiter.AcquireHttpSlot(TestContext.Current.CancellationToken);
+        var slot2 = await _limiter.AcquireHttpSlot(TestContext.Current.CancellationToken);
         Assert.Equal(0, _limiter.HttpSlotStatus.Available);
 
         // Act — try to acquire a third slot, it should block
-        var acquireTask = _limiter.AcquireHttpSlotAsync(TestContext.Current.CancellationToken);
+        var acquireTask = _limiter.AcquireHttpSlot(TestContext.Current.CancellationToken);
         Assert.False(acquireTask.IsCompleted);
 
         // Release one slot
@@ -84,13 +84,13 @@ public sealed class ConcurrencyLimiterTests : IDisposable
         // Arrange — exhaust all DB slots
         var slots = new List<IDisposable>();
         for (int i = 0; i < 3; i++)
-            slots.Add(await _limiter.AcquireDbSlotAsync(TestContext.Current.CancellationToken));
+            slots.Add(await _limiter.AcquireDbSlot(TestContext.Current.CancellationToken));
 
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
         // Act & Assert
-        await Assert.ThrowsAsync<TaskCanceledException>(() => _limiter.AcquireDbSlotAsync(cts.Token));
+        await Assert.ThrowsAsync<TaskCanceledException>(() => _limiter.AcquireDbSlot(cts.Token));
 
         // Cleanup
         foreach (var slot in slots)

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Resilience;
@@ -18,12 +17,12 @@ public interface IConcurrencyLimiter
     /// <summary>
     /// Acquires a database slot.
     /// </summary>
-    Task<IDisposable> AcquireDbSlotAsync(CancellationToken cancellationToken = default);
+    Task<IDisposable> AcquireDbSlot(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Acquires an HTTP slot.
     /// </summary>
-    Task<IDisposable> AcquireHttpSlotAsync(CancellationToken cancellationToken = default);
+    Task<IDisposable> AcquireHttpSlot(CancellationToken cancellationToken = default);
 }
 
 public sealed class ConcurrencyLimiter : IDisposable, IConcurrencyLimiter
@@ -59,25 +58,19 @@ public sealed class ConcurrencyLimiter : IDisposable, IConcurrencyLimiter
     }
 
     /// <inheritdoc/>
-    public async Task<IDisposable> AcquireDbSlotAsync(CancellationToken cancellationToken = default)
+    public async Task<IDisposable> AcquireDbSlot(CancellationToken cancellationToken = default)
     {
-        await WaitForSemaphoreAndTagActivityDuration(
-            _dbSemaphore,
-            $"{Metrics.MeteringPrefix}.concurrency.wait.db",
-            cancellationToken
-        );
+        using var activity = Metrics.Source.StartActivity("ConcurrencyLimiter.AcquireDbSlot");
+        await _dbSemaphore.WaitAsync(cancellationToken);
 
         return new SemaphoreReleaser(_dbSemaphore);
     }
 
     /// <inheritdoc/>
-    public async Task<IDisposable> AcquireHttpSlotAsync(CancellationToken cancellationToken = default)
+    public async Task<IDisposable> AcquireHttpSlot(CancellationToken cancellationToken = default)
     {
-        await WaitForSemaphoreAndTagActivityDuration(
-            _httpSemaphore,
-            $"{Metrics.MeteringPrefix}.concurrency.wait.http",
-            cancellationToken
-        );
+        using var activity = Metrics.Source.StartActivity("ConcurrencyLimiter.AcquireHttpSlot");
+        await _httpSemaphore.WaitAsync(cancellationToken);
 
         return new SemaphoreReleaser(_httpSemaphore);
     }
@@ -86,34 +79,6 @@ public sealed class ConcurrencyLimiter : IDisposable, IConcurrencyLimiter
     {
         _dbSemaphore.Dispose();
         _httpSemaphore.Dispose();
-    }
-
-    private static async Task WaitForSemaphoreAndTagActivityDuration(
-        SemaphoreSlim semaphore,
-        string tagPrefix,
-        CancellationToken cancellationToken
-    )
-    {
-        var elapsed = Stopwatch.StartNew();
-        await semaphore.WaitAsync(cancellationToken);
-        elapsed.Stop();
-
-        TagActivityWaitDuration(Activity.Current, tagPrefix, elapsed.Elapsed);
-    }
-
-    private static void TagActivityWaitDuration(Activity? activity, string tagPrefix, TimeSpan duration)
-    {
-        if (activity is null)
-            return;
-
-        var durationTag = $"{tagPrefix}.duration";
-        var countTag = $"{tagPrefix}.count";
-
-        var previousDuration = activity.GetTagItem(durationTag) as double? ?? 0.0;
-        var previousCount = activity.GetTagItem(countTag) as int? ?? 0;
-
-        activity.SetTag(durationTag, previousDuration + duration.TotalSeconds);
-        activity.SetTag(countTag, previousCount + 1);
     }
 
     private sealed class SemaphoreReleaser(SemaphoreSlim semaphore) : IDisposable
