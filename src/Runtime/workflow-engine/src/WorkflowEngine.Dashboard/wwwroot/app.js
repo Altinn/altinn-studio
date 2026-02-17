@@ -110,8 +110,9 @@
     guidChips:        /** @type {HTMLElement} */ (document.getElementById('guid-chips')),
     scheduledSection: /** @type {HTMLElement} */ (document.getElementById('scheduled-section')),
     scheduledContainer: /** @type {HTMLElement} */ (document.getElementById('scheduled-workflows')),
-    connBadge:        /** @type {HTMLElement} */ (document.getElementById('connection')),
-    connText:         /** @type {HTMLElement} */ (document.getElementById('connection-text')),
+    sseDot:           /** @type {HTMLElement} */ (document.getElementById('sse-dot')),
+    engineIcon:       /** @type {HTMLElement} */ (document.getElementById('engine-icon')),
+    engineIconTitle:  /** @type {HTMLElement} */ (document.getElementById('engine-icon-title')),
     modal:            /** @type {HTMLElement} */ (document.getElementById('step-modal')),
     modalTitle:       /** @type {HTMLElement} */ (document.getElementById('modal-title')),
     modalBody:        /** @type {HTMLElement} */ (document.getElementById('modal-body')),
@@ -153,10 +154,7 @@
     const showStatus = opts?.showStatus ?? false;
 
     if (showStatus) {
-      es.onopen = () => {
-        dom.connBadge.className = 'connection connected';
-        dom.connText.textContent = 'SSE Connected';
-      };
+      es.onopen = () => { dom.sseDot.className = 'sse-dot connected'; };
     }
 
     es.onmessage = (e) => {
@@ -166,8 +164,9 @@
 
     es.onerror = () => {
       if (showStatus) {
-        dom.connBadge.className = 'connection disconnected';
-        dom.connText.textContent = 'SSE Disconnected';
+        dom.sseDot.className = 'sse-dot disconnected';
+        dom.engineIcon.setAttribute('class', 'engine-icon stopped');
+        dom.engineIconTitle.textContent = 'Stopped';
       }
       es.close();
       setTimeout(() => connectSSE(url, onMessage, opts), 2000);
@@ -192,23 +191,19 @@
 
   /** @param {EngineStatus} s */
   const updateStatusBadges = (s) => {
-    const rb = /** @type {HTMLElement} */ (document.getElementById('badge-running'));
-    const rt = /** @type {HTMLElement} */ (document.getElementById('badge-running-text'));
-    const hb = /** @type {HTMLElement} */ (document.getElementById('badge-healthy'));
-    const ht = /** @type {HTMLElement} */ (document.getElementById('badge-healthy-text'));
+    let cls = 'stopped';
+    let label = 'Stopped';
 
-    if (s.running) { rb.className = 'badge running'; rt.textContent = 'Running'; }
-    else           { rb.className = 'badge stopped';  rt.textContent = 'Stopped'; }
-
-    if (s.healthy) { hb.className = 'badge healthy';   ht.textContent = 'Healthy';   }
-    else           { hb.className = 'badge unhealthy'; ht.textContent = 'Unhealthy'; }
-
-    if (s.idle)     { rb.className = 'badge idle';     rt.textContent = 'Idle';     }
-    if (s.disabled) { rb.className = 'badge disabled'; rt.textContent = 'Disabled'; }
-    if (s.queueFull) {
-      hb.className = 'badge queue-full';
-      ht.textContent = 'Queue Full';
+    if (s.running) {
+      cls = 'running'; label = 'Running';
+      if (s.idle)      { cls = 'idle';       label = 'Idle';       }
+      if (s.queueFull) { cls = 'queue-full'; label = 'Queue Full'; }
+      if (!s.healthy)  { cls = 'unhealthy';  label = 'Unhealthy';  }
     }
+    if (s.disabled) { cls = 'disabled'; label = 'Disabled'; }
+
+    dom.engineIcon.setAttribute('class', `engine-icon ${cls}`);
+    dom.engineIconTitle.textContent = label;
   };
 
   /* ============================================================

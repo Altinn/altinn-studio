@@ -16,39 +16,37 @@ body{min-height:100vh;padding:0}
 }
 .header h1{font-size:18px;font-weight:700;letter-spacing:2px;color:var(--text-bright);
   text-shadow:0 0 20px rgba(0,212,255,0.3)}
-.header h1 .bolt{color:var(--cyan);margin-right:8px}
 
-/* ── Status badges & SSE indicator ────────────────────────── */
-.status-badges{display:flex;gap:12px;align-items:center}
-.badge{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;
-  border:1px solid var(--border);background:var(--bg3);
-}
-.badge .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
-.badge.running .dot{background:var(--green);box-shadow:0 0 8px var(--green)}
-.badge.stopped .dot{background:var(--red);box-shadow:0 0 8px var(--red)}
-.badge.healthy .dot{background:var(--green);box-shadow:0 0 8px var(--green)}
-.badge.unhealthy .dot{background:var(--red);box-shadow:0 0 8px var(--red)}
-.badge.idle .dot{background:var(--amber);box-shadow:0 0 6px var(--amber)}
-.badge.disabled .dot{background:var(--gray)}
-.badge.queue-full .dot{background:var(--red);box-shadow:0 0 8px var(--red)}
+/* ── Engine status (cog icon + label) ────────────────────── */
+.engine-icon{transition:color 0.3s,filter 0.3s}
+.engine-icon.running{color:var(--cyan);filter:drop-shadow(0 0 6px rgba(0,212,255,0.6));animation:cog-spin 3s linear infinite}
+.engine-icon.idle{color:var(--text-dim);filter:none;animation:cog-spin 12s linear infinite}
+.engine-icon.stopped{color:var(--red);filter:drop-shadow(0 0 6px rgba(255,51,102,0.6));animation:none}
+.engine-icon.unhealthy{color:var(--red);filter:drop-shadow(0 0 6px rgba(255,51,102,0.6));animation:none}
+.engine-icon.disabled{color:var(--gray);filter:none;animation:none}
+.engine-icon.queue-full{color:var(--red);filter:drop-shadow(0 0 6px rgba(255,51,102,0.6));animation:none}
+@keyframes cog-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
-.connection{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-dim)}
-.connection .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
-.connection.connected .dot{background:var(--green)}
-.connection.disconnected .dot{background:var(--red)}
+/* ── SSE dot (in Live tab) ───────────────────────────────── */
+.sse-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
+.sse-dot.connected{background:var(--green);box-shadow:0 0 6px var(--green)}
+.sse-dot.disconnected{background:var(--red);box-shadow:0 0 6px var(--red)}
 
-/* ── Capacity meters ──────────────────────────────────────── */
-.capacity-section{display:flex;gap:16px;padding:12px 24px;border-bottom:1px solid var(--border)}
-.meter{display:flex;align-items:center;gap:8px;flex:1}
-.meter-label{font-size:12px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
-.meter-bar{flex:1;height:18px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative;border:1px solid var(--border)}
+/* ── Header meters (inline capacity bars) ────────────────── */
+.header-meters{display:flex;gap:12px;align-items:center;margin-left:auto}
+.meter{display:flex;align-items:center;gap:6px}
+.meter-label{font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
+.meter-bar{width:120px;height:20px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative;border:1px solid var(--border)}
 .meter-fill{height:100%;border-radius:3px;transition:width 0.5s ease,background 0.5s ease;min-width:0}
 .meter-fill.low{background:linear-gradient(90deg,var(--cyan),var(--green))}
 .meter-fill.mid{background:linear-gradient(90deg,var(--amber),var(--orange))}
 .meter-fill.high{background:linear-gradient(90deg,var(--orange),var(--red))}
-.meter-value{white-space:nowrap;font-size:12px;font-variant-numeric:tabular-nums;color:var(--text)}
+.meter-value{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;
+  color:var(--text-bright);text-shadow:0 0 4px var(--bg),0 0 2px var(--bg),1px 1px 0 var(--bg);
+  pointer-events:none;letter-spacing:0.5px;
+}
 
 /* ── Filter bar ──────────────────────────────────────────── */
 .filter-bar{

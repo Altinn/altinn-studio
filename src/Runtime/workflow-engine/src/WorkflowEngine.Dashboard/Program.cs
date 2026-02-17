@@ -20,28 +20,34 @@ app.MapGet(
         ctx.Response.Headers.CacheControl = "no-cache";
         ctx.Response.Headers.Connection = "keep-alive";
 
-        var fileProvider = env.WebRootFileProvider;
+        // Polling-based: Docker bind mounts on Windows don't propagate
+        // inotify events, so FileProvider.Watch() won't fire.
+        var webRoot = env.WebRootPath;
+        var lastHash = HashWebRoot(webRoot);
+
         while (!ct.IsCancellationRequested)
         {
-            var tcs = new TaskCompletionSource();
-            var watcher = fileProvider.Watch("**/*.*");
-            using var cbReg = watcher.RegisterChangeCallback(_ => tcs.TrySetResult(), null);
-
-            using var reg = ct.Register(() => tcs.TrySetCanceled());
-            try
+            await Task.Delay(500, ct);
+            var currentHash = HashWebRoot(webRoot);
+            if (currentHash != lastHash)
             {
-                await tcs.Task;
+                lastHash = currentHash;
+                await ctx.Response.WriteAsync("data: reload\n\n", ct);
+                await ctx.Response.Body.FlushAsync(ct);
             }
-            catch (TaskCanceledException)
-            {
-                break;
-            }
-
-            await Task.Delay(100, ct); // debounce rapid saves
-            await ctx.Response.WriteAsync("data: reload\n\n", ct);
-            await ctx.Response.Body.FlushAsync(ct);
         }
     }
 );
+
+static long HashWebRoot(string path)
+{
+    long hash = 0;
+    foreach (var file in Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories))
+    {
+        var info = new FileInfo(file);
+        hash = hash * 31 + info.LastWriteTimeUtc.Ticks ^ info.Length;
+    }
+    return hash;
+}
 
 await app.RunAsync();
