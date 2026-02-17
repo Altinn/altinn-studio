@@ -70,6 +70,7 @@ body{min-height:100vh;padding:0}
 
 .status-chips{display:flex;gap:6px}
 .chip-sep{width:1px;background:var(--border);align-self:stretch;margin:0 4px}
+.chip-label{font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
 .chip{
   background:var(--bg3);color:var(--text-dim);border:1px solid var(--border);
   padding:5px 12px;border-radius:16px;font-family:var(--font);font-size:12px;

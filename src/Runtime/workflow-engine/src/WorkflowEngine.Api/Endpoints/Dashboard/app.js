@@ -745,11 +745,15 @@
   };
 
   const updateSeparators = () => {
-    const show = (id, el) => /** @type {HTMLElement} */ (document.getElementById(id)).style.display = el.children.length > 0 ? '' : 'none';
-    show('sep-org', dom.orgChips);
-    show('sep-app', dom.appChips);
-    /** @type {HTMLElement} */ (document.getElementById('sep-party')).style.display = state.partyFilter.size > 0 ? '' : 'none';
-    /** @type {HTMLElement} */ (document.getElementById('sep-guid')).style.display = state.guidFilter.size > 0 ? '' : 'none';
+    /** @param {string} sepId @param {string} labelId @param {boolean} visible */
+    const toggle = (sepId, labelId, visible) => {
+      /** @type {HTMLElement} */ (document.getElementById(sepId)).style.display = visible ? '' : 'none';
+      /** @type {HTMLElement} */ (document.getElementById(labelId)).style.display = visible ? '' : 'none';
+    };
+    toggle('sep-org', 'label-org', dom.orgChips.children.length > 0);
+    toggle('sep-app', 'label-app', dom.appChips.children.length > 0);
+    toggle('sep-party', 'label-party', state.partyFilter.size > 0);
+    toggle('sep-guid', 'label-guid', state.guidFilter.size > 0);
   };
 
   const refreshChips = () => {
