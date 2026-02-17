@@ -54,30 +54,26 @@ internal static class HandleAlerts
             metricsClientSettings.Provider
         );
 
-        var alerts = alertPayload
+        var validAlerts = alertPayload
             .Alerts.Where(a =>
             {
                 var ruleId = a.Annotations.GetValueOrDefault("ruleId");
                 return !string.IsNullOrEmpty(ruleId) && AzureMonitorClient.OperationNameKeys.Contains(ruleId);
-            })
-            .GroupBy(a => a.Annotations["ruleId"])
+            });
+
+        int? intervalInMinutes = int.TryParse(
+            validAlerts.First().Annotations.GetValueOrDefault("intervalInMinutes"),
+            out var interval
+        ) ? interval : null;
+
+        var now = DateTimeOffset.UtcNow;
+        var from = intervalInMinutes.HasValue ? now.AddMinutes(-intervalInMinutes.Value) : now.AddMinutes(-60);
+
+        var alerts = validAlerts.GroupBy(a => a.Annotations["ruleId"])
             .Select(alertGroup =>
             {
-                var intervalInMinutes = int.TryParse(
-                    alertGroup.First().Annotations.GetValueOrDefault("intervalInMinutes"),
-                    out var interval
-                )
-                    ? interval
-                    : (int?)null;
-
-                var apps = alertGroup
-                    .Select(a => a.Labels.GetValueOrDefault("cloud_RoleName", "unknown"))
-                    .Where(app => app != "unknown")
-                    .Distinct()
-                    .ToList();
-
-                var now = DateTimeOffset.UtcNow;
-                var from = intervalInMinutes.HasValue ? now.AddMinutes(-intervalInMinutes.Value) : now.AddMinutes(-60);
+                var apps = alertGroup.Select(a => a.Labels.GetValueOrDefault("cloud_RoleName")).OfType<string>().Distinct().ToList();
+                var logsUrl = apps.Count > 0 ? metricsClient.GetLogsUrl(gatewayContext.AzureSubscriptionId, gatewayContext.ServiceOwner, gatewayContext.Environment, apps, alertGroup.Key, from, now) : null;
 
                 return new Alert
                 {
@@ -89,18 +85,7 @@ internal static class HandleAlerts
                         App = a.Labels.GetValueOrDefault("cloud_RoleName", "unknown"),
                     }),
                     URL = alertGroup.First().GeneratorURL,
-                    LogsUrl =
-                        apps.Count > 0
-                            ? metricsClient.GetLogsUrl(
-                                gatewayContext.AzureSubscriptionId,
-                                gatewayContext.ServiceOwner,
-                                gatewayContext.Environment,
-                                apps,
-                                alertGroup.Key,
-                                from,
-                                now
-                            )
-                            : null,
+                    LogsUrl = logsUrl,
                 };
             });
 
