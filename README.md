@@ -97,7 +97,6 @@ DEVELOP_STUDIO_ROOT=0
 ```
 
 ## Developing Backend
-[scripts](scripts)
 Navigate to the designer backend folder `cd backend/src/Designer`. The first time running, or after any package changes,
 get the latest packages.
 
