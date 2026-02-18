@@ -81,6 +81,7 @@ public sealed record ProcessNextRequest
             WorkflowType.AppProcessChange,
             traceContext,
             LockToken,
-            Metadata
+            Metadata,
+            Dependencies
         );
 };

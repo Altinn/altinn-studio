@@ -250,10 +250,11 @@ internal sealed class EnginePgRepository : IEngineRepository
             _logger.AddingWorkflow(workflowEnqueueRequest);
 
             // Resolve and validate dependencies
+            List<WorkflowEntity>? dependencyEntities = null;
             IReadOnlyList<Workflow>? dependencies = null;
             if (workflowEnqueueRequest.Dependencies?.Any() is true)
             {
-                var dependencyEntities = await _context
+                dependencyEntities = await _context
                     .Workflows.Where(x => workflowEnqueueRequest.Dependencies.Contains(x.Id))
                     .ToListAsync(cancellationToken);
 
@@ -268,6 +269,10 @@ internal sealed class EnginePgRepository : IEngineRepository
             // Add workflow to database
             var workflow = Workflow.FromRequest(workflowEnqueueRequest, dependencies: dependencies);
             var entity = WorkflowEntity.FromDomainModel(workflow);
+
+            // Use already-tracked dependency entities to avoid EF trying to re-insert them
+            entity.Dependencies = dependencyEntities;
+
             var dbRecord = await _context.Workflows.AddAsync(entity, cancellationToken);
 
             _logger.SuccessfullyAddedWorkflow(workflow);
