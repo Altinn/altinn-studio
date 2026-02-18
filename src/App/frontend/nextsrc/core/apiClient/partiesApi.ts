@@ -25,4 +25,8 @@ export class PartiesApi {
 
     return result;
   }
+
+  public static async updateSelectedParty(selectedPartyId: string) {
+    return axiosInstance.put(`/api/v1/parties/${selectedPartyId}`);
+  }
 }
