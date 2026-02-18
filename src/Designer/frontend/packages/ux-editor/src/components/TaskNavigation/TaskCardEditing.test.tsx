@@ -12,8 +12,7 @@ const updateProcessDataTypesMutation = jest.fn().mockImplementation((params, opt
   options.onSettled();
 });
 const updateLayoutSetIdMutation = jest.fn().mockImplementation((params, options) => {
-  if (options?.onSuccess) options.onSuccess();
-  if (options?.onSettled) options.onSettled();
+  options.onSettled();
 });
 jest.mock('app-development/hooks/mutations/useUpdateProcessDataTypesMutation', () => ({
   useUpdateProcessDataTypesMutation: () => ({ mutate: updateProcessDataTypesMutation }),

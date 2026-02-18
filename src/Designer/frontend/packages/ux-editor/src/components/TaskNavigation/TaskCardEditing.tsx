@@ -6,14 +6,12 @@ import {
   StudioSelect,
   StudioTextfield,
 } from '@studio/components';
-import { useQueryClient } from '@tanstack/react-query';
 import { useUpdateLayoutSetIdMutation } from 'app-development/hooks/mutations/useUpdateLayoutSetIdMutation';
 import { useUpdateProcessDataTypesMutation } from 'app-development/hooks/mutations/useUpdateProcessDataTypesMutation';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import React, { type ChangeEvent } from 'react';
 import classes from './TaskCardEditing.module.css';
@@ -29,7 +27,6 @@ export type TaskCardEditingProps = {
 export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
 
   const { mutate: updateProcessDataType, isPending: updateProcessDataTypePending } =
     useUpdateProcessDataTypesMutation(org, app);
@@ -70,13 +67,7 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
     if (idChanged) {
       mutateLayoutSetId(
         { layoutSetIdToUpdate: layoutSetModel.id, newLayoutSetId: id },
-        {
-          onSuccess: () => {
-            queryClient
-              .refetchQueries({ queryKey: [QueryKey.LayoutSetsExtended, org, app] })
-              .finally(() => onClose());
-          },
-        },
+        { onSettled },
       );
     }
     if (dataTypeChanged) {
