@@ -7,14 +7,15 @@ using Azure.Core;
 using Azure.Monitor.Query.Logs;
 using Azure.Monitor.Query.Logs.Models;
 using Azure.ResourceManager.OperationalInsights;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Gateway.Api.Clients.MetricsClient;
 
-internal sealed class AzureMonitorClient(GatewayContext _gatewayContext, LogsQueryClient _logsQueryClient)
-    : IMetricsClient
+internal sealed class AzureMonitorClient(
+    IOptionsMonitor<GatewayContext> _gatewayContext,
+    LogsQueryClient _logsQueryClient
+) : IMetricsClient
 {
-    private ResourceIdentifier? _workspaceId;
-
     private const int MaxRange = 10080;
 
     private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
@@ -46,10 +47,11 @@ internal sealed class AzureMonitorClient(GatewayContext _gatewayContext, LogsQue
 
     private ResourceIdentifier GetApplicationLogAnalyticsWorkspaceId()
     {
-        return _workspaceId ??= OperationalInsightsWorkspaceResource.CreateResourceIdentifier(
-            _gatewayContext.AzureSubscriptionId,
-            $"monitor-{_gatewayContext.ServiceOwner}-{_gatewayContext.Environment}-rg",
-            $"application-{_gatewayContext.ServiceOwner}-{_gatewayContext.Environment}-law"
+        var gatewayContext = _gatewayContext.CurrentValue;
+        return OperationalInsightsWorkspaceResource.CreateResourceIdentifier(
+            gatewayContext.AzureSubscriptionId,
+            $"monitor-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-rg",
+            $"application-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-law"
         );
     }
 

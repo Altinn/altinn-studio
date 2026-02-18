@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Gateway.Api.Authentication;
 
@@ -26,7 +27,7 @@ internal sealed class IssuerSchemeCache
 
 internal sealed class IssuerSchemeCacheInitializer(
     IssuerSchemeCache _cache,
-    IConfiguration _configuration,
+    IOptionsMonitor<MaskinportenSettings> _settings,
     IHttpClientFactory _httpClientFactory,
     ILogger<IssuerSchemeCacheInitializer> _logger
 ) : IHostedService
@@ -37,9 +38,9 @@ internal sealed class IssuerSchemeCacheInitializer(
         cts.CancelAfter(TimeSpan.FromSeconds(20));
         cancellationToken = cts.Token;
 
-        var metadataAddresses =
-            _configuration.GetSection("Maskinporten:MetadataAddresses").Get<string[]>()
-            ?? throw new InvalidOperationException("Maskinporten:MetadataAddresses configuration is required");
+        var metadataAddresses = _settings.CurrentValue.MetadataAddresses;
+        if (metadataAddresses.Length == 0)
+            throw new InvalidOperationException("Maskinporten:MetadataAddresses must contain at least one address");
 
         var mapping = new Dictionary<string, string>(metadataAddresses.Length);
         using var httpClient = _httpClientFactory.CreateClient();

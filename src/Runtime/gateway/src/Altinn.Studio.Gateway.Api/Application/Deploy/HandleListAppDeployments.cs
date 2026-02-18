@@ -1,6 +1,7 @@
 using Altinn.Studio.Gateway.Api.Clients.K8s;
 using Altinn.Studio.Gateway.Api.Settings;
 using Altinn.Studio.Gateway.Contracts.Deploy;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Gateway.Api.Application;
 
@@ -8,14 +9,15 @@ internal static class HandleListAppDeployments
 {
     internal static async Task<IResult> ListAppDeploymentsHandler(
         string originEnvironment,
-        GatewayContext gatewayContext,
+        IOptionsMonitor<GatewayContext> gatewayContext,
         HelmReleaseClient helmReleaseClient,
         ILogger<Program> logger,
         CancellationToken cancellationToken
     )
     {
+        var currentGatewayContext = gatewayContext.CurrentValue;
         var labelSelector = HelmReleaseLabelSelector.ForOrgAndSourceEnvironment(
-            gatewayContext.ServiceOwner,
+            currentGatewayContext.ServiceOwner,
             originEnvironment
         );
 
@@ -32,7 +34,7 @@ internal static class HandleListAppDeployments
             if (
                 !HelmReleaseMapping.TryCreateAppDeployment(
                     helmRelease,
-                    gatewayContext.Environment,
+                    currentGatewayContext.Environment,
                     out var deployment,
                     out var error
                 )

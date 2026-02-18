@@ -10,7 +10,6 @@ using Altinn.Studio.Gateway.Api.Settings;
 using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.Query.Logs;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Gateway.Api.Hosting;
@@ -59,14 +58,10 @@ internal static class GatewayExtensions
             .Services.AddOptions<MetricsClientSettings>()
             .Bind(builder.Configuration.GetSection("MetricsClientSettings"))
             .ValidateOnStart();
-        builder.Services.Configure<GatewayContext>(builder.Configuration.GetSection("Gateway"));
-
-        // Register class itself as scoped to avoid using IOptions interfaces throughout the codebase
-        // Avoided singleton registration to support dynamic reloading of configuration
-        builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<GrafanaSettings>>().Value);
-        builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<GatewayContext>>().Value);
-        builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<AlertsClientSettings>>().Value);
-        builder.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<MetricsClientSettings>>().Value);
+        builder
+            .Services.AddOptions<GatewayContext>()
+            .Bind(builder.Configuration.GetSection("Gateway"))
+            .ValidateOnStart();
 
         builder.Services.AddKeyedTransient<IAlertsClient>(
             AlertsClientSettings.AlertsClientProvider.Grafana,

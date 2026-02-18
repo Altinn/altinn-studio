@@ -2,22 +2,24 @@ using Altinn.Studio.Gateway.Api.Clients.K8s;
 using Altinn.Studio.Gateway.Api.Clients.MetricsClient;
 using Altinn.Studio.Gateway.Api.Settings;
 using Altinn.Studio.Gateway.Contracts.Metrics;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Gateway.Api.Application;
 
 internal static class HandleMetrics
 {
     internal static async Task<IResult> GetErrorMetrics(
-        GatewayContext gatewayContext,
+        IOptionsMonitor<GatewayContext> gatewayContext,
         IServiceProvider serviceProvider,
-        MetricsClientSettings metricsClientSettings,
+        IOptionsMonitor<MetricsClientSettings> metricsClientSettings,
         int range,
         CancellationToken cancellationToken
     )
     {
         IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
-            metricsClientSettings.Provider
+            metricsClientSettings.CurrentValue.Provider
         );
+        var currentGatewayContext = gatewayContext.CurrentValue;
 
         var now = DateTimeOffset.UtcNow;
         var from = now.AddMinutes(-range);
@@ -29,9 +31,9 @@ internal static class HandleMetrics
             AppName = metric.AppName,
             Count = metric.Count,
             LogsUrl = metricsClient.GetLogsUrl(
-                gatewayContext.AzureSubscriptionId,
-                gatewayContext.ServiceOwner,
-                gatewayContext.Environment,
+                currentGatewayContext.AzureSubscriptionId,
+                currentGatewayContext.ServiceOwner,
+                currentGatewayContext.Environment,
                 [metric.AppName],
                 metric.Name,
                 from,
@@ -44,14 +46,14 @@ internal static class HandleMetrics
 
     internal static async Task<IResult> GetAppMetrics(
         IServiceProvider serviceProvider,
-        MetricsClientSettings metricsClientSettings,
+        IOptionsMonitor<MetricsClientSettings> metricsClientSettings,
         string app,
         int range,
         CancellationToken cancellationToken
     )
     {
         IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
-            metricsClientSettings.Provider
+            metricsClientSettings.CurrentValue.Provider
         );
 
         var amMetrics = await metricsClient.GetAppMetrics(app, range, cancellationToken);
@@ -70,17 +72,18 @@ internal static class HandleMetrics
     }
 
     internal static async Task<IResult> GetAppErrorMetrics(
-        GatewayContext gatewayContext,
+        IOptionsMonitor<GatewayContext> gatewayContext,
         IServiceProvider serviceProvider,
-        MetricsClientSettings metricsClientSettings,
+        IOptionsMonitor<MetricsClientSettings> metricsClientSettings,
         string app,
         int range,
         CancellationToken cancellationToken
     )
     {
         IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
-            metricsClientSettings.Provider
+            metricsClientSettings.CurrentValue.Provider
         );
+        var currentGatewayContext = gatewayContext.CurrentValue;
 
         var now = DateTimeOffset.UtcNow;
         var from = now.AddMinutes(-range);
@@ -96,9 +99,9 @@ internal static class HandleMetrics
                 Count = dataPoint.Count,
             }),
             LogsUrl = metricsClient.GetLogsUrl(
-                gatewayContext.AzureSubscriptionId,
-                gatewayContext.ServiceOwner,
-                gatewayContext.Environment,
+                currentGatewayContext.AzureSubscriptionId,
+                currentGatewayContext.ServiceOwner,
+                currentGatewayContext.Environment,
                 [app],
                 failedRequest.Name,
                 from,
