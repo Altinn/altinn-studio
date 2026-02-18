@@ -2,7 +2,7 @@ using k8s;
 
 namespace Altinn.Studio.Gateway.Api.Clients.K8s;
 
-internal sealed class OciRepositoryClient(IKubernetes kubernetes, TimeProvider timeProvider)
+internal sealed class OciRepositoryClient(IKubernetes _kubernetes, TimeProvider _timeProvider)
 {
     private const string Group = "source.toolkit.fluxcd.io";
     private const string Version = "v1";
@@ -10,9 +10,9 @@ internal sealed class OciRepositoryClient(IKubernetes kubernetes, TimeProvider t
 
     public async Task TriggerReconcile(string name, string @namespace, CancellationToken cancellationToken = default)
     {
-        var patch = FluxReconcileHelper.CreateReconcilePatch(timeProvider);
+        var patch = FluxReconcileHelper.CreateReconcilePatch(_timeProvider);
 
-        await kubernetes.CustomObjects.PatchNamespacedCustomObjectAsync(
+        await _kubernetes.CustomObjects.PatchNamespacedCustomObjectAsync(
             patch,
             Group,
             Version,

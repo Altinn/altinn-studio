@@ -7,7 +7,7 @@ namespace Altinn.Studio.Gateway.Api.Clients.K8s;
 /// <summary>
 /// Service for interacting with HelmRelease resources in Kubernetes
 /// </summary>
-internal sealed class HelmReleaseClient(IKubernetes kubernetes)
+internal sealed class HelmReleaseClient(IKubernetes _kubernetes)
 {
     private const string HelmReleaseGroup = "helm.toolkit.fluxcd.io";
     private const string HelmReleaseVersion = "v2";
@@ -24,7 +24,7 @@ internal sealed class HelmReleaseClient(IKubernetes kubernetes)
     {
         try
         {
-            var obj = await kubernetes.CustomObjects.GetNamespacedCustomObjectAsync(
+            var obj = await _kubernetes.CustomObjects.GetNamespacedCustomObjectAsync(
                 HelmReleaseGroup,
                 HelmReleaseVersion,
                 @namespace,
@@ -65,7 +65,7 @@ internal sealed class HelmReleaseClient(IKubernetes kubernetes)
         CancellationToken cancellationToken = default
     )
     {
-        var obj = await kubernetes.CustomObjects.ListNamespacedCustomObjectAsync(
+        var obj = await _kubernetes.CustomObjects.ListNamespacedCustomObjectAsync(
             HelmReleaseGroup,
             HelmReleaseVersion,
             @namespace,

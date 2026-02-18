@@ -25,10 +25,10 @@ internal sealed class IssuerSchemeCache
 }
 
 internal sealed class IssuerSchemeCacheInitializer(
-    IssuerSchemeCache cache,
-    IConfiguration configuration,
-    IHttpClientFactory httpClientFactory,
-    ILogger<IssuerSchemeCacheInitializer> logger
+    IssuerSchemeCache _cache,
+    IConfiguration _configuration,
+    IHttpClientFactory _httpClientFactory,
+    ILogger<IssuerSchemeCacheInitializer> _logger
 ) : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -38,11 +38,11 @@ internal sealed class IssuerSchemeCacheInitializer(
         cancellationToken = cts.Token;
 
         var metadataAddresses =
-            configuration.GetSection("Maskinporten:MetadataAddresses").Get<string[]>()
+            _configuration.GetSection("Maskinporten:MetadataAddresses").Get<string[]>()
             ?? throw new InvalidOperationException("Maskinporten:MetadataAddresses configuration is required");
 
         var mapping = new Dictionary<string, string>(metadataAddresses.Length);
-        using var httpClient = httpClientFactory.CreateClient();
+        using var httpClient = _httpClientFactory.CreateClient();
 
         for (var i = 0; i < metadataAddresses.Length; i++)
         {
@@ -64,10 +64,10 @@ internal sealed class IssuerSchemeCacheInitializer(
                 );
 
             mapping[issuer] = schemeName;
-            logger.LogInformation("Mapped issuer {Issuer} to authentication scheme {Scheme}", issuer, schemeName);
+            _logger.LogInformation("Mapped issuer {Issuer} to authentication scheme {Scheme}", issuer, schemeName);
         }
 
-        cache.Initialize(mapping.ToFrozenDictionary());
+        _cache.Initialize(mapping.ToFrozenDictionary());
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

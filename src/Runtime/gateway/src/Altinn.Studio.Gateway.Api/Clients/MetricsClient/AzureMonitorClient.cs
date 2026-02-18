@@ -10,7 +10,7 @@ using Azure.ResourceManager.OperationalInsights;
 
 namespace Altinn.Studio.Gateway.Api.Clients.MetricsClient;
 
-internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQueryClient logsQueryClient)
+internal sealed class AzureMonitorClient(GatewayContext _gatewayContext, LogsQueryClient _logsQueryClient)
     : IMetricsClient
 {
     private ResourceIdentifier? _workspaceId;
@@ -47,9 +47,9 @@ internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQuer
     private ResourceIdentifier GetApplicationLogAnalyticsWorkspaceId()
     {
         return _workspaceId ??= OperationalInsightsWorkspaceResource.CreateResourceIdentifier(
-            gatewayContext.AzureSubscriptionId,
-            $"monitor-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-rg",
-            $"application-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-law"
+            _gatewayContext.AzureSubscriptionId,
+            $"monitor-{_gatewayContext.ServiceOwner}-{_gatewayContext.Environment}-rg",
+            $"application-{_gatewayContext.ServiceOwner}-{_gatewayContext.Environment}-law"
         );
     }
 
@@ -69,7 +69,7 @@ internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQuer
                 | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
                 | summarize Count = count() by AppRoleName, OperationName";
 
-        Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
+        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
             logAnalyticsWorkspaceId,
             query,
             new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
@@ -122,7 +122,7 @@ internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQuer
                 | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
-        Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
+        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
             logAnalyticsWorkspaceId,
             query,
             new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
@@ -174,7 +174,7 @@ internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQuer
                 | summarize Count = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
-        Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
+        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
             logAnalyticsWorkspaceId,
             query,
             new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
