@@ -20,11 +20,7 @@ internal sealed class HelmReleaseClient(IKubernetes kubernetes)
     /// <param name="namespace">Namespace of the HelmRelease</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>HelmRelease if exists, or null if not found</returns>
-    public async Task<HelmRelease?> GetAsync(
-        string name,
-        string @namespace,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<HelmRelease?> Get(string name, string @namespace, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -62,7 +58,7 @@ internal sealed class HelmReleaseClient(IKubernetes kubernetes)
     /// <returns>
     /// A list of HelmReleases. The list is empty if no HelmReleases match.
     /// </returns>
-    public async Task<IReadOnlyList<HelmRelease>> ListAsync(
+    public async Task<IReadOnlyList<HelmRelease>> List(
         string @namespace,
         string? fieldSelector = null,
         string? labelSelector = null,

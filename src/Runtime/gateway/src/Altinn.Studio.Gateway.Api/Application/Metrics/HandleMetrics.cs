@@ -7,7 +7,7 @@ namespace Altinn.Studio.Gateway.Api.Application;
 
 internal static class HandleMetrics
 {
-    internal static async Task<IResult> GetErrorMetricsAsync(
+    internal static async Task<IResult> GetErrorMetrics(
         GatewayContext gatewayContext,
         IServiceProvider serviceProvider,
         MetricsClientSettings metricsClientSettings,
@@ -22,7 +22,7 @@ internal static class HandleMetrics
         var now = DateTimeOffset.UtcNow;
         var from = now.AddMinutes(-range);
 
-        var amFailedRequests = await metricsClient.GetFailedRequestsAsync(range, cancellationToken);
+        var amFailedRequests = await metricsClient.GetFailedRequests(range, cancellationToken);
         var metrics = amFailedRequests.Select(metric => new ErrorMetric
         {
             Name = metric.Name,
@@ -42,7 +42,7 @@ internal static class HandleMetrics
         return Results.Ok(metrics);
     }
 
-    internal static async Task<IResult> GetAppMetricsAsync(
+    internal static async Task<IResult> GetAppMetrics(
         IServiceProvider serviceProvider,
         MetricsClientSettings metricsClientSettings,
         string app,
@@ -54,7 +54,7 @@ internal static class HandleMetrics
             metricsClientSettings.Provider
         );
 
-        var amMetrics = await metricsClient.GetAppMetricsAsync(app, range, cancellationToken);
+        var amMetrics = await metricsClient.GetAppMetrics(app, range, cancellationToken);
 
         var metrics = amMetrics.Select(metric => new AppMetric
         {
@@ -69,7 +69,7 @@ internal static class HandleMetrics
         return Results.Ok(metrics);
     }
 
-    internal static async Task<IResult> GetAppErrorMetricsAsync(
+    internal static async Task<IResult> GetAppErrorMetrics(
         GatewayContext gatewayContext,
         IServiceProvider serviceProvider,
         MetricsClientSettings metricsClientSettings,
@@ -85,7 +85,7 @@ internal static class HandleMetrics
         var now = DateTimeOffset.UtcNow;
         var from = now.AddMinutes(-range);
 
-        var amFailedRequests = await metricsClient.GetAppFailedRequestsAsync(app, range, cancellationToken);
+        var amFailedRequests = await metricsClient.GetAppFailedRequests(app, range, cancellationToken);
 
         var metrics = amFailedRequests.Select(failedRequest => new AppErrorMetric
         {
@@ -109,13 +109,13 @@ internal static class HandleMetrics
         return Results.Ok(metrics);
     }
 
-    internal static async Task<IResult> GetAppHealthMetricsAsync(
+    internal static async Task<IResult> GetAppHealthMetrics(
         PodsClient podsClient,
         string app,
         CancellationToken cancellationToken
     )
     {
-        var readyPodsCount = await podsClient.GetReadyPodsCountAsync(app, cancellationToken);
+        var readyPodsCount = await podsClient.GetReadyPodsCount(app, cancellationToken);
 
         var metrics = new List<AppHealthMetric>
         {

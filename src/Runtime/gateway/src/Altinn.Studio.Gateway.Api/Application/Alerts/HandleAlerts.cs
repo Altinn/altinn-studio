@@ -10,7 +10,7 @@ namespace Altinn.Studio.Gateway.Api.Application;
 
 internal static class HandleAlerts
 {
-    internal static async Task<IResult> GetAlertRulesAsync(
+    internal static async Task<IResult> GetAlertRules(
         IServiceProvider serviceProvider,
         AlertsClientSettings alertsClientSettings,
         CancellationToken cancellationToken
@@ -18,7 +18,7 @@ internal static class HandleAlerts
     {
         IAlertsClient client = serviceProvider.GetRequiredKeyedService<IAlertsClient>(alertsClientSettings.Provider);
 
-        IEnumerable<GrafanaAlertRule> alertRules = await client.GetAlertRulesAsync(cancellationToken);
+        IEnumerable<GrafanaAlertRule> alertRules = await client.GetAlertRules(cancellationToken);
 
         return Results.Ok(
             alertRules?.Select(alert =>
@@ -40,7 +40,7 @@ internal static class HandleAlerts
         );
     }
 
-    internal static async Task<IResult> NotifyAlertsUpdatedAsync(
+    internal static async Task<IResult> NotifyAlertsUpdated(
         GatewayContext gatewayContext,
         IServiceProvider serviceProvider,
         MetricsClientSettings metricsClientSettings,
@@ -110,7 +110,7 @@ internal static class HandleAlerts
             LogsUrl = logsUrl,
         };
 
-        await designerClient.NotifyAlertsUpdatedAsync(alert, environment, cancellationToken);
+        await designerClient.NotifyAlertsUpdated(alert, environment, cancellationToken);
 
         return Results.Ok();
     }

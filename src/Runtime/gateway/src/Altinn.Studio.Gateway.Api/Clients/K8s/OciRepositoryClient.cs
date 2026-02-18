@@ -8,11 +8,7 @@ internal sealed class OciRepositoryClient(IKubernetes kubernetes, TimeProvider t
     private const string Version = "v1";
     private const string Plural = "ocirepositories";
 
-    public async Task TriggerReconcileAsync(
-        string name,
-        string @namespace,
-        CancellationToken cancellationToken = default
-    )
+    public async Task TriggerReconcile(string name, string @namespace, CancellationToken cancellationToken = default)
     {
         var patch = FluxReconcileHelper.CreateReconcilePatch(timeProvider);
 

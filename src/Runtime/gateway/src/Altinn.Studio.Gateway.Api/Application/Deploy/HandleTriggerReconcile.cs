@@ -23,8 +23,8 @@ internal static class HandleTriggerReconcile
         {
             try
             {
-                await ociRepositoryClient.TriggerReconcileAsync(app, DefaultNamespace, cancellationToken);
-                await kustomizationClient.TriggerReconcileAsync(app, DefaultNamespace, cancellationToken);
+                await ociRepositoryClient.TriggerReconcile(app, DefaultNamespace, cancellationToken);
+                await kustomizationClient.TriggerReconcile(app, DefaultNamespace, cancellationToken);
 
                 logger.LogInformation(
                     "Triggered reconciliation for app {App} (originEnv: {OriginEnv})",
@@ -48,8 +48,8 @@ internal static class HandleTriggerReconcile
 
         var (ociRepoName, kustomizationName) = GetSyncRootNames(originEnvironment);
 
-        await ociRepositoryClient.TriggerReconcileAsync(ociRepoName, DefaultNamespace, cancellationToken);
-        await kustomizationClient.TriggerReconcileAsync(kustomizationName, DefaultNamespace, cancellationToken);
+        await ociRepositoryClient.TriggerReconcile(ociRepoName, DefaultNamespace, cancellationToken);
+        await kustomizationClient.TriggerReconcile(kustomizationName, DefaultNamespace, cancellationToken);
 
         logger.LogInformation(
             "Triggered reconciliation for syncroot {OciRepo}/{Kustomization} (originEnv: {OriginEnv})",

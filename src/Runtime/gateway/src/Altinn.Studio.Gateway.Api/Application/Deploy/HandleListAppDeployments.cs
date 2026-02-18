@@ -19,7 +19,7 @@ internal static class HandleListAppDeployments
             originEnvironment
         );
 
-        var helmReleases = await helmReleaseClient.ListAsync(
+        var helmReleases = await helmReleaseClient.List(
             "default",
             labelSelector: labelSelector,
             cancellationToken: cancellationToken

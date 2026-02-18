@@ -8,7 +8,7 @@ internal sealed class PodsClient(IKubernetes client, IOptionsMonitor<GatewayCont
 {
     private GatewayContext _gatewayContext => gatewayContextMonitor.CurrentValue;
 
-    public async Task<double> GetReadyPodsCountAsync(string app, CancellationToken cancellationToken)
+    public async Task<double> GetReadyPodsCount(string app, CancellationToken cancellationToken)
     {
         string org = _gatewayContext.ServiceOwner;
 

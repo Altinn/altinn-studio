@@ -70,7 +70,7 @@ internal static class FluxWebhookEndpoints
             return Results.Ok();
         }
 
-        var info = await TryResolveHelmReleaseInfoAsync(
+        var info = await TryResolveHelmReleaseInfo(
             helmReleaseClient,
             helmReleaseName,
             helmReleaseNamespace,
@@ -125,7 +125,7 @@ internal static class FluxWebhookEndpoints
         return Results.Ok();
     }
 
-    private static async Task<HelmReleaseInfo?> TryResolveHelmReleaseInfoAsync(
+    private static async Task<HelmReleaseInfo?> TryResolveHelmReleaseInfo(
         HelmReleaseClient helmReleaseClient,
         string helmReleaseName,
         string helmReleaseNamespace,
@@ -133,7 +133,7 @@ internal static class FluxWebhookEndpoints
         CancellationToken cancellationToken
     )
     {
-        var helmRelease = await helmReleaseClient.GetAsync(helmReleaseName, helmReleaseNamespace, cancellationToken);
+        var helmRelease = await helmReleaseClient.Get(helmReleaseName, helmReleaseNamespace, cancellationToken);
         if (helmRelease is not null)
         {
             var labels = helmRelease.GetLabels();

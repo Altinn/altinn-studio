@@ -12,7 +12,7 @@ internal sealed class DesignerClient(
     private GatewayContext _gatewayContext => gatewayContextMonitor.CurrentValue;
 
     /// <inheritdoc />
-    public async Task NotifyAlertsUpdatedAsync(Alert alert, string environment, CancellationToken cancellationToken)
+    public async Task NotifyAlertsUpdated(Alert alert, string environment, CancellationToken cancellationToken)
     {
         var httpClient = httpClientFactory.CreateClient(environment);
         string org = _gatewayContext.ServiceOwner;

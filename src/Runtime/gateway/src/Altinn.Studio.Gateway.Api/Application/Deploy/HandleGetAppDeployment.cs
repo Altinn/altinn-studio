@@ -16,7 +16,7 @@ internal static class HandleGetAppDeployment
     {
         var helmReleaseName = HelmReleaseNameHelper.Generate(gatewayContext.ServiceOwner, app, originEnvironment);
 
-        var helmRelease = await helmReleaseClient.GetAsync(helmReleaseName, "default", cancellationToken);
+        var helmRelease = await helmReleaseClient.Get(helmReleaseName, "default", cancellationToken);
 
         if (helmRelease is null)
             return Results.NotFound();
