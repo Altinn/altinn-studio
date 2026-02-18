@@ -1,0 +1,33 @@
+name: Construct Environments Script - Test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - ".github/scripts/construct-environments.mjs"
+      - ".github/scripts/construct-environments.test.mjs"
+      - ".github/workflows/construct-environments-script-test.yaml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run node tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts
+
+      - name: Setup Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "22"
+          package-manager-cache: false
+
+      - name: Test construct environments script
+        run: node --test .github/scripts/construct-environments.test.mjs

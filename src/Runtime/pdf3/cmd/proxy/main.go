@@ -24,7 +24,8 @@ import (
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 func main() {
@@ -56,7 +57,7 @@ func main() {
 
 	httpClient := &http.Client{
 		Timeout:   types.RequestTimeout(),
-		Transport: otelhttp.NewTransport(http.DefaultTransport),
+		Transport: http.DefaultTransport,
 	}
 
 	// Setup HTTP server
@@ -282,6 +283,10 @@ func callWorker(
 		return true
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
+	// Propagate trace context so the worker spans link to the proxy's parent span.
+	// Done manually because we don't use otelhttp.NewTransport (it would mark each
+	// retried 429 response as a span error, creating false error noise).
+	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(httpReq.Header))
 	if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
 		testing.CopyTestInput(httpReq.Header, r.Header)
 	}
