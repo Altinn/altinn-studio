@@ -16,6 +16,7 @@
   ],
   "separateMinorPatch": true,
   "separateMultipleMajor": true,
+  "postUpdateOptions": ["gomodTidy"],
   "packageRules": [
     {
       "description": "Disable minimum release age checks for digest updates",

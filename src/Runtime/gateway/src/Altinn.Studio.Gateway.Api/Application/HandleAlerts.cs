@@ -41,35 +41,68 @@ internal static class HandleAlerts
     }
 
     internal static async Task<IResult> NotifyAlertsUpdatedAsync(
+        GatewayContext gatewayContext,
+        IServiceProvider serviceProvider,
+        MetricsClientSettings metricsClientSettings,
         DesignerClient designerClient,
         AlertPayload alertPayload,
         CancellationToken cancellationToken,
-        string environment = AltinnEnvironments.Prod
+        string environment = "prod"
     )
     {
-        var alerts = alertPayload
-            .Alerts.Where(a =>
-            {
-                var ruleId = a.Labels.GetValueOrDefault("RuleId");
-                return !string.IsNullOrEmpty(ruleId) && AzureMonitorClient.OperationNameKeys.Contains(ruleId);
-            })
-            .GroupBy(a => a.Labels["alertname"])
-            .Select(alerts =>
-            {
-                return new Alert
-                {
-                    Id = alerts.First().Labels["RuleId"],
-                    Name = alerts.Key,
-                    Alerts = alerts.Select(a => new AlertInstance
-                    {
-                        Status = a.Status,
-                        App = a.Labels.GetValueOrDefault("cloud_RoleName", "unknown"),
-                    }),
-                    URL = alerts.First().GeneratorURL,
-                };
-            });
+        IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
+            metricsClientSettings.Provider
+        );
 
-        await designerClient.NotifyAlertsUpdatedAsync(alerts, environment, cancellationToken);
+        var firstAlert = alertPayload.Alerts.FirstOrDefault();
+        if (firstAlert is null)
+        {
+            return Results.BadRequest();
+        }
+
+        var ruleId = firstAlert.Annotations.GetValueOrDefault("ruleId");
+        if (string.IsNullOrEmpty(ruleId) || !AzureMonitorClient.OperationNameKeys.Contains(ruleId))
+        {
+            return Results.BadRequest();
+        }
+
+        var alerts = alertPayload.Alerts.Select(alertInstance => new AlertInstance
+        {
+            Status = alertInstance.Status,
+            App = alertInstance.Labels.GetValueOrDefault("cloud_RoleName", string.Empty),
+        }).Where(alertInstance => !string.IsNullOrEmpty(alertInstance.App)).ToList();
+
+        if (alerts.Count == 0)
+        {
+            return Results.BadRequest();
+        }
+
+        int? intervalInMinutes = int.TryParse(firstAlert.Annotations.GetValueOrDefault("intervalInMinutes"), out var interval) ? interval : null;
+        var to = DateTimeOffset.UtcNow;
+        var from = intervalInMinutes.HasValue ? to.AddMinutes(-intervalInMinutes.Value) : to.AddMinutes(-5);
+        var apps = alerts.Select(alertInstance => alertInstance.App).ToList();
+
+        var logsUrl = metricsClient.GetLogsUrl(
+            gatewayContext.AzureSubscriptionId,
+            gatewayContext.ServiceOwner,
+            gatewayContext.Environment,
+            apps,
+            ruleId,
+            from,
+            to
+        );
+
+        var alert = new Alert
+        {
+            Id = firstAlert.Fingerprint,
+            RuleId = ruleId,
+            Name = firstAlert.Labels.GetValueOrDefault("alertname", string.Empty),
+            Alerts = alerts,
+            Url = firstAlert.GeneratorURL,
+            LogsUrl = logsUrl,
+        };
+
+        await designerClient.NotifyAlertsUpdatedAsync(alert, environment, cancellationToken);
 
         return Results.Ok();
     }

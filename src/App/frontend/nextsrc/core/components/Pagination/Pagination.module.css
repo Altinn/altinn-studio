@@ -1,0 +1,16 @@
+.hidden {
+  visibility: hidden;
+}
+.pagination {
+  ul[class*='ds-pagination'] {
+    padding: 0;
+  }
+}
+.rowsPerPageDropdown {
+  width: var(--ds-size-22);
+}
+
+.rowsPerPageField {
+  display: flex;
+  gap: var(--ds-size-2);
+}
