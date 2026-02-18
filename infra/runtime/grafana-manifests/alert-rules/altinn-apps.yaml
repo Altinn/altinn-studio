@@ -101,6 +101,7 @@ spec:
         __dashboardUid__: AltinnApps
         __panelId__: "14"
         ruleId: failed_process_next_requests
+        intervalInMinutes: "5"
       labels:
         Type: Altinn
       isPaused: false
@@ -197,6 +198,7 @@ spec:
         __dashboardUid__: AltinnApps
         __panelId__: "14"
         ruleId: failed_instance_creation_requests
+        intervalInMinutes: "5"
       labels:
         Type: Altinn
       isPaused: false
