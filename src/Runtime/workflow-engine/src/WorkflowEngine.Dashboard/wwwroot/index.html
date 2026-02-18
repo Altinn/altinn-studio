@@ -57,10 +57,12 @@
     <div class="section-title collapsible" onclick="toggleSection('scheduled-section')"><span class="chevron">&#9656;</span>SCHEDULED
       <span class="section-chips" data-section="scheduled" onclick="event.stopPropagation()">
         <button class="chip active" data-status="">All</button>
-        <button class="chip" data-status="soon">Soon</button>
+        <button class="chip" data-status="10s">10s</button>
+        <button class="chip" data-status="1m">1m</button>
+        <button class="chip" data-status="5m">5m</button>
         <button class="chip" data-status="later">Later</button>
       </span>
-      <span class="view-toggle" onclick="event.stopPropagation()"><button onclick="collapseAll('scheduled')" title="Collapse all">&#8863;</button><button onclick="expandAll('scheduled')" title="Expand all">&#8862;</button></span>
+      <span class="view-toggle" onclick="event.stopPropagation()"><button onclick="collapseAll('scheduled')">Compact</button><button onclick="fullAll('scheduled')">Full</button></span>
     </div>
     <div class="section-body" id="scheduled-workflows"></div>
   </div>
@@ -72,7 +74,7 @@
         <button class="chip" data-status="processing">Processing</button>
         <button class="chip" data-status="retrying">Retrying</button>
       </span>
-      <span class="view-toggle" onclick="event.stopPropagation()"><button onclick="collapseAll('inbox')" title="Collapse all">&#8863;</button><button onclick="expandAll('inbox')" title="Expand all">&#8862;</button></span>
+      <span class="view-toggle" onclick="event.stopPropagation()"><button onclick="collapseAll('inbox')">Compact</button><button onclick="fullAll('inbox')">Full</button></span>
     </div>
     <div class="section-body">
       <div id="live-workflows"></div>
@@ -87,7 +89,7 @@
         <button class="chip" data-status="completed">Completed</button>
         <button class="chip" data-status="failed">Failed</button>
       </span>
-      <span class="view-toggle" onclick="event.stopPropagation()"><button onclick="collapseAll('recent')" title="Collapse all">&#8863;</button><button onclick="expandAll('recent')" title="Expand all">&#8862;</button></span>
+      <span class="view-toggle" onclick="event.stopPropagation()"><button onclick="collapseAll('recent')">Compact</button><button onclick="fullAll('recent')">Full</button></span>
     </div>
     <div class="section-body">
       <div id="recent-workflows"></div>
@@ -98,15 +100,57 @@
 
 <div class="tab-panel" id="panel-history">
   <div class="section">
-    <div class="section-title">HISTORY
-      <span class="section-chips" data-section="history">
-        <button class="chip active" data-status="">All</button>
-        <button class="chip" data-status="completed">Completed</button>
-        <button class="chip" data-status="failed">Failed</button>
-        <button class="chip" data-status="retrying">Retrying</button>
+    <div class="section-title">
+      <span class="section-chips history-toggle" data-section="history">
+        <button class="chip active" data-status="completed">Completed</button>
+        <button class="chip active" data-status="failed">Failed</button>
       </span>
-      <button class="tab-reload" id="history-load" onclick="loadHistory()" title="Reload"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg></button>
-      <span class="view-toggle"><button onclick="collapseAll('history')" title="Collapse all">&#8863;</button><button onclick="expandAll('history')" title="Expand all">&#8862;</button></span>
+      <div class="chip-sep"></div>
+      <div class="time-range-group">
+        <button class="time-range-btn" id="time-range-btn" onclick="toggleTimeDropdown()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span id="time-range-label">All time</span>
+          <svg width="8" height="8" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="time-dropdown" id="time-dropdown">
+          <div class="time-option active" data-minutes="0">All time</div>
+          <div class="time-option" data-minutes="5">Last 5 minutes</div>
+          <div class="time-option" data-minutes="15">Last 15 minutes</div>
+          <div class="time-option" data-minutes="30">Last 30 minutes</div>
+          <div class="time-option" data-minutes="60">Last 1 hour</div>
+          <div class="time-option" data-minutes="360">Last 6 hours</div>
+          <div class="time-option" data-minutes="1440">Last 24 hours</div>
+          <div class="time-option" data-minutes="10080">Last 7 days</div>
+          <div class="time-sep"></div>
+          <div class="time-option" data-minutes="custom">Custom range</div>
+          <div class="time-custom" id="time-custom" style="display:none">
+            <label>From<input type="datetime-local" id="time-from"></label>
+            <label>To<input type="datetime-local" id="time-to"></label>
+            <button class="time-apply" onclick="applyCustomTimeRange()">Apply</button>
+          </div>
+        </div>
+      </div>
+      <div class="chip-sep"></div>
+      <label class="retried-toggle" title="Only show workflows where steps were retried"><input type="checkbox" id="retried-check" onchange="toggleRetried()"><span>Has retries</span></label>
+      <div class="chip-sep"></div>
+      <div class="refresh-group">
+        <button class="tab-reload" id="history-load" onclick="loadHistory()" title="Reload"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg></button>
+        <button class="refresh-dropdown-btn" id="refresh-dropdown-btn" onclick="toggleRefreshDropdown()" title="Auto-refresh interval"><span id="refresh-interval-label"></span><svg width="8" height="8" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="refresh-dropdown" id="refresh-dropdown">
+          <div class="refresh-option active" data-interval="0">Off</div>
+          <div class="refresh-option" data-interval="5">5s</div>
+          <div class="refresh-option" data-interval="10">10s</div>
+          <div class="refresh-option" data-interval="30">30s</div>
+          <div class="refresh-option" data-interval="60">1m</div>
+          <div class="refresh-option" data-interval="300">5m</div>
+        </div>
+      </div>
+      <div class="history-pager" id="history-pager" style="display:none">
+        <button class="pager-btn" id="pager-prev" onclick="historyPrev()" title="Previous page" disabled><svg width="10" height="10" viewBox="0 0 10 10"><path d="M7 1L3 5l4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <span class="pager-info" id="pager-info"></span>
+        <button class="pager-btn" id="pager-next" onclick="historyNext()" title="Next page"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <span class="view-toggle"><button onclick="collapseAll('history')">Compact</button><button onclick="fullAll('history')">Full</button></span>
     </div>
     <div id="history-workflows"></div>
     <div class="empty-state" id="history-empty">Click Load to fetch history</div>

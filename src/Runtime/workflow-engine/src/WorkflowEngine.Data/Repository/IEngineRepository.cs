@@ -42,6 +42,23 @@ public interface IEngineRepository
         IReadOnlyList<PersistentItemStatus> statuses,
         string? search = null,
         int? take = null,
+        DateTimeOffset? before = null,
+        DateTimeOffset? since = null,
+        bool retriedOnly = false,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets finished workflows with a total count of matching rows (single DB slot).
+    /// The count ignores the <paramref name="take"/> and <paramref name="before"/> (cursor) parameters.
+    /// </summary>
+    Task<(IReadOnlyList<Workflow> Workflows, int TotalCount)> GetFinishedWorkflowsWithCount(
+        IReadOnlyList<PersistentItemStatus> statuses,
+        string? search = null,
+        int? take = null,
+        DateTimeOffset? before = null,
+        DateTimeOffset? since = null,
+        bool retriedOnly = false,
         CancellationToken cancellationToken = default
     );
 

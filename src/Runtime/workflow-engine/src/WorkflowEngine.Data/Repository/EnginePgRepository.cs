@@ -165,6 +165,9 @@ internal sealed class EnginePgRepository : IEngineRepository
         IReadOnlyList<PersistentItemStatus> statuses,
         string? search = null,
         int? take = null,
+        DateTimeOffset? before = null,
+        DateTimeOffset? since = null,
+        bool retriedOnly = false,
         CancellationToken cancellationToken = default
     )
     {
@@ -176,13 +179,62 @@ internal sealed class EnginePgRepository : IEngineRepository
             _logger.FetchingWorkflows("finished");
 
             var result = await _context
-                .GetFinishedWorkflows(statuses, search, take)
+                .GetFinishedWorkflows(statuses, search, take, before, since, retriedOnly)
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
 
             _logger.SuccessfullyFetchedWorkflows(result.Count);
 
             return result;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            _logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<(IReadOnlyList<Workflow> Workflows, int TotalCount)> GetFinishedWorkflowsWithCount(
+        IReadOnlyList<PersistentItemStatus> statuses,
+        string? search = null,
+        int? take = null,
+        DateTimeOffset? before = null,
+        DateTimeOffset? since = null,
+        bool retriedOnly = false,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EnginePgRepository.GetFinishedWorkflowsWithCount");
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            _logger.FetchingWorkflows("finished (with count)");
+
+            // Count uses the base filters (statuses, search, since, retried) but not cursor/take
+            var baseQuery = _context.GetFinishedWorkflows(
+                statuses,
+                search,
+                take: null,
+                before: null,
+                since: since,
+                retriedOnly
+            );
+            var totalCount = await baseQuery.CountAsync(cancellationToken);
+
+            // Data query adds cursor and limit
+            var dataQuery = _context.GetFinishedWorkflows(statuses, search, take, before, since, retriedOnly);
+            var workflows = await dataQuery.ToDomainModel().ToListAsync(cancellationToken);
+
+            _logger.SuccessfullyFetchedWorkflows(workflows.Count);
+
+            return (workflows, totalCount);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -632,10 +684,22 @@ internal static class EnginePgRepositoryQueries
         public IQueryable<WorkflowEntity> GetFinishedWorkflows(
             IReadOnlyList<PersistentItemStatus> statuses,
             string? search = null,
-            int? take = null
+            int? take = null,
+            DateTimeOffset? before = null,
+            DateTimeOffset? since = null,
+            bool retriedOnly = false
         )
         {
             var query = dbContext.Workflows.Include(j => j.Steps).Where(x => statuses.Contains(x.Status));
+
+            if (before.HasValue)
+                query = query.Where(x => x.UpdatedAt < before.Value);
+
+            if (since.HasValue)
+                query = query.Where(x => x.UpdatedAt >= since.Value);
+
+            if (retriedOnly)
+                query = query.Where(x => x.Steps.Any(s => s.RequeueCount > 0));
 
             if (!string.IsNullOrWhiteSpace(search))
             {

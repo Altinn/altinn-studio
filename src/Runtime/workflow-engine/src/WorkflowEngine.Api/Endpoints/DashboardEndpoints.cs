@@ -155,7 +155,7 @@ internal static class DashboardEndpoints
 
                     while (!ct.IsCancellationRequested)
                     {
-                        var recent = engine.GetRecentWorkflows(10);
+                        var recent = engine.GetRecentWorkflows(100);
                         var fingerprint = string.Join(",", recent.Select(r => r.IdempotencyKey));
 
                         if (fingerprint != previousFingerprint)
@@ -208,16 +208,24 @@ internal static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/history",
-                async (IServiceProvider sp, string? status, string? search, int? limit, CancellationToken ct) =>
+                async (
+                    IServiceProvider sp,
+                    string? status,
+                    string? search,
+                    int? limit,
+                    DateTimeOffset? before,
+                    DateTimeOffset? since,
+                    bool? retried,
+                    CancellationToken ct
+                ) =>
                 {
                     using var scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    var maxResults = Math.Min(limit ?? 50, 200);
+                    var maxResults = Math.Min(limit ?? 100, 200);
 
                     var statuses = (status?.ToUpperInvariant()) switch
                     {
                         "FAILED" => new[] { PersistentItemStatus.Failed },
-                        "RETRYING" => new[] { PersistentItemStatus.Requeued },
                         "COMPLETED" => new[] { PersistentItemStatus.Completed },
                         _ => new[]
                         {
@@ -227,44 +235,54 @@ internal static class DashboardEndpoints
                         },
                     };
 
-                    var workflows = await repo.GetFinishedWorkflows(
+                    var retriedOnly = retried == true;
+
+                    var (workflows, totalCount) = await repo.GetFinishedWorkflowsWithCount(
                         statuses: statuses,
                         search: search,
                         take: maxResults,
+                        before: before,
+                        since: since,
+                        retriedOnly: retriedOnly,
                         cancellationToken: ct
                     );
 
-                    var result = workflows.Select(w => new
+                    var result = new
                     {
-                        idempotencyKey = w.IdempotencyKey,
-                        operationId = w.OperationId,
-                        status = w.Status.ToString(),
-                        traceId = w.EngineTraceId ?? w.EngineActivity?.TraceId.ToString(),
-                        instance = new
+                        totalCount,
+                        workflows = workflows.Select(w => new
                         {
-                            org = w.InstanceInformation.Org,
-                            app = w.InstanceInformation.App,
-                            instanceOwnerPartyId = w.InstanceInformation.InstanceOwnerPartyId,
-                            instanceGuid = w.InstanceInformation.InstanceGuid,
-                        },
-                        createdAt = w.CreatedAt,
-                        executionStartedAt = w.ExecutionStartedAt,
-                        steps = w
-                            .Steps.OrderBy(s => s.ProcessingOrder)
-                            .Select(s => new
+                            idempotencyKey = w.IdempotencyKey,
+                            operationId = w.OperationId,
+                            status = w.Status.ToString(),
+                            traceId = w.EngineTraceId ?? w.EngineActivity?.TraceId.ToString(),
+                            instance = new
                             {
-                                idempotencyKey = s.IdempotencyKey,
-                                operationId = s.OperationId,
-                                commandType = s.Command.GetType().Name,
-                                commandDetail = s.Command.OperationId,
-                                status = s.Status.ToString(),
-                                processingOrder = s.ProcessingOrder,
-                                retryCount = s.RequeueCount,
-                                backoffUntil = s.BackoffUntil,
-                                createdAt = s.CreatedAt,
-                                executionStartedAt = s.ExecutionStartedAt,
-                            }),
-                    });
+                                org = w.InstanceInformation.Org,
+                                app = w.InstanceInformation.App,
+                                instanceOwnerPartyId = w.InstanceInformation.InstanceOwnerPartyId,
+                                instanceGuid = w.InstanceInformation.InstanceGuid,
+                            },
+                            createdAt = w.CreatedAt,
+                            updatedAt = w.UpdatedAt,
+                            executionStartedAt = w.ExecutionStartedAt,
+                            steps = w
+                                .Steps.OrderBy(s => s.ProcessingOrder)
+                                .Select(s => new
+                                {
+                                    idempotencyKey = s.IdempotencyKey,
+                                    operationId = s.OperationId,
+                                    commandType = s.Command.GetType().Name,
+                                    commandDetail = s.Command.OperationId,
+                                    status = s.Status.ToString(),
+                                    processingOrder = s.ProcessingOrder,
+                                    retryCount = s.RequeueCount,
+                                    backoffUntil = s.BackoffUntil,
+                                    createdAt = s.CreatedAt,
+                                    executionStartedAt = s.ExecutionStartedAt,
+                                }),
+                        }),
+                    };
 
                     return Results.Json(result, JsonCompact);
                 }
