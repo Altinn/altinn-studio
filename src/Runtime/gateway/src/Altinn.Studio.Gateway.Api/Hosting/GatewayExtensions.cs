@@ -63,14 +63,11 @@ internal static class GatewayExtensions
             .Bind(builder.Configuration.GetSection("Gateway"))
             .ValidateOnStart();
 
-        builder.Services.AddKeyedTransient<IAlertsClient>(
+        builder.Services.AddKeyedSingleton<IAlertsClient>(
             AlertsClientSettings.AlertsClientProvider.Grafana,
-            (serviceProvider, key) =>
+            (serviceProvider, _) =>
             {
-                var factory = serviceProvider.GetRequiredService<IHttpClientFactory>();
-                return new GrafanaClient(
-                    factory.CreateClient(AlertsClientSettings.AlertsClientProvider.Grafana.ToString())
-                );
+                return new GrafanaClient(serviceProvider.GetRequiredService<IHttpClientFactory>());
             }
         );
         builder.Services.AddTransient<GrafanaAuthenticationHandler>();
@@ -84,7 +81,7 @@ internal static class GatewayExtensions
                 }
             )
             .AddHttpMessageHandler<GrafanaAuthenticationHandler>();
-        builder.Services.AddKeyedTransient<IMetricsClient, AzureMonitorClient>(
+        builder.Services.AddKeyedSingleton<IMetricsClient, AzureMonitorClient>(
             MetricsClientSettings.MetricsClientProvider.AzureMonitor
         );
         builder.Services.AddDesignerClients(builder.Configuration);

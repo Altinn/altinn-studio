@@ -13,7 +13,7 @@ internal sealed class DesignerClient(
     public async Task NotifyAlertsUpdated(Alert alert, string environment, CancellationToken cancellationToken)
     {
         var gatewayContext = _gatewayContextMonitor.CurrentValue;
-        var httpClient = _httpClientFactory.CreateClient(environment);
+        using var httpClient = _httpClientFactory.CreateClient(environment);
         string org = gatewayContext.ServiceOwner;
         string env = gatewayContext.Environment;
         Uri requestUrl = new($"designer/api/v1/admin/alerts/{org}/{env}", UriKind.Relative);

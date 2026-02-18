@@ -101,8 +101,8 @@ internal static class FluxWebhookEndpoints
             activity?.SetTag("flux.reason", fluxEvent.Reason);
             activity?.SetTag("flux.build_id", info.BuildId);
 
-            var httpClient = httpClientFactory.CreateClient(info.SourceEnvironment);
-            var response = await httpClient.PostAsJsonAsync(
+            using var httpClient = httpClientFactory.CreateClient(info.SourceEnvironment);
+            using var response = await httpClient.PostAsJsonAsync(
                 $"designer/api/v1/{info.Org}/{info.App}/deployments/webhooks/events",
                 deployEvent,
                 AppJsonSerializerContext.Default.DeployEventRequest,
